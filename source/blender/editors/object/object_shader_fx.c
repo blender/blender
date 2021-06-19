@@ -64,7 +64,9 @@
 
 #include "object_intern.h"
 
-/******************************** API ****************************/
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
 
 ShaderFxData *ED_object_shaderfx_add(
     ReportList *reports, Main *bmain, Scene *UNUSED(scene), Object *ob, const char *name, int type)
@@ -261,7 +263,12 @@ void ED_object_shaderfx_copy(Object *dst, ShaderFxData *fx)
   WM_main_add_notifier(NC_OBJECT | ND_SHADERFX, dst);
 }
 
-/**************** Generic poll callback helpers. ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Poll Callback Helpers
+ * \{ */
+
 static bool edit_shaderfx_poll_generic(bContext *C,
                                        StructRNA *rna_type,
                                        int obtype_flag,
@@ -304,7 +311,11 @@ static bool edit_shaderfx_poll(bContext *C)
   return edit_shaderfx_poll_generic(C, &RNA_ShaderFx, 0, false);
 }
 
-/************************ add effect operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Effect Operator
+ * \{ */
 
 static int shaderfx_add_exec(bContext *C, wmOperator *op)
 {
@@ -473,7 +484,9 @@ static ShaderFxData *edit_shaderfx_property_get(wmOperator *op, Object *ob, int 
 
 /** \} */
 
-/************************ remove shaderfx operator *********************/
+/* -------------------------------------------------------------------- */
+/** \name Remove ShaderFX Operator
+ * \{ */
 
 static int shaderfx_remove_exec(bContext *C, wmOperator *op)
 {
@@ -523,7 +536,11 @@ void OBJECT_OT_shaderfx_remove(wmOperatorType *ot)
   edit_shaderfx_report_property(ot);
 }
 
-/************************ move up shaderfx operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move up ShaderFX Operator
+ * \{ */
 
 static int shaderfx_move_up_exec(bContext *C, wmOperator *op)
 {
@@ -564,7 +581,11 @@ void OBJECT_OT_shaderfx_move_up(wmOperatorType *ot)
   edit_shaderfx_properties(ot);
 }
 
-/************************ move down shaderfx operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move Down ShaderFX Operator
+ * \{ */
 
 static int shaderfx_move_down_exec(bContext *C, wmOperator *op)
 {
@@ -605,7 +626,11 @@ void OBJECT_OT_shaderfx_move_down(wmOperatorType *ot)
   edit_shaderfx_properties(ot);
 }
 
-/************************ move shaderfx to index operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move ShaderFX to Index Operator
+ * \{ */
 
 static int shaderfx_move_to_index_exec(bContext *C, wmOperator *op)
 {
@@ -648,7 +673,11 @@ void OBJECT_OT_shaderfx_move_to_index(wmOperatorType *ot)
       ot->srna, "index", 0, 0, INT_MAX, "Index", "The index to move the effect to", 0, INT_MAX);
 }
 
-/************************ copy shader operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy Shader Operator
+ * \{ */
 
 static int shaderfx_copy_exec(bContext *C, wmOperator *op)
 {
@@ -696,3 +725,5 @@ void OBJECT_OT_shaderfx_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_shaderfx_properties(ot);
 }
+
+/** \} */

@@ -52,7 +52,9 @@
 #include "clip_intern.h"
 #include "tracking_ops_intern.h"
 
-/********************** add marker operator *********************/
+/* -------------------------------------------------------------------- */
+/** \name Add Marker Operator
+ * \{ */
 
 static bool add_marker(const bContext *C, float x, float y)
 {
@@ -147,7 +149,11 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
                        1.0f);
 }
 
-/********************** add marker operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Marker Operator
+ * \{ */
 
 static int add_marker_at_click_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
@@ -212,7 +218,11 @@ void CLIP_OT_add_marker_at_click(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 }
 
-/********************** delete track operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Track Operator
+ * \{ */
 
 static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -265,7 +275,11 @@ void CLIP_OT_delete_track(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** delete marker operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Marker Operator
+ * \{ */
 
 static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -334,7 +348,11 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** slide marker operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Slide Marker Operator
+ * \{ */
 
 enum {
   SLIDE_ACTION_POS = 0,
@@ -1000,7 +1018,11 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
                        FLT_MAX);
 }
 
-/********************** clear track operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Track Operator
+ * \{ */
 
 static int clear_track_path_exec(bContext *C, wmOperator *op)
 {
@@ -1071,7 +1093,11 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
                   "Clear active track only instead of all selected tracks");
 }
 
-/********************** disable markers operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Disable Markers Operator
+ * \{ */
 
 enum {
   MARKER_OP_DISABLE = 0,
@@ -1137,7 +1163,11 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Disable action to execute");
 }
 
-/********************** set principal center operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Principal Center Operator
+ * \{ */
 
 static int set_center_principal_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1174,7 +1204,11 @@ void CLIP_OT_set_center_principal(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** hide tracks operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide Tracks Operator
+ * \{ */
 
 static int hide_tracks_exec(bContext *C, wmOperator *op)
 {
@@ -1241,7 +1275,11 @@ void CLIP_OT_hide_tracks(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected tracks");
 }
 
-/********************** hide tracks clear operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide Tracks Clear Operator
+ * \{ */
 
 static int hide_tracks_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1284,7 +1322,11 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** frame jump operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Frame Jump Operator
+ * \{ */
 
 static bool frame_jump_poll(bContext *C)
 {
@@ -1379,7 +1421,11 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "position", position_items, 0, "Position", "Position to jump to");
 }
 
-/********************** join tracks operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Join Tracks Operator
+ * \{ */
 
 static int join_tracks_exec(bContext *C, wmOperator *op)
 {
@@ -1475,7 +1521,11 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** Average tracks operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Average Tracks Operator
+ * \{ */
 
 static int average_tracks_exec(bContext *C, wmOperator *op)
 {
@@ -1566,7 +1616,11 @@ void CLIP_OT_average_tracks(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/********************** lock tracks operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lock Tracks Operator
+ * \{ */
 
 enum {
   TRACK_ACTION_LOCK = 0,
@@ -1628,7 +1682,11 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Lock action to execute");
 }
 
-/********************** set keyframe operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Keyframe Operator
+ * \{ */
 
 enum {
   SOLVER_KEYFRAME_A = 0,
@@ -1680,7 +1738,11 @@ void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "keyframe", keyframe_items, 0, "Keyframe", "Keyframe to set");
 }
 
-/********************** track copy color operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Track Copy Color Operator
+ * \{ */
 
 static int track_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1725,7 +1787,11 @@ void CLIP_OT_track_copy_color(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** clean tracks operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clean Tracks Operator
+ * \{ */
 
 static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
 {
@@ -1963,7 +2029,11 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
 }
 
-/********************** add tracking object *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Tracking Object
+ * \{ */
 
 static int tracking_object_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1994,7 +2064,11 @@ void CLIP_OT_tracking_object_new(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** remove tracking object *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Tracking Object
+ * \{ */
 
 static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 {
@@ -2033,7 +2107,11 @@ void CLIP_OT_tracking_object_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** copy tracks to clipboard operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy Tracks to Clipboard Operator
+ * \{ */
 
 static int copy_tracks_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2064,7 +2142,11 @@ void CLIP_OT_copy_tracks(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 }
 
-/********************* paste tracks from clipboard operator ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Paste Tracks From Clipboard Operator
+ * \{ */
 
 static bool paste_tracks_poll(bContext *C)
 {
@@ -2106,7 +2188,11 @@ void CLIP_OT_paste_tracks(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** Insert track keyframe operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Insert Track Keyframe Operator
+ * \{ */
 
 static void keyframe_set_flag(bContext *C, bool set)
 {
@@ -2181,7 +2267,11 @@ void CLIP_OT_keyframe_insert(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** Delete track keyframe operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Track Keyframe Operator
+ * \{ */
 
 static int keyframe_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2203,3 +2293,5 @@ void CLIP_OT_keyframe_delete(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
