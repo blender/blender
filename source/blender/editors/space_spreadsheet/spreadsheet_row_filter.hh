@@ -30,6 +30,6 @@ Span<int64_t> spreadsheet_filter_rows(const SpaceSpreadsheet &sspreadsheet,
 
 SpreadsheetRowFilter *spreadsheet_row_filter_new();
 SpreadsheetRowFilter *spreadsheet_row_filter_copy(const SpreadsheetRowFilter *src_row_filter);
-void spreadsheet_row_filter_free(SpreadsheetRowFilter *column);
+void spreadsheet_row_filter_free(SpreadsheetRowFilter *row_filter);
 
 }  // namespace blender::ed::spreadsheet
