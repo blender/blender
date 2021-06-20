@@ -62,12 +62,12 @@
  * \note when mface is not NULL, mface[face_index].v4
  * is used to test quads, else, loopindices[face_index][3] is used.
  */
-void BKE_mesh_loops_to_tessdata(CustomData *fdata,
-                                CustomData *ldata,
-                                MFace *mface,
-                                const int *polyindices,
-                                uint (*loopindices)[4],
-                                const int num_faces)
+static void mesh_loops_to_tessdata(CustomData *fdata,
+                                   CustomData *ldata,
+                                   MFace *mface,
+                                   const int *polyindices,
+                                   uint (*loopindices)[4],
+                                   const int num_faces)
 {
   /* NOTE(mont29): performances are sub-optimal when we get a NULL #MFace,
    * we could be ~25% quicker with dedicated code.
@@ -391,9 +391,9 @@ int BKE_mesh_tessface_calc_ex(CustomData *fdata,
    * Currently, our tfaces' fourth vertex index might be 0 even for a quad.
    * However, we know our fourth loop index is never 0 for quads
    * (because they are sorted for polygons, and our quads are still mere copies of their polygons).
-   * So we pass NULL as MFace pointer, and #BKE_mesh_loops_to_tessdata
+   * So we pass NULL as MFace pointer, and #mesh_loops_to_tessdata
    * will use the fourth loop index as quad test. */
-  BKE_mesh_loops_to_tessdata(fdata, ldata, NULL, mface_to_poly_map, lindices, totface);
+  mesh_loops_to_tessdata(fdata, ldata, NULL, mface_to_poly_map, lindices, totface);
 
   /* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
    * ...However, most TFace code uses 'MFace->v4 == 0' test to check whether it is a tri or quad.
