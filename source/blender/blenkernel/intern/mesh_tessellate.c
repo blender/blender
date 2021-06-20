@@ -476,10 +476,19 @@ BLI_INLINE void mesh_calc_tessellation_for_face_impl(const MLoop *mloop,
       ML_TO_MLT(0, 2, 3);
       MLoopTri *mlt_b = mlt;
 
-      if (UNLIKELY(is_quad_flip_v3_first_third_fast(mvert[mloop[mlt_a->tri[0]].v].co,
-                                                    mvert[mloop[mlt_a->tri[1]].v].co,
-                                                    mvert[mloop[mlt_a->tri[2]].v].co,
-                                                    mvert[mloop[mlt_b->tri[2]].v].co))) {
+      if (UNLIKELY(face_normal ? is_quad_flip_v3_first_third_fast_with_normal(
+                                     /* Simpler calculation (using the normal). */
+                                     mvert[mloop[mlt_a->tri[0]].v].co,
+                                     mvert[mloop[mlt_a->tri[1]].v].co,
+                                     mvert[mloop[mlt_a->tri[2]].v].co,
+                                     mvert[mloop[mlt_b->tri[2]].v].co,
+                                     normal_precalc) :
+                                 is_quad_flip_v3_first_third_fast(
+                                     /* Expensive calculation (no normal). */
+                                     mvert[mloop[mlt_a->tri[0]].v].co,
+                                     mvert[mloop[mlt_a->tri[1]].v].co,
+                                     mvert[mloop[mlt_a->tri[2]].v].co,
+                                     mvert[mloop[mlt_b->tri[2]].v].co))) {
         /* Flip out of degenerate 0-2 state. */
         mlt_a->tri[2] = mlt_b->tri[2];
         mlt_b->tri[0] = mlt_a->tri[1];
