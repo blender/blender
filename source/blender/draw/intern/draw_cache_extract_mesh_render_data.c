@@ -349,8 +349,19 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
       mr->mlooptri = MEM_mallocN(sizeof(*mr->mlooptri) * mr->tri_len, "MR_DATATYPE_LOOPTRI");
-      BKE_mesh_recalc_looptri(
-          me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, mr->mlooptri);
+      if (mr->poly_normals != NULL) {
+        BKE_mesh_recalc_looptri_with_normals(me->mloop,
+                                             me->mpoly,
+                                             me->mvert,
+                                             me->totloop,
+                                             me->totpoly,
+                                             mr->mlooptri,
+                                             mr->poly_normals);
+      }
+      else {
+        BKE_mesh_recalc_looptri(
+            me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, mr->mlooptri);
+      }
     }
   }
   else {

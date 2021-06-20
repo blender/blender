@@ -297,6 +297,13 @@ void BKE_mesh_recalc_looptri(const struct MLoop *mloop,
                              int totloop,
                              int totpoly,
                              struct MLoopTri *mlooptri);
+void BKE_mesh_recalc_looptri_with_normals(const struct MLoop *mloop,
+                                          const struct MPoly *mpoly,
+                                          const struct MVert *mvert,
+                                          int totloop,
+                                          int totpoly,
+                                          struct MLoopTri *mlooptri,
+                                          const float (*poly_normals)[3]);
 
 /* *** mesh_evaluate.c *** */
 
