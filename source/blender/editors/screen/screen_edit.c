@@ -68,7 +68,7 @@ static ScrArea *screen_addarea_ex(ScrAreaMap *area_map,
                                   ScrVert *top_left,
                                   ScrVert *top_right,
                                   ScrVert *bottom_right,
-                                  short spacetype)
+                                  const eSpace_Type space_type)
 {
   ScrArea *area = MEM_callocN(sizeof(ScrArea), "addscrarea");
 
@@ -76,7 +76,7 @@ static ScrArea *screen_addarea_ex(ScrAreaMap *area_map,
   area->v2 = top_left;
   area->v3 = top_right;
   area->v4 = bottom_right;
-  area->spacetype = spacetype;
+  area->spacetype = space_type;
 
   BLI_addtail(&area_map->areabase, area);
 
@@ -87,10 +87,10 @@ static ScrArea *screen_addarea(bScreen *screen,
                                ScrVert *left_top,
                                ScrVert *right_top,
                                ScrVert *right_bottom,
-                               short spacetype)
+                               const eSpace_Type space_type)
 {
   return screen_addarea_ex(
-      AREAMAP_FROM_SCREEN(screen), left_bottom, left_top, right_top, right_bottom, spacetype);
+      AREAMAP_FROM_SCREEN(screen), left_bottom, left_top, right_top, right_bottom, space_type);
 }
 
 static void screen_delarea(bContext *C, bScreen *screen, ScrArea *area)
@@ -972,7 +972,7 @@ int ED_screen_area_active(const bContext *C)
  */
 static ScrArea *screen_area_create_with_geometry(ScrAreaMap *area_map,
                                                  const rcti *rect,
-                                                 short spacetype)
+                                                 eSpace_Type space_type)
 {
   ScrVert *bottom_left = screen_geom_vertex_add_ex(area_map, rect->xmin, rect->ymin);
   ScrVert *top_left = screen_geom_vertex_add_ex(area_map, rect->xmin, rect->ymax);
@@ -984,7 +984,7 @@ static ScrArea *screen_area_create_with_geometry(ScrAreaMap *area_map,
   screen_geom_edge_add_ex(area_map, top_right, bottom_right);
   screen_geom_edge_add_ex(area_map, bottom_right, bottom_left);
 
-  return screen_addarea_ex(area_map, bottom_left, top_left, top_right, bottom_right, spacetype);
+  return screen_addarea_ex(area_map, bottom_left, top_left, top_right, bottom_right, space_type);
 }
 
 static void screen_area_set_geometry_rect(ScrArea *area, const rcti *rect)
@@ -1001,7 +1001,7 @@ static void screen_area_set_geometry_rect(ScrArea *area, const rcti *rect)
 
 static void screen_global_area_refresh(wmWindow *win,
                                        bScreen *screen,
-                                       eSpace_Type space_type,
+                                       const eSpace_Type space_type,
                                        GlobalAreaAlign align,
                                        const rcti *rect,
                                        const short height_cur,

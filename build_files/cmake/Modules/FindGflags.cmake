@@ -472,8 +472,7 @@ if(NOT GFLAGS_FOUND)
     gflags_report_not_found(
       "Could not find gflags include directory, set GFLAGS_INCLUDE_DIR "
       "to directory containing gflags/gflags.h")
-  endif(NOT GFLAGS_INCLUDE_DIR OR
-    NOT EXISTS ${GFLAGS_INCLUDE_DIR})
+  endif()
 
   find_library(GFLAGS_LIBRARY NAMES gflags
     PATHS ${GFLAGS_LIBRARY_DIR_HINTS}
@@ -484,8 +483,7 @@ if(NOT GFLAGS_FOUND)
     gflags_report_not_found(
       "Could not find gflags library, set GFLAGS_LIBRARY "
       "to full path to libgflags.")
-  endif(NOT GFLAGS_LIBRARY OR
-    NOT EXISTS ${GFLAGS_LIBRARY})
+  endif()
 
   # gflags typically requires a threading library (which is OS dependent), note
   # that this defines the CMAKE_THREAD_LIBS_INIT variable.  If we are able to
@@ -560,8 +558,7 @@ if(NOT GFLAGS_FOUND)
     gflags_report_not_found(
       "Caller defined GFLAGS_INCLUDE_DIR:"
       " ${GFLAGS_INCLUDE_DIR} does not contain gflags/gflags.h header.")
-  endif(GFLAGS_INCLUDE_DIR AND
-    NOT EXISTS ${GFLAGS_INCLUDE_DIR}/gflags/gflags.h)
+  endif()
   # TODO: This regex for gflags library is pretty primitive, we use lowercase
   #       for comparison to handle Windows using CamelCase library names, could
   #       this check be better?
@@ -571,8 +568,7 @@ if(NOT GFLAGS_FOUND)
     gflags_report_not_found(
       "Caller defined GFLAGS_LIBRARY: "
       "${GFLAGS_LIBRARY} does not match gflags.")
-  endif(GFLAGS_LIBRARY AND
-    NOT "${LOWERCASE_GFLAGS_LIBRARY}" MATCHES ".*gflags[^/]*")
+  endif()
 
   gflags_reset_find_library_prefix()
 

@@ -1970,7 +1970,7 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
               CD_MASK_SCULPT_FACE_SETS),
 };
 /**
- * cover values copied by #BKE_mesh_loops_to_tessdata
+ * cover values copied by #mesh_loops_to_tessdata
  */
 const CustomData_MeshMasks CD_MASK_FACECORNERS = {
     .vmask = 0,

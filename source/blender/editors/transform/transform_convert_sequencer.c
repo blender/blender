@@ -355,7 +355,7 @@ static void seq_transform_update_effects(TransInfo *t, SeqCollection *collection
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, collection) {
     if ((seq->type & SEQ_TYPE_EFFECT) && (seq->seq1 || seq->seq2 || seq->seq3)) {
-        SEQ_time_update_sequence(t->scene, seq);
+      SEQ_time_update_sequence(t->scene, seq);
     }
   }
 }
