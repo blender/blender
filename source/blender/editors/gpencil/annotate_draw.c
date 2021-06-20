@@ -760,15 +760,15 @@ static void annotation_draw_data_all(Scene *scene,
                                      int winy,
                                      int cfra,
                                      int dflag,
-                                     const char spacetype)
+                                     const eSpace_Type space_type)
 {
   bGPdata *gpd_source = NULL;
 
   if (scene) {
-    if (spacetype == SPACE_VIEW3D) {
+    if (space_type == SPACE_VIEW3D) {
       gpd_source = (scene->gpd ? scene->gpd : NULL);
     }
-    else if (spacetype == SPACE_CLIP && scene->clip) {
+    else if (space_type == SPACE_CLIP && scene->clip) {
       /* currently drawing only gpencil data from either clip or track,
        * but not both - XXX fix logic behind */
       gpd_source = (scene->clip->gpd ? scene->clip->gpd : NULL);
