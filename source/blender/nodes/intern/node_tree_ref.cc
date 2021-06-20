@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <mutex>
+
 #include "NOD_node_tree_ref.hh"
 
 #include "BLI_dot_export.hh"
@@ -105,6 +107,7 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
     }
   }
 
+  this->create_socket_identifier_maps();
   this->create_linked_socket_caches();
 
   for (NodeRef *node : nodes_by_id_) {
@@ -316,6 +319,89 @@ void OutputSocketRef::foreach_logical_target(
   }
 }
 
+namespace {
+struct SocketByIdentifierMap {
+  SocketIndexByIdentifierMap *map = nullptr;
+  std::unique_ptr<SocketIndexByIdentifierMap> owned_map;
+};
+}  // namespace
+
+static std::unique_ptr<SocketIndexByIdentifierMap> create_identifier_map(const ListBase &sockets)
+{
+  std::unique_ptr<SocketIndexByIdentifierMap> map = std::make_unique<SocketIndexByIdentifierMap>();
+  int index;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &sockets, index) {
+    map->add_new(socket->identifier, index);
+  }
+  return map;
+}
+
+/* This function is not threadsafe.  */
+static SocketByIdentifierMap get_or_create_identifier_map(
+    const bNode &node, const ListBase &sockets, const bNodeSocketTemplate *sockets_template)
+{
+  SocketByIdentifierMap map;
+  if (sockets_template == nullptr) {
+    if (BLI_listbase_is_empty(&sockets)) {
+      static SocketIndexByIdentifierMap empty_map;
+      map.map = &empty_map;
+    }
+    else if (node.type == NODE_REROUTE) {
+      if (&node.inputs == &sockets) {
+        static SocketIndexByIdentifierMap reroute_input_map = [] {
+          SocketIndexByIdentifierMap map;
+          map.add_new("Input", 0);
+          return map;
+        }();
+        map.map = &reroute_input_map;
+      }
+      else {
+        static SocketIndexByIdentifierMap reroute_output_map = [] {
+          SocketIndexByIdentifierMap map;
+          map.add_new("Output", 0);
+          return map;
+        }();
+        map.map = &reroute_output_map;
+      }
+    }
+    else {
+      /* The node has a dynamic amount of sockets. Therefore we need to create a new map. */
+      map.owned_map = create_identifier_map(sockets);
+      map.map = &*map.owned_map;
+    }
+  }
+  else {
+    /* Cache only one map for nodes that have the same sockets. */
+    static Map<const bNodeSocketTemplate *, std::unique_ptr<SocketIndexByIdentifierMap>> maps;
+    map.map = &*maps.lookup_or_add_cb(sockets_template,
+                                      [&]() { return create_identifier_map(sockets); });
+  }
+  return map;
+}
+
+void NodeTreeRef::create_socket_identifier_maps()
+{
+  /* `get_or_create_identifier_map` is not threadsafe, therefore we have to hold a lock here. */
+  static std::mutex mutex;
+  std::lock_guard lock{mutex};
+
+  for (NodeRef *node : nodes_by_id_) {
+    bNode &bnode = *node->bnode_;
+    SocketByIdentifierMap inputs_map = get_or_create_identifier_map(
+        bnode, bnode.inputs, bnode.typeinfo->inputs);
+    SocketByIdentifierMap outputs_map = get_or_create_identifier_map(
+        bnode, bnode.outputs, bnode.typeinfo->outputs);
+    node->input_index_by_identifier_ = inputs_map.map;
+    node->output_index_by_identifier_ = outputs_map.map;
+    if (inputs_map.owned_map) {
+      owned_identifier_maps_.append(std::move(inputs_map.owned_map));
+    }
+    if (outputs_map.owned_map) {
+      owned_identifier_maps_.append(std::move(outputs_map.owned_map));
+    }
+  }
+}
+
 static bool has_link_cycles_recursive(const NodeRef &node,
                                       MutableSpan<bool> visited,
                                       MutableSpan<bool> is_in_stack)
@@ -356,6 +442,21 @@ bool NodeTreeRef::has_link_cycles() const
     }
   }
   return false;
+}
+
+bool NodeTreeRef::has_undefined_nodes_or_sockets() const
+{
+  for (const NodeRef *node : nodes_by_id_) {
+    if (node->is_undefined()) {
+      return true;
+    }
+  }
+  for (const SocketRef *socket : sockets_by_id_) {
+    if (socket->is_undefined()) {
+      return true;
+    }
+  }
+  return true;
 }
 
 std::string NodeTreeRef::to_dot() const

@@ -532,7 +532,7 @@ class WholeCharacterMixin:
                 prop_path = '["%s"]' % bpy.utils.escape_identifier(prop)
                 try:
                     rna_property = bone.path_resolve(prop_path, False)
-                except ValueError as ex:
+                except ValueError:
                     # This happens when a custom property is set to None. In that case it cannot
                     # be converted to an FCurve-compatible value, so we can't keyframe it anyway.
                     continue
@@ -582,7 +582,7 @@ class BUILTIN_KSI_DeltaLocation(KeyingSetInfo):
     iterator = keyingsets_utils.RKS_ITER_selected_objects
 
     # generator - delta location channels only
-    def generate(self, context, ks, data):
+    def generate(self, _context, ks, data):
         # get id-block and path info
         id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
 
@@ -608,7 +608,7 @@ class BUILTIN_KSI_DeltaRotation(KeyingSetInfo):
     iterator = keyingsets_utils.RKS_ITER_selected_objects
 
     # generator - delta location channels only
-    def generate(self, context, ks, data):
+    def generate(self, _context, ks, data):
         # get id-block and path info
         id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
 
@@ -642,7 +642,7 @@ class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
     iterator = keyingsets_utils.RKS_ITER_selected_objects
 
     # generator - delta location channels only
-    def generate(self, context, ks, data):
+    def generate(self, _context, ks, data):
         # get id-block and path info
         id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
 

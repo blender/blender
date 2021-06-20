@@ -95,6 +95,9 @@ class DNode {
 
   DInputSocket input(int index) const;
   DOutputSocket output(int index) const;
+
+  DInputSocket input_by_identifier(StringRef identifier) const;
+  DOutputSocket output_by_identifier(StringRef identifier) const;
 };
 
 /* A (nullable) reference to a socket and the context it is in. It is unique within an entire
@@ -173,6 +176,7 @@ class DerivedNodeTree {
   Span<const NodeTreeRef *> used_node_tree_refs() const;
 
   bool has_link_cycles() const;
+  bool has_undefined_nodes_or_sockets() const;
   void foreach_node(FunctionRef<void(DNode)> callback) const;
 
   std::string to_dot() const;
@@ -285,6 +289,16 @@ inline DInputSocket DNode::input(int index) const
 inline DOutputSocket DNode::output(int index) const
 {
   return {context_, &node_ref_->output(index)};
+}
+
+inline DInputSocket DNode::input_by_identifier(StringRef identifier) const
+{
+  return {context_, &node_ref_->input_by_identifier(identifier)};
+}
+
+inline DOutputSocket DNode::output_by_identifier(StringRef identifier) const
+{
+  return {context_, &node_ref_->output_by_identifier(identifier)};
 }
 
 /* --------------------------------------------------------------------

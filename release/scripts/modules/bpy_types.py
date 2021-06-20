@@ -150,7 +150,11 @@ class Object(bpy_types.ID):
 class WindowManager(bpy_types.ID):
     __slots__ = ()
 
-    def popup_menu(self, draw_func, title="", icon='NONE'):
+    def popup_menu(
+            self, draw_func, *,
+            title="",
+            icon='NONE',
+    ):
         import bpy
         popup = self.popmenu_begin__internal(title, icon=icon)
 
@@ -176,7 +180,11 @@ class WindowManager(bpy_types.ID):
         finally:
             self.popover_end__internal(popup, keymap=keymap)
 
-    def popup_menu_pie(self, event, draw_func, title="", icon='NONE'):
+    def popup_menu_pie(
+            self, event, draw_func, *,
+            title="",
+            icon='NONE',
+    ):
         import bpy
         pie = self.piemenu_begin__internal(title, icon=icon, event=event)
 
@@ -392,7 +400,7 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
         self.tail = self.head + vec
         self.roll = other.roll
 
-    def transform(self, matrix, scale=True, roll=True):
+    def transform(self, matrix, *, scale=True, roll=True):
         """
         Transform the the bones head, tail, roll and envelope
         (when the matrix has a scale component).
@@ -739,7 +747,7 @@ class Operator(StructRNA, metaclass=RNAMeta):
             return delattr(properties, attr)
         return super().__delattr__(attr)
 
-    def as_keywords(self, ignore=()):
+    def as_keywords(self, *, ignore=()):
         """Return a copy of the properties as a dictionary"""
         ignore = ignore + ("rna_type",)
         return {attr: getattr(self, attr)

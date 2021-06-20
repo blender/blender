@@ -1103,6 +1103,32 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
 }
 
 /**
+ * Make a copy of a given gpencil layer settings.
+ */
+void BKE_gpencil_layer_copy_settings(const bGPDlayer *gpl_src, bGPDlayer *gpl_dst)
+{
+  gpl_dst->line_change = gpl_src->line_change;
+  copy_v4_v4(gpl_dst->tintcolor, gpl_src->tintcolor);
+  gpl_dst->opacity = gpl_src->opacity;
+  gpl_dst->vertex_paint_opacity = gpl_src->vertex_paint_opacity;
+  gpl_dst->pass_index = gpl_src->pass_index;
+  gpl_dst->parent = gpl_src->parent;
+  copy_m4_m4(gpl_dst->inverse, gpl_src->inverse);
+  BLI_strncpy(gpl_dst->parsubstr, gpl_src->parsubstr, 64);
+  gpl_dst->partype = gpl_src->partype;
+  BLI_strncpy(gpl_dst->viewlayername, gpl_src->viewlayername, 64);
+  copy_v3_v3(gpl_dst->location, gpl_src->location);
+  copy_v3_v3(gpl_dst->rotation, gpl_src->rotation);
+  copy_v3_v3(gpl_dst->scale, gpl_src->scale);
+  copy_m4_m4(gpl_dst->layer_mat, gpl_src->layer_mat);
+  copy_m4_m4(gpl_dst->layer_invmat, gpl_src->layer_invmat);
+  /* Use Lights flag. */
+  if (gpl_src->flag & GP_LAYER_USE_LIGHTS) {
+    gpl_dst->flag |= GP_LAYER_USE_LIGHTS;
+  }
+}
+
+/**
  * Make a copy of a given gpencil data-block.
  *
  * XXX: Should this be deprecated?

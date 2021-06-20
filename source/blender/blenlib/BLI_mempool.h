@@ -38,9 +38,12 @@ typedef struct BLI_mempool BLI_mempool;
 BLI_mempool *BLI_mempool_create(unsigned int esize,
                                 unsigned int totelem,
                                 unsigned int pchunk,
-                                unsigned int flag) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
-void *BLI_mempool_alloc(BLI_mempool *pool) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-void *BLI_mempool_calloc(BLI_mempool *pool) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+                                unsigned int flag)
+    ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+void *BLI_mempool_alloc(BLI_mempool *pool) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL
+    ATTR_NONNULL(1);
+void *BLI_mempool_calloc(BLI_mempool *pool)
+    ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL ATTR_NONNULL(1);
 void BLI_mempool_free(BLI_mempool *pool, void *addr) ATTR_NONNULL(1, 2);
 void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve) ATTR_NONNULL(1);
 void BLI_mempool_clear(BLI_mempool *pool) ATTR_NONNULL(1);
@@ -68,8 +71,6 @@ typedef struct BLI_mempool_iter {
   BLI_mempool *pool;
   struct BLI_mempool_chunk *curchunk;
   unsigned int curindex;
-
-  struct BLI_mempool_chunk **curchunk_threaded_shared;
 } BLI_mempool_iter;
 
 /* flag */
@@ -87,11 +88,6 @@ enum {
 
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter) ATTR_NONNULL();
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-
-BLI_mempool_iter *BLI_mempool_iter_threadsafe_create(BLI_mempool *pool,
-                                                     const size_t num_iter) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
-void BLI_mempool_iter_threadsafe_free(BLI_mempool_iter *iter_arr) ATTR_NONNULL();
 
 /*
 This preallocates a mempool suitable for threading.  totelem elements are preallocated

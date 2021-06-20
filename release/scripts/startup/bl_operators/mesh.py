@@ -219,7 +219,7 @@ class MeshSelectNext(Operator):
 
         if find_adjacent.select_next(bm, self.report):
             bm.select_flush_mode()
-            bmesh.update_edit_mesh(me, False)
+            bmesh.update_edit_mesh(me, loop_triangles=False)
 
         return {'FINISHED'}
 
@@ -244,7 +244,7 @@ class MeshSelectPrev(Operator):
 
         if find_adjacent.select_prev(bm, self.report):
             bm.select_flush_mode()
-            bmesh.update_edit_mesh(me, False)
+            bmesh.update_edit_mesh(me, loop_triangles=False)
 
         return {'FINISHED'}
 

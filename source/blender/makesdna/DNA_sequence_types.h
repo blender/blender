@@ -45,6 +45,7 @@ struct MovieClip;
 struct Scene;
 struct VFont;
 struct bSound;
+struct SequenceLookup;
 
 /* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 
@@ -166,8 +167,9 @@ typedef struct Sequence {
    * frames that use the last frame after data ends.
    */
   int startstill, endstill;
-  /** Machine: the strip channel, depth the depth in the sequence when dealing with metastrips. */
-  int machine, depth;
+  /** Machine: the strip channel */
+  int machine;
+  int _pad3;
   /** Starting and ending points of the strip in the sequence. */
   int startdisp, enddisp;
   float sat;
@@ -257,6 +259,10 @@ typedef struct MetaStack {
   int disp_range[2];
 } MetaStack;
 
+typedef struct EditingRuntime {
+  struct SequenceLookup *sequence_lookup;
+} EditingRuntime;
+
 typedef struct Editing {
   /** Pointer to the current list of seq's being edited (can be within a meta strip). */
   ListBase *seqbasep;
@@ -287,6 +293,8 @@ typedef struct Editing {
 
   /* Must be initialized only by seq_cache_create() */
   int64_t disk_cache_timestamp;
+
+  EditingRuntime runtime;
 } Editing;
 
 /* ************* Effect Variable Structs ********* */

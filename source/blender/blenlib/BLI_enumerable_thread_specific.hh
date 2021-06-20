@@ -26,7 +26,7 @@
 #include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
 
-namespace blender {
+namespace blender::threading {
 
 namespace enumerable_thread_specific_utils {
 inline std::atomic<int> next_id = 0;
@@ -70,4 +70,4 @@ template<typename T> class EnumerableThreadSpecific : NonCopyable, NonMovable {
 #endif /* WITH_TBB */
 };
 
-}  // namespace blender
+}  // namespace blender::threading

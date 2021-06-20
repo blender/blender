@@ -112,7 +112,7 @@ void MeshTopology::getEdgeVertexIndices(int edge_index, int *v1, int *v2) const
 
   if (edge_index >= edges_.size()) {
     *v1 = -1;
-    *v1 = -1;
+    *v2 = -1;
     return;
   }
 

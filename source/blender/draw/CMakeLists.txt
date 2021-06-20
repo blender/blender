@@ -54,6 +54,10 @@ set(SRC
   intern/draw_cache_extract_mesh_extractors.c
   intern/draw_cache_extract_mesh_render_data.c
   intern/draw_cache_extract_mesh.cc
+  intern/mesh_extractors/extract_mesh_ibo_edituv.cc
+  intern/mesh_extractors/extract_mesh_ibo_fdots.cc
+  intern/mesh_extractors/extract_mesh_ibo_lines_adjacency.cc
+  intern/mesh_extractors/extract_mesh_ibo_lines_paint_mask.cc
   intern/mesh_extractors/extract_mesh_ibo_lines.cc
   intern/mesh_extractors/extract_mesh_ibo_points.cc
   intern/mesh_extractors/extract_mesh_ibo_tris.cc
@@ -168,6 +172,7 @@ set(SRC
   intern/DRW_render.h
   intern/draw_cache.h
   intern/draw_cache_extract.h
+  intern/draw_cache_extract_mesh_private.h
   intern/draw_cache_impl.h
   intern/draw_cache_inline.h
   intern/draw_color_management.h

@@ -1253,8 +1253,6 @@ static void layerInterp_mvert_skin(const void **sources,
                                    int count,
                                    void *dest)
 {
-  MVertSkin *vs_dst = dest;
-
   float radius[3];
   zero_v3(radius);
 
@@ -1266,7 +1264,7 @@ static void layerInterp_mvert_skin(const void **sources,
   }
 
   /* Delay writing to the destination in case dest is in sources. */
-  vs_dst = dest;
+  MVertSkin *vs_dst = dest;
   copy_v3_v3(vs_dst->radius, radius);
   vs_dst->flag &= ~MVERT_SKIN_ROOT;
 }
@@ -2123,35 +2121,35 @@ static const char *layerType_getName(int type)
 
 void customData_mask_layers__print(const CustomData_MeshMasks *mask)
 {
-  printf("verts mask=0x%lx:\n", (long unsigned int)mask->vmask);
+  printf("verts mask=0x%" PRIx64 ":\n", mask->vmask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->vmask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));
     }
   }
 
-  printf("edges mask=0x%lx:\n", (long unsigned int)mask->emask);
+  printf("edges mask=0x%" PRIx64 ":\n", mask->emask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->emask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));
     }
   }
 
-  printf("faces mask=0x%lx:\n", (long unsigned int)mask->fmask);
+  printf("faces mask=0x%" PRIx64 ":\n", mask->fmask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->fmask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));
     }
   }
 
-  printf("loops mask=0x%lx:\n", (long unsigned int)mask->lmask);
+  printf("loops mask=0x%" PRIx64 ":\n", mask->lmask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->lmask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));
     }
   }
 
-  printf("polys mask=0x%lx:\n", (long unsigned int)mask->pmask);
+  printf("polys mask=0x%" PRIx64 ":\n", mask->pmask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->pmask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));

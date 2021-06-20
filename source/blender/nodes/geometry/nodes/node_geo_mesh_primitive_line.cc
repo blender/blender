@@ -111,6 +111,7 @@ static Mesh *create_line_mesh(const float3 start, const float3 delta, const int 
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0, 0);
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
 
@@ -166,7 +167,6 @@ static void geo_node_mesh_primitive_line_exec(GeoNodeExecParams params)
     const int count = params.extract_input<int>("Count");
     mesh = create_line_mesh(start, delta, count);
   }
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }

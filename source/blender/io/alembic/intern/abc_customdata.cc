@@ -44,6 +44,7 @@
  * in the write code for the conventions. */
 
 using Alembic::AbcGeom::kFacevaryingScope;
+using Alembic::AbcGeom::kVaryingScope;
 using Alembic::AbcGeom::kVertexScope;
 
 using Alembic::Abc::C4fArraySample;
@@ -292,6 +293,7 @@ void write_custom_data(const OCompoundProperty &prop,
 using Alembic::Abc::C3fArraySamplePtr;
 using Alembic::Abc::C4fArraySamplePtr;
 using Alembic::Abc::PropertyHeader;
+using Alembic::Abc::UInt32ArraySamplePtr;
 
 using Alembic::AbcGeom::IC3fGeomParam;
 using Alembic::AbcGeom::IC4fGeomParam;
@@ -300,21 +302,26 @@ using Alembic::AbcGeom::IV3fGeomParam;
 
 static void read_uvs(const CDStreamConfig &config,
                      void *data,
+                     const AbcUvScope uv_scope,
                      const Alembic::AbcGeom::V2fArraySamplePtr &uvs,
-                     const Alembic::AbcGeom::UInt32ArraySamplePtr &indices)
+                     const UInt32ArraySamplePtr &indices)
 {
   MPoly *mpolys = config.mpoly;
+  MLoop *mloops = config.mloop;
   MLoopUV *mloopuvs = static_cast<MLoopUV *>(data);
 
   unsigned int uv_index, loop_index, rev_loop_index;
+
+  BLI_assert(uv_scope != ABC_UV_SCOPE_NONE);
+  const bool do_uvs_per_loop = (uv_scope == ABC_UV_SCOPE_LOOP);
 
   for (int i = 0; i < config.totpoly; i++) {
     MPoly &poly = mpolys[i];
     unsigned int rev_loop_offset = poly.loopstart + poly.totloop - 1;
 
     for (int f = 0; f < poly.totloop; f++) {
-      loop_index = poly.loopstart + f;
       rev_loop_index = rev_loop_offset - f;
+      loop_index = do_uvs_per_loop ? poly.loopstart + f : mloops[rev_loop_index].v;
       uv_index = (*indices)[loop_index];
       const Imath::V2f &uv = (*uvs)[uv_index];
 
@@ -473,20 +480,24 @@ static void read_custom_data_uvs(const ICompoundProperty &prop,
   IV2fGeomParam::Sample sample;
   uv_param.getIndexed(sample, iss);
 
-  if (uv_param.getScope() != kFacevaryingScope) {
+  UInt32ArraySamplePtr uvs_indices = sample.getIndices();
+
+  const AbcUvScope uv_scope = get_uv_scope(uv_param.getScope(), config, uvs_indices);
+
+  if (uv_scope == ABC_UV_SCOPE_NONE) {
     return;
   }
 
   void *cd_data = config.add_customdata_cb(config.mesh, prop_header.getName().c_str(), CD_MLOOPUV);
 
-  read_uvs(config, cd_data, sample.getVals(), sample.getIndices());
+  read_uvs(config, cd_data, uv_scope, sample.getVals(), uvs_indices);
 }
 
 void read_generated_coordinates(const ICompoundProperty &prop,
                                 const CDStreamConfig &config,
                                 const Alembic::Abc::ISampleSelector &iss)
 {
-  if (prop.getPropertyHeader(propNameOriginalCoordinates) == nullptr) {
+  if (!prop.valid() || prop.getPropertyHeader(propNameOriginalCoordinates) == nullptr) {
     /* The ORCO property isn't there, so don't bother trying to process it. */
     return;
   }
@@ -557,6 +568,30 @@ void read_custom_data(const std::string &iobject_full_name,
       continue;
     }
   }
+}
+
+/* UVs can be defined per-loop (one value per vertex per face), or per-vertex (one value per
+ * vertex). The first case is the most common, as this is the standard way of storing this data
+ * given that some vertices might be on UV seams and have multiple possible UV coordinates; the
+ * second case can happen when the mesh is split according to the UV islands, in which case storing
+ * a single UV value per vertex allows to deduplicate data and thus to reduce the file size since
+ * vertices are guaranteed to only have a single UV coordinate. */
+AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
+                        const CDStreamConfig &config,
+                        const Alembic::AbcGeom::UInt32ArraySamplePtr &indices)
+{
+  if (scope == kFacevaryingScope && indices->size() == config.totloop) {
+    return ABC_UV_SCOPE_LOOP;
+  }
+
+  /* kVaryingScope is sometimes used for vertex scopes as the values vary across the vertices. To
+   * be sure, one has to check the size of the data against the number of vertices, as it could
+   * also be a varying attribute across the faces (i.e. one value per face). */
+  if ((scope == kVaryingScope || scope == kVertexScope) && indices->size() == config.totvert) {
+    return ABC_UV_SCOPE_VERTEX;
+  }
+
+  return ABC_UV_SCOPE_NONE;
 }
 
 }  // namespace blender::io::alembic

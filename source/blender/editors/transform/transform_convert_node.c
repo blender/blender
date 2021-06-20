@@ -27,6 +27,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_node.h"
@@ -35,6 +36,7 @@
 #include "ED_node.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "transform.h"
 #include "transform_convert.h"
@@ -43,6 +45,12 @@
 /* -------------------------------------------------------------------- */
 /** \name Node Transform Creation
  * \{ */
+
+typedef struct NodeTransCustomData {
+  /* Initial rect of the view2d, used for computing offset during edge panning */
+  rctf initial_v2d_cur;
+  View2DEdgePanData edge_pan;
+} NodeTransCustomData;
 
 /* transcribe given node into TransData2D for Transforming */
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const float dpi_fac)
@@ -107,6 +115,24 @@ void createTransNodeData(TransInfo *t)
   const float dpi_fac = UI_DPI_FAC;
   SpaceNode *snode = t->area->spacedata.first;
 
+  if (t->mode == TFM_TRANSLATION) {
+    /* Disable cursor wrapping in the node editor for edge pan */
+    t->flag |= T_NO_CURSOR_WRAP;
+  }
+
+  /* Custom data to enable edge panning during the node transform */
+  NodeTransCustomData *customdata = MEM_callocN(sizeof(*customdata), __func__);
+  UI_view2d_edge_pan_init(t->context,
+                          &customdata->edge_pan,
+                          NODE_EDGE_PAN_INSIDE_PAD,
+                          NODE_EDGE_PAN_OUTSIDE_PAD,
+                          NODE_EDGE_PAN_SPEED_RAMP,
+                          NODE_EDGE_PAN_MAX_SPEED,
+                          NODE_EDGE_PAN_DELAY);
+  customdata->initial_v2d_cur = t->region->v2d.cur;
+  t->custom.type.data = customdata;
+  t->custom.type.use_free = true;
+
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
   tc->data_len = 0;
@@ -150,6 +176,19 @@ void flushTransNodes(TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
 
+  NodeTransCustomData *customdata = (NodeTransCustomData *)t->custom.type.data;
+
+  if (t->mode == TFM_TRANSLATION) {
+    /* Edge panning functions expect window coordinates, mval is relative to region */
+    const float x = t->region->winrct.xmin + t->mval[0];
+    const float y = t->region->winrct.ymin + t->mval[1];
+    UI_view2d_edge_pan_apply(t->context, &customdata->edge_pan, x, y);
+  }
+
+  /* Initial and current view2D rects for additional transform due to view panning and zooming */
+  const rctf *rect_src = &customdata->initial_v2d_cur;
+  const rctf *rect_dst = &t->region->v2d.cur;
+
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     applyGridAbsolute(t);
 
@@ -159,23 +198,28 @@ void flushTransNodes(TransInfo *t)
       TransData2D *td2d = &tc->data_2d[i];
       bNode *node = td->extra;
 
-      /* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+      float loc[2];
+      copy_v2_v2(loc, td2d->loc);
+
+      /* additional offset due to change in view2D rect */
+      BLI_rctf_transform_pt_v(rect_dst, rect_src, loc, loc);
+
 #ifdef USE_NODE_CENTER
-      float locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
-      float locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
-#else
-      float locx = td2d->loc[0] / dpi_fac;
-      float locy = td2d->loc[1] / dpi_fac;
+      loc[0] -= 0.5f * BLI_rctf_size_x(&node->totr);
+      loc[1] += 0.5f * BLI_rctf_size_y(&node->totr);
 #endif
+
+      /* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+      loc[0] /= dpi_fac;
+      loc[1] /= dpi_fac;
 
       /* account for parents (nested nodes) */
       if (node->parent) {
-        nodeFromView(node->parent, locx, locy, &node->locx, &node->locy);
+        nodeFromView(node->parent, loc[0], loc[1], &loc[0], &loc[1]);
       }
-      else {
-        node->locx = locx;
-        node->locy = locy;
-      }
+
+      node->locx = loc[0];
+      node->locy = loc[1];
     }
 
     /* handle intersection with noodles */

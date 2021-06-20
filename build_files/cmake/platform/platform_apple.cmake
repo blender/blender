@@ -388,6 +388,10 @@ endif()
 
 if(WITH_TBB)
   find_package(TBB)
+  if(NOT TBB_FOUND)
+    message(WARNING "TBB not found, disabling WITH_TBB")
+    set(WITH_TBB OFF)
+  endif()
 endif()
 
 if(WITH_POTRACE)

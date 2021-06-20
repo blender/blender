@@ -105,7 +105,7 @@ int closedir(DIR *dp);
 const char *dirname(char *path);
 
 /* Windows utility functions. */
-void BLI_windows_register_blend_extension(const bool background);
+bool BLI_windows_register_blend_extension(const bool background);
 void BLI_windows_get_default_root_dir(char *root_dir);
 int BLI_windows_get_executable_dir(char *str);
 

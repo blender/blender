@@ -1941,7 +1941,7 @@ static bool widget_draw_text_underline_calc_position(const char *UNUSED(str),
                                                      const rcti *glyph_step_bounds,
                                                      const int UNUSED(glyph_advance_x),
                                                      const rctf *glyph_bounds,
-                                                     const int glyph_bearing[2],
+                                                     const int UNUSED(glyph_bearing[2]),
                                                      void *user_data)
 {
   struct UnderlineData *ul_data = user_data;
@@ -1949,8 +1949,8 @@ static bool widget_draw_text_underline_calc_position(const char *UNUSED(str),
     /* Full width of this glyph including both bearings. */
     const float width = glyph_bounds->xmin + BLI_rctf_size_x(glyph_bounds) + glyph_bounds->xmin;
     ul_data->r_offset_px[0] = glyph_step_bounds->xmin + ((width - ul_data->width_px) * 0.5f);
-    /* Two line-widths below the lower glyph bounds. */
-    ul_data->r_offset_px[1] = glyph_bounds->ymin - U.pixelsize - U.pixelsize;
+    /* One line-width below the lower glyph bounds. */
+    ul_data->r_offset_px[1] = glyph_bounds->ymin - U.pixelsize;
     /* Early exit. */
     return false;
   }
@@ -2131,14 +2131,15 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   transopts = ui_translate_buttons();
 #endif
 
+  bool use_drawstr_right_as_hint = false;
+
   /* cut string in 2 parts - only for menu entries */
-  if ((but->drawflag & UI_BUT_HAS_SHORTCUT) && (but->editstr == NULL)) {
-    if (but->flag & UI_BUT_HAS_SEP_CHAR) {
-      drawstr_right = strrchr(drawstr, UI_SEP_CHAR);
-      if (drawstr_right) {
-        drawstr_left_len = (drawstr_right - drawstr);
-        drawstr_right++;
-      }
+  if (but->flag & UI_BUT_HAS_SEP_CHAR && (but->editstr == NULL)) {
+    drawstr_right = strrchr(drawstr, UI_SEP_CHAR);
+    if (drawstr_right) {
+      use_drawstr_right_as_hint = true;
+      drawstr_left_len = (drawstr_right - drawstr);
+      drawstr_right++;
     }
   }
 
@@ -2207,7 +2208,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           }
 
           int ul_width = round_fl_to_int(BLF_width(fstyle->uifont_id, "_", 2));
-          int ul_height = max_ii(fstyle->points * U.dpi_fac * 0.1f, U.pixelsize);
 
           struct UnderlineData ul_data = {
               .str_offset = ul_index,
@@ -2220,16 +2220,13 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                                      widget_draw_text_underline_calc_position,
                                      &ul_data);
 
-          GPU_blend(GPU_BLEND_ALPHA);
-          const uint pos = GPU_vertformat_attr_add(
-              immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-          immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-          immUniformColor4ubv(wcol->text);
           const int pos_x = rect->xmin + font_xofs + ul_data.r_offset_px[0];
           const int pos_y = rect->ymin + font_yofs + ul_data.r_offset_px[1];
-          immRecti(pos, pos_x, pos_y, pos_x + ul_width, pos_y - ul_height);
-          immUnbindProgram();
-          GPU_blend(GPU_BLEND_NONE);
+
+          /* Use text output because direct drawing doesn't always work. See T89246. */
+          BLF_position(fstyle->uifont_id, pos_x, pos_y, 0.0f);
+          BLF_color4ubv(fstyle->uifont_id, wcol->text);
+          BLF_draw(fstyle->uifont_id, "_", 2);
 
           if (fstyle->kerning == 1) {
             BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
@@ -2243,7 +2240,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   if (drawstr_right) {
     uchar col[4];
     copy_v4_v4_uchar(col, wcol->text);
-    if (but->drawflag & UI_BUT_HAS_SHORTCUT) {
+    if (use_drawstr_right_as_hint) {
       col[3] *= 0.5f;
     }
 

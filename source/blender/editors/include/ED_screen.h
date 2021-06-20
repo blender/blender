@@ -215,7 +215,7 @@ void ED_screen_restore_temp_type(struct bContext *C, ScrArea *area);
 ScrArea *ED_screen_full_newspace(struct bContext *C, ScrArea *area, int type);
 void ED_screen_full_prevspace(struct bContext *C, ScrArea *area);
 void ED_screen_full_restore(struct bContext *C, ScrArea *area);
-ScrArea *ED_screen_state_maximized_create(struct bContext *C);
+bScreen *ED_screen_state_maximized_create(struct bContext *C);
 struct ScrArea *ED_screen_state_toggle(struct bContext *C,
                                        struct wmWindow *win,
                                        struct ScrArea *area,
@@ -317,6 +317,7 @@ bool ED_operator_animview_active(struct bContext *C);
 bool ED_operator_outliner_active(struct bContext *C);
 bool ED_operator_outliner_active_no_editobject(struct bContext *C);
 bool ED_operator_file_active(struct bContext *C);
+bool ED_operator_spreadsheet_active(struct bContext *C);
 bool ED_operator_action_active(struct bContext *C);
 bool ED_operator_buttons_active(struct bContext *C);
 bool ED_operator_node_active(struct bContext *C);
@@ -354,6 +355,7 @@ bool ED_operator_uvedit(struct bContext *C);
 bool ED_operator_uvedit_space_image(struct bContext *C);
 bool ED_operator_uvmap(struct bContext *C);
 bool ED_operator_posemode_exclusive(struct bContext *C);
+bool ED_operator_object_active_local_editable_posemode_exclusive(struct bContext *C);
 bool ED_operator_posemode_context(struct bContext *C);
 bool ED_operator_posemode(struct bContext *C);
 bool ED_operator_posemode_local(struct bContext *C);

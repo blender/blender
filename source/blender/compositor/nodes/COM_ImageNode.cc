@@ -168,7 +168,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
             if (index == 0 && operation) {
               converter.addPreview(operation->getOutputSocket());
             }
-            if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
+            if (STREQ(rpass->name, RE_PASSNAME_COMBINED) && !(bnodeSocket->flag & SOCK_UNAVAIL)) {
               for (NodeOutput *alphaSocket : getOutputSockets()) {
                 bNodeSocket *bnodeAlphaSocket = alphaSocket->getbNodeSocket();
                 if (!STREQ(bnodeAlphaSocket->name, "Alpha")) {

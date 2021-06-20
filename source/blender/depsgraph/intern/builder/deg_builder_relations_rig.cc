@@ -421,7 +421,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
       if (prev) {
         OperationCode opcode = OperationCode::BONE_DONE;
         /* Inheriting parent roll requires access to prev handle's B-Bone properties. */
-        if ((pchan->bone->flag & BONE_ADD_PARENT_END_ROLL) != 0 &&
+        if ((pchan->bone->bbone_flag & BBONE_ADD_PARENT_END_ROLL) != 0 &&
             check_pchan_has_bbone_segments(object, prev)) {
           opcode = OperationCode::BONE_SEGMENTS;
         }

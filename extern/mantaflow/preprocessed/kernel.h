@@ -71,6 +71,19 @@ class ParticleBase;
       for (int j = bnd; j < (grid).getSizeY() - bnd; ++j) \
         for (int i = bnd; i < (grid).getSizeX() - bnd; ++i)
 
+#define FOR_NEIGHBORS_BND(grid, radius, bnd) \
+  for (int zj = ((grid).is3D() ? std::max(bnd, k - radius) : 0); \
+       zj <= ((grid).is3D() ? std::min(k + radius, (grid).getSizeZ() - 1 - bnd) : 0); \
+       zj++) \
+    for (int yj = std::max(bnd, j - radius); \
+         yj <= std::min(j + radius, (grid).getSizeY() - 1 - bnd); \
+         yj++) \
+      for (int xj = std::max(bnd, i - radius); \
+           xj <= std::min(i + radius, (grid).getSizeX() - 1 - bnd); \
+           xj++)
+
+#define FOR_NEIGHBORS(grid, radius) FOR_NEIGHBORS_BND(grid, radius, 0)
+
 //! Basic data structure for kernel data, initialized based on kernel type (e.g. single, idx, etc).
 struct KernelBase {
   int maxX, maxY, maxZ, minZ, maxT, minT;

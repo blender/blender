@@ -38,6 +38,7 @@
 
 #include "imbuf.h"
 
+#include "BLI_endian_defines.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 

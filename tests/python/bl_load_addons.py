@@ -59,7 +59,8 @@ def _init_addon_blacklist():
 
 
 def addon_modules_sorted():
-    modules = addon_utils.modules({})
+    # Pass in an empty module cache to prevent `addon_utils` local module cache being manipulated.
+    modules = addon_utils.modules(module_cache={})
     modules[:] = [
         mod for mod in modules
         if not (mod.__file__.startswith(BLACKLIST_DIRS))

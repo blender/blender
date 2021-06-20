@@ -329,6 +329,7 @@ class CustomDataAttributes {
   ~CustomDataAttributes();
   CustomDataAttributes(const CustomDataAttributes &other);
   CustomDataAttributes(CustomDataAttributes &&other);
+  CustomDataAttributes &operator=(const CustomDataAttributes &other);
 
   void reallocate(const int size);
 

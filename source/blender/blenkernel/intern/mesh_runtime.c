@@ -98,7 +98,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
  */
 static void mesh_ensure_looptri_data(Mesh *mesh)
 {
-  const unsigned int totpoly = mesh->totpoly;
+  const uint totpoly = mesh->totpoly;
   const int looptris_len = poly_to_tri_count(totpoly, mesh->totloop);
 
   BLI_assert(mesh->runtime.looptris.array_wip == NULL);

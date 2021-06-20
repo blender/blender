@@ -95,7 +95,7 @@ typedef struct uiSearchboxData {
   /** draw thumbnail previews, rather than list */
   bool preview;
   /** Use the #UI_SEP_CHAR char for splitting shortcuts (good for operators, bad for data). */
-  bool use_sep;
+  bool use_shortcut_sep;
   int prv_rows, prv_cols;
   /**
    * Show the active icon and text after the last instance of this string.
@@ -314,7 +314,7 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
                             data->items.name_prefix_offsets[data->active] :
                             0);
 
-    const char *name_sep = data->use_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
+    const char *name_sep = data->use_shortcut_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
 
     BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) + 1 : data->items.maxstrlen);
 
@@ -535,7 +535,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
                          /* Never include the prefix in the button. */
                          (data->items.name_prefix_offsets ? data->items.name_prefix_offsets[a] :
                                                             0);
-      const char *name_sep = data->use_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
+      const char *name_sep = data->use_shortcut_sep ? strrchr(name, UI_SEP_CHAR) : NULL;
       if (STREQLEN(but->editstr, name, name_sep ? (name_sep - name) : data->items.maxstrlen)) {
         data->active = a;
         break;
@@ -627,7 +627,7 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
         char *name_sep_test = NULL;
 
         uiMenuItemSeparatorType separator_type = UI_MENU_ITEM_SEPARATOR_NONE;
-        if (data->use_sep) {
+        if (data->use_shortcut_sep) {
           separator_type = UI_MENU_ITEM_SEPARATOR_SHORTCUT;
         }
         /* Only set for displaying additional hint (e.g. library name of a linked data-block). */
@@ -719,7 +719,10 @@ static void ui_searchbox_region_free_cb(ARegion *region)
   region->regiondata = NULL;
 }
 
-ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiButSearch *search_but)
+static ARegion *ui_searchbox_create_generic_ex(bContext *C,
+                                               ARegion *butregion,
+                                               uiButSearch *search_but,
+                                               const bool use_shortcut_sep)
 {
   wmWindow *win = CTX_wm_window(C);
   const uiStyle *style = UI_style_get();
@@ -759,12 +762,8 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiButSearc
     data->prv_cols = but->a2;
   }
 
-  /* Only show key shortcuts when needed (checking RNA prop pointer is useless here, a lot of
-   * buttons are about data without having that pointer defined, let's rather try with optype!).
-   * One can also enforce that behavior by setting
-   * UI_BUT_HAS_SHORTCUT drawflag of search button. */
-  if (but->optype != NULL || (but->drawflag & UI_BUT_HAS_SHORTCUT) != 0) {
-    data->use_sep = true;
+  if (but->optype != NULL || use_shortcut_sep) {
+    data->use_shortcut_sep = true;
   }
   data->sep_string = search_but->item_sep_string;
 
@@ -888,6 +887,11 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiButSearc
   return region;
 }
 
+ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiButSearch *search_but)
+{
+  return ui_searchbox_create_generic_ex(C, butregion, search_but, false);
+}
+
 /**
  * Similar to Python's `str.title` except...
  *
@@ -973,8 +977,8 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
                           data->items.names[a],
                           0,
                           state,
-                          data->use_sep ? UI_MENU_ITEM_SEPARATOR_SHORTCUT :
-                                          UI_MENU_ITEM_SEPARATOR_NONE,
+                          data->use_shortcut_sep ? UI_MENU_ITEM_SEPARATOR_SHORTCUT :
+                                                   UI_MENU_ITEM_SEPARATOR_NONE,
                           NULL);
       }
     }
@@ -996,8 +1000,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
 
 ARegion *ui_searchbox_create_operator(bContext *C, ARegion *butregion, uiButSearch *search_but)
 {
-  UI_but_drawflag_enable(&search_but->but, UI_BUT_HAS_SHORTCUT);
-  ARegion *region = ui_searchbox_create_generic(C, butregion, search_but);
+  ARegion *region = ui_searchbox_create_generic_ex(C, butregion, search_but, true);
 
   region->type->draw = ui_searchbox_region_draw_cb__operator;
 
@@ -1016,8 +1019,7 @@ static void ui_searchbox_region_draw_cb__menu(const bContext *UNUSED(C), ARegion
 
 ARegion *ui_searchbox_create_menu(bContext *C, ARegion *butregion, uiButSearch *search_but)
 {
-  UI_but_drawflag_enable(&search_but->but, UI_BUT_HAS_SHORTCUT);
-  ARegion *region = ui_searchbox_create_generic(C, butregion, search_but);
+  ARegion *region = ui_searchbox_create_generic_ex(C, butregion, search_but, true);
 
   if (false) {
     region->type->draw = ui_searchbox_region_draw_cb__menu;

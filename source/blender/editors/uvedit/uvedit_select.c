@@ -1381,7 +1381,7 @@ static void uv_select_linked_multi(Scene *scene,
             BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
               if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
                 bool add_to_stack = true;
-                if (uv_sync_select && !select_faces) {
+                if (uv_sync_select) {
                   /* Special case, vertex/edge & sync select being enabled.
                    *
                    * Without this, a second linked select will 'grow' each time as each new
@@ -1392,6 +1392,7 @@ static void uv_select_linked_multi(Scene *scene,
                    * - The only other fully selected face is connected or,
                    * - There are no connected fully selected faces UV-connected to this loop.
                    */
+                  BLI_assert(!select_faces);
                   if (uvedit_face_select_test(scene, l->f, cd_loop_uv_offset)) {
                     /* pass */
                   }

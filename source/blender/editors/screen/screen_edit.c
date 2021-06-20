@@ -1275,11 +1275,14 @@ void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
 
 ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type)
 {
+  bScreen *newscreen = NULL;
   ScrArea *newsa = NULL;
   SpaceLink *newsl;
 
   if (!area || area->full == NULL) {
-    newsa = ED_screen_state_maximized_create(C);
+    newscreen = ED_screen_state_maximized_create(C);
+    newsa = newscreen->areabase.first;
+    BLI_assert(newsa->spacetype == SPACE_EMPTY);
   }
 
   if (!newsa) {
@@ -1295,6 +1298,10 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type)
   }
 
   ED_area_newspace(C, newsa, type, (newsl && newsl->link_flag & SPACE_FLAG_TYPE_TEMPORARY));
+
+  if (newscreen) {
+    ED_screen_change(C, newscreen);
+  }
 
   return newsa;
 }
@@ -1361,6 +1368,10 @@ void ED_screen_full_restore(bContext *C, ScrArea *area)
  * \param toggle_area: If this is set, its space data will be swapped with the one of the new empty
  *                     area, when toggling back it can be swapped back again.
  * \return The newly created screen with the non-normal area.
+ *
+ * \note The caller must run #ED_screen_change this is not done in this function
+ * as it would attempt to initialize areas that don't yet have a space-type assigned
+ * (converting them to 3D view without creating the space-data).
  */
 static bScreen *screen_state_to_nonnormal(bContext *C,
                                           wmWindow *win,
@@ -1429,7 +1440,6 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
   }
   newa->full = oldscreen;
 
-  ED_screen_change(C, screen);
   ED_area_tag_refresh(newa);
 
   return screen;
@@ -1442,10 +1452,9 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
  * Use this to just create a new maximized screen/area, rather than maximizing an existing one.
  * Otherwise, maximize with #ED_screen_state_toggle().
  */
-ScrArea *ED_screen_state_maximized_create(bContext *C)
+bScreen *ED_screen_state_maximized_create(bContext *C)
 {
-  bScreen *screen = screen_state_to_nonnormal(C, CTX_wm_window(C), NULL, SCREENMAXIMIZED);
-  return screen->areabase.first;
+  return screen_state_to_nonnormal(C, CTX_wm_window(C), NULL, SCREENMAXIMIZED);
 }
 
 /**
@@ -1548,6 +1557,8 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     }
 
     screen = screen_state_to_nonnormal(C, win, toggle_area, state);
+
+    ED_screen_change(C, screen);
   }
 
   BLI_assert(CTX_wm_screen(C) == screen);
@@ -1585,6 +1596,7 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
                          sizex,
                          sizey,
                          (int)space_type,
+                         false,
                          dialog,
                          true,
                          WIN_ALIGN_LOCATION_CENTER)) {

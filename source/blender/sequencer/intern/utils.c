@@ -39,6 +39,7 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
+#include "SEQ_edit.h"
 #include "SEQ_iterator.h"
 #include "SEQ_relations.h"
 #include "SEQ_select.h"
@@ -140,7 +141,9 @@ static int seqbase_unique_name_recursive_fn(Sequence *seq, void *arg_pt)
   return 1;
 }
 
-void SEQ_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
+void SEQ_sequence_base_unique_name_recursive(struct Scene *scene,
+                                             ListBase *seqbasep,
+                                             Sequence *seq)
 {
   SeqUniqueInfo sui;
   char *dot;
@@ -167,7 +170,7 @@ void SEQ_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
     SEQ_seqbase_recursive_apply(seqbasep, seqbase_unique_name_recursive_fn, &sui);
   }
 
-  BLI_strncpy(seq->name + 2, sui.name_dest, sizeof(seq->name) - 2);
+  SEQ_edit_sequence_name_set(scene, seq, sui.name_dest);
 }
 
 static const char *give_seqname_by_type(int type)
@@ -629,7 +632,7 @@ void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
   char name[SEQ_NAME_MAXSTR];
 
   BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
-  SEQ_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+  SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
   SEQ_dupe_animdata(scene, name, seq->name + 2);
 
   if (seq->type == SEQ_TYPE_META) {

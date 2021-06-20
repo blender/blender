@@ -24,6 +24,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
@@ -40,8 +41,6 @@
 #include "IMB_indexer.h"
 #include "imbuf.h"
 
-#include "BKE_global.h"
-
 #ifdef WITH_AVI
 #  include "AVI_avi.h"
 #endif
@@ -51,7 +50,7 @@
 #  include <libavutil/imgutils.h>
 #endif
 
-static const char magic[] = "BlenMIdx";
+static const char binary_header_str[] = "BlenMIdx";
 static const char temp_ext[] = "_part";
 
 static const int proxy_sizes[] = {IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75, IMB_PROXY_100};
@@ -66,7 +65,7 @@ static int tc_types[] = {
 };
 #endif
 
-#define INDEX_FILE_VERSION 1
+#define INDEX_FILE_VERSION 2
 
 /* ----------------------------------------------------------------------
  * - time code index functions
@@ -97,16 +96,25 @@ anim_index_builder *IMB_index_builder_create(const char *name)
     return NULL;
   }
 
-  fprintf(rv->fp, "%s%c%.3d", magic, (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v', INDEX_FILE_VERSION);
+  fprintf(rv->fp,
+          "%s%c%.3d",
+          binary_header_str,
+          (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
+          INDEX_FILE_VERSION);
 
   return rv;
 }
 
-void IMB_index_builder_add_entry(
-    anim_index_builder *fp, int frameno, uint64_t seek_pos, uint64_t seek_pos_dts, uint64_t pts)
+void IMB_index_builder_add_entry(anim_index_builder *fp,
+                                 int frameno,
+                                 uint64_t seek_pos,
+                                 uint64_t seek_pos_pts,
+                                 uint64_t seek_pos_dts,
+                                 uint64_t pts)
 {
   fwrite(&frameno, sizeof(int), 1, fp->fp);
   fwrite(&seek_pos, sizeof(uint64_t), 1, fp->fp);
+  fwrite(&seek_pos_pts, sizeof(uint64_t), 1, fp->fp);
   fwrite(&seek_pos_dts, sizeof(uint64_t), 1, fp->fp);
   fwrite(&pts, sizeof(uint64_t), 1, fp->fp);
 }
@@ -116,6 +124,7 @@ void IMB_index_builder_proc_frame(anim_index_builder *fp,
                                   int data_size,
                                   int frameno,
                                   uint64_t seek_pos,
+                                  uint64_t seek_pos_pts,
                                   uint64_t seek_pos_dts,
                                   uint64_t pts)
 {
@@ -123,13 +132,14 @@ void IMB_index_builder_proc_frame(anim_index_builder *fp,
     anim_index_entry e;
     e.frameno = frameno;
     e.seek_pos = seek_pos;
+    e.seek_pos_pts = seek_pos_pts;
     e.seek_pos_dts = seek_pos_dts;
     e.pts = pts;
 
     fp->proc_frame(fp, buffer, data_size, &e);
   }
   else {
-    IMB_index_builder_add_entry(fp, frameno, seek_pos, seek_pos_dts, pts);
+    IMB_index_builder_add_entry(fp, frameno, seek_pos, seek_pos_pts, seek_pos_dts, pts);
   }
 }
 
@@ -160,22 +170,26 @@ struct anim_index *IMB_indexer_open(const char *name)
   int i;
 
   if (!fp) {
+    fprintf(stderr, "Couldn't open indexer file: %s\n", name);
     return NULL;
   }
 
   if (fread(header, 12, 1, fp) != 1) {
+    fprintf(stderr, "Couldn't read indexer file: %s\n", name);
     fclose(fp);
     return NULL;
   }
 
   header[12] = 0;
 
-  if (memcmp(header, magic, 8) != 0) {
+  if (memcmp(header, binary_header_str, 8) != 0) {
+    fprintf(stderr, "Error reading %s: Binary file type string missmatch\n", name);
     fclose(fp);
     return NULL;
   }
 
   if (atoi(header + 9) != INDEX_FILE_VERSION) {
+    fprintf(stderr, "Error reading %s: File version missmatch\n", name);
     fclose(fp);
     return NULL;
   }
@@ -188,6 +202,7 @@ struct anim_index *IMB_indexer_open(const char *name)
 
   idx->num_entries = (ftell(fp) - 12) / (sizeof(int) +      /* framepos */
                                          sizeof(uint64_t) + /* seek_pos */
+                                         sizeof(uint64_t) + /* seek_pos_pts */
                                          sizeof(uint64_t) + /* seek_pos_dts */
                                          sizeof(uint64_t)   /* pts */
                                         );
@@ -201,12 +216,13 @@ struct anim_index *IMB_indexer_open(const char *name)
   for (i = 0; i < idx->num_entries; i++) {
     items_read += fread(&idx->entries[i].frameno, sizeof(int), 1, fp);
     items_read += fread(&idx->entries[i].seek_pos, sizeof(uint64_t), 1, fp);
+    items_read += fread(&idx->entries[i].seek_pos_pts, sizeof(uint64_t), 1, fp);
     items_read += fread(&idx->entries[i].seek_pos_dts, sizeof(uint64_t), 1, fp);
     items_read += fread(&idx->entries[i].pts, sizeof(uint64_t), 1, fp);
   }
 
-  if (UNLIKELY(items_read != idx->num_entries * 4)) {
-    perror("error reading animation index file");
+  if (UNLIKELY(items_read != idx->num_entries * 5)) {
+    fprintf(stderr, "Error: Element data size missmatch in: %s\n", name);
     MEM_freeN(idx->entries);
     MEM_freeN(idx);
     fclose(fp);
@@ -217,6 +233,7 @@ struct anim_index *IMB_indexer_open(const char *name)
     for (i = 0; i < idx->num_entries; i++) {
       BLI_endian_switch_int32(&idx->entries[i].frameno);
       BLI_endian_switch_uint64(&idx->entries[i].seek_pos);
+      BLI_endian_switch_uint64(&idx->entries[i].seek_pos_pts);
       BLI_endian_switch_uint64(&idx->entries[i].seek_pos_dts);
       BLI_endian_switch_uint64(&idx->entries[i].pts);
     }
@@ -236,6 +253,17 @@ uint64_t IMB_indexer_get_seek_pos(struct anim_index *idx, int frame_index)
     frame_index = idx->num_entries - 1;
   }
   return idx->entries[frame_index].seek_pos;
+}
+
+uint64_t IMB_indexer_get_seek_pos_pts(struct anim_index *idx, int frame_index)
+{
+  if (frame_index < 0) {
+    frame_index = 0;
+  }
+  if (frame_index >= idx->num_entries) {
+    frame_index = idx->num_entries - 1;
+  }
+  return idx->entries[frame_index].seek_pos_pts;
 }
 
 uint64_t IMB_indexer_get_seek_pos_dts(struct anim_index *idx, int frame_index)
@@ -319,8 +347,7 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
 {
   switch (pr_size) {
     case IMB_PROXY_NONE:
-      /* if we got here, something is broken anyways, so sane defaults... */
-      return 0;
+      return -1;
     case IMB_PROXY_25:
       return 0;
     case IMB_PROXY_50:
@@ -330,16 +357,16 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
     case IMB_PROXY_100:
       return 3;
     default:
-      return 0;
+      BLI_assert(!"Unhandled proxy size enum!");
+      return -1;
   }
 }
 
 int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
 {
   switch (tc) {
-    case IMB_TC_NONE: /* if we got here, something is broken anyways,
-                       * so sane defaults... */
-      return 0;
+    case IMB_TC_NONE:
+      return -1;
     case IMB_TC_RECORD_RUN:
       return 0;
     case IMB_TC_FREE_RUN:
@@ -349,7 +376,8 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
     case IMB_TC_RECORD_RUN_NO_GAPS:
       return 3;
     default:
-      return 0;
+      BLI_assert(!"Unhandled timecode type enum!");
+      return -1;
   }
 }
 
@@ -385,6 +413,8 @@ static bool get_proxy_filename(struct anim *anim,
   char index_dir[FILE_MAXDIR];
   int i = IMB_proxy_size_to_array_index(preview_size);
 
+  BLI_assert(i >= 0);
+
   char proxy_name[256];
   char stream_suffix[20];
   const char *name = (temp) ? "proxy_%d%s_part.avi" : "proxy_%d%s.avi";
@@ -416,6 +446,9 @@ static void get_tc_filename(struct anim *anim, IMB_Timecode_Type tc, char *fname
 {
   char index_dir[FILE_MAXDIR];
   int i = IMB_timecode_to_array_index(tc);
+
+  BLI_assert(i >= 0);
+
   const char *index_names[] = {
       "record_run%s%s.blen_tc",
       "free_run%s%s.blen_tc",
@@ -772,9 +805,10 @@ typedef struct FFmpegIndexBuilderContext {
   IMB_Proxy_Size proxy_sizes_in_use;
 
   uint64_t seek_pos;
-  uint64_t last_seek_pos;
-  uint64_t seek_pos_dts;
   uint64_t seek_pos_pts;
+  uint64_t seek_pos_dts;
+  uint64_t last_seek_pos;
+  uint64_t last_seek_pos_pts;
   uint64_t last_seek_pos_dts;
   uint64_t start_pts;
   double frame_rate;
@@ -927,8 +961,9 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
 {
   int i;
   uint64_t s_pos = context->seek_pos;
+  uint64_t s_pts = context->seek_pos_pts;
   uint64_t s_dts = context->seek_pos_dts;
-  uint64_t pts = av_get_pts_from_frame(context->iFormatCtx, in_frame);
+  uint64_t pts = av_get_pts_from_frame(in_frame);
 
   for (i = 0; i < context->num_proxy_sizes; i++) {
     add_to_proxy_output_ffmpeg(context->proxy_ctx[i], in_frame);
@@ -942,15 +977,15 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
   context->frameno = floor(
       (pts - context->start_pts) * context->pts_time_base * context->frame_rate + 0.5);
 
-  /* decoding starts *always* on I-Frames,
-   * so: P-Frames won't work, even if all the
-   * information is in place, when we seek
-   * to the I-Frame presented *after* the P-Frame,
-   * but located before the P-Frame within
-   * the stream */
+  int64_t seek_pos_pts = timestamp_from_pts_or_dts(context->seek_pos_pts, context->seek_pos_dts);
 
-  if (pts < context->seek_pos_pts) {
+  if (pts < seek_pos_pts) {
+    /* Decoding starts *always* on I-Frames. In this case our position is
+     * before our seek I-Frame. So we need to pick the previous available
+     * I-Frame to be able to decode this one properly.
+     */
     s_pos = context->last_seek_pos;
+    s_pts = context->last_seek_pos_pts;
     s_dts = context->last_seek_pos_dts;
   }
 
@@ -967,6 +1002,7 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
                                    curr_packet->size,
                                    tc_frameno,
                                    s_pos,
+                                   s_pts,
                                    s_dts,
                                    pts);
     }
@@ -1005,10 +1041,12 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
     if (next_packet->stream_index == context->videoStream) {
       if (next_packet->flags & AV_PKT_FLAG_KEY) {
         context->last_seek_pos = context->seek_pos;
+        context->last_seek_pos_pts = context->seek_pos_pts;
         context->last_seek_pos_dts = context->seek_pos_dts;
+
         context->seek_pos = next_packet->pos;
-        context->seek_pos_dts = next_packet->dts;
         context->seek_pos_pts = next_packet->pts;
+        context->seek_pos_dts = next_packet->dts;
       }
 
       int ret = avcodec_send_packet(context->iCodecCtx, next_packet);
@@ -1026,6 +1064,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
         index_rebuild_ffmpeg_proc_decoded_frame(context, next_packet, in_frame);
       }
     }
+    av_packet_unref(next_packet);
   }
 
   /* process pictures still stuck in decoder engine after EOF
@@ -1389,6 +1428,10 @@ struct anim *IMB_anim_open_proxy(struct anim *anim, IMB_Proxy_Size preview_size)
   char fname[FILE_MAX];
   int i = IMB_proxy_size_to_array_index(preview_size);
 
+  if (i < 0) {
+    return NULL;
+  }
+
   if (anim->proxy_anim[i]) {
     return anim->proxy_anim[i];
   }
@@ -1411,6 +1454,10 @@ struct anim_index *IMB_anim_open_index(struct anim *anim, IMB_Timecode_Type tc)
 {
   char fname[FILE_MAX];
   int i = IMB_timecode_to_array_index(tc);
+
+  if (i < 0) {
+    return NULL;
+  }
 
   if (anim->curr_idx[i]) {
     return anim->curr_idx[i];

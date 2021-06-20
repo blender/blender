@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h" /* Needed here for inline functions. */
 #include "BLI_threads.h"
@@ -226,6 +227,7 @@ typedef struct LineartRenderBuffer {
   int tile_count_x, tile_count_y;
   double width_per_tile, height_per_tile;
   double view_projection[4][4];
+  double view[4][4];
 
   struct LineartBoundingArea *initial_bounding_areas;
   unsigned int bounding_area_count;
@@ -247,6 +249,10 @@ typedef struct LineartRenderBuffer {
   LineartStaticMemPool render_data_pool;
   ListBase wasted_cuts;
   SpinLock lock_cuts;
+
+  /* This is just a pointer to LineartCache::chain_data_pool, which acts as a cache for line
+   * chains. */
+  LineartStaticMemPool *chain_data_pool;
 
   /*  Render status */
   double view_vector[3];
@@ -307,10 +313,22 @@ typedef struct LineartRenderBuffer {
 
 } LineartRenderBuffer;
 
+typedef struct LineartCache {
+  /** Separate memory pool for chain data, this goes to the cache, so when we free the main pool,
+   * chains will still be available. */
+  LineartStaticMemPool chain_data_pool;
+
+  /** A copy of rb->chains so we have that data available after rb has been destroyed. */
+  ListBase chains;
+
+  /** Cache only contains edge types specified in this variable. */
+  char rb_edge_types;
+} LineartCache;
+
 #define DBL_TRIANGLE_LIM 1e-8
 #define DBL_EDGE_LIM 1e-9
 
-#define LRT_MEMORY_POOL_64MB (1 << 26)
+#define LRT_MEMORY_POOL_1MB (1 << 20)
 
 typedef enum eLineartTriangleFlags {
   LRT_CULL_DONT_CARE = 0,
@@ -342,6 +360,41 @@ typedef struct LineartRenderTaskInfo {
   ListBase edge_mark;
 
 } LineartRenderTaskInfo;
+
+struct BMesh;
+
+typedef struct LineartObjectInfo {
+  struct LineartObjectInfo *next;
+  struct Object *original_ob;
+  struct Mesh *original_me;
+  double model_view_proj[4][4];
+  double model_view[4][4];
+  double normal[4][4];
+  LineartElementLinkNode *v_reln;
+  int usage;
+  int global_i_offset;
+
+  bool free_use_mesh;
+
+  /* Threads will add lines inside here, when all threads are done, we combine those into the
+   * ones in LineartRenderBuffer.  */
+  ListBase contour;
+  ListBase intersection;
+  ListBase crease;
+  ListBase material;
+  ListBase edge_mark;
+  ListBase floating;
+
+} LineartObjectInfo;
+
+typedef struct LineartObjectLoadTaskInfo {
+  struct LineartRenderBuffer *rb;
+  struct Depsgraph *dg;
+  /* LinkNode styled list */
+  LineartObjectInfo *pending;
+  /* Used to spread the load across several threads. This can not overflow. */
+  long unsigned int total_faces;
+} LineartObjectLoadTaskInfo;
 
 /**
  * Bounding area diagram:
@@ -526,10 +579,11 @@ void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float thresh
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec);
-void MOD_lineart_chain_clear_picked_flag(struct LineartRenderBuffer *rb);
+void MOD_lineart_chain_clear_picked_flag(LineartCache *lc);
 
 bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
-                                       struct LineartGpencilModifierData *lmd);
+                                       struct LineartGpencilModifierData *lmd,
+                                       LineartCache **cached_result);
 
 struct Scene;
 
@@ -542,7 +596,7 @@ LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, doub
 struct bGPDlayer;
 struct bGPDframe;
 
-void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
+void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   struct Depsgraph *depsgraph,
                                   struct Object *ob,
                                   struct bGPDlayer *gpl,

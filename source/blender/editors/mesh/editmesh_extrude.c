@@ -319,9 +319,12 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
           em->bm, BMO_FLAG_DEFAULTS, "translate vec=%v verts=%hv", offset_local, BM_ELEM_SELECT);
     }
 
-    EDBM_mesh_normals_update(em);
-
-    EDBM_update_generic(obedit->data, true, true);
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = true,
+                    .is_destructive = true,
+                });
   }
 
   MEM_freeN(objects);
@@ -448,11 +451,13 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
       continue;
     }
     /* This normally happens when pushing undo but modal operators
-     * like this one don't push undo data until after modal mode is
-     * done.*/
-    EDBM_mesh_normals_update(em);
-
-    EDBM_update_generic(obedit->data, true, true);
+     * like this one don't push undo data until after modal mode is done. */
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = true,
+                    .is_destructive = true,
+                });
   }
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
@@ -502,13 +507,15 @@ static int edbm_extrude_context_exec(bContext *C, wmOperator *op)
     }
 
     edbm_extrude_mesh(obedit, em, op);
+
     /* This normally happens when pushing undo but modal operators
-     * like this one don't push undo data until after modal mode is
-     * done.*/
-
-    EDBM_mesh_normals_update(em);
-
-    EDBM_update_generic(obedit->data, true, true);
+     * like this one don't push undo data until after modal mode is done.*/
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = true,
+                    .is_destructive = true,
+                });
   }
   MEM_freeN(objects);
   return OPERATOR_FINISHED;
@@ -555,7 +562,12 @@ static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
 
     edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT);
 
-    EDBM_update_generic(obedit->data, true, true);
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = false,
+                    .is_destructive = true,
+                });
   }
   MEM_freeN(objects);
 
@@ -603,7 +615,12 @@ static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
 
     edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, use_normal_flip);
 
-    EDBM_update_generic(obedit->data, true, true);
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = false,
+                    .is_destructive = true,
+                });
   }
   MEM_freeN(objects);
 
@@ -651,7 +668,12 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 
     edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT);
 
-    EDBM_update_generic(obedit->data, true, true);
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = false,
+                    .is_destructive = true,
+                });
   }
   MEM_freeN(objects);
 
@@ -884,11 +906,13 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
     }
 
     /* This normally happens when pushing undo but modal operators
-     * like this one don't push undo data until after modal mode is
-     * done. */
-    EDBM_mesh_normals_update(vc.em);
-
-    EDBM_update_generic(vc.obedit->data, true, true);
+     * like this one don't push undo data until after modal mode is done. */
+    EDBM_update(vc.obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = true,
+                    .is_destructive = true,
+                });
 
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);

@@ -78,7 +78,7 @@ static void align_rotations_auto_pivot(const VArray<float3> &vectors,
                                        const float3 local_main_axis,
                                        const MutableSpan<float3> rotations)
 {
-  parallel_for(IndexRange(vectors.size()), 128, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(vectors.size()), 128, [&](IndexRange range) {
     for (const int i : range) {
       const float3 vector = vectors[i];
       if (is_zero_v3(vector)) {
@@ -129,7 +129,7 @@ static void align_rotations_fixed_pivot(const VArray<float3> &vectors,
     return;
   }
 
-  parallel_for(IndexRange(vectors.size()), 128, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(vectors.size()), 128, [&](IndexRange range) {
     for (const int i : range) {
       const float3 vector = vectors[i];
       if (is_zero_v3(vector)) {

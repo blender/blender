@@ -84,10 +84,10 @@ def protect_format_seq(msg):
 #    LRM = "\u200E"
 #    RLM = "\u200F"
     LRE = "\u202A"
-    RLE = "\u202B"
+#    RLE = "\u202B"
     PDF = "\u202C"
     LRO = "\u202D"
-    RLO = "\u202E"
+#    RLO = "\u202E"
     # uctrl = {LRE, RLE, PDF, LRO, RLO}
     # Most likely incomplete, but seems to cover current needs.
     format_codes = set("tslfd")

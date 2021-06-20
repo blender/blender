@@ -23,7 +23,7 @@ from bpy.app.handlers import persistent
 
 
 @persistent
-def load_handler(dummy):
+def load_handler(_):
     import bpy
 
     # 2D Animation

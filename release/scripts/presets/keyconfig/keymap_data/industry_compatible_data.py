@@ -2144,6 +2144,23 @@ def km_clip_dopesheet_editor(_params):
     return keymap
 
 
+def km_spreadsheet_generic(_params):
+    items = []
+    keymap = (
+        "Spreadsheet Generic",
+        {"space_type": 'SPREADSHEET', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        *_template_space_region_type_toggle(
+            sidebar_key={"type": 'N', "value": 'PRESS'},
+        ),
+    ])
+
+    return keymap
+
+
 # ------------------------------------------------------------------------------
 # Animation
 
@@ -3000,7 +3017,7 @@ def km_pose(params):
         ("anim.keyframe_insert_by_name", {"type": 'R', "value": 'PRESS', "shift": True},
          {"properties": [("type", 'Scaling')]}),
 
-        ("anim.keyframe_delete_v3d", {"type": 'S', "value": 'PRESS', "alt": True}, None),
+        ("anim.keyframe_delete", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         ("anim.keying_set_active_set", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         *_template_items_context_menu("VIEW3D_MT_pose_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         # Tools
@@ -3071,7 +3088,7 @@ def km_object_mode(params):
          {"properties": [("type", 'Rotation')]}),
         ("anim.keyframe_insert_by_name", {"type": 'R', "value": 'PRESS', "shift": True},
          {"properties": [("type", 'Scaling')]}),
-        ("anim.keyframe_delete_v3d", {"type": 'S', "value": 'PRESS', "alt": True}, None),
+        ("anim.keyframe_delete", {"type": 'S', "value": 'PRESS', "alt": True}, None),
         ("anim.keying_set_active_set", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         *_template_items_context_menu("VIEW3D_MT_object_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         ("object.move_to_collection", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
@@ -4067,6 +4084,7 @@ def generate_keymaps_impl(params=None):
         km_image(params),
         km_node_generic(params),
         km_node_editor(params),
+        km_spreadsheet_generic(params),
         km_info(params),
         km_file_browser(params),
         km_file_browser_main(params),

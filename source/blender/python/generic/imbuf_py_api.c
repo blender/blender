@@ -106,7 +106,7 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   struct PyC_StringEnum method = {method_items, FAST};
 
   static const char *_keywords[] = {"size", "method", NULL};
-  static _PyArg_Parser _parser = {"(ii)|O&:resize", _keywords, 0};
+  static _PyArg_Parser _parser = {"(ii)|$O&:resize", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &size[0], &size[1], PyC_ParseStringEnum, &method)) {
     return NULL;
@@ -510,7 +510,7 @@ static PyObject *M_imbuf_write(PyObject *UNUSED(self), PyObject *args, PyObject 
   const char *filepath = NULL;
 
   static const char *_keywords[] = {"image", "filepath", NULL};
-  static _PyArg_Parser _parser = {"O!|s:write", _keywords, 0};
+  static _PyArg_Parser _parser = {"O!|$s:write", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &Py_ImBuf_Type, &py_imb, &filepath)) {
     return NULL;
   }

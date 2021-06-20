@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-def keyconfig_data_oskey_from_ctrl(keyconfig_data_src, filter_fn=None):
+def keyconfig_data_oskey_from_ctrl(keyconfig_data_src, *, filter_fn=None):
     keyconfig_data_dst = []
     for km_name, km_parms, km_items_data_src in keyconfig_data_src:
         km_items_data_dst = km_items_data_src.copy()
@@ -61,4 +61,4 @@ def keyconfig_data_oskey_from_ctrl_for_macos(keyconfig_data_src):
                     return False
         return True
 
-    return keyconfig_data_oskey_from_ctrl(keyconfig_data_src, filter_fn)
+    return keyconfig_data_oskey_from_ctrl(keyconfig_data_src, filter_fn=filter_fn)

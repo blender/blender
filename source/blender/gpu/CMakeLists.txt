@@ -394,6 +394,8 @@ if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)
     set(TEST_SRC
       tests/gpu_testing.cc
+
+      tests/gpu_index_buffer_test.cc
       tests/gpu_shader_test.cc
 
       tests/gpu_testing.hh

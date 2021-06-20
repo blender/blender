@@ -456,49 +456,53 @@ void ED_object_add_mesh_props(wmOperatorType *ot)
 bool ED_object_add_generic_get_opts(bContext *C,
                                     wmOperator *op,
                                     const char view_align_axis,
-                                    float loc[3],
-                                    float rot[3],
-                                    float scale[3],
-                                    bool *enter_editmode,
-                                    ushort *local_view_bits,
-                                    bool *is_view_aligned)
+                                    float r_loc[3],
+                                    float r_rot[3],
+                                    float r_scale[3],
+                                    bool *r_enter_editmode,
+                                    ushort *r_local_view_bits,
+                                    bool *r_is_view_aligned)
 {
-  PropertyRNA *prop;
-
-  /* Switch to Edit mode? optional prop */
-  if ((prop = RNA_struct_find_property(op->ptr, "enter_editmode"))) {
+  /* Edit Mode! (optional) */
+  {
     bool _enter_editmode;
-    if (!enter_editmode) {
-      enter_editmode = &_enter_editmode;
+    if (!r_enter_editmode) {
+      r_enter_editmode = &_enter_editmode;
     }
+    /* Only to ensure the value is _always_ set.
+     * Typically the property will exist when the argument is non-NULL. */
+    *r_enter_editmode = false;
 
-    if (RNA_property_is_set(op->ptr, prop) && enter_editmode) {
-      *enter_editmode = RNA_property_boolean_get(op->ptr, prop);
-    }
-    else {
-      *enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
-      RNA_property_boolean_set(op->ptr, prop, *enter_editmode);
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "enter_editmode");
+    if (prop != NULL) {
+      if (RNA_property_is_set(op->ptr, prop) && r_enter_editmode) {
+        *r_enter_editmode = RNA_property_boolean_get(op->ptr, prop);
+      }
+      else {
+        *r_enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
+        RNA_property_boolean_set(op->ptr, prop, *r_enter_editmode);
+      }
     }
   }
 
-  if (local_view_bits) {
+  if (r_local_view_bits) {
     View3D *v3d = CTX_wm_view3d(C);
-    *local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+    *r_local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
   }
 
   /* Location! */
   {
     float _loc[3];
-    if (!loc) {
-      loc = _loc;
+    if (!r_loc) {
+      r_loc = _loc;
     }
 
     if (RNA_struct_property_is_set(op->ptr, "location")) {
-      RNA_float_get_array(op->ptr, "location", loc);
+      RNA_float_get_array(op->ptr, "location", r_loc);
     }
     else {
-      ED_object_location_from_view(C, loc);
-      RNA_float_set_array(op->ptr, "location", loc);
+      ED_object_location_from_view(C, r_loc);
+      RNA_float_set_array(op->ptr, "location", r_loc);
     }
   }
 
@@ -506,33 +510,33 @@ bool ED_object_add_generic_get_opts(bContext *C,
   {
     bool _is_view_aligned;
     float _rot[3];
-    if (!is_view_aligned) {
-      is_view_aligned = &_is_view_aligned;
+    if (!r_is_view_aligned) {
+      r_is_view_aligned = &_is_view_aligned;
     }
-    if (!rot) {
-      rot = _rot;
+    if (!r_rot) {
+      r_rot = _rot;
     }
 
     if (RNA_struct_property_is_set(op->ptr, "rotation")) {
       /* If rotation is set, always use it. Alignment (and corresponding user preference)
        * can be ignored since this is in world space anyways.
        * To not confuse (e.g. on redo), don't set it to #ALIGN_WORLD in the op UI though. */
-      *is_view_aligned = false;
-      RNA_float_get_array(op->ptr, "rotation", rot);
+      *r_is_view_aligned = false;
+      RNA_float_get_array(op->ptr, "rotation", r_rot);
     }
     else {
       int alignment = ALIGN_WORLD;
-      prop = RNA_struct_find_property(op->ptr, "align");
+      PropertyRNA *prop = RNA_struct_find_property(op->ptr, "align");
 
       if (RNA_property_is_set(op->ptr, prop)) {
         /* If alignment is set, always use it. */
-        *is_view_aligned = alignment == ALIGN_VIEW;
+        *r_is_view_aligned = alignment == ALIGN_VIEW;
         alignment = RNA_property_enum_get(op->ptr, prop);
       }
       else {
         /* If alignment is not set, use User Preferences. */
-        *is_view_aligned = (U.flag & USER_ADD_VIEWALIGNED) != 0;
-        if (*is_view_aligned) {
+        *r_is_view_aligned = (U.flag & USER_ADD_VIEWALIGNED) != 0;
+        if (*r_is_view_aligned) {
           RNA_property_enum_set(op->ptr, prop, ALIGN_VIEW);
           alignment = ALIGN_VIEW;
         }
@@ -547,18 +551,18 @@ bool ED_object_add_generic_get_opts(bContext *C,
       }
       switch (alignment) {
         case ALIGN_WORLD:
-          RNA_float_get_array(op->ptr, "rotation", rot);
+          RNA_float_get_array(op->ptr, "rotation", r_rot);
           break;
         case ALIGN_VIEW:
-          ED_object_rotation_from_view(C, rot, view_align_axis);
-          RNA_float_set_array(op->ptr, "rotation", rot);
+          ED_object_rotation_from_view(C, r_rot, view_align_axis);
+          RNA_float_set_array(op->ptr, "rotation", r_rot);
           break;
         case ALIGN_CURSOR: {
           const Scene *scene = CTX_data_scene(C);
           float tmat[3][3];
           BKE_scene_cursor_rot_to_mat3(&scene->cursor, tmat);
-          mat3_normalized_to_eul(rot, tmat);
-          RNA_float_set_array(op->ptr, "rotation", rot);
+          mat3_normalized_to_eul(r_rot, tmat);
+          RNA_float_set_array(op->ptr, "rotation", r_rot);
           break;
         }
       }
@@ -568,19 +572,21 @@ bool ED_object_add_generic_get_opts(bContext *C,
   /* Scale! */
   {
     float _scale[3];
-    if (!scale) {
-      scale = _scale;
+    if (!r_scale) {
+      r_scale = _scale;
     }
 
     /* For now this is optional, we can make it always use. */
-    copy_v3_fl(scale, 1.0f);
-    if ((prop = RNA_struct_find_property(op->ptr, "scale"))) {
+    copy_v3_fl(r_scale, 1.0f);
+
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "scale");
+    if (prop != NULL) {
       if (RNA_property_is_set(op->ptr, prop)) {
-        RNA_property_float_get_array(op->ptr, prop, scale);
+        RNA_property_float_get_array(op->ptr, prop, r_scale);
       }
       else {
-        copy_v3_fl(scale, 1.0f);
-        RNA_property_float_set_array(op->ptr, prop, scale);
+        copy_v3_fl(r_scale, 1.0f);
+        RNA_property_float_set_array(op->ptr, prop, r_scale);
       }
     }
   }
@@ -3462,6 +3468,19 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
  * Use for drag & drop.
  * \{ */
 
+static Base *object_add_ensure_in_view_layer(Main *bmain, ViewLayer *view_layer, Object *ob)
+{
+  Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+  if (!base) {
+    LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
+    BKE_collection_object_add(bmain, layer_collection->collection, ob);
+    base = BKE_view_layer_base_find(view_layer, ob);
+  }
+
+  return base;
+}
+
 static int object_add_named_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -3469,7 +3488,8 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Base *basen;
   Object *ob;
-  const bool linked = RNA_boolean_get(op->ptr, "linked");
+  const bool duplicate = RNA_boolean_get(op->ptr, "duplicate");
+  const bool linked = duplicate && RNA_boolean_get(op->ptr, "linked");
   const eDupli_ID_Flags dupflag = (linked) ? 0 : (eDupli_ID_Flags)U.dupflag;
   char name[MAX_ID_NAME - 2];
 
@@ -3483,10 +3503,30 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   }
 
   /* prepare dupli */
-  basen = object_add_duplicate_internal(bmain, scene, view_layer, ob, dupflag, 0);
+  if (duplicate) {
+    basen = object_add_duplicate_internal(
+        bmain,
+        scene,
+        view_layer,
+        ob,
+        dupflag,
+        /* Sub-process flag because the new-ID remapping (#BKE_libblock_relink_to_newid()) in this
+         * function will only work if the object is already linked in the view layer, which is not
+         * the case here. So we have to do the new-ID relinking ourselves
+         * (#copy_object_set_idnew()).
+         */
+        LIB_ID_DUPLICATE_IS_SUBPROCESS);
+  }
+  else {
+    /* basen is actually not a new base in this case. */
+    basen = object_add_ensure_in_view_layer(bmain, view_layer, ob);
+  }
 
   if (basen == NULL) {
-    BKE_report(op->reports, RPT_ERROR, "Object could not be duplicated");
+    BKE_report(op->reports,
+               RPT_ERROR,
+               duplicate ? "Object could not be duplicated" :
+                           "Object could not be linked to the view layer");
     return OPERATOR_CANCELLED;
   }
 
@@ -3533,11 +3573,24 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "duplicate",
+      true,
+      "Duplicate",
+      "Create a duplicate of the object. If not set, only ensures the object is linked into the "
+      "active view layer, positions and selects/activates it (deselecting others)");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
   RNA_def_boolean(ot->srna,
                   "linked",
-                  0,
+                  false,
                   "Linked",
-                  "Duplicate object but not object data, linking to the original data");
+                  "Duplicate object but not object data, linking to the original data (ignored if "
+                  "'duplicate' is false)");
+
   RNA_def_string(ot->srna, "name", NULL, MAX_ID_NAME - 2, "Name", "Object name to add");
 
   object_add_drop_xy_props(ot);

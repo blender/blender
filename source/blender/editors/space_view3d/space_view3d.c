@@ -331,6 +331,8 @@ static void view3d_free(SpaceLink *sl)
     MEM_freeN(vd->localvd);
   }
 
+  MEM_SAFE_FREE(vd->runtime.local_stats);
+
   if (vd->runtime.properties_storage) {
     MEM_freeN(vd->runtime.properties_storage);
   }
@@ -346,19 +348,25 @@ static void view3d_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
 
+static void view3d_exit(wmWindowManager *UNUSED(wm), ScrArea *area)
+{
+  BLI_assert(area->spacetype == SPACE_VIEW3D);
+  View3D *v3d = area->spacedata.first;
+  MEM_SAFE_FREE(v3d->runtime.local_stats);
+}
+
 static SpaceLink *view3d_duplicate(SpaceLink *sl)
 {
   View3D *v3do = (View3D *)sl;
   View3D *v3dn = MEM_dupallocN(sl);
 
+  memset(&v3dn->runtime, 0x0, sizeof(v3dn->runtime));
+
   /* clear or remove stuff from old */
 
   if (v3dn->localvd) {
     v3dn->localvd = NULL;
-    v3dn->runtime.properties_storage = NULL;
   }
-  /* Only one View3D is allowed to have this flag! */
-  v3dn->runtime.flag &= ~V3D_RUNTIME_XR_SESSION_ROOT;
 
   v3dn->local_collections_uuid = 0;
   v3dn->flag &= ~(V3D_LOCAL_COLLECTIONS | V3D_XR_SESSION_MIRROR);
@@ -372,8 +380,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
   }
 
   /* copy or clear inside new stuff */
-
-  v3dn->runtime.properties_storage = NULL;
 
   return (SpaceLink *)v3dn;
 }
@@ -625,6 +631,7 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_OB);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
+  RNA_boolean_set(drop->ptr, "duplicate", false);
 }
 
 static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -1583,7 +1590,7 @@ static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(area))
+static void space_view3d_refresh(const bContext *C, ScrArea *area)
 {
   Scene *scene = CTX_data_scene(C);
   LightCache *lcache = scene->eevee.light_cache_data;
@@ -1592,6 +1599,9 @@ static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(area))
     lcache->flag &= ~LIGHTCACHE_UPDATE_AUTO;
     view3d_lightcache_update((bContext *)C);
   }
+
+  View3D *v3d = (View3D *)area->spacedata.first;
+  MEM_SAFE_FREE(v3d->runtime.local_stats);
 }
 
 const char *view3d_context_dir[] = {
@@ -1699,6 +1709,7 @@ void ED_spacetype_view3d(void)
   st->create = view3d_create;
   st->free = view3d_free;
   st->init = view3d_init;
+  st->exit = view3d_exit;
   st->listener = space_view3d_listener;
   st->refresh = space_view3d_refresh;
   st->duplicate = view3d_duplicate;

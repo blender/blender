@@ -75,6 +75,7 @@ set(SRC
   resources.c
   view2d.c
   view2d_draw.c
+  view2d_edge_pan.c
   view2d_gizmo_navigate.c
   view2d_ops.c
 

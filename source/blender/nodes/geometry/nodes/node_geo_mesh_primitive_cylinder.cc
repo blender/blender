@@ -76,7 +76,6 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
 
   /* The cylinder is a special case of the cone mesh where the top and bottom radius are equal. */
   Mesh *mesh = create_cylinder_or_cone_mesh(radius, radius, depth, verts_num, fill_type);
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }

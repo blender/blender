@@ -271,6 +271,7 @@ void SEQ_editing_free(Scene *scene, const bool do_id_user)
   SEQ_ALL_END;
 
   BLI_freelistN(&ed->metastack);
+  SEQ_sequence_lookup_free(scene);
   MEM_freeN(ed);
 
   scene->ed = NULL;
@@ -514,7 +515,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
 
   if (scene_src == scene_dst) {
     if (dupe_flag & SEQ_DUPE_UNIQUE_NAME) {
-      SEQ_sequence_base_unique_name_recursive(&scene_dst->ed->seqbase, seqn);
+      SEQ_sequence_base_unique_name_recursive(scene_dst, &scene_dst->ed->seqbase, seqn);
     }
   }
 

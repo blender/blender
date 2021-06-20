@@ -36,6 +36,7 @@
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
@@ -324,15 +325,19 @@ struct VolumeGrid {
 
     openvdb::io::File file(filepath);
 
-    try {
-      file.setCopyMaxBytes(0);
-      file.open();
-      openvdb::GridBase::Ptr vdb_grid = file.readGrid(name());
-      entry->grid->setTree(vdb_grid->baseTreePtr());
-    }
-    catch (const openvdb::IoError &e) {
-      entry->error_msg = e.what();
-    }
+    /* Isolate file loading since that's potentially multithreaded and we are
+     * holding a mutex lock. */
+    blender::threading::isolate_task([&] {
+      try {
+        file.setCopyMaxBytes(0);
+        file.open();
+        openvdb::GridBase::Ptr vdb_grid = file.readGrid(name());
+        entry->grid->setTree(vdb_grid->baseTreePtr());
+      }
+      catch (const openvdb::IoError &e) {
+        entry->error_msg = e.what();
+      }
+    });
 
     std::atomic_thread_fence(std::memory_order_release);
     entry->is_loaded = true;

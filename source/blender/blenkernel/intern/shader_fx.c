@@ -165,6 +165,18 @@ const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type)
 }
 
 /**
+ * Check whether given shaderfx is not local (i.e. from linked data) when the object is a library
+ * override.
+ *
+ * \param shaderfx: May be NULL, in which case we consider it as a non-local shaderfx case.
+ */
+bool BKE_shaderfx_is_nonlocal_in_liboverride(const Object *ob, const ShaderFxData *shaderfx)
+{
+  return (ID_IS_OVERRIDE_LIBRARY(ob) &&
+          ((shaderfx == NULL) || (shaderfx->flag & eShaderFxFlag_OverrideLibrary_Local) == 0));
+}
+
+/**
  * Get an effect's panel type, which was defined in the #panelRegister callback.
  *
  * \note ShaderFx panel types are assumed to be named with the struct name field concatenated to

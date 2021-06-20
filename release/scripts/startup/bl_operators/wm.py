@@ -1100,7 +1100,7 @@ class WM_OT_path_open(Operator):
         return {'FINISHED'}
 
 
-def _wm_doc_get_id(doc_id, do_url=True, url_prefix="", report=None):
+def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
     def operator_exists_pair(a, b):
         # Not fast, this is only for docs.
@@ -1190,7 +1190,7 @@ class WM_OT_doc_view_manual(Operator):
     doc_id: doc_id
 
     @staticmethod
-    def _find_reference(rna_id, url_mapping, verbose=True):
+    def _find_reference(rna_id, url_mapping, *, verbose=True):
         if verbose:
             print("online manual check for: '%s'... " % rna_id)
         from fnmatch import fnmatchcase
@@ -1526,7 +1526,7 @@ class WM_OT_properties_edit(Operator):
             self.default = ""
 
         # setup defaults
-        prop_ui = rna_idprop_ui_prop_get(item, prop, False)  # don't create
+        prop_ui = rna_idprop_ui_prop_get(item, prop, create=False)
         if prop_ui:
             self.min = prop_ui.get("min", -1000000000)
             self.max = prop_ui.get("max", 1000000000)
@@ -1910,7 +1910,7 @@ class WM_OT_toolbar(Operator):
         return context.space_data is not None
 
     @staticmethod
-    def keymap_from_toolbar(context, space_type, use_fallback_keys=True, use_reset=True):
+    def keymap_from_toolbar(context, space_type, *, use_fallback_keys=True, use_reset=True):
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         from bl_keymap_utils import keymap_from_toolbar
 
@@ -2211,7 +2211,7 @@ class WM_OT_batch_rename(Operator):
     actions: CollectionProperty(type=BatchRenameAction)
 
     @staticmethod
-    def _data_from_context(context, data_type, only_selected, check_context=False):
+    def _data_from_context(context, data_type, only_selected, *, check_context=False):
 
         mode = context.mode
         scene = context.scene

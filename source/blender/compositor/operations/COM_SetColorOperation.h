@@ -80,6 +80,11 @@ class SetColorOperation : public NodeOperation {
 
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
+
+  void update_memory_buffer(MemoryBuffer *output,
+                            const rcti &output_area,
+                            Span<MemoryBuffer *> inputs,
+                            ExecutionSystem &exec_system) override;
 };
 
 }  // namespace blender::compositor

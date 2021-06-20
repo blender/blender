@@ -466,7 +466,16 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
   triangles = MEM_callocN(sizeof(TriTessFace) * tottri, __func__);
 
-  BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+  const float(*precomputed_normals)[3] = CustomData_get_layer(&me->pdata, CD_NORMAL);
+  const bool calculate_normal = precomputed_normals ? false : true;
+
+  if (precomputed_normals != NULL) {
+    BKE_mesh_recalc_looptri_with_normals(
+        me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri, precomputed_normals);
+  }
+  else {
+    BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+  }
 
   if (tangent) {
     BKE_mesh_ensure_normals_for_display(me_eval);
@@ -478,9 +487,6 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
 
     loop_normals = CustomData_get_layer(&me_eval->ldata, CD_NORMAL);
   }
-
-  const float *precomputed_normals = CustomData_get_layer(&me->pdata, CD_NORMAL);
-  const bool calculate_normal = precomputed_normals ? false : true;
 
   for (i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
@@ -511,7 +517,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
       copy_v3_v3(triangles[i].normal, no);
     }
     else {
-      copy_v3_v3(triangles[i].normal, &precomputed_normals[lt->poly]);
+      copy_v3_v3(triangles[i].normal, precomputed_normals[lt->poly]);
     }
   }
 

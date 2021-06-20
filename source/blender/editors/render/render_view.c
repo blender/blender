@@ -164,6 +164,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
                        sizex,
                        sizey,
                        SPACE_IMAGE,
+                       true,
                        false,
                        true,
                        WIN_ALIGN_LOCATION_CENTER) == NULL) {

@@ -818,12 +818,7 @@ static bool datastack_drop_are_types_valid(StackDropData *drop_data)
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER_BASE:
     case TSE_MODIFIER:
-      if (ob_parent->type == OB_GPENCIL) {
-        return ob_dst->type == OB_GPENCIL;
-      }
-      else if (ob_parent->type != OB_GPENCIL) {
-        return ob_dst->type != OB_GPENCIL;
-      }
+      return (ob_parent->type == OB_GPENCIL) == (ob_dst->type == OB_GPENCIL);
       break;
     case TSE_CONSTRAINT_BASE:
     case TSE_CONSTRAINT:
@@ -1008,7 +1003,7 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
             drag_te, drop_te, insert_type, &ob->greasepencil_modifiers);
         ED_object_gpencil_modifier_move_to_index(reports, ob, drop_data->drag_directdata, index);
       }
-      else if (ob->type != OB_GPENCIL) {
+      else {
         index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->modifiers);
         ED_object_modifier_move_to_index(reports, ob, drop_data->drag_directdata, index);
       }
@@ -1370,7 +1365,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
     PointerRNA op_ptr;
     WM_operator_properties_create_ptr(&op_ptr, ot);
-    RNA_int_set(&op_ptr, "outside_padding", OUTLINER_DRAG_SCOLL_OUTSIDE_PAD);
+    RNA_float_set(&op_ptr, "outside_padding", OUTLINER_DRAG_SCOLL_OUTSIDE_PAD);
     WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr);
     WM_operator_properties_free(&op_ptr);
   }

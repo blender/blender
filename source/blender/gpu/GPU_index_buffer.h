@@ -53,6 +53,13 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *, GPUPrimType, uint index_len, uin
 void GPU_indexbuf_init(GPUIndexBufBuilder *, GPUPrimType, uint prim_len, uint vertex_len);
 GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len);
 
+/*
+ * Thread safe.
+ *
+ * Function inspired by the reduction directives of multithread work APIs..
+ */
+void GPU_indexbuf_join(GPUIndexBufBuilder *builder, const GPUIndexBufBuilder *builder_from);
+
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *, uint v);
 void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *);
 

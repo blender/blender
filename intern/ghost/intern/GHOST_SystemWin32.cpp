@@ -139,7 +139,6 @@ static void initRawInput()
 #undef DEVICE_COUNT
 }
 
-typedef HRESULT(API *GHOST_WIN32_SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS);
 typedef BOOL(API *GHOST_WIN32_EnableNonClientDpiScaling)(HWND);
 
 GHOST_SystemWin32::GHOST_SystemWin32()
@@ -1462,14 +1461,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * since DefWindowProc propagates it up the parent chain
            * until it finds a window that processes it.
            */
-
-          /* Get the window under the mouse and send event to its queue. */
-          POINT mouse_pos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-          HWND mouse_hwnd = ChildWindowFromPoint(HWND_DESKTOP, mouse_pos);
-          GHOST_WindowWin32 *mouse_window = (GHOST_WindowWin32 *)::GetWindowLongPtr(mouse_hwnd,
-                                                                                    GWLP_USERDATA);
-
-          processWheelEvent(mouse_window ? mouse_window : window, wParam, lParam);
+          processWheelEvent(window, wParam, lParam);
           eventHandled = true;
 #ifdef BROKEN_PEEK_TOUCHPAD
           PostMessage(hwnd, WM_USER, 0, 0);

@@ -149,7 +149,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       mul_m4_m4m4(cmat, imat, ob_src->obmat);
 
       /* transform vertex coordinates into new space */
-      for (a = 0, mvert = *mvert_pp; a < me->totvert; a++, mvert++) {
+      for (a = 0; a < me->totvert; a++, mvert++) {
         mul_m4_v3(cmat, mvert->co);
       }
 

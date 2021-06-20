@@ -447,7 +447,7 @@ def path_reference(
     """
     import os
     is_relative = filepath.startswith("//")
-    filepath_abs = bpy.path.abspath(filepath, base_src, library)
+    filepath_abs = bpy.path.abspath(filepath, start=base_src, library=library)
     filepath_abs = os.path.normpath(filepath_abs)
 
     if mode in {'ABSOLUTE', 'RELATIVE', 'STRIP'}:

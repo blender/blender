@@ -538,10 +538,12 @@ ListBase *which_libbase(Main *bmain, short type)
  * This is useful for generic traversal of all the blocks in a #Main (by traversing all the lists
  * in turn), without worrying about block types.
  *
+ * \param lb: Array of lists #INDEX_ID_MAX in length.
+ *
  * \note The order of each ID type #ListBase in the array is determined by the `INDEX_ID_<IDTYPE>`
  * enum definitions in `DNA_ID.h`. See also the #FOREACH_MAIN_ID_BEGIN macro in `BKE_main.h`
  */
-int set_listbasepointers(Main *bmain, ListBase *lb[INDEX_ID_MAX])
+int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
 {
   /* Libraries may be accessed from pretty much any other ID. */
   lb[INDEX_ID_LI] = &(bmain->libraries);

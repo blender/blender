@@ -434,7 +434,7 @@ class _defs_view3d_select:
             from gpu_extras.presets import draw_circle_2d
             props = tool.operator_properties("view3d.select_circle")
             radius = props.radius
-            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+            draw_circle_2d(xy, (1.0,) * 4, radius, segments=32)
 
         return dict(
             idname="builtin.select_circle",
@@ -1813,7 +1813,7 @@ class _defs_image_uv_select:
             from gpu_extras.presets import draw_circle_2d
             props = tool.operator_properties("uv.select_circle")
             radius = props.radius
-            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+            draw_circle_2d(xy, (1.0,) * 4, radius, segments=32)
 
         return dict(
             idname="builtin.select_circle",
@@ -1858,7 +1858,7 @@ class _defs_image_uv_sculpt:
                 if brush is None:
                     return
                 radius = brush.size
-            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+            draw_circle_2d(xy, (1.0,) * 4, radius, segments=32)
 
         return generate_from_enum_ex(
             context,
@@ -2150,7 +2150,7 @@ class _defs_gpencil_edit:
             from gpu_extras.presets import draw_circle_2d
             props = tool.operator_properties("gpencil.select_circle")
             radius = props.radius
-            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+            draw_circle_2d(xy, (1.0,) * 4, radius, segments=32)
 
         return dict(
             idname="builtin.select_circle",
@@ -2372,7 +2372,7 @@ class _defs_node_select:
             from gpu_extras.presets import draw_circle_2d
             props = tool.operator_properties("node.select_circle")
             radius = props.radius
-            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+            draw_circle_2d(xy, (1.0,) * 4, radius, segments=32)
 
         return dict(
             idname="builtin.select_circle",

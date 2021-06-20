@@ -550,7 +550,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   }
 
   int scr_w, scr_h;
-  wm_get_screensize(&scr_w, &scr_h);
+  wm_get_desktopsize(&scr_w, &scr_h);
   int posy = (scr_h - win->posy - win->sizey);
 
   /* Clear drawable so we can set the new window. */
@@ -756,6 +756,7 @@ static bool wm_window_update_size_position(wmWindow *win)
 
 /**
  * \param space_type: SPACE_VIEW3D, SPACE_INFO, ... (eSpace_Type)
+ * \param toplevel: Not a child owned by other windows. A peer of main window.
  * \param dialog: whether this should be made as a dialog-style window
  * \param temp: whether this is considered a short-lived window
  * \param alignment: how this window is positioned relative to its parent
@@ -768,6 +769,7 @@ wmWindow *WM_window_open(bContext *C,
                          int sizex,
                          int sizey,
                          int space_type,
+                         bool toplevel,
                          bool dialog,
                          bool temp,
                          WindowAlignment alignment)
@@ -822,7 +824,7 @@ wmWindow *WM_window_open(bContext *C,
 
   /* add new window? */
   if (win == NULL) {
-    win = wm_window_new(bmain, wm, win_prev, dialog);
+    win = wm_window_new(bmain, wm, toplevel ? NULL : win_prev, dialog);
     win->posx = rect.xmin;
     win->posy = rect.ymin;
     *win->stereo3d_format = *win_prev->stereo3d_format;
@@ -923,6 +925,7 @@ int wm_window_new_exec(bContext *C, wmOperator *UNUSED(op))
                             win_src->sizex * 0.95f,
                             win_src->sizey * 0.9f,
                             area->spacetype,
+                            false,
                             false,
                             false,
                             WIN_ALIGN_PARENT_CENTER) != NULL);

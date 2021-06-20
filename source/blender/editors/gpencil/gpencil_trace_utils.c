@@ -281,7 +281,6 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
     mat_mask_idx = ob->totcol - 1;
   }
 
-  potrace_path_t *path = st->plist;
   int n, *tag;
   potrace_dpoint_t(*c)[3];
 
@@ -289,7 +288,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
    * good results using the Potrace data. */
   const float scalef = 0.008f * scale;
   /* Draw each curve. */
-  path = st->plist;
+  potrace_path_t *path = st->plist;
   while (path != NULL) {
     n = path->curve.n;
     tag = path->curve.tag;

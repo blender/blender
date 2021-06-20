@@ -26,12 +26,12 @@ class TestBpyPath(unittest.TestCase):
         self.assertEqual(ensure_ext('', ''), '')
         self.assertEqual(ensure_ext('', '.blend'), '.blend')
 
-        # Test case-sensitive behaviour.
-        self.assertEqual(ensure_ext('demo', '.blend', True), 'demo.blend')
-        self.assertEqual(ensure_ext('demo.BLEND', '.blend', True), 'demo.BLEND.blend')
-        self.assertEqual(ensure_ext('demo', 'Blend', True), 'demoBlend')
-        self.assertEqual(ensure_ext('demoBlend', 'blend', True), 'demoBlendblend')
-        self.assertEqual(ensure_ext('demo', '', True), 'demo')
+        # Test case-sensitive behavior.
+        self.assertEqual(ensure_ext('demo', '.blend', case_sensitive=True), 'demo.blend')
+        self.assertEqual(ensure_ext('demo.BLEND', '.blend', case_sensitive=True), 'demo.BLEND.blend')
+        self.assertEqual(ensure_ext('demo', 'Blend', case_sensitive=True), 'demoBlend')
+        self.assertEqual(ensure_ext('demoBlend', 'blend', case_sensitive=True), 'demoBlendblend')
+        self.assertEqual(ensure_ext('demo', '', case_sensitive=True), 'demo')
 
 
 if __name__ == '__main__':

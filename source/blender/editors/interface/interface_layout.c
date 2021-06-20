@@ -4042,12 +4042,11 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
   int emy = 0;
   int miny = 0;
 
-  int w = litem->w - (flow->totcol - 1) * style->columnspace;
   emh = toth / flow->totcol;
 
   /* create column per column */
   col = 0;
-  w = (litem->w - (flow->totcol - 1) * style->columnspace) / flow->totcol;
+  int w = (litem->w - (flow->totcol - 1) * style->columnspace) / flow->totcol;
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
     ui_item_size(item, &itemw, &itemh);
 

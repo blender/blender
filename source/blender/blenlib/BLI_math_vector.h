@@ -163,6 +163,7 @@ MINLINE void madd_v3_v3fl(float r[3], const float a[3], float f);
 MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], float f);
 MINLINE void madd_v3_v3v3fl(float r[3], const float a[3], const float b[3], float f);
+MINLINE void madd_v3_v3v3db_db(double r[3], const double a[3], const double b[3], double f);
 MINLINE void madd_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);
 MINLINE void madd_v4_v4fl(float r[4], const float a[4], float f);
 MINLINE void madd_v4_v4v4(float r[4], const float a[4], const float b[4]);
@@ -326,6 +327,10 @@ void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2]);
 MINLINE bool is_zero_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool is_zero_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool is_zero_v4(const float a[4]) ATTR_WARN_UNUSED_RESULT;
+
+MINLINE bool is_zero_v2_db(const double a[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v3_db(const double a[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v4_db(const double a[4]) ATTR_WARN_UNUSED_RESULT;
 
 bool is_finite_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
 bool is_finite_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;

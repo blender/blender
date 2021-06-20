@@ -289,11 +289,10 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
   RNA_pointer_create(NULL, &RNA_Depsgraph, (ID *)PyLong_AsVoidPtr(pydepsgraph), &depsgraphptr);
   BL::Depsgraph b_depsgraph(depsgraphptr);
 
-  /* Allow Blender to execute other Python scripts, and isolate TBB tasks so we
-   * don't get deadlocks with Blender threads accessing shared data like images. */
+  /* Allow Blender to execute other Python scripts. */
   python_thread_state_save(&session->python_thread_state);
 
-  tbb::this_task_arena::isolate([&] { session->render(b_depsgraph); });
+  session->render(b_depsgraph);
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -330,8 +329,7 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 
   python_thread_state_save(&session->python_thread_state);
 
-  tbb::this_task_arena::isolate(
-      [&] { session->bake(b_depsgraph, b_object, pass_type, pass_filter, width, height); });
+  session->bake(b_depsgraph, b_object, pass_type, pass_filter, width, height);
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -377,7 +375,7 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 
   python_thread_state_save(&session->python_thread_state);
 
-  tbb::this_task_arena::isolate([&] { session->reset_session(b_data, b_depsgraph); });
+  session->reset_session(b_data, b_depsgraph);
 
   python_thread_state_restore(&session->python_thread_state);
 
@@ -399,7 +397,7 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 
   python_thread_state_save(&session->python_thread_state);
 
-  tbb::this_task_arena::isolate([&] { session->synchronize(b_depsgraph); });
+  session->synchronize(b_depsgraph);
 
   python_thread_state_restore(&session->python_thread_state);
 

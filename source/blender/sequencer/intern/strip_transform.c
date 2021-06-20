@@ -34,6 +34,7 @@
 #include "BKE_sound.h"
 
 #include "SEQ_effects.h"
+#include "SEQ_iterator.h"
 #include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
@@ -233,14 +234,22 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
   SEQ_offset_animdata(evil_scene, seq, delta);
   seq->start += delta;
 
+  /* Meta strips requires special handling: their content is to be translated, and then frame range
+   * of the meta is to be updated for the updated content. */
   if (seq->type == SEQ_TYPE_META) {
     Sequence *seq_child;
     for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {
       SEQ_transform_translate_sequence(evil_scene, seq_child, delta);
     }
+    /* Ensure that meta bounds are updated, but this function prevents resets seq->start and
+     * start/end point in timeline. */
+    SEQ_time_update_meta_strip_range(evil_scene, seq);
+    /* Move meta start/end points. */
+    SEQ_transform_set_left_handle_frame(seq, seq->startdisp + delta);
+    SEQ_transform_set_right_handle_frame(seq, seq->enddisp + delta);
   }
 
-  SEQ_time_update_sequence_bounds(evil_scene, seq);
+  SEQ_time_update_sequence(evil_scene, seq);
 }
 
 /* return 0 if there weren't enough space */
@@ -294,73 +303,69 @@ bool SEQ_transform_seqbase_shuffle(ListBase *seqbasep, Sequence *test, Scene *ev
   return SEQ_transform_seqbase_shuffle_ex(seqbasep, test, evil_scene, 1);
 }
 
-static int shuffle_seq_time_offset_test(ListBase *seqbasep, char dir)
+static int shuffle_seq_time_offset_test(SeqCollection *strips_to_shuffle,
+                                        ListBase *seqbasep,
+                                        char dir)
 {
   int offset = 0;
-  Sequence *seq, *seq_other;
+  Sequence *seq;
 
-  for (seq = seqbasep->first; seq; seq = seq->next) {
-    if (seq->tmp) {
-      for (seq_other = seqbasep->first; seq_other; seq_other = seq_other->next) {
-        if (!seq_other->tmp && seq_overlap(seq, seq_other)) {
-          if (dir == 'L') {
-            offset = min_ii(offset, seq_other->startdisp - seq->enddisp);
-          }
-          else {
-            offset = max_ii(offset, seq_other->enddisp - seq->startdisp);
-          }
-        }
+  SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
+    LISTBASE_FOREACH (Sequence *, seq_other, seqbasep) {
+      if (!seq_overlap(seq, seq_other)) {
+        continue;
+      }
+      if (dir == 'L') {
+        offset = min_ii(offset, seq_other->startdisp - seq->enddisp);
+      }
+      else {
+        offset = max_ii(offset, seq_other->enddisp - seq->startdisp);
       }
     }
   }
   return offset;
 }
 
-static int shuffle_seq_time_offset(Scene *scene, ListBase *seqbasep, char dir)
+static int shuffle_seq_time_offset(SeqCollection *strips_to_shuffle,
+                                   ListBase *seqbasep,
+                                   Scene *scene,
+                                   char dir)
 {
   int ofs = 0;
   int tot_ofs = 0;
   Sequence *seq;
-  while ((ofs = shuffle_seq_time_offset_test(seqbasep, dir))) {
-    for (seq = seqbasep->first; seq; seq = seq->next) {
-      if (seq->tmp) {
-        /* seq_test_overlap only tests display values */
-        seq->startdisp += ofs;
-        seq->enddisp += ofs;
-      }
+  while ((ofs = shuffle_seq_time_offset_test(strips_to_shuffle, seqbasep, dir))) {
+    SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
+      /* seq_test_overlap only tests display values */
+      seq->startdisp += ofs;
+      seq->enddisp += ofs;
     }
 
     tot_ofs += ofs;
   }
 
-  for (seq = seqbasep->first; seq; seq = seq->next) {
-    if (seq->tmp) {
-      SEQ_time_update_sequence_bounds(scene, seq); /* corrects dummy startdisp/enddisp values */
-    }
+  SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
+    SEQ_time_update_sequence_bounds(scene, seq); /* corrects dummy startdisp/enddisp values */
   }
 
   return tot_ofs;
 }
 
-bool SEQ_transform_seqbase_shuffle_time(ListBase *seqbasep,
+bool SEQ_transform_seqbase_shuffle_time(SeqCollection *strips_to_shuffle,
+                                        ListBase *seqbasep,
                                         Scene *evil_scene,
                                         ListBase *markers,
                                         const bool use_sync_markers)
 {
-  /* note: seq->tmp is used to tag strips to move */
-
-  Sequence *seq;
-
-  int offset_l = shuffle_seq_time_offset(evil_scene, seqbasep, 'L');
-  int offset_r = shuffle_seq_time_offset(evil_scene, seqbasep, 'R');
+  int offset_l = shuffle_seq_time_offset(strips_to_shuffle, seqbasep, evil_scene, 'L');
+  int offset_r = shuffle_seq_time_offset(strips_to_shuffle, seqbasep, evil_scene, 'R');
   int offset = (-offset_l < offset_r) ? offset_l : offset_r;
 
   if (offset) {
-    for (seq = seqbasep->first; seq; seq = seq->next) {
-      if (seq->tmp) {
-        SEQ_transform_translate_sequence(evil_scene, seq, offset);
-        seq->flag &= ~SEQ_OVERLAP;
-      }
+    Sequence *seq;
+    SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
+      SEQ_transform_translate_sequence(evil_scene, seq, offset);
+      seq->flag &= ~SEQ_OVERLAP;
     }
 
     if (use_sync_markers && !(evil_scene->toolsettings->lock_markers) && (markers != NULL)) {

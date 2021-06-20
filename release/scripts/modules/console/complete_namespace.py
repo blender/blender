@@ -62,7 +62,7 @@ def complete_names(word, namespace):
     return sorted(set(completer.matches))
 
 
-def complete_indices(word, namespace, obj=None, base=None):
+def complete_indices(word, namespace, *, obj=None, base=None):
     """Complete a list or dictionary with its indices:
 
     * integer numbers for list
@@ -117,7 +117,7 @@ def complete_indices(word, namespace, obj=None, base=None):
     return matches
 
 
-def complete(word, namespace, private=True):
+def complete(word, namespace, *, private=True):
     """Complete word within a namespace with the standard rlcompleter
     module. Also supports index or key access [].
 
@@ -191,7 +191,7 @@ def complete(word, namespace, private=True):
         # an extra char '[', '(' or '.' will be added
         if hasattr(obj, '__getitem__') and not is_struct_seq(obj):
             # list or dictionary
-            matches = complete_indices(word, namespace, obj)
+            matches = complete_indices(word, namespace, obj=obj)
         elif hasattr(obj, '__call__'):
             # callables
             matches = [word + '(']

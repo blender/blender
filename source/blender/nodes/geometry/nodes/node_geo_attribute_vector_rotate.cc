@@ -154,7 +154,7 @@ static void do_vector_rotate_around_axis(const VArray<float3> &vector,
   VArray_Span<float3> span_axis{axis};
   VArray_Span<float> span_angle{angle};
 
-  parallel_for(IndexRange(results.size()), 1024, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(results.size()), 1024, [&](IndexRange range) {
     for (const int i : range) {
       float angle = (invert) ? -span_angle[i] : span_angle[i];
       results[i] = vector_rotate_around_axis(span_vector[i], span_center[i], span_axis[i], angle);
@@ -173,7 +173,7 @@ static void do_vector_rotate_around_fixed_axis(const VArray<float3> &vector,
   VArray_Span<float3> span_center{center};
   VArray_Span<float> span_angle{angle};
 
-  parallel_for(IndexRange(results.size()), 1024, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(results.size()), 1024, [&](IndexRange range) {
     for (const int i : range) {
       float angle = (invert) ? -span_angle[i] : span_angle[i];
       results[i] = vector_rotate_around_axis(span_vector[i], span_center[i], axis, angle);
@@ -191,7 +191,7 @@ static void do_vector_rotate_euler(const VArray<float3> &vector,
   VArray_Span<float3> span_center{center};
   VArray_Span<float3> span_rotation{rotation};
 
-  parallel_for(IndexRange(results.size()), 1024, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(results.size()), 1024, [&](IndexRange range) {
     for (const int i : range) {
       results[i] = vector_rotate_euler(span_vector[i], span_center[i], span_rotation[i], invert);
     }

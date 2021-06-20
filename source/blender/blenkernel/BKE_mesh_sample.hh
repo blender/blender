@@ -28,12 +28,19 @@
 
 struct Mesh;
 
+namespace blender::bke {
+struct ReadAttributeLookup;
+class OutputAttribute;
+}  // namespace blender::bke
+
 namespace blender::bke::mesh_surface_sample {
 
 using fn::CPPType;
 using fn::GMutableSpan;
 using fn::GSpan;
 using fn::GVArray;
+
+Span<MLoopTri> get_mesh_looptris(const Mesh &mesh);
 
 void sample_point_attribute(const Mesh &mesh,
                             Span<int> looptri_indices,
@@ -51,5 +58,40 @@ void sample_face_attribute(const Mesh &mesh,
                            Span<int> looptri_indices,
                            const GVArray &data_in,
                            GMutableSpan data_out);
+
+enum class eAttributeMapMode {
+  INTERPOLATED,
+  NEAREST,
+};
+
+/**
+ * A utility class that performs attribute interpolation from a source mesh.
+ *
+ * The interpolator is only valid as long as the mesh is valid.
+ * Barycentric weights are needed when interpolating point or corner domain attributes,
+ * these are computed lazily when needed and re-used.
+ */
+class MeshAttributeInterpolator {
+ private:
+  const Mesh *mesh_;
+  const Span<float3> positions_;
+  const Span<int> looptri_indices_;
+
+  Array<float3> bary_coords_;
+  Array<float3> nearest_weights_;
+
+ public:
+  MeshAttributeInterpolator(const Mesh *mesh,
+                            const Span<float3> positions,
+                            const Span<int> looptri_indices);
+
+  void sample_attribute(const ReadAttributeLookup &src_attribute,
+                        OutputAttribute &dst_attribute,
+                        eAttributeMapMode mode);
+
+ protected:
+  Span<float3> ensure_barycentric_coords();
+  Span<float3> ensure_nearest_weights();
+};
 
 }  // namespace blender::bke::mesh_surface_sample

@@ -1235,10 +1235,8 @@ static void do_movie_proxy(void *pjv,
                            float *progress)
 {
   ProxyJob *pj = pjv;
-  Scene *scene = pj->scene;
   MovieClip *clip = pj->clip;
   struct MovieDistortion *distortion = NULL;
-  int cfra, sfra = SFRA, efra = EFRA;
 
   if (pj->index_context) {
     IMB_anim_index_rebuild(pj->index_context, stop, do_update, progress);
@@ -1252,8 +1250,8 @@ static void do_movie_proxy(void *pjv,
     return;
   }
 
-  sfra = 1;
-  efra = clip->len;
+  const int sfra = 1;
+  const int efra = clip->len;
 
   if (build_undistort_count) {
     int threads = BLI_system_thread_count();
@@ -1265,7 +1263,7 @@ static void do_movie_proxy(void *pjv,
     BKE_tracking_distortion_set_threads(distortion, threads);
   }
 
-  for (cfra = sfra; cfra <= efra; cfra++) {
+  for (int cfra = sfra; cfra <= efra; cfra++) {
     BKE_movieclip_build_proxy_frame(
         clip, pj->clip_flag, distortion, cfra, build_undistort_sizes, build_undistort_count, 1);
 

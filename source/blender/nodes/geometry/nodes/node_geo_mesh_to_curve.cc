@@ -62,7 +62,7 @@ static void copy_attributes_to_points(CurveEval &curve,
   if (source_attribute_names.contains_as("tilt")) {
     const GVArray_Typed<float> tilt_attribute = mesh_component.attribute_get_for_read<float>(
         "tilt", ATTR_DOMAIN_POINT, 0.0f);
-    parallel_for(splines.index_range(), 256, [&](IndexRange range) {
+    threading::parallel_for(splines.index_range(), 256, [&](IndexRange range) {
       for (const int i : range) {
         copy_attribute_to_points<float>(
             *tilt_attribute, point_to_vert_maps[i], splines[i]->tilts());
@@ -73,7 +73,7 @@ static void copy_attributes_to_points(CurveEval &curve,
   if (source_attribute_names.contains_as("radius")) {
     const GVArray_Typed<float> radius_attribute = mesh_component.attribute_get_for_read<float>(
         "radius", ATTR_DOMAIN_POINT, 1.0f);
-    parallel_for(splines.index_range(), 256, [&](IndexRange range) {
+    threading::parallel_for(splines.index_range(), 256, [&](IndexRange range) {
       for (const int i : range) {
         copy_attribute_to_points<float>(
             *radius_attribute, point_to_vert_maps[i], splines[i]->radii());
@@ -97,7 +97,7 @@ static void copy_attributes_to_points(CurveEval &curve,
 
     const CustomDataType data_type = bke::cpp_type_to_custom_data_type(mesh_attribute->type());
 
-    parallel_for(splines.index_range(), 128, [&](IndexRange range) {
+    threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         /* Create attribute on the spline points. */
         splines[i]->attributes.create(name, data_type);

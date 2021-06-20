@@ -134,14 +134,12 @@ static void report_textview_end(TextViewContext *UNUSED(tvc))
 static int report_textview_step(TextViewContext *tvc)
 {
   /* simple case, but no newline support */
-  const Report *report = tvc->iter;
-
   if (tvc->iter_char_begin <= 0) {
     tvc->iter = (void *)((Link *)tvc->iter)->prev;
     if (tvc->iter && report_textview_skip__internal(tvc)) {
       tvc->iter_tmp++;
 
-      report = tvc->iter;
+      const Report *report = tvc->iter;
       tvc->iter_char_end = report->len; /* reset start */
       report_textview_init__internal(tvc);
 

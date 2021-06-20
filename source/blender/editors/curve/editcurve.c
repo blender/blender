@@ -6646,7 +6646,7 @@ void CURVE_OT_dissolve_verts(wmOperatorType *ot)
 
 static bool nurb_bezt_flag_any(const Nurb *nu, const char flag_test)
 {
-  BezTriple *bezt = nu->bezt;
+  const BezTriple *bezt;
   int i;
 
   for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {

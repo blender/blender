@@ -467,7 +467,7 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
   Panel *panel = lb->first;
   for (; new_panel; new_panel = new_panel->next, panel = panel->next) {
     new_panel->activedata = NULL;
-    new_panel->runtime.custom_data_ptr = NULL;
+    memset(&new_panel->runtime, 0x0, sizeof(new_panel->runtime));
     panel_list_copy(&new_panel->children, &panel->children);
   }
 }
@@ -475,6 +475,8 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
 ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
 {
   ARegion *newar = MEM_dupallocN(region);
+
+  memset(&newar->runtime, 0x0, sizeof(newar->runtime));
 
   newar->prev = newar->next = NULL;
   BLI_listbase_clear(&newar->handlers);
@@ -1355,12 +1357,21 @@ static void write_area(BlendWriter *writer, ScrArea *area)
     }
     else if (sl->spacetype == SPACE_SPREADSHEET) {
       BLO_write_struct(writer, SpaceSpreadsheet, sl);
-
       SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+
+      LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
+        BLO_write_struct(writer, SpreadsheetRowFilter, row_filter);
+        BLO_write_string(writer, row_filter->value_string);
+      }
+
       LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
         BLO_write_struct(writer, SpreadsheetColumn, column);
         BLO_write_struct(writer, SpreadsheetColumnID, column->id);
         BLO_write_string(writer, column->id->name);
+        /* While the display name is technically runtime data, we write it here, otherwise the row
+         * filters might not now their type if their region draws before the main region.
+         * This would ideally be cleared here. */
+        BLO_write_string(writer, column->display_name);
       }
       LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
         switch (context->type) {
@@ -1419,6 +1430,8 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
 
 static void direct_link_region(BlendDataReader *reader, ARegion *region, int spacetype)
 {
+  memset(&region->runtime, 0x0, sizeof(region->runtime));
+
   direct_link_panel_list(reader, &region->panels);
 
   BLO_read_list(reader, &region->panels_category_active);
@@ -1560,15 +1573,14 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
 
     if (sl->spacetype == SPACE_VIEW3D) {
       View3D *v3d = (View3D *)sl;
+
+      memset(&v3d->runtime, 0x0, sizeof(v3d->runtime));
+
       if (v3d->gpd) {
         BLO_read_data_address(reader, &v3d->gpd);
         BKE_gpencil_blend_read_data(reader, v3d->gpd);
       }
       BLO_read_data_address(reader, &v3d->localvd);
-
-      /* Runtime data */
-      v3d->runtime.properties_storage = NULL;
-      v3d->runtime.flag = 0;
 
       /* render can be quite heavy, set to solid on load */
       if (v3d->shading.type == OB_RENDER) {
@@ -1584,7 +1596,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       SpaceGraph *sipo = (SpaceGraph *)sl;
 
       BLO_read_data_address(reader, &sipo->ads);
-      BLI_listbase_clear(&sipo->runtime.ghost_curves);
+      memset(&sipo->runtime, 0x0, sizeof(sipo->runtime));
     }
     else if (sl->spacetype == SPACE_NLA) {
       SpaceNla *snla = (SpaceNla *)sl;
@@ -1652,7 +1664,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
     }
     else if (sl->spacetype == SPACE_TEXT) {
       SpaceText *st = (SpaceText *)sl;
-      memset(&st->runtime, 0, sizeof(st->runtime));
+      memset(&st->runtime, 0x0, sizeof(st->runtime));
     }
     else if (sl->spacetype == SPACE_SEQ) {
       SpaceSeq *sseq = (SpaceSeq *)sl;
@@ -1724,6 +1736,11 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       BLO_read_data_address(reader, &sfile->params);
       BLO_read_data_address(reader, &sfile->asset_params);
     }
+    else if (sl->spacetype == SPACE_ACTION) {
+      SpaceAction *saction = (SpaceAction *)sl;
+
+      memset(&saction->runtime, 0x0, sizeof(saction->runtime));
+    }
     else if (sl->spacetype == SPACE_CLIP) {
       SpaceClip *sclip = (SpaceClip *)sl;
 
@@ -1735,11 +1752,18 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
 
       sspreadsheet->runtime = NULL;
-
+      BLO_read_list(reader, &sspreadsheet->row_filters);
+      LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
+        BLO_read_data_address(reader, &row_filter->value_string);
+      }
       BLO_read_list(reader, &sspreadsheet->columns);
       LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
         BLO_read_data_address(reader, &column->id);
         BLO_read_data_address(reader, &column->id->name);
+        /* While the display name is technically runtime data, it is loaded here, otherwise the row
+         * filters might not now their type if their region draws before the main region.
+         * This would ideally be cleared here. */
+        BLO_read_data_address(reader, &column->display_name);
       }
 
       BLO_read_list(reader, &sspreadsheet->context_path);

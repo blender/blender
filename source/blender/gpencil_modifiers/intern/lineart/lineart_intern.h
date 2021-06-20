@@ -43,6 +43,13 @@ void *lineart_list_append_pointer_pool_sized(ListBase *h,
                                              struct LineartStaticMemPool *smp,
                                              void *data,
                                              int size);
+void *lineart_list_append_pointer_pool_thread(ListBase *h,
+                                              struct LineartStaticMemPool *smp,
+                                              void *data);
+void *lineart_list_append_pointer_pool_sized_thread(ListBase *h,
+                                                    LineartStaticMemPool *smp,
+                                                    void *data,
+                                                    int size);
 void *list_push_pointer_static(ListBase *h, struct LineartStaticMemPool *smp, void *p);
 void *list_push_pointer_static_sized(ListBase *h,
                                      struct LineartStaticMemPool *smp,

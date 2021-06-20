@@ -657,10 +657,13 @@ void angle_poly_v3(float *angles, const float *verts[3], int len)
  */
 void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
 {
-  const float mul = dot_v2v2(p, v_proj) / dot_v2v2(v_proj, v_proj);
+  if (UNLIKELY(is_zero_v2(v_proj))) {
+    zero_v2(out);
+    return;
+  }
 
-  out[0] = mul * v_proj[0];
-  out[1] = mul * v_proj[1];
+  const float mul = dot_v2v2(p, v_proj) / dot_v2v2(v_proj, v_proj);
+  mul_v2_v2fl(out, v_proj, mul);
 }
 
 /**
@@ -668,20 +671,24 @@ void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
  */
 void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3])
 {
-  const float mul = dot_v3v3(p, v_proj) / dot_v3v3(v_proj, v_proj);
+  if (UNLIKELY(is_zero_v3(v_proj))) {
+    zero_v3(out);
+    return;
+  }
 
-  out[0] = mul * v_proj[0];
-  out[1] = mul * v_proj[1];
-  out[2] = mul * v_proj[2];
+  const float mul = dot_v3v3(p, v_proj) / dot_v3v3(v_proj, v_proj);
+  mul_v3_v3fl(out, v_proj, mul);
 }
 
 void project_v3_v3v3_db(double out[3], const double p[3], const double v_proj[3])
 {
-  const double mul = dot_v3v3_db(p, v_proj) / dot_v3v3_db(v_proj, v_proj);
+  if (UNLIKELY(is_zero_v3_db(v_proj))) {
+    zero_v3_db(out);
+    return;
+  }
 
-  out[0] = mul * v_proj[0];
-  out[1] = mul * v_proj[1];
-  out[2] = mul * v_proj[2];
+  const double mul = dot_v3v3_db(p, v_proj) / dot_v3v3_db(v_proj, v_proj);
+  mul_v3_v3db_db(out, v_proj, mul);
 }
 
 /**
@@ -690,10 +697,9 @@ void project_v3_v3v3_db(double out[3], const double p[3], const double v_proj[3]
 void project_v2_v2v2_normalized(float out[2], const float p[2], const float v_proj[2])
 {
   BLI_ASSERT_UNIT_V2(v_proj);
-  const float mul = dot_v2v2(p, v_proj);
 
-  out[0] = mul * v_proj[0];
-  out[1] = mul * v_proj[1];
+  const float mul = dot_v2v2(p, v_proj);
+  mul_v2_v2fl(out, v_proj, mul);
 }
 
 /**
@@ -702,11 +708,9 @@ void project_v2_v2v2_normalized(float out[2], const float p[2], const float v_pr
 void project_v3_v3v3_normalized(float out[3], const float p[3], const float v_proj[3])
 {
   BLI_ASSERT_UNIT_V3(v_proj);
-  const float mul = dot_v3v3(p, v_proj);
 
-  out[0] = mul * v_proj[0];
-  out[1] = mul * v_proj[1];
-  out[2] = mul * v_proj[2];
+  const float mul = dot_v3v3(p, v_proj);
+  mul_v3_v3fl(out, v_proj, mul);
 }
 
 /**
@@ -725,37 +729,31 @@ void project_v3_v3v3_normalized(float out[3], const float p[3], const float v_pr
 void project_plane_v3_v3v3(float out[3], const float p[3], const float v_plane[3])
 {
   const float mul = dot_v3v3(p, v_plane) / dot_v3v3(v_plane, v_plane);
-
-  out[0] = p[0] - (mul * v_plane[0]);
-  out[1] = p[1] - (mul * v_plane[1]);
-  out[2] = p[2] - (mul * v_plane[2]);
+  /* out[x] = p[x] - (mul * v_plane[x]) */
+  madd_v3_v3v3fl(out, p, v_plane, -mul);
 }
 
 void project_plane_v2_v2v2(float out[2], const float p[2], const float v_plane[2])
 {
   const float mul = dot_v2v2(p, v_plane) / dot_v2v2(v_plane, v_plane);
-
-  out[0] = p[0] - (mul * v_plane[0]);
-  out[1] = p[1] - (mul * v_plane[1]);
+  /* out[x] = p[x] - (mul * v_plane[x]) */
+  madd_v2_v2v2fl(out, p, v_plane, -mul);
 }
 
 void project_plane_normalized_v3_v3v3(float out[3], const float p[3], const float v_plane[3])
 {
   BLI_ASSERT_UNIT_V3(v_plane);
   const float mul = dot_v3v3(p, v_plane);
-
-  out[0] = p[0] - (mul * v_plane[0]);
-  out[1] = p[1] - (mul * v_plane[1]);
-  out[2] = p[2] - (mul * v_plane[2]);
+  /* out[x] = p[x] - (mul * v_plane[x]) */
+  madd_v3_v3v3fl(out, p, v_plane, -mul);
 }
 
 void project_plane_normalized_v2_v2v2(float out[2], const float p[2], const float v_plane[2])
 {
   BLI_ASSERT_UNIT_V2(v_plane);
   const float mul = dot_v2v2(p, v_plane);
-
-  out[0] = p[0] - (mul * v_plane[0]);
-  out[1] = p[1] - (mul * v_plane[1]);
+  /* out[x] = p[x] - (mul * v_plane[x]) */
+  madd_v2_v2v2fl(out, p, v_plane, -mul);
 }
 
 /* project a vector on a plane defined by normal and a plane point p */
@@ -767,9 +765,8 @@ void project_v3_plane(float out[3], const float plane_no[3], const float plane_c
   sub_v3_v3v3(vector, out, plane_co);
   mul = dot_v3v3(vector, plane_no) / len_squared_v3(plane_no);
 
-  mul_v3_v3fl(vector, plane_no, mul);
-
-  sub_v3_v3(out, vector);
+  /* out[x] = out[x] - (mul * plane_no[x]) */
+  madd_v3_v3fl(out, plane_no, -mul);
 }
 
 /* Returns a vector bisecting the angle at b formed by a, b and c */
@@ -802,24 +799,18 @@ void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const floa
  */
 void reflect_v3_v3v3(float out[3], const float v[3], const float normal[3])
 {
-  const float dot2 = 2.0f * dot_v3v3(v, normal);
-
   BLI_ASSERT_UNIT_V3(normal);
-
-  out[0] = v[0] - (dot2 * normal[0]);
-  out[1] = v[1] - (dot2 * normal[1]);
-  out[2] = v[2] - (dot2 * normal[2]);
+  const float dot2 = 2.0f * dot_v3v3(v, normal);
+  /* out[x] = v[x] - (dot2 * normal[x]) */
+  madd_v3_v3v3fl(out, v, normal, -dot2);
 }
 
 void reflect_v3_v3v3_db(double out[3], const double v[3], const double normal[3])
 {
+  BLI_ASSERT_UNIT_V3_DB(normal);
   const double dot2 = 2.0 * dot_v3v3_db(v, normal);
-
-  /* BLI_ASSERT_UNIT_V3_DB(normal); this assert is not known? */
-
-  out[0] = v[0] - (dot2 * normal[0]);
-  out[1] = v[1] - (dot2 * normal[1]);
-  out[2] = v[2] - (dot2 * normal[2]);
+  /* out[x] = v[x] - (dot2 * normal[x]) */
+  madd_v3_v3v3db_db(out, v, normal, -dot2);
 }
 
 /**

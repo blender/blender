@@ -91,7 +91,7 @@ static PyObject *idprop_py_from_idp_double(const IDProperty *prop)
 static PyObject *idprop_py_from_idp_group(ID *id, IDProperty *prop, IDProperty *parent)
 {
   BPy_IDProperty *group = PyObject_New(BPy_IDProperty, &BPy_IDGroup_Type);
-  group->id = id;
+  group->owner_id = id;
   group->prop = prop;
   group->parent = parent; /* can be NULL */
   return (PyObject *)group;
@@ -105,7 +105,7 @@ static PyObject *idprop_py_from_idp_id(IDProperty *prop)
 static PyObject *idprop_py_from_idp_array(ID *id, IDProperty *prop)
 {
   BPy_IDProperty *array = PyObject_New(BPy_IDProperty, &BPy_IDArray_Type);
-  array->id = id;
+  array->owner_id = id;
   array->prop = prop;
   return (PyObject *)array;
 }
@@ -152,7 +152,7 @@ static Py_hash_t BPy_IDGroup_hash(BPy_IDProperty *self)
 static PyObject *BPy_IDGroup_repr(BPy_IDProperty *self)
 {
   return PyUnicode_FromFormat("<bpy id prop: owner=\"%s\", name=\"%s\", address=%p>",
-                              self->id ? self->id->name : "<NONE>",
+                              self->owner_id ? self->owner_id->name : "<NONE>",
                               self->prop->name,
                               self->prop);
 }
@@ -326,7 +326,7 @@ static PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
     return NULL;
   }
 
-  return BPy_IDGroup_WrapData(self->id, idprop, self->prop);
+  return BPy_IDGroup_WrapData(self->owner_id, idprop, self->prop);
 }
 
 /* returns NULL on success, error string on failure */
@@ -946,7 +946,7 @@ static PyObject *BPy_Group_IterValues_next(BPy_IDGroup_Iter *self)
     }
     IDProperty *cur = self->cur;
     self->cur = self->reversed ? self->cur->prev : self->cur->next;
-    return BPy_IDGroup_WrapData(self->group->id, cur, self->group->prop);
+    return BPy_IDGroup_WrapData(self->group->owner_id, cur, self->group->prop);
   }
   PyErr_SetNone(PyExc_StopIteration);
   return NULL;
@@ -964,7 +964,7 @@ static PyObject *BPy_Group_IterItems_next(BPy_IDGroup_Iter *self)
     PyObject *ret = PyTuple_New(2);
     PyTuple_SET_ITEMS(ret,
                       PyUnicode_FromString(cur->name),
-                      BPy_IDGroup_WrapData(self->group->id, cur, self->group->prop));
+                      BPy_IDGroup_WrapData(self->group->owner_id, cur, self->group->prop));
     return ret;
   }
   PyErr_SetNone(PyExc_StopIteration);
@@ -1514,7 +1514,7 @@ static PyObject *BPy_IDGroup_get(BPy_IDProperty *self, PyObject *args)
 
   idprop = IDP_GetPropertyFromGroup(self->prop, key);
   if (idprop) {
-    PyObject *pyobj = BPy_IDGroup_WrapData(self->id, idprop, self->prop);
+    PyObject *pyobj = BPy_IDGroup_WrapData(self->owner_id, idprop, self->prop);
     if (pyobj) {
       return pyobj;
     }

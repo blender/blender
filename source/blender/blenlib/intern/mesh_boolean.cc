@@ -1406,9 +1406,9 @@ static int find_cell_for_point_near_edge(mpq3 p,
   int dummy_index = p_sorted_dummy - sorted_tris.begin();
   int prev_tri = (dummy_index == 0) ? sorted_tris[sorted_tris.size() - 1] :
                                       sorted_tris[dummy_index - 1];
-  int next_tri = (dummy_index == sorted_tris.size() - 1) ? sorted_tris[0] :
-                                                           sorted_tris[dummy_index + 1];
   if (dbg_level > 0) {
+    int next_tri = (dummy_index == sorted_tris.size() - 1) ? sorted_tris[0] :
+                                                             sorted_tris[dummy_index + 1];
     std::cout << "prev tri to dummy = " << prev_tri << ";  next tri to dummy = " << next_tri
               << "\n";
   }
@@ -1983,7 +1983,7 @@ static void populate_comp_bbs(const Vector<Vector<int>> &components,
    * absolute value of any coordinate. Do it first per component,
    * then get the overall max. */
   Array<double> max_abs(components.size(), 0.0);
-  parallel_for(components.index_range(), comp_grainsize, [&](IndexRange comp_range) {
+  threading::parallel_for(components.index_range(), comp_grainsize, [&](IndexRange comp_range) {
     for (int c : comp_range) {
       BoundingBox &bb = comp_bb[c];
       double &maxa = max_abs[c];
@@ -2691,7 +2691,7 @@ static IMesh raycast_tris_boolean(const IMesh &tm,
   tbb::spin_mutex mtx;
 #  endif
   const int grainsize = 256;
-  parallel_for(IndexRange(tm.face_size()), grainsize, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(tm.face_size()), grainsize, [&](IndexRange range) {
     Array<float> in_shape(nshapes, 0);
     Array<int> winding(nshapes, 0);
     for (int t : range) {
@@ -3391,7 +3391,7 @@ static IMesh polymesh_from_trimesh_with_dissolve(const IMesh &tm_out,
   }
   /* For now: need plane normals for all triangles. */
   const int grainsize = 1024;
-  parallel_for(tm_out.face_index_range(), grainsize, [&](IndexRange range) {
+  threading::parallel_for(tm_out.face_index_range(), grainsize, [&](IndexRange range) {
     for (int i : range) {
       Face *tri = tm_out.face(i);
       tri->populate_plane(false);

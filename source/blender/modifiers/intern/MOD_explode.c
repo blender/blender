@@ -891,7 +891,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   for (i = 0; i < curdupface; i++) {
     mf = &split_m->mface[i];
-    test_index_face(mf, &split_m->fdata, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
+    BKE_mesh_mface_index_validate(mf, &split_m->fdata, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
   }
 
   BLI_edgehash_free(edgehash, NULL);
@@ -1106,7 +1106,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       mtf->uv[0][1] = mtf->uv[1][1] = mtf->uv[2][1] = mtf->uv[3][1] = 0.5f;
     }
 
-    test_index_face(mf, &explode->fdata, u, (orig_v4 ? 4 : 3));
+    BKE_mesh_mface_index_validate(mf, &explode->fdata, u, (orig_v4 ? 4 : 3));
     u++;
   }
 

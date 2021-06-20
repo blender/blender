@@ -240,14 +240,18 @@ static GVArrayPtr adapt_curve_domain_point_to_spline(const CurveEval &curve, GVA
  * unless it is necessary (in that case the materialize functions will be called).
  */
 template<typename T> class VArray_For_SplineToPoint final : public VArray<T> {
+  GVArrayPtr original_varray_;
   /* Store existing data materialized if it was not already a span. This is expected
    * to be worth it because a single spline's value will likely be accessed many times. */
-  VArray_Span<T> original_data_;
+  fn::GVArray_Span<T> original_data_;
   Array<int> offsets_;
 
  public:
-  VArray_For_SplineToPoint(const VArray<T> &original_varray, Array<int> offsets)
-      : VArray<T>(offsets.last()), original_data_(original_varray), offsets_(std::move(offsets))
+  VArray_For_SplineToPoint(GVArrayPtr original_varray, Array<int> offsets)
+      : VArray<T>(offsets.last()),
+        original_varray_(std::move(original_varray)),
+        original_data_(*original_varray_),
+        offsets_(std::move(offsets))
   {
   }
 
@@ -309,7 +313,7 @@ static GVArrayPtr adapt_curve_domain_spline_to_point(const CurveEval &curve, GVA
 
     Array<int> offsets = curve.control_point_offsets();
     new_varray = std::make_unique<fn::GVArray_For_EmbeddedVArray<T, VArray_For_SplineToPoint<T>>>(
-        offsets.last(), *varray->typed<T>(), std::move(offsets));
+        offsets.last(), std::move(varray), std::move(offsets));
   });
   return new_varray;
 }
@@ -1007,9 +1011,10 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
       return false;
     }
 
+    /* Reuse the boolean for all splines; we expect all splines to have the same attributes. */
     bool layer_freed = false;
     for (SplinePtr &spline : curve->splines()) {
-      spline->attributes.remove(attribute_name);
+      layer_freed = spline->attributes.remove(attribute_name);
     }
     return layer_freed;
   }

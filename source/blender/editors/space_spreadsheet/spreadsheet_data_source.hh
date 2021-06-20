@@ -54,6 +54,15 @@ class DataSource {
   }
 
   /**
+   * Returns true iff the data source has the ability to limit visible rows
+   * by user interface selection status.
+   */
+  virtual bool has_selection_filter() const
+  {
+    return false;
+  }
+
+  /**
    * Returns the number of rows in columns returned by #get_column_values.
    */
   virtual int tot_rows() const

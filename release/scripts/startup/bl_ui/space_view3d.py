@@ -4017,7 +4017,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 class VIEW3D_MT_edit_mesh_edges_data(Menu):
     bl_label = "Edge Data"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -6186,9 +6186,6 @@ class VIEW3D_PT_overlay_geometry(Panel):
             sub.active = overlay.show_fade_inactive
             sub.prop(overlay, "fade_inactive_alpha", text="Fade Inactive Geometry")
 
-        row = col.row(align=True)
-        row.prop(overlay, "show_mode_transfer", text="Flash on Mode Transfer")
-
         col = layout.column(align=True)
         col.active = display_all
 
@@ -7002,7 +6999,7 @@ class VIEW3D_PT_context_properties(Panel):
 
         if member:
             # Draw with no edit button
-            rna_prop_ui.draw(self.layout, context, member, object, False)
+            rna_prop_ui.draw(self.layout, context, member, object, use_edit=False)
 
 
 # Grease Pencil Object - Multiframe falloff tools

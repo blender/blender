@@ -290,18 +290,14 @@ enum {
   /** Active right part of number button */
   UI_BUT_ACTIVE_RIGHT = 1 << 22,
 
-  /* (also used by search buttons to enforce shortcut display for their items). */
-  /** Button has shortcut text. */
-  UI_BUT_HAS_SHORTCUT = 1 << 23,
-
   /** Reverse order of consecutive off/on icons */
-  UI_BUT_ICON_REVERSE = 1 << 24,
+  UI_BUT_ICON_REVERSE = 1 << 23,
 
   /** Value is animated, but the current value differs from the animated one. */
-  UI_BUT_ANIMATED_CHANGED = 1 << 25,
+  UI_BUT_ANIMATED_CHANGED = 1 << 24,
 
   /* Draw the checkbox buttons inverted. */
-  UI_BUT_CHECKBOX_INVERT = 1 << 26,
+  UI_BUT_CHECKBOX_INVERT = 1 << 25,
 };
 
 /* scale fixed button widths by this to account for DPI */
@@ -723,6 +719,7 @@ void UI_but_drag_set_asset(uiBut *but,
                            const char *name,
                            const char *path,
                            int id_type,
+                           int import_type, /* eFileAssetImportType */
                            int icon,
                            struct ImBuf *imb,
                            float scale);

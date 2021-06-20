@@ -484,7 +484,9 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
     ob_dst_orig = DEG_get_original_object(ob_dst);
     ED_object_mode_set_ex(C, last_mode, true, op->reports);
 
-    object_overlay_mode_transfer_animation_start(C, ob_dst);
+    if (RNA_boolean_get(op->ptr, "use_flash_on_transfer")) {
+      object_overlay_mode_transfer_animation_start(C, ob_dst);
+    }
 
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     WM_toolsystem_update_from_context_view3d(C);
@@ -578,6 +580,12 @@ void OBJECT_OT_transfer_mode(wmOperatorType *ot)
                   false,
                   "Use Eyedropper",
                   "Pick the object to switch to using an eyedropper");
+
+  RNA_def_boolean(ot->srna,
+                  "use_flash_on_transfer",
+                  true,
+                  "Flash On Transfer",
+                  "Flash the target object when transfering the mode");
 }
 
 /** \} */

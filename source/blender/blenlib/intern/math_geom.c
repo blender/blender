@@ -3344,6 +3344,13 @@ float closest_to_ray_v3(float r_close[3],
                         const float ray_dir[3])
 {
   float h[3], lambda;
+
+  if (UNLIKELY(is_zero_v3(ray_dir))) {
+    lambda = 0.0f;
+    copy_v3_v3(r_close, ray_orig);
+    return lambda;
+  }
+
   sub_v3_v3v3(h, p, ray_orig);
   lambda = dot_v3v3(ray_dir, h) / dot_v3v3(ray_dir, ray_dir);
   madd_v3_v3v3fl(r_close, ray_orig, ray_dir, lambda);
@@ -4467,7 +4474,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
     d_curr = d_next;
     DIR_V2_SET(&d_next, v_next, co);
     ht = mean_value_half_tan_v2_db(&d_curr, &d_next);
-    w[i_curr] = (float)((ht_prev + ht) / d_curr.len);
+    w[i_curr] = (d_curr.len == 0.0) ? 0.0f : (float)((ht_prev + ht) / d_curr.len);
     totweight += w[i_curr];
 
     /* step */
@@ -6209,6 +6216,19 @@ bool is_quad_flip_v3_first_third_fast(const float v1[3],
   cross_v3_v3v3(cross_a, d_12, d_13);
   cross_v3_v3v3(cross_b, d_14, d_13);
   return dot_v3v3(cross_a, cross_b) > 0.0f;
+}
+
+bool is_quad_flip_v3_first_third_fast_with_normal(const float v1[3],
+                                                  const float v2[3],
+                                                  const float v3[3],
+                                                  const float v4[3],
+                                                  const float normal[3])
+{
+  float dir_v3v1[3], tangent[3];
+  sub_v3_v3v3(dir_v3v1, v3, v1);
+  cross_v3_v3v3(tangent, dir_v3v1, normal);
+  const float dot = dot_v3v3(v1, tangent);
+  return (dot_v3v3(v4, tangent) >= dot) || (dot_v3v3(v2, tangent) <= dot);
 }
 
 /**

@@ -288,8 +288,8 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
 }
 
 /**
- * Set color
- * @param do_fill: True if the stroke is only fill
+ * Set color.
+ * \param do_fill: True if the stroke is only fill.
  */
 void GpencilExporterPDF::color_set(bGPDlayer *gpl, const bool do_fill)
 {

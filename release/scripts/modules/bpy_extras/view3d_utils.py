@@ -64,7 +64,7 @@ def region_2d_to_vector_3d(region, rv3d, coord):
     return view_vector
 
 
-def region_2d_to_origin_3d(region, rv3d, coord, clamp=None):
+def region_2d_to_origin_3d(region, rv3d, coord, *, clamp=None):
     """
     Return the 3d view origin from the region relative 2d coords.
 
@@ -167,7 +167,7 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
         )[0]
 
 
-def location_3d_to_region_2d(region, rv3d, coord, default=None):
+def location_3d_to_region_2d(region, rv3d, coord, *, default=None):
     """
     Return the *region* relative 2d location of a 3d position.
 

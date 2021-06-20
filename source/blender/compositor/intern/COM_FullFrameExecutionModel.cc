@@ -84,18 +84,6 @@ void FullFrameExecutionModel::determine_areas_to_render_and_reads()
   }
 }
 
-void FullFrameExecutionModel::ensure_inputs_rendered(NodeOperation *op,
-                                                     ExecutionSystem &exec_system)
-{
-  const int num_inputs = op->getNumberOfInputSockets();
-  for (int i = 0; i < num_inputs; i++) {
-    NodeOperation *input_op = op->get_input_operation(i);
-    if (!active_buffers_.is_operation_rendered(input_op)) {
-      render_operation(input_op, exec_system);
-    }
-  }
-}
-
 Vector<MemoryBuffer *> FullFrameExecutionModel::get_input_buffers(NodeOperation *op)
 {
   const int num_inputs = op->getNumberOfInputSockets();
@@ -121,11 +109,6 @@ MemoryBuffer *FullFrameExecutionModel::create_operation_buffer(NodeOperation *op
 
 void FullFrameExecutionModel::render_operation(NodeOperation *op, ExecutionSystem &exec_system)
 {
-  if (active_buffers_.is_operation_rendered(op)) {
-    return;
-  }
-
-  ensure_inputs_rendered(op, exec_system);
   Vector<MemoryBuffer *> input_bufs = get_input_buffers(op);
 
   const bool has_outputs = op->getNumberOfOutputSockets() > 0;
@@ -148,6 +131,7 @@ void FullFrameExecutionModel::render_operations(ExecutionSystem &exec_system)
   for (eCompositorPriority priority : priorities_) {
     for (NodeOperation *op : operations_) {
       if (op->isOutputOperation(is_rendering) && op->getRenderPriority() == priority) {
+        render_output_dependencies(op, exec_system);
         render_operation(op, exec_system);
       }
     }
@@ -156,48 +140,99 @@ void FullFrameExecutionModel::render_operations(ExecutionSystem &exec_system)
 }
 
 /**
- * Determines all input operations areas needed to render given operation area.
- * \param operation: Renderer operation.
- * \param render_area: Area within given operation bounds to render.
+ * Returns all dependencies from inputs to outputs. A dependency may be repeated when
+ * several operations depend on it.
  */
-void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *operation,
-                                                        const rcti &render_area)
+static Vector<NodeOperation *> get_operation_dependencies(NodeOperation *operation)
 {
-  if (active_buffers_.is_area_registered(operation, render_area)) {
-    return;
+  /* Get dependencies from outputs to inputs. */
+  Vector<NodeOperation *> dependencies;
+  Vector<NodeOperation *> next_outputs;
+  next_outputs.append(operation);
+  while (next_outputs.size() > 0) {
+    Vector<NodeOperation *> outputs(next_outputs);
+    next_outputs.clear();
+    for (NodeOperation *output : outputs) {
+      for (int i = 0; i < output->getNumberOfInputSockets(); i++) {
+        next_outputs.append(output->get_input_operation(i));
+      }
+    }
+    dependencies.extend(next_outputs);
   }
 
-  active_buffers_.register_area(operation, render_area);
+  /* Reverse to get dependencies from inputs to outputs. */
+  std::reverse(dependencies.begin(), dependencies.end());
 
-  const int num_inputs = operation->getNumberOfInputSockets();
-  for (int i = 0; i < num_inputs; i++) {
-    NodeOperation *input_op = operation->get_input_operation(i);
-    rcti input_op_rect, input_area;
-    BLI_rcti_init(&input_op_rect, 0, input_op->getWidth(), 0, input_op->getHeight());
-    operation->get_area_of_interest(input_op, render_area, input_area);
+  return dependencies;
+}
 
-    /* Ensure area of interest is within operation bounds, cropping areas outside. */
-    BLI_rcti_isect(&input_area, &input_op_rect, &input_area);
-
-    determine_areas_to_render(input_op, input_area);
+void FullFrameExecutionModel::render_output_dependencies(NodeOperation *output_op,
+                                                         ExecutionSystem &exec_system)
+{
+  BLI_assert(output_op->isOutputOperation(context_.isRendering()));
+  Vector<NodeOperation *> dependencies = get_operation_dependencies(output_op);
+  for (NodeOperation *op : dependencies) {
+    if (!active_buffers_.is_operation_rendered(op)) {
+      render_operation(op, exec_system);
+    }
   }
 }
 
 /**
- * Determines the reads given operation and its inputs will receive (i.e: Number of dependent
+ * Determines all operations areas needed to render given output area.
+ */
+void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op,
+                                                        const rcti &output_area)
+{
+  BLI_assert(output_op->isOutputOperation(context_.isRendering()));
+
+  Vector<std::pair<NodeOperation *, const rcti>> stack;
+  stack.append({output_op, output_area});
+  while (stack.size() > 0) {
+    std::pair<NodeOperation *, rcti> pair = stack.pop_last();
+    NodeOperation *operation = pair.first;
+    const rcti &render_area = pair.second;
+    if (active_buffers_.is_area_registered(operation, render_area)) {
+      continue;
+    }
+
+    active_buffers_.register_area(operation, render_area);
+
+    const int num_inputs = operation->getNumberOfInputSockets();
+    for (int i = 0; i < num_inputs; i++) {
+      NodeOperation *input_op = operation->get_input_operation(i);
+      rcti input_op_rect, input_area;
+      BLI_rcti_init(&input_op_rect, 0, input_op->getWidth(), 0, input_op->getHeight());
+      operation->get_area_of_interest(input_op, render_area, input_area);
+
+      /* Ensure area of interest is within operation bounds, cropping areas outside. */
+      BLI_rcti_isect(&input_area, &input_op_rect, &input_area);
+
+      stack.append({input_op, input_area});
+    }
+  }
+}
+
+/**
+ * Determines reads to receive by operations in output operation tree (i.e: Number of dependent
  * operations each operation has).
  */
-void FullFrameExecutionModel::determine_reads(NodeOperation *operation)
+void FullFrameExecutionModel::determine_reads(NodeOperation *output_op)
 {
-  if (active_buffers_.has_registered_reads(operation)) {
-    return;
-  }
+  BLI_assert(output_op->isOutputOperation(context_.isRendering()));
 
-  const int num_inputs = operation->getNumberOfInputSockets();
-  for (int i = 0; i < num_inputs; i++) {
-    NodeOperation *input_op = operation->get_input_operation(i);
-    determine_reads(input_op);
-    active_buffers_.register_read(input_op);
+  Vector<NodeOperation *> stack;
+  stack.append(output_op);
+  while (stack.size() > 0) {
+    NodeOperation *operation = stack.pop_last();
+    const int num_inputs = operation->getNumberOfInputSockets();
+    for (int i = 0; i < num_inputs; i++) {
+      NodeOperation *input_op = operation->get_input_operation(i);
+      if (!active_buffers_.has_registered_reads(input_op)) {
+        stack.append(input_op);
+      }
+      active_buffers_.register_read(input_op);
+    }
   }
 }
 

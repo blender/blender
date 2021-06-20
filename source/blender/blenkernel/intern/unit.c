@@ -358,6 +358,7 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
      NULL,
      &buNaturalRotCollection,
      &buNaturalTimeCollection,
+     &buNaturalTimeCollection,
      NULL,
      NULL,
      NULL,
@@ -370,6 +371,7 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
      &buMetricVolCollection,
      &buMetricMassCollection,
      &buNaturalRotCollection,
+     &buNaturalTimeCollection,
      &buNaturalTimeCollection,
      &buMetricVelCollection,
      &buMetricAclCollection,
@@ -384,12 +386,13 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
      &buImperialMassCollection,
      &buNaturalRotCollection,
      &buNaturalTimeCollection,
+     &buNaturalTimeCollection,
      &buImperialVelCollection,
      &buImperialAclCollection,
      &buCameraLenCollection,
      &buPowerCollection,
      &buImperialTempCollection},
-    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 static const bUnitCollection *unit_get_system(int system, int type)
