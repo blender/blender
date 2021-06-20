@@ -3638,7 +3638,9 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   // const bool update_curvature = node->flag & PBVH_UpdateCurvatureDir;
   const bool update_curvature = BKE_pbvh_curvature_update_get(node);
 
-  SCULPT_curvature_begin(ss, node, false);
+  if (use_curvature) {
+    SCULPT_curvature_begin(ss, node, false);
+  }
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
