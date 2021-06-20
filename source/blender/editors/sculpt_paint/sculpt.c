@@ -5858,6 +5858,8 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
   copy_v3_v3(stroke_line[0], ss->cache->location);
   add_v3_v3v3(stroke_line[1], stroke_line[0], stroke_direction);
 
+
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -5872,7 +5874,41 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
                                                     vd.index,
                                                     thread_id);
 
+
+    float local_vert_co[3];
+    float rotation_axis[3] = {0.0, 1.0, 0.0};
+    float origin[3] = {0.0, 0.0, 0.0f};
+    float vertex_in_line[3];
+    float scaled_mat[4][4];
+    float scaled_mat_inv[4][4];
+
+
+
+    copy_m4_m4(scaled_mat, mat);
+
+    float scale_factor = 1.0f;
+    mul_v3_fl(scaled_mat[2], scale_factor);
+    
+    invert_m4_m4(scaled_mat_inv, scaled_mat);
+
+
+    mul_v3_m4v3(local_vert_co, scaled_mat, vd.co);
+    closest_to_line_v3(vertex_in_line, vd.co, rotation_axis, origin);
+    float p_to_rotate[3];
+    sub_v3_v3v3(p_to_rotate, local_vert_co, vertex_in_line);
+    float p_rotated[3];
+    rotate_v3_v3v3fl(p_rotated, p_to_rotate, rotation_axis, ss->cache->bstrength * fade);
+    add_v3_v3(p_rotated, vertex_in_line);
+    mul_v3_m4v3(p_rotated, scaled_mat_inv, p_rotated);
+
+
+    sub_v3_v3v3(proxy[vd.i], p_rotated, vd.co);
+
+
+
+
                                
+    /*
     float vertex_in_line[3];
     closest_to_line_v3(vertex_in_line, vd.co, stroke_line[0], stroke_line[1]);
     float p_to_rotate[3];
@@ -5880,6 +5916,9 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
     float p_rotated[3];
     rotate_v3_v3v3fl(p_rotated, p_to_rotate, stroke_direction, ss->cache->bstrength * fade);
     add_v3_v3(p_rotated, vertex_in_line);
+    */
+
+
     sub_v3_v3v3(proxy[vd.i], p_rotated, vd.co);
 
     if (vd.mvert) {
@@ -5936,17 +5975,6 @@ static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   mul_v3_fl(temp, displace);
   add_v3_v3(area_co, temp);
 
-  /* Clay Strips uses a cube test with falloff in the XY axis (not in Z) and a plane to deform the
-   * vertices. When in Add mode, vertices that are below the plane and inside the cube are move
-   * towards the plane. In this situation, there may be cases where a vertex is outside the cube
-   * but below the plane, so won't be deformed, causing artifacts. In order to prevent these
-   * artifacts, this displaces the test cube space in relation to the plane in order to
-   * deform more vertices that may be below it. */
-  /* The 0.7 and 1.25 factors are arbitrary and don't have any relation between them, they were set
-   * by doing multiple tests using the default "Clay Strips" brush preset. */
-  float area_co_displaced[3];
-  madd_v3_v3v3fl(area_co_displaced, area_co, area_no, -radius * 0.7f);
-
   /* Initialize brush local-space matrix. */
   cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
   mat[0][3] = 0.0f;
@@ -5954,18 +5982,13 @@ static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   mat[1][3] = 0.0f;
   copy_v3_v3(mat[2], area_no);
   mat[2][3] = 0.0f;
-  copy_v3_v3(mat[3], area_co_displaced);
+  copy_v3_v3(mat[3], ss->cache->location);
   mat[3][3] = 1.0f;
   normalize_m4(mat);
 
   /* Scale brush local space matrix. */
   scale_m4_fl(scale, ss->cache->radius);
   mul_m4_m4m4(tmat, mat, scale);
-
-  /* Deform the local space in Z to scale the test cube. As the test cube does not have falloff in
-   * Z this does not produce artifacts in the falloff cube and allows to deform extra vertices
-   * during big deformation while keeping the surface as uniform as possible. */
-  mul_v3_fl(tmat[2], 1.25f);
 
   invert_m4_m4(mat, tmat);
 
