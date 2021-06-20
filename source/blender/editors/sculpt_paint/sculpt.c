@@ -5885,9 +5885,6 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
 
 
     copy_m4_m4(scaled_mat, mat);
-
-    float scale_factor = 1.0f;
-    mul_v3_fl(scaled_mat[2], scale_factor);
     
     invert_m4_m4(scaled_mat_inv, scaled_mat);
 
@@ -5902,7 +5899,9 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_m4v3(p_rotated, scaled_mat_inv, p_rotated);
 
 
-    sub_v3_v3v3(proxy[vd.i], p_rotated, vd.co);
+    float disp[3];
+    sub_v3_v3v3(disp, p_rotated, vd.co);
+    mul_v3_v3fl(proxy[vd.i], disp, fade * fade);
 
 
 
@@ -5918,8 +5917,6 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
     add_v3_v3(p_rotated, vertex_in_line);
     */
 
-
-    sub_v3_v3v3(proxy[vd.i], p_rotated, vd.co);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -5989,6 +5986,9 @@ static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   /* Scale brush local space matrix. */
   scale_m4_fl(scale, ss->cache->radius);
   mul_m4_m4m4(tmat, mat, scale);
+
+  /* Scale rotation space. */
+  mul_v3_fl(tmat[2], 0.25f);
 
   invert_m4_m4(mat, tmat);
 
