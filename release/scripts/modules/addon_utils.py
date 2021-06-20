@@ -358,7 +358,8 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         except Exception as ex:
             # if the addon doesn't exist, don't print full traceback
             if type(ex) is ImportError and ex.name == module_name:
-                print("addon not found:", repr(module_name))
+                print("addon not loaded:", repr(module_name))
+                print("cause:", str(ex))
             else:
                 handle_error(ex)
 
