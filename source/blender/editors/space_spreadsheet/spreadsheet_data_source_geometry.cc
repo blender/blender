@@ -226,15 +226,23 @@ static void get_selected_indices_on_domain(const Mesh &mesh,
   }
 }
 
+/**
+ * Only data sets corresponding to mesh objects in edit mode currently support selection filtering.
+ */
 bool GeometryDataSource::has_selection_filter() const
 {
   Object *object_orig = DEG_get_original_object(object_eval_);
-  if (object_orig->type == OB_MESH) {
-    if (object_orig->mode == OB_MODE_EDIT) {
-      return true;
-    }
+  if (object_orig->type != OB_MESH) {
+    return false;
   }
-  return false;
+  if (object_orig->mode != OB_MODE_EDIT) {
+    return false;
+  }
+  if (component_->type() != GEO_COMPONENT_TYPE_MESH) {
+    return false;
+  }
+
+  return true;
 }
 
 void GeometryDataSource::apply_selection_filter(MutableSpan<bool> rows_included) const
