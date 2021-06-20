@@ -72,8 +72,7 @@ class Spline {
     Minimum,
     Tangent,
   };
-  /* Only #Zup is supported at the moment. */
-  NormalCalculationMode normal_mode;
+  NormalCalculationMode normal_mode = Minimum;
 
   blender::bke::CustomDataAttributes attributes;
 
