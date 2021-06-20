@@ -1268,6 +1268,7 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
               SCULPT_TOOL_FAIRING,
               SCULPT_TOOL_SCENE_PROJECT,
               SCULPT_TOOL_POSE,
+              SCULPT_TOOL_TWIST,
               SCULPT_TOOL_DISPLACEMENT_SMEAR,
               SCULPT_TOOL_BOUNDARY,
               SCULPT_TOOL_CLOTH,
@@ -5841,11 +5842,8 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
   const float *area_co = data->area_co;
 
   PBVHVertexIter vd;
-  float(*proxy)[3];
   const bool flip = (ss->cache->bstrength < 0.0f);
   const float bstrength = flip ? -ss->cache->bstrength : ss->cache->bstrength;
-
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -5894,7 +5892,7 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
 
     copy_m4_m4(scaled_mat, mat);
     invert_m4(scaled_mat);
-    mul_v3_fl(scaled_mat[2], 0.3f * fade);
+    mul_v3_fl(scaled_mat[2], 0.5f * fade);
     invert_m4(scaled_mat);
     
     invert_m4_m4(scaled_mat_inv, scaled_mat);
@@ -5912,22 +5910,8 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
 
     float disp[3];
     sub_v3_v3v3(disp, p_rotated, vd.co);
-    mul_v3_v3fl(proxy[vd.i], disp, bstrength * fade);
-
-
-
-
-                               
-    /*
-    float vertex_in_line[3];
-    closest_to_line_v3(vertex_in_line, vd.co, stroke_line[0], stroke_line[1]);
-    float p_to_rotate[3];
-    sub_v3_v3v3(p_to_rotate, vd.co, vertex_in_line);
-    float p_rotated[3];
-    rotate_v3_v3v3fl(p_rotated, p_to_rotate, stroke_direction, ss->cache->bstrength * fade);
-    add_v3_v3(p_rotated, vertex_in_line);
-    */
-
+    mul_v3_fl(disp, bstrength * fade);
+    add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -5935,6 +5919,95 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 }
+
+static void do_twist_brush_post_smooth_task_cb_ex(void *__restrict userdata,
+                                            const int n,
+                                            const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  float(*mat)[4] = data->mat;
+  const float *area_no_sp = data->area_no_sp;
+  const float *area_co = data->area_co;
+
+  PBVHVertexIter vd;
+  const bool flip = (ss->cache->bstrength < 0.0f);
+  const float bstrength = flip ? -ss->cache->bstrength : ss->cache->bstrength;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+
+    float local_vert_co[3];
+    float scaled_mat[4][4];
+    copy_m4_m4(scaled_mat, mat);
+    invert_m4(scaled_mat);
+    invert_m4(scaled_mat);
+    mul_v3_m4v3(local_vert_co, scaled_mat, vd.co);
+
+    const float brush_fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    vd.co,
+                                                    sqrtf(test.dist),
+                                                    vd.no,
+                                                    vd.fno,
+                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.index,
+                                                    thread_id);
+                                                    
+    float smooth_fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    vd.co,
+                                                    local_vert_co[0],
+                                                    vd.no,
+                                                    vd.fno,
+                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.index,
+                                                    thread_id);
+
+    if (brush_fade == 0.0f) {
+      //continue;
+    }
+
+    if (smooth_fade == 0.0f) {
+      //continue;
+    }
+
+
+    smooth_fade = 1.0f - min_ff(fabsf(local_vert_co[0]), 1.0f);
+    smooth_fade = pow3f(smooth_fade);
+    printf("smooth fade %f\n", smooth_fade);
+
+
+    float rotation_axis[3] = {0.0, 1.0, 0.0};
+    float origin[3] = {0.0, 0.0, 0.0f};
+    float vertex_in_line[3];
+    float scaled_mat_inv[4][4];
+
+        float avg[3];
+        float val[3];
+        float disp[3];
+        SCULPT_neighbor_coords_average(ss, avg, vd.index);
+        sub_v3_v3v3(disp, avg, vd.co);
+        mul_v3_fl(disp, 1.0f - smooth_fade);
+        add_v3_v3(vd.co, disp);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
 
 static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
@@ -6018,6 +6091,9 @@ static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_twist_brush_task_cb_ex, &settings);
+  for (int i = 0; i < 2; i++) {
+  BLI_task_parallel_range(0, totnode, &data, do_twist_brush_post_smooth_task_cb_ex, &settings);
+  }
 }
 
 
@@ -8081,6 +8157,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
           (brush->sculpt_tool == SCULPT_TOOL_POSE) ||
           (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
           (brush->sculpt_tool == SCULPT_TOOL_FAIRING) ||
+          (brush->sculpt_tool == SCULPT_TOOL_TWIST) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
           (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) ||
