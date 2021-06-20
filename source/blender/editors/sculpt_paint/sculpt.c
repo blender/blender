@@ -5874,6 +5874,9 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
                                                     vd.index,
                                                     thread_id);
 
+    if (fade == 0.0f) {
+      continue;
+    }
 
     float local_vert_co[3];
     float rotation_axis[3] = {0.0, 1.0, 0.0};
@@ -5885,6 +5888,9 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
 
 
     copy_m4_m4(scaled_mat, mat);
+    invert_m4(scaled_mat);
+    mul_v3_fl(scaled_mat[2], 0.5f * fade);
+    invert_m4(scaled_mat);
     
     invert_m4_m4(scaled_mat_inv, scaled_mat);
 
@@ -5894,14 +5900,14 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
     float p_to_rotate[3];
     sub_v3_v3v3(p_to_rotate, local_vert_co, vertex_in_line);
     float p_rotated[3];
-    rotate_v3_v3v3fl(p_rotated, p_to_rotate, rotation_axis, ss->cache->bstrength * fade);
+    rotate_v3_v3v3fl(p_rotated, p_to_rotate, rotation_axis, bstrength * fade);
     add_v3_v3(p_rotated, vertex_in_line);
     mul_v3_m4v3(p_rotated, scaled_mat_inv, p_rotated);
 
 
     float disp[3];
     sub_v3_v3v3(disp, p_rotated, vd.co);
-    mul_v3_v3fl(proxy[vd.i], disp, fade * fade);
+    mul_v3_v3fl(proxy[vd.i], disp, bstrength * fade);
 
 
 
@@ -5988,7 +5994,7 @@ static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   mul_m4_m4m4(tmat, mat, scale);
 
   /* Scale rotation space. */
-  mul_v3_fl(tmat[2], 0.25f);
+  //mul_v3_fl(tmat[2], 0.5f);
 
   invert_m4_m4(mat, tmat);
 
