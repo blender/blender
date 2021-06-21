@@ -196,12 +196,38 @@ typedef enum {
   V3D_PROJ_TEST_CLIP_NEAR = (1 << 2),
   V3D_PROJ_TEST_CLIP_FAR = (1 << 3),
   V3D_PROJ_TEST_CLIP_ZERO = (1 << 4),
+  /**
+   * Clip the contents of the data being iterated over.
+   * Currently this is only used to edges when projecting into screen space.
+   *
+   * Clamp the edge within the viewport limits defined by
+   * #V3D_PROJ_TEST_CLIP_WIN, #V3D_PROJ_TEST_CLIP_NEAR & #V3D_PROJ_TEST_CLIP_FAR.
+   * This resolves the problem of a visible edge having one of it's vertices
+   * behind the viewport. See: T32214.
+   *
+   * This is not default behavior as it may be important for the screen-space location
+   * of an edges vertex to represent that vertices location (instead of a location along the edge).
+   *
+   * \note Perspective views should enable #V3D_PROJ_TEST_CLIP_WIN along with
+   * #V3D_PROJ_TEST_CLIP_NEAR as the near-plane-clipped location of a point
+   * may become very large (even infinite) when projected into screen-space.
+   * Unless the that point happens to coincide with the camera's point of view.
+   *
+   * Use #V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT instead of #V3D_PROJ_TEST_CLIP_CONTENT,
+   * to avoid accidentally enabling near clipping without clipping by window bounds.
+   */
+  V3D_PROJ_TEST_CLIP_CONTENT = (1 << 5),
 } eV3DProjTest;
 
 #define V3D_PROJ_TEST_CLIP_DEFAULT \
   (V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR)
 #define V3D_PROJ_TEST_ALL \
-  (V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_FAR | V3D_PROJ_TEST_CLIP_ZERO)
+  (V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_FAR | V3D_PROJ_TEST_CLIP_ZERO | \
+   V3D_PROJ_TEST_CLIP_CONTENT)
+
+#define V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT \
+  (V3D_PROJ_TEST_CLIP_CONTENT | V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR | \
+   V3D_PROJ_TEST_CLIP_WIN)
 
 /* view3d_iterators.c */
 
