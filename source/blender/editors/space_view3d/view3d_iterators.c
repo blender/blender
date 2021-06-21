@@ -150,17 +150,17 @@ static void mesh_foreachScreenVert__mapFunc(void *userData,
 {
   foreachScreenVert_userData *data = userData;
   BMVert *eve = BM_vert_at_index(data->vc.em->bm, index);
-
-  if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-    float screen_co[2];
-
-    if (ED_view3d_project_float_object(data->vc.region, co, screen_co, data->clip_flag) !=
-        V3D_PROJ_RET_OK) {
-      return;
-    }
-
-    data->func(data->userData, eve, screen_co, index);
+  if (UNLIKELY(BM_elem_flag_test(eve, BM_ELEM_HIDDEN))) {
+    return;
   }
+
+  float screen_co[2];
+  if (ED_view3d_project_float_object(data->vc.region, co, screen_co, data->clip_flag) !=
+      V3D_PROJ_RET_OK) {
+    return;
+  }
+
+  data->func(data->userData, eve, screen_co, index);
 }
 
 void mesh_foreachScreenVert(
@@ -198,29 +198,30 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData,
 {
   foreachScreenEdge_userData *data = userData;
   BMEdge *eed = BM_edge_at_index(data->vc.em->bm, index);
-
-  if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-    float screen_co_a[2];
-    float screen_co_b[2];
-    eV3DProjTest clip_flag_nowin = data->clip_flag & ~V3D_PROJ_TEST_CLIP_WIN;
-
-    if (ED_view3d_project_float_object(data->vc.region, v0co, screen_co_a, clip_flag_nowin) !=
-        V3D_PROJ_RET_OK) {
-      return;
-    }
-    if (ED_view3d_project_float_object(data->vc.region, v1co, screen_co_b, clip_flag_nowin) !=
-        V3D_PROJ_RET_OK) {
-      return;
-    }
-
-    if (data->clip_flag & V3D_PROJ_TEST_CLIP_WIN) {
-      if (!BLI_rctf_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
-        return;
-      }
-    }
-
-    data->func(data->userData, eed, screen_co_a, screen_co_b, index);
+  if (UNLIKELY(BM_elem_flag_test(eed, BM_ELEM_HIDDEN))) {
+    return;
   }
+
+  float screen_co_a[2];
+  float screen_co_b[2];
+  eV3DProjTest clip_flag_nowin = data->clip_flag & ~V3D_PROJ_TEST_CLIP_WIN;
+
+  if (ED_view3d_project_float_object(data->vc.region, v0co, screen_co_a, clip_flag_nowin) !=
+      V3D_PROJ_RET_OK) {
+    return;
+  }
+  if (ED_view3d_project_float_object(data->vc.region, v1co, screen_co_b, clip_flag_nowin) !=
+      V3D_PROJ_RET_OK) {
+    return;
+  }
+
+  if (data->clip_flag & V3D_PROJ_TEST_CLIP_WIN) {
+    if (!BLI_rctf_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
+      return;
+    }
+  }
+
+  data->func(data->userData, eed, screen_co_a, screen_co_b, index);
 }
 
 void mesh_foreachScreenEdge(ViewContext *vc,
@@ -271,41 +272,42 @@ static void mesh_foreachScreenEdge_clip_bb_segment__mapFunc(void *userData,
 {
   foreachScreenEdge_userData *data = userData;
   BMEdge *eed = BM_edge_at_index(data->vc.em->bm, index);
+  if (UNLIKELY(BM_elem_flag_test(eed, BM_ELEM_HIDDEN))) {
+    return;
+  }
 
   BLI_assert(data->clip_flag & V3D_PROJ_TEST_CLIP_BB);
 
-  if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-    float v0co_clip[3];
-    float v1co_clip[3];
+  float v0co_clip[3];
+  float v1co_clip[3];
 
-    if (!clip_segment_v3_plane_n(v0co, v1co, data->vc.rv3d->clip_local, 4, v0co_clip, v1co_clip)) {
-      return;
-    }
-
-    float screen_co_a[2];
-    float screen_co_b[2];
-
-    /* Clipping already handled, no need to check in projection. */
-    eV3DProjTest clip_flag_nowin = data->clip_flag &
-                                   ~(V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_BB);
-
-    if (ED_view3d_project_float_object(data->vc.region, v0co_clip, screen_co_a, clip_flag_nowin) !=
-        V3D_PROJ_RET_OK) {
-      return;
-    }
-    if (ED_view3d_project_float_object(data->vc.region, v1co_clip, screen_co_b, clip_flag_nowin) !=
-        V3D_PROJ_RET_OK) {
-      return;
-    }
-
-    if (data->clip_flag & V3D_PROJ_TEST_CLIP_WIN) {
-      if (!BLI_rctf_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
-        return;
-      }
-    }
-
-    data->func(data->userData, eed, screen_co_a, screen_co_b, index);
+  if (!clip_segment_v3_plane_n(v0co, v1co, data->vc.rv3d->clip_local, 4, v0co_clip, v1co_clip)) {
+    return;
   }
+
+  float screen_co_a[2];
+  float screen_co_b[2];
+
+  /* Clipping already handled, no need to check in projection. */
+  eV3DProjTest clip_flag_nowin = data->clip_flag &
+                                 ~(V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_BB);
+
+  if (ED_view3d_project_float_object(data->vc.region, v0co_clip, screen_co_a, clip_flag_nowin) !=
+      V3D_PROJ_RET_OK) {
+    return;
+  }
+  if (ED_view3d_project_float_object(data->vc.region, v1co_clip, screen_co_b, clip_flag_nowin) !=
+      V3D_PROJ_RET_OK) {
+    return;
+  }
+
+  if (data->clip_flag & V3D_PROJ_TEST_CLIP_WIN) {
+    if (!BLI_rctf_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
+      return;
+    }
+  }
+
+  data->func(data->userData, eed, screen_co_a, screen_co_b, index);
 }
 
 /**
@@ -359,14 +361,17 @@ static void mesh_foreachScreenFace__mapFunc(void *userData,
 {
   foreachScreenFace_userData *data = userData;
   BMFace *efa = BM_face_at_index(data->vc.em->bm, index);
-
-  if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-    float screen_co[2];
-    if (ED_view3d_project_float_object(data->vc.region, cent, screen_co, data->clip_flag) ==
-        V3D_PROJ_RET_OK) {
-      data->func(data->userData, efa, screen_co, index);
-    }
+  if (UNLIKELY(BM_elem_flag_test(efa, BM_ELEM_HIDDEN))) {
+    return;
   }
+
+  float screen_co[2];
+  if (ED_view3d_project_float_object(data->vc.region, cent, screen_co, data->clip_flag) !=
+      V3D_PROJ_RET_OK) {
+    return;
+  }
+
+  data->func(data->userData, efa, screen_co, index);
 }
 
 void mesh_foreachScreenFace(
