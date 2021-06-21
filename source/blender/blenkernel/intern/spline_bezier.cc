@@ -545,9 +545,9 @@ BezierSpline::InterpolationData BezierSpline::interpolation_data_from_index_fact
 
 /* Use a spline argument to avoid adding this to the header. */
 template<typename T>
-static void interpolate_to_evaluated_points_impl(const BezierSpline &spline,
-                                                 const blender::VArray<T> &source_data,
-                                                 MutableSpan<T> result_data)
+static void interpolate_to_evaluated_impl(const BezierSpline &spline,
+                                          const blender::VArray<T> &source_data,
+                                          MutableSpan<T> result_data)
 {
   Span<float> mappings = spline.evaluated_mappings();
 
@@ -562,7 +562,7 @@ static void interpolate_to_evaluated_points_impl(const BezierSpline &spline,
   }
 }
 
-blender::fn::GVArrayPtr BezierSpline::interpolate_to_evaluated_points(
+blender::fn::GVArrayPtr BezierSpline::interpolate_to_evaluated(
     const blender::fn::GVArray &source_data) const
 {
   BLI_assert(source_data.size() == this->size());
@@ -581,7 +581,7 @@ blender::fn::GVArrayPtr BezierSpline::interpolate_to_evaluated_points(
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
       Array<T> values(eval_size);
-      interpolate_to_evaluated_points_impl<T>(*this, source_data.typed<T>(), values);
+      interpolate_to_evaluated_impl<T>(*this, source_data.typed<T>(), values);
       new_varray = std::make_unique<blender::fn::GVArray_For_ArrayContainer<Array<T>>>(
           std::move(values));
     }

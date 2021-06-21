@@ -374,9 +374,9 @@ void NURBSpline::calculate_basis_cache() const
 }
 
 template<typename T>
-void interpolate_to_evaluated_points_impl(Span<NURBSpline::BasisCache> weights,
-                                          const blender::VArray<T> &source_data,
-                                          MutableSpan<T> result_data)
+void interpolate_to_evaluated_impl(Span<NURBSpline::BasisCache> weights,
+                                   const blender::VArray<T> &source_data,
+                                   MutableSpan<T> result_data)
 {
   const int points_len = source_data.size();
   BLI_assert(result_data.size() == weights.size());
@@ -395,7 +395,7 @@ void interpolate_to_evaluated_points_impl(Span<NURBSpline::BasisCache> weights,
   mixer.finalize();
 }
 
-blender::fn::GVArrayPtr NURBSpline::interpolate_to_evaluated_points(
+blender::fn::GVArrayPtr NURBSpline::interpolate_to_evaluated(
     const blender::fn::GVArray &source_data) const
 {
   BLI_assert(source_data.size() == this->size());
@@ -412,7 +412,7 @@ blender::fn::GVArrayPtr NURBSpline::interpolate_to_evaluated_points(
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
       Array<T> values(this->evaluated_points_size());
-      interpolate_to_evaluated_points_impl<T>(weights, source_data.typed<T>(), values);
+      interpolate_to_evaluated_impl<T>(weights, source_data.typed<T>(), values);
       new_varray = std::make_unique<blender::fn::GVArray_For_ArrayContainer<Array<T>>>(
           std::move(values));
     }
@@ -436,7 +436,7 @@ Span<float3> NURBSpline::evaluated_positions() const
   evaluated_position_cache_.resize(eval_size);
 
   /* TODO: Avoid copying the evaluated data from the temporary array. */
-  GVArray_Typed<float3> evaluated = Spline::interpolate_to_evaluated_points(positions_.as_span());
+  GVArray_Typed<float3> evaluated = Spline::interpolate_to_evaluated(positions_.as_span());
   evaluated->materialize(evaluated_position_cache_);
 
   position_cache_dirty_ = false;

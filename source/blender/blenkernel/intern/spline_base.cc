@@ -331,7 +331,7 @@ Span<float3> Spline::evaluated_normals() const
   }
 
   /* Rotate the generated normals with the interpolated tilt data. */
-  GVArray_Typed<float> tilts = this->interpolate_to_evaluated_points(this->tilts());
+  GVArray_Typed<float> tilts = this->interpolate_to_evaluated(this->tilts());
   for (const int i : normals.index_range()) {
     normals[i] = rotate_direction_around_axis(normals[i], tangents[i], tilts[i]);
   }
@@ -438,9 +438,9 @@ void Spline::bounds_min_max(float3 &min, float3 &max, const bool use_evaluated) 
   }
 }
 
-GVArrayPtr Spline::interpolate_to_evaluated_points(GSpan data) const
+GVArrayPtr Spline::interpolate_to_evaluated(GSpan data) const
 {
-  return this->interpolate_to_evaluated_points(GVArray_For_GSpan(data));
+  return this->interpolate_to_evaluated(GVArray_For_GSpan(data));
 }
 
 /**
@@ -448,9 +448,9 @@ GVArrayPtr Spline::interpolate_to_evaluated_points(GSpan data) const
  * points) to arbitrary parameters in between the evaluated points. The interpolation is quite
  * simple, but this handles the cyclic and end point special cases.
  */
-void Spline::sample_based_on_index_factors(const GVArray &src,
-                                           Span<float> index_factors,
-                                           GMutableSpan dst) const
+void Spline::sample_with_index_factors(const GVArray &src,
+                                       Span<float> index_factors,
+                                       GMutableSpan dst) const
 {
   BLI_assert(src.size() == this->evaluated_points_size());
 

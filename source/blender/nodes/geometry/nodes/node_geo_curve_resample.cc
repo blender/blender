@@ -94,16 +94,16 @@ static SplinePtr resample_spline(const Spline &input_spline, const int count)
 
   Array<float> uniform_samples = input_spline.sample_uniform_index_factors(count);
 
-  input_spline.sample_based_on_index_factors<float3>(
+  input_spline.sample_with_index_factors<float3>(
       input_spline.evaluated_positions(), uniform_samples, output_spline->positions());
 
-  input_spline.sample_based_on_index_factors<float>(
-      input_spline.interpolate_to_evaluated_points(input_spline.radii()),
+  input_spline.sample_with_index_factors<float>(
+      input_spline.interpolate_to_evaluated(input_spline.radii()),
       uniform_samples,
       output_spline->radii());
 
-  input_spline.sample_based_on_index_factors<float>(
-      input_spline.interpolate_to_evaluated_points(input_spline.tilts()),
+  input_spline.sample_with_index_factors<float>(
+      input_spline.interpolate_to_evaluated(input_spline.tilts()),
       uniform_samples,
       output_spline->tilts());
 
@@ -123,8 +123,8 @@ static SplinePtr resample_spline(const Spline &input_spline, const int count)
           return false;
         }
 
-        input_spline.sample_based_on_index_factors(
-            *input_spline.interpolate_to_evaluated_points(*input_attribute),
+        input_spline.sample_with_index_factors(
+            *input_spline.interpolate_to_evaluated(*input_attribute),
             uniform_samples,
             *output_attribute);
 
