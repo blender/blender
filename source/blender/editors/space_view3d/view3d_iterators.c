@@ -258,8 +258,8 @@ void mesh_foreachScreenVert(
  * \note This is unrelated to #V3D_PROJ_TEST_CLIP_BB which must be checked separately.
  */
 static bool mesh_foreachScreenEdge_shared_project_and_test(const ARegion *region,
-                                                           const float v0co[3],
-                                                           const float v1co[3],
+                                                           const float v_a[3],
+                                                           const float v_b[3],
                                                            const eV3DProjTest clip_flag,
                                                            const rctf *win_rect,
                                                            const float content_planes[][4],
@@ -272,9 +272,9 @@ static bool mesh_foreachScreenEdge_shared_project_and_test(const ARegion *region
   eV3DProjTest clip_flag_nowin = clip_flag & ~V3D_PROJ_TEST_CLIP_WIN;
 
   const eV3DProjStatus status_a = ED_view3d_project_float_object(
-      region, v0co, r_screen_co_a, clip_flag_nowin);
+      region, v_a, r_screen_co_a, clip_flag_nowin);
   const eV3DProjStatus status_b = ED_view3d_project_float_object(
-      region, v1co, r_screen_co_b, clip_flag_nowin);
+      region, v_b, r_screen_co_b, clip_flag_nowin);
 
   if ((status_a == V3D_PROJ_RET_OK) && (status_b == V3D_PROJ_RET_OK)) {
     if (clip_flag & V3D_PROJ_TEST_CLIP_WIN) {
@@ -299,15 +299,15 @@ static bool mesh_foreachScreenEdge_shared_project_and_test(const ARegion *region
     }
 
     /* Simple cases have been ruled out, clip by viewport planes, then re-project. */
-    float v0co_clip[3], v1co_clip[3];
+    float v_a_clip[3], v_b_clip[3];
     if (!clip_segment_v3_plane_n(
-            v0co, v1co, content_planes, content_planes_len, v0co_clip, v1co_clip)) {
+            v_a, v_b, content_planes, content_planes_len, v_a_clip, v_b_clip)) {
       return false;
     }
 
-    if ((ED_view3d_project_float_object(region, v0co_clip, r_screen_co_a, clip_flag_nowin) !=
+    if ((ED_view3d_project_float_object(region, v_a_clip, r_screen_co_a, clip_flag_nowin) !=
          V3D_PROJ_RET_OK) ||
-        (ED_view3d_project_float_object(region, v1co_clip, r_screen_co_b, clip_flag_nowin) !=
+        (ED_view3d_project_float_object(region, v_b_clip, r_screen_co_b, clip_flag_nowin) !=
          V3D_PROJ_RET_OK)) {
       return false;
     }
@@ -321,8 +321,8 @@ static bool mesh_foreachScreenEdge_shared_project_and_test(const ARegion *region
 
 static void mesh_foreachScreenEdge__mapFunc(void *userData,
                                             int index,
-                                            const float v0co[3],
-                                            const float v1co[3])
+                                            const float v_a[3],
+                                            const float v_b[3])
 {
   foreachScreenEdge_userData *data = userData;
   BMEdge *eed = BM_edge_at_index(data->vc.em->bm, index);
@@ -332,8 +332,8 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData,
 
   float screen_co_a[2], screen_co_b[2];
   if (!mesh_foreachScreenEdge_shared_project_and_test(data->vc.region,
-                                                      v0co,
-                                                      v1co,
+                                                      v_a,
+                                                      v_b,
                                                       data->clip_flag,
                                                       &data->win_rect,
                                                       data->content_planes,
@@ -397,8 +397,8 @@ void mesh_foreachScreenEdge(ViewContext *vc,
  */
 static void mesh_foreachScreenEdge_clip_bb_segment__mapFunc(void *userData,
                                                             int index,
-                                                            const float v0co[3],
-                                                            const float v1co[3])
+                                                            const float v_a[3],
+                                                            const float v_b[3])
 {
   foreachScreenEdge_userData *data = userData;
   BMEdge *eed = BM_edge_at_index(data->vc.em->bm, index);
@@ -408,15 +408,15 @@ static void mesh_foreachScreenEdge_clip_bb_segment__mapFunc(void *userData,
 
   BLI_assert(data->clip_flag & V3D_PROJ_TEST_CLIP_BB);
 
-  float v0co_clip[3], v1co_clip[3];
-  if (!clip_segment_v3_plane_n(v0co, v1co, data->vc.rv3d->clip_local, 4, v0co_clip, v1co_clip)) {
+  float v_a_clip[3], v_b_clip[3];
+  if (!clip_segment_v3_plane_n(v_a, v_b, data->vc.rv3d->clip_local, 4, v_a_clip, v_b_clip)) {
     return;
   }
 
   float screen_co_a[2], screen_co_b[2];
   if (!mesh_foreachScreenEdge_shared_project_and_test(data->vc.region,
-                                                      v0co_clip,
-                                                      v1co_clip,
+                                                      v_a_clip,
+                                                      v_b_clip,
                                                       data->clip_flag,
                                                       &data->win_rect,
                                                       data->content_planes,
