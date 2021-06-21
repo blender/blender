@@ -324,6 +324,106 @@ void BM_mesh_select_mode_clean(BMesh *bm)
   BM_mesh_select_mode_clean_ex(bm, bm->selectmode);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Select mode flush selection
+ * \{ */
+
+typedef struct SelectionFlushChunkData {
+  int delta_selection_len;
+} SelectionFlushChunkData;
+
+static void bm_mesh_select_mode_flush_vert_to_edge_iter_fn(void *UNUSED(userdata),
+                                                           MempoolIterData *iter,
+                                                           const TaskParallelTLS *__restrict tls)
+{
+  SelectionFlushChunkData *chunk_data = tls->userdata_chunk;
+  BMEdge *e = (BMEdge *)iter;
+  const bool is_selected = BM_elem_flag_test(e, BM_ELEM_SELECT);
+  const bool is_hidden = BM_elem_flag_test(e, BM_ELEM_HIDDEN);
+  if (!is_hidden &&
+      (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT))) {
+    BM_elem_flag_enable(e, BM_ELEM_SELECT);
+    chunk_data->delta_selection_len += is_selected ? 0 : 1;
+  }
+  else {
+    BM_elem_flag_disable(e, BM_ELEM_SELECT);
+    chunk_data->delta_selection_len += is_selected ? -1 : 0;
+  }
+}
+
+static void bm_mesh_select_mode_flush_edge_to_face_iter_fn(void *UNUSED(userdata),
+                                                           MempoolIterData *iter,
+                                                           const TaskParallelTLS *__restrict tls)
+{
+  SelectionFlushChunkData *chunk_data = tls->userdata_chunk;
+  BMFace *f = (BMFace *)iter;
+  BMLoop *l_iter;
+  BMLoop *l_first;
+  const bool is_selected = BM_elem_flag_test(f, BM_ELEM_SELECT);
+  bool ok = true;
+  if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+    do {
+      if (!BM_elem_flag_test(l_iter->e, BM_ELEM_SELECT)) {
+        ok = false;
+        break;
+      }
+    } while ((l_iter = l_iter->next) != l_first);
+  }
+  else {
+    ok = false;
+  }
+
+  BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
+  if (is_selected && !ok) {
+    chunk_data->delta_selection_len -= 1;
+  }
+  else if (ok && !is_selected) {
+    chunk_data->delta_selection_len += 1;
+  }
+}
+
+static void bm_mesh_select_mode_flush_reduce_fn(const void *__restrict UNUSED(userdata),
+                                                void *__restrict chunk_join,
+                                                void *__restrict chunk)
+{
+  SelectionFlushChunkData *dst = chunk_join;
+  const SelectionFlushChunkData *src = chunk;
+  dst->delta_selection_len += src->delta_selection_len;
+}
+
+static void bm_mesh_select_mode_flush_vert_to_edge(BMesh *bm)
+{
+  SelectionFlushChunkData chunk_data = {0};
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
+  settings.userdata_chunk = &chunk_data;
+  settings.userdata_chunk_size = sizeof(chunk_data);
+  settings.func_reduce = bm_mesh_select_mode_flush_reduce_fn;
+
+  BM_iter_parallel(
+      bm, BM_EDGES_OF_MESH, bm_mesh_select_mode_flush_vert_to_edge_iter_fn, NULL, &settings);
+  bm->totedgesel += chunk_data.delta_selection_len;
+}
+
+static void bm_mesh_select_mode_flush_edge_to_face(BMesh *bm)
+{
+  SelectionFlushChunkData chunk_data = {0};
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = bm->totface >= BM_OMP_LIMIT;
+  settings.userdata_chunk = &chunk_data;
+  settings.userdata_chunk_size = sizeof(chunk_data);
+  settings.func_reduce = bm_mesh_select_mode_flush_reduce_fn;
+
+  BM_iter_parallel(
+      bm, BM_FACES_OF_MESH, bm_mesh_select_mode_flush_edge_to_face_iter_fn, NULL, &settings);
+  bm->totfacesel += chunk_data.delta_selection_len;
+}
+
 /**
  * \brief Select Mode Flush
  *
@@ -333,56 +433,12 @@ void BM_mesh_select_mode_clean(BMesh *bm)
  */
 void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, eBMSelectionFlushFLags flags)
 {
-  BMEdge *e;
-  BMLoop *l_iter;
-  BMLoop *l_first;
-  BMFace *f;
-
-  BMIter eiter;
-  BMIter fiter;
-
   if (selectmode & SCE_SELECT_VERTEX) {
-    /* both loops only set edge/face flags and read off verts */
-    BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-      const bool is_selected = BM_elem_flag_test(e, BM_ELEM_SELECT);
-      const bool is_hidden = BM_elem_flag_test(e, BM_ELEM_HIDDEN);
-      if (!is_hidden &&
-          (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT))) {
-        BM_elem_flag_enable(e, BM_ELEM_SELECT);
-        bm->totedgesel += is_selected ? 0 : 1;
-      }
-      else {
-        BM_elem_flag_disable(e, BM_ELEM_SELECT);
-        bm->totedgesel += is_selected ? -1 : 0;
-      }
-    }
+    bm_mesh_select_mode_flush_vert_to_edge(bm);
   }
 
   if (selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
-    BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-      const bool is_selected = BM_elem_flag_test(f, BM_ELEM_SELECT);
-      bool ok = true;
-      if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-        l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-        do {
-          if (!BM_elem_flag_test(l_iter->e, BM_ELEM_SELECT)) {
-            ok = false;
-            break;
-          }
-        } while ((l_iter = l_iter->next) != l_first);
-      }
-      else {
-        ok = false;
-      }
-
-      BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
-      if (is_selected && !ok) {
-        bm->totfacesel -= 1;
-      }
-      else if (ok && !is_selected) {
-        bm->totfacesel += 1;
-      }
-    }
+    bm_mesh_select_mode_flush_edge_to_face(bm);
   }
 
   /* Remove any deselected elements from the BMEditSelection */
@@ -404,6 +460,8 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 {
   BM_mesh_select_mode_flush_ex(bm, bm->selectmode, BM_SELECT_LEN_FLUSH_RECALC_ALL);
 }
+
+/** \} */
 
 /**
  * mode independent flushing up/down
