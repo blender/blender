@@ -188,12 +188,12 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
  * caller must clamp it.
  * TODO: See if it's possible to use parameter overloading (input_id for example).
  *
- * \param input_op_idx: Input operation index for which we want to calculate the area being read.
+ * \param input_idx: Input operation index for which we want to calculate the area being read.
  * \param output_area: Area being rendered by this operation.
  * \param r_input_area: Returned input operation area that needs to be read in order to render
  * given output area.
  */
-void NodeOperation::get_area_of_interest(const int input_op_idx,
+void NodeOperation::get_area_of_interest(const int input_idx,
                                          const rcti &output_area,
                                          rcti &r_input_area)
 {
@@ -203,7 +203,7 @@ void NodeOperation::get_area_of_interest(const int input_op_idx,
   else {
     /* Non full-frame operations never implement this method. To ensure correctness assume
      * whole area is used. */
-    NodeOperation *input_op = getInputOperation(input_op_idx);
+    NodeOperation *input_op = getInputOperation(input_idx);
     BLI_rcti_init(&r_input_area, 0, input_op->getWidth(), 0, input_op->getHeight());
   }
 }

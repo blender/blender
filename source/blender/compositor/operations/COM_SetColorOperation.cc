@@ -43,12 +43,12 @@ void SetColorOperation::determineResolution(unsigned int resolution[2],
 }
 
 void SetColorOperation::update_memory_buffer(MemoryBuffer *output,
-                                             const rcti &output_area,
+                                             const rcti &area,
                                              Span<MemoryBuffer *> UNUSED(inputs),
                                              ExecutionSystem &UNUSED(exec_system))
 {
   BLI_assert(output->is_a_single_elem());
-  float *out_elem = output->get_elem(output_area.xmin, output_area.ymin);
+  float *out_elem = output->get_elem(area.xmin, area.ymin);
   copy_v4_v4(out_elem, m_color);
 }
 

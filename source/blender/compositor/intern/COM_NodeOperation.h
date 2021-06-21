@@ -578,7 +578,7 @@ class NodeOperation {
    * Executes operation updating output memory buffer. Single-threaded calls.
    */
   virtual void update_memory_buffer(MemoryBuffer *UNUSED(output),
-                                    const rcti &UNUSED(output_area),
+                                    const rcti &UNUSED(area),
                                     Span<MemoryBuffer *> UNUSED(inputs),
                                     ExecutionSystem &UNUSED(exec_system))
   {
@@ -587,7 +587,7 @@ class NodeOperation {
   /**
    * Get input operation area being read by this operation on rendering given output area.
    */
-  virtual void get_area_of_interest(int input_op_idx, const rcti &output_area, rcti &r_input_area);
+  virtual void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area);
   void get_area_of_interest(NodeOperation *input_op, const rcti &output_area, rcti &r_input_area);
 
   /** \} */
