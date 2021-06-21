@@ -16,7 +16,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_float4x4.hh"
-#include "BLI_timeit.hh"
+#include "BLI_task.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -47,8 +47,8 @@ static void vert_extrude_to_mesh_data(const Spline &spline,
                                       const float3 profile_vert,
                                       MutableSpan<MVert> r_verts,
                                       MutableSpan<MEdge> r_edges,
-                                      int &vert_offset,
-                                      int &edge_offset)
+                                      int vert_offset,
+                                      int edge_offset)
 {
   Span<float3> positions = spline.evaluated_positions();
 
@@ -85,10 +85,10 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
                                         MutableSpan<MEdge> r_edges,
                                         MutableSpan<MLoop> r_loops,
                                         MutableSpan<MPoly> r_polys,
-                                        int &vert_offset,
-                                        int &edge_offset,
-                                        int &loop_offset,
-                                        int &poly_offset)
+                                        int vert_offset,
+                                        int edge_offset,
+                                        int loop_offset,
+                                        int poly_offset)
 {
   const int spline_vert_len = spline.evaluated_points_size();
   const int spline_edge_len = spline.evaluated_edges_size();
@@ -207,63 +207,114 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   }
 }
 
-static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &profile_curve)
+static inline int spline_extrude_vert_size(const Spline &curve, const Spline &profile)
 {
-  int profile_vert_total = 0;
-  int profile_edge_total = 0;
-  for (const SplinePtr &profile_spline : profile_curve.splines()) {
-    profile_vert_total += profile_spline->evaluated_points_size();
-    profile_edge_total += profile_spline->evaluated_edges_size();
-  }
+  return curve.evaluated_points_size() * profile.evaluated_points_size();
+}
 
-  int vert_total = 0;
-  int edge_total = 0;
-  int poly_total = 0;
-  for (const SplinePtr &spline : curve.splines()) {
-    const int spline_vert_len = spline->evaluated_points_size();
-    const int spline_edge_len = spline->evaluated_edges_size();
-    vert_total += spline_vert_len * profile_vert_total;
-    poly_total += spline_edge_len * profile_edge_total;
+static inline int spline_extrude_edge_size(const Spline &curve, const Spline &profile)
+{
+  /* Add the ring edges, with one ring for every curve vertex, and the edge loops
+   * that run along the length of the curve, starting on the first profile. */
+  return curve.evaluated_points_size() * profile.evaluated_edges_size() +
+         curve.evaluated_edges_size() * profile.evaluated_points_size();
+}
 
-    /* Add the ring edges, with one ring for every curve vertex, and the edge loops
-     * that run along the length of the curve, starting on the first profile. */
-    edge_total += profile_edge_total * spline_vert_len + profile_vert_total * spline_edge_len;
-  }
-  const int corner_total = poly_total * 4;
+static inline int spline_extrude_loop_size(const Spline &curve, const Spline &profile)
+{
+  return curve.evaluated_edges_size() * profile.evaluated_edges_size() * 4;
+}
 
-  if (vert_total == 0) {
-    return nullptr;
-  }
+static inline int spline_extrude_poly_size(const Spline &curve, const Spline &profile)
+{
+  return curve.evaluated_edges_size() * profile.evaluated_edges_size();
+}
 
-  Mesh *mesh = BKE_mesh_new_nomain(vert_total, edge_total, 0, corner_total, poly_total);
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
-  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
-  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-  MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
-  mesh->flag |= ME_AUTOSMOOTH;
-  mesh->smoothresh = DEG2RADF(180.0f);
+struct ResultOffsets {
+  Array<int> vert;
+  Array<int> edge;
+  Array<int> loop;
+  Array<int> poly;
+};
+static ResultOffsets calculate_result_offsets(Span<SplinePtr> profiles, Span<SplinePtr> curves)
+{
+  const int total = profiles.size() * curves.size();
+  Array<int> vert(total + 1);
+  Array<int> edge(total + 1);
+  Array<int> loop(total + 1);
+  Array<int> poly(total + 1);
 
+  int mesh_index = 0;
   int vert_offset = 0;
   int edge_offset = 0;
   int loop_offset = 0;
   int poly_offset = 0;
-  for (const SplinePtr &spline : curve.splines()) {
-    for (const SplinePtr &profile_spline : profile_curve.splines()) {
-      spline_extrude_to_mesh_data(*spline,
-                                  *profile_spline,
-                                  verts,
-                                  edges,
-                                  loops,
-                                  polys,
-                                  vert_offset,
-                                  edge_offset,
-                                  loop_offset,
-                                  poly_offset);
+  for (const int i_spline : curves.index_range()) {
+    for (const int i_profile : profiles.index_range()) {
+      vert[mesh_index] = vert_offset;
+      edge[mesh_index] = edge_offset;
+      loop[mesh_index] = loop_offset;
+      poly[mesh_index] = poly_offset;
+      vert_offset += spline_extrude_vert_size(*curves[i_spline], *profiles[i_profile]);
+      edge_offset += spline_extrude_edge_size(*curves[i_spline], *profiles[i_profile]);
+      loop_offset += spline_extrude_loop_size(*curves[i_spline], *profiles[i_profile]);
+      poly_offset += spline_extrude_poly_size(*curves[i_spline], *profiles[i_profile]);
+      mesh_index++;
     }
   }
+  vert.last() = vert_offset;
+  edge.last() = edge_offset;
+  loop.last() = loop_offset;
+  poly.last() = poly_offset;
 
-  BKE_mesh_calc_normals(mesh);
+  return {std::move(vert), std::move(edge), std::move(loop), std::move(poly)};
+}
+
+/**
+ * \note Normal calculation is by far the slowest part of calculations relating to the result mesh.
+ * Although it would be a sensible decision to use the better topology information available while
+ * generating the mesh to also generate the normals, that work may wasted if the output mesh is
+ * changed anyway in a way that affects the normals. So currently this code uses the safer /
+ * simpler solution of not calculating normals.
+ */
+static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &profile)
+{
+  Span<SplinePtr> profiles = profile.splines();
+  Span<SplinePtr> curves = curve.splines();
+
+  const ResultOffsets offsets = calculate_result_offsets(profiles, curves);
+  if (offsets.vert.last() == 0) {
+    return nullptr;
+  }
+
+  Mesh *mesh = BKE_mesh_new_nomain(
+      offsets.vert.last(), offsets.edge.last(), 0, offsets.loop.last(), offsets.poly.last());
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
+  mesh->flag |= ME_AUTOSMOOTH;
+  mesh->smoothresh = DEG2RADF(180.0f);
+  mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  mesh->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+
+  threading::parallel_for(curves.index_range(), 128, [&](IndexRange curves_range) {
+    for (const int i_spline : curves_range) {
+      const int spline_start_index = i_spline * profiles.size();
+      threading::parallel_for(profiles.index_range(), 128, [&](IndexRange profiles_range) {
+        for (const int i_profile : profiles_range) {
+          const int i_mesh = spline_start_index + i_profile;
+          spline_extrude_to_mesh_data(*curves[i_spline],
+                                      *profiles[i_profile],
+                                      {mesh->mvert, mesh->totvert},
+                                      {mesh->medge, mesh->totedge},
+                                      {mesh->mloop, mesh->totloop},
+                                      {mesh->mpoly, mesh->totpoly},
+                                      offsets.vert[i_mesh],
+                                      offsets.edge[i_mesh],
+                                      offsets.loop[i_mesh],
+                                      offsets.poly[i_mesh]);
+        }
+      });
+    }
+  });
 
   return mesh;
 }
