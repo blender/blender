@@ -404,7 +404,7 @@ bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
                                       float r_ray_end[3],
                                       const bool do_clip);
 void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d,
-                                  struct Object *ob,
+                                  const struct Object *ob,
                                   float r_pmat[4][4]);
 void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d,
                                              const float obmat[4][4],
@@ -578,8 +578,8 @@ bool ED_view3d_area_user_region(const struct ScrArea *area,
                                 struct ARegion **r_region);
 bool ED_operator_rv3d_user_region_poll(struct bContext *C);
 
-void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
-void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d);
+void ED_view3d_init_mats_rv3d(const struct Object *ob, struct RegionView3D *rv3d);
+void ED_view3d_init_mats_rv3d_gl(const struct Object *ob, struct RegionView3D *rv3d);
 #ifdef DEBUG
 void ED_view3d_clear_mats_rv3d(struct RegionView3D *rv3d);
 void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d);
