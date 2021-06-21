@@ -178,6 +178,8 @@ typedef enum CDT_output_type {
   CDT_FULL,
   /** All triangles fully enclosed by constraint edges or faces. */
   CDT_INSIDE,
+  /** Like previous, but detect holes and omit those from output. */
+  CDT_INSIDE_WITH_HOLES,
   /** Only point, edge, and face constraints, and their intersections. */
   CDT_CONSTRAINTS,
   /**
@@ -186,7 +188,9 @@ typedef enum CDT_output_type {
    * #BMesh faces in Blender: that is,
    * no vertex appears more than once and no isolated holes in faces.
    */
-  CDT_CONSTRAINTS_VALID_BMESH
+  CDT_CONSTRAINTS_VALID_BMESH,
+  /** Like previous, but detect holes and omit those from output. */
+  CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES,
 } CDT_output_type;
 
 /**

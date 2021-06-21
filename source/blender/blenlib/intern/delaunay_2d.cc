@@ -226,6 +226,8 @@ template<typename Arith_t> struct CDTFace {
   int visit_index{0};
   /** Marks this face no longer used. */
   bool deleted{false};
+  /** Marks this face as part of a hole. */
+  bool hole{false};
 
   CDTFace() = default;
 };
@@ -481,9 +483,9 @@ template<typename T> void cdt_draw(const std::string &label, const CDTArrangemen
  * This is just for developer debugging anyway, and should never be called in production Blender.
  */
 #  ifdef _WIN32
-  const char *drawfile = "./debug_draw.html";
+  const char *drawfile = "./cdt_debug_draw.html";
 #  else
-  const char *drawfile = "/tmp/debug_draw.html";
+  const char *drawfile = "/tmp/cdt_debug_draw.html";
 #  endif
   constexpr int max_draw_width = 1800;
   constexpr int max_draw_height = 1600;
@@ -2364,9 +2366,6 @@ template<typename T> void remove_non_constraint_edges_leave_valid_bmesh(CDT_stat
 
 template<typename T> void remove_outer_edges_until_constraints(CDT_state<T> *cdt_state)
 {
-  // LinkNode *fstack = NULL;
-  // SymEdge *se, *se_start;
-  // CDTFace *f, *fsym;
   int visit = ++cdt_state->visit_count;
 
   cdt_state->cdt.outer_face->visit_index = visit;
@@ -2415,6 +2414,137 @@ template<typename T> void remove_outer_edges_until_constraints(CDT_state<T> *cdt
   }
 }
 
+template<typename T> void remove_faces_in_holes(CDT_state<T> *cdt_state)
+{
+  CDTArrangement<T> *cdt = &cdt_state->cdt;
+  for (int i : cdt->faces.index_range()) {
+    CDTFace<T> *f = cdt->faces[i];
+    if (!f->deleted && f->hole) {
+      f->deleted = true;
+      SymEdge<T> *se = f->symedge;
+      SymEdge<T> *se_start = se;
+      SymEdge<T> *se_next = nullptr;
+      do {
+        BLI_assert(se != nullptr);
+        se_next = se->next; /* In case we delete this edge. */
+        if (se->edge && !is_constrained_edge(se->edge)) {
+          /* Invalidate one half of this edge. The other has will be or has been
+           * handled with the adjacent triangle is processed: it should be part of the same hole.
+           */
+          se->next = nullptr;
+        }
+        se = se_next;
+      } while (se != se_start);
+    }
+  }
+}
+
+/**
+ * Set the hole member of each CDTFace to true for each face that is detected to be part of a
+ * hole. A hole face is define as one for which, when a ray is shot from a point inside the face
+ * to infinity, it crosses an even number of constraint edges. We'll choose a ray direction that
+ * is extremely unlikely to exactly superimpose some edge, so avoiding the need to be careful
+ * about such overlaps.
+ *
+ * To improve performance, we gather together faces that should have the same winding number, and
+ * only shoot rays once.
+ */
+template<typename T> void detect_holes(CDT_state<T> *cdt_state)
+{
+  CDTArrangement<T> *cdt = &cdt_state->cdt;
+
+  /* Make it so that each face with the same visit_index is connected through a path of
+   * non-constraint edges. */
+  Vector<CDTFace<T> *> fstack;
+  Vector<CDTFace<T> *> region_rep_face;
+  for (int i : cdt->faces.index_range()) {
+    cdt->faces[i]->visit_index = -1;
+  }
+  int cur_region = -1;
+  cdt->outer_face->visit_index = -2; /* Don't visit this one. */
+  for (int i : cdt->faces.index_range()) {
+    CDTFace<T> *f = cdt->faces[i];
+    if (!f->deleted && f->symedge && f->visit_index == -1) {
+      fstack.append(f);
+      ++cur_region;
+      region_rep_face.append(f);
+      while (!fstack.is_empty()) {
+        CDTFace<T> *f = fstack.pop_last();
+        if (f->visit_index != -1) {
+          continue;
+        }
+        f->visit_index = cur_region;
+        SymEdge<T> *se_start = f->symedge;
+        SymEdge<T> *se = se_start;
+        do {
+          if (se->edge && !is_constrained_edge(se->edge)) {
+            CDTFace<T> *fsym = sym(se)->face;
+            if (fsym && !fsym->deleted && fsym->visit_index == -1) {
+              fstack.append(fsym);
+            }
+          }
+          se = se->next;
+        } while (se != se_start);
+      }
+    }
+  }
+  cdt_state->visit_count = ++cur_region; /* Good start for next use of visit_count. */
+
+  /* Now get hole status for each region_rep_face. */
+
+  /* Pick a ray end almost certain to be outside everything and in direction
+   * that is unlikely to hit a vertex or overlap an edge exactly. */
+  FatCo<T> ray_end;
+  ray_end.exact = vec2<T>(123456, 654321);
+  for (int i : region_rep_face.index_range()) {
+    CDTFace<T> *f = region_rep_face[i];
+    FatCo<T> mid;
+    mid.exact[0] = (f->symedge->vert->co.exact[0] + f->symedge->next->vert->co.exact[0] +
+                    f->symedge->next->next->vert->co.exact[0]) /
+                   3;
+    mid.exact[1] = (f->symedge->vert->co.exact[1] + f->symedge->next->vert->co.exact[1] +
+                    f->symedge->next->next->vert->co.exact[1]) /
+                   3;
+    int hits = 0;
+    /* TODO: Use CDT data structure here to greatly reduce search for intersections! */
+    for (const CDTEdge<T> *e : cdt->edges) {
+      if (!is_deleted_edge(e) && is_constrained_edge(e)) {
+        if (e->symedges[0].face->visit_index == e->symedges[1].face->visit_index) {
+          continue; /* Don't count hits on edges between faces in same region. */
+        }
+        auto isect = vec2<T>::isect_seg_seg(ray_end.exact,
+                                            mid.exact,
+                                            e->symedges[0].vert->co.exact,
+                                            e->symedges[1].vert->co.exact);
+        switch (isect.kind) {
+          case vec2<T>::isect_result::LINE_LINE_CROSS: {
+            hits++;
+            break;
+          }
+          case vec2<T>::isect_result::LINE_LINE_EXACT:
+          case vec2<T>::isect_result::LINE_LINE_NONE:
+          case vec2<T>::isect_result::LINE_LINE_COLINEAR:
+            break;
+        }
+      }
+    }
+    f->hole = (hits % 2) == 0;
+  }
+
+  /* Finally, propagate hole status to all holes of a region. */
+  for (int i : cdt->faces.index_range()) {
+    CDTFace<T> *f = cdt->faces[i];
+    int region = f->visit_index;
+    if (region < 0) {
+      continue;
+    }
+    CDTFace<T> *f_region_rep = region_rep_face[region];
+    if (i >= 0) {
+      f->hole = f_region_rep->hole;
+    }
+  }
+}
+
 /**
  * Remove edges and merge faces to get desired output, as per options.
  * \note the cdt cannot be further changed after this.
@@ -2439,6 +2569,13 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
     }
   }
 
+  bool need_holes = output_type == CDT_INSIDE_WITH_HOLES ||
+                    output_type == CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES;
+
+  if (need_holes) {
+    detect_holes(cdt_state);
+  }
+
   if (output_type == CDT_CONSTRAINTS) {
     remove_non_constraint_edges(cdt_state);
   }
@@ -2447,6 +2584,14 @@ void prepare_cdt_for_output(CDT_state<T> *cdt_state, const CDT_output_type outpu
   }
   else if (output_type == CDT_INSIDE) {
     remove_outer_edges_until_constraints(cdt_state);
+  }
+  else if (output_type == CDT_INSIDE_WITH_HOLES) {
+    remove_outer_edges_until_constraints(cdt_state);
+    remove_faces_in_holes(cdt_state);
+  }
+  else if (output_type == CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES) {
+    remove_non_constraint_edges_leave_valid_bmesh(cdt_state);
+    remove_faces_in_holes(cdt_state);
   }
 }
 
