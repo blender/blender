@@ -773,7 +773,7 @@ static void render_endjob(void *rjv)
      * was locked before running the job.
      */
     WM_set_locked_interface(G_MAIN->wm.first, false);
-    DEG_on_visible_update(G_MAIN, false);
+    DEG_tag_on_visible_update(G_MAIN, false);
   }
 }
 

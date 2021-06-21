@@ -804,16 +804,16 @@ void DEG_id_type_tag(Main *bmain, short id_type)
 }
 
 /* Update dependency graph when visible scenes/layers changes. */
-void DEG_graph_on_visible_update(Main *bmain, Depsgraph *depsgraph, const bool do_time)
+void DEG_graph_tag_on_visible_update(Main *bmain, Depsgraph *depsgraph, const bool do_time)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
   deg::deg_graph_on_visible_update(bmain, graph, do_time);
 }
 
-void DEG_on_visible_update(Main *bmain, const bool do_time)
+void DEG_tag_on_visible_update(Main *bmain, const bool do_time)
 {
   for (deg::Depsgraph *depsgraph : deg::get_all_registered_graphs(bmain)) {
-    DEG_graph_on_visible_update(bmain, reinterpret_cast<::Depsgraph *>(depsgraph), do_time);
+    deg::deg_graph_on_visible_update(bmain, depsgraph, do_time);
   }
 }
 

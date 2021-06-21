@@ -169,7 +169,7 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 
       /* It is possible that new layers becomes visible. */
       if (area->spacetype == SPACE_VIEW3D) {
-        DEG_on_visible_update(CTX_data_main(C), false);
+        DEG_tag_on_visible_update(CTX_data_main(C), false);
       }
 
       CTX_wm_window_set(C, prevwin);

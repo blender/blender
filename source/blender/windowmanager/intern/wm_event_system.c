@@ -380,8 +380,10 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
      */
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
     if (is_after_open_file) {
+      /* TODO(sergey): Remove after the handling of visibility tags is delayed until graph
+       * evaluation. */
       DEG_graph_relations_update(depsgraph);
-      DEG_graph_on_visible_update(bmain, depsgraph, true);
+      DEG_graph_tag_on_visible_update(bmain, depsgraph, true);
     }
     DEG_make_active(depsgraph);
     BKE_scene_graph_update_tagged(depsgraph, bmain);

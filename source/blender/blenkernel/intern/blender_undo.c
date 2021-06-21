@@ -105,7 +105,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
 
   if (success) {
     /* important not to update time here, else non keyed transforms are lost */
-    DEG_on_visible_update(bmain, false);
+    DEG_tag_on_visible_update(bmain, false);
   }
 
   return success;

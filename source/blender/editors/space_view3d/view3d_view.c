@@ -1517,7 +1517,7 @@ static int localview_remove_from_exec(bContext *C, wmOperator *op)
   }
 
   if (changed) {
-    DEG_on_visible_update(bmain, false);
+    DEG_tag_on_visible_update(bmain, false);
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
