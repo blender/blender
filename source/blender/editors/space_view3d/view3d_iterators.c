@@ -99,6 +99,10 @@ static int content_planes_from_clip_flag(const ARegion *region,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Private User Data Structures
+ * \{ */
+
 typedef struct foreachScreenObjectVert_userData {
   void (*func)(void *userData, MVert *mv, const float screen_co_b[2], int index);
   void *userData;
@@ -148,7 +152,11 @@ typedef struct foreachScreenFace_userData {
  * use the object matrix in the usual way.
  */
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Mesh: For Each Screen Vertex
+ * \{ */
 
 static void meshobject_foreachScreenVert__mapFunc(void *userData,
                                                   int index,
@@ -247,7 +255,11 @@ void mesh_foreachScreenVert(
   BKE_mesh_foreach_mapped_vert(me, mesh_foreachScreenVert__mapFunc, &data, MESH_FOREACH_NOP);
 }
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Mesh: For Each Screen Mesh Edge
+ * \{ */
 
 /**
  * Edge projection is more involved since part of the edge may be behind the view
@@ -389,7 +401,11 @@ void mesh_foreachScreenEdge(ViewContext *vc,
   BKE_mesh_foreach_mapped_edge(me, mesh_foreachScreenEdge__mapFunc, &data);
 }
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Mesh: For Each Screen Edge (Bounding Box Clipped)
+ * \{ */
 
 /**
  * Only call for bound-box clipping.
@@ -479,7 +495,11 @@ void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
   }
 }
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Mesh: For Each Screen Face Center
+ * \{ */
 
 static void mesh_foreachScreenFace__mapFunc(void *userData,
                                             int index,
@@ -531,7 +551,11 @@ void mesh_foreachScreenFace(
   }
 }
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Nurbs: For Each Screen Vertex
+ * \{ */
 
 void nurbs_foreachScreenVert(ViewContext *vc,
                              void (*func)(void *userData,
@@ -619,7 +643,11 @@ void nurbs_foreachScreenVert(ViewContext *vc,
   }
 }
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Meta: For Each Screen Meta-Element
+ * \{ */
 
 /* ED_view3d_init_mats_rv3d must be called first */
 void mball_foreachScreenElem(struct ViewContext *vc,
@@ -643,7 +671,11 @@ void mball_foreachScreenElem(struct ViewContext *vc,
   }
 }
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Lattice: For Each Screen Vertex
+ * \{ */
 
 void lattice_foreachScreenVert(ViewContext *vc,
                                void (*func)(void *userData, BPoint *bp, const float screen_co[2]),
@@ -676,7 +708,11 @@ void lattice_foreachScreenVert(ViewContext *vc,
   }
 }
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit-Armature: For Each Screen Bone
+ * \{ */
 
 /* ED_view3d_init_mats_rv3d must be called first */
 void armature_foreachScreenBone(struct ViewContext *vc,
@@ -724,7 +760,11 @@ void armature_foreachScreenBone(struct ViewContext *vc,
   }
 }
 
-/* ------------------------------------------------------------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose: For Each Screen Bone
+ * \{ */
 
 /* ED_view3d_init_mats_rv3d must be called first */
 /* almost _exact_ copy of #armature_foreachScreenBone */
@@ -775,3 +815,5 @@ void pose_foreachScreenBone(struct ViewContext *vc,
     }
   }
 }
+
+/** \} */
