@@ -26,7 +26,7 @@
 
 static bNodeSocketTemplate geo_node_mesh_primitive_ico_sphere_in[] = {
     {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_INT, N_("Subdivisions"), 1, 0, 0, 0, 0, 7},
+    {SOCK_INT, N_("Subdivisions"), 1, 0, 0, 0, 1, 7},
     {-1, ""},
 };
 
