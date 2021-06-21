@@ -786,12 +786,6 @@ static void view3d_main_region_free(ARegion *region)
       RE_engine_free(rv3d->render_engine);
     }
 
-    if (rv3d->depths) {
-      if (rv3d->depths->depths) {
-        MEM_freeN(rv3d->depths->depths);
-      }
-      MEM_freeN(rv3d->depths);
-    }
     if (rv3d->sms) {
       MEM_freeN(rv3d->sms);
     }
@@ -815,7 +809,6 @@ static void *view3d_main_region_duplicate(void *poin)
       new->clipbb = MEM_dupallocN(rv3d->clipbb);
     }
 
-    new->depths = NULL;
     new->render_engine = NULL;
     new->sms = NULL;
     new->smooth_timer = NULL;

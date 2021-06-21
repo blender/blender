@@ -1744,7 +1744,7 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
     if ((gp_settings != NULL) && (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
       View3D *v3d = p->area->spacedata.first;
       view3d_region_operator_needs_opengl(p->win, p->region);
-      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
+      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
     }
   }
 
@@ -2334,7 +2334,7 @@ static void gpencil_paint_strokeend(tGPsdata *p)
                              (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
                                  V3D_DEPTH_GPENCIL_ONLY :
                                  V3D_DEPTH_NO_GPENCIL,
-                             false);
+                             NULL);
   }
 
   /* check if doing eraser or not */

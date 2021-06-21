@@ -1467,7 +1467,6 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
         BLO_read_data_address(reader, &rv3d->localvd);
         BLO_read_data_address(reader, &rv3d->clipbb);
 
-        rv3d->depths = NULL;
         rv3d->render_engine = NULL;
         rv3d->sms = NULL;
         rv3d->smooth_timer = NULL;

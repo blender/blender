@@ -72,7 +72,6 @@ typedef struct RegionView3D {
   /** Allocated backup of its self while in localview. */
   struct RegionView3D *localvd;
   struct RenderEngine *render_engine;
-  struct ViewDepths *depths;
 
   /** Animated smooth view. */
   struct SmoothView3DStore *sms;

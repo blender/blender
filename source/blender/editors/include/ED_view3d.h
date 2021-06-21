@@ -90,8 +90,6 @@ typedef struct ViewDepths {
   short x, y; /* only for temp use for sub-rects, added to region->winx/y */
   float *depths;
   double depth_range[2];
-
-  bool damaged;
 } ViewDepths;
 
 /* Rotate 3D cursor on placement. */
@@ -154,19 +152,20 @@ void ED_view3d_depth_override(struct Depsgraph *depsgraph,
                               struct View3D *v3d,
                               struct Object *obact,
                               eV3DDepthOverrideMode mode,
-                              bool update_cache);
+                              struct ViewDepths **r_depths);
+void ED_view3d_depths_free(ViewDepths *depths);
 bool ED_view3d_depth_read_cached(const ViewDepths *vd,
                                  const int mval[2],
                                  int margin,
                                  float *r_depth);
-bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
+bool ED_view3d_depth_read_cached_normal(const struct ARegion *region,
+                                        const ViewDepths *depths,
                                         const int mval[2],
                                         float r_normal[3]);
 bool ED_view3d_depth_unproject_v3(const struct ARegion *region,
                                   const int mval[2],
                                   const double depth,
                                   float r_location_world[3]);
-void ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 
 /* Projection */
 #define IS_CLIPPED 12000
