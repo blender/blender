@@ -345,10 +345,11 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, eBMSelectio
     /* both loops only set edge/face flags and read off verts */
     BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
       const bool is_selected = BM_elem_flag_test(e, BM_ELEM_SELECT);
-      if (!is_selected &&
+      const bool is_hidden = BM_elem_flag_test(e, BM_ELEM_HIDDEN);
+      if (!is_hidden &&
           (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT))) {
         BM_elem_flag_enable(e, BM_ELEM_SELECT);
-        bm->totedgesel += 1;
+        bm->totedgesel += is_selected ? 0 : 1;
       }
       else {
         BM_elem_flag_disable(e, BM_ELEM_SELECT);
