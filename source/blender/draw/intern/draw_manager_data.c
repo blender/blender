@@ -1572,8 +1572,8 @@ static void draw_frustum_culling_planes_calc(const float (*persmat)[4], float (*
   planes_from_projmat(persmat,
                       frustum_planes[0],
                       frustum_planes[5],
-                      frustum_planes[3],
                       frustum_planes[1],
+                      frustum_planes[3],
                       frustum_planes[4],
                       frustum_planes[2]);
 

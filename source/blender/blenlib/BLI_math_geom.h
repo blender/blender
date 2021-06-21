@@ -677,8 +677,8 @@ void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x
 void planes_from_projmat(const float mat[4][4],
                          float left[4],
                          float right[4],
-                         float top[4],
                          float bottom[4],
+                         float top[4],
                          float near[4],
                          float far[4]);
 

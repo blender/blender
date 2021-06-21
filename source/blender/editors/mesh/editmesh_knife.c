@@ -272,8 +272,7 @@ static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
   float v1[3], v2[3];
   float planes[4][4];
 
-  planes_from_projmat(
-      (const float(*)[4])kcd->projmat, planes[2], planes[0], planes[3], planes[1], NULL, NULL);
+  planes_from_projmat(kcd->projmat, planes[2], planes[0], planes[1], planes[3], NULL, NULL);
 
   /* ray-cast all planes */
   {
