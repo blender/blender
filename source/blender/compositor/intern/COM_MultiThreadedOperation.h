@@ -28,6 +28,10 @@ class MultiThreadedOperation : public NodeOperation {
    * Number of execution passes.
    */
   int m_num_passes;
+  /**
+   * Current execution pass.
+   */
+  int current_pass_;
 
  protected:
   MultiThreadedOperation();
@@ -38,8 +42,7 @@ class MultiThreadedOperation : public NodeOperation {
   virtual void update_memory_buffer_started(MemoryBuffer *UNUSED(output),
                                             const rcti &UNUSED(output_rect),
                                             blender::Span<MemoryBuffer *> UNUSED(inputs),
-                                            ExecutionSystem &UNUSED(exec_system),
-                                            int UNUSED(current_pass))
+                                            ExecutionSystem &UNUSED(exec_system))
   {
   }
 
@@ -49,8 +52,7 @@ class MultiThreadedOperation : public NodeOperation {
   virtual void update_memory_buffer_partial(MemoryBuffer *output,
                                             const rcti &output_rect,
                                             blender::Span<MemoryBuffer *> inputs,
-                                            ExecutionSystem &exec_system,
-                                            int current_pass) = 0;
+                                            ExecutionSystem &exec_system) = 0;
 
   /**
    * Called after an update memory buffer pass is executed. Single-threaded calls.
@@ -58,8 +60,7 @@ class MultiThreadedOperation : public NodeOperation {
   virtual void update_memory_buffer_finished(MemoryBuffer *UNUSED(output),
                                              const rcti &UNUSED(output_rect),
                                              blender::Span<MemoryBuffer *> UNUSED(inputs),
-                                             ExecutionSystem &UNUSED(exec_system),
-                                             int UNUSED(current_pass))
+                                             ExecutionSystem &UNUSED(exec_system))
   {
   }
 
