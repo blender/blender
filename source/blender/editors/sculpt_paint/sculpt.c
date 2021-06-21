@@ -5892,7 +5892,7 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
 
     copy_m4_m4(scaled_mat, mat);
     invert_m4(scaled_mat);
-    mul_v3_fl(scaled_mat[2], 0.5f * fade);
+    mul_v3_fl(scaled_mat[2], 0.7f * fade * (1.0f - bstrength));
     invert_m4(scaled_mat);
     
     invert_m4_m4(scaled_mat_inv, scaled_mat);
@@ -5985,8 +5985,6 @@ static void do_twist_brush_post_smooth_task_cb_ex(void *__restrict userdata,
 
     smooth_fade = 1.0f - min_ff(fabsf(local_vert_co[0]), 1.0f);
     smooth_fade = pow3f(smooth_fade);
-    printf("smooth fade %f\n", smooth_fade);
-
 
     float rotation_axis[3] = {0.0, 1.0, 0.0};
     float origin[3] = {0.0, 0.0, 0.0f};
@@ -5996,9 +5994,19 @@ static void do_twist_brush_post_smooth_task_cb_ex(void *__restrict userdata,
         float avg[3];
         float val[3];
         float disp[3];
+
+/*
         SCULPT_neighbor_coords_average(ss, avg, vd.index);
+
         sub_v3_v3v3(disp, avg, vd.co);
         mul_v3_fl(disp, 1.0f - smooth_fade);
+        add_v3_v3(vd.co, disp);
+        */
+
+        float final_co[3];
+        SCULPT_relax_vertex(ss, &vd, clamp_f(smooth_fade, 0.0f, 1.0f), false, final_co);
+
+        sub_v3_v3v3(disp, final_co, vd.co);
         add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
@@ -6019,7 +6027,9 @@ static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   const float offset = SCULPT_brush_plane_offset_get(sd, ss);
   const float displace = radius * (0.18f + offset);
 
+
   SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_boundary_info_ensure(ob);
 
   /* The sculpt-plane normal (whatever its set to). */
   float area_no_sp[3];
@@ -6070,13 +6080,14 @@ static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   normalize_m4(mat);
 
   /* Scale brush local space matrix. */
-  scale_m4_fl(scale, ss->cache->radius);
+  scale_m4_fl(scale, ss->cache->radius * 0.5f);
   mul_m4_m4m4(tmat, mat, scale);
 
   /* Scale rotation space. */
   //mul_v3_fl(tmat[2], 0.5f);
 
-  invert_m4_m4(mat, tmat);
+  float twist_mat[4][4];
+  invert_m4_m4(twist_mat, tmat);
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -6085,12 +6096,19 @@ static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
       .nodes = nodes,
       .area_no_sp = area_no_sp,
       .area_co = area_co,
-      .mat = mat,
+      .mat = twist_mat,
   };
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_twist_brush_task_cb_ex, &settings);
+
+  scale_m4_fl(scale, ss->cache->radius);
+  mul_m4_m4m4(tmat, mat, scale);
+  float smooth_mat[4][4];
+  invert_m4_m4(smooth_mat, tmat);
+  data.mat = smooth_mat;
+
   for (int i = 0; i < 2; i++) {
   BLI_task_parallel_range(0, totnode, &data, do_twist_brush_post_smooth_task_cb_ex, &settings);
   }
