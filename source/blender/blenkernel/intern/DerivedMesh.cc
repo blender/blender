@@ -42,6 +42,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -1463,10 +1464,14 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       BLI_assert(runtime->eval_mutex != nullptr);
       BLI_mutex_lock((ThreadMutex *)runtime->eval_mutex);
       if (runtime->mesh_eval == nullptr) {
-        mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
-        mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
-        mesh_calc_finalize(mesh_input, mesh_final);
-        runtime->mesh_eval = mesh_final;
+        /* Isolate since computing normals is multithreaded and we are holding a lock. */
+        blender::threading::isolate_task([&] {
+          mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+          mesh_calc_modifier_final_normals(
+              mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
+          mesh_calc_finalize(mesh_input, mesh_final);
+          runtime->mesh_eval = mesh_final;
+        });
       }
       BLI_mutex_unlock((ThreadMutex *)runtime->eval_mutex);
     }

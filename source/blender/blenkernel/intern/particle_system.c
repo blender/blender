@@ -1320,6 +1320,14 @@ void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra
   *efra = min_ii((int)(part->end + part->lifetime + 1.0f), max_ii(scene->r.pefra, scene->r.efra));
 }
 
+/* BVH tree balancing inside a mutex lock must be run in isolation. Balancing
+ * is multithreaded, and we do not want the current thread to start another task
+ * that may involve acquiring the same mutex lock that it is waiting for. */
+static void bvhtree_balance_isolated(void *userdata)
+{
+  BLI_bvhtree_balance((BVHTree *)userdata);
+}
+
 /************************************************/
 /*          Effectors                           */
 /************************************************/
@@ -1356,7 +1364,8 @@ static void psys_update_particle_bvhtree(ParticleSystem *psys, float cfra)
           }
         }
       }
-      BLI_bvhtree_balance(psys->bvhtree);
+
+      BLI_task_isolate(bvhtree_balance_isolated, psys->bvhtree);
 
       psys->bvhtree_frame = cfra;
 
