@@ -500,8 +500,23 @@ void deg_graph_node_tag_zero(Main *bmain,
   deg_graph_id_tag_legacy_compat(bmain, graph, id, (IDRecalcFlag)0, update_source);
 }
 
-void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph, const bool do_time)
+void graph_tag_on_visible_update(Depsgraph *graph, const bool do_time)
 {
+  graph->need_visibility_update = true;
+  graph->need_visibility_time_update |= do_time;
+}
+
+} /* namespace */
+
+void graph_tag_ids_for_visible_update(Depsgraph *graph)
+{
+  if (!graph->need_visibility_update) {
+    return;
+  }
+
+  const bool do_time = graph->need_visibility_time_update;
+  Main *bmain = graph->bmain;
+
   /* NOTE: It is possible to have this function called with `do_time=false` first and later (prior
    * to evaluation though) with `do_time=true`. This means early output checks should be aware of
    * this. */
@@ -559,9 +574,10 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph, const bool do_ti
      * dependency graph. */
     id_node->previously_visible_components_mask = id_node->visible_components_mask;
   }
-}
 
-} /* namespace */
+  graph->need_visibility_update = false;
+  graph->need_visibility_time_update = false;
+}
 
 NodeType geometry_tag_to_component(const ID *id)
 {
@@ -804,16 +820,16 @@ void DEG_id_type_tag(Main *bmain, short id_type)
 }
 
 /* Update dependency graph when visible scenes/layers changes. */
-void DEG_graph_tag_on_visible_update(Main *bmain, Depsgraph *depsgraph, const bool do_time)
+void DEG_graph_tag_on_visible_update(Depsgraph *depsgraph, const bool do_time)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
-  deg::deg_graph_on_visible_update(bmain, graph, do_time);
+  deg::graph_tag_on_visible_update(graph, do_time);
 }
 
 void DEG_tag_on_visible_update(Main *bmain, const bool do_time)
 {
   for (deg::Depsgraph *depsgraph : deg::get_all_registered_graphs(bmain)) {
-    deg::deg_graph_on_visible_update(bmain, depsgraph, do_time);
+    deg::graph_tag_on_visible_update(depsgraph, do_time);
   }
 }
 

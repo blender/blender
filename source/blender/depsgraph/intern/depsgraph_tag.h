@@ -41,5 +41,9 @@ void id_tag_update(Main *bmain, ID *id, int flag, eUpdateSource update_source);
 void graph_id_tag_update(
     Main *bmain, Depsgraph *graph, ID *id, int flag, eUpdateSource update_source);
 
+/* Tag IDs of the graph for the visibility update tags.
+ * Will do nothing if the graph is not tagged for visibility update. */
+void graph_tag_ids_for_visible_update(Depsgraph *graph);
+
 }  // namespace deg
 }  // namespace blender
