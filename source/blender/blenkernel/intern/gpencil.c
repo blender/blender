@@ -1126,6 +1126,9 @@ void BKE_gpencil_layer_copy_settings(const bGPDlayer *gpl_src, bGPDlayer *gpl_ds
   if (gpl_src->flag & GP_LAYER_USE_LIGHTS) {
     gpl_dst->flag |= GP_LAYER_USE_LIGHTS;
   }
+  else {
+    gpl_dst->flag &= ~GP_LAYER_USE_LIGHTS;
+  }
 }
 
 /**
