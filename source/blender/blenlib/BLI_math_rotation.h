@@ -164,6 +164,9 @@ void compatible_eul(float eul[3], const float old[3]);
 
 void rotate_eul(float eul[3], const char axis, const float angle);
 
+void add_eul_euleul(float r_eul[3], float a[3], float b[3], const short order);
+void sub_eul_euleul(float r_eul[3], float a[3], float b[3], const short order);
+
 /************************** Arbitrary Order Eulers ***************************/
 
 /* warning: must match the eRotationModes in DNA_action_types.h
