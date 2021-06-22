@@ -525,39 +525,12 @@ static void do_lasso_select_pose__do_tag(void *userData,
     return;
   }
 
-  bool is_point_done = false;
-  int points_proj_tot = 0;
-
-  /* project head location to screenspace */
-  if (screen_co_a[0] != IS_CLIPPED) {
-    points_proj_tot++;
-    if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
-        BLI_lasso_is_point_inside(
-            data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX)) {
-      is_point_done = true;
-    }
-  }
-
-  /* project tail location to screenspace */
-  if (screen_co_b[0] != IS_CLIPPED) {
-    points_proj_tot++;
-    if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
-        BLI_lasso_is_point_inside(
-            data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX)) {
-      is_point_done = true;
-    }
-  }
-
-  /* if one of points selected, we skip the bone itself */
-  if ((is_point_done == true) || ((is_point_done == false) && (points_proj_tot == 2) &&
-                                  BLI_lasso_is_edge_inside(data->mcoords,
-                                                           data->mcoords_len,
-                                                           UNPACK2(screen_co_a),
-                                                           UNPACK2(screen_co_b),
-                                                           INT_MAX))) {
+  if (BLI_rctf_isect_segment(data->rect_fl, screen_co_a, screen_co_b) &&
+      BLI_lasso_is_edge_inside(
+          data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX)) {
     pchan->bone->flag |= BONE_DONE;
+    data->is_changed = true;
   }
-  data->is_changed |= is_point_done;
 }
 static void do_lasso_tag_pose(ViewContext *vc,
                               Object *ob,
@@ -581,7 +554,11 @@ static void do_lasso_tag_pose(ViewContext *vc,
 
   ED_view3d_init_mats_rv3d(vc_tmp.obact, vc->rv3d);
 
-  pose_foreachScreenBone(&vc_tmp, do_lasso_select_pose__do_tag, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+  /* Treat bones as clipped segments (no joints). */
+  pose_foreachScreenBone(&vc_tmp,
+                         do_lasso_select_pose__do_tag,
+                         &data,
+                         V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT);
 }
 
 static bool do_lasso_select_objects(ViewContext *vc,
@@ -1071,6 +1048,34 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
 
   ebone->temp.i = is_inside_flag | (is_ignore_flag >> 16);
 }
+static void do_lasso_select_armature__doSelectBone_clip_content(void *userData,
+                                                                EditBone *ebone,
+                                                                const float screen_co_a[2],
+                                                                const float screen_co_b[2])
+{
+  LassoSelectUserData *data = userData;
+  bArmature *arm = data->vc->obedit->data;
+  if (!EBONE_VISIBLE(arm, ebone)) {
+    return;
+  }
+
+  const int is_ignore_flag = ebone->temp.i << 16;
+  int is_inside_flag = ebone->temp.i & ~0xFFFF;
+
+  /* - When #BONESEL_BONE is set, there is nothing to do.
+   * - When #BONE_ROOTSEL or #BONE_TIPSEL have been set - they take priority over bone selection.
+   */
+  if (is_inside_flag & (BONESEL_BONE | BONE_ROOTSEL | BONE_TIPSEL)) {
+    return;
+  }
+
+  if (BLI_lasso_is_edge_inside(
+          data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX)) {
+    is_inside_flag |= BONESEL_BONE;
+  }
+
+  ebone->temp.i = is_inside_flag | (is_ignore_flag >> 16);
+}
 
 static bool do_lasso_select_armature(ViewContext *vc,
                                      const int mcoords[][2],
@@ -1094,8 +1099,17 @@ static bool do_lasso_select_armature(ViewContext *vc,
 
   ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
+  /* Operate on fully visible (non-clipped) points. */
   armature_foreachScreenBone(
       vc, do_lasso_select_armature__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+
+  /* Operate on bones as segments clipped to the viewport bounds
+   * (needed to handle bones with both points outside the view).
+   * A separate pass is needed since clipped coordinates can't be used for selecting joints. */
+  armature_foreachScreenBone(vc,
+                             do_lasso_select_armature__doSelectBone_clip_content,
+                             &data,
+                             V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT);
 
   data.is_changed |= ED_armature_edit_select_op_from_tagged(vc->obedit->data, sel_op);
 
@@ -4102,8 +4116,11 @@ static bool pose_circle_select(ViewContext *vc,
 
   ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
 
-  pose_foreachScreenBone(
-      vc, do_circle_select_pose__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+  /* Treat bones as clipped segments (no joints). */
+  pose_foreachScreenBone(vc,
+                         do_circle_select_pose__doSelectBone,
+                         &data,
+                         V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT);
 
   if (data.is_changed) {
     ED_pose_bone_select_tag_update(vc->obact);
@@ -4150,7 +4167,11 @@ static void do_circle_select_armature__doSelectBone(void *userData,
     return;
   }
 
+  /* When true, ignore in the next pass. */
+  ebone->temp.i = false;
+
   bool is_point_done = false;
+  bool is_edge_done = false;
   int points_proj_tot = 0;
 
   /* project head location to screenspace */
@@ -4178,16 +4199,38 @@ static void do_circle_select_armature__doSelectBone(void *userData,
    * otherwise there is no way to circle select joints alone */
   if ((is_point_done == false) && (points_proj_tot == 2) &&
       edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
-    if (data->select) {
-      ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-    }
-    else {
-      ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-    }
+    SET_FLAG_FROM_TEST(ebone->flag, data->select, BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+    is_edge_done = true;
     data->is_changed = true;
   }
 
+  if (is_point_done || is_edge_done) {
+    ebone->temp.i = true;
+  }
+
   data->is_changed |= is_point_done;
+}
+static void do_circle_select_armature__doSelectBone_clip_content(void *userData,
+                                                                 struct EditBone *ebone,
+                                                                 const float screen_co_a[2],
+                                                                 const float screen_co_b[2])
+{
+  CircleSelectUserData *data = userData;
+  bArmature *arm = data->vc->obedit->data;
+
+  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : EBONE_VISIBLE(arm, ebone))) {
+    return;
+  }
+
+  /* Set in the first pass, needed so circle select prioritizes joints. */
+  if (ebone->temp.i == true) {
+    return;
+  }
+
+  if (edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
+    SET_FLAG_FROM_TEST(ebone->flag, data->select, BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+    data->is_changed = true;
+  }
 }
 static bool armature_circle_select(ViewContext *vc,
                                    const eSelectOp sel_op,
@@ -4207,8 +4250,17 @@ static bool armature_circle_select(ViewContext *vc,
 
   ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
+  /* Operate on fully visible (non-clipped) points. */
   armature_foreachScreenBone(
       vc, do_circle_select_armature__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+
+  /* Operate on bones as segments clipped to the viewport bounds
+   * (needed to handle bones with both points outside the view).
+   * A separate pass is needed since clipped coordinates can't be used for selecting joints. */
+  armature_foreachScreenBone(vc,
+                             do_circle_select_armature__doSelectBone_clip_content,
+                             &data,
+                             V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT);
 
   if (data.is_changed) {
     ED_armature_edit_sync_selection(arm->edbo);
