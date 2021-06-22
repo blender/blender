@@ -855,7 +855,7 @@ static void cast_pointer_64_to_32(const int array_len,
                                   uint32_t *new_data)
 {
   /* WARNING: 32-bit Blender trying to load file saved by 64-bit Blender,
-   * pointers may lose uniqueness on truncation! (Hopefully this wont
+   * pointers may lose uniqueness on truncation! (Hopefully this won't
    * happen unless/until we ever get to multi-gigabyte .blend files...) */
   for (int a = 0; a < array_len; a++) {
     new_data[a] = old_data[a] >> 3;

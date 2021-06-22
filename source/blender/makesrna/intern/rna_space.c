@@ -895,8 +895,8 @@ static void rna_SpaceView3D_use_local_camera_set(PointerRNA *ptr, bool value)
   if (!value) {
     Scene *scene = ED_screen_scene_find(screen, G_MAIN->wm.first);
     /* NULL if the screen isn't in an active window (happens when setting from Python).
-     * This could be moved to the update function, in that case the scene wont relate to the screen
-     * so keep it working this way. */
+     * This could be moved to the update function, in that case the scene won't relate to the
+     * screen so keep it working this way. */
     if (scene != NULL) {
       v3d->camera = scene->camera;
     }
@@ -4966,7 +4966,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "view_location", PROP_FLOAT, PROP_TRANSLATION);
 #  if 0
-  RNA_def_property_float_sdna(prop, NULL, "ofs"); /* cant use because its negated */
+  RNA_def_property_float_sdna(prop, NULL, "ofs"); /* can't use because it's negated */
 #  else
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_funcs(
@@ -4977,7 +4977,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_WINDOW, NULL);
 
   prop = RNA_def_property(
-      srna, "view_rotation", PROP_FLOAT, PROP_QUATERNION); /* cant use because its inverted */
+      srna, "view_rotation", PROP_FLOAT, PROP_QUATERNION); /* can't use because it's inverted */
 #  if 0
   RNA_def_property_float_sdna(prop, NULL, "viewquat");
 #  else

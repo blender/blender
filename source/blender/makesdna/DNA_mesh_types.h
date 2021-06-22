@@ -276,7 +276,7 @@ enum {
 #define ME_USING_MIRROR_X_VERTEX_GROUPS(_me) \
   (((_me)->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) && ((_me)->symmetry & ME_SYMMETRY_X))
 
-/* We cant have both flags enabled at once,
+/* We can't have both flags enabled at once,
  * flags defined in DNA_scene_types.h */
 #define ME_EDIT_PAINT_SEL_MODE(_me) \
   (((_me)->editflag & ME_EDIT_PAINT_FACE_SEL) ? \

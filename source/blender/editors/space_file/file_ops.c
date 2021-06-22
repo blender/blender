@@ -1677,7 +1677,7 @@ void file_draw_check_ex(bContext *C, ScrArea *area)
       if (op->type->check(C, op)) {
         file_operator_to_sfile(bmain, sfile, op);
 
-        /* redraw, else the changed settings wont get updated */
+        /* redraw, else the changed settings won't get updated */
         ED_area_tag_redraw(area);
       }
     }

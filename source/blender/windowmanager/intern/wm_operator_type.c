@@ -343,7 +343,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
       }
     }
     else {
-      CLOG_WARN(WM_LOG_OPERATORS, "'%s' cant exec macro", opm->type->idname);
+      CLOG_WARN(WM_LOG_OPERATORS, "'%s' can't exec macro", opm->type->idname);
     }
   }
 

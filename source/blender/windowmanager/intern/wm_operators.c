@@ -1346,7 +1346,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
   wmOperator *op;
   {
     /* Execute will free the operator.
-     * In this case, wm_operator_ui_popup_cancel wont run. */
+     * In this case, wm_operator_ui_popup_cancel won't run. */
     wmOpPopUp *data = arg1;
     op = data->op;
     MEM_freeN(data);

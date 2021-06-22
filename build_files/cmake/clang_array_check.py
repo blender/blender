@@ -305,7 +305,7 @@ def file_check_arg_sizes(tu):
         for i, node_child in enumerate(children):
             children = list(node_child.get_children())
 
-            # skip if we dont have an index...
+            # skip if we don't have an index...
             size_def = args_size_definition.get(i, -1)
 
             if size_def == -1:
@@ -354,7 +354,7 @@ def file_check_arg_sizes(tu):
                                                    filepath  # always the same but useful when running threaded
                                                    ))
 
-    # we dont really care what we are looking at, just scan entire file for
+    # we don't really care what we are looking at, just scan entire file for
     # function calls.
 
     def recursive_func_call_check(node):

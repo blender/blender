@@ -2571,7 +2571,7 @@ bool EDBM_selectmode_disable(Scene *scene,
                              const short selectmode_fallback)
 {
   /* note essential, but switch out of vertex mode since the
-   * selected regions wont be nicely isolated after flushing */
+   * selected regions won't be nicely isolated after flushing */
   if (em->selectmode & selectmode_disable) {
     if (em->selectmode == selectmode_disable) {
       em->selectmode = selectmode_fallback;

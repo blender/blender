@@ -341,7 +341,7 @@ typedef struct wmGizmoType {
   const char *idname; /* MAX_NAME */
 
   /** Set to 'sizeof(wmGizmo)' or larger for instances of this type,
-   * use so we can cant to other types without the hassle of a custom-data pointer. */
+   * use so we can cast to other types without the hassle of a custom-data pointer. */
   uint struct_size;
 
   /** Initialize struct (calloc'd 'struct_size' region). */

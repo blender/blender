@@ -63,7 +63,7 @@ static void bm_vert_boundary_tangent(
   float tvec_a[3], tvec_b[3];
 
   /* get 2 boundary edges, there should only _be_ 2,
-   * in case there are more - results wont be valid of course */
+   * in case there are more - results won't be valid of course */
   BM_ITER_ELEM (e_iter, &iter, v, BM_EDGES_OF_VERT) {
     if (BM_elem_flag_test(e_iter, BM_ELEM_TAG)) {
       if (e_a == NULL) {

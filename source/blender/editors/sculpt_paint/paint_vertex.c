@@ -725,7 +725,7 @@ typedef struct WeightPaintInfo {
    * length of defbase_tot */
   const bool *lock_flags;
   /* boolean array for selected bones,
-   * length of defbase_tot, cant be const because of how its passed */
+   * length of defbase_tot, can't be const because of how it's passed */
   const bool *defbase_sel;
   /* same as WeightPaintData.vgroup_validmap,
    * only added here for convenience */
@@ -917,7 +917,7 @@ static void do_weight_paint_vertex_single(
        * 'resist' so you couldn't instantly zero out other weights by painting 1.0 on the active.
        *
        * However this gave a problem since applying mirror, then normalize both verts
-       * the resulting weight wont match on both sides.
+       * the resulting weight won't match on both sides.
        *
        * If this 'resisting', slower normalize is nicer, we could call
        * do_weight_paint_normalize_all() and only use...
@@ -941,13 +941,13 @@ static void do_weight_paint_vertex_single(
            * - Auto normalize is enabled.
            * - The group you are painting onto has a L / R version.
            *
-           * We want L/R vgroups to have the same weight but this cant be if both are over 0.5,
+           * We want L/R vgroups to have the same weight but this can't be if both are over 0.5,
            * We _could_ have special check for that, but this would need its own
            * normalize function which holds 2 groups from changing at once.
            *
            * So! just balance out the 2 weights, it keeps them equal and everything normalized.
            *
-           * While it wont hit the desired weight immediately as the user waggles their mouse,
+           * While it won't hit the desired weight immediately as the user waggles their mouse,
            * constant painting and re-normalizing will get there. this is also just simpler logic.
            * - campbell */
           dw_mirr->weight = dw->weight = (dw_mirr->weight + dw->weight) * 0.5f;

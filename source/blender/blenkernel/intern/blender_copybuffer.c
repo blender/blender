@@ -106,7 +106,7 @@ bool BKE_copybuffer_read(Main *bmain_dst,
   /* Append, rather than linking. */
   Library *lib = BLI_findstring(&bmain_dst->libraries, libname, offsetof(Library, filepath_abs));
   BKE_library_make_local(bmain_dst, lib, NULL, true, false);
-  /* Important we unset, otherwise these object wont
+  /* Important we unset, otherwise these object won't
    * link into other scenes from this blend file.
    */
   BKE_main_id_tag_all(bmain_dst, LIB_TAG_PRE_EXISTING, false);
@@ -166,7 +166,7 @@ int BKE_copybuffer_paste(bContext *C,
   lib = BLI_findstring(&bmain->libraries, libname, offsetof(Library, filepath_abs));
   BKE_library_make_local(bmain, lib, NULL, true, false);
 
-  /* important we unset, otherwise these object wont
+  /* important we unset, otherwise these object won't
    * link into other scenes from this blend file */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 

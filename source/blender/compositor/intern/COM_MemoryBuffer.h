@@ -408,7 +408,7 @@ class MemoryBuffer {
    * \brief add the content from otherBuffer to this MemoryBuffer
    * \param otherBuffer: source buffer
    *
-   * \note take care when running this on a new buffer since it wont fill in
+   * \note take care when running this on a new buffer since it won't fill in
    *       uninitialized values in areas where the buffers don't overlap.
    */
   void fill_from(const MemoryBuffer &src);

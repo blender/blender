@@ -2056,7 +2056,7 @@ bool ray_face_intersection_tri(const float ray_start[3],
   return false;
 }
 
-/* Take advantage of the fact we know this wont be an intersection.
+/* Take advantage of the fact we know this won't be an intersection.
  * Just handle ray-tri edges. */
 static float dist_squared_ray_to_tri_v3_fast(const float ray_origin[3],
                                              const float ray_direction[3],

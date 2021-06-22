@@ -235,7 +235,7 @@ void ED_view3d_smooth_view_ex(
       /* grid draw as floor */
       if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {
         /* use existing if exists, means multiple calls to smooth view
-         * wont lose the original 'view' setting */
+         * won't lose the original 'view' setting */
         rv3d->view = RV3D_VIEW_USER;
       }
 
@@ -244,7 +244,7 @@ void ED_view3d_smooth_view_ex(
       /* if this is view rotation only
        * we can decrease the time allowed by
        * the angle between quats
-       * this means small rotations wont lag */
+       * this means small rotations won't lag */
       if (sview->quat && !sview->ofs && !sview->dist) {
         /* scale the time allowed by the rotation */
         /* 180deg == 1.0 */

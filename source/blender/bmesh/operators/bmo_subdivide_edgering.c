@@ -244,7 +244,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 
         el_store_other = BLI_ghash_lookup(vert_eloop_gh, v_other);
 
-        /* in rare cases we cant find a match */
+        /* in rare cases we can't find a match */
         if (el_store_other) {
           pair_test.first = el_store;
           pair_test.second = el_store_other;

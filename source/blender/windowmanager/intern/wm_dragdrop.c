@@ -154,7 +154,7 @@ wmDrag *WM_event_start_drag(
   switch (type) {
     case WM_DRAG_PATH:
       BLI_strncpy(drag->path, poin, FILE_MAX);
-      /* As the path is being copied, free it immediately as `drag` wont "own" the data. */
+      /* As the path is being copied, free it immediately as `drag` won't "own" the data. */
       if (flags & WM_DRAG_FREE_DATA) {
         MEM_freeN(poin);
       }
@@ -518,7 +518,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
     rect->ymin = rect->ymax = cursory;
   }
 
-  /* Should we support multi-line drag draws? Maybe not, more types mixed wont work well. */
+  /* Should we support multi-line drag draws? Maybe not, more types mixed won't work well. */
   GPU_blend(GPU_BLEND_ALPHA);
   LISTBASE_FOREACH (wmDrag *, drag, &wm->drags) {
     const uchar text_col[] = {255, 255, 255, 255};

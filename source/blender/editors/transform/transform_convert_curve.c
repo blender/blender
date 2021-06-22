@@ -453,7 +453,7 @@ void recalcData_curve(TransInfo *t)
 
     if (t->state == TRANS_CANCEL) {
       while (nu) {
-        /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+        /* Can't do testhandlesNurb here, it messes up the h1 and h2 flags */
         BKE_nurb_handles_calc(nu);
         nu = nu->next;
       }

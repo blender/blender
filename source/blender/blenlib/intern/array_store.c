@@ -192,7 +192,7 @@
 
 /* Disallow chunks bigger than the regular chunk size scaled by this value
  * note: must be at least 2!
- * however, this code runs wont run in tests unless its ~1.1 ugh.
+ * however, this code runs won't run in tests unless it's ~1.1 ugh.
  * so lower only to check splitting works.
  */
 #  define BCHUNK_SIZE_MAX_MUL 2

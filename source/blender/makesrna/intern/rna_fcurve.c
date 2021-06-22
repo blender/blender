@@ -543,8 +543,8 @@ static void rna_FCurve_group_set(PointerRNA *ptr,
     return;
   }
   else if (value.data && (pid != vid)) {
-    /* id's differ, cant do this, should raise an error */
-    printf("ERROR: ID's differ - ptr=%p vs value=%p\n", pid, vid);
+    /* ids differ, can't do this, should raise an error */
+    printf("ERROR: IDs differ - ptr=%p vs value=%p\n", pid, vid);
     return;
   }
 

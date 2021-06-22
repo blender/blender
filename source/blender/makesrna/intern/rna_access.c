@@ -226,7 +226,7 @@ void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
   {
     StructRNA *base;
     PointerRNA t_ptr;
-    *r_ptr = *ptr; /* initialize as the same in case cant recast */
+    *r_ptr = *ptr; /* initialize as the same in case can't recast */
 
     for (base = ptr->type->base; base; base = base->base) {
       t_ptr = rna_pointer_inherit_refine(ptr, base, ptr->data);
@@ -6869,7 +6869,7 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C,
         if (as_function && RNA_property_type(prop) == PROP_POINTER) {
           /* don't expand pointers for functions */
           if (flag & PROP_NEVER_NULL) {
-            /* we cant really do the right thing here. arg=arg?, hrmf! */
+            /* we can't really do the right thing here. arg=arg?, hrmf! */
             buf = BLI_strdup(arg_name);
           }
           else {
@@ -8184,7 +8184,7 @@ void _RNA_warning(const char *format, ...)
   vprintf(format, args);
   va_end(args);
 
-  /* gcc macro adds '\n', but cant use for other compilers */
+  /* gcc macro adds '\n', but can't use for other compilers */
 #ifndef __GNUC__
   fputc('\n', stdout);
 #endif

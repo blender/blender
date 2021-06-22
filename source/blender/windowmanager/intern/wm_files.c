@@ -773,7 +773,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       wm_window_match_init(C, &wmbase);
 
       /* This flag is initialized by the operator but overwritten on read.
-       * need to re-enable it here else drivers + registered scripts wont work. */
+       * need to re-enable it here else drivers and registered scripts won't work. */
       const int G_f_orig = G.f;
 
       BKE_blendfile_read_setup(C, bfd, &params, reports);
@@ -1583,7 +1583,7 @@ static bool wm_file_write(bContext *C,
 
     BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
 
-    /* run this function after because the file cant be written before the blend is */
+    /* run this function after because the file can't be written before the blend is */
     if (ibuf_thumb) {
       IMB_thumb_delete(filepath, THB_FAIL); /* without this a failed thumb overrides */
       ibuf_thumb = IMB_thumb_create(filepath, THB_LARGE, THB_SOURCE_BLEND, ibuf_thumb);
@@ -1778,7 +1778,7 @@ void wm_open_init_use_scripts(wmOperator *op, bool use_prefs)
   if (!RNA_property_is_set(op->ptr, prop)) {
     /* use G_FLAG_SCRIPT_AUTOEXEC rather than the userpref because this means if
      * the flag has been disabled from the command line, then opening
-     * from the menu wont enable this setting. */
+     * from the menu won't enable this setting. */
     bool value = use_prefs ? ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) :
                              ((G.f & G_FLAG_SCRIPT_AUTOEXEC) != 0);
 
@@ -1836,7 +1836,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
                      &(const struct BlendFileWriteParams){
                          /* Make all paths absolute when saving the startup file.
                           * On load the `G.relbase_valid` will be false so the paths
-                          * wont have a base for resolving the relative paths. */
+                          * won't have a base for resolving the relative paths. */
                          .remap_mode = BLO_WRITE_PATH_REMAP_ABSOLUTE,
                          /* Don't apply any path changes to the current blend file. */
                          .use_save_as_copy = true,

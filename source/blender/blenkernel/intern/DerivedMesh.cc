@@ -1572,7 +1572,7 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
   /* BMESH_ONLY, ensure tessface's used for drawing,
    * but don't recalculate if the last modifier in the stack gives us tessfaces
    * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isn't essential
-   * but quiets annoying error messages since tessfaces wont be created. */
+   * but quiets annoying error messages since tessfaces won't be created. */
   if (final_datamask->fmask & CD_MASK_MFACE) {
     if (mesh_final->edit_mesh == nullptr) {
       BKE_mesh_tessface_ensure(mesh_final);

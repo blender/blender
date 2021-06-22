@@ -140,7 +140,7 @@ struct View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph
   vctrl->persp_backup = rv3d->persp;
   vctrl->dist_backup = rv3d->dist;
 
-  /* check for flying ortho camera - which we cant support well
+  /* check for flying ortho camera - which we can't support well
    * we _could_ also check for an ortho camera but this is easier */
   if ((rv3d->persp == RV3D_CAMOB) && (rv3d->is_persp == false)) {
     ((Camera *)v3d->camera->data)->type = CAM_PERSP;

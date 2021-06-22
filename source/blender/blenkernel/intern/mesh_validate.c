@@ -1441,7 +1441,7 @@ static void mesh_calc_edges_mdata(MVert *UNUSED(allvert),
         med->flag |= ME_LOOSEEDGE;
       }
 
-      /* order is swapped so extruding this edge as a surface wont flip face normals
+      /* order is swapped so extruding this edge as a surface won't flip face normals
        * with cyclic curves */
       if (ed->v1 + 1 != ed->v2) {
         SWAP(uint, med->v1, med->v2);

@@ -158,7 +158,7 @@ static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 
 /**
  * for exec() when there is no render job
- * note: this wont check for the escape key being pressed, but doing so isn't thread-safe.
+ * note: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
 static int bake_break(void *UNUSED(rjv))
 {

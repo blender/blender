@@ -4229,7 +4229,7 @@ static void rna_generate_struct(BlenderRNA *UNUSED(brna), StructRNA *srna, FILE 
   }
   fprintf(f, "\t");
   rna_print_c_string(f, srna->identifier);
-  fprintf(f, ", NULL, NULL"); /* PyType - Cant initialize here */
+  fprintf(f, ", NULL, NULL"); /* PyType - Can't initialize here */
   fprintf(f, ", %d, NULL, ", srna->flag);
   rna_print_c_string(f, srna->name);
   fprintf(f, ",\n\t");

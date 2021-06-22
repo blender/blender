@@ -2300,7 +2300,7 @@ static int Vector_length_set(VectorObject *self, PyObject *value)
   dot = dot_vn_vn(self->vec, self->vec, self->size);
 
   if (!dot) {
-    /* cant sqrt zero */
+    /* can't sqrt zero */
     return 0;
   }
 

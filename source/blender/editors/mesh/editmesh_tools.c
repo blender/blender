@@ -984,7 +984,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
        * copying face data from surrounding, may have copied hidden face flag too.
        *
        * Important that faces use flushing since 'edges.out'
-       * wont include hidden edges that already existed.
+       * won't include hidden edges that already existed.
        */
       BMO_slot_buffer_hflag_disable(
           em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_HIDDEN, true);
@@ -4252,7 +4252,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
       const float *sco_a = screen_vert_coords[BM_elem_index_get(be->v1)];
       const float *sco_b = screen_vert_coords[BM_elem_index_get(be->v2)];
 
-      /* check for error value (vert cant be projected) */
+      /* check for error value (vert can't be projected) */
       if ((sco_a[0] != FLT_MAX) && (sco_b[0] != FLT_MAX)) {
         isect = bm_edge_seg_isect(sco_a, sco_b, mouse_path, len, mode, &isected);
 

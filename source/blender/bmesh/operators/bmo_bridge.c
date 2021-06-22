@@ -236,7 +236,7 @@ static void bridge_loop_pair(BMesh *bm,
   if (UNLIKELY((len_squared_v3(el_dir) < eps) || ((fabsf(dot_a) < eps) && (fabsf(dot_b) < eps)))) {
     /* in this case there is no depth between the two loops,
      * eg: 2x 2d circles, one scaled smaller,
-     * in this case 'el_dir' cant be used, just ensure we have matching flipping. */
+     * in this case 'el_dir' can't be used, just ensure we have matching flipping. */
     if (dot_v3v3(BM_edgeloop_normal_get(el_store_a), BM_edgeloop_normal_get(el_store_b)) < 0.0f) {
       BM_edgeloop_flip(bm, el_store_b);
     }

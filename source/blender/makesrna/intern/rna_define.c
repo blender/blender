@@ -783,7 +783,7 @@ void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *rna_ext)
   rna_ext->free(rna_ext->data);            /* decref's the PyObject that the srna owns */
   RNA_struct_blender_type_set(srna, NULL); /* this gets accessed again - XXX fixme */
 
-  /* NULL the srna's value so RNA_struct_free wont complain of a leak */
+  /* NULL the srna's value so RNA_struct_free won't complain of a leak */
   RNA_struct_py_type_set(srna, NULL);
 
 #else
@@ -1053,7 +1053,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
   if (from) {
     /* find struct to derive from */
-    /* Inline RNA_struct_find(...) because it wont link from here. */
+    /* Inline RNA_struct_find(...) because it won't link from here. */
     srnafrom = BLI_ghash_lookup(brna->structs_map, from);
     if (!srnafrom) {
       CLOG_ERROR(&LOG, "struct %s not found to define %s.", from, identifier);

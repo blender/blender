@@ -285,7 +285,7 @@ static void screen_render_single_layer_set(
     scn = (Scene *)BLI_findstring(&mainp->scenes, scene_name, offsetof(ID, name) + 2);
 
     if (scn) {
-      /* camera switch wont have updated */
+      /* camera switch won't have updated */
       scn->r.cfra = (*scene)->r.cfra;
       BKE_scene_camera_switch_update(scn);
 
@@ -793,7 +793,7 @@ static int render_breakjob(void *rjv)
 
 /**
  * For exec() when there is no render job
- * note: this wont check for the escape key being pressed, but doing so isn't thread-safe.
+ * note: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
 static int render_break(void *UNUSED(rjv))
 {

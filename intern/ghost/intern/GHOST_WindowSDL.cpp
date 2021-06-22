@@ -556,7 +556,7 @@ static SDL_Cursor *sdl_ghost_CreateCursor(
   return cursor;
 }
 
-/* TODO, this is currently never freed but it wont leak either. */
+/* TODO, this is currently never freed but it won't leak either. */
 static SDL_Cursor *getStandardCursorShape(GHOST_TStandardCursor shape)
 {
   if (sdl_std_cursor_array[0] == NULL) {

@@ -1299,7 +1299,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   /* Don't check `DRW_object_is_in_edit_mode(ob)` here because it means the same mesh
    * may draw with edit-mesh data and regular mesh data.
-   * In this case the custom-data layers used wont always match in `me->runtime.batch_cache`.
+   * In this case the custom-data layers used won't always match in `me->runtime.batch_cache`.
    * If we want to display regular mesh data, we should have a separate cache for the edit-mesh.
    * See T77359. */
   const bool is_editmode = (me->edit_mesh != NULL) &&

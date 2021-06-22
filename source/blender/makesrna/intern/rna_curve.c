@@ -183,7 +183,7 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 
 #  include "ED_curve.h" /* for BKE_curve_nurbs_get */
 
-/* highly irritating but from RNA we cant know this */
+/* highly irritating but from RNA we can't know this */
 static Nurb *curve_nurb_from_point(Curve *cu, const void *point, int *nu_index, int *pt_index)
 {
   ListBase *nurbs = BKE_curve_nurbs_get(cu);

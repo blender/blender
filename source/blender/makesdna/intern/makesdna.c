@@ -361,7 +361,7 @@ static int add_type(const char *str, int size)
   }
   if (strchr(str, '*')) {
     /* note: this is valid C syntax but we can't parse, complain!
-     * `struct SomeStruct* some_var;` <-- correct but we cant handle right now. */
+     * `struct SomeStruct* some_var;` <-- correct but we can't handle right now. */
     return -1;
   }
 
@@ -725,7 +725,7 @@ static int convert_include(const char *filename)
 
           const int strct = add_type(md1, 0);
           if (strct == -1) {
-            fprintf(stderr, "File '%s' contains struct we cant parse \"%s\"\n", filename, md1);
+            fprintf(stderr, "File '%s' contains struct we can't parse \"%s\"\n", filename, md1);
             return 1;
           }
 

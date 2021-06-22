@@ -5184,7 +5184,7 @@ static void library_link_end(Main *mainl,
 
   blo_join_main((*fd)->mainlist);
   mainvar = (*fd)->mainlist->first;
-  mainl = NULL; /* blo_join_main free's mainl, cant use anymore */
+  mainl = NULL; /* blo_join_main free's mainl, can't use anymore */
 
   lib_link_all(*fd, mainvar);
   after_liblink_merged_bmain_process(mainvar);

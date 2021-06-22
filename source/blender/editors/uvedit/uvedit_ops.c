@@ -632,7 +632,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
         }
       }
       else {
-        /* error - cant find an endpoint */
+        /* error - can't find an endpoint */
       }
     }
 

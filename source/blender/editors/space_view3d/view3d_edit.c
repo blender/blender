@@ -509,7 +509,7 @@ static void viewops_data_create(bContext *C,
         negate_v3_v3(my_origin, rv3d->ofs); /* ofs is flipped */
 
         /* Set the dist value to be the distance from this 3d point this means you'll
-         * always be able to zoom into it and panning wont go bad when dist was zero. */
+         * always be able to zoom into it and panning won't go bad when dist was zero. */
 
         /* remove dist value */
         upvec[0] = upvec[1] = 0;
@@ -895,7 +895,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
   copy_qt_qt(rv3d->viewquat, vod->curr.viewquat);
 
   /* check for view snap,
-   * note: don't apply snap to vod->viewquat so the view wont jam up */
+   * note: don't apply snap to vod->viewquat so the view won't jam up */
   if (vod->axis_snap) {
     viewrotate_apply_snap(vod);
   }
@@ -3647,7 +3647,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
   if (rv3d->is_persp) {
     float p_corner[3];
 
-    /* no depths to use, we cant do anything! */
+    /* no depths to use, we can't do anything! */
     if (depth_close == FLT_MAX) {
       BKE_report(op->reports, RPT_ERROR, "Depth too large");
       return OPERATOR_CANCELLED;

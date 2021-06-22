@@ -46,7 +46,7 @@
  * </pre>
  *
  * This function can also collapse edges too
- * in cases when it cant merge into faces.
+ * in cases when it can't merge into faces.
  *
  * \par Example:
  * <pre>

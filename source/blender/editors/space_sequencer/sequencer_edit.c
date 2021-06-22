@@ -2829,7 +2829,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
       RNA_END;
     }
 
-    /* Reset these else we wont see all the images. */
+    /* Reset these else we won't see all the images. */
     seq->anim_startofs = seq->anim_endofs = 0;
 
     /* Correct start/end frames so we don't move.

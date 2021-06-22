@@ -1181,7 +1181,7 @@ PyDoc_STRVAR(
     "\n"
     "      Custom-data layers are only copied from ``mesh`` on initialization.\n"
     "      Further calls will copy custom-data to matching layers, layers missing on the target "
-    "mesh wont be added.\n");
+    "mesh won't be added.\n");
 static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"mesh", "face_normals", "use_shape_key", "shape_key_index", NULL};
@@ -2500,7 +2500,7 @@ PyDoc_STRVAR(
     "\n"
     "      Running this on sequences besides :class:`BMesh.verts`, :class:`BMesh.edges`, "
     ":class:`BMesh.faces`\n"
-    "      works but wont result in each element having a valid index, instead its order in the "
+    "      works but won't result in each element having a valid index, instead its order in the "
     "sequence will be set.\n");
 static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 {
@@ -3020,8 +3020,8 @@ static struct PyMethodDef bpy_bmfaceseq_methods[] = {
 
 static struct PyMethodDef bpy_bmloopseq_methods[] = {
     /* odd function, initializes index values */
-    /* no: index_update() function since we cant iterate over loops */
-    /* no: sort() function since we cant iterate over loops */
+    /* no: index_update() function since we can't iterate over loops */
+    /* no: sort() function since we can't iterate over loops */
     {NULL, NULL, 0, NULL},
 };
 

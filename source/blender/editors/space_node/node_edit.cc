@@ -177,7 +177,7 @@ static int compo_breakjob(void *cjv)
 {
   CompoJob *cj = (CompoJob *)cjv;
 
-  /* without G.is_break 'ESC' wont quit - which annoys users */
+  /* without G.is_break 'ESC' won't quit - which annoys users */
   return (*(cj->stop)
 #ifdef USE_ESC_COMPO
           || G.is_break

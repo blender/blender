@@ -2381,7 +2381,7 @@ static void pose_proxy_sync(Object *ob, Object *from, int layer_protected)
     return;
   }
 
-  /* in some cases when rigs change, we cant synchronize
+  /* in some cases when rigs change, we can't synchronize
    * to avoid crashing check for possible errors here */
   for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
     if (pchan->bone->layer & layer_protected) {

@@ -367,7 +367,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     }
   }
 
-  /* TODO: skip calculating axis which wont be used (above). */
+  /* TODO: skip calculating axis which won't be used (above). */
   switch (axis_type) {
     case EXTRUDE_AXIS_NORMAL:
       for (int i = 0; i < 3; i++) {

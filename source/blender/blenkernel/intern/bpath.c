@@ -345,7 +345,7 @@ static bool missing_files_find__recursive(char *filename_new,
     BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
     if (BLI_stat(path, &status) == -1) {
-      continue; /* cant stat, don't bother with this file, could print debug info here */
+      continue; /* can't stat, don't bother with this file, could print debug info here */
     }
 
     if (S_ISREG(status.st_mode)) {                              /* is file */
@@ -812,7 +812,7 @@ bool BKE_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pa
   if (BLI_path_abs(filepath, base_old)) {
     /* Path was relative and is now absolute. Remap.
      * Important BLI_path_normalize runs before the path is made relative
-     * because it wont work for paths that start with "//../" */
+     * because it won't work for paths that start with "//../" */
     BLI_path_normalize(base_new, filepath);
     BLI_path_rel(filepath, base_new);
     BLI_strncpy(path_dst, filepath, FILE_MAX);
@@ -850,7 +850,7 @@ static bool bpath_list_append(void *userdata, char *UNUSED(path_dst), const char
 
 static bool bpath_list_restore(void *userdata, char *path_dst, const char *path_src)
 {
-  /* assume ls->first wont be NULL because the number of paths can't change!
+  /* assume ls->first won't be NULL because the number of paths can't change!
    * (if they do caller is wrong) */
   ListBase *ls = userdata;
   struct PathStore *path_store = ls->first;

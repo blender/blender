@@ -20,7 +20,7 @@
 
 set(INC
   .
-  # ../blenkernel  # dont add this back!
+  # ../blenkernel  # don't add this back!
   ../makesdna
   ../../../intern/atomic
   ../../../intern/eigen

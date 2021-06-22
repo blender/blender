@@ -154,8 +154,8 @@ void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
     fprintf(stderr, "ERROR: Python context internal state bug. this should not happen!\n");
   }
   else if (py_call_level == 0) {
-    /* XXX - Calling classes currently wont store the context :\,
-     * cant set NULL because of this. but this is very flakey still. */
+    /* XXX - Calling classes currently won't store the context :\,
+     * can't set NULL because of this. but this is very flakey still. */
 #if 0
     BPY_context_set(NULL);
 #endif
@@ -825,7 +825,7 @@ static void dealloc_obj_dealloc(PyObject *self)
 {
   bpy_module_delay_init(((dealloc_obj *)self)->mod);
 
-  /* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
+  /* Note, for subclassed PyObjects we can't just call PyObject_DEL() directly or it will crash */
   dealloc_obj_Type.tp_free(self);
 }
 
@@ -838,7 +838,7 @@ PyMODINIT_FUNC PyInit_bpy(void)
   /* Problem:
    * 1) this init function is expected to have a private member defined - 'md_def'
    *    but this is only set for C defined modules (not py packages)
-   *    so we cant return 'bpy_package_py' as is.
+   *    so we can't return 'bpy_package_py' as is.
    *
    * 2) there is a 'bpy' C module for python to load which is basically all of blender,
    *    and there is scripts/bpy/__init__.py,

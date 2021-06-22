@@ -345,7 +345,7 @@ void DM_interp_vert_data(struct DerivedMesh *source,
 
 void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
 
-/* same as above but wont use render settings */
+/* same as above but won't use render settings */
 struct Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct Object *,

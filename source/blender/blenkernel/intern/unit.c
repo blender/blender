@@ -152,7 +152,7 @@ static struct bUnitDef buMetricLenDef[] = {
   {"micrometer", "micrometers", "µm",  "um", "Micrometers",    "MICROMETERS", UN_SC_UM,  0.0, B_UNIT_DEF_NONE},
 
   /* These get displayed because of float precision problems in the transform header,
-   * could work around, but for now probably people wont use these. */
+   * could work around, but for now probably people won't use these. */
 #if 0
   {"nanometer", "Nanometers",     "nm", NULL, 0.000000001, 0.0,   B_UNIT_DEF_NONE},
   {"picometer", "Picometers",     "pm", NULL, 0.000000000001, 0.0, B_UNIT_DEF_NONE},
@@ -988,7 +988,7 @@ static int unit_scale_str(char *str,
     memcpy(str_found, str_tmp, len_num); /* Without the string terminator. */
   }
 
-  /* Since the null terminator wont be moved if the stringlen_max
+  /* Since the null terminator won't be moved if the stringlen_max
    * was not long enough to fit everything in it. */
   str[len_max - 1] = '\0';
   return found_ofs + len_num;
@@ -1136,8 +1136,8 @@ bool BKE_unit_replace_string(
     strncpy(str, str_tmp, len_max);
   }
   else {
-    /* BLI_snprintf would not fit into str_tmp, cant do much in this case.
-     * Check for this because otherwise BKE_unit_replace_string could call its self forever. */
+    /* BLI_snprintf would not fit into str_tmp, can't do much in this case.
+     * Check for this because otherwise BKE_unit_replace_string could call itself forever. */
     return changed;
   }
 

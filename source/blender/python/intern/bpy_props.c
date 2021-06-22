@@ -210,7 +210,7 @@ static const EnumPropertyItem property_subtype_array_items[] = {
 /**
  * Store #PyObject data for a dynamically defined property.
  * Currently this is only used to store call-back functions.
- * Properties that don't use custom-callbacks wont allocate this struct.
+ * Properties that don't use custom callbacks won't allocate this struct.
  *
  * Memory/Reference Management
  * ---------------------------
@@ -2264,7 +2264,7 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
   } \
   (void)0
 
-/* terse macros for error checks shared between all funcs cant use function
+/* terse macros for error checks shared between all funcs can't use function
  * calls because of static strings passed to pyrna_set_to_enum_bitfield */
 #define BPY_PROPDEF_CHECK(_func, _property_flag_items, _property_flag_override_items) \
   if (UNLIKELY(id_len >= MAX_IDPROP_NAME)) { \

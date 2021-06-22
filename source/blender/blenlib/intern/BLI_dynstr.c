@@ -166,7 +166,7 @@ void BLI_dynstr_vappendf(DynStr *__restrict ds, const char *__restrict format, v
       message = MEM_callocN(sizeof(char) * len, "BLI_dynstr_appendf");
     }
 
-    /* cant reuse the same args, so work on a copy */
+    /* can't reuse the same args, so work on a copy */
     va_copy(args_cpy, args);
     retval = vsnprintf(message, len, format, args_cpy);
     va_end(args_cpy);

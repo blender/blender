@@ -376,7 +376,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
         bounds.wrapPoint(x_new, y_new, 8, window->getCursorGrabAxis());
         window->getCursorGrabAccum(x_accum, y_accum);
 
-        // cant use setCursorPosition because the mouse may have no focus!
+        // can't use setCursorPosition because the mouse may have no focus!
         if (x_new != x_root || y_new != y_root) {
           if (1) {  //xme.time > m_last_warp) {
             /* when wrapping we don't need to add an event because the

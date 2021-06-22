@@ -696,7 +696,7 @@ void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo *t)
     return;
   }
   /* freeSeqData in transform_conversions.c does this
-   * keep here so the else at the end wont run... */
+   * keep here so the else at the end won't run... */
 
   SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
 

@@ -255,7 +255,7 @@ typedef enum PropertyFlag {
    * Currently only used for UI, this is similar to PROP_NEVER_NULL
    * except that the value may be NULL at times, used for ObData, where an Empty's will be NULL
    * but setting NULL on a mesh object is not possible.
-   * So, if its not NULL, setting NULL cant be done!
+   * So if it's not NULL, setting NULL can't be done!
    */
   PROP_NEVER_UNLINK = (1 << 25),
 

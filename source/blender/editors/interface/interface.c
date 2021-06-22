@@ -985,12 +985,12 @@ bool UI_but_active_only(const bContext *C, ARegion *region, uiBlock *block, uiBu
 
 /**
  * \warning This must run after other handlers have been added,
- * otherwise the handler wont be removed, see: T71112.
+ * otherwise the handler won't be removed, see: T71112.
  */
 bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, uiBlock *block)
 {
   /* Running this command before end-block has run, means buttons that open menus
-   * wont have those menus correctly positioned, see T83539. */
+   * won't have those menus correctly positioned, see T83539. */
   BLI_assert(block->endblock);
 
   bool done = false;
@@ -3223,8 +3223,8 @@ void ui_but_range_set_hard(uiBut *but)
 /* note: this could be split up into functions which handle arrays and not */
 void ui_but_range_set_soft(uiBut *but)
 {
-  /* ideally we would not limit this but practically, its more than
-   * enough worst case is very long vectors wont use a smart soft-range
+  /* Ideally we would not limit this, but practically it's more than
+   * enough. Worst case is very long vectors won't use a smart soft-range,
    * which isn't so bad. */
 
   if (but->rnaprop) {

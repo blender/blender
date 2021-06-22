@@ -840,8 +840,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     BMVert **verts_pool, *verts_copy, **vep;
     int i, totvert = bm->totvert;
     const uint *new_idx;
-    /* Special case: Python uses custom - data layers to hold PyObject references.
-     * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
+    /* Special case: Python uses custom data layers to hold PyObject references.
+     * These have to be kept in place, else the PyObjects we point to, won't point back to us. */
     const int cd_vert_pyptr = CustomData_get_offset(&bm->vdata, CD_BM_ELEM_PYPTR);
 
     /* Init the old-to-new vert pointers mapping */
@@ -892,8 +892,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     BMEdge **edges_pool, *edges_copy, **edp;
     int i, totedge = bm->totedge;
     const uint *new_idx;
-    /* Special case: Python uses custom - data layers to hold PyObject references.
-     * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
+    /* Special case: Python uses custom data layers to hold PyObject references.
+     * These have to be kept in place, else the PyObjects we point to, won't point back to us. */
     const int cd_edge_pyptr = CustomData_get_offset(&bm->edata, CD_BM_ELEM_PYPTR);
 
     /* Init the old-to-new vert pointers mapping */
@@ -943,8 +943,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     BMFace **faces_pool, *faces_copy, **fap;
     int i, totface = bm->totface;
     const uint *new_idx;
-    /* Special case: Python uses custom - data layers to hold PyObject references.
-     * These have to be kept in - place, else the PyObject's we point to, wont point back to us. */
+    /* Special case: Python uses custom data layers to hold PyObject references.
+     * These have to be kept in place, else the PyObjects we point to, won't point back to us. */
     const int cd_poly_pyptr = CustomData_get_offset(&bm->pdata, CD_BM_ELEM_PYPTR);
 
     /* Init the old-to-new vert pointers mapping */

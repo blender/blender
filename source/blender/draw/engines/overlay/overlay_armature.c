@@ -2018,7 +2018,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
                  ((draw_ctx->object_mode == OB_MODE_OBJECT) &&
                   (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) == 0) ||
                  /* Allow selection when in weight-paint mode
-                  * (selection code ensures this wont become active). */
+                  * (selection code ensures this won't become active). */
                  ((draw_ctx->object_mode & OB_MODE_ALL_WEIGHT_PAINT) &&
                   (draw_ctx->object_pose != NULL))))) &&
         DRW_state_is_select();

@@ -961,7 +961,7 @@ static void view3d_interactive_add_calc_plane(bContext *C,
       const float view_axis_dot = fabsf(dot_v3v3(rv3d->viewinv[2], r_matrix_orient[plane_axis]));
       if (view_axis_dot < eps_view_align) {
         /* In this case, just project onto the view plane as it's important the location
-         * is _always_ under the mouse cursor, even if it turns out that wont lie on
+         * is _always_ under the mouse cursor, even if it turns out that won't lie on
          * the original 'plane' that's been calculated for us. */
         plane_normal = rv3d->viewinv[2];
       }
@@ -974,7 +974,7 @@ static void view3d_interactive_add_calc_plane(bContext *C,
 
       /* Even if the calculation works, it's possible the point found is behind the view,
        * or very far away (past the far clipping).
-       * In either case creating objects wont be useful. */
+       * In either case creating objects won't be useful. */
       if (rv3d->is_persp) {
         float dir[3];
         sub_v3_v3v3(dir, rv3d->viewinv[3], r_co_src);

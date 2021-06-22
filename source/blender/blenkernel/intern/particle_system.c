@@ -1007,7 +1007,7 @@ void psys_get_birth_coords(
           mul_qt_v3(q_imat, rot_vec_local);
 
           /* vtan_local */
-          copy_v3_v3(vtan_local, vtan); /* flips, cant use */
+          copy_v3_v3(vtan_local, vtan); /* flips, can't use */
           mul_qt_v3(q_imat, vtan_local);
 
           /* ensure orthogonal matrix (rot_vec aligned) */

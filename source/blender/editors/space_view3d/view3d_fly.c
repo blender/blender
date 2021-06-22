@@ -772,7 +772,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
   float moffset[2];  /* mouse offset from the views center */
   float tmp_quat[4]; /* used for rotating the view */
 
-  /* x and y margin are define the safe area where the mouses movement wont rotate the view */
+  /* x and y margin defining the safe area where the mouse's movement won't rotate the view */
   int xmargin, ymargin;
 
 #ifdef NDOF_FLY_DEBUG

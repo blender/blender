@@ -170,15 +170,15 @@ static float edbm_rip_edge_side_measure(
  *
  * The method used for checking the side of selection is as follows...
  * - First tag all rip-able edges.
- * - Build a contiguous edge list by looping over tagged edges and following each ones tagged
+ * - Build a contiguous edge list by looping over tagged edges and following each one's tagged
  *   siblings in both directions.
- *   - The loops are not stored in an array, Instead both loops on either side of each edge has
- *     its index values set to count down from the last edge, this way, once we have the 'last'
- *     edge its very easy to walk down the connected edge loops.
- *     The reason for using loops like this is because when the edges are split we don't which
- *     face user gets the newly created edge
- *     (its as good as random so we cant assume new edges will be on once side).
- *     After splitting, its very simple to walk along boundary loops since each only has one edge
+ *   - The loops are not stored in an array. Instead both loops on either side of each edge has
+ *     its index values set to count down from the last edge. This way once we have the 'last'
+ *     edge it's very easy to walk down the connected edge loops.
+ *     The reason for using loops like this is because when the edges are split we don't know
+ *     which face user gets the newly created edge
+ *     (it's as good as random so we can't assume new edges will be on one side).
+ *     After splitting, it's very simple to walk along boundary loops since each only has one edge
  *     from a single side.
  * - The end loop pairs are stored in an array however to support multiple edge-selection-islands,
  *   so you can rip multiple selections at once.
@@ -189,7 +189,7 @@ static float edbm_rip_edge_side_measure(
  *
  * Limitation!
  * This currently works very poorly with intersecting edge islands
- * (verts with more than 2 tagged edges). This is nice to but for now not essential.
+ * (verts with more than 2 tagged edges). This is nice to do but for now not essential.
  *
  * - campbell.
  */
@@ -639,7 +639,7 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
 
   /* should we go ahead with edge rip or do we need to do special case, split off vertex?:
    * split off vertex if...
-   * - we cant find an edge - this means we are ripping a faces vert that is connected to other
+   * - we can't find an edge - this means we are ripping a faces vert that is connected to other
    *   geometry only at the vertex.
    * - the boundary edge total is greater than 2,
    *   in this case edge split _can_ work but we get far nicer results if we use this special case.

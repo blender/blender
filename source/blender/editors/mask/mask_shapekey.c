@@ -291,7 +291,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
             BLI_addtail(&shapes_tmp, mask_layer_shape_tmp);
           }
 
-          /* re-key, note: cant modify the keys here since it messes uop */
+          /* re-key, note: can't modify the keys here since it messes uop */
           for (mask_layer_shape_tmp = shapes_tmp.first; mask_layer_shape_tmp;
                mask_layer_shape_tmp = mask_layer_shape_tmp->next) {
             BKE_mask_layer_evaluate(mask_layer, mask_layer_shape_tmp->frame, true);

@@ -5185,7 +5185,7 @@ static int dynamicPaint_prepareEffectStep(struct Depsgraph *depsgraph,
   }
 
   /* Get number of required steps using average point distance
-   * so that just a few ultra close pixels wont up substeps to max. */
+   * so that just a few ultra close pixels won't increase substeps to max. */
 
   /* adjust number of required substep by fastest active effect */
   if (surface->effect & MOD_DPAINT_EFFECT_DO_SPREAD) {

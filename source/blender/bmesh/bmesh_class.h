@@ -24,7 +24,7 @@
  */
 
 /* disable holes for now,
- * these are ifdef'd because they use more memory and cant be saved in DNA currently */
+ * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES
 
 struct BMEdge;
@@ -346,7 +346,7 @@ typedef struct BMesh {
   /* Should be copy of scene select mode. */
   /* Stored in #BMEditMesh too, this is a bit confusing,
    * make sure they're in sync!
-   * Only use when the edit mesh cant be accessed - campbell */
+   * Only use when the edit mesh can't be accessed - campbell */
   short selectmode;
 
   /* ID of the shape key this bmesh came from */

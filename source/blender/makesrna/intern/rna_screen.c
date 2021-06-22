@@ -288,7 +288,7 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
 
   if (region->regiondata != NULL) {
     if (region->regiontype == RGN_TYPE_WINDOW) {
-      /* We could make this static, it wont change at run-time. */
+      /* We could make this static, it won't change at run-time. */
       SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
       if (region->type == BKE_regiontype_from_id(st, region->regiontype)) {
         PointerRNA newptr;

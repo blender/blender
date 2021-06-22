@@ -605,7 +605,7 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
  * \{ */
 
 /**
- * Take care using 'use_active_win', since we wont want the currently active window
+ * Take care using 'use_active_win', since we won't want the currently active window
  * to change which scene renders (currently only used for undo).
  */
 static void current_screen_compat(Main *mainvar,

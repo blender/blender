@@ -1647,7 +1647,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr,
       break;
     }
 
-    item = PyDict_GetItemString(kw, arg_name); /* Wont set an error. */
+    item = PyDict_GetItemString(kw, arg_name); /* Won't set an error. */
 
     if (item == NULL) {
       if (all_args) {
@@ -6224,7 +6224,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
         err = -1;
         break;
       }
-      /* PyDict_GetItemString wont raise an error. */
+      /* PyDict_GetItemString won't raise an error. */
       continue;
     }
 
@@ -7835,7 +7835,7 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
   BPy_StructRNA *py_srna = NULL;
   StructRNA *srna;
 
-  /* Unfortunately PyObject_GetAttrString wont look up this types tp_dict first :/ */
+  /* Unfortunately PyObject_GetAttrString won't look up this types tp_dict first :/ */
   if (PyType_Check(self)) {
     py_srna = (BPy_StructRNA *)PyDict_GetItem(((PyTypeObject *)self)->tp_dict,
                                               bpy_intern_str_bl_rna);
@@ -8029,7 +8029,7 @@ static int pyrna_deferred_register_class_from_type_hints(StructRNA *srna, PyType
       }
     }
     else {
-      /* Should never happen, an error wont have been raised, so raise one. */
+      /* Should never happen, an error won't have been raised, so raise one. */
       PyErr_Format(PyExc_TypeError,
                    "typing.get_type_hints returned: %.200s, expected dict\n",
                    Py_TYPE(annotations_dict)->tp_name);
@@ -8437,7 +8437,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     else if (py_srna == NULL) {
       py_class_instance = NULL;
     }
-    else if (py_srna == Py_None) { /* Probably wont ever happen, but possible. */
+    else if (py_srna == Py_None) { /* Probably won't ever happen, but possible. */
       Py_DECREF(py_srna);
       py_class_instance = NULL;
     }
@@ -8667,7 +8667,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
   if (err != 0) {
     ReportList *reports;
-    /* Alert the user, else they wont know unless they see the console. */
+    /* Alert the user, else they won't know unless they see the console. */
     if ((!is_staticmethod) && (!is_classmethod) && (ptr->data) &&
         (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
         (is_valid_wm == (CTX_wm_manager(C) != NULL))) {
@@ -8675,7 +8675,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       reports = op->reports;
     }
     else {
-      /* Wont alert users, but they can view in 'info' space. */
+      /* Won't alert users, but they can view in 'info' space. */
       reports = CTX_wm_reports(C);
     }
 
