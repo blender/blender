@@ -44,6 +44,7 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions, const float radius)
   const BMeshCreateParams bmcp = {true};
   const BMAllocTemplate allocsize = {0, 0, 0, 0};
   BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
+  BM_data_layer_add_named(bm, &bm->ldata, CD_MLOOPUV, nullptr);
 
   BMO_op_callf(bm,
                BMO_FLAG_DEFAULTS,
