@@ -26,8 +26,9 @@
 /** Explode given time value expressed in seconds, into a set of days, hours, minutes, seconds
  * and/or milliseconds (depending on which return parameters are not NULL).
  *
- * \note: The smallest given return parameter will get the potential fractional remaining time
- * value.
+ * \note The smallest given return parameter will get the potential fractional remaining time
+ * value. E.g. if you give `seconds=90.0` and do not pass `r_seconds` and `r_milliseconds`,
+ * `r_minutes` will be set to `1.5`.
  */
 void BLI_math_time_seconds_decompose(double seconds,
                                      double *r_days,
