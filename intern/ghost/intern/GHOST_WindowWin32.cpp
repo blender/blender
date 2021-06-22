@@ -30,11 +30,8 @@
 #include "utf_winfunc.h"
 #include "utfconv.h"
 
-#if defined(WITH_GL_EGL)
-#  include "GHOST_ContextEGL.h"
-#else
-#  include "GHOST_ContextWGL.h"
-#endif
+#include "GHOST_ContextWGL.h"
+
 #ifdef WIN32_COMPOSITING
 #  include <Dwmapi.h>
 #endif
