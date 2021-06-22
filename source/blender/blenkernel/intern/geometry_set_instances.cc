@@ -550,7 +550,7 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
   }
 }
 
-static CurveEval *join_curve_splines(Span<GeometryInstanceGroup> set_groups)
+static CurveEval *join_curve_splines_and_builtin_attributes(Span<GeometryInstanceGroup> set_groups)
 {
   Vector<SplinePtr> new_splines;
   for (const GeometryInstanceGroup &set_group : set_groups) {
@@ -562,7 +562,7 @@ static CurveEval *join_curve_splines(Span<GeometryInstanceGroup> set_groups)
     const CurveEval &source_curve = *set.get_curve_for_read();
     for (const SplinePtr &source_spline : source_curve.splines()) {
       for (const float4x4 &transform : set_group.transforms) {
-        SplinePtr new_spline = source_spline->copy();
+        SplinePtr new_spline = source_spline->copy_without_attributes();
         new_spline->transform(transform);
         new_splines.append(std::move(new_spline));
       }
@@ -575,15 +575,6 @@ static CurveEval *join_curve_splines(Span<GeometryInstanceGroup> set_groups)
   CurveEval *new_curve = new CurveEval();
   for (SplinePtr &new_spline : new_splines) {
     new_curve->add_spline(std::move(new_spline));
-  }
-
-  for (SplinePtr &spline : new_curve->splines()) {
-    /* Spline instances should have no custom attributes, since they always come
-     * from original objects which currently do not support custom attributes.
-     *
-     * This is only true as long as a #GeometrySet cannot be instanced directly. */
-    BLI_assert(spline->attributes.data.totlayer == 0);
-    UNUSED_VARS_NDEBUG(spline);
   }
 
   new_curve->attributes.reallocate(new_curve->splines().size());
@@ -664,12 +655,23 @@ static void join_instance_groups_volume(Span<GeometryInstanceGroup> set_groups,
 
 static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, GeometrySet &result)
 {
-  CurveEval *curve = join_curve_splines(set_groups);
+  CurveEval *curve = join_curve_splines_and_builtin_attributes(set_groups);
   if (curve == nullptr) {
     return;
   }
   CurveComponent &dst_component = result.get_component_for_write<CurveComponent>();
   dst_component.replace(curve);
+
+  Map<std::string, AttributeKind> attributes;
+  geometry_set_gather_instances_attribute_info(
+      set_groups,
+      {GEO_COMPONENT_TYPE_CURVE},
+      {"position", "radius", "tilt", "cyclic", "resolution"},
+      attributes);
+  join_attributes(set_groups,
+                  {GEO_COMPONENT_TYPE_CURVE},
+                  attributes,
+                  static_cast<GeometryComponent &>(dst_component));
 }
 
 GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set)
