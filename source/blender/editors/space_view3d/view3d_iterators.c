@@ -51,13 +51,13 @@
 #include "ED_view3d.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Clipping Plane Utility
- *
- * Calculate clipping planes to use when #V3D_PROJ_TEST_CLIP_CONTENT is enabled.
+/** \name Internal Clipping Utilities
  * \{ */
 
 /**
- * Calculate clip planes from the viewpoint using `clip_flag`
+ * Calculate clipping planes to use when #V3D_PROJ_TEST_CLIP_CONTENT is enabled.
+ *
+ * Planes are selected from the viewpoint using `clip_flag`
  * to detect which planes should be applied (maximum 6).
  *
  * \return The number of planes written into `planes`.
@@ -67,24 +67,31 @@ static int content_planes_from_clip_flag(const ARegion *region,
                                          const eV3DProjTest clip_flag,
                                          float planes[6][4])
 {
+  BLI_assert(clip_flag & V3D_PROJ_TEST_CLIP_CONTENT);
+
   float *clip_xmin = NULL, *clip_xmax = NULL;
   float *clip_ymin = NULL, *clip_ymax = NULL;
   float *clip_zmin = NULL, *clip_zmax = NULL;
 
   int planes_len = 0;
 
+  /* The order of `planes` has been selected based on the likelihood of points being fully
+   * outside the plane to increase the chance of an early exit in #clip_segment_v3_plane_n.
+   * With "near" being most likely and "far" being unlikely.
+   *
+   * Otherwise the order of axes in `planes` isn't significant. */
+
   if (clip_flag & V3D_PROJ_TEST_CLIP_NEAR) {
     clip_zmin = planes[planes_len++];
   }
-  if (clip_flag & V3D_PROJ_TEST_CLIP_FAR) {
-    clip_zmax = planes[planes_len++];
-  }
   if (clip_flag & V3D_PROJ_TEST_CLIP_WIN) {
-    /* The order in `planes` doesn't matter as all planes are looped over. */
     clip_xmin = planes[planes_len++];
     clip_xmax = planes[planes_len++];
     clip_ymin = planes[planes_len++];
     clip_ymax = planes[planes_len++];
+  }
+  if (clip_flag & V3D_PROJ_TEST_CLIP_FAR) {
+    clip_zmax = planes[planes_len++];
   }
 
   BLI_assert(planes_len <= 6);
@@ -208,14 +215,14 @@ static bool view3d_project_segment_to_screen_with_clip_tag(const ARegion *region
  * \{ */
 
 typedef struct foreachScreenObjectVert_userData {
-  void (*func)(void *userData, MVert *mv, const float screen_co_b[2], int index);
+  void (*func)(void *userData, MVert *mv, const float screen_co[2], int index);
   void *userData;
   ViewContext vc;
   eV3DProjTest clip_flag;
 } foreachScreenObjectVert_userData;
 
 typedef struct foreachScreenVert_userData {
-  void (*func)(void *userData, BMVert *eve, const float screen_co_b[2], int index);
+  void (*func)(void *userData, BMVert *eve, const float screen_co[2], int index);
   void *userData;
   ViewContext vc;
   eV3DProjTest clip_flag;
