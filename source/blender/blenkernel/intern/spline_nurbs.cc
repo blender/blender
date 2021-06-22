@@ -31,19 +31,23 @@ using blender::fn::GVArray_For_ArrayContainer;
 using blender::fn::GVArray_Typed;
 using blender::fn::GVArrayPtr;
 
-SplinePtr NURBSpline::copy() const
+void NURBSpline::copy_settings(Spline &dst) const
 {
-  return std::make_unique<NURBSpline>(*this);
+  NURBSpline &nurbs = static_cast<NURBSpline &>(dst);
+  nurbs.knots_mode = knots_mode;
+  nurbs.resolution_ = resolution_;
+  nurbs.order_ = order_;
 }
 
-SplinePtr NURBSpline::copy_settings() const
+void NURBSpline::copy_data(Spline &dst) const
 {
-  std::unique_ptr<NURBSpline> copy = std::make_unique<NURBSpline>();
-  copy_base_settings(*this, *copy);
-  copy->knots_mode = knots_mode;
-  copy->resolution_ = resolution_;
-  copy->order_ = order_;
-  return copy;
+  NURBSpline &nurbs = static_cast<NURBSpline &>(dst);
+  nurbs.positions_ = positions_;
+  nurbs.weights_ = weights_;
+  nurbs.knots_ = knots_;
+  nurbs.knots_dirty_ = false;
+  nurbs.radii_ = radii_;
+  nurbs.tilts_ = tilts_;
 }
 
 int NURBSpline::size() const

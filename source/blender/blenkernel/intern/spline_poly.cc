@@ -25,16 +25,17 @@ using blender::Span;
 using blender::fn::GVArray;
 using blender::fn::GVArrayPtr;
 
-SplinePtr PolySpline::copy() const
+void PolySpline::copy_settings(Spline &UNUSED(dst)) const
 {
-  return std::make_unique<PolySpline>(*this);
+  /* Poly splines have no settings not covered by the base class. */
 }
 
-SplinePtr PolySpline::copy_settings() const
+void PolySpline::copy_data(Spline &dst) const
 {
-  std::unique_ptr<PolySpline> copy = std::make_unique<PolySpline>();
-  copy_base_settings(*this, *copy);
-  return copy;
+  PolySpline &poly = static_cast<PolySpline &>(dst);
+  poly.positions_ = positions_;
+  poly.radii_ = radii_;
+  poly.tilts_ = tilts_;
 }
 
 int PolySpline::size() const

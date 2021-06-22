@@ -120,7 +120,7 @@ static void copy_dynamic_attributes(const CustomDataAttributes &src,
 
 static SplinePtr spline_delete(const Spline &spline, const IndexMask mask)
 {
-  SplinePtr new_spline = spline.copy_settings();
+  SplinePtr new_spline = spline.copy_only_settings();
   new_spline->resize(mask.size());
 
   spline_copy_builtin_attributes(spline, *new_spline, mask);

@@ -29,17 +29,22 @@ using blender::fn::GVArray;
 using blender::fn::GVArray_For_ArrayContainer;
 using blender::fn::GVArrayPtr;
 
-SplinePtr BezierSpline::copy() const
+void BezierSpline::copy_settings(Spline &dst) const
 {
-  return std::make_unique<BezierSpline>(*this);
+  BezierSpline &bezier = static_cast<BezierSpline &>(dst);
+  bezier.resolution_ = resolution_;
 }
 
-SplinePtr BezierSpline::copy_settings() const
+void BezierSpline::copy_data(Spline &dst) const
 {
-  std::unique_ptr<BezierSpline> copy = std::make_unique<BezierSpline>();
-  copy_base_settings(*this, *copy);
-  copy->resolution_ = resolution_;
-  return copy;
+  BezierSpline &bezier = static_cast<BezierSpline &>(dst);
+  bezier.positions_ = positions_;
+  bezier.handle_types_left_ = handle_types_left_;
+  bezier.handle_positions_left_ = handle_positions_left_;
+  bezier.handle_types_right_ = handle_types_right_;
+  bezier.handle_positions_right_ = handle_positions_right_;
+  bezier.radii_ = radii_;
+  bezier.tilts_ = tilts_;
 }
 
 int BezierSpline::size() const
