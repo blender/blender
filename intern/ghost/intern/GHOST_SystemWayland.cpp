@@ -1590,15 +1590,34 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
   d->os_surfaces.push_back(os_surface);
   d->os_egl_windows.push_back(os_egl_window);
 
-  GHOST_Context *context = new GHOST_ContextEGL(false,
-                                                EGLNativeWindowType(os_egl_window),
-                                                EGLNativeDisplayType(d->display),
-                                                EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                                3,
-                                                3,
-                                                GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                                GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                                EGL_OPENGL_API);
+  GHOST_Context *context;
+
+  for (int minor = 6; minor >= 0; --minor) {
+    context = new GHOST_ContextEGL(false,
+                                   EGLNativeWindowType(os_egl_window),
+                                   EGLNativeDisplayType(d->display),
+                                   EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                   4,
+                                   minor,
+                                   GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+                                   GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                   EGL_OPENGL_API);
+
+    if (context->initializeDrawingContext())
+      return context;
+    else
+      delete context;
+  }
+
+  context = new GHOST_ContextEGL(false,
+                                 EGLNativeWindowType(os_egl_window),
+                                 EGLNativeDisplayType(d->display),
+                                 EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                 3,
+                                 3,
+                                 GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+                                 GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                 EGL_OPENGL_API);
 
   if (context->initializeDrawingContext()) {
     return context;
