@@ -1325,6 +1325,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
     for (int minor = 5; minor >= 0; --minor) {
 #ifdef WITH_GL_EGL
       context = new GHOST_ContextEGL(
+          this->m_system,
           m_wantStereoVisual,
           EGLNativeWindowType(m_window),
           EGLNativeDisplayType(m_display),
@@ -1355,7 +1356,8 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
     }
 
 #ifdef WITH_GL_EGL
-    context = new GHOST_ContextEGL(m_wantStereoVisual,
+    context = new GHOST_ContextEGL(this->m_system,
+                                   m_wantStereoVisual,
                                    EGLNativeWindowType(m_window),
                                    EGLNativeDisplayType(m_display),
                                    profile_mask,

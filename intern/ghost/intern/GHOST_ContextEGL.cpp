@@ -202,7 +202,8 @@ template<typename T> T &choose_api(EGLenum api, T &a, T &b, T &c)
   }
 }
 
-GHOST_ContextEGL::GHOST_ContextEGL(bool stereoVisual,
+GHOST_ContextEGL::GHOST_ContextEGL(const GHOST_System *const system,
+                                   bool stereoVisual,
                                    EGLNativeWindowType nativeWindow,
                                    EGLNativeDisplayType nativeDisplay,
                                    EGLint contextProfileMask,
@@ -212,6 +213,7 @@ GHOST_ContextEGL::GHOST_ContextEGL(bool stereoVisual,
                                    EGLint contextResetNotificationStrategy,
                                    EGLenum api)
     : GHOST_Context(stereoVisual),
+      m_system(system),
       m_nativeDisplay(nativeDisplay),
       m_nativeWindow(nativeWindow),
       m_contextProfileMask(contextProfileMask),

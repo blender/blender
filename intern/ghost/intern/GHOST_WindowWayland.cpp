@@ -533,7 +533,8 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
       break;
     case GHOST_kDrawingContextTypeOpenGL:
       for (int minor = 6; minor >= 0; --minor) {
-        context = new GHOST_ContextEGL(m_wantStereoVisual,
+        context = new GHOST_ContextEGL(this->m_system,
+                                       m_wantStereoVisual,
                                        EGLNativeWindowType(w->egl_window),
                                        EGLNativeDisplayType(m_system->display()),
                                        EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
@@ -548,7 +549,8 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
         else
           delete context;
       }
-      context = new GHOST_ContextEGL(m_wantStereoVisual,
+      context = new GHOST_ContextEGL(this->m_system,
+                                     m_wantStereoVisual,
                                      EGLNativeWindowType(w->egl_window),
                                      EGLNativeDisplayType(m_system->display()),
                                      EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,

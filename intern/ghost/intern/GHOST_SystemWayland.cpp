@@ -1593,7 +1593,8 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
   GHOST_Context *context;
 
   for (int minor = 6; minor >= 0; --minor) {
-    context = new GHOST_ContextEGL(false,
+    context = new GHOST_ContextEGL(this,
+                                   false,
                                    EGLNativeWindowType(os_egl_window),
                                    EGLNativeDisplayType(d->display),
                                    EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
@@ -1609,7 +1610,8 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
       delete context;
   }
 
-  context = new GHOST_ContextEGL(false,
+  context = new GHOST_ContextEGL(this,
+                                 false,
                                  EGLNativeWindowType(os_egl_window),
                                  EGLNativeDisplayType(d->display),
                                  EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,

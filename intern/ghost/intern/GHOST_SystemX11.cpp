@@ -441,7 +441,8 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
 
   for (int minor = 5; minor >= 0; --minor) {
 #if defined(WITH_GL_EGL)
-    context = new GHOST_ContextEGL(false,
+    context = new GHOST_ContextEGL(this,
+                                   false,
                                    EGLNativeWindowType(nullptr),
                                    EGLNativeDisplayType(m_display),
                                    profile_mask,
@@ -471,7 +472,8 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
   }
 
 #if defined(WITH_GL_EGL)
-  context = new GHOST_ContextEGL(false,
+  context = new GHOST_ContextEGL(this,
+                                 false,
                                  EGLNativeWindowType(nullptr),
                                  EGLNativeDisplayType(m_display),
                                  profile_mask,
