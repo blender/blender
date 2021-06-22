@@ -106,7 +106,7 @@ class GHOST_Wintab {
    * \param x_in: The tablet x coordinate.
    * \param y_in: The tablet y coordinate.
    * \param x_out: Output for the Win32 mapped x coordinate.
-   * \param y_out: Output for the Win32 mapped y coordiante.
+   * \param y_out: Output for the Win32 mapped y coordinate.
    */
   void mapWintabToSysCoordinates(int x_in, int y_in, int &x_out, int &y_out);
 
@@ -140,7 +140,7 @@ class GHOST_Wintab {
   bool trustCoordinates();
 
   /**
-   * Tests whether Wintab coordinates can be trusted by comparing Win32 and Wintab reported curser
+   * Tests whether Wintab coordinates can be trusted by comparing Win32 and Wintab reported cursor
    * position.
    * \param sysX: System cursor x position.
    * \param sysY: System cursor y position.
@@ -148,7 +148,7 @@ class GHOST_Wintab {
    * \param wtY: Wintab cursor y position.
    * \return True if Win32 and Wintab cursor positions match within tolerance.
    *
-   * Note: Only test coordiantes on button press, not release. This prevents issues when async
+   * Note: Only test coordinates on button press, not release. This prevents issues when async
    * mismatch causes mouse movement to replay and snap back, which is only an issue while drawing.
    */
   bool testCoordinates(int sysX, int sysY, int wtX, int wtY);
@@ -160,7 +160,7 @@ class GHOST_Wintab {
   GHOST_TabletData getLastTabletData();
 
  private:
-  /** Wintab dll handle. */
+  /** Wintab DLL handle. */
   unique_hmodule m_handle;
   /** Wintab API functions. */
   GHOST_WIN32_WTInfo m_fpInfo = nullptr;
@@ -180,7 +180,7 @@ class GHOST_Wintab {
   /** Pressed button map. */
   GHOST_TUns8 m_buttons = 0;
 
-  /** Range of a coodinate space. */
+  /** Range of a coordinate space. */
   struct Range {
     /** Origin of range. */
     int org = 0;

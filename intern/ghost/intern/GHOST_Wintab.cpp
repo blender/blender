@@ -152,7 +152,7 @@ void GHOST_Wintab::modifyContext(LOGCONTEXT &lc)
   lc.lcOptions |= CXO_CSRMESSAGES | CXO_MESSAGES;
 
   /* Tablet scaling is handled manually because some drivers don't handle HIDPI or multi-display
-   * correctly; reset tablet scale factors to unscaled tablet coodinates. */
+   * correctly; reset tablet scale factors to un-scaled tablet coordinates. */
   lc.lcOutOrgX = lc.lcInOrgX;
   lc.lcOutOrgY = lc.lcInOrgY;
   lc.lcOutExtX = lc.lcInExtX;

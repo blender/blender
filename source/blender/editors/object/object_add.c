@@ -2648,10 +2648,10 @@ static Base *duplibase_for_convert(
   ED_object_base_select(basen, BA_SELECT);
   ED_object_base_select(base, BA_DESELECT);
 
-  /* XXX An ugly hack needed because if we re-run depsgraph with some new MBall objects
-   * having same 'family name' as orig ones, they will affect end result of MBall computation...
+  /* XXX: An ugly hack needed because if we re-run depsgraph with some new meta-ball objects
+   * having same 'family name' as orig ones, they will affect end result of meta-ball computation.
    * For until we get rid of that name-based thingy in MBalls, that should do the trick
-   * (this is weak, but other solution (to change name of obn) is even worse imho).
+   * (this is weak, but other solution (to change name of `obn`) is even worse imho).
    * See T65996. */
   const bool is_meta_ball = (obn->type == OB_MBALL);
   void *obdata = obn->data;

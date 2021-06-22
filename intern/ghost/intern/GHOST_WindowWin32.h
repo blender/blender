@@ -273,7 +273,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
   /**
    * Loads Wintab context for the window.
    * \param enable: True if Wintab should be enabled after loading. Wintab should not be enabled if
-   * the window is minimzed.
+   * the window is minimized.
    */
   void loadWintab(bool enable);
 

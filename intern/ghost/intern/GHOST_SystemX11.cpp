@@ -2563,7 +2563,7 @@ static bool is_filler_char(char c)
   return isspace(c) || c == '_' || c == '-' || c == ';' || c == ':';
 }
 
-/* These C functions are copied from Wine 3.12's wintab.c */
+/* These C functions are copied from Wine 3.12's `wintab.c` */
 static bool match_token(const char *haystack, const char *needle)
 {
   const char *h, *n;
