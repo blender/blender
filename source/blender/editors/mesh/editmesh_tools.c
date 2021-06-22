@@ -5823,7 +5823,7 @@ static int edbm_decimate_exec(bContext *C, wmOperator *op)
     EDBM_update(obedit->data,
                 &(const struct EDBMUpdate_Params){
                     .calc_looptri = true,
-                    .calc_normals = false,
+                    .calc_normals = true,
                     .is_destructive = true,
                 });
   }
