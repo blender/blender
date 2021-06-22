@@ -1794,7 +1794,7 @@ static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
     EDBM_update(obedit->data,
                 &(const struct EDBMUpdate_Params){
                     .calc_looptri = true,
-                    .calc_normals = false,
+                    .calc_normals = true,
                     .is_destructive = true,
                 });
   }
