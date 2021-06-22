@@ -110,7 +110,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
   void initFromGhostContext(GHOST_Context &ghost_ctx) override
   {
 #if defined(WITH_GHOST_X11)
-#if defined(WITH_GL_EGL)
+#  if defined(WITH_GL_EGL)
     GHOST_ContextEGL &ctx_egl = static_cast<GHOST_ContextEGL &>(ghost_ctx);
 
     oxr_binding.egl.type = XR_TYPE_GRAPHICS_BINDING_EGL_MNDX;
@@ -118,7 +118,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     oxr_binding.egl.display = ctx_egl.getDisplay();
     oxr_binding.egl.config = ctx_egl.getConfig();
     oxr_binding.egl.context = ctx_egl.getContext();
-#else
+#  else
     GHOST_ContextGLX &ctx_glx = static_cast<GHOST_ContextGLX &>(ghost_ctx);
     XVisualInfo *visual_info = glXGetVisualFromFBConfig(ctx_glx.m_display, ctx_glx.m_fbconfig);
 
@@ -130,7 +130,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     oxr_binding.glx.visualid = visual_info->visualid;
 
     XFree(visual_info);
-#endif
+#  endif
 #elif defined(WIN32)
     GHOST_ContextWGL &ctx_wgl = static_cast<GHOST_ContextWGL &>(ghost_ctx);
 
