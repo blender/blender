@@ -22,6 +22,8 @@
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
+using blender::fn::GVArray;
+using blender::fn::GVArrayPtr;
 
 SplinePtr PolySpline::copy() const
 {
@@ -115,10 +117,9 @@ Span<float3> PolySpline::evaluated_positions() const
  * the original data. Therefore the lifetime of the returned virtual array must not be longer than
  * the source data.
  */
-blender::fn::GVArrayPtr PolySpline::interpolate_to_evaluated(
-    const blender::fn::GVArray &source_data) const
+GVArrayPtr PolySpline::interpolate_to_evaluated(const GVArray &src) const
 {
-  BLI_assert(source_data.size() == this->size());
+  BLI_assert(src.size() == this->size());
 
-  return source_data.shallow_copy();
+  return src.shallow_copy();
 }

@@ -326,8 +326,6 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
 
   geometry_set = bke::geometry_set_realize_instances(geometry_set);
 
-  SCOPED_TIMER(__func__);
-
   if (!geometry_set.has_curve()) {
     params.set_output("Geometry", GeometrySet());
     return;

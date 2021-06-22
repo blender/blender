@@ -196,7 +196,7 @@ class Spline {
    * exceed the lifetime of the input data.
    */
   virtual blender::fn::GVArrayPtr interpolate_to_evaluated(
-      const blender::fn::GVArray &source_data) const = 0;
+      const blender::fn::GVArray &src) const = 0;
   blender::fn::GVArrayPtr interpolate_to_evaluated(blender::fn::GSpan data) const;
   template<typename T>
   blender::fn::GVArray_Typed<T> interpolate_to_evaluated(blender::Span<T> data) const
@@ -332,8 +332,7 @@ class BezierSpline final : public Spline {
   };
   InterpolationData interpolation_data_from_index_factor(const float index_factor) const;
 
-  virtual blender::fn::GVArrayPtr interpolate_to_evaluated(
-      const blender::fn::GVArray &source_data) const override;
+  virtual blender::fn::GVArrayPtr interpolate_to_evaluated(const blender::fn::GVArray &src) const;
 
   void evaluate_segment(const int index,
                         const int next_index,
@@ -455,13 +454,12 @@ class NURBSpline final : public Spline {
 
   blender::Span<blender::float3> evaluated_positions() const final;
 
-  blender::fn::GVArrayPtr interpolate_to_evaluated(
-      const blender::fn::GVArray &source_data) const final;
+  blender::fn::GVArrayPtr interpolate_to_evaluated(const blender::fn::GVArray &src) const final;
 
  protected:
   void correct_end_tangents() const final;
   void calculate_knots() const;
-  void calculate_basis_cache() const;
+  blender::Span<BasisCache> calculate_basis_cache() const;
 };
 
 /**
@@ -505,8 +503,7 @@ class PolySpline final : public Spline {
 
   blender::Span<blender::float3> evaluated_positions() const final;
 
-  blender::fn::GVArrayPtr interpolate_to_evaluated(
-      const blender::fn::GVArray &source_data) const final;
+  blender::fn::GVArrayPtr interpolate_to_evaluated(const blender::fn::GVArray &src) const final;
 
  protected:
   void correct_end_tangents() const final;

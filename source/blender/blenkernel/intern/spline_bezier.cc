@@ -25,6 +25,9 @@ using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::fn::GVArray;
+using blender::fn::GVArray_For_ArrayContainer;
+using blender::fn::GVArrayPtr;
 
 SplinePtr BezierSpline::copy() const
 {
@@ -546,44 +549,44 @@ BezierSpline::InterpolationData BezierSpline::interpolation_data_from_index_fact
 /* Use a spline argument to avoid adding this to the header. */
 template<typename T>
 static void interpolate_to_evaluated_impl(const BezierSpline &spline,
-                                          const blender::VArray<T> &source_data,
-                                          MutableSpan<T> result_data)
+                                          const blender::VArray<T> &src,
+                                          MutableSpan<T> dst)
 {
+  BLI_assert(src.size() == spline.size());
+  BLI_assert(dst.size() == spline.evaluated_points_size());
   Span<float> mappings = spline.evaluated_mappings();
 
-  for (const int i : result_data.index_range()) {
+  for (const int i : dst.index_range()) {
     BezierSpline::InterpolationData interp = spline.interpolation_data_from_index_factor(
         mappings[i]);
 
-    const T &value = source_data[interp.control_point_index];
-    const T &next_value = source_data[interp.next_control_point_index];
+    const T &value = src[interp.control_point_index];
+    const T &next_value = src[interp.next_control_point_index];
 
-    result_data[i] = blender::attribute_math::mix2(interp.factor, value, next_value);
+    dst[i] = blender::attribute_math::mix2(interp.factor, value, next_value);
   }
 }
 
-blender::fn::GVArrayPtr BezierSpline::interpolate_to_evaluated(
-    const blender::fn::GVArray &source_data) const
+GVArrayPtr BezierSpline::interpolate_to_evaluated(const GVArray &src) const
 {
-  BLI_assert(source_data.size() == this->size());
+  BLI_assert(src.size() == this->size());
 
-  if (source_data.is_single()) {
-    return source_data.shallow_copy();
+  if (src.is_single()) {
+    return src.shallow_copy();
   }
 
   const int eval_size = this->evaluated_points_size();
   if (eval_size == 1) {
-    return source_data.shallow_copy();
+    return src.shallow_copy();
   }
 
-  blender::fn::GVArrayPtr new_varray;
-  blender::attribute_math::convert_to_static_type(source_data.type(), [&](auto dummy) {
+  GVArrayPtr new_varray;
+  blender::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
       Array<T> values(eval_size);
-      interpolate_to_evaluated_impl<T>(*this, source_data.typed<T>(), values);
-      new_varray = std::make_unique<blender::fn::GVArray_For_ArrayContainer<Array<T>>>(
-          std::move(values));
+      interpolate_to_evaluated_impl<T>(*this, src.typed<T>(), values);
+      new_varray = std::make_unique<GVArray_For_ArrayContainer<Array<T>>>(std::move(values));
     }
   });
 

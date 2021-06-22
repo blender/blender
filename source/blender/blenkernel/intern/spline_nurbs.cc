@@ -26,7 +26,10 @@ using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::fn::GVArray;
+using blender::fn::GVArray_For_ArrayContainer;
 using blender::fn::GVArray_Typed;
+using blender::fn::GVArrayPtr;
 
 SplinePtr NURBSpline::copy() const
 {
@@ -326,15 +329,15 @@ static void calculate_basis_for_point(const float parameter,
   basis_cache.start_index = start;
 }
 
-void NURBSpline::calculate_basis_cache() const
+Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
 {
   if (!basis_cache_dirty_) {
-    return;
+    return basis_cache_;
   }
 
   std::lock_guard lock{basis_cache_mutex_};
   if (!basis_cache_dirty_) {
-    return;
+    return basis_cache_;
   }
 
   const int points_len = this->size();
@@ -371,50 +374,47 @@ void NURBSpline::calculate_basis_cache() const
   }
 
   basis_cache_dirty_ = false;
+  return basis_cache_;
 }
 
 template<typename T>
 void interpolate_to_evaluated_impl(Span<NURBSpline::BasisCache> weights,
-                                   const blender::VArray<T> &source_data,
-                                   MutableSpan<T> result_data)
+                                   const blender::VArray<T> &src,
+                                   MutableSpan<T> dst)
 {
-  const int points_len = source_data.size();
-  BLI_assert(result_data.size() == weights.size());
-  blender::attribute_math::DefaultMixer<T> mixer(result_data);
+  const int size = src.size();
+  BLI_assert(dst.size() == weights.size());
+  blender::attribute_math::DefaultMixer<T> mixer(dst);
 
-  for (const int i : result_data.index_range()) {
+  for (const int i : dst.index_range()) {
     Span<float> point_weights = weights[i].weights;
     const int start_index = weights[i].start_index;
-
     for (const int j : point_weights.index_range()) {
-      const int point_index = (start_index + j) % points_len;
-      mixer.mix_in(i, source_data[point_index], point_weights[j]);
+      const int point_index = (start_index + j) % size;
+      mixer.mix_in(i, src[point_index], point_weights[j]);
     }
   }
 
   mixer.finalize();
 }
 
-blender::fn::GVArrayPtr NURBSpline::interpolate_to_evaluated(
-    const blender::fn::GVArray &source_data) const
+GVArrayPtr NURBSpline::interpolate_to_evaluated(const GVArray &src) const
 {
-  BLI_assert(source_data.size() == this->size());
+  BLI_assert(src.size() == this->size());
 
-  if (source_data.is_single()) {
-    return source_data.shallow_copy();
+  if (src.is_single()) {
+    return src.shallow_copy();
   }
 
-  this->calculate_basis_cache();
-  Span<BasisCache> weights(basis_cache_);
+  Span<BasisCache> basis_cache = this->calculate_basis_cache();
 
-  blender::fn::GVArrayPtr new_varray;
-  blender::attribute_math::convert_to_static_type(source_data.type(), [&](auto dummy) {
+  GVArrayPtr new_varray;
+  blender::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
       Array<T> values(this->evaluated_points_size());
-      interpolate_to_evaluated_impl<T>(weights, source_data.typed<T>(), values);
-      new_varray = std::make_unique<blender::fn::GVArray_For_ArrayContainer<Array<T>>>(
-          std::move(values));
+      interpolate_to_evaluated_impl<T>(basis_cache, src.typed<T>(), values);
+      new_varray = std::make_unique<GVArray_For_ArrayContainer<Array<T>>>(std::move(values));
     }
   });
 
