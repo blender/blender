@@ -40,6 +40,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -95,15 +96,9 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
   return BKE_mesh_wrapper_from_editmesh_with_coords(em, cd_mask_extra, NULL, me_settings);
 }
 
-void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
+static void mesh_wrapper_ensure_mdata_isolated(void *userdata)
 {
-  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
-  BLI_mutex_lock(mesh_eval_mutex);
-
-  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    BLI_mutex_unlock(mesh_eval_mutex);
-    return;
-  }
+  Mesh *me = userdata;
 
   const eMeshWrapperType geom_type_orig = me->runtime.wrapper_type;
   me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
@@ -136,6 +131,20 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
   if (me->runtime.wrapper_type_finalize) {
     BKE_mesh_wrapper_deferred_finalize(me, &me->runtime.cd_mask_extra);
   }
+}
+
+void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
+{
+  ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
+  BLI_mutex_lock(mesh_eval_mutex);
+
+  if (me->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+    BLI_mutex_unlock(mesh_eval_mutex);
+    return;
+  }
+
+  /* Must isolate multithreaded tasks while holding a mutex lock. */
+  BLI_task_isolate(mesh_wrapper_ensure_mdata_isolated, me);
 
   BLI_mutex_unlock(mesh_eval_mutex);
 }
