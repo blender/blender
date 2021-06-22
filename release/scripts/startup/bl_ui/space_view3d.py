@@ -3727,6 +3727,8 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
         layout = self.layout
 
+        with_freestyle = bpy.app.build_options.freestyle
+
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         # If nothing is selected
@@ -3844,10 +3846,11 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.mark_sharp")
             col.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
 
-            col.separator()
+            if with_freestyle:
+                col.separator()
 
-            col.operator("mesh.mark_freestyle_edge").clear = False
-            col.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
+                col.operator("mesh.mark_freestyle_edge").clear = False
+                col.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
 
             col.separator()
 
