@@ -349,36 +349,43 @@ void BKE_object_eval_uber_transform(Depsgraph *depsgraph, Object *object)
   BKE_object_eval_proxy_copy(depsgraph, object);
 }
 
-void BKE_object_batch_cache_dirty_tag(Object *ob)
+void BKE_object_data_batch_cache_dirty_tag(ID *object_data)
 {
-  switch (ob->type) {
-    case OB_MESH:
-      BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+  switch (GS(object_data->name)) {
+    case ID_ME:
+      BKE_mesh_batch_cache_dirty_tag((struct Mesh *)object_data, BKE_MESH_BATCH_DIRTY_ALL);
       break;
-    case OB_LATTICE:
-      BKE_lattice_batch_cache_dirty_tag(ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
+    case ID_LT:
+      BKE_lattice_batch_cache_dirty_tag((struct Lattice *)object_data,
+                                        BKE_LATTICE_BATCH_DIRTY_ALL);
       break;
-    case OB_CURVE:
-    case OB_FONT:
-    case OB_SURF:
-      BKE_curve_batch_cache_dirty_tag(ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
+    case ID_CU:
+      BKE_curve_batch_cache_dirty_tag((struct Curve *)object_data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
-    case OB_MBALL:
-      BKE_mball_batch_cache_dirty_tag(ob->data, BKE_MBALL_BATCH_DIRTY_ALL);
+    case ID_MB:
+      BKE_mball_batch_cache_dirty_tag((struct MetaBall *)object_data, BKE_MBALL_BATCH_DIRTY_ALL);
       break;
-    case OB_GPENCIL:
-      BKE_gpencil_batch_cache_dirty_tag(ob->data);
+    case ID_GD:
+      BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)object_data);
       break;
-    case OB_HAIR:
-      BKE_hair_batch_cache_dirty_tag(ob->data, BKE_HAIR_BATCH_DIRTY_ALL);
+    case ID_HA:
+      BKE_hair_batch_cache_dirty_tag((struct Hair *)object_data, BKE_HAIR_BATCH_DIRTY_ALL);
       break;
-    case OB_POINTCLOUD:
-      BKE_pointcloud_batch_cache_dirty_tag(ob->data, BKE_POINTCLOUD_BATCH_DIRTY_ALL);
+    case ID_PT:
+      BKE_pointcloud_batch_cache_dirty_tag((struct PointCloud *)object_data,
+                                           BKE_POINTCLOUD_BATCH_DIRTY_ALL);
       break;
-    case OB_VOLUME:
-      BKE_volume_batch_cache_dirty_tag(ob->data, BKE_VOLUME_BATCH_DIRTY_ALL);
+    case ID_VO:
+      BKE_volume_batch_cache_dirty_tag((struct Volume *)object_data, BKE_VOLUME_BATCH_DIRTY_ALL);
+      break;
+    default:
       break;
   }
+}
+
+void BKE_object_batch_cache_dirty_tag(Object *ob)
+{
+  BKE_object_data_batch_cache_dirty_tag(ob->data);
 }
 
 void BKE_object_eval_uber_data(Depsgraph *depsgraph, Scene *scene, Object *ob)

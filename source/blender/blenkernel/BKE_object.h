@@ -377,6 +377,7 @@ void BKE_object_runtime_reset_on_copy(struct Object *object, const int flag);
 void BKE_object_runtime_free_data(struct Object *object);
 
 void BKE_object_batch_cache_dirty_tag(struct Object *ob);
+void BKE_object_data_batch_cache_dirty_tag(struct ID *object_data);
 
 /* this function returns a superset of the scenes selection based on relationships */
 
