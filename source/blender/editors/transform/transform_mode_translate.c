@@ -116,54 +116,30 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
 
   translate_dist_to_str(dist_str, sizeof(dist_str), dist, unit);
 
-  if (t->flag & T_AUTOIK) {
-    short chainlen = t->settings->autoik_chainlen;
-
-    if (chainlen) {
-      BLI_snprintf(autoik_str, sizeof(autoik_str), TIP_("AutoIK-Len: %d"), chainlen);
-    }
-    else {
-      autoik_str[0] = '\0';
-    }
-  }
-  else {
-    autoik_str[0] = '\0';
-  }
-
   if (t->con.mode & CON_APPLY) {
     switch (t->num.idx_max) {
       case 0:
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 UI_MAX_DRAW_STR - ofs,
-                                 "D: %s (%s)%s %s  %s",
-                                 dvec_str[0],
-                                 dist_str,
-                                 t->con.text,
-                                 t->proptext,
-                                 autoik_str);
+        ofs += BLI_snprintf_rlen(
+            str + ofs, UI_MAX_DRAW_STR - ofs, "D: %s (%s)%s", dvec_str[0], dist_str, t->con.text);
         break;
       case 1:
         ofs += BLI_snprintf_rlen(str + ofs,
                                  UI_MAX_DRAW_STR - ofs,
-                                 "D: %s   D: %s (%s)%s %s  %s",
+                                 "D: %s   D: %s (%s)%s",
                                  dvec_str[0],
                                  dvec_str[1],
                                  dist_str,
-                                 t->con.text,
-                                 t->proptext,
-                                 autoik_str);
+                                 t->con.text);
         break;
       case 2:
         ofs += BLI_snprintf_rlen(str + ofs,
                                  UI_MAX_DRAW_STR - ofs,
-                                 "D: %s   D: %s  D: %s (%s)%s %s  %s",
+                                 "D: %s   D: %s  D: %s (%s)%s",
                                  dvec_str[0],
                                  dvec_str[1],
                                  dvec_str[2],
                                  dist_str,
-                                 t->con.text,
-                                 t->proptext,
-                                 autoik_str);
+                                 t->con.text);
         break;
     }
   }
@@ -171,30 +147,42 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     if (t->flag & T_2D_EDIT) {
       ofs += BLI_snprintf_rlen(str + ofs,
                                UI_MAX_DRAW_STR - ofs,
-                               "Dx: %s   Dy: %s (%s)%s %s",
+                               "Dx: %s   Dy: %s (%s)%s",
                                dvec_str[0],
                                dvec_str[1],
                                dist_str,
-                               t->con.text,
-                               t->proptext);
+                               t->con.text);
     }
     else {
       ofs += BLI_snprintf_rlen(str + ofs,
                                UI_MAX_DRAW_STR - ofs,
-                               "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s",
+                               "Dx: %s   Dy: %s  Dz: %s (%s)%s",
                                dvec_str[0],
                                dvec_str[1],
                                dvec_str[2],
                                dist_str,
-                               t->con.text,
-                               t->proptext,
-                               autoik_str);
+                               t->con.text);
     }
   }
 
   if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf_rlen(
-        str + ofs, UI_MAX_DRAW_STR - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
+    char prop_str[NUM_STR_REP_LEN];
+    translate_dist_to_str(prop_str, sizeof(prop_str), t->prop_size, unit);
+
+    ofs += BLI_snprintf_rlen(str + ofs,
+                             UI_MAX_DRAW_STR - ofs,
+                             " %s %s: %s",
+                             TIP_("Proportional Size"),
+                             t->proptext,
+                             prop_str);
+  }
+
+  if (t->flag & T_AUTOIK) {
+    short chainlen = t->settings->autoik_chainlen;
+    if (chainlen) {
+      ofs += BLI_strncpy_rlen(str + ofs, "  ", UI_MAX_DRAW_STR - ofs);
+      ofs += BLI_snprintf_rlen(str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("AutoIK-Len: %d"), chainlen);
+    }
   }
 
   if (t->spacetype == SPACE_NODE) {
