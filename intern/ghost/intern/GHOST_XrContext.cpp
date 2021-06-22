@@ -420,7 +420,7 @@ void GHOST_XrContext::getExtensionsToEnable(
     r_ext_names.push_back(gpu_binding);
   }
 
-#if defined(WITH_GL_EGL)
+#if defined(WITH_GHOST_X11) && defined(WITH_GL_EGL)
   assert(openxr_extension_is_available(m_oxr->extensions, XR_MNDX_EGL_ENABLE_EXTENSION_NAME));
   r_ext_names.push_back(XR_MNDX_EGL_ENABLE_EXTENSION_NAME);
 #endif

@@ -40,6 +40,9 @@ class GHOST_IXrGraphicsBinding {
     XrGraphicsBindingOpenGLWin32KHR wgl;
     XrGraphicsBindingD3D11KHR d3d11;
 #endif
+#if defined(WITH_GHOST_WAYLAND)
+    XrGraphicsBindingOpenGLWaylandKHR wl;
+#endif
   } oxr_binding;
 
   virtual ~GHOST_IXrGraphicsBinding() = default;
