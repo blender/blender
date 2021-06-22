@@ -54,6 +54,7 @@ typedef struct BlendExpander BlendExpander;
 typedef struct BlendLibReader BlendLibReader;
 typedef struct BlendWriter BlendWriter;
 
+struct BlendFileReadReport;
 struct Main;
 struct ReportList;
 
@@ -216,7 +217,7 @@ bool BLO_read_requires_endian_switch(BlendDataReader *reader);
 bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);
 void BLO_read_glob_list(BlendDataReader *reader, struct ListBase *list);
-struct ReportList *BLO_read_data_reports(BlendDataReader *reader);
+struct BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
 
 /* Blend Read Lib API
  * ===================
@@ -233,7 +234,7 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader, struct Library *lib, str
 /* Misc. */
 bool BLO_read_lib_is_undo(BlendLibReader *reader);
 struct Main *BLO_read_lib_get_main(BlendLibReader *reader);
-struct ReportList *BLO_read_lib_reports(BlendLibReader *reader);
+struct BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader);
 
 /* Blend Expand API
  * ===================
@@ -250,8 +251,10 @@ void BLO_expand_id(BlendExpander *expander, struct ID *id);
  * ===================
  */
 
-void BLO_reportf_wrap(struct ReportList *reports, ReportType type, const char *format, ...)
-    ATTR_PRINTF_FORMAT(3, 4);
+void BLO_reportf_wrap(struct BlendFileReadReport *reports,
+                      ReportType type,
+                      const char *format,
+                      ...) ATTR_PRINTF_FORMAT(3, 4);
 
 #ifdef __cplusplus
 }

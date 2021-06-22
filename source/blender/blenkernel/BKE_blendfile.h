@@ -25,6 +25,7 @@ extern "C" {
 
 struct BlendFileData;
 struct BlendFileReadParams;
+struct BlendFileReadReport;
 struct ID;
 struct Main;
 struct MemFile;
@@ -35,7 +36,7 @@ struct bContext;
 void BKE_blendfile_read_setup_ex(struct bContext *C,
                                  struct BlendFileData *bfd,
                                  const struct BlendFileReadParams *params,
-                                 struct ReportList *reports,
+                                 struct BlendFileReadReport *reports,
                                  /* Extra args. */
                                  const bool startup_update_defaults,
                                  const char *startup_app_template);
@@ -43,11 +44,11 @@ void BKE_blendfile_read_setup_ex(struct bContext *C,
 void BKE_blendfile_read_setup(struct bContext *C,
                               struct BlendFileData *bfd,
                               const struct BlendFileReadParams *params,
-                              struct ReportList *reports);
+                              struct BlendFileReadReport *reports);
 
 struct BlendFileData *BKE_blendfile_read(const char *filepath,
                                          const struct BlendFileReadParams *params,
-                                         struct ReportList *reports);
+                                         struct BlendFileReadReport *reports);
 
 struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
                                                      int filelength,

@@ -366,12 +366,12 @@ void BLO_blendhandle_close(BlendHandle *bh)
  */
 BlendFileData *BLO_read_from_file(const char *filepath,
                                   eBLOReadSkip skip_flags,
-                                  ReportList *reports)
+                                  BlendFileReadReport *reports)
 {
   BlendFileData *bfd = NULL;
   FileData *fd;
 
-  fd = blo_filedata_from_file(filepath, reports);
+  fd = blo_filedata_from_file(filepath, reports->reports);
   if (fd) {
     fd->reports = reports;
     fd->skip_flags = skip_flags;
@@ -401,7 +401,7 @@ BlendFileData *BLO_read_from_memory(const void *mem,
 
   fd = blo_filedata_from_memory(mem, memsize, reports);
   if (fd) {
-    fd->reports = reports;
+    fd->reports = &(struct BlendFileReadReport){.reports = reports};
     fd->skip_flags = skip_flags;
     bfd = blo_read_file_internal(fd, "");
     blo_filedata_free(fd);
@@ -430,7 +430,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
 
   fd = blo_filedata_from_memfile(memfile, params, reports);
   if (fd) {
-    fd->reports = reports;
+    fd->reports = &(struct BlendFileReadReport){.reports = reports};
     fd->skip_flags = params->skip_flags;
     BLI_strncpy(fd->relabase, filename, sizeof(fd->relabase));
 
