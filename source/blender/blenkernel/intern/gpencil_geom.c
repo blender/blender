@@ -2984,6 +2984,9 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
 
       /* Add new stroke to the frame or delete if below limit */
       if ((limit > 0) && (new_stroke->totpoints <= limit)) {
+        if (gps_first == new_stroke) {
+          gps_first = NULL;
+        }
         BKE_gpencil_free_stroke(new_stroke);
       }
       else {
