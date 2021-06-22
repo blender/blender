@@ -43,25 +43,25 @@
 #include "GPU_vertex_buffer.h"
 
 #include "draw_hair_private.h"
+#include "draw_shader.h"
 
 #ifndef __APPLE__
 #  define USE_TRANSFORM_FEEDBACK
 #  define USE_COMPUTE_SHADERS
 #endif
 
-BLI_INLINE bool drw_hair_use_compute_shaders(void)
+BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get(void)
 {
 #ifdef USE_COMPUTE_SHADERS
-  return GPU_compute_shader_support();
-#else
-  return false;
+  if (GPU_compute_shader_support()) {
+    return PART_REFINE_SHADER_COMPUTE;
+  }
 #endif
+#ifdef USE_TRANSFORM_FEEDBACK
+  return PART_REFINE_SHADER_TRANSFORM_FEEDBACK;
+#endif
+  return PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND;
 }
-
-typedef enum ParticleRefineShader {
-  PART_REFINE_CATMULL_ROM = 0,
-  PART_REFINE_MAX_SHADER,
-} ParticleRefineShader;
 
 #ifndef USE_TRANSFORM_FEEDBACK
 typedef struct ParticleRefineCall {
@@ -79,89 +79,11 @@ static int g_tf_target_height;
 
 static GPUVertBuf *g_dummy_vbo = NULL;
 static GPUTexture *g_dummy_texture = NULL;
-static GPUShader *g_refine_shaders[PART_REFINE_MAX_SHADER] = {NULL};
 static DRWPass *g_tf_pass; /* XXX can be a problem with multiple DRWManager in the future */
-
-extern char datatoc_common_hair_lib_glsl[];
-extern char datatoc_common_hair_refine_vert_glsl[];
-extern char datatoc_common_hair_refine_comp_glsl[];
-extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
-
-/* TODO(jbakker): move shader creation to `draw_shaders` and add test cases. */
-/* TODO(jbakker): replace defines with `constexpr` to check compilation on all OS's.
- * Currently the `__APPLE__` code-path does not compile on other platforms and vice versa. */
-#ifdef USE_COMPUTE_SHADERS
-static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader UNUSED(refinement))
-{
-  GPUShader *sh = NULL;
-  sh = GPU_shader_create_compute(datatoc_common_hair_refine_comp_glsl,
-                                 datatoc_common_hair_lib_glsl,
-                                 "#define HAIR_PHASE_SUBDIV\n",
-                                 __func__);
-  return sh;
-}
-#endif
-
-#ifdef USE_TRANSFORM_FEEDBACK
-static GPUShader *hair_refine_shader_transform_feedback_create(
-    ParticleRefineShader UNUSED(refinement))
-{
-  GPUShader *sh = NULL;
-
-  char *shader_src = BLI_string_joinN(datatoc_common_hair_lib_glsl,
-                                      datatoc_common_hair_refine_vert_glsl);
-  const char *var_names[1] = {"finalColor"};
-  sh = DRW_shader_create_with_transform_feedback(
-      shader_src, NULL, "#define HAIR_PHASE_SUBDIV\n", GPU_SHADER_TFB_POINTS, var_names, 1);
-  MEM_freeN(shader_src);
-
-  return sh;
-}
-#endif
-
-static GPUShader *hair_refine_shader_transform_feedback_workaround_create(
-    ParticleRefineShader UNUSED(refinement))
-{
-  GPUShader *sh = NULL;
-
-  char *shader_src = BLI_string_joinN(datatoc_common_hair_lib_glsl,
-                                      datatoc_common_hair_refine_vert_glsl);
-  sh = DRW_shader_create(shader_src,
-                         NULL,
-                         datatoc_gpu_shader_3D_smooth_color_frag_glsl,
-                         "#define blender_srgb_to_framebuffer_space(a) a\n"
-                         "#define HAIR_PHASE_SUBDIV\n"
-                         "#define TF_WORKAROUND\n");
-  MEM_freeN(shader_src);
-
-  return sh;
-}
 
 static GPUShader *hair_refine_shader_get(ParticleRefineShader refinement)
 {
-  if (g_refine_shaders[refinement]) {
-    return g_refine_shaders[refinement];
-  }
-
-#ifdef USE_COMPUTE_SHADERS
-  if (drw_hair_use_compute_shaders()) {
-    g_refine_shaders[refinement] = hair_refine_shader_compute_create(refinement);
-    if (g_refine_shaders[refinement]) {
-      return g_refine_shaders[refinement];
-    }
-  }
-#endif
-
-#ifdef USE_TRANSFORM_FEEDBACK
-  g_refine_shaders[refinement] = hair_refine_shader_transform_feedback_create(refinement);
-  if (g_refine_shaders[refinement]) {
-    return g_refine_shaders[refinement];
-  }
-#endif
-
-  g_refine_shaders[refinement] = hair_refine_shader_transform_feedback_workaround_create(
-      refinement);
-  return g_refine_shaders[refinement];
+  return DRW_shader_hair_refine_get(refinement, drw_hair_shader_type_get());
 }
 
 void DRW_hair_init(void)
@@ -265,7 +187,7 @@ static ParticleHairCache *drw_hair_particle_cache_get(
   }
 
   if (update) {
-    if (drw_hair_use_compute_shaders()) {
+    if (drw_hair_shader_type_get() == PART_REFINE_SHADER_COMPUTE) {
       drw_hair_particle_cache_update_compute(cache, subdiv);
     }
     else {
@@ -473,7 +395,7 @@ void DRW_hair_update(void)
 #else
   /* Just render the pass when using compute shaders or transform feedback. */
   DRW_draw_pass(g_tf_pass);
-  if (drw_hair_use_compute_shaders()) {
+  if (drw_hair_shader_type_get() == PART_REFINE_SHADER_COMPUTE) {
     GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
   }
 #endif
@@ -481,10 +403,6 @@ void DRW_hair_update(void)
 
 void DRW_hair_free(void)
 {
-  for (int i = 0; i < PART_REFINE_MAX_SHADER; i++) {
-    DRW_SHADER_FREE_SAFE(g_refine_shaders[i]);
-  }
-
   GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
   DRW_TEXTURE_FREE_SAFE(g_dummy_texture);
 }

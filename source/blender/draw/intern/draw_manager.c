@@ -87,6 +87,7 @@
 #include "draw_manager_profiling.h"
 #include "draw_manager_testing.h"
 #include "draw_manager_text.h"
+#include "draw_shader.h"
 
 /* only for callbacks */
 #include "draw_cache_impl.h"
@@ -2987,6 +2988,7 @@ void DRW_engines_free(void)
   DRW_TEXTURE_FREE_SAFE(g_select_buffer.texture_depth);
   GPU_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer_depth_only);
 
+  DRW_shaders_free();
   DRW_hair_free();
   DRW_shape_cache_free();
   DRW_stats_free();

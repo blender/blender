@@ -85,6 +85,7 @@ set(SRC
   intern/draw_manager_text.c
   intern/draw_manager_texture.c
   intern/draw_select_buffer.c
+  intern/draw_shader.c
   intern/draw_view.c
   engines/basic/basic_engine.c
   engines/image/image_engine.c
@@ -185,6 +186,7 @@ set(SRC
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
   intern/draw_view.h
+  intern/draw_shader.h
   intern/smaa_textures.h
   engines/basic/basic_engine.h
   engines/eevee/eevee_engine.h
