@@ -74,9 +74,9 @@ float Spline::length() const
 
 int Spline::segments_size() const
 {
-  const int points_len = this->size();
+  const int size = this->size();
 
-  return is_cyclic_ ? points_len : points_len - 1;
+  return is_cyclic_ ? size : size - 1;
 }
 
 bool Spline::is_cyclic() const
@@ -411,23 +411,23 @@ Array<float> Spline::sample_uniform_index_factors(const int samples_size) const
 
 Spline::LookupResult Spline::lookup_data_from_index_factor(const float index_factor) const
 {
-  const int points_len = this->evaluated_points_size();
+  const int eval_size = this->evaluated_points_size();
 
   if (is_cyclic_) {
-    if (index_factor < points_len) {
+    if (index_factor < eval_size) {
       const int index = std::floor(index_factor);
-      const int next_index = (index < points_len - 1) ? index + 1 : 0;
+      const int next_index = (index < eval_size - 1) ? index + 1 : 0;
       return LookupResult{index, next_index, index_factor - index};
     }
-    return LookupResult{points_len - 1, 0, 1.0f};
+    return LookupResult{eval_size - 1, 0, 1.0f};
   }
 
-  if (index_factor < points_len - 1) {
+  if (index_factor < eval_size - 1) {
     const int index = std::floor(index_factor);
     const int next_index = index + 1;
     return LookupResult{index, next_index, index_factor - index};
   }
-  return LookupResult{points_len - 2, points_len - 1, 1.0f};
+  return LookupResult{eval_size - 2, eval_size - 1, 1.0f};
 }
 
 void Spline::bounds_min_max(float3 &min, float3 &max, const bool use_evaluated) const

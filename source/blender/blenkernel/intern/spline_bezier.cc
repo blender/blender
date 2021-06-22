@@ -392,13 +392,13 @@ Span<int> BezierSpline::control_point_offsets() const
     return offset_cache_;
   }
 
-  const int points_len = this->size();
-  offset_cache_.resize(points_len + 1);
+  const int size = this->size();
+  offset_cache_.resize(size + 1);
 
   MutableSpan<int> offsets = offset_cache_;
 
   int offset = 0;
-  for (const int i : IndexRange(points_len)) {
+  for (const int i : IndexRange(size)) {
     offsets[i] = offset;
     offset += this->segment_is_vector(i) ? 1 : resolution_;
   }
@@ -527,23 +527,23 @@ Span<float3> BezierSpline::evaluated_positions() const
 BezierSpline::InterpolationData BezierSpline::interpolation_data_from_index_factor(
     const float index_factor) const
 {
-  const int points_len = this->size();
+  const int size = this->size();
 
   if (is_cyclic_) {
-    if (index_factor < points_len) {
+    if (index_factor < size) {
       const int index = std::floor(index_factor);
-      const int next_index = (index < points_len - 1) ? index + 1 : 0;
+      const int next_index = (index < size - 1) ? index + 1 : 0;
       return InterpolationData{index, next_index, index_factor - index};
     }
-    return InterpolationData{points_len - 1, 0, 1.0f};
+    return InterpolationData{size - 1, 0, 1.0f};
   }
 
-  if (index_factor < points_len - 1) {
+  if (index_factor < size - 1) {
     const int index = std::floor(index_factor);
     const int next_index = index + 1;
     return InterpolationData{index, next_index, index_factor - index};
   }
-  return InterpolationData{points_len - 2, points_len - 1, 1.0f};
+  return InterpolationData{size - 2, size - 1, 1.0f};
 }
 
 /* Use a spline argument to avoid adding this to the header. */
