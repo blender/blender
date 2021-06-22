@@ -2322,7 +2322,10 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
                               ViewDepths **r_depths)
 {
   if (v3d->runtime.flag & V3D_RUNTIME_DEPTHBUF_OVERRIDDEN) {
-    return;
+    /* Force redraw if `r_depths` is required. */
+    if (!r_depths || *r_depths != NULL) {
+      return;
+    }
   }
   struct bThemeState theme_state;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -2365,6 +2368,9 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
     }
 
     if (r_depths) {
+      if (*r_depths) {
+        ED_view3d_depths_free(*r_depths);
+      }
       *r_depths = view3d_depths_create(region);
     }
   }
@@ -2384,6 +2390,7 @@ void ED_view3d_depths_free(ViewDepths *depths)
   if (depths->depths) {
     MEM_freeN(depths->depths);
   }
+  MEM_freeN(depths);
 }
 
 /** \} */

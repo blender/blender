@@ -1687,7 +1687,6 @@ static void object_transform_axis_target_free_data(wmOperator *op)
 #ifdef USE_RENDER_OVERRIDE
   if (xfd->depths) {
     ED_view3d_depths_free(xfd->depths);
-    MEM_freeN(xfd->depths);
   }
 #endif
 

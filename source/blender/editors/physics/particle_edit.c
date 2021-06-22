@@ -525,14 +525,12 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
   ED_view3d_viewcontext_init(C, &data->vc, data->depsgraph);
 
   if (!XRAY_ENABLED(data->vc.v3d)) {
-    if (!(data->vc.v3d->runtime.flag & V3D_RUNTIME_DEPTHBUF_OVERRIDDEN)) {
-      ED_view3d_depth_override(data->depsgraph,
-                               data->vc.region,
-                               data->vc.v3d,
-                               data->vc.obact,
-                               V3D_DEPTH_OBJECT_ONLY,
-                               &data->depths);
-    }
+    ED_view3d_depth_override(data->depsgraph,
+                             data->vc.region,
+                             data->vc.v3d,
+                             data->vc.obact,
+                             V3D_DEPTH_OBJECT_ONLY,
+                             &data->depths);
   }
 }
 
@@ -577,7 +575,6 @@ static void PE_data_free(PEData *data)
   PE_free_shape_tree(data);
   if (data->depths) {
     ED_view3d_depths_free(data->depths);
-    MEM_freeN(data->depths);
     data->depths = NULL;
   }
 }

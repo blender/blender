@@ -624,7 +624,6 @@ static void curve_draw_exit(wmOperator *op)
 
     if (cdd->depths) {
       ED_view3d_depths_free(cdd->depths);
-      MEM_freeN(cdd->depths);
     }
     MEM_freeN(cdd);
     op->customdata = NULL;

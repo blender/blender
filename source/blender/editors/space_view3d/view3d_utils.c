@@ -1019,7 +1019,7 @@ static float view_autodist_depth_margin(ARegion *region, const int mval[2], int 
   ViewDepths depth_temp = {0};
   view3d_depths_rect_create(region, &rect, &depth_temp);
   float depth_close = view3d_depth_near(&depth_temp);
-  ED_view3d_depths_free(&depth_temp);
+  MEM_SAFE_FREE(depth_temp.depths);
   return depth_close;
 }
 
