@@ -3011,7 +3011,6 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bool changed = false;
-
     unit_m4(cur_mat);
     if (gpl->actframe != NULL) {
       if (gpl->parent != NULL) {
