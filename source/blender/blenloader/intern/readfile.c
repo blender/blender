@@ -72,8 +72,6 @@
 #include "BLI_mmap.h"
 #include "BLI_threads.h"
 
-#include "PIL_time.h"
-
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
@@ -229,7 +227,7 @@ typedef struct BHeadN {
  * bit kludge but better than doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
-void BLO_reportf_wrap(BlendFileReadReport *reports, ReportType type, const char *format, ...)
+void BLO_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
 {
   char fixed_buf[1024]; /* should be long enough */
 
@@ -241,7 +239,7 @@ void BLO_reportf_wrap(BlendFileReadReport *reports, ReportType type, const char 
 
   fixed_buf[sizeof(fixed_buf) - 1] = '\0';
 
-  BKE_report(reports->reports, type, fixed_buf);
+  BKE_report(reports, type, fixed_buf);
 
   if (G.background == 0) {
     printf("%s: %s\n", BKE_report_type_str(type), fixed_buf);
@@ -4208,15 +4206,12 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-    fd->reports->duration.libraries = PIL_check_seconds_timer();
     read_libraries(fd, &mainlist);
 
     blo_join_main(&mainlist);
 
     lib_link_all(fd, bfd->main);
     after_liblink_merged_bmain_process(bfd->main);
-
-    fd->reports->duration.libraries = PIL_check_seconds_timer() - fd->reports->duration.libraries;
 
     /* Skip in undo case. */
     if (fd->memfile == NULL) {
@@ -4233,7 +4228,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       blo_split_main(&mainlist, bfd->main);
       LISTBASE_FOREACH (Main *, mainvar, &mainlist) {
         BLI_assert(mainvar->versionfile != 0);
-        do_versions_after_linking(mainvar, fd->reports->reports);
+        do_versions_after_linking(mainvar, fd->reports);
       }
       blo_join_main(&mainlist);
 
@@ -4254,13 +4249,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
      * we can re-generate overrides from their references. */
     if (fd->memfile == NULL) {
       /* Do not apply in undo case! */
-      fd->reports->duration.lib_overrides = PIL_check_seconds_timer();
-
-      BKE_lib_override_library_main_validate(bfd->main, fd->reports->reports);
+      BKE_lib_override_library_main_validate(bfd->main, fd->reports);
       BKE_lib_override_library_main_update(bfd->main);
-
-      fd->reports->duration.lib_overrides = PIL_check_seconds_timer() -
-                                            fd->reports->duration.lib_overrides;
     }
 
     BKE_collections_after_lib_link(bfd->main);
@@ -5216,7 +5206,7 @@ static void library_link_end(Main *mainl,
      * or they will go again through do_versions - bad, very bad! */
     split_main_newid(mainvar, main_newid);
 
-    do_versions_after_linking(main_newid, (*fd)->reports->reports);
+    do_versions_after_linking(main_newid, (*fd)->reports);
 
     add_main_to_main(mainvar, main_newid);
   }
@@ -5350,7 +5340,7 @@ static void read_library_linked_id(
                      id->name + 2,
                      mainvar->curlib->filepath_abs,
                      library_parent_filepath(mainvar->curlib));
-    basefd->reports->count.missing_linked_id++;
+    basefd->library_id_missing_count++;
 
     /* Generate a placeholder for this ID (simplified version of read_libblock actually...). */
     if (r_id) {
@@ -5454,7 +5444,7 @@ static FileData *read_library_file_data(FileData *basefd,
                      TIP_("Read packed library:  '%s', parent '%s'"),
                      mainptr->curlib->filepath,
                      library_parent_filepath(mainptr->curlib));
-    fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports->reports);
+    fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports);
 
     /* Needed for library_append and read_libraries. */
     BLI_strncpy(fd->relabase, mainptr->curlib->filepath_abs, sizeof(fd->relabase));
@@ -5467,7 +5457,7 @@ static FileData *read_library_file_data(FileData *basefd,
                      mainptr->curlib->filepath_abs,
                      mainptr->curlib->filepath,
                      library_parent_filepath(mainptr->curlib));
-    fd = blo_filedata_from_file(mainptr->curlib->filepath_abs, basefd->reports->reports);
+    fd = blo_filedata_from_file(mainptr->curlib->filepath_abs, basefd->reports);
   }
 
   if (fd) {
@@ -5505,7 +5495,7 @@ static FileData *read_library_file_data(FileData *basefd,
   if (fd == NULL) {
     BLO_reportf_wrap(
         basefd->reports, RPT_INFO, TIP_("Cannot find lib '%s'"), mainptr->curlib->filepath_abs);
-    basefd->reports->count.missing_libraries++;
+    basefd->library_file_missing_count++;
   }
 
   return fd;
@@ -5599,6 +5589,15 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     mainptr->curlib->filedata = NULL;
   }
   BKE_main_free(main_newid);
+
+  if (basefd->library_file_missing_count != 0 || basefd->library_id_missing_count != 0) {
+    BKE_reportf(basefd->reports,
+                RPT_WARNING,
+                "LIB: %d libraries and %d linked data-blocks are missing, please check the "
+                "Info and Outliner editors for details",
+                basefd->library_file_missing_count,
+                basefd->library_id_missing_count);
+  }
 }
 
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address)
@@ -5786,7 +5785,7 @@ void BLO_read_glob_list(BlendDataReader *reader, ListBase *list)
   link_glob_list(reader->fd, list);
 }
 
-BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader)
+ReportList *BLO_read_data_reports(BlendDataReader *reader)
 {
   return reader->fd->reports;
 }
@@ -5801,7 +5800,7 @@ Main *BLO_read_lib_get_main(BlendLibReader *reader)
   return reader->main;
 }
 
-BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader)
+ReportList *BLO_read_lib_reports(BlendLibReader *reader)
 {
   return reader->fd->reports;
 }

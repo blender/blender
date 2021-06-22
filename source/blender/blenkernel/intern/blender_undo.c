@@ -78,10 +78,9 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
 
   if (UNDO_DISK) {
     const struct BlendFileReadParams params = {0};
-    struct BlendFileData *bfd = BKE_blendfile_read(
-        mfu->filename, &params, &(BlendFileReadReport){NULL});
+    struct BlendFileData *bfd = BKE_blendfile_read(mfu->filename, &params, NULL);
     if (bfd != NULL) {
-      BKE_blendfile_read_setup(C, bfd, &params, &(BlendFileReadReport){NULL});
+      BKE_blendfile_read_setup(C, bfd, &params, NULL);
       success = true;
     }
   }
@@ -94,7 +93,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
     struct BlendFileData *bfd = BKE_blendfile_read_from_memfile(
         bmain, &mfu->memfile, &params, NULL);
     if (bfd != NULL) {
-      BKE_blendfile_read_setup(C, bfd, &params, &(BlendFileReadReport){NULL});
+      BKE_blendfile_read_setup(C, bfd, &params, NULL);
       success = true;
     }
   }
