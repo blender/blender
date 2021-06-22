@@ -520,43 +520,44 @@ static void do_lasso_select_pose__do_tag(void *userData,
                                          const float screen_co_b[2])
 {
   LassoSelectUserData *data = userData;
-  bArmature *arm = data->vc->obact->data;
-
-  if (PBONE_SELECTABLE(arm, pchan->bone)) {
-    bool is_point_done = false;
-    int points_proj_tot = 0;
-
-    /* project head location to screenspace */
-    if (screen_co_a[0] != IS_CLIPPED) {
-      points_proj_tot++;
-      if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
-          BLI_lasso_is_point_inside(
-              data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX)) {
-        is_point_done = true;
-      }
-    }
-
-    /* project tail location to screenspace */
-    if (screen_co_b[0] != IS_CLIPPED) {
-      points_proj_tot++;
-      if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
-          BLI_lasso_is_point_inside(
-              data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX)) {
-        is_point_done = true;
-      }
-    }
-
-    /* if one of points selected, we skip the bone itself */
-    if ((is_point_done == true) || ((is_point_done == false) && (points_proj_tot == 2) &&
-                                    BLI_lasso_is_edge_inside(data->mcoords,
-                                                             data->mcoords_len,
-                                                             UNPACK2(screen_co_a),
-                                                             UNPACK2(screen_co_b),
-                                                             INT_MAX))) {
-      pchan->bone->flag |= BONE_DONE;
-    }
-    data->is_changed |= is_point_done;
+  const bArmature *arm = data->vc->obact->data;
+  if (!PBONE_SELECTABLE(arm, pchan->bone)) {
+    return;
   }
+
+  bool is_point_done = false;
+  int points_proj_tot = 0;
+
+  /* project head location to screenspace */
+  if (screen_co_a[0] != IS_CLIPPED) {
+    points_proj_tot++;
+    if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
+        BLI_lasso_is_point_inside(
+            data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX)) {
+      is_point_done = true;
+    }
+  }
+
+  /* project tail location to screenspace */
+  if (screen_co_b[0] != IS_CLIPPED) {
+    points_proj_tot++;
+    if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
+        BLI_lasso_is_point_inside(
+            data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX)) {
+      is_point_done = true;
+    }
+  }
+
+  /* if one of points selected, we skip the bone itself */
+  if ((is_point_done == true) || ((is_point_done == false) && (points_proj_tot == 2) &&
+                                  BLI_lasso_is_edge_inside(data->mcoords,
+                                                           data->mcoords_len,
+                                                           UNPACK2(screen_co_a),
+                                                           UNPACK2(screen_co_b),
+                                                           INT_MAX))) {
+    pchan->bone->flag |= BONE_DONE;
+  }
+  data->is_changed |= is_point_done;
 }
 static void do_lasso_tag_pose(ViewContext *vc,
                               Object *ob,
@@ -1027,46 +1028,48 @@ static void do_lasso_select_armature__doSelectBone(void *userData,
                                                    const float screen_co_b[2])
 {
   LassoSelectUserData *data = userData;
-  bArmature *arm = data->vc->obedit->data;
-  if (EBONE_VISIBLE(arm, ebone)) {
-    int is_ignore_flag = 0;
-    int is_inside_flag = 0;
-
-    if (screen_co_a[0] != IS_CLIPPED) {
-      if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
-          BLI_lasso_is_point_inside(
-              data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX)) {
-        is_inside_flag |= BONESEL_ROOT;
-      }
-    }
-    else {
-      is_ignore_flag |= BONESEL_ROOT;
-    }
-
-    if (screen_co_b[0] != IS_CLIPPED) {
-      if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
-          BLI_lasso_is_point_inside(
-              data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX)) {
-        is_inside_flag |= BONESEL_TIP;
-      }
-    }
-    else {
-      is_ignore_flag |= BONESEL_TIP;
-    }
-
-    if (is_ignore_flag == 0) {
-      if (is_inside_flag == (BONE_ROOTSEL | BONE_TIPSEL) ||
-          BLI_lasso_is_edge_inside(data->mcoords,
-                                   data->mcoords_len,
-                                   UNPACK2(screen_co_a),
-                                   UNPACK2(screen_co_b),
-                                   INT_MAX)) {
-        is_inside_flag |= BONESEL_BONE;
-      }
-    }
-
-    ebone->temp.i = is_inside_flag | (is_ignore_flag >> 16);
+  const bArmature *arm = data->vc->obedit->data;
+  if (!EBONE_VISIBLE(arm, ebone)) {
+    return;
   }
+
+  int is_ignore_flag = 0;
+  int is_inside_flag = 0;
+
+  if (screen_co_a[0] != IS_CLIPPED) {
+    if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
+        BLI_lasso_is_point_inside(
+            data->mcoords, data->mcoords_len, UNPACK2(screen_co_a), INT_MAX)) {
+      is_inside_flag |= BONESEL_ROOT;
+    }
+  }
+  else {
+    is_ignore_flag |= BONESEL_ROOT;
+  }
+
+  if (screen_co_b[0] != IS_CLIPPED) {
+    if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
+        BLI_lasso_is_point_inside(
+            data->mcoords, data->mcoords_len, UNPACK2(screen_co_b), INT_MAX)) {
+      is_inside_flag |= BONESEL_TIP;
+    }
+  }
+  else {
+    is_ignore_flag |= BONESEL_TIP;
+  }
+
+  if (is_ignore_flag == 0) {
+    if (is_inside_flag == (BONE_ROOTSEL | BONE_TIPSEL) ||
+        BLI_lasso_is_edge_inside(data->mcoords,
+                                 data->mcoords_len,
+                                 UNPACK2(screen_co_a),
+                                 UNPACK2(screen_co_b),
+                                 INT_MAX)) {
+      is_inside_flag |= BONESEL_BONE;
+    }
+  }
+
+  ebone->temp.i = is_inside_flag | (is_ignore_flag >> 16);
 }
 
 static bool do_lasso_select_armature(ViewContext *vc,
@@ -4039,47 +4042,48 @@ static void do_circle_select_pose__doSelectBone(void *userData,
 {
   CircleSelectUserData *data = userData;
   bArmature *arm = data->vc->obact->data;
-
-  if (PBONE_SELECTABLE(arm, pchan->bone)) {
-    bool is_point_done = false;
-    int points_proj_tot = 0;
-
-    /* project head location to screenspace */
-    if (screen_co_a[0] != IS_CLIPPED) {
-      points_proj_tot++;
-      if (pchan_circle_doSelectJoint(data, pchan, screen_co_a)) {
-        is_point_done = true;
-      }
-    }
-
-    /* project tail location to screenspace */
-    if (screen_co_b[0] != IS_CLIPPED) {
-      points_proj_tot++;
-      if (pchan_circle_doSelectJoint(data, pchan, screen_co_b)) {
-        is_point_done = true;
-      }
-    }
-
-    /* check if the head and/or tail is in the circle
-     * - the call to check also does the selection already
-     */
-
-    /* only if the endpoints didn't get selected, deal with the middle of the bone too
-     * It works nicer to only do this if the head or tail are not in the circle,
-     * otherwise there is no way to circle select joints alone */
-    if ((is_point_done == false) && (points_proj_tot == 2) &&
-        edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
-      if (data->select) {
-        pchan->bone->flag |= BONE_SELECTED;
-      }
-      else {
-        pchan->bone->flag &= ~BONE_SELECTED;
-      }
-      data->is_changed = true;
-    }
-
-    data->is_changed |= is_point_done;
+  if (!PBONE_SELECTABLE(arm, pchan->bone)) {
+    return;
   }
+
+  bool is_point_done = false;
+  int points_proj_tot = 0;
+
+  /* project head location to screenspace */
+  if (screen_co_a[0] != IS_CLIPPED) {
+    points_proj_tot++;
+    if (pchan_circle_doSelectJoint(data, pchan, screen_co_a)) {
+      is_point_done = true;
+    }
+  }
+
+  /* project tail location to screenspace */
+  if (screen_co_b[0] != IS_CLIPPED) {
+    points_proj_tot++;
+    if (pchan_circle_doSelectJoint(data, pchan, screen_co_b)) {
+      is_point_done = true;
+    }
+  }
+
+  /* check if the head and/or tail is in the circle
+   * - the call to check also does the selection already
+   */
+
+  /* only if the endpoints didn't get selected, deal with the middle of the bone too
+   * It works nicer to only do this if the head or tail are not in the circle,
+   * otherwise there is no way to circle select joints alone */
+  if ((is_point_done == false) && (points_proj_tot == 2) &&
+      edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
+    if (data->select) {
+      pchan->bone->flag |= BONE_SELECTED;
+    }
+    else {
+      pchan->bone->flag &= ~BONE_SELECTED;
+    }
+    data->is_changed = true;
+  }
+
+  data->is_changed |= is_point_done;
 }
 static bool pose_circle_select(ViewContext *vc,
                                const eSelectOp sel_op,
@@ -4141,48 +4145,49 @@ static void do_circle_select_armature__doSelectBone(void *userData,
                                                     const float screen_co_b[2])
 {
   CircleSelectUserData *data = userData;
-  bArmature *arm = data->vc->obedit->data;
-
-  if (data->select ? EBONE_SELECTABLE(arm, ebone) : EBONE_VISIBLE(arm, ebone)) {
-    bool is_point_done = false;
-    int points_proj_tot = 0;
-
-    /* project head location to screenspace */
-    if (screen_co_a[0] != IS_CLIPPED) {
-      points_proj_tot++;
-      if (armature_circle_doSelectJoint(data, ebone, screen_co_a, true)) {
-        is_point_done = true;
-      }
-    }
-
-    /* project tail location to screenspace */
-    if (screen_co_b[0] != IS_CLIPPED) {
-      points_proj_tot++;
-      if (armature_circle_doSelectJoint(data, ebone, screen_co_b, false)) {
-        is_point_done = true;
-      }
-    }
-
-    /* check if the head and/or tail is in the circle
-     * - the call to check also does the selection already
-     */
-
-    /* only if the endpoints didn't get selected, deal with the middle of the bone too
-     * It works nicer to only do this if the head or tail are not in the circle,
-     * otherwise there is no way to circle select joints alone */
-    if ((is_point_done == false) && (points_proj_tot == 2) &&
-        edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
-      if (data->select) {
-        ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-      }
-      else {
-        ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-      }
-      data->is_changed = true;
-    }
-
-    data->is_changed |= is_point_done;
+  const bArmature *arm = data->vc->obedit->data;
+  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : EBONE_VISIBLE(arm, ebone))) {
+    return;
   }
+
+  bool is_point_done = false;
+  int points_proj_tot = 0;
+
+  /* project head location to screenspace */
+  if (screen_co_a[0] != IS_CLIPPED) {
+    points_proj_tot++;
+    if (armature_circle_doSelectJoint(data, ebone, screen_co_a, true)) {
+      is_point_done = true;
+    }
+  }
+
+  /* project tail location to screenspace */
+  if (screen_co_b[0] != IS_CLIPPED) {
+    points_proj_tot++;
+    if (armature_circle_doSelectJoint(data, ebone, screen_co_b, false)) {
+      is_point_done = true;
+    }
+  }
+
+  /* check if the head and/or tail is in the circle
+   * - the call to check also does the selection already
+   */
+
+  /* only if the endpoints didn't get selected, deal with the middle of the bone too
+   * It works nicer to only do this if the head or tail are not in the circle,
+   * otherwise there is no way to circle select joints alone */
+  if ((is_point_done == false) && (points_proj_tot == 2) &&
+      edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b)) {
+    if (data->select) {
+      ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+    }
+    else {
+      ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+    }
+    data->is_changed = true;
+  }
+
+  data->is_changed |= is_point_done;
 }
 static bool armature_circle_select(ViewContext *vc,
                                    const eSelectOp sel_op,
