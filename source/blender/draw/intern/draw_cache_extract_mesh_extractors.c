@@ -991,6 +991,7 @@ const MeshExtract extract_tan_hq = {
     .data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI,
     .data_size = 0,
     .use_threading = false,
+    .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.tan),
 };
 
 /** \} */
