@@ -3642,8 +3642,9 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 
   {
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    const int object_index = RNA_int_get(op->ptr, "object_index");
-    const int index = RNA_int_get(op->ptr, "index");
+    /* Intentionally wrap negative values so the lookup fails. */
+    const uint object_index = (uint)RNA_int_get(op->ptr, "object_index");
+    const uint index = (uint)RNA_int_get(op->ptr, "index");
     ele = EDBM_elem_from_index_any_multi(view_layer, object_index, index, &obedit);
   }
 
