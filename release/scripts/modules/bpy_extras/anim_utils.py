@@ -156,10 +156,9 @@ def bake_action_iter(
     # Note: BBONE_PROPS is a list so we can preserve the ordering
     BBONE_PROPS = [
         'bbone_curveinx', 'bbone_curveoutx',
-        'bbone_curveiny', 'bbone_curveouty',
+        'bbone_curveinz', 'bbone_curveoutz',
         'bbone_rollin', 'bbone_rollout',
-        'bbone_scaleinx', 'bbone_scaleoutx',
-        'bbone_scaleiny', 'bbone_scaleouty',
+        'bbone_scalein', 'bbone_scaleout',
         'bbone_easein', 'bbone_easeout'
     ]
 
