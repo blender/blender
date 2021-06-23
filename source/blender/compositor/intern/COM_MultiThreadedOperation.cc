@@ -16,11 +16,11 @@ void MultiThreadedOperation::update_memory_buffer(MemoryBuffer *output,
                                                   ExecutionSystem &exec_system)
 {
   for (current_pass_ = 0; current_pass_ < num_passes_; current_pass_++) {
-    update_memory_buffer_started(output, area, inputs, exec_system);
-    exec_system.execute_work(area, [=, &exec_system](const rcti &split_rect) {
-      update_memory_buffer_partial(output, split_rect, inputs, exec_system);
+    update_memory_buffer_started(output, area, inputs);
+    exec_system.execute_work(area, [=](const rcti &split_rect) {
+      update_memory_buffer_partial(output, split_rect, inputs);
     });
-    update_memory_buffer_finished(output, area, inputs, exec_system);
+    update_memory_buffer_finished(output, area, inputs);
   }
 }
 

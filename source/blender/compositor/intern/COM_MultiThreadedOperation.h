@@ -41,8 +41,7 @@ class MultiThreadedOperation : public NodeOperation {
    */
   virtual void update_memory_buffer_started(MemoryBuffer *UNUSED(output),
                                             const rcti &UNUSED(area),
-                                            Span<MemoryBuffer *> UNUSED(inputs),
-                                            ExecutionSystem &UNUSED(exec_system))
+                                            Span<MemoryBuffer *> UNUSED(inputs))
   {
   }
 
@@ -51,16 +50,14 @@ class MultiThreadedOperation : public NodeOperation {
    */
   virtual void update_memory_buffer_partial(MemoryBuffer *output,
                                             const rcti &area,
-                                            Span<MemoryBuffer *> inputs,
-                                            ExecutionSystem &exec_system) = 0;
+                                            Span<MemoryBuffer *> inputs) = 0;
 
   /**
    * Called after an update memory buffer pass is executed. Single-threaded calls.
    */
   virtual void update_memory_buffer_finished(MemoryBuffer *UNUSED(output),
                                              const rcti &UNUSED(area),
-                                             Span<MemoryBuffer *> UNUSED(inputs),
-                                             ExecutionSystem &UNUSED(exec_system))
+                                             Span<MemoryBuffer *> UNUSED(inputs))
   {
   }
 
