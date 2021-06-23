@@ -72,7 +72,6 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   size_t ofs = 0;
   char dvec_str[3][NUM_STR_REP_LEN];
   char dist_str[NUM_STR_REP_LEN];
-  char autoik_str[NUM_STR_REP_LEN];
   float dist;
 
   UnitSettings *unit = NULL;
@@ -81,7 +80,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
 
   if (hasNumInput(&t->num)) {
-    outputNumInput(&(t->num), dvec_str, &t->scene->unit);
+    outputNumInput(&(t->num), dvec_str[0], &t->scene->unit);
     dist = len_v3(t->num.val);
   }
   else {
