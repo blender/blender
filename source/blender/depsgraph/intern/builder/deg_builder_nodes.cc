@@ -450,6 +450,22 @@ void DepsgraphNodeBuilder::update_invalid_cow_pointers()
       /* Node/ID already tagged for COW flush, no need to check it. */
       continue;
     }
+    if ((id_node->id_cow->flag & LIB_EMBEDDED_DATA) != 0) {
+      /* For now, we assume embedded data are managed by their owner IDs and do not need to be
+       * checked here.
+       *
+       * NOTE: This exception somewhat weak, and ideally should not be needed. Currently however,
+       * embedded data are handled as full local (private) data of their owner IDs in part of
+       * Blender (like read/write code, including undo/redo), while depsgraph generally treat them
+       * as regular independent IDs. This leads to inconsistencies that can lead to bad level
+       * memory accesses.
+       *
+       * E.g. when undoing creation/deletion of a collection directly child of a scene's master
+       * collection, the scene itself is re-read in place, but its master collection becomes a
+       * completely new different pointer, and the existing COW of the old master collection in the
+       * matching deg node is therefore pointing to fully invalid (freed) memory. */
+      continue;
+    }
     BKE_library_foreach_ID_link(nullptr,
                                 id_node->id_cow,
                                 deg::foreach_id_cow_detect_need_for_update_callback,
