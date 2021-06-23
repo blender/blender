@@ -40,6 +40,8 @@
 #  include <io.h> /* for open close read */
 #endif
 
+#include "CLG_log.h"
+
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
@@ -188,14 +190,8 @@
 /* Use GHash for restoring pointers by name */
 #define USE_GHASH_RESTORE_POINTER
 
-/* Define this to have verbose debug prints. */
-//#define USE_DEBUG_PRINT
-
-#ifdef USE_DEBUG_PRINT
-#  define DEBUG_PRINTF(...) printf(__VA_ARGS__)
-#else
-#  define DEBUG_PRINTF(...)
-#endif
+static CLG_LogRef LOG = {"blo.readfile"};
+static CLG_LogRef LOG_UNDO = {"blo.readfile.undo"};
 
 /* local prototypes */
 static void read_libraries(FileData *basefd, ListBase *mainlist);
@@ -490,7 +486,7 @@ static void split_libdata(ListBase *lb_src, Main **lib_main_array, const uint li
         BLI_addtail(lb_dst, id);
       }
       else {
-        printf("%s: invalid library for '%s'\n", __func__, id->name);
+        CLOG_ERROR(&LOG, "Invalid library for '%s'", id->name);
         BLI_assert(0);
       }
     }
@@ -637,7 +633,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 
     if (BLI_path_cmp(name1, libname) == 0) {
       if (G.debug & G_DEBUG) {
-        printf("blo_find_main: found library %s\n", libname);
+        CLOG_INFO(&LOG, 3, "Found library %s", libname);
       }
       return m;
     }
@@ -664,7 +660,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   read_file_version(fd, m);
 
   if (G.debug & G_DEBUG) {
-    printf("blo_find_main: added new lib %s\n", filepath);
+    CLOG_INFO(&LOG, 3, "Added new lib %s", filepath);
   }
   return m;
 }
@@ -1298,7 +1294,7 @@ static ssize_t fd_read_from_memfile(FileData *filedata,
 
       /* debug, should never happen */
       if (chunk == NULL) {
-        printf("illegal read, chunk zero\n");
+        CLOG_ERROR(&LOG, "Illegal read, got a NULL chunk");
         return 0;
       }
 
@@ -1521,7 +1517,7 @@ static ssize_t fd_read_gzip_from_memory(FileData *filedata,
     return 0;
   }
   if (err != Z_OK) {
-    printf("fd_read_gzip_from_memory: zlib error\n");
+    CLOG_ERROR(&LOG, "ZLib error (code %d)", err);
     return 0;
   }
 
@@ -1609,8 +1605,9 @@ void blo_filedata_free(FileData *fd)
     }
 
     if (fd->strm.next_in) {
-      if (inflateEnd(&fd->strm) != Z_OK) {
-        printf("close gzip stream error\n");
+      int err = inflateEnd(&fd->strm);
+      if (err != Z_OK) {
+        CLOG_ERROR(&LOG, "Close gzip stream error (code %d)", err);
       }
     }
 
@@ -2593,7 +2590,7 @@ static void lib_link_scenes_check_set(Main *bmain)
     if (sce->flag & SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK) {
       sce->flag &= ~SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK;
       if (!scene_validate_setscene__liblink(sce, totscene)) {
-        printf("Found cyclic background scene when linking %s\n", sce->id.name + 2);
+        CLOG_WARN(&LOG, "Found cyclic background scene when linking %s", sce->id.name + 2);
       }
     }
   }
@@ -3427,15 +3424,17 @@ static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const I
    * That means we have to carefully check whether current lib or
    * libdata already exits in old main, if it does we merely copy it over into new main area,
    * otherwise we have to do a full read of that bhead... */
-  DEBUG_PRINTF("UNDO: restore library %s\n", id->name);
+  CLOG_INFO(&LOG_UNDO, 2, "UNDO: restore library %s", id->name);
 
   Main *libmain = fd->old_mainlist->first;
   /* Skip oldmain itself... */
   for (libmain = libmain->next; libmain; libmain = libmain->next) {
-    DEBUG_PRINTF("  compare with %s -> ", libmain->curlib ? libmain->curlib->id.name : "<NULL>");
     if (libmain->curlib && STREQ(id->name, libmain->curlib->id.name)) {
       Main *oldmain = fd->old_mainlist->first;
-      DEBUG_PRINTF("match!\n");
+      CLOG_INFO(&LOG_UNDO,
+                2,
+                "    compare with %s -> match",
+                libmain->curlib ? libmain->curlib->id.name : "<NULL>");
       /* In case of a library, we need to re-add its main to fd->mainlist,
        * because if we have later a missing ID_LINK_PLACEHOLDER,
        * we need to get the correct lib it is linked to!
@@ -3447,7 +3446,10 @@ static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const I
       BLI_addtail(&main->libraries, libmain->curlib);
       return true;
     }
-    DEBUG_PRINTF("no match\n");
+    CLOG_INFO(&LOG_UNDO,
+              2,
+              "    compare with %s -> NO match",
+              libmain->curlib ? libmain->curlib->id.name : "<NULL>");
   }
 
   return false;
@@ -3456,14 +3458,15 @@ static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const I
 /* For undo, restore existing linked datablock from the old main. */
 static bool read_libblock_undo_restore_linked(FileData *fd, Main *main, const ID *id, BHead *bhead)
 {
-  DEBUG_PRINTF("UNDO: restore linked datablock %s\n", id->name);
-  DEBUG_PRINTF("  from %s (%s): ",
-               main->curlib ? main->curlib->id.name : "<NULL>",
-               main->curlib ? main->curlib->filepath : "<NULL>");
+  CLOG_INFO(&LOG_UNDO, 2, "UNDO: restore linked datablock %s", id->name);
 
   ID *id_old = BKE_libblock_find_name(main, GS(id->name), id->name + 2);
   if (id_old != NULL) {
-    DEBUG_PRINTF("  found!\n");
+    CLOG_INFO(&LOG_UNDO,
+              2,
+              "    from %s (%s): found",
+              main->curlib ? main->curlib->id.name : "<NULL>",
+              main->curlib ? main->curlib->filepath : "<NULL>");
     /* Even though we found our linked ID, there is no guarantee its address
      * is still the same. */
     if (id_old != bhead->old) {
@@ -3475,7 +3478,11 @@ static bool read_libblock_undo_restore_linked(FileData *fd, Main *main, const ID
     return true;
   }
 
-  DEBUG_PRINTF("  not found\n");
+  CLOG_INFO(&LOG_UNDO,
+            2,
+            "    from %s (%s): NOT found",
+            main->curlib ? main->curlib->id.name : "<NULL>",
+            main->curlib ? main->curlib->filepath : "<NULL>");
   return false;
 }
 
@@ -3584,8 +3591,6 @@ static bool read_libblock_undo_restore(
   }
 
   /* Restore local datablocks. */
-  DEBUG_PRINTF("UNDO: read %s (uuid %u) -> ", id->name, id->session_uuid);
-
   ID *id_old = NULL;
   const bool do_partial_undo = (fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0;
   if (do_partial_undo && (bhead->code != ID_LINK_PLACEHOLDER)) {
@@ -3600,7 +3605,11 @@ static bool read_libblock_undo_restore(
 
   if (id_old != NULL && read_libblock_is_identical(fd, bhead)) {
     /* Local datablock was unchanged, restore from the old main. */
-    DEBUG_PRINTF("keep identical datablock\n");
+    CLOG_INFO(&LOG_UNDO,
+              2,
+              "UNDO: read %s (uuid %u) -> keep identical datablock",
+              id->name,
+              id->session_uuid);
 
     /* Do not add LIB_TAG_NEW here, this should not be needed/used in undo case anyway (as
      * this is only for do_version-like code), but for sake of consistency, and also because
@@ -3620,13 +3629,18 @@ static bool read_libblock_undo_restore(
   }
   if (id_old != NULL) {
     /* Local datablock was changed. Restore at the address of the old datablock. */
-    DEBUG_PRINTF("read to old existing address\n");
+    CLOG_INFO(&LOG_UNDO,
+              2,
+              "UNDO: read %s (uuid %u) -> read to old existing address",
+              id->name,
+              id->session_uuid);
     *r_id_old = id_old;
     return false;
   }
 
   /* Local datablock does not exist in the undo step, so read from scratch. */
-  DEBUG_PRINTF("read at new address\n");
+  CLOG_INFO(
+      &LOG_UNDO, 2, "UNDO: read %s (uuid %u) -> read at new address", id->name, id->session_uuid);
   return false;
 }
 
@@ -3671,7 +3685,7 @@ static BHead *read_libblock(FileData *fd,
   ListBase *lb = which_libbase(main, idcode);
   if (lb == NULL) {
     /* Unknown ID type. */
-    printf("%s: unknown id code '%c%c'\n", __func__, (idcode & 0xff), (idcode >> 8));
+    CLOG_WARN(&LOG, "Unknown id code '%c%c'", (idcode & 0xff), (idcode >> 8));
     MEM_freeN(id);
     if (r_id) {
       *r_id = NULL;
@@ -3863,12 +3877,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
       BLI_strncpy(build_commit_datetime, "unknown", sizeof(build_commit_datetime));
     }
 
-    printf("read file %s\n  Version %d sub %d date %s hash %s\n",
-           fd->relabase,
-           main->versionfile,
-           main->subversionfile,
-           build_commit_datetime,
-           main->build_hash);
+    CLOG_INFO(&LOG, 0, "Read file %s", fd->relabase);
+    CLOG_INFO(&LOG,
+              0,
+              "    Version %d sub %d date %s hash %s",
+              main->versionfile,
+              main->subversionfile,
+              build_commit_datetime,
+              main->build_hash);
   }
 
   blo_do_versions_pre250(fd, lib, main);
@@ -3890,8 +3906,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 static void do_versions_after_linking(Main *main, ReportList *reports)
 {
-  //  printf("%s for %s (%s), %d.%d\n", __func__, main->curlib ? main->curlib->filepath :
-  //         main->name, main->curlib ? "LIB" : "MAIN", main->versionfile, main->subversionfile);
+  CLOG_INFO(&LOG,
+            2,
+            "Processing %s (%s), %d.%d",
+            main->curlib ? main->curlib->filepath : main->name,
+            main->curlib ? "LIB" : "MAIN",
+            main->versionfile,
+            main->subversionfile);
 
   /* Don't allow versioning to create new data-blocks. */
   main->is_locked_for_linking = true;
@@ -4112,7 +4133,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   ListBase mainlist = {NULL, NULL};
 
   if (fd->memfile != NULL) {
-    DEBUG_PRINTF("\nUNDO: read step\n");
+    CLOG_INFO(&LOG_UNDO, 2, "UNDO: read step");
   }
 
   bfd = MEM_callocN(sizeof(BlendFileData), "blendfiledata");
@@ -4923,9 +4944,7 @@ static ID *link_named_part(
     }
     else {
       /* already linked */
-      if (G.debug) {
-        printf("append: already linked\n");
-      }
+      CLOG_WARN(&LOG, "Append: ID '%s' is already linked", id->name);
       oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
       if (!force_indirect && (id->tag & LIB_TAG_INDIRECT)) {
         id->tag &= ~LIB_TAG_INDIRECT;
@@ -5429,7 +5448,7 @@ static void read_library_clear_weak_links(FileData *basefd, ListBase *mainlist, 
     while (id) {
       ID *id_next = id->next;
       if ((id->tag & LIB_TAG_ID_LINK_PLACEHOLDER) && (id->flag & LIB_INDIRECT_WEAK_LINK)) {
-        /* printf("Dropping weak link to %s\n", id->name); */
+        CLOG_INFO(&LOG, 3, "Dropping weak link to '%s'", id->name);
         change_link_placeholder_to_real_ID_pointer(mainlist, basefd, id, NULL);
         BLI_freelinkN(lbarray[a], id);
       }
@@ -5539,11 +5558,11 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     for (Main *mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
       /* Does this library have any more linked data-blocks we need to read? */
       if (has_linked_ids_to_read(mainptr)) {
-#if 0
-        printf("Reading linked data-blocks from %s (%s)\n",
-          mainptr->curlib->id.name,
-          mainptr->curlib->filepath);
-#endif
+        CLOG_INFO(&LOG,
+                  3,
+                  "Reading linked data-blocks from %s (%s)",
+                  mainptr->curlib->id.name,
+                  mainptr->curlib->filepath);
 
         /* Open file if it has not been done yet. */
         FileData *fd = read_library_file_data(basefd, mainlist, mainl, mainptr);
