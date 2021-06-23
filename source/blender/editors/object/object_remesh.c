@@ -139,6 +139,13 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (mesh->totpoly == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Output mesh will be all smooth or all flat shading. */
+  const bool smooth_normals = mesh->mpoly[0].flag & ME_SMOOTH;
+
   float isovalue = 0.0f;
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
     isovalue = mesh->remesh_voxel_size * 0.3f;
@@ -185,7 +192,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
 
-  if (mesh->flag & ME_REMESH_SMOOTH_NORMALS) {
+  if (smooth_normals) {
     BKE_mesh_smooth_flag_set(ob->data, true);
   }
 
