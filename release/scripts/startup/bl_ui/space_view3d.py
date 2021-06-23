@@ -2530,7 +2530,7 @@ class VIEW3D_MT_object_context_menu(Menu):
                 layout.operator_menu_enum("gpencil.convert", "type", text="Convert To")
 
             if (
-                    obj.type in {'MESH', 'CURVE', 'SURFACE', 'GPENCIL', 'LATTICE', 'ARMATURE', 'META'} or
+                    obj.type in {'MESH', 'CURVE', 'SURFACE', 'GPENCIL', 'LATTICE', 'ARMATURE', 'META', 'FONT'} or
                     (obj.type == 'EMPTY' and obj.instance_collection is not None)
             ):
                 layout.operator_context = 'INVOKE_REGION_WIN'
