@@ -1222,12 +1222,12 @@ BMVert *EDBM_verts_mirror_get(BMEditMesh *em, BMVert *v)
 
 BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
 {
-  BMVert *v1_mirr = EDBM_verts_mirror_get(em, e->v1);
-  if (v1_mirr) {
-    BMVert *v2_mirr = EDBM_verts_mirror_get(em, e->v2);
-    if (v2_mirr) {
-      return BM_edge_exists(v1_mirr, v2_mirr);
-    }
+  BMVert *v1_mirr, *v2_mirr;
+  if ((v1_mirr = EDBM_verts_mirror_get(em, e->v1)) &&
+      (v2_mirr = EDBM_verts_mirror_get(em, e->v2)) &&
+      /* While highly unlikely, a zero length central edges vertices can match, see T89342. */
+      LIKELY(v1_mirr != v2_mirr)) {
+    return BM_edge_exists(v1_mirr, v2_mirr);
   }
 
   return NULL;
