@@ -21,7 +21,7 @@
 #include "BKE_image.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "MEM_guardedalloc.h"
 
 #include "RE_pipeline.h"
@@ -32,14 +32,17 @@ namespace blender::compositor {
 /**
  * \brief Base class for all image operations
  */
-class BaseImageOperation : public NodeOperation {
+class BaseImageOperation : public MultiThreadedOperation {
  protected:
   ImBuf *m_buffer;
   Image *m_image;
   ImageUser *m_imageUser;
+  /* TODO: Remove raw buffers when removing Tiled implementation. */
   float *m_imageFloatBuffer;
   unsigned int *m_imageByteBuffer;
   float *m_depthBuffer;
+
+  MemoryBuffer *depth_buffer_;
   int m_imageheight;
   int m_imagewidth;
   int m_framenumber;
@@ -87,6 +90,10 @@ class ImageOperation : public BaseImageOperation {
    */
   ImageOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 class ImageAlphaOperation : public BaseImageOperation {
  public:
@@ -95,6 +102,10 @@ class ImageAlphaOperation : public BaseImageOperation {
    */
   ImageAlphaOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 class ImageDepthOperation : public BaseImageOperation {
  public:
@@ -103,6 +114,10 @@ class ImageDepthOperation : public BaseImageOperation {
    */
   ImageDepthOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

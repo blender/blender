@@ -106,6 +106,11 @@ class MemoryBuffer {
    */
   bool m_is_a_single_elem;
 
+  /**
+   * Whether MemoryBuffer owns buffer data.
+   */
+  bool owns_data_;
+
  public:
   /**
    * \brief construct new temporarily MemoryBuffer for an area
@@ -116,6 +121,11 @@ class MemoryBuffer {
    * \brief construct new temporarily MemoryBuffer for an area
    */
   MemoryBuffer(DataType datatype, const rcti &rect, bool is_a_single_elem = false);
+
+  MemoryBuffer(
+      float *buffer, int num_channels, int width, int height, bool is_a_single_elem = false);
+
+  MemoryBuffer(float *buffer, int num_channels, const rcti &rect, bool is_a_single_elem = false);
 
   /**
    * Copy constructor
@@ -223,7 +233,7 @@ class MemoryBuffer {
     return is_a_single_elem() ? 1 : getHeight();
   }
 
-  uint8_t get_num_channels()
+  uint8_t get_num_channels() const
   {
     return this->m_num_channels;
   }
@@ -404,6 +414,53 @@ class MemoryBuffer {
     return this->m_state == MemoryBufferState::Temporary;
   }
 
+  void copy_from(const MemoryBuffer *src, const rcti &area);
+  void copy_from(const MemoryBuffer *src, const rcti &area, int to_x, int to_y);
+  void copy_from(const MemoryBuffer *src,
+                 const rcti &area,
+                 int channel_offset,
+                 int elem_size,
+                 int to_channel_offset);
+  void copy_from(const MemoryBuffer *src,
+                 const rcti &area,
+                 int channel_offset,
+                 int elem_size,
+                 int to_x,
+                 int to_y,
+                 int to_channel_offset);
+  void copy_from(const uchar *src, const rcti &area);
+  void copy_from(const uchar *src,
+                 const rcti &area,
+                 int channel_offset,
+                 int elem_size,
+                 int elem_stride,
+                 int to_channel_offset);
+  void copy_from(const uchar *src,
+                 const rcti &area,
+                 int channel_offset,
+                 int elem_size,
+                 int elem_stride,
+                 int to_x,
+                 int to_y,
+                 int to_channel_offset);
+  void copy_from(const struct ImBuf *src, const rcti &area, bool ensure_linear_space = false);
+  void copy_from(const struct ImBuf *src,
+                 const rcti &area,
+                 int channel_offset,
+                 int elem_size,
+                 int to_channel_offset,
+                 bool ensure_linear_space = false);
+  void copy_from(const struct ImBuf *src,
+                 const rcti &src_area,
+                 int channel_offset,
+                 int elem_size,
+                 int to_x,
+                 int to_y,
+                 int to_channel_offset,
+                 bool ensure_linear_space = false);
+
+  void fill(const rcti &area, const float *value);
+  void fill(const rcti &area, int channel_offset, const float *value, int value_size);
   /**
    * \brief add the content from otherBuffer to this MemoryBuffer
    * \param otherBuffer: source buffer
@@ -451,6 +508,22 @@ class MemoryBuffer {
   {
     return get_memory_width() * get_memory_height();
   }
+
+  void copy_single_elem_from(const MemoryBuffer *src,
+                             int channel_offset,
+                             int elem_size,
+                             const int to_channel_offset);
+  void copy_rows_from(const MemoryBuffer *src,
+                      const rcti &src_area,
+                      const int to_x,
+                      const int to_y);
+  void copy_elems_from(const MemoryBuffer *src,
+                       const rcti &area,
+                       const int channel_offset,
+                       const int elem_size,
+                       const int to_x,
+                       const int to_y,
+                       const int to_channel_offset);
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryBuffer")
