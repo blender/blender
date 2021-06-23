@@ -471,11 +471,14 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
 
 typedef struct LibOverrideGroupTagData {
   Main *bmain;
+  Scene *scene;
   ID *id_root;
   uint tag;
   uint missing_tag;
   /* Whether we are looping on override data, or their references (linked) one. */
   bool is_override;
+  /* Whether we are creating new override, or resyncing existing one. */
+  bool is_resync;
 } LibOverrideGroupTagData;
 
 /* Tag all IDs in dependency relationships within an override hierarchy/group.
@@ -596,7 +599,9 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
 static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
 {
   Main *bmain = data->bmain;
+  Scene *scene = data->scene;
   ID *id_root = data->id_root;
+  const bool is_resync = data->is_resync;
   BLI_assert(!data->is_override);
 
   if ((id_root->tag & LIB_TAG_MISSING)) {
@@ -617,6 +622,43 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
         for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
           if (pchan->custom != NULL) {
             pchan->custom->id.tag &= ~(data->tag | data->missing_tag);
+          }
+        }
+      }
+    }
+
+    /* For each object tagged for override, ensure we get at least one local or liboverride
+     * collection to host it. Avoids getting a bunch of random object in the scene's master
+     * collection when all objects' dependencies are not properly 'packed' into a single root
+     * collection. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ID_IS_LINKED(ob) && (ob->id.tag & data->tag) != 0) {
+        Collection *instantiating_collection = NULL;
+        Collection *instantiating_collection_override_candidate = NULL;
+        /* Loop over all collections instantiating the object, if we already have a 'locale' one we
+         * have nothing to do, otherwise try to find a 'linked' one that we can override too. */
+        while ((instantiating_collection = BKE_collection_object_find(
+                    bmain, scene, instantiating_collection, ob)) != NULL) {
+          /* In (recursive) resync case, if a collection of a 'parent' lib instantiates the linked
+           * object, it is also fine. */
+          if (!ID_IS_LINKED(instantiating_collection) ||
+              (is_resync && ID_IS_LINKED(id_root) &&
+               instantiating_collection->id.lib->temp_index < id_root->lib->temp_index)) {
+            break;
+          }
+          else if (ID_IS_LINKED(instantiating_collection) &&
+                   (!is_resync || instantiating_collection->id.lib == id_root->lib)) {
+            instantiating_collection_override_candidate = instantiating_collection;
+          }
+        }
+
+        if (instantiating_collection == NULL &&
+            instantiating_collection_override_candidate != NULL) {
+          if ((instantiating_collection_override_candidate->id.tag & LIB_TAG_MISSING)) {
+            instantiating_collection_override_candidate->id.tag |= data->missing_tag;
+          }
+          else {
+            instantiating_collection_override_candidate->id.tag |= data->tag;
           }
         }
       }
@@ -699,14 +741,16 @@ static void lib_override_overrides_group_tag(LibOverrideGroupTagData *data)
   lib_override_overrides_group_tag_recursive(data);
 }
 
-static bool lib_override_library_create_do(Main *bmain, ID *id_root)
+static bool lib_override_library_create_do(Main *bmain, Scene *scene, ID *id_root)
 {
   BKE_main_relations_create(bmain, 0);
   LibOverrideGroupTagData data = {.bmain = bmain,
+                                  .scene = scene,
                                   .id_root = id_root,
                                   .tag = LIB_TAG_DOIT,
                                   .missing_tag = LIB_TAG_MISSING,
-                                  .is_override = false};
+                                  .is_override = false,
+                                  .is_resync = false};
   lib_override_linked_group_tag(&data);
 
   BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
@@ -867,7 +911,7 @@ bool BKE_lib_override_library_create(Main *bmain,
     *r_id_root_override = NULL;
   }
 
-  const bool success = lib_override_library_create_do(bmain, id_root);
+  const bool success = lib_override_library_create_do(bmain, scene, id_root);
 
   if (!success) {
     return success;
@@ -971,10 +1015,12 @@ bool BKE_lib_override_library_resync(Main *bmain,
 
   BKE_main_relations_create(bmain, 0);
   LibOverrideGroupTagData data = {.bmain = bmain,
+                                  .scene = scene,
                                   .id_root = id_root,
                                   .tag = LIB_TAG_DOIT,
                                   .missing_tag = LIB_TAG_MISSING,
-                                  .is_override = true};
+                                  .is_override = true,
+                                  .is_resync = true};
   lib_override_overrides_group_tag(&data);
 
   BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
@@ -1468,10 +1514,12 @@ static void lib_override_library_main_resync_on_library_indirect_level(
     }
 
     LibOverrideGroupTagData data = {.bmain = bmain,
+                                    .scene = scene,
                                     .id_root = id->override_library->reference,
                                     .tag = LIB_TAG_DOIT,
                                     .missing_tag = LIB_TAG_MISSING,
-                                    .is_override = false};
+                                    .is_override = false,
+                                    .is_resync = true};
     lib_override_linked_group_tag(&data);
     BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
     lib_override_hierarchy_dependencies_recursive_tag(&data);
@@ -1710,10 +1758,12 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
   /* Tag all library overrides in the chains of dependencies from the given root one. */
   BKE_main_relations_create(bmain, 0);
   LibOverrideGroupTagData data = {.bmain = bmain,
+                                  .scene = NULL,
                                   .id_root = id_root,
                                   .tag = LIB_TAG_DOIT,
                                   .missing_tag = LIB_TAG_MISSING,
-                                  .is_override = true};
+                                  .is_override = true,
+                                  .is_resync = false};
   lib_override_overrides_group_tag(&data);
 
   BKE_main_relations_free(bmain);
