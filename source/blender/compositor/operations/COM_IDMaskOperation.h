@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class IDMaskOperation : public NodeOperation {
+class IDMaskOperation : public MultiThreadedOperation {
  private:
   float m_objectIndex;
 
@@ -36,6 +36,10 @@ class IDMaskOperation : public NodeOperation {
   {
     this->m_objectIndex = objectIndex;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor
