@@ -793,6 +793,7 @@ bool BKE_gpencil_stroke_smooth(bGPDstroke *gps, int i, float inf)
 {
   bGPDspoint *pt = &gps->points[i];
   float sco[3] = {0.0f};
+  const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC) != 0;
 
   /* Do nothing if not enough points to smooth out */
   if (gps->totpoints <= 2) {
@@ -802,7 +803,7 @@ bool BKE_gpencil_stroke_smooth(bGPDstroke *gps, int i, float inf)
   /* Only affect endpoints by a fraction of the normal strength,
    * to prevent the stroke from shrinking too much
    */
-  if (ELEM(i, 0, gps->totpoints - 1)) {
+  if (!is_cyclic && ELEM(i, 0, gps->totpoints - 1)) {
     inf *= 0.1f;
   }
 
@@ -828,8 +829,22 @@ bool BKE_gpencil_stroke_smooth(bGPDstroke *gps, int i, float inf)
       int before = i - step;
       int after = i + step;
 
-      CLAMP_MIN(before, 0);
-      CLAMP_MAX(after, gps->totpoints - 1);
+      if (is_cyclic) {
+        if (before < 0) {
+          /* Sub to end point (before is already negative). */
+          before = gps->totpoints + before;
+          CLAMP(before, 0, gps->totpoints - 1);
+        }
+        if (after > gps->totpoints - 1) {
+          /* Add to start point. */
+          after = after - gps->totpoints;
+          CLAMP(after, 0, gps->totpoints - 1);
+        }
+      }
+      else {
+        CLAMP_MIN(before, 0);
+        CLAMP_MAX(after, gps->totpoints - 1);
+      }
 
       pt1 = &gps->points[before];
       pt2 = &gps->points[after];
@@ -855,6 +870,7 @@ bool BKE_gpencil_stroke_smooth(bGPDstroke *gps, int i, float inf)
 bool BKE_gpencil_stroke_smooth_strength(bGPDstroke *gps, int point_index, float influence)
 {
   bGPDspoint *ptb = &gps->points[point_index];
+  const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC) != 0;
 
   /* Do nothing if not enough points */
   if ((gps->totpoints <= 2) || (point_index < 1)) {
@@ -862,7 +878,7 @@ bool BKE_gpencil_stroke_smooth_strength(bGPDstroke *gps, int point_index, float 
   }
   /* Only affect endpoints by a fraction of the normal influence */
   float inf = influence;
-  if (ELEM(point_index, 0, gps->totpoints - 1)) {
+  if (!is_cyclic && ELEM(point_index, 0, gps->totpoints - 1)) {
     inf *= 0.01f;
   }
   /* Limit max influence to reduce pop effect. */
@@ -884,9 +900,22 @@ bool BKE_gpencil_stroke_smooth_strength(bGPDstroke *gps, int point_index, float 
     int before = point_index - step;
     int after = point_index + step;
 
-    CLAMP_MIN(before, 0);
-    CLAMP_MAX(after, gps->totpoints - 1);
-
+    if (is_cyclic) {
+      if (before < 0) {
+        /* Sub to end point (before is already negative). */
+        before = gps->totpoints + before;
+        CLAMP(before, 0, gps->totpoints - 1);
+      }
+      if (after > gps->totpoints - 1) {
+        /* Add to start point. */
+        after = after - gps->totpoints;
+        CLAMP(after, 0, gps->totpoints - 1);
+      }
+    }
+    else {
+      CLAMP_MIN(before, 0);
+      CLAMP_MAX(after, gps->totpoints - 1);
+    }
     pt1 = &gps->points[before];
     pt2 = &gps->points[after];
 
@@ -919,6 +948,7 @@ bool BKE_gpencil_stroke_smooth_strength(bGPDstroke *gps, int point_index, float 
 bool BKE_gpencil_stroke_smooth_thickness(bGPDstroke *gps, int point_index, float influence)
 {
   bGPDspoint *ptb = &gps->points[point_index];
+  const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC) != 0;
 
   /* Do nothing if not enough points */
   if ((gps->totpoints <= 2) || (point_index < 1)) {
@@ -926,7 +956,7 @@ bool BKE_gpencil_stroke_smooth_thickness(bGPDstroke *gps, int point_index, float
   }
   /* Only affect endpoints by a fraction of the normal influence */
   float inf = influence;
-  if (ELEM(point_index, 0, gps->totpoints - 1)) {
+  if (!is_cyclic && ELEM(point_index, 0, gps->totpoints - 1)) {
     inf *= 0.01f;
   }
   /* Limit max influence to reduce pop effect. */
@@ -948,9 +978,22 @@ bool BKE_gpencil_stroke_smooth_thickness(bGPDstroke *gps, int point_index, float
     int before = point_index - step;
     int after = point_index + step;
 
-    CLAMP_MIN(before, 0);
-    CLAMP_MAX(after, gps->totpoints - 1);
-
+    if (is_cyclic) {
+      if (before < 0) {
+        /* Sub to end point (before is already negative). */
+        before = gps->totpoints + before;
+        CLAMP(before, 0, gps->totpoints - 1);
+      }
+      if (after > gps->totpoints - 1) {
+        /* Add to start point. */
+        after = after - gps->totpoints;
+        CLAMP(after, 0, gps->totpoints - 1);
+      }
+    }
+    else {
+      CLAMP_MIN(before, 0);
+      CLAMP_MAX(after, gps->totpoints - 1);
+    }
     pt1 = &gps->points[before];
     pt2 = &gps->points[after];
 
@@ -982,6 +1025,7 @@ bool BKE_gpencil_stroke_smooth_thickness(bGPDstroke *gps, int point_index, float
 bool BKE_gpencil_stroke_smooth_uv(bGPDstroke *gps, int point_index, float influence)
 {
   bGPDspoint *ptb = &gps->points[point_index];
+  const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC) != 0;
 
   /* Do nothing if not enough points */
   if (gps->totpoints <= 2) {
@@ -993,9 +1037,22 @@ bool BKE_gpencil_stroke_smooth_uv(bGPDstroke *gps, int point_index, float influe
   int before = point_index - 1;
   int after = point_index + 1;
 
-  CLAMP_MIN(before, 0);
-  CLAMP_MAX(after, gps->totpoints - 1);
-
+  if (is_cyclic) {
+    if (before < 0) {
+      /* Sub to end point (before is already negative). */
+      before = gps->totpoints + before;
+      CLAMP(before, 0, gps->totpoints - 1);
+    }
+    if (after > gps->totpoints - 1) {
+      /* Add to start point. */
+      after = after - gps->totpoints;
+      CLAMP(after, 0, gps->totpoints - 1);
+    }
+  }
+  else {
+    CLAMP_MIN(before, 0);
+    CLAMP_MAX(after, gps->totpoints - 1);
+  }
   pta = &gps->points[before];
   ptc = &gps->points[after];
 
