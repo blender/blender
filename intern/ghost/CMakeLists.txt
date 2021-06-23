@@ -297,7 +297,20 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     )
 
     pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
-    pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
+
+    pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
+    if (${wayland-protocols_FOUND})
+      pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
+    else()
+      find_path(WAYLAND_PROTOCOLS_DIR
+        NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
+        PATH_SUFFIXES share/wayland-protocols
+      )
+    endif()
+
+    if (NOT EXISTS ${WAYLAND_PROTOCOLS_DIR})
+      message(FATAL_ERROR "path to wayland-protocols not found")
+    endif()
 
     # Generate protocols bindings.
     macro(generate_protocol_bindings NAME PROT_DEF)
