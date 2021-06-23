@@ -52,11 +52,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
 #include "BLI_linklist.h"
+#include "BLI_math.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
 #include BLI_SYSTEM_PID_H
+
+#include "PIL_time.h"
 
 #include "BLT_translation.h"
 
@@ -733,6 +736,97 @@ static void wm_file_read_post(bContext *C,
 /** \name Read Main Blend-File API
  * \{ */
 
+static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
+{
+  double duration_whole_minutes, duration_whole_seconds;
+  double duration_libraries_minutes, duration_libraries_seconds;
+  double duration_lib_override_minutes, duration_lib_override_seconds;
+  double duration_lib_override_resync_minutes, duration_lib_override_resync_seconds;
+  double duration_lib_override_recursive_resync_minutes,
+      duration_lib_override_recursive_resync_seconds;
+
+  BLI_math_time_seconds_decompose(bf_reports->duration.whole,
+                                  NULL,
+                                  NULL,
+                                  &duration_whole_minutes,
+                                  &duration_whole_seconds,
+                                  NULL);
+  BLI_math_time_seconds_decompose(bf_reports->duration.libraries,
+                                  NULL,
+                                  NULL,
+                                  &duration_libraries_minutes,
+                                  &duration_libraries_seconds,
+                                  NULL);
+  BLI_math_time_seconds_decompose(bf_reports->duration.lib_overrides,
+                                  NULL,
+                                  NULL,
+                                  &duration_lib_override_minutes,
+                                  &duration_lib_override_seconds,
+                                  NULL);
+  BLI_math_time_seconds_decompose(bf_reports->duration.lib_overrides_resync,
+                                  NULL,
+                                  NULL,
+                                  &duration_lib_override_resync_minutes,
+                                  &duration_lib_override_resync_seconds,
+                                  NULL);
+  BLI_math_time_seconds_decompose(bf_reports->duration.lib_overrides_recursive_resync,
+                                  NULL,
+                                  NULL,
+                                  &duration_lib_override_recursive_resync_minutes,
+                                  &duration_lib_override_recursive_resync_seconds,
+                                  NULL);
+
+  CLOG_INFO(
+      &LOG, 0, "Blender file read in %.0fm%.2fs", duration_whole_minutes, duration_whole_seconds);
+  CLOG_INFO(&LOG,
+            0,
+            " * Loading libraries: %.0fm%.2fs",
+            duration_libraries_minutes,
+            duration_libraries_seconds);
+  CLOG_INFO(&LOG,
+            0,
+            " * Applying overrides: %.0fm%.2fs",
+            duration_lib_override_minutes,
+            duration_lib_override_seconds);
+  CLOG_INFO(&LOG,
+            0,
+            " * Resyncing overrides: %.0fm%.2fs (%d root overrides), including recursive "
+            "resyncs: %.0fm%.2fs)",
+            duration_lib_override_resync_minutes,
+            duration_lib_override_resync_seconds,
+            bf_reports->count.resynced_lib_overrides,
+            duration_lib_override_recursive_resync_minutes,
+            duration_lib_override_recursive_resync_seconds);
+  if (bf_reports->resynced_lib_overrides_libraries_count != 0) {
+    for (LinkNode *node_lib = bf_reports->resynced_lib_overrides_libraries; node_lib != NULL;
+         node_lib = node_lib->next) {
+      Library *library = node_lib->link;
+      BKE_reportf(
+          bf_reports->reports, RPT_INFO, "Library %s needs overrides resync.", library->filepath);
+    }
+  }
+  if (bf_reports->count.missing_libraries != 0 || bf_reports->count.missing_linked_id != 0) {
+    BKE_reportf(bf_reports->reports,
+                RPT_WARNING,
+                "%d libraries and %d linked data-blocks are missing, please check the "
+                "Info and Outliner editors for details",
+                bf_reports->count.missing_libraries,
+                bf_reports->count.missing_linked_id);
+  }
+  if (bf_reports->resynced_lib_overrides_libraries_count != 0) {
+    BKE_reportf(bf_reports->reports,
+                RPT_WARNING,
+                "%d libraries have overrides needing resync (auto resynced in %.0fm%.2fs),  "
+                "please check the Info editor for details",
+                bf_reports->resynced_lib_overrides_libraries_count,
+                duration_lib_override_recursive_resync_minutes,
+                duration_lib_override_recursive_resync_seconds);
+  }
+
+  BLI_linklist_free(bf_reports->resynced_lib_overrides_libraries, NULL);
+  bf_reports->resynced_lib_overrides_libraries = NULL;
+}
+
 bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 {
   /* assume automated tasks with background, don't write recent file list */
@@ -763,7 +857,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
         .skip_flags = BLO_READ_SKIP_USERDEF,
     };
 
-    struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, reports);
+    BlendFileReadReport bf_reports = {.reports = reports,
+                                      .duration.whole = PIL_check_seconds_timer()};
+    struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
     if (bfd != NULL) {
       wm_file_read_pre(C, use_data, use_userdef);
 
@@ -776,7 +872,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
        * need to re-enable it here else drivers and registered scripts won't work. */
       const int G_f_orig = G.f;
 
-      BKE_blendfile_read_setup(C, bfd, &params, reports);
+      BKE_blendfile_read_setup(C, bfd, &params, &bf_reports);
 
       if (G.f != G_f_orig) {
         const int flags_keep = G_FLAG_ALL_RUNTIME;
@@ -806,6 +902,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       }
 
       wm_file_read_post(C, false, false, use_data, use_userdef, false);
+
+      bf_reports.duration.whole = PIL_check_seconds_timer() - bf_reports.duration.whole;
+      file_read_reports_finalize(&bf_reports);
 
       success = true;
     }
@@ -1087,10 +1186,15 @@ void wm_homefile_read(bContext *C,
           .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
       };
 
-      struct BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, NULL);
+      struct BlendFileData *bfd = BKE_blendfile_read(
+          filepath_startup, &params, &(BlendFileReadReport){NULL});
       if (bfd != NULL) {
-        BKE_blendfile_read_setup_ex(
-            C, bfd, &params, NULL, update_defaults && use_data, app_template);
+        BKE_blendfile_read_setup_ex(C,
+                                    bfd,
+                                    &params,
+                                    &(BlendFileReadReport){NULL},
+                                    update_defaults && use_data,
+                                    app_template);
         success = true;
       }
     }
@@ -1120,7 +1224,7 @@ void wm_homefile_read(bContext *C,
     struct BlendFileData *bfd = BKE_blendfile_read_from_memory(
         datatoc_startup_blend, datatoc_startup_blend_size, &params, NULL);
     if (bfd != NULL) {
-      BKE_blendfile_read_setup_ex(C, bfd, &params, NULL, true, NULL);
+      BKE_blendfile_read_setup_ex(C, bfd, &params, &(BlendFileReadReport){NULL}, true, NULL);
       success = true;
     }
 

@@ -83,7 +83,8 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
     }
 
     BKE_library_filepath_set(bmain, curlib, curlib->filepath);
-    BlendHandle *bh = BLO_blendhandle_from_file(curlib->filepath_abs, reports);
+    BlendHandle *bh = BLO_blendhandle_from_file(curlib->filepath_abs,
+                                                &(BlendFileReadReport){.reports = reports});
 
     if (bh == NULL) {
       BKE_reportf(reports,

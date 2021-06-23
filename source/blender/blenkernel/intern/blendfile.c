@@ -36,6 +36,8 @@
 #include "BLI_system.h"
 #include "BLI_utildefines.h"
 
+#include "PIL_time.h"
+
 #include "IMB_colormanagement.h"
 
 #include "BKE_addon.h"
@@ -136,7 +138,7 @@ static void setup_app_userdef(BlendFileData *bfd)
 static void setup_app_data(bContext *C,
                            BlendFileData *bfd,
                            const struct BlendFileReadParams *params,
-                           ReportList *reports)
+                           BlendFileReadReport *reports)
 {
   Main *bmain = G_MAIN;
   Scene *curscene = NULL;
@@ -155,7 +157,7 @@ static void setup_app_data(bContext *C,
   /* may happen with library files - UNDO file should never have NULL curscene (but may have a
    * NULL curscreen)... */
   else if (ELEM(NULL, bfd->curscreen, bfd->curscene)) {
-    BKE_report(reports, RPT_WARNING, "Library file, loading empty scene");
+    BKE_report(reports->reports, RPT_WARNING, "Library file, loading empty scene");
     mode = LOAD_UI_OFF;
   }
   else if (G.fileflags & G_FILE_NO_UI) {
@@ -396,11 +398,17 @@ static void setup_app_data(bContext *C,
   }
 
   if (mode != LOAD_UNDO && !USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {
+    reports->duration.lib_overrides_resync = PIL_check_seconds_timer();
+
     BKE_lib_override_library_main_resync(
         bmain,
         curscene,
         bfd->cur_view_layer ? bfd->cur_view_layer : BKE_view_layer_default_view(curscene),
         reports);
+
+    reports->duration.lib_overrides_resync = PIL_check_seconds_timer() -
+                                             reports->duration.lib_overrides_resync;
+
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
     BKE_lib_override_library_main_operations_create(bmain, true);
   }
@@ -409,7 +417,7 @@ static void setup_app_data(bContext *C,
 static void setup_app_blend_file_data(bContext *C,
                                       BlendFileData *bfd,
                                       const struct BlendFileReadParams *params,
-                                      ReportList *reports)
+                                      BlendFileReadReport *reports)
 {
   if ((params->skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
     setup_app_userdef(bfd);
@@ -419,12 +427,12 @@ static void setup_app_blend_file_data(bContext *C,
   }
 }
 
-static void handle_subversion_warning(Main *main, ReportList *reports)
+static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
 {
   if (main->minversionfile > BLENDER_FILE_VERSION ||
       (main->minversionfile == BLENDER_FILE_VERSION &&
        main->minsubversionfile > BLENDER_FILE_SUBVERSION)) {
-    BKE_reportf(reports,
+    BKE_reportf(reports->reports,
                 RPT_ERROR,
                 "File written by newer Blender binary (%d.%d), expect loss of data!",
                 main->minversionfile,
@@ -443,7 +451,7 @@ static void handle_subversion_warning(Main *main, ReportList *reports)
 void BKE_blendfile_read_setup_ex(bContext *C,
                                  BlendFileData *bfd,
                                  const struct BlendFileReadParams *params,
-                                 ReportList *reports,
+                                 BlendFileReadReport *reports,
                                  /* Extra args. */
                                  const bool startup_update_defaults,
                                  const char *startup_app_template)
@@ -460,7 +468,7 @@ void BKE_blendfile_read_setup_ex(bContext *C,
 void BKE_blendfile_read_setup(bContext *C,
                               BlendFileData *bfd,
                               const struct BlendFileReadParams *params,
-                              ReportList *reports)
+                              BlendFileReadReport *reports)
 {
   BKE_blendfile_read_setup_ex(C, bfd, params, reports, false, NULL);
 }
@@ -470,7 +478,7 @@ void BKE_blendfile_read_setup(bContext *C,
  */
 struct BlendFileData *BKE_blendfile_read(const char *filepath,
                                          const struct BlendFileReadParams *params,
-                                         ReportList *reports)
+                                         BlendFileReadReport *reports)
 {
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
@@ -482,7 +490,7 @@ struct BlendFileData *BKE_blendfile_read(const char *filepath,
     handle_subversion_warning(bfd->main, reports);
   }
   else {
-    BKE_reports_prependf(reports, "Loading '%s' failed: ", filepath);
+    BKE_reports_prependf(reports->reports, "Loading '%s' failed: ", filepath);
   }
   return bfd;
 }
@@ -559,7 +567,9 @@ UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
   BlendFileData *bfd;
   UserDef *userdef = NULL;
 
-  bfd = BLO_read_from_file(filepath, BLO_READ_SKIP_ALL & ~BLO_READ_SKIP_USERDEF, reports);
+  bfd = BLO_read_from_file(filepath,
+                           BLO_READ_SKIP_ALL & ~BLO_READ_SKIP_USERDEF,
+                           &(struct BlendFileReadReport){.reports = reports});
   if (bfd) {
     if (bfd->user) {
       userdef = bfd->user;
@@ -770,7 +780,8 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
   WorkspaceConfigFileData *workspace_config = NULL;
 
   if (filepath) {
-    bfd = BLO_read_from_file(filepath, BLO_READ_SKIP_USERDEF, reports);
+    bfd = BLO_read_from_file(
+        filepath, BLO_READ_SKIP_USERDEF, &(struct BlendFileReadReport){.reports = reports});
   }
   else {
     bfd = BLO_read_from_memory(filebuf, filelength, BLO_READ_SKIP_USERDEF, reports);

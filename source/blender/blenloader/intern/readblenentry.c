@@ -68,7 +68,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp);
  * \param reports: Report errors in opening the file (can be NULL).
  * \return A handle on success, or NULL on failure.
  */
-BlendHandle *BLO_blendhandle_from_file(const char *filepath, ReportList *reports)
+BlendHandle *BLO_blendhandle_from_file(const char *filepath, BlendFileReadReport *reports)
 {
   BlendHandle *bh;
 
@@ -88,7 +88,8 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize)
 {
   BlendHandle *bh;
 
-  bh = (BlendHandle *)blo_filedata_from_memory(mem, memsize, NULL);
+  bh = (BlendHandle *)blo_filedata_from_memory(
+      mem, memsize, &(BlendFileReadReport){.reports = NULL});
 
   return bh;
 }
@@ -366,14 +367,13 @@ void BLO_blendhandle_close(BlendHandle *bh)
  */
 BlendFileData *BLO_read_from_file(const char *filepath,
                                   eBLOReadSkip skip_flags,
-                                  ReportList *reports)
+                                  BlendFileReadReport *reports)
 {
   BlendFileData *bfd = NULL;
   FileData *fd;
 
   fd = blo_filedata_from_file(filepath, reports);
   if (fd) {
-    fd->reports = reports;
     fd->skip_flags = skip_flags;
     bfd = blo_read_file_internal(fd, filepath);
     blo_filedata_free(fd);
@@ -399,9 +399,8 @@ BlendFileData *BLO_read_from_memory(const void *mem,
   BlendFileData *bfd = NULL;
   FileData *fd;
 
-  fd = blo_filedata_from_memory(mem, memsize, reports);
+  fd = blo_filedata_from_memory(mem, memsize, &(BlendFileReadReport){.reports = reports});
   if (fd) {
-    fd->reports = reports;
     fd->skip_flags = skip_flags;
     bfd = blo_read_file_internal(fd, "");
     blo_filedata_free(fd);
@@ -428,9 +427,8 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
   FileData *fd;
   ListBase old_mainlist;
 
-  fd = blo_filedata_from_memfile(memfile, params, reports);
+  fd = blo_filedata_from_memfile(memfile, params, &(BlendFileReadReport){.reports = reports});
   if (fd) {
-    fd->reports = reports;
     fd->skip_flags = params->skip_flags;
     BLI_strncpy(fd->relabase, filename, sizeof(fd->relabase));
 

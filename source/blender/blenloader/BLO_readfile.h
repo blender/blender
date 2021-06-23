@@ -89,6 +89,35 @@ struct BlendFileReadParams {
   int undo_direction; /* eUndoStepDir */
 };
 
+typedef struct BlendFileReadReport {
+  /* General reports handling. */
+  struct ReportList *reports;
+
+  /* Timing informations .*/
+  struct {
+    double whole;
+    double libraries;
+    double lib_overrides;
+    double lib_overrides_resync;
+    double lib_overrides_recursive_resync;
+  } duration;
+
+  /* Count informations. */
+  struct {
+    /* Some numbers of IDs that ended up in a specific state, or required some specific process
+     * during this file read. */
+    int missing_libraries;
+    int missing_linked_id;
+    /* Number of root override IDs that were resynced. */
+    int resynced_lib_overrides;
+  } count;
+
+  /* Number of libraries which had overrides that needed to be resynced, and a single linked list
+   * of those. */
+  int resynced_lib_overrides_libraries_count;
+  struct LinkNode *resynced_lib_overrides_libraries;
+} BlendFileReadReport;
+
 /* skip reading some data-block types (may want to skip screen data too). */
 typedef enum eBLOReadSkip {
   BLO_READ_SKIP_NONE = 0,
@@ -101,7 +130,7 @@ typedef enum eBLOReadSkip {
 
 BlendFileData *BLO_read_from_file(const char *filepath,
                                   eBLOReadSkip skip_flags,
-                                  struct ReportList *reports);
+                                  struct BlendFileReadReport *reports);
 BlendFileData *BLO_read_from_memory(const void *mem,
                                     int memsize,
                                     eBLOReadSkip skip_flags,
@@ -125,7 +154,7 @@ struct BLODataBlockInfo {
   struct AssetMetaData *asset_data;
 };
 
-BlendHandle *BLO_blendhandle_from_file(const char *filepath, struct ReportList *reports);
+BlendHandle *BLO_blendhandle_from_file(const char *filepath, struct BlendFileReadReport *reports);
 BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize);
 
 struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,

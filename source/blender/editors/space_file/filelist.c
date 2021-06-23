@@ -2894,7 +2894,7 @@ static int filelist_readjob_list_lib(const char *root, ListBase *entries, const 
   }
 
   /* there we go */
-  libfiledata = BLO_blendhandle_from_file(dir, NULL);
+  libfiledata = BLO_blendhandle_from_file(dir, &(BlendFileReadReport){.reports = NULL});
   if (libfiledata == NULL) {
     return nbr_entries;
   }

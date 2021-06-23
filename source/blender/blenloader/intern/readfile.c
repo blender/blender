@@ -72,6 +72,8 @@
 #include "BLI_mmap.h"
 #include "BLI_threads.h"
 
+#include "PIL_time.h"
+
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
@@ -227,7 +229,7 @@ typedef struct BHeadN {
  * bit kludge but better than doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
-void BLO_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
+void BLO_reportf_wrap(BlendFileReadReport *reports, ReportType type, const char *format, ...)
 {
   char fixed_buf[1024]; /* should be long enough */
 
@@ -239,7 +241,7 @@ void BLO_reportf_wrap(ReportList *reports, ReportType type, const char *format, 
 
   fixed_buf[sizeof(fixed_buf) - 1] = '\0';
 
-  BKE_report(reports, type, fixed_buf);
+  BKE_report(reports->reports, type, fixed_buf);
 
   if (G.background == 0) {
     printf("%s: %s\n", BKE_report_type_str(type), fixed_buf);
@@ -1331,8 +1333,10 @@ static ssize_t fd_read_from_memfile(FileData *filedata,
   return 0;
 }
 
-static FileData *filedata_new(void)
+static FileData *filedata_new(BlendFileReadReport *reports)
 {
+  BLI_assert(reports != NULL);
+
   FileData *fd = MEM_callocN(sizeof(FileData), "FileData");
 
   fd->filedes = -1;
@@ -1343,6 +1347,8 @@ static FileData *filedata_new(void)
   fd->datamap = oldnewmap_new();
   fd->globmap = oldnewmap_new();
   fd->libmap = oldnewmap_new();
+
+  fd->reports = reports;
 
   return fd;
 }
@@ -1371,7 +1377,7 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 }
 
 static FileData *blo_filedata_from_file_descriptor(const char *filepath,
-                                                   ReportList *reports,
+                                                   BlendFileReadReport *reports,
                                                    int file)
 {
   FileDataReadFn *read_fn = NULL;
@@ -1386,7 +1392,7 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
   /* Regular file. */
   errno = 0;
   if (read(file, header, sizeof(header)) != sizeof(header)) {
-    BKE_reportf(reports,
+    BKE_reportf(reports->reports,
                 RPT_WARNING,
                 "Unable to read '%s': %s",
                 filepath,
@@ -1416,7 +1422,7 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
       (header[0] == 0x1f && header[1] == 0x8b)) {
     gzfile = BLI_gzopen(filepath, "rb");
     if (gzfile == (gzFile)Z_NULL) {
-      BKE_reportf(reports,
+      BKE_reportf(reports->reports,
                   RPT_WARNING,
                   "Unable to open '%s': %s",
                   filepath,
@@ -1431,11 +1437,11 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
   }
 
   if (read_fn == NULL) {
-    BKE_reportf(reports, RPT_WARNING, "Unrecognized file format '%s'", filepath);
+    BKE_reportf(reports->reports, RPT_WARNING, "Unrecognized file format '%s'", filepath);
     return NULL;
   }
 
-  FileData *fd = filedata_new();
+  FileData *fd = filedata_new(reports);
 
   fd->filedes = file;
   fd->gzfiledes = gzfile;
@@ -1448,12 +1454,12 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
   return fd;
 }
 
-static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *reports)
+static FileData *blo_filedata_from_file_open(const char *filepath, BlendFileReadReport *reports)
 {
   errno = 0;
   const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
-    BKE_reportf(reports,
+    BKE_reportf(reports->reports,
                 RPT_WARNING,
                 "Unable to open '%s': %s",
                 filepath,
@@ -1469,14 +1475,14 @@ static FileData *blo_filedata_from_file_open(const char *filepath, ReportList *r
 
 /* cannot be called with relative paths anymore! */
 /* on each new library added, it now checks for the current FileData and expands relativeness */
-FileData *blo_filedata_from_file(const char *filepath, ReportList *reports)
+FileData *blo_filedata_from_file(const char *filepath, BlendFileReadReport *reports)
 {
   FileData *fd = blo_filedata_from_file_open(filepath, reports);
   if (fd != NULL) {
     /* needed for library_append and read_libraries */
     BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
 
-    return blo_decode_and_check(fd, reports);
+    return blo_decode_and_check(fd, reports->reports);
   }
   return NULL;
 }
@@ -1487,7 +1493,7 @@ FileData *blo_filedata_from_file(const char *filepath, ReportList *reports)
  */
 static FileData *blo_filedata_from_file_minimal(const char *filepath)
 {
-  FileData *fd = blo_filedata_from_file_open(filepath, NULL);
+  FileData *fd = blo_filedata_from_file_open(filepath, &(BlendFileReadReport){.reports = NULL});
   if (fd != NULL) {
     decode_blender_header(fd);
     if (fd->flags & FD_FLAGS_FILE_OK) {
@@ -1542,14 +1548,15 @@ static int fd_read_gzip_from_memory_init(FileData *fd)
   return 1;
 }
 
-FileData *blo_filedata_from_memory(const void *mem, int memsize, ReportList *reports)
+FileData *blo_filedata_from_memory(const void *mem, int memsize, BlendFileReadReport *reports)
 {
   if (!mem || memsize < SIZEOFBLENDERHEADER) {
-    BKE_report(reports, RPT_WARNING, (mem) ? TIP_("Unable to read") : TIP_("Unable to open"));
+    BKE_report(
+        reports->reports, RPT_WARNING, (mem) ? TIP_("Unable to read") : TIP_("Unable to open"));
     return NULL;
   }
 
-  FileData *fd = filedata_new();
+  FileData *fd = filedata_new(reports);
   const char *cp = mem;
 
   fd->buffer = mem;
@@ -1568,26 +1575,26 @@ FileData *blo_filedata_from_memory(const void *mem, int memsize, ReportList *rep
 
   fd->flags |= FD_FLAGS_NOT_MY_BUFFER;
 
-  return blo_decode_and_check(fd, reports);
+  return blo_decode_and_check(fd, reports->reports);
 }
 
 FileData *blo_filedata_from_memfile(MemFile *memfile,
                                     const struct BlendFileReadParams *params,
-                                    ReportList *reports)
+                                    BlendFileReadReport *reports)
 {
   if (!memfile) {
-    BKE_report(reports, RPT_WARNING, "Unable to open blend <memory>");
+    BKE_report(reports->reports, RPT_WARNING, "Unable to open blend <memory>");
     return NULL;
   }
 
-  FileData *fd = filedata_new();
+  FileData *fd = filedata_new(reports);
   fd->memfile = memfile;
   fd->undo_direction = params->undo_direction;
 
   fd->read = fd_read_from_memfile;
   fd->flags |= FD_FLAGS_NOT_MY_BUFFER;
 
-  return blo_decode_and_check(fd, reports);
+  return blo_decode_and_check(fd, reports->reports);
 }
 
 void blo_filedata_free(FileData *fd)
@@ -4206,12 +4213,15 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+    fd->reports->duration.libraries = PIL_check_seconds_timer();
     read_libraries(fd, &mainlist);
 
     blo_join_main(&mainlist);
 
     lib_link_all(fd, bfd->main);
     after_liblink_merged_bmain_process(bfd->main);
+
+    fd->reports->duration.libraries = PIL_check_seconds_timer() - fd->reports->duration.libraries;
 
     /* Skip in undo case. */
     if (fd->memfile == NULL) {
@@ -4228,7 +4238,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       blo_split_main(&mainlist, bfd->main);
       LISTBASE_FOREACH (Main *, mainvar, &mainlist) {
         BLI_assert(mainvar->versionfile != 0);
-        do_versions_after_linking(mainvar, fd->reports);
+        do_versions_after_linking(mainvar, fd->reports->reports);
       }
       blo_join_main(&mainlist);
 
@@ -4249,8 +4259,13 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
      * we can re-generate overrides from their references. */
     if (fd->memfile == NULL) {
       /* Do not apply in undo case! */
-      BKE_lib_override_library_main_validate(bfd->main, fd->reports);
+      fd->reports->duration.lib_overrides = PIL_check_seconds_timer();
+
+      BKE_lib_override_library_main_validate(bfd->main, fd->reports->reports);
       BKE_lib_override_library_main_update(bfd->main);
+
+      fd->reports->duration.lib_overrides = PIL_check_seconds_timer() -
+                                            fd->reports->duration.lib_overrides;
     }
 
     BKE_collections_after_lib_link(bfd->main);
@@ -5206,7 +5221,7 @@ static void library_link_end(Main *mainl,
      * or they will go again through do_versions - bad, very bad! */
     split_main_newid(mainvar, main_newid);
 
-    do_versions_after_linking(main_newid, (*fd)->reports);
+    do_versions_after_linking(main_newid, (*fd)->reports->reports);
 
     add_main_to_main(mainvar, main_newid);
   }
@@ -5340,7 +5355,7 @@ static void read_library_linked_id(
                      id->name + 2,
                      mainvar->curlib->filepath_abs,
                      library_parent_filepath(mainvar->curlib));
-    basefd->library_id_missing_count++;
+    basefd->reports->count.missing_linked_id++;
 
     /* Generate a placeholder for this ID (simplified version of read_libblock actually...). */
     if (r_id) {
@@ -5495,7 +5510,7 @@ static FileData *read_library_file_data(FileData *basefd,
   if (fd == NULL) {
     BLO_reportf_wrap(
         basefd->reports, RPT_INFO, TIP_("Cannot find lib '%s'"), mainptr->curlib->filepath_abs);
-    basefd->library_file_missing_count++;
+    basefd->reports->count.missing_libraries++;
   }
 
   return fd;
@@ -5589,15 +5604,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     mainptr->curlib->filedata = NULL;
   }
   BKE_main_free(main_newid);
-
-  if (basefd->library_file_missing_count != 0 || basefd->library_id_missing_count != 0) {
-    BKE_reportf(basefd->reports,
-                RPT_WARNING,
-                "LIB: %d libraries and %d linked data-blocks are missing, please check the "
-                "Info and Outliner editors for details",
-                basefd->library_file_missing_count,
-                basefd->library_id_missing_count);
-  }
 }
 
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address)
@@ -5785,7 +5791,7 @@ void BLO_read_glob_list(BlendDataReader *reader, ListBase *list)
   link_glob_list(reader->fd, list);
 }
 
-ReportList *BLO_read_data_reports(BlendDataReader *reader)
+BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader)
 {
   return reader->fd->reports;
 }
@@ -5800,7 +5806,7 @@ Main *BLO_read_lib_get_main(BlendLibReader *reader)
   return reader->main;
 }
 
-ReportList *BLO_read_lib_reports(BlendLibReader *reader)
+BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader)
 {
   return reader->fd->reports;
 }

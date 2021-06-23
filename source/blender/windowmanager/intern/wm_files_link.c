@@ -244,7 +244,7 @@ static void wm_link_do(WMLinkAppendData *lapp_data,
       bh = BLO_blendhandle_from_memory(datatoc_startup_blend, datatoc_startup_blend_size);
     }
     else {
-      bh = BLO_blendhandle_from_file(libname, reports);
+      bh = BLO_blendhandle_from_file(libname, &(BlendFileReadReport){.reports = reports});
     }
 
     if (bh == NULL) {
