@@ -1872,12 +1872,13 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_generic_select(ot);
+  /* Key-map: Enable with `Shift`. */
   prop = RNA_def_boolean(
       ot->srna,
       "extend",
       0,
       "Extend Select",
-      "Toggle keyframe selection instead of leaving newly selected keyframes only"); /* SHIFTKEY */
+      "Toggle keyframe selection instead of leaving newly selected keyframes only");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
@@ -1887,20 +1888,21 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
                          "Deselect all when nothing under the cursor");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
+  /* Key-map: Enable with `Alt`. */
   prop = RNA_def_boolean(
       ot->srna,
       "column",
       0,
       "Column Select",
-      "Select all keyframes that occur on the same frame as the one under the mouse"); /* ALTKEY */
+      "Select all keyframes that occur on the same frame as the one under the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(
-      ot->srna,
-      "channel",
-      0,
-      "Only Channel",
-      "Select all the keyframes in the channel under the mouse"); /* CTRLKEY + ALTKEY */
+  /* Key-map: Enable with `Ctrl-Alt`. */
+  prop = RNA_def_boolean(ot->srna,
+                         "channel",
+                         0,
+                         "Only Channel",
+                         "Select all the keyframes in the channel under the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

@@ -223,12 +223,14 @@ ccl_device_inline ssef fastpow24(const ssef &arg)
   ssef x = fastpow<0x3F4CCCCD, 0x4F55A7FB>(arg);  // error max = 0.17  avg = 0.0018    |avg| = 0.05
   ssef arg2 = arg * arg;
   ssef arg4 = arg2 * arg2;
-  x = improve_5throot_solution(x,
-                               arg4); /* error max = 0.018     avg = 0.0031    |avg| = 0.0031  */
-  x = improve_5throot_solution(x,
-                               arg4); /* error max = 0.00021   avg = 1.6e-05   |avg| = 1.6e-05 */
-  x = improve_5throot_solution(x,
-                               arg4); /* error max = 6.1e-07   avg = 5.2e-08   |avg| = 1.1e-07 */
+
+  /* error max = 0.018     avg = 0.0031    |avg| = 0.0031  */
+  x = improve_5throot_solution(x, arg4);
+  /* error max = 0.00021   avg = 1.6e-05   |avg| = 1.6e-05 */
+  x = improve_5throot_solution(x, arg4);
+  /* error max = 6.1e-07   avg = 5.2e-08   |avg| = 1.1e-07 */
+  x = improve_5throot_solution(x, arg4);
+
   return x * (x * x);
 }
 

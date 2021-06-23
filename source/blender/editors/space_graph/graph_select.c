@@ -1958,12 +1958,14 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_generic_select(ot);
+
+  /* Key-map: Enable with `Shift`. */
   prop = RNA_def_boolean(ot->srna,
                          "extend",
                          0,
                          "Extend Select",
                          "Toggle keyframe selection instead of leaving newly selected "
-                         "keyframes only"); /* SHIFTKEY */
+                         "keyframes only");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
@@ -1973,19 +1975,18 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
                          "Deselect all when nothing under the cursor");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
+  /* Key-map: Enable with `Alt`. */
   prop = RNA_def_boolean(ot->srna,
                          "column",
                          0,
                          "Column Select",
                          "Select all keyframes that occur on the same frame as the one under "
-                         "the mouse"); /* ALTKEY */
+                         "the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna,
-                         "curves",
-                         0,
-                         "Only Curves",
-                         "Select all the keyframes in the curve"); /* CTRLKEY + ALTKEY */
+  /* Key-map: Enable with `Ctrl-Atl`. */
+  prop = RNA_def_boolean(
+      ot->srna, "curves", 0, "Only Curves", "Select all the keyframes in the curve");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

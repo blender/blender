@@ -384,8 +384,9 @@ void BKE_particle_partdeflect_blend_read_lib(BlendLibReader *reader, ID *id, Par
 static void particle_settings_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   ParticleSettings *part = (ParticleSettings *)id;
-  BLO_read_id_address(
-      reader, part->id.lib, &part->ipo); /* XXX deprecated - old animation system */
+
+  /* XXX: deprecated - old animation system. */
+  BLO_read_id_address(reader, part->id.lib, &part->ipo);
 
   BLO_read_id_address(reader, part->id.lib, &part->instance_object);
   BLO_read_id_address(reader, part->id.lib, &part->instance_collection);

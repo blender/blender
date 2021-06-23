@@ -109,8 +109,8 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
     /* in other case we do standard depsgraph update, ideally
      * we'd be calling property update functions here too ... */
     DEG_id_tag_update(id,
-                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY |
-                          ID_RECALC_ANIMATION); /* XXX or do we want something more restrictive? */
+                      /* XXX: or do we want something more restrictive? */
+                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   }
 }
 
@@ -119,11 +119,10 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 void ANIM_id_update(Main *bmain, ID *id)
 {
   if (id) {
-    DEG_id_tag_update_ex(
-        bmain,
-        id,
-        ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY |
-            ID_RECALC_ANIMATION); /* XXX or do we want something more restrictive? */
+    DEG_id_tag_update_ex(bmain,
+                         id,
+                         /* XXX: or do we want something more restrictive? */
+                         ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   }
 }
 

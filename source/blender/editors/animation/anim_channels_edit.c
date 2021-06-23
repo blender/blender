@@ -3443,12 +3443,14 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  /* NOTE: don't save settings, otherwise, can end up with some weird behavior (sticky extend) */
-  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", ""); /* SHIFTKEY */
+  /* NOTE: don't save settings, otherwise, can end up with some weird behavior (sticky extend)
+   *
+   * Key-map: Enable with `Shift`. */
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(
-      ot->srna, "children_only", false, "Select Children Only", ""); /* CTRLKEY|SHIFTKEY */
+  /* Key-map: Enable with `Ctrl-Shift`. */
+  prop = RNA_def_boolean(ot->srna, "children_only", false, "Select Children Only", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

@@ -957,8 +957,8 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
         ob, eModifierType_Fluidsim);
 
     if (fluidmd && fluidmd->fss) {
-      BLO_read_id_address(
-          reader, ob->id.lib, &fluidmd->fss->ipo); /* XXX deprecated - old animation system */
+      /* XXX: deprecated - old animation system. */
+      BLO_read_id_address(reader, ob->id.lib, &fluidmd->fss->ipo);
     }
   }
 

@@ -6468,6 +6468,8 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
     alpha = RNA_boolean_get(op->ptr, "alpha");
     RNA_string_get(op->ptr, "name", imagename);
   }
+
+  /* TODO(lukas): Add option for tiled image. */
   ima = BKE_image_add_generated(bmain,
                                 width,
                                 height,
@@ -6478,7 +6480,7 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
                                 color,
                                 false,
                                 is_data,
-                                false); /* TODO(lukas): Add option */
+                                false);
 
   return ima;
 }

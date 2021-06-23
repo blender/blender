@@ -1999,8 +1999,8 @@ static void rna_VertexGroup_vertex_add(ID *id,
   }
 
   while (index_len--) {
-    ED_vgroup_vert_add(
-        ob, def, *index++, weight, assignmode); /* XXX, not efficient calling within loop*/
+    /* XXX: not efficient calling within loop. */
+    ED_vgroup_vert_add(ob, def, *index++, weight, assignmode);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

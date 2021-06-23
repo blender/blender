@@ -74,10 +74,11 @@ class GHOST_XrSession {
                              const GHOST_XrActionProfileInfo *infos);
   bool attachActionSets();
 
-  /** Action functions to be called post-session start. */
-  bool syncActions(
-      const char *action_set_name = nullptr); /* If action_set_name is nullptr, all attached
-                                               * action sets will be synced. */
+  /**
+   * Action functions to be called post-session start.
+   * \param action_set_name: When `nullptr`, all attached action sets will be synced.
+   */
+  bool syncActions(const char *action_set_name = nullptr);
   bool applyHapticAction(const char *action_set_name,
                          const char *action_name,
                          const GHOST_TInt64 &duration,

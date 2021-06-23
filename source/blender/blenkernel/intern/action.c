@@ -846,8 +846,9 @@ void BKE_pose_copy_data_ex(bPose **dst,
     }
 
     if (copy_constraints) {
-      BKE_constraints_copy_ex(
-          &listb, &pchan->constraints, flag, true); /* BKE_constraints_copy NULLs listb */
+      /* #BKE_constraints_copy NULL's `listb` */
+      BKE_constraints_copy_ex(&listb, &pchan->constraints, flag, true);
+
       pchan->constraints = listb;
 
       /* XXX: This is needed for motionpath drawing to work.

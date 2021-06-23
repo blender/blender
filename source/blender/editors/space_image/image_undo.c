@@ -293,8 +293,9 @@ static void ptile_restore_runtime_list(ListBase *paint_tiles)
       SWAP(uint *, ptile->rect.uint, tmpibuf->rect);
     }
 
-    BKE_image_free_gputextures(
-        image); /* force OpenGL reload (maybe partial update will operate better?) */
+    /* Force OpenGL reload (maybe partial update will operate better?) */
+    BKE_image_free_gputextures(image);
+
     if (ibuf->rect_float) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
     }

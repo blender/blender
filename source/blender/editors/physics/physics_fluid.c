@@ -403,8 +403,10 @@ static void fluid_bake_startjob(void *customdata, short *stop, short *do_update,
     BLI_path_join(
         temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES, NULL);
     BLI_path_abs(temp_dir, relbase);
-    BLI_dir_create_recursive(
-        temp_dir); /* Create 'particles' subdir if it does not exist already */
+
+    /* Create 'particles' subdir if it does not exist already */
+    BLI_dir_create_recursive(temp_dir);
+
     fds->cache_flag &= ~(FLUID_DOMAIN_BAKED_PARTICLES | FLUID_DOMAIN_OUTDATED_PARTICLES);
     fds->cache_flag |= FLUID_DOMAIN_BAKING_PARTICLES;
     job->pause_frame = &fds->cache_frame_pause_particles;

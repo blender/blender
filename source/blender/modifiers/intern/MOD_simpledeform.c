@@ -263,28 +263,24 @@ static void simple_helper(void *__restrict userdata,
     copy_v3_v3_map(dcut_remap, dcut, axis_map);
     switch (curr_deform_data->mode) {
       case MOD_SIMPLEDEFORM_MODE_TWIST:
-        simpleDeform_twist(curr_deform_data->smd_factor,
-                           curr_deform_data->deform_axis,
-                           dcut_remap,
-                           co_remap); /* apply deform */
+        /* Apply deform. */
+        simpleDeform_twist(
+            curr_deform_data->smd_factor, curr_deform_data->deform_axis, dcut_remap, co_remap);
         break;
       case MOD_SIMPLEDEFORM_MODE_BEND:
-        simpleDeform_bend(curr_deform_data->smd_factor,
-                          curr_deform_data->deform_axis,
-                          dcut_remap,
-                          co_remap); /* apply deform */
+        /* Apply deform. */
+        simpleDeform_bend(
+            curr_deform_data->smd_factor, curr_deform_data->deform_axis, dcut_remap, co_remap);
         break;
       case MOD_SIMPLEDEFORM_MODE_TAPER:
-        simpleDeform_taper(curr_deform_data->smd_factor,
-                           curr_deform_data->deform_axis,
-                           dcut_remap,
-                           co_remap); /* apply deform */
+        /* Apply deform. */
+        simpleDeform_taper(
+            curr_deform_data->smd_factor, curr_deform_data->deform_axis, dcut_remap, co_remap);
         break;
       case MOD_SIMPLEDEFORM_MODE_STRETCH:
-        simpleDeform_stretch(curr_deform_data->smd_factor,
-                             curr_deform_data->deform_axis,
-                             dcut_remap,
-                             co_remap); /* apply deform */
+        /* Apply deform. */
+        simpleDeform_stretch(
+            curr_deform_data->smd_factor, curr_deform_data->deform_axis, dcut_remap, co_remap);
         break;
       default:
         return; /* No simple-deform mode? */
