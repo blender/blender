@@ -832,6 +832,9 @@ class StringEscape : public testing::Test {
 
 TEST_F(StringEscape, Simple)
 {
+  /* NOTE: clang-tidy `modernize-raw-string-literal` is disabled as it causes errors with MSVC.
+   * TODO: investigate resolving with `/Zc:preprocessor` flag. */
+
   const CompareWordsArray equal{
       {"", ""},
       {"/", "/"},
@@ -845,11 +848,16 @@ TEST_F(StringEscape, Simple)
       {"\\A", "\\\\A"},
       {"A\\B", "A\\\\B"},
       {"?", "?"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\"\\", "\\\"\\\\"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\\\"", "\\\\\\\""},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\"\\\"", "\\\"\\\\\\\""},
 
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\"\"\"", "\\\"\\\"\\\""},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\\\\\\", "\\\\\\\\\\\\"},
   };
 
@@ -868,8 +876,11 @@ TEST_F(StringEscape, Control)
       {"\f", "\\f"},
       {"A\n", "A\\n"},
       {"\nA", "\\nA"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\n\r\t\a\b\f", "\\n\\r\\t\\a\\b\\f"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\n_\r_\t_\a_\b_\f", "\\n_\\r_\\t_\\a_\\b_\\f"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\n\\\r\\\t\\\a\\\b\\\f", "\\n\\\\\\r\\\\\\t\\\\\\a\\\\\\b\\\\\\f"},
   };
 
