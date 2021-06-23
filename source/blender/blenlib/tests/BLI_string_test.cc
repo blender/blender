@@ -421,9 +421,7 @@ TEST(string, StrFormatByteUnits)
 }
 
 struct WordInfo {
-  WordInfo()
-  {
-  }
+  WordInfo() = default;
   WordInfo(int start, int end) : start(start), end(end)
   {
   }
@@ -441,9 +439,7 @@ static std::ostream &operator<<(std::ostream &os, const WordInfo &word_info)
 
 class StringFindSplitWords : public testing::Test {
  protected:
-  StringFindSplitWords()
-  {
-  }
+  StringFindSplitWords() = default;
 
   /* If max_words is -1 it will be initialized from the number of expected
    * words +1. This way there is no need to pass an explicit number of words,
@@ -807,9 +803,7 @@ TEST_F(StringCasecmpNatural, TextAndNumbers)
 
 class StringEscape : public testing::Test {
  protected:
-  StringEscape()
-  {
-  }
+  StringEscape() = default;
 
   using CompareWordsArray = vector<std::array<const char *, 2>>;
 

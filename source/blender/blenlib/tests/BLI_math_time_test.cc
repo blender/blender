@@ -20,15 +20,15 @@ TEST(math_time, SecondsExplode)
   EXPECT_NEAR(9.0, r_seconds, epsilon);
   EXPECT_NEAR(369.0, r_milliseconds, epsilon);
 
-  BLI_math_time_seconds_decompose(seconds, NULL, &r_hours, &r_minutes, &r_seconds, NULL);
+  BLI_math_time_seconds_decompose(seconds, nullptr, &r_hours, &r_minutes, &r_seconds, nullptr);
   EXPECT_NEAR(61.0, r_hours, epsilon);
   EXPECT_NEAR(33.0, r_minutes, epsilon);
   EXPECT_NEAR(9.369, r_seconds, epsilon);
 
-  BLI_math_time_seconds_decompose(seconds, NULL, NULL, NULL, &r_seconds, NULL);
+  BLI_math_time_seconds_decompose(seconds, nullptr, nullptr, nullptr, &r_seconds, nullptr);
   EXPECT_NEAR(seconds, r_seconds, epsilon);
 
-  BLI_math_time_seconds_decompose(seconds, &r_days, NULL, &r_minutes, NULL, &r_milliseconds);
+  BLI_math_time_seconds_decompose(seconds, &r_days, nullptr, &r_minutes, nullptr, &r_milliseconds);
   EXPECT_NEAR(2.0, r_days, epsilon);
   EXPECT_NEAR(813.0, r_minutes, epsilon);
   EXPECT_NEAR(9369.0, r_milliseconds, epsilon);
