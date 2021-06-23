@@ -3906,7 +3906,6 @@ static void ui_numedit_begin_set_values(uiBut *but, uiHandleButtonData *data)
   data->startvalue = ui_but_value_get(but);
   data->origvalue = data->startvalue;
   data->value = data->origvalue;
-  but->editval = &data->value;
 }
 
 static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
@@ -3935,6 +3934,7 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
   }
   else {
     ui_numedit_begin_set_values(but, data);
+    but->editval = &data->value;
 
     float softmin = but->softmin;
     float softmax = but->softmax;
