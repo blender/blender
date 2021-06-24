@@ -1456,9 +1456,11 @@ Vector<GMutablePointer> NodeParamsProvider::extract_multi_input(StringRef identi
 
   Vector<GMutablePointer> ret_values;
   socket.foreach_origin_socket([&](DSocket origin) {
-    for (const MultiInputValueItem &item : multi_value.items) {
-      if (item.origin == origin) {
+    for (MultiInputValueItem &item : multi_value.items) {
+      if (item.origin == origin && item.value != nullptr) {
         ret_values.append({*input_state.type, item.value});
+        /* Make sure we do not use the same value again if two values have the same origin. */
+        item.value = nullptr;
         return;
       }
     }
