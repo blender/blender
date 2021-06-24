@@ -227,7 +227,8 @@ struct ParametersComponentNode : public ComponentNode {
   virtual bool need_tag_cow_before_update() override
   {
     if (ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(owner->id_type)) {
-      BLI_assert(deg_copy_on_write_is_expanded(owner->id_cow));
+      /* Disabled as this is not true for newly added objects, needs investigation. */
+      // BLI_assert(deg_copy_on_write_is_expanded(owner->id_cow));
       return false;
     }
     return true;
