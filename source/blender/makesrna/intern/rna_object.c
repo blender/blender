@@ -1882,7 +1882,7 @@ bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
   GpencilModifierData *mod_dst = ED_object_gpencil_modifier_add(
       NULL, bmain, NULL, ob_dst, mod_src->name, mod_src->type);
 
-  BLI_remlink(&ob_dst->modifiers, mod_dst);
+  BLI_remlink(&ob_dst->greasepencil_modifiers, mod_dst);
   /* This handles NULL anchor as expected by adding at head of list. */
   BLI_insertlinkafter(&ob_dst->greasepencil_modifiers, mod_anchor, mod_dst);
 
