@@ -47,17 +47,17 @@ class VertexRep : public Rep {
   {
   }
 
-  /*! Accept the corresponding visitor */
+  /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v)
   {
     Rep::accept(v);
     v.visitVertexRep(*this);
   }
 
-  /*! Computes the rep bounding box. */
+  /** Computes the rep bounding box. */
   virtual void ComputeBBox();
 
-  /*! accessors */
+  /** accessors */
   inline const int vid() const
   {
     return _vid;
@@ -88,7 +88,7 @@ class VertexRep : public Rep {
     return _PointSize;
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setVid(int id)
   {
     _vid = id;

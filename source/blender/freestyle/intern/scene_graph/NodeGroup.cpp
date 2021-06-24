@@ -37,7 +37,7 @@ void NodeGroup::AddChild(Node *iChild)
 
 int NodeGroup::destroy()
 {
-  /*! Node::destroy makes a release on the object and then returns the reference counter.
+  /** Node::destroy makes a release on the object and then returns the reference counter.
    *  If the reference counter is equal to 0, that means that nobody else is linking this node
    * group and that we can destroy the whole underlying tree. Else, one or several Node link this
    * node group, and we only returns the reference counter decremented by Node::destroy();

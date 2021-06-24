@@ -80,28 +80,28 @@ struct LoaderState {
 
 class BlenderFileLoader {
  public:
-  /*! Builds a MaxFileLoader */
+  /** Builds a MaxFileLoader */
   BlenderFileLoader(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph);
   virtual ~BlenderFileLoader();
 
-  /*! Loads the 3D scene and returns a pointer to the scene root node */
+  /** Loads the 3D scene and returns a pointer to the scene root node */
   NodeGroup *Load();
 
-  /*! Gets the number of read faces */
+  /** Gets the number of read faces */
   inline unsigned int numFacesRead()
   {
     return _numFacesRead;
   }
 
 #if 0
-  /*! Gets the smallest edge size read */
+  /** Gets the smallest edge size read */
   inline real minEdgeSize()
   {
     return _minEdgeSize;
   }
 #endif
 
-  /*! Modifiers */
+  /** Modifiers */
   inline void setRenderMonitor(RenderMonitor *iRenderMonitor)
   {
     _pRenderMonitor = iRenderMonitor;

@@ -64,7 +64,7 @@ class ProgressBar {
     _label = s;
   }
 
-  /*! accessors */
+  /** accessors */
   inline unsigned int getTotalSteps() const
   {
     return _numtotalsteps;

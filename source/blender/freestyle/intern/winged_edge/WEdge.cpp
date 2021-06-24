@@ -25,7 +25,7 @@
 
 namespace Freestyle {
 
-/*! Temporary structures */
+/** Temporary structures */
 class vertexdata {
  public:
   WVertex *_copy;

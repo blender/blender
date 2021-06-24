@@ -37,33 +37,33 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-/*! Class to provide Perlin Noise functionalities */
+/** Class to provide Perlin Noise functionalities */
 class Noise {
  public:
-  /*! Builds a Noise object */
+  /** Builds a Noise object */
   Noise(long seed = -1);
 
-  /*! Destructor */
+  /** Destructor */
   ~Noise()
   {
   }
 
-  /*! Returns a noise value for a 1D element */
+  /** Returns a noise value for a 1D element */
   float turbulence1(float arg, float freq, float amp, unsigned oct = 4);
 
-  /*! Returns a noise value for a 2D element */
+  /** Returns a noise value for a 2D element */
   float turbulence2(Vec2f &v, float freq, float amp, unsigned oct = 4);
 
-  /*! Returns a noise value for a 3D element */
+  /** Returns a noise value for a 3D element */
   float turbulence3(Vec3f &v, float freq, float amp, unsigned oct = 4);
 
-  /*! Returns a smooth noise value for a 1D element */
+  /** Returns a smooth noise value for a 1D element */
   float smoothNoise1(float arg);
 
-  /*! Returns a smooth noise value for a 2D element */
+  /** Returns a smooth noise value for a 2D element */
   float smoothNoise2(Vec2f &vec);
 
-  /*! Returns a smooth noise value for a 3D element */
+  /** Returns a smooth noise value for a 3D element */
   float smoothNoise3(Vec3f &vec);
 
  private:

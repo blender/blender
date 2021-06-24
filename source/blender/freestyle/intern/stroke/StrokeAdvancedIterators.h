@@ -158,7 +158,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
     return &(operator*());
   }
 
-  /*! accessors */
+  /** accessors */
   inline vertex_container_iterator it() const
   {
     return _it;

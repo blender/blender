@@ -104,7 +104,7 @@ static real angle_from_cotan(WVertex *vo, WVertex *v1, WVertex *v2)
   return (fabs(atan2(denom, udotv)));
 }
 
-/*! gts_vertex_mean_curvature_normal:
+/** gts_vertex_mean_curvature_normal:
  *  \param v: a #WVertex.
  *  \param s: a #GtsSurface.
  *  \param Kh: the Mean Curvature Normal at \a v.
@@ -175,7 +175,7 @@ bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh)
   return true;
 }
 
-/*! gts_vertex_gaussian_curvature:
+/** gts_vertex_gaussian_curvature:
  *  \param v: a #WVertex.
  *  \param s: a #GtsSurface.
  *  \param Kg: the Discrete Gaussian Curvature approximation at \a v.
@@ -226,7 +226,7 @@ bool gts_vertex_gaussian_curvature(WVertex *v, real *Kg)
   return true;
 }
 
-/*! gts_vertex_principal_curvatures:
+/** gts_vertex_principal_curvatures:
  *  @Kh: mean curvature.
  *  @Kg: Gaussian curvature.
  *  @K1: first principal curvature.
@@ -279,7 +279,7 @@ static void eigenvector(real a, real b, real c, Vec3r e)
   e[2] = 0.0;
 }
 
-/*! gts_vertex_principal_directions:
+/** gts_vertex_principal_directions:
  *  \param v: a #WVertex.
  *  \param s: a #GtsSurface.
  *  \param Kh: mean curvature normal (a #Vec3r).

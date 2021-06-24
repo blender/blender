@@ -43,7 +43,7 @@ class NodeCamera : public Node {
     GENERIC,
   } CameraType;
 
-  /*! Default matrices: Identity for both projection and modelview. */
+  /** Default matrices: Identity for both projection and modelview. */
   NodeCamera(CameraType camera_type = GENERIC);
 #if 0 /* UNUSED, gives warning in gcc */
   NodeCamera(const NodeCamera &iBrother);
@@ -53,13 +53,13 @@ class NodeCamera : public Node {
   {
   }
 
-  /*! Accept the corresponding visitor */
+  /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v);
 
-  /*! Matrix is copied */
+  /** Matrix is copied */
   void setModelViewMatrix(double modelview_matrix[16]);
 
-  /*! Matrix is copied */
+  /** Matrix is copied */
   void setProjectionMatrix(double projection_matrix[16]);
 
   double *modelViewMatrix()
@@ -89,7 +89,7 @@ class NodeOrthographicCamera : public NodeCamera {
  public:
   NodeOrthographicCamera();
 
-  /*! Builds a parallel projection matrix a la glOrtho.
+  /** Builds a parallel projection matrix a la glOrtho.
    *    A   0   0   tx
    *    0   B   0   ty
    *    0   0   C   tz
@@ -155,7 +155,7 @@ class NodePerspectiveCamera : public NodeCamera {
  public:
   NodePerspectiveCamera();
 
-  /*! Builds a perspective projection matrix a la gluPerspective.
+  /** Builds a perspective projection matrix a la gluPerspective.
    *  Given f defined as follows:
    *    fovy
    *    f = cotangent(____)
@@ -177,7 +177,7 @@ class NodePerspectiveCamera : public NodeCamera {
    */
   NodePerspectiveCamera(double fovy, double aspect, double zNear, double zFar);
 
-  /*! Builds a perspective projection matrix a la glFrustum.
+  /** Builds a perspective projection matrix a la glFrustum.
    *    (  2*zNear                                                         )
    *    | __________           0               A               0           |
    *    | right-left                                                       |

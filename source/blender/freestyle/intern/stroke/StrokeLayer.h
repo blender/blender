@@ -55,15 +55,15 @@ class StrokeLayer {
 
   virtual ~StrokeLayer();
 
-  /*! Render method */
+  /** Render method */
   void ScaleThickness(float iFactor);
   void Render(const StrokeRenderer *iRenderer);
   void RenderBasic(const StrokeRenderer *iRenderer);
 
-  /*! clears the layer */
+  /** clears the layer */
   void clear();
 
-  /*! accessors */
+  /** accessors */
   inline stroke_container::iterator strokes_begin()
   {
     return _strokes.begin();
@@ -84,7 +84,7 @@ class StrokeLayer {
     return _strokes.empty();
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setStrokes(stroke_container &iStrokes)
   {
     _strokes = iStrokes;

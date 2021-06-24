@@ -27,7 +27,7 @@
 
 namespace Freestyle {
 
-/*! Class to represent a 1D elements issued from the chaining process.
+/** Class to represent a 1D elements issued from the chaining process.
  *  A Chain is the last step before the Stroke and is used in the Splitting and Creation processes.
  */
 class Chain : public Curve {
@@ -38,28 +38,28 @@ class Chain : public Curve {
       _fedgeB;  // the last FEdge of the ViewEdge passed to the last call for push_viewedge_back().
 
  public:
-  /*! Default constructor. */
+  /** Default constructor. */
   Chain() : Curve()
   {
     _splittingId = 0;
     _fedgeB = 0;
   }
 
-  /*! Builds a chain from its Id. */
+  /** Builds a chain from its Id. */
   Chain(const Id &id) : Curve(id)
   {
     _splittingId = 0;
     _fedgeB = 0;
   }
 
-  /*! Copy Constructor */
+  /** Copy Constructor */
   Chain(const Chain &iBrother) : Curve(iBrother)
   {
     _splittingId = iBrother._splittingId;
     _fedgeB = iBrother._fedgeB;
   }
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~Chain()
   {
     // only the last splitted deletes this id
@@ -70,13 +70,13 @@ class Chain : public Curve {
     }
   }
 
-  /*! Returns the string "Chain" */
+  /** Returns the string "Chain" */
   virtual string getExactTypeName() const
   {
     return "Chain";
   }
 
-  /*! Adds a ViewEdge at the end of the chain
+  /** Adds a ViewEdge at the end of the chain
    *  \param iViewEdge:
    *    The ViewEdge that must be added.
    *  \param orientation:
@@ -84,7 +84,7 @@ class Chain : public Curve {
    */
   void push_viewedge_back(ViewEdge *iViewEdge, bool orientation);
 
-  /*! Adds a ViewEdge at the beginning of the chain
+  /** Adds a ViewEdge at the beginning of the chain
    *  \param iViewEdge:
    *    The ViewEdge that must be added.
    *  \param orientation:
