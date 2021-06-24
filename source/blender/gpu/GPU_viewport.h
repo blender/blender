@@ -62,21 +62,21 @@ typedef struct ViewportMemoryPool {
   uint ubo_len;
 } ViewportMemoryPool;
 
-/* All FramebufferLists are just the same pointers with different names */
+/*eAll FramebufferLists are just the same pointers with different names */
 typedef struct FramebufferList {
-  struct GPUFrameBuffer *framebuffers[0];
+  struct GPUFrameBuffer *framebuffers[1];
 } FramebufferList;
 
 typedef struct TextureList {
-  struct GPUTexture *textures[0];
+  struct GPUTexture *textures[1];
 } TextureList;
 
 typedef struct PassList {
-  struct DRWPass *passes[0];
+  struct DRWPass *passes[1];
 } PassList;
 
 typedef struct StorageList {
-  void *storage[0]; /* custom structs from the engine */
+  void *storage[1]; /* custom structs from the engine */
 } StorageList;
 
 typedef struct ViewportEngineData {

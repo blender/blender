@@ -94,9 +94,7 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
 
 TreeElementOverridesProperty::TreeElementOverridesProperty(TreeElement &legacy_te,
                                                            TreeElementOverridesData &override_data)
-    : AbstractTreeElement(legacy_te),
-      id_(override_data.id),
-      override_prop_(override_data.override_property)
+    : AbstractTreeElement(legacy_te), override_prop_(override_data.override_property)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_LIBRARY_OVERRIDE);
 

@@ -465,7 +465,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   SeqCollection *transformed_strips = seq_transform_collection_from_transdata(tc);
 
-  if ((t->state == TRANS_CANCEL)) {
+  if (t->state == TRANS_CANCEL) {
     seq_transform_cancel(t, transformed_strips);
     free_transform_custom_data(custom_data);
     return;
