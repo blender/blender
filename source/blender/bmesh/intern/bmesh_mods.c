@@ -118,7 +118,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
   if (keepedge == NULL && len == 3) {
 #if 0
     /* handle specific case for three-valence.  solve it by
-     * increasing valence to four.  this may be hackish. .  */
+     * increasing valence to four.  this may be hackish. */
     BMLoop *l_a = BM_face_vert_share_loop(e->l->f, v);
     BMLoop *l_b = (e->l->v == v) ? e->l->next : e->l;
 
@@ -369,7 +369,7 @@ BMFace *BM_face_split_n(BMesh *bm,
 #endif
   /* bmesh_kernel_split_face_make_edge returns in 'l_new'
    * a Loop for f_new going from 'v_a' to 'v_b'.
-   * The radial_next is for 'f' and goes from 'v_b' to 'v_a'  */
+   * The radial_next is for 'f' and goes from 'v_b' to 'v_a'. */
 
   if (f_new) {
     e = l_new->e;

@@ -952,7 +952,7 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
         case CONSTRAINT_TYPE_KINEMATIC:
           return true;
 
-        /* single-transform constraints  */
+        /* Single-transform constraints. */
         case CONSTRAINT_TYPE_TRACKTO:
           if (searchtype == VISUALKEY_ROT) {
             return true;
@@ -2817,7 +2817,7 @@ bool fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
     return false;
   }
 
-  /* we either include all regardless of muting, or only non-muted  */
+  /* We either include all regardless of muting, or only non-muted. */
   if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED) == 0) {
     bool replace;
     int i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, frame, fcu->totvert, &replace);

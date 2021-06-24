@@ -79,7 +79,7 @@ bool GLTexture::init_internal()
 
   target_ = to_gl_target(type_);
 
-  /* We need to bind once to define the texture type.  */
+  /* We need to bind once to define the texture type. */
   GLContext::state_manager_active_get()->texture_bind_temp(this);
 
   if (!this->proxy_check(0)) {
@@ -106,7 +106,7 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
   GLVertBuf *gl_vbo = static_cast<GLVertBuf *>(unwrap(vbo));
   target_ = to_gl_target(type_);
 
-  /* We need to bind once to define the texture type.  */
+  /* We need to bind once to define the texture type. */
   GLContext::state_manager_active_get()->texture_bind_temp(this);
 
   GLenum internal_format = to_gl_internal_format(format_);

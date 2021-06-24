@@ -263,8 +263,8 @@ static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *
     fcu->flag &= ~FCURVE_DISABLED;
 
     if (driver) {
-      /* FIXME: need to be able to search targets for required one... */
-      /*BLI_findindex(&driver->targets, ptr->data) != -1)  */
+      /* FIXME: need to be able to search targets for required one. */
+      // BLI_findindex(&driver->targets, ptr->data) != -1)
       RNA_pointer_create(ptr->owner_id, &RNA_Driver, driver, &driverptr);
       rna_ChannelDriver_update_data(bmain, scene, &driverptr);
     }
@@ -584,7 +584,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr,
   action_groups_remove_channel(act, fcu);
 
   /* add the F-Curve back to the action now in the right place */
-  /* TODO: make the api function handle the case where there isn't any group to assign to  */
+  /* TODO: make the api function handle the case where there isn't any group to assign to. */
   if (value.data) {
     /* add to its group using API function, which makes sure everything goes ok */
     action_groups_add_channel(act, value.data, fcu);

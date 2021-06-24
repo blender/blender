@@ -396,7 +396,7 @@ static void rna_MaskSplinePoint_handle_right_type_set(PointerRNA *ptr, int value
   BKE_mask_calc_handle_point(spline, point);
 }
 
-/* ** API **  */
+/* ** API ** */
 
 static MaskLayer *rna_Mask_layers_new(Mask *mask, const char *name)
 {

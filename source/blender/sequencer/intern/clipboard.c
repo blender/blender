@@ -100,7 +100,7 @@ static void seqclipboard_ptr_restore(Main *bmain, ID **id_pt)
       id_restore = (ID_PT)->newid;
     }
     else {
-      /* the pointer of the same name still exists  */
+      /* The pointer of the same name still exists. */
       id_restore = BLI_findstring(lb, (ID_PT)->name + 2, offsetof(ID, name) + 2);
     }
 

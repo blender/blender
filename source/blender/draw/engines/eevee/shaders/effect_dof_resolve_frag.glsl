@@ -34,7 +34,7 @@ out vec4 fragColor;
 
 void dof_slight_focus_gather(float radius, out vec4 out_color, out float out_weight)
 {
-  /* offset coord to avoid correlation with sampling pattern.  */
+  /* offset coord to avoid correlation with sampling pattern. */
   vec4 noise = texelfetch_noise_tex(gl_FragCoord.xy + 7.0);
 
   DofGatherData fg_accum = GATHER_DATA_INIT;
@@ -199,7 +199,7 @@ void main(void)
     fragColor = fragColor * (1.0 - layer_weight) + layer_color;
   }
 
-  /* Fix float precision issue in alpha compositing.  */
+  /* Fix float precision issue in alpha compositing. */
   if (fragColor.a > 0.99) {
     fragColor.a = 1.0;
   }

@@ -1458,7 +1458,7 @@ bool BKE_collection_cycle_find(Collection *new_ancestor, Collection *collection)
   }
 
   /* Find possible objects in collection or its children, that would instantiate the given ancestor
-   * collection (that would also make a fully invalid cycle of dependencies) .*/
+   * collection (that would also make a fully invalid cycle of dependencies). */
   return collection_instance_find_recursive(collection, new_ancestor);
 }
 

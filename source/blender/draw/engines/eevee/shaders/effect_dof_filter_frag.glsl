@@ -4,7 +4,7 @@
  *
  * This is a simple 3x3 median filter to avoid dilating highlights with a 3x3 max filter even if
  * cheaper.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 

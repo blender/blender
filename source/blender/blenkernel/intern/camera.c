@@ -615,7 +615,7 @@ static void camera_frame_fit_data_init(const Scene *scene,
   BKE_camera_params_init(params);
   BKE_camera_params_from_object(params, ob);
 
-  /* compute matrix, viewplane, .. */
+  /* Compute matrix, view-plane, etc. */
   if (scene) {
     BKE_camera_params_compute_viewplane(
         params, scene->r.xsch, scene->r.ysch, scene->r.xasp, scene->r.yasp);
@@ -975,7 +975,7 @@ void BKE_camera_multiview_window_matrix(const RenderData *rd,
   BKE_camera_params_from_object(&params, camera);
   BKE_camera_multiview_params(rd, &params, camera, viewname);
 
-  /* Compute matrix, viewplane, .. */
+  /* Compute matrix, view-plane, etc. */
   BKE_camera_params_compute_viewplane(&params, rd->xsch, rd->ysch, rd->xasp, rd->yasp);
   BKE_camera_params_compute_matrix(&params);
 

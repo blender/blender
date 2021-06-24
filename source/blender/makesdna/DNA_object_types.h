@@ -476,7 +476,7 @@ typedef struct ObHook {
 
 /* **************** OBJECT ********************* */
 
-/* used many places... should be specialized  */
+/* used many places, should be specialized. */
 #define SELECT 1
 
 #define OBJECT_ACTIVE_MODIFIER_NONE -1
@@ -608,9 +608,9 @@ enum {
   /* OB_DRAWIMAGE = 1 << 4, */ /* UNUSED */
   /* for solid+wire display */
   OB_DRAWWIRE = 1 << 5,
-  /* for overdraw s*/
+  /* For overdrawing. */
   OB_DRAW_IN_FRONT = 1 << 6,
-  /* enable transparent draw */
+  /* Enable transparent draw. */
   OB_DRAWTRANSP = 1 << 7,
   OB_DRAW_ALL_EDGES = 1 << 8, /* only for meshes currently */
   OB_DRAW_NO_SHADOW_CAST = 1 << 9,

@@ -59,7 +59,7 @@ typedef struct bConstraintOb {
   /** space matrix for custom object space */
   float space_obj_world_matrix[4][4];
 
-  /** type of owner  */
+  /** type of owner. */
   short type;
   /** rotation order for constraint owner (as defined in eEulerRotationOrders in BLI_math.h) */
   short rotOrder;

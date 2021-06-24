@@ -22,7 +22,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* normal on triangle  */
+/* Normal on triangle. */
 ccl_device_inline float3 triangle_normal(KernelGlobals *kg, ShaderData *sd)
 {
   /* load triangle vertices */
@@ -40,7 +40,7 @@ ccl_device_inline float3 triangle_normal(KernelGlobals *kg, ShaderData *sd)
   }
 }
 
-/* point and normal on triangle  */
+/* Point and normal on triangle. */
 ccl_device_inline void triangle_point_normal(
     KernelGlobals *kg, int object, int prim, float u, float v, float3 *P, float3 *Ng, int *shader)
 {

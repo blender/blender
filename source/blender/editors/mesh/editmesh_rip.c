@@ -270,7 +270,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
       break;
     }
 
-    /* initialize  */
+    /* Initialize. */
     e_first = e;
     v_step = e_first->v1;
     e_step = NULL; /* quiet warning, will never remain this value */

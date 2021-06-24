@@ -168,7 +168,7 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 }
 
 /* *************************************************** */
-/* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes)  */
+/* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes). */
 
 /**
  * Obtain the AnimData block providing NLA-mapping for the given channel (if applicable).

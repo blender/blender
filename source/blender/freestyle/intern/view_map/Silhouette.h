@@ -69,26 +69,26 @@ class SShape;
 /*! Class to define a vertex of the embedding. */
 class SVertex : public Interface0D {
  public:  // Implementation of Interface0D
-  /*! Returns the string "SVertex" .*/
+  /*! Returns the string "SVertex". */
   virtual string getExactTypeName() const
   {
     return "SVertex";
   }
 
   // Data access methods
-  /*! Returns the 3D x coordinate of the vertex .*/
+  /*! Returns the 3D x coordinate of the vertex. */
   virtual real getX() const
   {
     return _Point3D.x();
   }
 
-  /*! Returns the 3D y coordinate of the vertex .*/
+  /*! Returns the 3D y coordinate of the vertex. */
   virtual real getY() const
   {
     return _Point3D.y();
   }
 
-  /*! Returns the 3D z coordinate of the vertex .*/
+  /*! Returns the 3D z coordinate of the vertex. */
   virtual real getZ() const
   {
     return _Point3D.z();
@@ -100,19 +100,19 @@ class SVertex : public Interface0D {
     return _Point3D;
   }
 
-  /*! Returns the projected 3D  x coordinate of the vertex .*/
+  /*! Returns the projected 3D  x coordinate of the vertex. */
   virtual real getProjectedX() const
   {
     return _Point2D.x();
   }
 
-  /*! Returns the projected 3D  y coordinate of the vertex .*/
+  /*! Returns the projected 3D  y coordinate of the vertex. */
   virtual real getProjectedY() const
   {
     return _Point2D.y();
   }
 
-  /*! Returns the projected 3D  z coordinate of the vertex .*/
+  /*! Returns the projected 3D  z coordinate of the vertex. */
   virtual real getProjectedZ() const
   {
     return _Point2D.z();
@@ -127,13 +127,13 @@ class SVertex : public Interface0D {
   /*! Returns the FEdge that lies between this Svertex and the Interface0D given as argument. */
   virtual FEdge *getFEdge(Interface0D &);
 
-  /*! Returns the Id of the vertex .*/
+  /*! Returns the Id of the vertex. */
   virtual Id getId() const
   {
     return _Id;
   }
 
-  /*! Returns the nature of the vertex .*/
+  /*! Returns the nature of the vertex. */
   virtual Nature::VertexNature getNature() const;
 
   /*! Cast the Interface0D in SVertex if it can be. */

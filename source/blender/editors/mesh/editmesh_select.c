@@ -2983,7 +2983,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
           int i_b = BM_elem_index_get(l_pair[1]->f);
           if (i_a != i_b) {
             /* Only for predictable results that don't depend on the order of radial loops,
-             * not essential.  */
+             * not essential. */
             if (i_a > i_b) {
               SWAP(int, i_a, i_b);
             }

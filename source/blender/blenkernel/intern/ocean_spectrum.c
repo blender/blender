@@ -122,7 +122,7 @@ static float jonswap(const Ocean *oc, const float k2)
 
   float val = alpha_beta_spectrum(m_alpha, beta, GRAVITY, omega, m_peakomega);
 
-  /* Peak sharpening  */
+  /* Peak sharpening. */
   val *= peak_sharpen(m_omega, m_peakomega, m_gamma);
 
   return val;

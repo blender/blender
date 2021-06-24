@@ -91,7 +91,7 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
     BKE_camera_params_init(&params);
     BKE_camera_params_from_object(&params, cam_ob);
 
-    /* Compute matrix, viewplane, .. */
+    /* Compute matrix, view-plane, etc. */
     RenderData *rd = &scene_->r;
     BKE_camera_params_compute_viewplane(&params, rd->xsch, rd->ysch, rd->xasp, rd->yasp);
     BKE_camera_params_compute_matrix(&params);

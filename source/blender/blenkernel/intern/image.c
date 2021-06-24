@@ -5188,7 +5188,7 @@ bool BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
   return ibuf != NULL;
 }
 
-/* ******** Pool for image buffers ********  */
+/* ******** Pool for image buffers ******** */
 
 typedef struct ImagePoolItem {
   struct ImagePoolItem *next, *prev;

@@ -588,7 +588,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   /* Write the text position into the matrix. */
   copy_v3_v3(cd->text_mat[3], text_pos);
 
-  /* Scale the text.  */
+  /* Scale the text. */
   float text_pos_word_space[3];
   mul_v3_m4v3(text_pos_word_space, active_object->obmat, text_pos);
   const float pixelsize = ED_view3d_pixel_size(rv3d, text_pos_word_space);

@@ -3325,10 +3325,10 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
     maxco += UI_HEADER_OFFSET;
   }
 
-  /* always as last  */
+  /* Always as last. */
   UI_view2d_totRect_set(&region->v2d, maxco, region->winy);
 
-  /* restore view matrix */
+  /* Restore view matrix. */
   UI_view2d_view_restore(C);
 }
 

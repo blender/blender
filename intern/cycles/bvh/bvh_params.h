@@ -297,7 +297,7 @@ struct BVHSpatialBin {
  */
 
 struct BVHSpatialStorage {
-  /* Accumulated bounds when sweeping from right to left.  */
+  /* Accumulated bounds when sweeping from right to left. */
   vector<BoundBox> right_bounds;
 
   /* Bins used for histogram when selecting best split plane. */

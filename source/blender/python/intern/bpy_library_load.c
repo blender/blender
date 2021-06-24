@@ -61,8 +61,8 @@
 #endif
 
 typedef struct {
-  PyObject_HEAD /* required python macro */
-      /* collection iterator specific parts */
+  PyObject_HEAD /* Required Python macro. */
+      /* Collection iterator specific parts. */
       char relpath[FILE_MAX];
   char abspath[FILE_MAX]; /* absolute path */
   BlendHandle *blo_handle;
@@ -159,12 +159,12 @@ static PyTypeObject bpy_lib_Type = {
     NULL,                        /* allocfunc tp_alloc; */
     NULL,                        /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */

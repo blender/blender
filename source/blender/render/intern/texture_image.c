@@ -930,7 +930,7 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
 #else
     const float wt = EWA_WTS[(int)(n * n * D)];
 #endif
-    /*const int out =*/ibuf_get_color_clip_bilerp(
+    /* `const int out =` */ ibuf_get_color_clip_bilerp(
         tc, ibuf, ibuf->x * u, ibuf->y * v, AFD->intpol, AFD->extflag);
     /* TXF alpha: clip |= out;
      * TXF alpha: cw += out ? 0.0f : wt; */
@@ -945,8 +945,8 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   texr->tr *= d;
   texr->tg *= d;
   texr->tb *= d;
-  /* clipping can be ignored if alpha used, texr->ta already includes filtered edge */
-  texr->ta = texr->talpha ? texr->ta * d : 1.0f;  // TXF alpha: (clip ? cw*d : 1.0f);
+  /* Clipping can be ignored if alpha used, `texr->ta` already includes filtered edge */
+  texr->ta = texr->talpha ? texr->ta * d : 1.0f; /* TXF alpha: `(clip ? cw*d : 1.0f);` */
 }
 #undef EWA_MAXIDX
 
@@ -957,7 +957,7 @@ static void alpha_clip_aniso(
   rctf rf;
 
   /* TXF alpha: we're doing the same alpha-clip here as box-sample, but I'm doubting
-   * if this is actually correct for the all the filtering algorithms .. */
+   * if this is actually correct for the all the filtering algorithms. */
 
   if (!(extflag == TXC_REPT || extflag == TXC_EXTD)) {
     rf.xmin = minx * (ibuf->x);
@@ -1744,7 +1744,7 @@ int imagewraposa(Tex *tex,
     }
   }
 
-  /* choice:  */
+  /* Choice: */
   if (tex->imaflag & TEX_MIPMAP) {
     ImBuf *previbuf, *curibuf;
     float bumpscale;

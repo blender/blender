@@ -92,7 +92,7 @@ typedef enum eDepsSceneComponentType {
    * (i.e. just SDNA property setting). */
   DEG_SCENE_COMP_PARAMETERS,
   /* Animation Component
-   * TODO(sergey): merge in with parameters?  */
+   * TODO(sergey): merge in with parameters? */
   DEG_SCENE_COMP_ANIMATION,
   /* Sequencer Component (Scene Only). */
   DEG_SCENE_COMP_SEQUENCER,

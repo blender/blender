@@ -118,10 +118,10 @@ void gizmo_property_data_update(wmGizmo *gz,
                                 const bool inverted)
 {
   if (gz_prop->custom_func.value_get_fn != NULL) {
-    /* pass  */
+    /* Pass. */
   }
   else if (gz_prop->prop != NULL) {
-    /* pass  */
+    /* Pass. */
   }
   else {
     data->offset = 0.0f;

@@ -816,7 +816,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
       /* only consider constraint if it is enabled, and has influence on result */
       if ((con->flag & CONSTRAINT_DISABLE) == 0 && (con->enforce != 0.0f)) {
         /* (affirmative) returns for specific constraints here... */
-        /* constraints that require this regardless  */
+        /* constraints that require this regardless. */
         if (ELEM(con->type,
                  CONSTRAINT_TYPE_FOLLOWPATH,
                  CONSTRAINT_TYPE_CLAMPTO,

@@ -1368,7 +1368,7 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object
     ParticleSettings *part = psys->part;
     /* Build particle settings operations.
      *
-     * NOTE: The call itself ensures settings are only build once.  */
+     * NOTE: The call itself ensures settings are only build once. */
     build_particle_settings(part);
     /* Particle system evaluation. */
     add_operation_node(psys_comp, OperationCode::PARTICLE_SYSTEM_EVAL, nullptr, psys->name);

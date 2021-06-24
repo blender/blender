@@ -153,7 +153,7 @@ static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
     if (v_data != NO_EDGE) {
       BLI_edgehashIterator_getKey(ehi, &v2, &v3);
       l1 = (uint)abs(v_data) - 1;
-      if (v_data < 0) { /* inv_opposite  */
+      if (v_data < 0) { /* `inv_opposite`. */
         SWAP(uint, v2, v3);
       }
       l2 = data->vert_to_loop[v2];

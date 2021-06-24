@@ -840,7 +840,7 @@ void psys_get_birth_coords(
 
     copy_v3_v3(state->co, loc);
 
-    /* boids don't get any initial velocity  */
+    /* boids don't get any initial velocity. */
     zero_v3(state->vel);
 
     /* boids store direction in ave */
@@ -1920,7 +1920,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
     }
   }
 
-  /* Artificial buoyancy force in negative gravity direction  */
+  /* Artificial buoyancy force in negative gravity direction. */
   if (fluid->buoyancy > 0.0f && gravity) {
     madd_v3_v3fl(force, gravity, fluid->buoyancy * (density - rest_density));
   }
@@ -2095,7 +2095,7 @@ static void sphclassical_force_cb(void *sphdata_v,
     }
   }
 
-  /* Artificial buoyancy force in negative gravity direction  */
+  /* Artificial buoyancy force in negative gravity direction. */
   if (fluid->buoyancy > 0.0f && gravity) {
     madd_v3_v3fl(force, gravity, fluid->buoyancy * (pa->sphdensity - rest_density));
   }
@@ -3369,7 +3369,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   /* XXX placeholder for more flexible future hair settings */
   hair_radius = part->size;
 
-  /* make vgroup for pin roots etc.. */
+  /* Make vgroup for pin roots etc. */
   hair_index = 1;
   LOOP_PARTICLES
   {

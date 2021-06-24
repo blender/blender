@@ -7,7 +7,7 @@
  *
  * We sample using an octaweb sampling pattern. We randomize the kernel center and each ring
  * rotation to ensure maximum coverage.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)

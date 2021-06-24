@@ -751,7 +751,7 @@ static void rna_Window_scene_update(bContext *C, PointerRNA *ptr)
   Main *bmain = CTX_data_main(C);
   wmWindow *win = ptr->data;
 
-  /* exception: must use context so notifier gets to the right window  */
+  /* Exception: must use context so notifier gets to the right window. */
   if (win->new_scene) {
 #  ifdef WITH_PYTHON
     BPy_BEGIN_ALLOW_THREADS;

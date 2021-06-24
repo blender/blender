@@ -228,12 +228,12 @@ static PyTypeObject bmesh_op_Type = {
     NULL,                   /* allocfunc tp_alloc; */
     NULL,                   /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */

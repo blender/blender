@@ -192,7 +192,7 @@ bool DepsgraphRelationBuilder::is_same_bone_dependency(const KeyFrom &key_from,
         op_to->opcode == OperationCode::BONE_LOCAL)) {
     return false;
   }
-  /* ... BUT, we also need to check if it's same bone.  */
+  /* ... BUT, we also need to check if it's same bone. */
   if (op_from->owner->name != op_to->owner->name) {
     return false;
   }

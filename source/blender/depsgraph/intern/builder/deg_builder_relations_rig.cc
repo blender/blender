@@ -397,7 +397,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
       add_relation(bone_local_key, constraints_key, "Local -> Constraints Stack");
       /* Constraints -> ready/ */
       /* TODO(sergey): When constraint stack is exploded, this step should
-       * occur before the first IK solver.  */
+       * occur before the first IK solver. */
       add_relation(constraints_key, bone_ready_key, "Constraints -> Ready");
     }
     else {

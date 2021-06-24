@@ -4,7 +4,7 @@
  *
  * An addition to the downsample CoC, we output the maximum slight out of focus CoC to be
  * sure we don't miss a pixel.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 

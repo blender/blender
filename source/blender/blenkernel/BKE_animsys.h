@@ -242,7 +242,7 @@ bool BKE_animsys_rna_path_resolve(struct PointerRNA *ptr,
 bool BKE_animsys_read_from_rna_path(struct PathResolvedRNA *anim_rna, float *r_value);
 bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna, const float value);
 
-/* Evaluation loop for evaluating animation data  */
+/* Evaluation loop for evaluating animation data. */
 void BKE_animsys_evaluate_animdata(struct ID *id,
                                    struct AnimData *adt,
                                    const struct AnimationEvalContext *anim_eval_context,

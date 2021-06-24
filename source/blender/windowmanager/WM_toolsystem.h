@@ -38,7 +38,7 @@ struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
 struct wmOperatorType;
 
-/* wm_toolsystem.c  */
+/* wm_toolsystem.c */
 
 #define WM_TOOLSYSTEM_SPACE_MASK \
   ((1 << SPACE_IMAGE) | (1 << SPACE_NODE) | (1 << SPACE_VIEW3D) | (1 << SPACE_SEQ))

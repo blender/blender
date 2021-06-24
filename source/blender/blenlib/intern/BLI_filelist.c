@@ -26,7 +26,7 @@
 #  include <dirent.h>
 #endif
 
-#include <string.h> /* strcpy etc.. */
+#include <string.h> /* #strcpy etc. */
 #include <sys/stat.h>
 #include <time.h>
 

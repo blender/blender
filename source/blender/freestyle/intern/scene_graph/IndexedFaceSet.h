@@ -48,7 +48,7 @@ class IndexedFaceSet : public Rep {
   static const FaceEdgeMark EDGE_MARK_V2V3 = 1 << 2;
   static const FaceEdgeMark EDGE_MARK_V3V1 = 1 << 3;
 
-  /*! Builds an empty indexed face set  */
+  /*! Builds an empty indexed face set. */
   IndexedFaceSet();
 
   /*! Builds an indexed face set

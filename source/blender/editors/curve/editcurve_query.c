@@ -168,8 +168,8 @@ bool ED_curve_pick_vert(ViewContext *vc,
 void ED_curve_nurb_vert_selected_find(
     Curve *cu, View3D *v3d, Nurb **r_nu, BezTriple **r_bezt, BPoint **r_bp)
 {
-  /* in nu and (bezt or bp) selected are written if there's 1 sel.  */
-  /* if more points selected in 1 spline: return only nu, bezt and bp are 0 */
+  /* In nu and (bezt or bp) selected are written if there's 1 sel. */
+  /* If more points selected in 1 spline: return only nu, bezt and bp are 0. */
   ListBase *editnurb = &cu->editnurb->nurbs;
   BezTriple *bezt1;
   BPoint *bp1;

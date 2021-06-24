@@ -914,7 +914,7 @@ static void rna_def_constrainttarget(BlenderRNA *brna)
   RNA_def_property_update(
       prop, NC_OBJECT | ND_CONSTRAINT, "rna_ConstraintTarget_dependency_update");
 
-  /* space, flag and type still to do  */
+  /* space, flag and type still to do. */
 
   RNA_define_lib_overridable(false);
 }
@@ -2975,7 +2975,7 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
   /* direct access to bindings */
   /* NOTE: only to be used by experienced users */
   prop = RNA_def_property(srna, "joint_bindings", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_array(prop, 32); /* XXX this is the maximum value allowed - why?  */
+  RNA_def_property_array(prop, 32); /* XXX this is the maximum value allowed - why? */
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_dynamic_array_funcs(prop, "rna_SplineIKConstraint_joint_bindings_get_length");
   RNA_def_property_float_funcs(prop,

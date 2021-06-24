@@ -395,7 +395,7 @@ void dof_gather_accumulate_sample_pair(DofGatherData pair_data[2],
     /**
      * If a CoC is larger than bordering radius we accumulate it to the general accumulator.
      * If not, we accumulate to the ring bucket. This is to have more consistent sample occlusion.
-     **/
+     */
     float accum_weight = dof_gather_accum_weight(pair_data[i].coc, bordering_radius, first_ring);
     dof_gather_accumulate_sample(pair_data[i], weight * accum_weight, accum_data);
     dof_gather_accumulate_sample(pair_data[i], weight * (1.0 - accum_weight), ring_data);
@@ -607,7 +607,7 @@ ivec2 dof_square_ring_sample_offset(int ring_distance, int sample_id)
    *                 . . . . .
    *
    * Samples are expected to be mirrored to complete the pattern.
-   **/
+   */
   ivec2 offset;
   if (sample_id < ring_distance) {
     offset.x = ring_distance;

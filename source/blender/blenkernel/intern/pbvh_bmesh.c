@@ -2316,7 +2316,7 @@ static void pbvh_bmesh_verify(PBVH *pbvh)
     vert_count++;
   }
 
-  /* if totvert differs from number of verts inside the hash. hash-totvert is checked above  */
+  /* If totvert differs from number of verts inside the hash. hash-totvert is checked above. */
   BLI_assert(vert_count == pbvh->bm->totvert);
 #  endif
 

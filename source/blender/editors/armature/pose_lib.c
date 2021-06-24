@@ -863,7 +863,7 @@ typedef struct tPoseLib_PreviewData {
   /** active area. */
   ScrArea *area;
 
-  /** RNA-Pointer to Object 'ob' .*/
+  /** RNA-Pointer to Object 'ob'. */
   PointerRNA rna_ptr;
   /** object to work on. */
   Object *ob;
@@ -1100,7 +1100,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, tPoseLib_PreviewData 
 
   /* start tagging/keying */
   for (agrp = act->groups.first; agrp; agrp = agrp->next) {
-    /* only for selected bones unless there aren't any selected, in which case all are included  */
+    /* Only for selected bones unless there aren't any selected, in which case all are included. */
     pchan = BKE_pose_channel_find_name(pose, agrp->name);
 
     if (pchan) {

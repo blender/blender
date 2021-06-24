@@ -1428,7 +1428,7 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   height = ACHANNEL_TOT_HEIGHT(ac, items);
   v2d->tot.ymin = -height;
 
-  /* loop through channels, and set up drawing depending on their type  */
+  /* Loop through channels, and set up drawing depending on their type. */
   { /* first pass: just the standard GL-drawing for backdrop + text */
     size_t channel_index = 0;
     float ymax = ACHANNEL_FIRST_TOP(ac);

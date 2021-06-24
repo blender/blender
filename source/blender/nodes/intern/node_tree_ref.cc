@@ -336,7 +336,7 @@ static std::unique_ptr<SocketIndexByIdentifierMap> create_identifier_map(const L
   return map;
 }
 
-/* This function is not threadsafe.  */
+/* This function is not threadsafe. */
 static SocketByIdentifierMap get_or_create_identifier_map(
     const bNode &node, const ListBase &sockets, const bNodeSocketTemplate *sockets_template)
 {

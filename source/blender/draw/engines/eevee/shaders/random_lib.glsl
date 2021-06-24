@@ -1,7 +1,7 @@
 
 /**
  * Random numbers and low discrepency sequences utilities.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 

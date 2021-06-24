@@ -93,7 +93,7 @@ typedef struct BlurShaderFxData {
   int flag;
   /** Number of samples. */
   int samples;
-  /** Rotation of blur effect.  */
+  /** Rotation of blur effect. */
   float rotation;
   char _pad[4];
 
@@ -149,7 +149,7 @@ typedef struct GlowShaderFxData {
   int mode;
   float blur[2];
   int samples;
-  /** Rotation of effect.  */
+  /** Rotation of effect. */
   float rotation;
   /** Blend modes. */
   int blend_mode;

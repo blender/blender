@@ -924,7 +924,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
     sign = (signs[0] * u + signs[1] * v + signs[2] * w) < 0 ? (-1.0f) : 1.0f;
 
     /* binormal */
-    /* B = sign * cross(N, T)  */
+    /* `B = sign * cross(N, T)` */
     cross_v3_v3v3(binormal, normal, tangent);
     mul_v3_fl(binormal, sign);
 

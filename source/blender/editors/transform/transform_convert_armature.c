@@ -1610,10 +1610,10 @@ static short apply_targetless_ik(Object *ob)
         Bone *bone;
         float mat[4][4];
 
-        /* pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK  */
-        /* we put in channel the entire result of mat = (channel * constraint * IK) */
-        /* pose_mat(b) = pose_mat(b-1) * offs_bone * mat  */
-        /* mat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone ) */
+        /* `pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK` */
+        /* We put in channel the entire result of: `mat = (channel * constraint * IK)` */
+        /* `pose_mat(b) = pose_mat(b-1) * offs_bone * mat` */
+        /* `mat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone)` */
 
         parchan = chanlist[segcount - 1];
         bone = parchan->bone;

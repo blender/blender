@@ -625,7 +625,7 @@ static void cloth_calc_force(
 #endif
   /* handle pressure forces (making sure that this never gets computed for hair). */
   if ((parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE) && (clmd->hairdata == nullptr)) {
-    /* The difference in pressure between the inside and outside of the mesh.*/
+    /* The difference in pressure between the inside and outside of the mesh. */
     float pressure_difference = 0.0f;
     float volume_factor = 1.0f;
 

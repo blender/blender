@@ -541,7 +541,7 @@ static void paint_brush_stroke_add_step(bContext *C,
  * It's strange that only texpaint had these guards. */
 #if 0
   /* special exception here for too high pressure values on first touch in
-   * windows for some tablets, then we just skip first touch ..  */
+   * windows for some tablets, then we just skip first touch. */
   if (tablet && (pressure >= 0.99f) &&
       ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) ||
        BKE_brush_use_alpha_pressure(pop->s.brush) ||
@@ -1115,7 +1115,7 @@ bool paint_supports_dynamic_tex_coords(Brush *br, ePaintMode mode)
 
 #define PAINT_STROKE_MODAL_CANCEL 1
 
-/* called in paint_ops.c, on each regeneration of keymaps  */
+/* Called in paint_ops.c, on each regeneration of key-maps. */
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 {
   static struct EnumPropertyItem modal_items[] = {

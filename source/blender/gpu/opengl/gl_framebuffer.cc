@@ -86,7 +86,7 @@ GLFrameBuffer::~GLFrameBuffer()
   /* Restore default frame-buffer if this frame-buffer was bound. */
   if (context_->active_fb == this && context_->back_left != this) {
     /* If this assert triggers it means the frame-buffer is being freed while in use by another
-     * context which, by the way, is TOTALLY UNSAFE!!!  */
+     * context which, by the way, is TOTALLY UNSAFE! */
     BLI_assert(context_ == Context::get());
     GPU_framebuffer_restore();
   }

@@ -51,9 +51,9 @@ typedef struct bConstraint {
 
   /** Constraint data (a valid constraint type). */
   void *data;
-  /** Constraint type.    */
+  /** Constraint type. */
   short type;
-  /** Flag - General Settings.    */
+  /** Flag - General Settings. */
   short flag;
 
   /** Space that owner should be evaluated in. */
@@ -89,7 +89,7 @@ typedef struct bConstraint {
   float rot_error;
 } bConstraint;
 
-/* Multiple-target constraints ---------------------  */
+/* Multiple-target constraints --------------------- */
 
 /* This struct defines a constraint target.
  * It is used during constraint solving regardless of how many targets the
@@ -257,7 +257,7 @@ typedef struct bArmatureConstraint {
   ListBase targets;
 } bArmatureConstraint;
 
-/* Single-target subobject constraints ---------------------  */
+/* Single-target subobject constraints --------------------- */
 
 /* Track To Constraint */
 typedef struct bTrackToConstraint {
@@ -517,7 +517,7 @@ typedef struct bPivotConstraint {
   short flag;
 } bPivotConstraint;
 
-/* transform limiting constraints - zero target ----------------------------  */
+/* transform limiting constraints - zero target ---------------------------- */
 /* Limit Location Constraint */
 typedef struct bLocLimitConstraint {
   float xmin, xmax;
@@ -721,7 +721,7 @@ typedef enum eBConstraint_Flags {
   CONSTRAINT_BBONE_SHAPE = (1 << 10),
   /* That constraint has been inserted in local override (i.e. it can be fully edited!). */
   CONSTRAINT_OVERRIDE_LIBRARY_LOCAL = (1 << 11),
-  /* use full transformation (not just segment locations) - only set at runtime  */
+  /* use full transformation (not just segment locations) - only set at runtime. */
   CONSTRAINT_BBONE_SHAPE_FULL = (1 << 12),
 } eBConstraint_Flags;
 
@@ -1065,7 +1065,7 @@ typedef enum eTransformLimits_Flags2 {
   LIMIT_TRANSFORM = (1 << 1),
 } eTransformLimits_Flags2;
 
-/* transform limiting constraints -> flag (own flags)  */
+/* transform limiting constraints -> flag (own flags). */
 typedef enum eTransformLimits_Flags {
   LIMIT_XMIN = (1 << 0),
   LIMIT_XMAX = (1 << 1),
@@ -1075,7 +1075,7 @@ typedef enum eTransformLimits_Flags {
   LIMIT_ZMAX = (1 << 5),
 } eTransformLimits_Flags;
 
-/* limit rotation constraint -> flag (own flags) */
+/* limit rotation constraint -> flag (own flags). */
 typedef enum eRotLimit_Flags {
   LIMIT_XROT = (1 << 0),
   LIMIT_YROT = (1 << 1),

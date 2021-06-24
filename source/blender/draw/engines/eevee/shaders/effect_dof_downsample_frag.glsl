@@ -4,7 +4,7 @@
  *
  * Pretty much identical to the setup pass but get CoC from buffer. Also does not
  * weight luma for the bilateral weights.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 

@@ -100,7 +100,7 @@ enum class NodeType {
   AUDIO,
   ARMATURE,
   /* Un-interesting data-block, which is a part of dependency graph, but does
-   * not have very distinctive update procedure.  */
+   * not have very distinctive update procedure. */
   GENERIC_DATABLOCK,
 
   /* **** Evaluation-Related Outer Types (with Subdata) **** */

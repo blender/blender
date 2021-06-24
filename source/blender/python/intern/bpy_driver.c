@@ -654,7 +654,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   }
 #endif
 
-  /* decref the driver vars first...  */
+  /* decref the driver vars first. */
   Py_DECREF(driver_vars);
 
   /* process the result */

@@ -340,7 +340,7 @@ Mathutils_Callback mathutils_matrix_translation_cb = {
     mathutils_matrix_translation_set_index,
 };
 
-/* matrix column callbacks, this is so you can do matrix.translation = Vector()  */
+/* matrix column callbacks, this is so you can do `matrix.translation = Vector()`. */
 
 /* ----------------------------------mathutils.Matrix() ----------------- */
 /* mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc. */
@@ -373,7 +373,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         Py_XDECREF(item);
 
         if (num_col >= 2 && num_col <= 4) {
-          /* sane row & col size, new matrix and assign as slice  */
+          /* Sane row & col size, new matrix and assign as slice. */
           PyObject *matrix = Matrix_CreatePyObject(NULL, num_col, num_row, type);
           if (Matrix_ass_slice((MatrixObject *)matrix, 0, INT_MAX, arg) == 0) {
             return matrix;
@@ -3154,15 +3154,15 @@ static PyGetSetDef Matrix_getseters[] = {
 
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 static struct PyMethodDef Matrix_methods[] = {
-    /* derived values */
+    /* Derived values. */
     {"determinant", (PyCFunction)Matrix_determinant, METH_NOARGS, Matrix_determinant_doc},
     {"decompose", (PyCFunction)Matrix_decompose, METH_NOARGS, Matrix_decompose_doc},
 
-    /* in place only */
+    /* In place only. */
     {"zero", (PyCFunction)Matrix_zero, METH_NOARGS, Matrix_zero_doc},
     {"identity", (PyCFunction)Matrix_identity, METH_NOARGS, Matrix_identity_doc},
 
-    /* operate on original or copy */
+    /* Operate on original or copy. */
     {"transpose", (PyCFunction)Matrix_transpose, METH_NOARGS, Matrix_transpose_doc},
     {"transposed", (PyCFunction)Matrix_transposed, METH_NOARGS, Matrix_transposed_doc},
     {"normalize", (PyCFunction)Matrix_normalize, METH_NOARGS, Matrix_normalize_doc},
@@ -3176,26 +3176,26 @@ static struct PyMethodDef Matrix_methods[] = {
     {"to_2x2", (PyCFunction)Matrix_to_2x2, METH_NOARGS, Matrix_to_2x2_doc},
     {"to_3x3", (PyCFunction)Matrix_to_3x3, METH_NOARGS, Matrix_to_3x3_doc},
     {"to_4x4", (PyCFunction)Matrix_to_4x4, METH_NOARGS, Matrix_to_4x4_doc},
-    /* TODO. {"resize_3x3", (PyCFunction) Matrix_resize3x3, METH_NOARGS, Matrix_resize3x3_doc}, */
+    /* TODO: {"resize_3x3", (PyCFunction) Matrix_resize3x3, METH_NOARGS, Matrix_resize3x3_doc}, */
     {"resize_4x4", (PyCFunction)Matrix_resize_4x4, METH_NOARGS, Matrix_resize_4x4_doc},
     {"rotate", (PyCFunction)Matrix_rotate, METH_O, Matrix_rotate_doc},
 
-    /* return converted representation */
+    /* Return converted representation. */
     {"to_euler", (PyCFunction)Matrix_to_euler, METH_VARARGS, Matrix_to_euler_doc},
     {"to_quaternion", (PyCFunction)Matrix_to_quaternion, METH_NOARGS, Matrix_to_quaternion_doc},
     {"to_scale", (PyCFunction)Matrix_to_scale, METH_NOARGS, Matrix_to_scale_doc},
     {"to_translation", (PyCFunction)Matrix_to_translation, METH_NOARGS, Matrix_to_translation_doc},
 
-    /* operation between 2 or more types  */
+    /* Operation between 2 or more types. */
     {"lerp", (PyCFunction)Matrix_lerp, METH_VARARGS, Matrix_lerp_doc},
     {"copy", (PyCFunction)Matrix_copy, METH_NOARGS, Matrix_copy_doc},
     {"__copy__", (PyCFunction)Matrix_copy, METH_NOARGS, Matrix_copy_doc},
     {"__deepcopy__", (PyCFunction)Matrix_deepcopy, METH_VARARGS, Matrix_copy_doc},
 
-    /* base-math methods */
+    /* Base-math methods. */
     {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 
-    /* class methods */
+    /* Class methods. */
     {"Identity", (PyCFunction)C_Matrix_Identity, METH_VARARGS | METH_CLASS, C_Matrix_Identity_doc},
     {"Rotation", (PyCFunction)C_Matrix_Rotation, METH_VARARGS | METH_CLASS, C_Matrix_Rotation_doc},
     {"Scale", (PyCFunction)C_Matrix_Scale, METH_VARARGS | METH_CLASS, C_Matrix_Scale_doc},
@@ -3478,7 +3478,7 @@ int Matrix_Parse4x4(PyObject *o, void *p)
  * special type for alternate access */
 
 typedef struct {
-  PyObject_HEAD /* required python macro   */
+  PyObject_HEAD /* Required Python macro. */
       MatrixObject *matrix_user;
   eMatrixAccess_t type;
 } MatrixAccessObject;

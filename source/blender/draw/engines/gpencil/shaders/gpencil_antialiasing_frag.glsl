@@ -17,7 +17,7 @@ out vec2 fragColor;
 #elif SMAA_STAGE == 1
 out vec4 fragColor;
 #elif SMAA_STAGE == 2
-/* Reminder: Blending func is fragRevealage * DST + fragColor .*/
+/* Reminder: Blending func is `fragRevealage * DST + fragColor`. */
 layout(location = 0, index = 0) out vec4 outColor;
 layout(location = 0, index = 1) out vec4 outReveal;
 #endif

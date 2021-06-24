@@ -27,7 +27,7 @@ const float lut_btdf_layer_count = 16.0;
  * x : Uniformly distributed value [0..1] (noise 1).
  * y : Uniformly distributed value [0..1] (noise 2).
  * z,w : Uniformly distributed point on the unit circle [-1..1] (noise 3).
- **/
+ */
 #define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 
 /* Return texture coordinates to sample Surface LUT. */

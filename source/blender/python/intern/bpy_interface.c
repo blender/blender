@@ -338,7 +338,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 {
 #ifndef WITH_PYTHON_MODULE
 
-  /* #PyPreConfig (early-configuration).  */
+  /* #PyPreConfig (early-configuration). */
   {
     PyPreConfig preconfig;
     PyStatus status;

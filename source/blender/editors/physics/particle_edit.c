@@ -3955,7 +3955,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
         /* keep the same distance from the root or we get glitches T35406. */
         dist_ensure_v3_v3fl(co, co_root, length_accum);
 
-        /* re-use dco to compare before and after translation and add to the offset  */
+        /* Re-use dco to compare before and after translation and add to the offset. */
         copy_v3_v3(dco, key->co);
 
         mul_v3_m4v3(key->co, imat, co);
@@ -3974,7 +3974,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
           /* this is simple but looks bad, adds annoying kinks */
           add_v3_v3(key->co, ofs);
 #else
-          /* translate (not rotate) the rest of the hair if its not selected  */
+          /* Translate (not rotate) the rest of the hair if its not selected. */
           {
 /* NOLINTNEXTLINE: readability-redundant-preprocessor */
 #  if 0 /* kindof works but looks worse than what's below */

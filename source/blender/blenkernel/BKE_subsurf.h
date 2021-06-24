@@ -25,7 +25,7 @@
 /* struct DerivedMesh is used directly */
 #include "BKE_DerivedMesh.h"
 
-/* Thread sync primitives used directly.  */
+/* Thread sync primitives used directly. */
 #include "BLI_threads.h"
 
 #ifdef __cplusplus

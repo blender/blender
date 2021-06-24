@@ -474,7 +474,7 @@ void EDBM_select_more(BMEditMesh *em, const bool use_face_step)
                use_faces,
                use_face_step);
   BMO_op_exec(em->bm, &bmop);
-  /* don't flush selection in edge/vertex mode  */
+  /* Don't flush selection in edge/vertex mode. */
   BMO_slot_buffer_hflag_enable(
       em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, use_faces ? true : false);
   BMO_op_finish(em->bm, &bmop);
@@ -496,7 +496,7 @@ void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
                use_faces,
                use_face_step);
   BMO_op_exec(em->bm, &bmop);
-  /* don't flush selection in edge/vertex mode  */
+  /* Don't flush selection in edge/vertex mode. */
   BMO_slot_buffer_hflag_disable(
       em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, use_faces ? true : false);
   BMO_op_finish(em->bm, &bmop);

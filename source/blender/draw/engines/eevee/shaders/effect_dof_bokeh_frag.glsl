@@ -5,7 +5,7 @@
  * a perfect circle.
  * We correct samples spacing for polygonal bokeh shapes. However, we do not for anamorphic bokeh
  * as it is way more complex and expensive to do.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 

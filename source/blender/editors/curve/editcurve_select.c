@@ -885,10 +885,10 @@ static void curve_select_more(Object *obedit)
   int a;
   short sel = 0;
 
-  /* note that NURBS surface is a special case because we mimic */
-  /* the behavior of "select more" of mesh tools.       */
-  /* The algorithm is designed to work in planar cases so it    */
-  /* may not be optimal always (example: end of NURBS sphere)   */
+  /* NOTE: NURBS surface is a special case because we mimic
+   * the behavior of "select more" of mesh tools.
+   * The algorithm is designed to work in planar cases so it
+   * may not be optimal always (example: end of NURBS sphere). */
   if (obedit->type == OB_SURF) {
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       BLI_bitmap *selbpoints;

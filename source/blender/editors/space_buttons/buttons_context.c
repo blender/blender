@@ -1220,7 +1220,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
       continue;
     }
 
-    /* Add icon and name .*/
+    /* Add icon and name. */
     int icon = RNA_struct_ui_icon(ptr->type);
     char namebuf[128];
     char *name = RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf), NULL);

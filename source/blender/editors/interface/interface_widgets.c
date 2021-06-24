@@ -1531,14 +1531,14 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
   int l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, NULL);
 
   if (l_end > 0) {
-    /* At least one character, so clip and add the ellipsis.  */
+    /* At least one character, so clip and add the ellipsis. */
     memcpy(str + l_end, sep, sep_len + 1); /* +1 for trailing '\0'. */
     if (r_final_len) {
       *r_final_len = (size_t)(l_end) + sep_len;
     }
   }
   else {
-    /* Otherwise fit as much as we can without adding an ellipsis.  */
+    /* Otherwise fit as much as we can without adding an ellipsis. */
     l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, NULL);
     str[l_end] = '\0';
     if (r_final_len) {

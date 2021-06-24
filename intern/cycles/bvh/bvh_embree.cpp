@@ -181,7 +181,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       /* record intersection */
       ctx->local_isect->hits[hit_idx] = current_isect;
       ctx->local_isect->Ng[hit_idx] = normalize(make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z));
-      /* This tells Embree to continue tracing .*/
+      /* This tells Embree to continue tracing. */
       *args->valid = 0;
       break;
     }

@@ -1659,7 +1659,7 @@ static void rna_def_texture(BlenderRNA *brna)
   rna_def_texture_musgrave(brna);
   rna_def_texture_voronoi(brna);
   rna_def_texture_distorted_noise(brna);
-  /* XXX add more types here .. */
+  /* XXX add more types here. */
 
   RNA_api_texture(srna);
 }

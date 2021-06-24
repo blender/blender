@@ -1999,7 +1999,7 @@ void mat4_to_dquat(DualQuat *dq, const float basemat[4][4], const float mat[4][4
 
   if (!is_orthonormal_m3(mat3) || (determinant_m4(mat) < 0.0f) ||
       len_squared_v3(dscale) > square_f(1e-4f)) {
-    /* extract R and S  */
+    /* Extract R and S. */
     float tmp[4][4];
 
     /* extra orthogonalize, to avoid flipping with stretched bones */

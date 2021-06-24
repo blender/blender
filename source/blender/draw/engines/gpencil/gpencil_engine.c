@@ -320,7 +320,7 @@ void GPENCIL_cache_init(void *ved)
     float focal_len = cam->lens;
 
     const float scale_camera = 0.001f;
-    /* we want radius here for the aperture number  */
+    /* We want radius here for the aperture number. */
     float aperture = 0.5f * scale_camera * focal_len / fstop;
     float focal_len_scaled = scale_camera * focal_len;
     float sensor_scaled = scale_camera * sensor;

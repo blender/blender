@@ -144,8 +144,8 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
  * \{ */
 
 typedef enum {
-  UNSAFE_ALL = 0x1,        /* Escape all unsafe characters   */
-  UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+'  */
+  UNSAFE_ALL = 0x1,        /* Escape all unsafe characters. */
+  UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+' */
   UNSAFE_PATH = 0x8,       /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
   UNSAFE_HOST = 0x10,      /* Allows '/' and ':' and '@' */
   UNSAFE_SLASHES = 0x20,   /* Allows all characters except for '/' and '%' */

@@ -125,7 +125,7 @@ typedef struct tGPDfill {
   struct bGPDframe *gpf;
   /** Temp mouse position stroke. */
   struct bGPDstroke *gps_mouse;
-  /** Pointer to report messages.  */
+  /** Pointer to report messages. */
   struct ReportList *reports;
   /** flags */
   short flag;

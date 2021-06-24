@@ -3125,7 +3125,7 @@ static void outliner_draw_tree_element(bContext *C,
       *te_edit = te;
     }
 
-    /* Icons can be ui buts, we don't want it to overlap with restrict .*/
+    /* Icons can be UI buts, we don't want it to overlap with restrict. */
     if (restrict_column_width > 0) {
       xmax -= restrict_column_width + UI_UNIT_X;
     }

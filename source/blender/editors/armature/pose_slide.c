@@ -1513,7 +1513,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       if (event->val == KM_PRESS) {
         switch (event->type) {
-          /* Transform Channel Limits  */
+          /* Transform Channel Limits. */
           /* XXX: Replace these hard-coded hotkeys with a modal-map that can be customized. */
           case EVT_GKEY: /* Location */
           {

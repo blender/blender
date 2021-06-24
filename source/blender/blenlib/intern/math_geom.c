@@ -6244,7 +6244,7 @@ float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3])
   BLI_ASSERT_UNIT_V3(tan_l);
   BLI_ASSERT_UNIT_V3(tan_r);
 
-  /* -7f causes instability/glitches with Bendy Bones + Custom Refs  */
+  /* -7f causes instability/glitches with Bendy Bones + Custom Refs. */
   const float eps = 1e-5f;
 
   const float tan_dot = dot_v3v3(tan_l, tan_r);

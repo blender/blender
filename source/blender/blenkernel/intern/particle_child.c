@@ -785,7 +785,7 @@ static void do_twist(const ParticleChildModifierContext *modifier_ctx,
     return;
   }
   if (part->twist == 0.0f) {
-    /* No twist along the strand.  */
+    /* No twist along the strand. */
     return;
   }
   /* Dependent on whether it's threaded update or not, curve comes

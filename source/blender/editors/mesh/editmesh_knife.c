@@ -1160,7 +1160,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd,
   }
   else if (lh1->kfe) {
     kfe->v1 = knife_split_edge(kcd, lh1->kfe, lh1->hit, lh1->cagehit, &kfe2);
-    lh1->v = kfe->v1; /* record the KnifeVert for this hit  */
+    lh1->v = kfe->v1; /* Record the #KnifeVert for this hit. */
   }
   else {
     BLI_assert(lh1->f);
@@ -1168,7 +1168,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd,
     kfe->v1->is_cut = true;
     kfe->v1->is_face = true;
     knife_append_list(kcd, &kfe->v1->faces, lh1->f);
-    lh1->v = kfe->v1; /* record the KnifeVert for this hit */
+    lh1->v = kfe->v1; /* Record the #KnifeVert for this hit. */
   }
 
   if (lh2->v) {

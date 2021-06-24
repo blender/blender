@@ -907,7 +907,7 @@ static int uv_rip_exec(bContext *C, wmOperator *op)
 
   float aspx, aspy;
   {
-    /* Note that we only want to run this on the  */
+    /* Note that we only want to run this on the. */
     Object *obedit = CTX_data_edit_object(C);
     ED_uvedit_get_aspect(obedit, &aspx, &aspy);
   }

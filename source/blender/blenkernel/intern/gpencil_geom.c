@@ -3808,11 +3808,11 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
     last_prev_pt[0] -= 1.0f;
   }
 
-  /* generate points for start cap */
+  /* Generate points for start cap. */
   num_perimeter_points += generate_perimeter_cap(
       first_pt, first_next_pt, first_radius, perimeter_right_side, subdivisions, gps->caps[0]);
 
-  /* generate perimeter points  */
+  /* Generate perimeter points. */
   float curr_pt[3], next_pt[3], prev_pt[3];
   float vec_next[2], vec_prev[2];
   float nvec_next[2], nvec_prev[2];

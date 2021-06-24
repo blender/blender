@@ -940,7 +940,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
       int j;
       PaintCurvePoint *cp_next = cp + 1;
       float data[(PAINT_CURVE_NUM_SEGMENTS + 1) * 2];
-      /* Use color coding to distinguish handles vs curve segments.  */
+      /* Use color coding to distinguish handles vs curve segments. */
       draw_bezier_handle_lines(pos, selec_col, &cp->bez);
       draw_tri_point(pos, selec_col, pivot_col, &cp->bez.vec[1][0], 10.0f, cp->bez.f2);
       draw_rect_point(

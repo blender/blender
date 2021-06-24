@@ -1889,7 +1889,7 @@ static void draw_bone_name(ArmatureDrawContext *ctx,
   bool highlight = (pchan && (arm->flag & ARM_POSEMODE) && (boneflag & BONE_SELECTED)) ||
                    (eBone && (eBone->flag & BONE_SELECTED));
 
-  /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
+  /* Color Management: Exception here as texts are drawn in sRGB space directly. */
   UI_GetThemeColor4ubv(highlight ? TH_TEXT_HI : TH_TEXT, color);
 
   float *head = pchan ? pchan->pose_head : eBone->head;

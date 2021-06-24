@@ -309,7 +309,7 @@ typedef struct bGPDstroke {
   float uv_translation[2];
   float uv_scale;
 
-  /** Stroke selection index.*/
+  /** Stroke selection index. */
   int select_index;
   char _pad4[4];
 
@@ -614,7 +614,7 @@ typedef struct bGPdata_Runtime {
   /** Vertex Color applied to Fill (while drawing). */
   float vert_color_fill[4];
 
-  /** Arrow points for stroke corners **/
+  /** Arrow points for stroke corners. */
   float arrow_start[8];
   float arrow_end[8];
   /* Arrow style for each corner */

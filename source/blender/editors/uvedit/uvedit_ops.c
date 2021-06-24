@@ -624,7 +624,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
           }
         }
         else {
-          /* error - not a line, needs 3+ points  */
+          /* error - not a line, needs 3+ points. */
         }
 
         if (eve_line) {
@@ -632,7 +632,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
         }
       }
       else {
-        /* error - can't find an endpoint */
+        /* error - can't find an endpoint. */
       }
     }
 
@@ -1194,8 +1194,8 @@ static bool uv_snap_uvs_to_adjacent_unselected(Scene *scene, Object *obedit)
           int uv_tot = 0;
 
           BM_ITER_ELEM (lsub, &lsubiter, l->v, BM_LOOPS_OF_VERT) {
-            if (BM_elem_flag_test(lsub->f, BM_ELEM_TAG) && /* face: visible */
-                !BM_elem_flag_test(lsub, BM_ELEM_TAG))     /* loop: unselected  */
+            if (BM_elem_flag_test(lsub->f, BM_ELEM_TAG) && /* face: visible. */
+                !BM_elem_flag_test(lsub, BM_ELEM_TAG))     /* loop: unselected. */
             {
               luv = BM_ELEM_CD_GET_VOID_P(lsub, cd_loop_uv_offset);
               add_v2_v2(uv, luv->uv);

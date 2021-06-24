@@ -1271,7 +1271,7 @@ static bool vfont_to_curve(Object *ob,
   MEM_freeN(i_textbox_array);
 
   /* TEXT ON CURVE */
-  /* Note: Only OB_CURVE objects could have a path  */
+  /* NOTE: Only OB_CURVE objects could have a path. */
   if (cu->textoncurve && cu->textoncurve->type == OB_CURVE) {
     BLI_assert(cu->textoncurve->runtime.curve_cache != NULL);
     if (cu->textoncurve->runtime.curve_cache != NULL &&

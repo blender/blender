@@ -5,7 +5,7 @@
  * Output min and max values for each tile and for both foreground & background.
  * Also outputs min intersectable CoC for the background, which is the minimum CoC
  * that comes from the background pixels.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 

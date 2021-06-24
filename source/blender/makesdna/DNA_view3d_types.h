@@ -548,7 +548,7 @@ enum {
   V3D_OVERLAY_EDIT_INDICES = (1 << 19),
 
   /* Deprecated. */
-  /* V3D_OVERLAY_EDIT_CU_HANDLES = (1 << 20),  */
+  // V3D_OVERLAY_EDIT_CU_HANDLES = (1 << 20),
 
   V3D_OVERLAY_EDIT_CU_NORMALS = (1 << 21),
 };

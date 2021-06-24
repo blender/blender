@@ -587,7 +587,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
         }
         else {
           /* Set the same occlusion level for the end vertex, so when further connection is needed
-           * the backwards occlusion info is also correct.  */
+           * the backwards occlusion info is also correct. */
           eci->occlusion = fixed_occ;
           eci->transparency_mask = fixed_mask;
           /* No need to split at the last point anyway. */

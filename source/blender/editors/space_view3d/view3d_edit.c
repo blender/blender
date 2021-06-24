@@ -611,7 +611,7 @@ enum {
   VIEWROT_MODAL_SWITCH_ROTATE = 6,
 };
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -1686,7 +1686,7 @@ void VIEW3D_OT_ndof_all(struct wmOperatorType *ot)
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 void viewmove_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -1881,8 +1881,8 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 /** \name View Zoom Operator
  * \{ */
 
-/* viewdolly_modal_keymap has an exact copy of this, apply fixes to both */
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* #viewdolly_modal_keymap has an exact copy of this, apply fixes to both. */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -2445,8 +2445,8 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
  * which avoids #RegionView3D.dist approaching zero.
  * \{ */
 
-/* this is an exact copy of viewzoom_modal_keymap */
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* This is an exact copy of #viewzoom_modal_keymap. */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

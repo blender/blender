@@ -123,7 +123,7 @@ bool WM_platform_support_perform_checks()
   const char *platform_key = GPU_platform_support_level_key();
 
   /* Check if previous check matches the current check. Don't update the approval when running in
-   * `background`. this could have been triggered by installing add-ons via installers.  */
+   * `background`. this could have been triggered by installing add-ons via installers. */
   if (support_level != GPU_SUPPORT_LEVEL_UNSUPPORTED && !G.factory_startup &&
       wm_platform_support_check_approval(platform_key, !G.background)) {
     /* If it matches the user has confirmed and wishes to use it. */

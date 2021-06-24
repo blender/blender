@@ -1827,7 +1827,7 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 
 /** \} */
 
-/* Evaluation  */
+/* Evaluation. */
 
 /* Applies object's restrict flags on top of flags coming from the collection
  * and stores those in base->flag. BASE_VISIBLE_DEPSGRAPH ignores viewport flags visibility

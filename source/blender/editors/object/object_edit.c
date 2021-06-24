@@ -1152,7 +1152,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene, eObjectPathCalcRang
   Depsgraph *depsgraph;
   bool free_depsgraph = false;
   /* For a single frame update it's faster to re-use existing dependency graph and avoid overhead
-   * of building all the relations and so on for a temporary one.  */
+   * of building all the relations and so on for a temporary one. */
   if (range == OBJECT_PATH_CALC_RANGE_CURRENT_FRAME) {
     /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
      * nested pointers, like animation data. */

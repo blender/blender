@@ -2,14 +2,14 @@
 /**
  * Reduce pass: Downsample the color buffer to generate mipmaps.
  * Also decide if a pixel is to be convolved by scattering or gathering during the first pass.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(effect_dof_lib.glsl)
 
 /** Inputs:
  * COPY_PASS: Is output of setup pass (halfres) and downsample pass (quarter res).
  * REDUCE_PASS: Is previous Gather input miplvl (halfres >> miplvl).
- **/
+ */
 uniform sampler2D colorBuffer;
 uniform sampler2D cocBuffer;
 uniform sampler2D downsampledBuffer;
@@ -23,7 +23,7 @@ uniform float colorNeighborClamping;
 /** Outputs:
  * COPY_PASS: Gather input mip0.
  * REDUCE_PASS: Is next Gather input miplvl (halfres >> miplvl).
- **/
+ */
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out float outCoc;
 

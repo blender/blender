@@ -262,7 +262,7 @@ typedef struct {
   size_t write_len;
 #endif
 
-  /** Set on unlikely case of an error (ignores further file writing).  */
+  /** Set on unlikely case of an error (ignores further file writing). */
   bool error;
 
   /** #MemFile writing (used for undo). */

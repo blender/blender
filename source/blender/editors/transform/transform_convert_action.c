@@ -554,7 +554,7 @@ void createTransActionData(bContext *C, TransInfo *t)
 /** \name Action Transform Flush
  * \{ */
 
-/* This function helps flush transdata written to tempdata into the gp-frames  */
+/* This function helps flush transdata written to tempdata into the gp-frames. */
 static void flushTransIntFrameActionData(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);

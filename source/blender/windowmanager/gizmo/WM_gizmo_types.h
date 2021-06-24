@@ -191,7 +191,7 @@ typedef enum eWM_GizmoFlagMapTypeUpdateFlag {
 typedef enum {
   /* Drag with extra precision (Shift). */
   WM_GIZMO_TWEAK_PRECISE = (1 << 0),
-  /* Drag with snap enabled (Ctrl).  */
+  /* Drag with snap enabled (Ctrl). */
   WM_GIZMO_TWEAK_SNAP = (1 << 1),
 } eWM_GizmoFlagTweak;
 
@@ -301,7 +301,7 @@ typedef struct wmGizmoProperty {
   PropertyRNA *prop;
   int index;
 
-  /* Optional functions for converting to/from RNA  */
+  /* Optional functions for converting to/from RNA. */
   struct {
     wmGizmoPropertyFnGet value_get_fn;
     wmGizmoPropertyFnSet value_set_fn;

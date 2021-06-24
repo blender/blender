@@ -1351,7 +1351,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
       iprop->hardmin = (subtype == PROP_UNSIGNED) ? 0 : INT_MIN;
       iprop->hardmax = INT_MAX;
 
-      iprop->softmin = (subtype == PROP_UNSIGNED) ? 0 : -10000; /* rather arbitrary .. */
+      iprop->softmin = (subtype == PROP_UNSIGNED) ? 0 : -10000; /* rather arbitrary. */
       iprop->softmax = 10000;
       iprop->step = 1;
       break;
@@ -1371,7 +1371,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
         fprop->softmax = fprop->hardmax = 1.0f;
       }
       else {
-        fprop->softmin = (subtype == PROP_UNSIGNED) ? 0.0f : -10000.0f; /* rather arbitrary .. */
+        fprop->softmin = (subtype == PROP_UNSIGNED) ? 0.0f : -10000.0f; /* rather arbitrary. */
         fprop->softmax = 10000.0f;
       }
       fprop->step = 10;
@@ -1670,7 +1670,7 @@ void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int le
     memset(prop->arraylength, 0, sizeof(prop->arraylength));
   }
 
-  /* TODO make sure arraylength values are sane  */
+  /* TODO: make sure `arraylength` values are sane. */
 }
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description)
@@ -2416,7 +2416,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
       }
     }
 
-    /* SDNA doesn't pass us unsigned unfortunately .. */
+    /* SDNA doesn't pass us unsigned unfortunately. */
     if (dp->dnatype && STREQ(dp->dnatype, "char")) {
       iprop->hardmin = iprop->softmin = CHAR_MIN;
       iprop->hardmax = iprop->softmax = CHAR_MAX;
@@ -2429,7 +2429,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
       iprop->hardmin = INT_MIN;
       iprop->hardmax = INT_MAX;
 
-      iprop->softmin = -10000; /* rather arbitrary .. */
+      iprop->softmin = -10000; /* rather arbitrary. */
       iprop->softmax = 10000;
     }
     else if (dp->dnatype && STREQ(dp->dnatype, "int8_t")) {

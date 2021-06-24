@@ -60,8 +60,8 @@
 
 #define SDNA_MAX_FILENAME_LENGTH 255
 
-/* Included the path relative from /source/blender/ here, so we can move     */
-/* headers around with more freedom.                                         */
+/* Included the path relative from /source/blender/ here,
+ * so we can move headers around with more freedom. */
 static const char *includefiles[] = {
     /* if you add files here, please add them at the end
      * of makesdna.c (this file) as well */
@@ -1227,17 +1227,17 @@ static int make_structDNA(const char *base_directory,
   /* the defines above shouldn't be output in the padding file... */
   const int firststruct = types_len;
 
-  /* add all include files defined in the global array                     */
-  /* Since the internal file+path name buffer has limited length, I do a   */
-  /* little test first...                                                  */
-  /* Mind the breaking condition here!                                     */
+  /* Add all include files defined in the global array.
+   * Since the internal file+path name buffer has limited length,
+   * I do a little test first...
+   * Mind the breaking condition here! */
   DEBUG_PRINTF(0, "\tStart of header scan:\n");
   int header_count = 0;
   for (int i = 0; *(includefiles[i]) != '\0'; i++) {
     header_count++;
 
-    /* str contains filenames. Since we now include paths, I stretched       */
-    /* it a bit. Hope this is enough :) -nzc-                                */
+    /* NOTE(nzc): `str` contains filenames.
+     * Since we now include paths, I stretched it a bit. Hope this is enough :). */
     char str[SDNA_MAX_FILENAME_LENGTH];
     sprintf(str, "%s%s", base_directory, includefiles[i]);
     DEBUG_PRINTF(0, "\t|-- Converting %s\n", str);

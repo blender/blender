@@ -63,7 +63,7 @@ void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG *subdiv_ccg,
 /** \name Generally useful internal helpers
  * \{ */
 
-/* Number of floats in per-vertex elements.  */
+/* Number of floats in per-vertex elements. */
 static int num_element_float_get(const SubdivCCG *subdiv_ccg)
 {
   /* We always have 3 floats for coordinate. */
@@ -1489,7 +1489,7 @@ BLI_INLINE SubdivCCGCoord coord_at_next_col(const SubdivCCG *subdiv_ccg,
   return result;
 }
 
-/* For the input coordinate which is at the boundary of the grid do one step inside.  */
+/* For the input coordinate which is at the boundary of the grid do one step inside. */
 static SubdivCCGCoord coord_step_inside_from_boundary(const SubdivCCG *subdiv_ccg,
                                                       const SubdivCCGCoord *coord)
 

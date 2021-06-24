@@ -1,4 +1,4 @@
-/** This describe the entire interface of the shader.  */
+/** This describe the entire interface of the shader. */
 
 #define SURFACE_INTERFACE \
   vec3 worldPosition; \

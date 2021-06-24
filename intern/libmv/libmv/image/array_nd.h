@@ -378,7 +378,7 @@ void PrintArray(const Array3Df& array);
  *  (if automatic_range_detection = true)
  * \note and TODO this automatic detection only works when the image contains
  *  at least one pixel of both bounds.
- **/
+ */
 void FloatArrayToScaledByteArray(const Array3Df& float_array,
                                  Array3Du* byte_array,
                                  bool automatic_range_detection = false);

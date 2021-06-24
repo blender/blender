@@ -215,7 +215,7 @@ class ViewEdgeXBuilder {
   /*! Builds a smooth view edge, starting the face iFace. */
   ViewEdge *BuildSmoothViewEdge(const OWXFaceLayer &iFaceLayer);
 
-  /*! Makes a sharp viewedge  */
+  /*! Makes a sharp viewedge. */
   ViewEdge *BuildSharpViewEdge(const OWXEdge &iWEdge);
 
  public:

@@ -135,7 +135,7 @@ static void node_buts_mix_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
 static void node_buts_time(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 #if 0
-  /* XXX no context access here .. */
+  /* XXX no context access here. */
   bNode *node = (bNode*)ptr->data;
   CurveMapping *cumap = node->storage;
 

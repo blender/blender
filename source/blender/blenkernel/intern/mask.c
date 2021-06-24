@@ -1923,7 +1923,7 @@ static void interp_weights_uv_v2_apply(const float uv[2],
   r_pt[1] += dvec[0] * uv[1];
 }
 
-/* when a new points added - resize all shapekey array  */
+/* When a new points added - resize all shape-key array. */
 void BKE_mask_layer_shape_changed_add(MaskLayer *masklay,
                                       int index,
                                       bool do_init,

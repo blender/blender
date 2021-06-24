@@ -3681,7 +3681,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   }
   if (prop->flag & PROP_IDPROPERTY) {
     /* XXX temporary hack to add it automatically, reading should
-     * never do any write ops, to ensure thread safety etc .. */
+     * never do any write ops, to ensure thread safety etc. */
     RNA_property_pointer_add(ptr, prop);
     return RNA_property_pointer_get(ptr, prop);
   }
@@ -3960,7 +3960,7 @@ static bool property_collection_liboverride_editable(PointerRNA *ptr,
 
   if (!is_liboverride) {
     /* We return True also for linked data, as it allows tricks like py scripts 'overriding' data
-     * of those.*/
+     * of those. */
     return true;
   }
 
@@ -4005,7 +4005,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
       item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
     }
     IDP_AppendArray(idprop, item);
-    /* IDP_AppendArray does a shallow copy (memcpy), only free memory  */
+    /* IDP_AppendArray does a shallow copy (memcpy), only free memory. */
     /* IDP_FreePropertyContent(item); */
     MEM_freeN(item);
     rna_idproperty_touch(idprop);
@@ -4565,8 +4565,8 @@ static int rna_raw_access(ReportList *reports,
         return 1;
       }
 
-      /* could also be faster with non-matching types,
-       * for now we just do slower loop .. */
+      /* Could also be faster with non-matching types,
+       * for now we just do slower loop. */
     }
   }
 
@@ -5184,7 +5184,7 @@ static bool rna_path_parse_array_index(const char **path,
       /* location.x || scale.X, single dimension arrays only */
       token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 0);
       if (token == NULL) {
-        /* invalid syntax blah.. */
+        /* invalid syntax blah. */
         return false;
       }
       temp_index = RNA_property_array_item_index(prop, *token);

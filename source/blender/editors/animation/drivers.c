@@ -568,7 +568,7 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports),
       FCurve *fcu_iter = adt->drivers.first;
 
       while ((fcu = BKE_fcurve_iter_step(fcu_iter, rna_path)) != NULL) {
-        /* store the next fcurve for looping  */
+        /* Store the next fcurve for looping. */
         fcu_iter = fcu->next;
 
         /* remove F-Curve from driver stack, then free it */

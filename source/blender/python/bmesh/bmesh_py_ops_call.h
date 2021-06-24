@@ -24,7 +24,7 @@
 #pragma once
 
 typedef struct {
-  PyObject_HEAD /* required python macro   */
+  PyObject_HEAD /* Required Python macro. */
       const char *opname;
 } BPy_BMeshOpFunc;
 

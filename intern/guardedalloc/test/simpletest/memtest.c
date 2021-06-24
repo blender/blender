@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
   /* ----------------------------------------------------------------- */
   /* Round two, do a normal allocation, and corrupt some blocks.       */
   /* ----------------------------------------------------------------- */
-  /* switch off, because it will complain about some things.           */
+  /* Switch off, because it will complain about some things. */
   MEM_set_error_callback(NULL);
 
   for (i = 0; i < NUM_BLOCKS; i++) {

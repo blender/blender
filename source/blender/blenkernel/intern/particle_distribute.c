@@ -142,7 +142,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   size[(axis + 1) % 3] = (int)ceil(delta[(axis + 1) % 3] / d);
   size[(axis + 2) % 3] = (int)ceil(delta[(axis + 2) % 3] / d);
 
-  /* float errors grrr.. */
+  /* float errors grrr. */
   size[(axis + 1) % 3] = MIN2(size[(axis + 1) % 3], res);
   size[(axis + 2) % 3] = MIN2(size[(axis + 2) % 3], res);
 

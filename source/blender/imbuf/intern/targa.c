@@ -427,7 +427,7 @@ static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
     printf("decodetarga: incomplete file, %.1f%% missing\n",
            100 * ((float)size / (ibuf->x * ibuf->y)));
 
-    /* not essential but makes displaying partially rendered TGA's less ugly  */
+    /* Not essential but makes displaying partially rendered TGA's less ugly. */
     memset(rect, 0, size);
   }
   else {
@@ -701,7 +701,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
     }
     ibuf->planes = size;
 
-    if (tga.mapbits != 32) { /* set alpha bits  */
+    if (tga.mapbits != 32) { /* Set alpha bits. */
       cmap[0] &= BIG_LONG(0x00ffffffl);
     }
   }

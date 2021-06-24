@@ -1056,7 +1056,7 @@ static void draw_seq_fcurve_overlay(
         continue;
       }
 
-      /* If some frames were skipped above, we need to close the shape.  */
+      /* If some frames were skipped above, we need to close the shape. */
       if (skip) {
         fcurve_batch_add_verts(
             vbo, y1, y2, y_height, timeline_frame - eval_step, prev_val, &vert_count);

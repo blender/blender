@@ -55,7 +55,7 @@
 /* Surface refers to a simplified and lower-memory footprint representation of the limit surface.
  *
  * Used to store pre-calculated information which is expensive or impossible to evaluate when
- * traversing the final limit surface.  */
+ * traversing the final limit surface. */
 
 typedef struct SurfacePoint {
   float P[3];
@@ -1027,7 +1027,7 @@ static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_co
   converter->user_data = (void *)reshape_smooth_context;
 }
 
-/* Create subdiv descriptor created for topology at a reshape level,  */
+/* Create subdiv descriptor created for topology at a reshape level. */
 static void reshape_subdiv_create(MultiresReshapeSmoothContext *reshape_smooth_context)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
@@ -1050,7 +1050,7 @@ typedef void(ReshapeSubdivCoarsePositionCb)(
     const Vertex *vertex,
     float r_P[3]);
 
-/* Refine subdivision surface topology at a reshape level for new coarse vertices positions.  */
+/* Refine subdivision surface topology at a reshape level for new coarse vertices positions. */
 static void reshape_subdiv_refine(const MultiresReshapeSmoothContext *reshape_smooth_context,
                                   ReshapeSubdivCoarsePositionCb coarse_position_cb)
 {

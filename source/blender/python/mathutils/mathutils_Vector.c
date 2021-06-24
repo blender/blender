@@ -2974,11 +2974,11 @@ static struct PyMethodDef Vector_methods[] = {
     {"Linspace", (PyCFunction)C_Vector_Linspace, METH_VARARGS | METH_CLASS, C_Vector_Linspace_doc},
     {"Repeat", (PyCFunction)C_Vector_Repeat, METH_VARARGS | METH_CLASS, C_Vector_Repeat_doc},
 
-    /* in place only */
+    /* In place only. */
     {"zero", (PyCFunction)Vector_zero, METH_NOARGS, Vector_zero_doc},
     {"negate", (PyCFunction)Vector_negate, METH_NOARGS, Vector_negate_doc},
 
-    /* operate on original or copy */
+    /* Operate on original or copy. */
     {"normalize", (PyCFunction)Vector_normalize, METH_NOARGS, Vector_normalize_doc},
     {"normalized", (PyCFunction)Vector_normalized, METH_NOARGS, Vector_normalized_doc},
 
@@ -2994,7 +2994,7 @@ static struct PyMethodDef Vector_methods[] = {
     {"to_track_quat", (PyCFunction)Vector_to_track_quat, METH_VARARGS, Vector_to_track_quat_doc},
     {"orthogonal", (PyCFunction)Vector_orthogonal, METH_NOARGS, Vector_orthogonal_doc},
 
-    /* operation between 2 or more types  */
+    /* Operation between 2 or more types. */
     {"reflect", (PyCFunction)Vector_reflect, METH_O, Vector_reflect_doc},
     {"cross", (PyCFunction)Vector_cross, METH_O, Vector_cross_doc},
     {"dot", (PyCFunction)Vector_dot, METH_O, Vector_dot_doc},
@@ -3009,7 +3009,7 @@ static struct PyMethodDef Vector_methods[] = {
     {"slerp", (PyCFunction)Vector_slerp, METH_VARARGS, Vector_slerp_doc},
     {"rotate", (PyCFunction)Vector_rotate, METH_O, Vector_rotate_doc},
 
-    /* base-math methods */
+    /* Base-math methods. */
     {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 
     {"copy", (PyCFunction)Vector_copy, METH_NOARGS, Vector_copy_doc},
@@ -3105,12 +3105,12 @@ PyTypeObject vector_Type = {
     NULL,             /* allocfunc tp_alloc; */
     Vector_new,       /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */

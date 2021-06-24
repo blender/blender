@@ -734,7 +734,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
   int height = NLACHANNEL_TOT_HEIGHT(ac, items);
   v2d->tot.ymin = -height;
 
-  /* loop through channels, and set up drawing depending on their type  */
+  /* Loop through channels, and set up drawing depending on their type. */
   float ymax = NLACHANNEL_FIRST_TOP(ac);
 
   for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next, ymax -= NLACHANNEL_STEP(snla)) {
@@ -894,7 +894,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
     /* set blending again, as may not be set in previous step */
     GPU_blend(GPU_BLEND_ALPHA);
 
-    /* loop through channels, and set up drawing depending on their type  */
+    /* Loop through channels, and set up drawing depending on their type. */
     for (ale = anim_data.first; ale;
          ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++) {
       float ymin = ymax - NLACHANNEL_HEIGHT(snla);

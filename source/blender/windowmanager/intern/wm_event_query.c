@@ -218,7 +218,7 @@ bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask ma
 /** \name Event Motion Queries
  * \{ */
 
-/* for modal callbacks, check configuration for how to interpret exit with tweaks  */
+/* for modal callbacks, check configuration for how to interpret exit with tweaks. */
 bool WM_event_is_modal_tweak_exit(const wmEvent *event, int tweak_event)
 {
   /* if the release-confirm userpref setting is enabled,

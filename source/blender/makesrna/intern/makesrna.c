@@ -114,7 +114,7 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
 
 static int replace_if_different(const char *tmpfile, const char *dep_files[])
 {
-  /* return 0;  */ /* use for testing had edited rna */
+  /* return 0; */ /* use for testing had edited rna */
 
 #define REN_IF_DIFF \
   { \
@@ -641,7 +641,7 @@ static char *rna_def_property_get_func(
       return NULL;
     }
 
-    /* typecheck,  */
+    /* Type check. */
     if (dp->dnatype && *dp->dnatype) {
 
       if (prop->type == PROP_FLOAT) {
@@ -3083,7 +3083,7 @@ static void rna_auto_types(void)
   PropertyDefRNA *dp;
 
   for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
-    /* DNA name for Screen is patched in 2.5, we do the reverse here .. */
+    /* DNA name for Screen is patched in 2.5, we do the reverse here. */
     if (ds->dnaname) {
       if (STREQ(ds->dnaname, "Screen")) {
         ds->dnaname = "bScreen";

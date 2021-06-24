@@ -774,7 +774,7 @@ static int gpencil_weightpaint_brush_modal(bContext *C, wmOperator *op, const wm
 
   /* The operator can be in 2 states: Painting and Idling */
   if (gso->is_painting) {
-    /* Painting  */
+    /* Painting. */
     switch (event->type) {
       /* Mouse Move = Apply somewhere else */
       case MOUSEMOVE:

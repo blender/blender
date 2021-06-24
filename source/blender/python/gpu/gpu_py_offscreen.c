@@ -97,7 +97,7 @@ static int pygpu_offscreen_valid_check(BPyGPUOffScreen *py_ofs)
  * \{ */
 
 typedef struct {
-  PyObject_HEAD /* required python macro */
+  PyObject_HEAD /* Required Python macro. */
       BPyGPUOffScreen *py_offscreen;
   int level;
   bool is_explicitly_bound; /* Bound by "bind" method. */

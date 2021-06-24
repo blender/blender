@@ -370,7 +370,7 @@ void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 /* Sync colors used for action/bone group with theme settings */
 void action_group_colors_sync(bActionGroup *grp, const bActionGroup *ref_grp)
 {
-  /* only do color copying if using a custom color (i.e. not default color)  */
+  /* Only do color copying if using a custom color (i.e. not default color). */
   if (grp->customCol) {
     if (grp->customCol > 0) {
       /* copy theme colors on-to group's custom color in case user tries to edit color */

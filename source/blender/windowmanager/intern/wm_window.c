@@ -188,7 +188,7 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
     GHOST_ActivateWindowDrawingContext(win->ghostwin);
     GPU_context_active_set(win->gpuctx);
 
-    /* Delete local gpu context.  */
+    /* Delete local GPU context. */
     GPU_context_discard(win->gpuctx);
 
     GHOST_DisposeWindow(g_system, win->ghostwin);
@@ -440,8 +440,8 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
   if (WM_window_is_temp_screen(win)) {
-    /* nothing to do for 'temp' windows,
-     * because WM_window_open always sets window title  */
+    /* Nothing to do for 'temp' windows,
+     * because #WM_window_open always sets window title. */
   }
   else if (win->ghostwin) {
     /* this is set to 1 if you don't have startup.blend open */

@@ -517,7 +517,7 @@ extern "C" {
 #  define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
 #endif
 
-/* ARRAY_SET_ITEMS#(v, ...): set indices of array 'v'  */
+/* ARRAY_SET_ITEMS#(v, ...): set indices of array 'v' */
 /* internal helpers */
 #define _VA_ARRAY_SET_ITEMS2(v, a) ((v)[0] = (a))
 #define _VA_ARRAY_SET_ITEMS3(v, a, b) \

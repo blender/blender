@@ -1146,8 +1146,10 @@ typedef enum eAutokey_Mode {
   /* AUTOKEY_ON is a bitflag */
   AUTOKEY_ON = 1,
 
-  /** AUTOKEY_ON + 2**n...  (i.e. AUTOKEY_MODE_NORMAL = AUTOKEY_ON + 2)
-   * to preserve setting, even when autokey turned off  */
+  /**
+   * AUTOKEY_ON + 2**n...  (i.e. AUTOKEY_MODE_NORMAL = AUTOKEY_ON + 2)
+   * to preserve setting, even when auto-key turned off.
+   */
   AUTOKEY_MODE_NORMAL = 3,
   AUTOKEY_MODE_EDITKEYS = 5,
 } eAutokey_Mode;

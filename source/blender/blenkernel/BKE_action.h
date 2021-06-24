@@ -108,7 +108,7 @@ void action_group_colors_sync(struct bActionGroup *grp, const struct bActionGrou
 /* Add a new action group with the given name to the action */
 struct bActionGroup *action_groups_add_new(struct bAction *act, const char name[]);
 
-/* Add given channel into (active) group  */
+/* Add given channel into (active) group */
 void action_groups_add_channel(struct bAction *act,
                                struct bActionGroup *agrp,
                                struct FCurve *fcurve);

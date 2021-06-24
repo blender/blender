@@ -288,7 +288,7 @@ void UI_view2d_smooth_view(struct bContext *C,
 /* Gizmo Types */
 
 /* view2d_gizmo_navigate.c */
-/* Caller passes in own idname.  */
+/* Caller passes in own idname. */
 void VIEW2D_GGT_navigate_impl(struct wmGizmoGroupType *gzgt, const char *idname);
 
 /* Edge pan */

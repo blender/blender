@@ -3555,7 +3555,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
   BLI_assert(ELEM(type, GP_STROKE_JOIN, GP_STROKE_JOINCOPY));
 
   int tot_strokes = 0;
-  /** Alloc memory  */
+  /** Alloc memory. */
   tJoinStrokes *strokes_list = MEM_malloc_arrayN(sizeof(tJoinStrokes), max_join_strokes, __func__);
   tJoinStrokes *elem = NULL;
   /* Read all selected strokes to create a list. */

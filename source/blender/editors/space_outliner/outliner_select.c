@@ -1816,7 +1816,7 @@ static TreeElement *outliner_find_rightmost_visible_child(SpaceOutliner *space_o
   return te;
 }
 
-/* Find previous visible element in the tree  */
+/* Find previous visible element in the tree. */
 static TreeElement *outliner_find_previous_element(SpaceOutliner *space_outliner, TreeElement *te)
 {
   if (te->prev) {

@@ -150,11 +150,11 @@ typedef struct SB_thread_context {
 #define BSF_INTERSECT 1 /* edge intersects collider face */
 
 /* private definitions for bodypoint states */
-#define SBF_DOFUZZY 1        /* Bodypoint do fuzzy */
-#define SBF_OUTOFCOLLISION 2 /* Bodypoint does not collide  */
+#define SBF_DOFUZZY 1        /* Bodypoint do fuzzy. */
+#define SBF_OUTOFCOLLISION 2 /* Bodypoint does not collide. */
 
-#define BFF_INTERSECT 1 /* collider edge   intrudes face */
-#define BFF_CLOSEVERT 2 /* collider vertex repulses face */
+#define BFF_INTERSECT 1 /* collider edge   intrudes face. */
+#define BFF_CLOSEVERT 2 /* collider vertex repulses face. */
 
 /* humm .. this should be calculated from sb parameters and sizes. */
 static float SoftHeunTol = 1.0f;
@@ -2344,7 +2344,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
   aabbmin[0] = aabbmin[1] = aabbmin[2] = 1e20f;
   aabbmax[0] = aabbmax[1] = aabbmax[2] = -1e20f;
 
-  /* old one with homogeneous masses  */
+  /* old one with homogeneous masses */
   /* claim a minimum mass for vertex */
 #if 0
   if (sb->nodemass > 0.009999f) {

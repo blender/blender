@@ -31,7 +31,7 @@ namespace deg {
 
 struct Depsgraph;
 
-/* Get type of a node which corresponds to a ID_RECALC_GEOMETRY tag.  */
+/* Get type of a node which corresponds to a ID_RECALC_GEOMETRY tag. */
 NodeType geometry_tag_to_component(const ID *id);
 
 /* Tag given ID for an update in all registered dependency graphs. */

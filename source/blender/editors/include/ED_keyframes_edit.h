@@ -160,7 +160,7 @@ typedef struct KeyframeEditData {
   /* generic properties/data access */
   /** temp list for storing custom list of data to check */
   ListBase list;
-  /** pointer to current scene - many tools need access to cfra/etc.  */
+  /** pointer to current scene - many tools need access to cfra/etc. */
   struct Scene *scene;
   /** pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
   void *data;

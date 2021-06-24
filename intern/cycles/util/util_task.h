@@ -88,7 +88,7 @@ class TaskScheduler {
 
   /* Approximate number of threads that will work on task, which may be lower
    * or higher than the actual number of threads. Use as little as possible and
-   * leave splitting up tasks to the scheduler.. */
+   * leave splitting up tasks to the scheduler. */
   static int num_threads();
 
  protected:

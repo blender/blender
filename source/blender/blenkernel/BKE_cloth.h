@@ -103,8 +103,8 @@ typedef struct Cloth {
  * The definition of a cloth vertex.
  */
 typedef struct ClothVertex {
-  int flags;                  /* General flags per vertex.        */
-  float v[3];                 /* The velocity of the point.       */
+  int flags;                  /* General flags per vertex. */
+  float v[3];                 /* The velocity of the point. */
   float xconst[3];            /* constrained position         */
   float x[3];                 /* The current position of this vertex. */
   float xold[3];              /* The previous position of this vertex.*/

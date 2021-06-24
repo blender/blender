@@ -86,7 +86,7 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile,
 
   BLI_rctf_rcti_copy(&rect_region_fl, rect_region);
 
-  /* Okay, manipulating v2d rects here is hacky...  */
+  /* Okay, manipulating v2d rects here is hacky... */
   v2d->mask.ymax -= sfile->layout->offset_top;
   v2d->cur.ymax -= sfile->layout->offset_top;
   UI_view2d_region_to_view_rctf(v2d, &rect_region_fl, &rect_view_fl);

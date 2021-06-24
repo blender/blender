@@ -362,7 +362,7 @@ static void rna_Object_calc_matrix_camera(Object *ob,
   BKE_camera_params_init(&params);
   BKE_camera_params_from_object(&params, ob_eval);
 
-  /* compute matrix, viewplane, .. */
+  /* Compute matrix, view-plane, etc. */
   BKE_camera_params_compute_viewplane(&params, width, height, scalex, scaley);
   BKE_camera_params_compute_matrix(&params);
 
@@ -508,7 +508,7 @@ static void rna_Mesh_assign_verts_to_group(
     create_dverts(&me->id);
   }
 
-  /* loop list adding verts to group  */
+  /* Loop list adding verts to group. */
   for (i = 0; i < totindex; i++) {
     if (i < 0 || i >= me->totvert) {
       BKE_report(reports, RPT_ERROR, "Bad vertex index in list");

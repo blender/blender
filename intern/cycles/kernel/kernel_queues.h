@@ -79,7 +79,7 @@ ccl_device void enqueue_ray_index_local(
 {
   int lidx = ccl_local_id(1) * ccl_local_size(0) + ccl_local_id(0);
 
-  /* Get local queue id .*/
+  /* Get local queue id. */
   unsigned int lqidx;
   if (enqueue_flag) {
     lqidx = atomic_fetch_and_inc_uint32(local_queue_atomics);

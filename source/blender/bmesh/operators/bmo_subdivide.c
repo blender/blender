@@ -240,7 +240,7 @@ static void interp_slerp_co_no_v3(
   }
 }
 
-/* calculates offset for co, based on fractal, sphere or smooth settings  */
+/* Calculates offset for co, based on fractal, sphere or smooth settings. */
 static void alter_co(BMVert *v,
                      BMEdge *UNUSED(e_orig),
                      const SubDParams *params,

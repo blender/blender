@@ -182,7 +182,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
       workspace = BKE_workspace_add(bmain, screen->id.name + 2);
     }
     if (workspace == NULL) {
-      continue; /* Not much we can do.. */
+      continue; /* Not much we can do. */
     }
     BKE_workspace_layout_add(bmain, workspace, screen, screen->id.name + 2);
   }
@@ -3547,7 +3547,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Grease pencil cutter/select segment intersection threshold  */
+    /* Grease pencil cutter/select segment intersection threshold. */
     if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "float", "isect_threshold")) {
       for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
         GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;

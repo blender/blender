@@ -161,5 +161,5 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
 
   // CGDisplayErr err = ::CGDisplaySwitchToMode(m_displayIDs[display], displayModeValues);
 
-  return /*err == CGDisplayNoErr ?*/ GHOST_kSuccess /*: GHOST_kFailure*/;
+  return /* err == CGDisplayNoErr ? */ GHOST_kSuccess /* : GHOST_kFailure */;
 }

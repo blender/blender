@@ -2885,7 +2885,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
         }
 
-        /* calculate new value and apply snapping  */
+        /* Calculate new value and apply snapping. */
         switch (rc->subtype) {
           case PROP_NONE:
           case PROP_DISTANCE:

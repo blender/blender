@@ -344,7 +344,7 @@ typedef struct TemplateID {
   float scale;
 } TemplateID;
 
-/* Search browse menu, assign  */
+/* Search browse menu, assign. */
 static void template_ID_set_property_exec_fn(bContext *C, void *arg_template, void *item)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
@@ -5883,7 +5883,7 @@ static void uilist_prepare(uiList *ui_list,
   }
 
   /* If list length changes or list is tagged to check this,
-   * and active is out of view, scroll to it .*/
+   * and active is out of view, scroll to it. */
   if (ui_list->list_last_len != len || ui_list->flag & UILST_SCROLL_TO_ACTIVE_ITEM) {
     if (activei_row < ui_list->list_scroll) {
       ui_list->list_scroll = activei_row;

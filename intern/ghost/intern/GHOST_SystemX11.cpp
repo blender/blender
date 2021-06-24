@@ -589,9 +589,7 @@ static void SleepTillEvent(Display *display, GHOST_TInt64 maxSleep)
   }
 }
 
-/* This function borrowed from Qt's X11 support
- * qclipboard_x11.cpp
- *  */
+/* This function borrowed from Qt's X11 support qclipboard_x11.cpp */
 struct init_timestamp_data {
   Time timestamp;
 };
@@ -2675,8 +2673,8 @@ void GHOST_SystemX11::refreshXInputDevices()
                   xtablet.PressureLevels = xvi->axes[2].max_value;
 
                   if (xvi->num_axes > 3) {
-                    /* this is assuming that the tablet has the same tilt resolution in both
-                     * positive and negative directions. It would be rather weird if it didn't.. */
+                    /* This is assuming that the tablet has the same tilt resolution in both
+                     * positive and negative directions. It would be rather weird if it didn't. */
                     xtablet.XtiltLevels = xvi->axes[3].max_value;
                     xtablet.YtiltLevels = xvi->axes[4].max_value;
                   }

@@ -327,7 +327,7 @@ class ViewVertex : public Interface0D {
   }
 
   /* accessors */
-  /*! Returns the nature of the vertex .*/
+  /*! Returns the nature of the vertex. */
   virtual Nature::VertexNature getNature() const
   {
     return _Nature;
@@ -1097,7 +1097,7 @@ class ViewEdge : public Interface1D {
     return _FEdgeB;
   }
 
-  /*! Returns the ViewShape to which this ViewEdge belongs to .*/
+  /*! Returns the ViewShape to which this ViewEdge belongs to. */
   inline ViewShape *viewShape()
   {
     return _Shape;

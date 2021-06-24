@@ -470,7 +470,7 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* get beztriple editing/validation funcs  */
+  /* Get beztriple editing/validation funcs. */
   sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
 
   if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
@@ -708,7 +708,7 @@ static void region_select_action_keys(
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* get beztriple editing/validation funcs  */
+  /* Get beztriple editing/validation funcs. */
   sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
   sel_data.ok_cb = ANIM_editkeyframes_ok(mode);
 
@@ -1497,7 +1497,7 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_leftright";
   ot->description = "Select keyframes to the left or the right of the current frame";
 
-  /* api callbacks  */
+  /* api callbacks */
   ot->invoke = actkeys_select_leftright_invoke;
   ot->exec = actkeys_select_leftright_exec;
   ot->poll = ED_operator_action_active;

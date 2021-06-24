@@ -36,7 +36,7 @@
 /** \name Generic Enum's
  * \{ */
 
-/* Reuse for dynamic types  */
+/* Reuse for dynamic types. */
 const EnumPropertyItem DummyRNA_NULL_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
@@ -951,7 +951,7 @@ static int rna_enum_check_separator(CollectionPropertyIterator *UNUSED(iter), vo
 static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  /* EnumPropertyRNA *eprop;  */ /* UNUSED */
+  /* EnumPropertyRNA *eprop; */ /* UNUSED */
   const EnumPropertyItem *item = NULL;
   int totitem;
   bool free;

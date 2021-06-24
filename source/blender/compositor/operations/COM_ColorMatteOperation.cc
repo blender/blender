@@ -65,7 +65,7 @@ void ColorMatteOperation::executePixelSampled(float output[4],
    */
 
   if (
-      /* do hue last because it needs to wrap, and does some more checks  */
+      /* Do hue last because it needs to wrap, and does some more checks. */
 
       /* sat */ (fabsf(inColor[1] - inKey[1]) < sat) &&
       /* val */ (fabsf(inColor[2] - inKey[2]) < val) &&

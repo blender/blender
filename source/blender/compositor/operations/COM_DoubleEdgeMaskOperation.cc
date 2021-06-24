@@ -960,7 +960,7 @@ static void do_createEdgeLocationBuffer(unsigned int t,
   /* For looping gradient pixel indexes, represents current position from offset. */
   unsigned int gradientAccum = 0;
 
-  /*  */
+  /* Disable clang-format to prevent line-wrapping. */
   /* clang-format off */
   /*
    * Here we compute the size of buffer needed to hold (row,col) coordinates

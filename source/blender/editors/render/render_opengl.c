@@ -645,7 +645,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_WM:  /* WindowManager */
     case ID_LS:  /* FreestyleLineStyle */
     case ID_PAL: /* Palette */
-    case ID_PC:  /* PaintCurve  */
+    case ID_PC:  /* PaintCurve */
     case ID_CF:  /* CacheFile */
     case ID_WS:  /* WorkSpace */
       /* Only follow pointers to specific datablocks, to avoid ending up in

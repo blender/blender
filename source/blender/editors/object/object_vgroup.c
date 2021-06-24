@@ -516,14 +516,14 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
                                                 const int def_nr)
 {
   if (def_nr == -1) {
-    /* all vgroups, add groups where needed  */
+    /* All vgroups, add groups where needed. */
     int flip_map_len;
     int *flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, true);
     BKE_defvert_sync_mapped(dvert_dst, dvert_src, flip_map, flip_map_len, true);
     MEM_freeN(flip_map);
   }
   else {
-    /* single vgroup */
+    /* Single vgroup. */
     MDeformWeight *dw = BKE_defvert_ensure_index(dvert_dst,
                                                  BKE_object_defgroup_flip_index(ob, def_nr, 1));
     if (dw) {

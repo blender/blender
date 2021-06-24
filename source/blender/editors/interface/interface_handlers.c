@@ -3068,7 +3068,7 @@ static bool ui_textedit_insert_buf(uiBut *but,
 
     if ((len + step >= data->maxlen) && (data->maxlen - (len + 1) > 0)) {
       if (UI_but_is_utf8(but)) {
-        /* shorten 'step' to a utf8 aligned size that fits  */
+        /* Shorten 'step' to a utf8 aligned size that fits. */
         BLI_strnlen_utf8_ex(buf, data->maxlen - (len + 1), &step);
       }
       else {

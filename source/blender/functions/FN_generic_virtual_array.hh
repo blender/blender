@@ -832,7 +832,7 @@ template<typename T> class GVArray_Typed {
   }
 
   /* Support implicit cast to the typed virtual array for convenience when `varray->typed<T>()` is
-   * used within an expression.  */
+   * used within an expression. */
   operator const VArray<T> &() const
   {
     return *varray_;

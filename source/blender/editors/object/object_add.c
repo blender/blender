@@ -1854,7 +1854,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
     /* hook them up */
     BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
 
-    /* auto-name the strip, and give the track an interesting name  */
+    /* Auto-name the strip, and give the track an interesting name. */
     BLI_strncpy(nlt->name, DATA_("SoundTrack"), sizeof(nlt->name));
     BKE_nlastrip_validate_name(adt, strip);
 
@@ -2794,11 +2794,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
-        /* decrement original mesh's usage count  */
+        /* Decrement original mesh's usage count. */
         Mesh *me = newob->data;
         id_us_min(&me->id);
 
-        /* make a new copy of the mesh */
+        /* Make a new copy of the mesh. */
         newob->data = BKE_id_copy(bmain, &me->id);
       }
       else {
@@ -2868,11 +2868,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
-        /* decrement original mesh's usage count  */
+        /* Decrement original mesh's usage count. */
         Mesh *me = newob->data;
         id_us_min(&me->id);
 
-        /* make a new copy of the mesh */
+        /* Make a new copy of the mesh. */
         newob->data = BKE_id_copy(bmain, &me->id);
       }
       else {
@@ -2893,11 +2893,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
-        /* decrement original mesh's usage count  */
+        /* Decrement original mesh's usage count. */
         Mesh *me = newob->data;
         id_us_min(&me->id);
 
-        /* make a new copy of the mesh */
+        /* Make a new copy of the mesh. */
         newob->data = BKE_id_copy(bmain, &me->id);
       }
       else {
@@ -2926,10 +2926,10 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
-        /* decrement original curve's usage count  */
+        /* Decrement original curve's usage count. */
         id_us_min(&((Curve *)newob->data)->id);
 
-        /* make a new copy of the curve */
+        /* Make a new copy of the curve. */
         newob->data = BKE_id_copy(bmain, ob->data);
       }
       else {
@@ -3007,7 +3007,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
           newob = basen->object;
 
-          /* decrement original curve's usage count  */
+          /* Decrement original curve's usage count. */
           id_us_min(&((Curve *)newob->data)->id);
 
           /* make a new copy of the curve */
@@ -3091,11 +3091,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, NULL);
         newob = basen->object;
 
-        /* decrement original pointclouds's usage count  */
+        /* Decrement original point-cloud's usage count. */
         PointCloud *pointcloud = newob->data;
         id_us_min(&pointcloud->id);
 
-        /* make a new copy of the pointcloud */
+        /* Make a new copy of the point-cloud. */
         newob->data = BKE_id_copy(bmain, &pointcloud->id);
       }
       else {

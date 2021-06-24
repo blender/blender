@@ -224,7 +224,7 @@ ccl_device_inline ssef fastpow24(const ssef &arg)
   ssef arg2 = arg * arg;
   ssef arg4 = arg2 * arg2;
 
-  /* error max = 0.018     avg = 0.0031    |avg| = 0.0031  */
+  /* error max = 0.018     avg = 0.0031    |avg| = 0.0031 */
   x = improve_5throot_solution(x, arg4);
   /* error max = 0.00021   avg = 1.6e-05   |avg| = 1.6e-05 */
   x = improve_5throot_solution(x, arg4);

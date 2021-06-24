@@ -535,7 +535,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
     curRatio = height / width;
     winRatio = winy / winx;
 
-    /* both sizes change (area/region maximized)  */
+    /* Both sizes change (area/region maximized). */
     if (do_x == do_y) {
       if (do_x && do_y) {
         /* here is 1,1 case, so all others must be 0,0 */
@@ -1738,15 +1738,15 @@ bool UI_view2d_view_to_region_clip(
 void UI_view2d_view_to_region(
     const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
-  /* step 1: express given coordinates as proportional values */
+  /* Step 1: express given coordinates as proportional values. */
   x = (x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
   y = (y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
 
-  /* step 2: convert proportional distances to screen coordinates  */
+  /* Step 2: convert proportional distances to screen coordinates. */
   x = v2d->mask.xmin + (x * BLI_rcti_size_x(&v2d->mask));
   y = v2d->mask.ymin + (y * BLI_rcti_size_y(&v2d->mask));
 
-  /* although we don't clamp to lie within region bounds, we must avoid exceeding size of ints */
+  /* Although we don't clamp to lie within region bounds, we must avoid exceeding size of ints. */
   *r_region_x = clamp_float_to_int(x);
   *r_region_y = clamp_float_to_int(y);
 }
@@ -1769,13 +1769,13 @@ void UI_view2d_view_to_region_rcti(const View2D *v2d, const rctf *rect_src, rcti
   const float mask_size[2] = {BLI_rcti_size_x(&v2d->mask), BLI_rcti_size_y(&v2d->mask)};
   rctf rect_tmp;
 
-  /* step 1: express given coordinates as proportional values */
+  /* Step 1: express given coordinates as proportional values. */
   rect_tmp.xmin = (rect_src->xmin - v2d->cur.xmin) / cur_size[0];
   rect_tmp.xmax = (rect_src->xmax - v2d->cur.xmin) / cur_size[0];
   rect_tmp.ymin = (rect_src->ymin - v2d->cur.ymin) / cur_size[1];
   rect_tmp.ymax = (rect_src->ymax - v2d->cur.ymin) / cur_size[1];
 
-  /* step 2: convert proportional distances to screen coordinates  */
+  /* Step 2: convert proportional distances to screen coordinates. */
   rect_tmp.xmin = v2d->mask.xmin + (rect_tmp.xmin * mask_size[0]);
   rect_tmp.xmax = v2d->mask.xmin + (rect_tmp.xmax * mask_size[0]);
   rect_tmp.ymin = v2d->mask.ymin + (rect_tmp.ymin * mask_size[1]);
@@ -1800,7 +1800,7 @@ bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src,
 
   BLI_assert(rect_src->xmin <= rect_src->xmax && rect_src->ymin <= rect_src->ymax);
 
-  /* step 1: express given coordinates as proportional values */
+  /* Step 1: express given coordinates as proportional values. */
   rect_tmp.xmin = (rect_src->xmin - v2d->cur.xmin) / cur_size[0];
   rect_tmp.xmax = (rect_src->xmax - v2d->cur.xmin) / cur_size[0];
   rect_tmp.ymin = (rect_src->ymin - v2d->cur.ymin) / cur_size[1];
@@ -1808,7 +1808,7 @@ bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src,
 
   if (((rect_tmp.xmax < 0.0f) || (rect_tmp.xmin > 1.0f) || (rect_tmp.ymax < 0.0f) ||
        (rect_tmp.ymin > 1.0f)) == 0) {
-    /* step 2: convert proportional distances to screen coordinates  */
+    /* Step 2: convert proportional distances to screen coordinates. */
     rect_tmp.xmin = v2d->mask.xmin + (rect_tmp.xmin * mask_size[0]);
     rect_tmp.xmax = v2d->mask.ymin + (rect_tmp.xmax * mask_size[0]);
     rect_tmp.ymin = v2d->mask.ymin + (rect_tmp.ymin * mask_size[1]);

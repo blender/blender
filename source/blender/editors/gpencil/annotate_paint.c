@@ -908,7 +908,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
       pt->time = ptc->time;
 
-      /** Create arrow strokes. **/
+      /** Create arrow strokes. */
       /* End arrow stroke. */
       if ((runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_END) &&
           (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE)) {

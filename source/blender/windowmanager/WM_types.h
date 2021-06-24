@@ -232,7 +232,7 @@ typedef enum eOperatorPropTags {
 #define KM_ALT2 64
 #define KM_OSKEY2 128
 
-/* KM_MOD_ flags for wmKeyMapItem and wmEvent.alt/shift/oskey/ctrl  */
+/* KM_MOD_ flags for `wmKeyMapItem` and `wmEvent.alt/shift/oskey/ctrl`. */
 /* note that KM_ANY and KM_NOTHING are used with these defines too */
 #define KM_MOD_FIRST 1
 #define KM_MOD_SECOND 2
@@ -407,7 +407,7 @@ typedef struct wmNotifier {
 #define ND_GPENCIL_EDITMODE (85 << 16)
 
 /* NC_GEOM Geometry */
-/* Mesh, Curve, MetaBall, Armature, .. */
+/* Mesh, Curve, MetaBall, Armature, etc. */
 #define ND_SELECT (90 << 16)
 #define ND_DATA (91 << 16)
 #define ND_VERTEX_GROUP (92 << 16)

@@ -3178,7 +3178,7 @@ static void gpencil_guide_event_handling(bContext *C,
       guide->type = GP_GUIDE_CIRCULAR;
     }
   }
-  /* Change line angle  */
+  /* Change line angle. */
   else if (ELEM(event->type, EVT_JKEY, EVT_KKEY) && (event->val == KM_RELEASE)) {
     add_notifier = true;
     float angle = guide->angle;
@@ -3460,7 +3460,7 @@ static void gpencil_add_arc_points(tGPsdata *p, const float mval[2], int segment
     interp_v4_v4v4(
         pt->vert_color, pt_before->vert_color, pt_prev->vert_color, stepcolor * (i + 1));
 
-    /* Apply angle of stroke to brush size to interpolated points but slightly attenuated.. */
+    /* Apply angle of stroke to brush size to interpolated points but slightly attenuated. */
     if (brush_settings->draw_angle_factor != 0.0f) {
       gpencil_brush_angle_segment(p, pt_step, pt);
       CLAMP(pt->pressure, pt_prev->pressure * 0.5f, 1.0f);
@@ -3771,7 +3771,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
       else if (p->region) {
-        /* Perform bounds check using  */
+        /* Perform bounds check using. */
         const rcti *region_rect = ED_region_visible_rect(p->region);
         in_bounds = BLI_rcti_isect_pt_v(region_rect, event->mval);
       }

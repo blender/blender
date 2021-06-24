@@ -40,7 +40,7 @@ struct Image;
 struct Ipo;
 struct bNodeTree;
 
-/* WATCH IT: change type? also make changes in ipo.h  */
+/* WATCH IT: change type? also make changes in ipo.h */
 
 typedef struct TexPaintSlot {
   /** Image to be painted on. */

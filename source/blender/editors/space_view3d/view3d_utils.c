@@ -260,7 +260,7 @@ bool ED_view3d_context_activate(bContext *C)
     return false;
   }
 
-  /* bad context switch .. */
+  /* Bad context switch. */
   CTX_wm_area_set(C, area);
   CTX_wm_region_set(C, region);
 

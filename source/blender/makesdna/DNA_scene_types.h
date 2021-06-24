@@ -699,7 +699,8 @@ typedef struct RenderData {
   float frs_sec_base;
 
   /**
-   * Value used to define filter size for all filter options  */
+   * Value used to define filter size for all filter options.
+   */
   float gauss;
 
   /* color management settings - color profiles, gamma correction, etc */

@@ -283,25 +283,25 @@ void ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
 {
   MaskLayerShape *mask_layer_shape, *gpfn;
 
-  /* error checking */
+  /* Error checking. */
   if (mask_layer == NULL) {
     return;
   }
 
-  /* duplicate selected frames  */
+  /* Duplicate selected frames. */
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
        mask_layer_shape = gpfn) {
     gpfn = mask_layer_shape->next;
 
-    /* duplicate this frame */
+    /* Duplicate this frame. */
     if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
       MaskLayerShape *mask_shape_dupe;
 
-      /* duplicate frame, and deselect self */
+      /* Duplicate frame, and deselect self. */
       mask_shape_dupe = BKE_mask_layer_shape_duplicate(mask_layer_shape);
       mask_layer_shape->flag &= ~MASK_SHAPE_SELECT;
 
-      /* XXX - how to handle duplicate frames? */
+      /* XXX: how to handle duplicate frames? */
       BLI_insertlinkafter(&mask_layer->splines_shapes, mask_layer_shape, mask_shape_dupe);
     }
   }

@@ -2865,7 +2865,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
           BKE_gpencil_object_material_ensure(bmain, ob_dst, tmp_ma);
         }
 
-        /* duplicate bGPDlayers  */
+        /* Duplicate #bGPDlayers. */
         tJoinGPencil_AdtFixData afd = {0};
         afd.src_gpd = gpd_src;
         afd.tar_gpd = gpd_dst;

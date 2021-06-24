@@ -4038,7 +4038,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
     b2 = ((x22 * y21) - (x21 * y22)) / xdiff2;
   }
   else {
-    m2 = MAXSLOPE; /* Vertical slope  */
+    m2 = MAXSLOPE; /* Vertical slope. */
     b2 = x22;
   }
 
@@ -4088,7 +4088,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
 
     /* Calculate the distance from point to line. */
     if (m2 != MAXSLOPE) {
-      /* sqrt(m2 * m2 + 1); Only looking for change in sign.  Skip extra math .*/
+      /* `sqrt(m2 * m2 + 1);` Only looking for change in sign.  Skip extra math. */
       dist = (y12 - m2 * x12 - b2);
     }
     else {
@@ -4110,8 +4110,8 @@ static float bm_edge_seg_isect(const float sco_a[2],
         m1 = MAXSLOPE;
         b1 = x12;
       }
-      x2max = max_ff(x21, x22) + 0.001f; /* prevent missed edges   */
-      x2min = min_ff(x21, x22) - 0.001f; /* due to round off error */
+      x2max = max_ff(x21, x22) + 0.001f; /* Prevent missed edges. */
+      x2min = min_ff(x21, x22) - 0.001f; /* Due to round off error. */
       y2max = max_ff(y21, y22) + 0.001f;
       y2min = min_ff(y21, y22) - 0.001f;
 
@@ -8219,7 +8219,7 @@ enum {
   EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED = 114,
 };
 
-/* called in transform_ops.c, on each regeneration of keymaps */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

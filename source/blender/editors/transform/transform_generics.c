@@ -359,7 +359,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "value")) &&
       RNA_property_is_set(op->ptr, prop)) {
-    float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory  */
+    float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory. */
     if (RNA_property_array_check(prop)) {
       RNA_float_get_array(op->ptr, "value", values);
       t_values_set_is_array = true;

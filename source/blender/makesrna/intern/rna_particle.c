@@ -970,9 +970,11 @@ static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
     settings->end = value;
   }
 
-  /*if (settings->type==PART_REACTOR && value < 1.0) */
-  /*  value = 1.0; */
-  /*else  */
+#  if 0
+  if (settings->type==PART_REACTOR && value < 1.0)
+    value = 1.0;
+  else
+#  endif
   if (value < MINAFRAMEF) {
     value = MINAFRAMEF;
   }
@@ -1766,11 +1768,11 @@ static void rna_def_child_particle(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Child Particle", "Child particle interpolated from simulated or edited particles");
 
-  /*  int num, parent;     */ /* num is face index on the final derived mesh */
+  /*  int num, parent; */ /* num is face index on the final derived mesh */
 
-  /*  int pa[4];           */    /* nearest particles to the child, used for the interpolation */
-  /*  float w[4];          */    /* interpolation weights for the above particles */
-  /*  float fuv[4], foffset;  */ /* face vertex weights and offset */
+  /*  int pa[4]; */             /* nearest particles to the child, used for the interpolation */
+  /*  float w[4]; */            /* interpolation weights for the above particles */
+  /*  float fuv[4], foffset; */ /* face vertex weights and offset */
   /*  float rand[3]; */
 }
 
@@ -1840,8 +1842,8 @@ static void rna_def_particle(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "ParticleKey");
   RNA_def_property_ui_text(prop, "Keyed States", "");
   /* */
-  /*  float fuv[4], foffset;   */ /* coordinates on face/edge number "num" and depth along*/
-  /*                           */ /* face normal for volume emission */
+  /* float fuv[4], foffset; */ /* coordinates on face/edge number "num" and depth along*/
+                               /* face normal for volume emission */
 
   prop = RNA_def_property(srna, "birth_time", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, NULL, "time");

@@ -924,7 +924,7 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
   void *regiondata = NULL;
   if (area) {
     ListBase *regionbase = (area->spacedata.first == v3d) ? &area->regionbase : &v3d->regionbase;
-    ARegion *region = regionbase->last; /* always last in list, weak .. */
+    ARegion *region = regionbase->last; /* always last in list, weak. */
     regiondata = region->regiondata;
   }
 

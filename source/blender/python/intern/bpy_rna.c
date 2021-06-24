@@ -6508,12 +6508,12 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
     NULL, /* allocfunc tp_alloc; */
     NULL, /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6601,12 +6601,12 @@ PyTypeObject pyrna_struct_Type = {
     NULL,                   /* allocfunc tp_alloc; */
     pyrna_struct_new,       /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6686,12 +6686,12 @@ PyTypeObject pyrna_prop_Type = {
     NULL,                 /* allocfunc tp_alloc; */
     pyrna_prop_new,       /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6769,12 +6769,12 @@ PyTypeObject pyrna_prop_array_Type = {
     NULL,                          /* allocfunc tp_alloc; */
     NULL,                          /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6854,12 +6854,12 @@ PyTypeObject pyrna_prop_collection_Type = {
     NULL,                          /* allocfunc tp_alloc; */
     NULL,                          /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6940,12 +6940,12 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
     NULL,                                 /* allocfunc tp_alloc; */
     NULL,                                 /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -7025,12 +7025,12 @@ PyTypeObject pyrna_func_Type = {
     NULL,                 /* allocfunc tp_alloc; */
     NULL,                 /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -7121,12 +7121,12 @@ static PyTypeObject pyrna_prop_collection_iter_Type = {
     NULL, /* allocfunc tp_alloc; */
     NULL, /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -7165,8 +7165,8 @@ static PyObject *pyrna_prop_collection_iter_next(BPy_PropertyCollectionIterRNA *
   if (pyrna) { /* Unlikely, but may fail. */
     if ((PyObject *)pyrna != Py_None) {
       /* hold a reference to the iterator since it may have
-       * allocated memory 'pyrna' needs. eg: introspecting dynamic enum's  */
-      /* TODO, we could have an api call to know if this is
+       * allocated memory 'pyrna' needs. eg: introspecting dynamic enum's. */
+      /* TODO: we could have an api call to know if this is
        * needed since most collections don't */
       pyrna_struct_reference_set(pyrna, (PyObject *)self);
     }
@@ -7884,9 +7884,11 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
 }
 
 /* Orphan functions, not sure where they should go. */
-/* Get the srna for methods attached to types. */
-/*
- * Caller needs to raise error.*/
+/**
+ * Get the SRNA for methods attached to types.
+ *
+ * Caller needs to raise error.
+ */
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 {
 

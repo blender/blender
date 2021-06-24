@@ -229,7 +229,7 @@ void wm_operatortype_free(void)
 void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
 {
   if (ot_prop_basic_count == -1) {
-    /* Don't do anything if _begin was called before, but not _end  */
+    /* Don't do anything if _begin was called before, but not _end. */
     ot_prop_basic_count = RNA_struct_count_properties(ot->srna);
   }
 }

@@ -3379,7 +3379,7 @@ static bool depsgraph_key_compare(const void *key_a_v, const void *key_b_v)
 {
   const DepsgraphKey *key_a = key_a_v;
   const DepsgraphKey *key_b = key_b_v;
-  /* TODO(sergey): Compare rest of  */
+  /* TODO(sergey): Compare rest of. */
   return !(key_a->view_layer == key_b->view_layer);
 }
 

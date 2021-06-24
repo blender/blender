@@ -306,7 +306,8 @@ void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uin
 #endif
 }
 
-/* Make attribute layout non-interleaved.
+/**
+ * Make attribute layout non-interleaved.
  * Warning! This does not change data layout!
  * Use direct buffer access to fill the data.
  * This is for advanced usage.
@@ -314,11 +315,11 @@ void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uin
  * De-interleaved data means all attribute data for each attribute
  * is stored continuously like this:
  * 000011112222
- * instead of :
+ * instead of:
  * 012012012012
  *
- * Note this is per attribute de-interleaving, NOT per component.
- *  */
+ * \note This is per attribute de-interleaving, NOT per component.
+ */
 void GPU_vertformat_deinterleave(GPUVertFormat *format)
 {
   /* Ideally we should change the stride and offset here. This would allow

@@ -597,7 +597,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
   initialize_box_select_key_editing_data(
       sipo, incl_handles, mode, ac, data, &scaled_rectf, &ked, &mapping_flag);
 
-  /* Get beztriple editing/validation funcs.  */
+  /* Get beztriple editing/validation funcs. */
   const KeyframeEditFunc select_cb = ANIM_editkeyframes_select(selectmode);
   const KeyframeEditFunc ok_cb = ANIM_editkeyframes_ok(mode);
 
@@ -1611,7 +1611,7 @@ void GRAPH_OT_select_leftright(wmOperatorType *ot)
   ot->idname = "GRAPH_OT_select_leftright";
   ot->description = "Select keyframes to the left or the right of the current frame";
 
-  /* api callbacks  */
+  /* api callbacks */
   ot->invoke = graphkeys_select_leftright_invoke;
   ot->exec = graphkeys_select_leftright_exec;
   ot->poll = graphop_visible_keyframes_poll;

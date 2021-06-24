@@ -129,7 +129,7 @@ class DebugFlags {
       DEVICE_NONE,
       /* All OpenCL devices will be used. */
       DEVICE_ALL,
-      /* Default system OpenCL device will be used.  */
+      /* Default system OpenCL device will be used. */
       DEVICE_DEFAULT,
       /* Host processor will be used. */
       DEVICE_CPU,

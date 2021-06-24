@@ -109,7 +109,7 @@ static int cddm_poly_compare(MLoop *mloop_array,
       i_loop_source++;
 
       if (i_loop_source == mpoly_source->totloop) {
-        /* End of loops for source, must match end of loop for target.  */
+        /* End of loops for source, must match end of loop for target. */
         if (i_loop_target_offset == mpoly_target->totloop - 1) {
           compare_completed = true;
           same_loops = true;
@@ -597,7 +597,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
     mp_new->loopstart = STACK_SIZE(mloop) - c;
 
     STACK_PUSH(oldp, i);
-  } /* end of the loop that tests polys   */
+  } /* End of the loop that tests polys. */
 
   if (poly_gset) {
     // printf("hash quality %.6f\n", BLI_gset_calc_quality(poly_gset));

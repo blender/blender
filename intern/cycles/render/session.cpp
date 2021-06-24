@@ -1252,7 +1252,7 @@ bool Session::update_progressive_refine(bool cancel)
   double current_time = time_dt();
 
   if (current_time - last_update_time < params.progressive_update_timeout) {
-    /* if last sample was processed, we need to write buffers anyway  */
+    /* If last sample was processed, we need to write buffers anyway. */
     if (!write && sample != 1)
       return false;
   }

@@ -1685,7 +1685,7 @@ static void animchannels_group_channels(bAnimContext *ac,
       agrp = action_groups_add_new(act, name);
       BLI_assert(agrp != NULL);
 
-      /* transfer selected F-Curves across to new group  */
+      /* Transfer selected F-Curves across to new group. */
       for (ale = anim_data.first; ale; ale = ale->next) {
         FCurve *fcu = (FCurve *)ale->data;
         bActionGroup *grp = fcu->grp;
@@ -1726,7 +1726,7 @@ static int animchannels_group_exec(bContext *C, wmOperator *op)
     bAnimListElem *ale;
     int filter;
 
-    /* handle each animdata block separately, so that the regrouping doesn't flow into blocks  */
+    /* Handle each animdata block separately, so that the regrouping doesn't flow into blocks. */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA |
               ANIMFILTER_NODUPLIS);
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);

@@ -759,7 +759,7 @@ static void graph_refresh(const bContext *C, ScrArea *area)
       break;
     }
 
-    case SIPO_MODE_DRIVERS: /* drivers only  */
+    case SIPO_MODE_DRIVERS: /* Drivers only. */
     {
       break;
     }

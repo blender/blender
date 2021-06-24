@@ -51,7 +51,7 @@ class IndexBuf {
  protected:
   /** Type of indices used inside this buffer. */
   GPUIndexBufType index_type_ = GPU_INDEX_U32;
-  /** Offset in this buffer to the first index to render. Is 0 if not a subrange.  */
+  /** Offset in this buffer to the first index to render. Is 0 if not a subrange. */
   uint32_t index_start_ = 0;
   /** Number of indices to render. */
   uint32_t index_len_ = 0;

@@ -1206,7 +1206,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  /* ** Display Settings  **  */
+  /* ** Display Settings ** */
   srna = RNA_def_struct(brna, "ColorManagedDisplaySettings", NULL);
   RNA_def_struct_path_func(srna, "rna_ColorManagedDisplaySettings_path");
   RNA_def_struct_ui_text(
@@ -1222,7 +1222,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_update(
       prop, NC_WINDOW, "rna_ColorManagedDisplaySettings_display_device_update");
 
-  /* ** View Settings  **  */
+  /* ** View Settings ** */
   srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
   RNA_def_struct_path_func(srna, "rna_ColorManagedViewSettings_path");
   RNA_def_struct_ui_text(srna,
@@ -1276,7 +1276,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use Curves", "Use RGB curved for pre-display transformation");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
-  /* ** Colorspace **  */
+  /* ** Colorspace ** */
   srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", NULL);
   RNA_def_struct_path_func(srna, "rna_ColorManagedInputColorspaceSettings_path");
   RNA_def_struct_ui_text(

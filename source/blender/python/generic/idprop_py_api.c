@@ -611,8 +611,8 @@ static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
   keys = PyMapping_Keys(ob);
   vals = PyMapping_Values(ob);
 
-  /* we allocate the group first; if we hit any invalid data,
-   * we can delete it easily enough.*/
+  /* We allocate the group first; if we hit any invalid data,
+   * we can delete it easily enough. */
   prop = IDP_New(IDP_GROUP, &val, name);
   len = PyMapping_Length(ob);
   for (i = 0; i < len; i++) {
@@ -1284,8 +1284,8 @@ static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
   pyform = BPy_IDGroup_MapDataToPy(idprop);
   if (pyform == NULL) {
     /* ok something bad happened with the #PyObject,
-     * so don't remove the prop from the group.  if pyform is
-     * NULL, then it already should have raised an exception.*/
+     * so don't remove the prop from the group.  if `pyform is
+     * NULL, then it already should have raised an exception. */
     return NULL;
   }
 
@@ -2040,12 +2040,12 @@ PyTypeObject BPy_IDArray_Type = {
     NULL,                  /* allocfunc tp_alloc; */
     NULL,                  /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */

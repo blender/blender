@@ -237,10 +237,10 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
   }
 }
 
-/* from misc_util: flip the bytes from x  */
+/* From misc_util: flip the bytes from x. */
 #define GS(x) (((uchar *)(x))[0] << 8 | ((uchar *)(x))[1])
 
-/* this one is only def-ed once, strangely... */
+/* This one is only def-ed once, strangely... */
 #define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
 
 bool imb_is_a_iris(const uchar *mem, size_t size)

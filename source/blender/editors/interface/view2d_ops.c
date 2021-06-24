@@ -187,7 +187,7 @@ static void view_pan_apply(bContext *C, wmOperator *op)
   view_pan_apply_ex(C, vpd, RNA_int_get(op->ptr, "deltax"), RNA_int_get(op->ptr, "deltay"));
 }
 
-/* cleanup temp customdata  */
+/* Cleanup temp custom-data. */
 static void view_pan_exit(wmOperator *op)
 {
   MEM_SAFE_FREE(op->customdata);
@@ -805,7 +805,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 /** \name View Zoom Operator (single step)
  * \{ */
 
-/* cleanup temp customdata  */
+/* Cleanup temp custom-data. */
 static void view_zoomstep_exit(wmOperator *op)
 {
   UI_view2d_zoom_cache_reset();
@@ -1034,7 +1034,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
   UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 }
 
-/* cleanup temp customdata  */
+/* Cleanup temp custom-data. */
 static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 {
   UI_view2d_zoom_cache_reset();
@@ -1914,7 +1914,7 @@ static void scroller_activate_init(bContext *C,
   ED_region_tag_redraw_no_rebuild(region);
 }
 
-/* cleanup temp customdata  */
+/* Cleanup temp custom-data. */
 static void scroller_activate_exit(bContext *C, wmOperator *op)
 {
   if (op->customdata) {
@@ -2056,7 +2056,7 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
           return OPERATOR_FINISHED;
         }
 
-        /* otherwise, end the drag action  */
+        /* Otherwise, end the drag action. */
         if (vsm->lastx || vsm->lasty) {
           scroller_activate_exit(C, op);
           return OPERATOR_FINISHED;

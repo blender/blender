@@ -101,7 +101,7 @@ typedef enum eFlyPanState {
   FLY_AXISLOCK_STATE_ACTIVE = 2,
 } eFlyPanState;
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 void fly_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -610,8 +610,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         fly->pan_view = false;
         break;
 
-      /* implement WASD keys,
-       * comments only for 'forward '*/
+      /* Implement WASD keys, comments only for 'forward'. */
       case FLY_MODAL_DIR_FORWARD:
         if (fly->axis == 2 && fly->speed < 0.0f) {
           /* reverse direction stops, tap again to continue */

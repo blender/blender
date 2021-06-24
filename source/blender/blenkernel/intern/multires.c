@@ -1514,7 +1514,7 @@ void multires_topology_changed(Mesh *me)
  *
  * Since the multires data files only contain displacement vectors without knowledge about
  * subdivision level some extra work is needed. Namely make is to all displacement grids have
- * proper level and number of displacement vectors set.  */
+ * proper level and number of displacement vectors set. */
 void multires_ensure_external_read(struct Mesh *mesh, int top_level)
 {
   if (!CustomData_external_test(&mesh->ldata, CD_MDISPS)) {

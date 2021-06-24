@@ -511,7 +511,7 @@ typedef struct Ipo {
 
 /* ---------- IPO Drivers ----------- */
 
-/* offset in driver->name for finding second posechannel for rot-diff  */
+/* Offset in driver->name for finding second posechannel for rot-diff. */
 #define DRIVER_NAME_OFFS 32
 
 /* driver->type */

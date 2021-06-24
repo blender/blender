@@ -79,8 +79,8 @@ typedef struct IDProperty {
   /** Note, alignment for 64 bits. */
   IDPropertyData data;
 
-  /* array length, also (this is important!) string length + 1.
-   * the idea is to be able to reuse array realloc functions on strings.*/
+  /* Array length, also (this is important!) string length + 1.
+   * the idea is to be able to reuse array realloc functions on strings. */
   int len;
 
   /* Strings and arrays are both buffered, though the buffer isn't saved. */
@@ -141,7 +141,7 @@ enum {
   IDP_FLAG_GHOST = 1 << 7,
 };
 
-/* add any future new id property types here.*/
+/* add any future new id property types here. */
 
 /* Static ID override structs. */
 

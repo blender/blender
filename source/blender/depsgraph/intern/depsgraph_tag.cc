@@ -755,7 +755,7 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
   return nullptr;
 }
 
-/* Data-Based Tagging  */
+/* Data-Based Tagging. */
 
 /* Tag given ID for an update in all the dependency graphs. */
 void DEG_id_tag_update(ID *id, int flag)

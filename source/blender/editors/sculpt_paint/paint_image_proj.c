@@ -576,7 +576,9 @@ static Image *project_paint_face_clone_image(const ProjPaintState *ps, int tri_i
   return slot ? slot->ima : ps->clone_ima;
 }
 
-/* fast projection bucket array lookup, use the safe version for bound checking  */
+/**
+ * Fast projection bucket array lookup, use the safe version for bound checking.
+ */
 static int project_bucket_offset(const ProjPaintState *ps, const float projCoSS[2])
 {
   /* If we were not dealing with screen-space 2D coords we could simple do...
@@ -2969,7 +2971,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
                                     ImBuf *ibuf,
                                     ImBuf **tmpibuf)
 {
-  /* Projection vars, to get the 3D locations into screen space  */
+  /* Projection vars, to get the 3D locations into screen space. */
   MemArena *arena = ps->arena_mt[thread_index];
   LinkNode **bucketPixelNodes = ps->bucketRect + bucket_index;
   LinkNode *bucketFaceNodes = ps->bucketFaces[bucket_index];
@@ -3011,7 +3013,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
   rcti bounds_px;
   /* Variables for getting UV-space bounds. */
 
-  /* bucket bounds in UV space so we can init pixels only for this face,  */
+  /* Bucket bounds in UV space so we can init pixels only for this face. */
   float lt_uv_pxoffset[3][2];
   float xhalfpx, yhalfpx;
   const float ibuf_xf = (float)ibuf->x, ibuf_yf = (float)ibuf->y;
@@ -4516,8 +4518,8 @@ static void project_paint_begin(const bContext *C,
     reset_threads = true;
   }
 
-  /* really high values could cause problems since it has to allocate a few
-   * (ps->buckets_x*ps->buckets_y) sized arrays  */
+  /* Really high values could cause problems since it has to allocate a few
+   * `(ps->buckets_x * ps->buckets_y)` sized arrays. */
   CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
   CLAMP(ps->buckets_y, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
 
@@ -5364,7 +5366,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
             float texrgb[3];
             float mask;
 
-            /* Extra mask for normal, layer stencil, .. */
+            /* Extra mask for normal, layer stencil, etc. */
             float custom_mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
 
             /* Mask texture. */
@@ -5447,7 +5449,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
               }
               /* end copy */
 
-              /* validate undo tile, since we will modify t*/
+              /* Validate undo tile, since we will modify it. */
               *projPixel->valid = true;
 
               last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;

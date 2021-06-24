@@ -584,7 +584,7 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
     delta_a[x_axis] = 0.0f;
     delta_b[y_axis] = 0.0f;
 
-    /* Assign here in case secondary  */
+    /* Assign here in case secondary. */
     fixed_aspect_dimension = max_ff(fabsf(delta_a[y_axis]), fabsf(delta_b[x_axis]));
 
     if (ipd->step[0].is_fixed_aspect) {
@@ -1196,7 +1196,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
       }
       else {
         /* If the user runs this as an operator they should set the 'primitive_type',
-         * however running from operator search will end up at this point.  */
+         * however running from operator search will end up at this point. */
         ipd->primitive_type = PLACE_PRIMITIVE_TYPE_CUBE;
         ipd->use_tool = false;
       }
@@ -1830,7 +1830,7 @@ static void gizmo_plane_update_cursor(const bContext *C,
   /* This ensures the snap gizmo has settings from this tool.
    * This function call could be moved a more appropriate place,
    * responding to the setting being changed for example,
-   * however setting the value isn't expensive, so do it here.  */
+   * however setting the value isn't expensive, so do it here. */
   idp_snap_gizmo_update_snap_elements(scene, snap_to, snap_gizmo);
 
   view3d_interactive_add_calc_plane((bContext *)C,

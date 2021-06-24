@@ -785,12 +785,12 @@ static bool is_filtered_hidden(const char *filename,
                                const FileListInternEntry *file)
 {
   if ((filename[0] == '.') && (filename[1] == '\0')) {
-    return true; /* Ignore . */
+    return true; /* Ignore. */
   }
 
   if (filter->flags & FLF_HIDE_PARENT) {
     if (filename[0] == '.' && filename[1] == '.' && filename[2] == '\0') {
-      return true; /* Ignore .. */
+      return true; /* Ignore. */
     }
   }
 

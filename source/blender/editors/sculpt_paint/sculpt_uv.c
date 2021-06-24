@@ -101,9 +101,9 @@ typedef struct UVInitialStroke {
 
 /* custom data for uv smoothing brush */
 typedef struct UvSculptData {
-  /* Contains the first of each set of coincident uvs.
+  /* Contains the first of each set of coincident UV's.
    * These will be used to perform smoothing on and propagate the changes
-   * to their coincident uvs */
+   * to their coincident UV's */
   UvAdjacencyElement *uv;
 
   /* ...Is what it says */
@@ -121,7 +121,7 @@ typedef struct UvSculptData {
   /* timer to be used for airbrush-type brush */
   wmTimer *timer;
 
-  /* to determine quickly adjacent uvs */
+  /* to determine quickly adjacent UV's */
   UvElementMap *elementMap;
 
   /* uvsmooth Paint for fast reference */
@@ -550,7 +550,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       island_index = element->island;
     }
 
-    /* Count 'unique' uvs */
+    /* Count 'unique' UV's */
     for (i = 0; i < data->elementMap->totalUVs; i++) {
       if (data->elementMap->buf[i].separate &&
           (!do_island_optimization || data->elementMap->buf[i].island == island_index)) {
@@ -627,8 +627,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         offset2 = uniqueUv[itmp2];
 
         edges[counter].flag = 0;
-        /* using an order policy, sort uvs according to address space. This avoids
-         * Having two different UvEdges with the same uvs on different positions  */
+        /* Using an order policy, sort UV's according to address space.
+         * This avoids having two different UvEdges with the same UV's on different positions. */
         if (offset1 < offset2) {
           edges[counter].uv1 = offset1;
           edges[counter].uv2 = offset2;
@@ -674,7 +674,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     BLI_ghash_free(edgeHash, NULL, NULL);
     MEM_freeN(edges);
 
-    /* transfer boundary edge property to uvs */
+    /* transfer boundary edge property to UV's */
     if (ts->uv_sculpt_settings & UV_SCULPT_LOCK_BORDERS) {
       for (i = 0; i < data->totalUvEdges; i++) {
         if (!data->uvedges[i].flag) {

@@ -758,7 +758,7 @@ void RNA_def_camera(BlenderRNA *brna)
   rna_def_camera_background_image(brna);
   rna_def_camera_background_images(brna, prop);
 
-  /* Nested Data  */
+  /* Nested Data. */
   RNA_define_animate_sdna(true);
 
   /* *** Animated *** */

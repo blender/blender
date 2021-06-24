@@ -142,8 +142,8 @@ typedef struct GlobalsUboStorage {
   float colorUVShadow[4];
 
   /* NOTE! Put all color before UBO_LAST_COLOR */
-  float screenVecs[2][4];                    /* padded as vec4  */
-  float sizeViewport[2], sizeViewportInv[2]; /* packed as vec4 in glsl */
+  float screenVecs[2][4];                    /* Padded as vec4. */
+  float sizeViewport[2], sizeViewportInv[2]; /* Packed as vec4 in GLSL. */
 
   /* Pack individual float at the end of the buffer to avoid alignment errors */
   float sizePixel, pixelFac;
@@ -190,7 +190,7 @@ void DRW_hair_free(void);
 
 /* draw_fluid.c */
 
-/* Fluid simulation.  */
+/* Fluid simulation. */
 void DRW_smoke_ensure(struct FluidModifierData *fmd, int highres);
 void DRW_smoke_ensure_coba_field(struct FluidModifierData *fmd);
 void DRW_smoke_ensure_velocity(struct FluidModifierData *fmd);
@@ -206,7 +206,7 @@ struct DRW_Global {
    * Add needed theme colors / values to DRW_globals_update() and update UBO
    * Not needed for constant color. */
   GlobalsUboStorage block;
-  /** Define "globalsBlock" uniform for 'block'.  */
+  /** Define "globalsBlock" uniform for 'block'. */
   struct GPUUniformBuf *block_ubo;
 
   struct GPUTexture *ramp;

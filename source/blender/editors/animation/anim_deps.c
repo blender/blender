@@ -93,9 +93,9 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
   fcu = (ale->datatype == ALE_FCURVE) ? ale->key_data : NULL;
 
   if (fcu && fcu->rna_path) {
-    /* if we have an fcurve, call the update for the property we
+    /* If we have an fcurve, call the update for the property we
      * are editing, this is then expected to do the proper redraws
-     * and depsgraph updates  */
+     * and depsgraph updates. */
     PointerRNA id_ptr, ptr;
     PropertyRNA *prop;
 
