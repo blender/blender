@@ -165,6 +165,7 @@ set(SRC
   intern/layer_utils.c
   intern/lib_id.c
   intern/lib_id_delete.c
+  intern/lib_id_eval.c
   intern/lib_override.c
   intern/lib_query.c
   intern/lib_remap.c

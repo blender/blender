@@ -1810,7 +1810,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 
   CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
   BKE_mesh_update_customdata_pointers(orig_me, true);
-  DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
 }
 
 /** \warning Expects a fully evaluated depsgraph. */

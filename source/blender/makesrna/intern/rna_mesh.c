@@ -239,6 +239,19 @@ static void rna_Mesh_update_data_legacy_deg_tag_all(Main *UNUSED(bmain),
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
+static void rna_Mesh_update_geom_and_params(Main *UNUSED(bmain),
+                                            Scene *UNUSED(scene),
+                                            PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+  if (id->us <= 0) { /* See note in section heading. */
+    return;
+  }
+
+  DEG_id_tag_update(id, ID_RECALC_GEOMETRY | ID_RECALC_PARAMETERS);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+}
+
 static void rna_Mesh_update_data_edit_weight(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   BKE_mesh_batch_cache_dirty_tag(rna_mesh(ptr), BKE_MESH_BATCH_DIRTY_ALL);
@@ -3333,7 +3346,7 @@ static void rna_def_mesh(BlenderRNA *brna)
       "Auto Smooth",
       "Auto smooth (based on smooth/sharp faces/edges and angle between faces), "
       "or use custom split normals data if available");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_geom_and_params");
 
   prop = RNA_def_property(srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "smoothresh");
@@ -3342,7 +3355,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Auto Smooth Angle",
                            "Maximum angle between face normals that will be considered as smooth "
                            "(unused if custom split normals data are available)");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_geom_and_params");
 
   RNA_define_verify_sdna(false);
   prop = RNA_def_property(srna, "has_custom_normals", PROP_BOOLEAN, PROP_NONE);
@@ -3373,7 +3386,7 @@ static void rna_def_mesh(BlenderRNA *brna)
       prop,
       "Auto Texture Space",
       "Adjust active object's texture space automatically when transforming object");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_geom_and_params");
 
 #  if 0
   prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);

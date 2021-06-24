@@ -4753,7 +4753,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
                                  .calc_object_remap = true,
                              }));
 
-            DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
+            DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
             WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
           }
 

@@ -1215,7 +1215,19 @@ void DepsgraphNodeBuilder::build_parameters(ID *id)
   op_node = add_operation_node(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
   op_node->set_as_entry();
   /* Generic evaluation node. */
-  add_operation_node(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
+
+  if (ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(GS(id->name))) {
+    ID *id_cow = get_cow_id(id);
+    add_operation_node(
+        id,
+        NodeType::PARAMETERS,
+        OperationCode::PARAMETERS_EVAL,
+        [id_cow, id](::Depsgraph * /*depsgraph*/) { BKE_id_eval_properties_copy(id_cow, id); });
+  }
+  else {
+    add_operation_node(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
+  }
+
   /* Explicit exit operation. */
   op_node = add_operation_node(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   op_node->set_as_exit();

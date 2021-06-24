@@ -23,7 +23,9 @@
 
 #pragma once
 
+#include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node.h"
+#include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 
 #include "BLI_string.h"
@@ -172,7 +174,6 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(CopyOnWrite);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Geometry);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(ImageAnimation);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(LayerCollections);
-DEG_COMPONENT_NODE_DECLARE_GENERIC(Parameters);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Particles);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(ParticleSettings);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Pose);
@@ -195,6 +196,21 @@ struct BoneComponentNode : public ComponentNode {
   void init(const ID *id, const char *subdata);
 
   struct bPoseChannel *pchan; /* the bone that this component represents */
+
+  DEG_COMPONENT_NODE_DECLARE;
+};
+
+/* Eventually we would not tag parameters in all cases.
+ * Support for this each ID needs to be added on an individual basis. */
+struct ParametersComponentNode : public ComponentNode {
+  virtual bool need_tag_cow_before_update() override
+  {
+    if (ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(owner->id_type)) {
+      BLI_assert(deg_copy_on_write_is_expanded(owner->id_cow));
+      return false;
+    }
+    return true;
+  }
 
   DEG_COMPONENT_NODE_DECLARE;
 };

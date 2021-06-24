@@ -230,6 +230,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_SOURCE:
       *component_type = NodeType::PARAMETERS;
       break;
+    case ID_RECALC_GEOMETRY_ALL_MODES:
     case ID_RECALC_ALL:
     case ID_RECALC_PSYS_ALL:
       BLI_assert(!"Should not happen");
@@ -705,6 +706,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "TRANSFORM";
     case ID_RECALC_GEOMETRY:
       return "GEOMETRY";
+    case ID_RECALC_GEOMETRY_ALL_MODES:
+      return "GEOMETRY_ALL_MODES";
     case ID_RECALC_ANIMATION:
       return "ANIMATION";
     case ID_RECALC_PSYS_REDO:
