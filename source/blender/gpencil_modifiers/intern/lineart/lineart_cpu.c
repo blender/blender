@@ -1921,7 +1921,7 @@ static bool lineart_geometry_check_visible(double (*model_view_proj)[4], Object 
   }
 
   bool cond[6] = {true, true, true, true, true, true};
-  /* Beause for a point to be inside clip space, it must satisfy -Wc <= XYCc <= Wc, here if all
+  /* Because for a point to be inside clip space, it must satisfy `-Wc <= XYCc <= Wc`, here if all
    * verts falls to the same side of the clip space border, we know it's outside view. */
   for (int i = 0; i < 8; i++) {
     cond[0] &= (co[i][0] < -co[i][3]);

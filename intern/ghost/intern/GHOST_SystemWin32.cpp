@@ -1893,7 +1893,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_DISPLAYCHANGE: {
           GHOST_Wintab *wt = window->getWintab();
           if (wt) {
-              wt->remapCoordinates();
+            wt->remapCoordinates();
           }
           break;
         }

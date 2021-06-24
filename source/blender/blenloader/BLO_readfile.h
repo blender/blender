@@ -82,18 +82,18 @@ typedef struct BlendFileData {
 } BlendFileData;
 
 struct BlendFileReadParams {
-  uint skip_flags : 3; /* eBLOReadSkip */
+  uint skip_flags : 3; /* #eBLOReadSkip */
   uint is_startup : 1;
 
   /** Whether we are reading the memfile for an undo or a redo. */
-  int undo_direction; /* eUndoStepDir */
+  int undo_direction; /* #eUndoStepDir */
 };
 
 typedef struct BlendFileReadReport {
   /* General reports handling. */
   struct ReportList *reports;
 
-  /* Timing informations .*/
+  /* Timing information. */
   struct {
     double whole;
     double libraries;
@@ -102,7 +102,7 @@ typedef struct BlendFileReadReport {
     double lib_overrides_recursive_resync;
   } duration;
 
-  /* Count informations. */
+  /* Count information. */
   struct {
     /* Some numbers of IDs that ended up in a specific state, or required some specific process
      * during this file read. */
