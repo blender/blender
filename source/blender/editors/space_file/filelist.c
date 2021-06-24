@@ -1191,7 +1191,7 @@ static int filelist_geticon_ex(const FileDirEntry *file,
     if (FILENAME_IS_PARENT(file->relpath)) {
       return is_main ? ICON_FILE_PARENT : ICON_NONE;
     }
-    if (typeflag & FILE_TYPE_APPLICATIONBUNDLE) {
+    if (typeflag & FILE_TYPE_BUNDLE) {
       return ICON_UGLYPACKAGE;
     }
     if (typeflag & FILE_TYPE_BLENDER) {
@@ -2519,9 +2519,16 @@ int ED_path_extension_type(const char *path)
   if (file_is_blend_backup(path)) {
     return FILE_TYPE_BLENDER_BACKUP;
   }
-  if (BLI_path_extension_check(path, ".app")) {
-    return FILE_TYPE_APPLICATIONBUNDLE;
+#ifdef __APPLE__
+  if (BLI_path_extension_check_n(path,
+                                 /* Application bundle */
+                                 ".app",
+                                 /* Safari in-progress/paused download */
+                                 ".download",
+                                 NULL)) {
+    return FILE_TYPE_BUNDLE;
   }
+#endif
   if (BLI_path_extension_check(path, ".py")) {
     return FILE_TYPE_PYSCRIPT;
   }
@@ -2815,7 +2822,7 @@ static int filelist_readjob_list_dir(const char *root,
       entry->attributes = BLI_file_attributes(full_path);
       if (S_ISDIR(files[i].s.st_mode)
 #ifdef __APPLE__
-          && !(ED_path_extension_type(full_path) & FILE_TYPE_APPLICATIONBUNDLE)
+          && !(ED_path_extension_type(full_path) & FILE_TYPE_BUNDLE)
 #endif
       ) {
         entry->typeflag = FILE_TYPE_DIR;
