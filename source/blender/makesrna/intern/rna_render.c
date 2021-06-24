@@ -858,6 +858,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "bl_use_image_save", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", RE_USE_NO_IMAGE_SAVE);
+  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(
       prop,
