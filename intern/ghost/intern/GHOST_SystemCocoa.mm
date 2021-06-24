@@ -553,10 +553,12 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
     // ProcessSerialNumber psn;
 
     // Carbon stuff to move window & menu to foreground
-    /*if (!GetCurrentProcess(&psn)) {
+#if 0
+    if (!GetCurrentProcess(&psn)) {
       TransformProcessType(&psn, kProcessTransformToForegroundApplication);
       SetFrontProcess(&psn);
-    }*/
+    }
+#endif
 
     @autoreleasepool {
       [NSApplication sharedApplication];  // initializes   NSApp
