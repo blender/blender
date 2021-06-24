@@ -1106,7 +1106,7 @@ void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer);
 
 static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
 {
-  /*REMEMBER to set totalen to len in the linking code!!*/
+  /* Remember to set #IDProperty.totallen to len in the linking code! */
   if (prop->data.pointer) {
     BLO_write_raw(writer, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
 
@@ -1123,7 +1123,7 @@ static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
 
 static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
 {
-  /*REMEMBER to set totalen to len in the linking code!!*/
+  /* Remember to set #IDProperty.totallen to len in the linking code! */
   if (prop->data.pointer) {
     const IDProperty *array = prop->data.pointer;
 
@@ -1137,7 +1137,7 @@ static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
 
 static void IDP_WriteString(const IDProperty *prop, BlendWriter *writer)
 {
-  /*REMEMBER to set totalen to len in the linking code!!*/
+  /* Remember to set #IDProperty.totallen to len in the linking code! */
   BLO_write_raw(writer, (size_t)prop->len, prop->data.pointer);
 }
 
