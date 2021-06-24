@@ -92,7 +92,6 @@ bool ED_mask_select_check(const Mask *mask)
   return false;
 }
 
-/* 'sel' select  */
 void ED_mask_spline_select_set(MaskSpline *spline, const bool do_select)
 {
   if (do_select) {

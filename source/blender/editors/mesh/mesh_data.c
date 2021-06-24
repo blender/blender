@@ -61,7 +61,6 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
   BMesh *bm = (me->edit_mesh) ? me->edit_mesh->bm : NULL;
   int tot;
 
-  /* this  */
   switch (htype) {
     case BM_VERT:
       if (bm) {
