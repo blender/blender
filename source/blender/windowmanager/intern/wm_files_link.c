@@ -239,12 +239,14 @@ static void wm_link_do(WMLinkAppendData *lapp_data,
   for (lib_idx = 0, liblink = lapp_data->libraries.list; liblink;
        lib_idx++, liblink = liblink->next) {
     char *libname = liblink->link;
+    BlendFileReadReport bf_reports = {.reports = reports};
 
     if (STREQ(libname, BLO_EMBEDDED_STARTUP_BLEND)) {
-      bh = BLO_blendhandle_from_memory(datatoc_startup_blend, datatoc_startup_blend_size);
+      bh = BLO_blendhandle_from_memory(
+          datatoc_startup_blend, datatoc_startup_blend_size, &bf_reports);
     }
     else {
-      bh = BLO_blendhandle_from_file(libname, &(BlendFileReadReport){.reports = reports});
+      bh = BLO_blendhandle_from_file(libname, &bf_reports);
     }
 
     if (bh == NULL) {

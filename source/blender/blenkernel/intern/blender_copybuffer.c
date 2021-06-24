@@ -87,7 +87,8 @@ bool BKE_copybuffer_read(Main *bmain_dst,
                          ReportList *reports,
                          const uint64_t id_types_mask)
 {
-  BlendHandle *bh = BLO_blendhandle_from_file(libname, &(BlendFileReadReport){.reports = reports});
+  BlendFileReadReport bf_reports = {.reports = reports};
+  BlendHandle *bh = BLO_blendhandle_from_file(libname, &bf_reports);
   if (bh == NULL) {
     /* Error reports will have been made by BLO_blendhandle_from_file(). */
     return false;
@@ -133,7 +134,8 @@ int BKE_copybuffer_paste(bContext *C,
   BlendHandle *bh;
   const int id_tag_extra = 0;
 
-  bh = BLO_blendhandle_from_file(libname, &(BlendFileReadReport){.reports = reports});
+  BlendFileReadReport bf_reports = {.reports = reports};
+  bh = BLO_blendhandle_from_file(libname, &bf_reports);
 
   if (bh == NULL) {
     /* error reports will have been made by BLO_blendhandle_from_file() */

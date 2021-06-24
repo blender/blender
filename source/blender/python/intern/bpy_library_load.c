@@ -257,9 +257,9 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   ReportList reports;
 
   BKE_reports_init(&reports, RPT_STORE);
+  BlendFileReadReport bf_reports = {.reports = &reports};
 
-  self->blo_handle = BLO_blendhandle_from_file(self->abspath,
-                                               &(BlendFileReadReport){.reports = &reports});
+  self->blo_handle = BLO_blendhandle_from_file(self->abspath, &bf_reports);
 
   if (self->blo_handle == NULL) {
     if (BPy_reports_to_error(&reports, PyExc_IOError, true) != -1) {

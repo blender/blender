@@ -36,12 +36,13 @@ TempLibraryContext *BLO_library_temp_load_id(struct Main *real_main,
 {
   TempLibraryContext *temp_lib_ctx = MEM_callocN(sizeof(*temp_lib_ctx), __func__);
   temp_lib_ctx->bmain_base = BKE_main_new();
+  temp_lib_ctx->bf_reports.reports = reports;
 
   /* Copy the file path so any path remapping is performed properly. */
   STRNCPY(temp_lib_ctx->bmain_base->name, real_main->name);
 
-  temp_lib_ctx->blendhandle = BLO_blendhandle_from_file(
-      blend_file_path, &(BlendFileReadReport){.reports = reports});
+  temp_lib_ctx->blendhandle = BLO_blendhandle_from_file(blend_file_path,
+                                                        &temp_lib_ctx->bf_reports);
 
   BLO_library_link_params_init(
       &temp_lib_ctx->liblink_params, temp_lib_ctx->bmain_base, 0, LIB_TAG_TEMP_MAIN);

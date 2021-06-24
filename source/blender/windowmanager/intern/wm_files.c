@@ -1185,16 +1185,12 @@ void wm_homefile_read(bContext *C,
           .is_startup = true,
           .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
       };
+      BlendFileReadReport bf_reports = {.reports = reports};
+      struct BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
 
-      struct BlendFileData *bfd = BKE_blendfile_read(
-          filepath_startup, &params, &(BlendFileReadReport){NULL});
       if (bfd != NULL) {
-        BKE_blendfile_read_setup_ex(C,
-                                    bfd,
-                                    &params,
-                                    &(BlendFileReadReport){NULL},
-                                    update_defaults && use_data,
-                                    app_template);
+        BKE_blendfile_read_setup_ex(
+            C, bfd, &params, &bf_reports, update_defaults && use_data, app_template);
         success = true;
       }
     }

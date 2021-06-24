@@ -47,8 +47,8 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
 
   if (blen_group && blen_id) {
     LinkNode *ln, *names, *lp, *previews = NULL;
-    struct BlendHandle *libfiledata = BLO_blendhandle_from_file(
-        blen_path, &(BlendFileReadReport){.reports = NULL});
+    BlendFileReadReport bf_reports = {.reports = NULL};
+    struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
     int idcode = BKE_idtype_idcode_from_name(blen_group);
     int i, nprevs, nnames;
 
