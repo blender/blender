@@ -41,7 +41,7 @@
 
 typedef struct {
   PyObject_HEAD /* Required Python macro. */
-      BPy_StructRNA *data_rna;
+  BPy_StructRNA *data_rna;
   char filepath[1024];
 } BPy_DataContext;
 

@@ -25,7 +25,7 @@
 
 typedef struct {
   PyObject_HEAD /* Required Python macro. */
-      const char *opname;
+  const char *opname;
 } BPy_BMeshOpFunc;
 
 PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw);

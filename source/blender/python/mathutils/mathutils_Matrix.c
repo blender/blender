@@ -3479,7 +3479,7 @@ int Matrix_Parse4x4(PyObject *o, void *p)
 
 typedef struct {
   PyObject_HEAD /* Required Python macro. */
-      MatrixObject *matrix_user;
+  MatrixObject *matrix_user;
   eMatrixAccess_t type;
 } MatrixAccessObject;
 

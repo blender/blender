@@ -39,7 +39,8 @@ extern PyTypeObject BinaryPredicate1D_Type;
 
 /*---------------------------Python BPy_BinaryPredicate1D structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::BinaryPredicate1D *bp1D;
+  PyObject_HEAD
+  Freestyle::BinaryPredicate1D *bp1D;
 } BPy_BinaryPredicate1D;
 
 /*---------------------------Python BPy_BinaryPredicate1D visible prototypes-----------*/

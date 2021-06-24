@@ -265,4 +265,5 @@ ForEachMacros:
   - VECTOR_SET_SLOT_PROBING_BEGIN
 
 StatementMacros:
+  - PyObject_HEAD
   - PyObject_VAR_HEAD

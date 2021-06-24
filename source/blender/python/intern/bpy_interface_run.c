@@ -74,7 +74,8 @@ static void bpy_text_filename_get(char *fn, const Main *bmain, size_t fn_len, co
 /* bad!, we should never do this, but currently only safe way I could find to keep namespace.
  * from being cleared. - campbell */
 typedef struct {
-  PyObject_HEAD PyObject *md_dict;
+  PyObject_HEAD
+  PyObject *md_dict;
   /* omit other values, we only want the dict. */
 } PyModuleObject;
 #endif

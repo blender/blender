@@ -37,7 +37,8 @@
 #include "BLI_strict_flags.h"
 
 typedef struct {
-  PyObject_HEAD KDTree_3d *obj;
+  PyObject_HEAD
+  KDTree_3d *obj;
   uint maxsize;
   uint count;
   uint count_balance; /* size when we last balanced */

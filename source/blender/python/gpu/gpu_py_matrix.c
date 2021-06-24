@@ -153,7 +153,7 @@ static PyObject *pygpu_matrix_pop_projection(PyObject *UNUSED(self))
 
 typedef struct {
   PyObject_HEAD /* Required Python macro. */
-      int type;
+  int type;
   int level;
 } BPyGPU_MatrixStackContext;
 

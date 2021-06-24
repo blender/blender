@@ -785,8 +785,8 @@ static struct PyModuleDef bpy_proxy_def = {
 
 typedef struct {
   PyObject_HEAD
-      /* Type-specific fields go here. */
-      PyObject *mod;
+  /* Type-specific fields go here. */
+  PyObject *mod;
 } dealloc_obj;
 
 /* call once __file__ is set */

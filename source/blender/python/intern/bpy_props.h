@@ -33,8 +33,8 @@ StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix);
 
 typedef struct {
   PyObject_HEAD
-      /* This isn't GC tracked, it's a function from `bpy.props` so it's not going away. */
-      void *fn;
+  /* This isn't GC tracked, it's a function from `bpy.props` so it's not going away. */
+  void *fn;
   PyObject *kw;
 } BPy_PropDeferred;
 

@@ -39,7 +39,8 @@ extern PyTypeObject StrokeAttribute_Type;
 
 /*---------------------------Python BPy_StrokeAttribute structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::StrokeAttribute *sa;
+  PyObject_HEAD
+  Freestyle::StrokeAttribute *sa;
   bool borrowed; /* true if *sa is a borrowed reference */
 } BPy_StrokeAttribute;
 

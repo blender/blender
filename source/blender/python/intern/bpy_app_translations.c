@@ -51,8 +51,8 @@
 
 typedef struct {
   PyObject_HEAD
-      /** The string used to separate context from actual message in PY_TRANSLATE RNA props. */
-      const char *context_separator;
+  /** The string used to separate context from actual message in PY_TRANSLATE RNA props. */
+  const char *context_separator;
   /** A "named tuple" (StructSequence actually...) containing all C-defined contexts. */
   PyObject *contexts;
   /** A readonly mapping {C context id: python id}  (actually, a MappingProxy). */

@@ -93,7 +93,8 @@ static const char PY_BVH_TREE_TYPE_DEFAULT = 4;
 static const char PY_BVH_AXIS_DEFAULT = 6;
 
 typedef struct {
-  PyObject_HEAD BVHTree *tree;
+  PyObject_HEAD
+  BVHTree *tree;
   float epsilon;
 
   float (*coords)[3];
