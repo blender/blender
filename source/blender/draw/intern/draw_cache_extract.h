@@ -263,8 +263,7 @@ typedef struct MeshBatchCache {
 #define MBC_IBO_LEN (sizeof(((MeshBufferCache){0}).ibo) / sizeof(void *))
 
 #define MBC_BATCH_INDEX(batch_name) \
-  ((offsetof(MeshBatchCache, batch_name) - offsetof(MeshBatchCache, batch.surface)) / \
-   sizeof(void *))
+  ((offsetof(MeshBatchCache, batch_name) - offsetof(MeshBatchCache, batch)) / sizeof(void *))
 
 typedef enum DRWBatchFlag {
   MBC_SURFACE = (1u << MBC_BATCH_INDEX(batch.surface)),
