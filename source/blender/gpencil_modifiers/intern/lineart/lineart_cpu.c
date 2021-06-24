@@ -43,6 +43,7 @@
 #include "BKE_gpencil_modifier.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "DEG_depsgraph_query.h"
@@ -1903,6 +1904,41 @@ static void lineart_geometry_load_assign_thread(LineartObjectLoadTaskInfo *olti_
   use_olti->pending = obi;
 }
 
+static bool lineart_geometry_check_visible(double (*model_view_proj)[4], Object *use_ob)
+{
+  BoundBox *bb = BKE_object_boundbox_get(use_ob);
+  if (!bb) {
+    /* For lights and empty stuff there will be no bbox. */
+    return false;
+  }
+
+  double co[8][4];
+  double tmp[3];
+  for (int i = 0; i < 8; i++) {
+    copy_v3db_v3fl(co[i], bb->vec[i]);
+    copy_v3_v3_db(tmp, co[i]);
+    mul_v4_m4v3_db(co[i], model_view_proj, tmp);
+  }
+
+  bool cond[6] = {true, true, true, true, true, true};
+  /* Beause for a point to be inside clip space, it must satisfy -Wc <= XYCc <= Wc, here if all
+   * verts falls to the same side of the clip space border, we know it's outside view. */
+  for (int i = 0; i < 8; i++) {
+    cond[0] &= (co[i][0] < -co[i][3]);
+    cond[1] &= (co[i][0] > co[i][3]);
+    cond[2] &= (co[i][1] < -co[i][3]);
+    cond[3] &= (co[i][1] > co[i][3]);
+    cond[4] &= (co[i][2] < -co[i][3]);
+    cond[5] &= (co[i][2] > co[i][3]);
+  }
+  for (int i = 0; i < 6; i++) {
+    if (cond[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static void lineart_main_load_geometries(
     Depsgraph *depsgraph,
     Scene *scene,
@@ -1923,6 +1959,7 @@ static void lineart_main_load_geometries(
   if (G.debug_value == 4000) {
     t_start = PIL_check_seconds_timer();
   }
+  int bound_box_discard_count = 0;
 
   if (cam->type == CAM_PERSP) {
     if (fit == CAMERA_SENSOR_FIT_VERT && asp > 1) {
@@ -1974,16 +2011,27 @@ static void lineart_main_load_geometries(
     }
 
     Object *use_ob = DEG_get_evaluated_object(depsgraph, ob);
+    /* Prepare the matrix used for transforming this specific object (instance). This has to be
+     * done before mesh boundbox check because the function needs that.  */
+    mul_m4db_m4db_m4fl_uniq(obi->model_view_proj, rb->view_projection, ob->obmat);
+    mul_m4db_m4db_m4fl_uniq(obi->model_view, rb->view, ob->obmat);
 
-    if (!(use_ob->type == OB_MESH || use_ob->type == OB_MBALL || use_ob->type == OB_CURVE ||
-          use_ob->type == OB_SURF || use_ob->type == OB_FONT)) {
+    if (!ELEM(use_ob->type, OB_MESH, OB_MBALL, OB_CURVE, OB_SURF, OB_FONT)) {
       continue;
     }
+
+    if (!lineart_geometry_check_visible(obi->model_view_proj, use_ob)) {
+      if (G.debug_value == 4000) {
+        bound_box_discard_count++;
+      }
+      continue;
+    }
+
     if (use_ob->type == OB_MESH) {
       use_mesh = use_ob->data;
     }
     else {
-      use_mesh = BKE_mesh_new_from_object(NULL, use_ob, false, true);
+      use_mesh = BKE_mesh_new_from_object(depsgraph, use_ob, true, true);
     }
 
     /* In case we still can not get any mesh geometry data from the object */
@@ -1995,9 +2043,7 @@ static void lineart_main_load_geometries(
       obi->free_use_mesh = true;
     }
 
-    /* Prepare the matrix used for transforming this specific object (instance).  */
-    mul_m4db_m4db_m4fl_uniq(obi->model_view_proj, rb->view_projection, ob->obmat);
-    mul_m4db_m4db_m4fl_uniq(obi->model_view, rb->view, ob->obmat);
+    /* Make normal matrix.  */
     float imat[4][4];
     invert_m4_m4(imat, ob->obmat);
     transpose_m4(imat);
@@ -2041,6 +2087,7 @@ static void lineart_main_load_geometries(
   if (G.debug_value == 4000) {
     double t_elapsed = PIL_check_seconds_timer() - t_start;
     printf("Line art loading time: %lf\n", t_elapsed);
+    printf("Discarded %d object from bound box check\n", bound_box_discard_count);
   }
 }
 
