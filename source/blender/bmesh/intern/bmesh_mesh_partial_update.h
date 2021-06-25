@@ -54,9 +54,20 @@ typedef struct BMPartialUpdate {
 
 BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
                                                    const BMPartialUpdate_Params *params,
-                                                   const int verts_len,
-                                                   bool (*filter_fn)(BMVert *, void *user_data),
-                                                   void *user_data)
-    ATTR_NONNULL(1, 2, 4) ATTR_WARN_UNUSED_RESULT;
+                                                   const unsigned int *verts_mask,
+                                                   const int verts_mask_count)
+    ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+
+BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
+    BMesh *bm,
+    const BMPartialUpdate_Params *params,
+    const unsigned int *verts_mask,
+    const int verts_mask_count) ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+
+BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
+    BMesh *bm,
+    const BMPartialUpdate_Params *params,
+    const int *verts_group,
+    const int verts_group_count) ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
 
 void BM_mesh_partial_destroy(BMPartialUpdate *bmpinfo) ATTR_NONNULL(1);
