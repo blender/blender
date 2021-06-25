@@ -130,6 +130,16 @@ void DatasetRegionDrawer::draw_hierarchy(const DatasetLayoutHierarchy &layout)
   }
 }
 
+static int element_count_from_instances(const GeometrySet &geometry_set)
+{
+  if (geometry_set.has_instances()) {
+    const InstancesComponent *instances_component =
+        geometry_set.get_component_for_read<InstancesComponent>();
+    return instances_component->instances_amount();
+  }
+  return 0;
+}
+
 static int element_count_from_component_domain(const GeometrySet &geometry_set,
                                                GeometryComponentType component,
                                                AttributeDomain domain)
@@ -143,12 +153,6 @@ static int element_count_from_component_domain(const GeometrySet &geometry_set,
     const PointCloudComponent *point_cloud_component =
         geometry_set.get_component_for_read<PointCloudComponent>();
     return point_cloud_component->attribute_domain_size(domain);
-  }
-
-  if (geometry_set.has_instances() && component == GEO_COMPONENT_TYPE_INSTANCES) {
-    const InstancesComponent *instances_component =
-        geometry_set.get_component_for_read<InstancesComponent>();
-    return instances_component->instances_amount();
   }
 
   if (geometry_set.has_volume() && component == GEO_COMPONENT_TYPE_VOLUME) {
@@ -182,11 +186,17 @@ void DatasetRegionDrawer::draw_dataset_row(const int indentation,
                      ymin_offset};
 
   char element_count[7];
-  BLI_str_format_attribute_domain_size(
-      element_count,
-      domain ? element_count_from_component_domain(
-                   draw_context.current_geometry_set, component, *domain) :
-               0);
+  if (component == GEO_COMPONENT_TYPE_INSTANCES) {
+    BLI_str_format_attribute_domain_size(
+        element_count, element_count_from_instances(draw_context.current_geometry_set));
+  }
+  else {
+    BLI_str_format_attribute_domain_size(
+        element_count,
+        domain ? element_count_from_component_domain(
+                     draw_context.current_geometry_set, component, *domain) :
+                 0);
+  }
 
   std::string label_and_element_count = label;
   label_and_element_count += UI_SEP_CHAR;
