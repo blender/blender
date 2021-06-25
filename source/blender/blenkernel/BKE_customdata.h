@@ -233,6 +233,9 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
                                                   const int totelem);
 bool CustomData_is_referenced_layer(struct CustomData *data, int type);
 
+/* Duplicate all the layers with flag NOFREE, and remove the flag from duplicated layers. */
+void CustomData_duplicate_referenced_layers(CustomData *data, int totelem);
+
 /* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask
  * will be copied

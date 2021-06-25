@@ -2815,6 +2815,14 @@ void *CustomData_duplicate_referenced_layer_named(CustomData *data,
   return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
 }
 
+void CustomData_duplicate_referenced_layers(CustomData *data, int totelem)
+{
+  for (int i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    layer->data = CustomData_duplicate_referenced_layer(data, layer->type, totelem);
+  }
+}
+
 bool CustomData_is_referenced_layer(struct CustomData *data, int type)
 {
   /* get the layer index of the first layer of type */
