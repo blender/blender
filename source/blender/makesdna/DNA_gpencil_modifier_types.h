@@ -873,6 +873,7 @@ typedef enum eLineartGpencilModifierSource {
   LRT_SOURCE_SCENE = 2,
 } eLineartGpencilModifierSource;
 
+/* This enumis for modifier internal state only. */
 typedef enum eLineArtGPencilModifierFlags {
   /* These two moved to eLineartMainFlags to keep consistent with flag variable purpose. */
   /* LRT_GPENCIL_INVERT_SOURCE_VGROUP = (1 << 0), */
@@ -932,7 +933,7 @@ typedef struct LineartGpencilModifierData {
   /* Ported from SceneLineArt flags. */
   int calculation_flags;
 
-  /* Additional Switches. */
+  /* eLineArtGPencilModifierFlags, modifier internal state. */
   int flags;
 
   /* Runtime data. */

@@ -1438,34 +1438,51 @@ static LineartTriangle *lineart_triangle_from_index(LineartRenderBuffer *rb,
   return (LineartTriangle *)b;
 }
 
-static char lineart_identify_feature_line(LineartRenderBuffer *rb,
-                                          BMEdge *e,
-                                          LineartTriangle *rt_array,
-                                          LineartVert *rv_array,
-                                          float crease_threshold,
-                                          bool no_crease,
-                                          bool count_freestyle,
-                                          BMesh *bm_if_freestyle)
+static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
+                                              BMEdge *e,
+                                              LineartTriangle *rt_array,
+                                              LineartVert *rv_array,
+                                              float crease_threshold,
+                                              bool no_crease,
+                                              bool use_freestyle_edge,
+                                              bool use_freestyle_face,
+                                              BMesh *bm_if_freestyle)
 {
   BMLoop *ll, *lr = NULL;
+
   ll = e->l;
   if (ll) {
     lr = e->l->radial_next;
   }
 
-  if (!ll && !lr) {
-    if (!rb->floating_as_contour) {
-      return LRT_EDGE_FLAG_FLOATING;
-    }
-  }
-
+  FreestyleEdge *fel, *fer;
+  bool face_mark_filtered = false;
   uint16_t edge_flag_result = 0;
 
-  if (count_freestyle && rb->use_edge_marks) {
-    FreestyleEdge *fe;
-    fe = CustomData_bmesh_get(&bm_if_freestyle->edata, e->head.data, CD_FREESTYLE_EDGE);
-    if (fe->flag & FREESTYLE_EDGE_MARK) {
-      edge_flag_result |= LRT_EDGE_FLAG_EDGE_MARK;
+  if (use_freestyle_face && rb->filter_face_mark) {
+    fel = CustomData_bmesh_get(&bm_if_freestyle->pdata, ll->f->head.data, CD_FREESTYLE_FACE);
+    if (ll != lr && lr) {
+      fer = CustomData_bmesh_get(&bm_if_freestyle->pdata, lr->f->head.data, CD_FREESTYLE_FACE);
+    }
+    else {
+      /* Handles mesh boundary case */
+      fer = fel;
+    }
+    if (rb->filter_face_mark_boundaries ^ rb->filter_face_mark_invert) {
+      if ((fel->flag & FREESTYLE_FACE_MARK) || (fer->flag & FREESTYLE_FACE_MARK)) {
+        face_mark_filtered = true;
+      }
+    }
+    else {
+      if ((fel->flag & FREESTYLE_FACE_MARK) && (fer->flag & FREESTYLE_FACE_MARK) && (fer != fel)) {
+        face_mark_filtered = true;
+      }
+    }
+    if (rb->filter_face_mark_invert) {
+      face_mark_filtered = !face_mark_filtered;
+    }
+    if (!face_mark_filtered) {
+      return 0;
     }
   }
 
@@ -1507,11 +1524,16 @@ static char lineart_identify_feature_line(LineartRenderBuffer *rb,
       edge_flag_result |= LRT_EDGE_FLAG_CREASE;
     }
   }
-
   if (rb->use_material && (ll->f->mat_nr != lr->f->mat_nr)) {
     edge_flag_result |= LRT_EDGE_FLAG_MATERIAL;
   }
-
+  if (use_freestyle_edge && rb->use_edge_marks) {
+    FreestyleEdge *fe;
+    fe = CustomData_bmesh_get(&bm_if_freestyle->edata, e->head.data, CD_FREESTYLE_EDGE);
+    if (fe->flag & FREESTYLE_EDGE_MARK) {
+      edge_flag_result |= LRT_EDGE_FLAG_EDGE_MARK;
+    }
+  }
   return edge_flag_result;
 }
 
@@ -1628,7 +1650,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   LineartEdgeSegment *o_la_s;
   LineartTriangle *ort;
   Object *orig_ob;
-  int CanFindFreestyle = 0;
+  bool can_find_freestyle_edge = false;
+  bool can_find_freestyle_face = false;
   int i;
   float use_crease = 0;
 
@@ -1684,7 +1707,10 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
   if (CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
-    CanFindFreestyle = 1;
+    can_find_freestyle_edge = 1;
+  }
+  if (CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
+    can_find_freestyle_face = true;
   }
 
   /* If we allow duplicated edges, one edge should get added multiple times if is has been
@@ -1787,8 +1813,15 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
     e = BM_edge_at_index(bm, i);
 
     /* Because e->head.hflag is char, so line type flags should not exceed positive 7 bits. */
-    char eflag = lineart_identify_feature_line(
-        rb, e, ort, orv, use_crease, orig_ob->type == OB_FONT, CanFindFreestyle, bm);
+    char eflag = lineart_identify_feature_line(rb,
+                                               e,
+                                               ort,
+                                               orv,
+                                               use_crease,
+                                               orig_ob->type == OB_FONT,
+                                               can_find_freestyle_edge,
+                                               can_find_freestyle_face,
+                                               bm);
     if (eflag) {
       /* Only allocate for feature lines (instead of all lines) to save memory.
        * If allow duplicated edges, one edge gets added multiple times if it has multiple types. */
@@ -3005,6 +3038,11 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->use_edge_marks = (edge_types & LRT_EDGE_FLAG_EDGE_MARK) != 0;
   rb->use_intersections = (edge_types & LRT_EDGE_FLAG_INTERSECTION) != 0;
   rb->use_floating = (edge_types & LRT_EDGE_FLAG_FLOATING) != 0;
+
+  rb->filter_face_mark_invert = (lmd->calculation_flags & LRT_FILTER_FACE_MARK_INVERT) != 0;
+  rb->filter_face_mark = (lmd->calculation_flags & LRT_FILTER_FACE_MARK) != 0;
+  rb->filter_face_mark_boundaries = (lmd->calculation_flags & LRT_FILTER_FACE_MARK_BOUNDARIES) !=
+                                    0;
 
   rb->chain_data_pool = &lc->chain_data_pool;
 

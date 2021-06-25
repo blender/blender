@@ -39,6 +39,7 @@
  * Edge flags and usage flags are used by with scene/object/gpencil modifier bits, and those values
  * needs to stay consistent throughout. */
 
+/* These flags are used for 1 time calculation, not stroke selection afterwards. */
 typedef enum eLineartMainFlags {
   LRT_INTERSECTION_AS_CONTOUR = (1 << 0),
   LRT_EVERYTHING_AS_CONTOUR = (1 << 1),
@@ -52,9 +53,9 @@ typedef enum eLineartMainFlags {
   LRT_FILTER_FACE_MARK = (1 << 9),
   LRT_FILTER_FACE_MARK_INVERT = (1 << 10),
   LRT_FILTER_FACE_MARK_BOUNDARIES = (1 << 11),
-  LRT_CHAIN_FLOATING_EDGES = (1 << 11),
-  LRT_CHAIN_GEOMETRY_SPACE = (1 << 12),
-  LRT_ALLOW_OVERLAP_EDGE_TYPES = (1 << 13),
+  LRT_CHAIN_FLOATING_EDGES = (1 << 12),
+  LRT_CHAIN_GEOMETRY_SPACE = (1 << 13),
+  LRT_ALLOW_OVERLAP_EDGE_TYPES = (1 << 14),
 } eLineartMainFlags;
 
 typedef enum eLineartEdgeFlag {

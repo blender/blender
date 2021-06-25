@@ -2814,9 +2814,35 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "floating_as_contour", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_FLOATING_AS_CONTOUR);
-  RNA_def_property_ui_text(
-      prop, "Floating As Contour", "Floating edges will be classified as contour lines");
+  RNA_def_property_ui_text(prop, "Floating As Contour", "Floating edges will have contour type");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "invert_source_vertex_group", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_GPENCIL_INVERT_SOURCE_VGROUP);
+  RNA_def_property_ui_text(prop, "Invert Vertex Group", "Invert source vertex group values");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_output_vertex_group_match_by_name", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_GPENCIL_MATCH_OUTPUT_VGROUP);
+  RNA_def_property_ui_text(prop, "Match Output", "Match output vertex group based on name");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_face_mark", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_FILTER_FACE_MARK);
+  RNA_def_property_ui_text(
+      prop, "Filter Face Marks", "Filter feature lines using freestyle face marks");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_face_mark_invert", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_FILTER_FACE_MARK_INVERT);
+  RNA_def_property_ui_text(prop, "Invert", "Invert face mark filtering");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_face_mark_boundaries", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_FILTER_FACE_MARK_BOUNDARIES);
+  RNA_def_property_ui_text(
+      prop, "Boundaries", "Filtering feature lines on face mark boundaries as well");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "chaining_image_threshold", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_ui_text(
@@ -2944,16 +2970,6 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "vgname");
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_LineartGpencilModifier_vgname_set");
   RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name for selected strokes");
-  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
-
-  prop = RNA_def_property(srna, "invert_source_vertex_group", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_GPENCIL_INVERT_SOURCE_VGROUP);
-  RNA_def_property_ui_text(prop, "Invert Vertex Group", "Invert source vertex group values");
-  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
-
-  prop = RNA_def_property(srna, "use_output_vertex_group_match_by_name", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_GPENCIL_MATCH_OUTPUT_VGROUP);
-  RNA_def_property_ui_text(prop, "Match Output", "Match output vertex group based on name");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);
