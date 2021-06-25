@@ -305,6 +305,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Edge Types"));
 
   uiItemR(col, ptr, "use_contour", 0, IFACE_("Contour"), ICON_NONE);
+  uiItemR(col, ptr, "use_floating", 0, IFACE_("Floating"), ICON_NONE);
   uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
   uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
   uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
@@ -312,7 +313,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *sub = uiLayoutRowWithHeading(col, false, IFACE_("Crease"));
   uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
   uiLayout *entry = uiLayoutRow(sub, false);
-  uiLayoutSetActive(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
+  uiLayoutSetEnabled(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
   if (use_cache && !is_first) {
     uiItemL(entry, IFACE_("Angle Cached"), ICON_INFO);
   }
@@ -368,6 +369,7 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "use_edge_overlap", 0, IFACE_("Overlapping Edges As Contour"), ICON_NONE);
   uiItemR(col, ptr, "use_object_instances", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_clip_plane_boundaries", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "allow_overlap_edge_types", 0, NULL, ICON_NONE);
 }
 
 static void style_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -430,7 +432,7 @@ static void transparency_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_transparency"));
+  uiLayoutSetEnabled(layout, RNA_boolean_get(ptr, "use_transparency"));
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetPropDecorate(row, false);
@@ -457,6 +459,7 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   const bool use_cache = RNA_boolean_get(ptr, "use_cache");
   const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
+  const bool is_geom = RNA_boolean_get(ptr, "chain_geometry_space");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetEnabled(layout, !is_baked);
@@ -469,8 +472,16 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Chain"));
   uiItemR(col, ptr, "use_fuzzy_intersections", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_fuzzy_all", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "chain_floating_edges", 0, IFACE_("Floating Edges"), ICON_NONE);
+  uiItemR(col, ptr, "floating_as_contour", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "chain_geometry_space", 0, NULL, ICON_NONE);
 
-  uiItemR(layout, ptr, "chaining_image_threshold", 0, NULL, ICON_NONE);
+  uiItemR(layout,
+          ptr,
+          "chaining_image_threshold",
+          0,
+          is_geom ? IFACE_("Geometry Threshold") : NULL,
+          ICON_NONE);
 
   uiItemR(layout, ptr, "split_angle", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }

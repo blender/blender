@@ -189,7 +189,7 @@ typedef struct LineartEdgeChainItem {
   /** For restoring position to 3d space */
   float gpos[3];
   float normal[3];
-  char line_type;
+  unsigned char line_type;
   char occlusion;
   unsigned char transparency_mask;
   size_t index;
@@ -267,6 +267,7 @@ typedef struct LineartRenderBuffer {
   ListBase crease;
   ListBase material;
   ListBase edge_mark;
+  ListBase floating;
 
   ListBase chains;
 
@@ -287,11 +288,16 @@ typedef struct LineartRenderBuffer {
   bool use_material;
   bool use_edge_marks;
   bool use_intersections;
+  bool use_floating;
   bool fuzzy_intersections;
   bool fuzzy_everything;
   bool allow_boundaries;
   bool allow_overlapping_edges;
+  bool allow_duplicated_types;
   bool remove_doubles;
+  bool floating_as_contour;
+  bool chain_floating_edges;
+  bool chain_geometry_space;
 
   /* Keep an copy of these data so when line art is running it's self-contained. */
   bool cam_is_persp;
@@ -358,10 +364,9 @@ typedef struct LineartRenderTaskInfo {
   ListBase crease;
   ListBase material;
   ListBase edge_mark;
+  ListBase floating;
 
 } LineartRenderTaskInfo;
-
-struct BMesh;
 
 typedef struct LineartObjectInfo {
   struct LineartObjectInfo *next;
@@ -370,7 +375,7 @@ typedef struct LineartObjectInfo {
   double model_view_proj[4][4];
   double model_view[4][4];
   double normal[4][4];
-  LineartElementLinkNode *v_reln;
+  LineartElementLinkNode *v_eln;
   int usage;
   int global_i_offset;
 

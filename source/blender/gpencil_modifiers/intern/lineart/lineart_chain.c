@@ -729,7 +729,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
       }
     }
 
-    float new_len = len_v2v2(cre->eci->pos, eci->pos);
+    float new_len = rb->chain_geometry_space ? len_v3v3(cre->eci->gpos, eci->gpos) :
+                                               len_v2v2(cre->eci->pos, eci->pos);
     if (new_len < dist) {
       closest_cre = cre;
       dist = new_len;
@@ -799,6 +800,10 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
       continue;
     }
     BLI_addtail(&rb->chains, ec);
+
+    if (ec->type == LRT_EDGE_FLAG_FLOATING && (!rb->chain_floating_edges)) {
+      continue;
+    }
 
     occlusion = ec->level;
     transparency_mask = ec->transparency_mask;
