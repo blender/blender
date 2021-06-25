@@ -331,6 +331,7 @@ static SpaceLink *outliner_create(const ScrArea *UNUSED(area), const Scene *UNUS
   space_outliner->outlinevis = SO_VIEW_LAYER;
   space_outliner->sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_ALL;
   space_outliner->flag = SO_SYNC_SELECT | SO_MODE_COLUMN;
+  space_outliner->filter = SO_FILTER_NO_VIEW_LAYERS;
 
   /* header */
   region = MEM_callocN(sizeof(ARegion), "header for outliner");

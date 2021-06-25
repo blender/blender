@@ -3624,6 +3624,11 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Collections", "Show collections");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
+  prop = RNA_def_property(srna, "use_filter_view_layers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_VIEW_LAYERS);
+  RNA_def_property_ui_text(prop, "Show All View Layers", "Show all the view layers");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
+
   /* Filters object state. */
   prop = RNA_def_property(srna, "filter_state", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "filter_state");
