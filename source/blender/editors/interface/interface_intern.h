@@ -279,7 +279,7 @@ struct uiBut {
   float *editvec;
 
   uiButPushedStateFunc pushed_state_func;
-  void *pushed_state_arg;
+  const void *pushed_state_arg;
 
   /* pointer back */
   uiBlock *block;
@@ -349,6 +349,15 @@ typedef struct uiButProgressbar {
   /* 0..1 range */
   float progress;
 } uiButProgressbar;
+
+/** Derived struct for #UI_BTYPE_DATASETROW. */
+typedef struct uiButDatasetRow {
+  uiBut but;
+
+  uint8_t geometry_component_type;
+  uint8_t attribute_domain;
+  int indentation;
+} uiButDatasetRow;
 
 /** Derived struct for #UI_BTYPE_HSVCUBE. */
 typedef struct uiButHSVCube {

@@ -385,9 +385,9 @@ int InstancesDataSource::tot_rows() const
   return component_->instances_amount();
 }
 
-static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
-                                            Object *object_eval,
-                                            const GeometryComponentType used_component_type)
+GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
+                                                 Object *object_eval,
+                                                 const GeometryComponentType used_component_type)
 {
   GeometrySet geometry_set;
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
@@ -470,7 +470,8 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
   const GeometryComponentType component_type = get_display_component_type(C, object_eval);
-  GeometrySet geometry_set = get_display_geometry_set(sspreadsheet, object_eval, component_type);
+  GeometrySet geometry_set = spreadsheet_get_display_geometry_set(
+      sspreadsheet, object_eval, component_type);
 
   if (!geometry_set.has(component_type)) {
     return {};

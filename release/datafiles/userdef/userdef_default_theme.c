@@ -1041,6 +1041,11 @@ const bTheme U_theme_default = {
     .active_object = RGBA(0xffaf29ff),
     .edited_object = RGBA(0x00806266),
     .row_alternate = RGBA(0xffffff07),
+    .list = RGBA(0x424242ff),
+    .list_title = RGBA(0xc3c3c3ff),
+    .list_text = RGBA(0xc3c3c3ff),
+    .list_text_hi = RGBA(0xffffff),
+    .hilite = RGBA(0x80808080),
   },
   .tarm = {
     {

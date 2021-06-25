@@ -41,10 +41,6 @@ class SPREADSHEET_HT_header(bpy.types.Header):
             return
 
         layout.prop(space, "object_eval_state", text="")
-        if space.object_eval_state != 'ORIGINAL':
-            layout.prop(space, "geometry_component_type", text="")
-        if space.geometry_component_type != 'INSTANCES':
-            layout.prop(space, "attribute_domain", text="")
 
         context_path = space.context_path
         if space.object_eval_state == 'ORIGINAL':

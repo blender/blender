@@ -67,7 +67,8 @@ bool ui_but_is_toggle(const uiBut *but)
               UI_BTYPE_TOGGLE_N,
               UI_BTYPE_CHECKBOX,
               UI_BTYPE_CHECKBOX_N,
-              UI_BTYPE_ROW);
+              UI_BTYPE_ROW,
+              UI_BTYPE_DATASETROW);
 }
 
 /**
