@@ -45,7 +45,7 @@ void NURBSpline::copy_data(Spline &dst) const
   nurbs.positions_ = positions_;
   nurbs.weights_ = weights_;
   nurbs.knots_ = knots_;
-  nurbs.knots_dirty_ = false;
+  nurbs.knots_dirty_ = knots_dirty_;
   nurbs.radii_ = radii_;
   nurbs.tilts_ = tilts_;
 }
