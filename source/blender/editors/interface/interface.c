@@ -6838,7 +6838,6 @@ void UI_but_datasetrow_indentation_set(uiBut *but, int indentation)
 
   but_dataset->indentation = indentation;
   BLI_assert(indentation >= 0);
-
 }
 
 /**
