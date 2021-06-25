@@ -4206,7 +4206,8 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
 
   prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_MOTION_BLUR);
-  RNA_def_property_ui_text(prop, "Motion Blur", "Render motion blur in this Layer, if enabled in the scene");
+  RNA_def_property_ui_text(
+      prop, "Motion Blur", "Render motion blur in this Layer, if enabled in the scene");
   if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
   }
