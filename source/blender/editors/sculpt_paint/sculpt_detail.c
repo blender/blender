@@ -116,12 +116,29 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   SCULPT_undo_push_begin(ob, "Dynamic topology flood fill");
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
 
-  while (BKE_pbvh_bmesh_update_topology(
-      ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, NULL, size, false, false, -1, false)) {
+  DyntopoMaskCB mask_cb;
+  void *mask_cb_data;
+
+  SCULPT_dyntopo_automasking_init(ss, NULL, sd, &mask_cb, &mask_cb_data);
+
+  while (BKE_pbvh_bmesh_update_topology(ss->pbvh,
+                                        PBVH_Collapse | PBVH_Subdivide,
+                                        center,
+                                        NULL,
+                                        size,
+                                        false,
+                                        false,
+                                        -1,
+                                        false,
+                                        mask_cb,
+                                        mask_cb_data)) {
+
     for (int i = 0; i < totnodes; i++) {
       BKE_pbvh_node_mark_topology_update(nodes[i]);
     }
   }
+
+  SCULPT_dyntopo_automasking_end(mask_cb_data);
 
   MEM_SAFE_FREE(nodes);
   SCULPT_undo_push_end();
@@ -228,7 +245,13 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *region,
   srd.edge_length = 0.0f;
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
-  BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd, ray_start, ray_normal, false, srd.ss->stroke_id);
+  BKE_pbvh_raycast(ob->sculpt->pbvh,
+                   sculpt_raycast_detail_cb,
+                   &srd,
+                   ray_start,
+                   ray_normal,
+                   false,
+                   srd.ss->stroke_id);
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */

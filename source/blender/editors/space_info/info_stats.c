@@ -382,8 +382,10 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
       stats->totfacesculpt = ss->totfaces;
       break;
     case PBVH_BMESH:
-      stats->totvertsculpt = ob->sculpt->bm->totvert;
-      stats->tottri = ob->sculpt->bm->totface;
+      if (ob->sculpt->bm) {
+        stats->totvertsculpt = ob->sculpt->bm->totvert;
+        stats->tottri = ob->sculpt->bm->totface;
+      }
       break;
     case PBVH_GRIDS:
       stats->totvertsculpt = BKE_pbvh_get_grid_num_vertices(ss->pbvh);
@@ -443,15 +445,7 @@ static void stats_update(Depsgraph *depsgraph,
     FOREACH_OBJECT_END;
   }
   else if (ob && (ob->mode & OB_MODE_SCULPT)) {
-    /* Sculpt Mode. */
-    if (stats_is_object_dynamic_topology_sculpt(ob)) {
-      /* Dynamic topology. Do not count all vertices,
-       * dynamic topology stats are initialized later as part of sculpt stats. */
-    }
-    else {
-      /* When dynamic topology is not enabled both sculpt stats and scene stats are collected. */
-      stats_object_sculpt(ob, stats);
-    }
+    stats_object_sculpt(ob, stats);
   }
   else {
     /* Objects. */

@@ -1349,6 +1349,8 @@ typedef struct {
   EdgeQueue *q;
   BLI_mempool *pool;
   BMesh *bm;
+  DyntopoMaskCB mask_cb;
+  void *mask_cb_data;
   int cd_dyn_vert;
   int cd_vert_mask_offset;
   int cd_vert_node_offset;
@@ -1358,6 +1360,21 @@ typedef struct {
   float min_elen;
   float totedge;
 } EdgeQueueContext;
+
+BLI_INLINE float maskcb_get(EdgeQueueContext *eq_ctx, BMEdge *e)
+{
+  if (eq_ctx->mask_cb) {
+    SculptVertRef sv1 = {(intptr_t)e->v1};
+    SculptVertRef sv2 = {(intptr_t)e->v2};
+
+    float w1 = eq_ctx->mask_cb(sv1, eq_ctx->mask_cb_data);
+    float w2 = eq_ctx->mask_cb(sv2, eq_ctx->mask_cb_data);
+
+    return (w1 + w2) * 0.5f;
+  }
+
+  return 1.0f;
+}
 
 BLI_INLINE float calc_weighted_edge_split(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
 {
@@ -1480,10 +1497,6 @@ static float dist_to_tri_sphere_simple(
 
 static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 {
-  float c[3];
-  float v1[3], v2[3], v3[3], co[3];
-  const float mul = 1.0f;
-
   BMLoop *l = f->l_first;
 
   /* Check if triangle intersects the sphere */
@@ -1551,29 +1564,14 @@ static bool edge_queue_vert_in_circle(const EdgeQueue *q, BMVert *v)
   return len_squared_v3v3(q->center_proj, c) <= q->radius_squared;
 }
 
-/* Return true if the vertex mask is less than 1.0, false otherwise */
-static bool check_mask(EdgeQueueContext *eq_ctx, BMVert *v)
-{
-  return DYNTOPO_MASK(eq_ctx->cd_dyn_vert, v) < 1.0f;
-}
-
 static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e, float priority)
 {
   void **elems = eq_ctx->q->elems;
   BLI_array_declare(elems);
   BLI_array_len_set(elems, eq_ctx->q->totelems);
 
-  /* Don't let topology update affect fully masked vertices. This used to
-   * have a 50% mask cutoff, with the reasoning that you can't do a 50%
-   * topology update. But this gives an ugly border in the mesh. The mask
-   * should already make the brush move the vertices only 50%, which means
-   * that topology updates will also happen less frequent, that should be
-   * enough. */
-  if (((eq_ctx->cd_vert_mask_offset == -1) ||
-       (check_mask(eq_ctx, e->v1) || check_mask(eq_ctx, e->v2))) &&
-      !(BM_elem_flag_test_bool(e->v1, BM_ELEM_HIDDEN) ||
-        BM_elem_flag_test_bool(e->v2, BM_ELEM_HIDDEN))) {
-
+  if (eq_ctx->cd_vert_mask_offset == -1 ||
+      !((e->v1->head.hflag | e->v2->head.hflag) & BM_ELEM_HIDDEN)) {
     float dis = len_v3v3(e->v1->co, e->v2->co);
     eq_ctx->avg_elen += dis;
     eq_ctx->max_elen = MAX2(eq_ctx->max_elen, dis);
@@ -1604,7 +1602,9 @@ static void long_edge_queue_edge_add(EdgeQueueContext *eq_ctx, BMEdge *e)
   if (EDGE_QUEUE_TEST(e) == false)
 #endif
   {
-    const float len_sq = BM_edge_calc_length_squared(e);
+    const float w = maskcb_get(eq_ctx, e);
+    const float len_sq = BM_edge_calc_length_squared(e) * w * w;
+
     if (len_sq > eq_ctx->q->limit_len_squared) {
       edge_queue_insert(eq_ctx, e, -len_sq);
     }
@@ -1652,6 +1652,10 @@ static void long_edge_queue_edge_add_recursive(EdgeQueueContext *eq_ctx,
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
       for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
         float len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
+        float w = maskcb_get(eq_ctx, l_adjacent[i]->e);
+
+        len_sq_other *= w * w;
+
         if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
           //                  edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
           long_edge_queue_edge_add_recursive(eq_ctx,
@@ -1696,7 +1700,11 @@ static void long_edge_queue_face_add(EdgeQueueContext *eq_ctx, BMFace *f, bool i
     BMLoop *l_iter = l_first;
     do {
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-      const float len_sq = BM_edge_calc_length_squared(l_iter->e);
+      float len_sq = BM_edge_calc_length_squared(l_iter->e);
+      float w = maskcb_get(eq_ctx, l_iter->e);
+
+      len_sq *= w * w;
+
       if (len_sq > eq_ctx->q->limit_len_squared) {
         long_edge_queue_edge_add_recursive(eq_ctx,
                                            l_iter->radial_next,
@@ -1829,12 +1837,16 @@ static void long_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
       for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
+        BMEdge *e = l_adjacent[i]->e;
 
         float len_sq_other = calc_weighted_edge_split(
             tdata->eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
 
+        float w = maskcb_get(tdata->eq_ctx, e);
+
+        len_sq_other *= w * w;
+
         if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
-          //                  edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
           long_edge_queue_edge_add_recursive_2(tdata,
                                                l_adjacent[i]->radial_next,
                                                l_adjacent[i],
@@ -1886,7 +1898,11 @@ void long_edge_queue_task_cb(void *__restrict userdata,
         surface_smooth_v_safe(l_iter->v);
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-        const float len_sq = BM_edge_calc_length_squared(l_iter->e);
+        float w = maskcb_get(eq_ctx, l_iter->e);
+        float len_sq = BM_edge_calc_length_squared(l_iter->e);
+
+        len_sq *= w * w;
+
         if (len_sq > eq_ctx->q->limit_len_squared) {
           long_edge_queue_edge_add_recursive_2(
               tdata, l_iter->radial_next, l_iter, len_sq, eq_ctx->q->limit_len, 0);
@@ -1903,9 +1919,9 @@ void long_edge_queue_task_cb(void *__restrict userdata,
   TGSET_ITER_END
 }
 
-void short_edge_queue_task_cb(void *__restrict userdata,
-                              const int n,
-                              const TaskParallelTLS *__restrict tls)
+static void short_edge_queue_task_cb(void *__restrict userdata,
+                                     const int n,
+                                     const TaskParallelTLS *__restrict tls)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVHNode *node = tdata->node;
@@ -1937,8 +1953,16 @@ void short_edge_queue_task_cb(void *__restrict userdata,
       BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
       BMLoop *l_iter = l_first;
       do {
+        float w = maskcb_get(eq_ctx, l_iter->e);
+
+        if (w == 0.0f) {
+          continue;
+        }
+
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-        const float len_sq = calc_weighted_edge_collapse(eq_ctx, l_iter->e->v1, l_iter->e->v2);
+        float len_sq = calc_weighted_edge_collapse(eq_ctx, l_iter->e->v1, l_iter->e->v2);
+        len_sq /= w * w;
+
         if (len_sq < eq_ctx->q->limit_len_squared) {
           short_edge_queue_edge_add_recursive_2(
               tdata, l_iter->radial_next, l_iter, len_sq, eq_ctx->q->limit_len, 0);
@@ -2047,7 +2071,13 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
     for (int j = 0; j < td->totedge; j++) {
       BMEdge *e = edges[j];
       e->head.hflag &= ~BM_ELEM_TAG;
-      edge_queue_insert(eq_ctx, e, -calc_weighted_edge_split(eq_ctx, e->v1, e->v2));
+
+      float w = -calc_weighted_edge_split(eq_ctx, e->v1, e->v2);
+      float w2 = maskcb_get(eq_ctx, e);
+
+      w *= w2 * w2;
+
+      edge_queue_insert(eq_ctx, e, w);
     }
 
     if (td->edges) {
@@ -2145,8 +2175,18 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
     BMEdge **edges = td->edges;
     for (int j = 0; j < td->totedge; j++) {
       BMEdge *e = edges[j];
+      float w = calc_weighted_edge_collapse(eq_ctx, e->v1, e->v2);
+      float w2 = maskcb_get(eq_ctx, e);
+
+      if (w2 > 0.0f) {
+        w /= w2 * w2;
+      }
+      else {
+        w = 100000.0f;
+      }
+
       e->head.hflag &= ~BM_ELEM_TAG;
-      edge_queue_insert(eq_ctx, e, calc_weighted_edge_collapse(eq_ctx, e->v1, e->v2));
+      edge_queue_insert(eq_ctx, e, w);
     }
 
     if (td->edges) {
@@ -2213,7 +2253,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 
     float mask_v_new = 0.5f * (mask_v1 + mask_v2);
 
-    BM_ELEM_CD_SET_FLOAT(v_new, eq_ctx->cd_vert_mask_offset, mask_v_new);
+    // BM_ELEM_CD_SET_FLOAT(v_new, eq_ctx->cd_vert_mask_offset, mask_v_new);
   }
 
   /* For each face, add two new triangles and delete the original */
@@ -2461,9 +2501,6 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
                                      EdgeQueueContext *eq_ctx)
 {
   BMVert *v_del, *v_conn;
-
-  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v1);
-  MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v2);
 
   // customdata interpolation
   if (BM_elem_flag_test(e, BM_ELEM_SEAM)) {
@@ -2768,8 +2805,6 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 void BKE_pbvh_bmesh_update_origvert(
     PBVH *pbvh, BMVert *v, float **r_co, float **r_no, float **r_color, bool log_undo)
 {
-  float *co = NULL, *no = NULL;
-
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
   if (log_undo) {
@@ -3038,9 +3073,6 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
     return false;
   }
 
-  bool hit = false;
-  BMFace *f_hit = NULL;
-
   BKE_pbvh_bmesh_check_tris(pbvh, node);
   for (int i = 0; i < node->tribuf->tottri; i++) {
     PBVHTri *tri = node->tribuf->tris + i;
@@ -3199,7 +3231,7 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 #endif
 }
 
-void pbvh_bmesh_normals_update_old(PBVHNode **nodes, int totnode)
+static void pbvh_bmesh_normals_update_old(PBVHNode **nodes, int totnode)
 {
   for (int n = 0; n < totnode; n++) {
     PBVHNode *node = nodes[n];
@@ -3552,9 +3584,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   MEM_freeN(nodeinfo);
 }
 
+/*
 static double last_update_time[128] = {
     0,
 };
+*/
 
 bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           bool (*searchcb)(PBVHNode *node, void *data),
@@ -3567,7 +3601,9 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           const bool use_frontface,
                                           const bool use_projected,
                                           int sym_axis,
-                                          bool updatePBVH)
+                                          bool updatePBVH,
+                                          DyntopoMaskCB mask_cb,
+                                          void *mask_cb_data)
 {
   bool modified = false;
 
@@ -3594,7 +3630,10 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                                         use_frontface,
                                                         use_projected,
                                                         sym_axis,
-                                                        updatePBVH);
+                                                        updatePBVH,
+                                                        mask_cb,
+                                                        mask_cb_data);
+
   return modified;
 }
 
@@ -3785,7 +3824,9 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     const bool use_frontface,
                                     const bool use_projected,
                                     int sym_axis,
-                                    bool updatePBVH)
+                                    bool updatePBVH,
+                                    DyntopoMaskCB mask_cb,
+                                    void *mask_cb_data)
 {
   /*
   if (sym_axis >= 0 &&
@@ -3816,6 +3857,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
       NULL,
       NULL,
       pbvh->bm,
+      mask_cb,
+      mask_cb_data,
 
       cd_dyn_vert,
       cd_vert_mask_offset,
@@ -3900,6 +3943,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     int max_steps = (int)((float)DYNTOPO_MAX_ITER * ratio);
 
     modified |= pbvh_bmesh_subdivide_long_edges(&eq_ctx, pbvh, &edge_loops, max_steps);
+
     if (q.elems) {
       MEM_freeN(q.elems);
     }
@@ -4146,10 +4190,6 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   INIT_MINMAX(min, max);
 
   TGSET_ITER (f, node->bm_faces) {
-    BMVert *v1 = f->l_first->v;
-    BMVert *v2 = f->l_first->next->v;
-    BMVert *v3 = f->l_first->prev->v;
-
     PBVHTri tri = {0};
 
     BMLoop *l = f->l_first;
@@ -4185,7 +4225,7 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   }
   TGSET_ITER_END
 
-  bm->elem_index_dirty | BM_VERT;
+  bm->elem_index_dirty |= BM_VERT;
 
   node->tribuf->tris = tris;
   node->tribuf->tottri = BLI_array_len(tris);

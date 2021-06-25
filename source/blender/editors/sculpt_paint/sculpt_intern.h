@@ -48,6 +48,14 @@ struct bContext;
 
 enum ePaintSymmetryFlags;
 
+typedef struct SculptCustomLayer {
+  bool is_cdlayer;  // false for multires data
+  void *data;       // only valid for multires and face
+  int elemsize;
+  int cd_offset;           // for bmesh
+  CustomDataLayer *layer;  // not for multires
+} SculptCustomLayer;
+
 /*
 maximum symmetry passes returned by SCULPT_get_symmetry_pass.
 enough for about ~30 radial symmetry passes, which seems like plenty
@@ -402,10 +410,11 @@ typedef enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
   AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
 } eBoundaryAutomaskMode;
-float *SCULPT_boundary_automasking_init(Object *ob,
-                                        eBoundaryAutomaskMode mode,
-                                        int propagation_steps,
-                                        float *automask_factor);
+
+void SCULPT_boundary_automasking_init(Object *ob,
+                                      eBoundaryAutomaskMode mode,
+                                      int propagation_steps,
+                                      SculptCustomLayer *factorlayer);
 
 /* Geodesic distances. */
 
@@ -751,14 +760,6 @@ struct SculptRakeData {
   float follow_co[3];
 };
 
-typedef struct SculptCustomLayer {
-  bool is_cdlayer;  // false for multires data
-  void *data;       // only valid for multires and face
-  int elemsize;
-  int cd_offset;           // for bmesh
-  CustomDataLayer *layer;  // not for multires
-} SculptCustomLayer;
-
 /* Single struct used by all BLI_task threaded callbacks, let's avoid adding 10's of those... */
 typedef struct SculptThreadedTaskData {
   struct bContext *C;
@@ -988,7 +989,8 @@ typedef struct AutomaskingCache {
   AutomaskingSettings settings;
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
    * initialized in #SCULPT_automasking_cache_init when needed. */
-  float *factor;
+  // float *factor;
+  SculptCustomLayer *factorlayer;
 } AutomaskingCache;
 
 typedef struct StrokeCache {
@@ -1533,6 +1535,7 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_reorder_bmesh(SculptSession *ss);
 
+// TODO: support faces
 static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLayer *scl)
 {
   if (scl->data) {
@@ -1552,7 +1555,9 @@ always create all of your attributes together with SCULPT_temp_customlayer_ensur
 then initialize their SculptCustomLayer's with SCULPT_temp_customlayer_get
 afterwards.  Otherwise customdata offsets will be wrong (for PBVH_BMESH).
 
-return true on success.  if false layer was not created.
+return true on success.  if false, layer was not created.
+
+Access per element data with SCULPT_temp_cdata_get.
 */
 bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
                                     AttributeDomain domain,
@@ -1560,3 +1565,10 @@ bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
                                     char *name);
 bool SCULPT_temp_customlayer_get(
     SculptSession *ss, AttributeDomain domain, int proptype, char *name, SculptCustomLayer *scl);
+
+bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
+                                     const Brush *br,
+                                     const Sculpt *sd,
+                                     DyntopoMaskCB *r_mask_cb,
+                                     void **r_mask_cb_data);
+void SCULPT_dyntopo_automasking_end(void *mask_data);

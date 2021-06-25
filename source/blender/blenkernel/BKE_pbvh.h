@@ -391,6 +391,9 @@ typedef enum {
   PBVH_Collapse = 2,
   PBVH_Cleanup = 4,  // dissolve verts surrounded by either 3 or 4 triangles then triangulate
 } PBVHTopologyUpdateMode;
+
+typedef float (*DyntopoMaskCB)(SculptVertRef vertex, void *userdata);
+
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     PBVHTopologyUpdateMode mode,
                                     const float center[3],
@@ -399,7 +402,9 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     const bool use_frontface,
                                     const bool use_projected,
                                     int symaxis,
-                                    bool updatePBVH);
+                                    bool updatePBVH,
+                                    DyntopoMaskCB mask_cb,
+                                    void *mask_cb_data);
 
 bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           bool (*searchcb)(PBVHNode *node, void *data),
@@ -412,7 +417,9 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           const bool use_frontface,
                                           const bool use_projected,
                                           int sym_axis,
-                                          bool updatePBVH);
+                                          bool updatePBVH,
+                                          DyntopoMaskCB mask_cb,
+                                          void *mask_cb_data);
 /* Node Access */
 
 void BKE_pbvh_node_mark_update(PBVHNode *node);

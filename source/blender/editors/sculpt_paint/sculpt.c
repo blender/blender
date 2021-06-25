@@ -6652,6 +6652,67 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss)
 
   return symidx;
 }
+
+typedef struct DynTopoAutomaskState {
+  AutomaskingCache *cache;
+  SculptSession *ss;
+} DynTopoAutomaskState;
+
+ATTR_NO_OPT static float sculpt_topology_automasking_cb(SculptVertRef vertex, void *vdata)
+{
+  DynTopoAutomaskState *state = (DynTopoAutomaskState *)vdata;
+  float mask = SCULPT_automasking_factor_get(state->cache, state->ss, vertex);
+  float mask2 = 1.0f - SCULPT_vertex_mask_get(state->ss, vertex);
+
+  return mask * mask2;
+}
+
+ATTR_NO_OPT static float sculpt_topology_automasking_mask_cb(SculptVertRef vertex, void *vdata)
+{
+  DynTopoAutomaskState *state = (DynTopoAutomaskState *)vdata;
+  return 1.0f - SCULPT_vertex_mask_get(state->ss, vertex);
+}
+
+bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
+                                     const Brush *br,
+                                     const Sculpt *sd,
+                                     DyntopoMaskCB *r_mask_cb,
+                                     void **r_mask_cb_data)
+{
+  if (!SCULPT_is_automasking_enabled(sd, ss, br)) {
+    if (CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
+      DynTopoAutomaskState *state = MEM_callocN(sizeof(DynTopoAutomaskState),
+                                                "DynTopoAutomaskState");
+      state->cache = ss->cache->automasking;
+      state->ss = (SculptSession *)ss;
+
+      *r_mask_cb_data = (void *)state;
+      *r_mask_cb = sculpt_topology_automasking_mask_cb;
+
+      return true;
+    }
+    else {
+      *r_mask_cb = NULL;
+      *r_mask_cb_data = NULL;
+      return false;
+    }
+  }
+
+  DynTopoAutomaskState *state = MEM_callocN(sizeof(DynTopoAutomaskState), "DynTopoAutomaskState");
+  state->cache = ss->cache->automasking;
+  state->ss = (SculptSession *)ss;
+
+  *r_mask_cb_data = (void *)state;
+  *r_mask_cb = sculpt_topology_automasking_cb;
+
+  return true;
+}
+
+void SCULPT_dyntopo_automasking_end(void *mask_data)
+{
+  MEM_SAFE_FREE(mask_data);
+}
+
 /* Note: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
@@ -6714,6 +6775,10 @@ static void sculpt_topology_update(Sculpt *sd,
   int symidx = SCULPT_get_symmetry_pass(ss);
 
   bool modified;
+  void *mask_cb_data;
+  DyntopoMaskCB mask_cb;
+
+  SCULPT_dyntopo_automasking_init(ss, brush, sd, &mask_cb, &mask_cb_data);
 
   /* do nodes under the brush cursor */
   modified = BKE_pbvh_bmesh_update_topology_nodes(
@@ -6728,7 +6793,11 @@ static void sculpt_topology_update(Sculpt *sd,
       (brush->flag & BRUSH_FRONTFACE) != 0,
       (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
       symidx,
-      DYNTOPO_HAS_DYNAMIC_SPLIT(brush->sculpt_tool));
+      DYNTOPO_HAS_DYNAMIC_SPLIT(brush->sculpt_tool),
+      mask_cb,
+      mask_cb_data);
+
+  SCULPT_dyntopo_automasking_end(mask_cb_data);
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
@@ -7355,8 +7424,8 @@ void SCULPT_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_used)
     MEM_SAFE_FREE(nodes);
 
     /* Modifiers could depend on mesh normals, so we should update them.
-     * Note, then if sculpting happens on locked key, normals should be re-calculate after applying
-     * coords from key-block on base mesh. */
+     * Note, then if sculpting happens on locked key, normals should be re-calculate after
+     * applying coords from key-block on base mesh. */
     BKE_mesh_calc_normals(me);
   }
   else if (ss->shapekey_active) {
@@ -7953,8 +8022,8 @@ static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, flo
   }
 }
 
-/* In these brushes the grab delta is calculated always from the initial stroke location, which is
- * generally used to create grab deformations. */
+/* In these brushes the grab delta is calculated always from the initial stroke location, which
+ * is generally used to create grab deformations. */
 static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
 {
   if (ELEM(brush->sculpt_tool,
@@ -8167,9 +8236,9 @@ static void sculpt_update_cache_paint_variants(StrokeCache *cache, const Brush *
                                       1.0f - cache->pressure :
                                       cache->pressure;
 
-    /* This makes wet mix more sensible in higher values, which allows to create brushes that have
-     * a wider pressure range were they only blend colors without applying too much of the brush
-     * color. */
+    /* This makes wet mix more sensible in higher values, which allows to create brushes that
+     * have a wider pressure range were they only blend colors without applying too much of the
+     * brush color. */
     cache->paint_brush.wet_mix = 1.0f - pow2f(1.0f - cache->paint_brush.wet_mix);
   }
 
@@ -8440,8 +8509,9 @@ float SCULPT_raycast_init(ViewContext *vc,
   return dist;
 }
 
-/* Gets the normal, location and active vertex location of the geometry under the cursor. This also
- * updates the active vertex and cursor related data of the SculptSession using the mouse position
+/* Gets the normal, location and active vertex location of the geometry under the cursor. This
+ * also updates the active vertex and cursor related data of the SculptSession using the mouse
+ * position
  */
 bool SCULPT_cursor_geometry_info_update(bContext *C,
                                         SculptCursorGeometryInfo *out,
@@ -9446,10 +9516,10 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   /* Here we can detect geometry that was just added to Sculpt Mode as it has the
    * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
   /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
-   * initialized, which is used is some operators that modify the mesh topology to perform certain
-   * actions in the new polys. After these operations are finished, all polys should have a valid
-   * face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their visibility
-   * correctly. */
+   * initialized, which is used is some operators that modify the mesh topology to perform
+   * certain actions in the new polys. After these operations are finished, all polys should have
+   * a valid face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their
+   * visibility correctly. */
   /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
    * objects, like moving the transform pivot position to the new area or masking existing
    * geometry. */
@@ -10124,7 +10194,8 @@ void SCULPT_connected_components_ensure(Object *ob)
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  /* Topology IDs already initialized. They only need to be recalculated when the PBVH is rebuild.
+  /* Topology IDs already initialized. They only need to be recalculated when the PBVH is
+   * rebuild.
    */
   if (ss->vertex_info.connected_component) {
     return;
@@ -10201,7 +10272,8 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  /* Fake neighbors were already initialized with the same distance, so no need to be recalculated.
+  /* Fake neighbors were already initialized with the same distance, so no need to be
+   * recalculated.
    */
   if (ss->fake_neighbors.fake_neighbor_index &&
       ss->fake_neighbors.current_max_distance == max_dist) {
@@ -10491,8 +10563,8 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
-   * so it needs to be updated here. */
+  /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse
+   * move, so it needs to be updated here. */
   SculptCursorGeometryInfo sgi;
   float mouse[2];
   mouse[0] = event->mval[0];
