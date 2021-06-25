@@ -148,9 +148,9 @@ static bool SCULPT_automasking_needs_factors_cache(const Sculpt *sd, const Brush
   return false;
 }
 
-ATTR_NO_OPT float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
-                                                SculptSession *ss,
-                                                SculptVertRef vert)
+float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
+                                    SculptSession *ss,
+                                    SculptVertRef vert)
 {
   float mask = 1.0f;
   bool do_concave;
@@ -453,7 +453,7 @@ static void SCULPT_concavity_automasking_init(Object *ob,
   // BKE_pbvh_vertex_iter_begin
 }
 
-ATTR_NO_OPT AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob)
+AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);

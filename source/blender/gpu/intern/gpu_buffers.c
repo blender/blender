@@ -239,10 +239,10 @@ static int gpu_comp_map[] = {
     4  // GPU_COMP_I10,
 };
 
-ATTR_NO_OPT static void convert_gpu_data(void *src,
-                                         void *dst,
-                                         GPUVertCompType srcType,
-                                         GPUVertCompType dstType)
+static void convert_gpu_data(void *src,
+                             void *dst,
+                             GPUVertCompType srcType,
+                             GPUVertCompType dstType)
 {
   if (srcType == dstType) {
     memcpy(dst, src, gpu_comp_map[(int)srcType]);
@@ -309,7 +309,7 @@ ATTR_NO_OPT static void convert_gpu_data(void *src,
   GPU_vertbuf_attr_set(vert_buf, g_vbo_id.pos, v_index, v->co);
 */
 
-ATTR_NO_OPT static void set_cd_data_bmesh(
+static void set_cd_data_bmesh(
     GPUVertBuf *vert_buf, CDAttrLayers *attr_array, int attr_array_len, BMElem *elem, int vertex)
 {
   for (int i = 0; i < attr_array_len; i++) {

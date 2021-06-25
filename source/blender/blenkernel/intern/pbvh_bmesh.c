@@ -817,7 +817,7 @@ BMVert *BKE_pbvh_vert_create_bmesh(
 
 PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, BMFace *f)
 {
-  return BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
+  return pbvh->nodes + BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
 }
 
 BMFace *BKE_pbvh_face_create_bmesh(PBVH *pbvh,
@@ -1537,7 +1537,7 @@ typedef struct EdgeQueueThreadData {
   int size;
 } EdgeQueueThreadData;
 
-void edge_thread_data_insert(EdgeQueueThreadData *tdata, BMEdge *e)
+static void edge_thread_data_insert(EdgeQueueThreadData *tdata, BMEdge *e)
 {
   if (tdata->size <= tdata->totedge) {
     tdata->size = (tdata->totedge + 1) << 1;
@@ -1859,9 +1859,9 @@ static void long_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
   }
 }
 
-void long_edge_queue_task_cb(void *__restrict userdata,
-                             const int n,
-                             const TaskParallelTLS *__restrict tls)
+static void long_edge_queue_task_cb(void *__restrict userdata,
+                                    const int n,
+                                    const TaskParallelTLS *__restrict tls)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVHNode *node = tdata->node;
@@ -2244,16 +2244,6 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   if (boundary) {
     MDynTopoVert *mv_new = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_new);
     mv_new->flag |= DYNVERT_BOUNDARY;
-  }
-
-  /* update paint mask */
-  if (eq_ctx->cd_dyn_vert != -1) {
-    float mask_v1 = DYNTOPO_MASK(eq_ctx->cd_dyn_vert, e->v1);
-    float mask_v2 = DYNTOPO_MASK(eq_ctx->cd_dyn_vert, e->v2);
-
-    float mask_v_new = 0.5f * (mask_v1 + mask_v2);
-
-    // BM_ELEM_CD_SET_FLOAT(v_new, eq_ctx->cd_vert_mask_offset, mask_v_new);
   }
 
   /* For each face, add two new triangles and delete the original */
@@ -2850,7 +2840,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
   GHash *deleted_verts = BLI_ghash_ptr_new("deleted_verts");
 
   double time = PIL_check_seconds_timer();
-  RNG *rng = BLI_rng_new(time * 1000.0f);
+  RNG *rng = BLI_rng_new((unsigned int)(time * 1000.0f));
 
 //#define TEST_COLLAPSE
 #ifdef TEST_COLLAPSE
@@ -3637,26 +3627,33 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
   return modified;
 }
 
-static bool cleanup_valence_3_4(PBVH *pbvh,
-                                const float center[3],
-                                const float view_normal[3],
-                                float radius,
-                                const bool use_frontface,
-                                const bool use_projected)
+// this function is being buggy under clang's optimizer, at least on windows
+#ifdef __clang__
+#  define CLANG_OPT_BUG __attribute__((optnone))
+#else
+#  define CLANG_OPT_BUG
+#endif
+
+CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
+                                              const float center[3],
+                                              const float view_normal[3],
+                                              float radius,
+                                              const bool use_frontface,
+                                              const bool use_projected)
 {
   bool modified = false;
-  BMVert **relink_verts = NULL;
-  BLI_array_staticdeclare(relink_verts, 1024);
 
   float radius2 = radius * 1.25;
   float rsqr = radius2 * radius2;
+
+  GSet *vset = BLI_gset_ptr_new("vset");
 
   for (int n = 0; n < pbvh->totnode; n++) {
     PBVHNode *node = pbvh->nodes + n;
 
     /* Check leaf nodes marked for topology update */
     bool ok = (node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology);
-    ok = ok && !(node->flag & PBVH_FullyHidden);
+    ok = ok && !(node->flag & (PBVH_FullyHidden | PBVH_Delete));
 
     if (!ok) {
       continue;
@@ -3665,12 +3662,12 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
     BMVert *v;
 
     TGSET_ITER (v, node->bm_unique_verts) {
-      if (len_squared_v3v3(v->co, center) >= rsqr) {
+      if (len_squared_v3v3(v->co, center) >= rsqr || !v->e) {
         continue;
       }
 
       const int val = BM_vert_edge_count(v);
-      if (val < 3 || val > 4) {
+      if (val != 4 && val != 3) {
         continue;
       }
 
@@ -3678,7 +3675,6 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
       BMLoop *l;
       BMLoop *ls[4];
       BMVert *vs[4];
-      BMEdge *es[4];
 
       l = v->e->l;
 
@@ -3729,14 +3725,12 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
         continue;
       }
 
-      pbvh_bmesh_vert_remove(pbvh, v);
       BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
-
-      BLI_array_clear(relink_verts);
 
       BMFace *f;
       BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
         int ni2 = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
+
         if (ni2 != DYNTOPO_NODE_NONE) {
           PBVHNode *node2 = pbvh->nodes + ni2;
 
@@ -3746,6 +3740,8 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
           pbvh_bmesh_face_remove(pbvh, f, true, true);
         }
       }
+
+      // pbvh_bmesh_vert_remove(pbvh, v);
 
       modified = true;
 
@@ -3760,6 +3756,9 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
         f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f, false, false);
         normal_tri_v3(
             f1->no, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->prev->v->co);
+      }
+      else {
+        printf("eek!\n");
       }
 
       if (val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3]) {
@@ -3779,6 +3778,9 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
             f2->no, f2->l_first->v->co, f2->l_first->next->v->co, f2->l_first->prev->v->co);
         BM_log_face_added(pbvh->bm_log, f2);
       }
+      else {
+        printf("eek2!\n");
+      }
 
       if (f1) {
         SWAP(void *, f1->l_first->head.data, ls[0]->head.data);
@@ -3789,23 +3791,11 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
       }
 
       BM_vert_kill(pbvh->bm, v);
-#if 0
-      for (int j = 0; j < pbvh->totnode; j++) {
-        PBVHNode *node2 = pbvh->nodes + j;
-
-        if (!node2->bm_unique_verts || !node2->bm_other_verts) {  //(node2->flag & PBVH_Leaf)) {
-          continue;
-        }
-
-        BLI_table_gset_remove(node2->bm_unique_verts, v, NULL);
-        BLI_table_gset_remove(node2->bm_other_verts, v, NULL);
-      }
-#endif
     }
     TGSET_ITER_END
   }
 
-  BLI_array_free(relink_verts);
+  BLI_gset_free(vset, NULL);
 
   if (modified) {
     pbvh->bm->elem_index_dirty |= BM_VERT | BM_FACE | BM_EDGE;
@@ -4308,7 +4298,6 @@ static void pbvh_bmesh_join_subnodes(PBVH *pbvh, PBVHNode *node, PBVHNode *paren
 static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *parent)
 {
   const int size_lower = pbvh->leaf_limit - (pbvh->leaf_limit >> 1);
-  const int size_higher = pbvh->leaf_limit + (pbvh->leaf_limit >> 1);
 
   if (node->flag & PBVH_Leaf) {
     // pbvh_bmesh_node_limit_ensure(pbvh, (int)(node - pbvh->nodes));
@@ -4523,8 +4512,6 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   }
 
   bvh->totnode = j;
-
-  BMVert *v;
 
   // set vert/face node indices again
   for (int i = 0; i < bvh->totnode; i++) {

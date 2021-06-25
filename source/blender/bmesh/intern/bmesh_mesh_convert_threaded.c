@@ -68,9 +68,7 @@ typedef struct BMThreadData {
 
 #  define ELEM_NEXT(type, ptr, size) ((type *)(((char *)ptr) + size))
 
-ATTR_NO_OPT void bm_vert_task(void *__restrict userdata,
-                              const int n,
-                              const TaskParallelTLS *__restrict tls)
+void bm_vert_task(void *__restrict userdata, const int n, const TaskParallelTLS *__restrict tls)
 {
   BMThreadData *data = userdata;
   BMesh *bm = data->bm;
@@ -306,10 +304,10 @@ static void bm_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
   }
 }
 
-ATTR_NO_OPT BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
-                                               Object *ob,
-                                               const Mesh *me,
-                                               const struct BMeshFromMeshParams *params)
+BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
+                                   Object *ob,
+                                   const Mesh *me,
+                                   const struct BMeshFromMeshParams *params)
 {
   if (!bm) {
     bm = MEM_callocN(sizeof(BMesh), "BM_mesh_bm_from_me_threaded bm");

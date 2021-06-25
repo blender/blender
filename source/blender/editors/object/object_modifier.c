@@ -846,14 +846,14 @@ static bool modifier_apply_obdata(
   return true;
 }
 
-ATTR_NO_OPT bool ED_object_modifier_apply(Main *bmain,
-                                          ReportList *reports,
-                                          Depsgraph *depsgraph,
-                                          Scene *scene,
-                                          Object *ob,
-                                          ModifierData *md,
-                                          int mode,
-                                          bool keep_modifier)
+bool ED_object_modifier_apply(Main *bmain,
+                              ReportList *reports,
+                              Depsgraph *depsgraph,
+                              Scene *scene,
+                              Object *ob,
+                              ModifierData *md,
+                              int mode,
+                              bool keep_modifier)
 {
   if (BKE_object_is_in_editmode(ob)) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in edit mode");
@@ -1395,8 +1395,7 @@ void OBJECT_OT_modifier_move_to_index(wmOperatorType *ot)
 /** \name Apply Modifier Operator
  * \{ */
 
-#include "BLI_compiler_attrs.h"
-ATTR_NO_OPT static bool modifier_apply_poll_ex(bContext *C, bool allow_shared)
+static bool modifier_apply_poll_ex(bContext *C, bool allow_shared)
 {
   if (!edit_modifier_poll_generic(C, &RNA_Modifier, 0, false, false)) {
     return false;

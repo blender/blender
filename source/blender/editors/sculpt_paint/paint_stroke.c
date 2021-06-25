@@ -718,6 +718,58 @@ static float paint_stroke_integrate_overlap(Brush *br, float factor)
   return 1.0f / max;
 }
 
+static float paint_space_get_final_size_intern(
+    bContext *C, const Scene *scene, PaintStroke *stroke, float pressure, float dpressure)
+{
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  float size = BKE_brush_size_get(scene, stroke->brush) * pressure;
+
+  if (paint_stroke_use_scene_spacing(stroke->brush, mode)) {
+    if (!BKE_brush_use_locked_size(scene, stroke->brush)) {
+      float last_object_space_position[3];
+      mul_v3_m4v3(
+          last_object_space_position, stroke->vc.obact->imat, stroke->last_world_space_position);
+      size = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
+    }
+    else {
+      size = BKE_brush_unprojected_radius_get(scene, stroke->brush) * pressure;
+    }
+  }
+
+  return size;
+}
+
+static float paint_space_get_final_size(bContext *C,
+                                        const Scene *scene,
+                                        PaintStroke *stroke,
+                                        float pressure,
+                                        float dpressure,
+                                        float length)
+{
+  if (BKE_brush_use_size_pressure(stroke->brush)) {
+    /* use pressure to modify size. set spacing so that at 100%, the circles
+     * are aligned nicely with no overlap. for this the spacing needs to be
+     * the average of the previous and next size. */
+    float s = paint_space_stroke_spacing(C, scene, stroke, 1.0f, pressure);
+    float q = s * dpressure / (2.0f * length);
+    float pressure_fac = (1.0f + q) / (1.0f - q);
+
+    float last_size_pressure = stroke->last_pressure;
+    float new_size_pressure = stroke->last_pressure * pressure_fac;
+
+    /* average spacing */
+    float last_size = paint_space_get_final_size_intern(
+        C, scene, stroke, last_size_pressure, pressure);
+    float new_size = paint_space_get_final_size_intern(
+        C, scene, stroke, new_size_pressure, pressure);
+
+    return 0.5f * (last_size + new_size);
+  }
+  else {
+    return paint_space_get_final_size_intern(C, scene, stroke, 1.0, 0.0);
+  }
+}
+
 static float paint_space_stroke_spacing_variable(bContext *C,
                                                  const Scene *scene,
                                                  PaintStroke *stroke,
@@ -747,6 +799,8 @@ static float paint_space_stroke_spacing_variable(bContext *C,
   /* no size pressure */
   return paint_space_stroke_spacing(C, scene, stroke, 1.0f, pressure);
 }
+
+#include "BLI_compiler_attrs.h"
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
  * towards the final mouse location. */
@@ -817,9 +871,16 @@ static int paint_space_stroke(bContext *C,
 
       ups->overlap_factor = paint_stroke_integrate_overlap(stroke->brush,
                                                            spacing / no_pressure_spacing);
+      if (use_scene_spacing) {
+        float size = paint_space_get_final_size(C, scene, stroke, pressure, dpressure, length);
 
-      stroke->stroke_distance += spacing / stroke->zoom_2d;
-      stroke->stroke_distance_t += (spacing / stroke->zoom_2d) / stroke->ups->pixel_radius;
+        stroke->stroke_distance += stroke->ups->pixel_radius * spacing / size;
+        stroke->stroke_distance_t += spacing / size;
+      }
+      else {
+        stroke->stroke_distance += spacing / stroke->zoom_2d;
+        stroke->stroke_distance_t += (spacing / stroke->zoom_2d) / stroke->ups->pixel_radius;
+      }
 
       paint_brush_stroke_add_step(C, op, mouse, pressure);
 
