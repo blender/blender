@@ -30,6 +30,7 @@
 
 /* to ensure strict conversions */
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
+#include "../../source/blender/blenlib/BLI_asan.h"
 
 #include "atomic_ops.h"
 #include "mallocn_intern.h"
@@ -58,6 +59,9 @@ enum {
 #define PTR_FROM_MEMHEAD(memhead) (memhead + 1)
 #define MEMHEAD_ALIGNED_FROM_PTR(ptr) (((MemHeadAligned *)ptr) - 1)
 #define MEMHEAD_IS_ALIGNED(memhead) ((memhead)->len & (size_t)MEMHEAD_ALIGN_FLAG)
+
+#define MEM_POISON_MEMHEAD(vmemh) BLI_asan_poison(MEMHEAD_FROM_PTR(vmemh), sizeof(MemHead))
+#define MEM_UNPOISON_MEMHEAD(vmemh) BLI_asan_unpoison(MEMHEAD_FROM_PTR(vmemh), sizeof(MemHead))
 
 /* Uncomment this to have proper peak counter. */
 #define USE_ATOMIC_MAX
@@ -93,7 +97,13 @@ print_error(const char *str, ...)
 size_t MEM_lockfree_allocN_len(const void *vmemh)
 {
   if (vmemh) {
-    return MEMHEAD_FROM_PTR(vmemh)->len & ~((size_t)(MEMHEAD_ALIGN_FLAG));
+    size_t ret;
+
+    MEM_UNPOISON_MEMHEAD(vmemh);
+    ret = MEMHEAD_FROM_PTR(vmemh)->len & ~((size_t)(MEMHEAD_ALIGN_FLAG));
+    MEM_POISON_MEMHEAD(vmemh);
+
+    return ret;
   }
 
   return 0;
@@ -119,6 +129,8 @@ void MEM_lockfree_freeN(void *vmemh)
   atomic_sub_and_fetch_u(&totblock, 1);
   atomic_sub_and_fetch_z(&mem_in_use, len);
 
+  MEM_UNPOISON_MEMHEAD(vmemh);
+
   if (UNLIKELY(malloc_debug_memset && len)) {
     memset(memh + 1, 255, len);
   }
@@ -137,6 +149,9 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
   if (vmemh) {
     MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
     const size_t prev_size = MEM_lockfree_allocN_len(vmemh);
+
+    MEM_UNPOISON_MEMHEAD(vmemh);
+
     if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
       MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
       newp = MEM_lockfree_mallocN_aligned(
@@ -145,6 +160,8 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
     else {
       newp = MEM_lockfree_mallocN(prev_size, "dupli_malloc");
     }
+
+    MEM_POISON_MEMHEAD(vmemh);
     memcpy(newp, vmemh, prev_size);
   }
   return newp;
@@ -158,6 +175,8 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
     MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
     size_t old_len = MEM_lockfree_allocN_len(vmemh);
 
+    MEM_UNPOISON_MEMHEAD(vmemh);
+
     if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
       newp = MEM_lockfree_mallocN(len, "realloc");
     }
@@ -165,6 +184,8 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
       MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
       newp = MEM_lockfree_mallocN_aligned(len, (size_t)memh_aligned->alignment, "realloc");
     }
+
+    MEM_POISON_MEMHEAD(vmemh);
 
     if (newp) {
       if (len < old_len) {
@@ -194,6 +215,8 @@ void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
     MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
     size_t old_len = MEM_lockfree_allocN_len(vmemh);
 
+    MEM_UNPOISON_MEMHEAD(vmemh);
+
     if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
       newp = MEM_lockfree_mallocN(len, "recalloc");
     }
@@ -201,6 +224,7 @@ void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
       MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
       newp = MEM_lockfree_mallocN_aligned(len, (size_t)memh_aligned->alignment, "recalloc");
     }
+    MEM_POISON_MEMHEAD(vmemh);
 
     if (newp) {
       if (len < old_len) {
@@ -241,6 +265,7 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
     atomic_add_and_fetch_z(&mem_in_use, len);
     update_maximum(&peak_mem, mem_in_use);
 
+    MEM_POISON_MEMHEAD(PTR_FROM_MEMHEAD(memh));
     return PTR_FROM_MEMHEAD(memh);
   }
   print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
@@ -285,6 +310,8 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
     atomic_add_and_fetch_u(&totblock, 1);
     atomic_add_and_fetch_z(&mem_in_use, len);
     update_maximum(&peak_mem, mem_in_use);
+
+    MEM_POISON_MEMHEAD(PTR_FROM_MEMHEAD(memh));
 
     return PTR_FROM_MEMHEAD(memh);
   }
@@ -356,6 +383,8 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
     atomic_add_and_fetch_u(&totblock, 1);
     atomic_add_and_fetch_z(&mem_in_use, len);
     update_maximum(&peak_mem, mem_in_use);
+
+    MEM_POISON_MEMHEAD(PTR_FROM_MEMHEAD(memh));
 
     return PTR_FROM_MEMHEAD(memh);
   }

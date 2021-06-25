@@ -394,9 +394,9 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
   MLoop *mloop;
   MPoly *mp;
   KeyBlock *actkey, *block;
-  BMVert *v, **vtable = NULL;
-  BMEdge *e, **etable = NULL;
-  BMFace *f, **ftable = NULL;
+  BMVert *v;
+  BMEdge *e;
+  BMFace *f;
   float(*keyco)[3] = NULL;
   int totloops, i;
   CustomData_MeshMasks mask = CD_MASK_BMESH;
