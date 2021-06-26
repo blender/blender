@@ -2862,7 +2862,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "chain_geometry_space", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_CHAIN_GEOMETRY_SPACE);
   RNA_def_property_ui_text(
-      prop, "Use Geometry Space", "Use geometry distance for chaining instead of image space.");
+      prop, "Use Geometry Space", "Use geometry distance for chaining instead of image space");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "allow_overlap_edge_types", PROP_BOOLEAN, PROP_NONE);
