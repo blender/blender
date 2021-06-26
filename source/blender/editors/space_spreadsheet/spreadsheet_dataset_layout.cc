@@ -35,7 +35,7 @@ namespace blender::ed::spreadsheet {
   }
 
 /**
- * Definion for the component->attribute-domain hierarchy.
+ * Definition for the component->attribute-domain hierarchy.
  * Constructed at compile time.
  *
  * \warning: Order of attribute-domains matters! It __must__ match the #AttributeDomain definition

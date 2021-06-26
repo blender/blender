@@ -873,9 +873,9 @@ typedef enum eLineartGpencilModifierSource {
   LRT_SOURCE_SCENE = 2,
 } eLineartGpencilModifierSource;
 
-/* This enumis for modifier internal state only. */
+/* This enum is for modifier internal state only. */
 typedef enum eLineArtGPencilModifierFlags {
-  /* These two moved to eLineartMainFlags to keep consistent with flag variable purpose. */
+  /* These two moved to #eLineartMainFlags to keep consistent with flag variable purpose. */
   /* LRT_GPENCIL_INVERT_SOURCE_VGROUP = (1 << 0), */
   /* LRT_GPENCIL_MATCH_OUTPUT_VGROUP = (1 << 1), */
   LRT_GPENCIL_BINARY_WEIGHTS = (1 << 2) /* Deprecated, this is removed for lack of use case. */,

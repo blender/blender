@@ -89,7 +89,7 @@
 /* see T34039 Fix Alt key glitch on Unity desktop */
 #define USE_UNITY_WORKAROUND
 
-/* Fix 'shortcut' part of keyboard reading code only ever using first defined keymap
+/* Fix 'shortcut' part of keyboard reading code only ever using first defined key-map
  * instead of active one. See T47228 and D1746 */
 #define USE_NON_LATIN_KB_WORKAROUND
 
