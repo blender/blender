@@ -341,7 +341,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
   }
   else {
-    /* exis char is used by i_rotate*/
     axis_char = (char)(axis_char + ltmd->axis); /* 'X' + axis */
 
     /* useful to be able to use the axis vec in some cases still */
