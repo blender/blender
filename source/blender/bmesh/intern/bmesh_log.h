@@ -124,3 +124,8 @@ void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const 
 /* For internal use only (unit testing) */
 BMLogEntry *BM_log_current_entry(BMLog *log);
 struct RangeTreeUInt *BM_log_unused_ids(BMLog *log);
+
+uint BM_log_vert_id_get(BMLog *log, BMVert *v);
+BMVert *BM_log_id_vert_get(BMLog *log, uint id);
+uint BM_log_face_id_get(BMLog *log, BMFace *f);
+BMFace *BM_log_id_face_get(BMLog *log, uint id);

@@ -3726,6 +3726,7 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
       }
 
       BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
+      pbvh_bmesh_vert_remove(pbvh, v);
 
       BMFace *f;
       BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
@@ -3734,14 +3735,12 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
         if (ni2 != DYNTOPO_NODE_NONE) {
           PBVHNode *node2 = pbvh->nodes + ni2;
 
-          BLI_table_gset_remove(node2->bm_unique_verts, v, NULL);
-          BLI_table_gset_remove(node2->bm_other_verts, v, NULL);
+          // BLI_table_gset_remove(node2->bm_unique_verts, v, NULL);
+          // BLI_table_gset_remove(node2->bm_other_verts, v, NULL);
 
           pbvh_bmesh_face_remove(pbvh, f, true, true);
         }
       }
-
-      // pbvh_bmesh_vert_remove(pbvh, v);
 
       modified = true;
 
@@ -3758,7 +3757,7 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
             f1->no, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->prev->v->co);
       }
       else {
-        printf("eek!\n");
+        //printf("eek1!\n");
       }
 
       if (val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3]) {
@@ -3779,7 +3778,7 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
         BM_log_face_added(pbvh->bm_log, f2);
       }
       else {
-        printf("eek2!\n");
+        //printf("eek2!\n");
       }
 
       if (f1) {

@@ -735,30 +735,61 @@ static int sculpt_undo_bmesh_restore(bContext *C,
   if (ss->bm_log && ss->bm) {
     SCULPT_dyntopo_node_layers_update_offsets(ss);
     BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
+
+    if (ss->active_face_index.i) {
+      ss->active_face_index.i = (intptr_t)BM_log_face_id_get(ss->bm_log,
+                                                             (BMFace *)ss->active_face_index.i);
+    }
+    else {
+      ss->active_face_index.i = -1;
+    }
+
+    if (ss->active_vertex_index.i) {
+      ss->active_vertex_index.i = (intptr_t)BM_log_vert_id_get(
+          ss->bm_log, (BMVert *)ss->active_vertex_index.i);
+    }
+    else {
+      ss->active_vertex_index.i = -1;
+    }
   }
+
+  bool ret = false;
 
   switch (unode->type) {
     case SCULPT_UNDO_DYNTOPO_BEGIN:
       sculpt_undo_bmesh_restore_begin(C, unode, ob, ss);
       SCULPT_vertex_random_access_ensure(ss);
-      return true;
-
+      ret = true;
+      break;
     case SCULPT_UNDO_DYNTOPO_END:
       if (ss->bm) {
         sculpt_undo_bmesh_restore_end(C, unode, ob, ss);
       }
       SCULPT_vertex_random_access_ensure(ss);
-      return true;
+      ret = true;
+      break;
     default:
       if (ss->bm_log) {
         sculpt_undo_bmesh_restore_generic(unode, ob, ss);
         SCULPT_vertex_random_access_ensure(ss);
-        return true;
+        ret = true;
       }
       break;
   }
 
-  return false;
+  if (ss->bm_log && ss->bm) {
+    if (ss->active_face_index.i != -1) {
+      ss->active_face_index.i = (intptr_t)BM_log_id_face_get(ss->bm_log,
+                                                             (uint)ss->active_face_index.i);
+    }
+
+    if (ss->active_vertex_index.i != -1) {
+      ss->active_vertex_index.i = (intptr_t)BM_log_id_vert_get(ss->bm_log,
+                                                               (uint)ss->active_vertex_index.i);
+    }
+  }
+
+  return ret;
 }
 
 /* Geometry updates (such as Apply Base, for example) will re-evaluate the object and refine its

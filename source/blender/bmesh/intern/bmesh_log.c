@@ -261,6 +261,26 @@ static uint bm_log_face_id_get(BMLog *log, BMFace *f)
   return POINTER_AS_UINT(log_ghash_lookup(log, log->elem_to_id, f));
 }
 
+uint BM_log_vert_id_get(BMLog *log, BMVert *v)
+{
+  return bm_log_vert_id_get(log, v);
+}
+
+BMVert *BM_log_id_vert_get(BMLog *log, uint id)
+{
+  return log_ghash_lookup(log, log->id_to_elem, POINTER_FROM_UINT(id));
+}
+
+uint BM_log_face_id_get(BMLog *log, BMFace *f)
+{
+  return bm_log_face_id_get(log, f);
+}
+
+BMFace *BM_log_id_face_get(BMLog *log, uint id)
+{
+  return log_ghash_lookup(log, log->id_to_elem, POINTER_FROM_UINT(id));
+}
+
 /* Set the face's unique ID in the log */
 static void bm_log_face_id_set(BMLog *log, BMFace *f, uint id)
 {
@@ -1667,6 +1687,8 @@ void BM_log_vert_removed(BMLog *log, BMVert *v, const int cd_vert_mask_offset)
       bm_log_vert_customdata(log->bm, log, entry, v, lv);
     }
   }
+
+  log_ghash_remove(log, log->id_to_elem, key, NULL, NULL);
 }
 
 /* Log a face as removed from the BMesh
@@ -1705,6 +1727,8 @@ void BM_log_face_removed(BMLog *log, BMFace *f)
       bm_log_face_customdata(log->bm, log, f, lf);
     }
   }
+
+  log_ghash_remove(log, log->id_to_elem, key, NULL, NULL);
 }
 
 /* Log all vertices/faces in the BMesh as added */
