@@ -2614,9 +2614,9 @@ void do_versions_after_linking_260(Main *bmain)
 
       float input_locx = 1000000.0f, input_locy = 0.0f;
       float output_locx = -1000000.0f, output_locy = 0.0f;
-      /* rough guess, not nice but we don't have access to UI constants here ... */
-      static const float offsetx = 42 + 3 * 20 + 20;
-      // static const float offsety = 0.0f;
+      /* Rough guess, not nice but we don't have access to UI constants here. */
+      const float offsetx = 42 + 3 * 20 + 20;
+      // const float offsety = 0.0f;
 
       if (create_io_nodes) {
         if (ntree->inputs.first) {
