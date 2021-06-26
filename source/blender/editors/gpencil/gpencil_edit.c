@@ -4619,6 +4619,8 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
               if (gpl_dst == NULL) {
                 gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl->info, false, false);
                 BKE_gpencil_layer_copy_settings(gpl, gpl_dst);
+                /* Copy masks. */
+                BKE_gpencil_layer_mask_copy(gpl, gpl_dst);
               }
 
               /* add frame if not created before */
@@ -4736,6 +4738,9 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
     }
   }
   ob_dst->actcol = actcol;
+
+  /* Remove any invalid Mask relationship. */
+  BKE_gpencil_layer_mask_cleanup_all_layers(gpd_dst);
 
   DEG_id_tag_update(&gpd_src->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   DEG_id_tag_update(&gpd_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

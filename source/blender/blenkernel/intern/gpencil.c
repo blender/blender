@@ -1076,12 +1076,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
   gpl_dst->prev = gpl_dst->next = NULL;
 
   /* Copy masks. */
-  BLI_listbase_clear(&gpl_dst->mask_layers);
-  LISTBASE_FOREACH (bGPDlayer_Mask *, mask_src, &gpl_src->mask_layers) {
-    bGPDlayer_Mask *mask_dst = MEM_dupallocN(mask_src);
-    mask_dst->prev = mask_dst->next = NULL;
-    BLI_addtail(&gpl_dst->mask_layers, mask_dst);
-  }
+  BKE_gpencil_layer_mask_copy(gpl_src, gpl_dst);
 
   /* copy frames */
   BLI_listbase_clear(&gpl_dst->frames);
@@ -1122,13 +1117,8 @@ void BKE_gpencil_layer_copy_settings(const bGPDlayer *gpl_src, bGPDlayer *gpl_ds
   copy_v3_v3(gpl_dst->scale, gpl_src->scale);
   copy_m4_m4(gpl_dst->layer_mat, gpl_src->layer_mat);
   copy_m4_m4(gpl_dst->layer_invmat, gpl_src->layer_invmat);
-  /* Use Lights flag. */
-  if (gpl_src->flag & GP_LAYER_USE_LIGHTS) {
-    gpl_dst->flag |= GP_LAYER_USE_LIGHTS;
-  }
-  else {
-    gpl_dst->flag &= ~GP_LAYER_USE_LIGHTS;
-  }
+  gpl_dst->blend_mode = gpl_src->blend_mode;
+  gpl_dst->flag = gpl_src->flag;
 }
 
 /**
@@ -1644,6 +1634,41 @@ void BKE_gpencil_layer_mask_sort_all(bGPdata *gpd)
 {
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     BKE_gpencil_layer_mask_sort(gpd, gpl);
+  }
+}
+
+/**
+ * Make a copy of a given gpencil mask layers.
+ */
+void BKE_gpencil_layer_mask_copy(const bGPDlayer *gpl_src, bGPDlayer *gpl_dst)
+{
+  BLI_listbase_clear(&gpl_dst->mask_layers);
+  LISTBASE_FOREACH (bGPDlayer_Mask *, mask_src, &gpl_src->mask_layers) {
+    bGPDlayer_Mask *mask_dst = MEM_dupallocN(mask_src);
+    mask_dst->prev = mask_dst->next = NULL;
+    BLI_addtail(&gpl_dst->mask_layers, mask_dst);
+  }
+}
+
+/**
+ * Clean any invalid mask layer.
+ */
+void BKE_gpencil_layer_mask_cleanup(bGPdata *gpd, bGPDlayer *gpl)
+{
+  LISTBASE_FOREACH_MUTABLE (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
+    if (BKE_gpencil_layer_named_get(gpd, mask->name) == NULL) {
+      BKE_gpencil_layer_mask_remove(gpl, mask);
+    }
+  }
+}
+
+/**
+ * Clean any invalid mask layer for all layers.
+ */
+void BKE_gpencil_layer_mask_cleanup_all_layers(bGPdata *gpd)
+{
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    BKE_gpencil_layer_mask_cleanup(gpd, gpl);
   }
 }
 
