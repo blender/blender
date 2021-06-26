@@ -292,6 +292,10 @@ void BM_mesh_normals_update_with_partial_ex(BMesh *UNUSED(bm),
                                             const struct BMeshNormalsUpdate_Params *params)
 {
   BLI_assert(bmpinfo->params.do_normals);
+  /* While harmless, exit early if there is nothing to do. */
+  if (UNLIKELY((bmpinfo->verts_len == 0) && (bmpinfo->faces_len == 0))) {
+    return;
+  }
 
   BMVert **verts = bmpinfo->verts;
   BMFace **faces = bmpinfo->faces;
