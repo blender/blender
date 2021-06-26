@@ -496,7 +496,7 @@ typedef struct bTheme {
 
   /* 20 sets of bone colors for this theme */
   ThemeWireColor tarm[20];
-  /*ThemeWireColor tobj[20];*/
+  // ThemeWireColor tobj[20];
 
   /* See COLLECTION_COLOR_TOT for the number of collection colors. */
   ThemeCollectionColor collection_color[8];

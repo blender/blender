@@ -53,7 +53,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
-#include "BLI_dynstr.h" /*for WM_operator_pystring */
+#include "BLI_dynstr.h" /* For #WM_operator_pystring. */
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -323,16 +323,16 @@ bool WM_operator_pystring_abbreviate(char *str, int str_len_max)
       if (parens_len > str_len_max) {
         const char *comma_first = strchr(parens_start, ',');
 
-        /* truncate after the first comma */
+        /* Truncate after the first comma. */
         if (comma_first) {
           const char end_str[] = " ... )";
           const int end_str_len = sizeof(end_str) - 1;
 
-          /* leave a place for the first argument*/
+          /* Leave a place for the first argument. */
           const int new_str_len = (comma_first - parens_start) + 1;
 
           if (str_len >= new_str_len + parens_start_pos + end_str_len + 1) {
-            /* append " ... )" to the string after the comma */
+            /* Append " ... )" to the string after the comma. */
             memcpy(str + new_str_len + parens_start_pos, end_str, end_str_len + 1);
 
             return true;

@@ -256,7 +256,7 @@ typedef struct BMO_FlagSet {
 } BMO_FlagSet;
 
 /* please ignore all these structures, don't touch them in tool code, except
- * for when your defining an operator with BMOpDefine.*/
+ * for when your defining an operator with BMOpDefine. */
 
 typedef struct BMOpSlot {
   const char *slot_name; /* pointer to BMOpDefine.slot_args */
@@ -345,16 +345,16 @@ typedef struct BMOpDefine {
 
 /* data types that use pointers (arrays, etc) should never
  * have it set directly.  and never use BMO_slot_ptr_set to
- * pass in a list of edges or any arrays, really.*/
+ * pass in a list of edges or any arrays, really. */
 
 void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname);
 
 /* executes an operator, pushing and popping a new tool flag
- * layer as appropriate.*/
+ * layer as appropriate. */
 void BMO_op_exec(BMesh *bm, BMOperator *op);
 
 /* finishes an operator (though note the operator's tool flag is removed
- * after it finishes executing in BMO_op_exec).*/
+ * after it finishes executing in BMO_op_exec). */
 void BMO_op_finish(BMesh *bm, BMOperator *op);
 
 /* count the number of elements with the specified flag enabled.
@@ -369,7 +369,7 @@ int BMO_mesh_disabled_flag_count(BMesh *bm, const char htype, const short oflag)
 void BMO_push(BMesh *bm, BMOperator *op);
 void BMO_pop(BMesh *bm);
 
-/*executes an operator*/
+/* Executes an operator. */
 bool BMO_op_callf(BMesh *bm, const int flag, const char *fmt, ...);
 
 /* initializes, but doesn't execute an operator.  this is so you can
@@ -538,7 +538,7 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm,
 
 /* puts every element of type 'type' (which is a bitmask) with header
  * flag 'flag', into a slot.  note: ignores hidden elements
- * (e.g. elements with header flag BM_ELEM_HIDDEN set).*/
+ * (e.g. elements with header flag BM_ELEM_HIDDEN set). */
 void BMO_slot_buffer_from_enabled_hflag(BMesh *bm,
                                         BMOperator *op,
                                         BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
@@ -548,7 +548,7 @@ void BMO_slot_buffer_from_enabled_hflag(BMesh *bm,
 
 /* puts every element of type 'type' (which is a bitmask) without
  * header flag 'flag', into a slot.  note: ignores hidden elements
- * (e.g. elements with header flag BM_ELEM_HIDDEN set).*/
+ * (e.g. elements with header flag BM_ELEM_HIDDEN set). */
 void BMO_slot_buffer_from_disabled_hflag(BMesh *bm,
                                          BMOperator *op,
                                          BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
@@ -571,7 +571,7 @@ int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
 void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot, const void *element, const void *data);
 
 /* flags all elements in a mapping.  note that the mapping must only have
- * bmesh elements in it.*/
+ * bmesh elements in it. */
 void BMO_slot_map_to_flag(BMesh *bm,
                           BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                           const char *slot_name,

@@ -611,23 +611,23 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
-  /* Identifiers.*/
+  /* Identifiers. */
   ot->name = "Transfer Mesh Data";
   ot->idname = "OBJECT_OT_data_transfer";
   ot->description =
       "Transfer data layer(s) (weights, edge sharp, etc.) from active to selected meshes";
 
-  /* API callbacks.*/
+  /* API callbacks. */
   ot->poll = data_transfer_poll;
   ot->poll_property = data_transfer_poll_property;
   ot->invoke = WM_menu_invoke;
   ot->exec = data_transfer_exec;
   ot->check = data_transfer_check;
 
-  /* Flags.*/
+  /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Properties.*/
+  /* Properties. */
   prop = RNA_def_boolean(ot->srna,
                          "use_reverse_transfer",
                          false,
@@ -886,7 +886,7 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* Properties.*/
+  /* Properties. */
   edit_modifier_properties(ot);
 
   /* Data type to transfer. */

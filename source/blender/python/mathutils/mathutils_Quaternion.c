@@ -1113,7 +1113,7 @@ static PyObject *Quaternion_imatmul(PyObject *q1, PyObject *q2)
 }
 
 /* -obj
- * returns the negative of this object*/
+ * Returns the negative of this object. */
 static PyObject *Quaternion_neg(QuaternionObject *self)
 {
   float tquat[QUAT_SIZE];

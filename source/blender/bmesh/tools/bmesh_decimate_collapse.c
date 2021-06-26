@@ -568,9 +568,9 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
       pf_heap = NULL;
     }
 
-    /* adding new faces as we loop over faces
+    /* Adding new faces as we loop over faces
      * is normally best avoided, however in this case its not so bad because any face touched twice
-     * will already be triangulated*/
+     * will already be triangulated. */
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
       if (f->len > 3) {
         has_cut |= bm_face_triangulate(bm,

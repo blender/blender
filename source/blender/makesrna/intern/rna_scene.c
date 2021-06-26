@@ -5773,7 +5773,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Lossless Output", "Use lossless output for video streams");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
-  /* FFMPEG Audio*/
+  /* FFMPEG Audio. */
   prop = RNA_def_property(srna, "audio_codec", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "audio_codec");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

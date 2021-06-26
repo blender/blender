@@ -557,7 +557,7 @@ typedef enum eGPDlayer_Flag {
   /* Unlock color */
   GP_LAYER_UNLOCK_COLOR = (1 << 12),
   /* Mask Layer */
-  GP_LAYER_USE_MASK = (1 << 13), /*TODO: DEPRECATED */
+  GP_LAYER_USE_MASK = (1 << 13), /* TODO: DEPRECATED */
   /* Ruler Layer */
   GP_LAYER_IS_RULER = (1 << 14),
   /* Disable masks in viewlayer render */

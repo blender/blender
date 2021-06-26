@@ -328,7 +328,7 @@ class GetProjectedZF1D : public UnaryFunction1D<double> {
 };
 
 // Orientation2DF1D
-/** Returns the 2D orientation as a Vec2f*/
+/** Returns the 2D orientation as a #Vec2f. */
 class Orientation2DF1D : public UnaryFunction1D<Vec2f> {
  private:
   Functions0D::VertexOrientation2DF0D _func;
@@ -525,7 +525,7 @@ class Curvature2DAngleF1D : public UnaryFunction1D<double> {
     return "Curvature2DAngleF1D";
   }
 
-  /** the () operator.*/
+  /** the () operator. */
   int operator()(Interface1D &inter)
   {
     result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
@@ -554,7 +554,7 @@ class Normal2DF1D : public UnaryFunction1D<Vec2f> {
     return "Normal2DF1D";
   }
 
-  /** the () operator.*/
+  /** the () operator. */
   int operator()(Interface1D &inter)
   {
     result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);

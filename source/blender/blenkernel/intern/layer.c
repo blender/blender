@@ -819,7 +819,7 @@ static void layer_collection_sync(ViewLayer *view_layer,
     }
 
     /* We separate restrict viewport and visible view layer because a layer collection can be
-     * hidden in the view layer yet (locally) visible in a viewport (if it is not restricted).*/
+     * hidden in the view layer yet (locally) visible in a viewport (if it is not restricted). */
     if (child_restrict & COLLECTION_RESTRICT_VIEWPORT) {
       lc->runtime_flag |= LAYER_COLLECTION_RESTRICT_VIEWPORT;
     }

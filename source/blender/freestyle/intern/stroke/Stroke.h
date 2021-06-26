@@ -349,7 +349,7 @@ class StrokeVertex : public CurvePoint {
   /** Builds a stroke vertex from a CurvePoint */
   StrokeVertex(CurvePoint *iPoint);
 
-  /** Builds Stroke Vertex from 2 stroke vertices and an interpolation parameter*/
+  /** Builds Stroke Vertex from 2 stroke vertices and an interpolation parameter. */
   StrokeVertex(StrokeVertex *iA, StrokeVertex *iB, float t3);
 
   /** Builds a stroke from a view vertex and an attribute */
@@ -378,7 +378,7 @@ class StrokeVertex : public CurvePoint {
     return getPoint2D();
   }
 
-  /** Returns the ith 2D point coordinate (i=0 or 1)*/
+  /** Returns the ith 2D point coordinate (i=0 or 1). */
   inline real operator[](const int i) const
   {
     return _Point2d[i];
@@ -516,9 +516,9 @@ class Stroke : public Interface1D {
 
   /** The different blending modes available to similate the interaction media-medium. */
   typedef enum {
-    DRY_MEDIUM,    /**< To simulate a dry medium such as Pencil or Charcoal.*/
-    HUMID_MEDIUM,  /**< To simulate ink painting (color subtraction blending).*/
-    OPAQUE_MEDIUM, /**< To simulate an opaque medium (oil, spray...).*/
+    DRY_MEDIUM,    /**< To simulate a dry medium such as Pencil or Charcoal. */
+    HUMID_MEDIUM,  /**< To simulate ink painting (color subtraction blending). */
+    OPAQUE_MEDIUM, /**< To simulate an opaque medium (oil, spray...). */
   } MediumType;
 
  public:

@@ -1305,7 +1305,7 @@ static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len,
     PyList_SET_ITEM(seq, j, Py_INCREF_RET(Py_None));
   }
 
-  /*set correct group length*/
+  /* Set correct group length. */
   prop->len = len;
 }
 
@@ -1326,8 +1326,8 @@ PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
 
   if (i != prop->len) { /* if the loop didn't finish, we know the length is wrong */
     BPy_IDGroup_CorrectListLen(prop, list, i, __func__);
-    Py_DECREF(list); /*free the list*/
-    /*call self again*/
+    Py_DECREF(list); /* Free the list. */
+    /* Call self again. */
     return BPy_Wrap_GetKeys(prop);
   }
 
@@ -1346,8 +1346,8 @@ PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop)
 
   if (i != prop->len) {
     BPy_IDGroup_CorrectListLen(prop, list, i, __func__);
-    Py_DECREF(list); /*free the list*/
-    /*call self again*/
+    Py_DECREF(list); /* Free the list. */
+    /* Call self again. */
     return BPy_Wrap_GetValues(id, prop);
   }
 
@@ -1369,8 +1369,8 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
 
   if (i != prop->len) {
     BPy_IDGroup_CorrectListLen(prop, seq, i, __func__);
-    Py_DECREF(seq); /*free the list*/
-    /*call self again*/
+    Py_DECREF(seq); /* Free the list. */
+    /* Call self again. */
     return BPy_Wrap_GetItems(id, prop);
   }
 
@@ -1557,9 +1557,9 @@ static PySequenceMethods BPy_IDGroup_Seq = {
 };
 
 static PyMappingMethods BPy_IDGroup_Mapping = {
-    (lenfunc)BPy_IDGroup_Map_Len,           /*inquiry mp_length */
-    (binaryfunc)BPy_IDGroup_Map_GetItem,    /*binaryfunc mp_subscript */
-    (objobjargproc)BPy_IDGroup_Map_SetItem, /*objobjargproc mp_ass_subscript */
+    (lenfunc)BPy_IDGroup_Map_Len,           /* inquiry mp_length */
+    (binaryfunc)BPy_IDGroup_Map_GetItem,    /* binaryfunc mp_subscript */
+    (objobjargproc)BPy_IDGroup_Map_SetItem, /* objobjargproc mp_ass_subscript */
 };
 
 PyTypeObject BPy_IDGroup_Type = {

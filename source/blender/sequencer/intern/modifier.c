@@ -1438,7 +1438,7 @@ ImBuf *SEQ_modifier_apply_stack(const SeqRenderData *context,
       if (smd->mask_time == SEQUENCE_MASK_TIME_RELATIVE) {
         frame_offset = seq->start;
       }
-      else /*if (smd->mask_time == SEQUENCE_MASK_TIME_ABSOLUTE)*/ {
+      else /* if (smd->mask_time == SEQUENCE_MASK_TIME_ABSOLUTE) */ {
         frame_offset = smd->mask_id ? ((Mask *)smd->mask_id)->sfra : 0;
       }
 

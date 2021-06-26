@@ -567,8 +567,8 @@ enum {
   PNL_SELECT = (1 << 0),
   PNL_UNUSED_1 = (1 << 1), /* Cleared */
   PNL_CLOSED = (1 << 2),
-  /* PNL_TABBED = (1 << 3), */  /*UNUSED*/
-  /* PNL_OVERLAP = (1 << 4), */ /*UNUSED*/
+  // PNL_TABBED = (1 << 3),  /* UNUSED */
+  // PNL_OVERLAP = (1 << 4), /* UNUSED */
   PNL_PIN = (1 << 5),
   PNL_POPOVER = (1 << 6),
   /** The panel has been drag-drop reordered and the instanced panel list needs to be rebuilt. */

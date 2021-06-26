@@ -134,7 +134,7 @@ class LineRep : public Rep {
     v.visitLineRep(*this);
   }
 
-  /** Computes the line bounding box.*/
+  /** Computes the line bounding box. */
   virtual void ComputeBBox();
 
  private:

@@ -88,7 +88,7 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
   const char *subdir;
 #ifdef WIN32
   wchar_t dir_16[MAX_PATH];
-  /* yes, applications shouldn't store data there, but so does GIMP :)*/
+  /* Yes, applications shouldn't store data there, but so does GIMP :). */
   SHGetSpecialFolderPathW(0, dir_16, CSIDL_PROFILE, 0);
   conv_utf_16_to_8(dir_16, dir, FILE_MAX);
   s += strlen(dir);

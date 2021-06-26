@@ -580,16 +580,16 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
 #endif
   MVert *mvert = dm->getVertArray(dm);
   MEdge *medge = dm->getEdgeArray(dm);
-  /* MFace *mface = dm->getTessFaceArray(dm); */ /* UNUSED */
+  // MFace *mface = dm->getTessFaceArray(dm); /* UNUSED */
   MVert *mv;
   MEdge *me;
   MLoop *mloop = dm->getLoopArray(dm), *ml;
   MPoly *mpoly = dm->getPolyArray(dm), *mp;
-  /*MFace *mf;*/ /*UNUSED*/
+  // MFace *mf; /* UNUSED */
   int totvert = dm->getNumVerts(dm);
   int totedge = dm->getNumEdges(dm);
-  /*int totface = dm->getNumTessFaces(dm);*/ /*UNUSED*/
-  /*int totpoly = dm->getNumFaces(dm);*/     /*UNUSED*/
+  // int totface = dm->getNumTessFaces(dm); /* UNUSED */
+  // int totpoly = dm->getNumFaces(dm);     /* UNUSED */
   int i, j;
   int *index;
 
@@ -641,10 +641,10 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
       fVerts[j] = POINTER_FROM_UINT(ml->v);
     }
 
-    /* this is very bad, means mesh is internally inconsistent.
+    /* This is very bad, means mesh is internally inconsistent.
      * it is not really possible to continue without modifying
      * other parts of code significantly to handle missing faces.
-     * since this really shouldn't even be possible we just bail.*/
+     * since this really shouldn't even be possible we just bail. */
     if (ccgSubSurf_syncFace(ss, POINTER_FROM_INT(i), mp->totloop, fVerts, &f) ==
         eCCGError_InvalidValue) {
       static int hasGivenError = 0;
@@ -1008,11 +1008,11 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
   int gridFaces = gridSideEdges * gridSideEdges;
   int i;
   CCGFace *f;
-  /*int numVerts;*/
+  // int numVerts;
   int offset;
   int grid;
   int x, y;
-  /*int lastface = ccgSubSurf_getNumFaces(ss) - 1;*/ /*UNUSED*/
+  // int lastface = ccgSubSurf_getNumFaces(ss) - 1; /* UNUSED */
   DMFlagMat *faceFlags = ccgdm->faceFlags;
 
   memset(mf, 0, sizeof(*mf));
@@ -1023,7 +1023,7 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
   i = ccgdm->reverseFaceMap[faceNum];
 
   f = ccgdm->faceMap[i].face;
-  /*numVerts = ccgSubSurf_getFaceNumVerts(f);*/ /*UNUSED*/
+  // numVerts = ccgSubSurf_getFaceNumVerts(f); /* UNUSED */
 
   offset = faceNum - ccgdm->faceMap[i].startFace;
   grid = offset / gridFaces;
@@ -1781,7 +1781,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
 
   numGrids = ccgDM_getNumGrids(dm);
   numFaces = ccgSubSurf_getNumFaces(ss);
-  /*gridSize = ccgDM_getGridSize(dm);*/ /*UNUSED*/
+  // gridSize = ccgDM_getGridSize(dm); /* UNUSED */
 
   /* compute offset into grid array for each face */
   gridOffset = MEM_mallocN(sizeof(int) * numFaces, "ccgdm.gridOffset");
@@ -2089,7 +2089,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
       vertidx[s] = POINTER_AS_INT(ccgSubSurf_getVertVertHandle(v));
     }
 
-    /*I think this is for interpolating the center vert?*/
+    /* I think this is for interpolating the center vert? */
     w2 = w;  // + numVerts*(g2_wid-1) * (g2_wid-1); //numVerts*((g2_wid-1) * g2_wid+g2_wid-1);
     DM_interp_vert_data(dm, &ccgdm->dm, vertidx, w2, numVerts, vertNum);
     if (vertOrigIndex) {
@@ -2099,7 +2099,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 
     vertNum++;
 
-    /*interpolate per-vert data*/
+    /* Interpolate per-vert data. */
     for (s = 0; s < numVerts; s++) {
       for (x = 1; x < gridFaces; x++) {
         w2 = w + s * numVerts * g2_wid * g2_wid + x * numVerts;
@@ -2114,7 +2114,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
       }
     }
 
-    /*interpolate per-vert data*/
+    /* Interpolate per-vert data. */
     for (s = 0; s < numVerts; s++) {
       for (y = 1; y < gridFaces; y++) {
         for (x = 1; x < gridFaces; x++) {
@@ -2138,7 +2138,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     }
 
     for (s = 0; s < numVerts; s++) {
-      /*interpolate per-face data*/
+      /* Interpolate per-face data. */
       for (y = 0; y < gridFaces; y++) {
         for (x = 0; x < gridFaces; x++) {
           w2 = w + s * numVerts * g2_wid * g2_wid + (y * g2_wid + x) * numVerts;
@@ -2161,10 +2161,10 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
               &dm->loopData, &ccgdm->dm.loopData, loopidx, w2, NULL, numVerts, loopindex2);
           loopindex2++;
 
-          /*copy over poly data, e.g. mtexpoly*/
+          /* Copy over poly data, e.g. mtexpoly. */
           CustomData_copy_data(&dm->polyData, &ccgdm->dm.polyData, origIndex, faceNum, 1);
 
-          /*set original index data*/
+          /* Set original index data. */
           if (faceOrigIndex) {
             /* reference the index in 'polyOrigIndex' */
             *faceOrigIndex = faceNum;

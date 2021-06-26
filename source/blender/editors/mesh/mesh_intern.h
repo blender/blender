@@ -51,7 +51,7 @@ bool EDBM_op_call_and_selectf(struct BMEditMesh *em,
                               const bool select_replace,
                               const char *fmt,
                               ...);
-/* Same as above, but doesn't report errors.*/
+/* Same as above, but doesn't report errors. */
 bool EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
 
 /* these next two functions are the split version of EDBM_op_callf, so you can

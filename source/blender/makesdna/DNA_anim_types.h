@@ -324,7 +324,7 @@ typedef struct DriverTarget {
    * (for vars where DTAR_FLAG_STRUCT_REF is used) - MAX_ID_NAME-2.
    */
   char pchan_name[64];
-  /** Transform channel index (for DVAR_TYPE_TRANSFORM_CHAN.)*/
+  /** Transform channel index (for #DVAR_TYPE_TRANSFORM_CHAN). */
   short transChan;
 
   /** Rotation channel calculation type. */

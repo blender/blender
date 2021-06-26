@@ -2275,7 +2275,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
   rna_def_userdef_theme_spaces_edge(srna);
   rna_def_userdef_theme_spaces_face(srna);
 
-  /* Mesh Object specific curves*/
+  /* Mesh Object specific curves. */
 
   rna_def_userdef_theme_spaces_curves(srna, true, true, true, false);
 

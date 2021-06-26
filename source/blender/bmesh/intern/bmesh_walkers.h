@@ -80,7 +80,7 @@ void *BMW_step(struct BMWalker *walker);
 void BMW_end(struct BMWalker *walker);
 int BMW_current_depth(BMWalker *walker);
 
-/*these are used by custom walkers*/
+/* These are used by custom walkers. */
 void *BMW_current_state(BMWalker *walker);
 void *BMW_state_add(BMWalker *walker);
 void BMW_state_remove(BMWalker *walker);

@@ -77,8 +77,8 @@ void ColorMatteOperation::executePixelSampled(float output[4],
     output[0] = 0.0f; /* make transparent */
   }
 
-  else {                    /*pixel is outside key color */
-    output[0] = inColor[3]; /* make pixel just as transparent as it was before */
+  else {                    /* Pixel is outside key color. */
+    output[0] = inColor[3]; /* Make pixel just as transparent as it was before. */
   }
 }
 

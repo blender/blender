@@ -6459,11 +6459,11 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
     NULL, /* PyMappingMethods *tp_as_mapping; */
 
     /* More standard operations (here for binary compatibility) */
-    NULL,                                                      /* hashfunc tp_hash; */
-    NULL,                                                      /* ternaryfunc tp_call; */
-    NULL,                                                      /* reprfunc tp_str; */
-    NULL /*(getattrofunc) pyrna_struct_meta_idprop_getattro*/, /* getattrofunc tp_getattro; */
-    (setattrofunc)pyrna_struct_meta_idprop_setattro,           /* setattrofunc tp_setattro; */
+    NULL,                                                        /* hashfunc tp_hash; */
+    NULL,                                                        /* ternaryfunc tp_call; */
+    NULL,                                                        /* reprfunc tp_str; */
+    NULL /* (getattrofunc) pyrna_struct_meta_idprop_getattro */, /* getattrofunc tp_getattro; */
+    (setattrofunc)pyrna_struct_meta_idprop_setattro,             /* setattrofunc tp_setattro; */
 
     /* Functions to access object as input/output buffer */
     NULL, /* PyBufferProcs *tp_as_buffer; */
@@ -8258,9 +8258,9 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
     if (func_arg_count >= 0) { /* -1 if we don't care. */
       arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
 
-      /* note, the number of args we check for and the number of args we give to
+      /* NOTE: the number of args we check for and the number of args we give to
        * '@staticmethods' are different (quirk of Python),
-       * this is why rna_function_arg_count() doesn't return the value -1*/
+       * this is why rna_function_arg_count() doesn't return the value -1. */
       if (is_staticmethod) {
         func_arg_count++;
         func_arg_min_count++;

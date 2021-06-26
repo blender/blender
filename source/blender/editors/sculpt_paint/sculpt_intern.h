@@ -623,7 +623,7 @@ typedef struct SculptUndoNode {
 
   SculptUndoType type;
 
-  char idname[MAX_ID_NAME]; /* name instead of pointer*/
+  char idname[MAX_ID_NAME]; /* Name instead of pointer. */
   void *node;               /* only during push, not valid afterwards! */
 
   float (*co)[3];

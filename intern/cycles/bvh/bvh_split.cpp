@@ -388,7 +388,7 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
-  /* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
+  /* curve split: NOTE - Currently ignores curve width and needs to be fixed. */
   Hair::Curve curve = hair->get_curve(prim_index);
   const int k0 = curve.first_key + segment_index;
   const int k1 = k0 + 1;

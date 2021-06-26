@@ -89,9 +89,9 @@ typedef struct BMHeader {
 
 BLI_STATIC_ASSERT((sizeof(BMHeader) <= 16), "BMHeader size has grown!");
 
-/* note: need some way to specify custom locations for custom data layers.  so we can
+/* NOTE: need some way to specify custom locations for custom data layers.  so we can
  * make them point directly into structs.  and some way to make it only happen to the
- * active layer, and properly update when switching active layers.*/
+ * active layer, and properly update when switching active layers. */
 
 typedef struct BMVert {
   BMHeader head;
@@ -267,7 +267,7 @@ typedef struct BMFace {
   BMHeader head;
 
 #ifdef USE_BMESH_HOLES
-  int totbounds; /*total boundaries, is one plus the number of holes in the face*/
+  int totbounds; /* Total boundaries, is one plus the number of holes in the face. */
   ListBase loops;
 #else
   BMLoop *l_first;
@@ -545,7 +545,7 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #define BM_ELEM_CD_GET_FLOAT_AS_UCHAR(ele, offset) \
   (BLI_assert(offset != -1), (uchar)(BM_ELEM_CD_GET_FLOAT(ele, offset) * 255.0f))
 
-/*forward declarations*/
+/* Forward declarations. */
 
 #ifdef USE_BMESH_HOLES
 #  define BM_FACE_FIRST_LOOP(p) (((BMLoopList *)((p)->loops.first))->first)

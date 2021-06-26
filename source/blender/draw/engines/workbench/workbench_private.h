@@ -381,13 +381,13 @@ typedef struct WORKBENCH_ObjectData {
 } WORKBENCH_ObjectData;
 
 typedef struct WORKBENCH_ViewLayerData {
-  /** Depth of field sample location array.*/
+  /** Depth of field sample location array. */
   struct GPUUniformBuf *dof_sample_ubo;
-  /** All constant data used for a render loop.*/
+  /** All constant data used for a render loop. */
   struct GPUUniformBuf *world_ubo;
-  /** Cavity sample location array.*/
+  /** Cavity sample location array. */
   struct GPUUniformBuf *cavity_sample_ubo;
-  /** Blue noise texture used to randomize the sampling of some effects.*/
+  /** Blue noise texture used to randomize the sampling of some effects. */
   struct GPUTexture *cavity_jitter_tx;
   /** Materials UBO's allocated in a memblock for easy bookkeeping. */
   struct BLI_memblock *material_ubo;

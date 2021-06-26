@@ -66,7 +66,7 @@ class ConstantThicknessShader : public StrokeShader {
   {
   }
 
-  /** Returns the string "ConstantThicknessShader".*/
+  /** Returns the string "ConstantThicknessShader". */
   virtual string getName() const
   {
     return "ConstantThicknessShader";
@@ -126,7 +126,7 @@ class IncreasingThicknessShader : public StrokeShader {
     _ThicknessMax = iThicknessMax;
   }
 
-  /** Destructor.*/
+  /** Destructor. */
   virtual ~IncreasingThicknessShader()
   {
   }
@@ -171,7 +171,7 @@ class ConstrainedIncreasingThicknessShader : public StrokeShader {
     _ratio = iRatio;
   }
 
-  /** Destructor.*/
+  /** Destructor. */
   virtual ~ConstrainedIncreasingThicknessShader()
   {
   }

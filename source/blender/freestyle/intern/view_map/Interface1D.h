@@ -46,15 +46,15 @@ namespace Freestyle {
  */
 typedef enum {
   MEAN, /**< The value computed for the 1D element is the mean of the values obtained for the 0D
-           elements.*/
+           elements. */
   MIN,  /**< The value computed for the 1D element is the minimum of the values obtained for the 0D
-           elements.*/
+           elements. */
   MAX,  /**< The value computed for the 1D element is the maximum of the values obtained for the 0D
-           elements.*/
+           elements. */
   FIRST, /**< The value computed for the 1D element is the first of the values obtained for the 0D
-            elements.*/
+            elements. */
   LAST,  /**< The value computed for the 1D element is the last of the values obtained for the 0D
-            elements.*/
+            elements. */
 } IntegrationType;
 
 /** Returns a single value from a set of values evaluated at each 0D element of this 1D element.

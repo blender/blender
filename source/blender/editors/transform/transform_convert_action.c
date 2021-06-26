@@ -191,7 +191,7 @@ static TransData *ActionFCurveToTransData(TransData *td,
           td->flag |= TD_SELECTED;
         }
 
-        /*set flags to move handles as necessary*/
+        /* Set flags to move handles as necessary. */
         td->flag |= TD_MOVEHANDLE1 | TD_MOVEHANDLE2;
         td2d->h1 = bezt->vec[0];
         td2d->h2 = bezt->vec[2];

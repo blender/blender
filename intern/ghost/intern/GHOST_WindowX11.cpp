@@ -1241,7 +1241,7 @@ GHOST_WindowX11::~GHOST_WindowX11()
   if (m_valid_setup) {
     static Atom Primary_atom, Clipboard_atom;
     Window p_owner, c_owner;
-    /*Change the owner of the Atoms to None if we are the owner*/
+    /* Change the owner of the Atoms to None if we are the owner. */
     Primary_atom = XInternAtom(m_display, "PRIMARY", False);
     Clipboard_atom = XInternAtom(m_display, "CLIPBOARD", False);
 

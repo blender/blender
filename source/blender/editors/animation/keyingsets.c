@@ -529,7 +529,7 @@ void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
 /* Keying Set Type Info declarations */
 static ListBase keyingset_type_infos = {NULL, NULL};
 
-/* Built-In Keying Sets (referencing type infos)*/
+/* Built-In Keying Sets (referencing type information). */
 ListBase builtin_keyingsets = {NULL, NULL};
 
 /* --------------- */

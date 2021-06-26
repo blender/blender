@@ -506,7 +506,7 @@ static int add_name(const char *str)
       buf[i + 2] = ')';
       buf[i + 3] = 0;
     }
-    /* now proceed with buf*/
+    /* Now proceed with buf. */
     DEBUG_PRINTF(3, "\t\t\t\t\tProposing fp name %s\n", buf);
     name = buf;
   }
@@ -1212,8 +1212,8 @@ static int make_structDNA(const char *base_directory,
   add_type("ushort", 2); /* SDNA_TYPE_USHORT */
   add_type("int", 4);    /* SDNA_TYPE_INT */
 
-  /* note, long isn't supported,
-   * these are place-holders to maintain alignment with eSDNA_Type*/
+  /* NOTE: long isn't supported,
+   * these are place-holders to maintain alignment with #eSDNA_Type. */
   add_type("long", 4);  /* SDNA_TYPE_LONG */
   add_type("ulong", 4); /* SDNA_TYPE_ULONG */
 

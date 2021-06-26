@@ -4395,7 +4395,7 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
         int cell[3];
         float t_ray = 1.0;
 
-        /* Reset shadow value.*/
+        /* Reset shadow value. */
         shadow[index] = -1.0f;
 
         voxel_center[0] = (float)x;
@@ -5023,7 +5023,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     /* viscosity options */
     tfds->viscosity_value = fds->viscosity_value;
 
-    /* diffusion options*/
+    /* Diffusion options. */
     tfds->surface_tension = fds->surface_tension;
     tfds->viscosity_base = fds->viscosity_base;
     tfds->viscosity_exponent = fds->viscosity_exponent;

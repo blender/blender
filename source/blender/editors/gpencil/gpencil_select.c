@@ -1374,7 +1374,7 @@ static bool gpencil_do_curve_circle_sel(bContext *C,
     const bool handles_visible = (v3d->overlay.handle_display != CURVE_HANDLE_NONE) &&
                                  (!only_selected || BEZT_ISSEL_ANY(bezt));
 
-    /* if the handles are not visible only check ctrl point (vec[1])*/
+    /* If the handles are not visible only check control point (vec[1]). */
     int from = (!handles_visible) ? 1 : 0;
     int to = (!handles_visible) ? 2 : 3;
 
@@ -1719,7 +1719,7 @@ static bool gpencil_generic_curve_select(bContext *C,
           }
         }
       }
-      /* if the handles are not visible only check ctrl point (vec[1])*/
+      /* If the handles are not visible only check ctrl point (vec[1]). */
       else {
         const bool is_select = bezt->f2;
         bool is_inside = is_inside_fn(region, gps_iter.diff_mat, bezt->vec[1], user_data);
@@ -2153,7 +2153,7 @@ static void gpencil_select_curve_point(bContext *C,
       const bool handles_visible = (v3d->overlay.handle_display != CURVE_HANDLE_NONE) &&
                                    (!only_selected || BEZT_ISSEL_ANY(bezt));
 
-      /* if the handles are not visible only check ctrl point (vec[1])*/
+      /* If the handles are not visible only check control point (vec[1]). */
       int from = (!handles_visible) ? 1 : 0;
       int to = (!handles_visible) ? 2 : 3;
 

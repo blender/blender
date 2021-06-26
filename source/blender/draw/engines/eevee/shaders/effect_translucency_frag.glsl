@@ -49,7 +49,7 @@ float light_translucent_power_with_falloff(LightData ld, vec3 N, vec4 l_vector)
   }
   else if (ld.l_type == SUN) {
     power = 1.0 / (1.0 + (ld.l_radius * ld.l_radius * 0.5));
-    power *= ld.l_radius * ld.l_radius * M_PI; /* Removing area light power*/
+    power *= ld.l_radius * ld.l_radius * M_PI; /* Removing area light power. */
     power *= M_2PI * 0.78;                     /* Matching cycles with point light. */
     power *= 0.082;                            /* XXX ad hoc, empirical */
     falloff = dot(N, -ld.l_forward);

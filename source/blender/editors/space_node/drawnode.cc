@@ -217,7 +217,7 @@ static void node_buts_texture(uiLayout *layout, bContext *UNUSED(C), PointerRNA 
   uiItemR(layout, ptr, "texture", DEFAULT_FLAGS, "", ICON_NONE);
 
   if (multi) {
-    /* Number Drawing not optimal here, better have a list*/
+    /* Number Drawing not optimal here, better have a list. */
     uiItemR(layout, ptr, "node_output", DEFAULT_FLAGS, "", ICON_NONE);
   }
 }
@@ -1833,9 +1833,11 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext *UNUSED(C
   uiItemR(col, ptr, "threshold", DEFAULT_FLAGS, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  /*uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);  Removed for now */
+  /* Removed for now. */
+  // uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(col, ptr, "gain", DEFAULT_FLAGS | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  /*uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);  Removed for now*/
+  /* Removed for now. */
+  // uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 }
 
 static void node_composit_buts_color_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -3528,7 +3530,7 @@ static void std_node_socket_draw(
   bNode *node = (bNode *)node_ptr->data;
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
   int type = sock->typeinfo->type;
-  /*int subtype = sock->typeinfo->subtype;*/
+  // int subtype = sock->typeinfo->subtype;
 
   /* XXX not nice, eventually give this node its own socket type ... */
   if (node->type == CMP_NODE_OUTPUT_FILE) {

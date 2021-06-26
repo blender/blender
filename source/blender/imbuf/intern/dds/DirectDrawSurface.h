@@ -120,7 +120,7 @@ struct DDSHeader {
   void setHasAlphaFlag(bool b);
   void setUserVersion(int version);
 
-  /*void swapBytes();*/
+  // void swapBytes();
 
   bool hasDX10Header() const;
   uint signature() const;

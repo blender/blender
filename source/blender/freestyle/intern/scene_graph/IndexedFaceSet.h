@@ -33,7 +33,7 @@ namespace Freestyle {
 
 class IndexedFaceSet : public Rep {
  public:
-  /** Triangles description style:*/
+  /** Triangles description style: */
   enum TRIANGLES_STYLE {
     TRIANGLE_STRIP,
     TRIANGLE_FAN,

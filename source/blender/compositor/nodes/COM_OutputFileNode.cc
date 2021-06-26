@@ -96,7 +96,7 @@ void OutputFileNode::convertToOperations(NodeConverter &converter,
     converter.addOperation(outputOperation);
 
     /* First add all inputs. Inputs are stored in a Vector and can be moved to a different
-     * memory address during this time.*/
+     * memory address during this time. */
     add_input_sockets(*outputOperation);
     /* After adding the sockets the memory addresses will stick. */
     map_input_sockets(converter, *outputOperation);

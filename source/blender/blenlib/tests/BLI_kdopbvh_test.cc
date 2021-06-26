@@ -2,7 +2,7 @@
 
 #include "testing/testing.h"
 
-/* TODO: ray intersection, overlap ... etc.*/
+/* TODO: ray intersection, overlap ... etc. */
 
 #include "MEM_guardedalloc.h"
 

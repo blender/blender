@@ -2244,7 +2244,7 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
               bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
               MEM_freeN(bone_name);
 
-              /* delete if bone is selected*/
+              /* Delete if bone is selected. */
               if ((pchan) && (pchan->bone)) {
                 if (pchan->bone->flag & BONE_SELECTED) {
                   can_delete = true;

@@ -277,10 +277,10 @@ float BM_verts_calc_rotate_beauty(const BMVert *v1,
 static float bm_edge_calc_rotate_beauty(const BMEdge *e, const short flag, const short method)
 {
   const BMVert *v1, *v2, *v3, *v4;
-  v1 = e->l->prev->v;              /* first vert co */
-  v2 = e->l->v;                    /* e->v1 or e->v2*/
-  v3 = e->l->radial_next->prev->v; /* second vert co */
-  v4 = e->l->next->v;              /* e->v1 or e->v2*/
+  v1 = e->l->prev->v;              /* First vert co */
+  v2 = e->l->v;                    /* `e->v1` or `e->v2`. */
+  v3 = e->l->radial_next->prev->v; /* Second vert co */
+  v4 = e->l->next->v;              /* `e->v1` or `e->v2`. */
 
   return BM_verts_calc_rotate_beauty(v1, v2, v3, v4, flag, method);
 }

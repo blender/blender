@@ -1273,7 +1273,7 @@ static void lineart_main_cull_triangles(LineartRenderBuffer *rb, bool clip_far)
   }
 
 #define LRT_CULL_DECIDE_INSIDE \
-  /* These three represents points that are in the clipping range or not*/ \
+  /* These three represents points that are in the clipping range or not. */ \
   in0 = 0, in1 = 0, in2 = 0; \
   if (clip_far) { \
     /* Point outside far plane. */ \
@@ -2249,7 +2249,7 @@ static bool lineart_edge_from_triangle(const LineartTriangle *tri,
 }
 
 /* Sorting three intersection points from min to max,
- * the order for each intersection is set in lst[0] to lst[2].*/
+ * the order for each intersection is set in `lst[0]` to `lst[2]`. */
 #define INTERSECT_SORT_MIN_TO_MAX_3(ia, ib, ic, lst) \
   { \
     lst[0] = LRT_MIN3_INDEX(ia, ib, ic); \
@@ -2847,7 +2847,7 @@ static void lineart_triangle_intersect_in_bounding_area(LineartRenderBuffer *rb,
 
   double *G0 = tri->v[0]->gloc, *G1 = tri->v[1]->gloc, *G2 = tri->v[2]->gloc;
 
-  /* If this is not the smallest subdiv bounding area.*/
+  /* If this is not the smallest subdiv bounding area. */
   if (ba->child) {
     lineart_triangle_intersect_in_bounding_area(rb, tri, &ba->child[0]);
     lineart_triangle_intersect_in_bounding_area(rb, tri, &ba->child[1]);
@@ -4103,7 +4103,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
   /* "intersection_only" is preserved for being called in a standalone fashion.
    * If so the data will already be available at the stage. Otherwise we do the occlusion and
-   * chaining etc.*/
+   * chaining etc. */
 
   if (!intersections_only) {
 

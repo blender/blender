@@ -1856,7 +1856,7 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
   /* Write channels */
   LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
     /* Write ID Properties -- and copy this comment EXACTLY for easy finding
-     * of library blocks that implement this.*/
+     * of library blocks that implement this. */
     if (chan->prop) {
       IDP_BlendWrite(writer, chan->prop);
     }

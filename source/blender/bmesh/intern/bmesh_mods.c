@@ -962,7 +962,7 @@ bool BM_edge_rotate_check_beauty(BMEdge *e, BMLoop *l1, BMLoop *l2)
 {
   /* Stupid check for now:
    * Could compare angles of surrounding edges
-   * before & after, but this is OK.*/
+   * before & after, but this is OK. */
   return (len_squared_v3v3(e->v1->co, e->v2->co) > len_squared_v3v3(l1->v->co, l2->v->co));
 }
 

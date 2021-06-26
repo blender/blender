@@ -166,7 +166,7 @@ static void mesh_uv_reset_array(float **fuv, const int len)
 
     fuv[3][0] = 0.0;
     fuv[3][1] = 1.0;
-    /*make sure we ignore 2-sided faces*/
+    /* Make sure we ignore 2-sided faces. */
   }
   else if (len > 2) {
     float fac = 0.0f, dfac = 1.0f / (float)len;

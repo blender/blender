@@ -937,7 +937,7 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd,
 static void knife_start_cut(KnifeTool_OpData *kcd)
 {
   kcd->prev = kcd->curr;
-  kcd->curr.is_space = 0; /*TODO: why do we do this? */
+  kcd->curr.is_space = 0; /* TODO: why do we do this? */
 
   if (kcd->prev.vert == NULL && kcd->prev.edge == NULL) {
     float origin[3], origin_ofs[3];
@@ -952,7 +952,7 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
       zero_v3(kcd->prev.cage);
     }
 
-    copy_v3_v3(kcd->prev.co, kcd->prev.cage); /*TODO: do we need this? */
+    copy_v3_v3(kcd->prev.co, kcd->prev.cage); /* TODO: do we need this? */
     copy_v3_v3(kcd->curr.cage, kcd->prev.cage);
     copy_v3_v3(kcd->curr.co, kcd->prev.co);
   }

@@ -85,7 +85,7 @@ struct SmoothView3DState {
 };
 
 struct SmoothView3DStore {
-  /* source*/
+  /* Source. */
   struct SmoothView3DState src; /* source */
   struct SmoothView3DState dst; /* destination */
   struct SmoothView3DState org; /* original */

@@ -360,7 +360,7 @@ void INFO_OT_report_delete(wmOperatorType *ot)
   ot->exec = report_delete_exec;
 
   /* flags */
-  /*ot->flag = OPTYPE_REGISTER;*/
+  // ot->flag = OPTYPE_REGISTER;
 
   /* properties */
 }
@@ -404,7 +404,7 @@ void INFO_OT_report_copy(wmOperatorType *ot)
   ot->exec = report_copy_exec;
 
   /* flags */
-  /*ot->flag = OPTYPE_REGISTER;*/
+  // ot->flag = OPTYPE_REGISTER;
 
   /* properties */
 }

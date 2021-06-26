@@ -20,7 +20,7 @@
  * \ingroup bmesh
  */
 
-/*see comments in intern/bmesh_opdefines.c for documentation of specific operators*/
+/* See comments in `intern/bmesh_opdefines.c` for documentation of specific operators. */
 
 /*--------defines/enumerations for specific operators-------*/
 

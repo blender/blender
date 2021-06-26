@@ -1251,7 +1251,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
     float x = driver->curval;
     float y = fcu->curval * unitfac;
 
-    /* only draw indicators if the point is in range*/
+    /* Only draw indicators if the point is in range. */
     if (x >= v2d->cur.xmin) {
       float co[2];
 

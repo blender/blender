@@ -92,7 +92,7 @@ typedef struct UVInitialStroke {
   /* Initial Selection,for grab brushes for instance */
   UVInitialStrokeElement *initialSelection;
 
-  /* total initially selected UVs*/
+  /* Total initially selected UV's. */
   int totalInitialSelected;
 
   /* initial mouse coordinates */
@@ -505,7 +505,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
     bool do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
     int island_index = 0;
-    /* Holds, for each UvElement in elementMap, a pointer to its unique uv.*/
+    /* Holds, for each UvElement in elementMap, a pointer to its unique UV. */
     int *uniqueUv;
     data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH) ?
                      UV_SCULPT_TOOL_RELAX :
@@ -603,7 +603,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
           data->uv[counter].flag = 0;
           data->uv[counter].uv = luv->uv;
         }
-        /* pointer arithmetic to the rescue, as always :)*/
+        /* Pointer arithmetic to the rescue, as always :). */
         uniqueUv[element - data->elementMap->buf] = counter;
       }
     }

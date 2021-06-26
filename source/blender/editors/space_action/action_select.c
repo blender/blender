@@ -1840,7 +1840,7 @@ static int actkeys_clickselect_exec(bContext *C, wmOperator *op)
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
-  /* select keyframe(s) based upon mouse position*/
+  /* Select keyframe(s) based upon mouse position. */
   ret_value = mouse_action_keys(
       &ac, mval, selectmode, deselect_all, column, channel, wait_to_deselect_others);
 

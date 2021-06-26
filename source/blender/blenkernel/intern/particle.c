@@ -2462,7 +2462,7 @@ int do_guides(Depsgraph *depsgraph,
                                           (int)(data->strength * guidetime * 100.0f),
                                           100));
       }
-      else { /* curve size*/
+      else { /* Curve size. */
         if (cu->flag & CU_PATH_RADIUS) {
           mul_v3_fl(vec_to_point, radius);
         }

@@ -2750,11 +2750,11 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
    * if not we can skip face map trickiness */
   if (vertex_paint_use_fast_update_check(ob)) {
     vpd->use_fast_update = true;
-    /*      printf("Fast update!\n");*/
+    // printf("Fast update!\n");
   }
   else {
     vpd->use_fast_update = false;
-    /*      printf("No fast update!\n");*/
+    // printf("No fast update!\n");
   }
 
   /* to keep tracked of modified loops for shared vertex color blending */

@@ -75,7 +75,7 @@ void DEG_graph_tag_relations_update(struct Depsgraph *graph);
 /* Create or update relations in the specified graph. */
 void DEG_graph_relations_update(struct Depsgraph *graph);
 
-/* Tag all relations in the database for update.*/
+/* Tag all relations in the database for update. */
 void DEG_relations_tag_update(struct Main *bmain);
 
 /* Add Dependencies  ----------------------------- */

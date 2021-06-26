@@ -315,7 +315,7 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
     tree->iterations = MAX2(data->iterations, tree->iterations);
     tree->stretch = tree->stretch && !(data->flag & CONSTRAINT_IK_STRETCH);
 
-    /* skip common pose channels and add remaining*/
+    /* Skip common pose channels and add remaining. */
     size = MIN2(segcount, tree->totchannel);
     a = t = 0;
     while (a < size && t < tree->totchannel) {

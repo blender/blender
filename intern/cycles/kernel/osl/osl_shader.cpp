@@ -49,7 +49,7 @@ void OSLShader::thread_init(KernelGlobals *kg,
     return;
   }
 
-  /* per thread kernel data init*/
+  /* Per thread kernel data init. */
   kg->osl = osl_globals;
 
   OSL::ShadingSystem *ss = kg->osl->ss;

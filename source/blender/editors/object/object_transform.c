@@ -1255,16 +1255,16 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
       }
       else if (ob->type == OB_FONT) {
-        /* get from bb */
+        /* Det from bounding-box. */
 
         Curve *cu = ob->data;
 
         if (ob->runtime.bb == NULL && (centermode != ORIGIN_TO_CURSOR)) {
-          /* do nothing*/
+          /* Do nothing. */
         }
         else {
           if (centermode == ORIGIN_TO_CURSOR) {
-            /* done */
+            /* Done. */
           }
           else {
             /* extra 0.5 is the height o above line */

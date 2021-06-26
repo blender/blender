@@ -1746,7 +1746,7 @@ void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf,
   char32_t *text;
   CharInfo *info;
 
-  /* clean previous buffers*/
+  /* Clean previous buffers. */
   BKE_vfont_clipboard_free();
 
   text = MEM_malloc_arrayN((len + 1), sizeof(*text), __func__);

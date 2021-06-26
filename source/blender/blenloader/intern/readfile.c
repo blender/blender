@@ -2474,7 +2474,7 @@ static void direct_link_id_common(
     BKE_asset_metadata_read(reader, id->asset_data);
   }
 
-  /*link direct data of ID properties*/
+  /* Link direct data of ID properties. */
   if (id->properties) {
     BLO_read_data_address(reader, &id->properties);
     /* this case means the data was written incorrectly, it should not happen */
@@ -2843,7 +2843,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
           }
 
           /* TODO: restore path pointers: T40046
-           * (complicated because this contains data pointers too, not just ID)*/
+           * (complicated because this contains data pointers too, not just ID). */
           MEM_SAFE_FREE(sbuts->path);
         }
         else if (sl->spacetype == SPACE_FILE) {

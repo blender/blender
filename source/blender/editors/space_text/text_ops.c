@@ -2782,8 +2782,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Scroll";
   /* don't really see the difference between this and
-   * scroll_bar. Both do basically the same thing (aside
-   * from keymaps).*/
+   * scroll_bar. Both do basically the same thing (aside from key-maps). */
   ot->idname = "TEXT_OT_scroll";
 
   /* api callbacks */
@@ -2889,8 +2888,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Scrollbar";
   /* don't really see the difference between this and
-   * scroll. Both do basically the same thing (aside
-   * from keymaps).*/
+   * scroll. Both do basically the same thing (aside from key-maps). */
   ot->idname = "TEXT_OT_scroll_bar";
 
   /* api callbacks */

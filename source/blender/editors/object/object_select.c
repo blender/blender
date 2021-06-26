@@ -579,7 +579,7 @@ static bool object_select_all_by_particle(bContext *C, Object *ob)
 
   CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
     if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
-      /* loop through other particles*/
+      /* Loop through other particles. */
       ParticleSystem *psys;
 
       for (psys = base->object->particlesystem.first; psys; psys = psys->next) {

@@ -53,12 +53,12 @@ struct Scene;
 typedef struct BMEditMesh {
   struct BMesh *bm;
 
-  /*this is for undoing failed operations*/
+  /* This is for undoing failed operations. */
   struct BMEditMesh *emcopy;
   int emcopyusers;
 
   /* we store tessellations as triplets of three loops,
-   * which each define a triangle.*/
+   * which each define a triangle. */
   struct BMLoop *(*looptris)[3];
   int tottri;
 
@@ -67,14 +67,14 @@ typedef struct BMEditMesh {
   /** Cached cage bounding box for selection. */
   struct BoundBox *bb_cage;
 
-  /*derivedmesh stuff*/
+  /** Evaluated mesh data-mask. */
   CustomData_MeshMasks lastDataMask;
 
-  /*selection mode*/
+  /* Selection mode. */
   short selectmode;
   short mat_nr;
 
-  /*temp variables for x-mirror editing*/
+  /* Temp variables for x-mirror editing. */
   int mirror_cdlayer; /* -1 is invalid */
 
   /**

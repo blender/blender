@@ -608,7 +608,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
                 /* Projection of point (x, y) over line (x1, y1, x2, y2) along X axis:
                  * new_y = (y2 - y1) / (x2 - x1) * (x - x1) + y1
                  * Maybe this should be a BLI func? Or is it already existing?
-                 * Could use interp_v2_v2v2, but not sure it's worth it here...*/
+                 * Could use interp_v2_v2v2, but not sure it's worth it here. */
                 if (tool_local == UV_STRAIGHTEN_X) {
                   luv->uv[0] = a * (luv->uv[1] - uv_start[1]) + uv_start[0];
                 }
@@ -1187,15 +1187,15 @@ static bool uv_snap_uvs_to_adjacent_unselected(Scene *scene, Object *obedit)
   }
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    if (BM_elem_flag_test(f, BM_ELEM_TAG)) { /* face: visible */
+    if (BM_elem_flag_test(f, BM_ELEM_TAG)) { /* Face: visible. */
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        if (BM_elem_flag_test(l, BM_ELEM_TAG)) { /* loop: selected*/
+        if (BM_elem_flag_test(l, BM_ELEM_TAG)) { /* Loop: selected. */
           float uv[2] = {0.0f, 0.0f};
           int uv_tot = 0;
 
           BM_ITER_ELEM (lsub, &lsubiter, l->v, BM_LOOPS_OF_VERT) {
-            if (BM_elem_flag_test(lsub->f, BM_ELEM_TAG) && /* face: visible. */
-                !BM_elem_flag_test(lsub, BM_ELEM_TAG))     /* loop: unselected. */
+            if (BM_elem_flag_test(lsub->f, BM_ELEM_TAG) && /* Face: visible. */
+                !BM_elem_flag_test(lsub, BM_ELEM_TAG))     /* Loop: unselected. */
             {
               luv = BM_ELEM_CD_GET_VOID_P(lsub, cd_loop_uv_offset);
               add_v2_v2(uv, luv->uv);

@@ -308,7 +308,7 @@ void DRW_shader_library_free(DRWShaderLibrary *lib);
  * on the differences the minimum state changes can be invoked to setup the desired render state.
  *
  * The Write Stencil, Stencil test, Depth test and Blend state options are mutual exclusive
- * therefore they aren't ordered as a bit mask.*/
+ * therefore they aren't ordered as a bit mask. */
 typedef enum {
   /** Write mask */
   DRW_STATE_WRITE_DEPTH = (1 << 0),

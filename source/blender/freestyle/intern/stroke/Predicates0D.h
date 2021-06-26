@@ -137,7 +137,7 @@ class TrueUP0D : public UnaryPredicate0D {
   {
   }
 
-  /** Returns the string "TrueUP0D"*/
+  /** Returns the string "TrueUP0D". */
   string getName() const
   {
     return "TrueUP0D";
@@ -160,7 +160,7 @@ class FalseUP0D : public UnaryPredicate0D {
   {
   }
 
-  /** Returns the string "FalseUP0D"*/
+  /** Returns the string "FalseUP0D". */
   string getName() const
   {
     return "FalseUP0D";

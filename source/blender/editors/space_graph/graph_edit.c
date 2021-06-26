@@ -3007,7 +3007,7 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
     WM_report(RPT_INFO, "No drivers deleted");
   }
 
-  /* Successful or not?*/
+  /* Successful or not? */
   if (!ok) {
     return OPERATOR_CANCELLED;
   }

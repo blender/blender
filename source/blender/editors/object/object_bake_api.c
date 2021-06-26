@@ -1374,7 +1374,7 @@ static int bake(const BakeAPIRender *bkr,
          * the cage is supposed to have interpolated normals
          * between the faces unless the geometry is physically
          * split. So we create a copy of the low poly mesh without
-         * the eventual edge split.*/
+         * the eventual edge split. */
 
         if (md->type == eModifierType_EdgeSplit) {
           BLI_remlink(&ob_low_eval->modifiers, md);

@@ -1509,7 +1509,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *se
     return -1;
   }
 
-  /*parsed well - now set in vector*/
+  /* Parsed well - now set in vector. */
   memcpy(self->vec + begin, vec, size * sizeof(float));
 
   PyMem_Free(vec);
@@ -1543,7 +1543,7 @@ static PyObject *Vector_add(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  /*VECTOR + VECTOR*/
+  /* VECTOR + VECTOR. */
   if (vec1->size != vec2->size) {
     PyErr_SetString(PyExc_AttributeError,
                     "Vector addition: "
@@ -1882,7 +1882,7 @@ static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
       return NULL;
     }
 
-    /*dot product*/
+    /* Dot product. */
     return PyFloat_FromDouble(dot_vn_vn(vec1->vec, vec2->vec, vec1->size));
   }
   if (vec1) {
@@ -2007,7 +2007,7 @@ static PyObject *Vector_idiv(PyObject *v1, PyObject *v2)
 }
 
 /* -obj
- * returns the negative of this object*/
+ * Returns the negative of this object. */
 static PyObject *Vector_neg(VectorObject *self)
 {
   float *tvec;

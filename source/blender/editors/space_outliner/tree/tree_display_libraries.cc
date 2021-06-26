@@ -138,8 +138,8 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
       }
     }
 
-    /* We always want to create an entry for libraries, even if/when we have no more IDs from
-     * them. This invalid state is important to show to user as well.*/
+    /* We always want to create an entry for libraries, even if/when we have no more IDs from them.
+     * This invalid state is important to show to user as well. */
     if (id != nullptr || is_library) {
       if (!tenlib) {
         /* Create library tree element on demand, depending if there are any data-blocks. */

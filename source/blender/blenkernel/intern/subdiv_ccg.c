@@ -1116,7 +1116,7 @@ typedef struct AverageGridsCornerData {
   SubdivCCG *subdiv_ccg;
   CCGKey *key;
 
-  /* Optional lookup table. Maps task range index to index in subdiv_ccg->adjacent_vertices*/
+  /* Optional lookup table. Maps task range index to index in `subdiv_ccg->adjacent_vertices`. */
   const int *adjacent_vert_index_map;
 } AverageGridsCornerData;
 

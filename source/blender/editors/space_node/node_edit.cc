@@ -1130,7 +1130,7 @@ static bool cursor_isect_multi_input_socket(const float cursor[2], const bNodeSo
 {
   const float node_socket_height = node_socket_calculate_height(socket);
   rctf multi_socket_rect;
-  /*.xmax = socket->locx + NODE_SOCKSIZE * 5.5f
+  /* `.xmax = socket->locx + NODE_SOCKSIZE * 5.5f`
    * would be the same behavior as for regular sockets.
    * But keep it smaller because for multi-input socket you
    * sometimes want to drag the link to the other side, if you may
@@ -2310,7 +2310,7 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
     sock = ntreeInsertSocketInterface(
         ntree, in_out, active_sock->idname, active_sock->next, active_sock->name);
     /* XXX this only works for actual sockets, not interface templates! */
-    /*nodeSocketCopyValue(sock, &ntree_ptr, active_sock, &ntree_ptr);*/
+    // nodeSocketCopyValue(sock, &ntree_ptr, active_sock, &ntree_ptr);
   }
   else {
     /* XXX TODO define default socket type for a tree! */

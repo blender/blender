@@ -208,7 +208,7 @@ class orientedViewEdgeIterator : public Iterator {
   }
 
  public:
-  /** increments.*/
+  /** increments. */
   virtual inline int increment()
   {
     if (_Nature & Nature::T_VERTEX) {

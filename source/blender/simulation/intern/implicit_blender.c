@@ -168,7 +168,7 @@ DO_INLINE void zero_lfvector(float (*to)[3], unsigned int verts)
 {
   memset(to, 0.0f, verts * sizeof(lfVector));
 }
-/* multiply long vector with scalar*/
+/* Multiply long vector with scalar. */
 DO_INLINE void mul_lfvectorS(float (*to)[3],
                              float (*fLongVector)[3],
                              float scalar,
@@ -180,7 +180,7 @@ DO_INLINE void mul_lfvectorS(float (*to)[3],
     mul_fvector_S(to[i], fLongVector[i], scalar);
   }
 }
-/* multiply long vector with scalar*/
+/* Multiply long vector with scalar. */
 /* A -= B * float */
 DO_INLINE void submul_lfvectorS(float (*to)[3],
                                 float (*fLongVector)[3],
@@ -613,7 +613,7 @@ DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
   }
 }
 
-/* SPARSE SYMMETRIC multiply big matrix with long vector*/
+/* SPARSE SYMMETRIC multiply big matrix with long vector. */
 /* STATUS: verified */
 DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector *fLongVector)
 {
@@ -644,7 +644,7 @@ DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector 
   del_lfvector(temp);
 }
 
-/* SPARSE SYMMETRIC sub big matrix with big matrix*/
+/* SPARSE SYMMETRIC sub big matrix with big matrix. */
 /* A -= B * float + C * float --> for big matrix */
 /* VERIFIED */
 DO_INLINE void subadd_bfmatrixS_bfmatrixS(

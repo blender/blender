@@ -1339,7 +1339,7 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
     copy_v3_v3(eul_compatf, eul_compat->eul);
   }
 
-  /*must be 3-4 cols, 3-4 rows, square matrix */
+  /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if (self->num_row == 3 && self->num_col == 3) {
     copy_m3_m3(mat, (const float(*)[3])self->matrix);
   }
@@ -1539,7 +1539,7 @@ static PyObject *Matrix_to_scale(MatrixObject *self)
     return NULL;
   }
 
-  /*must be 3-4 cols, 3-4 rows, square matrix */
+  /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if ((self->num_row < 3) || (self->num_col < 3)) {
     PyErr_SetString(PyExc_ValueError,
                     "Matrix.to_scale(): "
@@ -2430,7 +2430,7 @@ static int Matrix_ass_item_col(MatrixObject *self, int col, PyObject *value)
 }
 
 /*----------------------------object[z:y]------------------------
- * sequence slice (get)*/
+ * Sequence slice (get). */
 static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 {
 
@@ -2456,7 +2456,7 @@ static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
   return tuple;
 }
 /*----------------------------object[z:y]------------------------
- * sequence slice (set)*/
+ * Sequence slice (set). */
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value)
 {
   PyObject *value_fast;
@@ -2510,7 +2510,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 
   Py_DECREF(value_fast);
 
-  /*parsed well - now set in matrix*/
+  /* Parsed well - now set in matrix. */
   memcpy(self->matrix, mat, self->num_col * self->num_row * sizeof(float));
 
   (void)BaseMath_WriteCallback(self);
@@ -2628,7 +2628,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
     return Matrix_CreatePyObject(mat, mat2->num_col, mat1->num_row, Py_TYPE(mat1));
   }
   if (mat2) {
-    /*FLOAT/INT * MATRIX */
+    /* FLOAT/INT * MATRIX */
     if (((scalar = PyFloat_AsDouble(m1)) == -1.0f && PyErr_Occurred()) == 0) {
       return matrix_mul_float(mat2, scalar);
     }
@@ -2968,7 +2968,7 @@ static PyObject *Matrix_translation_get(MatrixObject *self, void *UNUSED(closure
     return NULL;
   }
 
-  /*must be 4x4 square matrix*/
+  /* Must be 4x4 square matrix. */
   if (self->num_row != 4 || self->num_col != 4) {
     PyErr_SetString(PyExc_AttributeError,
                     "Matrix.translation: "
@@ -2990,7 +2990,7 @@ static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNU
     return -1;
   }
 
-  /*must be 4x4 square matrix*/
+  /* Must be 4x4 square matrix. */
   if (self->num_row != 4 || self->num_col != 4) {
     PyErr_SetString(PyExc_AttributeError,
                     "Matrix.translation: "
@@ -3034,7 +3034,7 @@ static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closur
     return NULL;
   }
 
-  /*must be 3-4 cols, 3-4 rows, square matrix*/
+  /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if ((self->num_row < 3) || (self->num_col < 3)) {
     PyErr_SetString(PyExc_AttributeError,
                     "Matrix.median_scale: "
@@ -3056,7 +3056,7 @@ static PyObject *Matrix_is_negative_get(MatrixObject *self, void *UNUSED(closure
     return NULL;
   }
 
-  /*must be 3-4 cols, 3-4 rows, square matrix*/
+  /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if (self->num_row == 4 && self->num_col == 4) {
     return PyBool_FromLong(is_negative_m4((const float(*)[4])self->matrix));
   }
@@ -3078,7 +3078,7 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closu
     return NULL;
   }
 
-  /*must be 3-4 cols, 3-4 rows, square matrix*/
+  /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if (self->num_row == 4 && self->num_col == 4) {
     return PyBool_FromLong(is_orthonormal_m4((const float(*)[4])self->matrix));
   }
@@ -3101,7 +3101,7 @@ static PyObject *Matrix_is_orthogonal_axis_vectors_get(MatrixObject *self, void 
     return NULL;
   }
 
-  /*must be 3-4 cols, 3-4 rows, square matrix*/
+  /* Must be 3-4 cols, 3-4 rows, square matrix. */
   if (self->num_row == 4 && self->num_col == 4) {
     return PyBool_FromLong(is_orthogonal_m4((const float(*)[4])self->matrix));
   }
@@ -3313,7 +3313,7 @@ PyObject *Matrix_CreatePyObject(const float *mat,
     self->cb_user = NULL;
     self->cb_type = self->cb_subtype = 0;
 
-    if (mat) { /*if a float array passed*/
+    if (mat) { /* If a float array passed. */
       memcpy(self->matrix, mat, num_col * num_row * sizeof(float));
     }
     else if (num_col == num_row) {
@@ -3655,7 +3655,7 @@ PyTypeObject matrix_access_Type = {
     NULL,                                                    /*tp_compare*/
     NULL,                                                    /*tp_repr*/
     NULL,                                                    /*tp_as_number*/
-    NULL /*&MatrixAccess_SeqMethods*/ /* TODO */,            /*tp_as_sequence*/
+    NULL /* &MatrixAccess_SeqMethods */ /* TODO */,          /*tp_as_sequence*/
     &MatrixAccess_AsMapping,                                 /*tp_as_mapping*/
     NULL,                                                    /*tp_hash*/
     NULL,                                                    /*tp_call*/

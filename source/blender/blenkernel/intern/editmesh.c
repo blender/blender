@@ -222,7 +222,7 @@ void BKE_editmesh_free_derivedmesh(BMEditMesh *em)
   MEM_SAFE_FREE(em->bb_cage);
 }
 
-/*does not free the BMEditMesh struct itself*/
+/* Does not free the #BMEditMesh struct itself. */
 void BKE_editmesh_free(BMEditMesh *em)
 {
   BKE_editmesh_free_derivedmesh(em);

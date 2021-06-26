@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     p[i] = MEM_callocN(blocksize, strdup(tagstring));
   }
 
-  /* now corrupt a few blocks...*/
+  /* Now corrupt a few blocks. */
   ip = (int *)p[5] - 50;
   for (i = 0; i < 1000; i++, ip++)
     *ip = i + 1;

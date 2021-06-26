@@ -144,7 +144,7 @@ class TrueUP1D : public UnaryPredicate1D {
   {
   }
 
-  /** Returns the string "TrueUP1D"*/
+  /** Returns the string "TrueUP1D". */
   string getName() const
   {
     return "TrueUP1D";
@@ -167,7 +167,7 @@ class FalseUP1D : public UnaryPredicate1D {
   {
   }
 
-  /** Returns the string "FalseUP1D"*/
+  /** Returns the string "FalseUP1D". */
   string getName() const
   {
     return "FalseUP1D";
@@ -225,7 +225,7 @@ class ContourUP1D : public UnaryPredicate1D {
   Functions1D::CurveNatureF1D _getNature;
 
  public:
-  /** Returns the string "ContourUP1D"*/
+  /** Returns the string "ContourUP1D". */
   string getName() const
   {
     return "ContourUP1D";
@@ -300,7 +300,7 @@ class EqualToTimeStampUP1D : public UnaryPredicate1D {
     _timeStamp = ts;
   }
 
-  /** Returns the string "EqualToTimeStampUP1D"*/
+  /** Returns the string "EqualToTimeStampUP1D". */
   string getName() const
   {
     return "EqualToTimeStampUP1D";
@@ -326,7 +326,7 @@ class EqualToChainingTimeStampUP1D : public UnaryPredicate1D {
     _timeStamp = ts;
   }
 
-  /** Returns the string "EqualToChainingTimeStampUP1D"*/
+  /** Returns the string "EqualToChainingTimeStampUP1D". */
   string getName() const
   {
     return "EqualToChainingTimeStampUP1D";
@@ -364,7 +364,7 @@ class ShapeUP1D : public UnaryPredicate1D {
     _id = Id(idFirst, idSecond);
   }
 
-  /** Returns the string "ShapeUP1D"*/
+  /** Returns the string "ShapeUP1D". */
   string getName() const
   {
     return "ShapeUP1D";

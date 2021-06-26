@@ -81,7 +81,7 @@ static void script_free(SpaceLink *sl)
   SpaceScript *sscript = (SpaceScript *)sl;
 
 #ifdef WITH_PYTHON
-  /*free buttons references*/
+  /* Free buttons references. */
   if (sscript->but_refs) {
     sscript->but_refs = NULL;
   }

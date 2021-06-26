@@ -250,7 +250,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 
     if (psys->particles) {
       totsaved = MIN2(psys->totpart, totpart);
-      /*save old pars*/
+      /* Save old pars. */
       if (totsaved) {
         memcpy(newpars, psys->particles, totsaved * sizeof(ParticleData));
 
@@ -607,8 +607,8 @@ void init_particle(ParticleSimulationData *sim, ParticleData *pa)
   pa->time = part->sta + (part->end - part->sta) * birth_time;
 
   pa->hair_index = 0;
-  /* we can't reset to -1 anymore since we've figured out correct index in distribute_particles */
-  /* usage other than straight after distribute has to handle this index by itself - jahka*/
+  /* We can't reset to -1 anymore since we've figured out correct index in #distribute_particles
+   * usage other than straight after distribute has to handle this index by itself - jahka. */
   // pa->num_dmcache = DMCACHE_NOTFOUND; /* assume we don't have a derived mesh face */
 }
 
@@ -1473,7 +1473,7 @@ static void integrate_particle(
 
     force_func(forcedata, states + i, force, impulse);
 
-    /* force to acceleration*/
+    /* Force to acceleration. */
     mul_v3_v3fl(acceleration, force, 1.0f / pa_mass);
 
     if (external_acceleration) {
@@ -2226,7 +2226,7 @@ static void sph_integrate(ParticleSimulationData *sim,
   sphdata->pass = 0;
   // sphdata.element_size and sphdata.flow are set in the callback.
 
-  /* restore previous state and treat gravity & effectors as external acceleration*/
+  /* Restore previous state and treat gravity & effectors as external acceleration. */
   sub_v3_v3v3(effector_acceleration, pa->state.vel, pa->prev_state.vel);
   mul_v3_fl(effector_acceleration, 1.0f / dtime);
 
@@ -3001,7 +3001,7 @@ static int collision_response(ParticleSimulationData *sim,
       /* get back to global coordinates */
       add_v3_v3(v1_tan, vc_tan);
 
-      /* convert to angular velocity*/
+      /* Convert to angular velocity. */
       cross_v3_v3v3(ave, vr_tan, pce->nor);
       mul_v3_fl(ave, 1.0f / MAX2(pa->size, 0.001f));
 
@@ -3927,7 +3927,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       pa->alive = PARS_DYING;
     }
     else if (birthtime <= cfra && birthtime >= psys->cfra) {
-      /* particle is born some time between this and last step*/
+      /* Particle is born some time between this and last step. */
       reset_particle(sim, pa, dfra * timestep, cfra);
       pa->alive = PARS_ALIVE;
       pa->state.time = cfra - birthtime;
@@ -3936,7 +3936,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       /* nothing to be done when particle is dead */
     }
 
-    /* only reset unborn particles if they're shown or if the particle is born soon*/
+    /* Only reset unborn particles if they're shown or if the particle is born soon. */
     if (pa->alive == PARS_UNBORN &&
         (part->flag & PART_UNBORN || (cfra + psys->pointcache->step > pa->time))) {
       reset_particle(sim, pa, dtime, cfra);
@@ -4104,7 +4104,7 @@ static void update_children(ParticleSimulationData *sim, const bool use_render_p
     psys_free_children(sim->psys);
   }
 }
-/* updates cached particles' alive & other flags etc..*/
+/* Updates cached particles' alive & other flags etc. */
 static void cached_step(ParticleSimulationData *sim, float cfra, const bool use_render_params)
 {
   ParticleSystem *psys = sim->psys;

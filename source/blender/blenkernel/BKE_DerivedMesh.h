@@ -329,7 +329,7 @@ void DM_copy_vert_data(struct DerivedMesh *source,
                        int dest_index,
                        int count);
 
-/*sets up mpolys for a DM based on face iterators in source*/
+/* Sets up mpolys for a DM based on face iterators in source. */
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
 
 void DM_ensure_normals(DerivedMesh *dm);

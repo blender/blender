@@ -3766,16 +3766,16 @@ void RNA_property_pointer_set(PointerRNA *ptr,
 
 PointerRNA RNA_property_pointer_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop))
 {
-  /*PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop; */
+  // PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
-  /* BLI_assert(RNA_property_type(prop) == PROP_POINTER); */
+  // BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
   return PointerRNA_NULL; /* FIXME: there has to be a way... */
 }
 
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 {
-  /*IDProperty *idprop;*/
+  // IDProperty *idprop;
 
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
@@ -7375,7 +7375,7 @@ int RNA_parameter_list_ret_count(ParameterList *parms)
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 {
   /* may be useful but unused now */
-  /* RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr); */ /*UNUSED*/
+  // RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr); /* UNUSED */
 
   iter->parms = parms;
   iter->parm = parms->func->cont.properties.first;

@@ -565,7 +565,7 @@ bool ED_gpencil_layer_has_selected_stroke(const bGPDlayer *gpl, const bool is_mu
         return true;
       }
     }
-    /* If not multiedit, exit loop. */
+    /* If not multi-edit, exit loop. */
     if (!is_multiedit) {
       break;
     }
@@ -1640,7 +1640,7 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
         }
       }
 
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -1693,7 +1693,7 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
         }
       }
 
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -1748,7 +1748,7 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
         }
       }
 
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -1798,7 +1798,7 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
         }
       }
 
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }

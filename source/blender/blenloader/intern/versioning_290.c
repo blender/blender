@@ -2026,7 +2026,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Initialize the spread parameter for area lights*/
+    /* Initialize the spread parameter for area lights. */
     if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "area_spread")) {
       LISTBASE_FOREACH (Light *, la, &bmain->lights) {
         la->area_spread = DEG2RADF(180.0f);

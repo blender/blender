@@ -1433,7 +1433,7 @@ static void gpencil_stroke_soft_refine(bGPDstroke *gps)
   bGPDspoint *pt2 = NULL;
   int i;
 
-  /* check if enough points*/
+  /* Check if enough points. */
   if (gps->totpoints < 3) {
     return;
   }
@@ -1792,7 +1792,7 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
           }
         }
 
-        /* if not multiedit, exit loop*/
+        /* If not multi-edit, exit loop. */
         if (!is_multiedit) {
           break;
         }

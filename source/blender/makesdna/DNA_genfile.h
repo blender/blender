@@ -90,7 +90,7 @@ struct SDNA *DNA_sdna_from_data(const void *data,
                                 const char **r_error_message);
 void DNA_sdna_free(struct SDNA *sdna);
 
-/* Access for current Blender versions SDNA*/
+/* Access for current Blender versions SDNA. */
 void DNA_sdna_current_init(void);
 /* borrowed reference */
 const struct SDNA *DNA_sdna_current_get(void);

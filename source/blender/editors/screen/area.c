@@ -1461,7 +1461,7 @@ static void region_rect_recursive(
     }
   }
   else if (ELEM(alignment, RGN_ALIGN_VSPLIT, RGN_ALIGN_HSPLIT)) {
-    /* percentage subdiv*/
+    /* Percentage subdiv. */
     region->winrct = *remainder;
 
     if (alignment == RGN_ALIGN_HSPLIT) {

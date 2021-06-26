@@ -425,7 +425,7 @@ static void gpencil_add_verts_to_dgroups(
         }
       }
 
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }

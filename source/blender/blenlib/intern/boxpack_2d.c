@@ -298,8 +298,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
   bool isect;
   float tot_x = 0.0f, tot_y = 0.0f;
 
-  BoxPack *box, *box_test; /*current box and another for intersection tests*/
-  BoxVert *vert;           /* the current vert */
+  BoxPack *box, *box_test; /* Current box and another for intersection tests. */
+  BoxVert *vert;           /* The current vert. */
 
   struct VertSortContext vs_ctx;
 

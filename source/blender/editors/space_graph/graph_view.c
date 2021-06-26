@@ -137,7 +137,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
       }
     }
 
-    /* Ensure that the extents are not too extreme that view implodes...*/
+    /* Ensure that the extents are not too extreme that view implodes. */
     if (foundBounds) {
       if ((xmin && xmax) && (fabsf(*xmax - *xmin) < 0.001f)) {
         *xmin -= 0.0005f;
@@ -269,7 +269,7 @@ static int graphkeys_viewall(bContext *C,
   BLI_rctf_scale(&cur_new, 1.1f);
 
   /* Take regions into account, that could block the view.
-   * Marker region is supposed to be larger than the scroll-bar, so prioritize it.*/
+   * Marker region is supposed to be larger than the scroll-bar, so prioritize it. */
   float pad_top = UI_TIME_SCRUB_MARGIN_Y;
   float pad_bottom = BLI_listbase_is_empty(ED_context_get_markers(C)) ? V2D_SCROLL_HANDLE_HEIGHT :
                                                                         UI_MARKER_MARGIN_Y;

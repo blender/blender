@@ -1833,7 +1833,7 @@ static bool bone_mouse_select_menu(bContext *C,
       continue;
     }
     /* We can hit a bone multiple times, so make sure we are not adding an already included bone
-     * to the list.*/
+     * to the list. */
     const bool is_duplicate_bone = BLI_gset_haskey(added_bones, bone_ptr);
 
     if (!is_duplicate_bone) {

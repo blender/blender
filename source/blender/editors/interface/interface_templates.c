@@ -3050,7 +3050,7 @@ static void colorband_flip_cb(bContext *C, ColorBand *coba)
     coba->data[a] = data_tmp[a];
   }
 
-  /* may as well flip the cur*/
+  /* May as well flip the `cur`. */
   coba->cur = coba->tot - (coba->cur + 1);
 
   ED_undo_push(C, "Flip Color Ramp");

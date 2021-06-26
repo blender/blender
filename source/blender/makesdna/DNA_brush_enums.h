@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 /* BrushGpencilSettings->preset_type.
- * Use a range for each group and not continuous values.*/
+ * Use a range for each group and not continuous values. */
 typedef enum eGPBrush_Presets {
   GP_BRUSH_PRESET_UNKNOWN = 0,
 

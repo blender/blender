@@ -1273,7 +1273,7 @@ ID *buttons_context_id_path(const bContext *C)
   for (int i = path->len - 1; i >= 0; i--) {
     PointerRNA *ptr = &path->ptr[i];
 
-    /* pin particle settings instead of system, since only settings are an idblock*/
+    /* Pin particle settings instead of system, since only settings are an idblock. */
     if (sbuts->mainb == BCONTEXT_PARTICLE && sbuts->flag & SB_PIN_CONTEXT) {
       if (ptr->type == &RNA_ParticleSystem && ptr->data) {
         ParticleSystem *psys = ptr->data;
@@ -1281,7 +1281,7 @@ ID *buttons_context_id_path(const bContext *C)
       }
     }
 
-    /* There is no valid image ID panel, Image Empty objects need this workaround.*/
+    /* There is no valid image ID panel, Image Empty objects need this workaround. */
     if (sbuts->mainb == BCONTEXT_DATA && sbuts->flag & SB_PIN_CONTEXT) {
       if (ptr->type == &RNA_Image && ptr->data) {
         continue;

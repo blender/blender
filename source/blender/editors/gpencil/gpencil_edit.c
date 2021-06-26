@@ -3285,7 +3285,7 @@ static int gpencil_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
           }
         }
 
-        /* if not multiedit, exit loop*/
+        /* If not multi-edit, exit loop. */
         if (!is_multiedit) {
           break;
         }
@@ -4478,7 +4478,7 @@ static int gpencil_stroke_trim_exec(bContext *C, wmOperator *op)
             }
           }
         }
-        /* if not multiedit, exit loop*/
+        /* If not multi-edit, exit loop. */
         if (!is_multiedit) {
           break;
         }
@@ -4681,7 +4681,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
           }
         }
 
-        /* if not multiedit, exit loop*/
+        /* If not multi-edit, exit loop. */
         if (!is_multiedit) {
           break;
         }
@@ -4860,7 +4860,7 @@ static int gpencil_stroke_split_exec(bContext *C, wmOperator *op)
         }
       }
 
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -5087,7 +5087,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
           BKE_gpencil_stroke_select_index_reset(gps);
         }
       }
-      /* if not multiedit, exit loop. */
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -5151,7 +5151,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
             }
           }
         }
-        /* if not multiedit, exit loop. */
+        /* If not multi-edit, exit loop. */
         if (!is_multiedit) {
           break;
         }
@@ -5170,7 +5170,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
           gpencil_cutter_dissolve(gpd, gpl, gps, flat_caps);
         }
       }
-      /* if not multiedit, exit loop. */
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -5478,7 +5478,7 @@ static int gpencil_stroke_normalize_exec(bContext *C, wmOperator *op)
             BKE_gpencil_stroke_geometry_update(gpd, gps);
           }
         }
-        /* If not multiedit, exit loop. */
+        /* If not multi-edit, exit loop. */
         if (!is_multiedit) {
           break;
         }

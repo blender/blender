@@ -413,7 +413,7 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
             else {
               /* Calculate min/max using full fcurve evaluation.
                * [slower than bezier forward differencing but evaluates Back/Elastic interpolation
-               * as well].*/
+               * as well]. */
               float step_size = (bezt->vec[1][0] - prev_bezt->vec[1][0]) / resol;
               for (int j = 0; j <= resol; j++) {
                 float eval_time = prev_bezt->vec[1][0] + step_size * j;

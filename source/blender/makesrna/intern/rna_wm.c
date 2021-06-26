@@ -892,7 +892,7 @@ static PointerRNA rna_KeyMapItem_properties_get(PointerRNA *ptr)
     return *(kmi->ptr);
   }
 
-  /*return rna_pointer_inherit_refine(ptr, &RNA_OperatorProperties, op->properties); */
+  // return rna_pointer_inherit_refine(ptr, &RNA_OperatorProperties, op->properties);
   return PointerRNA_NULL;
 }
 

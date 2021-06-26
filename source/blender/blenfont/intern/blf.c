@@ -206,7 +206,7 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 {
   int i = blf_search(name);
   if (i >= 0) {
-    /*font = global_font[i];*/ /*UNUSED*/
+    // font = global_font[i]; /* UNUSED */
     return i;
   }
   return BLF_load_mem_unique(name, mem, mem_size);

@@ -104,12 +104,12 @@ void ChannelMatteOperation::executePixelSampled(float output[4],
 
   /* test range */
   if (alpha > limit_max) {
-    alpha = inColor[3]; /*whatever it was prior */
+    alpha = inColor[3]; /* Whatever it was prior. */
   }
   else if (alpha < limit_min) {
     alpha = 0.0f;
   }
-  else { /*blend */
+  else { /* Blend. */
     alpha = (alpha - limit_min) / limit_range;
   }
 

@@ -994,7 +994,7 @@ static void multiresModifier_disp_run(
     }
   }
 
-  /*numGrids = dm->getNumGrids(dm);*/ /*UNUSED*/
+  // numGrids = dm->getNumGrids(dm); /* UNUSED */
   gridSize = dm->getGridSize(dm);
   gridData = dm->getGridData(dm);
   gridOffset = dm->getGridOffset(dm);
@@ -1285,7 +1285,7 @@ DerivedMesh *multires_make_derived_from_derived(
   multires_set_tot_mdisps(me, mmd->totlvl);
   multiresModifier_ensure_external_read(me, mmd);
 
-  /*run displacement*/
+  /* Run displacement. */
   multiresModifier_disp_run(result, ob->data, dm, APPLY_DISPLACEMENTS, subGridData, mmd->totlvl);
 
   /* copy hidden elements for this level */

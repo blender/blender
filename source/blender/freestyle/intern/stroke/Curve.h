@@ -61,7 +61,7 @@ using namespace Geometry;
  */
 class CurvePoint : public Interface0D {
  public:  // Implementation of Interface0D
-  /** Returns the string "CurvePoint"*/
+  /** Returns the string "CurvePoint". */
   virtual string getExactTypeName() const
   {
     return "CurvePoint";

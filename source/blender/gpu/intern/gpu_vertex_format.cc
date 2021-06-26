@@ -284,7 +284,7 @@ void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uin
       data[i] = attr_name[i];
     }
     /* We use a hash to identify each data layer based on its name.
-     * NOTE: This is still prone to hash collision but the risks are very low.*/
+     * NOTE: This is still prone to hash collision but the risks are very low. */
     /* Start hashing after the first 2 chars. */
     *(uint *)&data[4] = BLI_ghashutil_strhash_p_murmur(attr_name + 4);
   }

@@ -217,7 +217,7 @@ typedef struct LatticeModifierData {
   char _pad[2];
 } LatticeModifierData;
 
-/*Lattice modifier flags */
+/* Lattice modifier flags. */
 enum {
   MOD_LATTICE_INVERT_VGROUP = (1 << 0),
 };

@@ -198,7 +198,7 @@ static void write_bone(BlendWriter *writer, Bone *bone)
   BLO_write_struct(writer, Bone, bone);
 
   /* Write ID Properties -- and copy this comment EXACTLY for easy finding
-   * of library blocks that implement this.*/
+   * of library blocks that implement this. */
   if (bone->prop) {
     IDP_BlendWrite(writer, bone->prop);
   }

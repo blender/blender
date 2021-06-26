@@ -379,7 +379,7 @@ static BMVert *bm_isect_edge_tri(struct ISectState *s,
   } \
   (void)0
 
-  /* order tri, then order (1-2, 2-3)*/
+  /* Order tri, then order (1-2, 2-3). */
 #define KEY_EDGE_TRI_ORDER(k) \
   { \
     if (k[2] > k[3]) { \

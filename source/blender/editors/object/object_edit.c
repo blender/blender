@@ -105,7 +105,7 @@
 
 #include "CLG_log.h"
 
-/* for menu/popup icons etc etc*/
+/* For menu/popup icons etc etc. */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1990,7 +1990,7 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
    * Technically we could use #wmOperator.customdata. However there is no free callback
    * called to an operator that exit with OPERATOR_INTERFACE to launch a menu.
    *
-   * So we are left with a memory that will necessarily leak. It's a small leak though.*/
+   * So we are left with a memory that will necessarily leak. It's a small leak though. */
   if (master_collection_menu == NULL) {
     master_collection_menu = MEM_callocN(sizeof(MoveToCollectionData),
                                          "MoveToCollectionData menu - expected eventual memleak");

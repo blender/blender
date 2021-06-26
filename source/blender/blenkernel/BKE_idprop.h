@@ -67,7 +67,7 @@ void IDP_AppendArray(struct IDProperty *prop, struct IDProperty *item);
 void IDP_ResizeIDPArray(struct IDProperty *prop, int len);
 
 /* ----------- Numeric Array Type ----------- */
-/*this function works for strings too!*/
+/* This function works for strings too! */
 void IDP_ResizeArray(struct IDProperty *prop, int newlen);
 void IDP_FreeArray(struct IDProperty *prop);
 

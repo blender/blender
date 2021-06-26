@@ -828,7 +828,7 @@ static int gpencil_frame_clean_loose_exec(bContext *C, wmOperator *op)
         }
       }
 
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -1572,7 +1572,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
               continue;
             }
             bool gpf_lock = false;
-            /* some stroke is already at front*/
+            /* Some stroke is already at front. */
             if (ELEM(direction, GP_STROKE_MOVE_TOP, GP_STROKE_MOVE_UP)) {
               if (gps == gpf->strokes.last) {
                 gpf_lock = true;
@@ -1664,7 +1664,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
         BLI_freelistN(&selected);
       }
 
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -1772,7 +1772,7 @@ static int gpencil_stroke_change_color_exec(bContext *C, wmOperator *op)
           }
         }
       }
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }
@@ -3356,7 +3356,7 @@ static int gpencil_material_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  /* make all layers editable again*/
+  /* Make all layers editable again. */
   MaterialGPencilStyle *gp_style = NULL;
 
   for (short i = 0; i < *totcol; i++) {
@@ -3410,7 +3410,7 @@ static int gpencil_material_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* read all strokes and select*/
+  /* Read all strokes and select. */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
@@ -3452,7 +3452,7 @@ static int gpencil_material_select_exec(bContext *C, wmOperator *op)
           }
         }
       }
-      /* if not multiedit, exit loop*/
+      /* If not multi-edit, exit loop. */
       if (!is_multiedit) {
         break;
       }

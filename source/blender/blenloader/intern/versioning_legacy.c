@@ -363,7 +363,7 @@ static void customdata_version_242(Mesh *me)
   BKE_mesh_update_customdata_pointers(me, true);
 }
 
-/*only copy render texface layer from active*/
+/* Only copy render texface layer from active. */
 static void customdata_version_243(Mesh *me)
 {
   CustomDataLayer *layer;
@@ -1266,8 +1266,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
       cam = cam->id.next;
     }
-    /* force oops draw if depgraph was set*/
-    /* set time line var */
+    /* Force oops draw if depgraph was set. */
+    /* Set time line var. */
 
     /* softbody init new vars */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
@@ -2021,7 +2021,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* fix all versions before 2.45 */
     if (bmain->versionfile != 245) {
 
-      /* repair preview from 242 - 244*/
+      /* Repair preview from 242 - 244. */
       for (ima = bmain->images.first; ima; ima = ima->id.next) {
         ima->preview = NULL;
       }

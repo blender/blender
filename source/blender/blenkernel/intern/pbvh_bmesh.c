@@ -180,7 +180,7 @@ static BMVert *bm_vert_hash_lookup_chain(GHash *deleted_verts, BMVert *v)
   while (true) {
     BMVert **v_next_p = (BMVert **)BLI_ghash_lookup_p(deleted_verts, v);
     if (v_next_p == NULL) {
-      /* not remapped*/
+      /* Not remapped. */
       return v;
     }
     if (*v_next_p == NULL) {

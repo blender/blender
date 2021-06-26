@@ -66,7 +66,7 @@ typedef struct bDeformGroup {
   char flag, _pad0[7];
 } bDeformGroup;
 
-/* Face Maps*/
+/* Face Maps. */
 typedef struct bFaceMap {
   struct bFaceMap *next, *prev;
   /** MAX_VGROUP_NAME. */
@@ -646,9 +646,9 @@ enum {
   OB_BOUND_SPHERE = 1,
   OB_BOUND_CYLINDER = 2,
   OB_BOUND_CONE = 3,
-  /* OB_BOUND_TRIANGLE_MESH = 4, */  /* UNUSED */
-  /* OB_BOUND_CONVEX_HULL = 5, */    /* UNUSED */
-  /*  OB_BOUND_DYN_MESH      = 6, */ /*UNUSED*/
+  // OB_BOUND_TRIANGLE_MESH = 4, /* UNUSED */
+  // OB_BOUND_CONVEX_HULL = 5,   /* UNUSED */
+  // OB_BOUND_DYN_MESH = 6,      /* UNUSED */
   OB_BOUND_CAPSULE = 7,
 };
 

@@ -361,7 +361,7 @@ static void bmo_face_inset_individual(BMesh *bm,
 
     madd_v3_v3fl(v_new_co, tvec, thickness);
 
-    /* Set normal, add depth and write new vertex position*/
+    /* Set normal, add depth and write new vertex position. */
     copy_v3_v3(l_iter->v->no, f->no);
 
     if (depth != 0.0f) {

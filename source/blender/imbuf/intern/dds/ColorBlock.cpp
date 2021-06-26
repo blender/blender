@@ -154,7 +154,7 @@ void ColorBlock::swizzle(uint x, uint y, uint z, uint w)
 }
 
 /** Returns true if the block has a single color. */
-bool ColorBlock::isSingleColor(Color32 mask /*= Color32(0xFF, 0xFF, 0xFF, 0x00)*/) const
+bool ColorBlock::isSingleColor(Color32 mask /*= Color32(0xFF, 0xFF, 0xFF, 0x00) */) const
 {
   uint u = m_color[0].u & mask.u;
 

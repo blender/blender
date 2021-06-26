@@ -245,7 +245,7 @@ class ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator {
     return _increment;
   }
 
-  /* increments.*/
+  /* Increments. */
   virtual int increment();
   virtual int decrement();
 };

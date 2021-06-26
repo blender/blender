@@ -555,7 +555,7 @@ typedef struct ParameterList {
 
 typedef struct ParameterIterator {
   struct ParameterList *parms;
-  /* PointerRNA funcptr; */ /*UNUSED*/
+  // PointerRNA funcptr; /* UNUSED */
   void *data;
   int size, offset;
 

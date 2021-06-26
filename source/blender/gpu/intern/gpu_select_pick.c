@@ -55,7 +55,7 @@
  * SubRectStride
  */
 
-/* For looping over a sub-region of a rect, could be moved into 'rct.c'*/
+/* For looping over a sub-region of a rect, could be moved into 'rct.c'. */
 typedef struct SubRectStride {
   uint start;    /* start here */
   uint span;     /* read these */
@@ -230,7 +230,7 @@ typedef struct GPUPickState {
   /* cache on initialization */
   uint (*buffer)[4];
 
-  /* buffer size (stores number of integers, for actual size multiply by sizeof integer)*/
+  /* Buffer size (stores number of integers, for actual size multiply by sizeof integer). */
   uint bufsize;
   /* mode of operation */
   char mode;

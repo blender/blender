@@ -141,7 +141,7 @@ typedef struct Mesh {
   struct MSelect *mselect;
 
   /* BMESH ONLY */
-  /*new face structures*/
+  /* New face structures. */
   struct MPoly *mpoly;
   struct MLoop *mloop;
   struct MLoopUV *mloopuv;

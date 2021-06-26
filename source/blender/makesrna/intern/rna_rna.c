@@ -2966,7 +2966,7 @@ static void rna_def_function(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Description", "Description of the Function's purpose");
 
   prop = RNA_def_property(srna, "parameters", PROP_COLLECTION, PROP_NONE);
-  /*RNA_def_property_clear_flag(prop, PROP_EDITABLE);*/
+  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Property");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Function_parameters_begin",
@@ -3270,7 +3270,7 @@ void RNA_def_rna(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  /* Struct*/
+  /* Struct */
   rna_def_struct(brna);
 
   /* Property */

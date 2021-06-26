@@ -91,7 +91,7 @@ void EDBM_mesh_load(struct Main *bmain, struct Object *ob);
 /* flushes based on the current select mode.  if in vertex select mode,
  * verts select/deselect edges and faces, if in edge select mode,
  * edges select/deselect faces and vertices, and in face select mode faces select/deselect
- * edges and vertices.*/
+ * edges and vertices. */
 void EDBM_select_more(struct BMEditMesh *em, const bool use_face_step);
 void EDBM_select_less(struct BMEditMesh *em, const bool use_face_step);
 
@@ -481,9 +481,8 @@ int ED_mesh_mirror_spatial_table_lookup(struct Object *ob,
 void ED_mesh_mirror_topo_table_begin(struct Object *ob, struct Mesh *me_eval);
 void ED_mesh_mirror_topo_table_end(struct Object *ob);
 
-/* retrieves mirrored cache vert, or NULL if there isn't one.
- * note: calling this without ensuring the mirror cache state
- * is bad.*/
+/* Retrieves mirrored cache vert, or NULL if there isn't one.
+ * NOTE: calling this without ensuring the mirror cache state is bad. */
 int mesh_get_x_mirror_vert(struct Object *ob,
                            struct Mesh *me_eval,
                            int index,

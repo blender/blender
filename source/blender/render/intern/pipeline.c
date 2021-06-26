@@ -2840,7 +2840,7 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
     rl->recty = rr->recty;
   }
 
-  /* clear previous pass if exist or the new image will be over previous one*/
+  /* Clear previous pass if exist or the new image will be over previous one. */
   RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
   if (rp) {
     if (rp->rect) {

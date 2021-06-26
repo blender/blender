@@ -287,7 +287,7 @@ void GHOST_WindowWin32::setTitle(const char *title)
 
 std::string GHOST_WindowWin32::getTitle() const
 {
-  char buf[s_maxTitleLength]; /*CHANGE + never used yet*/
+  char buf[s_maxTitleLength]; /* CHANGE + never used yet. */
   ::GetWindowText(m_hWnd, buf, s_maxTitleLength);
   return std::string(buf);
 }

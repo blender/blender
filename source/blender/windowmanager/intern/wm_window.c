@@ -136,7 +136,7 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
 static bool wm_window_timer(const bContext *C);
 
 /* XXX this one should correctly check for apple top header...
- * done for Cocoa : returns window contents (and not frame) max size*/
+ * done for Cocoa : returns window contents (and not frame) max size. */
 void wm_get_screensize(int *r_width, int *r_height)
 {
   unsigned int uiwidth;

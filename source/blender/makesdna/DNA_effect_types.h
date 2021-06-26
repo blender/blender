@@ -27,30 +27,30 @@
 extern "C" {
 #endif
 
-/* don't forget, new effects also in writefile.c for dna!!! */
+/* Don't forget, new effects also in writefile.c for DNA! */
 
 #define PAF_MAXMULT 4
 
-/* paf->flag (keep bit 0 free for compatibility) */
+/* paf->flag (keep bit 0 free for compatibility). */
 #define PAF_BSPLINE 2
 #define PAF_STATIC 4
 #define PAF_FACE 8
 #define PAF_ANIMATED 16
-/* show particles before they're emitted*/
+/* show particles before they're emitted. */
 #define PAF_UNBORN 32
-/* emit only from faces*/
+/* Emit only from faces. */
 #define PAF_OFACE 64
-/* show emitter (don't hide actual mesh)*/
+/* show emitter (don't hide actual mesh). */
 #define PAF_SHOWE 128
-/* true random emit from faces (not just ordered jitter)*/
+/* true random emit from faces (not just ordered jitter). */
 #define PAF_TRAND 256
-/* even distribution in face emission based on face areas*/
+/* even distribution in face emission based on face areas. */
 #define PAF_EDISTR 512
-/*show particles after they've died*/
+/* Show particles after they've died. */
 #define PAF_DIED 2048
 
-/*paf->flag2 for pos/neg paf->flag2neg*/
-#define PAF_TEXTIME 1 /*texture timing*/
+/* `paf->flag2` for pos/neg `paf->flag2neg`. */
+#define PAF_TEXTIME 1 /* Texture timing. */
 
 /* eff->type */
 #define EFF_BUILD 0

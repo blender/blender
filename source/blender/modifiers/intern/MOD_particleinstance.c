@@ -383,7 +383,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         vert_part_value[vindex] = p_random;
       }
 
-      /*change orientation based on object trackflag*/
+      /* Change orientation based on object trackflag. */
       copy_v3_v3(temp_co, mv->co);
       mv->co[axis] = temp_co[track];
       mv->co[(axis + 1) % 3] = temp_co[(track + 1) % 3];
@@ -490,7 +490,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       mul_m4_v3(spacemat, mv->co);
     }
 
-    /* create edges and adjust edge vertex indices*/
+    /* Create edges and adjust edge vertex indices. */
     CustomData_copy_data(&mesh->edata, &result->edata, 0, p_skip * totedge, totedge);
     MEdge *me = &result->medge[p_skip * totedge];
     for (k = 0; k < totedge; k++, me++) {

@@ -230,7 +230,7 @@ static PyC_FlagSet bpy_noise_metrics[] = {
     {0, NULL},
 };
 
-/* Fills an array of length size with random numbers in the range (-1, 1)*/
+/* Fills an array of length size with random numbers in the range (-1, 1). */
 static void rand_vn(float *array_tar, const int size)
 {
   float *array_pt = array_tar + (size - 1);

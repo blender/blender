@@ -163,7 +163,7 @@ void ACTION_OT_markers_make_local(wmOperatorType *ot)
 
 /* *************************** Calculate Range ************************** */
 
-/* Get the min/max keyframes*/
+/* Get the min/max keyframes. */
 static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const short onlySel)
 {
   ListBase anim_data = {NULL, NULL};

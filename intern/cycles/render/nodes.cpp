@@ -4374,7 +4374,7 @@ NODE_DEFINE(HairInfoNode)
   SOCKET_OUT_FLOAT(intercept, "Intercept");
   SOCKET_OUT_FLOAT(thickness, "Thickness");
   SOCKET_OUT_NORMAL(tangent_normal, "Tangent Normal");
-#if 0 /*output for minimum hair width transparency - deactivated */
+#if 0 /* Output for minimum hair width transparency - deactivated. */
   SOCKET_OUT_FLOAT(fade, "Fade");
 #endif
   SOCKET_OUT_FLOAT(index, "Random");

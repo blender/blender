@@ -1186,7 +1186,7 @@ bool OpenCLInfo::get_device_extensions(cl_device_id device_id,
 {
   size_t extension_length = 0;
   cl_int err;
-  /* Determine the size of the extension string*/
+  /* Determine the size of the extension string. */
   if ((err = clGetDeviceInfo(device_id, CL_DEVICE_EXTENSIONS, 0, 0, &extension_length)) !=
       CL_SUCCESS) {
     if (error != NULL) {

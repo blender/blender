@@ -171,7 +171,7 @@ class SVertex : public Interface0D {
    */
   void *userdata;
 
-  /** Default constructor.*/
+  /** Default constructor. */
   inline SVertex()
   {
     _Id = 0;
@@ -326,7 +326,7 @@ class SVertex : public Interface0D {
   }
 
 #if 0
-  /* Fredo's normal and curvature*/
+  /* Fredo's normal and curvature. */
   void setCurvatureFredo(real c)
   {
     _curvatureFredo = c;
@@ -941,7 +941,7 @@ class FEdge : public Interface1D {
 
   inline Vec3r curvature2d_as_vector(int iCombination = 0) const;
 
-  /* angle in degrees*/
+  /* Angle in degrees. */
   inline real curvature2d_as_angle(int iCombination = 0) const;
 #endif
 
@@ -1259,13 +1259,13 @@ class FEdgeSharp : public FEdge {
     _bNormal = iNormal;
   }
 
-  /** Sets the index of the material lying on the right of the FEdge.*/
+  /** Sets the index of the material lying on the right of the FEdge. */
   inline void setaFrsMaterialIndex(unsigned i)
   {
     _aFrsMaterialIndex = i;
   }
 
-  /** Sets the index of the material lying on the left of the FEdge.*/
+  /** Sets the index of the material lying on the left of the FEdge. */
   inline void setbFrsMaterialIndex(unsigned i)
   {
     _bFrsMaterialIndex = i;
@@ -1917,19 +1917,19 @@ class SShape {
   }
 
   /* Modififers */
-  /** Sets the Id of the shape.*/
+  /** Sets the Id of the shape. */
   inline void setId(Id id)
   {
     _Id = id;
   }
 
-  /** Sets the name of the shape.*/
+  /** Sets the name of the shape. */
   inline void setName(const string &name)
   {
     _Name = name;
   }
 
-  /** Sets the library path of the shape.*/
+  /** Sets the library path of the shape. */
   inline void setLibraryPath(const string &path)
   {
     _LibraryPath = path;

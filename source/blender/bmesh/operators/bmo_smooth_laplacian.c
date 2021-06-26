@@ -36,17 +36,17 @@
 #define SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE 0.15f
 
 struct BLaplacianSystem {
-  float *eweights;      /* Length weights per Edge */
-  float (*fweights)[3]; /* Cotangent weights per face */
-  float *ring_areas;    /* Total area per ring*/
-  float *vlengths;      /* Total sum of lengths(edges) per vertice*/
-  float *vweights;      /* Total sum of weights per vertice*/
-  int numEdges;         /* Number of edges*/
-  int numFaces;         /* Number of faces*/
-  int numVerts;         /* Number of verts*/
-  short *zerola;        /* Is zero area or length*/
+  float *eweights;      /* Length weights per Edge. */
+  float (*fweights)[3]; /* Cotangent weights per face. */
+  float *ring_areas;    /* Total area per ring. */
+  float *vlengths;      /* Total sum of lengths(edges) per vertex. */
+  float *vweights;      /* Total sum of weights per vertex. */
+  int numEdges;         /* Number of edges. */
+  int numFaces;         /* Number of faces. */
+  int numVerts;         /* Number of verts. */
+  short *zerola;        /* Is zero area or length. */
 
-  /* Pointers to data*/
+  /* Pointers to data. */
   BMesh *bm;
   BMOperator *op;
   LinearSolver *context;
@@ -343,7 +343,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
         idv1 = BM_elem_index_get(vf[0]);
         idv2 = BM_elem_index_get(vf[1]);
         idv3 = BM_elem_index_get(vf[2]);
-        /* Is ring if number of faces == number of edges around vertice*/
+        /* Is ring if number of faces == number of edges around vertice. */
         i = BM_elem_index_get(f);
         if (!vert_is_boundary(vf[0]) && sys->zerola[idv1] == 0) {
           EIG_linear_solver_matrix_add(

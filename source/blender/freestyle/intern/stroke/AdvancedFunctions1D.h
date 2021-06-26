@@ -66,13 +66,13 @@ class DensityF1D : public UnaryFunction1D<double> {
   {
   }
 
-  /** Returns the string "DensityF1D"*/
+  /** Returns the string "DensityF1D". */
   string getName() const
   {
     return "DensityF1D";
   }
 
-  /** the () operator.*/
+  /** the () operator. */
   int operator()(Interface1D &inter)
   {
     result = integrate(

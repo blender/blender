@@ -722,7 +722,7 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
   const float flowfac = grid->cellsize;
   const float inv_flowfac = 1.0f / grid->cellsize;
 
-  /*const int num_cells = hair_grid_size(grid->res);*/
+  // const int num_cells = hair_grid_size(grid->res);
   const int res[3] = {grid->res[0], grid->res[1], grid->res[2]};
   const int resA[3] = {grid->res[0] + 2, grid->res[1] + 2, grid->res[2] + 2};
 
@@ -891,7 +891,7 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
             neighbor_hi_index[neighbors_hi++] = u + strideA2;
           }
 
-          /*int liquid_neighbors = neighbors_lo + neighbors_hi;*/
+          // int liquid_neighbors = neighbors_lo + neighbors_hi;
           non_solid_neighbors = 6;
 
           for (n = 0; n < neighbors_lo; n++) {

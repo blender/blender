@@ -43,7 +43,7 @@ typedef enum eBoidRuleType {
   eBoidRuleType_Flock = 5,
   /** follow a boid or assigned object */
   eBoidRuleType_FollowLeader = 6,
-  /** maintain speed, flight level or wander*/
+  /** Maintain speed, flight level or wander. */
   eBoidRuleType_AverageSpeed = 7,
   /** go to closest enemy and attack when in range */
   eBoidRuleType_Fight = 8,

@@ -60,7 +60,7 @@ float seq_give_frame_index(Sequence *seq, float timeline_frame)
   }
 
   if (seq->flag & SEQ_REVERSE_FRAMES) {
-    /*reverse frame in this sequence */
+    /* Reverse frame in this sequence. */
     if (timeline_frame <= sta) {
       frame_index = end - sta;
     }

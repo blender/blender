@@ -2759,7 +2759,7 @@ Object *BKE_object_duplicate(Main *bmain,
   }
 
   if (!is_subprocess) {
-    /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
+    /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW. */
     BKE_libblock_relink_to_newid(&obn->id);
 
 #ifndef NDEBUG

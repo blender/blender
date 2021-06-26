@@ -626,7 +626,7 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
 
   if (txl->dof_reduced_color) {
     /* TODO(fclem) In the future, we need to check if mip_count did not change.
-     * For now it's ok as we always define all mip level.*/
+     * For now it's ok as we always define all mip level. */
     if (res[0] != GPU_texture_width(txl->dof_reduced_color) ||
         res[1] != GPU_texture_width(txl->dof_reduced_color)) {
       DRW_TEXTURE_FREE_SAFE(txl->dof_reduced_color);

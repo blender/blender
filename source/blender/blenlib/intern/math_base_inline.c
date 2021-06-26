@@ -199,7 +199,7 @@ MINLINE float scalenorm(float a, float b, float x)
   return (x * (b - a)) + a;
 }
 
-/* used for zoom values*/
+/* Used for zoom values. */
 MINLINE float power_of_2(float val)
 {
   return (float)pow(2.0, ceil(log((double)val) / M_LN2));

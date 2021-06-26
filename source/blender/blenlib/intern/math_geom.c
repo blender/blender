@@ -856,7 +856,7 @@ void dist_squared_to_projected_aabb_precalc(struct DistProjectedAABBPrecalc *pre
   }
 #else
   if (!isect_plane_plane_v3(px, py, precalc->ray_origin, precalc->ray_direction)) {
-    /* Matrix with weird coplanar planes. Undetermined origin.*/
+    /* Matrix with weird co-planar planes. Undetermined origin. */
     zero_v3(precalc->ray_origin);
     precalc->ray_direction[0] = precalc->pmat[0][3];
     precalc->ray_direction[1] = precalc->pmat[1][3];
@@ -2133,7 +2133,7 @@ bool isect_ray_line_v3(const float ray_origin[3],
   const float nlen = len_squared_v3(n);
 
   if (nlen == 0.0f) {
-    /* the lines are parallel.*/
+    /* The lines are parallel. */
     return false;
   }
 
@@ -2903,7 +2903,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
   /*---test edges---*/
   sub_v3_v3v3(e3, v2, v1); /* wasn't yet calculated */
 
-  /*e1*/
+  /* `e1` */
   sub_v3_v3v3(bv, v0, p1);
 
   elen2 = dot_v3v3(e1, e1);
@@ -2926,8 +2926,8 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
     }
   }
 
-  /*e2*/
-  /*bv is same*/
+  /* `e2` */
+  /* `bv` is same. */
   elen2 = dot_v3v3(e2, e2);
   edotv = dot_v3v3(e2, vel);
   edotbv = dot_v3v3(e2, bv);
@@ -2948,11 +2948,11 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
     }
   }
 
-  /*e3*/
-  /* sub_v3_v3v3(bv, v0, p1); */   /* UNUSED */
-  /* elen2 = dot_v3v3(e1, e1); */  /* UNUSED */
-  /* edotv = dot_v3v3(e1, vel); */ /* UNUSED */
-  /* edotbv = dot_v3v3(e1, bv); */ /* UNUSED */
+  /* `e3` */
+  // sub_v3_v3v3(bv, v0, p1);   /* UNUSED */
+  // elen2 = dot_v3v3(e1, e1);  /* UNUSED */
+  // edotv = dot_v3v3(e1, vel); /* UNUSED */
+  // edotbv = dot_v3v3(e1, bv); /* UNUSED */
 
   sub_v3_v3v3(bv, v1, p1);
   elen2 = dot_v3v3(e3, e3);
@@ -4642,7 +4642,7 @@ void resolve_quad_uv_v2_deriv(float r_uv[2],
                              (st3[0] * st0[1] - st3[1] * st0[0]);
 
   /* X is 2D cross product (determinant)
-   * A = (p0 - p) X (p0 - p3)*/
+   * A = (p0 - p) X (p0 - p3) */
   const double a = (st0[0] - st[0]) * (st0[1] - st3[1]) - (st0[1] - st[1]) * (st0[0] - st3[0]);
 
   /* B = ( (p0 - p) X (p1 - p2) + (p1 - p) X (p0 - p3) ) / 2 */
@@ -4731,7 +4731,7 @@ float resolve_quad_u_v2(const float st[2],
                              (st3[0] * st0[1] - st3[1] * st0[0]);
 
   /* X is 2D cross product (determinant)
-   * A = (p0 - p) X (p0 - p3)*/
+   * A = (p0 - p) X (p0 - p3) */
   const double a = (st0[0] - st[0]) * (st0[1] - st3[1]) - (st0[1] - st[1]) * (st0[0] - st3[0]);
 
   /* B = ( (p0 - p) X (p1 - p2) + (p1 - p) X (p0 - p3) ) / 2 */

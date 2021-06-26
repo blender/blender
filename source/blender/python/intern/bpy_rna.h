@@ -183,7 +183,7 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
 void BPY_rna_init(void);
 PyObject *BPY_rna_module(void);
 void BPY_update_rna_module(void);
-/*PyObject *BPY_rna_doc(void);*/
+// PyObject *BPY_rna_doc(void);
 PyObject *BPY_rna_types(void);
 
 PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);

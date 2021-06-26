@@ -1281,7 +1281,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
                               int type,
                               int subtype)
 {
-  /*StructRNA *srna = DefRNA.laststruct;*/ /* invalid for python defined props */
+  // StructRNA *srna = DefRNA.laststruct; /* Invalid for Python defined props. */
   ContainerRNA *cont = cont_;
   ContainerDefRNA *dcont;
   PropertyDefRNA *dprop = NULL;

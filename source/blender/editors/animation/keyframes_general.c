@@ -693,7 +693,7 @@ typedef struct tAnimCopybufItem {
   int totvert;     /* number of keyframes stored for this channel */
   BezTriple *bezt; /* keyframes in buffer */
 
-  short id_type; /* Result of GS(id->name)*/
+  short id_type; /* Result of `GS(id->name)`. */
   bool is_bone;  /* special flag for armature bones */
 } tAnimCopybufItem;
 

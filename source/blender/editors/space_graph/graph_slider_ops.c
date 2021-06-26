@@ -50,7 +50,7 @@
 /* ******************** GRAPH SLIDER OPERATORS ************************* */
 /* This file contains a collection of operators to modify keyframes in the graph editor. All
  * operators are modal and use a slider that allows the user to define a percentage to modify the
- * operator.*/
+ * operator. */
 
 /* ******************** Decimate Keyframes Operator ************************* */
 
@@ -91,7 +91,7 @@ typedef struct tDecimateGraphOp {
   /** A 0-1 value for determining how much we should decimate. */
   PropertyRNA *percentage_prop;
 
-  /** The original bezt curve data (used for restoring fcurves).*/
+  /** The original bezt curve data (used for restoring fcurves). */
   ListBase bezt_arr_list;
 
   NumInput num;
@@ -318,7 +318,7 @@ static int graphkeys_decimate_modal(bContext *C, wmOperator *op, const wmEvent *
   /* This assumes that we are in "DECIM_RATIO" mode. This is because the error margin is very hard
    * and finicky to control with this modal mouse grab method. Therefore, it is expected that the
    * error margin mode is not adjusted by the modal operator but instead tweaked via the redo
-   * panel.*/
+   * panel. */
   tDecimateGraphOp *dgo = op->customdata;
 
   const bool has_numinput = hasNumInput(&dgo->num);

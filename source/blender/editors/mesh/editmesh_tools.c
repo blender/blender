@@ -2309,8 +2309,8 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
       }
     }
 
-    /* ok, we don't have two adjacent faces, but we do have two selected ones.
-     * that's an error condition.*/
+    /* OK, we don't have two adjacent faces, but we do have two selected ones.
+     * that's an error condition. */
     if (tot == 0) {
       continue;
     }
@@ -3639,7 +3639,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 /** \name Shape Key Propagate Operator
  * \{ */
 
-/* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
+/* BMESH_TODO this should be properly encapsulated in a bmop.  but later. */
 static bool shape_propagate(BMEditMesh *em)
 {
   BMIter iter;
@@ -3732,7 +3732,7 @@ void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
 /** \name Blend from Shape Operator
  * \{ */
 
-/* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
+/* BMESH_TODO this should be properly encapsulated in a bmop.  but later. */
 static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 {
   Object *obedit_ref = CTX_data_edit_object(C);
@@ -4139,9 +4139,9 @@ static float bm_edge_seg_isect(const float sco_a[2],
         yi = (b1 * m2 - m1 * b2) / (m2 - m1);
       }
 
-      /* Intersect inside bounding box of edge?*/
+      /* Intersect inside bounding box of edge? */
       if ((xi >= x2min) && (xi <= x2max) && (yi <= y2max) && (yi >= y2min)) {
-        /* test for vertex intersect that may be 'close enough'*/
+        /* Test for vertex intersect that may be 'close enough'. */
         if (mode != KNIFE_MULTICUT) {
           if (xi <= (x21 + threshold) && xi >= (x21 - threshold)) {
             if (yi <= (y21 + threshold) && yi >= (y21 - threshold)) {
@@ -4244,7 +4244,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* store percentage of edge cut for KNIFE_EXACT here.*/
+  /* Store percentage of edge cut for KNIFE_EXACT here. */
   BMOpSlot *slot_edge_percents = BMO_slot_get(bmop.slots_in, "edge_percents");
   BM_ITER_MESH (be, &iter, bm, BM_EDGES_OF_MESH) {
     bool is_cut = false;
@@ -6958,9 +6958,9 @@ static void sort_bmelem_flag(bContext *C,
     }
   }
 
-  /*  printf("%d vertices: %d to be affected...\n", totelem[0], affected[0]);*/
-  /*  printf("%d edges: %d to be affected...\n", totelem[1], affected[1]);*/
-  /*  printf("%d faces: %d to be affected...\n", totelem[2], affected[2]);*/
+  // printf("%d vertices: %d to be affected...\n", totelem[0], affected[0]);
+  // printf("%d edges: %d to be affected...\n", totelem[1], affected[1]);
+  // printf("%d faces: %d to be affected...\n", totelem[2], affected[2]);
   if (affected[0] == 0 && affected[1] == 0 && affected[2] == 0) {
     for (j = 3; j--;) {
       if (pblock[j]) {
@@ -7221,7 +7221,7 @@ static int edbm_bridge_tag_boundary_edges(BMesh *bm)
         /* check if its only used by selected faces */
         BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
           if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-            /* tag face for removal*/
+            /* Tag face for removal. */
             if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
               BM_elem_flag_enable(f, BM_ELEM_TAG);
               totface_del++;

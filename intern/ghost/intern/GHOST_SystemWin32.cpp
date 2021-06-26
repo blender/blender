@@ -1503,7 +1503,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_SYSKEYDOWN:
         case WM_KEYUP:
         case WM_SYSKEYUP:
-        /* These functions were replaced by WM_INPUT*/
+        /* These functions were replaced by #WM_INPUT. */
         case WM_CHAR:
         /* The WM_CHAR message is posted to the window with the keyboard focus when
          * a WM_KEYDOWN message is translated by the TranslateMessage function. WM_CHAR
@@ -1851,7 +1851,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * to perform any move or size change processing during the WM_WINDOWPOSCHANGED
            * message without calling DefWindowProc.
            */
-          /* see WM_SIZE comment*/
+          /* See #WM_SIZE comment. */
           if (window->m_inLiveResize) {
             system->pushEvent(processWindowEvent(GHOST_kEventWindowMove, window));
             system->dispatchEvents();

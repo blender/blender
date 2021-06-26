@@ -1456,7 +1456,7 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   BLI_kdtree_3d_free(edit->emitter_field);
 
   totface = mesh->totface;
-  /*totvert=dm->getNumVerts(dm);*/ /*UNUSED*/
+  // totvert = dm->getNumVerts(dm); /* UNUSED */
 
   edit->emitter_cosnos = MEM_callocN(sizeof(float[6]) * totface, "emitter cosnos");
 
@@ -1564,7 +1564,7 @@ void update_world_cos(Object *ob, PTCacheEdit *edit)
 }
 static void update_velocities(PTCacheEdit *edit)
 {
-  /*TODO: get frs_sec properly */
+  /* TODO: get frs_sec properly. */
   float vec1[3], vec2[3], frs_sec, dfra;
   POINT_P;
   KEY_K;
@@ -3003,7 +3003,7 @@ static void remove_tagged_keys(Depsgraph *depsgraph, Object *ob, ParticleSystem 
     LOOP_TAGGED_KEYS {
       new_totkey--;
     }
-    /* we can't have elements with less than two keys*/
+    /* We can't have elements with less than two keys. */
     if (new_totkey < 2) {
       point->flag |= PEP_TAG;
     }
@@ -3142,7 +3142,7 @@ static void subdivide_particle(PEData *data, int pa_index)
       nkey++;
     }
   }
-  /*tip still not copied*/
+  /* Tip still not copied. */
   memcpy(nkey, key, sizeof(HairKey));
   memcpy(nekey, ekey, sizeof(PTCacheEditKey));
 

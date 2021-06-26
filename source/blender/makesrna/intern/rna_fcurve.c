@@ -61,8 +61,8 @@ const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
      "Reshape F-Curve values, e.g. change amplitude of movements"},
     {FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", "Cyclic extend/repeat keyframe sequence"},
     {FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", "Add pseudo-random noise on top of F-Curves"},
-    /*{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},*/ /* FIXME: not implemented yet! */
-    /*{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},*/ /* FIXME: not implemented yet! */
+    // {FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""}, /* FIXME: not implemented yet! */
+    // {FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""}, /* FIXME: not implemented yet! */
     {FMODIFIER_TYPE_LIMITS,
      "LIMITS",
      0,
@@ -1449,7 +1449,7 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 static void rna_def_fmodifier_python(BlenderRNA *brna)
 {
   StructRNA *srna;
-  /*PropertyRNA *prop; */
+  // PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "FModifierPython", "FModifier");
   RNA_def_struct_ui_text(

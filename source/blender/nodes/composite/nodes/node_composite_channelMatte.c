@@ -44,10 +44,10 @@ static void node_composit_init_channel_matte(bNodeTree *UNUSED(ntree), bNode *no
   c->t3 = 0.0f;
   c->fsize = 0.0f;
   c->fstrength = 0.0f;
-  c->algorithm = 1;  /*max channel limiting */
-  c->channel = 1;    /* limit by red */
-  node->custom1 = 1; /* RGB channel */
-  node->custom2 = 2; /* Green Channel */
+  c->algorithm = 1;  /* Max channel limiting. */
+  c->channel = 1;    /* Limit by red. */
+  node->custom1 = 1; /* RGB channel. */
+  node->custom2 = 2; /* Green Channel. */
 }
 
 void register_node_type_cmp_channel_matte(void)

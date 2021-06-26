@@ -56,7 +56,7 @@ class ViewEdge;
 class ViewShape;
 class TVertex;
 
-/** Class defining the ViewMap.*/
+/** Class defining the ViewMap. */
 class ViewMap {
  public:
   typedef vector<ViewEdge *> viewedges_container;
@@ -295,7 +295,7 @@ class ViewVertex : public Interface0D {
    */
   void *userdata;
 
-  /** Default constructor.*/
+  /** Default constructor. */
   inline ViewVertex()
   {
     userdata = NULL;
@@ -483,7 +483,7 @@ class TVertex : public ViewVertex {
       _sortedEdges;  // the list of the four ViewEdges, ordered in CCW order (in the image plan)
 
  public:
-  /** Default constructor.*/
+  /** Default constructor. */
   inline TVertex() : ViewVertex(Nature::T_VERTEX)
   {
     _FrontSVertex = NULL;
@@ -758,7 +758,7 @@ class NonTVertex : public ViewVertex {
   edges_container _ViewEdges;
 
  public:
-  /** Default constructor.*/
+  /** Default constructor. */
   inline NonTVertex() : ViewVertex(Nature::NON_T_VERTEX)
   {
     _SVertex = NULL;
@@ -1182,7 +1182,7 @@ class ViewEdge : public Interface1D {
     _FEdgeB = iFEdge;
   }
 
-  /** Sets the ViewShape to which this ViewEdge belongs to.*/
+  /** Sets the ViewShape to which this ViewEdge belongs to. */
   inline void setShape(ViewShape *iVShape)
   {
     _Shape = iVShape;
@@ -1417,7 +1417,7 @@ class ViewShape {
    */
   void *userdata;
 
-  /** Default constructor.*/
+  /** Default constructor. */
   inline ViewShape()
   {
     userdata = NULL;

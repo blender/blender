@@ -72,7 +72,7 @@ static void file_panel_operator(const bContext *C, Panel *panel)
 
   UI_block_func_set(uiLayoutGetBlock(panel->layout), file_draw_check_cb, NULL, NULL);
 
-  /* Hack: temporary hide.*/
+  /* Hack: temporary hide. */
   const char *hide[] = {"filepath", "files", "directory", "filename"};
   for (int i = 0; i < ARRAY_SIZE(hide); i++) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, hide[i]);
@@ -84,7 +84,7 @@ static void file_panel_operator(const bContext *C, Panel *panel)
   uiTemplateOperatorPropertyButs(
       C, panel->layout, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
 
-  /* Hack: temporary hide.*/
+  /* Hack: temporary hide. */
   for (int i = 0; i < ARRAY_SIZE(hide); i++) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, hide[i]);
     if (prop) {

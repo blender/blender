@@ -1805,7 +1805,7 @@ static bool mouse_mesh_loop(
               V3D_PROJ_RET_OK) {
             tdist = len_squared_v2v2(mvalf, co);
             if (tdist < best_dist) {
-              /*                          printf("Best face: %p (%f)\n", f, tdist);*/
+              // printf("Best face: %p (%f)\n", f, tdist);
               best_dist = tdist;
               efa = f;
             }

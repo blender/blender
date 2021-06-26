@@ -1652,7 +1652,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
      * which exact version fully deprecated tessfaces, so think we can keep that one here, no
      * harm to be expected anyway for being over-conservative. */
     for (Mesh *me = bmain->meshes.first; me != NULL; me = me->id.next) {
-      /*check if we need to convert mfaces to mpolys*/
+      /* Check if we need to convert mfaces to mpolys. */
       if (me->totface && !me->totpoly) {
         /* temporarily switch main so that reading from
          * external CustomData works */
@@ -3557,7 +3557,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Fix anamorphic bokeh eevee rna limits.*/
+    /* Fix anamorphic bokeh eevee rna limits. */
     for (Camera *ca = bmain->cameras.first; ca; ca = ca->id.next) {
       if (ca->gpu_dof.ratio < 0.01f) {
         ca->gpu_dof.ratio = 0.01f;
@@ -4924,7 +4924,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Corrective smooth modifier scale*/
+    /* Corrective smooth modifier scale. */
     if (!DNA_struct_elem_find(fd->filesdna, "CorrectiveSmoothModifierData", "float", "scale")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -4973,7 +4973,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Surface deform modifier strength*/
+    /* Surface deform modifier strength. */
     if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "float", "strength")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {

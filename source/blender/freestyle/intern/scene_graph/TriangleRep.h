@@ -136,7 +136,7 @@ class TriangleRep : public Rep {
     v.visitTriangleRep(*this);
   }
 
-  /** Computes the triangle bounding box.*/
+  /** Computes the triangle bounding box. */
   virtual void ComputeBBox();
 };
 

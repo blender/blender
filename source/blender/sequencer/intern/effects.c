@@ -3214,7 +3214,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
   else {
     /* if there is no fcurve, use value as simple multiplier */
     if (!fcu) {
-      fallback_fac = seq->speed_fader; /* same as speed_factor in rna*/
+      fallback_fac = seq->speed_fader; /* Same as speed_factor in RNA. */
     }
   }
 

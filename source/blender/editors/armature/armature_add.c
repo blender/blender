@@ -1558,7 +1558,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 
 /* ********************** Bone Add *************************************/
 
-/*op makes a new bone and returns it with its tip selected */
+/* Op makes a new bone and returns it with its tip selected. */
 
 static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 {

@@ -1041,7 +1041,7 @@ ListBase *ED_image_paint_tile_list_get(void)
   return &us->paint_tiles;
 }
 
-/* restore painting image to previous state. Used for anchored and drag-dot style brushes*/
+/* Restore painting image to previous state. Used for anchored and drag-dot style brushes. */
 void ED_image_undo_restore(UndoStep *us)
 {
   ListBase *paint_tiles = &((ImageUndoStep *)us)->paint_tiles;

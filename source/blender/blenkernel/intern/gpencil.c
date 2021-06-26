@@ -195,12 +195,12 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
 
 void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
 {
-  /* we must firstly have some grease-pencil data to link! */
+  /* We must firstly have some grease-pencil data to link! */
   if (gpd == NULL) {
     return;
   }
 
-  /* relink animdata */
+  /* Relink anim-data. */
   BLO_read_data_address(reader, &gpd->adt);
   BKE_animdata_blend_read_data(reader, gpd->adt);
 
@@ -219,7 +219,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.tot_cp_points = 0;
 
-  /* relink palettes (old palettes deprecated, only to convert old files) */
+  /* Relink palettes (old palettes deprecated, only to convert old files). */
   BLO_read_list(reader, &gpd->palettes);
   if (gpd->palettes.first != NULL) {
     LISTBASE_FOREACH (bGPDpalette *, palette, &gpd->palettes) {
@@ -227,14 +227,14 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
     }
   }
 
-  /* materials */
+  /* Materials. */
   BLO_read_pointer_array(reader, (void **)&gpd->mat);
 
-  /* relink layers */
+  /* Relink layers. */
   BLO_read_list(reader, &gpd->layers);
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    /* relink frames */
+    /* Relink frames. */
     BLO_read_list(reader, &gpl->frames);
 
     BLO_read_data_address(reader, &gpl->actframe);
@@ -245,23 +245,23 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
     BLO_read_list(reader, &gpl->mask_layers);
 
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      /* relink strokes (and their points) */
+      /* Relink strokes (and their points). */
       BLO_read_list(reader, &gpf->strokes);
 
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        /* relink stroke points array */
+        /* Relink stroke points array. */
         BLO_read_data_address(reader, &gps->points);
-        /* Relink geometry*/
+        /* Relink geometry. */
         BLO_read_data_address(reader, &gps->triangles);
 
-        /* relink stroke edit curve. */
+        /* Relink stroke edit curve. */
         BLO_read_data_address(reader, &gps->editcurve);
         if (gps->editcurve != NULL) {
-          /* relink curve point array */
+          /* Relink curve point array. */
           BLO_read_data_address(reader, &gps->editcurve->curve_points);
         }
 
-        /* relink weight data */
+        /* Relink weight data. */
         if (gps->dvert) {
           BLO_read_data_address(reader, &gps->dvert);
           BKE_defvert_blend_read(reader, gps->totpoints, gps->dvert);
@@ -458,7 +458,7 @@ void BKE_gpencil_free_frames(bGPDlayer *gpl)
 
 void BKE_gpencil_free_layer_masks(bGPDlayer *gpl)
 {
-  /* Free masks.*/
+  /* Free masks. */
   bGPDlayer_Mask *mask_next = NULL;
   for (bGPDlayer_Mask *mask = gpl->mask_layers.first; mask; mask = mask_next) {
     mask_next = mask->next;
@@ -482,7 +482,7 @@ void BKE_gpencil_free_layers(ListBase *list)
     /* free layers and their data */
     BKE_gpencil_free_frames(gpl);
 
-    /* Free masks.*/
+    /* Free masks. */
     BKE_gpencil_free_layer_masks(gpl);
 
     BLI_freelinkN(list, gpl);
