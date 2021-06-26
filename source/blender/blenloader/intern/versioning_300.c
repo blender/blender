@@ -40,7 +40,9 @@
 #include "BKE_node.h"
 
 #include "BLO_readfile.h"
+#include "MEM_guardedalloc.h"
 #include "readfile.h"
+#include "versioning_common.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -122,6 +124,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     sort_linked_ids(bmain);
     assert_sorted_ids(bmain);
   }
+
   if (MAIN_VERSION_ATLEAST(bmain, 300, 3)) {
     assert_sorted_ids(bmain);
   }
@@ -392,6 +395,26 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 5)) {
+    /* Add a dataset sidebar to the spreadsheet editor. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SPREADSHEET) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            ARegion *spreadsheet_dataset_region = do_versions_add_region_if_not_found(
+                regionbase, RGN_TYPE_CHANNELS, "spreadsheet dataset region", RGN_TYPE_FOOTER);
+
+            if (spreadsheet_dataset_region) {
+              spreadsheet_dataset_region->alignment = RGN_ALIGN_LEFT;
+              spreadsheet_dataset_region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+            }
+          }
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

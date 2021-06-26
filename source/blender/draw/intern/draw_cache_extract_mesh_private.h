@@ -41,66 +41,6 @@ extern "C" {
 #define MIN_RANGE_LEN 1024
 
 /* ---------------------------------------------------------------------- */
-/** \name Dependencies between buffer and batch
- * \{ */
-#ifndef NDEBUG
-#  define _MDEF_type(name) static DRWBatchFlag MDEP_assert_##name = 0, MDEP_##name
-#else
-#  define _MDEF_type(name) static const DRWBatchFlag MDEP_##name
-#endif
-
-/* clang-format off */
-
-#define _MDEPS_CREATE1(b) (1u << MBC_BATCH_INDEX(b))
-#define _MDEPS_CREATE2(b1, b2) _MDEPS_CREATE1(b1) | _MDEPS_CREATE1(b2)
-#define _MDEPS_CREATE3(b1, b2, b3) _MDEPS_CREATE2(b1, b2) | _MDEPS_CREATE1(b3)
-#define _MDEPS_CREATE4(b1, b2, b3, b4) _MDEPS_CREATE3(b1, b2, b3) | _MDEPS_CREATE1(b4)
-#define _MDEPS_CREATE5(b1, b2, b3, b4, b5) _MDEPS_CREATE4(b1, b2, b3, b4) | _MDEPS_CREATE1(b5)
-#define _MDEPS_CREATE6(b1, b2, b3, b4, b5, b6) _MDEPS_CREATE5(b1, b2, b3, b4, b5) | _MDEPS_CREATE1(b6)
-#define _MDEPS_CREATE7(b1, b2, b3, b4, b5, b6, b7) _MDEPS_CREATE6(b1, b2, b3, b4, b5, b6) | _MDEPS_CREATE1(b7)
-#define _MDEPS_CREATE8(b1, b2, b3, b4, b5, b6, b7, b8) _MDEPS_CREATE7(b1, b2, b3, b4, b5, b6, b7) | _MDEPS_CREATE1(b8)
-#define _MDEPS_CREATE9(b1, b2, b3, b4, b5, b6, b7, b8, b9) _MDEPS_CREATE8(b1, b2, b3, b4, b5, b6, b7, b8) | _MDEPS_CREATE1(b9)
-#define _MDEPS_CREATE10(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10) _MDEPS_CREATE9(b1, b2, b3, b4, b5, b6, b7, b8, b9) | _MDEPS_CREATE1(b10)
-#define _MDEPS_CREATE19(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19) _MDEPS_CREATE10(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10) | _MDEPS_CREATE9(b11, b12, b13, b14, b15, b16, b17, b18, b19)
-
-#define MDEPS_CREATE(name, ...) _MDEF_type(name) = VA_NARGS_CALL_OVERLOAD(_MDEPS_CREATE, __VA_ARGS__)
-
-#define _MDEPS_CREATE_MAP1(a) MDEP_##a
-#define _MDEPS_CREATE_MAP2(a, b) MDEP_##a | MDEP_##b
-#define _MDEPS_CREATE_MAP3(a, b, c) _MDEPS_CREATE_MAP2(a, b) | MDEP_##c
-#define _MDEPS_CREATE_MAP4(a, b, c, d) _MDEPS_CREATE_MAP3(a, b, c) | MDEP_##d
-#define _MDEPS_CREATE_MAP5(a, b, c, d, e) _MDEPS_CREATE_MAP4(a, b, c, d) | MDEP_##e
-#define _MDEPS_CREATE_MAP6(a, b, c, d, e, f) _MDEPS_CREATE_MAP5(a, b, c, d, e) | MDEP_##f
-#define _MDEPS_CREATE_MAP7(a, b, c, d, e, f, g) _MDEPS_CREATE_MAP6(a, b, c, d, e, f) | MDEP_##g
-#define _MDEPS_CREATE_MAP8(a, b, c, d, e, f, g, h) _MDEPS_CREATE_MAP7(a, b, c, d, e, f, g) | MDEP_##h
-#define _MDEPS_CREATE_MAP9(a, b, c, d, e, f, g, h, i) _MDEPS_CREATE_MAP8(a, b, c, d, e, f, g, h) | MDEP_##i
-#define _MDEPS_CREATE_MAP10(a, b, c, d, e, f, g, h, i, j) _MDEPS_CREATE_MAP9(a, b, c, d, e, f, g, h, i) | MDEP_##j
-
-#define MDEPS_CREATE_MAP(...) VA_NARGS_CALL_OVERLOAD(_MDEPS_CREATE_MAP, __VA_ARGS__)
-
-#ifndef NDEBUG
-#  define _MDEPS_ASSERT2(b, name) \
-    MDEP_assert_##name |= _MDEPS_CREATE1(b); \
-    BLI_assert(MDEP_##name & _MDEPS_CREATE1(b))
-#  define _MDEPS_ASSERT3(b, n1, n2) _MDEPS_ASSERT2(b, n1); _MDEPS_ASSERT2(b, n2)
-#  define _MDEPS_ASSERT4(b, n1, n2, n3) _MDEPS_ASSERT3(b, n1, n2); _MDEPS_ASSERT2(b, n3)
-#  define _MDEPS_ASSERT5(b, n1, n2, n3, n4) _MDEPS_ASSERT4(b, n1, n2, n3); _MDEPS_ASSERT2(b, n4)
-#  define _MDEPS_ASSERT6(b, n1, n2, n3, n4, n5) _MDEPS_ASSERT5(b, n1, n2, n3, n4); _MDEPS_ASSERT2(b, n5)
-#  define _MDEPS_ASSERT7(b, n1, n2, n3, n4, n5, n6) _MDEPS_ASSERT6(b, n1, n2, n3, n4, n5); _MDEPS_ASSERT2(b, n6)
-#  define _MDEPS_ASSERT8(b, n1, n2, n3, n4, n5, n6, n7) _MDEPS_ASSERT7(b, n1, n2, n3, n4, n5, n6); _MDEPS_ASSERT2(b, n7)
-
-#  define MDEPS_ASSERT(...) VA_NARGS_CALL_OVERLOAD(_MDEPS_ASSERT, __VA_ARGS__)
-#  define MDEPS_ASSERT_MAP(name) BLI_assert(MDEP_assert_##name == MDEP_##name)
-#else
-#  define MDEPS_ASSERT(...)
-#  define MDEPS_ASSERT_MAP(name) UNUSED_VARS(MDEP_##name)
-#endif
-
-/* clang-format on */
-
-/** \} */
-
-/* ---------------------------------------------------------------------- */
 /** \name Mesh Render Data
  * \{ */
 

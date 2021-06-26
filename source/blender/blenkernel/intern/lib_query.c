@@ -83,7 +83,7 @@ bool BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
     ID *old_id = *id_pp;
 
     /* Update the callback flags with the ones defined (or forbidden) in `data` by the generic
-     * caller code.  */
+     * caller code. */
     cb_flag = ((cb_flag | data->cb_flag) & ~data->cb_flag_clear);
 
     /* Update the callback flags with some extra information regarding overrides: all 'loopback',

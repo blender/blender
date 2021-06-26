@@ -186,7 +186,7 @@ static ResultAttributes create_point_attributes(PointCloudComponent &points,
 
 /**
  * TODO: For non-poly splines, this has double copies that could be avoided as part
- * of a general look at optimizing uses of #interpolate_to_evaluated_points.
+ * of a general look at optimizing uses of #Spline::interpolate_to_evaluated.
  */
 static void copy_evaluated_point_attributes(Span<SplinePtr> splines,
                                             Span<int> offsets,
@@ -199,10 +199,8 @@ static void copy_evaluated_point_attributes(Span<SplinePtr> splines,
       const int size = offsets[i + 1] - offsets[i];
 
       data.positions.slice(offset, size).copy_from(spline.evaluated_positions());
-      spline.interpolate_to_evaluated_points(spline.radii())
-          ->materialize(data.radii.slice(offset, size));
-      spline.interpolate_to_evaluated_points(spline.tilts())
-          ->materialize(data.tilts.slice(offset, size));
+      spline.interpolate_to_evaluated(spline.radii())->materialize(data.radii.slice(offset, size));
+      spline.interpolate_to_evaluated(spline.tilts())->materialize(data.tilts.slice(offset, size));
 
       for (const Map<std::string, GMutableSpan>::Item &item : data.point_attributes.items()) {
         const StringRef name = item.key;
@@ -211,7 +209,7 @@ static void copy_evaluated_point_attributes(Span<SplinePtr> splines,
         BLI_assert(spline.attributes.get_for_read(name));
         GSpan spline_span = *spline.attributes.get_for_read(name);
 
-        spline.interpolate_to_evaluated_points(spline_span)
+        spline.interpolate_to_evaluated(spline_span)
             ->materialize(point_span.slice(offset, size).data());
       }
 
@@ -236,18 +234,16 @@ static void copy_uniform_sample_point_attributes(Span<SplinePtr> splines,
 
       const Array<float> uniform_samples = spline.sample_uniform_index_factors(size);
 
-      spline.sample_based_on_index_factors<float3>(
+      spline.sample_with_index_factors<float3>(
           spline.evaluated_positions(), uniform_samples, data.positions.slice(offset, size));
 
-      spline.sample_based_on_index_factors<float>(
-          spline.interpolate_to_evaluated_points(spline.radii()),
-          uniform_samples,
-          data.radii.slice(offset, size));
+      spline.sample_with_index_factors<float>(spline.interpolate_to_evaluated(spline.radii()),
+                                              uniform_samples,
+                                              data.radii.slice(offset, size));
 
-      spline.sample_based_on_index_factors<float>(
-          spline.interpolate_to_evaluated_points(spline.tilts()),
-          uniform_samples,
-          data.tilts.slice(offset, size));
+      spline.sample_with_index_factors<float>(spline.interpolate_to_evaluated(spline.tilts()),
+                                              uniform_samples,
+                                              data.tilts.slice(offset, size));
 
       for (const Map<std::string, GMutableSpan>::Item &item : data.point_attributes.items()) {
         const StringRef name = item.key;
@@ -256,18 +252,18 @@ static void copy_uniform_sample_point_attributes(Span<SplinePtr> splines,
         BLI_assert(spline.attributes.get_for_read(name));
         GSpan spline_span = *spline.attributes.get_for_read(name);
 
-        spline.sample_based_on_index_factors(*spline.interpolate_to_evaluated_points(spline_span),
-                                             uniform_samples,
-                                             point_span.slice(offset, size));
+        spline.sample_with_index_factors(*spline.interpolate_to_evaluated(spline_span),
+                                         uniform_samples,
+                                         point_span.slice(offset, size));
       }
 
-      spline.sample_based_on_index_factors<float3>(
+      spline.sample_with_index_factors<float3>(
           spline.evaluated_tangents(), uniform_samples, data.tangents.slice(offset, size));
       for (float3 &tangent : data.tangents) {
         tangent.normalize();
       }
 
-      spline.sample_based_on_index_factors<float3>(
+      spline.sample_with_index_factors<float3>(
           spline.evaluated_normals(), uniform_samples, data.normals.slice(offset, size));
       for (float3 &normals : data.normals) {
         normals.normalize();

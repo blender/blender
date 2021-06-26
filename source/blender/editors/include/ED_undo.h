@@ -53,7 +53,7 @@ void ED_OT_undo_redo(struct wmOperatorType *ot);
 void ED_OT_undo_history(struct wmOperatorType *ot);
 
 int ED_undo_operator_repeat(struct bContext *C, struct wmOperator *op);
-/* convenience since UI callbacks use this mostly*/
+/* Convenience since UI callbacks use this mostly. */
 void ED_undo_operator_repeat_cb(struct bContext *C, void *arg_op, void *arg_unused);
 void ED_undo_operator_repeat_cb_evt(struct bContext *C, void *arg_op, int arg_unused);
 

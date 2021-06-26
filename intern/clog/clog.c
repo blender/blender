@@ -79,15 +79,15 @@ typedef struct CLG_IDFilter {
 } CLG_IDFilter;
 
 typedef struct CLogContext {
-  /** Single linked list of types.  */
+  /** Single linked list of types. */
   CLG_LogType *types;
-  /** Single linked list of references.  */
+  /** Single linked list of references. */
   CLG_LogRef *refs;
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_t types_lock;
 #endif
 
-  /* exclude, include filters.  */
+  /* exclude, include filters. */
   CLG_IDFilter *filters[2];
   bool use_color;
   bool use_basename;

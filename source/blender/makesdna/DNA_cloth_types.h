@@ -141,7 +141,7 @@ typedef struct ClothSimSettings {
   short solver_type;
   /** Vertex group for scaling bending stiffness. */
   short vgroup_bend;
-  /** Optional vertexgroup name for assigning weight..*/
+  /** Optional vertexgroup name for assigning weight. */
   short vgroup_mass;
   /** Vertex group for scaling structural stiffness. */
   short vgroup_struct;
@@ -184,7 +184,7 @@ typedef struct ClothSimSettings {
 
 } ClothSimSettings;
 
-/* SIMULATION FLAGS: goal flags,.. */
+/* SIMULATION FLAGS: goal flags, etc. */
 /* These are the bits used in SimSettings.flags. */
 typedef enum {
   /** Object is only collision object, no cloth simulation is done. */

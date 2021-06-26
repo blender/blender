@@ -210,7 +210,7 @@ PyTypeObject UnaryFunction1DVectorViewShape_Type = {
     nullptr,                                                            /* tp_as_number */
     nullptr,                                                            /* tp_as_sequence */
     nullptr,                                                            /* tp_as_mapping */
-    nullptr,                                                            /* tp_hash  */
+    nullptr,                                                            /* tp_hash */
     (ternaryfunc)UnaryFunction1DVectorViewShape___call__,               /* tp_call */
     nullptr,                                                            /* tp_str */
     nullptr,                                                            /* tp_getattro */

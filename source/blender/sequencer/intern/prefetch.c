@@ -260,7 +260,7 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
 
 void SEQ_prefetch_stop_all(void)
 {
-  /*TODO(Richard): Use wm_jobs for prefetch, or pass main. */
+  /* TODO(Richard): Use wm_jobs for prefetch, or pass main. */
   for (Scene *scene = G.main->scenes.first; scene; scene = scene->id.next) {
     SEQ_prefetch_stop(scene);
   }
@@ -533,7 +533,7 @@ static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cf
   return pfjob;
 }
 
-/* Start or resume prefetching*/
+/* Start or resume prefetching. */
 void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
 {
   Scene *scene = context->scene;

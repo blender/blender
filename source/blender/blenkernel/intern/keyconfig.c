@@ -55,7 +55,7 @@ wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idna
   }
   if (kpt->prop == NULL) {
     IDPropertyTemplate val = {0};
-    kpt->prop = IDP_New(IDP_GROUP, &val, kc_idname); /* name is unimportant  */
+    kpt->prop = IDP_New(IDP_GROUP, &val, kc_idname); /* name is unimportant. */
   }
   return kpt;
 }

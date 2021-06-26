@@ -1296,7 +1296,7 @@ static int uv_select_edgering(
         l_step = uvedit_loop_find_other_radial_loop_with_visible_face(
             scene, l_step_opposite, cd_loop_uv_offset);
         if (l_step == NULL) {
-          /* Ensure we touch the opposite edge if we cant walk over it. */
+          /* Ensure we touch the opposite edge if we can't walk over it. */
           l_step = l_step_opposite;
         }
       }

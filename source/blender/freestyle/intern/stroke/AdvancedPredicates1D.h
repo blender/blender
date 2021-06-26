@@ -38,12 +38,12 @@ namespace Freestyle {
 namespace Predicates1D {
 
 // DensityLowerThanUP1D
-/*! Returns true if the density evaluated for the
+/** Returns true if the density evaluated for the
  *  Interface1D is less than a user-defined density value.
  */
 class DensityLowerThanUP1D : public UnaryPredicate1D {
  public:
-  /*! Builds the functor.
+  /** Builds the functor.
    *  \param threshold:
    *    The value of the threshold density.
    *    Any Interface1D having a density lower than this threshold will match.
@@ -56,13 +56,13 @@ class DensityLowerThanUP1D : public UnaryPredicate1D {
     _sigma = sigma;
   }
 
-  /*! Returns the string "DensityLowerThanUP1D" */
+  /** Returns the string "DensityLowerThanUP1D" */
   string getName() const
   {
     return "DensityLowerThanUP1D";
   }
 
-  /*! The () operator. */
+  /** The () operator. */
   int operator()(Interface1D &inter)
   {
     Functions1D::DensityF1D fun(_sigma);

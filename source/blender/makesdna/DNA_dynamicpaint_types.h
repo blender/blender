@@ -156,7 +156,7 @@ typedef struct DynamicPaintSurface {
 
 /* canvas flags */
 enum {
-  /** surface is already baking, so it wont get updated (loop) */
+  /** surface is already baking, so it won't get updated (loop) */
   MOD_DPAINT_BAKING = 1 << 1,
 };
 

@@ -174,7 +174,7 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
     int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
     if (part->type == PART_HAIR) {
-      /* Hairs should have been rendered by the render engine.*/
+      /* Hairs should have been rendered by the render engine. */
       continue;
     }
 

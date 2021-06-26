@@ -999,9 +999,9 @@ void WM_xr_action_binding_destroy(wmXrData *xr,
                                   unsigned int count_interaction_paths,
                                   const char **interaction_paths);
 
-bool WM_xr_active_action_set_set(
-    wmXrData *xr, const char *action_set_name); /* If action_set_name is NULL, then
-                                                 * all action sets will be treated as active. */
+/* If action_set_name is NULL, then all action sets will be treated as active. */
+bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name);
+
 bool WM_xr_controller_pose_action_set(wmXrData *xr,
                                       const char *action_set_name,
                                       const char *action_name);

@@ -1280,12 +1280,12 @@ static void save_sample_line(
 {
   float yuv[3];
 
-  /* vectorscope*/
+  /* Vector-scope. */
   rgb_to_yuv(rgb[0], rgb[1], rgb[2], &yuv[0], &yuv[1], &yuv[2], BLI_YUV_ITU_BT709);
   scopes->vecscope[idx + 0] = yuv[1];
   scopes->vecscope[idx + 1] = yuv[2];
 
-  /* waveform */
+  /* Waveform. */
   switch (scopes->wavefrm_mode) {
     case SCOPES_WAVEFRM_RGB:
     case SCOPES_WAVEFRM_RGB_PARADE:
@@ -1497,7 +1497,7 @@ static void scopes_update_cb(void *__restrict userdata,
       mul_v3_fl(ycc, INV_255);
       minmax_v3v3_v3(min, max, ycc);
     }
-    /* increment count for histo*/
+    /* Increment count for histo. */
     bin_lum[get_bin_float(luma)]++;
     bin_r[get_bin_float(rgba[0])]++;
     bin_g[get_bin_float(rgba[1])]++;

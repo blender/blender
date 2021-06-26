@@ -146,7 +146,7 @@ class InputSocketRef final : public SocketRef {
   void foreach_logical_origin(FunctionRef<void(const OutputSocketRef &)> origin_fn,
                               FunctionRef<void(const SocketRef &)> skipped_fn,
                               bool only_follow_first_input_link,
-                              Vector<const InputSocketRef *> &handled_sockets) const;
+                              Vector<const InputSocketRef *> &seen_sockets_stack) const;
 };
 
 class OutputSocketRef final : public SocketRef {
@@ -159,7 +159,7 @@ class OutputSocketRef final : public SocketRef {
  private:
   void foreach_logical_target(FunctionRef<void(const InputSocketRef &)> target_fn,
                               FunctionRef<void(const SocketRef &)> skipped_fn,
-                              Vector<const OutputSocketRef *> &handled_sockets) const;
+                              Vector<const OutputSocketRef *> &seen_sockets_stack) const;
 };
 
 class NodeRef : NonCopyable, NonMovable {

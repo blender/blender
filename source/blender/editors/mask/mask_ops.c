@@ -83,7 +83,9 @@ Mask *ED_mask_new(bContext *C, const char *name)
   return mask;
 }
 
-/* Get ative layer. Will create mask/layer to be sure there's an active layer.  */
+/**
+ * Get active layer. Will create mask/layer to be sure there's an active layer.
+ */
 MaskLayer *ED_mask_layer_ensure(bContext *C, bool *r_added_mask)
 {
   Mask *mask = CTX_data_edit_mask(C);

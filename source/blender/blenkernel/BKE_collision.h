@@ -63,7 +63,7 @@ typedef struct CollPair {
   float time; /* collision time, from 0 up to 1 */
 
   /* mesh-mesh collision */
-#ifdef WITH_ELTOPO /*either ap* or bp* can be set, but not both*/
+#ifdef WITH_ELTOPO /* Either ap* or bp* can be set, but not both. */
   float bary[3];
   int ap1, ap2, ap3, collp, bp1, bp2, bp3;
   int collface;

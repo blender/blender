@@ -100,7 +100,7 @@ size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
 size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();
 void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base_10)
     ATTR_NONNULL();
-
+void BLI_str_format_attribute_domain_size(char dst[7], int number_to_format) ATTR_NONNULL();
 int BLI_strcaseeq(const char *a, const char *b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 char *BLI_strcasestr(const char *s, const char *find) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 char *BLI_strncasestr(const char *s, const char *find, size_t len) ATTR_WARN_UNUSED_RESULT

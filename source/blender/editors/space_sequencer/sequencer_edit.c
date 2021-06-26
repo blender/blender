@@ -2486,7 +2486,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
         min_seq_startdisp = seq->startdisp;
       }
     }
-    /* Paste strips after playhead. */
+    /* Paste strips relative to the current-frame. */
     ofs = scene->r.cfra - min_seq_startdisp;
   }
 
@@ -2539,7 +2539,11 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
 
   /* Properties. */
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "keep_offset", false, "Keep Offset", "Keep strip offset to playhead when pasting");
+      ot->srna,
+      "keep_offset",
+      false,
+      "Keep Offset",
+      "Keep strip offset relative to the current frame when pasting");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -2825,7 +2829,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
       RNA_END;
     }
 
-    /* Reset these else we wont see all the images. */
+    /* Reset these else we won't see all the images. */
     seq->anim_startofs = seq->anim_endofs = 0;
 
     /* Correct start/end frames so we don't move.

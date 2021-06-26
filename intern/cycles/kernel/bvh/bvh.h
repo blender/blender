@@ -116,7 +116,7 @@ CCL_NAMESPACE_BEGIN
 #    endif
 #  endif /* __SHADOW_RECORD_ALL__ */
 
-/* Record all intersections - Volume BVH traversal  */
+/* Record all intersections - Volume BVH traversal. */
 
 #  if defined(__VOLUME_RECORD_ALL__)
 #    define BVH_FUNCTION_NAME bvh_intersect_volume_all

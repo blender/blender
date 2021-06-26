@@ -266,4 +266,5 @@ ForEachMacros:
   - TGSET_ITER
 
 StatementMacros:
+  - PyObject_HEAD
   - PyObject_VAR_HEAD

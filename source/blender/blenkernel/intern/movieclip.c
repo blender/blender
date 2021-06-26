@@ -1320,7 +1320,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(
     clip->lastframe = framenr;
     real_ibuf_size(clip, user, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
 
-    /* postprocess frame and put to cache if needed*/
+    /* Post-process frame and put to cache if needed. */
     if (need_postprocess) {
       ImBuf *tmpibuf = ibuf;
       ibuf = postprocess_frame(clip, user, tmpibuf, flag, postprocess_flag);
@@ -2128,9 +2128,9 @@ GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
 
 void BKE_movieclip_free_gputexture(struct MovieClip *clip)
 {
-  /* number of gpu textures to keep around as cache
+  /* Number of gpu textures to keep around as cache.
    * We don't want to keep too many GPU textures for
-   * movie clips around, as they can be large.*/
+   * movie clips around, as they can be large. */
   const int MOVIECLIP_NUM_GPUTEXTURES = 1;
 
   while (BLI_listbase_count(&clip->runtime.gputextures) > MOVIECLIP_NUM_GPUTEXTURES) {

@@ -516,14 +516,14 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
                                                 const int def_nr)
 {
   if (def_nr == -1) {
-    /* all vgroups, add groups where needed  */
+    /* All vgroups, add groups where needed. */
     int flip_map_len;
     int *flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, true);
     BKE_defvert_sync_mapped(dvert_dst, dvert_src, flip_map, flip_map_len, true);
     MEM_freeN(flip_map);
   }
   else {
-    /* single vgroup */
+    /* Single vgroup. */
     MDeformWeight *dw = BKE_defvert_ensure_index(dvert_dst,
                                                  BKE_object_defgroup_flip_index(ob, def_nr, 1));
     if (dw) {
@@ -4068,7 +4068,7 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
   bDeformGroup *def;
   int defbase_tot = BLI_listbase_count(&ob->defbase);
 
-  /* needs a dummy index at the start*/
+  /* Needs a dummy index at the start. */
   int *sort_map_update = MEM_mallocN(sizeof(int) * (defbase_tot + 1), "sort vgroups");
   int *sort_map = sort_map_update + 1;
 
@@ -4111,7 +4111,7 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
 
     BKE_object_defgroup_array_get(ob->data, &dvert, &dvert_tot);
 
-    /*create as necessary*/
+    /* Create as necessary. */
     if (dvert) {
       while (dvert_tot--) {
         if (dvert->totweight) {
@@ -4186,10 +4186,10 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
   int ret;
   int sort_type = RNA_enum_get(op->ptr, "sort_type");
 
-  /*init remapping*/
+  /* Init remapping. */
   name_array = vgroup_init_remap(ob);
 
-  /*sort vgroup names*/
+  /* Sort vgroup names. */
   switch (sort_type) {
     case SORT_TYPE_NAME:
       BLI_listbase_sort(&ob->defbase, vgroup_sort_name);
@@ -4199,7 +4199,7 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  /*remap vgroup data to map to correct names*/
+  /* Remap vgroup data to map to correct names. */
   ret = vgroup_do_remap(ob, name_array, op);
 
   if (ret != OPERATOR_CANCELLED) {

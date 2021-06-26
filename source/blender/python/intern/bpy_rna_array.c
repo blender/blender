@@ -536,11 +536,11 @@ static int py_to_array(PyObject *seq,
                        RNA_SetArrayFunc rna_set_array,
                        const char *error_prefix)
 {
-  /*int totdim, dim_size[MAX_ARRAY_DIMENSION];*/
+  // int totdim, dim_size[MAX_ARRAY_DIMENSION];
   int totitem;
   char *data = NULL;
 
-  /*totdim = RNA_property_array_dimension(ptr, prop, dim_size);*/ /*UNUSED*/
+  // totdim = RNA_property_array_dimension(ptr, prop, dim_size); /* UNUSED */
 
   if (validate_array(seq, ptr, prop, 0, check_item_type, item_type_str, &totitem, error_prefix) ==
       -1) {

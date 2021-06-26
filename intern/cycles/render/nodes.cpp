@@ -4374,7 +4374,7 @@ NODE_DEFINE(HairInfoNode)
   SOCKET_OUT_FLOAT(intercept, "Intercept");
   SOCKET_OUT_FLOAT(thickness, "Thickness");
   SOCKET_OUT_NORMAL(tangent_normal, "Tangent Normal");
-#if 0 /*output for minimum hair width transparency - deactivated */
+#if 0 /* Output for minimum hair width transparency - deactivated. */
   SOCKET_OUT_FLOAT(fade, "Fade");
 #endif
   SOCKET_OUT_FLOAT(index, "Random");
@@ -4425,12 +4425,12 @@ void HairInfoNode::compile(SVMCompiler &compiler)
   if (!out->links.empty()) {
     compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_TANGENT_NORMAL, compiler.stack_assign(out));
   }
-
-  /*out = output("Fade");
+#if 0
+  out = output("Fade");
   if(!out->links.empty()) {
     compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_FADE, compiler.stack_assign(out));
-  }*/
-
+  }
+#endif
   out = output("Random");
   if (!out->links.empty()) {
     int attr = compiler.attribute(ATTR_STD_CURVE_RANDOM);

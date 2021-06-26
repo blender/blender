@@ -1449,9 +1449,9 @@ void recalcData_pose(TransInfo *t)
       /* TODO: autokeyframe calls need some setting to specify to add samples
        * (FPoints) instead of keyframes? */
       if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
-        int targetless_ik =
-            (t->flag &
-             T_AUTOIK); /* XXX this currently doesn't work, since flags aren't set yet! */
+
+        /* XXX: this currently doesn't work, since flags aren't set yet! */
+        int targetless_ik = (t->flag & T_AUTOIK);
 
         animrecord_check_state(t, ob);
         autokeyframe_pose(t->context, t->scene, ob, t->mode, targetless_ik);
@@ -1610,10 +1610,10 @@ static short apply_targetless_ik(Object *ob)
         Bone *bone;
         float mat[4][4];
 
-        /* pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK  */
-        /* we put in channel the entire result of mat = (channel * constraint * IK) */
-        /* pose_mat(b) = pose_mat(b-1) * offs_bone * mat  */
-        /* mat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone ) */
+        /* `pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK` */
+        /* We put in channel the entire result of: `mat = (channel * constraint * IK)` */
+        /* `pose_mat(b) = pose_mat(b-1) * offs_bone * mat` */
+        /* `mat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone)` */
 
         parchan = chanlist[segcount - 1];
         bone = parchan->bone;

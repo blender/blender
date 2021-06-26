@@ -223,7 +223,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
         EDBM_selectmode_flush_ex(lcd->em, SCE_SELECT_VERTEX);
       }
-      /* we cant slide multiple edges in vertex select mode */
+      /* we can't slide multiple edges in vertex select mode */
       else if (is_macro && (cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
         EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
       }

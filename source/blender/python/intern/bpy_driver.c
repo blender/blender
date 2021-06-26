@@ -86,7 +86,7 @@ int bpy_pydriver_create_dict(void)
 
   bpy_pydriver_Dict = d;
 
-  /* import some modules: builtins, bpy, math, (Blender.noise)*/
+  /* Import some modules: builtins, bpy, math, `Blender.noise`. */
   PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins());
 
   mod = PyImport_ImportModule("math");
@@ -654,7 +654,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   }
 #endif
 
-  /* decref the driver vars first...  */
+  /* decref the driver vars first. */
   Py_DECREF(driver_vars);
 
   /* process the result */

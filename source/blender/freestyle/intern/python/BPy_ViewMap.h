@@ -38,7 +38,8 @@ extern PyTypeObject ViewMap_Type;
 
 /*---------------------------Python BPy_ViewMap structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::ViewMap *vm;
+  PyObject_HEAD
+  Freestyle::ViewMap *vm;
 } BPy_ViewMap;
 
 /*---------------------------Python BPy_ViewMap visible prototypes-----------*/

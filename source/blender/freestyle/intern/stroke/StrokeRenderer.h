@@ -46,7 +46,7 @@ namespace Freestyle {
 /*                                */
 /**********************************/
 
-/*! Class to load textures */
+/** Class to load textures */
 class TextureManager {
  public:
   TextureManager();
@@ -117,13 +117,13 @@ class TextureManager {
 /*                                */
 /**********************************/
 
-/*! Class to render a stroke. Creates a triangle strip and stores it strip is lazily created at the
+/** Class to render a stroke. Creates a triangle strip and stores it strip is lazily created at the
  * first rendering */
 class StrokeRenderer {
  public:
   virtual ~StrokeRenderer();
 
-  /*! Renders a stroke rep */
+  /** Renders a stroke rep */
   virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const = 0;
   virtual void RenderStrokeRepBasic(StrokeRep *iStrokeRep) const = 0;
 

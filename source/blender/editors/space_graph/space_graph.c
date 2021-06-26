@@ -588,7 +588,7 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
           ED_area_tag_refresh(area);
           break;
         case ND_TRANSFORM:
-          break; /*do nothing*/
+          break; /* Do nothing. */
 
         default: /* just redrawing the view will do */
           ED_area_tag_redraw(area);
@@ -759,7 +759,7 @@ static void graph_refresh(const bContext *C, ScrArea *area)
       break;
     }
 
-    case SIPO_MODE_DRIVERS: /* drivers only  */
+    case SIPO_MODE_DRIVERS: /* Drivers only. */
     {
       break;
     }

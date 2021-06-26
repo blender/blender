@@ -182,7 +182,7 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
     }
   }
   else {
-    /* Desperate mode, no valid choice anyway, fallback to one side.*/
+    /* Desperate mode, no valid choice anyway, fallback to one side. */
     weight.x = 1.0f;
   }
 

@@ -1225,8 +1225,11 @@ enum eContextObjectMode CTX_data_mode_enum(const bContext *C)
   return CTX_data_mode_enum_ex(obedit, obact, obact ? obact->mode : OB_MODE_OBJECT);
 }
 
-/* would prefer if we can use the enum version below over this one - Campbell */
-/* must be aligned with above enum  */
+/**
+ * Would prefer if we can use the enum version below over this one - Campbell.
+ *
+ * \note Must be aligned with above enum.
+ */
 static const char *data_mode_strings[] = {
     "mesh_edit",           "curve_edit",          "surface_edit",        "text_edit",
     "armature_edit",       "mball_edit",          "lattice_edit",        "posemode",

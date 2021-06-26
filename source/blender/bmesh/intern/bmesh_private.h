@@ -56,16 +56,17 @@ int bmesh_disk_count(const BMVert *v);
 /**
  * Internal BMHeader.api_flag
  * \note Ensure different parts of the API do not conflict
- * on using these internal flags!*/
+ * on using these internal flags!
+ */
 enum {
-  _FLAG_JF = (1 << 0),       /* join faces */
-  _FLAG_MF = (1 << 1),       /* make face */
-  _FLAG_MV = (1 << 1),       /* make face, vertex */
-  _FLAG_OVERLAP = (1 << 2),  /* general overlap flag  */
-  _FLAG_WALK = (1 << 3),     /* general walk flag (keep clean) */
-  _FLAG_WALK_ALT = (1 << 4), /* same as _FLAG_WALK, for when a second tag is needed */
+  _FLAG_JF = (1 << 0),       /* Join faces. */
+  _FLAG_MF = (1 << 1),       /* Make face. */
+  _FLAG_MV = (1 << 1),       /* Make face, vertex. */
+  _FLAG_OVERLAP = (1 << 2),  /* General overlap flag. */
+  _FLAG_WALK = (1 << 3),     /* General walk flag (keep clean). */
+  _FLAG_WALK_ALT = (1 << 4), /* Same as #_FLAG_WALK, for when a second tag is needed. */
 
-  _FLAG_ELEM_CHECK = (1 << 7), /* reserved for bmesh_elem_check */
+  _FLAG_ELEM_CHECK = (1 << 7), /* Reserved for bmesh_elem_check. */
 };
 
 #define BM_ELEM_API_FLAG_ENABLE(element, f) \

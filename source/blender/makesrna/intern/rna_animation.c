@@ -337,7 +337,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   RNA_struct_blender_type_set(ksi->rna_ext.srna, ksi);
 
   /* set callbacks */
-  /* NOTE: we really should have all of these...  */
+  /* NOTE: we really should have all of these... */
   ksi->poll = (have_function[0]) ? RKS_POLL_rna_internal : NULL;
   ksi->iter = (have_function[1]) ? RKS_ITER_rna_internal : NULL;
   ksi->generate = (have_function[2]) ? RKS_GEN_rna_internal : NULL;
@@ -1146,7 +1146,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
   RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
   RNA_def_property_ui_text(prop, "Description", "A short description of the keying set");
 
-  /* KeyingSetInfo (Type Info) for Builtin Sets only  */
+  /* KeyingSetInfo (Type Info) for Builtin Sets only. */
   prop = RNA_def_property(srna, "type_info", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "KeyingSetInfo");
   RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_typeinfo_get", NULL, NULL, NULL);

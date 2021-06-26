@@ -1,2 +1,13 @@
-Sphinx==3.5.3
+sphinx==3.5.4
+
+# Sphinx dependencies that are important
+Jinja2==2.11.3
+Pygments==2.9.0
+docutils==0.16
+snowballstemmer==2.1.0
+babel==2.9.1
+requests==2.25.1
+
+# Only needed to match the theme used for the official documentation.
+# Without this theme, the default theme will be used.
 sphinx_rtd_theme==0.5.2

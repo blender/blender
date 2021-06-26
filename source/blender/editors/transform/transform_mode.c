@@ -734,9 +734,25 @@ void ElementRotation_ex(TransInfo *t,
         /* can be called for texture space translate for example, then opt out */
         if (td->ext->quat) {
           mul_m3_series(fmat, td->smtx, mat, td->mtx);
+
+          if (!is_zero_v3(td->ext->dquat)) {
+            /* Correct for delta quat */
+            float tmp_mat[3][3];
+            quat_to_mat3(tmp_mat, td->ext->dquat);
+            mul_m3_m3m3(fmat, fmat, tmp_mat);
+          }
+
           mat3_to_quat(quat, fmat); /* Actual transform */
 
+          if (!is_zero_v4(td->ext->dquat)) {
+            /* Correct back for delta quat. */
+            float idquat[4];
+            invert_qt_qt_normalized(idquat, td->ext->dquat);
+            mul_qt_qtqt(quat, idquat, quat);
+          }
+
           mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
+
           /* this function works on end result */
           protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
         }
@@ -761,21 +777,28 @@ void ElementRotation_ex(TransInfo *t,
                                td->ext->irotAngle);
       }
       else {
+        /* Calculate the total rotation in eulers. */
         float obmat[3][3];
 
         mul_m3_m3m3(totmat, mat, td->mtx);
         mul_m3_m3m3(smat, td->smtx, totmat);
 
-        /* Calculate the total rotation in eulers. */
-        add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* correct for delta rot */
-        eulO_to_mat3(obmat, eul, td->ext->rotOrder);
-        /* mat = transform, obmat = object rotation */
-        mul_m3_m3m3(fmat, smat, obmat);
+        if (!is_zero_v3(td->ext->drot)) {
+          /* Correct for delta rot */
+          add_eul_euleul(eul, td->ext->irot, td->ext->drot, td->ext->rotOrder);
+        }
+        else {
+          copy_v3_v3(eul, td->ext->irot);
+        }
 
+        eulO_to_mat3(obmat, eul, td->ext->rotOrder);
+        mul_m3_m3m3(fmat, smat, obmat);
         mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
 
-        /* correct back for delta rot */
-        sub_v3_v3v3(eul, eul, td->ext->drot);
+        if (!is_zero_v3(td->ext->drot)) {
+          /* Correct back for delta rot. */
+          sub_eul_euleul(eul, eul, td->ext->drot, td->ext->rotOrder);
+        }
 
         /* and apply */
         protectedRotateBits(td->protectflag, eul, td->ext->irot);

@@ -226,15 +226,23 @@ static void get_selected_indices_on_domain(const Mesh &mesh,
   }
 }
 
+/**
+ * Only data sets corresponding to mesh objects in edit mode currently support selection filtering.
+ */
 bool GeometryDataSource::has_selection_filter() const
 {
   Object *object_orig = DEG_get_original_object(object_eval_);
-  if (object_orig->type == OB_MESH) {
-    if (object_orig->mode == OB_MODE_EDIT) {
-      return true;
-    }
+  if (object_orig->type != OB_MESH) {
+    return false;
   }
-  return false;
+  if (object_orig->mode != OB_MODE_EDIT) {
+    return false;
+  }
+  if (component_->type() != GEO_COMPONENT_TYPE_MESH) {
+    return false;
+  }
+
+  return true;
 }
 
 void GeometryDataSource::apply_selection_filter(MutableSpan<bool> rows_included) const
@@ -377,9 +385,9 @@ int InstancesDataSource::tot_rows() const
   return component_->instances_amount();
 }
 
-static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
-                                            Object *object_eval,
-                                            const GeometryComponentType used_component_type)
+GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
+                                                 Object *object_eval,
+                                                 const GeometryComponentType used_component_type)
 {
   GeometrySet geometry_set;
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
@@ -462,7 +470,8 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
   const GeometryComponentType component_type = get_display_component_type(C, object_eval);
-  GeometrySet geometry_set = get_display_geometry_set(sspreadsheet, object_eval, component_type);
+  GeometrySet geometry_set = spreadsheet_get_display_geometry_set(
+      sspreadsheet, object_eval, component_type);
 
   if (!geometry_set.has(component_type)) {
     return {};

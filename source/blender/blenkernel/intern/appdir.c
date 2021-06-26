@@ -200,7 +200,7 @@ bool BKE_appdir_folder_documents(char *dir)
     return true;
   }
 
-  /* Ghost couldn't give us a documents path, let's try if we can find it ourselves.*/
+  /* Ghost couldn't give us a documents path, let's try if we can find it ourselves. */
 
   const char *home_path = BKE_appdir_folder_home();
   if (!home_path || !BLI_is_dir(home_path)) {

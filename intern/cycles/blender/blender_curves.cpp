@@ -533,7 +533,7 @@ void BlenderSync::sync_particle_hair(
     return;
   }
 
-  /* extract particle hair data - should be combined with connecting to mesh later*/
+  /* Extract particle hair data - should be combined with connecting to mesh later. */
 
   ParticleCurveData CData;
 

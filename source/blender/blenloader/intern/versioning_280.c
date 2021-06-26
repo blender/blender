@@ -182,7 +182,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
       workspace = BKE_workspace_add(bmain, screen->id.name + 2);
     }
     if (workspace == NULL) {
-      continue; /* Not much we can do.. */
+      continue; /* Not much we can do. */
     }
     BKE_workspace_layout_add(bmain, workspace, screen, screen->id.name + 2);
   }
@@ -1652,7 +1652,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
      * which exact version fully deprecated tessfaces, so think we can keep that one here, no
      * harm to be expected anyway for being over-conservative. */
     for (Mesh *me = bmain->meshes.first; me != NULL; me = me->id.next) {
-      /*check if we need to convert mfaces to mpolys*/
+      /* Check if we need to convert mfaces to mpolys. */
       if (me->totface && !me->totpoly) {
         /* temporarily switch main so that reading from
          * external CustomData works */
@@ -1912,7 +1912,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_END;
 
     if (error & NTREE_DOVERSION_NEED_OUTPUT) {
-      BKE_report(fd->reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
+      BKE_report(fd->reports != NULL ? fd->reports->reports : NULL,
+                 RPT_ERROR,
+                 "Eevee material conversion problem. Error in console");
       printf(
           "You need to connect Principled and Eevee Specular shader nodes to new material "
           "output "
@@ -1920,7 +1922,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     if (error & NTREE_DOVERSION_TRANSPARENCY_EMISSION) {
-      BKE_report(fd->reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
+      BKE_report(fd->reports != NULL ? fd->reports->reports : NULL,
+                 RPT_ERROR,
+                 "Eevee material conversion problem. Error in console");
       printf(
           "You need to combine transparency and emission shaders to the converted Principled "
           "shader nodes.\n");
@@ -3543,7 +3547,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Grease pencil cutter/select segment intersection threshold  */
+    /* Grease pencil cutter/select segment intersection threshold. */
     if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "float", "isect_threshold")) {
       for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
         GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
@@ -3553,7 +3557,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Fix anamorphic bokeh eevee rna limits.*/
+    /* Fix anamorphic bokeh eevee rna limits. */
     for (Camera *ca = bmain->cameras.first; ca; ca = ca->id.next) {
       if (ca->gpu_dof.ratio < 0.01f) {
         ca->gpu_dof.ratio = 0.01f;
@@ -4920,7 +4924,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Corrective smooth modifier scale*/
+    /* Corrective smooth modifier scale. */
     if (!DNA_struct_elem_find(fd->filesdna, "CorrectiveSmoothModifierData", "float", "scale")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -4969,7 +4973,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Surface deform modifier strength*/
+    /* Surface deform modifier strength. */
     if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "float", "strength")) {
       for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {

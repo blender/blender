@@ -106,7 +106,7 @@ enum {
   LIGHTPROBE_DISP_REFLECTIVE = 3,
 };
 
-/* Probe->parallax && Probe->attenuation_type*/
+/* Probe->parallax && Probe->attenuation_type. */
 enum {
   LIGHTPROBE_SHAPE_ELIPSOID = 0,
   LIGHTPROBE_SHAPE_BOX = 1,

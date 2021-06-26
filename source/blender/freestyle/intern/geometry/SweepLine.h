@@ -30,7 +30,7 @@
 
 namespace Freestyle {
 
-/*! Class to define the intersection between two segments*/
+/** Class to define the intersection between two segments. */
 template<class Edge> class Intersection {
  public:
   template<class EdgeClass> Intersection(EdgeClass *eA, real ta, EdgeClass *eB, real tb)
@@ -51,7 +51,7 @@ template<class Edge> class Intersection {
     userdata = 0;
   }
 
-  /*! returns the parameter giving the intersection, for the edge iEdge */
+  /** returns the parameter giving the intersection, for the edge iEdge */
   real getParameter(Edge *iEdge)
   {
     if (iEdge == EdgeA) {
@@ -144,7 +144,7 @@ template<class T, class Point> class Segment {
     _Intersections.push_back(i);
   }
 
-  /*! Checks for a common vertex with another edge */
+  /** Checks for a common vertex with another edge */
   inline bool CommonVertex(const Segment<T, Point> &S, Point &CP)
   {
     if ((A == S[0]) || (A == S[1])) {
@@ -190,7 +190,7 @@ template<class T, class Point> class Segment {
 #  pragma warning(pop)
 #endif
 
-/*! defines a binary function that can be overload by the user to specify at each condition the
+/** defines a binary function that can be overload by the user to specify at each condition the
  * intersection between 2 edges must be computed
  */
 template<class T1, class T2> struct binary_rule {

@@ -135,7 +135,7 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 
 /**
  * Use to impose limits when dragging/extending - so impossible situations don't happen.
- * Cant use the #SEQ_LEFTSEL and #SEQ_LEFTSEL directly because the strip may be in a meta-strip.
+ * Can't use the #SEQ_LEFTSEL and #SEQ_LEFTSEL directly because the strip may be in a meta-strip.
  */
 void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 {

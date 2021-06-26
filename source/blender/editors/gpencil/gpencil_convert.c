@@ -168,7 +168,7 @@ static void gpencil_strokepoint_convertcoords(bContext *C,
   ARegion *region = CTX_wm_region(C);
   /* TODO(sergey): This function might be called from a loop, but no tagging is happening in it,
    * so it's not that expensive to ensure evaluated depsgraph here. However, ideally all the
-   * parameters are to wrapped into a context style struct and queried from Context once.*/
+   * parameters are to wrapped into a context style struct and queried from Context once. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obact = CTX_data_active_object(C);
   bGPDspoint mypt, *pt;
@@ -219,7 +219,7 @@ typedef struct tGpTimingData {
   int frame_range; /* Number of frames evaluated for path animation */
   int start_frame, end_frame;
   bool realtime; /* Will overwrite end_frame in case of Original or CustomGap timing... */
-  float gap_duration, gap_randomness; /* To be used with CustomGap mode*/
+  float gap_duration, gap_randomness; /* To be used with CustomGap mode. */
   int seed;
 
   /* Data set from points, used to compute final timing FCurve */

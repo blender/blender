@@ -284,7 +284,7 @@ static void gpu_viewport_engines_data_free(GPUViewport *viewport)
 
     MEM_freeN(data);
 
-    /* Mark as unused*/
+    /* Mark as unused. */
     viewport->engine_data[i].handle = NULL;
   }
 

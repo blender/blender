@@ -282,7 +282,7 @@ static void buffer_apply_offset(void **buffer, const int offset)
   *buffer = ((unsigned char *)*buffer) + offset;
 }
 
-/* Write given number of floats to the beginning of given buffer.  */
+/* Write given number of floats to the beginning of given buffer. */
 static void buffer_write_float_value(void **buffer, const float *values_buffer, int num_values)
 {
   memcpy(*buffer, values_buffer, sizeof(float) * num_values);

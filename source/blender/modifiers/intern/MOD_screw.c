@@ -341,7 +341,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
   }
   else {
-    /* exis char is used by i_rotate*/
     axis_char = (char)(axis_char + ltmd->axis); /* 'X' + axis */
 
     /* useful to be able to use the axis vec in some cases still */
@@ -518,7 +517,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
     }
     else {
-      /*printf("\n\n\n\n\nStarting Modifier\n");*/
+      // printf("\n\n\n\n\nStarting Modifier\n");
       /* set edge users */
       med_new = medge_new;
       mv_new = mvert_new;
@@ -539,7 +538,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           vc->dist = vc->co[other_axis_1] * vc->co[other_axis_1] +
                      vc->co[other_axis_2] * vc->co[other_axis_2];
 
-          /* printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);*/
+          // printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);
         }
       }
       else {
@@ -556,7 +555,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           vc->dist = vc->co[other_axis_1] * vc->co[other_axis_1] +
                      vc->co[other_axis_2] * vc->co[other_axis_2];
 
-          /* printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);*/
+          // printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);
         }
       }
 
@@ -606,43 +605,43 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           /* compiler complains if not initialized, but it should be initialized below */
           bool ed_loop_flip = false;
 
-          /*printf("Loop on connected vert: %i\n", i);*/
+          // printf("Loop on connected vert: %i\n", i);
 
           for (j = 0; j < 2; j++) {
-            /*printf("\tSide: %i\n", j);*/
+            // printf("\tSide: %i\n", j);
             screwvert_iter_init(&lt_iter, vert_connect, i, j);
             if (j == 1) {
               screwvert_iter_step(&lt_iter);
             }
             while (lt_iter.v_poin) {
-              /*printf("\t\tVERT: %i\n", lt_iter.v);*/
+              // printf("\t\tVERT: %i\n", lt_iter.v);
               if (lt_iter.v_poin->flag) {
-                /*printf("\t\t\tBreaking Found end\n");*/
+                // printf("\t\t\tBreaking Found end\n");
                 // endpoints[0] = endpoints[1] = SV_UNUSED;
                 ed_loop_closed = 1; /* circle */
                 break;
               }
               lt_iter.v_poin->flag = 1;
               vc_tot_linked++;
-              /*printf("Testing 2 floats %f : %f\n", fl, lt_iter.v_poin->dist);*/
+              // printf("Testing 2 floats %f : %f\n", fl, lt_iter.v_poin->dist);
               if (fl <= lt_iter.v_poin->dist) {
                 fl = lt_iter.v_poin->dist;
                 v_best = lt_iter.v;
-                /*printf("\t\t\tVERT BEST: %i\n", v_best);*/
+                // printf("\t\t\tVERT BEST: %i\n", v_best);
               }
               screwvert_iter_step(&lt_iter);
               if (!lt_iter.v_poin) {
-                /*printf("\t\t\tFound End Also Num %i\n", j);*/
-                /*endpoints[j] = lt_iter.v_other;*/ /* other is still valid */
+                // printf("\t\t\tFound End Also Num %i\n", j);
+                // endpoints[j] = lt_iter.v_other; /* other is still valid */
                 break;
               }
             }
           }
 
-          /* now we have a collection of used edges. flip their edges the right way*/
-          /*if (v_best != SV_UNUSED) - */
+          /* Now we have a collection of used edges. flip their edges the right way. */
+          /* if (v_best != SV_UNUSED) - */
 
-          /*printf("Done Looking - vc_tot_linked: %i\n", vc_tot_linked);*/
+          // printf("Done Looking - vc_tot_linked: %i\n", vc_tot_linked);
 
           if (vc_tot_linked > 1) {
             float vf_1, vf_2, vf_best;
@@ -654,8 +653,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
             /* edge connects on each side! */
             if (SV_IS_VALID(vc_tmp->v[0]) && SV_IS_VALID(vc_tmp->v[1])) {
-              /*printf("Verts on each side (%i %i)\n", vc_tmp->v[0], vc_tmp->v[1]);*/
-              /* find out which is higher */
+              // printf("Verts on each side (%i %i)\n", vc_tmp->v[0], vc_tmp->v[1]);
+              /* Find out which is higher. */
 
               vf_1 = tmpf1[ltmd->axis];
               vf_2 = tmpf2[ltmd->axis];
@@ -682,8 +681,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                 }
               }
             }
-            else if (SV_IS_VALID(vc_tmp->v[0])) { /*vertex only connected on 1 side */
-              /*printf("Verts on ONE side (%i %i)\n", vc_tmp->v[0], vc_tmp->v[1]);*/
+            else if (SV_IS_VALID(vc_tmp->v[0])) { /* Vertex only connected on 1 side. */
+              // printf("Verts on ONE side (%i %i)\n", vc_tmp->v[0], vc_tmp->v[1]);
               if (tmpf1[ltmd->axis] < vc_tmp->co[ltmd->axis]) { /* best is above */
                 ed_loop_flip = 1;
               }
@@ -697,7 +696,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
             }
 #endif
 
-            /*printf("flip direction %i\n", ed_loop_flip);*/
+            // printf("flip direction %i\n", ed_loop_flip);
 
             /* Switch the flip option if set
              * NOTE: flip is now done at face level so copying group slices is easier. */
@@ -713,10 +712,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
             /* if its closed, we only need 1 loop */
             for (j = ed_loop_closed; j < 2; j++) {
-              /*printf("Ordering Side J %i\n", j);*/
+              // printf("Ordering Side J %i\n", j);
 
               screwvert_iter_init(&lt_iter, vert_connect, v_best, j);
-              /*printf("\n\nStarting - Loop\n");*/
+              // printf("\n\nStarting - Loop\n");
               lt_iter.v_poin->flag = 1; /* so a non loop will traverse the other side */
 
               /* If this is the vert off the best vert and
@@ -727,13 +726,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
               }
 
               while (lt_iter.v_poin && lt_iter.v_poin->flag != 2) {
-                /*printf("\tOrdering Vert V %i\n", lt_iter.v);*/
+                // printf("\tOrdering Vert V %i\n", lt_iter.v);
 
                 lt_iter.v_poin->flag = 2;
                 if (lt_iter.e) {
                   if (lt_iter.v == lt_iter.e->v1) {
                     if (ed_loop_flip == 0) {
-                      /*printf("\t\t\tFlipping 0\n");*/
+                      // printf("\t\t\tFlipping 0\n");
                       SWAP(uint, lt_iter.e->v1, lt_iter.e->v2);
                     }
 #if 0
@@ -744,7 +743,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                   }
                   else if (lt_iter.v == lt_iter.e->v2) {
                     if (ed_loop_flip == 1) {
-                      /*printf("\t\t\tFlipping 1\n");*/
+                      // printf("\t\t\tFlipping 1\n");
                       SWAP(uint, lt_iter.e->v1, lt_iter.e->v2);
                     }
 #if 0

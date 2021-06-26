@@ -38,7 +38,7 @@ namespace Freestyle {
 
 namespace GridHelpers {
 
-/*! Computes the distance from a point P to a segment AB */
+/** Computes the distance from a point P to a segment AB */
 template<class T> T closestPointToSegment(const T &P, const T &A, const T &B, real &distance)
 {
   T AB, AP, BP;

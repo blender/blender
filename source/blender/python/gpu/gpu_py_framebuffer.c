@@ -130,8 +130,8 @@ static bool pygpu_framebuffer_stack_pop_and_restore_or_error(GPUFrameBuffer *fb)
  * \{ */
 
 typedef struct {
-  PyObject_HEAD /* required python macro */
-      BPyGPUFrameBuffer *py_fb;
+  PyObject_HEAD /* Required Python macro. */
+  BPyGPUFrameBuffer *py_fb;
   int level;
 } PyFrameBufferStackContext;
 

@@ -98,6 +98,9 @@ void lineart_count_and_print_render_buffer_memory(struct LineartRenderBuffer *rb
   if (!e) { \
     e = rb->intersection.first; \
   } \
+  if (!e) { \
+    e = rb->floating.first; \
+  } \
   for (current_head = &rb->contour.first; e; e = next_e) { \
     next_e = e->next;
 
@@ -114,6 +117,9 @@ void lineart_count_and_print_render_buffer_memory(struct LineartRenderBuffer *rb
     } \
     else if (current_head == &rb->edge_mark.first) { \
       current_head = &rb->intersection.first; \
+    } \
+    else if (current_head == &rb->intersection.first) { \
+      current_head = &rb->floating.first; \
     } \
     else { \
       break; \

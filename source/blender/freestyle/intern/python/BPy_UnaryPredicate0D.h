@@ -39,7 +39,8 @@ extern PyTypeObject UnaryPredicate0D_Type;
 
 /*---------------------------Python BPy_UnaryPredicate0D structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::UnaryPredicate0D *up0D;
+  PyObject_HEAD
+  Freestyle::UnaryPredicate0D *up0D;
 } BPy_UnaryPredicate0D;
 
 /*---------------------------Python BPy_UnaryPredicate0D visible prototypes-----------*/

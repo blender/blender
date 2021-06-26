@@ -141,7 +141,7 @@ PyTypeObject UnaryFunction0DVec2f_Type = {
     nullptr,                                                  /* tp_as_number */
     nullptr,                                                  /* tp_as_sequence */
     nullptr,                                                  /* tp_as_mapping */
-    nullptr,                                                  /* tp_hash  */
+    nullptr,                                                  /* tp_hash */
     (ternaryfunc)UnaryFunction0DVec2f___call__,               /* tp_call */
     nullptr,                                                  /* tp_str */
     nullptr,                                                  /* tp_getattro */

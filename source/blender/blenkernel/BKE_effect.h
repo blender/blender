@@ -179,7 +179,7 @@ unsigned int BKE_sim_debug_data_hash(int i);
 unsigned int BKE_sim_debug_data_hash_combine(unsigned int kx, unsigned int ky);
 
 /* _VA_SIM_DEBUG_HASH#(i, ...): combined hash value of multiple integers */
-/* internal helpers*/
+/* Internal helpers. */
 #define _VA_SIM_DEBUG_HASH1(a) (BKE_sim_debug_data_hash(a))
 #define _VA_SIM_DEBUG_HASH2(a, b) \
   (BKE_sim_debug_data_hash_combine(BKE_sim_debug_data_hash(a), _VA_SIM_DEBUG_HASH1(b)))

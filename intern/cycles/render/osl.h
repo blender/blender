@@ -195,4 +195,4 @@ class OSLCompiler {
 
 CCL_NAMESPACE_END
 
-#endif /* __OSL_H__  */
+#endif /* __OSL_H__ */

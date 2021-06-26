@@ -1230,6 +1230,47 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
 }
 
 /**
+ * Format a attribute domain to a up to 6 places (plus '\0' terminator) string using long number
+ * names abbreviations. This function is designed to produce a compact representation of large
+ * numbers.
+ *
+ * 1 -> 1
+ * 15 -> 15
+ * 155 -> 155
+ * 1555 -> 1.6K
+ * 15555 -> 15.6K
+ * 155555 -> 156K
+ * 1555555 -> 1.6M
+ * 15555555 -> 15.6M
+ * 155555555 -> 156M
+ * 1000000000 -> 1B
+ * ...
+ *
+ * Dimension of 7 is the maximum length of the resulting string
+ * A combination with 7 places would be -15.5K\0
+ */
+void BLI_str_format_attribute_domain_size(char dst[7], int number_to_format)
+{
+  float number_to_format_converted = number_to_format;
+  int order = 0;
+  const float base = 1000;
+  const char *units[] = {"", "K", "M", "B"};
+  const int tot_units = ARRAY_SIZE(units);
+
+  while ((fabsf(number_to_format_converted) >= base) && ((order + 1) < tot_units)) {
+    number_to_format_converted /= base;
+    order++;
+  }
+
+  const size_t dst_len = 7;
+  int decimals = 0;
+  if ((order > 0) && fabsf(number_to_format_converted) < 100.0f) {
+    decimals = 1;
+  }
+  BLI_snprintf(dst, dst_len, "%.*f%s", decimals, number_to_format_converted, units[order]);
+}
+
+/**
  * Find the ranges needed to split \a str into its individual words.
  *
  * \param str: The string to search for words.

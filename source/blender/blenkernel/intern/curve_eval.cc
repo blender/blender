@@ -15,10 +15,13 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_task.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_curve_types.h"
 
@@ -28,9 +31,12 @@
 using blender::Array;
 using blender::float3;
 using blender::float4x4;
+using blender::IndexRange;
 using blender::Map;
+using blender::MutableSpan;
 using blender::Span;
 using blender::StringRefNull;
+using blender::Vector;
 
 blender::Span<SplinePtr> CurveEval::splines() const
 {
@@ -168,70 +174,118 @@ static NURBSpline::KnotsMode knots_mode_from_dna_nurb(const short flag)
   return NURBSpline::KnotsMode::Normal;
 }
 
+static SplinePtr spline_from_dna_bezier(const Nurb &nurb)
+{
+  std::unique_ptr<BezierSpline> spline = std::make_unique<BezierSpline>();
+  spline->set_resolution(nurb.resolu);
+  spline->set_cyclic(nurb.flagu & CU_NURB_CYCLIC);
+
+  Span<const BezTriple> src_points{nurb.bezt, nurb.pntsu};
+  spline->resize(src_points.size());
+  MutableSpan<float3> positions = spline->positions();
+  MutableSpan<float3> handle_positions_left = spline->handle_positions_left();
+  MutableSpan<float3> handle_positions_right = spline->handle_positions_right();
+  MutableSpan<BezierSpline::HandleType> handle_types_left = spline->handle_types_left();
+  MutableSpan<BezierSpline::HandleType> handle_types_right = spline->handle_types_right();
+  MutableSpan<float> radii = spline->radii();
+  MutableSpan<float> tilts = spline->tilts();
+
+  blender::threading::parallel_for(src_points.index_range(), 2048, [&](IndexRange range) {
+    for (const int i : range) {
+      const BezTriple &bezt = src_points[i];
+      positions[i] = bezt.vec[1];
+      handle_positions_left[i] = bezt.vec[0];
+      handle_types_left[i] = handle_type_from_dna_bezt((eBezTriple_Handle)bezt.h1);
+      handle_positions_right[i] = bezt.vec[2];
+      handle_types_right[i] = handle_type_from_dna_bezt((eBezTriple_Handle)bezt.h2);
+      radii[i] = bezt.radius;
+      tilts[i] = bezt.tilt;
+    }
+  });
+
+  return spline;
+}
+
+static SplinePtr spline_from_dna_nurbs(const Nurb &nurb)
+{
+  std::unique_ptr<NURBSpline> spline = std::make_unique<NURBSpline>();
+  spline->set_resolution(nurb.resolu);
+  spline->set_cyclic(nurb.flagu & CU_NURB_CYCLIC);
+  spline->set_order(nurb.orderu);
+  spline->knots_mode = knots_mode_from_dna_nurb(nurb.flagu);
+
+  Span<const BPoint> src_points{nurb.bp, nurb.pntsu};
+  spline->resize(src_points.size());
+  MutableSpan<float3> positions = spline->positions();
+  MutableSpan<float> weights = spline->weights();
+  MutableSpan<float> radii = spline->radii();
+  MutableSpan<float> tilts = spline->tilts();
+
+  blender::threading::parallel_for(src_points.index_range(), 2048, [&](IndexRange range) {
+    for (const int i : range) {
+      const BPoint &bp = src_points[i];
+      positions[i] = bp.vec;
+      weights[i] = bp.vec[3];
+      radii[i] = bp.radius;
+      tilts[i] = bp.tilt;
+    }
+  });
+
+  return spline;
+}
+
+static SplinePtr spline_from_dna_poly(const Nurb &nurb)
+{
+  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
+  spline->set_cyclic(nurb.flagu & CU_NURB_CYCLIC);
+
+  Span<const BPoint> src_points{nurb.bp, nurb.pntsu};
+  spline->resize(src_points.size());
+  MutableSpan<float3> positions = spline->positions();
+  MutableSpan<float> radii = spline->radii();
+  MutableSpan<float> tilts = spline->tilts();
+
+  blender::threading::parallel_for(src_points.index_range(), 2048, [&](IndexRange range) {
+    for (const int i : range) {
+      const BPoint &bp = src_points[i];
+      positions[i] = bp.vec;
+      radii[i] = bp.radius;
+      tilts[i] = bp.tilt;
+    }
+  });
+
+  return spline;
+}
+
 std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
 {
+  Vector<const Nurb *> nurbs(*BKE_curve_nurbs_get(&const_cast<Curve &>(dna_curve)));
+
   std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
+  curve->resize(nurbs.size());
+  MutableSpan<SplinePtr> splines = curve->splines();
 
-  const ListBase *nurbs = BKE_curve_nurbs_get(&const_cast<Curve &>(dna_curve));
-
-  /* TODO: Optimize by reserving the correct points size. */
-  LISTBASE_FOREACH (const Nurb *, nurb, nurbs) {
-    switch (nurb->type) {
-      case CU_BEZIER: {
-        std::unique_ptr<BezierSpline> spline = std::make_unique<BezierSpline>();
-        spline->set_resolution(nurb->resolu);
-        spline->set_cyclic(nurb->flagu & CU_NURB_CYCLIC);
-
-        for (const BezTriple &bezt : Span(nurb->bezt, nurb->pntsu)) {
-          spline->add_point(bezt.vec[1],
-                            handle_type_from_dna_bezt((eBezTriple_Handle)bezt.h1),
-                            bezt.vec[0],
-                            handle_type_from_dna_bezt((eBezTriple_Handle)bezt.h2),
-                            bezt.vec[2],
-                            bezt.radius,
-                            bezt.tilt);
-        }
-        spline->attributes.reallocate(spline->size());
-        curve->add_spline(std::move(spline));
-        break;
-      }
-      case CU_NURBS: {
-        std::unique_ptr<NURBSpline> spline = std::make_unique<NURBSpline>();
-        spline->set_resolution(nurb->resolu);
-        spline->set_cyclic(nurb->flagu & CU_NURB_CYCLIC);
-        spline->set_order(nurb->orderu);
-        spline->knots_mode = knots_mode_from_dna_nurb(nurb->flagu);
-
-        for (const BPoint &bp : Span(nurb->bp, nurb->pntsu)) {
-          spline->add_point(bp.vec, bp.radius, bp.tilt, bp.vec[3]);
-        }
-        spline->attributes.reallocate(spline->size());
-        curve->add_spline(std::move(spline));
-        break;
-      }
-      case CU_POLY: {
-        std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-        spline->set_cyclic(nurb->flagu & CU_NURB_CYCLIC);
-
-        for (const BPoint &bp : Span(nurb->bp, nurb->pntsu)) {
-          spline->add_point(bp.vec, bp.radius, bp.tilt);
-        }
-        spline->attributes.reallocate(spline->size());
-        curve->add_spline(std::move(spline));
-        break;
-      }
-      default: {
-        BLI_assert_unreachable();
-        break;
+  blender::threading::parallel_for(nurbs.index_range(), 256, [&](IndexRange range) {
+    for (const int i : range) {
+      switch (nurbs[i]->type) {
+        case CU_BEZIER:
+          splines[i] = spline_from_dna_bezier(*nurbs[i]);
+          break;
+        case CU_NURBS:
+          splines[i] = spline_from_dna_nurbs(*nurbs[i]);
+          break;
+        case CU_POLY:
+          splines[i] = spline_from_dna_poly(*nurbs[i]);
+          break;
+        default:
+          BLI_assert_unreachable();
+          break;
       }
     }
-  }
+  });
 
-  /* Though the curve has no attributes, this is necessary to properly set the custom data size. */
-  curve->attributes.reallocate(curve->splines().size());
-
-  /* Note: Normal mode is stored separately in each spline to facilitate combining splines
-   * from multiple curve objects, where the value may be different. */
+  /* Normal mode is stored separately in each spline to facilitate combining
+   * splines from multiple curve objects, where the value may be different. */
   const Spline::NormalCalculationMode normal_mode = normal_mode_from_dna_curve(
       dna_curve.twist_mode);
   for (SplinePtr &spline : curve->splines()) {

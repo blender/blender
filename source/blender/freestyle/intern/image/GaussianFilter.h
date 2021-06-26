@@ -54,7 +54,7 @@ class GaussianFilter {
   GaussianFilter &operator=(const GaussianFilter &);
   virtual ~GaussianFilter();
 
-  /*! Returns the value for pixel x,y of image "map" after a gaussian blur, made using the sigma
+  /** Returns the value for pixel x,y of image "map" after a gaussian blur, made using the sigma
    * value. The sigma value determines the mask size (~ 2 x sigma).
    * \param map: The image we wish to work on.
    * The Map template must implement the following methods:
@@ -70,12 +70,12 @@ class GaussianFilter {
    */
   template<class Map> float getSmoothedPixel(Map *map, int x, int y);
 
-  /*! Compute the mask size and returns the REAL mask size ((2*_maskSize)-1)
+  /** Compute the mask size and returns the REAL mask size ((2*_maskSize)-1)
    *  This method is provided for convenience.
    */
   static int computeMaskSize(float sigma);
 
-  /*! accessors */
+  /** accessors */
   inline float sigma() const
   {
     return _sigma;
@@ -91,7 +91,7 @@ class GaussianFilter {
     return _bound;
   }
 
-  /*! modifiers */
+  /** modifiers */
   void setSigma(float sigma);
 #if 0
   void SetMaskSize(int size)

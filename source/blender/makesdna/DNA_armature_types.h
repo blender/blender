@@ -170,15 +170,15 @@ typedef enum eArmature_Flag {
   ARM_FLAG_UNUSED_7 = (1 << 7),
   ARM_MIRROR_EDIT = (1 << 8),
   ARM_FLAG_UNUSED_9 = (1 << 9),
-  /** made option negative, for backwards compat */
+  /** Made option negative, for backwards compatibility. */
   ARM_NO_CUSTOM = (1 << 10),
-  /** draw custom colors  */
+  /** Draw custom colors. */
   ARM_COL_CUSTOM = (1 << 11),
-  /** when ghosting, only show selected bones (this should belong to ghostflag instead) */
+  /** When ghosting, only show selected bones (this should belong to ghostflag instead). */
   ARM_FLAG_UNUSED_12 = (1 << 12), /* cleared */
-  /** dopesheet channel is expanded */
+  /** Dope-sheet channel is expanded */
   ARM_DS_EXPAND = (1 << 13),
-  /** other objects are used for visualizing various states (hack for efficient updates) */
+  /** Other objects are used for visualizing various states (hack for efficient updates). */
   ARM_HAS_VIZ_DEPS = (1 << 14),
 } eArmature_Flag;
 
@@ -221,7 +221,7 @@ typedef enum eBone_Flag {
   BONE_TIPSEL = (1 << 2),
   /** Used instead of BONE_SELECTED during transform (clear before use) */
   BONE_TRANSFORM = (1 << 3),
-  /** when bone has a parent, connect head of bone to parent's tail*/
+  /** When bone has a parent, connect head of bone to parent's tail. */
   BONE_CONNECTED = (1 << 4),
   /* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
   /** hidden Bones when drawing PoseChannels */

@@ -1,6 +1,6 @@
 
 if(WITH_GTESTS)
-  # Otherwise we get warnings here that we cant fix in external projects
+  # Otherwise we get warnings here that we can't fix in external projects
   remove_strict_flags()
 
   # Build common test executable used by most tests

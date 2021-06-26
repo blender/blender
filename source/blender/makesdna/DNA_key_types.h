@@ -46,10 +46,10 @@ typedef struct KeyBlock {
    * so this value increments by 0.1f per frame.
    */
   float pos;
-  /** influence (typically [0 - 1] but can be more), (Key->type == KEY_RELATIVE) only.*/
+  /** influence (typically [0 - 1] but can be more), `(Key->type == KEY_RELATIVE)` only. */
   float curval;
 
-  /** interpolation type (Key->type == KEY_NORMAL) only. */
+  /** Interpolation type `(Key->type == KEY_NORMAL)` only. */
   short type;
   char _pad1[2];
 
@@ -62,7 +62,7 @@ typedef struct KeyBlock {
   /** for meshes only, match the unique number with the customdata layer */
   int uid;
 
-  /** array of shape key values, size is (Key->elemsize * KeyBlock->totelem) */
+  /** array of shape key values, size is `(Key->elemsize * KeyBlock->totelem)` */
   void *data;
   /** MAX_NAME (unique name, user assigned) */
   char name[64];
@@ -81,7 +81,7 @@ typedef struct Key {
   struct AnimData *adt;
 
   /**
-   * commonly called 'Basis', (Key->type == KEY_RELATIVE) only.
+   * commonly called 'Basis', `(Key->type == KEY_RELATIVE)` only.
    * Looks like this is  _always_ 'key->block.first',
    * perhaps later on it could be defined as some other KeyBlock - campbell
    */

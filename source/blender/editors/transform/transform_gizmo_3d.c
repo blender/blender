@@ -521,7 +521,7 @@ static void protectflag_to_drawflags_pchan(RegionView3D *rv3d,
   }
 }
 
-/* for editmode*/
+/* For editmode. */
 static void protectflag_to_drawflags_ebone(RegionView3D *rv3d, const EditBone *ebo)
 {
   if (ebo->flag & BONE_EDITMODE_LOCKED) {

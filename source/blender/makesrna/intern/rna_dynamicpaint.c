@@ -226,7 +226,7 @@ static bool rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
   return (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ) ? 1 : 0;
 }
 
-/* does output layer exist*/
+/* Does output layer exist. */
 static bool rna_DynamicPaint_is_output_exists(DynamicPaintSurface *surface, Object *ob, int index)
 {
   return dynamicPaint_outputLayerExists(surface, ob, index);

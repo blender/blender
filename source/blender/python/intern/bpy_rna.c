@@ -1647,7 +1647,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr,
       break;
     }
 
-    item = PyDict_GetItemString(kw, arg_name); /* Wont set an error. */
+    item = PyDict_GetItemString(kw, arg_name); /* Won't set an error. */
 
     if (item == NULL) {
       if (all_args) {
@@ -6224,7 +6224,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
         err = -1;
         break;
       }
-      /* PyDict_GetItemString wont raise an error. */
+      /* PyDict_GetItemString won't raise an error. */
       continue;
     }
 
@@ -6459,11 +6459,11 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
     NULL, /* PyMappingMethods *tp_as_mapping; */
 
     /* More standard operations (here for binary compatibility) */
-    NULL,                                                      /* hashfunc tp_hash; */
-    NULL,                                                      /* ternaryfunc tp_call; */
-    NULL,                                                      /* reprfunc tp_str; */
-    NULL /*(getattrofunc) pyrna_struct_meta_idprop_getattro*/, /* getattrofunc tp_getattro; */
-    (setattrofunc)pyrna_struct_meta_idprop_setattro,           /* setattrofunc tp_setattro; */
+    NULL,                                                        /* hashfunc tp_hash; */
+    NULL,                                                        /* ternaryfunc tp_call; */
+    NULL,                                                        /* reprfunc tp_str; */
+    NULL /* (getattrofunc) pyrna_struct_meta_idprop_getattro */, /* getattrofunc tp_getattro; */
+    (setattrofunc)pyrna_struct_meta_idprop_setattro,             /* setattrofunc tp_setattro; */
 
     /* Functions to access object as input/output buffer */
     NULL, /* PyBufferProcs *tp_as_buffer; */
@@ -6508,12 +6508,12 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
     NULL, /* allocfunc tp_alloc; */
     NULL, /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6601,12 +6601,12 @@ PyTypeObject pyrna_struct_Type = {
     NULL,                   /* allocfunc tp_alloc; */
     pyrna_struct_new,       /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6686,12 +6686,12 @@ PyTypeObject pyrna_prop_Type = {
     NULL,                 /* allocfunc tp_alloc; */
     pyrna_prop_new,       /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6769,12 +6769,12 @@ PyTypeObject pyrna_prop_array_Type = {
     NULL,                          /* allocfunc tp_alloc; */
     NULL,                          /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6854,12 +6854,12 @@ PyTypeObject pyrna_prop_collection_Type = {
     NULL,                          /* allocfunc tp_alloc; */
     NULL,                          /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -6940,12 +6940,12 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
     NULL,                                 /* allocfunc tp_alloc; */
     NULL,                                 /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -7025,12 +7025,12 @@ PyTypeObject pyrna_func_Type = {
     NULL,                 /* allocfunc tp_alloc; */
     NULL,                 /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -7121,12 +7121,12 @@ static PyTypeObject pyrna_prop_collection_iter_Type = {
     NULL, /* allocfunc tp_alloc; */
     NULL, /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -7165,8 +7165,8 @@ static PyObject *pyrna_prop_collection_iter_next(BPy_PropertyCollectionIterRNA *
   if (pyrna) { /* Unlikely, but may fail. */
     if ((PyObject *)pyrna != Py_None) {
       /* hold a reference to the iterator since it may have
-       * allocated memory 'pyrna' needs. eg: introspecting dynamic enum's  */
-      /* TODO, we could have an api call to know if this is
+       * allocated memory 'pyrna' needs. eg: introspecting dynamic enum's. */
+      /* TODO: we could have an api call to know if this is
        * needed since most collections don't */
       pyrna_struct_reference_set(pyrna, (PyObject *)self);
     }
@@ -7835,7 +7835,7 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
   BPy_StructRNA *py_srna = NULL;
   StructRNA *srna;
 
-  /* Unfortunately PyObject_GetAttrString wont look up this types tp_dict first :/ */
+  /* Unfortunately PyObject_GetAttrString won't look up this types tp_dict first :/ */
   if (PyType_Check(self)) {
     py_srna = (BPy_StructRNA *)PyDict_GetItem(((PyTypeObject *)self)->tp_dict,
                                               bpy_intern_str_bl_rna);
@@ -7884,9 +7884,11 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
 }
 
 /* Orphan functions, not sure where they should go. */
-/* Get the srna for methods attached to types. */
-/*
- * Caller needs to raise error.*/
+/**
+ * Get the SRNA for methods attached to types.
+ *
+ * Caller needs to raise error.
+ */
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 {
 
@@ -8029,7 +8031,7 @@ static int pyrna_deferred_register_class_from_type_hints(StructRNA *srna, PyType
       }
     }
     else {
-      /* Should never happen, an error wont have been raised, so raise one. */
+      /* Should never happen, an error won't have been raised, so raise one. */
       PyErr_Format(PyExc_TypeError,
                    "typing.get_type_hints returned: %.200s, expected dict\n",
                    Py_TYPE(annotations_dict)->tp_name);
@@ -8256,9 +8258,9 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
     if (func_arg_count >= 0) { /* -1 if we don't care. */
       arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
 
-      /* note, the number of args we check for and the number of args we give to
+      /* NOTE: the number of args we check for and the number of args we give to
        * '@staticmethods' are different (quirk of Python),
-       * this is why rna_function_arg_count() doesn't return the value -1*/
+       * this is why rna_function_arg_count() doesn't return the value -1. */
       if (is_staticmethod) {
         func_arg_count++;
         func_arg_min_count++;
@@ -8437,7 +8439,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     else if (py_srna == NULL) {
       py_class_instance = NULL;
     }
-    else if (py_srna == Py_None) { /* Probably wont ever happen, but possible. */
+    else if (py_srna == Py_None) { /* Probably won't ever happen, but possible. */
       Py_DECREF(py_srna);
       py_class_instance = NULL;
     }
@@ -8667,7 +8669,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
   if (err != 0) {
     ReportList *reports;
-    /* Alert the user, else they wont know unless they see the console. */
+    /* Alert the user, else they won't know unless they see the console. */
     if ((!is_staticmethod) && (!is_classmethod) && (ptr->data) &&
         (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
         (is_valid_wm == (CTX_wm_manager(C) != NULL))) {
@@ -8675,7 +8677,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       reports = op->reports;
     }
     else {
-      /* Wont alert users, but they can view in 'info' space. */
+      /* Won't alert users, but they can view in 'info' space. */
       reports = CTX_wm_reports(C);
     }
 

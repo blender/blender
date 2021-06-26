@@ -155,7 +155,7 @@ void GLImmediate::end()
     GLContext::get()->state_manager->apply_state();
 
     /* We convert the offset in vertex offset from the buffer's start.
-     * This works because we added some padding to align the first vertex vertex.  */
+     * This works because we added some padding to align the first vertex vertex. */
     uint v_first = buffer_offset() / vertex_format.stride;
     GLVertArray::update_bindings(
         vao_id_, v_first, &vertex_format, reinterpret_cast<Shader *>(shader)->interface);

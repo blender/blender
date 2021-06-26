@@ -66,86 +66,86 @@ class FEdge;
 class ViewVertex;
 class SShape;
 
-/*! Class to define a vertex of the embedding. */
+/** Class to define a vertex of the embedding. */
 class SVertex : public Interface0D {
  public:  // Implementation of Interface0D
-  /*! Returns the string "SVertex" .*/
+  /** Returns the string "SVertex". */
   virtual string getExactTypeName() const
   {
     return "SVertex";
   }
 
   // Data access methods
-  /*! Returns the 3D x coordinate of the vertex .*/
+  /** Returns the 3D x coordinate of the vertex. */
   virtual real getX() const
   {
     return _Point3D.x();
   }
 
-  /*! Returns the 3D y coordinate of the vertex .*/
+  /** Returns the 3D y coordinate of the vertex. */
   virtual real getY() const
   {
     return _Point3D.y();
   }
 
-  /*! Returns the 3D z coordinate of the vertex .*/
+  /** Returns the 3D z coordinate of the vertex. */
   virtual real getZ() const
   {
     return _Point3D.z();
   }
 
-  /*!  Returns the 3D point. */
+  /**  Returns the 3D point. */
   virtual Vec3r getPoint3D() const
   {
     return _Point3D;
   }
 
-  /*! Returns the projected 3D  x coordinate of the vertex .*/
+  /** Returns the projected 3D  x coordinate of the vertex. */
   virtual real getProjectedX() const
   {
     return _Point2D.x();
   }
 
-  /*! Returns the projected 3D  y coordinate of the vertex .*/
+  /** Returns the projected 3D  y coordinate of the vertex. */
   virtual real getProjectedY() const
   {
     return _Point2D.y();
   }
 
-  /*! Returns the projected 3D  z coordinate of the vertex .*/
+  /** Returns the projected 3D  z coordinate of the vertex. */
   virtual real getProjectedZ() const
   {
     return _Point2D.z();
   }
 
-  /*!  Returns the 2D point. */
+  /**  Returns the 2D point. */
   virtual Vec2r getPoint2D() const
   {
     return Vec2r(_Point2D.x(), _Point2D.y());
   }
 
-  /*! Returns the FEdge that lies between this Svertex and the Interface0D given as argument. */
+  /** Returns the FEdge that lies between this Svertex and the Interface0D given as argument. */
   virtual FEdge *getFEdge(Interface0D &);
 
-  /*! Returns the Id of the vertex .*/
+  /** Returns the Id of the vertex. */
   virtual Id getId() const
   {
     return _Id;
   }
 
-  /*! Returns the nature of the vertex .*/
+  /** Returns the nature of the vertex. */
   virtual Nature::VertexNature getNature() const;
 
-  /*! Cast the Interface0D in SVertex if it can be. */
+  /** Cast the Interface0D in SVertex if it can be. */
   virtual SVertex *castToSVertex();
 
-  /*! Cast the Interface0D in ViewVertex if it can be. */
+  /** Cast the Interface0D in ViewVertex if it can be. */
   virtual ViewVertex *castToViewVertex();
 
-  /*! Cast the Interface0D in NonTVertex if it can be. */
+  /** Cast the Interface0D in NonTVertex if it can be. */
   virtual NonTVertex *castToNonTVertex();
 
-  /*! Cast the Interface0D in TVertex if it can be. */
+  /** Cast the Interface0D in TVertex if it can be. */
   virtual TVertex *castToTVertex();
 
  public:
@@ -166,12 +166,12 @@ class SVertex : public Interface0D {
   CurvatureInfo *_curvature_info;
 
  public:
-  /*! A field that can be used by the user to store any data.
+  /** A field that can be used by the user to store any data.
    *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
-  /*! Default constructor.*/
+  /** Default constructor. */
   inline SVertex()
   {
     _Id = 0;
@@ -181,7 +181,7 @@ class SVertex : public Interface0D {
     _curvature_info = 0;
   }
 
-  /*! Builds a SVertex from 3D coordinates and an Id. */
+  /** Builds a SVertex from 3D coordinates and an Id. */
   inline SVertex(const Vec3r &iPoint3D, const Id &id)
   {
     _Point3D = iPoint3D;
@@ -192,7 +192,7 @@ class SVertex : public Interface0D {
     _curvature_info = 0;
   }
 
-  /*! Copy constructor. */
+  /** Copy constructor. */
   inline SVertex(SVertex &iBrother)
   {
     _Id = iBrother._Id;
@@ -212,7 +212,7 @@ class SVertex : public Interface0D {
     userdata = 0;
   }
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~SVertex()
   {
     if (_curvature_info) {
@@ -220,14 +220,14 @@ class SVertex : public Interface0D {
     }
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual SVertex *duplicate()
   {
     SVertex *clone = new SVertex(*this);
     return clone;
   }
 
-  /*! operator == */
+  /** operator == */
   virtual bool operator==(const SVertex &iBrother)
   {
     return ((_Point2D == iBrother._Point2D) && (_Point3D == iBrother._Point3D));
@@ -244,7 +244,7 @@ class SVertex : public Interface0D {
     return _Point2D;
   }
 
-  /*! Returns the set of normals for this Vertex.
+  /** Returns the set of normals for this Vertex.
    *  In a smooth surface, a vertex has exactly one normal.
    *  In a sharp surface, a vertex can have any number of normals.
    */
@@ -253,7 +253,7 @@ class SVertex : public Interface0D {
     return _Normals;
   }
 
-  /*! Returns the number of different normals for this vertex. */
+  /** Returns the number of different normals for this vertex. */
   inline unsigned normalsSize() const
   {
     return _Normals.size();
@@ -284,7 +284,7 @@ class SVertex : public Interface0D {
     return _Point2D[2];
   }
 
-  /*! If this SVertex is also a ViewVertex, this method returns a pointer onto this ViewVertex.
+  /** If this SVertex is also a ViewVertex, this method returns a pointer onto this ViewVertex.
    *  0 is returned otherwise.
    */
   inline ViewVertex *viewvertex()
@@ -292,20 +292,20 @@ class SVertex : public Interface0D {
     return _pViewVertex;
   }
 
-  /*! modifiers */
-  /*! Sets the 3D coordinates of the SVertex. */
+  /** modifiers */
+  /** Sets the 3D coordinates of the SVertex. */
   inline void setPoint3D(const Vec3r &iPoint3D)
   {
     _Point3D = iPoint3D;
   }
 
-  /*! Sets the 3D projected coordinates of the SVertex. */
+  /** Sets the 3D projected coordinates of the SVertex. */
   inline void setPoint2D(const Vec3r &iPoint2D)
   {
     _Point2D = iPoint2D;
   }
 
-  /*! Adds a normal to the Svertex's set of normals. If the same normal is already in the set,
+  /** Adds a normal to the Svertex's set of normals. If the same normal is already in the set,
    * nothing changes. */
   inline void AddNormal(const Vec3r &iNormal)
   {
@@ -326,7 +326,7 @@ class SVertex : public Interface0D {
   }
 
 #if 0
-  /* Fredo's normal and curvature*/
+  /* Fredo's normal and curvature. */
   void setCurvatureFredo(real c)
   {
     _curvatureFredo = c;
@@ -348,7 +348,7 @@ class SVertex : public Interface0D {
   }
 #endif
 
-  /*! Sets the Id */
+  /** Sets the Id */
   inline void setId(const Id &id)
   {
     _Id = id;
@@ -369,13 +369,13 @@ class SVertex : public Interface0D {
     _pViewVertex = iViewVertex;
   }
 
-  /*! Add an FEdge to the list of edges emanating from this SVertex. */
+  /** Add an FEdge to the list of edges emanating from this SVertex. */
   inline void AddFEdge(FEdge *iFEdge)
   {
     _FEdges.push_back(iFEdge);
   }
 
-  /*! Remove an FEdge from the list of edges emanating from this SVertex. */
+  /** Remove an FEdge from the list of edges emanating from this SVertex. */
   inline void RemoveFEdge(FEdge *iFEdge)
   {
     for (vector<FEdge *>::iterator fe = _FEdges.begin(), fend = _FEdges.end(); fe != fend; fe++) {
@@ -447,7 +447,7 @@ class SVertex : public Interface0D {
   inline Vec3r orientation2d() const;
   inline Vec3r orientation3d() const;
   inline Vec3r curvature2d_as_vector() const;
-  /*! angle in radians */
+  /** angle in radians */
   inline real curvature2d_as_angle() const;
 #endif
 
@@ -466,7 +466,7 @@ class SVertex : public Interface0D {
 
 class ViewEdge;
 
-/*! Base Class for feature edges.
+/** Base Class for feature edges.
  *  This FEdge can represent a silhouette, a crease, a ridge/valley, a border or a suggestive
  * contour. For silhouettes,  the FEdge is oriented such as, the visible face lies on the left of
  * the edge. For borders, the FEdge is oriented such as, the face lies on the left of the edge. An
@@ -476,7 +476,7 @@ class ViewEdge;
  */
 class FEdge : public Interface1D {
  public:  // Implementation of Interface0D
-  /*! Returns the string "FEdge". */
+  /** Returns the string "FEdge". */
   virtual string getExactTypeName() const
   {
     return "FEdge";
@@ -484,7 +484,7 @@ class FEdge : public Interface1D {
 
   // Data access methods
 
-  /*! Returns the 2D length of the FEdge. */
+  /** Returns the 2D length of the FEdge. */
   virtual real getLength2D() const
   {
     if (!_VertexA || !_VertexB) {
@@ -493,7 +493,7 @@ class FEdge : public Interface1D {
     return (_VertexB->getPoint2D() - _VertexA->getPoint2D()).norm();
   }
 
-  /*! Returns the Id of the FEdge. */
+  /** Returns the Id of the FEdge. */
   virtual Id getId() const
   {
     return _Id;
@@ -533,12 +533,12 @@ class FEdge : public Interface1D {
   bool _isTemporary;
 
  public:
-  /*! A field that can be used by the user to store any data.
+  /** A field that can be used by the user to store any data.
    *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
-  /*! Default constructor */
+  /** Default constructor */
   inline FEdge()
   {
     userdata = NULL;
@@ -555,7 +555,7 @@ class FEdge : public Interface1D {
     _isTemporary = false;
   }
 
-  /*! Builds an FEdge going from vA to vB. */
+  /** Builds an FEdge going from vA to vB. */
   inline FEdge(SVertex *vA, SVertex *vB)
   {
     userdata = NULL;
@@ -572,7 +572,7 @@ class FEdge : public Interface1D {
     _isTemporary = false;
   }
 
-  /*! Copy constructor */
+  /** Copy constructor */
   inline FEdge(FEdge &iBrother)
   {
     _VertexA = iBrother.vertexA();
@@ -594,12 +594,12 @@ class FEdge : public Interface1D {
     userdata = 0;
   }
 
-  /*! Destructor */
+  /** Destructor */
   virtual ~FEdge()
   {
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual FEdge *duplicate()
   {
     FEdge *clone = new FEdge(*this);
@@ -607,31 +607,31 @@ class FEdge : public Interface1D {
   }
 
   /* accessors */
-  /*! Returns the first SVertex. */
+  /** Returns the first SVertex. */
   inline SVertex *vertexA()
   {
     return _VertexA;
   }
 
-  /*! Returns the second SVertex. */
+  /** Returns the second SVertex. */
   inline SVertex *vertexB()
   {
     return _VertexB;
   }
 
-  /*! Returns the first SVertex if i=0, the second SVertex if i=1. */
+  /** Returns the first SVertex if i=0, the second SVertex if i=1. */
   inline SVertex *operator[](const unsigned short int &i) const
   {
     return (i % 2 == 0) ? _VertexA : _VertexB;
   }
 
-  /*! Returns the nature of the FEdge. */
+  /** Returns the nature of the FEdge. */
   inline Nature::EdgeNature getNature() const
   {
     return _Nature;
   }
 
-  /*! Returns the FEdge following this one in the ViewEdge.
+  /** Returns the FEdge following this one in the ViewEdge.
    *  If this FEdge is the last of the ViewEdge, 0 is returned.
    */
   inline FEdge *nextEdge()
@@ -639,7 +639,7 @@ class FEdge : public Interface1D {
     return _NextEdge;
   }
 
-  /*! Returns the Edge preceding this one in the ViewEdge.
+  /** Returns the Edge preceding this one in the ViewEdge.
    *  If this FEdge is the first one of the ViewEdge, 0 is returned.
    */
   inline FEdge *previousEdge()
@@ -668,7 +668,7 @@ class FEdge : public Interface1D {
   }
 #endif
 
-  /*! Returns a pointer to the ViewEdge to which this FEdge belongs to. */
+  /** Returns a pointer to the ViewEdge to which this FEdge belongs to. */
   inline ViewEdge *viewedge() const
   {
     return _ViewEdge;
@@ -716,7 +716,7 @@ class FEdge : public Interface1D {
     return _occludeeEmpty;
   }
 
-  /*! Returns true if this FEdge is a smooth FEdge. */
+  /** Returns true if this FEdge is a smooth FEdge. */
   inline bool isSmooth() const
   {
     return _isSmooth;
@@ -733,37 +733,37 @@ class FEdge : public Interface1D {
   }
 
   /* modifiers */
-  /*! Sets the first SVertex. */
+  /** Sets the first SVertex. */
   inline void setVertexA(SVertex *vA)
   {
     _VertexA = vA;
   }
 
-  /*! Sets the second SVertex. */
+  /** Sets the second SVertex. */
   inline void setVertexB(SVertex *vB)
   {
     _VertexB = vB;
   }
 
-  /*! Sets the FEdge Id . */
+  /** Sets the FEdge Id . */
   inline void setId(const Id &id)
   {
     _Id = id;
   }
 
-  /*! Sets the pointer to the next FEdge. */
+  /** Sets the pointer to the next FEdge. */
   inline void setNextEdge(FEdge *iEdge)
   {
     _NextEdge = iEdge;
   }
 
-  /*! Sets the pointer to the previous FEdge. */
+  /** Sets the pointer to the previous FEdge. */
   inline void setPreviousEdge(FEdge *iEdge)
   {
     _PreviousEdge = iEdge;
   }
 
-  /*! Sets the nature of this FEdge. */
+  /** Sets the nature of this FEdge. */
   inline void setNature(Nature::EdgeNature iNature)
   {
     _Nature = iNature;
@@ -776,7 +776,7 @@ class FEdge : public Interface1D {
   }
 #endif
 
-  /*! Sets the ViewEdge to which this FEdge belongs to. */
+  /** Sets the ViewEdge to which this FEdge belongs to. */
   inline void setViewEdge(ViewEdge *iViewEdge)
   {
     _ViewEdge = iViewEdge;
@@ -814,7 +814,7 @@ class FEdge : public Interface1D {
     _occludeeEmpty = iempty;
   }
 
-  /*! Sets the flag telling whether this FEdge is smooth or sharp.
+  /** Sets the flag telling whether this FEdge is smooth or sharp.
    *  true for Smooth, false for Sharp.
    */
   inline void setSmooth(bool iFlag)
@@ -941,18 +941,18 @@ class FEdge : public Interface1D {
 
   inline Vec3r curvature2d_as_vector(int iCombination = 0) const;
 
-  /* angle in degrees*/
+  /* Angle in degrees. */
   inline real curvature2d_as_angle(int iCombination = 0) const;
 #endif
 
   // Iterator access (Interface1D)
-  /*! Returns an iterator over the 2 (!) SVertex pointing to the first SVertex. */
+  /** Returns an iterator over the 2 (!) SVertex pointing to the first SVertex. */
   virtual inline Interface0DIterator verticesBegin();
 
-  /*! Returns an iterator over the 2 (!) SVertex pointing after the last SVertex. */
+  /** Returns an iterator over the 2 (!) SVertex pointing after the last SVertex. */
   virtual inline Interface0DIterator verticesEnd();
 
-  /*! Returns an iterator over the FEdge points, pointing to the first point. The difference with
+  /** Returns an iterator over the FEdge points, pointing to the first point. The difference with
    * verticesBegin() is that here we can iterate over points of the FEdge at a any given sampling.
    *  Indeed, for each iteration, a virtual point is created.
    *  \param t:
@@ -960,7 +960,7 @@ class FEdge : public Interface1D {
    */
   virtual inline Interface0DIterator pointsBegin(float t = 0.0f);
 
-  /*! Returns an iterator over the FEdge points, pointing after the last point. The difference with
+  /** Returns an iterator over the FEdge points, pointing after the last point. The difference with
    * verticesEnd() is that here we can iterate over points of the FEdge at a any given sampling.
    *  Indeed, for each iteration, a virtual point is created.
    *  \param t:
@@ -1138,7 +1138,7 @@ Interface0DIterator FEdge::pointsEnd(float /*t*/)
   return verticesEnd();
 }
 
-/*! Class defining a sharp FEdge. A Sharp FEdge corresponds to an initial edge of the input mesh.
+/** Class defining a sharp FEdge. A Sharp FEdge corresponds to an initial edge of the input mesh.
  *  It can be a silhouette, a crease or a border. If it is a crease edge, then it is bordered
  *  by two faces of the mesh. Face a lies on its right whereas Face b lies on its left.
  *  If it is a border edge, then it doesn't have any face on its right, and thus Face a = 0.
@@ -1153,27 +1153,27 @@ class FEdgeSharp : public FEdge {
   bool _bFaceMark;
 
  public:
-  /*! Returns the string "FEdgeSharp" . */
+  /** Returns the string "FEdgeSharp" . */
   virtual string getExactTypeName() const
   {
     return "FEdgeSharp";
   }
 
-  /*! Default constructor. */
+  /** Default constructor. */
   inline FEdgeSharp() : FEdge()
   {
     _aFrsMaterialIndex = _bFrsMaterialIndex = 0;
     _aFaceMark = _bFaceMark = false;
   }
 
-  /*! Builds an FEdgeSharp going from vA to vB. */
+  /** Builds an FEdgeSharp going from vA to vB. */
   inline FEdgeSharp(SVertex *vA, SVertex *vB) : FEdge(vA, vB)
   {
     _aFrsMaterialIndex = _bFrsMaterialIndex = 0;
     _aFaceMark = _bFaceMark = false;
   }
 
-  /*! Copy constructor. */
+  /** Copy constructor. */
   inline FEdgeSharp(FEdgeSharp &iBrother) : FEdge(iBrother)
   {
     _aNormal = iBrother._aNormal;
@@ -1184,19 +1184,19 @@ class FEdgeSharp : public FEdge {
     _bFaceMark = iBrother._bFaceMark;
   }
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~FEdgeSharp()
   {
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual FEdge *duplicate()
   {
     FEdge *clone = new FEdgeSharp(*this);
     return clone;
   }
 
-  /*! Returns the normal to the face lying on the right of the FEdge. If this FEdge is a border,
+  /** Returns the normal to the face lying on the right of the FEdge. If this FEdge is a border,
    *  it has no Face on its right and therefore, no normal.
    */
   inline const Vec3r &normalA()
@@ -1204,13 +1204,13 @@ class FEdgeSharp : public FEdge {
     return _aNormal;
   }
 
-  /*! Returns the normal to the face lying on the left of the FEdge. */
+  /** Returns the normal to the face lying on the left of the FEdge. */
   inline const Vec3r &normalB()
   {
     return _bNormal;
   }
 
-  /*! Returns the index of the material of the face lying on the
+  /** Returns the index of the material of the face lying on the
    *  right of the FEdge. If this FEdge is a border,
    *  it has no Face on its right and therefore, no material.
    */
@@ -1219,21 +1219,21 @@ class FEdgeSharp : public FEdge {
     return _aFrsMaterialIndex;
   }
 
-  /*! Returns the material of the face lying on the right of the FEdge. If this FEdge is a border,
+  /** Returns the material of the face lying on the right of the FEdge. If this FEdge is a border,
    *  it has no Face on its right and therefore, no material.
    */
   const FrsMaterial &aFrsMaterial() const;
 
-  /*! Returns the index of the material of the face lying on the left of the FEdge. */
+  /** Returns the index of the material of the face lying on the left of the FEdge. */
   inline unsigned bFrsMaterialIndex() const
   {
     return _bFrsMaterialIndex;
   }
 
-  /*! Returns the  material of the face lying on the left of the FEdge. */
+  /** Returns the  material of the face lying on the left of the FEdge. */
   const FrsMaterial &bFrsMaterial() const;
 
-  /*! Returns the face mark of the face lying on the right of the FEdge.
+  /** Returns the face mark of the face lying on the right of the FEdge.
    *  If this FEdge is a border, it has no Face on its right and thus false is returned.
    */
   inline bool aFaceMark() const
@@ -1241,43 +1241,43 @@ class FEdgeSharp : public FEdge {
     return _aFaceMark;
   }
 
-  /*! Returns the face mark of the face lying on the left of the FEdge. */
+  /** Returns the face mark of the face lying on the left of the FEdge. */
   inline bool bFaceMark() const
   {
     return _bFaceMark;
   }
 
-  /*! Sets the normal to the face lying on the right of the FEdge. */
+  /** Sets the normal to the face lying on the right of the FEdge. */
   inline void setNormalA(const Vec3r &iNormal)
   {
     _aNormal = iNormal;
   }
 
-  /*! Sets the normal to the face lying on the left of the FEdge. */
+  /** Sets the normal to the face lying on the left of the FEdge. */
   inline void setNormalB(const Vec3r &iNormal)
   {
     _bNormal = iNormal;
   }
 
-  /*! Sets the index of the material lying on the right of the FEdge.*/
+  /** Sets the index of the material lying on the right of the FEdge. */
   inline void setaFrsMaterialIndex(unsigned i)
   {
     _aFrsMaterialIndex = i;
   }
 
-  /*! Sets the index of the material lying on the left of the FEdge.*/
+  /** Sets the index of the material lying on the left of the FEdge. */
   inline void setbFrsMaterialIndex(unsigned i)
   {
     _bFrsMaterialIndex = i;
   }
 
-  /*! Sets the face mark of the face lying on the right of the FEdge. */
+  /** Sets the face mark of the face lying on the right of the FEdge. */
   inline void setaFaceMark(bool iFaceMark)
   {
     _aFaceMark = iFaceMark;
   }
 
-  /*! Sets the face mark of the face lying on the left of the FEdge. */
+  /** Sets the face mark of the face lying on the left of the FEdge. */
   inline void setbFaceMark(bool iFaceMark)
   {
     _bFaceMark = iFaceMark;
@@ -1288,7 +1288,7 @@ class FEdgeSharp : public FEdge {
 #endif
 };
 
-/*! Class defining a smooth edge. This kind of edge typically runs across a face of the input mesh.
+/** Class defining a smooth edge. This kind of edge typically runs across a face of the input mesh.
  * It can be a silhouette, a ridge or valley, a suggestive contour.
  */
 class FEdgeSmooth : public FEdge {
@@ -1305,13 +1305,13 @@ class FEdgeSmooth : public FEdge {
   bool _FaceMark;
 
  public:
-  /*! Returns the string "FEdgeSmooth" . */
+  /** Returns the string "FEdgeSmooth" . */
   virtual string getExactTypeName() const
   {
     return "FEdgeSmooth";
   }
 
-  /*! Default constructor. */
+  /** Default constructor. */
   inline FEdgeSmooth() : FEdge()
   {
     _Face = NULL;
@@ -1320,7 +1320,7 @@ class FEdgeSmooth : public FEdge {
     _isSmooth = true;
   }
 
-  /*! Builds an FEdgeSmooth going from vA to vB. */
+  /** Builds an FEdgeSmooth going from vA to vB. */
   inline FEdgeSmooth(SVertex *vA, SVertex *vB) : FEdge(vA, vB)
   {
     _Face = NULL;
@@ -1329,7 +1329,7 @@ class FEdgeSmooth : public FEdge {
     _isSmooth = true;
   }
 
-  /*! Copy constructor. */
+  /** Copy constructor. */
   inline FEdgeSmooth(FEdgeSmooth &iBrother) : FEdge(iBrother)
   {
     _Normal = iBrother._Normal;
@@ -1339,12 +1339,12 @@ class FEdgeSmooth : public FEdge {
     _isSmooth = true;
   }
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~FEdgeSmooth()
   {
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual FEdge *duplicate()
   {
     FEdge *clone = new FEdgeSmooth(*this);
@@ -1356,25 +1356,25 @@ class FEdgeSmooth : public FEdge {
     return _Face;
   }
 
-  /*! Returns the face mark of the face it is running across. */
+  /** Returns the face mark of the face it is running across. */
   inline bool faceMark() const
   {
     return _FaceMark;
   }
 
-  /*! Returns the normal to the Face it is running across. */
+  /** Returns the normal to the Face it is running across. */
   inline const Vec3r &normal()
   {
     return _Normal;
   }
 
-  /*! Returns the index of the material of the face it is running across. */
+  /** Returns the index of the material of the face it is running across. */
   inline unsigned frs_materialIndex() const
   {
     return _FrsMaterialIndex;
   }
 
-  /*! Returns the material of the face it is running across. */
+  /** Returns the material of the face it is running across. */
   const FrsMaterial &frs_material() const;
 
   inline void setFace(void *iFace)
@@ -1382,19 +1382,19 @@ class FEdgeSmooth : public FEdge {
     _Face = iFace;
   }
 
-  /*! Sets the face mark of the face it is running across. */
+  /** Sets the face mark of the face it is running across. */
   inline void setFaceMark(bool iFaceMark)
   {
     _FaceMark = iFaceMark;
   }
 
-  /*! Sets the normal to the Face it is running across. */
+  /** Sets the normal to the Face it is running across. */
   inline void setNormal(const Vec3r &iNormal)
   {
     _Normal = iNormal;
   }
 
-  /*! Sets the index of the material of the face it is running across. */
+  /** Sets the index of the material of the face it is running across. */
   inline void setFrsMaterialIndex(unsigned i)
   {
     _FrsMaterialIndex = i;
@@ -1413,7 +1413,7 @@ class FEdgeSmooth : public FEdge {
 /*                                */
 /**********************************/
 
-/*! Class to define a feature shape. It is the gathering of feature elements from an identified
+/** Class to define a feature shape. It is the gathering of feature elements from an identified
  * input shape */
 class SShape {
  private:
@@ -1431,12 +1431,12 @@ class SShape {
   ViewShape *_ViewShape;
 
  public:
-  /*! A field that can be used by the user to store any data.
+  /** A field that can be used by the user to store any data.
    *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;  // added by E.T.
 
-  /*! Default constructor */
+  /** Default constructor */
   inline SShape()
   {
     userdata = NULL;
@@ -1444,7 +1444,7 @@ class SShape {
     _ViewShape = NULL;
   }
 
-  /*! Copy constructor */
+  /** Copy constructor */
   inline SShape(SShape &iBrother)
   {
     userdata = NULL;
@@ -1528,14 +1528,14 @@ class SShape {
     }
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual SShape *duplicate()
   {
     SShape *clone = new SShape(*this);
     return clone;
   }
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual inline ~SShape()
   {
     vector<SVertex *>::iterator sv, svend;
@@ -1561,13 +1561,13 @@ class SShape {
     }
   }
 
-  /*! Adds a FEdge to the list of FEdges. */
+  /** Adds a FEdge to the list of FEdges. */
   inline void AddEdge(FEdge *iEdge)
   {
     _edgesList.push_back(iEdge);
   }
 
-  /*! Adds a SVertex to the list of SVertex of this Shape.
+  /** Adds a SVertex to the list of SVertex of this Shape.
    * The SShape attribute of the SVertex is also set to 'this'.
    */
   inline void AddNewVertex(SVertex *iv)
@@ -1589,7 +1589,7 @@ class SShape {
     return Ia;
   }
 
-  /*! Splits an edge into several edges.
+  /** Splits an edge into several edges.
    *  The edge's vertices are passed rather than the edge itself. This way, all feature edges
    * (SILHOUETTE, CREASE, BORDER) are split in the same time. The processed edges are flagged as
    * done (using the user-data flag).One single new vertex is created whereas several split edges
@@ -1773,13 +1773,13 @@ class SShape {
     return newEdge;
   }
 
-  /*! Sets the Bounding Box of the Shape */
+  /** Sets the Bounding Box of the Shape */
   inline void setBBox(const BBox<Vec3r> &iBBox)
   {
     _BBox = iBBox;
   }
 
-  /*! Compute the bbox of the sshape */
+  /** Compute the bbox of the sshape */
   inline void ComputeBBox()
   {
     if (0 == _verticesList.size()) {
@@ -1853,13 +1853,13 @@ class SShape {
   }
 
   /* accessors */
-  /*! Returns the list of SVertex of the Shape. */
+  /** Returns the list of SVertex of the Shape. */
   inline vector<SVertex *> &getVertexList()
   {
     return _verticesList;
   }
 
-  /*! Returns the list of FEdges of the Shape. */
+  /** Returns the list of FEdges of the Shape. */
   inline vector<FEdge *> &getEdgeList()
   {
     return _edgesList;
@@ -1870,19 +1870,19 @@ class SShape {
     return _chains;
   }
 
-  /*! Returns the bounding box of the shape. */
+  /** Returns the bounding box of the shape. */
   inline const BBox<Vec3r> &bbox()
   {
     return _BBox;
   }
 
-  /*! Returns the ith material of the shape. */
+  /** Returns the ith material of the shape. */
   inline const FrsMaterial &frs_material(unsigned i) const
   {
     return _FrsMaterials[i];
   }
 
-  /*! Returns the list of materials of the Shape. */
+  /** Returns the list of materials of the Shape. */
   inline const vector<FrsMaterial> &frs_materials() const
   {
     return _FrsMaterials;
@@ -1898,44 +1898,44 @@ class SShape {
     return _importance;
   }
 
-  /*! Returns the Id of the Shape. */
+  /** Returns the Id of the Shape. */
   inline Id getId() const
   {
     return _Id;
   }
 
-  /*! Returns the name of the Shape. */
+  /** Returns the name of the Shape. */
   inline const string &getName() const
   {
     return _Name;
   }
 
-  /*! Returns the library path of the Shape. */
+  /** Returns the library path of the Shape. */
   inline const string &getLibraryPath() const
   {
     return _LibraryPath;
   }
 
   /* Modififers */
-  /*! Sets the Id of the shape.*/
+  /** Sets the Id of the shape. */
   inline void setId(Id id)
   {
     _Id = id;
   }
 
-  /*! Sets the name of the shape.*/
+  /** Sets the name of the shape. */
   inline void setName(const string &name)
   {
     _Name = name;
   }
 
-  /*! Sets the library path of the shape.*/
+  /** Sets the library path of the shape. */
   inline void setLibraryPath(const string &path)
   {
     _LibraryPath = path;
   }
 
-  /*! Sets the list of materials for the shape */
+  /** Sets the list of materials for the shape */
   inline void setFrsMaterials(const vector<FrsMaterial> &iMaterials)
   {
     _FrsMaterials = iMaterials;

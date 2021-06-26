@@ -229,7 +229,7 @@ void GPU_vertbuf_attr_fill(GPUVertBuf *verts_, uint a_idx, const void *data)
   GPU_vertbuf_attr_fill_stride(verts_, a_idx, stride, data);
 }
 
-/** Fills a whole vertex (all attributes). Data must match packed layout.  */
+/** Fills a whole vertex (all attributes). Data must match packed layout. */
 void GPU_vertbuf_vert_set(GPUVertBuf *verts_, uint v_idx, const void *data)
 {
   VertBuf *verts = unwrap(verts_);

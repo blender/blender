@@ -1113,7 +1113,7 @@ static PyObject *Quaternion_imatmul(PyObject *q1, PyObject *q2)
 }
 
 /* -obj
- * returns the negative of this object*/
+ * Returns the negative of this object. */
 static PyObject *Quaternion_neg(QuaternionObject *self)
 {
   float tquat[QUAT_SIZE];
@@ -1407,11 +1407,11 @@ static void quat__axis_angle_sanitize(float axis[3], float *angle)
 
 /* -----------------------METHOD DEFINITIONS ---------------------- */
 static struct PyMethodDef Quaternion_methods[] = {
-    /* in place only */
+    /* In place only. */
     {"identity", (PyCFunction)Quaternion_identity, METH_NOARGS, Quaternion_identity_doc},
     {"negate", (PyCFunction)Quaternion_negate, METH_NOARGS, Quaternion_negate_doc},
 
-    /* operate on original or copy */
+    /* Operate on original or copy. */
     {"conjugate", (PyCFunction)Quaternion_conjugate, METH_NOARGS, Quaternion_conjugate_doc},
     {"conjugated", (PyCFunction)Quaternion_conjugated, METH_NOARGS, Quaternion_conjugated_doc},
 
@@ -1421,7 +1421,7 @@ static struct PyMethodDef Quaternion_methods[] = {
     {"normalize", (PyCFunction)Quaternion_normalize, METH_NOARGS, Quaternion_normalize_doc},
     {"normalized", (PyCFunction)Quaternion_normalized, METH_NOARGS, Quaternion_normalized_doc},
 
-    /* return converted representation */
+    /* Return converted representation. */
     {"to_euler", (PyCFunction)Quaternion_to_euler, METH_VARARGS, Quaternion_to_euler_doc},
     {"to_matrix", (PyCFunction)Quaternion_to_matrix, METH_NOARGS, Quaternion_to_matrix_doc},
     {"to_axis_angle",
@@ -1437,7 +1437,7 @@ static struct PyMethodDef Quaternion_methods[] = {
      METH_NOARGS,
      Quaternion_to_exponential_map_doc},
 
-    /* operation between 2 or more types  */
+    /* Operation between 2 or more types. */
     {"cross", (PyCFunction)Quaternion_cross, METH_O, Quaternion_cross_doc},
     {"dot", (PyCFunction)Quaternion_dot, METH_O, Quaternion_dot_doc},
     {"rotation_difference",
@@ -1451,7 +1451,7 @@ static struct PyMethodDef Quaternion_methods[] = {
      METH_O,
      Quaternion_make_compatible_doc},
 
-    /* base-math methods */
+    /* Base-math methods. */
     {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 
     {"copy", (PyCFunction)Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},

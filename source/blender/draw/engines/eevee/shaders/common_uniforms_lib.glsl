@@ -37,7 +37,7 @@ layout(std140) uniform common_block
   int prbIrradianceVisSize;
   float prbIrradianceSmooth;
   float prbLodCubeMax;
-  /* Misc*/
+  /* Misc */
   int rayType;
   float rayDepth;
   float alphaHashOffset;

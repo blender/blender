@@ -271,7 +271,7 @@ static void waveModifier_do(WaveModifierData *md,
         amplit = amplit * wmd->narrow;
         amplit = (float)(1.0f / expf(amplit * amplit) - minfac);
 
-        /*apply texture*/
+        /* Apply texture. */
         if (tex_co) {
           Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
           TexResult texres;
@@ -280,7 +280,7 @@ static void waveModifier_do(WaveModifierData *md,
           amplit *= texres.tin;
         }
 
-        /*apply weight & falloff */
+        /* Apply weight & falloff. */
         amplit *= def_weight * falloff_fac;
 
         if (mvert) {

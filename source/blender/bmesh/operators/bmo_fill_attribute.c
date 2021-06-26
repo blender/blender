@@ -154,8 +154,9 @@ void bmo_face_attribute_fill_exec(BMesh *bm, BMOperator *op)
   int face_tot;
 
   BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
-  BMO_slot_buffer_hflag_enable(
-      bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false); /* do inline */
+
+  /* do inline */
+  BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
 
   /* now we can copy adjacent data */
   face_tot = bmesh_face_attribute_fill(bm, use_normals, use_data);

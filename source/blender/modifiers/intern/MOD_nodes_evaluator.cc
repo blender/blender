@@ -1041,13 +1041,14 @@ class GeometryNodesEvaluator {
         this->load_unlinked_input_value(locked_node, input_socket, input_state, origin_socket);
         locked_node.node_state.missing_required_inputs -= 1;
         this->schedule_node(locked_node);
-        return;
       }
-      /* The value has not been computed yet, so when it will be forwarded by another node, this
-       * node will be triggered. */
-      will_be_triggered_by_other_node = true;
+      else {
+        /* The value has not been computed yet, so when it will be forwarded by another node, this
+         * node will be triggered. */
+        will_be_triggered_by_other_node = true;
 
-      locked_node.delayed_required_outputs.append(DOutputSocket(origin_socket));
+        locked_node.delayed_required_outputs.append(DOutputSocket(origin_socket));
+      }
     }
     /* If this node will be triggered by another node, we don't have to schedule it now. */
     if (!will_be_triggered_by_other_node) {
@@ -1455,9 +1456,11 @@ Vector<GMutablePointer> NodeParamsProvider::extract_multi_input(StringRef identi
 
   Vector<GMutablePointer> ret_values;
   socket.foreach_origin_socket([&](DSocket origin) {
-    for (const MultiInputValueItem &item : multi_value.items) {
-      if (item.origin == origin) {
+    for (MultiInputValueItem &item : multi_value.items) {
+      if (item.origin == origin && item.value != nullptr) {
         ret_values.append({*input_state.type, item.value});
+        /* Make sure we do not use the same value again if two values have the same origin. */
+        item.value = nullptr;
         return;
       }
     }

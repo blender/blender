@@ -273,11 +273,11 @@ static bool seq_is_effect_of(const Sequence *seq_effect, const Sequence *possibl
 
 /* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
  * Order of applying these conditions is important. */
-static bool must_render_strip(const Sequence *seq, SeqCollection *strips_under_playhead)
+static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_timeline_frame)
 {
   bool seq_have_effect_in_stack = false;
   Sequence *seq_iter;
-  SEQ_ITERATOR_FOREACH (seq_iter, strips_under_playhead) {
+  SEQ_ITERATOR_FOREACH (seq_iter, strips_at_timeline_frame) {
     /* Strips is below another strip with replace blending are not rendered. */
     if (seq_iter->blend_mode == SEQ_BLEND_REPLACE && seq->machine < seq_iter->machine) {
       return false;
@@ -335,7 +335,7 @@ static void collection_filter_rendered_strips(SeqCollection *collection)
   Sequence *seq;
 
   /* Remove sound strips and muted strips from collection, because these are not rendered.
-   * Function must_render_strip() don't have to check for these strips anymore. */
+   * Function #must_render_strip() don't have to check for these strips anymore. */
   SEQ_ITERATOR_FOREACH (seq, collection) {
     if (seq->type == SEQ_TYPE_SOUND_RAM || (seq->flag & SEQ_MUTE) != 0) {
       SEQ_collection_remove_strip(seq, collection);

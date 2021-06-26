@@ -289,7 +289,7 @@ enum {
 #define FLUID_NAME_PARTICLES "fluid_particles"
 #define FLUID_NAME_GUIDING "fluid_guiding"
 
-/* Fluid object names.*/
+/* Fluid object names. */
 #define FLUID_NAME_FLAGS "flags"       /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_VELOCITY "velocity" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_VEL "vel"
@@ -813,8 +813,8 @@ typedef struct FluidFlowSettings {
   char uvlayer_name[64];
   short vgroup_density;
 
-  short type;     /* Smoke, flames, both, outflow, liquid.  */
-  short behavior; /* Inflow, outflow, static.  */
+  short type;     /* Smoke, flames, both, outflow, liquid. */
+  short behavior; /* Inflow, outflow, static. */
   short source;
   short texture_type;
   short _pad3[3];

@@ -78,9 +78,9 @@ typedef struct MovieTrackingCamera {
   float nuke_k1, nuke_k2;
 
   /* Brown-Conrady distortion model coefficients */
-  /** Brown-Conrady radial distortion **/
+  /** Brown-Conrady radial distortion. */
   float brown_k1, brown_k2, brown_k3, brown_k4;
-  /** Brown-Conrady tangential distortion **/
+  /** Brown-Conrady tangential distortion. */
   float brown_p1, brown_p2;
 } MovieTrackingCamera;
 

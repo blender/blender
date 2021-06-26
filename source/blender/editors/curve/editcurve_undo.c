@@ -97,7 +97,7 @@ static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short
     BKE_fcurves_copy(&ad->drivers, &ucu->drivers);
   }
 
-  /* copy  */
+  /* Copy. */
   for (nu = undobase->first; nu; nu = nu->next) {
     newnu = BKE_nurb_duplicate(nu);
 
@@ -139,7 +139,7 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
     BKE_fcurves_copy(&ucu->drivers, &ad->drivers);
   }
 
-  /* copy  */
+  /* Copy. */
   for (nu = nubase->first; nu; nu = nu->next) {
     newnu = BKE_nurb_duplicate(nu);
 

@@ -30,9 +30,9 @@ struct SpreadsheetContext *ED_spreadsheet_context_new(int type);
 void ED_spreadsheet_context_free(struct SpreadsheetContext *context);
 void ED_spreadsheet_context_path_clear(struct SpaceSpreadsheet *sspreadsheet);
 void ED_spreadsheet_context_path_update_tag(struct SpaceSpreadsheet *sspreadsheet);
-uint64_t ED_spreadsheet_context_path_hash(struct SpaceSpreadsheet *sspreadsheet);
+uint64_t ED_spreadsheet_context_path_hash(const struct SpaceSpreadsheet *sspreadsheet);
 
-struct ID *ED_spreadsheet_get_current_id(struct SpaceSpreadsheet *sspreadsheet);
+struct ID *ED_spreadsheet_get_current_id(const struct SpaceSpreadsheet *sspreadsheet);
 
 void ED_spreadsheet_set_geometry_node_context(struct SpaceSpreadsheet *sspreadsheet,
                                               struct SpaceNode *snode,

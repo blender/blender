@@ -94,7 +94,7 @@ static void curve_render_overlay_verts_edges_len_get(ListBase *lb,
   LISTBASE_FOREACH (Nurb *, nu, lb) {
     if (nu->bezt) {
       vert_len += nu->pntsu * 3;
-      /* 2x handles per point*/
+      /* 2x handles per point. */
       edge_len += 2 * nu->pntsu;
     }
     else if (nu->bp) {

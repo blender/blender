@@ -44,7 +44,7 @@ class BlenderStrokeRenderer : public StrokeRenderer {
   BlenderStrokeRenderer(Render *re, int render_count);
   virtual ~BlenderStrokeRenderer();
 
-  /*! Renders a stroke rep */
+  /** Renders a stroke rep */
   virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;
   virtual void RenderStrokeRepBasic(StrokeRep *iStrokeRep) const;
 

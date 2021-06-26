@@ -395,7 +395,7 @@ enum {
   ((ISKEYBOARD(event_type) || ISMOUSE(event_type) || ISNDOF(event_type)) && \
    (ISKEYMODIFIER(event_type) == false))
 
-/* internal helpers*/
+/* Internal helpers. */
 #define _VA_IS_EVENT_MOD2(v, a) (CHECK_TYPE_INLINE(v, wmEvent *), ((v)->a))
 #define _VA_IS_EVENT_MOD3(v, a, b) (_VA_IS_EVENT_MOD2(v, a) || ((v)->b))
 #define _VA_IS_EVENT_MOD4(v, a, b, c) (_VA_IS_EVENT_MOD3(v, a, b) || ((v)->c))

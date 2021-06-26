@@ -1924,6 +1924,31 @@ void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], const short order
   gmat[R->axis[2]][R->axis[2]] = 1;
 }
 
+void add_eul_euleul(float r_eul[3], float a[3], float b[3], const short order)
+{
+  float quat[4], quat_b[4];
+
+  eulO_to_quat(quat, a, order);
+  eulO_to_quat(quat_b, b, order);
+
+  mul_qt_qtqt(quat, quat_b, quat);
+
+  quat_to_eulO(r_eul, order, quat);
+}
+
+void sub_eul_euleul(float r_eul[3], float a[3], float b[3], const short order)
+{
+  float quat[4], quat_b[4];
+
+  eulO_to_quat(quat, a, order);
+  eulO_to_quat(quat_b, b, order);
+
+  invert_qt_normalized(quat_b);
+  mul_qt_qtqt(quat, quat_b, quat);
+
+  quat_to_eulO(r_eul, order, quat);
+}
+
 /******************************* Dual Quaternions ****************************/
 
 /**
@@ -1974,7 +1999,7 @@ void mat4_to_dquat(DualQuat *dq, const float basemat[4][4], const float mat[4][4
 
   if (!is_orthonormal_m3(mat3) || (determinant_m4(mat) < 0.0f) ||
       len_squared_v3(dscale) > square_f(1e-4f)) {
-    /* extract R and S  */
+    /* Extract R and S. */
     float tmp[4][4];
 
     /* extra orthogonalize, to avoid flipping with stretched bones */

@@ -54,7 +54,7 @@ void main(void)
    * (avoid problems with point behind near plane).
    * If the chosen point is parallel to the edge in screen space,
    * choose the other point anyway.
-   * This fixes some issue with cubes in orthographic views.*/
+   * This fixes some issue with cubes in orthographic views. */
   if (vPos[0].z < vPos[3].z) {
     hidden_point = (abs(fac0) > 1e-5) ? ssPos[0] : ssPos[3];
   }

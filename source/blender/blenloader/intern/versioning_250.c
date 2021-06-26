@@ -2052,7 +2052,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       }
     }
 
-    /* replace 'rim material' option for in offset*/
+    /* Replace 'rim material' option for in offset. */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       ModifierData *md;
       for (md = ob->modifiers.first; md; md = md->next) {

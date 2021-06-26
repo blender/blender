@@ -89,7 +89,7 @@ op_blacklist = (
     "wm.memory_statistics",     # another annoying one
     "wm.dependency_relations",  # another annoying one
     "wm.keymap_restore",        # another annoying one
-    "wm.addon_*",               # harmless, but dont change state
+    "wm.addon_*",               # harmless, but don't change state
     "console.*",                # just annoying - but harmless
     "wm.url_open_preset",       # Annoying but harmless (opens web pages).
 
@@ -178,7 +178,7 @@ if USE_ATTRSET:
             if issubclass(cls, skip_classes):
                 continue
 
-            # # to support skip-save we cant get all props
+            # # to support skip-save we can't get all props
             # properties = cls.bl_rna.properties.keys()
             properties = []
             for prop_id, prop in cls.bl_rna.properties.items():

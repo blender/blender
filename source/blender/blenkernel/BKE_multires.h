@@ -222,7 +222,7 @@ void BKE_multires_bmesh_space_set(struct Object *ob, struct BMesh *bm, int mode)
 /* Versioning. */
 
 /* Convert displacement which is stored for simply-subdivided mesh to a Catmull-Clark
- * subdivided mesh.  */
+ * subdivided mesh. */
 void multires_do_versions_simple_to_catmull_clark(struct Object *object,
                                                   struct MultiresModifierData *mmd);
 

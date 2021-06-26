@@ -277,10 +277,12 @@ static void cloth_setup_constraints(ClothModifierData *clmd)
   }
 }
 
-/* computes where the cloth would be if it were subject to perfectly stiff edges
+/**
+ * Computes where the cloth would be if it were subject to perfectly stiff edges
  * (edge distance constraints) in a lagrangian solver.  then add forces to help
  * guide the implicit solver to that state.  this function is called after
- * collisions*/
+ * collisions.
+ */
 static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob),
                                                      ClothModifierData *clmd,
                                                      float (*initial_cos)[3],
@@ -352,7 +354,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob),
   for (i = 0; i < cloth->mvert_num; i++, cv++) {
     float vec[3];
 
-    /*compute forces*/
+    /* Compute forces. */
     sub_v3_v3v3(vec, cos[i], cv->tx);
     mul_v3_fl(vec, cv->mass * dt * 20.0f);
     add_v3_v3(cv->tv, vec);
@@ -625,7 +627,7 @@ static void cloth_calc_force(
 #endif
   /* handle pressure forces (making sure that this never gets computed for hair). */
   if ((parms->flags & CLOTH_SIMSETTINGS_FLAG_PRESSURE) && (clmd->hairdata == nullptr)) {
-    /* The difference in pressure between the inside and outside of the mesh.*/
+    /* The difference in pressure between the inside and outside of the mesh. */
     float pressure_difference = 0.0f;
     float volume_factor = 1.0f;
 

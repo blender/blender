@@ -42,6 +42,7 @@
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -959,7 +960,7 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
       mesh_output = mesh_component.release();
     }
 
-    /* Return an empty mesh instead of null.  */
+    /* Return an empty mesh instead of null. */
     if (mesh_output == nullptr) {
       mesh_output = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
       BKE_mesh_copy_parameters_for_eval(mesh_output, input_mesh);
@@ -1463,10 +1464,14 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       BLI_assert(runtime->eval_mutex != nullptr);
       BLI_mutex_lock((ThreadMutex *)runtime->eval_mutex);
       if (runtime->mesh_eval == nullptr) {
-        mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
-        mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
-        mesh_calc_finalize(mesh_input, mesh_final);
-        runtime->mesh_eval = mesh_final;
+        /* Isolate since computing normals is multithreaded and we are holding a lock. */
+        blender::threading::isolate_task([&] {
+          mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+          mesh_calc_modifier_final_normals(
+              mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
+          mesh_calc_finalize(mesh_input, mesh_final);
+          runtime->mesh_eval = mesh_final;
+        });
       }
       BLI_mutex_unlock((ThreadMutex *)runtime->eval_mutex);
     }
@@ -1567,7 +1572,7 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
   /* BMESH_ONLY, ensure tessface's used for drawing,
    * but don't recalculate if the last modifier in the stack gives us tessfaces
    * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isn't essential
-   * but quiets annoying error messages since tessfaces wont be created. */
+   * but quiets annoying error messages since tessfaces won't be created. */
   if (final_datamask->fmask & CD_MASK_MFACE) {
     if (mesh_final->edit_mesh == nullptr) {
       BKE_mesh_tessface_ensure(mesh_final);

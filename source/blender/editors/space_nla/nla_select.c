@@ -577,7 +577,7 @@ void NLA_OT_select_leftright(wmOperatorType *ot)
   ot->idname = "NLA_OT_select_leftright";
   ot->description = "Select strips to the left or the right of the current frame";
 
-  /* api callbacks  */
+  /* api callbacks */
   ot->invoke = nlaedit_select_leftright_invoke;
   ot->exec = nlaedit_select_leftright_exec;
   ot->poll = ED_operator_nla_active;

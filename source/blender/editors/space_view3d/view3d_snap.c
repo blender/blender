@@ -155,7 +155,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
               /* Get location of grid point in pose space. */
               BKE_armature_loc_pose_to_bone(pchan_eval, vec, vec);
 
-              /* adjust location on the original pchan*/
+              /* Adjust location on the original pchan. */
               bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, pchan_eval->name);
               if ((pchan->protectflag & OB_LOCK_LOCX) == 0) {
                 pchan->loc[0] = vec[0];

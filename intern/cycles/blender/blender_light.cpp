@@ -44,7 +44,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   const bool tfm_updated = (light && light->get_tfm() != tfm);
 
   /* Update if either object or light data changed. */
-  if (!tfm_updated && !light_map.add_or_update(&light, b_ob, b_parent, key)) {
+  if (!light_map.add_or_update(&light, b_ob, b_parent, key) && !tfm_updated) {
     Shader *shader;
     if (!shader_map.add_or_update(&shader, b_light)) {
       if (light->get_is_portal())

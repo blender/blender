@@ -694,7 +694,7 @@ macro(message_first_run)
 endmacro()
 
 # when we have warnings as errors applied globally this
-# needs to be removed for some external libs which we dont maintain.
+# needs to be removed for some external libs which we don't maintain.
 
 # utility macro
 macro(remove_cc_flag
@@ -794,7 +794,7 @@ macro(remove_extra_strict_flags)
 endmacro()
 
 # note, we can only append flags on a single file so we need to negate the options.
-# at the moment we cant shut up ffmpeg deprecations, so use this, but will
+# at the moment we can't shut up ffmpeg deprecations, so use this, but will
 # probably add more removals here.
 macro(remove_strict_c_flags_file
   filenames)

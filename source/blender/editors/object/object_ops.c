@@ -322,7 +322,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
   keymap = WM_keymap_ensure(keyconf, "Object Non-modal", 0, 0);
 
   /* Object Mode ---------------------------------------------------------------- */
-  /* Note: this keymap gets disabled in non-objectmode,  */
+  /* Note: this keymap gets disabled in non-objectmode. */
   keymap = WM_keymap_ensure(keyconf, "Object Mode", 0, 0);
   keymap->poll = object_mode_poll;
 }

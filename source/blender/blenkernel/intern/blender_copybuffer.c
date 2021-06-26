@@ -87,7 +87,8 @@ bool BKE_copybuffer_read(Main *bmain_dst,
                          ReportList *reports,
                          const uint64_t id_types_mask)
 {
-  BlendHandle *bh = BLO_blendhandle_from_file(libname, reports);
+  BlendFileReadReport bf_reports = {.reports = reports};
+  BlendHandle *bh = BLO_blendhandle_from_file(libname, &bf_reports);
   if (bh == NULL) {
     /* Error reports will have been made by BLO_blendhandle_from_file(). */
     return false;
@@ -106,7 +107,7 @@ bool BKE_copybuffer_read(Main *bmain_dst,
   /* Append, rather than linking. */
   Library *lib = BLI_findstring(&bmain_dst->libraries, libname, offsetof(Library, filepath_abs));
   BKE_library_make_local(bmain_dst, lib, NULL, true, false);
-  /* Important we unset, otherwise these object wont
+  /* Important we unset, otherwise these object won't
    * link into other scenes from this blend file.
    */
   BKE_main_id_tag_all(bmain_dst, LIB_TAG_PRE_EXISTING, false);
@@ -133,7 +134,8 @@ int BKE_copybuffer_paste(bContext *C,
   BlendHandle *bh;
   const int id_tag_extra = 0;
 
-  bh = BLO_blendhandle_from_file(libname, reports);
+  BlendFileReadReport bf_reports = {.reports = reports};
+  bh = BLO_blendhandle_from_file(libname, &bf_reports);
 
   if (bh == NULL) {
     /* error reports will have been made by BLO_blendhandle_from_file() */
@@ -166,7 +168,7 @@ int BKE_copybuffer_paste(bContext *C,
   lib = BLI_findstring(&bmain->libraries, libname, offsetof(Library, filepath_abs));
   BKE_library_make_local(bmain, lib, NULL, true, false);
 
-  /* important we unset, otherwise these object wont
+  /* important we unset, otherwise these object won't
    * link into other scenes from this blend file */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 

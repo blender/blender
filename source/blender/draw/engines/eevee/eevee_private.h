@@ -565,7 +565,7 @@ typedef struct EEVEE_LightsInfo {
   /* Update bitmap. */
   BLI_bitmap sh_cube_update[BLI_BITMAP_SIZE(MAX_SHADOW_CUBE)];
   /* Lights tracking */
-  struct BoundSphere shadow_bounds[MAX_LIGHT]; /* Tightly packed light bounds  */
+  struct BoundSphere shadow_bounds[MAX_LIGHT]; /* Tightly packed light bounds. */
   /* List of bbox and update bitmap. Double buffered. */
   struct EEVEE_ShadowCasterBuffer *shcaster_frontbuffer, *shcaster_backbuffer;
   /* AABB of all shadow casters combined. */

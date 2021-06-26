@@ -866,7 +866,7 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
   }
 
   /* XXX Free the resources contained in the viewlayer data
-   * to be able to free the context before deleting the depsgraph.  */
+   * to be able to free the context before deleting the depsgraph. */
   if (lbake->sldata) {
     EEVEE_view_layer_data_free(lbake->sldata);
   }
@@ -1480,7 +1480,7 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
 
   eevee_lightbake_delete_resources(lbake);
 
-  /* Free GPU smoke textures and the smoke domain list correctly: See also T73921.*/
+  /* Free GPU smoke textures and the smoke domain list correctly: See also T73921. */
   EEVEE_volumes_free_smoke_textures();
 }
 

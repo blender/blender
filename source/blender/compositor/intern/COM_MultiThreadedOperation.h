@@ -27,7 +27,11 @@ class MultiThreadedOperation : public NodeOperation {
   /**
    * Number of execution passes.
    */
-  int m_num_passes;
+  int num_passes_;
+  /**
+   * Current execution pass.
+   */
+  int current_pass_;
 
  protected:
   MultiThreadedOperation();
@@ -36,37 +40,31 @@ class MultiThreadedOperation : public NodeOperation {
    * Called before an update memory buffer pass is executed. Single-threaded calls.
    */
   virtual void update_memory_buffer_started(MemoryBuffer *UNUSED(output),
-                                            const rcti &UNUSED(output_rect),
-                                            blender::Span<MemoryBuffer *> UNUSED(inputs),
-                                            ExecutionSystem &UNUSED(exec_system),
-                                            int UNUSED(current_pass))
+                                            const rcti &UNUSED(area),
+                                            Span<MemoryBuffer *> UNUSED(inputs))
   {
   }
 
   /**
-   * Executes operation updating output memory buffer on output_rect area. Multi-threaded calls.
+   * Executes operation updating a memory buffer area. Multi-threaded calls.
    */
   virtual void update_memory_buffer_partial(MemoryBuffer *output,
-                                            const rcti &output_rect,
-                                            blender::Span<MemoryBuffer *> inputs,
-                                            ExecutionSystem &exec_system,
-                                            int current_pass) = 0;
+                                            const rcti &area,
+                                            Span<MemoryBuffer *> inputs) = 0;
 
   /**
    * Called after an update memory buffer pass is executed. Single-threaded calls.
    */
   virtual void update_memory_buffer_finished(MemoryBuffer *UNUSED(output),
-                                             const rcti &UNUSED(output_rect),
-                                             blender::Span<MemoryBuffer *> UNUSED(inputs),
-                                             ExecutionSystem &UNUSED(exec_system),
-                                             int UNUSED(current_pass))
+                                             const rcti &UNUSED(area),
+                                             Span<MemoryBuffer *> UNUSED(inputs))
   {
   }
 
  private:
   void update_memory_buffer(MemoryBuffer *output,
-                            const rcti &output_area,
-                            blender::Span<MemoryBuffer *> inputs,
+                            const rcti &area,
+                            Span<MemoryBuffer *> inputs,
                             ExecutionSystem &exec_system) override;
 };
 

@@ -620,8 +620,8 @@ static void rna_PoseChannel_constraints_remove(
 
   ED_object_constraint_update(bmain, ob);
 
-  BKE_constraints_active_set(&pchan->constraints,
-                             NULL); /* XXX, is this really needed? - Campbell */
+  /* XXX(Campbell): is this really needed? */
+  BKE_constraints_active_set(&pchan->constraints, NULL);
 
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, id);
 
@@ -932,7 +932,7 @@ static void rna_def_bone_group(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_BoneGroup_name_set");
   RNA_def_struct_name_property(srna, prop);
 
-  /* TODO: add some runtime-collections stuff to access grouped bones  */
+  /* TODO: add some runtime-collections stuff to access grouped bones. */
 
   /* color set */
   rna_def_actionbone_group_common(srna, NC_OBJECT | ND_POSE, "rna_Pose_update");

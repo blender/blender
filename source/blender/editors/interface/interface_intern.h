@@ -137,19 +137,19 @@ extern const short ui_radial_dir_to_angle[8];
 
 /** #PieMenuData.flags */
 enum {
-  /** pie menu item collision is detected at 90 degrees */
+  /** Pie menu item collision is detected at 90 degrees. */
   UI_PIE_DEGREES_RANGE_LARGE = (1 << 0),
-  /** use initial center of pie menu to calculate direction */
+  /** Use initial center of pie menu to calculate direction. */
   UI_PIE_INITIAL_DIRECTION = (1 << 1),
-  /** pie menu is drag style */
+  /** Pie menu is drag style. */
   UI_PIE_DRAG_STYLE = (1 << 2),
-  /** mouse not far enough from center position  */
+  /** Mouse not far enough from center position. */
   UI_PIE_INVALID_DIR = (1 << 3),
-  /** pie menu changed to click style, click to confirm  */
+  /** Pie menu changed to click style, click to confirm. */
   UI_PIE_CLICK_STYLE = (1 << 4),
-  /** pie animation finished, do not calculate any more motion  */
+  /** Pie animation finished, do not calculate any more motion. */
   UI_PIE_ANIMATION_FINISHED = (1 << 5),
-  /** pie gesture selection has been done, now wait for mouse motion to end */
+  /** Pie gesture selection has been done, now wait for mouse motion to end. */
   UI_PIE_GESTURE_END_WAIT = (1 << 6),
 };
 
@@ -279,7 +279,7 @@ struct uiBut {
   float *editvec;
 
   uiButPushedStateFunc pushed_state_func;
-  void *pushed_state_arg;
+  const void *pushed_state_arg;
 
   /* pointer back */
   uiBlock *block;
@@ -349,6 +349,15 @@ typedef struct uiButProgressbar {
   /* 0..1 range */
   float progress;
 } uiButProgressbar;
+
+/** Derived struct for #UI_BTYPE_DATASETROW. */
+typedef struct uiButDatasetRow {
+  uiBut but;
+
+  uint8_t geometry_component_type;
+  uint8_t attribute_domain;
+  int indentation;
+} uiButDatasetRow;
 
 /** Derived struct for #UI_BTYPE_HSVCUBE. */
 typedef struct uiButHSVCube {

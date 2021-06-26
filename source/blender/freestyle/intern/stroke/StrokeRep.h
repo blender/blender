@@ -197,13 +197,13 @@ class StrokeRep {
   StrokeRep(Stroke *iStroke);
   virtual ~StrokeRep();
 
-  /*! Creates the strips */
+  /** Creates the strips */
   virtual void create();
 
-  /*! Renders the stroke using a Renderer */
+  /** Renders the stroke using a Renderer */
   virtual void Render(const StrokeRenderer *iRenderer);
 
-  /*! accessors */
+  /** accessors */
   inline Stroke::MediumType getMediumType() const
   {
     return _strokeType;
@@ -249,7 +249,7 @@ class StrokeRep {
     return _stroke;
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setMediumType(Stroke::MediumType itype)
   {
     _strokeType = itype;

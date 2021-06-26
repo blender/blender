@@ -1466,8 +1466,8 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
     IDP_BlendReadLib(reader, seq->prop);
 
     if (seq->ipo) {
-      BLO_read_id_address(
-          reader, sce->id.lib, &seq->ipo); /* XXX deprecated - old animation system */
+      /* XXX: deprecated - old animation system. */
+      BLO_read_id_address(reader, sce->id.lib, &seq->ipo);
     }
     seq->scene_sound = NULL;
     if (seq->scene) {
@@ -2013,7 +2013,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
         bmain, NULL, sce_copy->master_collection, duplicate_flags, LIB_ID_DUPLICATE_IS_SUBPROCESS);
 
     if (!is_subprocess) {
-      /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
+      /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW. */
       BKE_libblock_relink_to_newid(&sce_copy->id);
 
 #ifndef NDEBUG
@@ -3380,7 +3380,7 @@ static bool depsgraph_key_compare(const void *key_a_v, const void *key_b_v)
 {
   const DepsgraphKey *key_a = key_a_v;
   const DepsgraphKey *key_b = key_b_v;
-  /* TODO(sergey): Compare rest of  */
+  /* TODO(sergey): Compare rest of. */
   return !(key_a->view_layer == key_b->view_layer);
 }
 

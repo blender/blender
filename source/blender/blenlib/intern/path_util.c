@@ -180,7 +180,7 @@ void BLI_path_normalize(const char *relabase, char *path)
   else {
     if (path[0] == '/' && path[1] == '/') {
       if (path[2] == '\0') {
-        return; /* path is "//" - cant clean it */
+        return; /* path is "//" - can't clean it */
       }
       path = path + 2; /* leave the initial "//" untouched */
     }
@@ -236,7 +236,7 @@ void BLI_path_normalize(const char *relabase, char *path)
     }
     else {
       /* support for odd paths: eg /../home/me --> /home/me
-       * this is a valid path in blender but we cant handle this the usual way below
+       * this is a valid path in blender but we can't handle this the usual way below
        * simply strip this prefix then evaluate the path as usual.
        * pythons os.path.normpath() does this */
 
@@ -1646,8 +1646,8 @@ bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filenam
 /**
  * Converts `/foo/bar.txt` to `/foo/` and `bar.txt`
  *
- * - Wont change \a string.
- * - Wont create any directories.
+ * - Won't change \a string.
+ * - Won't create any directories.
  * - Doesn't use CWD, or deal with relative paths.
  * - Only fill's in \a dir and \a file when they are non NULL.
  */

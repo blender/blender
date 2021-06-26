@@ -547,7 +547,7 @@ static void test_constraint(
           else {
             Curve *cu = ct->tar->data;
 
-            /* auto-set 'Path' setting on curve so this works  */
+            /* auto-set 'Path' setting on curve so this works. */
             cu->flag |= CU_PATH;
           }
         }
@@ -1977,7 +1977,7 @@ static bool get_new_constraint_target(
             (!only_curve && !only_mesh)) {
 
           /* Only use the object & bone if the bone is visible & selected
-           * since we may have multiple objects in pose mode at once.  */
+           * since we may have multiple objects in pose mode at once. */
           bPoseChannel *pchan = BKE_pose_channel_active_or_first_selected(ob);
           if (pchan != NULL) {
             *tar_pchan = pchan;
@@ -2100,7 +2100,7 @@ static int constraint_add_exec(
     }
   }
 
-  /* do type-specific tweaking to the constraint settings  */
+  /* Do type-specific tweaking to the constraint settings. */
   switch (type) {
     case CONSTRAINT_TYPE_PYTHON: /* FIXME: this code is not really valid anymore */
     {

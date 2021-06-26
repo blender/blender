@@ -577,12 +577,12 @@ static PyGetSetDef pygpu_buffer_getseters[] = {
 };
 
 static PySequenceMethods pygpu_buffer__tp_as_sequence = {
-    (lenfunc)pygpu_buffer__sq_length,    /*sq_length */
-    (binaryfunc)NULL,                    /*sq_concat */
-    (ssizeargfunc)NULL,                  /*sq_repeat */
-    (ssizeargfunc)pygpu_buffer__sq_item, /*sq_item */
-    (ssizessizeargfunc)NULL, /*sq_slice, deprecated, handled in pygpu_buffer__sq_item */
-    (ssizeobjargproc)pygpu_buffer__sq_ass_item, /*sq_ass_item */
+    (lenfunc)pygpu_buffer__sq_length,    /* sq_length */
+    (binaryfunc)NULL,                    /* sq_concat */
+    (ssizeargfunc)NULL,                  /* sq_repeat */
+    (ssizeargfunc)pygpu_buffer__sq_item, /* sq_item */
+    (ssizessizeargfunc)NULL, /* sq_slice, deprecated, handled in pygpu_buffer__sq_item */
+    (ssizeobjargproc)pygpu_buffer__sq_ass_item, /* sq_ass_item */
     (ssizessizeobjargproc)NULL, /* sq_ass_slice, deprecated handled in pygpu_buffer__sq_ass_item */
     (objobjproc)NULL,           /* sq_contains */
     (binaryfunc)NULL,           /* sq_inplace_concat */

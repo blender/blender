@@ -41,7 +41,7 @@ struct CustomData_MeshMasks;
 struct ID;
 typedef uint64_t CustomDataMask;
 
-/*a data type large enough to hold 1 element from any customdata layer type*/
+/* A data type large enough to hold 1 element from any custom-data layer type. */
 typedef struct {
   unsigned char data[64];
 } CDBlockBytes;
@@ -111,9 +111,9 @@ bool CustomData_layout_is_same(const struct CustomData *_a, const struct CustomD
  */
 bool CustomData_has_referenced(const struct CustomData *data);
 
-/* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
+/* Copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
  * another, while not overwriting anything else (e.g. flags).  probably only
- * implemented for mloopuv/mloopcol, for now.*/
+ * implemented for mloopuv/mloopcol, for now. */
 void CustomData_data_copy_value(int type, const void *source, void *dest);
 
 /* Same as above, but doing advanced mixing.
@@ -123,7 +123,7 @@ void CustomData_data_mix_value(
 
 /* compares if data1 is equal to data2.  type is a valid CustomData type
  * enum (e.g. CD_MLOOPUV). the layer type's equal function is used to compare
- * the data, if it exists, otherwise memcmp is used.*/
+ * the data, if it exists, otherwise memcmp is used. */
 bool CustomData_data_equals(int type, const void *data1, const void *data2);
 void CustomData_data_initminmax(int type, void *min, void *max);
 void CustomData_data_dominmax(int type, const void *data, void *min, void *max);
@@ -164,7 +164,7 @@ void CustomData_realloc(struct CustomData *data, int totelem);
 
 /* bmesh version of CustomData_merge; merges the layouts of source and dest,
  * then goes through the mesh and makes sure all the customdata blocks are
- * consistent with the new layout.*/
+ * consistent with the new layout. */
 bool CustomData_bmesh_merge(const struct CustomData *source,
                             struct CustomData *dest,
                             CustomDataMask mask,
@@ -192,7 +192,7 @@ void CustomData_free_temporary(struct CustomData *data, int totelem);
  */
 void *CustomData_add_layer(
     struct CustomData *data, int type, eCDAllocType alloctype, void *layer, int totelem);
-/*same as above but accepts a name */
+/* Same as above but accepts a name. */
 void *CustomData_add_layer_named(struct CustomData *data,
                                  int type,
                                  eCDAllocType alloctype,
@@ -238,6 +238,9 @@ void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
                                                   const char *name,
                                                   const int totelem);
 bool CustomData_is_referenced_layer(struct CustomData *data, int type);
+
+/* Duplicate all the layers with flag NOFREE, and remove the flag from duplicated layers. */
+void CustomData_duplicate_referenced_layers(CustomData *data, int totelem);
 
 /* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask
@@ -455,7 +458,7 @@ void CustomData_validate_layer_name(const struct CustomData *data,
  * only after this test passes, layer->data should be assigned */
 bool CustomData_verify_versions(struct CustomData *data, int index);
 
-/*BMesh specific customdata stuff*/
+/* BMesh specific custom-data stuff. */
 void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *ldata, int totloop);
 void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *ldata, int total);
 void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *ldata);

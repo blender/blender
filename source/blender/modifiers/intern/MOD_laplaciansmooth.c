@@ -57,18 +57,18 @@
 struct BLaplacianSystem {
   float *eweights;      /* Length weights per Edge */
   float (*fweights)[3]; /* Cotangent weights per face */
-  float *ring_areas;    /* Total area per ring*/
-  float *vlengths;      /* Total sum of lengths(edges) per vertice*/
-  float *vweights;      /* Total sum of weights per vertice*/
-  int numEdges;         /* Number of edges*/
-  int numLoops;         /* Number of edges*/
-  int numPolys;         /* Number of faces*/
-  int numVerts;         /* Number of verts*/
-  short *numNeFa;       /* Number of neighbors faces around vertice*/
-  short *numNeEd;       /* Number of neighbors Edges around vertice*/
-  short *zerola;        /* Is zero area or length*/
+  float *ring_areas;    /* Total area per ring. */
+  float *vlengths;      /* Total sum of lengths(edges) per vertex. */
+  float *vweights;      /* Total sum of weights per vertex. */
+  int numEdges;         /* Number of edges. */
+  int numLoops;         /* Number of edges. */
+  int numPolys;         /* Number of faces. */
+  int numVerts;         /* Number of verts. */
+  short *numNeFa;       /* Number of neighbors faces around vertice. */
+  short *numNeEd;       /* Number of neighbors Edges around vertice. */
+  short *zerola;        /* Is zero area or length. */
 
-  /* Pointers to data*/
+  /* Pointers to data. */
   float (*vertexCos)[3];
   const MPoly *mpoly;
   const MLoop *mloop;
@@ -299,7 +299,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
     for (; l_next != l_term; l_prev = l_curr, l_curr = l_next, l_next++) {
       const uint l_curr_index = l_curr - sys->mloop;
 
-      /* Is ring if number of faces == number of edges around vertice*/
+      /* Is ring if number of faces == number of edges around vertice. */
       if (sys->numNeEd[l_curr->v] == sys->numNeFa[l_curr->v] && sys->zerola[l_curr->v] == 0) {
         EIG_linear_solver_matrix_add(sys->context,
                                      l_curr->v,

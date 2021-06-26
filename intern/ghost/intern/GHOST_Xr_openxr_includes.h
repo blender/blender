@@ -42,7 +42,13 @@
 #  include <d3d12.h>
 #endif
 #ifdef WITH_GHOST_X11
-#  include <GL/glxew.h>
+#  ifdef WITH_GL_EGL
+/* TODO: Why do we have to create this typedef manually? */
+typedef void (*(*PFNEGLGETPROCADDRESSPROC)(const char *procname))(void);
+#    include <GL/eglew.h>
+#  else
+#    include <GL/glxew.h>
+#  endif
 #endif
 
 #include <openxr/openxr.h>

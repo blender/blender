@@ -71,15 +71,15 @@ void DistanceRGBMatteOperation::executePixelSampled(float output[4],
    * COM_SetAlphaMultiplyOperation and the Value output.
    */
 
-  /*make 100% transparent */
+  /* Make 100% transparent. */
   if (distance < tolerance) {
     output[0] = 0.0f;
   }
-  /*in the falloff region, make partially transparent */
+  /* In the falloff region, make partially transparent. */
   else if (distance < falloff + tolerance) {
     distance = distance - tolerance;
     alpha = distance / falloff;
-    /*only change if more transparent than before */
+    /* Only change if more transparent than before. */
     if (alpha < inImage[3]) {
       output[0] = alpha;
     }

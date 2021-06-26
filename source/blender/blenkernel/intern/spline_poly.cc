@@ -22,17 +22,20 @@
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
+using blender::fn::GVArray;
+using blender::fn::GVArrayPtr;
 
-SplinePtr PolySpline::copy() const
+void PolySpline::copy_settings(Spline &UNUSED(dst)) const
 {
-  return std::make_unique<PolySpline>(*this);
+  /* Poly splines have no settings not covered by the base class. */
 }
 
-SplinePtr PolySpline::copy_settings() const
+void PolySpline::copy_data(Spline &dst) const
 {
-  std::unique_ptr<PolySpline> copy = std::make_unique<PolySpline>();
-  copy_base_settings(*this, *copy);
-  return copy;
+  PolySpline &poly = static_cast<PolySpline &>(dst);
+  poly.positions_ = positions_;
+  poly.radii_ = radii_;
+  poly.tilts_ = tilts_;
 }
 
 int PolySpline::size() const
@@ -115,10 +118,9 @@ Span<float3> PolySpline::evaluated_positions() const
  * the original data. Therefore the lifetime of the returned virtual array must not be longer than
  * the source data.
  */
-blender::fn::GVArrayPtr PolySpline::interpolate_to_evaluated_points(
-    const blender::fn::GVArray &source_data) const
+GVArrayPtr PolySpline::interpolate_to_evaluated(const GVArray &src) const
 {
-  BLI_assert(source_data.size() == this->size());
+  BLI_assert(src.size() == this->size());
 
-  return source_data.shallow_copy();
+  return src.shallow_copy();
 }

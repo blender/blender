@@ -30,28 +30,15 @@
 
 #include "GHOST_TaskbarWin32.h"
 #include "GHOST_Window.h"
+#include "GHOST_Wintab.h"
 #ifdef WITH_INPUT_IME
 #  include "GHOST_ImeWin32.h"
 #endif
 
 #include <vector>
 
-#include <wintab.h>
-// PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first
-#define PACKETDATA (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
-#define PACKETMODE PK_BUTTONS
-#include <pktdef.h>
-
 class GHOST_SystemWin32;
 class GHOST_DropTargetWin32;
-
-// typedefs for WinTab functions to allow dynamic loading
-typedef UINT(API *GHOST_WIN32_WTInfo)(UINT, UINT, LPVOID);
-typedef HCTX(API *GHOST_WIN32_WTOpen)(HWND, LPLOGCONTEXTA, BOOL);
-typedef BOOL(API *GHOST_WIN32_WTClose)(HCTX);
-typedef BOOL(API *GHOST_WIN32_WTPacket)(HCTX, UINT, LPVOID);
-typedef BOOL(API *GHOST_WIN32_WTEnable)(HCTX, BOOL);
-typedef BOOL(API *GHOST_WIN32_WTOverlap)(HCTX, BOOL);
 
 // typedefs for user32 functions to allow dynamic loading of Windows 10 DPI scaling functions
 typedef UINT(API *GHOST_WIN32_GetDpiForWindow)(HWND);
@@ -62,7 +49,6 @@ struct GHOST_PointerInfoWin32 {
   GHOST_TButtonMask buttonMask;
   POINT pixelLocation;
   GHOST_TUns64 time;
-
   GHOST_TabletData tabletData;
 };
 
@@ -256,16 +242,11 @@ class GHOST_WindowWin32 : public GHOST_Window {
   HCURSOR getStandardCursor(GHOST_TStandardCursor shape) const;
   void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
-  const GHOST_TabletData &getTabletData()
-  {
-    return m_tabletData;
-  }
-
   /**
    * Query whether given tablet API should be used.
    * \param api: Tablet API to test.
    */
-  bool useTabletAPI(GHOST_TTabletAPI api) const;
+  bool usingTabletAPI(GHOST_TTabletAPI api) const;
 
   /**
    * Translate WM_POINTER events into GHOST_PointerInfoWin32 structs.
@@ -278,10 +259,34 @@ class GHOST_WindowWin32 : public GHOST_Window {
                                 WPARAM wParam,
                                 LPARAM lParam);
 
-  void processWin32TabletActivateEvent(WORD state);
-  void processWin32TabletInitEvent();
-  void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
-  void bringTabletContextToFront();
+  /**
+   * Resets pointer pen tablet state.
+   */
+  void resetPointerPenInfo();
+
+  /**
+   * Retrieves pointer to Wintab if Wintab is the set Tablet API.
+   * \return Pointer to Wintab member.
+   */
+  GHOST_Wintab *getWintab() const;
+
+  /**
+   * Loads Wintab context for the window.
+   * \param enable: True if Wintab should be enabled after loading. Wintab should not be enabled if
+   * the window is minimized.
+   */
+  void loadWintab(bool enable);
+
+  /**
+   * Closes Wintab for the window.
+   */
+  void closeWintab();
+
+  /**
+   * Get the most recent Windows Pointer tablet data.
+   * \return Most recent pointer tablet data.
+   */
+  GHOST_TabletData getTabletData();
 
   GHOST_TSuccess beginFullScreen() const
   {
@@ -295,10 +300,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   GHOST_TUns16 getDPIHint() override;
 
-  /** Whether a tablet stylus is being tracked. */
-  bool m_tabletInRange;
+  /** True if the mouse is either over or captured by the window. */
+  bool m_mousePresent;
 
-  /** if the window currently resizing */
+  /** True if the window currently resizing. */
   bool m_inLiveResize;
 
 #ifdef WITH_INPUT_IME
@@ -382,27 +387,11 @@ class GHOST_WindowWin32 : public GHOST_Window {
   static const wchar_t *s_windowClassName;
   static const int s_maxTitleLength;
 
-  /** Tablet data for GHOST */
-  GHOST_TabletData m_tabletData;
+  /** Pointer to Wintab manager if Wintab is loaded. */
+  GHOST_Wintab *m_wintab;
 
-  /* Wintab API */
-  struct {
-    /** `WinTab.dll` handle. */
-    HMODULE handle = NULL;
-
-    /** API functions */
-    GHOST_WIN32_WTInfo info;
-    GHOST_WIN32_WTOpen open;
-    GHOST_WIN32_WTClose close;
-    GHOST_WIN32_WTPacket packet;
-    GHOST_WIN32_WTEnable enable;
-    GHOST_WIN32_WTOverlap overlap;
-
-    /** Stores the Tablet context if detected Tablet features using `WinTab.dll` */
-    HCTX tablet;
-    LONG maxPressure;
-    LONG maxAzimuth, maxAltitude;
-  } m_wintab;
+  /** Most recent tablet data. */
+  GHOST_TabletData m_lastPointerTabletData;
 
   GHOST_TWindowState m_normal_state;
 

@@ -304,7 +304,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     r_info->mesh_edge_offset[mi] = e;
     r_info->mesh_poly_offset[mi] = f;
     /* Get matrix that transforms a coordinate in objects[mi]'s local space
-     * to the target space space.*/
+     * to the target space space. */
     const float4x4 objn_mat = (obmats[mi] == nullptr) ? float4x4::identity() :
                                                         clean_obmat(*obmats[mi]);
     r_info->to_target_transform[mi] = inv_target_mat * objn_mat;

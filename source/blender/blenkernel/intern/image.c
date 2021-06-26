@@ -3208,7 +3208,7 @@ Image *BKE_image_ensure_viewer(Main *bmain, int type, const char *name)
     ima = image_alloc(bmain, name, IMA_SRC_VIEWER, type);
   }
 
-  /* happens on reload, imagewindow cannot be image user when hidden*/
+  /* Happens on reload, imagewindow cannot be image user when hidden. */
   if (ima->id.us == 0) {
     id_us_ensure_real(&ima->id);
   }
@@ -4349,7 +4349,7 @@ static ImBuf *load_movie_single(Image *ima, ImageUser *iuser, int frame, const i
 
     BKE_image_user_file_path(&iuser_t, ima, str);
 
-    /* FIXME: make several stream accessible in image editor, too*/
+    /* FIXME: make several stream accessible in image editor, too. */
     ia->anim = openanim(str, flags, 0, ima->colorspace_settings.name);
 
     /* let's initialize this user */
@@ -5188,7 +5188,7 @@ bool BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
   return ibuf != NULL;
 }
 
-/* ******** Pool for image buffers ********  */
+/* ******** Pool for image buffers ******** */
 
 typedef struct ImagePoolItem {
   struct ImagePoolItem *next, *prev;
@@ -5359,7 +5359,7 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, bool *r_is_in_ran
     }
   }
 
-  /* important to apply after else we cant loop on frames 100 - 110 for eg. */
+  /* important to apply after else we can't loop on frames 100 - 110 for eg. */
   framenr += iuser->offset;
 
   return framenr;

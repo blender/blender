@@ -329,7 +329,7 @@ static SplinePtr subdivide_spline(const Spline &spline,
    * point facilitates subdividing in parallel later. */
   Array<int> offsets = get_subdivided_offsets(spline, cuts, spline_offset);
   const int result_size = offsets.last() + int(!spline.is_cyclic());
-  SplinePtr new_spline = spline.copy_settings();
+  SplinePtr new_spline = spline.copy_only_settings();
   new_spline->resize(result_size);
   subdivide_builtin_attributes(spline, offsets, *new_spline);
   subdivide_dynamic_attributes(spline, offsets, *new_spline);

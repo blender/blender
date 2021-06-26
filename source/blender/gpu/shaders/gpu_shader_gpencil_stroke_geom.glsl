@@ -170,7 +170,7 @@ void main(void)
     length_b = finalThickness[2];
   }
 
-  /* generate the start endcap (alpha < 0 used as endcap flag)*/
+  /* Generate the start end-cap (alpha < 0 used as end-cap flag). */
   float extend = (fill_stroke > 0) ? 2 : 1;
   if ((caps_start != GPENCIL_FLATCAP) && is_equal(P0, P2)) {
     mTexCoord = vec2(1, 0.5);
@@ -211,7 +211,7 @@ void main(void)
   gl_Position = vec4((sp2 - length_b * miter_b) / Viewport, getZdepth(P2), 1.0);
   EmitVertex();
 
-  /* generate the end endcap (alpha < 0 used as endcap flag)*/
+  /* Generate the end end-cap (alpha < 0 used as end-cap flag). */
   if ((caps_end != GPENCIL_FLATCAP) && is_equal(P1, P3)) {
     mTexCoord = vec2(0, 1);
     mColor = vec4(finalColor[2].rgb, finalColor[2].a * -1.0);

@@ -1952,7 +1952,7 @@ void BKE_library_make_local(Main *bmain,
       }
       /* The check on the fourth line (LIB_TAG_PRE_EXISTING) is done so it's possible to tag data
        * you don't want to be made local, used for appending data,
-       * so any libdata already linked wont become local (very nasty
+       * so any libdata already linked won't become local (very nasty
        * to discover all your links are lost after appending).
        * Also, never ever make proxified objects local, would not make any sense. */
       /* Some more notes:

@@ -637,7 +637,7 @@ struct GP_EditableStrokes_Iter {
             if (ED_gpencil_stroke_material_editable(obact_, gpl, gps) == false) { \
               continue; \
             } \
-    /* ... Do Stuff With Strokes ...  */
+    /* ... Do Stuff With Strokes ... */
 
 #define GP_EDITABLE_STROKES_END(gpstroke_iter) \
   } \
@@ -687,7 +687,7 @@ struct GP_EditableStrokes_Iter {
             if (gps->editcurve == NULL) \
               continue; \
             bGPDcurve *gpc = gps->editcurve; \
-    /* ... Do Stuff With Strokes ...  */
+    /* ... Do Stuff With Strokes ... */
 
 #define GP_EDITABLE_CURVES_END(gpstroke_iter) \
   } \
@@ -738,7 +738,7 @@ struct GP_EditableStrokes_Iter {
               if (ED_gpencil_stroke_material_editable(obact_, gpl, gps) == false) { \
                 continue; \
               } \
-    /* ... Do Stuff With Strokes ...  */
+    /* ... Do Stuff With Strokes ... */
 
 #define GP_EVALUATED_STROKES_END(gpstroke_iter) \
   } \

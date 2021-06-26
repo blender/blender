@@ -63,7 +63,7 @@ static void bm_vert_boundary_tangent(
   float tvec_a[3], tvec_b[3];
 
   /* get 2 boundary edges, there should only _be_ 2,
-   * in case there are more - results wont be valid of course */
+   * in case there are more - results won't be valid of course */
   BM_ITER_ELEM (e_iter, &iter, v, BM_EDGES_OF_VERT) {
     if (BM_elem_flag_test(e_iter, BM_ELEM_TAG)) {
       if (e_a == NULL) {
@@ -195,7 +195,7 @@ void BM_mesh_wireframe(BMesh *bm,
   BMVert **verts_neg = MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__);
   BMVert **verts_pos = MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__);
 
-  /* will over-alloc, but makes for easy lookups by index to keep aligned  */
+  /* Will over-alloc, but makes for easy lookups by index to keep aligned. */
   BMVert **verts_boundary = use_boundary ? MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__) :
                                            NULL;
 

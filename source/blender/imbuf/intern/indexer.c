@@ -1118,7 +1118,7 @@ static AviMovie *alloc_proxy_output_avi(
   AviFormat format;
   double framerate;
   AviMovie *avi;
-  /* it doesn't really matter for proxies, but sane defaults help anyways...*/
+  /* It doesn't really matter for proxies, but sane defaults help anyways. */
   short frs_sec = 25;
   float frs_sec_base = 1.0;
 

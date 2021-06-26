@@ -41,7 +41,7 @@
 
 namespace Freestyle {
 
-/*! Class defining the operators used in a style module.
+/** Class defining the operators used in a style module.
  *  There are 4 classes of operators: Selection, Chaining, Splitting and Creating.
  *  All these operators are user controlled in the scripting language through Functors, Predicates
  *  and Shaders that are taken as arguments.
@@ -57,12 +57,12 @@ class Operators {
   //
   ////////////////////////////////////////////////
 
-  /*! Selects the ViewEdges of the ViewMap verifying a specified condition.
+  /** Selects the ViewEdges of the ViewMap verifying a specified condition.
    *  \param pred: The predicate expressing this condition
    */
   static int select(UnaryPredicate1D &pred);
 
-  /*! Builds a set of chains from the current set of ViewEdges.
+  /** Builds a set of chains from the current set of ViewEdges.
    *  Each ViewEdge of the current list starts a new chain.
    *  The chaining operator then iterates over the ViewEdges
    *  of the ViewMap using the user specified iterator.
@@ -80,7 +80,7 @@ class Operators {
                    UnaryPredicate1D &pred,
                    UnaryFunction1D_void &modifier);
 
-  /*! Builds a set of chains from the current set of ViewEdges.
+  /** Builds a set of chains from the current set of ViewEdges.
    *  Each ViewEdge of the current list starts a new chain. The chaining operator then iterates
    *  over the ViewEdges
    *  of the ViewMap using the user specified iterator.
@@ -95,7 +95,7 @@ class Operators {
    */
   static int chain(ViewEdgeInternal::ViewEdgeIterator &it, UnaryPredicate1D &pred);
 
-  /*! Builds a set of chains from the current set of ViewEdges.
+  /** Builds a set of chains from the current set of ViewEdges.
    *  Each ViewEdge of the current list potentially starts a new chain. The chaining operator then
    *  iterates over the ViewEdges of the ViewMap using the user specified iterator.
    *  This operator iterates both using the increment and decrement operators and is therefore
@@ -111,7 +111,7 @@ class Operators {
    */
   static int bidirectionalChain(ChainingIterator &it, UnaryPredicate1D &pred);
 
-  /*! The only difference with the above bidirectional chaining algorithm is that we don't need to
+  /** The only difference with the above bidirectional chaining algorithm is that we don't need to
    *  pass a stopping criterion. This might be desirable when the stopping criterion is already
    *  contained in the iterator definition. Builds a set of chains from the current set of
    *  ViewEdges. Each ViewEdge of the current list potentially starts a new chain. The chaining
@@ -127,7 +127,7 @@ class Operators {
    */
   static int bidirectionalChain(ChainingIterator &it);
 
-  /*! Splits each chain of the current set of chains in a sequential way.
+  /** Splits each chain of the current set of chains in a sequential way.
    *  The points of each chain are processed (with a specified sampling) sequentially.
    *  Each time a user specified starting condition is verified, a new chain begins and ends as
    *  soon as a user-defined stopping predicate is verified.
@@ -147,7 +147,7 @@ class Operators {
                              UnaryPredicate0D &stoppingPred,
                              float sampling = 0.0f);
 
-  /*! Splits each chain of the current set of chains in a sequential way.
+  /** Splits each chain of the current set of chains in a sequential way.
    *  The points of each chain are processed (with a specified sampling) sequentially and each time
    *  a user specified condition is verified, the chain is split into two chains.
    *  The resulting set of chains is a partition of the initial chain
@@ -160,7 +160,7 @@ class Operators {
    */
   static int sequentialSplit(UnaryPredicate0D &pred, float sampling = 0.0f);
 
-  /*! Splits the current set of chains in a recursive way.
+  /** Splits the current set of chains in a recursive way.
    *  We process the points of each chain (with a specified sampling) to find the point
    *  minimizing a specified function. The chain is split in two at this point and the two new
    *  chains are processed in the same way. The recursivity level is controlled through a
@@ -181,7 +181,7 @@ class Operators {
                             UnaryPredicate1D &pred,
                             float sampling = 0);
 
-  /*! Splits the current set of chains in a recursive way.
+  /** Splits the current set of chains in a recursive way.
    *  We process the points of each chain (with a specified sampling) to find the point minimizing
    *  a specified function. The chain is split in two at this point and the two new chains are
    *  processed in the same way. The user can specify a 0D predicate to make a first selection on
@@ -210,14 +210,14 @@ class Operators {
                             UnaryPredicate1D &pred,
                             float sampling = 0.0f);
 
-  /*! Sorts the current set of chains (or viewedges)
+  /** Sorts the current set of chains (or viewedges)
    *  according to the comparison predicate given as argument.
    *  \param pred:
    *           The binary predicate used for the comparison
    */
   static int sort(BinaryPredicate1D &pred);
 
-  /*! Creates and shades the strokes from the current set of chains.
+  /** Creates and shades the strokes from the current set of chains.
    *  A predicate can be specified to make a selection pass on the chains.
    *  \param pred:
    *           The predicate that a chain must verify in order to be transform as a stroke

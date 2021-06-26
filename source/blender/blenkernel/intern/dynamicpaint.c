@@ -1757,7 +1757,7 @@ void dynamicPaint_clearSurface(const Scene *scene, DynamicPaintSurface *surface)
   }
 }
 
-/* completely (re)initializes surface (only for point cache types)*/
+/* Completely (re)initializes surface (only for point cache types). */
 bool dynamicPaint_resetSurface(const Scene *scene, DynamicPaintSurface *surface)
 {
   int numOfPoints = dynamicPaint_surfaceNumOfPoints(surface);
@@ -4145,7 +4145,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 
     /* mix final sample strength depending on brush settings */
     if (hit_found) {
-      /* if "negate volume" enabled, negate all factors within volume*/
+      /* If "negate volume" enabled, negate all factors within volume. */
       if (brush->collision == MOD_DPAINT_COL_VOLDIST && brush->flags & MOD_DPAINT_NEGATE_VOLUME) {
         volume_factor = 1.0f - volume_factor;
         if (inner_proximity) {
@@ -5185,7 +5185,7 @@ static int dynamicPaint_prepareEffectStep(struct Depsgraph *depsgraph,
   }
 
   /* Get number of required steps using average point distance
-   * so that just a few ultra close pixels wont up substeps to max. */
+   * so that just a few ultra close pixels won't increase substeps to max. */
 
   /* adjust number of required substep by fastest active effect */
   if (surface->effect & MOD_DPAINT_EFFECT_DO_SPREAD) {

@@ -65,7 +65,7 @@ class DenoiseParams {
   /* Viewport start sample. */
   int start_sample;
 
-  /** Native Denoiser **/
+  /** Native Denoiser. */
 
   /* Pixel radius for neighboring pixels to take into account. */
   int radius;
@@ -81,7 +81,7 @@ class DenoiseParams {
   /* Clamp the input to the range of +-1e8. Should be enough for any legitimate data. */
   bool clamp_input;
 
-  /** OIDN/Optix Denoiser **/
+  /** OIDN/Optix Denoiser. */
 
   /* Passes handed over to the OIDN/OptiX denoiser (default to color + albedo). */
   DenoiserInput input_passes;

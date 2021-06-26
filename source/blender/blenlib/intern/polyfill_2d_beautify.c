@@ -320,7 +320,7 @@ static void polyedge_rotate(struct HalfEdge *edges, struct HalfEdge *e)
  * The intention is that this calculates the output of #BLI_polyfill_calc
  * \note assumes the \a coords form a boundary,
  * so any edges running along contiguous (wrapped) indices,
- * are ignored since the edges wont share 2 faces.
+ * are ignored since the edges won't share 2 faces.
  */
 void BLI_polyfill_beautify(const float (*coords)[2],
                            const uint coords_tot,

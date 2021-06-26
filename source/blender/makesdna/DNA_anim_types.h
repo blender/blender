@@ -324,7 +324,7 @@ typedef struct DriverTarget {
    * (for vars where DTAR_FLAG_STRUCT_REF is used) - MAX_ID_NAME-2.
    */
   char pchan_name[64];
-  /** Transform channel index (for DVAR_TYPE_TRANSFORM_CHAN.)*/
+  /** Transform channel index (for #DVAR_TYPE_TRANSFORM_CHAN). */
   short transChan;
 
   /** Rotation channel calculation type. */
@@ -543,7 +543,7 @@ typedef enum eDriver_Types {
 
 /** Driver flags. */
 typedef enum eDriver_Flags {
-  /** Driver has invalid settings (internal flag)  */
+  /** Driver has invalid settings (internal flag). */
   DRIVER_FLAG_INVALID = (1 << 0),
   DRIVER_FLAG_DEPRECATED = (1 << 1),
   /** Driver does replace value, but overrides (for layering of animation over driver) */
@@ -647,15 +647,15 @@ typedef struct FCurve {
 
 /* user-editable flags/settings */
 typedef enum eFCurve_Flags {
-  /** curve/keyframes are visible in editor */
+  /** Curve/keyframes are visible in editor */
   FCURVE_VISIBLE = (1 << 0),
-  /** curve is selected for editing  */
+  /** Curve is selected for editing. */
   FCURVE_SELECTED = (1 << 1),
-  /** curve is active one */
+  /** Curve is active one. */
   FCURVE_ACTIVE = (1 << 2),
-  /** keyframes (beztriples) cannot be edited */
+  /** Keyframes (beztriples) cannot be edited. */
   FCURVE_PROTECTED = (1 << 3),
-  /** fcurve will not be evaluated for the next round */
+  /** FCurve will not be evaluated for the next round. */
   FCURVE_MUTED = (1 << 4),
 
   /** fcurve uses 'auto-handles', which stay horizontal... */
@@ -677,9 +677,9 @@ typedef enum eFCurve_Flags {
 
 /* extrapolation modes (only simple value 'extending') */
 typedef enum eFCurve_Extend {
-  /** just extend min/max keyframe value  */
+  /** Just extend min/max keyframe value. */
   FCURVE_EXTRAPOLATE_CONSTANT = 0,
-  /** just extend gradient of segment between first segment keyframes */
+  /** Just extend gradient of segment between first segment keyframes. */
   FCURVE_EXTRAPOLATE_LINEAR,
 } eFCurve_Extend;
 

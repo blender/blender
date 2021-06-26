@@ -56,7 +56,7 @@ class ViewEdge;
 class ViewShape;
 class TVertex;
 
-/*! Class defining the ViewMap.*/
+/** Class defining the ViewMap. */
 class ViewMap {
  public:
   typedef vector<ViewEdge *> viewedges_container;
@@ -79,29 +79,29 @@ class ViewMap {
   id_to_index_map _shapeIdToIndex;
 
  public:
-  /*! A field that can be used by the user to store any data.
+  /** A field that can be used by the user to store any data.
    *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
-  /*! Default constructor. */
+  /** Default constructor. */
   ViewMap()
   {
     _pInstance = this;
     userdata = NULL;
   }
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~ViewMap();
 
-  /*! Gets the viewedge the nearest to the 2D position specified as argument */
+  /** Gets the viewedge the nearest to the 2D position specified as argument */
   const ViewEdge *getClosestViewEdge(real x, real y) const;
 
-  /*! Gets the Fedge the nearest to the 2D position specified as argument */
+  /** Gets the Fedge the nearest to the 2D position specified as argument */
   const FEdge *getClosestFEdge(real x, real y) const;
 
   /* accessors */
-  /*! The ViewMap is a singleton class. This static method returns the instance of the ViewMap. */
+  /** The ViewMap is a singleton class. This static method returns the instance of the ViewMap. */
   static inline ViewMap *getInstance()
   {
     return _pInstance;
@@ -160,7 +160,7 @@ class ViewMap {
     return _shapeIdToIndex;
   }
 
-  /*! Returns the scene 3D bounding box. */
+  /** Returns the scene 3D bounding box. */
   inline BBox<Vec3r> getScene3dBBox() const
   {
     return _scene3DBBox;
@@ -189,7 +189,7 @@ class ViewMap {
     _SVertices.push_back(iSVertex);
   }
 
-  /*! Sets the scene 3D bounding box. */
+  /** Sets the scene 3D bounding box. */
   inline void setScene3dBBox(const BBox<Vec3r> &bbox)
   {
     _scene3DBBox = bbox;
@@ -259,7 +259,7 @@ class orientedViewEdgeIterator;
 
 }  // namespace ViewVertexInternal
 
-/*! Class to define a view vertex.
+/** Class to define a view vertex.
  *  A view vertex is a feature vertex corresponding to a point of the image graph, where the
  * characteristics of an edge might change (nature, visibility, ...). A ViewVertex can be of two
  * kinds: a TVertex when it corresponds to the intersection between two ViewEdges or a NonTVertex
@@ -269,7 +269,7 @@ class orientedViewEdgeIterator;
  */
 class ViewVertex : public Interface0D {
  public:  // Implementation of Interface0D
-  /*! Returns the string "ViewVertex". */
+  /** Returns the string "ViewVertex". */
   virtual string getExactTypeName() const
   {
     return "ViewVertex";
@@ -290,12 +290,12 @@ class ViewVertex : public Interface0D {
   Nature::VertexNature _Nature;
 
  public:
-  /*! A field that can be used by the user to store any data.
+  /** A field that can be used by the user to store any data.
    *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
-  /*! Default constructor.*/
+  /** Default constructor. */
   inline ViewVertex()
   {
     userdata = NULL;
@@ -309,7 +309,7 @@ class ViewVertex : public Interface0D {
   }
 
  protected:
-  /*! Copy constructor. */
+  /** Copy constructor. */
   inline ViewVertex(ViewVertex &iBrother)
   {
     _Nature = iBrother._Nature;
@@ -317,24 +317,24 @@ class ViewVertex : public Interface0D {
     userdata = NULL;
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual ViewVertex *duplicate() = 0;
 
  public:
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~ViewVertex()
   {
   }
 
   /* accessors */
-  /*! Returns the nature of the vertex .*/
+  /** Returns the nature of the vertex. */
   virtual Nature::VertexNature getNature() const
   {
     return _Nature;
   }
 
   /* modifiers */
-  /*! Sets the nature of the vertex. */
+  /** Sets the nature of the vertex. */
   inline void setNature(Nature::VertexNature iNature)
   {
     _Nature = iNature;
@@ -357,18 +357,18 @@ class ViewVertex : public Interface0D {
   virtual const_edge_iterator edges_iterator(ViewEdge *iEdge) const = 0;
 
   // Iterator access
-  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
+  /** Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
    * the first ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order
    * over these ViewEdges and to get the orientation for each ViewEdge (incoming/outgoing).
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesBegin() = 0;
 
-  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
+  /** Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
    * the last ViewEdge.
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesEnd() = 0;
 
-  /*! Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
+  /** Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesIterator(ViewEdge *iEdge) = 0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -384,7 +384,7 @@ class ViewVertex : public Interface0D {
 /*                                */
 /**********************************/
 
-/*! class to define a T vertex, i.e. an intersection between two edges.
+/** class to define a T vertex, i.e. an intersection between two edges.
  *  It points towards 2 SVertex and 4 View edges.
  *  Among these ViewEdges, 2 are front and 2 are back.
  *  Basically the front edge hides part of the back edge.
@@ -395,7 +395,7 @@ class TVertex : public ViewVertex {
   typedef vector<directedViewEdge *> edge_pointers_container;
 
  public:  // Implementation of Interface0D
-  /*! Returns the string "TVertex". */
+  /** Returns the string "TVertex". */
   virtual string getExactTypeName() const
   {
     return "TVertex";
@@ -421,20 +421,20 @@ class TVertex : public ViewVertex {
     return _FrontSVertex->point3D().z();
   }
 
-  /*! Returns the 3D point. */
+  /** Returns the 3D point. */
   virtual Vec3r getPoint3D() const
   {
     cerr << "Warning: getPoint3D() undefined for this point" << endl;
     return _FrontSVertex->getPoint3D();
   }
 
-  /*! Returns the projected 3D  x coordinate of the vertex. */
+  /** Returns the projected 3D  x coordinate of the vertex. */
   virtual real getProjectedX() const
   {
     return _FrontSVertex->point2D().x();
   }
 
-  /*! Returns the projected 3D  y coordinate of the vertex. */
+  /** Returns the projected 3D  y coordinate of the vertex. */
   virtual real getProjectedY() const
   {
     return _FrontSVertex->point2D().y();
@@ -445,26 +445,26 @@ class TVertex : public ViewVertex {
     return _FrontSVertex->point2D().z();
   }
 
-  /*! Returns the 2D point. */
+  /** Returns the 2D point. */
   virtual Vec2r getPoint2D() const
   {
     return _FrontSVertex->getPoint2D();
   }
 
-  /*! Returns the Id of the TVertex. */
+  /** Returns the Id of the TVertex. */
   virtual Id getId() const
   {
     return _Id;
   }
 
-  /*! Cast the Interface0D in SVertex if it can be. */
+  /** Cast the Interface0D in SVertex if it can be. */
   // it can't
   virtual ViewVertex *castToViewVertex()
   {
     return this;
   }
 
-  /*! Cast the Interface0D in TVertex if it can be. */
+  /** Cast the Interface0D in TVertex if it can be. */
   virtual TVertex *castToTVertex()
   {
     return this;
@@ -483,7 +483,7 @@ class TVertex : public ViewVertex {
       _sortedEdges;  // the list of the four ViewEdges, ordered in CCW order (in the image plan)
 
  public:
-  /*! Default constructor.*/
+  /** Default constructor. */
   inline TVertex() : ViewVertex(Nature::T_VERTEX)
   {
     _FrontSVertex = NULL;
@@ -507,7 +507,7 @@ class TVertex : public ViewVertex {
   }
 
  protected:
-  /*! Copy constructor. */
+  /** Copy constructor. */
   inline TVertex(TVertex &iBrother) : ViewVertex(iBrother)
   {
     _FrontSVertex = iBrother._FrontSVertex;
@@ -519,7 +519,7 @@ class TVertex : public ViewVertex {
     _sortedEdges = iBrother._sortedEdges;
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual ViewVertex *duplicate()
   {
     TVertex *clone = new TVertex(*this);
@@ -528,13 +528,13 @@ class TVertex : public ViewVertex {
 
  public:
   /* accessors */
-  /*! Returns the SVertex that is closer to the viewpoint. */
+  /** Returns the SVertex that is closer to the viewpoint. */
   inline SVertex *frontSVertex()
   {
     return _FrontSVertex;
   }
 
-  /*! Returns the SVertex that is further away from the viewpoint. */
+  /** Returns the SVertex that is further away from the viewpoint. */
   inline SVertex *backSVertex()
   {
     return _BackSVertex;
@@ -561,14 +561,14 @@ class TVertex : public ViewVertex {
   }
 
   /* modifiers */
-  /*! Sets the SVertex that is closer to the viewpoint. */
+  /** Sets the SVertex that is closer to the viewpoint. */
   inline void setFrontSVertex(SVertex *iFrontSVertex)
   {
     _FrontSVertex = iFrontSVertex;
     _FrontSVertex->setViewVertex(this);
   }
 
-  /*! Sets the SVertex that is further away from the viewpoint. */
+  /** Sets the SVertex that is further away from the viewpoint. */
   inline void setBackSVertex(SVertex *iBackSVertex)
   {
     _BackSVertex = iBackSVertex;
@@ -580,13 +580,13 @@ class TVertex : public ViewVertex {
   void setBackEdgeA(ViewEdge *iBackEdgeA, bool incoming = true);
   void setBackEdgeB(ViewEdge *iBackEdgeB, bool incoming = true);
 
-  /*! Sets the Id. */
+  /** Sets the Id. */
   inline void setId(const Id &iId)
   {
     _Id = iId;
   }
 
-  /*! Returns the SVertex (among the 2) belonging to the FEdge iFEdge */
+  /** Returns the SVertex (among the 2) belonging to the FEdge iFEdge */
   inline SVertex *getSVertex(FEdge *iFEdge)
   {
     const vector<FEdge *> &vfEdges = _FrontSVertex->fedges();
@@ -608,7 +608,7 @@ class TVertex : public ViewVertex {
 
   virtual void Replace(ViewEdge *iOld, ViewEdge *iNew);
 
-  /*! returns the mate edge of iEdgeA.
+  /** returns the mate edge of iEdgeA.
    *  For example, if iEdgeA is frontEdgeA, then frontEdgeB is returned. If iEdgeA is frontEdgeB
    * then frontEdgeA is returned. Same for back edges
    */
@@ -637,18 +637,18 @@ class TVertex : public ViewVertex {
   virtual edge_iterator edges_iterator(ViewEdge *iEdge);
   virtual const_edge_iterator edges_iterator(ViewEdge *iEdge) const;
 
-  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
+  /** Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
    * the first ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order
    * over these ViewEdges and to get the orientation for each ViewEdge (incoming/outgoing).
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesBegin();
 
-  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
+  /** Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
    * the last ViewEdge.
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesEnd();
 
-  /*! Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
+  /** Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesIterator(ViewEdge *iEdge);
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -665,7 +665,7 @@ class TVertex : public ViewVertex {
 /**********************************/
 
 // (non T vertex)
-/*! View vertex for corners, cusps, etc...
+/** View vertex for corners, cusps, etc...
  *  Associated to a single SVertex.
  *  Can be associated to 2 or several view edges
  */
@@ -674,80 +674,80 @@ class NonTVertex : public ViewVertex {
   typedef vector<directedViewEdge> edges_container;
 
  public:  // Implementation of Interface0D
-  /*! Returns the string "ViewVertex". */
+  /** Returns the string "ViewVertex". */
   virtual string getExactTypeName() const
   {
     return "NonTVertex";
   }
 
   // Data access methods
-  /*! Returns the 3D x coordinate of the vertex. */
+  /** Returns the 3D x coordinate of the vertex. */
   virtual real getX() const
   {
     return _SVertex->point3D().x();
   }
 
-  /*! Returns the 3D y coordinate of the vertex. */
+  /** Returns the 3D y coordinate of the vertex. */
   virtual real getY() const
   {
     return _SVertex->point3D().y();
   }
 
-  /*! Returns the 3D z coordinate of the vertex. */
+  /** Returns the 3D z coordinate of the vertex. */
   virtual real getZ() const
   {
     return _SVertex->point3D().z();
   }
 
-  /*!  Returns the 3D point. */
+  /**  Returns the 3D point. */
   virtual Vec3r getPoint3D() const
   {
     return _SVertex->getPoint3D();
   }
 
-  /*! Returns the projected 3D  x coordinate of the vertex. */
+  /** Returns the projected 3D  x coordinate of the vertex. */
   virtual real getProjectedX() const
   {
     return _SVertex->point2D().x();
   }
 
-  /*! Returns the projected 3D  y coordinate of the vertex. */
+  /** Returns the projected 3D  y coordinate of the vertex. */
   virtual real getProjectedY() const
   {
     return _SVertex->point2D().y();
   }
 
-  /*! Returns the projected 3D  z coordinate of the vertex. */
+  /** Returns the projected 3D  z coordinate of the vertex. */
   virtual real getProjectedZ() const
   {
     return _SVertex->point2D().z();
   }
 
-  /*! Returns the 2D point. */
+  /** Returns the 2D point. */
   virtual Vec2r getPoint2D() const
   {
     return _SVertex->getPoint2D();
   }
 
-  /*! Returns the Id of the vertex. */
+  /** Returns the Id of the vertex. */
   virtual Id getId() const
   {
     return _SVertex->getId();
   }
 
-  /*! Cast the Interface0D in SVertex if it can be. */
+  /** Cast the Interface0D in SVertex if it can be. */
   virtual SVertex *castToSVertex()
   {
     return _SVertex;
   }
 
-  /*! Cast the Interface0D in ViewVertex if it can be. */
+  /** Cast the Interface0D in ViewVertex if it can be. */
   virtual ViewVertex *castToViewVertex()
   {
     return this;
   }
 
-  /*! Cast the Interface0D in NonTVertex if it can be. */
+  /** Cast the Interface0D in NonTVertex if it can be. */
   virtual NonTVertex *castToNonTVertex()
   {
     return this;
@@ -758,13 +758,13 @@ class NonTVertex : public ViewVertex {
   edges_container _ViewEdges;
 
  public:
-  /*! Default constructor.*/
+  /** Default constructor. */
   inline NonTVertex() : ViewVertex(Nature::NON_T_VERTEX)
   {
     _SVertex = NULL;
   }
 
-  /*! Builds a NonTVertex from a SVertex. */
+  /** Builds a NonTVertex from a SVertex. */
   inline NonTVertex(SVertex *iSVertex) : ViewVertex(Nature::NON_T_VERTEX)
   {
     _SVertex = iSVertex;
@@ -772,7 +772,7 @@ class NonTVertex : public ViewVertex {
   }
 
  protected:
-  /*! Copy constructor. */
+  /** Copy constructor. */
   inline NonTVertex(NonTVertex &iBrother) : ViewVertex(iBrother)
   {
     _SVertex = iBrother._SVertex;
@@ -780,7 +780,7 @@ class NonTVertex : public ViewVertex {
     _ViewEdges = iBrother._ViewEdges;
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual ViewVertex *duplicate()
   {
     NonTVertex *clone = new NonTVertex(*this);
@@ -788,13 +788,13 @@ class NonTVertex : public ViewVertex {
   }
 
  public:
-  /*! destructor. */
+  /** destructor. */
   virtual ~NonTVertex()
   {
   }
 
   /* accessors */
-  /*! Returns the SVertex on top of which this NonTVertex is built. */
+  /** Returns the SVertex on top of which this NonTVertex is built. */
   inline SVertex *svertex()
   {
     return _SVertex;
@@ -806,7 +806,7 @@ class NonTVertex : public ViewVertex {
   }
 
   /* modifiers */
-  /*! Sets the SVertex on top of which this NonTVertex is built. */
+  /** Sets the SVertex on top of which this NonTVertex is built. */
   inline void setSVertex(SVertex *iSVertex)
   {
     _SVertex = iSVertex;
@@ -857,18 +857,18 @@ class NonTVertex : public ViewVertex {
   virtual edge_iterator edges_iterator(ViewEdge *iEdge);
   virtual const_edge_iterator edges_iterator(ViewEdge *iEdge) const;
 
-  /*! Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
+  /** Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to
    * the first ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order
    * over these ViewEdges and to get the orientation for each ViewEdge (incoming/outgoing).
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesBegin();
 
-  /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
+  /** Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after
    * the last ViewEdge.
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesEnd();
 
-  /*! Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
+  /** Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesIterator(ViewEdge *iEdge);
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -902,25 +902,25 @@ template<class Traits> class vertex_iterator_base;
 
 }  // end of namespace ViewEdgeInternal
 
-/*! Class defining a ViewEdge. A ViewEdge in an edge of the image graph. it connects two
+/** Class defining a ViewEdge. A ViewEdge in an edge of the image graph. it connects two
  * ViewVertex. It is made by connecting a set of FEdges.
  */
 class ViewEdge : public Interface1D {
  public:  // Implementation of Interface0D
-  /*! Returns the string "ViewEdge". */
+  /** Returns the string "ViewEdge". */
   virtual string getExactTypeName() const
   {
     return "ViewEdge";
   }
 
   // Data access methods
-  /*! Returns the Id of the vertex. */
+  /** Returns the Id of the vertex. */
   virtual Id getId() const
   {
     return _Id;
   }
 
-  /*! Returns the nature of the ViewEdge. */
+  /** Returns the nature of the ViewEdge. */
   virtual Nature::EdgeNature getNature() const
   {
     return _Nature;
@@ -960,12 +960,12 @@ class ViewEdge : public Interface1D {
   Id *_splittingId;
 
  public:
-  /*! A field that can be used by the user to store any data.
+  /** A field that can be used by the user to store any data.
    *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
-  /*! Default constructor. */
+  /** Default constructor. */
   inline ViewEdge()
   {
     __A = NULL;
@@ -1028,7 +1028,7 @@ class ViewEdge : public Interface1D {
   }
 
   // soc protected:
-  /*! Copy constructor. */
+  /** Copy constructor. */
   inline ViewEdge(ViewEdge &iBrother)
   {
     __A = iBrother.__A;
@@ -1047,7 +1047,7 @@ class ViewEdge : public Interface1D {
     userdata = NULL;
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual ViewEdge *duplicate()
   {
     ViewEdge *clone = new ViewEdge(*this);
@@ -1055,7 +1055,7 @@ class ViewEdge : public Interface1D {
   }
 
  public:
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~ViewEdge()
   {
 #if 0
@@ -1073,37 +1073,37 @@ class ViewEdge : public Interface1D {
   }
 
   /* accessors */
-  /*! Returns the first ViewVertex. */
+  /** Returns the first ViewVertex. */
   inline ViewVertex *A()
   {
     return __A;
   }
 
-  /*! Returns the second ViewVertex. */
+  /** Returns the second ViewVertex. */
   inline ViewVertex *B()
   {
     return __B;
   }
 
-  /*! Returns the first FEdge that constitutes this ViewEdge. */
+  /** Returns the first FEdge that constitutes this ViewEdge. */
   inline FEdge *fedgeA()
   {
     return _FEdgeA;
   }
 
-  /*! Returns the last FEdge that constitutes this ViewEdge. */
+  /** Returns the last FEdge that constitutes this ViewEdge. */
   inline FEdge *fedgeB()
   {
     return _FEdgeB;
   }
 
-  /*! Returns the ViewShape to which this ViewEdge belongs to .*/
+  /** Returns the ViewShape to which this ViewEdge belongs to. */
   inline ViewShape *viewShape()
   {
     return _Shape;
   }
 
-  /*! Returns the shape that is occluded by the ViewShape to which this ViewEdge belongs to. If no
+  /** Returns the shape that is occluded by the ViewShape to which this ViewEdge belongs to. If no
    * object is occluded, NULL is returned. \return The occluded ViewShape.
    */
   inline ViewShape *aShape()
@@ -1111,7 +1111,7 @@ class ViewEdge : public Interface1D {
     return _aShape;
   }
 
-  /*! Tells whether this ViewEdge forms a closed loop or not. */
+  /** Tells whether this ViewEdge forms a closed loop or not. */
   inline bool isClosed()
   {
     if (!__B) {
@@ -1120,7 +1120,7 @@ class ViewEdge : public Interface1D {
     return false;
   }
 
-  /*! Returns the time stamp of this ViewEdge. */
+  /** Returns the time stamp of this ViewEdge. */
   inline unsigned getChainingTimeStamp()
   {
     return _ChainingTimeStamp;
@@ -1152,64 +1152,64 @@ class ViewEdge : public Interface1D {
   }
 
   /* modifiers */
-  /*! Sets the first ViewVertex of the ViewEdge. */
+  /** Sets the first ViewVertex of the ViewEdge. */
   inline void setA(ViewVertex *iA)
   {
     __A = iA;
   }
 
-  /*! Sets the last ViewVertex of the ViewEdge. */
+  /** Sets the last ViewVertex of the ViewEdge. */
   inline void setB(ViewVertex *iB)
   {
     __B = iB;
   }
 
-  /*! Sets the nature of the ViewEdge. */
+  /** Sets the nature of the ViewEdge. */
   inline void setNature(Nature::EdgeNature iNature)
   {
     _Nature = iNature;
   }
 
-  /*! Sets the first FEdge of the ViewEdge. */
+  /** Sets the first FEdge of the ViewEdge. */
   inline void setFEdgeA(FEdge *iFEdge)
   {
     _FEdgeA = iFEdge;
   }
 
-  /*! Sets the last FEdge of the ViewEdge. */
+  /** Sets the last FEdge of the ViewEdge. */
   inline void setFEdgeB(FEdge *iFEdge)
   {
     _FEdgeB = iFEdge;
   }
 
-  /*! Sets the ViewShape to which this ViewEdge belongs to.*/
+  /** Sets the ViewShape to which this ViewEdge belongs to. */
   inline void setShape(ViewShape *iVShape)
   {
     _Shape = iVShape;
   }
 
-  /*! Sets the ViewEdge id. */
+  /** Sets the ViewEdge id. */
   inline void setId(const Id &id)
   {
     _Id = id;
   }
 
-  /*! Sets Viewedge to this for all embedded fedges */
+  /** Sets Viewedge to this for all embedded fedges */
   void UpdateFEdges();
 
-  /*! Sets the occluded ViewShape */
+  /** Sets the occluded ViewShape */
   inline void setaShape(ViewShape *iShape)
   {
     _aShape = iShape;
   }
 
-  /*! Sets the quantitative invisibility value. */
+  /** Sets the quantitative invisibility value. */
   inline void setQI(int qi)
   {
     _qi = qi;
   }
 
-  /*! Sets the time stamp value. */
+  /** Sets the time stamp value. */
   inline void setChainingTimeStamp(unsigned ts)
   {
     _ChainingTimeStamp = ts;
@@ -1279,7 +1279,7 @@ class ViewEdge : public Interface1D {
   float viewedge_length() const;
 #endif
 
-  /*! Returns the 2D length of the Viewedge. */
+  /** Returns the 2D length of the Viewedge. */
   real getLength2D() const;
 
 #if 0
@@ -1366,24 +1366,24 @@ class ViewEdge : public Interface1D {
   vertex_iterator vertices_end();
 
   // Iterator access (Interface1D)
-  /*! Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this
+  /** Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this
    * ViewEdge. The returned Interface0DIterator points to the first SVertex of the ViewEdge.
    */
   virtual Interface0DIterator verticesBegin();
 
-  /*! Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this
+  /** Returns an Interface0DIterator to iterate over the SVertex constituting the embedding of this
    * ViewEdge. The returned Interface0DIterator points after the last SVertex of the ViewEdge.
    */
   virtual Interface0DIterator verticesEnd();
 
-  /*! Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given
+  /** Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given
    * resolution. The returned Interface0DIterator points on the first Point of the ViewEdge.
    *  \param t:
    *    the sampling value.
    */
   virtual Interface0DIterator pointsBegin(float t = 0.0f);
 
-  /*! Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given
+  /** Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given
    * resolution. The returned Interface0DIterator points after the last Point of the ViewEdge.
    *  \param t:
    *    the sampling value.
@@ -1403,7 +1403,7 @@ class ViewEdge : public Interface1D {
 /*                                */
 /**********************************/
 
-/*! Class gathering the elements of the ViewMap (ViewVertex, ViewEdge) that are issued from the
+/** Class gathering the elements of the ViewMap (ViewVertex, ViewEdge) that are issued from the
  * same input shape. */
 class ViewShape {
  private:
@@ -1412,19 +1412,19 @@ class ViewShape {
   SShape *_SShape;
 
  public:
-  /*! A field that can be used by the user to store any data.
+  /** A field that can be used by the user to store any data.
    *  This field must be reset afterwards using ResetUserData().
    */
   void *userdata;
 
-  /*! Default constructor.*/
+  /** Default constructor. */
   inline ViewShape()
   {
     userdata = NULL;
     _SShape = NULL;
   }
 
-  /*! Builds a ViewShape from a SShape. */
+  /** Builds a ViewShape from a SShape. */
   inline ViewShape(SShape *iSShape)
   {
     userdata = NULL;
@@ -1432,7 +1432,7 @@ class ViewShape {
     //_SShape->setViewShape(this);
   }
 
-  /*! Copy constructor. */
+  /** Copy constructor. */
   inline ViewShape(ViewShape &iBrother)
   {
     userdata = NULL;
@@ -1519,14 +1519,14 @@ class ViewShape {
     }
   }
 
-  /*! Cloning method. */
+  /** Cloning method. */
   virtual ViewShape *duplicate()
   {
     ViewShape *clone = new ViewShape(*this);
     return clone;
   }
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~ViewShape();
 
   /* splits a view edge into several view edges.
@@ -1545,75 +1545,75 @@ class ViewShape {
                         vector<ViewEdge *> &ioNewViewEdges);
 
   /* accessors */
-  /*! Returns the SShape on top of which this ViewShape is built. */
+  /** Returns the SShape on top of which this ViewShape is built. */
   inline SShape *sshape()
   {
     return _SShape;
   }
 
-  /*! Returns the SShape on top of which this ViewShape is built. */
+  /** Returns the SShape on top of which this ViewShape is built. */
   inline const SShape *sshape() const
   {
     return _SShape;
   }
 
-  /*! Returns the list of ViewVertex contained in this ViewShape. */
+  /** Returns the list of ViewVertex contained in this ViewShape. */
   inline vector<ViewVertex *> &vertices()
   {
     return _Vertices;
   }
 
-  /*! Returns the list of ViewEdge contained in this ViewShape. */
+  /** Returns the list of ViewEdge contained in this ViewShape. */
   inline vector<ViewEdge *> &edges()
   {
     return _Edges;
   }
 
-  /*! Returns the ViewShape id. */
+  /** Returns the ViewShape id. */
   inline Id getId() const
   {
     return _SShape->getId();
   }
 
-  /*! Returns the ViewShape name. */
+  /** Returns the ViewShape name. */
   inline const string &getName() const
   {
     return _SShape->getName();
   }
 
-  /*! Returns the ViewShape library path. */
+  /** Returns the ViewShape library path. */
   inline const string &getLibraryPath() const
   {
     return _SShape->getLibraryPath();
   }
 
   /* modifiers */
-  /*! Sets the SShape on top of which the ViewShape is built. */
+  /** Sets the SShape on top of which the ViewShape is built. */
   inline void setSShape(SShape *iSShape)
   {
     _SShape = iSShape;
   }
 
-  /*! Sets the list of ViewVertex contained in this ViewShape. */
+  /** Sets the list of ViewVertex contained in this ViewShape. */
   inline void setVertices(const vector<ViewVertex *> &iVertices)
   {
     _Vertices = iVertices;
   }
 
-  /*! Sets the list of ViewEdge contained in this ViewShape. */
+  /** Sets the list of ViewEdge contained in this ViewShape. */
   inline void setEdges(const vector<ViewEdge *> &iEdges)
   {
     _Edges = iEdges;
   }
 
-  /*! Adds a ViewVertex to the list. */
+  /** Adds a ViewVertex to the list. */
   inline void AddVertex(ViewVertex *iVertex)
   {
     _Vertices.push_back(iVertex);
     //_SShape->AddNewVertex(iVertex->svertex());
   }
 
-  /*! Adds a ViewEdge to the list */
+  /** Adds a ViewEdge to the list */
   inline void AddEdge(ViewEdge *iEdge)
   {
     _Edges.push_back(iEdge);

@@ -201,6 +201,6 @@ float cone_cosine(float r)
   // return cos(2.0 * sqrt(2.0 / (gloss + 2)));
   /* Uludag 2014 in GPUPro5 */
   // return pow(0.244, 1 / (gloss + 1));
-  /* Jimenez 2016 in Practical Realtime Strategies for Accurate Indirect Occlusion*/
+  /* Jimenez 2016 in Practical Realtime Strategies for Accurate Indirect Occlusion. */
   return exp2(-3.32193 * r * r);
 }

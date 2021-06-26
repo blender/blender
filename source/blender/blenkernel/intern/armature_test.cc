@@ -121,7 +121,7 @@ TEST(vec_roll_to_mat3_normalized, Rotationmatrix)
   /* TODO: This test will pass after fixing T82455) */
   /* If normalized_vector is close to -Y and
    * it has X and Z values above a threshold,
-   * apply the special case.  */
+   * apply the special case. */
   {
     const float expected_roll_mat[3][3] = {{0.000000f, -9.99999975e-06f, 1.000000f},
                                            {9.99999975e-06f, -0.999999881f, 9.99999975e-06f},

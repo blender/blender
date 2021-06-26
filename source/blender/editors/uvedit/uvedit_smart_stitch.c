@@ -76,7 +76,7 @@ typedef struct StitchPreviewer {
   float *preview_polys;
   /* uvs per polygon. */
   uint *uvs_per_polygon;
-  /*number of preview polygons */
+  /* Number of preview polygons. */
   uint num_polys;
   /* preview data. These will be either the previewed vertices or edges
    * depending on stitch mode settings */
@@ -1069,8 +1069,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
     }
   }
 
-  /* remember stitchable candidates as places the 'I' button  */
-  /* will stop at.                                            */
+  /* Remember stitchable candidates as places the 'I' button will stop at. */
   for (int island_idx = 0; island_idx < state->element_map->totalIslands; island_idx++) {
     state->island_is_stitchable[island_idx] = island_stitch_data[island_idx].stitchableCandidate ?
                                                   true :
@@ -1818,7 +1817,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), void
 
         /* Closing line */
         GPU_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
-        /* j = uvs_per_polygon[i] - 1*/
+        /* `j = uvs_per_polygon[i] - 1` */
         GPU_vertbuf_attr_set(
             vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + j * 2]);
 
@@ -1980,7 +1979,7 @@ static StitchState *stitch_init(bContext *C,
         counter++;
         state->uvs[counter] = element;
       }
-      /* pointer arithmetic to the rescue, as always :)*/
+      /* Pointer arithmetic to the rescue, as always :). */
       map[element - state->element_map->buf] = counter;
     }
   }
@@ -2007,8 +2006,8 @@ static StitchState *stitch_init(bContext *C,
       all_edges[counter].first = NULL;
       all_edges[counter].flag = 0;
       all_edges[counter].element = element;
-      /* using an order policy, sort uvs according to address space. This avoids
-       * Having two different UvEdges with the same uvs on different positions  */
+      /* Using an order policy, sort UV's according to address space.
+       * This avoids having two different UvEdges with the same UV's on different positions. */
       if (offset1 < offset2) {
         all_edges[counter].uv1 = offset1;
         all_edges[counter].uv2 = offset2;
@@ -2381,9 +2380,9 @@ static int stitch_init_all(bContext *C, wmOperator *op)
   StitchState *state = ssc->states[ssc->active_object_index];
   ssc->static_island %= state->element_map->totalIslands;
 
-  /* If the initial active object doesn't have any stitchable islands */
-  /* then no active island will be seen in the UI. Make sure we're on */
-  /* a stitchable object and island.                                  */
+  /* If the initial active object doesn't have any stitchable islands
+   * then no active island will be seen in the UI.
+   * Make sure we're on a stitchable object and island. */
   if (!state->island_is_stitchable[ssc->static_island]) {
     goto_next_island(ssc);
     state = ssc->states[ssc->active_object_index];

@@ -309,7 +309,7 @@ static bool BLI_windows_system_backtrace_stack(FILE *fp)
   /* If we are handling an exception use the context record from that. */
   if (current_exception && current_exception->ExceptionRecord->ExceptionAddress) {
     /* The back trace code will write to the context record, to protect the original record from
-     * modifications give the backtrace a copy to work on.  */
+     * modifications give the backtrace a copy to work on. */
     CONTEXT TempContext = *current_exception->ContextRecord;
     return BLI_windows_system_backtrace_run_trace(fp, GetCurrentThread(), &TempContext);
   }

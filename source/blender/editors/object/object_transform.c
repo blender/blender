@@ -1255,16 +1255,16 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
       }
       else if (ob->type == OB_FONT) {
-        /* get from bb */
+        /* Det from bounding-box. */
 
         Curve *cu = ob->data;
 
         if (ob->runtime.bb == NULL && (centermode != ORIGIN_TO_CURSOR)) {
-          /* do nothing*/
+          /* Do nothing. */
         }
         else {
           if (centermode == ORIGIN_TO_CURSOR) {
-            /* done */
+            /* Done. */
           }
           else {
             /* extra 0.5 is the height o above line */
@@ -1615,6 +1615,7 @@ struct XFormAxisItem {
 
 struct XFormAxisData {
   ViewContext vc;
+  ViewDepths *depths;
   struct {
     float depth;
     float normal[3];
@@ -1684,8 +1685,8 @@ static void object_transform_axis_target_free_data(wmOperator *op)
   struct XFormAxisItem *item = xfd->object_data;
 
 #ifdef USE_RENDER_OVERRIDE
-  if (xfd->vc.rv3d->depths) {
-    xfd->vc.rv3d->depths->damaged = true;
+  if (xfd->depths) {
+    ED_view3d_depths_free(xfd->depths);
   }
 #endif
 
@@ -1782,13 +1783,14 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
   vc.v3d->flag2 |= V3D_HIDE_OVERLAYS;
 #endif
 
-  ED_view3d_depth_override(vc.depsgraph, vc.region, vc.v3d, NULL, V3D_DEPTH_NO_GPENCIL, true);
+  ViewDepths *depths = NULL;
+  ED_view3d_depth_override(vc.depsgraph, vc.region, vc.v3d, NULL, V3D_DEPTH_NO_GPENCIL, &depths);
 
 #ifdef USE_RENDER_OVERRIDE
   vc.v3d->flag2 = flag2_prev;
 #endif
 
-  if (vc.rv3d->depths == NULL) {
+  if (depths == NULL) {
     BKE_report(op->reports, RPT_WARNING, "Unable to access depth buffer, using view plane");
     return OPERATOR_CANCELLED;
   }
@@ -1800,6 +1802,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 
   /* Don't change this at runtime. */
   xfd->vc = vc;
+  xfd->depths = depths;
   xfd->vc.mval[0] = event->mval[0];
   xfd->vc.mval[1] = event->mval[1];
 
@@ -1863,7 +1866,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
   const bool is_translate_init = is_translate && (xfd->is_translate != is_translate);
 
   if (event->type == MOUSEMOVE || is_translate_init) {
-    const ViewDepths *depths = xfd->vc.rv3d->depths;
+    const ViewDepths *depths = xfd->depths;
     if (depths && ((uint)event->mval[0] < depths->w) && ((uint)event->mval[1] < depths->h)) {
       float depth_fl = 1.0f;
       ED_view3d_depth_read_cached(depths, event->mval, 0, &depth_fl);
@@ -1895,7 +1898,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 
             float normal[3];
             bool normal_found = false;
-            if (ED_view3d_depth_read_cached_normal(&xfd->vc, event->mval, normal)) {
+            if (ED_view3d_depth_read_cached_normal(region, depths, event->mval, normal)) {
               normal_found = true;
 
               /* cheap attempt to smooth normals out a bit! */
@@ -1905,7 +1908,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
                   if (x != 0 && y != 0) {
                     const int mval_ofs[2] = {event->mval[0] + x, event->mval[1] + y};
                     float n[3];
-                    if (ED_view3d_depth_read_cached_normal(&xfd->vc, mval_ofs, n)) {
+                    if (ED_view3d_depth_read_cached_normal(region, depths, mval_ofs, n)) {
                       add_v3_v3(normal, n);
                     }
                   }

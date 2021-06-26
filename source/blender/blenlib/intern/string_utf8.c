@@ -290,7 +290,7 @@ size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, s
 #undef BLI_STR_UTF8_CPY
 
 /* --------------------------------------------------------------------------*/
-/* wchar_t / utf8 functions  */
+/* wchar_t / utf8 functions */
 
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  const wchar_t *__restrict src,
@@ -401,7 +401,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
 #endif
 }
 
-/* end wchar_t / utf8 functions  */
+/* end wchar_t / utf8 functions */
 /* --------------------------------------------------------------------------*/
 
 /* count columns that character/string occupies, based on wcwidth.c */

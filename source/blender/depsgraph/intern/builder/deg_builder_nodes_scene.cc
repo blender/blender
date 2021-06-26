@@ -68,7 +68,7 @@ void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
    *
    * Would be nice to find some reliable way of ignoring compositor here, but it's already pulled
    * in when building scene from view layer, so this particular case does not make things
-   * marginally worse.  */
+   * marginally worse. */
   build_scene_compositor(scene);
 
   LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {

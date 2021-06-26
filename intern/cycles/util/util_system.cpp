@@ -282,8 +282,8 @@ static CPUCapabilities &system_cpu_capabilities()
         /* actual opcode for xgetbv */
         __asm__(".byte 0x0f, 0x01, 0xd0" : "=a"(xcr_feature_mask), "=d"(edx) : "c"(0));
 #  elif defined(_MSC_VER) && defined(_XCR_XFEATURE_ENABLED_MASK)
-        xcr_feature_mask = (uint32_t)_xgetbv(
-            _XCR_XFEATURE_ENABLED_MASK); /* min VS2010 SP1 compiler is required */
+        /* Minimum VS2010 SP1 compiler is required. */
+        xcr_feature_mask = (uint32_t)_xgetbv(_XCR_XFEATURE_ENABLED_MASK);
 #  else
         xcr_feature_mask = 0;
 #  endif

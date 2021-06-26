@@ -2665,7 +2665,7 @@ void loc_eul_size_to_mat4(float R[4][4],
   size_to_mat3(smat, size);
   mul_m3_m3m3(tmat, rmat, smat);
 
-  /* copy rot/scale part to output matrix*/
+  /* Copy rot/scale part to output matrix. */
   copy_m4_m3(R, tmat);
 
   /* copy location to matrix */
@@ -2686,18 +2686,18 @@ void loc_eulO_size_to_mat4(float R[4][4],
 {
   float rmat[3][3], smat[3][3], tmat[3][3];
 
-  /* initialize new matrix */
+  /* Initialize new matrix. */
   unit_m4(R);
 
-  /* make rotation + scaling part */
+  /* Make rotation + scaling part. */
   eulO_to_mat3(rmat, eul, rotOrder);
   size_to_mat3(smat, size);
   mul_m3_m3m3(tmat, rmat, smat);
 
-  /* copy rot/scale part to output matrix*/
+  /* Copy rot/scale part to output matrix. */
   copy_m4_m3(R, tmat);
 
-  /* copy location to matrix */
+  /* Copy location to matrix. */
   R[3][0] = loc[0];
   R[3][1] = loc[1];
   R[3][2] = loc[2];
@@ -2722,7 +2722,7 @@ void loc_quat_size_to_mat4(float R[4][4],
   size_to_mat3(smat, size);
   mul_m3_m3m3(tmat, rmat, smat);
 
-  /* copy rot/scale part to output matrix*/
+  /* Copy rot/scale part to output matrix. */
   copy_m4_m3(R, tmat);
 
   /* copy location to matrix */

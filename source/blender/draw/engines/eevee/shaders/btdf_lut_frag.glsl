@@ -83,7 +83,7 @@ void main()
     btdf_accum = 0.0;
   }
 
-  /* There is place to put multiscater result (which is a little bit different still)
-   * and / or lobe fitting for better sampling of  */
+  /* There is place to put multi-scatter result (which is a little bit different still)
+   * and / or lobe fitting for better sampling of. */
   FragColor = vec4(btdf_accum, fresnel_accum, 0.0, 1.0);
 }

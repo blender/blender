@@ -568,7 +568,7 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports),
       FCurve *fcu_iter = adt->drivers.first;
 
       while ((fcu = BKE_fcurve_iter_step(fcu_iter, rna_path)) != NULL) {
-        /* store the next fcurve for looping  */
+        /* Store the next fcurve for looping. */
         fcu_iter = fcu->next;
 
         /* remove F-Curve from driver stack, then free it */
@@ -1253,7 +1253,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* since we're just copying, we don't really need to do anything else...*/
+  /* Since we're just copying, we don't really need to do anything else. */
   return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
@@ -1303,7 +1303,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* since we're just copying, we don't really need to do anything else...*/
+  /* Since we're just copying, we don't really need to do anything else. */
   return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 

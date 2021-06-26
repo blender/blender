@@ -66,7 +66,7 @@ void LuminanceMatteOperation::executePixelSampled(float output[4],
   else if (luminance < low) {
     alpha = 0.0f;
   }
-  else { /*blend */
+  else { /* Blend. */
     alpha = (luminance - low) / (high - low);
   }
 

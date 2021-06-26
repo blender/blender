@@ -368,7 +368,7 @@ static void bm_face_bisect_verts(
             }
           }
 
-          /* Ideally wont happen, but it can for self intersecting faces. */
+          /* Ideally won't happen, but it can for self-intersecting faces. */
           // BLI_assert(found == true);
 
           /* In fact this simple test is good enough, test if the loops are adjacent. */

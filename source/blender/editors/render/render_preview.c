@@ -955,7 +955,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
     for (int x = 0; x < width; x++) {
       tex_coord[0] = ((float)x / (float)height) * 2.0f - 1.0f;
 
-      /* Evaluate texture at tex_coord .*/
+      /* Evaluate texture at tex_coord. */
       TexResult texres = {0};
       BKE_texture_get_value_ex(sce, tex, tex_coord, &texres, img_pool, color_manage);
 

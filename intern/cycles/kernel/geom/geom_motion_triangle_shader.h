@@ -66,7 +66,7 @@ ccl_device_noinline void motion_triangle_shader_setup(
     sd->P = motion_triangle_refine_local(kg, sd, isect, ray, verts);
   }
   else
-#endif /*  __BVH_LOCAL__*/
+#endif /* __BVH_LOCAL__*/
   {
     sd->P = motion_triangle_refine(kg, sd, isect, ray, verts);
   }

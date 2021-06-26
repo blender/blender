@@ -125,7 +125,7 @@ typedef struct tGPDfill {
   struct bGPDframe *gpf;
   /** Temp mouse position stroke. */
   struct bGPDstroke *gps_mouse;
-  /** Pointer to report messages.  */
+  /** Pointer to report messages. */
   struct ReportList *reports;
   /** flags */
   short flag;
@@ -810,7 +810,7 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
       }
     }
     else {
-      /* edge of image*/
+      /* Edge of image. */
       t_a = true;
     }
     /* pixels on bottom */
@@ -822,7 +822,7 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
       }
     }
     else {
-      /* edge of image*/
+      /* Edge of image. */
       t_b = true;
     }
   }
@@ -846,7 +846,7 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
       }
     }
     else {
-      t_a = true; /* edge of image*/
+      t_a = true; /* Edge of image. */
     }
     /* pixels to left */
     pt = index + extreme;
@@ -1373,7 +1373,7 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
     /* need to restore the original projection settings before packing up */
     view3d_region_operator_needs_opengl(tgpf->win, tgpf->region);
     ED_view3d_depth_override(
-        tgpf->depsgraph, tgpf->region, tgpf->v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
+        tgpf->depsgraph, tgpf->region, tgpf->v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
 
     /* Since strokes are so fine, when using their depth we need a margin
      * otherwise they might get missed. */
@@ -1869,7 +1869,7 @@ static int gpencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   DEG_id_tag_update(&tgpf->gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 
-  /* add a modal handler for this operator*/
+  /* Add a modal handler for this operator. */
   WM_event_add_modal_handler(C, op);
 
   return OPERATOR_RUNNING_MODAL;
@@ -2123,7 +2123,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             gpencil_stroke_convertcoords_tpoint(
                 tgpf->scene, tgpf->region, tgpf->ob, &point2D, NULL, &pt->x);
 
-            /* Hash of selected frames.*/
+            /* Hash of selected frames. */
             GHash *frame_list = BLI_ghash_int_new_ex(__func__, 64);
 
             /* If not multiframe and there is no frame in CFRA for the active layer, create

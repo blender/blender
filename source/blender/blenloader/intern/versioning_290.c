@@ -1462,7 +1462,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Replace object hidden filter with inverted object visible filter.  */
+    /* Replace object hidden filter with inverted object visible filter. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
@@ -2082,7 +2082,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Initialize the spread parameter for area lights*/
+    /* Initialize the spread parameter for area lights. */
     if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "area_spread")) {
       LISTBASE_FOREACH (Light *, la, &bmain->lights) {
         la->area_spread = DEG2RADF(180.0f);

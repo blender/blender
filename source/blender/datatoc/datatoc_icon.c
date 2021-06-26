@@ -453,7 +453,7 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
     printf("%s: dir '%s' failed %d icons\n", __func__, path_src, fail);
   }
 
-  /* write pixels  */
+  /* Write pixels. */
   write_png(file_dst, pixels_canvas, canvas_w, canvas_h);
 
   free(pixels_canvas);

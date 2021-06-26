@@ -244,10 +244,13 @@ MINLINE int min_axis_v3(const float vec[3])
 }
 
 /**
- * Simple method to find how many tri's we need when we already know the corner+poly count.
+ * Simple function to either:
+ * - Calculate how many triangles needed from the total number of polygons + loops.
+ * - Calculate the first triangle index from the polygon index & that polygons loop-start.
  *
- * \param poly_count: The number of ngon's/tris (1-2 sided faces will give incorrect results)
- * \param corner_count: also known as loops in BMesh/DNA
+ * \param poly_count: The number of polygons or polygon-index
+ * (3+ sided faces, 1-2 sided give incorrect results).
+ * \param corner_count: The number of corners (also called loop-index).
  */
 MINLINE int poly_to_tri_count(const int poly_count, const int corner_count)
 {

@@ -2246,7 +2246,7 @@ class TriOverlaps {
       }
       overlap_tot_ += overlap_tot_;
     }
-    /* Sort the overlaps to bring all the intersects with a given indexA together.  */
+    /* Sort the overlaps to bring all the intersects with a given indexA together. */
     std::sort(overlap_, overlap_ + overlap_tot_, bvhtreeverlap_cmp);
     if (dbg_level > 0) {
       std::cout << overlap_tot_ << " overlaps found:\n";

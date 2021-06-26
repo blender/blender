@@ -791,7 +791,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
       wpaint_prev_create(
           &((WPGradient_vertStoreBase *)gesture->user_data.data)->wpp, me->dvert, me->totvert);
 
-      /* on init only, convert face -> vert sel  */
+      /* On initialization only, convert face -> vert sel. */
       if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
         BKE_mesh_flush_select_from_polys(me);
       }

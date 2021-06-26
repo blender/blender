@@ -650,7 +650,7 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
   return true;
 }
 
-/* called in transform_ops.c, on each regeneration of keymaps */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

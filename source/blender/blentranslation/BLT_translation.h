@@ -119,7 +119,7 @@ bool BLT_lang_is_ime_supported(void);
 #define BLT_I18NCONTEXT_ID_HAIR "Hair"
 #define BLT_I18NCONTEXT_ID_ID "ID"
 #define BLT_I18NCONTEXT_ID_IMAGE "Image"
-/*#define BLT_I18NCONTEXT_ID_IPO                  "Ipo"*/ /* Deprecated */
+// #define BLT_I18NCONTEXT_ID_IPO "Ipo" /* DEPRECATED */
 #define BLT_I18NCONTEXT_ID_SHAPEKEY "Key"
 #define BLT_I18NCONTEXT_ID_SIMULATION "Simulation"
 #define BLT_I18NCONTEXT_ID_LIGHT "Light"
@@ -182,7 +182,7 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ID, "id_id"), \
         BLT_I18NCONTEXTS_ITEM( \
             BLT_I18NCONTEXT_ID_IMAGE, \
-            "id_image"), /*BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_IPO, "id_ipo"),*/ \
+            "id_image"), /* BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_IPO, "id_ipo"), */ \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SHAPEKEY, "id_shapekey"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LIGHT, "id_light"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_LIBRARY, "id_library"), \

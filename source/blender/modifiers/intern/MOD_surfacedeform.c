@@ -675,7 +675,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           inf_weight_flags |= MOD_SDEF_INFINITE_WEIGHT_DIST_PROJ;
         }
         else {
-          /* Compute angles between the point and the edge mid vectors.  */
+          /* Compute angles between the point and the edge mid vectors. */
           float cent_point_vec[2], point_angles[2];
 
           sub_v2_v2v2(cent_point_vec, bpoly->point_v2, bpoly->centroid_v2);

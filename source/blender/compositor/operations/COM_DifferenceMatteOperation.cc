@@ -68,11 +68,11 @@ void DifferenceMatteOperation::executePixelSampled(float output[4],
   if (difference <= tolerance) {
     output[0] = 0.0f;
   }
-  /*in the falloff region, make partially transparent */
+  /* In the falloff region, make partially transparent. */
   else if (difference <= falloff + tolerance) {
     difference = difference - tolerance;
     alpha = difference / falloff;
-    /*only change if more transparent than before */
+    /* Only change if more transparent than before. */
     if (alpha < inColor1[3]) {
       output[0] = alpha;
     }

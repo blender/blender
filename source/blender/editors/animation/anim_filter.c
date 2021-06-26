@@ -3132,7 +3132,7 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_m
 
   /* check selection and object type filters */
   if ((ads->filterflag & ADS_FILTER_ONLYSEL) &&
-      !((base->flag & BASE_SELECTED) /*|| (base == sce->basact)*/)) {
+      !((base->flag & BASE_SELECTED) /*|| (base == sce->basact) */)) {
     /* only selected should be shown */
     return false;
   }

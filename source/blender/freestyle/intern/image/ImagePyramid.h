@@ -45,17 +45,17 @@ class ImagePyramid {
   // ImagePyramid(const GrayImage& level0, unsigned nbLevels);
   virtual ~ImagePyramid();
 
-  /*! Builds the pyramid.
+  /** Builds the pyramid.
    * must be overloaded by inherited classes.
    * if nbLevels==0, the complete pyramid is built
    */
   virtual void BuildPyramid(const GrayImage &level0, unsigned nbLevels) = 0;
 
-  /*! Builds a pyramid without copying the base level */
+  /** Builds a pyramid without copying the base level */
   virtual void BuildPyramid(GrayImage *level0, unsigned nbLevels) = 0;
 
   virtual GrayImage *getLevel(int l);
-  /*! Returns the pixel x,y using bilinear interpolation.
+  /** Returns the pixel x,y using bilinear interpolation.
    *  \param x:
    *    the abscissa specified in the finest level coordinate system
    *  \param y:
@@ -65,13 +65,13 @@ class ImagePyramid {
    */
   virtual float pixel(int x, int y, int level = 0);
 
-  /*! Returns the width of the level-th level image */
+  /** Returns the width of the level-th level image */
   virtual int width(int level = 0);
 
-  /*! Returns the height of the level-th level image */
+  /** Returns the height of the level-th level image */
   virtual int height(int level = 0);
 
-  /*! Returns the number of levels in the pyramid */
+  /** Returns the number of levels in the pyramid */
   inline int getNumberOfLevels() const
   {
     return _levels.size();

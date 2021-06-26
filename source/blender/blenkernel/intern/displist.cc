@@ -323,7 +323,7 @@ static void curve_to_displist(const Curve *cu,
 
       /* Check that there are more than two points so the curve doesn't loop back on itself. This
        * needs to be separate from `is_cyclic` because cyclic sampling can work with two points
-       * and resolution > 1.  */
+       * and resolution > 1. */
       const bool use_cyclic_sample = is_cyclic && (samples_len != 2);
 
       DispList *dl = (DispList *)MEM_callocN(sizeof(DispList), __func__);

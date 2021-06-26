@@ -1615,8 +1615,9 @@ static void emit_from_particles(Object *flow_ob,
         }
       }
 
-      state.time = BKE_scene_frame_get(
-          scene); /* DEG_get_ctime(depsgraph) does not give subframe time */
+      /* `DEG_get_ctime(depsgraph)` does not give sub-frame time. */
+      state.time = BKE_scene_frame_get(scene);
+
       if (psys_get_particle_state(&sim, p, &state, 0) == 0) {
         continue;
       }
@@ -4394,7 +4395,7 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
         int cell[3];
         float t_ray = 1.0;
 
-        /* Reset shadow value.*/
+        /* Reset shadow value. */
         shadow[index] = -1.0f;
 
         voxel_center[0] = (float)x;
@@ -5022,7 +5023,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     /* viscosity options */
     tfds->viscosity_value = fds->viscosity_value;
 
-    /* diffusion options*/
+    /* Diffusion options. */
     tfds->surface_tension = fds->surface_tension;
     tfds->viscosity_base = fds->viscosity_base;
     tfds->viscosity_exponent = fds->viscosity_exponent;

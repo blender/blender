@@ -42,7 +42,7 @@ namespace Freestyle {
 
 using namespace Geometry;
 
-/*! This class takes as input a WXEdge structure and fills it */
+/** This class takes as input a WXEdge structure and fills it */
 class FEdgeXDetector {
  public:
   FEdgeXDetector()
@@ -69,7 +69,7 @@ class FEdgeXDetector {
   {
   }
 
-  /*! Process shapes from a WingedEdge containing a list of WShapes */
+  /** Process shapes from a WingedEdge containing a list of WShapes */
   virtual void processShapes(WingedEdge &);
 
   // GENERAL STUFF
@@ -86,7 +86,7 @@ class FEdgeXDetector {
   virtual void processCreaseShape(WXShape *iWShape);
   virtual void ProcessCreaseEdge(WXEdge *iEdge);
 
-  /*! Sets the minimum angle for detecting crease edges
+  /** Sets the minimum angle for detecting crease edges
    *  \param angle:
    *    The angular threshold in degrees (between 0 and 180) for detecting crease edges. An edge is
    * considered a crease edge if the angle between two faces sharing the edge is smaller than the
@@ -121,7 +121,7 @@ class FEdgeXDetector {
   virtual void ProcessSuggestiveContourFace(WXFace *iFace);
   virtual void postProcessSuggestiveContourShape(WXShape *iShape);
   virtual void postProcessSuggestiveContourFace(WXFace *iFace);
-  /*! Sets the minimal derivative of the radial curvature for suggestive contours
+  /** Sets the minimal derivative of the radial curvature for suggestive contours
    *  \param dkr:
    *    The minimal derivative of the radial curvature
    */
@@ -144,7 +144,7 @@ class FEdgeXDetector {
   // EVERYBODY
   virtual void buildSmoothEdges(WXShape *iShape);
 
-  /*! Sets the current viewpoint */
+  /** Sets the current viewpoint */
   inline void setViewpoint(const Vec3f &ivp)
   {
     _Viewpoint = ivp;
@@ -186,7 +186,7 @@ class FEdgeXDetector {
     }
   }
 
-  /*! Sets the radius of the geodesic sphere around each vertex (for the curvature computation)
+  /** Sets the radius of the geodesic sphere around each vertex (for the curvature computation)
    *  \param r:
    *    The radius of the sphere expressed as a ratio of the mean edge size
    */

@@ -272,20 +272,20 @@ static void build_bvh_spatial(PROCESS *process,
  * any and all purposes, provided that this notice appears in all copies.
  */
 
-#define L 0   /* left direction:   -x, -i */
-#define R 1   /* right direction:  +x, +i */
-#define B 2   /* bottom direction: -y, -j */
-#define T 3   /* top direction:    +y, +j */
-#define N 4   /* near direction:   -z, -k */
-#define F 5   /* far direction:    +z, +k */
-#define LBN 0 /* left bottom near corner  */
-#define LBF 1 /* left bottom far corner   */
-#define LTN 2 /* left top near corner     */
-#define LTF 3 /* left top far corner      */
-#define RBN 4 /* right bottom near corner */
-#define RBF 5 /* right bottom far corner  */
-#define RTN 6 /* right top near corner    */
-#define RTF 7 /* right top far corner     */
+#define L 0   /* Left direction:   -x, -i. */
+#define R 1   /* Right direction:  +x, +i. */
+#define B 2   /* Bottom direction: -y, -j. */
+#define T 3   /* Top direction:    +y, +j. */
+#define N 4   /* Near direction:   -z, -k. */
+#define F 5   /* Far direction:    +z, +k. */
+#define LBN 0 /* Left bottom near corner. */
+#define LBF 1 /* Left bottom far corner. */
+#define LTN 2 /* Left top near corner. */
+#define LTF 3 /* Left top far corner. */
+#define RBN 4 /* Right bottom near corner. */
+#define RBF 5 /* Right bottom far corner. */
+#define RTN 6 /* Right top near corner. */
+#define RTF 7 /* Right top far corner. */
 
 /**
  * the LBN corner of cube (i, j, k), corresponds with location
@@ -293,7 +293,8 @@ static void build_bvh_spatial(PROCESS *process,
  */
 
 #define HASHBIT (5)
-#define HASHSIZE (size_t)(1 << (3 * HASHBIT)) /*! < hash table size (32768) */
+/** Hash table size (32768). */
+#define HASHSIZE (size_t)(1 << (3 * HASHBIT))
 
 #define HASH(i, j, k) ((((((i)&31) << 5) | ((j)&31)) << 5) | ((k)&31))
 

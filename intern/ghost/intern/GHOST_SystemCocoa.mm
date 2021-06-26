@@ -32,11 +32,7 @@
 #include "GHOST_WindowCocoa.h"
 #include "GHOST_WindowManager.h"
 
-#if defined(WITH_GL_EGL)
-#  include "GHOST_ContextEGL.h"
-#else
-#  include "GHOST_ContextCGL.h"
-#endif
+#include "GHOST_ContextCGL.h"
 
 #ifdef WITH_INPUT_NDOF
 #  include "GHOST_NDOFManagerCocoa.h"
@@ -90,7 +86,8 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 {
   // printf("\nrecvchar %c 0x%x",recvChar,recvChar);
   switch (rawCode) {
-    /*Physical keycodes not used due to map changes in int'l keyboards
+    /* Physical key-codes: (not used due to map changes in int'l keyboards). */
+#if 0
     case kVK_ANSI_A:    return GHOST_kKeyA;
     case kVK_ANSI_B:    return GHOST_kKeyB;
     case kVK_ANSI_C:    return GHOST_kKeyC;
@@ -116,9 +113,9 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
     case kVK_ANSI_W:    return GHOST_kKeyW;
     case kVK_ANSI_X:    return GHOST_kKeyX;
     case kVK_ANSI_Y:    return GHOST_kKeyY;
-    case kVK_ANSI_Z:    return GHOST_kKeyZ;*/
-
-    /* Numbers keys mapped to handle some int'l keyboard (e.g. French)*/
+    case kVK_ANSI_Z:    return GHOST_kKeyZ;
+#endif
+    /* Numbers keys: mapped to handle some int'l keyboard (e.g. French). */
     case kVK_ISO_Section:
       return GHOST_kKeyUnknown;
     case kVK_ANSI_1:
@@ -248,8 +245,8 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
       return GHOST_kKeyUpPage;
     case kVK_PageDown:
       return GHOST_kKeyDownPage;
-
-      /*case kVK_ANSI_Minus:      return GHOST_kKeyMinus;
+#if 0 /* TODO: why are these commented? */
+    case kVK_ANSI_Minus:        return GHOST_kKeyMinus;
     case kVK_ANSI_Equal:        return GHOST_kKeyEqual;
     case kVK_ANSI_Comma:        return GHOST_kKeyComma;
     case kVK_ANSI_Period:       return GHOST_kKeyPeriod;
@@ -259,15 +256,15 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
     case kVK_ANSI_Backslash:    return GHOST_kKeyBackslash;
     case kVK_ANSI_LeftBracket:  return GHOST_kKeyLeftBracket;
     case kVK_ANSI_RightBracket: return GHOST_kKeyRightBracket;
-    case kVK_ANSI_Grave:        return GHOST_kKeyAccentGrave;*/
-
+    case kVK_ANSI_Grave:        return GHOST_kKeyAccentGrave;
+#endif
     case kVK_VolumeUp:
     case kVK_VolumeDown:
     case kVK_Mute:
       return GHOST_kKeyUnknown;
 
     default: {
-      /* alphanumerical or punctuation key that is remappable in int'l keyboards */
+      /* Alphanumerical or punctuation key that is remappable in int'l keyboards. */
       if ((recvChar >= 'A') && (recvChar <= 'Z')) {
         return (GHOST_TKey)(recvChar - 'A' + GHOST_kKeyA);
       }
@@ -275,8 +272,8 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
         return (GHOST_TKey)(recvChar - 'a' + GHOST_kKeyA);
       }
       else {
-        /* Leopard and Snow Leopard 64bit compatible API*/
-        CFDataRef uchrHandle; /*the keyboard layout*/
+        /* Leopard and Snow Leopard 64bit compatible API. */
+        CFDataRef uchrHandle; /* The keyboard layout. */
         TISInputSourceRef kbdTISHandle;
 
         kbdTISHandle = TISCopyCurrentKeyboardLayoutInputSource();
@@ -284,9 +281,9 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
                                                           kTISPropertyUnicodeKeyLayoutData);
         CFRelease(kbdTISHandle);
 
-        /*get actual character value of the "remappable" keys in int'l keyboards,
-        if keyboard layout is not correctly reported (e.g. some non Apple keyboards in Tiger),
-        then fallback on using the received charactersIgnoringModifiers */
+        /* Get actual character value of the "remappable" keys in int'l keyboards,
+         * if keyboard layout is not correctly reported (e.g. some non Apple keyboards in Tiger),
+         * then fallback on using the received #charactersIgnoringModifiers. */
         if (uchrHandle) {
           UInt32 deadKeyState = 0;
           UniCharCount actualStrLength = 0;
@@ -437,8 +434,10 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 // So WM_exit needs to be called directly, as the event loop will never run before termination
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
-  /*G.is_break = FALSE; //Let Cocoa perform the termination at the end
-  WM_exit(C);*/
+#if 0
+  G.is_break = false; /* Let Cocoa perform the termination at the end. */
+  WM_exit(C);
+#endif
 }
 
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification
@@ -553,10 +552,12 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
     // ProcessSerialNumber psn;
 
     // Carbon stuff to move window & menu to foreground
-    /*if (!GetCurrentProcess(&psn)) {
+#if 0
+    if (!GetCurrentProcess(&psn)) {
       TransformProcessType(&psn, kProcessTransformToForegroundApplication);
       SetFrontProcess(&psn);
-    }*/
+    }
+#endif
 
     @autoreleasepool {
       [NSApplication sharedApplication];  // initializes   NSApp
@@ -1217,7 +1218,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             return GHOST_kFailure;
           }
 
-          /*Get the bitmap of the image*/
+          /* Get the bitmap of the image. */
           enumerator = [[droppedImg representations] objectEnumerator];
           while ((representation = [enumerator nextObject])) {
             if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
@@ -1230,7 +1231,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 
           if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0) &&
               ![bitmapImage isPlanar]) {
-            /* Try a fast copy if the image is a meshed RGBA 32bit bitmap*/
+            /* Try a fast copy if the image is a meshed RGBA 32bit bitmap. */
             toIBuf = (GHOST_TUns8 *)ibuf->rect;
             rasterRGB = (GHOST_TUns8 *)[bitmapImage bitmapData];
             for (y = 0; y < imgSize.height; y++) {
@@ -1260,7 +1261,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
                           colorSpaceName:NSDeviceRGBColorSpace
                             bitmapFormat:(NSBitmapFormat)0
                              bytesPerRow:4 * imgSize.width
-                            bitsPerPixel:32 /*RGB format padded to 32bits*/];
+                            bitsPerPixel:32 /* RGB format padded to 32bits. */];
 
             [NSGraphicsContext saveGraphicsState];
             [NSGraphicsContext
@@ -1307,7 +1308,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
               return GHOST_kFailure;
             }
 
-            /*Copy the image to ibuf, flipping it vertically*/
+            /* Copy the image to ibuf, flipping it vertically. */
             toIBuf = (GHOST_TUns8 *)ibuf->rect;
             for (y = 0; y < imgSize.height; y++) {
               for (x = 0; x < imgSize.width; x++) {

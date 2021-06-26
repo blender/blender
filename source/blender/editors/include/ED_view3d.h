@@ -90,8 +90,6 @@ typedef struct ViewDepths {
   short x, y; /* only for temp use for sub-rects, added to region->winx/y */
   float *depths;
   double depth_range[2];
-
-  bool damaged;
 } ViewDepths;
 
 /* Rotate 3D cursor on placement. */
@@ -154,19 +152,20 @@ void ED_view3d_depth_override(struct Depsgraph *depsgraph,
                               struct View3D *v3d,
                               struct Object *obact,
                               eV3DDepthOverrideMode mode,
-                              bool update_cache);
+                              struct ViewDepths **r_depths);
+void ED_view3d_depths_free(ViewDepths *depths);
 bool ED_view3d_depth_read_cached(const ViewDepths *vd,
                                  const int mval[2],
                                  int margin,
                                  float *r_depth);
-bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
+bool ED_view3d_depth_read_cached_normal(const struct ARegion *region,
+                                        const ViewDepths *depths,
                                         const int mval[2],
                                         float r_normal[3]);
 bool ED_view3d_depth_unproject_v3(const struct ARegion *region,
                                   const int mval[2],
                                   const double depth,
                                   float r_location_world[3]);
-void ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 
 /* Projection */
 #define IS_CLIPPED 12000
@@ -196,12 +195,38 @@ typedef enum {
   V3D_PROJ_TEST_CLIP_NEAR = (1 << 2),
   V3D_PROJ_TEST_CLIP_FAR = (1 << 3),
   V3D_PROJ_TEST_CLIP_ZERO = (1 << 4),
+  /**
+   * Clip the contents of the data being iterated over.
+   * Currently this is only used to edges when projecting into screen space.
+   *
+   * Clamp the edge within the viewport limits defined by
+   * #V3D_PROJ_TEST_CLIP_WIN, #V3D_PROJ_TEST_CLIP_NEAR & #V3D_PROJ_TEST_CLIP_FAR.
+   * This resolves the problem of a visible edge having one of it's vertices
+   * behind the viewport. See: T32214.
+   *
+   * This is not default behavior as it may be important for the screen-space location
+   * of an edges vertex to represent that vertices location (instead of a location along the edge).
+   *
+   * \note Perspective views should enable #V3D_PROJ_TEST_CLIP_WIN along with
+   * #V3D_PROJ_TEST_CLIP_NEAR as the near-plane-clipped location of a point
+   * may become very large (even infinite) when projected into screen-space.
+   * Unless the that point happens to coincide with the camera's point of view.
+   *
+   * Use #V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT instead of #V3D_PROJ_TEST_CLIP_CONTENT,
+   * to avoid accidentally enabling near clipping without clipping by window bounds.
+   */
+  V3D_PROJ_TEST_CLIP_CONTENT = (1 << 5),
 } eV3DProjTest;
 
 #define V3D_PROJ_TEST_CLIP_DEFAULT \
   (V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR)
 #define V3D_PROJ_TEST_ALL \
-  (V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_FAR | V3D_PROJ_TEST_CLIP_ZERO)
+  (V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_FAR | V3D_PROJ_TEST_CLIP_ZERO | \
+   V3D_PROJ_TEST_CLIP_CONTENT)
+
+#define V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT \
+  (V3D_PROJ_TEST_CLIP_CONTENT | V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR | \
+   V3D_PROJ_TEST_CLIP_WIN)
 
 /* view3d_iterators.c */
 
@@ -404,7 +429,7 @@ bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
                                       float r_ray_end[3],
                                       const bool do_clip);
 void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d,
-                                  struct Object *ob,
+                                  const struct Object *ob,
                                   float r_pmat[4][4]);
 void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d,
                                              const float obmat[4][4],
@@ -578,8 +603,8 @@ bool ED_view3d_area_user_region(const struct ScrArea *area,
                                 struct ARegion **r_region);
 bool ED_operator_rv3d_user_region_poll(struct bContext *C);
 
-void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
-void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d);
+void ED_view3d_init_mats_rv3d(const struct Object *ob, struct RegionView3D *rv3d);
+void ED_view3d_init_mats_rv3d_gl(const struct Object *ob, struct RegionView3D *rv3d);
 #ifdef DEBUG
 void ED_view3d_clear_mats_rv3d(struct RegionView3D *rv3d);
 void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d);

@@ -82,10 +82,10 @@ typedef struct PVert {
   struct PVert *nextlink;
 
   union PVertUnion {
-    PHashKey key;       /* construct */
-    int id;             /* abf/lscm matrix index */
-    float distortion;   /* area smoothing */
-    HeapNode *heaplink; /* edge collapsing */
+    PHashKey key;       /* Construct. */
+    int id;             /* ABF/LSCM matrix index. */
+    float distortion;   /* Area smoothing. */
+    HeapNode *heaplink; /* Edge collapsing. */
   } u;
 
   struct PEdge *edge;
@@ -99,10 +99,10 @@ typedef struct PEdge {
   struct PEdge *nextlink;
 
   union PEdgeUnion {
-    PHashKey key;               /* construct */
-    int id;                     /* abf matrix index */
-    HeapNode *heaplink;         /* fill holes */
-    struct PEdge *nextcollapse; /* simplification */
+    PHashKey key;               /* Construct. */
+    int id;                     /* ABF matrix index. */
+    HeapNode *heaplink;         /* Fill holes. */
+    struct PEdge *nextcollapse; /* Simplification. */
   } u;
 
   struct PVert *vert;
@@ -118,10 +118,10 @@ typedef struct PFace {
   struct PFace *nextlink;
 
   union PFaceUnion {
-    PHashKey key; /* construct */
-    int chart;    /* construct splitting*/
-    float area3d; /* stretch */
-    int id;       /* abf matrix index */
+    PHashKey key; /* Construct. */
+    int chart;    /* Construct splitting. */
+    float area3d; /* Stretch. */
+    int id;       /* ABF matrix index. */
   } u;
 
   struct PEdge *edge;

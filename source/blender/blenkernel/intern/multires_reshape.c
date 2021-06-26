@@ -235,7 +235,7 @@ void multiresModifier_subdivide_to_level(struct Object *object,
 
   /* Free original grids which makes it so smoothing with details thinks all the details were
    * added against base mesh's limit surface. This is similar behavior to as if we've done all
-   * displacement in sculpt mode at the old top level and then propagated to the new top level.*/
+   * displacement in sculpt mode at the old top level and then propagated to the new top level. */
   multires_reshape_free_original_grids(&reshape_context);
 
   if (ELEM(mode, MULTIRES_SUBDIVIDE_LINEAR, MULTIRES_SUBDIVIDE_SIMPLE)) {

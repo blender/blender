@@ -172,7 +172,7 @@ static void eevee_init_util_texture(void)
   }
   texels_layer += 64 * 64;
 
-  /* Copy blue noise in 3rd layer  */
+  /* Copy blue noise in 3rd layer. */
   for (int i = 0; i < 64 * 64; i++) {
     texels_layer[i][0] = blue_noise[i][0];
     texels_layer[i][1] = blue_noise[i][2];
@@ -181,7 +181,7 @@ static void eevee_init_util_texture(void)
   }
   texels_layer += 64 * 64;
 
-  /* Copy ltc_disk_integral in 4th layer  */
+  /* Copy ltc_disk_integral in 4th layer. */
   for (int i = 0; i < 64 * 64; i++) {
     texels_layer[i][0] = ltc_disk_integral[i];
     texels_layer[i][1] = 0.0; /* UNUSED */

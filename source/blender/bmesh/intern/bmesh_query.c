@@ -699,7 +699,7 @@ BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e_first)
     if (BM_edge_is_manifold(l_a->e)) {
       l_a = l_a->radial_next;
     }
-    /* this wont have changed from the previous loop */
+    /* this won't have changed from the previous loop */
 
     i++;
   } while (l_a != e_first->l);
@@ -978,7 +978,7 @@ bool BM_vert_is_manifold(const BMVert *v)
       /* start at the boundary */
       l_first = e_iter->l;
       boundary_num += 1;
-      /* >2 boundaries cant be manifold */
+      /* >2 boundaries can't be manifold */
       if (boundary_num == 3) {
         return false;
       }
@@ -2365,7 +2365,7 @@ bool BM_face_exists_overlap_subset(BMVert **varr, const int len)
   for (int i = 0; i < len; i++) {
     BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
       if ((f->len <= len) && (BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0)) {
-        /* check if all vers in this face are flagged*/
+        /* Check if all vers in this face are flagged. */
         BMLoop *l_iter, *l_first;
 
         if (is_init == false) {

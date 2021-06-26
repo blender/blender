@@ -306,7 +306,7 @@ template<> struct DefaultMixerStruct<float3> {
 };
 template<> struct DefaultMixerStruct<ColorGeometry4f> {
   /* Use a special mixer for colors. ColorGeometry4f can't be added/multiplied, because this is not
-   * something one should usually do with colors.  */
+   * something one should usually do with colors. */
   using type = ColorGeometryMixer;
 };
 template<> struct DefaultMixerStruct<int> {

@@ -187,7 +187,7 @@ def _template_items_context_panel(menu, key_args_primary):
     ]
 
 
-def _template_space_region_type_toggle(*, toolbar_key=None, sidebar_key=None):
+def _template_space_region_type_toggle(*, toolbar_key=None, sidebar_key=None, channels_key=None):
     items = []
     if toolbar_key is not None:
         items.append(
@@ -199,6 +199,12 @@ def _template_space_region_type_toggle(*, toolbar_key=None, sidebar_key=None):
             ("wm.context_toggle", sidebar_key,
              {"properties": [("data_path", 'space_data.show_region_ui')]}),
         )
+    if channels_key is not None:
+        items.append(
+            ("wm.context_toggle", channels_key,
+             {"properties": [("data_path", 'space_data.show_region_channels')]}),
+        )
+
     return items
 
 
@@ -3021,6 +3027,7 @@ def km_spreadsheet_generic(_params):
     items.extend([
         *_template_space_region_type_toggle(
             sidebar_key={"type": 'N', "value": 'PRESS'},
+            channels_key={"type": 'T', "value": 'PRESS'},
         ),
     ])
 

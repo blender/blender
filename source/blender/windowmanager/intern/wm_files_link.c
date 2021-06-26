@@ -239,12 +239,14 @@ static void wm_link_do(WMLinkAppendData *lapp_data,
   for (lib_idx = 0, liblink = lapp_data->libraries.list; liblink;
        lib_idx++, liblink = liblink->next) {
     char *libname = liblink->link;
+    BlendFileReadReport bf_reports = {.reports = reports};
 
     if (STREQ(libname, BLO_EMBEDDED_STARTUP_BLEND)) {
-      bh = BLO_blendhandle_from_memory(datatoc_startup_blend, datatoc_startup_blend_size);
+      bh = BLO_blendhandle_from_memory(
+          datatoc_startup_blend, datatoc_startup_blend_size, &bf_reports);
     }
     else {
-      bh = BLO_blendhandle_from_file(libname, reports);
+      bh = BLO_blendhandle_from_file(libname, &bf_reports);
     }
 
     if (bh == NULL) {
@@ -521,7 +523,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
   wm_link_append_data_free(lapp_data);
 
-  /* important we unset, otherwise these object wont
+  /* important we unset, otherwise these object won't
    * link into other scenes from this blend file */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
@@ -1008,7 +1010,7 @@ static void lib_relocate_do(Main *bmain,
   BKE_main_lib_objects_recalc_all(bmain);
   IMB_colormanagement_check_file_config(bmain);
 
-  /* important we unset, otherwise these object wont
+  /* important we unset, otherwise these object won't
    * link into other scenes from this blend file */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 

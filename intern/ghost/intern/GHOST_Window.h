@@ -365,7 +365,7 @@ class GHOST_Window : public GHOST_IWindow {
   /** The current grabbed state of the cursor */
   GHOST_TGrabCursorMode m_cursorGrab;
 
-  /** Grab cursor axis.*/
+  /** Grab cursor axis. */
   GHOST_TAxisFlag m_cursorGrabAxis;
 
   /** Initial grab location. */

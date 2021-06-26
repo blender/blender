@@ -873,9 +873,11 @@ typedef enum eLineartGpencilModifierSource {
   LRT_SOURCE_SCENE = 2,
 } eLineartGpencilModifierSource;
 
+/* This enum is for modifier internal state only. */
 typedef enum eLineArtGPencilModifierFlags {
-  LRT_GPENCIL_INVERT_SOURCE_VGROUP = (1 << 0),
-  LRT_GPENCIL_MATCH_OUTPUT_VGROUP = (1 << 1),
+  /* These two moved to #eLineartMainFlags to keep consistent with flag variable purpose. */
+  /* LRT_GPENCIL_INVERT_SOURCE_VGROUP = (1 << 0), */
+  /* LRT_GPENCIL_MATCH_OUTPUT_VGROUP = (1 << 1), */
   LRT_GPENCIL_BINARY_WEIGHTS = (1 << 2) /* Deprecated, this is removed for lack of use case. */,
   LRT_GPENCIL_IS_BAKED = (1 << 3),
   LRT_GPENCIL_USE_CACHE = (1 << 4),
@@ -925,13 +927,13 @@ typedef struct LineartGpencilModifierData {
   /** `0..PI` angle, for splitting strokes at sharp points. */
   float angle_splitting_threshold;
 
-  /* CPU mode */
+  /* Doubles as geometry threshold when geometry space chaining is enabled */
   float chaining_image_threshold;
 
   /* Ported from SceneLineArt flags. */
   int calculation_flags;
 
-  /* Additional Switches. */
+  /* eLineArtGPencilModifierFlags, modifier internal state. */
   int flags;
 
   /* Runtime data. */

@@ -375,8 +375,8 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     UNUSED_VARS_NDEBUG(sv_table); /* silence warning */
     BLI_assert(i == sv_table[BM_elem_index_get(v)]);
 
-    /* search cross edges for visible edge to the mouse cursor,
-     * then use the shared vertex to calculate screen vector*/
+    /* Search cross edges for visible edge to the mouse cursor,
+     * then use the shared vertex to calculate screen vector. */
     BM_ITER_ELEM (e, &iter_other, v, BM_EDGES_OF_VERT) {
       /* screen-space coords */
       float sco_a[3], sco_b[3];
@@ -540,7 +540,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
 
   sld->curr_sv_index = 0;
 
-  /*ensure valid selection*/
+  /* Ensure valid selection. */
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
       BMIter iter2;
@@ -548,7 +548,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
       BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
         if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
           /* BMESH_TODO: this is probably very evil,
-           * set v->e to a selected edge*/
+           * set `v->e` to a selected edge. */
           v->e = e;
 
           numsel++;
@@ -640,10 +640,10 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
 
     v_first = v;
 
-    /*walk along the edge loop*/
+    /* Walk along the edge loop. */
     e = v->e;
 
-    /*first, rewind*/
+    /* First, rewind. */
     do {
       e = get_other_edge(v, e);
       if (!e) {
@@ -709,7 +709,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
         STACK_PUSH_RET_PTR(sv_array)) : \
        (&sv_array[sv_table[BM_elem_index_get(v)]]))
 
-    /*iterate over the loop*/
+    /* Iterate over the loop. */
     v_first = v;
     do {
       bool l_a_ok_prev;
@@ -1220,7 +1220,7 @@ void drawEdgeSlide(TransInfo *t)
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
     immBegin(GPU_PRIM_LINES, sld->totsv * 2);
 
-    /* TODO(campbell): Loop over all verts  */
+    /* TODO(campbell): Loop over all verts. */
     sv = sld->sv;
     for (i = 0; i < sld->totsv; i++, sv++) {
       float a[3], b[3];

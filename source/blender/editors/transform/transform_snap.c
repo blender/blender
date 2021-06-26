@@ -61,6 +61,8 @@
 #include "transform_convert.h"
 #include "transform_snap.h"
 
+static bool doForceIncrementSnap(const TransInfo *t);
+
 /* this should be passed as an arg for use in snap functions */
 #undef BASACT
 
@@ -131,6 +133,23 @@ bool activeSnap(const TransInfo *t)
 {
   return ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
          ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT);
+}
+
+bool activeSnap_with_project(const TransInfo *t)
+{
+  if (!t->tsnap.project) {
+    return false;
+  }
+
+  if (!activeSnap(t) || (t->flag & T_NO_PROJECT)) {
+    return false;
+  }
+
+  if (doForceIncrementSnap(t)) {
+    return false;
+  }
+
+  return true;
 }
 
 bool transformModeUseSnap(const TransInfo *t)
@@ -299,15 +318,7 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 
 void applyProject(TransInfo *t)
 {
-  if (!t->tsnap.project) {
-    return;
-  }
-
-  if (!activeSnap(t) || (t->flag & T_NO_PROJECT)) {
-    return;
-  }
-
-  if (doForceIncrementSnap(t)) {
+  if (!activeSnap_with_project(t)) {
     return;
   }
 

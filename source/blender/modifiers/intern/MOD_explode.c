@@ -1048,7 +1048,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   }
   BLI_edgehashIterator_free(ehi);
 
-  /*map new vertices to faces*/
+  /* Map new vertices to faces. */
   for (i = 0, u = 0; i < totface; i++) {
     MFace source;
     int orig_v4;

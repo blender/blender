@@ -1092,7 +1092,7 @@ static void rna_def_image(BlenderRNA *brna)
                             0,
                             0,
                             "Size",
-                            "Width and height in pixels, zero when image data cant be loaded",
+                            "Width and height in pixels, zero when image data can't be loaded",
                             0,
                             0);
   RNA_def_property_subtype(prop, PROP_PIXEL);

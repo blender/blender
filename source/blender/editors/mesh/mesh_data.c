@@ -61,7 +61,6 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
   BMesh *bm = (me->edit_mesh) ? me->edit_mesh->bm : NULL;
   int tot;
 
-  /* this  */
   switch (htype) {
     case BM_VERT:
       if (bm) {
@@ -167,7 +166,7 @@ static void mesh_uv_reset_array(float **fuv, const int len)
 
     fuv[3][0] = 0.0;
     fuv[3][1] = 1.0;
-    /*make sure we ignore 2-sided faces*/
+    /* Make sure we ignore 2-sided faces. */
   }
   else if (len > 2) {
     float fac = 0.0f, dfac = 1.0f / (float)len;
@@ -1097,7 +1096,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   totedge = mesh->totedge + len;
 
-  /* update customdata  */
+  /* Update custom-data. */
   CustomData_copy(&mesh->edata, &edata, CD_MASK_MESH.emask, CD_DEFAULT, totedge);
   CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 

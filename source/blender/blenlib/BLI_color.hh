@@ -180,7 +180,7 @@ class ColorSceneLinear4f final : public ColorRGBA<float, eSpace::SceneLinear, Al
 
   /**
    * Convert to its byte encoded counter space.
-   **/
+   */
   ColorSceneLinearByteEncoded4b<Alpha> encode() const
   {
     ColorSceneLinearByteEncoded4b<Alpha> encoded;

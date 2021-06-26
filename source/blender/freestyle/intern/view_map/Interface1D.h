@@ -41,23 +41,23 @@ using namespace std;
 namespace Freestyle {
 
 // Integration method
-/*! The different integration methods that can be invoked to integrate into a single value the set
+/** The different integration methods that can be invoked to integrate into a single value the set
  * of values obtained from each 0D element of a 1D element.
  */
 typedef enum {
-  MEAN, /*!< The value computed for the 1D element is the mean of the values obtained for the 0D
-           elements.*/
-  MIN,  /*!< The value computed for the 1D element is the minimum of the values obtained for the 0D
-           elements.*/
-  MAX,  /*!< The value computed for the 1D element is the maximum of the values obtained for the 0D
-           elements.*/
-  FIRST, /*!< The value computed for the 1D element is the first of the values obtained for the 0D
-            elements.*/
-  LAST,  /*!< The value computed for the 1D element is the last of the values obtained for the 0D
-            elements.*/
+  MEAN, /**< The value computed for the 1D element is the mean of the values obtained for the 0D
+           elements. */
+  MIN,  /**< The value computed for the 1D element is the minimum of the values obtained for the 0D
+           elements. */
+  MAX,  /**< The value computed for the 1D element is the maximum of the values obtained for the 0D
+           elements. */
+  FIRST, /**< The value computed for the 1D element is the first of the values obtained for the 0D
+            elements. */
+  LAST,  /**< The value computed for the 1D element is the last of the values obtained for the 0D
+            elements. */
 } IntegrationType;
 
-/*! Returns a single value from a set of values evaluated at each 0D element of this 1D element.
+/** Returns a single value from a set of values evaluated at each 0D element of this 1D element.
  * \param fun:
  *    The UnaryFunction0D used to compute a value at each Interface0D.
  * \param it:
@@ -127,19 +127,19 @@ T integrate(UnaryFunction0D<T> &fun,
 //
 //////////////////////////////////////////////////
 
-/*! Base class for any 1D element. */
+/** Base class for any 1D element. */
 class Interface1D {
  public:
-  /*! Default constructor */
+  /** Default constructor */
   Interface1D()
   {
     _timeStamp = 0;
   }
 
-  /*! Destructor */
+  /** Destructor */
   virtual ~Interface1D(){};
 
-  /*! Returns the string "Interface1D". */
+  /** Returns the string "Interface1D". */
   virtual string getExactTypeName() const
   {
     return "Interface1D";
@@ -147,13 +147,13 @@ class Interface1D {
 
   // Iterator access
 
-  /*! Returns an iterator over the Interface1D vertices, pointing to the first vertex. */
+  /** Returns an iterator over the Interface1D vertices, pointing to the first vertex. */
   virtual Interface0DIterator verticesBegin();
 
-  /*! Returns an iterator over the Interface1D vertices, pointing after the last vertex. */
+  /** Returns an iterator over the Interface1D vertices, pointing after the last vertex. */
   virtual Interface0DIterator verticesEnd();
 
-  /*! Returns an iterator over the Interface1D points, pointing to the first point. The difference
+  /** Returns an iterator over the Interface1D points, pointing to the first point. The difference
    * with verticesBegin() is that here we can iterate over points of the 1D element at a any given
    * sampling. Indeed, for each iteration, a virtual point is created.
    *
@@ -161,7 +161,7 @@ class Interface1D {
    */
   virtual Interface0DIterator pointsBegin(float t = 0.0f);
 
-  /*! Returns an iterator over the Interface1D points, pointing after the last point. The
+  /** Returns an iterator over the Interface1D points, pointing after the last point. The
    * difference with verticesEnd() is that here we can iterate over points of the 1D element at a
    * any given sampling. Indeed, for each iteration, a virtual point is created.
    *
@@ -171,23 +171,23 @@ class Interface1D {
 
   // Data access methods
 
-  /*! Returns the 2D length of the 1D element. */
+  /** Returns the 2D length of the 1D element. */
   virtual real getLength2D() const;
 
-  /*! Returns the Id of the 1D element. */
+  /** Returns the Id of the 1D element. */
   virtual Id getId() const;
 
   // FIXME: ce truc n'a rien a faire la...(c une requete complexe qui doit etre ds les Function1D)
-  /*! Returns the nature of the 1D element. */
+  /** Returns the nature of the 1D element. */
   virtual Nature::EdgeNature getNature() const;
 
-  /*! Returns the time stamp of the 1D element. Mainly used for selection. */
+  /** Returns the time stamp of the 1D element. Mainly used for selection. */
   virtual unsigned getTimeStamp() const
   {
     return _timeStamp;
   }
 
-  /*! Sets the time stamp for the 1D element. */
+  /** Sets the time stamp for the 1D element. */
   inline void setTimeStamp(unsigned iTimeStamp)
   {
     _timeStamp = iTimeStamp;

@@ -478,7 +478,7 @@ void minmax_rgb(short c[3])
  * accessible from the given triple of primaries.  Desaturate
  * it by adding white, equal quantities of R, G, and B, enough
  * to make RGB all positive.  The function returns 1 if the
- * components were modified, zero otherwise.*/
+ * components were modified, zero otherwise. */
 int constrain_rgb(float *r, float *g, float *b)
 {
   /* Amount of white needed */

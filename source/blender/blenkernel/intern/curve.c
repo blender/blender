@@ -1926,7 +1926,7 @@ static int cu_isectLL(const float v1[3],
 static bool bevelinside(const BevList *bl1, const BevList *bl2)
 {
   /* is bl2 INSIDE bl1 ? with left-right method and "lambda's" */
-  /* returns '1' if correct hole  */
+  /* returns '1' if correct hole. */
   BevPoint *bevp, *prevbevp;
   float min, max, vec[3], hvec1[3], hvec2[3], lab, mu;
   int nr, links = 0, rechts = 0, mode;
@@ -1941,7 +1941,7 @@ static bool bevelinside(const BevList *bl1, const BevList *bl2)
   hvec2[0] += 1000;
 
   /* test it with all edges of potential surrounding poly */
-  /* count number of transitions left-right  */
+  /* count number of transitions left-right. */
 
   bevp = bl1->bevpoints;
   nr = bl1->nr;
@@ -2133,7 +2133,7 @@ static void tilt_bezpart(const BezTriple *prevbezt,
     }
 
     if (weight_array) {
-      /* basic interpolation for now, could copy tilt interp too  */
+      /* Basic interpolation for now, could copy tilt interp too. */
       *weight_array = prevbezt->weight + (bezt->weight - prevbezt->weight) *
                                              (3.0f * fac * fac - 2.0f * fac * fac * fac);
 
@@ -2684,7 +2684,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
                                                                                               1;
 #endif
 
-  /* STEP 1: MAKE POLYS  */
+  /* STEP 1: MAKE POLYS */
 
   BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
   if (cu->editnurb && ob->type != OB_FONT) {
@@ -4361,7 +4361,7 @@ void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
   else {
     char h_new = HD_FREE;
 
-    /* there is 1 handle not FREE: FREE it all, else make ALIGNED  */
+    /* There is 1 handle not FREE: FREE it all, else make ALIGNED. */
     if (code == 5) {
       h_new = HD_ALIGN;
     }
@@ -4932,7 +4932,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
   int a, c, nr;
 
   if (nu->type == CU_POLY) {
-    if (type == CU_BEZIER) { /* to Bezier with vecthandles  */
+    if (type == CU_BEZIER) { /* To Bezier with vecthandles. */
       nr = nu->pntsu;
       bezt = (BezTriple *)MEM_calloc_arrayN(nr, sizeof(BezTriple), "setsplinetype2");
       nu->bezt = bezt;

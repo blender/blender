@@ -78,7 +78,7 @@ struct Scene;
   for (p = 0; p < psys->totpart; p++) \
     if ((pa = psys->particles + p)->state.time > 0.0f)
 
-/* fast but sure way to get the modifier*/
+/* Fast but sure way to get the modifier. */
 #define PARTICLE_PSMD \
   ParticleSystemModifierData *psmd = sim->psmd ? sim->psmd : psys_get_modifier(sim->ob, sim->psys)
 
@@ -190,7 +190,7 @@ typedef struct ParticleCollisionElement {
   /* pointers to original data */
   float *x[3], *v[3];
 
-  /* values interpolated from original data*/
+  /* Values interpolated from original data. */
   float x0[3], x1[3], x2[3], p[3];
 
   /* results for found intersection point */

@@ -94,7 +94,7 @@
     .cursor_overlay_alpha = 33, \
     .overlay_flags = 0, \
  \
-    /* brush appearance  */ \
+    /* Brush appearance. */ \
  \
     /* add mode color is light red */ \
     .add_col = {1.0, 0.39, 0.39, 0.9}, \

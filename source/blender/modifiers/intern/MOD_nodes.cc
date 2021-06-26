@@ -1106,7 +1106,7 @@ static void modifyGeometrySet(ModifierData *md,
 
 /* Drawing the properties manually with #uiItemR instead of #uiDefAutoButsRNA allows using
  * the node socket identifier for the property names, since they are unique, but also having
- * the correct label displayed in the UI.  */
+ * the correct label displayed in the UI. */
 static void draw_property_for_socket(uiLayout *layout,
                                      PointerRNA *bmain_ptr,
                                      PointerRNA *md_ptr,

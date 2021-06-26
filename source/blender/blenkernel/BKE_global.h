@@ -149,7 +149,7 @@ enum {
                        G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UUID),
   G_DEBUG_SIMDATA = (1 << 15),               /* sim debug data display */
   G_DEBUG_GPU = (1 << 16),                   /* gpu debug */
-  G_DEBUG_IO = (1 << 17),                    /* IO Debugging (for Collada, ...)*/
+  G_DEBUG_IO = (1 << 17),                    /* IO Debugging (for Collada, ...). */
   G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18), /* force gpu workarounds bypassing detections. */
   G_DEBUG_XR = (1 << 19),                    /* XR/OpenXR messages */
   G_DEBUG_XR_TIME = (1 << 20),               /* XR/OpenXR timing messages */

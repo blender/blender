@@ -54,7 +54,7 @@ class TextStrokeRenderer : public StrokeRenderer {
  public:
   TextStrokeRenderer(const char *iFileName = NULL);
 
-  /*! Renders a stroke rep */
+  /** Renders a stroke rep */
   virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;
   virtual void RenderStrokeRepBasic(StrokeRep *iStrokeRep) const;
 

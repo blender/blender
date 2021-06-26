@@ -380,8 +380,7 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
      */
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
     if (is_after_open_file) {
-      DEG_graph_relations_update(depsgraph);
-      DEG_graph_on_visible_update(bmain, depsgraph, true);
+      DEG_graph_tag_on_visible_update(depsgraph, true);
     }
     DEG_make_active(depsgraph);
     BKE_scene_graph_update_tagged(depsgraph, bmain);
@@ -3494,7 +3493,7 @@ void wm_event_do_handlers(bContext *C)
       }
 
       /* If press was handled, we don't want to do click. This way
-       * press in tool keymap can override click in editor keymap.*/
+       * press in tool key-map can override click in editor key-map. */
       if (ISMOUSE_BUTTON(event->type) && event->val == KM_PRESS &&
           !wm_action_not_handled(action)) {
         win->event_queue_check_click = false;

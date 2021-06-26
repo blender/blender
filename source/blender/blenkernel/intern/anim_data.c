@@ -946,7 +946,7 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
       is_changed |= fcurves_path_rename_fix(
           owner_id, prefix, oldName, newName, oldKey, newKey, &strip->act->curves, verify_paths);
     }
-    /* Ignore own F-Curves, since those are local.  */
+    /* Ignore own F-Curves, since those are local. */
     /* Check sub-strips (if meta-strips). */
     is_changed |= nlastrips_path_rename_fix(
         owner_id, prefix, oldName, newName, oldKey, newKey, &strip->strips, verify_paths);
@@ -1422,7 +1422,7 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id,
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
  *      i.e. pose.bones["Bone"]
  */
-/* TODO: use BKE_animdata_main_cb for looping over all data  */
+/* TODO: use BKE_animdata_main_cb for looping over all data. */
 void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
                                           ID *ref_id,
                                           const char *prefix,

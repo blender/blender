@@ -1241,7 +1241,7 @@ GHOST_WindowX11::~GHOST_WindowX11()
   if (m_valid_setup) {
     static Atom Primary_atom, Clipboard_atom;
     Window p_owner, c_owner;
-    /*Change the owner of the Atoms to None if we are the owner*/
+    /* Change the owner of the Atoms to None if we are the owner. */
     Primary_atom = XInternAtom(m_display, "PRIMARY", False);
     Clipboard_atom = XInternAtom(m_display, "CLIPBOARD", False);
 
@@ -1325,6 +1325,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
     for (int minor = 5; minor >= 0; --minor) {
 #ifdef WITH_GL_EGL
       context = new GHOST_ContextEGL(
+          this->m_system,
           m_wantStereoVisual,
           EGLNativeWindowType(m_window),
           EGLNativeDisplayType(m_display),
@@ -1355,7 +1356,8 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
     }
 
 #ifdef WITH_GL_EGL
-    context = new GHOST_ContextEGL(m_wantStereoVisual,
+    context = new GHOST_ContextEGL(this->m_system,
+                                   m_wantStereoVisual,
                                    EGLNativeWindowType(m_window),
                                    EGLNativeDisplayType(m_display),
                                    profile_mask,

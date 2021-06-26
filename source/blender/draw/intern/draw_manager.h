@@ -172,9 +172,9 @@ typedef struct DRWObjectInfos {
   float orcotexfac[2][4];
   float ob_color[4];
   float ob_index;
-  float pad; /* UNUSED*/
+  float pad; /*UNUSED*/
   float ob_random;
-  float ob_flag; /* sign is negative scaling,  */
+  float ob_flag; /* Sign is negative scaling. */
 } DRWObjectInfos;
 
 BLI_STATIC_ASSERT_ALIGN(DRWObjectMatrix, 16)

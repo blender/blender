@@ -217,6 +217,16 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
  * Validate the mesh, \a do_fixes requires \a mesh to be non-null.
  *
  * \return false if no changes needed to be made.
+ *
+ * Vertex Normals
+ * ==============
+ *
+ * While zeroed normals are checked, these checks aren't comprehensive.
+ * Technically, to detect errors here a normal recalculation and comparison is necessary.
+ * However this function is mainly to prevent severe errors in geometry
+ * (invalid data that will crash Blender, or cause some features to behave incorrectly),
+ * not to detect subtle differences in the resulting normals which could be caused
+ * by importers that load normals (for example).
  */
 /* NOLINTNEXTLINE: readability-function-size */
 bool BKE_mesh_validate_arrays(Mesh *mesh,
@@ -328,10 +338,21 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
 
     if (fix_normal) {
-      PRINT_ERR("\tVertex %u: has zero normal, assuming Z-up normal", i);
-      if (do_fixes) {
-        mv->no[2] = SHRT_MAX;
-        fix_flag.verts = true;
+      /* If the vertex normal accumulates to zero or isn't part of a face, the location is used.
+       * When the location is also zero, a zero normal warning should not be raised.
+       * since this is the expected behavior of normal calculation.
+       *
+       * This avoids false positives but isn't foolproof as it's possible the vertex
+       * is part of a polygon that has a normal which this vertex should be using,
+       * although it's also possible degenerate/opposite faces accumulate to a zero vector.
+       * To detect this a full normal recalculation would be needed, which is out of scope
+       * for a basic validity check (see "Vertex Normal" in the doc-string). */
+      if (!is_zero_v3(mv->co)) {
+        PRINT_ERR("\tVertex %u: has zero normal, assuming Z-up normal", i);
+        if (do_fixes) {
+          mv->no[2] = SHRT_MAX;
+          fix_flag.verts = true;
+        }
       }
     }
   }
@@ -1084,7 +1105,7 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
                                        &changed);
 
   if (changed) {
-    DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
     return true;
   }
 
@@ -1162,7 +1183,7 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
   }
 
   if (!is_valid) {
-    DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
     return true;
   }
 
@@ -1441,7 +1462,7 @@ static void mesh_calc_edges_mdata(MVert *UNUSED(allvert),
         med->flag |= ME_LOOSEEDGE;
       }
 
-      /* order is swapped so extruding this edge as a surface wont flip face normals
+      /* order is swapped so extruding this edge as a surface won't flip face normals
        * with cyclic curves */
       if (ed->v1 + 1 != ed->v2) {
         SWAP(uint, med->v1, med->v2);

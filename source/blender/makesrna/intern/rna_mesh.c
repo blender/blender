@@ -16,7 +16,7 @@
 
 /* note: the original vertex color stuff is now just used for
  * getting info on the layers themselves, accessing the data is
- * done through the (not yet written) mpoly interfaces.*/
+ * done through the (not yet written) mpoly interfaces. */
 
 /** \file
  * \ingroup RNA
@@ -236,6 +236,19 @@ static void rna_Mesh_update_data_legacy_deg_tag_all(Main *UNUSED(bmain),
   }
 
   DEG_id_tag_update(id, 0);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+}
+
+static void rna_Mesh_update_geom_and_params(Main *UNUSED(bmain),
+                                            Scene *UNUSED(scene),
+                                            PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+  if (id->us <= 0) { /* See note in section heading. */
+    return;
+  }
+
+  DEG_id_tag_update(id, ID_RECALC_GEOMETRY | ID_RECALC_PARAMETERS);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
@@ -1072,7 +1085,7 @@ static int rna_MeshPoly_vertices_get_length(PointerRNA *ptr, int length[RNA_MAX_
 {
   MPoly *mp = (MPoly *)ptr->data;
   /* note, raw access uses dummy item, this _could_ crash,
-   * watch out for this, mface uses it but it cant work here. */
+   * watch out for this, mface uses it but it can't work here. */
   return (length[0] = mp->totloop);
 }
 
@@ -2450,7 +2463,7 @@ static void rna_def_mesh_loops(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
 
-  /*PropertyRNA *prop;*/
+  // PropertyRNA *prop;
 
   FunctionRNA *func;
   PropertyRNA *parm;
@@ -3260,11 +3273,6 @@ static void rna_def_mesh(BlenderRNA *brna)
       "generating triangles. A value greater than 0 disables Fix Poles");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
-  prop = RNA_def_property(srna, "use_remesh_smooth_normals", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_SMOOTH_NORMALS);
-  RNA_def_property_ui_text(prop, "Smooth Normals", "Smooth the normals of the remesher result");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-
   prop = RNA_def_property(srna, "use_remesh_fix_poles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_FIX_POLES);
   RNA_def_property_ui_text(prop, "Fix Poles", "Produces less poles and a better topology flow");
@@ -3338,7 +3346,7 @@ static void rna_def_mesh(BlenderRNA *brna)
       "Auto Smooth",
       "Auto smooth (based on smooth/sharp faces/edges and angle between faces), "
       "or use custom split normals data if available");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_geom_and_params");
 
   prop = RNA_def_property(srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "smoothresh");
@@ -3347,7 +3355,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Auto Smooth Angle",
                            "Maximum angle between face normals that will be considered as smooth "
                            "(unused if custom split normals data are available)");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_geom_and_params");
 
   RNA_define_verify_sdna(false);
   prop = RNA_def_property(srna, "has_custom_normals", PROP_BOOLEAN, PROP_NONE);
@@ -3378,7 +3386,7 @@ static void rna_def_mesh(BlenderRNA *brna)
       prop,
       "Auto Texture Space",
       "Adjust active object's texture space automatically when transforming object");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_geom_and_params");
 
 #  if 0
   prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);

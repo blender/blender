@@ -70,7 +70,7 @@ vec3 light_volume(LightData ld, vec4 l_vector)
      * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
      * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
      * http://www.cemyuksel.com/research/pointlightattenuation/
-     **/
+     */
     float d = l_vector.w;
     float d_sqr = sqr(d);
     float r_sqr = ld.l_volume_radius;

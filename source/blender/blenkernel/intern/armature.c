@@ -198,7 +198,7 @@ static void write_bone(BlendWriter *writer, Bone *bone)
   BLO_write_struct(writer, Bone, bone);
 
   /* Write ID Properties -- and copy this comment EXACTLY for easy finding
-   * of library blocks that implement this.*/
+   * of library blocks that implement this. */
   if (bone->prop) {
     IDP_BlendWrite(writer, bone->prop);
   }
@@ -1627,7 +1627,7 @@ void BKE_armature_mat_world_to_pose(Object *ob, const float inmat[4][4], float o
     return;
   }
 
-  /* get inverse of (armature) object's matrix  */
+  /* Get inverse of (armature) object's matrix. */
   invert_m4_m4(obmat, ob->obmat);
 
   /* multiply given matrix by object's-inverse to find pose-space matrix */
@@ -2063,9 +2063,11 @@ void BKE_armature_mat_pose_to_delta(float delta_mat[4][4],
  * Used for Objects and Pose Channels, since both can have multiple rotation representations.
  * \{ */
 
-/* Called from RNA when rotation mode changes
+/**
+ * Called from RNA when rotation mode changes
  * - the result should be that the rotations given in the provided pointers have had conversions
- *   applied (as appropriate), such that the rotation of the element hasn't 'visually' changed  */
+ *   applied (as appropriate), such that the rotation of the element hasn't 'visually' changed.
+ */
 void BKE_rotMode_change_values(
     float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode)
 {
@@ -2333,7 +2335,7 @@ void BKE_armature_where_is_bone(Bone *bone, const Bone *bone_parent, const bool 
     /* yoffs(b-1) + root(b) + bonemat(b) */
     BKE_bone_offset_matrix_get(bone, offs_bone);
 
-    /* Compose the matrix for this bone  */
+    /* Compose the matrix for this bone. */
     mul_m4_m4m4(bone->arm_mat, bone_parent->arm_mat, offs_bone);
   }
   else {
@@ -2381,7 +2383,7 @@ static void pose_proxy_sync(Object *ob, Object *from, int layer_protected)
     return;
   }
 
-  /* in some cases when rigs change, we cant synchronize
+  /* in some cases when rigs change, we can't synchronize
    * to avoid crashing check for possible errors here */
   for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
     if (pchan->bone->layer & layer_protected) {

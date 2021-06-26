@@ -56,17 +56,17 @@ class ViewMapTesselator {
   {
   }
 
-  /*! Builds a set of lines rep contained under a a NodeShape, itself contained under a NodeGroup
+  /** Builds a set of lines rep contained under a a NodeShape, itself contained under a NodeGroup
    * from a ViewMap */
   NodeGroup *Tesselate(ViewMap *iViewMap);
 
-  /*! Builds a set of lines rep contained under a a NodeShape, itself contained under a NodeGroup
+  /** Builds a set of lines rep contained under a a NodeShape, itself contained under a NodeGroup
    * from a set of view edges
    */
   template<class ViewEdgesIterator>
   NodeGroup *Tesselate(ViewEdgesIterator begin, ViewEdgesIterator end);
 
-  /*! Builds a set of lines rep contained among a NodeShape, from a WShape */
+  /** Builds a set of lines rep contained among a NodeShape, from a WShape */
   NodeGroup *Tesselate(WShape *iWShape);
 
   inline void setNature(Nature::EdgeNature iNature)
@@ -103,7 +103,7 @@ class ViewMapTesselator {
 #endif
 };
 
-/*! Class to tesselate the 2D projected silhouette */
+/** Class to tesselate the 2D projected silhouette */
 class ViewMapTesselator2D : public ViewMapTesselator {
  public:
   inline ViewMapTesselator2D() : ViewMapTesselator()
@@ -124,7 +124,7 @@ class ViewMapTesselator2D : public ViewMapTesselator {
 #endif
 };
 
-/*! Class to tesselate the 3D silhouette */
+/** Class to tesselate the 3D silhouette */
 class ViewMapTesselator3D : public ViewMapTesselator {
  public:
   inline ViewMapTesselator3D() : ViewMapTesselator()

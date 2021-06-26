@@ -1019,7 +1019,7 @@ typedef enum eFileSel_File_Types {
   FILE_TYPE_COLLADA = (1 << 13),
   /** from filter_glob operator property */
   FILE_TYPE_OPERATOR = (1 << 14),
-  FILE_TYPE_APPLICATIONBUNDLE = (1 << 15),
+  FILE_TYPE_BUNDLE = (1 << 15),
   FILE_TYPE_ALEMBIC = (1 << 16),
   /** For all kinds of recognized import/export formats. No need for specialized types. */
   FILE_TYPE_OBJECT_IO = (1 << 17),
@@ -1806,8 +1806,8 @@ typedef enum eSpaceClip_Flag {
 /* SpaceClip.mode */
 typedef enum eSpaceClip_Mode {
   SC_MODE_TRACKING = 0,
-  /*SC_MODE_RECONSTRUCTION = 1,*/ /* DEPRECATED */
-  /*SC_MODE_DISTORTION = 2,*/     /* DEPRECATED */
+  // SC_MODE_RECONSTRUCTION = 1, /* DEPRECATED */
+  // SC_MODE_DISTORTION = 2,     /* DEPRECATED */
   SC_MODE_MASKEDIT = 3,
 } eSpaceClip_Mode;
 

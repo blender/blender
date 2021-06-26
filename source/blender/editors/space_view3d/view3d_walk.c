@@ -129,7 +129,7 @@ typedef enum eWalkGravityState {
   WALK_GRAVITY_STATE_ON,
 } eWalkGravityState;
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 void walk_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

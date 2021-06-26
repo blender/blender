@@ -25,14 +25,14 @@
 
 namespace Freestyle {
 
-/*! [ Thickness Shader ].
+/** [ Thickness Shader ].
  *  Assigns thicknesses to the stroke vertices so that the stroke looks like made with a
  * calligraphic tool. i.e. The stroke will be the thickest in a main direction, the thinnest in the
  * direction perpendicular to this one, and an interpolation in between.
  */
 class CalligraphicShader : public StrokeShader {
  public:
-  /*! Builds the shader.
+  /** Builds the shader.
    *  \param iMinThickness:
    *    The minimum thickness in the direction perpendicular to the main direction.
    *  \param iMaxThickness:
@@ -47,12 +47,12 @@ class CalligraphicShader : public StrokeShader {
                      const Vec2f &iOrientation,
                      bool clamp);
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~CalligraphicShader()
   {
   }
 
-  /*! The shading method */
+  /** The shading method */
   virtual int shade(Stroke &ioStroke) const;
 
  protected:
@@ -62,14 +62,14 @@ class CalligraphicShader : public StrokeShader {
   bool _clamp;
 };
 
-/*! [ Geometry Shader ].
+/** [ Geometry Shader ].
  *  Spatial Noise stroke shader.
  *  Moves the vertices to make the stroke more noisy.
  * \see \htmlonly <a href=noise/noise.html>noise/noise.html</a> \endhtmlonly
  */
 class SpatialNoiseShader : public StrokeShader {
  public:
-  /*! Builds the shader.
+  /** Builds the shader.
    *  \param iAmount:
    *    The amplitude of the noise.
    *  \param ixScale:
@@ -83,12 +83,12 @@ class SpatialNoiseShader : public StrokeShader {
    */
   SpatialNoiseShader(float iAmount, float ixScale, int nbOctave, bool smooth, bool pureRandom);
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~SpatialNoiseShader()
   {
   }
 
-  /*! The shading method. */
+  /** The shading method. */
   virtual int shade(Stroke &ioStroke) const;
 
  protected:
@@ -99,7 +99,7 @@ class SpatialNoiseShader : public StrokeShader {
   bool _pureRandom;
 };
 
-/*! [ Geometry Shader ].
+/** [ Geometry Shader ].
  *  Smooths the stroke.
  *  (Moves the vertices to make the stroke smoother).
  *  Uses curvature flow to converge towards a curve of constant curvature. The diffusion method we
@@ -108,7 +108,7 @@ class SpatialNoiseShader : public StrokeShader {
  */
 class SmoothingShader : public StrokeShader {
  public:
-  /*! Builds the shader.
+  /** Builds the shader.
    *  \param iNbIteration:
    *    The number of iterations. (400)
    *  \param iFactorPoint:
@@ -135,12 +135,12 @@ class SmoothingShader : public StrokeShader {
                   real iAnisoCurvature,
                   real icarricatureFactor);
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~SmoothingShader()
   {
   }
 
-  /*! The shading method. */
+  /** The shading method. */
   virtual int shade(Stroke &ioStroke) const;
 
  protected:
@@ -213,7 +213,7 @@ class Omitter : public Smoother {
   real _lengthFlat;
 };
 
-/*! Omission shader */
+/** Omission shader */
 class OmissionShader : public StrokeShader {
  public:
   OmissionShader(real sizeWindow, real thrVari, real thrFlat, real lFlat);

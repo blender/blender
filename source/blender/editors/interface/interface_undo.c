@@ -107,7 +107,7 @@ void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor
     }
   }
 
-  /* Create the new state  */
+  /* Create the new state. */
   const int text_size = strlen(text) + 1;
   stack->current = MEM_mallocN(sizeof(uiUndoStack_Text_State) + text_size, __func__);
   stack->current->cursor_index = cursor_index;

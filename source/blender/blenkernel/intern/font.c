@@ -1271,7 +1271,7 @@ static bool vfont_to_curve(Object *ob,
   MEM_freeN(i_textbox_array);
 
   /* TEXT ON CURVE */
-  /* Note: Only OB_CURVE objects could have a path  */
+  /* NOTE: Only OB_CURVE objects could have a path. */
   if (cu->textoncurve && cu->textoncurve->type == OB_CURVE) {
     BLI_assert(cu->textoncurve->runtime.curve_cache != NULL);
     if (cu->textoncurve->runtime.curve_cache != NULL &&
@@ -1746,7 +1746,7 @@ void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf,
   char32_t *text;
   CharInfo *info;
 
-  /* clean previous buffers*/
+  /* Clean previous buffers. */
   BKE_vfont_clipboard_free();
 
   text = MEM_malloc_arrayN((len + 1), sizeof(*text), __func__);

@@ -60,8 +60,8 @@
 
 #define SDNA_MAX_FILENAME_LENGTH 255
 
-/* Included the path relative from /source/blender/ here, so we can move     */
-/* headers around with more freedom.                                         */
+/* Included the path relative from /source/blender/ here,
+ * so we can move headers around with more freedom. */
 static const char *includefiles[] = {
     /* if you add files here, please add them at the end
      * of makesdna.c (this file) as well */
@@ -361,7 +361,7 @@ static int add_type(const char *str, int size)
   }
   if (strchr(str, '*')) {
     /* note: this is valid C syntax but we can't parse, complain!
-     * `struct SomeStruct* some_var;` <-- correct but we cant handle right now. */
+     * `struct SomeStruct* some_var;` <-- correct but we can't handle right now. */
     return -1;
   }
 
@@ -506,7 +506,7 @@ static int add_name(const char *str)
       buf[i + 2] = ')';
       buf[i + 3] = 0;
     }
-    /* now proceed with buf*/
+    /* Now proceed with buf. */
     DEBUG_PRINTF(3, "\t\t\t\t\tProposing fp name %s\n", buf);
     name = buf;
   }
@@ -725,7 +725,7 @@ static int convert_include(const char *filename)
 
           const int strct = add_type(md1, 0);
           if (strct == -1) {
-            fprintf(stderr, "File '%s' contains struct we cant parse \"%s\"\n", filename, md1);
+            fprintf(stderr, "File '%s' contains struct we can't parse \"%s\"\n", filename, md1);
             return 1;
           }
 
@@ -1212,8 +1212,8 @@ static int make_structDNA(const char *base_directory,
   add_type("ushort", 2); /* SDNA_TYPE_USHORT */
   add_type("int", 4);    /* SDNA_TYPE_INT */
 
-  /* note, long isn't supported,
-   * these are place-holders to maintain alignment with eSDNA_Type*/
+  /* NOTE: long isn't supported,
+   * these are place-holders to maintain alignment with #eSDNA_Type. */
   add_type("long", 4);  /* SDNA_TYPE_LONG */
   add_type("ulong", 4); /* SDNA_TYPE_ULONG */
 
@@ -1227,17 +1227,17 @@ static int make_structDNA(const char *base_directory,
   /* the defines above shouldn't be output in the padding file... */
   const int firststruct = types_len;
 
-  /* add all include files defined in the global array                     */
-  /* Since the internal file+path name buffer has limited length, I do a   */
-  /* little test first...                                                  */
-  /* Mind the breaking condition here!                                     */
+  /* Add all include files defined in the global array.
+   * Since the internal file+path name buffer has limited length,
+   * I do a little test first...
+   * Mind the breaking condition here! */
   DEBUG_PRINTF(0, "\tStart of header scan:\n");
   int header_count = 0;
   for (int i = 0; *(includefiles[i]) != '\0'; i++) {
     header_count++;
 
-    /* str contains filenames. Since we now include paths, I stretched       */
-    /* it a bit. Hope this is enough :) -nzc-                                */
+    /* NOTE(nzc): `str` contains filenames.
+     * Since we now include paths, I stretched it a bit. Hope this is enough :). */
     char str[SDNA_MAX_FILENAME_LENGTH];
     sprintf(str, "%s%s", base_directory, includefiles[i]);
     DEBUG_PRINTF(0, "\t|-- Converting %s\n", str);

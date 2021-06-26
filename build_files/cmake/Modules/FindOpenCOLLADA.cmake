@@ -46,7 +46,7 @@ SET(_opencollada_FIND_COMPONENTS
 )
 
 # Fedora openCOLLADA package links these statically
-# note that order is important here ot it wont link
+# note that order is important here or it won't link
 SET(_opencollada_FIND_STATIC_COMPONENTS
   buffer
   ftoa

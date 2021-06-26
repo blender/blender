@@ -46,7 +46,7 @@ class NodeShape : public Node {
 
   virtual ~NodeShape();
 
-  /*! Adds a Rep to the _Shapes list
+  /** Adds a Rep to the _Shapes list
    *  The delete of the rep is done when it is not used any more by the Scene Manager.
    *  So, it must not be deleted by the caller
    */
@@ -62,17 +62,17 @@ class NodeShape : public Node {
     AddBBox(iRep->bbox());
   }
 
-  /*! Accept the corresponding visitor */
+  /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v);
 
-  /*! Sets the shape material */
+  /** Sets the shape material */
   inline void setFrsMaterial(const FrsMaterial &iMaterial)
   {
     _FrsMaterial = iMaterial;
   }
 
-  /*! accessors */
-  /*! returns the shape's material */
+  /** accessors */
+  /** returns the shape's material */
   inline FrsMaterial &frs_material()
   {
     return _FrsMaterial;
@@ -84,10 +84,10 @@ class NodeShape : public Node {
   }
 
  private:
-  /*! list of shapes */
+  /** list of shapes */
   vector<Rep *> _Shapes;
 
-  /*! Shape Material */
+  /** Shape Material */
   FrsMaterial _FrsMaterial;
 };
 

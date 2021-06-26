@@ -109,11 +109,11 @@ void DEG_free_node_types(void);
 
 /* Update Tagging -------------------------------- */
 
-/* Update dependency graph when visible scenes/layers changes. */
-void DEG_graph_on_visible_update(struct Main *bmain, Depsgraph *depsgraph, const bool do_time);
+/* Tag dependency graph for updates when visible scenes/layers changes. */
+void DEG_graph_tag_on_visible_update(Depsgraph *depsgraph, const bool do_time);
 
-/* Update all dependency graphs when visible scenes/layers changes. */
-void DEG_on_visible_update(struct Main *bmain, const bool do_time);
+/* Tag all dependency graphs for update when visible scenes/layers changes. */
+void DEG_tag_on_visible_update(struct Main *bmain, const bool do_time);
 
 /* NOTE: Will return NULL if the flag is not known, allowing to gracefully handle situations
  * when recalc flag has been removed. */

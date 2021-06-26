@@ -67,8 +67,8 @@ static void mesh_render_data_loose_geom_load(MeshRenderData *mr, MeshBufferExtra
 static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr,
                                                MeshBufferExtractionCache *cache)
 {
-  /* Early exit: Are loose geometry already available. Only checking for loose verts as loose edges
-   * and verts are calculated at the same time.*/
+  /* Early exit: Are loose geometry already available.
+   * Only checking for loose verts as loose edges and verts are calculated at the same time. */
   if (cache->loose_geom.verts) {
     return;
   }
@@ -230,7 +230,7 @@ static void mesh_render_data_mat_offset_build(MeshRenderData *mr, MeshBufferExtr
 
 typedef struct MatOffsetUserData {
   MeshRenderData *mr;
-  /* struct is extended during allocation to hold mat_tri_len for each material. */
+  /** This struct is extended during allocation to hold mat_tri_len for each material. */
   int mat_tri_len[0];
 } MatOffsetUserData;
 
@@ -252,7 +252,7 @@ static void mesh_render_data_mat_offset_build_threaded(MeshRenderData *mr,
                                                        int face_len,
                                                        TaskParallelRangeFunc range_func)
 {
-  /* Extending the MatOffsetUserData with an int per material slot. */
+  /* Extending the #MatOffsetUserData with an int per material slot. */
   size_t userdata_size = sizeof(MatOffsetUserData) +
                          (mr->mat_len) * sizeof(*cache->mat_offsets.tri);
   MatOffsetUserData *userdata = MEM_callocN(userdata_size, __func__);
@@ -348,6 +348,9 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
+      /* NOTE(campbell): It's possible to skip allocating tessellation,
+       * the tessellation can be calculated as part of the iterator, see: P2188.
+       * The overall advantage is small (around 1%), so keep this as-is. */
       mr->mlooptri = MEM_mallocN(sizeof(*mr->mlooptri) * mr->tri_len, "MR_DATATYPE_LOOPTRI");
       if (mr->poly_normals != NULL) {
         BKE_mesh_recalc_looptri_with_normals(me->mloop,
@@ -575,7 +578,7 @@ void mesh_render_data_free(MeshRenderData *mr)
   MEM_SAFE_FREE(mr->mlooptri);
   MEM_SAFE_FREE(mr->loop_normals);
 
-  /* Loose geometry are owned by MeshBufferExtractionCache. */
+  /* Loose geometry are owned by #MeshBufferExtractionCache. */
   mr->ledges = NULL;
   mr->lverts = NULL;
 

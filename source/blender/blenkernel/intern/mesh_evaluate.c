@@ -3280,8 +3280,8 @@ void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,
 
   i = totpoly;
   for (mp = mpoly; i--; mp++) {
-    /* assume if its selected its not hidden and none of its verts/edges are hidden
-     * (a common assumption)*/
+    /* Assume if its selected its not hidden and none of its verts/edges are hidden
+     * (a common assumption). */
     if (mp->flag & ME_FACE_SEL) {
       const MLoop *ml;
       int j;

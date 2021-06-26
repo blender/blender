@@ -275,13 +275,6 @@ void BKE_mesh_vert_normals_apply(struct Mesh *mesh, const short (*vert_normals)[
 
 /* *** mesh_tessellate.c *** */
 
-void BKE_mesh_loops_to_tessdata(struct CustomData *fdata,
-                                struct CustomData *ldata,
-                                struct MFace *mface,
-                                const int *polyindices,
-                                unsigned int (*loopindices)[4],
-                                const int num_faces);
-
 int BKE_mesh_tessface_calc_ex(struct CustomData *fdata,
                               struct CustomData *ldata,
                               struct CustomData *pdata,

@@ -72,7 +72,7 @@ typedef struct CurveProfile {
   short segments_len;
   /** Preset to use when reset. */
   int preset;
-  /** Sequence of points defining the shape of the curve.  */
+  /** Sequence of points defining the shape of the curve. */
   CurveProfilePoint *path;
   /** Display and evaluation table at higher resolution for curves. */
   CurveProfilePoint *table;

@@ -465,7 +465,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   SeqCollection *transformed_strips = seq_transform_collection_from_transdata(tc);
 
-  if ((t->state == TRANS_CANCEL)) {
+  if (t->state == TRANS_CANCEL) {
     seq_transform_cancel(t, transformed_strips);
     free_transform_custom_data(custom_data);
     return;
@@ -599,7 +599,7 @@ static void flushTransSeq(TransInfo *t)
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
-  /* flush to 2d vector from internally used 3d vector */
+  /* Flush to 2D vector from internally used 3D vector. */
   for (a = 0, td = tc->data, td2d = tc->data_2d; a < tc->data_len; a++, td++, td2d++) {
     tdsq = (TransDataSeq *)td->extra;
     seq = tdsq->seq;
@@ -615,13 +615,13 @@ static void flushTransSeq(TransInfo *t)
         CLAMP(seq->machine, 1, MAXSEQ);
         break;
 
-      case SEQ_LEFTSEL: /* no vertical transform  */
+      case SEQ_LEFTSEL: /* No vertical transform. */
         SEQ_transform_set_left_handle_frame(seq, new_frame);
         SEQ_transform_handle_xlimits(seq, tdsq->flag & SEQ_LEFTSEL, tdsq->flag & SEQ_RIGHTSEL);
         SEQ_transform_fix_single_image_seq_offsets(seq);
         SEQ_time_update_sequence(t->scene, seq);
         break;
-      case SEQ_RIGHTSEL: /* no vertical transform  */
+      case SEQ_RIGHTSEL: /* No vertical transform. */
         SEQ_transform_set_right_handle_frame(seq, new_frame);
         SEQ_transform_handle_xlimits(seq, tdsq->flag & SEQ_LEFTSEL, tdsq->flag & SEQ_RIGHTSEL);
         SEQ_transform_fix_single_image_seq_offsets(seq);
@@ -696,7 +696,7 @@ void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo *t)
     return;
   }
   /* freeSeqData in transform_conversions.c does this
-   * keep here so the else at the end wont run... */
+   * keep here so the else at the end won't run... */
 
   SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
 

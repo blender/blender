@@ -200,7 +200,7 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
       from_tang[2][r] = no0[r] * u + no1[r] * v + no2[r] * w;
     }
 
-    cross_v3_v3v3(from_tang[1], from_tang[2], from_tang[0]); /* B = sign * cross(N, T)  */
+    cross_v3_v3v3(from_tang[1], from_tang[2], from_tang[0]); /* `B = sign * cross(N, T)` */
     mul_v3_fl(from_tang[1], sign);
     invert_m3_m3(to_tang, from_tang);
   }
@@ -328,7 +328,7 @@ static void bake_rasterize(const MBakeRast *bake_rast,
   yhi_beg = (int)ceilf(tmi);
   yhi = (int)ceilf(thi);
 
-  /*if (fTmi>ceilf(fTlo))*/
+  // if (fTmi>ceilf(fTlo))
   rasterize_half(bake_rast, slo, tlo, smi, tmi, slo, tlo, shi, thi, ylo, yhi_beg, is_mid_right);
   rasterize_half(bake_rast, smi, tmi, shi, thi, slo, tlo, shi, thi, yhi_beg, yhi, is_mid_right);
 }

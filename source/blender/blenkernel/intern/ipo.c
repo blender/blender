@@ -262,7 +262,7 @@ static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *to
 /* Object types */
 static const char *ob_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -377,7 +377,7 @@ static const char *ob_adrcodes_to_paths(int adrcode, int *array_index)
  */
 static const char *pchan_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -434,7 +434,7 @@ static const char *pchan_adrcodes_to_paths(int adrcode, int *array_index)
 /* Constraint types */
 static const char *constraint_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -605,7 +605,7 @@ static const char *mtex_adrcodes_to_paths(int adrcode, int *UNUSED(array_index))
 /* Texture types */
 static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -692,7 +692,7 @@ static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
 /* Material Types */
 static const char *material_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -785,7 +785,7 @@ static const char *material_adrcodes_to_paths(int adrcode, int *array_index)
 /* Camera Types */
 static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -830,7 +830,7 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
 /* Light Types */
 static const char *light_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -875,7 +875,7 @@ static const char *light_adrcodes_to_paths(int adrcode, int *array_index)
 /* Sound Types */
 static const char *sound_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -901,7 +901,7 @@ static const char *sound_adrcodes_to_paths(int adrcode, int *array_index)
 /* World Types */
 static const char *world_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */
@@ -947,7 +947,7 @@ static const char *world_adrcodes_to_paths(int adrcode, int *array_index)
 /* Particle Types */
 static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
 {
-  /* set array index like this in-case nothing sets it correctly  */
+  /* Set array index like this in-case nothing sets it correctly. */
   *array_index = 0;
 
   /* result depends on adrcode */

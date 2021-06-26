@@ -95,7 +95,7 @@ class GHOST_ISystemPaths {
   virtual void addToSystemRecentFiles(const char *filename) const = 0;
 
  private:
-  /** The one and only system paths*/
+  /** The one and only system paths. */
   static GHOST_ISystemPaths *m_systemPaths;
 
 #ifdef WITH_CXX_GUARDEDALLOC

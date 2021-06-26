@@ -195,7 +195,7 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay, vec2 noise_uv)
   return col;
 }
 
-/*  ------------------------------------------------------------------------  */
+/* ------------------------------------------------------------------------ */
 
 in vec2 texCoord_interp;
 out vec4 fragColor;

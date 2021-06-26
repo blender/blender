@@ -255,11 +255,11 @@ void ED_spreadsheet_context_path_update_tag(SpaceSpreadsheet *sspreadsheet)
   blender::ed::spreadsheet::spreadsheet_context_update_tag(sspreadsheet);
 }
 
-uint64_t ED_spreadsheet_context_path_hash(SpaceSpreadsheet *sspreadsheet)
+uint64_t ED_spreadsheet_context_path_hash(const SpaceSpreadsheet *sspreadsheet)
 {
   BLI_HashMurmur2A mm2;
   BLI_hash_mm2a_init(&mm2, 1234);
-  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
+  LISTBASE_FOREACH (const SpreadsheetContext *, context, &sspreadsheet->context_path) {
     blender::ed::spreadsheet::spreadsheet_context_hash(context, &mm2);
   }
   return BLI_hash_mm2a_end(&mm2);

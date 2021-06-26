@@ -47,7 +47,7 @@ class WFillGrid {
 
   void fillGrid();
 
-  /*! Accessors */
+  /** Accessors */
   WingedEdge *getWingedEdge()
   {
     return _winged_edge;
@@ -58,7 +58,7 @@ class WFillGrid {
     return _grid;
   }
 
-  /*! Modifiers */
+  /** Modifiers */
   void setWingedEdge(WingedEdge *winged_edge)
   {
     if (winged_edge) {

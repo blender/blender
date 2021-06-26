@@ -243,7 +243,7 @@ static int gpencil_get_stroke_material_fromcurve(
 
   /* If the curve has 2 materials, the first is considered as Fill and the second as Stroke.
    * If the has only one material, if the name contains _stroke, the is used
-   * as stroke, else as fill.*/
+   * as stroke, else as fill. */
   if (ob_cu->totcol >= 2) {
     *do_stroke = true;
     *do_fill = true;
@@ -350,7 +350,7 @@ static void gpencil_convert_spline(Main *bmain,
   /* Assign material index to stroke. */
   gps->mat_nr = r_idx;
 
-  /* Add stroke to frame.*/
+  /* Add stroke to frame. */
   BLI_addtail(&gpf->strokes, gps);
 
   float *coord_array = NULL;

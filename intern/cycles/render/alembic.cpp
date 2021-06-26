@@ -333,7 +333,7 @@ static M44d get_interpolated_matrix_for_time(const MatrixSampleMap &samples, chr
 
   chrono_t t = (time - prev_time) / (next_time - prev_time);
 
-  /* ensure rotation around the shortest angle  */
+  /* Ensure rotation around the shortest angle. */
   if ((prev_rotation ^ next_rotation) < 0) {
     next_rotation = -next_rotation;
   }

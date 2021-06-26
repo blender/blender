@@ -53,7 +53,7 @@ using namespace Geometry;
 
 class SVertex;
 
-/*! Defines a hash table used for searching the SVertex */
+/** Defines a hash table used for searching the SVertex */
 struct SVertexHasher {
 #define _MUL 950706376UL
 #define _MOD 2147483647UL
@@ -81,7 +81,7 @@ typedef map<Vec3r, SVertex *> SVertexMap;
 
 class WXFaceLayer;
 
-/*! class to describe an oriented smooth edge */
+/** class to describe an oriented smooth edge */
 class OWXFaceLayer {
  public:
   WXFaceLayer *fl;
@@ -123,7 +123,7 @@ class OWXFaceLayer {
 
 class WXEdge;
 
-/*! class to describe an oriented sharp edge */
+/** class to describe an oriented sharp edge */
 class OWXEdge {
  public:
   WXEdge *e;
@@ -190,7 +190,7 @@ class ViewEdgeXBuilder {
   {
   }
 
-  /*! Builds a view shape from a WXShape in which the feature edges are flagged
+  /** Builds a view shape from a WXShape in which the feature edges are flagged
    *  Builds chains of feature edges (so ViewEdges) from a WXShape
    *    iWShape
    *      The Winged Edge structure in which all silhouette edges and vertices are flagged.
@@ -212,14 +212,14 @@ class ViewEdgeXBuilder {
                               std::vector<FEdge *> &ioFEdges,
                               std::vector<SVertex *> &ioSVertices);
 
-  /*! Builds a smooth view edge, starting the face iFace. */
+  /** Builds a smooth view edge, starting the face iFace. */
   ViewEdge *BuildSmoothViewEdge(const OWXFaceLayer &iFaceLayer);
 
-  /*! Makes a sharp viewedge  */
+  /** Makes a sharp viewedge. */
   ViewEdge *BuildSharpViewEdge(const OWXEdge &iWEdge);
 
  public:
-  /*! accessors */
+  /** accessors */
   inline int currentViewId() const
   {
     return _currentViewId;
@@ -235,7 +235,7 @@ class ViewEdgeXBuilder {
     return _currentSVertexId;
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setCurrentViewId(int id)
   {
     _currentViewId = id;
@@ -252,18 +252,18 @@ class ViewEdgeXBuilder {
   }
 
  protected:
-  /*! Init the view edges building */
+  /** Init the view edges building */
   virtual void Init(ViewShape *oVShape);
 
   // SMOOTH //
-  /*! checks whether a face has already been processed or not */
+  /** checks whether a face has already been processed or not */
   bool stopSmoothViewEdge(WXFaceLayer *iFaceLayer);
   OWXFaceLayer FindNextFaceLayer(const OWXFaceLayer &iFaceLayer);
   OWXFaceLayer FindPreviousFaceLayer(const OWXFaceLayer &iFaceLayer);
   FEdge *BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer &ifl);
 
   // SHARP //
-  /*! checks whether a WEdge has already been processed or not */
+  /** checks whether a WEdge has already been processed or not */
   bool stopSharpViewEdge(WXEdge *iEdge);
   int retrieveFaceMarks(WXEdge *iEdge);
   OWXEdge FindNextWEdge(const OWXEdge &iEdge);
@@ -271,11 +271,11 @@ class ViewEdgeXBuilder {
   FEdge *BuildSharpFEdge(FEdge *feprevious, const OWXEdge &iwe);
 
   // GENERAL //
-  /*! Instantiate a SVertex */
+  /** Instantiate a SVertex */
   SVertex *MakeSVertex(Vec3r &iPoint);
-  /*! Instantiate a SVertex if it hasn't been already created */
+  /** Instantiate a SVertex if it hasn't been already created */
   SVertex *MakeSVertex(Vec3r &iPoint, bool shared);
-  /*! instantiate a ViewVertex from a SVertex, if it doesn't exist yet */
+  /** instantiate a ViewVertex from a SVertex, if it doesn't exist yet */
   ViewVertex *MakeViewVertex(SVertex *iSVertex);
 
   // oldtmp values

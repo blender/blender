@@ -1076,7 +1076,7 @@ void BM_mesh_bm_to_me(
   /* Topology could be changed, ensure #CD_MDISPS are ok. */
   multires_topology_changed(me);
 
-  /* To be removed as soon as COW is enabled by default.. */
+  /* To be removed as soon as COW is enabled by default. */
   BKE_mesh_runtime_clear_geometry(me);
 
   

@@ -271,7 +271,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
         # keymap items must match against all.
         kmi_test_type = []
 
-        # initialize? - so if a if a kmi has a MOD assigned it wont show up.
+        # initialize? - so if a kmi has a MOD assigned it won't show up.
         # for kv in key_mod.values():
         #     kmi_test_dict[kv] = {False}
 

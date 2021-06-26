@@ -745,7 +745,7 @@ static int volume_sequence_frame(const Depsgraph *depsgraph, const Volume *volum
     }
   }
 
-  /* Important to apply after, else we cant loop on e.g. frames 100 - 110. */
+  /* Important to apply after, else we can't loop on e.g. frames 100 - 110. */
   frame += frame_offset;
 
   return frame;

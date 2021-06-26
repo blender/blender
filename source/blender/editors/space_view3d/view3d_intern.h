@@ -137,7 +137,7 @@ void ED_view3d_draw_depth_loop(struct Depsgraph *depsgraph,
                                struct ARegion *region,
                                View3D *v3d);
 
-void view3d_update_depths_rect(struct ARegion *region, struct ViewDepths *d, struct rcti *rect);
+void view3d_depths_rect_create(struct ARegion *region, struct rcti *rect, struct ViewDepths *r_d);
 float view3d_depth_near(struct ViewDepths *d);
 
 /* view3d_select.c */

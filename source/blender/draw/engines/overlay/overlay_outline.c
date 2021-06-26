@@ -77,7 +77,7 @@ static void gpencil_depth_plane(Object *ob, float r_plane[4])
 
   transpose_m4(mat);
   /* mat is now a "normal" matrix which will transform
-   * BBox space normal to world space.  */
+   * BBox space normal to world space. */
   mul_mat3_m4_v3(mat, r_plane);
   normalize_v3(r_plane);
 

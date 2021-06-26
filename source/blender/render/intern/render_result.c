@@ -363,7 +363,7 @@ RenderResult *render_result_new(
     } \
   } while (false)
 
-      /* a renderlayer should always have a Combined pass*/
+      /* A renderlayer should always have a Combined pass. */
       render_layer_add_pass(rr, rl, 4, "Combined", view, "RGBA");
 
       if (view_layer->passflag & SCE_PASS_Z) {

@@ -24,6 +24,7 @@
 #pragma once
 
 #include "GHOST_Context.h"
+#include "GHOST_System.h"
 
 #include <GL/eglew.h>
 
@@ -36,11 +37,15 @@
 #endif
 
 class GHOST_ContextEGL : public GHOST_Context {
+  /* XR code needs low level graphics data to send to OpenXR. */
+  friend class GHOST_XrGraphicsBindingOpenGL;
+
  public:
   /**
    * Constructor.
    */
-  GHOST_ContextEGL(bool stereoVisual,
+  GHOST_ContextEGL(const GHOST_System *const system,
+                   bool stereoVisual,
                    EGLNativeWindowType nativeWindow,
                    EGLNativeDisplayType nativeDisplay,
                    EGLint contextProfileMask,
@@ -100,8 +105,16 @@ class GHOST_ContextEGL : public GHOST_Context {
    */
   GHOST_TSuccess getSwapInterval(int &intervalOut);
 
+  EGLDisplay getDisplay() const;
+
+  EGLConfig getConfig() const;
+
+  EGLContext getContext() const;
+
  private:
   bool initContextEGLEW();
+
+  const GHOST_System *const m_system;
 
   EGLNativeDisplayType m_nativeDisplay;
   EGLNativeWindowType m_nativeWindow;
@@ -117,6 +130,7 @@ class GHOST_ContextEGL : public GHOST_Context {
   EGLContext m_context;
   EGLSurface m_surface;
   EGLDisplay m_display;
+  EGLConfig m_config;
 
   EGLint m_swap_interval;
 

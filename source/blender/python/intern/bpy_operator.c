@@ -87,7 +87,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
   bContext *C = BPY_context_get();
 
   if (C == NULL) {
-    PyErr_SetString(PyExc_RuntimeError, "Context is None, cant poll any operators");
+    PyErr_SetString(PyExc_RuntimeError, "Context is None, can't poll any operators");
     return NULL;
   }
 
@@ -174,7 +174,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   bContext *C = BPY_context_get();
 
   if (C == NULL) {
-    PyErr_SetString(PyExc_RuntimeError, "Context is None, cant poll any operators");
+    PyErr_SetString(PyExc_RuntimeError, "Context is None, can't poll any operators");
     return NULL;
   }
 
@@ -367,7 +367,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 
   if (C == NULL) {
     PyErr_SetString(PyExc_RuntimeError,
-                    "Context is None, cant get the string representation of this object.");
+                    "Context is None, can't get the string representation of this object.");
     return NULL;
   }
 

@@ -62,7 +62,7 @@
 /* Brush operators */
 static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  /*int type = RNA_enum_get(op->ptr, "type");*/
+  // int type = RNA_enum_get(op->ptr, "type");
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
   Main *bmain = CTX_data_main(C);
@@ -97,7 +97,7 @@ static void BRUSH_OT_add(wmOperatorType *ot)
 
 static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  /*int type = RNA_enum_get(op->ptr, "type");*/
+  // int type = RNA_enum_get(op->ptr, "type");
   ToolSettings *ts = CTX_data_tool_settings(C);
   Paint *paint = &ts->gp_paint->paint;
   Brush *br = BKE_paint_brush(paint);
@@ -1385,7 +1385,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   keymap = WM_keymap_ensure(keyconf, "Weight Paint", 0, 0);
   keymap->poll = weight_paint_mode_poll;
 
-  /*Weight paint's Vertex Selection Mode */
+  /* Weight paint's Vertex Selection Mode. */
   keymap = WM_keymap_ensure(keyconf, "Paint Vertex Selection (Weight, Vertex)", 0, 0);
   keymap->poll = vert_paint_poll;
 

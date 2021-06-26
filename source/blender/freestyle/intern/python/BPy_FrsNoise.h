@@ -39,7 +39,8 @@ extern PyTypeObject FrsNoise_Type;
 
 /*---------------------------Python BPy_FrsNoise structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::Noise *n;
+  PyObject_HEAD
+  Freestyle::Noise *n;
   Freestyle::PseudoNoise *pn;
 } BPy_FrsNoise;
 

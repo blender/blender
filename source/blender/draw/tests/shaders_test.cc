@@ -3,17 +3,22 @@
 #include "testing/testing.h"
 
 #include "draw_testing.hh"
-#include "intern/draw_manager_testing.h"
 
 #include "GPU_context.h"
+#include "GPU_index_buffer.h"
 #include "GPU_init_exit.h"
 #include "GPU_shader.h"
+#include "GPU_texture.h"
+#include "GPU_vertex_buffer.h"
+
+#include "intern/draw_manager_testing.h"
 
 #include "engines/eevee/eevee_private.h"
 #include "engines/gpencil/gpencil_engine.h"
 #include "engines/image/image_private.h"
 #include "engines/overlay/overlay_private.h"
 #include "engines/workbench/workbench_private.h"
+#include "intern/draw_shader.h"
 
 namespace blender::draw {
 
@@ -364,6 +369,22 @@ TEST_F(DrawTest, eevee_glsl_shaders_static)
   EXPECT_NE(EEVEE_shaders_effect_reflection_trace_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_effect_reflection_resolve_sh_get(), nullptr);
   EEVEE_shaders_free();
+}
+
+static void test_draw_shaders(eParticleRefineShaderType sh_type)
+{
+  DRW_shaders_free();
+  EXPECT_NE(DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM, sh_type), nullptr);
+  DRW_shaders_free();
+}
+
+TEST_F(DrawTest, draw_glsl_shaders)
+{
+#ifndef __APPLE__
+  test_draw_shaders(PART_REFINE_SHADER_TRANSFORM_FEEDBACK);
+  test_draw_shaders(PART_REFINE_SHADER_COMPUTE);
+#endif
+  test_draw_shaders(PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND);
 }
 
 }  // namespace blender::draw

@@ -523,7 +523,7 @@ PyObject *PyC_FrozenSetFromStrings(const char **strings)
 /**
  * Similar to #PyErr_Format(),
  *
- * Implementation - we cant actually prepend the existing exception,
+ * Implementation - we can't actually prepend the existing exception,
  * because it could have _any_ arguments given to it, so instead we get its
  * ``__str__`` output and raise our own exception including it.
  */
@@ -846,7 +846,7 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
   PyModule_AddStringConstant(mod_main, "__name__", "__main__");
   if (filename) {
     /* __file__ mainly for nice UI'ness
-     * note: this wont map to a real file when executing text-blocks and buttons. */
+     * note: this won't map to a real file when executing text-blocks and buttons. */
     PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromByte(filename));
   }
   PyModule_AddObject(mod_main, "__builtins__", builtins);

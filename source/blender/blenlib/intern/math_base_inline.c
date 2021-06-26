@@ -192,14 +192,14 @@ MINLINE double ratiod(double min, double max, double pos)
   return range == 0 ? 0 : ((pos - min) / range);
 }
 
-/* Map a normalized value, i.e. from interval [0, 1] to interval [a, b]  */
+/* Map a normalized value, i.e. from interval [0, 1] to interval [a, b]. */
 MINLINE float scalenorm(float a, float b, float x)
 {
   BLI_assert(x <= 1 && x >= 0);
   return (x * (b - a)) + a;
 }
 
-/* used for zoom values*/
+/* Used for zoom values. */
 MINLINE float power_of_2(float val)
 {
   return (float)pow(2.0, ceil(log((double)val) / M_LN2));
@@ -760,7 +760,7 @@ MALWAYS_INLINE __m128 _bli_math_fastpow24(const __m128 arg)
   __m128 x = _bli_math_fastpow(0x3F4CCCCD, 0x4F55A7FB, arg);
   __m128 arg2 = _mm_mul_ps(arg, arg);
   __m128 arg4 = _mm_mul_ps(arg2, arg2);
-  /* error max = 0.018        avg = 0.0031    |avg| = 0.0031  */
+  /* error max = 0.018        avg = 0.0031    |avg| = 0.0031 */
   x = _bli_math_improve_5throot_solution(x, arg4);
   /* error max = 0.00021    avg = 1.6e-05    |avg| = 1.6e-05 */
   x = _bli_math_improve_5throot_solution(x, arg4);

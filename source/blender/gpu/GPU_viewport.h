@@ -43,7 +43,7 @@ typedef struct GPUViewport GPUViewport;
 
 struct GPUFrameBuffer;
 
-/* Contains memory pools information */
+/* Contains memory pools information. */
 typedef struct ViewportMemoryPool {
   struct BLI_memblock *commands;
   struct BLI_memblock *commands_small;
@@ -62,21 +62,21 @@ typedef struct ViewportMemoryPool {
   uint ubo_len;
 } ViewportMemoryPool;
 
-/* All FramebufferLists are just the same pointers with different names */
+/* All FramebufferLists are just the same pointers with different names. */
 typedef struct FramebufferList {
-  struct GPUFrameBuffer *framebuffers[0];
+  struct GPUFrameBuffer *framebuffers[1];
 } FramebufferList;
 
 typedef struct TextureList {
-  struct GPUTexture *textures[0];
+  struct GPUTexture *textures[1];
 } TextureList;
 
 typedef struct PassList {
-  struct DRWPass *passes[0];
+  struct DRWPass *passes[1];
 } PassList;
 
 typedef struct StorageList {
-  void *storage[0]; /* custom structs from the engine */
+  void *storage[1]; /* Custom structs from the engine. */
 } StorageList;
 
 typedef struct ViewportEngineData {
@@ -90,10 +90,10 @@ typedef struct ViewportEngineData {
 
   TextureList *txl_stereo;
   StorageList *stl_stereo;
-  /* we may want to put this elsewhere */
+  /* We may want to put this elsewhere. */
   struct DRWTextStore *text_draw_cache;
 
-  /* Profiling data */
+  /* Profiling data. */
   double init_time;
   double render_time;
   double background_time;
@@ -141,7 +141,7 @@ void GPU_viewport_size_get(const GPUViewport *viewport, int size[2]);
 void GPU_viewport_size_set(GPUViewport *viewport, const int size[2]);
 void GPU_viewport_active_view_set(GPUViewport *viewport, int view);
 
-/* Profiling */
+/* Profiling. */
 double *GPU_viewport_cache_time_get(GPUViewport *viewport);
 
 void GPU_viewport_tag_update(GPUViewport *viewport);
@@ -149,7 +149,7 @@ bool GPU_viewport_do_update(GPUViewport *viewport);
 
 GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport, int view);
 
-/* Texture pool */
+/* Texture pool. */
 GPUTexture *GPU_viewport_texture_pool_query(
     GPUViewport *viewport, void *engine, int width, int height, int format);
 

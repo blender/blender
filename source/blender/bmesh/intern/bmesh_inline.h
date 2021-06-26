@@ -95,7 +95,7 @@ BLI_INLINE void _bm_elem_flag_merge_into(BMHeader *head,
 
 /**
  * notes on #BM_elem_index_set(...) usage,
- * Set index is sometimes abused as temp storage, other times we cant be
+ * Set index is sometimes abused as temp storage, other times we can't be
  * sure if the index values are valid because certain operations have modified
  * the mesh structure.
  *

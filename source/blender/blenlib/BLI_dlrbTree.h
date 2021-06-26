@@ -35,7 +35,7 @@ extern "C" {
  */
 
 /* ********************************************** */
-/* Data Types and Type Defines  */
+/* Data Types and Type Defines */
 
 /* Base Structs --------------------------------- */
 

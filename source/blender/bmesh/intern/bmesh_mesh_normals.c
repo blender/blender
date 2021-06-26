@@ -292,6 +292,10 @@ void BM_mesh_normals_update_with_partial_ex(BMesh *UNUSED(bm),
                                             const struct BMeshNormalsUpdate_Params *params)
 {
   BLI_assert(bmpinfo->params.do_normals);
+  /* While harmless, exit early if there is nothing to do. */
+  if (UNLIKELY((bmpinfo->verts_len == 0) && (bmpinfo->faces_len == 0))) {
+    return;
+  }
 
   BMVert **verts = bmpinfo->verts;
   BMFace **faces = bmpinfo->faces;
@@ -1542,7 +1546,7 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do
     /* Using face history allows to select a single loop from a single face...
      * Note that this is O(n^2) piece of code,
      * but it is not designed to be used with huge selection sets,
-     * rather with only a few items selected at most.*/
+     * rather with only a few items selected at most. */
     /* Goes from last selected to the first selected element. */
     for (ese = bm->selected.last; ese; ese = ese->prev) {
       if (ese->htype == BM_FACE) {

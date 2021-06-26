@@ -25,16 +25,26 @@
  *
  * In the future this could be integrated into GPU updates too.
  *
- * Potential Improvements
- * ======================
+ * Kinds of Partial Geometry
+ * =========================
  *
- * Some calculations could be significantly limited in the case of affine transformations
- * (tessellation is an obvious candidate). Where only faces which have a mix
- * of tagged and untagged vertices would need to be recalculated.
+ * All Tagged
+ * ----------
+ * Operate on everything that's tagged as well as connected geometry.
+ * see: #BM_mesh_partial_create_from_verts
  *
- * In general this would work well besides some corner cases such as scaling to zero.
- * Although the exact result may depend on the normal (for N-GONS),
- * so for now update the tessellation of all tagged geometry.
+ * Grouped
+ * -------
+ * Operate on everything that is connected to both tagged and un-tagged.
+ * see: #BM_mesh_partial_create_from_verts_group_single
+ *
+ * Reduces computations when transforming isolated regions.
+ *
+ * Optionally support multiple groups since axis-mirror (for example)
+ * will transform vertices in different directions, as well as keeping centered vertices.
+ * see: #BM_mesh_partial_create_from_verts_group_multi
+ *
+ * \note Others can be added as needed.
  */
 
 #include "DNA_object_types.h"
@@ -93,21 +103,24 @@ BLI_INLINE bool partial_elem_face_ensure(BMPartialUpdate *bmpinfo,
   return false;
 }
 
+/**
+ * All Tagged & Connected, see: #BM_mesh_partial_create_from_verts
+ * Operate on everything that's tagged as well as connected geometry.
+ */
 BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
                                                    const BMPartialUpdate_Params *params,
-                                                   const int verts_len,
-                                                   bool (*filter_fn)(BMVert *, void *user_data),
-                                                   void *user_data)
+                                                   const BLI_bitmap *verts_mask,
+                                                   const int verts_mask_count)
 {
   /* The caller is doing something wrong if this isn't the case. */
-  BLI_assert(verts_len <= bm->totvert);
+  BLI_assert(verts_mask_count <= bm->totvert);
 
   BMPartialUpdate *bmpinfo = MEM_callocN(sizeof(*bmpinfo), __func__);
 
   /* Reserve more edges than vertices since it's common for a grid topology
    * to use around twice as many edges as vertices. */
-  const int default_verts_len_alloc = verts_len;
-  const int default_faces_len_alloc = min_ii(bm->totface, verts_len);
+  const int default_verts_len_alloc = verts_mask_count;
+  const int default_faces_len_alloc = min_ii(bm->totface, verts_mask_count);
 
   /* Allocate tags instead of using #BM_ELEM_TAG because the caller may already be using tags.
    * Further, walking over all geometry to clear the tags isn't so efficient. */
@@ -143,7 +156,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
     int i;
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
       BM_elem_index_set(v, i); /* set_inline */
-      if (!filter_fn(v, user_data)) {
+      if (!BLI_BITMAP_TEST(verts_mask, i)) {
         continue;
       }
       BMEdge *e_iter = v->e;
@@ -188,6 +201,224 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
       do {
         partial_elem_vert_ensure(bmpinfo, verts_tag, l_iter->v);
       } while ((l_iter = l_iter->next) != l_first);
+    }
+  }
+
+  if (verts_tag) {
+    MEM_freeN(verts_tag);
+  }
+  if (faces_tag) {
+    MEM_freeN(faces_tag);
+  }
+
+  bmpinfo->params = *params;
+
+  return bmpinfo;
+}
+
+/**
+ * All Connected, operate on all faces that have both tagged and un-tagged vertices.
+ *
+ * Reduces computations when transforming isolated regions.
+ */
+BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
+    BMesh *bm,
+    const BMPartialUpdate_Params *params,
+    const BLI_bitmap *verts_mask,
+    const int verts_mask_count)
+{
+  BMPartialUpdate *bmpinfo = MEM_callocN(sizeof(*bmpinfo), __func__);
+
+  BLI_bitmap *verts_tag = NULL;
+  BLI_bitmap *faces_tag = NULL;
+
+  /* It's not worth guessing a large number as isolated regions will allocate zero faces. */
+  const int default_faces_len_alloc = 1;
+
+  int face_tag_loop_len = 0;
+
+  if (params->do_normals || params->do_tessellate) {
+
+    /* Faces. */
+    if (bmpinfo->faces == NULL) {
+      bmpinfo->faces_len_alloc = default_faces_len_alloc;
+      bmpinfo->faces = MEM_mallocN((sizeof(BMFace *) * bmpinfo->faces_len_alloc), __func__);
+      faces_tag = BLI_BITMAP_NEW((size_t)bm->totface, __func__);
+    }
+
+    BMFace *f;
+    BMIter iter;
+    int i;
+    BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+      enum { SIDE_A = (1 << 0), SIDE_B = (1 << 1) } side_flag = 0;
+      BM_elem_index_set(f, i); /* set_inline */
+      BMLoop *l_iter, *l_first;
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        const int j = BM_elem_index_get(l_iter->v);
+        side_flag |= BLI_BITMAP_TEST(verts_mask, j) ? SIDE_A : SIDE_B;
+        if (UNLIKELY(side_flag == (SIDE_A | SIDE_B))) {
+          partial_elem_face_ensure(bmpinfo, faces_tag, f);
+          face_tag_loop_len += f->len;
+          break;
+        }
+      } while ((l_iter = l_iter->next) != l_first);
+    }
+  }
+
+  if (params->do_normals) {
+    /* Extend to all faces vertices:
+     * Any changes to the faces normal needs to update all surrounding vertices. */
+
+    /* Over allocate using the total number of face loops. */
+    const int default_verts_len_alloc = min_ii(bm->totvert, max_ii(1, face_tag_loop_len));
+
+    /* Vertices. */
+    if (bmpinfo->verts == NULL) {
+      bmpinfo->verts_len_alloc = default_verts_len_alloc;
+      bmpinfo->verts = MEM_mallocN((sizeof(BMVert *) * bmpinfo->verts_len_alloc), __func__);
+      verts_tag = BLI_BITMAP_NEW((size_t)bm->totvert, __func__);
+    }
+
+    for (int i = 0; i < bmpinfo->faces_len; i++) {
+      BMFace *f = bmpinfo->faces[i];
+      BMLoop *l_iter, *l_first;
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        partial_elem_vert_ensure(bmpinfo, verts_tag, l_iter->v);
+      } while ((l_iter = l_iter->next) != l_first);
+    }
+
+    /* Loose vertex support, these need special handling as loose normals depend on location. */
+    if (bmpinfo->verts_len < verts_mask_count) {
+      BMVert *v;
+      BMIter iter;
+      int i;
+      BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+        if (BLI_BITMAP_TEST(verts_mask, i) && (BM_vert_find_first_loop(v) == NULL)) {
+          partial_elem_vert_ensure(bmpinfo, verts_tag, v);
+        }
+      }
+    }
+  }
+
+  if (verts_tag) {
+    MEM_freeN(verts_tag);
+  }
+  if (faces_tag) {
+    MEM_freeN(faces_tag);
+  }
+
+  bmpinfo->params = *params;
+
+  return bmpinfo;
+}
+
+/**
+ * All Connected, operate on all faces that have vertices in the same group.
+ *
+ * Reduces computations when transforming isolated regions.
+ *
+ * This is a version of #BM_mesh_partial_create_from_verts_group_single
+ * that handles multiple groups instead of a bitmap mask.
+ *
+ * This is needed for example when transform has mirror enabled,
+ * since one side needs to have a different group to the other since a face that has vertices
+ * attached to both won't have an affine transformation.
+ *
+ * \param verts_groups: Vertex aligned array of groups.
+ * Values are used as follows:
+ * - >0: Each face is grouped with other faces of the same group.
+ * -  0: Not in a group (don't handle these).
+ * - -1: Don't use grouping logic (include any face that contains a vertex with this group).
+ * \param verts_groups_count: The number of non-zero values in `verts_groups`.
+ */
+BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
+    BMesh *bm,
+    const BMPartialUpdate_Params *params,
+    const int *verts_group,
+    const int verts_group_count)
+{
+  /* Provide a quick way of visualizing which faces are being manipulated. */
+  // #define DEBUG_MATERIAL
+
+  BMPartialUpdate *bmpinfo = MEM_callocN(sizeof(*bmpinfo), __func__);
+
+  BLI_bitmap *verts_tag = NULL;
+  BLI_bitmap *faces_tag = NULL;
+
+  /* It's not worth guessing a large number as isolated regions will allocate zero faces. */
+  const int default_faces_len_alloc = 1;
+
+  int face_tag_loop_len = 0;
+
+  if (params->do_normals || params->do_tessellate) {
+
+    /* Faces. */
+    if (bmpinfo->faces == NULL) {
+      bmpinfo->faces_len_alloc = default_faces_len_alloc;
+      bmpinfo->faces = MEM_mallocN((sizeof(BMFace *) * bmpinfo->faces_len_alloc), __func__);
+      faces_tag = BLI_BITMAP_NEW((size_t)bm->totface, __func__);
+    }
+
+    BMFace *f;
+    BMIter iter;
+    int i;
+    BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+      BM_elem_index_set(f, i); /* set_inline */
+      BMLoop *l_iter, *l_first;
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      const int group_test = verts_group[BM_elem_index_get(l_iter->prev->v)];
+#ifdef DEBUG_MATERIAL
+      f->mat_nr = 0;
+#endif
+      do {
+        const int group_iter = verts_group[BM_elem_index_get(l_iter->v)];
+        if (UNLIKELY((group_iter != group_test) || (group_iter == -1))) {
+          partial_elem_face_ensure(bmpinfo, faces_tag, f);
+          face_tag_loop_len += f->len;
+#ifdef DEBUG_MATERIAL
+          f->mat_nr = 1;
+#endif
+          break;
+        }
+      } while ((l_iter = l_iter->next) != l_first);
+    }
+  }
+
+  if (params->do_normals) {
+    /* Extend to all faces vertices:
+     * Any changes to the faces normal needs to update all surrounding vertices. */
+
+    /* Over allocate using the total number of face loops. */
+    const int default_verts_len_alloc = min_ii(bm->totvert, max_ii(1, face_tag_loop_len));
+
+    /* Vertices. */
+    if (bmpinfo->verts == NULL) {
+      bmpinfo->verts_len_alloc = default_verts_len_alloc;
+      bmpinfo->verts = MEM_mallocN((sizeof(BMVert *) * bmpinfo->verts_len_alloc), __func__);
+      verts_tag = BLI_BITMAP_NEW((size_t)bm->totvert, __func__);
+    }
+
+    for (int i = 0; i < bmpinfo->faces_len; i++) {
+      BMFace *f = bmpinfo->faces[i];
+      BMLoop *l_iter, *l_first;
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        partial_elem_vert_ensure(bmpinfo, verts_tag, l_iter->v);
+      } while ((l_iter = l_iter->next) != l_first);
+    }
+
+    /* Loose vertex support, these need special handling as loose normals depend on location. */
+    if (bmpinfo->verts_len < verts_group_count) {
+      BMVert *v;
+      BMIter iter;
+      int i;
+      BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+        if ((verts_group[i] != 0) && (BM_vert_find_first_loop(v) == NULL)) {
+          partial_elem_vert_ensure(bmpinfo, verts_tag, v);
+        }
+      }
     }
   }
 

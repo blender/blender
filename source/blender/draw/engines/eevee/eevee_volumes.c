@@ -709,7 +709,7 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_stats_group_start("Volumetrics");
 
     /* We sample the shadow-maps using shadow sampler. We need to enable Comparison mode.
-     * TODO(fclem): avoid this by using sampler objects.*/
+     * TODO(fclem): avoid this by using sampler objects. */
     GPU_texture_compare_mode(sldata->shadow_cube_pool, true);
     GPU_texture_compare_mode(sldata->shadow_cascade_pool, true);
 

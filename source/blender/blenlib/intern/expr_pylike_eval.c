@@ -66,29 +66,29 @@
  * \{ */
 
 typedef enum eOpCode {
-  /* Double constant: (-> dval) */
+  /* Double constant: (-> dval). */
   OPCODE_CONST,
-  /* 1 argument function call: (a -> func1(a)) */
+  /* 1 argument function call: (a -> func1(a)). */
   OPCODE_FUNC1,
-  /* 2 argument function call: (a b -> func2(a,b)) */
+  /* 2 argument function call: (a b -> func2(a,b)). */
   OPCODE_FUNC2,
-  /* 3 argument function call: (a b c -> func3(a,b,c)) */
+  /* 3 argument function call: (a b c -> func3(a,b,c)). */
   OPCODE_FUNC3,
   /* Parameter access: (-> params[ival]) */
   OPCODE_PARAMETER,
-  /* Minimum of multiple inputs: (a b c... -> min); ival = arg count */
+  /* Minimum of multiple inputs: (a b c... -> min); ival = arg count. */
   OPCODE_MIN,
-  /* Maximum of multiple inputs: (a b c... -> max); ival = arg count */
+  /* Maximum of multiple inputs: (a b c... -> max); ival = arg count. */
   OPCODE_MAX,
   /* Jump (pc += jmp_offset) */
   OPCODE_JMP,
-  /* Pop and jump if zero: (a -> ); JUMP IF NOT a */
+  /* Pop and jump if zero: (a -> ); JUMP IF NOT a. */
   OPCODE_JMP_ELSE,
-  /* Jump if nonzero, or pop: (a -> a JUMP) IF a ELSE (a -> ) */
+  /* Jump if nonzero, or pop: (a -> a JUMP) IF a ELSE (a -> ). */
   OPCODE_JMP_OR,
-  /* Jump if zero, or pop: (a -> a JUMP) IF NOT a ELSE (a -> )  */
+  /* Jump if zero, or pop: (a -> a JUMP) IF NOT a ELSE (a -> ). */
   OPCODE_JMP_AND,
-  /* For comparison chaining: (a b -> 0 JUMP) IF NOT func2(a,b) ELSE (a b -> b) */
+  /* For comparison chaining: (a b -> 0 JUMP) IF NOT func2(a,b) ELSE (a b -> b). */
   OPCODE_CMP_CHAIN,
 } eOpCode;
 

@@ -89,7 +89,7 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *> &tasks)
   if (num_dof == 0)
     return false;
 
-  // compute task id's and assing weights to task
+  // compute task ids and assign weights to task
   int primary_size = 0, primary = 0;
   int secondary_size = 0, secondary = 0;
   double primary_weight = 0.0, secondary_weight = 0.0;
@@ -237,7 +237,7 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
 
 bool IK_QJacobianSolver::UpdateAngles(double &norm)
 {
-  // assing each segment a unique id for the jacobian
+  // assign each segment a unique id for the jacobian
   std::vector<IK_QSegment *>::iterator seg;
   IK_QSegment *qseg, *minseg = NULL;
   double minabsdelta = 1e10, absdelta;

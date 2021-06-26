@@ -32,7 +32,7 @@ class OrientedLineRep : public LineRep {
   OrientedLineRep() : LineRep()
   {
   }
-  /*! Builds a single line from 2 vertices
+  /** Builds a single line from 2 vertices
    *  v1
    *    first vertex
    *  v2
@@ -42,12 +42,12 @@ class OrientedLineRep : public LineRep {
   {
   }
 
-  /*! Builds a line rep from a vertex chain */
+  /** Builds a line rep from a vertex chain */
   inline OrientedLineRep(const vector<Vec3r> &vertices) : LineRep(vertices)
   {
   }
 
-  /*! Builds a line rep from a vertex chain */
+  /** Builds a line rep from a vertex chain */
   inline OrientedLineRep(const list<Vec3r> &vertices) : LineRep(vertices)
   {
   }
@@ -56,7 +56,7 @@ class OrientedLineRep : public LineRep {
   {
   }
 
-  /*! Accept the corresponding visitor */
+  /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v);
 };
 

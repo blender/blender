@@ -315,6 +315,9 @@ void BKE_id_blend_write(struct BlendWriter *writer, struct ID *id);
 
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->tag & LIB_TAG_DOIT))
 
+/* lib_id_eval.c */
+void BKE_id_eval_properties_copy(struct ID *id_cow, struct ID *id);
+
 #ifdef __cplusplus
 }
 #endif

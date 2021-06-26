@@ -587,7 +587,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
         }
         else {
           /* Set the same occlusion level for the end vertex, so when further connection is needed
-           * the backwards occlusion info is also correct.  */
+           * the backwards occlusion info is also correct. */
           eci->occlusion = fixed_occ;
           eci->transparency_mask = fixed_mask;
           /* No need to split at the last point anyway. */
@@ -729,7 +729,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
       }
     }
 
-    float new_len = len_v2v2(cre->eci->pos, eci->pos);
+    float new_len = rb->chain_geometry_space ? len_v3v3(cre->eci->gpos, eci->gpos) :
+                                               len_v2v2(cre->eci->pos, eci->pos);
     if (new_len < dist) {
       closest_cre = cre;
       dist = new_len;
@@ -799,6 +800,10 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
       continue;
     }
     BLI_addtail(&rb->chains, ec);
+
+    if (ec->type == LRT_EDGE_FLAG_FLOATING && (!rb->chain_floating_edges)) {
+      continue;
+    }
 
     occlusion = ec->level;
     transparency_mask = ec->transparency_mask;
@@ -926,7 +931,7 @@ void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshol
         angle = angle_v2v2v2(prev_rlci->pos, eci->pos, next_rlci->pos);
       }
       else {
-        break; /* No need to split at the last point anyway.*/
+        break; /* No need to split at the last point anyway. */
       }
       if (angle < angle_threshold_rad) {
         new_rlc = lineart_chain_create(rb);

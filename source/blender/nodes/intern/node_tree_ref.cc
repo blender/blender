@@ -176,12 +176,12 @@ void NodeTreeRef::create_linked_socket_caches()
     /* Find logically linked sockets. */
     Vector<const SocketRef *> logically_linked_sockets;
     Vector<const SocketRef *> logically_linked_skipped_sockets;
-    Vector<const InputSocketRef *> handled_sockets;
+    Vector<const InputSocketRef *> seen_sockets_stack;
     socket->foreach_logical_origin(
         [&](const OutputSocketRef &origin) { logically_linked_sockets.append(&origin); },
         [&](const SocketRef &socket) { logically_linked_skipped_sockets.append(&socket); },
         false,
-        handled_sockets);
+        seen_sockets_stack);
     if (logically_linked_sockets == directly_linked_sockets) {
       socket->logically_linked_sockets_ = socket->directly_linked_sockets_;
     }
@@ -222,16 +222,17 @@ void NodeTreeRef::create_linked_socket_caches()
   }
 }
 
-void InputSocketRef::foreach_logical_origin(FunctionRef<void(const OutputSocketRef &)> origin_fn,
-                                            FunctionRef<void(const SocketRef &)> skipped_fn,
-                                            bool only_follow_first_input_link,
-                                            Vector<const InputSocketRef *> &handled_sockets) const
+void InputSocketRef::foreach_logical_origin(
+    FunctionRef<void(const OutputSocketRef &)> origin_fn,
+    FunctionRef<void(const SocketRef &)> skipped_fn,
+    bool only_follow_first_input_link,
+    Vector<const InputSocketRef *> &seen_sockets_stack) const
 {
   /* Protect against loops. */
-  if (handled_sockets.contains(this)) {
+  if (seen_sockets_stack.contains(this)) {
     return;
   }
-  handled_sockets.append(this);
+  seen_sockets_stack.append(this);
 
   Span<const LinkRef *> links_to_check = this->directly_linked_links();
   if (only_follow_first_input_link) {
@@ -251,7 +252,7 @@ void InputSocketRef::foreach_logical_origin(FunctionRef<void(const OutputSocketR
       const OutputSocketRef &reroute_output = origin_node.output(0);
       skipped_fn.call_safe(reroute_input);
       skipped_fn.call_safe(reroute_output);
-      reroute_input.foreach_logical_origin(origin_fn, skipped_fn, false, handled_sockets);
+      reroute_input.foreach_logical_origin(origin_fn, skipped_fn, false, seen_sockets_stack);
     }
     else if (origin_node.is_muted()) {
       for (const InternalLinkRef *internal_link : origin_node.internal_links()) {
@@ -259,7 +260,7 @@ void InputSocketRef::foreach_logical_origin(FunctionRef<void(const OutputSocketR
           const InputSocketRef &mute_input = internal_link->from();
           skipped_fn.call_safe(origin);
           skipped_fn.call_safe(mute_input);
-          mute_input.foreach_logical_origin(origin_fn, skipped_fn, true, handled_sockets);
+          mute_input.foreach_logical_origin(origin_fn, skipped_fn, true, seen_sockets_stack);
           break;
         }
       }
@@ -268,18 +269,20 @@ void InputSocketRef::foreach_logical_origin(FunctionRef<void(const OutputSocketR
       origin_fn(origin);
     }
   }
+
+  seen_sockets_stack.pop_last();
 }
 
 void OutputSocketRef::foreach_logical_target(
     FunctionRef<void(const InputSocketRef &)> target_fn,
     FunctionRef<void(const SocketRef &)> skipped_fn,
-    Vector<const OutputSocketRef *> &handled_sockets) const
+    Vector<const OutputSocketRef *> &seen_sockets_stack) const
 {
   /* Protect against loops. */
-  if (handled_sockets.contains(this)) {
+  if (seen_sockets_stack.contains(this)) {
     return;
   }
-  handled_sockets.append(this);
+  seen_sockets_stack.append(this);
 
   for (const LinkRef *link : this->directly_linked_links()) {
     if (link->is_muted()) {
@@ -294,7 +297,7 @@ void OutputSocketRef::foreach_logical_target(
       const OutputSocketRef &reroute_output = target_node.output(0);
       skipped_fn.call_safe(target);
       skipped_fn.call_safe(reroute_output);
-      reroute_output.foreach_logical_target(target_fn, skipped_fn, handled_sockets);
+      reroute_output.foreach_logical_target(target_fn, skipped_fn, seen_sockets_stack);
     }
     else if (target_node.is_muted()) {
       skipped_fn.call_safe(target);
@@ -309,7 +312,7 @@ void OutputSocketRef::foreach_logical_target(
           const OutputSocketRef &mute_output = internal_link->to();
           skipped_fn.call_safe(target);
           skipped_fn.call_safe(mute_output);
-          mute_output.foreach_logical_target(target_fn, skipped_fn, handled_sockets);
+          mute_output.foreach_logical_target(target_fn, skipped_fn, seen_sockets_stack);
         }
       }
     }
@@ -317,6 +320,8 @@ void OutputSocketRef::foreach_logical_target(
       target_fn(target);
     }
   }
+
+  seen_sockets_stack.pop_last();
 }
 
 namespace {
@@ -336,7 +341,7 @@ static std::unique_ptr<SocketIndexByIdentifierMap> create_identifier_map(const L
   return map;
 }
 
-/* This function is not threadsafe.  */
+/* This function is not threadsafe. */
 static SocketByIdentifierMap get_or_create_identifier_map(
     const bNode &node, const ListBase &sockets, const bNodeSocketTemplate *sockets_template)
 {

@@ -202,8 +202,10 @@ enum {
   CAM_BGIMG_FLAG_FOREGROUND = (1 << 4),
 
   /* Camera framing options */
-  CAM_BGIMG_FLAG_CAMERA_ASPECT = (1 << 5), /* don't stretch to fit the camera view  */
-  CAM_BGIMG_FLAG_CAMERA_CROP = (1 << 6),   /* crop out the image */
+  /** Don't stretch to fit the camera view. */
+  CAM_BGIMG_FLAG_CAMERA_ASPECT = (1 << 5),
+  /** Crop out the image. */
+  CAM_BGIMG_FLAG_CAMERA_CROP = (1 << 6),
 
   /* Axis flip options */
   CAM_BGIMG_FLAG_FLIP_X = (1 << 7),
@@ -211,7 +213,7 @@ enum {
 };
 
 /* CameraBGImage->source */
-/* may want to use 1 for select ?*/
+/* may want to use 1 for select? */
 enum {
   CAM_BGIMG_SOURCE_IMAGE = 0,
   CAM_BGIMG_SOURCE_MOVIE = 1,

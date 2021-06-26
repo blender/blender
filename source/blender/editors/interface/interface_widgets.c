@@ -113,6 +113,7 @@ typedef enum {
   UI_WTYPE_LISTITEM,
   UI_WTYPE_PROGRESSBAR,
   UI_WTYPE_NODESOCKET,
+  UI_WTYPE_DATASETROW,
 } uiWidgetTypeEnum;
 
 /* Button state argument shares bits with 'uiBut.flag'.
@@ -1531,14 +1532,14 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
   int l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, NULL);
 
   if (l_end > 0) {
-    /* At least one character, so clip and add the ellipsis.  */
+    /* At least one character, so clip and add the ellipsis. */
     memcpy(str + l_end, sep, sep_len + 1); /* +1 for trailing '\0'. */
     if (r_final_len) {
       *r_final_len = (size_t)(l_end) + sep_len;
     }
   }
   else {
-    /* Otherwise fit as much as we can without adding an ellipsis.  */
+    /* Otherwise fit as much as we can without adding an ellipsis. */
     l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, okwidth, NULL);
     str[l_end] = '\0';
     if (r_final_len) {
@@ -3697,6 +3698,28 @@ static void widget_progressbar(
   rect->xmax += (BLI_rcti_size_x(&rect_prog) / 2);
 }
 
+static void widget_datasetrow(
+    uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
+{
+  uiButDatasetRow *but_componentrow = (uiButDatasetRow *)but;
+  uiWidgetBase wtb;
+  widget_init(&wtb);
+
+  /* no outline */
+  wtb.draw_outline = false;
+  const float rad = wcol->roundness * U.widget_unit;
+  round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
+
+  if ((state & UI_ACTIVE) || (state & UI_SELECT)) {
+    widgetbase_draw(&wtb, wcol);
+  }
+
+  BLI_rcti_resize(rect,
+                  BLI_rcti_size_x(rect) - UI_UNIT_X * but_componentrow->indentation,
+                  BLI_rcti_size_y(rect));
+  BLI_rcti_translate(rect, 0.5f * UI_UNIT_X * but_componentrow->indentation, 0);
+}
+
 static void widget_nodesocket(
     uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
@@ -4469,6 +4492,10 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_progressbar;
       break;
 
+    case UI_WTYPE_DATASETROW:
+      wt.custom = widget_datasetrow;
+      break;
+
     case UI_WTYPE_NODESOCKET:
       wt.custom = widget_nodesocket;
       break;
@@ -4789,6 +4816,11 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
 
       case UI_BTYPE_PROGRESS_BAR:
         wt = widget_type(UI_WTYPE_PROGRESSBAR);
+        fstyle = &style->widgetlabel;
+        break;
+
+      case UI_BTYPE_DATASETROW:
+        wt = widget_type(UI_WTYPE_DATASETROW);
         fstyle = &style->widgetlabel;
         break;
 
