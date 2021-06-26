@@ -61,6 +61,8 @@ bool transform_snap_grid(TransInfo *t, float *val);
 void snapSequenceBounds(TransInfo *t, const int mval[2]);
 
 bool activeSnap(const TransInfo *t);
+bool activeSnap_with_project(const TransInfo *t);
+
 bool validSnap(const TransInfo *t);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
