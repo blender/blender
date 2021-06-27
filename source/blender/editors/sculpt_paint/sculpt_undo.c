@@ -873,10 +873,10 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         SCULPT_dyntopo_node_layers_update_offsets(ss);
         BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
       }
-    }
 
-    // PBVH is corrupted at this point, destroy it
-    SCULPT_pbvh_clear(ob);
+      // PBVH is corrupted at this point, destroy it
+      SCULPT_pbvh_clear(ob);
+    }
 
     /* Restore pivot. */
     copy_v3_v3(ss->pivot_pos, unode->pivot_pos);
