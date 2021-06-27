@@ -741,6 +741,8 @@ typedef enum eBConstraint_SpaceTypes {
   CONSTRAINT_SPACE_POSE = 2,
   /** For posechannels - local with parent. */
   CONSTRAINT_SPACE_PARLOCAL = 3,
+  /** For posechannels - local converted to the owner bone orientation. */
+  CONSTRAINT_SPACE_OWNLOCAL = 6,
   /** For files from between 2.43-2.46 (should have been parlocal). */
   CONSTRAINT_SPACE_INVALID = 4, /* do not exchange for anything! */
 } eBConstraint_SpaceTypes;

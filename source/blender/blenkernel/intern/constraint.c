@@ -299,7 +299,10 @@ void BKE_constraint_mat_convertspace(Object *ob,
           mul_m4_m4m4(mat, imat, mat);
 
           /* Use pose-space as stepping stone for other spaces. */
-          if (ELEM(to, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_PARLOCAL)) {
+          if (ELEM(to,
+                   CONSTRAINT_SPACE_LOCAL,
+                   CONSTRAINT_SPACE_PARLOCAL,
+                   CONSTRAINT_SPACE_OWNLOCAL)) {
             /* Call self with slightly different values. */
             BKE_constraint_mat_convertspace(
                 ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
@@ -314,6 +317,17 @@ void BKE_constraint_mat_convertspace(Object *ob,
           if (pchan->bone) {
             BKE_armature_mat_pose_to_bone(pchan, mat, mat);
           }
+        }
+        /* pose to owner local */
+        else if (to == CONSTRAINT_SPACE_OWNLOCAL) {
+          /* pose to local */
+          if (pchan->bone) {
+            BKE_armature_mat_pose_to_bone(pchan, mat, mat);
+          }
+
+          /* local to owner local (recursive) */
+          BKE_constraint_mat_convertspace(
+              ob, pchan, cob, mat, CONSTRAINT_SPACE_LOCAL, to, keep_scale);
         }
         /* pose to local with parent */
         else if (to == CONSTRAINT_SPACE_PARLOCAL) {
@@ -336,17 +350,59 @@ void BKE_constraint_mat_convertspace(Object *ob,
       }
       case CONSTRAINT_SPACE_LOCAL: /* ------------ FROM LOCALSPACE --------- */
       {
+        /* local to owner local */
+        if (to == CONSTRAINT_SPACE_OWNLOCAL) {
+          if (pchan->bone) {
+            copy_m4_m4(diff_mat, pchan->bone->arm_mat);
+
+            if (cob && cob->pchan && cob->pchan->bone) {
+              invert_m4_m4(imat, cob->pchan->bone->arm_mat);
+              mul_m4_m4m4(diff_mat, imat, diff_mat);
+            }
+
+            zero_v3(diff_mat[3]);
+            invert_m4_m4(imat, diff_mat);
+            mul_m4_series(mat, diff_mat, mat, imat);
+          }
+        }
         /* local to pose - do inverse procedure that was done for pose to local */
+        else {
+          if (pchan->bone) {
+            /* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
+            BKE_armature_mat_bone_to_pose(pchan, mat, mat);
+          }
+
+          /* use pose-space as stepping stone for other spaces */
+          if (ELEM(to,
+                   CONSTRAINT_SPACE_WORLD,
+                   CONSTRAINT_SPACE_PARLOCAL,
+                   CONSTRAINT_SPACE_CUSTOM)) {
+            /* call self with slightly different values */
+            BKE_constraint_mat_convertspace(
+                ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
+          }
+        }
+        break;
+      }
+      case CONSTRAINT_SPACE_OWNLOCAL: { /* -------------- FROM OWNER LOCAL ---------- */
+        /* owner local to local */
         if (pchan->bone) {
-          /* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
-          BKE_armature_mat_bone_to_pose(pchan, mat, mat);
+          copy_m4_m4(diff_mat, pchan->bone->arm_mat);
+
+          if (cob && cob->pchan && cob->pchan->bone) {
+            invert_m4_m4(imat, cob->pchan->bone->arm_mat);
+            mul_m4_m4m4(diff_mat, imat, diff_mat);
+          }
+
+          zero_v3(diff_mat[3]);
+          invert_m4_m4(imat, diff_mat);
+          mul_m4_series(mat, imat, mat, diff_mat);
         }
 
-        /* use pose-space as stepping stone for other spaces */
-        if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL, CONSTRAINT_SPACE_CUSTOM)) {
+        if (to != CONSTRAINT_SPACE_LOCAL) {
           /* call self with slightly different values */
           BKE_constraint_mat_convertspace(
-              ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
+              ob, pchan, cob, mat, CONSTRAINT_SPACE_LOCAL, to, keep_scale);
         }
         break;
       }
@@ -358,7 +414,11 @@ void BKE_constraint_mat_convertspace(Object *ob,
         }
 
         /* use pose-space as stepping stone for other spaces */
-        if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_CUSTOM)) {
+        if (ELEM(to,
+                 CONSTRAINT_SPACE_WORLD,
+                 CONSTRAINT_SPACE_LOCAL,
+                 CONSTRAINT_SPACE_OWNLOCAL,
+                 CONSTRAINT_SPACE_CUSTOM)) {
           /* call self with slightly different values */
           BKE_constraint_mat_convertspace(
               ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
