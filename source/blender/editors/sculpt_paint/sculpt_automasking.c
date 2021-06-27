@@ -103,9 +103,9 @@ bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, co
     return true;
   }
   if (SCULPT_is_automasking_mode_enabled(sd, br, BRUSH_AUTOMASKING_CONCAVITY)) {
-    return true;
-  }
-  if (br && br->concave_mask_factor > 0.0f) {
+    if (br && br->concave_mask_factor == 0.0f) {
+      return false;
+    }
     return true;
   }
 
