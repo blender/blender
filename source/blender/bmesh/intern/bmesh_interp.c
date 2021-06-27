@@ -1251,6 +1251,17 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   BLI_mempool *oldpool = olddata->pool;
   void *block;
 
+  CustomDataLayer **nocopy_layers = NULL;
+  BLI_array_staticdeclare(nocopy_layers, 1024);
+
+  // temporarily clear CD_FLAG_ELEM_NOCOPY flags
+  for (int i = 0; i < data->totlayer; i++) {
+    if (data->layers[i].flag & CD_FLAG_ELEM_NOCOPY) {
+      data->layers[i].flag &= ~CD_FLAG_ELEM_NOCOPY;
+      BLI_array_append(nocopy_layers, data->layers + i);
+    }
+  }
+
   if (data == &bm->vdata) {
     BMVert *eve;
 
@@ -1311,6 +1322,12 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
     BLI_assert(0);
   }
 
+  for (int i = 0; i < BLI_array_len(nocopy_layers); i++) {
+    nocopy_layers[i]->flag |= CD_FLAG_ELEM_NOCOPY;
+  }
+
+  BLI_array_free(nocopy_layers);
+
   if (oldpool) {
     /* this should never happen but can when dissolve fails - T28960. */
     BLI_assert(data->pool != oldpool);
@@ -1335,6 +1352,8 @@ void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
+
+  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name)
@@ -1353,6 +1372,8 @@ void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
+
+  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
@@ -1375,6 +1396,8 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
+
+  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
@@ -1397,6 +1420,8 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
   if (olddata.layers) {
     MEM_freeN(olddata.layers);
   }
+
+  bm_update_idmap_cdlayers(bm);
 }
 
 void BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int dst_n)

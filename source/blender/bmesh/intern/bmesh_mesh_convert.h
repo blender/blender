@@ -43,11 +43,14 @@ struct BMeshFromMeshParams {
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
   uint copy_temp_cdlayers : 1;
+  uint copy_id_layers : 1;  // make sure to enable ids when creating bmesh properly
 };
 
 struct Object;
-void BM_mesh_bm_from_me(struct Object *ob, BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
-    ATTR_NONNULL(1, 3);
+void BM_mesh_bm_from_me(struct Object *ob,
+                        BMesh *bm,
+                        const struct Mesh *me,
+                        const struct BMeshFromMeshParams *params) ATTR_NONNULL(1, 3);
 
 struct BMeshToMeshParams {
   /** Update object hook indices & vertex parents. */
@@ -64,6 +67,7 @@ struct BMeshToMeshParams {
   uint update_shapekey_indices : 1;
   struct CustomData_MeshMasks cd_mask_extra;
   uint copy_temp_cdlayers : 1;
+  uint copy_mesh_id_layers : 1;
 };
 
 void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);

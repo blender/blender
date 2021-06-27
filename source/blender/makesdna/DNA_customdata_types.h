@@ -75,11 +75,11 @@ typedef struct CustomData {
    * MUST be >= CD_NUMTYPES, but we can't use a define here.
    * Correct size is ensured in CustomData_update_typemap assert().
    */
-  int typemap[52];
+  int typemap[53];
   /** Number of layers, size of layers array. */
   int totlayer, maxlayer;
   /** In editmode, total size of all data layers. */
-  int totsize, _pad;
+  int totsize;
   /** (BMesh Only): Memory pool for allocation of blocks. */
   struct BLI_mempool *pool;
   /** External file storing customdata layers. */
@@ -158,7 +158,8 @@ typedef enum CustomDataType {
   CD_PROP_BOOL = 50,
 
   CD_DYNTOPO_VERT = 51,
-  CD_NUMTYPES = 52,
+  CD_MESH_ID = 52,
+  CD_NUMTYPES = 53,
 } CustomDataType;
 
 /* Bits for CustomDataMask */
@@ -212,7 +213,8 @@ typedef enum CustomDataType {
 #define CD_MASK_PROP_FLOAT2 (1ULL << CD_PROP_FLOAT2)
 #define CD_MASK_PROP_BOOL (1ULL << CD_PROP_BOOL)
 
-#define CD_MASK_DYNTOPO_VERT (1ULL <<  CD_DYNTOPO_VERT)
+#define CD_MASK_DYNTOPO_VERT (1ULL << CD_DYNTOPO_VERT)
+#define CD_MASK_MESH_ID (1ULL << CD_MESH_ID)
 
 /** Multires loop data. */
 #define CD_MASK_MULTIRES_GRIDS (CD_MASK_MDISPS | CD_GRID_PAINT_MASK)
@@ -240,11 +242,14 @@ enum {
   /* Indicates layer should not be freed (for layers backed by external data) */
   CD_FLAG_NOFREE = (1 << 1),
   /* Indicates the layer is only temporary, also implies no copy */
-  CD_FLAG_TEMPORARY = ((1 << 2) | CD_FLAG_NOCOPY),
+  CD_FLAG_TEMPORARY = ((1 << 2)),  // CD_FLAG_TEMPORARY no longer implies CD_FLAG_NOCOPY, this
+                                   // wasn't enforced for bmesh
   /* Indicates the layer is stored in an external file */
   CD_FLAG_EXTERNAL = (1 << 3),
   /* Indicates external data is read into memory */
   CD_FLAG_IN_MEMORY = (1 << 4),
+  CD_FLAG_ELEM_NOCOPY =
+      (1 << 5),  // disables CustomData_bmesh_copy_data and CustomData_bmesh_set_default_n.
 };
 
 /* Limits */

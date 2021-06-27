@@ -668,8 +668,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   BLI_assert((pbvh->totnode == 1 || node_index) && node_index <= pbvh->totnode);
 
   /* avoid initializing customdata because its quite involved */
-  BMVert *v = BM_vert_create(pbvh->bm, co, NULL, BM_CREATE_SKIP_CD);
-  CustomData_bmesh_set_default(&pbvh->bm->vdata, &v->head.data);
+  BMVert *v = BM_vert_create(pbvh->bm, co, NULL, BM_CREATE_NOP);
 
   if (v_example) {
     v->head.hflag = v_example->head.hflag;
@@ -3757,7 +3756,7 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
             f1->no, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->prev->v->co);
       }
       else {
-        //printf("eek1!\n");
+        // printf("eek1!\n");
       }
 
       if (val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3]) {
@@ -3766,7 +3765,8 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
         vs[2] = ls[3]->v;
 
         BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f, false, false);
-        SWAP(void *, f2->l_first->prev->head.data, ls[3]->head.data);
+        CustomData_bmesh_swap_data_simple(
+            &pbvh->bm->pdata, &f2->l_first->prev->head.data, &ls[3]->head.data);
 
         CustomData_bmesh_copy_data(
             &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &f2->l_first->head.data);
@@ -3778,13 +3778,16 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
         BM_log_face_added(pbvh->bm_log, f2);
       }
       else {
-        //printf("eek2!\n");
+        // printf("eek2!\n");
       }
 
       if (f1) {
-        SWAP(void *, f1->l_first->head.data, ls[0]->head.data);
-        SWAP(void *, f1->l_first->next->head.data, ls[1]->head.data);
-        SWAP(void *, f1->l_first->prev->head.data, ls[2]->head.data);
+        CustomData_bmesh_swap_data_simple(
+            &pbvh->bm->ldata, &f1->l_first->head.data, &ls[0]->head.data);
+        CustomData_bmesh_swap_data_simple(
+            &pbvh->bm->ldata, &f1->l_first->next->head.data, &ls[1]->head.data);
+        CustomData_bmesh_swap_data_simple(
+            &pbvh->bm->ldata, &f1->l_first->prev->head.data, &ls[2]->head.data);
 
         BM_log_face_added(pbvh->bm_log, f1);
       }
@@ -5142,7 +5145,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   for (int i = 0; i < pbvh->totnode; i++) {
     for (int j = 0; j < nodedata[i].totvert; j++) {
       BMVert *v1 = nodedata[i].verts[j];
-      BMVert *v2 = BM_vert_create(bm2, v1->co, NULL, BM_CREATE_SKIP_CD);
+      BMVert *v2 = BM_vert_create(bm2, v1->co, NULL, BM_CREATE_NOP);
       BM_elem_attrs_copy_ex(pbvh->bm, bm2, v1, v2, 0, 0L);
 
       v2->head.index = v1->head.index = BLI_array_len(verts);
@@ -5154,7 +5157,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
     for (int j = 0; j < nodedata[i].totedge; j++) {
       BMEdge *e1 = nodedata[i].edges[j];
       BMEdge *e2 = BM_edge_create(
-          bm2, verts[e1->v1->head.index], verts[e1->v2->head.index], NULL, BM_CREATE_SKIP_CD);
+          bm2, verts[e1->v1->head.index], verts[e1->v2->head.index], NULL, BM_CREATE_NOP);
       BM_elem_attrs_copy_ex(pbvh->bm, bm2, e1, e2, 0, 0L);
 
       e2->head.index = e1->head.index = BLI_array_len(edges);
@@ -5183,7 +5186,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
         totloop++;
       } while (l1 != f1->l_first);
 
-      BMFace *f2 = BM_face_create(bm2, fvs, fes, totloop, NULL, BM_CREATE_SKIP_CD);
+      BMFace *f2 = BM_face_create(bm2, fvs, fes, totloop, NULL, BM_CREATE_NOP);
       f1->head.index = f2->head.index = BLI_array_len(faces);
       BLI_array_append(faces, f2);
 

@@ -1564,6 +1564,30 @@ static void layerDynTopoVert_interp(
   mv->origmask = origmask;
 }
 
+static void layerCopy_noop(const void *UNUSED(source), void *UNUSED(dest), int UNUSED(count))
+{
+  // do nothing
+}
+
+static void layerInterp_noop(const void **UNUSED(sources),
+                             const float *UNUSED(weights),
+                             const float *UNUSED(sub_weights),
+                             int UNUSED(count),
+                             void *UNUSED(dest))
+{
+  // do nothing
+}
+
+static void layerDefault_mesh_id(void *data, int count)
+{
+  int *val = (int *)data;
+
+  for (int i = 0; i < count; i++) {
+    // val[i] = -1;
+    val[i] = 0;
+  }
+}
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 0: CD_MVERT */
     {sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -1945,13 +1969,24 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      NULL,
      NULL},
+    /* 51 CD_DYNTOPO_VERT */
     {sizeof(MDynTopoVert),
-     NULL,  // flag singleton layer
+     "MDynTopoVert",
      1,
-     N_("DynTopoVert"),
+     NULL,  // flag singleton layer
      layerDynTopoVert_copy,
      NULL,
-     layerDynTopoVert_interp}};
+     layerDynTopoVert_interp},
+    /*52 CD_MESH_ID */
+    {sizeof(unsigned int),
+     "MIntProperty",
+     1,
+     NULL,  // flag singleton layer
+     layerCopy_propInt,
+     NULL,
+     layerInterp_noop,
+     NULL,
+     layerDefault_mesh_id}};
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     /*   0-4 */ "CDMVert",
@@ -3829,6 +3864,10 @@ static void CustomData_bmesh_set_default_n(CustomData *data, void **block, int n
   int offset = data->layers[n].offset;
   const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[n].type);
 
+  if (data->layers[n].flag & CD_FLAG_ELEM_NOCOPY) {
+    return;
+  }
+
   if (typeInfo->set_default) {
     typeInfo->set_default(POINTER_OFFSET(*block, offset), 1);
   }
@@ -3845,6 +3884,26 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
 
   for (int i = 0; i < data->totlayer; i++) {
     CustomData_bmesh_set_default_n(data, block, i);
+  }
+}
+
+void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **block2)
+{
+  int cd_id = data->typemap[CD_MESH_ID];
+  cd_id = cd_id >= 0 ? data->layers[cd_id].offset : -1;
+
+  void *tmp = *block1;
+  *block1 = *block2;
+  *block2 = tmp;
+
+  // unswap ids if they exist
+  if (cd_id != -1 && *block1 && *block2) {
+    int *id1 = (int *)(((char *)*block1) + cd_id);
+    int *id2 = (int *)(((char *)*block2) + cd_id);
+
+    tmp = *id1;
+    *id1 = *id2;
+    *id2 = tmp;
   }
 }
 
@@ -3873,6 +3932,11 @@ void CustomData_bmesh_swap_data(CustomData *source,
     while (dest_i_start < dest->totlayer &&
            dest->layers[dest_i_start].type < source->layers[src_i].type) {
       dest_i_start++;
+    }
+
+    if (source->layers[src_i].type == CD_MESH_ID) {
+      // do not swap ids
+      continue;
     }
 
     /* if there are no more dest layers, we're done */
@@ -3961,6 +4025,10 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
       /* if we found a matching layer, copy the data */
       if (STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
         if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
+          if (dest->layers[dest_i].flag & CD_FLAG_ELEM_NOCOPY) {
+            break;
+          }
+
           const void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
           void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
           const LayerTypeInfo *typeInfo = layerType_getInfo(source->layers[src_i].type);
@@ -4251,12 +4319,12 @@ void CustomData_bmesh_interp_n(CustomData *data,
   typeInfo->interp(src_blocks_ofs, weights, sub_weights, count, dst_block_ofs);
 }
 
-void CustomData_bmesh_interp(CustomData *data,
-                             const void **src_blocks,
-                             const float *weights,
-                             const float *sub_weights,
-                             int count,
-                             void *dst_block)
+ATTR_NO_OPT void CustomData_bmesh_interp(CustomData *data,
+                                         const void **src_blocks,
+                                         const float *weights,
+                                         const float *sub_weights,
+                                         int count,
+                                         void *dst_block)
 {
   if (count <= 0) {
     return;

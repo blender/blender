@@ -31,6 +31,7 @@ typedef enum eBMCreateFlag {
    * use if we immediately write customdata into the element so this skips copying from 'example'
    * args or setting defaults, speeds up conversion when data is converted all at once. */
   BM_CREATE_SKIP_CD = (1 << 2),
+  BM_CREATE_SKIP_ID = (1 << 3)
 } eBMCreateFlag;
 
 BMVert *BM_vert_create(BMesh *bm,

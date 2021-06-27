@@ -295,6 +295,8 @@ typedef struct BMFlagLayer {
 
 // #pragma GCC diagnostic ignored "-Wpadded"
 
+struct RangeTreeUInt;
+
 typedef struct BMesh {
   int totvert, totedge, totloop, totface;
   int totvertsel, totedgesel, totfacesel;
@@ -378,10 +380,25 @@ typedef struct BMesh {
    * instead of crashing on invalid memory access.
    */
   void *py_handle;
-  MultiresModifierData multires; //copy of multires settings
+  MultiresModifierData multires;  // copy of multires settings
   bool haveMultiResSettings;
   int multiresSpace;
+
+  struct {
+    int flag;
+    struct RangeTreeUInt *idtree;
+    uint maxid;
+    struct BMElem **map;
+    int map_size;
+    int cd_id_off[15];
+  } idmap;
 } BMesh;
+
+enum {
+  // firsst four bits are reserved for BM_VERT/EDGE/LOOP/FACE
+  BM_HAS_IDS = 1 << 4,
+  BM_HAS_ID_MAP = 1 << 5,
+};
 
 /** #BMHeader.htype (char) */
 enum {
@@ -591,3 +608,6 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #else
 #  define BM_OMP_LIMIT 10000
 #endif
+
+/* note does not check if ids are enabled for a given element type */
+#define BM_ELEM_GET_ID(bm, elem) BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[elem->head.htype])

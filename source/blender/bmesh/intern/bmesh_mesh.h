@@ -23,8 +23,8 @@
 #include "bmesh_class.h"
 
 typedef enum {
-  MULTIRES_SPACE_TANGENT, //convert absolute to tangent
-  MULTIRES_SPACE_ABSOLUTE //convert tangent to absolute
+  MULTIRES_SPACE_TANGENT,  // convert absolute to tangent
+  MULTIRES_SPACE_ABSOLUTE  // convert tangent to absolute
 } MultiResSpace;
 
 struct BMAllocTemplate;
@@ -36,6 +36,9 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void BM_mesh_elem_toolflags_clear(BMesh *bm);
 
 struct BMeshCreateParams {
+  uint use_unique_ids : 1;
+  uint use_id_elem_mask : 4;  // which element types to make unique ids for
+  uint use_id_map : 1;        // maintain an id to element lookup table
   uint use_toolflags : 1;
 };
 

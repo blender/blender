@@ -488,9 +488,10 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   /* Create triangles-only BMesh. */
 #if 1
   ss->bm = BM_mesh_create(&allocsize,
-                          &((struct BMeshCreateParams){
-                              .use_toolflags = false,
-                          }));
+                          &((struct BMeshCreateParams){.use_toolflags = false,
+                                                       .use_unique_ids = true,
+                                                       .use_id_elem_mask = BM_VERT | BM_FACE,
+                                                       .use_id_map = true}));
 
   BM_mesh_bm_from_me(NULL,
                      ss->bm,

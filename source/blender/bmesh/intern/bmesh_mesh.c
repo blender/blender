@@ -33,6 +33,8 @@
 #include "BKE_mesh.h"
 
 #include "bmesh.h"
+#include "bmesh_private.h"
+#include "range_tree.h"
 
 /* used as an extern, defined in bmesh.h */
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
@@ -154,6 +156,24 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, allocsize, params->use_toolflags);
 
+  bm->idmap.flag = 0;
+
+  if (params->use_unique_ids) {
+    bm->idmap.flag |= BM_HAS_IDS;
+    bm->idmap.flag |= params->use_id_elem_mask * BM_HAS_ID_MAP;
+    bm->idmap.flag |= params->use_id_elem_mask;
+
+    bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+  }
+
+  if (bm->idmap.flag & BM_HAS_ID_MAP) {
+    bm->idmap.map_size = BM_DEFAULT_IDMAP_SIZE;
+    bm->idmap.map = MEM_callocN(sizeof(void *) * bm->idmap.map_size, "bmesh idmap");
+  }
+  else {
+    bm->idmap.map = NULL;
+  }
+
   /* allocate one flag pool that we don't get rid of. */
   bm->use_toolflags = params->use_toolflags;
   bm->toolflag_index = 0;
@@ -183,6 +203,12 @@ void BM_mesh_data_free(BMesh *bm)
 
   BMIter iter;
   BMIter itersub;
+
+  if (bm->idmap.idtree) {
+    range_tree_uint_free(bm->idmap.idtree);
+  }
+
+  MEM_SAFE_FREE(bm->idmap.map);
 
   const bool is_ldata_free = CustomData_bmesh_has_free(&bm->ldata);
   const bool is_pdata_free = CustomData_bmesh_has_free(&bm->pdata);
@@ -289,6 +315,10 @@ void BM_mesh_clear(BMesh *bm)
   CustomData_reset(&bm->edata);
   CustomData_reset(&bm->ldata);
   CustomData_reset(&bm->pdata);
+
+  if (bm->idmap.flag & BM_HAS_IDS) {
+    bm_init_idmap_cdlayers(bm);
+  }
 }
 
 /**

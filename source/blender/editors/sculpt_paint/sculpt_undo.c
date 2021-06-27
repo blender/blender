@@ -581,9 +581,10 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
 
   /* Create empty BMesh and enable logging. */
   ss->bm = BM_mesh_create(&bm_mesh_allocsize_default,
-                          &((struct BMeshCreateParams){
-                              .use_toolflags = false,
-                          }));
+                          &((struct BMeshCreateParams){.use_toolflags = false,
+                                                       .use_unique_ids = true,
+                                                       .use_id_elem_mask = BM_VERT | BM_FACE,
+                                                       .use_id_map = true}));
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
   SCULPT_dyntopo_node_layers_add(ss);
 

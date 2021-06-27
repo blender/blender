@@ -36,7 +36,58 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
+#include "range_tree.h"
+
 #define SELECT 1
+
+void bm_assign_id(BMesh *bm, BMElem *elem, uint id)
+{
+  BM_ELEM_CD_SET_INT(elem, bm->idmap.cd_id_off[elem->head.htype], id);
+
+  bm->idmap.maxid = MAX2(bm->idmap.maxid, id);
+
+  if (bm->idmap.flag & BM_HAS_ID_MAP) {
+    if (!bm->idmap.map || bm->idmap.map_size <= bm->idmap.maxid) {
+      int size = 2 + bm->idmap.maxid + (bm->idmap.maxid >> 1);
+
+      BMElem **idmap = MEM_callocN(sizeof(void *) * size, "bmesh idmap");
+
+      if (bm->idmap.map) {
+        memcpy((void *)idmap, (void *)bm->idmap.map, sizeof(void *) * bm->idmap.map_size);
+        MEM_freeN(bm->idmap.map);
+      }
+
+      bm->idmap.map = idmap;
+      bm->idmap.map_size = size;
+    }
+
+    bm->idmap.map[id] = elem;
+  }
+}
+
+void bm_alloc_id(BMesh *bm, BMElem *elem)
+{
+  if ((bm->idmap.flag & (elem->head.htype | BM_HAS_IDS)) != (elem->head.htype | BM_HAS_IDS)) {
+    return;
+  }
+
+  uint id = range_tree_uint_take_any(bm->idmap.idtree);
+  bm_assign_id(bm, elem, id);
+}
+
+void bm_free_id(BMesh *bm, BMElem *elem)
+{
+  if ((bm->idmap.flag & (elem->head.htype | BM_HAS_IDS)) != (elem->head.htype | BM_HAS_IDS)) {
+    return;
+  }
+
+  uint id = BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[elem->head.htype]);
+  range_tree_uint_retake(bm->idmap.idtree, id);
+
+  if ((bm->idmap.flag & BM_HAS_ID_MAP) && bm->idmap.map && id >= 0 && id < bm->idmap.map_size) {
+    bm->idmap.map[id] = NULL;
+  }
+}
 
 /**
  * Fill in a vertex array from an edge array.
@@ -507,20 +558,32 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
   /* Copy specific attributes */
   switch (ele_dst->htype) {
     case BM_VERT:
-      bm_vert_attrs_copy(
-          bm_src, bm_dst, (const BMVert *)ele_src, (BMVert *)ele_dst, cd_mask_exclude);
+      bm_vert_attrs_copy(bm_src,
+                         bm_dst,
+                         (const BMVert *)ele_src,
+                         (BMVert *)ele_dst,
+                         cd_mask_exclude | CD_MASK_MESH_ID);
       break;
     case BM_EDGE:
-      bm_edge_attrs_copy(
-          bm_src, bm_dst, (const BMEdge *)ele_src, (BMEdge *)ele_dst, cd_mask_exclude);
+      bm_edge_attrs_copy(bm_src,
+                         bm_dst,
+                         (const BMEdge *)ele_src,
+                         (BMEdge *)ele_dst,
+                         cd_mask_exclude | CD_MASK_MESH_ID);
       break;
     case BM_LOOP:
-      bm_loop_attrs_copy(
-          bm_src, bm_dst, (const BMLoop *)ele_src, (BMLoop *)ele_dst, cd_mask_exclude);
+      bm_loop_attrs_copy(bm_src,
+                         bm_dst,
+                         (const BMLoop *)ele_src,
+                         (BMLoop *)ele_dst,
+                         cd_mask_exclude | CD_MASK_MESH_ID);
       break;
     case BM_FACE:
-      bm_face_attrs_copy(
-          bm_src, bm_dst, (const BMFace *)ele_src, (BMFace *)ele_dst, cd_mask_exclude);
+      bm_face_attrs_copy(bm_src,
+                         bm_dst,
+                         (const BMFace *)ele_src,
+                         (BMFace *)ele_dst,
+                         cd_mask_exclude | CD_MASK_MESH_ID);
       break;
     default:
       BLI_assert(0);
@@ -567,7 +630,8 @@ static BMFace *bm_mesh_copy_new_face(
     j++;
   } while ((l_iter = l_iter->next) != l_first);
 
-  f_new = BM_face_create(bm_new, verts, edges, f->len, NULL, BM_CREATE_SKIP_CD);
+  f_new = BM_face_create(
+      bm_new, verts, edges, f->len, NULL, BM_CREATE_SKIP_CD | BM_CREATE_SKIP_ID);
 
   if (UNLIKELY(f_new == NULL)) {
     return NULL;
@@ -595,15 +659,46 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
     allocsize = &bm_mesh_allocsize_default;
   }
 
-  CustomData_copy(&bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
-  CustomData_copy(&bm_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
-  CustomData_copy(&bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
-  CustomData_copy(&bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
+  // forcibly copy mesh_id layers
+  CustomData *srcdatas[4] = {&bm_src->vdata, &bm_src->edata, &bm_src->ldata, &bm_src->pdata};
+  CustomData *dstdatas[4] = {&bm_dst->vdata, &bm_dst->edata, &bm_dst->ldata, &bm_dst->pdata};
+
+  for (int i = 0; i < 4; i++) {
+    CustomData *cdata = srcdatas[i];
+    int type = 1 << i;
+
+    if (CustomData_has_layer(cdata, CD_MESH_ID)) {
+      int idx = CustomData_get_layer_index(cdata, CD_MESH_ID);
+
+      cdata->layers[idx].flag &= ~(CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY);
+    }
+  }
+
+  CustomData_copy(
+      &bm_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask | CD_MASK_MESH_ID, CD_CALLOC, 0);
+  CustomData_copy(
+      &bm_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask | CD_MASK_MESH_ID, CD_CALLOC, 0);
+  CustomData_copy(
+      &bm_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask | CD_MASK_MESH_ID, CD_CALLOC, 0);
+  CustomData_copy(
+      &bm_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask | CD_MASK_MESH_ID, CD_CALLOC, 0);
 
   CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);
   CustomData_bmesh_init_pool(&bm_dst->edata, allocsize->totedge, BM_EDGE);
   CustomData_bmesh_init_pool(&bm_dst->ldata, allocsize->totloop, BM_LOOP);
   CustomData_bmesh_init_pool(&bm_dst->pdata, allocsize->totface, BM_FACE);
+
+  // flag mesh id layer as temporary
+  for (int i = 0; i < 4; i++) {
+    CustomData *cdata = dstdatas[i];
+    int type = 1 << i;
+
+    if (CustomData_has_layer(cdata, CD_MESH_ID)) {
+      int idx = CustomData_get_layer_index(cdata, CD_MESH_ID);
+
+      cdata->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+    }
+  }
 }
 
 /**
@@ -646,6 +741,8 @@ void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
     }
     CustomData_bmesh_init_pool(dst, size, htypes[i]);
   }
+
+  bm_update_idmap_cdlayers(bm_dst);
 }
 
 BMesh *BM_mesh_copy(BMesh *bm_old)
@@ -661,12 +758,33 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_BM(bm_old);
 
   /* allocate a bmesh */
-  bm_new = BM_mesh_create(&allocsize,
-                          &((struct BMeshCreateParams){
-                              .use_toolflags = bm_old->use_toolflags,
-                          }));
+  bm_new = BM_mesh_create(
+      &allocsize,
+      &((struct BMeshCreateParams){.use_toolflags = bm_old->use_toolflags,
+                                   .use_id_elem_mask = bm_old->idmap.flag &
+                                                       (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE),
+                                   .use_unique_ids = !!(bm_old->idmap.flag & BM_HAS_IDS),
+                                   .use_id_map = !!(bm_old->idmap.flag & BM_HAS_ID_MAP)}));
 
   BM_mesh_copy_init_customdata(bm_new, bm_old, &allocsize);
+
+  if (bm_old->idmap.flag & BM_HAS_IDS) {
+    MEM_SAFE_FREE(bm_new->idmap.map);
+
+    bm_new->idmap.map_size = bm_old->idmap.map_size;
+    bm_new->idmap.flag = bm_old->idmap.flag;
+
+    if (bm_new->idmap.map_size) {
+      bm_new->idmap.map = MEM_callocN(sizeof(void *) * bm_old->idmap.map_size, "bm idmap");
+    }
+    else {
+      bm_new->idmap.map = NULL;
+    }
+
+    bm_init_idmap_cdlayers(bm_new);
+  }
+
+  const int idflag = bm_new->idmap.flag;
 
   vtable = MEM_mallocN(sizeof(BMVert *) * bm_old->totvert, "BM_mesh_copy vtable");
   etable = MEM_mallocN(sizeof(BMEdge *) * bm_old->totedge, "BM_mesh_copy etable");
@@ -674,7 +792,9 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
   BM_ITER_MESH_INDEX (v, &iter, bm_old, BM_VERTS_OF_MESH, i) {
     /* copy between meshes so can't use 'example' argument */
-    v_new = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD);
+    v_new = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD | BM_CREATE_SKIP_ID);
+    bm_alloc_id(bm_new, (BMElem *)v_new);
+
     BM_elem_attrs_copy_ex(bm_old, bm_new, v, v_new, 0xff, 0x0);
     v_new->head.hflag = v->head.hflag; /* low level! don't do this for normal api use */
     vtable[i] = v_new;
@@ -692,7 +812,9 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
                            vtable[BM_elem_index_get(e->v1)],
                            vtable[BM_elem_index_get(e->v2)],
                            e,
-                           BM_CREATE_SKIP_CD);
+                           BM_CREATE_SKIP_CD | BM_CREATE_SKIP_ID);
+
+    bm_alloc_id(bm_new, (BMElem *)e_new);
 
     BM_elem_attrs_copy_ex(bm_old, bm_new, e, e_new, 0xff, 0x0);
     e_new->head.hflag = e->head.hflag; /* low level! don't do this for normal api use */
@@ -710,6 +832,16 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
     BM_elem_index_set(f, i); /* set_inline */
 
     f_new = bm_mesh_copy_new_face(bm_new, bm_old, vtable, etable, f);
+    bm_alloc_id(bm_new, (BMElem *)f_new);
+
+    if (bm_new->idmap.flag & BM_LOOP) {
+      BMLoop *l_new = f_new->l_first;
+
+      do {
+        bm_alloc_id(bm_new, (BMElem *)l_new);
+        l_new = l_new->next;
+      } while (l_new != f_new->l_first);
+    }
 
     ftable[i] = f_new;
 
@@ -809,4 +941,49 @@ char BM_face_flag_to_mflag(BMFace *f)
 
   return (((hflag & BM_ELEM_SELECT) ? ME_FACE_SEL : 0) |
           ((hflag & BM_ELEM_SMOOTH) ? ME_SMOOTH : 0) | ((hflag & BM_ELEM_HIDDEN) ? ME_HIDE : 0));
+}
+
+void bm_init_idmap_cdlayers(BMesh *bm)
+{
+  if (!(bm->idmap.flag & BM_HAS_IDS)) {
+    return;
+  }
+
+  if ((bm->idmap.flag & BM_VERT) && !CustomData_has_layer(&bm->vdata, CD_MESH_ID)) {
+    BM_data_layer_add(bm, &bm->vdata, CD_MESH_ID);
+    bm->vdata.layers[CustomData_get_layer_index(&bm->vdata, CD_MESH_ID)].flag |=
+        CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+  }
+
+  if ((bm->idmap.flag & BM_EDGE) && !CustomData_has_layer(&bm->edata, CD_MESH_ID)) {
+    BM_data_layer_add(bm, &bm->edata, CD_MESH_ID);
+    bm->edata.layers[CustomData_get_layer_index(&bm->edata, CD_MESH_ID)].flag |=
+        CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+  }
+
+  if ((bm->idmap.flag & BM_LOOP) && !CustomData_has_layer(&bm->ldata, CD_MESH_ID)) {
+    BM_data_layer_add(bm, &bm->ldata, CD_MESH_ID);
+    bm->ldata.layers[CustomData_get_layer_index(&bm->ldata, CD_MESH_ID)].flag |=
+        CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+  }
+
+  if ((bm->idmap.flag & BM_FACE) && !CustomData_has_layer(&bm->pdata, CD_MESH_ID)) {
+    BM_data_layer_add(bm, &bm->pdata, CD_MESH_ID);
+    bm->pdata.layers[CustomData_get_layer_index(&bm->pdata, CD_MESH_ID)].flag |=
+        CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+  }
+
+  bm_update_idmap_cdlayers(bm);
+}
+
+void bm_update_idmap_cdlayers(BMesh *bm)
+{
+  if (!(bm->idmap.flag & BM_HAS_IDS)) {
+    return;
+  }
+
+  bm->idmap.cd_id_off[BM_VERT] = CustomData_get_offset(&bm->vdata, CD_MESH_ID);
+  bm->idmap.cd_id_off[BM_EDGE] = CustomData_get_offset(&bm->edata, CD_MESH_ID);
+  bm->idmap.cd_id_off[BM_LOOP] = CustomData_get_offset(&bm->ldata, CD_MESH_ID);
+  bm->idmap.cd_id_off[BM_FACE] = CustomData_get_offset(&bm->pdata, CD_MESH_ID);
 }

@@ -272,10 +272,14 @@ void CustomData_copy_data_named(const struct CustomData *source,
                                 int count);
 void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count);
 
+// ignores CD_MESH_ID layer if it exists
 void CustomData_bmesh_swap_data(struct CustomData *source,
                                 struct CustomData *dest,
                                 void *src_block,
                                 void **dest_block);
+
+// simple pointer swap; will unswaps ids if a CD_MESH_ID layer exists
+void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **block2);
 
 void CustomData_bmesh_copy_data(const struct CustomData *source,
                                 struct CustomData *dest,
