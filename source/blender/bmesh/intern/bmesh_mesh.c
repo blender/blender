@@ -299,6 +299,7 @@ void BM_mesh_data_free(BMesh *bm)
 void BM_mesh_clear(BMesh *bm)
 {
   const bool use_toolflags = bm->use_toolflags;
+  const int idmap_flags = bm->idmap.flag;
 
   /* free old mesh */
   BM_mesh_data_free(bm);
@@ -316,7 +317,10 @@ void BM_mesh_clear(BMesh *bm)
   CustomData_reset(&bm->ldata);
   CustomData_reset(&bm->pdata);
 
+  bm->idmap.flag = idmap_flags;
+
   if (bm->idmap.flag & BM_HAS_IDS) {
+    bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
     bm_init_idmap_cdlayers(bm);
   }
 }

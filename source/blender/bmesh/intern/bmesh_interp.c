@@ -1336,10 +1336,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   }
 }
 
-ATTR_NO_OPT void BM_data_layers_ensure(BMesh *bm,
-                                       CustomData *data,
-                                       BMCustomLayerReq *layers,
-                                       int totlayer)
+void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers, int totlayer)
 {
   bool modified = false;
   CustomData old = *data;

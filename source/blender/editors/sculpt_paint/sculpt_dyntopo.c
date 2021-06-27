@@ -257,6 +257,9 @@ void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
     BKE_pbvh_update_offsets(
         ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
   }
+  if (ss->bm_log) {
+    BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
+  }
 }
 
 bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
@@ -732,6 +735,8 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
     if (use_undo) {
       SCULPT_undo_push_end();
     }
+
+    ss->active_vertex_index.i = ss->active_face_index.i = 0;
   }
 }
 
@@ -741,6 +746,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
                                                      Object *ob)
 {
   SculptSession *ss = ob->sculpt;
+
   if (ss->bm == NULL) {
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != NULL) : true;
@@ -752,6 +758,8 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
       SCULPT_undo_push_end();
     }
+
+    ss->active_vertex_index.i = ss->active_face_index.i = 0;
   }
 }
 

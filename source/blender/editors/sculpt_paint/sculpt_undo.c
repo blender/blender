@@ -562,6 +562,8 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
       MEM_freeN(nodes);
     }
 
+    SCULPT_dyntopo_node_layers_update_offsets(ss);
+
     if (data.balance_pbvh) {
       BKE_pbvh_bmesh_after_stroke(ss->pbvh);
     }
@@ -625,6 +627,7 @@ static void sculpt_undo_bmesh_restore_end(bContext *C,
                                           Object *ob,
                                           SculptSession *ss)
 {
+
   if (unode->applied) {
     sculpt_undo_bmesh_enable(ob, unode);
 
@@ -733,11 +736,12 @@ static int sculpt_undo_bmesh_restore(bContext *C,
                                      Object *ob,
                                      SculptSession *ss)
 {
-  if (ss->bm_log && ss->bm) {
+  if (ss->bm_log && ss->bm &&
+      !ELEM(unode->type, SCULPT_UNDO_DYNTOPO_BEGIN, SCULPT_UNDO_DYNTOPO_END)) {
     SCULPT_dyntopo_node_layers_update_offsets(ss);
     BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
 
-    if (ss->active_face_index.i) {
+    if (ss->active_face_index.i && ss->active_face_index.i != -1LL) {
       ss->active_face_index.i = (intptr_t)BM_log_face_id_get(ss->bm_log,
                                                              (BMFace *)ss->active_face_index.i);
     }
@@ -745,13 +749,16 @@ static int sculpt_undo_bmesh_restore(bContext *C,
       ss->active_face_index.i = -1;
     }
 
-    if (ss->active_vertex_index.i) {
+    if (ss->active_vertex_index.i && ss->active_vertex_index.i != -1LL) {
       ss->active_vertex_index.i = (intptr_t)BM_log_vert_id_get(
           ss->bm_log, (BMVert *)ss->active_vertex_index.i);
     }
     else {
       ss->active_vertex_index.i = -1;
     }
+  }
+  else {
+    ss->active_face_index.i = ss->active_vertex_index.i = -1;
   }
 
   bool ret = false;
@@ -760,6 +767,7 @@ static int sculpt_undo_bmesh_restore(bContext *C,
     case SCULPT_UNDO_DYNTOPO_BEGIN:
       sculpt_undo_bmesh_restore_begin(C, unode, ob, ss);
       SCULPT_vertex_random_access_ensure(ss);
+      ss->active_face_index.i = ss->active_vertex_index.i = 0;
       ret = true;
       break;
     case SCULPT_UNDO_DYNTOPO_END:
@@ -783,11 +791,20 @@ static int sculpt_undo_bmesh_restore(bContext *C,
       ss->active_face_index.i = (intptr_t)BM_log_id_face_get(ss->bm_log,
                                                              (uint)ss->active_face_index.i);
     }
+    else {
+      ss->active_face_index.i = 0;
+    }
 
     if (ss->active_vertex_index.i != -1) {
       ss->active_vertex_index.i = (intptr_t)BM_log_id_vert_get(ss->bm_log,
                                                                (uint)ss->active_vertex_index.i);
     }
+    else {
+      ss->active_vertex_index.i = 0;
+    }
+  }
+  else {
+    ss->active_face_index.i = ss->active_vertex_index.i = 0;
   }
 
   return ret;
@@ -831,12 +848,16 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   bool update = false, rebuild = false, update_mask = false, update_visibility = false;
   bool need_mask = false;
   bool need_refine_subdiv = false;
+  bool did_first_hack = false;
 
   for (unode = lb->first; unode; unode = unode->next) {
     if (unode->bm_entry && !ss->bm) {
       // file loading breaks undo because the stack isn't initialized
       // detect that case and try to fix it
 
+      did_first_hack = true;
+
+      ss->active_face_index.i = ss->active_vertex_index.i = 0;
       SCULPT_dynamic_topology_enable_ex(CTX_data_main(C), depsgraph, scene, ob);
 
       // see if we have a saved log in the entry
@@ -853,6 +874,9 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
       }
     }
+
+    // PBVH is corrupted at this point, destroy it
+    SCULPT_pbvh_clear(ob);
 
     /* Restore pivot. */
     copy_v3_v3(ss->pivot_pos, unode->pivot_pos);

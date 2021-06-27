@@ -40,7 +40,7 @@
 
 #define SELECT 1
 
-void bm_assign_id(BMesh *bm, BMElem *elem, uint id)
+static void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 {
   BM_ELEM_CD_SET_INT(elem, bm->idmap.cd_id_off[elem->head.htype], id);
 
@@ -65,6 +65,12 @@ void bm_assign_id(BMesh *bm, BMElem *elem, uint id)
   }
 }
 
+void bm_assign_id(BMesh *bm, BMElem *elem, uint id)
+{
+  range_tree_uint_retake(bm->idmap.idtree, id);
+  bm_assign_id_intern(bm, elem, id);
+}
+
 void bm_alloc_id(BMesh *bm, BMElem *elem)
 {
   if ((bm->idmap.flag & (elem->head.htype | BM_HAS_IDS)) != (elem->head.htype | BM_HAS_IDS)) {
@@ -72,7 +78,7 @@ void bm_alloc_id(BMesh *bm, BMElem *elem)
   }
 
   uint id = range_tree_uint_take_any(bm->idmap.idtree);
-  bm_assign_id(bm, elem, id);
+  bm_assign_id_intern(bm, elem, id);
 }
 
 void bm_free_id(BMesh *bm, BMElem *elem)

@@ -4319,12 +4319,12 @@ void CustomData_bmesh_interp_n(CustomData *data,
   typeInfo->interp(src_blocks_ofs, weights, sub_weights, count, dst_block_ofs);
 }
 
-ATTR_NO_OPT void CustomData_bmesh_interp(CustomData *data,
-                                         const void **src_blocks,
-                                         const float *weights,
-                                         const float *sub_weights,
-                                         int count,
-                                         void *dst_block)
+void CustomData_bmesh_interp(CustomData *data,
+                             const void **src_blocks,
+                             const float *weights,
+                             const float *sub_weights,
+                             int count,
+                             void *dst_block)
 {
   if (count <= 0) {
     return;

@@ -227,10 +227,10 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
  *
  * \warning This function doesn't calculate face normals.
  */
-ATTR_NO_OPT void BM_mesh_bm_from_me(Object *ob,
-                                    BMesh *bm,
-                                    const Mesh *me,
-                                    const struct BMeshFromMeshParams *params)
+void BM_mesh_bm_from_me(Object *ob,
+                        BMesh *bm,
+                        const Mesh *me,
+                        const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
@@ -783,7 +783,7 @@ void BM_mesh_bm_to_me(
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-    int extra2 = params->copy_mesh_id_layers ? CD_MESH_ID : 0;
+    CustomDataMask extra2 = params->copy_mesh_id_layers ? CD_MASK_MESH_ID : 0;
 
     // clear mesh id layer flags
     if (params->copy_mesh_id_layers) {
@@ -802,20 +802,6 @@ void BM_mesh_bm_to_me(
     CustomData_copy(&bm->edata, &me->edata, mask.emask | extra2, CD_CALLOC, me->totedge);
     CustomData_copy(&bm->ldata, &me->ldata, mask.lmask | extra2, CD_CALLOC, me->totloop);
     CustomData_copy(&bm->pdata, &me->pdata, mask.pmask | extra2, CD_CALLOC, me->totpoly);
-
-    // restore mesh id layer flags in bm
-    if (params->copy_mesh_id_layers) {
-      CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-      CustomData *dstdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
-
-      for (int i = 0; i < 4; i++) {
-        int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
-
-        if (idx >= 0) {
-          srcdatas[i]->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
-        }
-      }
-    }
   }
 
   MVert *mvert = bm->totvert ? MEM_callocN(sizeof(MVert) * bm->totvert, "bm_to_me.vert") : NULL;
@@ -1178,6 +1164,20 @@ void BM_mesh_bm_to_me(
 
   /* To be removed as soon as COW is enabled by default. */
   BKE_mesh_runtime_clear_geometry(me);
+
+  if (params->copy_mesh_id_layers) {
+    // restore mesh id layer flags in bm
+    CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+    CustomData *dstdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
+
+    for (int i = 0; i < 4; i++) {
+      int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
+
+      if (idx >= 0) {
+        srcdatas[i]->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+      }
+    }
+  }
 
   if (params && params->copy_temp_cdlayers) {
     bm_mark_temp_cdlayers(bm);
