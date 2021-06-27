@@ -234,7 +234,12 @@ static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
 /* Get a vertex from its unique ID */
 static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
 {
-  return (BMVert *)log->bm->idmap.map[id];
+  return id < (uint)log->bm->idmap.map_size ? (BMVert *)log->bm->idmap.map[id] : NULL;
+}
+
+BMVert *BM_log_id_vert_get(BMLog *log, uint id)
+{
+  return bm_log_vert_from_id(log, id);
 }
 
 /* Get the face's unique ID from the log */
@@ -248,25 +253,20 @@ uint BM_log_vert_id_get(BMLog *log, BMVert *v)
   return bm_log_vert_id_get(log, v);
 }
 
-BMVert *BM_log_id_vert_get(BMLog *log, uint id)
-{
-  return (BMVert *)log->bm->idmap.map[id];
-}
-
 uint BM_log_face_id_get(BMLog *log, BMFace *f)
 {
   return bm_log_face_id_get(log, f);
 }
 
-BMFace *BM_log_id_face_get(BMLog *log, uint id)
-{
-  return (BMFace *)log->bm->idmap.map[id];
-}
-
 /* Get a face from its unique ID */
 static BMFace *bm_log_face_from_id(BMLog *log, uint id)
 {
-  return (BMFace *)log->bm->idmap.map[id];
+  return id < (uint)log->bm->idmap.map_size ? (BMFace *)log->bm->idmap.map[id] : NULL;
+}
+
+BMFace *BM_log_id_face_get(BMLog *log, uint id)
+{
+  return bm_log_face_from_id(log, id);
 }
 
 /************************ BMLogVert / BMLogFace ***********************/
@@ -433,7 +433,7 @@ static void bm_log_verts_unmake(
   }
 }
 
-static void bm_log_faces_unmake(
+ATTR_NO_OPT static void bm_log_faces_unmake(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -443,7 +443,7 @@ static void bm_log_faces_unmake(
     uint id = POINTER_AS_UINT(key);
     BMFace *f = bm_log_face_from_id(log, id);
 
-    if (!f) {
+    if (!f || f->head.htype != BM_FACE) {
       printf("dyntopo error in %s\n", __func__);
       continue;
     }

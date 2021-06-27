@@ -37,6 +37,7 @@
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
+#include "range_tree.h"
 
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */
@@ -786,6 +787,54 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
     BLI_mempool_free(bm->vtoolflagpool, ((BMVert_OFlag *)v)->oflags);
   }
   BLI_mempool_free(bm->vpool, v);
+}
+
+void BM_reassign_ids(BMesh *bm)
+{
+  if (!(bm->idmap.flag & BM_HAS_IDS)) {
+    return;
+  }
+
+  if (bm->idmap.map) {
+    memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
+  }
+
+  if (bm->idmap.idtree) {
+    range_tree_uint_free(bm->idmap.idtree);
+  }
+
+  bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+
+  int iters[] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH, BM_FACES_OF_MESH};
+
+  for (int i = 0; i < 4; i++) {
+    int htype = 1 << i;
+
+    if (!(bm->idmap.flag & htype)) {
+      continue;
+    }
+
+    BMElem *elem;
+    BMIter iter;
+
+    if (htype == BM_LOOP) {
+      BMFace *f;
+      BM_ITER_MESH (f, &iter, bm, iters[i]) {
+
+        BMLoop *l = f->l_first;
+        do {
+          l = l->next;
+        } while (l != f->l_first);
+
+        bm_alloc_id(bm, (BMElem *)l);
+      }
+    }
+    else {
+      BM_ITER_MESH (elem, &iter, bm, iters[i]) {
+        bm_alloc_id(bm, elem);
+      }
+    }
+  }
 }
 
 /**

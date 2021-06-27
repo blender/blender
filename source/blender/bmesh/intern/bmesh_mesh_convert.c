@@ -286,6 +286,10 @@ void BM_mesh_bm_from_me(Object *ob,
       bm_mark_temp_cdlayers(bm);
     }
 
+    if (bm->idmap.flag & BM_HAS_IDS) {
+      bm_init_idmap_cdlayers(bm);
+    }
+
     return; /* Sanity check. */
   }
 
@@ -392,26 +396,25 @@ void BM_mesh_bm_from_me(Object *ob,
     BM_mesh_cd_flag_apply(bm, me->cd_flag);
   }
 
-  bool use_exist_ids = false;
+  int use_exist_ids = 0;
   int has_ids = bm->idmap.flag & BM_HAS_IDS ?
                     (bm->idmap.flag & (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)) :
                     0;
 
   if (bm->idmap.flag & BM_HAS_IDS) {
-    if (params->copy_temp_cdlayers && params->copy_id_layers) {
-      CustomData *cdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+    if (params->copy_id_layers) {
+      const CustomData *cdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
 
       for (int i = 0; i < 4; i++) {
         int idx = CustomData_get_layer_index(cdatas[i], CD_MESH_ID);
 
         if (idx >= 0) {
-          // set layer flags
-          cdatas[i]->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+          use_exist_ids |= 1 << i;
         }
       }
-
-      use_exist_ids = true;
     }
+
+    use_exist_ids &= bm->idmap.flag;
 
     bm_init_idmap_cdlayers(bm);
   }
@@ -446,7 +449,7 @@ void BM_mesh_bm_from_me(Object *ob,
     CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data, true);
 
     if (has_ids & BM_VERT) {
-      if (use_exist_ids) {
+      if (use_exist_ids & BM_VERT) {
         bm_assign_id(bm, (BMElem *)v, BM_ELEM_GET_ID(bm, v));
       }
       else {
@@ -495,7 +498,7 @@ void BM_mesh_bm_from_me(Object *ob,
     CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
 
     if (has_ids & BM_EDGE) {
-      if (use_exist_ids) {
+      if (use_exist_ids & BM_EDGE) {
         bm_assign_id(bm, (BMElem *)e, BM_ELEM_GET_ID(bm, e));
       }
       else {
@@ -566,7 +569,7 @@ void BM_mesh_bm_from_me(Object *ob,
       CustomData_to_bmesh_block(&me->ldata, &bm->ldata, j++, &l_iter->head.data, true);
 
       if (has_ids & BM_LOOP) {
-        if (use_exist_ids) {
+        if (use_exist_ids & BM_LOOP) {
           bm_assign_id(bm, (BMElem *)l_iter, BM_ELEM_GET_ID(bm, l_iter));
         }
         else {
@@ -579,7 +582,7 @@ void BM_mesh_bm_from_me(Object *ob,
     CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data, true);
 
     if (has_ids & BM_FACE) {
-      if (use_exist_ids) {
+      if (use_exist_ids & BM_FACE) {
         bm_assign_id(bm, (BMElem *)f, BM_ELEM_GET_ID(bm, f));
       }
       else {
@@ -637,6 +640,19 @@ void BM_mesh_bm_from_me(Object *ob,
 
   if (params->copy_temp_cdlayers) {
     bm_mark_temp_cdlayers(bm);
+  }
+
+  if (bm->idmap.flag & BM_HAS_IDS) {
+    CustomData *cdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+
+    for (int i = 0; i < 4; i++) {
+      int idx = CustomData_get_layer_index(cdatas[i], CD_MESH_ID);
+
+      if (idx >= 0) {
+        // set layer flags
+        cdatas[i]->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+      }
+    }
   }
 }
 

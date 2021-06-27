@@ -9421,7 +9421,6 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
        * parts that symmetrize modifies). */
       SCULPT_undo_push_begin(ob, "Dynamic topology symmetrize");
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
-      BM_log_before_all_removed(ss->bm, ss->bm_log);
 
       BM_mesh_toolflags_set(ss->bm, true);
 
@@ -9441,8 +9440,12 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
 
+      // symmetrize is messing up ids, regenerate them from scratch
+      BM_reassign_ids(ss->bm);
+
+      BM_log_full_mesh(ss->bm, ss->bm_log);
+
       /* Finish undo. */
-      BM_log_all_added(ss->bm, ss->bm_log);
       SCULPT_undo_push_end();
 
       break;

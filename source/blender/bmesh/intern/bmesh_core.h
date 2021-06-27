@@ -129,3 +129,5 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
 BMVert *bmesh_kernel_unglue_region_make_vert(BMesh *bm, BMLoop *l_sep);
 BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int larr_len);
 BMVert *bmesh_kernel_unglue_region_make_vert_multi_isolated(BMesh *bm, BMLoop *l_sep);
+
+void BM_reassign_ids(BMesh *bm);

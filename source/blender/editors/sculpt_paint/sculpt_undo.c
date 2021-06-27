@@ -580,6 +580,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
   Mesh *me = ob->data;
 
   SCULPT_pbvh_clear(ob);
+  ss->active_face_index.i = ss->active_vertex_index.i = 0;
 
   /* Create empty BMesh and enable logging. */
   ss->bm = BM_mesh_create(&bm_mesh_allocsize_default,
@@ -587,7 +588,6 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
                                                        .use_unique_ids = true,
                                                        .use_id_elem_mask = BM_VERT | BM_FACE,
                                                        .use_id_map = true}));
-  BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
   SCULPT_dyntopo_node_layers_add(ss);
 
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
@@ -771,6 +771,8 @@ static int sculpt_undo_bmesh_restore(bContext *C,
       ret = true;
       break;
     case SCULPT_UNDO_DYNTOPO_END:
+      ss->active_face_index.i = ss->active_vertex_index.i = 0;
+
       if (ss->bm) {
         sculpt_undo_bmesh_restore_end(C, unode, ob, ss);
       }
@@ -788,19 +790,30 @@ static int sculpt_undo_bmesh_restore(bContext *C,
 
   if (ss->bm_log && ss->bm) {
     if (ss->active_face_index.i != -1) {
-      ss->active_face_index.i = (intptr_t)BM_log_id_face_get(ss->bm_log,
-                                                             (uint)ss->active_face_index.i);
+      BMFace *f = BM_log_id_face_get(ss->bm_log, (uint)ss->active_face_index.i);
+      if (f && f->head.htype == BM_FACE) {
+        ss->active_face_index.i = (intptr_t)f;
+      }
+      else {
+        ss->active_face_index.i = 0LL;
+      }
     }
     else {
-      ss->active_face_index.i = 0;
+      ss->active_face_index.i = 0LL;
     }
 
     if (ss->active_vertex_index.i != -1) {
-      ss->active_vertex_index.i = (intptr_t)BM_log_id_vert_get(ss->bm_log,
-                                                               (uint)ss->active_vertex_index.i);
+      BMVert *v = BM_log_id_vert_get(ss->bm_log, (uint)ss->active_vertex_index.i);
+
+      if (v && v->head.htype == BM_VERT) {
+        ss->active_vertex_index.i = (intptr_t)v;
+      }
+      else {
+        ss->active_vertex_index.i = 0LL;
+      }
     }
     else {
-      ss->active_vertex_index.i = 0;
+      ss->active_vertex_index.i = 0LL;
     }
   }
   else {
