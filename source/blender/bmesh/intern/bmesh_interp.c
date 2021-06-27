@@ -1336,6 +1336,102 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   }
 }
 
+ATTR_NO_OPT void BM_data_layers_ensure(BMesh *bm,
+                                       CustomData *data,
+                                       BMCustomLayerReq *layers,
+                                       int totlayer)
+{
+  bool modified = false;
+  CustomData old = *data;
+  CustomData temp;
+  CustomDataMask mask = 0;
+
+  if (old.layers) {
+    old.layers = MEM_dupallocN(old.layers);
+  }
+
+  memset(&temp, 0, sizeof(temp));
+  CustomData_reset(&temp);
+
+  for (int i = 0; i < totlayer; i++) {
+    BMCustomLayerReq *req = layers + i;
+    int idx;
+
+    mask |= 1ULL << (CustomDataMask)req->type;
+
+    if (req->name) {
+      idx = CustomData_get_named_layer_index(data, req->type, req->name);
+    }
+    else {
+      idx = CustomData_get_layer_index(data, req->type);
+    }
+
+    if (idx < 0) {
+      modified = true;
+
+      if (req->name) {
+        CustomData_add_layer_named(&temp, req->type, CD_ASSIGN, NULL, 0, req->name);
+      }
+      else {
+        CustomData_add_layer(&temp, req->type, CD_ASSIGN, NULL, 0);
+      }
+    }
+  }
+
+  int htype;
+  if (data == &bm->vdata) {
+    htype = BM_VERT;
+  }
+  else if (data == &bm->edata) {
+    htype = BM_EDGE;
+  }
+  else if (data == &bm->ldata) {
+    htype = BM_LOOP;
+  }
+  else if (data == &bm->pdata) {
+    htype = BM_FACE;
+  }
+  else {
+    printf("error in %s!\n", __func__);
+    CustomData_free(&temp, 0);
+    return;
+  }
+
+  if (modified) {
+    CustomData_merge(&temp, data, mask, CD_ASSIGN, 0);
+  }
+
+  for (int i = 0; i < totlayer; i++) {
+    BMCustomLayerReq *req = layers + i;
+    int idx;
+
+    mask |= 1 << req->type;
+
+    if (req->name) {
+      idx = CustomData_get_named_layer_index(data, req->type, req->name);
+    }
+    else {
+      idx = CustomData_get_layer_index(data, req->type);
+    }
+
+    data->layers[idx].flag |= req->flag;
+  }
+
+  if (modified) {
+    /* the pool is now owned by olddata and must not be shared */
+    data->pool = NULL;
+
+    update_data_blocks(bm, &old, data);
+    bm_update_idmap_cdlayers(bm);
+  }
+
+  if (old.layers) {
+    MEM_freeN(old.layers);
+  }
+
+  CustomData_free(&temp, 0);
+}
+
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type)
 {
   CustomData olddata;

@@ -24,6 +24,12 @@
 struct LinkNode;
 struct MemArena;
 
+typedef struct BMCustomLayerReq {
+  int type;
+  char *name;  // can be NULL
+  int flag;
+} BMCustomLayerReq;
+
 void BM_face_multires_stitch(BMesh *bm, BMFace *f);
 void BM_loop_interp_multires_ex(BMesh *bm,
                                 BMLoop *l_dst,
@@ -53,6 +59,9 @@ void BM_data_interp_face_vert_edge(BMesh *bm,
                                    BMVert *v,
                                    BMEdge *e,
                                    const float fac);
+
+void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers, int totlayer);
+
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type);
 void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name);
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type);

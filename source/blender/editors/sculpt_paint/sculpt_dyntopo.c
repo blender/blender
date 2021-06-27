@@ -296,18 +296,11 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
   int cd_origco_index, cd_origno_index, cd_origvcol_index = -1;
   bool have_vcol = CustomData_has_layer(&ss->bm->vdata, CD_PROP_COLOR);
 
-  if (!CustomData_has_layer(&ss->bm->vdata, CD_DYNTOPO_VERT)) {
-    BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_DYNTOPO_VERT);
+  BMCustomLayerReq vlayers[] = {{CD_PAINT_MASK, NULL, 0},
+                                {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY},
+                                {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY}};
 
-    int cd_dyn_vert = CustomData_get_layer_index(&ss->bm->vdata, CD_DYNTOPO_VERT);
-    ss->bm->vdata.layers[cd_dyn_vert].flag |= CD_FLAG_TEMPORARY;
-  }
-
-  cd_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
-  if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
-  }
+  BM_data_layers_ensure(ss->bm, &ss->bm->vdata, vlayers, 3);
 
   cd_face_node_layer_index = CustomData_get_named_layer_index(
       &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
@@ -513,8 +506,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 #endif
   SCULPT_dynamic_topology_triangulate(ss, ss->bm);
 
-  BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
-
   SCULPT_dyntopo_node_layers_add(ss);
   SCULPT_dyntopo_save_origverts(ss);
 
@@ -527,10 +518,12 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   // convert layer brush data
   if (ss->persistent_base) {
-    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
-    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
-    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
-    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
+    BMCustomLayerReq layers[] = {{CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO, CD_FLAG_TEMPORARY},
+                                 {CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO, CD_FLAG_TEMPORARY},
+                                 {CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP, CD_FLAG_TEMPORARY},
+                                 {CD_PROP_FLOAT, SCULPT_LAYER_DISP, CD_FLAG_TEMPORARY}};
+
+    BM_data_layers_ensure(ss->bm, &ss->bm->vdata, layers, 4);
 
     cd_pers_co = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
     cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
