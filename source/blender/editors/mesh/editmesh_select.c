@@ -4652,7 +4652,7 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
         }
       }
 
-      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed);
+      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed_iter);
       const int count_select = elem_map_len * randfac;
       for (int i = 0; i < count_select; i++) {
         BM_vert_select_set(em->bm, elem_map[i], select);
@@ -4668,7 +4668,7 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
           elem_map[elem_map_len++] = eed;
         }
       }
-      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed);
+      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed_iter);
       const int count_select = elem_map_len * randfac;
       for (int i = 0; i < count_select; i++) {
         BM_edge_select_set(em->bm, elem_map[i], select);
@@ -4684,7 +4684,7 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
           elem_map[elem_map_len++] = efa;
         }
       }
-      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed);
+      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed_iter);
       const int count_select = elem_map_len * randfac;
       for (int i = 0; i < count_select; i++) {
         BM_face_select_set(em->bm, elem_map[i], select);
