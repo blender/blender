@@ -109,20 +109,20 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_enum(ot->srna,
-                      "data_type",
-                      rna_enum_attribute_type_items,
-                      CD_PROP_FLOAT,
-                      "Data Type",
-                      "Type of data stored in attribute");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
-  prop = RNA_def_enum(ot->srna,
                       "domain",
                       rna_enum_attribute_domain_items,
                       ATTR_DOMAIN_POINT,
                       "Domain",
                       "Type of element that attribute is stored on");
   RNA_def_enum_funcs(prop, geometry_attribute_domain_itemf);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna,
+                      "data_type",
+                      rna_enum_attribute_type_items,
+                      CD_PROP_FLOAT,
+                      "Data Type",
+                      "Type of data stored in attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -138,6 +138,11 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
 
   if (!BKE_id_attribute_remove(id, layer, op->reports)) {
     return OPERATOR_CANCELLED;
+  }
+
+  int *active_index = BKE_id_attributes_active_index_p(id);
+  if (*active_index > 0) {
+    *active_index -= 1;
   }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
