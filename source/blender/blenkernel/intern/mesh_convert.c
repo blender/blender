@@ -545,10 +545,18 @@ Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *
   mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
   mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
-  memcpy(mesh->mvert, allvert, totvert * sizeof(MVert));
-  memcpy(mesh->medge, alledge, totedge * sizeof(MEdge));
-  memcpy(mesh->mloop, allloop, totloop * sizeof(MLoop));
-  memcpy(mesh->mpoly, allpoly, totpoly * sizeof(MPoly));
+  if (totvert != 0) {
+    memcpy(mesh->mvert, allvert, totvert * sizeof(MVert));
+  }
+  if (totedge != 0) {
+    memcpy(mesh->medge, alledge, totedge * sizeof(MEdge));
+  }
+  if (totloop != 0) {
+    memcpy(mesh->mloop, allloop, totloop * sizeof(MLoop));
+  }
+  if (totpoly != 0) {
+    memcpy(mesh->mpoly, allpoly, totpoly * sizeof(MPoly));
+  }
 
   if (alluv) {
     const char *uvname = "UVMap";
