@@ -788,23 +788,24 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
     extern "C++" { \
     inline constexpr _enum_type operator|(_enum_type a, _enum_type b) \
     { \
-      return static_cast<_enum_type>(static_cast<int>(a) | b); \
+      return static_cast<_enum_type>(static_cast<uint64_t>(a) | static_cast<uint64_t>(b)); \
     } \
     inline constexpr _enum_type operator&(_enum_type a, _enum_type b) \
     { \
-      return static_cast<_enum_type>(static_cast<int>(a) & b); \
+      return static_cast<_enum_type>(static_cast<uint64_t>(a) & static_cast<uint64_t>(b)); \
     } \
     inline constexpr _enum_type operator~(_enum_type a) \
     { \
-      return static_cast<_enum_type>(~static_cast<int>(a) & (2 * _max_enum_value - 1)); \
+      return static_cast<_enum_type>(~static_cast<uint64_t>(a) & \
+                                     (2 * static_cast<uint64_t>(_max_enum_value) - 1)); \
     } \
     inline _enum_type &operator|=(_enum_type &a, _enum_type b) \
     { \
-      return a = static_cast<_enum_type>(static_cast<int>(a) | b); \
+      return a = static_cast<_enum_type>(static_cast<uint64_t>(a) | static_cast<uint64_t>(b)); \
     } \
     inline _enum_type &operator&=(_enum_type &a, _enum_type b) \
     { \
-      return a = static_cast<_enum_type>(static_cast<int>(a) & b); \
+      return a = static_cast<_enum_type>(static_cast<uint64_t>(a) & static_cast<uint64_t>(b)); \
     } \
     } /* extern "C++" */
 
