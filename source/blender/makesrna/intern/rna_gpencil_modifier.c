@@ -2841,7 +2841,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_face_mark_boundaries", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_FILTER_FACE_MARK_BOUNDARIES);
   RNA_def_property_ui_text(
-      prop, "Boundaries", "Filtering feature lines on face mark boundaries as well");
+      prop, "Boundaries", "Filter feature lines based on face mark boundaries");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "chaining_image_threshold", PROP_FLOAT, PROP_DISTANCE);
@@ -2869,8 +2869,8 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_ALLOW_OVERLAP_EDGE_TYPES);
   RNA_def_property_ui_text(prop,
                            "Overlapping Edge Types",
-                           "Allow an edge to have multiple overlapping types. This will create an "
-                           "individual stroke for each overlapping type");
+                           "Allow an edge to have multiple overlapping types. This will create a "
+                           "separate stroke for each overlapping type");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "source_type", PROP_ENUM, PROP_NONE);
