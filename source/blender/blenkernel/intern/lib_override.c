@@ -48,6 +48,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -1311,6 +1312,33 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
 
   /* Should not actually be needed here. */
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+}
+
+/** Make given ID fully local.
+ *
+ *  \note Only differs from lower-level `BKE_lib_override_library_free in infamous embedded ID
+ *        cases.
+ */
+void BKE_lib_override_library_make_local(ID *id)
+{
+  BKE_lib_override_library_free(&id->override_library, true);
+
+  Key *shape_key = BKE_key_from_id(id);
+  if (shape_key != NULL) {
+    shape_key->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+  }
+
+  if (GS(id->name) == ID_SCE) {
+    Collection *master_collection = ((Scene *)id)->master_collection;
+    if (master_collection != NULL) {
+      master_collection->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+    }
+  }
+
+  bNodeTree *node_tree = ntreeFromID(id);
+  if (node_tree != NULL) {
+    node_tree->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+  }
 }
 
 BLI_INLINE IDOverrideLibraryRuntime *override_library_rna_path_runtime_ensure(
