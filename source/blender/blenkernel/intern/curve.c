@@ -442,6 +442,15 @@ ListBase *BKE_curve_editNurbs_get(Curve *cu)
   return NULL;
 }
 
+const ListBase *BKE_curve_editNurbs_get_for_read(const Curve *cu)
+{
+  if (cu->editnurb) {
+    return &cu->editnurb->nurbs;
+  }
+
+  return NULL;
+}
+
 short BKE_curve_type_get(const Curve *cu)
 {
   int type = cu->type;
@@ -2691,7 +2700,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
     is_editmode = 1;
   }
 
-  LISTBASE_FOREACH (Nurb *, nu, nurbs) {
+  LISTBASE_FOREACH (const Nurb *, nu, nurbs) {
     if (nu->hide && is_editmode) {
       continue;
     }
@@ -5073,6 +5082,15 @@ ListBase *BKE_curve_nurbs_get(Curve *cu)
 {
   if (cu->editnurb) {
     return BKE_curve_editNurbs_get(cu);
+  }
+
+  return &cu->nurb;
+}
+
+const ListBase *BKE_curve_nurbs_get_for_read(const Curve *cu)
+{
+  if (cu->editnurb) {
+    return BKE_curve_editNurbs_get_for_read(cu);
   }
 
   return &cu->nurb;
