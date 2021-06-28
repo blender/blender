@@ -53,7 +53,8 @@ typedef struct LineartTriangle {
   double gn[3];
 
   /* Material flag is removed to save space. */
-  unsigned char transparency_mask;
+  unsigned char material_mask_bits;
+  unsigned char mat_occlusion;
   unsigned char flags; /* #eLineartTriangleFlags */
 
   /**
@@ -101,13 +102,8 @@ typedef struct LineartEdgeSegment {
   /** Occlusion level after "at" point */
   unsigned char occlusion;
 
-  /**
-   * For determining lines behind a glass window material.
-   * the size of this variable should also be dynamically decided, 1 byte to 8 byte,
-   * allows 8 to 64 materials for "transparent mask". 1 byte (8 materials) should be
-   * enough for most cases.
-   */
-  unsigned char transparency_mask;
+  /* Used to filter line art occlusion edges */
+  unsigned char material_mask_bits;
 } LineartEdgeSegment;
 
 typedef struct LineartVert {
@@ -177,7 +173,7 @@ typedef struct LineartEdgeChain {
 
   /** Chain now only contains one type of segments */
   int type;
-  unsigned char transparency_mask;
+  unsigned char material_mask_bits;
 
   struct Object *object_ref;
 } LineartEdgeChain;
@@ -191,7 +187,7 @@ typedef struct LineartEdgeChainItem {
   float normal[3];
   unsigned char line_type;
   char occlusion;
-  unsigned char transparency_mask;
+  unsigned char material_mask_bits;
   size_t index;
 } LineartEdgeChainItem;
 
@@ -616,8 +612,8 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   int level_end,
                                   int mat_nr,
                                   short edge_types,
-                                  unsigned char transparency_flags,
-                                  unsigned char transparency_mask,
+                                  unsigned char material_mask_flags,
+                                  unsigned char material_mask_bits,
                                   short thickness,
                                   float opacity,
                                   const char *source_vgname,
