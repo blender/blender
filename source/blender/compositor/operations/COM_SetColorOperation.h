@@ -82,7 +82,7 @@ class SetColorOperation : public NodeOperation {
                            unsigned int preferredResolution[2]) override;
 
   void update_memory_buffer(MemoryBuffer *output,
-                            const rcti &output_area,
+                            const rcti &area,
                             Span<MemoryBuffer *> inputs,
                             ExecutionSystem &exec_system) override;
 };

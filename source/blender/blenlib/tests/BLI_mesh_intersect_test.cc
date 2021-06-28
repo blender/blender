@@ -174,6 +174,76 @@ TEST(mesh_intersect, Mesh)
   EXPECT_TRUE(f->is_tri());
 }
 
+TEST(mesh_intersect, TriangulateTri)
+{
+  const char *spec = R"(3 1
+  0 0 0
+  1 0 0
+  1/2 1 0
+  0 1 2
+  )";
+
+  IMeshBuilder mb(spec);
+  IMesh im_tri = triangulate_polymesh(mb.imesh, &mb.arena);
+  EXPECT_EQ(im_tri.faces().size(), 1);
+}
+
+TEST(mesh_intersect, TriangulateQuad)
+{
+  const char *spec = R"(4 1
+  0 0 0
+  1 0 0
+  1 1 0
+  0 1 0
+  0 1 2 3
+  )";
+
+  IMeshBuilder mb(spec);
+  IMesh im_tri = triangulate_polymesh(mb.imesh, &mb.arena);
+  EXPECT_EQ(im_tri.faces().size(), 2);
+}
+
+TEST(mesh_intersect, TriangulatePentagon)
+{
+  const char *spec = R"(5 1
+  0 0 0
+  1 0 0
+  1 1 0
+  1/2 2 0
+  0 1 0
+  0 1 2 3 4
+  )";
+
+  IMeshBuilder mb(spec);
+  IMesh im_tri = triangulate_polymesh(mb.imesh, &mb.arena);
+  EXPECT_EQ(im_tri.faces().size(), 3);
+  if (DO_OBJ) {
+    write_obj_mesh(im_tri, "pentagon");
+  }
+}
+
+TEST(mesh_intersect, TriangulateTwoFaces)
+{
+  const char *spec = R"(7 2
+  461/250 -343/125 103/1000
+  -3/40 -453/200 -97/500
+  237/100 -321/200 -727/500
+  451/1000 -563/500 -1751/1000
+  12/125 -2297/1000 -181/1000
+  12/125 -411/200 -493/1000
+  1959/1000 -2297/1000 -493/1000
+  1 3 2 0 6 5 4
+  6 0 1 4
+  )";
+
+  IMeshBuilder mb(spec);
+  IMesh im_tri = triangulate_polymesh(mb.imesh, &mb.arena);
+  EXPECT_EQ(im_tri.faces().size(), 7);
+  if (DO_OBJ) {
+    write_obj_mesh(im_tri, "twofaces");
+  }
+}
+
 TEST(mesh_intersect, OneTri)
 {
   const char *spec = R"(3 1
@@ -389,7 +459,7 @@ TEST(mesh_intersect, TwoTris)
       {4, 13, 6, 2}, /* 11: non-parallel planes, not intersecting, all one side. */
       {0, 14, 6, 2}, /* 12: non-paralel planes, not intersecting, alternate sides. */
       /* Following are all coplanar cases. */
-      {15, 16, 6, 8},   /* 13: T16 inside T15. Note: dup'd tri is expected.  */
+      {15, 16, 6, 8},   /* 13: T16 inside T15. Note: dup'd tri is expected. */
       {15, 17, 8, 8},   /* 14: T17 intersects one edge of T15 at (1,1,0)(3,3,0). */
       {15, 18, 10, 12}, /* 15: T18 intersects T15 at (1,1,0)(3,3,0)(3,15/4,1/2)(0,3,2). */
       {15, 19, 8, 10},  /* 16: T19 intersects T15 at (3,3,0)(0,3,2). */

@@ -1090,7 +1090,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
     RestrictPropertiesActive props_active = props_active_parent;
 
     if (te->ys + 2 * UI_UNIT_Y >= region->v2d.cur.ymin && te->ys <= region->v2d.cur.ymax) {
-      if (tselem->type == TSE_R_LAYER && (space_outliner->outlinevis == SO_SCENES)) {
+      if (tselem->type == TSE_R_LAYER &&
+          ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
         if (space_outliner->show_restrict_flags & SO_RESTRICT_RENDER) {
           /* View layer render toggle. */
           ViewLayer *layer = te->directdata;
@@ -3125,7 +3126,7 @@ static void outliner_draw_tree_element(bContext *C,
       *te_edit = te;
     }
 
-    /* Icons can be ui buts, we don't want it to overlap with restrict .*/
+    /* Icons can be UI buts, we don't want it to overlap with restrict. */
     if (restrict_column_width > 0) {
       xmax -= restrict_column_width + UI_UNIT_X;
     }

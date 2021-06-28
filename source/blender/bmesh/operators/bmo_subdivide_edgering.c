@@ -244,7 +244,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 
         el_store_other = BLI_ghash_lookup(vert_eloop_gh, v_other);
 
-        /* in rare cases we cant find a match */
+        /* in rare cases we can't find a match */
         if (el_store_other) {
           pair_test.first = el_store;
           pair_test.second = el_store_other;
@@ -586,7 +586,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
   }
   /* now normals are correct, don't touch! */
 
-  /* calculate the center spline, multiple  */
+  /* Calculate the center spline, multiple. */
   if ((interp_mode == SUBD_RING_INTERP_PATH) || falloff_cache) {
     float handle_a[3], handle_b[3];
     float handle_len;
@@ -1028,7 +1028,7 @@ static void bm_edgering_pair_subdiv(BMesh *bm,
     } while ((l_iter = l_iter->next) != l_first);
   }
 
-  /* clear tags so subdiv verts don't get tagged too  */
+  /* Clear tags so subdiv verts don't get tagged too. */
   for (el_store_ring = eloops_ring->first; el_store_ring;
        el_store_ring = BM_EDGELOOP_NEXT(el_store_ring)) {
     bm_edgeloop_vert_tag(el_store_ring, false);

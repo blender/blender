@@ -667,7 +667,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
                                  (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
                                      V3D_DEPTH_GPENCIL_ONLY :
                                      V3D_DEPTH_NO_GPENCIL,
-                                 false);
+                                 NULL);
       }
 
       /* convert screen-coordinates to appropriate coordinates (and store them) */
@@ -908,7 +908,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
       pt->time = ptc->time;
 
-      /** Create arrow strokes. **/
+      /** Create arrow strokes. */
       /* End arrow stroke. */
       if ((runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_END) &&
           (runtime.arrow_end_style != GP_STROKE_ARROWSTYLE_NONE)) {
@@ -1079,17 +1079,6 @@ static void annotation_free_stroke(bGPDframe *gpf, bGPDstroke *gps)
   BLI_freelinkN(&gpf->strokes, gps);
 }
 
-/**
- * Which which point is in front (result should only be used for comparison).
- */
-static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
-{
-  if (rv3d->is_persp) {
-    return ED_view3d_calc_zfac(rv3d, co, NULL);
-  }
-  return -dot_v3v3(rv3d->viewinv[2], co);
-}
-
 /* only erase stroke points that are visible (3d view) */
 static bool annotation_stroke_eraser_is_occluded(tGPsdata *p,
                                                  const bGPDspoint *pt,
@@ -1102,8 +1091,8 @@ static bool annotation_stroke_eraser_is_occluded(tGPsdata *p,
     float mval_3d[3];
 
     if (ED_view3d_autodist_simple(p->region, mval_i, mval_3d, 0, NULL)) {
-      const float depth_mval = view3d_point_depth(rv3d, mval_3d);
-      const float depth_pt = view3d_point_depth(rv3d, &pt->x);
+      const float depth_mval = ED_view3d_calc_depth_for_comparison(rv3d, mval_3d);
+      const float depth_pt = ED_view3d_calc_depth_for_comparison(rv3d, &pt->x);
 
       if (depth_pt > depth_mval) {
         return true;
@@ -1226,7 +1215,7 @@ static void annotation_stroke_doeraser(tGPsdata *p)
     if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
       View3D *v3d = p->area->spacedata.first;
       view3d_region_operator_needs_opengl(p->win, p->region);
-      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
+      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
     }
   }
 
@@ -1706,7 +1695,7 @@ static void annotation_paint_strokeend(tGPsdata *p)
                              (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
                                  V3D_DEPTH_GPENCIL_ONLY :
                                  V3D_DEPTH_NO_GPENCIL,
-                             false);
+                             NULL);
   }
 
   /* check if doing eraser or not */

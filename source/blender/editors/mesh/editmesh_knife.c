@@ -272,8 +272,7 @@ static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
   float v1[3], v2[3];
   float planes[4][4];
 
-  planes_from_projmat(
-      (const float(*)[4])kcd->projmat, planes[2], planes[0], planes[3], planes[1], NULL, NULL);
+  planes_from_projmat(kcd->projmat, planes[2], planes[0], planes[1], planes[3], NULL, NULL);
 
   /* ray-cast all planes */
   {
@@ -938,7 +937,7 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd,
 static void knife_start_cut(KnifeTool_OpData *kcd)
 {
   kcd->prev = kcd->curr;
-  kcd->curr.is_space = 0; /*TODO: why do we do this? */
+  kcd->curr.is_space = 0; /* TODO: why do we do this? */
 
   if (kcd->prev.vert == NULL && kcd->prev.edge == NULL) {
     float origin[3], origin_ofs[3];
@@ -953,7 +952,7 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
       zero_v3(kcd->prev.cage);
     }
 
-    copy_v3_v3(kcd->prev.co, kcd->prev.cage); /*TODO: do we need this? */
+    copy_v3_v3(kcd->prev.co, kcd->prev.cage); /* TODO: do we need this? */
     copy_v3_v3(kcd->curr.cage, kcd->prev.cage);
     copy_v3_v3(kcd->curr.co, kcd->prev.co);
   }
@@ -1161,7 +1160,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd,
   }
   else if (lh1->kfe) {
     kfe->v1 = knife_split_edge(kcd, lh1->kfe, lh1->hit, lh1->cagehit, &kfe2);
-    lh1->v = kfe->v1; /* record the KnifeVert for this hit  */
+    lh1->v = kfe->v1; /* Record the #KnifeVert for this hit. */
   }
   else {
     BLI_assert(lh1->f);
@@ -1169,7 +1168,7 @@ static void knife_add_single_cut(KnifeTool_OpData *kcd,
     kfe->v1->is_cut = true;
     kfe->v1->is_face = true;
     knife_append_list(kcd, &kfe->v1->faces, lh1->f);
-    lh1->v = kfe->v1; /* record the KnifeVert for this hit */
+    lh1->v = kfe->v1; /* Record the #KnifeVert for this hit. */
   }
 
   if (lh2->v) {

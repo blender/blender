@@ -92,7 +92,7 @@ typedef struct UVInitialStroke {
   /* Initial Selection,for grab brushes for instance */
   UVInitialStrokeElement *initialSelection;
 
-  /* total initially selected UVs*/
+  /* Total initially selected UV's. */
   int totalInitialSelected;
 
   /* initial mouse coordinates */
@@ -101,9 +101,9 @@ typedef struct UVInitialStroke {
 
 /* custom data for uv smoothing brush */
 typedef struct UvSculptData {
-  /* Contains the first of each set of coincident uvs.
+  /* Contains the first of each set of coincident UV's.
    * These will be used to perform smoothing on and propagate the changes
-   * to their coincident uvs */
+   * to their coincident UV's */
   UvAdjacencyElement *uv;
 
   /* ...Is what it says */
@@ -121,7 +121,7 @@ typedef struct UvSculptData {
   /* timer to be used for airbrush-type brush */
   wmTimer *timer;
 
-  /* to determine quickly adjacent uvs */
+  /* to determine quickly adjacent UV's */
   UvElementMap *elementMap;
 
   /* uvsmooth Paint for fast reference */
@@ -505,7 +505,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
     bool do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
     int island_index = 0;
-    /* Holds, for each UvElement in elementMap, a pointer to its unique uv.*/
+    /* Holds, for each UvElement in elementMap, a pointer to its unique UV. */
     int *uniqueUv;
     data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH) ?
                      UV_SCULPT_TOOL_RELAX :
@@ -550,7 +550,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       island_index = element->island;
     }
 
-    /* Count 'unique' uvs */
+    /* Count 'unique' UV's */
     for (i = 0; i < data->elementMap->totalUVs; i++) {
       if (data->elementMap->buf[i].separate &&
           (!do_island_optimization || data->elementMap->buf[i].island == island_index)) {
@@ -603,7 +603,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
           data->uv[counter].flag = 0;
           data->uv[counter].uv = luv->uv;
         }
-        /* pointer arithmetic to the rescue, as always :)*/
+        /* Pointer arithmetic to the rescue, as always :). */
         uniqueUv[element - data->elementMap->buf] = counter;
       }
     }
@@ -627,8 +627,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         offset2 = uniqueUv[itmp2];
 
         edges[counter].flag = 0;
-        /* using an order policy, sort uvs according to address space. This avoids
-         * Having two different UvEdges with the same uvs on different positions  */
+        /* Using an order policy, sort UV's according to address space.
+         * This avoids having two different UvEdges with the same UV's on different positions. */
         if (offset1 < offset2) {
           edges[counter].uv1 = offset1;
           edges[counter].uv2 = offset2;
@@ -674,7 +674,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     BLI_ghash_free(edgeHash, NULL, NULL);
     MEM_freeN(edges);
 
-    /* transfer boundary edge property to uvs */
+    /* transfer boundary edge property to UV's */
     if (ts->uv_sculpt_settings & UV_SCULPT_LOCK_BORDERS) {
       for (i = 0; i < data->totalUvEdges; i++) {
         if (!data->uvedges[i].flag) {

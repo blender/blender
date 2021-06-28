@@ -619,9 +619,9 @@ static PySequenceMethods Euler_SeqMethods = {
     (binaryfunc)NULL,                /* sq_concat */
     (ssizeargfunc)NULL,              /* sq_repeat */
     (ssizeargfunc)Euler_item,        /* sq_item */
-    (ssizessizeargfunc)NULL,         /* sq_slice, deprecated  */
+    (ssizessizeargfunc)NULL,         /* sq_slice (deprecated) */
     (ssizeobjargproc)Euler_ass_item, /* sq_ass_item */
-    (ssizessizeobjargproc)NULL,      /* sq_ass_slice, deprecated */
+    (ssizessizeobjargproc)NULL,      /* sq_ass_slice (deprecated) */
     (objobjproc)NULL,                /* sq_contains */
     (binaryfunc)NULL,                /* sq_inplace_concat */
     (ssizeargfunc)NULL,              /* sq_inplace_repeat */

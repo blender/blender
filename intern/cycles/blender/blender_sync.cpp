@@ -281,7 +281,6 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
 void BlenderSync::sync_integrator()
 {
-  BL::RenderSettings r = b_scene.render();
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
   experimental = (get_enum(cscene, "feature_set") != 0);
@@ -325,7 +324,7 @@ void BlenderSync::sync_integrator()
   integrator->set_sample_clamp_direct(get_float(cscene, "sample_clamp_direct"));
   integrator->set_sample_clamp_indirect(get_float(cscene, "sample_clamp_indirect"));
   if (!preview) {
-    integrator->set_motion_blur(r.use_motion_blur());
+    integrator->set_motion_blur(view_layer.use_motion_blur);
   }
 
   integrator->set_method((Integrator::Method)get_enum(
@@ -456,6 +455,8 @@ void BlenderSync::sync_view_layer(BL::ViewLayer &b_view_layer)
   view_layer.use_surfaces = b_view_layer.use_solid() || scene->bake_manager->get_baking();
   view_layer.use_hair = b_view_layer.use_strand();
   view_layer.use_volumes = b_view_layer.use_volumes();
+  view_layer.use_motion_blur = b_view_layer.use_motion_blur() &&
+                               b_scene.render().use_motion_blur();
 
   /* Material override. */
   view_layer.material_override = b_view_layer.material_override();
@@ -602,8 +603,10 @@ vector<Pass> BlenderSync::sync_render_passes(BL::Scene &b_scene,
   for (BL::RenderPass &b_pass : b_rlay.passes) {
     PassType pass_type = get_pass_type(b_pass);
 
-    if (pass_type == PASS_MOTION && b_scene.render().use_motion_blur())
+    if (pass_type == PASS_MOTION &&
+        (b_view_layer.use_motion_blur() && b_scene.render().use_motion_blur())) {
       continue;
+    }
     if (pass_type != PASS_NONE)
       Pass::add(pass_type, passes, b_pass.name().c_str());
   }

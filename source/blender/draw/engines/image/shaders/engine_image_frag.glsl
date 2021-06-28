@@ -28,7 +28,7 @@ in vec2 uvs;
 out vec4 fragColor;
 
 #ifdef TILED_IMAGE
-/* TODO(fclem): deduplicate code.  */
+/* TODO(fclem): deduplicate code. */
 bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
 {
   vec2 tile_pos = floor(co.xy);

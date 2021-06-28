@@ -492,7 +492,7 @@ bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, ID *id)
 }
 
 /**
- * Ideally we wont access the stack directly,
+ * Ideally we won't access the stack directly,
  * this is needed for modes which handle undo themselves (bypassing #ED_undo_push).
  *
  * Using global isn't great, this just avoids doing inline,
@@ -693,9 +693,9 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
     }
 
     if ((WM_operator_repeat_check(C, op)) && (WM_operator_poll(C, op->type)) &&
-        /* note, undo/redo cant run if there are jobs active,
+        /* note, undo/redo can't run if there are jobs active,
          * check for screen jobs only so jobs like material/texture/world preview
-         * (which copy their data), wont stop redo, see T29579],
+         * (which copy their data), won't stop redo, see T29579],
          *
          * note, - WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this */
         (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY) == 0)) {

@@ -803,7 +803,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
     /* Special case when we do this for 'Sequence.lock'.
-     * (if the sequence is locked, it wont be in "selected_editable_sequences"). */
+     * (if the sequence is locked, it won't be in "selected_editable_sequences"). */
     const char *prop_id = RNA_property_identifier(prop);
     if (STREQ(prop_id, "lock")) {
       *r_lb = CTX_data_collection_get(C, "selected_sequences");
@@ -921,7 +921,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
        * to handle situations like T41062... */
       if ((*r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence)) != NULL) {
         /* Special case when we do this for 'Sequence.lock'.
-         * (if the sequence is locked, it wont be in "selected_editable_sequences"). */
+         * (if the sequence is locked, it won't be in "selected_editable_sequences"). */
         const char *prop_id = RNA_property_identifier(prop);
         if (STREQ(prop_id, "lock")) {
           *r_lb = CTX_data_collection_get(C, "selected_sequences");

@@ -32,10 +32,10 @@ using namespace std;
 
 namespace Freestyle {
 
-/*! Base class for all lines objects */
+/** Base class for all lines objects */
 class LineRep : public Rep {
  public:
-  /*! Line description style */
+  /** Line description style */
   enum LINES_STYLE {
     LINES,
     LINE_STRIP,
@@ -47,7 +47,7 @@ class LineRep : public Rep {
     _width = 0.0f;
   }
 
-  /*! Builds a single line from 2 vertices
+  /** Builds a single line from 2 vertices
    *  v1
    *    first vertex
    *  v2
@@ -61,7 +61,7 @@ class LineRep : public Rep {
     _width = 0.0f;
   }
 
-  /*! Builds a line rep from a vertex chain */
+  /** Builds a line rep from a vertex chain */
   inline LineRep(const vector<Vec3r> &vertices) : Rep()
   {
     _vertices = vertices;
@@ -69,7 +69,7 @@ class LineRep : public Rep {
     _width = 0.0f;
   }
 
-  /*! Builds a line rep from a vertex chain */
+  /** Builds a line rep from a vertex chain */
   inline LineRep(const list<Vec3r> &vertices) : Rep()
   {
     for (list<Vec3r>::const_iterator v = vertices.begin(), end = vertices.end(); v != end; ++v) {
@@ -84,7 +84,7 @@ class LineRep : public Rep {
     _vertices.clear();
   }
 
-  /*! accessors */
+  /** accessors */
   inline const LINES_STYLE style() const
   {
     return _Style;
@@ -100,7 +100,7 @@ class LineRep : public Rep {
     return _width;
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setStyle(const LINES_STYLE iStyle)
   {
     _Style = iStyle;
@@ -127,14 +127,14 @@ class LineRep : public Rep {
     _width = iWidth;
   }
 
-  /*! Accept the corresponding visitor */
+  /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v)
   {
     Rep::accept(v);
     v.visitLineRep(*this);
   }
 
-  /*! Computes the line bounding box.*/
+  /** Computes the line bounding box. */
   virtual void ComputeBBox();
 
  private:

@@ -39,7 +39,8 @@ extern PyTypeObject FrsMaterial_Type;
 
 /*---------------------------Python BPy_FrsMaterial structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::FrsMaterial *m;
+  PyObject_HEAD
+  Freestyle::FrsMaterial *m;
 } BPy_FrsMaterial;
 
 /*---------------------------Python BPy_FrsMaterial visible prototypes-----------*/

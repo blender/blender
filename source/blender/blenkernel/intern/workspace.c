@@ -105,8 +105,8 @@ static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_list(reader, &workspace->tools);
 
   LISTBASE_FOREACH (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
-    /* parent pointer does not belong to workspace data and is therefore restored in lib_link step
-     * of window manager.*/
+    /* Parent pointer does not belong to workspace data and is therefore restored in lib_link step
+     * of window manager. */
     BLO_read_data_address(reader, &relation->value);
   }
 

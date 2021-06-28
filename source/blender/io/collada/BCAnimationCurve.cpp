@@ -314,7 +314,7 @@ void BCAnimationCurve::clean_handles()
     fcurve = get_edit_fcurve();
   }
 
-  /* Keep old bezt data for copy)*/
+  /* Keep old bezt data for copy). */
   BezTriple *old_bezts = fcurve->bezt;
   int totvert = fcurve->totvert;
   fcurve->bezt = nullptr;

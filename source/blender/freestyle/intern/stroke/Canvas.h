@@ -60,12 +60,12 @@ class ImagePyramid;
 class SteerableViewMap;
 class StyleModule;
 
-/*! Class to define the canvas on which strokes are drawn.
+/** Class to define the canvas on which strokes are drawn.
  *  It's used to store state information about the drawing.
  */
 class Canvas {
  public:
-  /*! Returns a pointer on the Canvas instance */
+  /** Returns a pointer on the Canvas instance */
   static Canvas *getInstance()
   {
     return _pInstance;
@@ -136,7 +136,7 @@ class Canvas {
   }
 
   /* Maps management */
-  /*! Loads an image map. The map will be scaled
+  /** Loads an image map. The map will be scaled
    *  (without preserving the ratio in order to fit the actual canvas size.).
    *  The image must be a gray values image...
    *  \param iFileName:
@@ -152,7 +152,7 @@ class Canvas {
                unsigned iNbLevels = 4,
                float iSigma = 1.0f);
 
-  /*! Reads a pixel value in a map.
+  /** Reads a pixel value in a map.
    *  Returns a value between 0 and 1.
    *  \param iMapName:
    *    The name of the map
@@ -167,19 +167,19 @@ class Canvas {
    */
   float readMapPixel(const char *iMapName, int level, int x, int y);
 
-  /*! Sets the steerable viewmap */
+  /** Sets the steerable viewmap */
   void loadSteerableViewMap(SteerableViewMap *iSVM)
   {
     _steerableViewMap = iSVM;
   }
 
-  /*! Returns the steerable VM */
+  /** Returns the steerable VM */
   SteerableViewMap *getSteerableViewMap()
   {
     return _steerableViewMap;
   }
 
-  /*! accessors */
+  /** accessors */
   inline const FEdge *selectedFEdge() const
   {
     return _SelectedFEdge;
@@ -215,13 +215,13 @@ class Canvas {
     return stroke_count;
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setSelectedFEdge(FEdge *iFEdge)
   {
     _SelectedFEdge = iFEdge;
   }
 
-  /*! inserts a shader at pos index+1 */
+  /** inserts a shader at pos index+1 */
   void PushBackStyleModule(StyleModule *iStyleModule);
   void InsertStyleModule(unsigned index, StyleModule *iStyleModule);
   void RemoveStyleModule(unsigned index);

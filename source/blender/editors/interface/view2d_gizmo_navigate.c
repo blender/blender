@@ -113,7 +113,7 @@ static struct NavigateGizmoInfo *navigate_params_from_space_type(short space_typ
     case SPACE_CLIP:
       return g_navigate_params_for_space_clip;
     default:
-      /* Used for sequencer.  */
+      /* Used for sequencer. */
       return g_navigate_params_for_view2d;
   }
 }

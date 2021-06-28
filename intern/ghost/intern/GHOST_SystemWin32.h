@@ -265,6 +265,16 @@ class GHOST_SystemWin32 : public GHOST_System {
                                           int mouseY,
                                           void *data);
 
+  /***************************************************************************************
+   ** Modify tablet API
+   ***************************************************************************************/
+
+  /**
+   * Set which tablet API to use.
+   * \param api: Enum indicating which API to use.
+   */
+  void setTabletAPI(GHOST_TTabletAPI api) override;
+
  protected:
   /**
    * Initializes the system.
@@ -309,6 +319,12 @@ class GHOST_SystemWin32 : public GHOST_System {
                                                GHOST_TButtonMask mask);
 
   /**
+   * Creates tablet events from Wintab events.
+   * \param window: The window receiving the event (the active window).
+   */
+  static void processWintabEvent(GHOST_WindowWin32 *window);
+
+  /**
    * Creates tablet events from pointer events.
    * \param type: The type of pointer event.
    * \param window: The window receiving the event (the active window).
@@ -350,6 +366,13 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param scanCode: The ScanCode of pressed key (similar to PS/2 Set 1).
    */
   GHOST_TKey processSpecialKey(short vKey, short scanCode) const;
+
+  /**
+   * Creates a window size event.
+   * \param window: The window receiving the event (the active window).
+   * \return The event created.
+   */
+  static GHOST_Event *processWindowSizeEvent(GHOST_WindowWin32 *window);
 
   /**
    * Creates a window event.

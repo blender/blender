@@ -97,7 +97,7 @@ static int bpy_bmloopuv_flag_set(BPy_BMLoopUV *self, PyObject *value, void *flag
 }
 
 static PyGetSetDef bpy_bmloopuv_getseters[] = {
-    /* attributes match rna_def_mloopuv  */
+    /* attributes match rna_def_mloopuv. */
     {"uv", (getter)bpy_bmloopuv_uv_get, (setter)bpy_bmloopuv_uv_set, bpy_bmloopuv_uv_doc, NULL},
     {"pin_uv",
      (getter)bpy_bmloopuv_flag_get,
@@ -207,7 +207,7 @@ static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *
 }
 
 static PyGetSetDef bpy_bmvertskin_getseters[] = {
-    /* attributes match rna_mesh_gen  */
+    /* attributes match rna_mesh_gen. */
     {"radius",
      (getter)bpy_bmvertskin_radius_get,
      (setter)bpy_bmvertskin_radius_set,

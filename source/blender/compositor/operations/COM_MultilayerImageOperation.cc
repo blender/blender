@@ -51,6 +51,13 @@ ImBuf *MultilayerBaseOperation::getImBuf()
   return nullptr;
 }
 
+void MultilayerBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                           const rcti &area,
+                                                           Span<MemoryBuffer *> UNUSED(inputs))
+{
+  output->copy_from(m_buffer, area);
+}
+
 std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData()
 {
   BLI_assert(this->m_buffer);

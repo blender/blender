@@ -1607,7 +1607,7 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 
   RNA_string_get(op->ptr, "filepath", str);
 
-  /* we cant do much if the str is longer than FILE_MAX :/ */
+  /* we can't do much if the str is longer than FILE_MAX :/ */
   BLI_strncpy(sima->image->filepath, str, sizeof(sima->image->filepath));
 
   if (sima->image->source == IMA_SRC_GENERATED) {
@@ -3870,7 +3870,7 @@ static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
 
   /* Acquire ibuf to get the default values.
    * If the specified tile has no ibuf, try acquiring the main tile instead
-   * (unless the specified tile already was the main tile).*/
+   * (unless the specified tile already was the main tile). */
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   if (ibuf == NULL && (tile != NULL) && (tile->tile_number != 1001)) {
     ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);

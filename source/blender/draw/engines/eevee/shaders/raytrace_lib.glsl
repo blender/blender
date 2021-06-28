@@ -90,7 +90,7 @@ ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, float thickness)
 }
 
 struct RayTraceParameters {
-  /** ViewSpace thickness the objects  */
+  /** ViewSpace thickness the objects. */
   float thickness;
   /** Jitter along the ray to avoid banding artifact when steps are too large. */
   float jitter;

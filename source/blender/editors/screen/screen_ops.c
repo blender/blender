@@ -2117,16 +2117,16 @@ static ScrEdge *area_findsharededge(bScreen *screen, ScrArea *area, ScrArea *sb)
   ScrVert *sbv3 = sb->v3;
   ScrVert *sbv4 = sb->v4;
 
-  if (sav1 == sbv4 && sav2 == sbv3) { /* area to right of sb = W */
+  if (sav1 == sbv4 && sav2 == sbv3) { /* Area to right of sb = W. */
     return BKE_screen_find_edge(screen, sav1, sav2);
   }
-  if (sav2 == sbv1 && sav3 == sbv4) { /* area to bottom of sb = N */
+  if (sav2 == sbv1 && sav3 == sbv4) { /* Area to bottom of sb = N. */
     return BKE_screen_find_edge(screen, sav2, sav3);
   }
-  if (sav3 == sbv2 && sav4 == sbv1) { /* area to left of sb = E */
+  if (sav3 == sbv2 && sav4 == sbv1) { /* Area to left of sb = E. */
     return BKE_screen_find_edge(screen, sav3, sav4);
   }
-  if (sav1 == sbv2 && sav4 == sbv3) { /* area on top of sb = S*/
+  if (sav1 == sbv2 && sav4 == sbv3) { /* Area on top of sb = S. */
     return BKE_screen_find_edge(screen, sav1, sav4);
   }
 
@@ -5598,13 +5598,13 @@ static void SCREEN_OT_workspace_cycle(wmOperatorType *ot)
 /* called in spacetypes.c */
 void ED_operatortypes_screen(void)
 {
-  /* generic UI stuff */
+  /* Generic UI stuff. */
   WM_operatortype_append(SCREEN_OT_actionzone);
   WM_operatortype_append(SCREEN_OT_repeat_last);
   WM_operatortype_append(SCREEN_OT_repeat_history);
   WM_operatortype_append(SCREEN_OT_redo_last);
 
-  /* screen tools */
+  /* Screen tools. */
   WM_operatortype_append(SCREEN_OT_area_move);
   WM_operatortype_append(SCREEN_OT_area_split);
   WM_operatortype_append(SCREEN_OT_area_join);
@@ -5631,7 +5631,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_space_context_cycle);
   WM_operatortype_append(SCREEN_OT_workspace_cycle);
 
-  /*frame changes*/
+  /* Frame changes. */
   WM_operatortype_append(SCREEN_OT_frame_offset);
   WM_operatortype_append(SCREEN_OT_frame_jump);
   WM_operatortype_append(SCREEN_OT_keyframe_jump);
@@ -5641,7 +5641,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_animation_play);
   WM_operatortype_append(SCREEN_OT_animation_cancel);
 
-  /* new/delete */
+  /* New/delete. */
   WM_operatortype_append(SCREEN_OT_new);
   WM_operatortype_append(SCREEN_OT_delete);
 }

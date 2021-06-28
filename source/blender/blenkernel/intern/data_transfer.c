@@ -1260,7 +1260,7 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
 
   me_dst = ob_dst->data;
 
-  /* Get source evaluated mesh.*/
+  /* Get source evaluated mesh. */
   BKE_object_data_transfer_dttypes_to_cdmask(data_types, &me_src_mask);
   me_src = mesh_get_eval_final(depsgraph, scene, ob_src, &me_src_mask);
   if (!me_src) {
@@ -1441,7 +1441,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     }
   }
 
-  /* Get source evaluated mesh.*/
+  /* Get source evaluated mesh. */
   BKE_object_data_transfer_dttypes_to_cdmask(data_types, &me_src_mask);
   BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
       map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode, &me_src_mask);

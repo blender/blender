@@ -198,11 +198,11 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
           me->mloop,
           me->totvert,
 
-          (const float(*)[3])vertexCos_Source, /* from the original Mesh*/
+          (const float(*)[3])vertexCos_Source, /* From the original Mesh. */
           (const float(*)[3])vertexCos_Real,   /* the input we've been given (shape keys!) */
 
-          (const float(*)[3])vertexCos, /* the result of this modifier */
-          vertexCos_New                 /* the result of this function */
+          (const float(*)[3])vertexCos, /* The result of this modifier. */
+          vertexCos_New                 /* The result of this function. */
       );
 
       /* write the corrected locations back into the result */

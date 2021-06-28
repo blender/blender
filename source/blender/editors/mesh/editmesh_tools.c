@@ -984,7 +984,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
        * copying face data from surrounding, may have copied hidden face flag too.
        *
        * Important that faces use flushing since 'edges.out'
-       * wont include hidden edges that already existed.
+       * won't include hidden edges that already existed.
        */
       BMO_slot_buffer_hflag_disable(
           em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_HIDDEN, true);
@@ -1794,7 +1794,7 @@ static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
     EDBM_update(obedit->data,
                 &(const struct EDBMUpdate_Params){
                     .calc_looptri = true,
-                    .calc_normals = false,
+                    .calc_normals = true,
                     .is_destructive = true,
                 });
   }
@@ -2309,8 +2309,8 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
       }
     }
 
-    /* ok, we don't have two adjacent faces, but we do have two selected ones.
-     * that's an error condition.*/
+    /* OK, we don't have two adjacent faces, but we do have two selected ones.
+     * that's an error condition. */
     if (tot == 0) {
       continue;
     }
@@ -3639,7 +3639,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 /** \name Shape Key Propagate Operator
  * \{ */
 
-/* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
+/* BMESH_TODO this should be properly encapsulated in a bmop.  but later. */
 static bool shape_propagate(BMEditMesh *em)
 {
   BMIter iter;
@@ -3732,7 +3732,7 @@ void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
 /** \name Blend from Shape Operator
  * \{ */
 
-/* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
+/* BMESH_TODO this should be properly encapsulated in a bmop.  but later. */
 static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 {
   Object *obedit_ref = CTX_data_edit_object(C);
@@ -4038,7 +4038,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
     b2 = ((x22 * y21) - (x21 * y22)) / xdiff2;
   }
   else {
-    m2 = MAXSLOPE; /* Vertical slope  */
+    m2 = MAXSLOPE; /* Vertical slope. */
     b2 = x22;
   }
 
@@ -4088,7 +4088,7 @@ static float bm_edge_seg_isect(const float sco_a[2],
 
     /* Calculate the distance from point to line. */
     if (m2 != MAXSLOPE) {
-      /* sqrt(m2 * m2 + 1); Only looking for change in sign.  Skip extra math .*/
+      /* `sqrt(m2 * m2 + 1);` Only looking for change in sign.  Skip extra math. */
       dist = (y12 - m2 * x12 - b2);
     }
     else {
@@ -4110,8 +4110,8 @@ static float bm_edge_seg_isect(const float sco_a[2],
         m1 = MAXSLOPE;
         b1 = x12;
       }
-      x2max = max_ff(x21, x22) + 0.001f; /* prevent missed edges   */
-      x2min = min_ff(x21, x22) - 0.001f; /* due to round off error */
+      x2max = max_ff(x21, x22) + 0.001f; /* Prevent missed edges. */
+      x2min = min_ff(x21, x22) - 0.001f; /* Due to round off error. */
       y2max = max_ff(y21, y22) + 0.001f;
       y2min = min_ff(y21, y22) - 0.001f;
 
@@ -4139,9 +4139,9 @@ static float bm_edge_seg_isect(const float sco_a[2],
         yi = (b1 * m2 - m1 * b2) / (m2 - m1);
       }
 
-      /* Intersect inside bounding box of edge?*/
+      /* Intersect inside bounding box of edge? */
       if ((xi >= x2min) && (xi <= x2max) && (yi <= y2max) && (yi >= y2min)) {
-        /* test for vertex intersect that may be 'close enough'*/
+        /* Test for vertex intersect that may be 'close enough'. */
         if (mode != KNIFE_MULTICUT) {
           if (xi <= (x21 + threshold) && xi >= (x21 - threshold)) {
             if (yi <= (y21 + threshold) && yi >= (y21 - threshold)) {
@@ -4244,7 +4244,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* store percentage of edge cut for KNIFE_EXACT here.*/
+  /* Store percentage of edge cut for KNIFE_EXACT here. */
   BMOpSlot *slot_edge_percents = BMO_slot_get(bmop.slots_in, "edge_percents");
   BM_ITER_MESH (be, &iter, bm, BM_EDGES_OF_MESH) {
     bool is_cut = false;
@@ -4252,7 +4252,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
       const float *sco_a = screen_vert_coords[BM_elem_index_get(be->v1)];
       const float *sco_b = screen_vert_coords[BM_elem_index_get(be->v2)];
 
-      /* check for error value (vert cant be projected) */
+      /* check for error value (vert can't be projected) */
       if ((sco_a[0] != FLT_MAX) && (sco_b[0] != FLT_MAX)) {
         isect = bm_edge_seg_isect(sco_a, sco_b, mouse_path, len, mode, &isected);
 
@@ -4753,7 +4753,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
                                  .calc_object_remap = true,
                              }));
 
-            DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
+            DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
             WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
           }
 
@@ -5823,7 +5823,7 @@ static int edbm_decimate_exec(bContext *C, wmOperator *op)
     EDBM_update(obedit->data,
                 &(const struct EDBMUpdate_Params){
                     .calc_looptri = true,
-                    .calc_normals = false,
+                    .calc_normals = true,
                     .is_destructive = true,
                 });
   }
@@ -6958,9 +6958,9 @@ static void sort_bmelem_flag(bContext *C,
     }
   }
 
-  /*  printf("%d vertices: %d to be affected...\n", totelem[0], affected[0]);*/
-  /*  printf("%d edges: %d to be affected...\n", totelem[1], affected[1]);*/
-  /*  printf("%d faces: %d to be affected...\n", totelem[2], affected[2]);*/
+  // printf("%d vertices: %d to be affected...\n", totelem[0], affected[0]);
+  // printf("%d edges: %d to be affected...\n", totelem[1], affected[1]);
+  // printf("%d faces: %d to be affected...\n", totelem[2], affected[2]);
   if (affected[0] == 0 && affected[1] == 0 && affected[2] == 0) {
     for (j = 3; j--;) {
       if (pblock[j]) {
@@ -7221,7 +7221,7 @@ static int edbm_bridge_tag_boundary_edges(BMesh *bm)
         /* check if its only used by selected faces */
         BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
           if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-            /* tag face for removal*/
+            /* Tag face for removal. */
             if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
               BM_elem_flag_enable(f, BM_ELEM_TAG);
               totface_del++;
@@ -8219,7 +8219,7 @@ enum {
   EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED = 114,
 };
 
-/* called in transform_ops.c, on each regeneration of keymaps */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

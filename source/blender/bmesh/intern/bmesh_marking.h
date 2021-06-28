@@ -68,8 +68,8 @@ void BM_mesh_elem_hflag_disable_all(BMesh *bm,
                                     const char hflag,
                                     const bool respecthide);
 
-/* individual element select functions, BM_elem_select_set is a shortcut for these
- * that automatically detects which one to use*/
+/* Individual element select functions, BM_elem_select_set is a shortcut for these
+ * that automatically detects which one to use. */
 void BM_vert_select_set(BMesh *bm, BMVert *v, const bool select);
 void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select);
 void BM_face_select_set(BMesh *bm, BMFace *f, const bool select);

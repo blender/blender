@@ -234,7 +234,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
     }
 
     const float scale_camera = (is_ortho) ? 1.0 : 0.001f;
-    /* we want radius here for the aperture number  */
+    /* We want radius here for the aperture number. */
     float aperture = 0.5f * scale_camera * focal_len / fstop;
     float focal_len_scaled = scale_camera * focal_len;
     float sensor_scaled = scale_camera * sensor;
@@ -352,7 +352,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
 
 /**
  * Create bokeh texture.
- **/
+ */
 static void dof_bokeh_pass_init(EEVEE_FramebufferList *fbl,
                                 EEVEE_PassList *psl,
                                 EEVEE_EffectsInfo *fx)
@@ -392,7 +392,7 @@ static void dof_bokeh_pass_init(EEVEE_FramebufferList *fbl,
 
 /**
  * Outputs halfResColorBuffer and halfResCocBuffer.
- **/
+ */
 static void dof_setup_pass_init(EEVEE_FramebufferList *fbl,
                                 EEVEE_PassList *psl,
                                 EEVEE_EffectsInfo *fx)
@@ -426,7 +426,7 @@ static void dof_setup_pass_init(EEVEE_FramebufferList *fbl,
 
 /**
  * Outputs min & max COC in each 8x8 half res pixel tiles (so 1/16th of full resolution).
- **/
+ */
 static void dof_flatten_tiles_pass_init(EEVEE_FramebufferList *fbl,
                                         EEVEE_PassList *psl,
                                         EEVEE_EffectsInfo *fx)
@@ -459,7 +459,7 @@ static void dof_flatten_tiles_pass_init(EEVEE_FramebufferList *fbl,
  * Dilates the min & max COCS to cover maximum COC values.
  * Output format/dimensions should be the same as coc_flatten_pass as they are swapped for
  * doing multiple dilation passes.
- **/
+ */
 static void dof_dilate_tiles_pass_init(EEVEE_FramebufferList *fbl,
                                        EEVEE_PassList *psl,
                                        EEVEE_EffectsInfo *fx)
@@ -540,7 +540,7 @@ static void dof_dilate_tiles_pass_draw(EEVEE_FramebufferList *fbl,
 
 /**
  * Create mipmapped color & COC textures for gather passes.
- **/
+ */
 static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
                                  EEVEE_PassList *psl,
                                  EEVEE_TextureList *txl,
@@ -626,7 +626,7 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
 
   if (txl->dof_reduced_color) {
     /* TODO(fclem) In the future, we need to check if mip_count did not change.
-     * For now it's ok as we always define all mip level.*/
+     * For now it's ok as we always define all mip level. */
     if (res[0] != GPU_texture_width(txl->dof_reduced_color) ||
         res[1] != GPU_texture_width(txl->dof_reduced_color)) {
       DRW_TEXTURE_FREE_SAFE(txl->dof_reduced_color);
@@ -666,7 +666,7 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
 /**
  * Do the gather convolution. For each pixels we gather multiple pixels in its neighborhood
  * depending on the min & max CoC tiles.
- **/
+ */
 static void dof_gather_pass_init(EEVEE_FramebufferList *fbl,
                                  EEVEE_PassList *psl,
                                  EEVEE_TextureList *txl,
@@ -792,7 +792,7 @@ static void dof_gather_pass_init(EEVEE_FramebufferList *fbl,
  * Filter an input buffer using a median filter to reduce noise.
  * NOTE: We use the holefill texture as our input to reduce memory usage.
  * Thus, the holefill pass cannot be filtered.
- **/
+ */
 static void dof_filter_pass_init(EEVEE_FramebufferList *fbl,
                                  EEVEE_PassList *psl,
                                  EEVEE_EffectsInfo *fx)
@@ -825,7 +825,7 @@ static void dof_filter_pass_init(EEVEE_FramebufferList *fbl,
 /**
  * Do the Scatter convolution. A sprite is emitted for every 4 pixels but is only expanded if the
  * pixels are bright enough to be scattered.
- **/
+ */
 static void dof_scatter_pass_init(EEVEE_FramebufferList *fbl,
                                   EEVEE_PassList *psl,
                                   EEVEE_TextureList *txl,
@@ -896,7 +896,7 @@ static void dof_scatter_pass_init(EEVEE_FramebufferList *fbl,
 /**
  * Recombine the result of the foreground and background processing. Also perform a slight out of
  * focus blur to improve geometric continuity.
- **/
+ */
 static void dof_recombine_pass_init(EEVEE_FramebufferList *UNUSED(fbl),
                                     EEVEE_PassList *psl,
                                     EEVEE_EffectsInfo *fx)

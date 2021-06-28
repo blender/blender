@@ -309,7 +309,7 @@ typedef struct bGPDstroke {
   float uv_translation[2];
   float uv_scale;
 
-  /** Stroke selection index.*/
+  /** Stroke selection index. */
   int select_index;
   char _pad4[4];
 
@@ -557,7 +557,7 @@ typedef enum eGPDlayer_Flag {
   /* Unlock color */
   GP_LAYER_UNLOCK_COLOR = (1 << 12),
   /* Mask Layer */
-  GP_LAYER_USE_MASK = (1 << 13), /*TODO: DEPRECATED */
+  GP_LAYER_USE_MASK = (1 << 13), /* TODO: DEPRECATED */
   /* Ruler Layer */
   GP_LAYER_IS_RULER = (1 << 14),
   /* Disable masks in viewlayer render */
@@ -614,7 +614,7 @@ typedef struct bGPdata_Runtime {
   /** Vertex Color applied to Fill (while drawing). */
   float vert_color_fill[4];
 
-  /** Arrow points for stroke corners **/
+  /** Arrow points for stroke corners. */
   float arrow_start[8];
   float arrow_end[8];
   /* Arrow style for each corner */

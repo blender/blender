@@ -40,8 +40,8 @@
 #include "bpy_rna_data.h"
 
 typedef struct {
-  PyObject_HEAD /* required python macro */
-      BPy_StructRNA *data_rna;
+  PyObject_HEAD /* Required Python macro. */
+  BPy_StructRNA *data_rna;
   char filepath[1024];
 } BPy_DataContext;
 
@@ -141,12 +141,12 @@ static PyTypeObject bpy_rna_data_context_Type = {
     NULL,                         /* allocfunc tp_alloc; */
     NULL,                         /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */

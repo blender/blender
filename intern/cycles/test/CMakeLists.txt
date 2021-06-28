@@ -15,7 +15,7 @@
 if(WITH_GTESTS)
   Include(GTestTesting)
 
-  # Otherwise we get warnings here that we cant fix in external projects
+  # Otherwise we get warnings here that we can't fix in external projects
   remove_strict_flags()
 endif()
 

@@ -44,7 +44,7 @@ class GLTexture : public Texture {
   /** All samplers states. */
   static GLuint samplers_[GPU_SAMPLER_MAX];
 
-  /** Target to bind the texture to (GL_TEXTURE_1D, GL_TEXTURE_2D, etc...)*/
+  /** Target to bind the texture to (#GL_TEXTURE_1D, #GL_TEXTURE_2D, etc...). */
   GLenum target_ = -1;
   /** opengl identifier for texture. */
   GLuint tex_id_ = 0;

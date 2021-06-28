@@ -41,7 +41,7 @@ void MetaData::addCryptomatteEntry(const blender::StringRef layer_name,
 /* Replace the hash neutral cryptomatte keys with hashed versions.
  *
  * When a conversion happens it will also add the cryptomatte name key with the given
- * `layer_name`.*/
+ * `layer_name`. */
 void MetaData::replaceHashNeutralCryptomatteKeys(const blender::StringRef layer_name)
 {
   std::string cryptomatte_hash = entries_.pop_default(META_DATA_KEY_CRYPTOMATTE_HASH, "");

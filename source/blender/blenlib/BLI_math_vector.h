@@ -382,10 +382,11 @@ MINLINE float line_point_side_v2(const float l1[2],
                                  const float pt[2]) ATTR_WARN_UNUSED_RESULT;
 
 /********************************** Angles ***********************************/
-/* - angle with 2 arguments is angle between vector                          */
-/* - angle with 3 arguments is angle between 3 points at the middle point    */
-/* - angle_normalized_* is faster equivalent if vectors are normalized       */
 
+/* - angle with 2 arguments is angle between vector.
+ * - angle with 3 arguments is angle between 3 points at the middle point.
+ * - angle_normalized_* is faster equivalent if vectors are normalized.
+ */
 float angle_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 float angle_signed_v2v2(const float v1[2], const float v2[2]) ATTR_WARN_UNUSED_RESULT;
 float angle_v2v2v2(const float a[2], const float b[2], const float c[2]) ATTR_WARN_UNUSED_RESULT;

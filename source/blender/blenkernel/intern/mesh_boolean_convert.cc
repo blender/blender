@@ -304,7 +304,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     r_info->mesh_edge_offset[mi] = e;
     r_info->mesh_poly_offset[mi] = f;
     /* Get matrix that transforms a coordinate in objects[mi]'s local space
-     * to the target space space.*/
+     * to the target space space. */
     const float4x4 objn_mat = (obmats[mi] == nullptr) ? float4x4::identity() :
                                                         clean_obmat(*obmats[mi]);
     r_info->to_target_transform[mi] = inv_target_mat * objn_mat;
@@ -776,7 +776,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
 
 /**
  * Do a mesh boolean operation directly on meshes (without going back and forth to BMesh).
- * \param meshes: An array of of Mesh pointers.
+ * \param meshes: An array of Mesh pointers.
  * \param obmats: An array of pointers to the obmat matrices that transform local
  * coordinates to global ones. It is allowed for the pointers to be null, meaning the
  * transformation is the identity.

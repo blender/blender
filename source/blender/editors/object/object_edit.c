@@ -105,7 +105,7 @@
 
 #include "CLG_log.h"
 
-/* for menu/popup icons etc etc*/
+/* For menu/popup icons etc etc. */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1152,7 +1152,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene, eObjectPathCalcRang
   Depsgraph *depsgraph;
   bool free_depsgraph = false;
   /* For a single frame update it's faster to re-use existing dependency graph and avoid overhead
-   * of building all the relations and so on for a temporary one.  */
+   * of building all the relations and so on for a temporary one. */
   if (range == OBJECT_PATH_CALC_RANGE_CURRENT_FRAME) {
     /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
      * nested pointers, like animation data. */
@@ -1990,7 +1990,7 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
    * Technically we could use #wmOperator.customdata. However there is no free callback
    * called to an operator that exit with OPERATOR_INTERFACE to launch a menu.
    *
-   * So we are left with a memory that will necessarily leak. It's a small leak though.*/
+   * So we are left with a memory that will necessarily leak. It's a small leak though. */
   if (master_collection_menu == NULL) {
     master_collection_menu = MEM_callocN(sizeof(MoveToCollectionData),
                                          "MoveToCollectionData menu - expected eventual memleak");

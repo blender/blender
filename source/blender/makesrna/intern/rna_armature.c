@@ -1358,7 +1358,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 
   /* calculated and read only, not actual data access */
   prop = RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
-  /*RNA_def_property_float_sdna(prop, NULL, "");  */ /* doesn't access any real data */
+  /* RNA_def_property_float_sdna(prop, NULL, ""); */ /* Doesn't access any real data. */
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_THICK_WRAP); /* no reference to original data */
@@ -1438,7 +1438,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "remove", "rna_Armature_edit_bone_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Remove an existing bone from the armature");
-  /* target to remove*/
+  /* Target to remove. */
   parm = RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);

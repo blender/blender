@@ -432,10 +432,10 @@ typedef struct Ipo {
 #define PART_TOTNAM 25
 
 #define PART_EMIT_FREQ 1
-/* #define PART_EMIT_LIFE   2 */ /*UNUSED*/
+// #define PART_EMIT_LIFE 2 /* UNUSED */
 #define PART_EMIT_VEL 3
 #define PART_EMIT_AVE 4
-/* #define PART_EMIT_SIZE   5 */ /*UNUSED*/
+// #define PART_EMIT_SIZE 5 /* UNUSED */
 
 #define PART_AVE 6
 #define PART_SIZE 7
@@ -511,7 +511,7 @@ typedef struct Ipo {
 
 /* ---------- IPO Drivers ----------- */
 
-/* offset in driver->name for finding second posechannel for rot-diff  */
+/* Offset in driver->name for finding second posechannel for rot-diff. */
 #define DRIVER_NAME_OFFS 32
 
 /* driver->type */

@@ -180,7 +180,7 @@ int BKE_fcm_envelope_find_index(struct FCM_EnvelopeData *array,
  * but should become userpref */
 #define BEZT_BINARYSEARCH_THRESH 0.01f /* was 0.00001, but giving errors */
 
-/* -------- Data Management  --------  */
+/* -------- Data Management  -------- */
 struct FCurve *BKE_fcurve_create(void);
 void BKE_fcurve_free(struct FCurve *fcu);
 struct FCurve *BKE_fcurve_copy(const struct FCurve *fcu);
@@ -302,7 +302,7 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
                                        struct BezTriple *next,
                                        float *r_pdelta);
 
-/* -------- Curve Sanity --------  */
+/* -------- Curve Sanity -------- */
 
 void calchandles_fcurve(struct FCurve *fcu);
 void calchandles_fcurve_ex(struct FCurve *fcu, eBezTriple_Flag handle_sel_flag);
@@ -312,7 +312,7 @@ bool test_time_fcurve(struct FCurve *fcu);
 
 void BKE_fcurve_correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2]);
 
-/* -------- Evaluation --------  */
+/* -------- Evaluation -------- */
 
 /* evaluate fcurve */
 float evaluate_fcurve(struct FCurve *fcu, float evaltime);
@@ -329,7 +329,7 @@ float calculate_fcurve(struct PathResolvedRNA *anim_rna,
 
 /* ************* F-Curve Samples API ******************** */
 
-/* -------- Defines --------  */
+/* -------- Defines -------- */
 
 /* Basic signature for F-Curve sample-creation function
  * - fcu: the F-Curve being operated on
@@ -337,12 +337,12 @@ float calculate_fcurve(struct PathResolvedRNA *anim_rna,
  */
 typedef float (*FcuSampleFunc)(struct FCurve *fcu, void *data, float evaltime);
 
-/* ----- Sampling Callbacks ------  */
+/* ----- Sampling Callbacks ------ */
 
 /* Basic sampling callback which acts as a wrapper for evaluate_fcurve() */
 float fcurve_samplingcb_evalcurve(struct FCurve *fcu, void *data, float evaltime);
 
-/* -------- Main Methods --------  */
+/* -------- Main Methods -------- */
 
 /* Main API function for creating a set of sampled curve data, given some callback function
  * used to retrieve the values to store.

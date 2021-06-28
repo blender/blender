@@ -50,7 +50,7 @@ class DrawingStyle {
   {
   }
 
-  /*! operators */
+  /** operators */
   inline DrawingStyle &operator=(const DrawingStyle &ds);
 
   inline void setStyle(const STYLE iStyle)

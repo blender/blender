@@ -597,7 +597,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
   initialize_box_select_key_editing_data(
       sipo, incl_handles, mode, ac, data, &scaled_rectf, &ked, &mapping_flag);
 
-  /* Get beztriple editing/validation funcs.  */
+  /* Get beztriple editing/validation funcs. */
   const KeyframeEditFunc select_cb = ANIM_editkeyframes_select(selectmode);
   const KeyframeEditFunc ok_cb = ANIM_editkeyframes_ok(mode);
 
@@ -1611,7 +1611,7 @@ void GRAPH_OT_select_leftright(wmOperatorType *ot)
   ot->idname = "GRAPH_OT_select_leftright";
   ot->description = "Select keyframes to the left or the right of the current frame";
 
-  /* api callbacks  */
+  /* api callbacks */
   ot->invoke = graphkeys_select_leftright_invoke;
   ot->exec = graphkeys_select_leftright_exec;
   ot->poll = graphop_visible_keyframes_poll;
@@ -1681,10 +1681,8 @@ static int mouse_graph_keys(bAnimContext *ac,
     /* deselect all other keyframes (+ F-Curves too) */
     deselect_graph_keys(ac, 0, SELECT_SUBTRACT, true);
 
-    /* deselect other channels too, but only only do this if
-     * selection of channel when the visibility of keyframes
-     * doesn't depend on this
-     */
+    /* Deselect other channels too, but only do this if selection of channel
+     * when the visibility of keyframes doesn't depend on this. */
     if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
       ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     }
@@ -1958,12 +1956,14 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_generic_select(ot);
+
+  /* Key-map: Enable with `Shift`. */
   prop = RNA_def_boolean(ot->srna,
                          "extend",
                          0,
                          "Extend Select",
                          "Toggle keyframe selection instead of leaving newly selected "
-                         "keyframes only"); /* SHIFTKEY */
+                         "keyframes only");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
@@ -1973,19 +1973,18 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
                          "Deselect all when nothing under the cursor");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
+  /* Key-map: Enable with `Alt`. */
   prop = RNA_def_boolean(ot->srna,
                          "column",
                          0,
                          "Column Select",
                          "Select all keyframes that occur on the same frame as the one under "
-                         "the mouse"); /* ALTKEY */
+                         "the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna,
-                         "curves",
-                         0,
-                         "Only Curves",
-                         "Select all the keyframes in the curve"); /* CTRLKEY + ALTKEY */
+  /* Key-map: Enable with `Ctrl-Atl`. */
+  prop = RNA_def_boolean(
+      ot->srna, "curves", 0, "Only Curves", "Select all the keyframes in the curve");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

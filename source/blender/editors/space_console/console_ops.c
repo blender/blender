@@ -747,7 +747,7 @@ static int console_clear_exec(bContext *C, wmOperator *op)
   const bool scrollback = RNA_boolean_get(op->ptr, "scrollback");
   const bool history = RNA_boolean_get(op->ptr, "history");
 
-  /*ConsoleLine *ci = */ console_history_verify(C);
+  /* ConsoleLine *ci = */ console_history_verify(C);
 
   if (scrollback) { /* Last item in history. */
     while (sc->scrollback.first) {

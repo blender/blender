@@ -474,7 +474,7 @@ void EDBM_select_more(BMEditMesh *em, const bool use_face_step)
                use_faces,
                use_face_step);
   BMO_op_exec(em->bm, &bmop);
-  /* don't flush selection in edge/vertex mode  */
+  /* Don't flush selection in edge/vertex mode. */
   BMO_slot_buffer_hflag_enable(
       em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, use_faces ? true : false);
   BMO_op_finish(em->bm, &bmop);
@@ -496,7 +496,7 @@ void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
                use_faces,
                use_face_step);
   BMO_op_exec(em->bm, &bmop);
-  /* don't flush selection in edge/vertex mode  */
+  /* Don't flush selection in edge/vertex mode. */
   BMO_slot_buffer_hflag_disable(
       em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, use_faces ? true : false);
   BMO_op_finish(em->bm, &bmop);
@@ -1011,7 +1011,7 @@ BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool se
   return NULL;
 }
 
-/* can we edit UV's for this mesh?*/
+/* Can we edit UV's for this mesh? */
 bool EDBM_uv_check(BMEditMesh *em)
 {
   /* some of these checks could be a touch overkill */
@@ -1222,12 +1222,12 @@ BMVert *EDBM_verts_mirror_get(BMEditMesh *em, BMVert *v)
 
 BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
 {
-  BMVert *v1_mirr = EDBM_verts_mirror_get(em, e->v1);
-  if (v1_mirr) {
-    BMVert *v2_mirr = EDBM_verts_mirror_get(em, e->v2);
-    if (v2_mirr) {
-      return BM_edge_exists(v1_mirr, v2_mirr);
-    }
+  BMVert *v1_mirr, *v2_mirr;
+  if ((v1_mirr = EDBM_verts_mirror_get(em, e->v1)) &&
+      (v2_mirr = EDBM_verts_mirror_get(em, e->v2)) &&
+      /* While highly unlikely, a zero length central edges vertices can match, see T89342. */
+      LIKELY(v1_mirr != v2_mirr)) {
+    return BM_edge_exists(v1_mirr, v2_mirr);
   }
 
   return NULL;
@@ -1574,7 +1574,7 @@ int EDBM_elem_to_index_any(BMEditMesh *em, BMElem *ele)
   return index;
 }
 
-BMElem *EDBM_elem_from_index_any(BMEditMesh *em, int index)
+BMElem *EDBM_elem_from_index_any(BMEditMesh *em, uint index)
 {
   BMesh *bm = em->bm;
 
@@ -1615,14 +1615,14 @@ int EDBM_elem_to_index_any_multi(ViewLayer *view_layer,
 }
 
 BMElem *EDBM_elem_from_index_any_multi(ViewLayer *view_layer,
-                                       int object_index,
-                                       int elem_index,
+                                       uint object_index,
+                                       uint elem_index,
                                        Object **r_obedit)
 {
   uint bases_len;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, NULL, &bases_len);
   *r_obedit = NULL;
-  Object *obedit = ((uint)object_index < bases_len) ? bases[object_index]->object : NULL;
+  Object *obedit = (object_index < bases_len) ? bases[object_index]->object : NULL;
   MEM_freeN(bases);
   if (obedit != NULL) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -1689,8 +1689,8 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
   scale_point(co1, co2, 0.99);
   scale_point(co3, co2, 0.99);
 
-  /* ok, idea is to generate rays going from the camera origin to the
-   * three points on the edge (v1, mid, v2)*/
+  /* OK, idea is to generate rays going from the camera origin to the
+   * three points on the edge (v1, mid, v2). */
   sub_v3_v3v3(dir1, origin, co1);
   sub_v3_v3v3(dir2, origin, co2);
   sub_v3_v3v3(dir3, origin, co3);
@@ -1699,8 +1699,8 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree,
   normalize_v3_length(dir2, epsilon);
   normalize_v3_length(dir3, epsilon);
 
-  /* offset coordinates slightly along view vectors, to avoid
-   * hitting the faces that own the edge.*/
+  /* Offset coordinates slightly along view vectors,
+   * to avoid hitting the faces that own the edge. */
   add_v3_v3v3(co1, co1, dir1);
   add_v3_v3v3(co2, co2, dir2);
   add_v3_v3v3(co3, co3, dir3);

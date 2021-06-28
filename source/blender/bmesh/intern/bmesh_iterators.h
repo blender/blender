@@ -61,11 +61,11 @@ typedef enum BMIterType {
   BM_LOOPS_OF_FACE = 11,
   /* returns elements from all boundaries, and returns
    * the first element at the end to flag that we're entering
-   * a different face hole boundary*/
+   * a different face hole boundary. */
   // BM_ALL_LOOPS_OF_FACE = 12,
   /* iterate through loops around this loop, which are fetched
    * from the other faces in the radial cycle surrounding the
-   * input loop's edge.*/
+   * input loop's edge. */
   BM_LOOPS_OF_LOOP = 12,
   BM_LOOPS_OF_EDGE = 13,
 } BMIterType;

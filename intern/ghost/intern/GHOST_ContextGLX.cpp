@@ -124,7 +124,7 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
   GHOST_X11_ERROR_HANDLERS_OVERRIDE(handler_store);
 
   /* -------------------------------------------------------------------- */
-  /* Begin Inline Glew  */
+  /* Begin Inline Glew */
 
 #ifdef USE_GLXEW_INIT_WORKAROUND
   const GLubyte *extStart = (GLubyte *)"";

@@ -45,7 +45,7 @@ int BLI_windows_get_executable_dir(char *str)
 {
   char dir[FILE_MAXDIR];
   int a;
-  /*change to utf support*/
+  /* Change to utf support. */
   GetModuleFileName(NULL, str, FILE_MAX);
   BLI_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
   a = strlen(dir);

@@ -109,7 +109,7 @@ static int cddm_poly_compare(MLoop *mloop_array,
       i_loop_source++;
 
       if (i_loop_source == mpoly_source->totloop) {
-        /* End of loops for source, must match end of loop for target.  */
+        /* End of loops for source, must match end of loop for target. */
         if (i_loop_target_offset == mpoly_target->totloop - 1) {
           compare_completed = true;
           same_loops = true;
@@ -597,7 +597,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
     mp_new->loopstart = STACK_SIZE(mloop) - c;
 
     STACK_PUSH(oldp, i);
-  } /* end of the loop that tests polys   */
+  } /* End of the loop that tests polys. */
 
   if (poly_gset) {
     // printf("hash quality %.6f\n", BLI_gset_calc_quality(poly_gset));
@@ -606,11 +606,11 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
     MEM_freeN(poly_keys);
   }
 
-  /*create new cddm*/
+  /* Create new cddm. */
   result = BKE_mesh_new_nomain_from_template(
       mesh, STACK_SIZE(mvert), STACK_SIZE(medge), 0, STACK_SIZE(mloop), STACK_SIZE(mpoly));
 
-  /*update edge indices and copy customdata*/
+  /* Update edge indices and copy customdata. */
   med = medge;
   for (i = 0; i < result->totedge; i++, med++) {
     BLI_assert(newv[med->v1] != -1);
@@ -624,7 +624,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
     CustomData_copy_data(&mesh->edata, &result->edata, olde[i], i, 1);
   }
 
-  /*update loop indices and copy customdata*/
+  /* Update loop indices and copy customdata. */
   ml = mloop;
   for (i = 0; i < result->totloop; i++, ml++) {
     /* Edge remapping has already be done in main loop handling part above. */
@@ -634,19 +634,19 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
     CustomData_copy_data(&mesh->ldata, &result->ldata, oldl[i], i, 1);
   }
 
-  /*copy vertex customdata*/
+  /* Copy vertex customdata. */
   mv = mvert;
   for (i = 0; i < result->totvert; i++, mv++) {
     CustomData_copy_data(&mesh->vdata, &result->vdata, oldv[i], i, 1);
   }
 
-  /*copy poly customdata*/
+  /* Copy poly customdata. */
   mp = mpoly;
   for (i = 0; i < result->totpoly; i++, mp++) {
     CustomData_copy_data(&mesh->pdata, &result->pdata, oldp[i], i, 1);
   }
 
-  /*copy over data.  CustomData_add_layer can do this, need to look it up.*/
+  /* Copy over data. #CustomData_add_layer can do this, need to look it up. */
   memcpy(result->mvert, mvert, sizeof(MVert) * STACK_SIZE(mvert));
   memcpy(result->medge, medge, sizeof(MEdge) * STACK_SIZE(medge));
   memcpy(result->mloop, mloop, sizeof(MLoop) * STACK_SIZE(mloop));

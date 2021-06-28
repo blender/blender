@@ -64,7 +64,7 @@ typedef struct KernelGlobals {
   OSLThreadData *osl_tdata;
 #  endif
 
-  /* **** Run-time data ****  */
+  /* **** Run-time data **** */
 
   /* Heap-allocated storage for transparent shadows intersections. */
   Intersection *transparent_shadow_intersections;

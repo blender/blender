@@ -325,7 +325,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
   if (pd->edit_uv.do_tiled_image_overlay) {
     struct DRWTextStore *dt = DRW_text_cache_ensure();
     uchar color[4];
-    /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
+    /* Color Management: Exception here as texts are drawn in sRGB space directly. */
     UI_GetThemeColorShade4ubv(TH_BACK, 60, color);
     char text[16];
     LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {

@@ -42,7 +42,7 @@ class GeomCleaner {
   {
   }
 
-  /*! Sorts an array of Indexed vertices
+  /** Sorts an array of Indexed vertices
    *    iVertices
    *      Array of vertices to sort.
    *      It is organized as a float series of vertex coordinates: XYZXYZXYZ...
@@ -70,7 +70,7 @@ class GeomCleaner {
                                      float **oVertices,
                                      unsigned **oIndices);
 
-  /*! Compress a SORTED indexed vertex array by eliminating multiple
+  /** Compress a SORTED indexed vertex array by eliminating multiple
    *  appearing occurrences of a single vertex.
    *    iVertices
    *      The SORTED vertex array to compress.
@@ -99,7 +99,7 @@ class GeomCleaner {
                                          unsigned *oVSize,
                                          unsigned **oIndices);
 
-  /*! Sorts and compress an array of indexed vertices.
+  /** Sorts and compress an array of indexed vertices.
    *    iVertices
    *      The vertex array to sort then compress. It is organized as a float series of
    *      vertex coordinates: XYZXYZXYZ...
@@ -127,7 +127,7 @@ class GeomCleaner {
                                                 unsigned *oVSize,
                                                 unsigned **oIndices);
 
-  /*! Cleans an indexed vertex array.
+  /** Cleans an indexed vertex array.
    *  (Identical to SortAndCompress except that we use here a hash table to create the new array.)
    *    iVertices
    *      The vertex array to sort then compress. It is organized as a float series of
@@ -161,10 +161,10 @@ class GeomCleaner {
 #endif
 };
 
-/*! Binary operators */
+/** Binary operators */
 // inline bool operator<(const IndexedVertex& iv1, const IndexedVertex& iv2);
 
-/*! Class Indexed Vertex. Used to represent an indexed vertex by storing the vertex coordinates as
+/** Class Indexed Vertex. Used to represent an indexed vertex by storing the vertex coordinates as
  * well as its index */
 class IndexedVertex {
  private:
@@ -182,7 +182,7 @@ class IndexedVertex {
     _index = iIndex;
   }
 
-  /*! accessors */
+  /** accessors */
   inline const Vec3f &vector() const
   {
     return _Vector;
@@ -208,7 +208,7 @@ class IndexedVertex {
     return _Vector[2];
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setVector(const Vec3f &iVector)
   {
     _Vector = iVector;
@@ -219,7 +219,7 @@ class IndexedVertex {
     _index = iIndex;
   }
 
-  /*! operators */
+  /** operators */
   IndexedVertex &operator=(const IndexedVertex &iv)
   {
     _Vector = iv._Vector;

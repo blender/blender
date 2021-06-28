@@ -22,7 +22,15 @@
 #include <list>
 #include <sstream>
 
-#if defined(WITH_GHOST_X11)
+#if defined(WITH_GL_EGL)
+#  include "GHOST_ContextEGL.h"
+#  if defined(WITH_GHOST_X11)
+#    include "GHOST_SystemX11.h"
+#  endif
+#  if defined(WITH_GHOST_WAYLAND)
+#    include "GHOST_SystemWayland.h"
+#  endif
+#elif defined(WITH_GHOST_X11)
 #  include "GHOST_ContextGLX.h"
 #elif defined(WIN32)
 #  include "GHOST_ContextD3D.h"
@@ -66,7 +74,9 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
                                 XrSystemId system_id,
                                 std::string *r_requirement_info) const override
   {
-#if defined(WITH_GHOST_X11)
+#if defined(WITH_GL_EGL)
+    GHOST_ContextEGL &ctx_gl = static_cast<GHOST_ContextEGL &>(ghost_ctx);
+#elif defined(WITH_GHOST_X11)
     GHOST_ContextGLX &ctx_gl = static_cast<GHOST_ContextGLX &>(ghost_ctx);
 #else
     GHOST_ContextWGL &ctx_gl = static_cast<GHOST_ContextWGL &>(ghost_ctx);
@@ -106,6 +116,17 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
   void initFromGhostContext(GHOST_Context &ghost_ctx) override
   {
 #if defined(WITH_GHOST_X11)
+#  if defined(WITH_GL_EGL)
+    GHOST_ContextEGL &ctx_egl = static_cast<GHOST_ContextEGL &>(ghost_ctx);
+
+    if (dynamic_cast<const GHOST_SystemX11 *const>(ctx_egl.m_system)) {
+      oxr_binding.egl.type = XR_TYPE_GRAPHICS_BINDING_EGL_MNDX;
+      oxr_binding.egl.getProcAddress = eglGetProcAddress;
+      oxr_binding.egl.display = ctx_egl.getDisplay();
+      oxr_binding.egl.config = ctx_egl.getConfig();
+      oxr_binding.egl.context = ctx_egl.getContext();
+    }
+#  else
     GHOST_ContextGLX &ctx_glx = static_cast<GHOST_ContextGLX &>(ghost_ctx);
     XVisualInfo *visual_info = glXGetVisualFromFBConfig(ctx_glx.m_display, ctx_glx.m_fbconfig);
 
@@ -117,12 +138,21 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     oxr_binding.glx.visualid = visual_info->visualid;
 
     XFree(visual_info);
+#  endif
 #elif defined(WIN32)
     GHOST_ContextWGL &ctx_wgl = static_cast<GHOST_ContextWGL &>(ghost_ctx);
 
     oxr_binding.wgl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR;
     oxr_binding.wgl.hDC = ctx_wgl.m_hDC;
     oxr_binding.wgl.hGLRC = ctx_wgl.m_hGLRC;
+#endif
+
+#if defined(WITH_GHOST_WAYLAND)
+    GHOST_ContextEGL &ctx_wl_egl = static_cast<GHOST_ContextEGL &>(ghost_ctx);
+    if (dynamic_cast<const GHOST_SystemWayland *const>(ctx_wl_egl.m_system)) {
+      oxr_binding.wl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR;
+      oxr_binding.wl.display = (struct wl_display *)ctx_wl_egl.m_nativeDisplay;
+    }
 #endif
 
     /* Generate a frame-buffer to use for blitting into the texture. */

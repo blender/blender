@@ -36,7 +36,7 @@
 /** \name Generic Enum's
  * \{ */
 
-/* Reuse for dynamic types  */
+/* Reuse for dynamic types. */
 const EnumPropertyItem DummyRNA_NULL_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
@@ -951,7 +951,7 @@ static int rna_enum_check_separator(CollectionPropertyIterator *UNUSED(iter), vo
 static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  /* EnumPropertyRNA *eprop;  */ /* UNUSED */
+  /* EnumPropertyRNA *eprop; */ /* UNUSED */
   const EnumPropertyItem *item = NULL;
   int totitem;
   bool free;
@@ -2966,7 +2966,7 @@ static void rna_def_function(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Description", "Description of the Function's purpose");
 
   prop = RNA_def_property(srna, "parameters", PROP_COLLECTION, PROP_NONE);
-  /*RNA_def_property_clear_flag(prop, PROP_EDITABLE);*/
+  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Property");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Function_parameters_begin",
@@ -3270,7 +3270,7 @@ void RNA_def_rna(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  /* Struct*/
+  /* Struct */
   rna_def_struct(brna);
 
   /* Property */

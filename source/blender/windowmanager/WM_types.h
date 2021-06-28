@@ -232,7 +232,7 @@ typedef enum eOperatorPropTags {
 #define KM_ALT2 64
 #define KM_OSKEY2 128
 
-/* KM_MOD_ flags for wmKeyMapItem and wmEvent.alt/shift/oskey/ctrl  */
+/* KM_MOD_ flags for `wmKeyMapItem` and `wmEvent.alt/shift/oskey/ctrl`. */
 /* note that KM_ANY and KM_NOTHING are used with these defines too */
 #define KM_MOD_FIRST 1
 #define KM_MOD_SECOND 2
@@ -326,7 +326,7 @@ typedef struct wmNotifier {
 #define ND_LAYOUTDELETE (2 << 16)
 #define ND_ANIMPLAY (4 << 16)
 #define ND_GPENCIL (5 << 16)
-#define ND_EDITOR_CHANGED (6 << 16) /*sent to new editors after switching to them*/
+#define ND_EDITOR_CHANGED (6 << 16) /* Sent to new editors after switching to them. */
 #define ND_LAYOUTSET (7 << 16)
 #define ND_SKETCH (8 << 16)
 #define ND_WORKSPACE_SET (9 << 16)
@@ -407,7 +407,7 @@ typedef struct wmNotifier {
 #define ND_GPENCIL_EDITMODE (85 << 16)
 
 /* NC_GEOM Geometry */
-/* Mesh, Curve, MetaBall, Armature, .. */
+/* Mesh, Curve, MetaBall, Armature, etc. */
 #define ND_SELECT (90 << 16)
 #define ND_DATA (91 << 16)
 #define ND_VERTEX_GROUP (92 << 16)
@@ -433,7 +433,8 @@ typedef struct wmNotifier {
 #define ND_SPACE_NLA (16 << 16)
 #define ND_SPACE_SEQUENCER (17 << 16)
 #define ND_SPACE_NODE_VIEW (18 << 16)
-#define ND_SPACE_CHANGED (19 << 16) /*sent to a new editor type after it's replaced an old one*/
+/* Sent to a new editor type after it's replaced an old one. */
+#define ND_SPACE_CHANGED (19 << 16)
 #define ND_SPACE_CLIP (20 << 16)
 #define ND_SPACE_FILE_PREVIEW (21 << 16)
 #define ND_SPACE_SPREADSHEET (22 << 16)

@@ -260,7 +260,7 @@ bool ED_view3d_context_activate(bContext *C)
     return false;
   }
 
-  /* bad context switch .. */
+  /* Bad context switch. */
   CTX_wm_area_set(C, area);
   CTX_wm_region_set(C, region);
 
@@ -1017,7 +1017,7 @@ static float view_autodist_depth_margin(ARegion *region, const int mval[2], int 
   }
 
   ViewDepths depth_temp = {0};
-  view3d_update_depths_rect(region, &depth_temp, &rect);
+  view3d_depths_rect_create(region, &rect, &depth_temp);
   float depth_close = view3d_depth_near(&depth_temp);
   MEM_SAFE_FREE(depth_temp.depths);
   return depth_close;
@@ -1044,7 +1044,7 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
   bool depth_ok = false;
 
   /* Get Z Depths, needed for perspective, nice for ortho */
-  ED_view3d_depth_override(depsgraph, region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
+  ED_view3d_depth_override(depsgraph, region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
 
   /* Attempt with low margin's first */
   int i = 0;
@@ -1694,7 +1694,8 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
   return false;
 }
 
-bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
+bool ED_view3d_depth_read_cached_normal(const ARegion *region,
+                                        const ViewDepths *depths,
                                         const int mval[2],
                                         float r_normal[3])
 {
@@ -1704,9 +1705,6 @@ bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
   /* pixels surrounding */
   bool depths_valid[9] = {false};
   float coords[9][3] = {{0}};
-
-  ARegion *region = vc->region;
-  const ViewDepths *depths = vc->rv3d->depths;
 
   for (int x = 0, i = 0; x < 2; x++) {
     for (int y = 0; y < 2; y++) {
@@ -1759,13 +1757,6 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
   float centx = (float)mval[0] + 0.5f;
   float centy = (float)mval[1] + 0.5f;
   return ED_view3d_unproject_v3(region, centx, centy, depth, r_location_world);
-}
-
-void ED_view3d_depth_tag_update(RegionView3D *rv3d)
-{
-  if (rv3d->depths) {
-    rv3d->depths->damaged = true;
-  }
 }
 
 /** \} */

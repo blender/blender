@@ -12,7 +12,7 @@ struct WorldData {
   float shadow_shift;
   float shadow_mul;
   float shadow_add;
-  /* - 16 bytes alignment-  */
+  /* - 16 bytes alignment - */
   LightData lights[4];
   vec4 ambient_color;
 

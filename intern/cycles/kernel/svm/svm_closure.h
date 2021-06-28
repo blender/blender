@@ -803,7 +803,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg,
             float melanin_redness = stack_load_float_default(
                 stack, melanin_redness_ofs, data_node2.w);
 
-            /* Randomize melanin.  */
+            /* Randomize melanin. */
             float random_color = stack_load_float_default(stack, random_color_ofs, data_node3.z);
             random_color = clamp(random_color, 0.0f, 1.0f);
             float factor_random_color = 1.0f + 2.0f * (random - 0.5f) * random_color;

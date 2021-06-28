@@ -25,7 +25,7 @@
 
 namespace Freestyle {
 
-/*! Class to define a regular grid used for ray casting computations
+/** Class to define a regular grid used for ray casting computations
  *  We don't use a hashtable here. The grid is explicitly stored for faster computations.
  *  However, this might result in significant increase in memory usage
  *  (compared to the regular grid).
@@ -43,13 +43,13 @@ class FastGrid : public Grid {
     clear();
   }
 
-  /*!
+  /**
    * clears the grid
    * Deletes all the cells, clears the hashtable, resets size, size of cell, number of cells.
    */
   virtual void clear();
 
-  /*! Sets the different parameters of the grid
+  /** Sets the different parameters of the grid
    *    orig
    *      The grid origin
    *    size
@@ -59,10 +59,10 @@ class FastGrid : public Grid {
    */
   virtual void configure(const Vec3r &orig, const Vec3r &size, unsigned nb);
 
-  /*! returns the cell whose coordinates are passed as argument */
+  /** returns the cell whose coordinates are passed as argument */
   Cell *getCell(const Vec3u &p);
 
-  /*! Fills the case p with the cell iCell */
+  /** Fills the case p with the cell iCell */
   virtual void fillCell(const Vec3u &p, Cell &cell);
 
  protected:

@@ -1030,7 +1030,7 @@ void ARMATURE_OT_switch_direction(wmOperatorType *ot)
 /** \name Align Operator
  * \{ */
 
-/* helper to fix a ebone position if its parent has moved due to alignment*/
+/* Helper to fix a ebone position if its parent has moved due to alignment. */
 static void fix_connected_bone(EditBone *ebone)
 {
   float diff[3];
@@ -1073,9 +1073,9 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
   add_v3_v3v3(selbone->tail, selbone->head, actboneaxis);
   selbone->roll = actbone->roll;
 
-  /* if the bone being aligned has connected descendants they must be moved
+  /* If the bone being aligned has connected descendants they must be moved
    * according to their parent new position, otherwise they would be left
-   * in an inconsistent state: connected but away from the parent*/
+   * in an inconsistent state: connected but away from the parent. */
   fix_editbone_connected_children(edbo, selbone);
 }
 
@@ -1107,7 +1107,7 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* if there is only 1 selected bone, we assume that that is the active bone,
+  /* if there is only 1 selected bone, we assume that it is the active bone,
    * since a user will need to have clicked on a bone (thus selecting it) to make it active
    */
   num_selected_bones = CTX_DATA_COUNT(C, selected_editable_bones);

@@ -24,12 +24,12 @@
 
 /*----------- bmop error system ----------*/
 
-/* pushes an error onto the bmesh error stack.
+/* Pushes an error onto the bmesh error stack.
  * if msg is null, then the default message for the `errcode` is used. */
 void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg);
 
-/* gets the topmost error from the stack.
- * returns error code or 0 if no error.*/
+/* Gets the topmost error from the stack.
+ * returns error code or 0 if no error. */
 int BMO_error_get(BMesh *bm, const char **msg, BMOperator **op);
 bool BMO_error_occurred(BMesh *bm);
 
@@ -37,23 +37,22 @@ bool BMO_error_occurred(BMesh *bm);
 int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op);
 void BMO_error_clear(BMesh *bm);
 
-/* this is meant for handling errors, like self-intersection test failures.
+/* This is meant for handling errors, like self-intersection test failures.
  * it's dangerous to handle errors in general though, so disabled for now. */
 
-/* catches an error raised by the op pointed to by catchop.
+/* Catches an error raised by the op pointed to by catchop.
  * errorcode is either the errorcode, or BMERR_ALL for any
- * error.*/
+ * error. */
 
-/* not yet implemented.
- * int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
- */
+/* Not yet implemented. */
+// int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 
 #define BM_ELEM_INDEX_VALIDATE(_bm, _msg_a, _msg_b) \
   BM_mesh_elem_index_validate(_bm, __FILE__ ":" STRINGIFY(__LINE__), __func__, _msg_a, _msg_b)
 
 /*------ error code defines -------*/
 
-/*error messages*/
+/** Error messages. */
 enum {
   BMERR_CONNECTVERT_FAILED = 1,
   BMERR_DISSOLVEFACES_FAILED,
@@ -71,8 +70,8 @@ enum {
 #  define _BMESH_DUMMY_ABORT() (void)0
 #endif
 
-/* this is meant to be higher level than BLI_assert(),
- * its enabled even when in Release mode*/
+/* This is meant to be higher level than BLI_assert(),
+ * its enabled even when in Release mode. */
 #define BMESH_ASSERT(a) \
   (void)((!(a)) ? ((fprintf(stderr, \
                             "BMESH_ASSERT failed: %s, %s(), %d at \'%s\'\n", \

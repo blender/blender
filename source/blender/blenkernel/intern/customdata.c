@@ -2099,7 +2099,7 @@ bool CustomData_merge(const struct CustomData *source,
                       eCDAllocType alloctype,
                       int totelem)
 {
-  /*const LayerTypeInfo *typeInfo;*/
+  // const LayerTypeInfo *typeInfo;
   CustomDataLayer *layer, *newlayer;
   int lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0;
   int number = 0, maxnumber = -1;
@@ -2107,7 +2107,7 @@ bool CustomData_merge(const struct CustomData *source,
 
   for (int i = 0; i < source->totlayer; i++) {
     layer = &source->layers[i];
-    /*typeInfo = layerType_getInfo(layer->type);*/ /*UNUSED*/
+    // typeInfo = layerType_getInfo(layer->type); /* UNUSED */
 
     int type = layer->type;
     int flag = layer->flag;
@@ -2631,7 +2631,7 @@ void *CustomData_add_layer(
   return NULL;
 }
 
-/*same as above but accepts a name*/
+/* Same as above but accepts a name. */
 void *CustomData_add_layer_named(CustomData *data,
                                  int type,
                                  eCDAllocType alloctype,
@@ -2811,6 +2811,14 @@ void *CustomData_duplicate_referenced_layer_named(CustomData *data,
   int layer_index = CustomData_get_named_layer_index(data, type, name);
 
   return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
+}
+
+void CustomData_duplicate_referenced_layers(CustomData *data, int totelem)
+{
+  for (int i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &data->layers[i];
+    layer->data = customData_duplicate_referenced_layer_index(data, i, totelem);
+  }
 }
 
 bool CustomData_is_referenced_layer(struct CustomData *data, int type)
@@ -3559,7 +3567,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
   if (iter_type != BM_LOOPS_OF_FACE) {
     BMHeader *h;
     BMIter iter;
-    /*ensure all current elements follow new customdata layout*/
+    /* Ensure all current elements follow new customdata layout. */
     BM_ITER_MESH (h, &iter, bm, iter_type) {
       void *tmp = NULL;
       CustomData_bmesh_copy_data(&destold, dest, h->data, &tmp);
@@ -3573,7 +3581,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
     BMIter iter;
     BMIter liter;
 
-    /*ensure all current elements follow new customdata layout*/
+    /* Ensure all current elements follow new customdata layout. */
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
         void *tmp = NULL;
@@ -3797,7 +3805,7 @@ void *CustomData_bmesh_get_n(const CustomData *data, void *block, int type, int 
   return POINTER_OFFSET(block, data->layers[layer_index + n].offset);
 }
 
-/*gets from the layer at physical index n, note: doesn't check type.*/
+/* Gets from the layer at physical index n, note: doesn't check type. */
 void *CustomData_bmesh_get_layer_n(const CustomData *data, void *block, int n)
 {
   if (n < 0 || n >= data->totlayer) {
@@ -3879,7 +3887,7 @@ bool CustomData_has_referenced(const struct CustomData *data)
 }
 
 /* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
- * another, while not overwriting anything else (e.g. flags)*/
+ * another, while not overwriting anything else (e.g. flags). */
 void CustomData_data_copy_value(int type, const void *source, void *dest)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -3897,7 +3905,7 @@ void CustomData_data_copy_value(int type, const void *source, void *dest)
 }
 
 /* Mixes the "value" (e.g. mloopuv uv or mloopcol colors) from one block into
- * another, while not overwriting anything else (e.g. flags)*/
+ * another, while not overwriting anything else (e.g. flags). */
 void CustomData_data_mix_value(
     int type, const void *source, void *dest, const int mixmode, const float mixfactor)
 {

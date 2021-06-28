@@ -1787,7 +1787,7 @@ void WM_keyconfig_update(wmWindowManager *wm)
   }
 
   if (wm_keymap_update_flag & WM_KEYMAP_UPDATE_OPERATORTYPE) {
-    /* an operatortype has been removed, this wont happen often
+    /* an operatortype has been removed, this won't happen often
      * but when it does we have to check _every_ keymap item */
     ListBase *keymaps_lb[] = {
         &U.user_keymaps,

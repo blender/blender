@@ -2528,7 +2528,7 @@ GPUBatch *DRW_cache_bone_arrows_get(void)
     for (int axis = 0; axis < 3; axis++) {
       int flag = VCLASS_EMPTY_AXES | VCLASS_SCREENALIGNED;
       /* Vertex layout is XY screen position and axis in Z.
-       * Fractional part of Z is a positive offset at axis unit position.*/
+       * Fractional part of Z is a positive offset at axis unit position. */
       float p[3] = {0.0f, 0.0f, axis};
       /* center to axis line */
       GPU_vertbuf_vert_set(vbo, v++, &(Vert){{0.0f, 0.0f, 0.0f}, 0});

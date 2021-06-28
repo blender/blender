@@ -38,7 +38,8 @@ extern PyTypeObject SShape_Type;
 
 /*---------------------------Python BPy_SShape structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::SShape *ss;
+  PyObject_HEAD
+  Freestyle::SShape *ss;
   bool borrowed; /* true if *ss is a borrowed object */
 } BPy_SShape;
 

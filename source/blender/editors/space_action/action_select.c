@@ -470,7 +470,7 @@ static void box_select_action(bAnimContext *ac, const rcti rect, short mode, sho
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* get beztriple editing/validation funcs  */
+  /* Get beztriple editing/validation funcs. */
   sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
 
   if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
@@ -708,7 +708,7 @@ static void region_select_action_keys(
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* get beztriple editing/validation funcs  */
+  /* Get beztriple editing/validation funcs. */
   sel_data.select_cb = ANIM_editkeyframes_select(selectmode);
   sel_data.ok_cb = ANIM_editkeyframes_ok(mode);
 
@@ -1497,7 +1497,7 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_leftright";
   ot->description = "Select keyframes to the left or the right of the current frame";
 
-  /* api callbacks  */
+  /* api callbacks */
   ot->invoke = actkeys_select_leftright_invoke;
   ot->exec = actkeys_select_leftright_exec;
   ot->poll = ED_operator_action_active;
@@ -1840,7 +1840,7 @@ static int actkeys_clickselect_exec(bContext *C, wmOperator *op)
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
 
-  /* select keyframe(s) based upon mouse position*/
+  /* Select keyframe(s) based upon mouse position. */
   ret_value = mouse_action_keys(
       &ac, mval, selectmode, deselect_all, column, channel, wait_to_deselect_others);
 
@@ -1872,12 +1872,13 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_generic_select(ot);
+  /* Key-map: Enable with `Shift`. */
   prop = RNA_def_boolean(
       ot->srna,
       "extend",
       0,
       "Extend Select",
-      "Toggle keyframe selection instead of leaving newly selected keyframes only"); /* SHIFTKEY */
+      "Toggle keyframe selection instead of leaving newly selected keyframes only");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
@@ -1887,20 +1888,21 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
                          "Deselect all when nothing under the cursor");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
+  /* Key-map: Enable with `Alt`. */
   prop = RNA_def_boolean(
       ot->srna,
       "column",
       0,
       "Column Select",
-      "Select all keyframes that occur on the same frame as the one under the mouse"); /* ALTKEY */
+      "Select all keyframes that occur on the same frame as the one under the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(
-      ot->srna,
-      "channel",
-      0,
-      "Only Channel",
-      "Select all the keyframes in the channel under the mouse"); /* CTRLKEY + ALTKEY */
+  /* Key-map: Enable with `Ctrl-Alt`. */
+  prop = RNA_def_boolean(ot->srna,
+                         "channel",
+                         0,
+                         "Only Channel",
+                         "Select all the keyframes in the channel under the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

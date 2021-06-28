@@ -423,7 +423,7 @@ typedef struct TransCenterData {
  *   (typically in transform_conversion.c).
  */
 typedef struct TransCustomDataContainer {
-  /** Owned by the mode (grab, scale, bend... ).*/
+  /** Owned by the mode (grab, scale, bend... ). */
   union {
     TransCustomData mode, first_elem;
   };

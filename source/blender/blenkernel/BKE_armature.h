@@ -49,24 +49,30 @@ typedef struct EditBone {
   struct EditBone *next, *prev;
   /** User-Defined Properties on this Bone */
   struct IDProperty *prop;
-  /** Editbones have a one-way link  (i.e. children refer
+  /**
+   * Editbones have a one-way link  (i.e. children refer
    * to parents.  This is converted to a two-way link for
-   * normal bones when leaving editmode. */
+   * normal bones when leaving editmode.
+   */
   struct EditBone *parent;
   /** (64 == MAXBONENAME) */
   char name[64];
-  /** Roll along axis.  We'll ultimately use the axis/angle method
+  /**
+   * Roll along axis.  We'll ultimately use the axis/angle method
    * for determining the transformation matrix of the bone.  The axis
    * is tail-head while roll provides the angle. Refer to Graphics
-   * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere*/
+   * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere.
+   */
   float roll;
 
   /** Orientation and length is implicit during editing */
   float head[3];
   float tail[3];
-  /** All joints are considered to have zero rotation with respect to
+  /**
+   * All joints are considered to have zero rotation with respect to
    * their parents. Therefore any rotations specified during the
-   * animation are automatically relative to the bones' rest positions*/
+   * animation are automatically relative to the bones' rest positions.
+   */
   int flag;
   int layer;
   char inherit_scale_mode;

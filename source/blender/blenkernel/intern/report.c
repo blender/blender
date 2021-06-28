@@ -107,7 +107,7 @@ void BKE_report(ReportList *reports, ReportType type, const char *_message)
   int len;
   const char *message = TIP_(_message);
 
-  /* in background mode always print otherwise there are cases the errors wont be displayed,
+  /* in background mode always print otherwise there are cases the errors won't be displayed,
    * but still add to the report list since this is used for python exception handling */
   if (G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
     printf("%s: %s\n", BKE_report_type_str(type), message);

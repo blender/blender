@@ -1289,7 +1289,7 @@ void BKE_nlastrip_set_active(AnimData *adt, NlaStrip *strip)
     return;
   }
 
-  /* loop over tracks, deactivating*/
+  /* Loop over tracks, deactivating. */
   for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
     for (nls = nlt->strips.first; nls; nls = nls->next) {
       if (nls != strip) {
@@ -1560,7 +1560,7 @@ bool BKE_nlatracks_have_animated_strips(ListBase *tracks)
   return false;
 }
 
-/* Validate the NLA-Strips 'control' F-Curves based on the flags set*/
+/* Validate the NLA-Strips 'control' F-Curves based on the flags set. */
 void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 {
   FCurve *fcu;

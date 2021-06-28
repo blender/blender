@@ -177,7 +177,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
   if (show_frame_no || (show_keyframes_no && show_keyframes)) {
     int i;
     uchar col[4], col_kf[4];
-    /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
+    /* Color Management: Exception here as texts are drawn in sRGB space directly. */
     UI_GetThemeColor3ubv(TH_TEXT_HI, col);
     UI_GetThemeColor3ubv(TH_VERTEX_SELECT, col_kf);
     col[3] = col_kf[3] = 255;

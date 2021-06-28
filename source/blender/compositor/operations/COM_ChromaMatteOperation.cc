@@ -79,12 +79,12 @@ void ChromaMatteOperation::executePixelSampled(float output[4],
 
   theta = atan2(inKey[2], inKey[1]);
 
-  /*rotate the cb and cr into x/z space */
+  /* Rotate the cb and cr into x/z space. */
   x_angle = inImage[1] * cosf(theta) + inImage[2] * sinf(theta);
   z_angle = inImage[2] * cosf(theta) - inImage[1] * sinf(theta);
 
-  /*if within the acceptance angle */
-  /* if kfg is <0 then the pixel is outside of the key color */
+  /* If within the acceptance angle. */
+  /* If kfg is <0 then the pixel is outside of the key color. */
   kfg = x_angle - (fabsf(z_angle) / tanf(acceptance / 2.0f));
 
   if (kfg > 0.0f) { /* found a pixel that is within key color */
@@ -105,8 +105,8 @@ void ChromaMatteOperation::executePixelSampled(float output[4],
       output[0] = inImage[3];
     }
   }
-  else {                    /*pixel is outside key color */
-    output[0] = inImage[3]; /* make pixel just as transparent as it was before */
+  else {                    /* Pixel is outside key color. */
+    output[0] = inImage[3]; /* Make pixel just as transparent as it was before. */
   }
 }
 

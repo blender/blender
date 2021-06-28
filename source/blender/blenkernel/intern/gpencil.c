@@ -195,12 +195,12 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
 
 void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
 {
-  /* we must firstly have some grease-pencil data to link! */
+  /* We must firstly have some grease-pencil data to link! */
   if (gpd == NULL) {
     return;
   }
 
-  /* relink animdata */
+  /* Relink anim-data. */
   BLO_read_data_address(reader, &gpd->adt);
   BKE_animdata_blend_read_data(reader, gpd->adt);
 
@@ -219,7 +219,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.tot_cp_points = 0;
 
-  /* relink palettes (old palettes deprecated, only to convert old files) */
+  /* Relink palettes (old palettes deprecated, only to convert old files). */
   BLO_read_list(reader, &gpd->palettes);
   if (gpd->palettes.first != NULL) {
     LISTBASE_FOREACH (bGPDpalette *, palette, &gpd->palettes) {
@@ -227,14 +227,14 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
     }
   }
 
-  /* materials */
+  /* Materials. */
   BLO_read_pointer_array(reader, (void **)&gpd->mat);
 
-  /* relink layers */
+  /* Relink layers. */
   BLO_read_list(reader, &gpd->layers);
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    /* relink frames */
+    /* Relink frames. */
     BLO_read_list(reader, &gpl->frames);
 
     BLO_read_data_address(reader, &gpl->actframe);
@@ -245,23 +245,23 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
     BLO_read_list(reader, &gpl->mask_layers);
 
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      /* relink strokes (and their points) */
+      /* Relink strokes (and their points). */
       BLO_read_list(reader, &gpf->strokes);
 
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        /* relink stroke points array */
+        /* Relink stroke points array. */
         BLO_read_data_address(reader, &gps->points);
-        /* Relink geometry*/
+        /* Relink geometry. */
         BLO_read_data_address(reader, &gps->triangles);
 
-        /* relink stroke edit curve. */
+        /* Relink stroke edit curve. */
         BLO_read_data_address(reader, &gps->editcurve);
         if (gps->editcurve != NULL) {
-          /* relink curve point array */
+          /* Relink curve point array. */
           BLO_read_data_address(reader, &gps->editcurve->curve_points);
         }
 
-        /* relink weight data */
+        /* Relink weight data. */
         if (gps->dvert) {
           BLO_read_data_address(reader, &gps->dvert);
           BKE_defvert_blend_read(reader, gps->totpoints, gps->dvert);
@@ -458,7 +458,7 @@ void BKE_gpencil_free_frames(bGPDlayer *gpl)
 
 void BKE_gpencil_free_layer_masks(bGPDlayer *gpl)
 {
-  /* Free masks.*/
+  /* Free masks. */
   bGPDlayer_Mask *mask_next = NULL;
   for (bGPDlayer_Mask *mask = gpl->mask_layers.first; mask; mask = mask_next) {
     mask_next = mask->next;
@@ -482,7 +482,7 @@ void BKE_gpencil_free_layers(ListBase *list)
     /* free layers and their data */
     BKE_gpencil_free_frames(gpl);
 
-    /* Free masks.*/
+    /* Free masks. */
     BKE_gpencil_free_layer_masks(gpl);
 
     BLI_freelinkN(list, gpl);
@@ -1076,12 +1076,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
   gpl_dst->prev = gpl_dst->next = NULL;
 
   /* Copy masks. */
-  BLI_listbase_clear(&gpl_dst->mask_layers);
-  LISTBASE_FOREACH (bGPDlayer_Mask *, mask_src, &gpl_src->mask_layers) {
-    bGPDlayer_Mask *mask_dst = MEM_dupallocN(mask_src);
-    mask_dst->prev = mask_dst->next = NULL;
-    BLI_addtail(&gpl_dst->mask_layers, mask_dst);
-  }
+  BKE_gpencil_layer_mask_copy(gpl_src, gpl_dst);
 
   /* copy frames */
   BLI_listbase_clear(&gpl_dst->frames);
@@ -1122,10 +1117,8 @@ void BKE_gpencil_layer_copy_settings(const bGPDlayer *gpl_src, bGPDlayer *gpl_ds
   copy_v3_v3(gpl_dst->scale, gpl_src->scale);
   copy_m4_m4(gpl_dst->layer_mat, gpl_src->layer_mat);
   copy_m4_m4(gpl_dst->layer_invmat, gpl_src->layer_invmat);
-  /* Use Lights flag. */
-  if (gpl_src->flag & GP_LAYER_USE_LIGHTS) {
-    gpl_dst->flag |= GP_LAYER_USE_LIGHTS;
-  }
+  gpl_dst->blend_mode = gpl_src->blend_mode;
+  gpl_dst->flag = gpl_src->flag;
 }
 
 /**
@@ -1641,6 +1634,41 @@ void BKE_gpencil_layer_mask_sort_all(bGPdata *gpd)
 {
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     BKE_gpencil_layer_mask_sort(gpd, gpl);
+  }
+}
+
+/**
+ * Make a copy of a given gpencil mask layers.
+ */
+void BKE_gpencil_layer_mask_copy(const bGPDlayer *gpl_src, bGPDlayer *gpl_dst)
+{
+  BLI_listbase_clear(&gpl_dst->mask_layers);
+  LISTBASE_FOREACH (bGPDlayer_Mask *, mask_src, &gpl_src->mask_layers) {
+    bGPDlayer_Mask *mask_dst = MEM_dupallocN(mask_src);
+    mask_dst->prev = mask_dst->next = NULL;
+    BLI_addtail(&gpl_dst->mask_layers, mask_dst);
+  }
+}
+
+/**
+ * Clean any invalid mask layer.
+ */
+void BKE_gpencil_layer_mask_cleanup(bGPdata *gpd, bGPDlayer *gpl)
+{
+  LISTBASE_FOREACH_MUTABLE (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
+    if (BKE_gpencil_layer_named_get(gpd, mask->name) == NULL) {
+      BKE_gpencil_layer_mask_remove(gpl, mask);
+    }
+  }
+}
+
+/**
+ * Clean any invalid mask layer for all layers.
+ */
+void BKE_gpencil_layer_mask_cleanup_all_layers(bGPdata *gpd)
+{
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    BKE_gpencil_layer_mask_cleanup(gpd, gpl);
   }
 }
 
@@ -3006,8 +3034,8 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
   bGPdata *gpd = (bGPdata *)ob->data;
   float cur_mat[4][4];
 
-  bool changed = false;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    bool changed = false;
     unit_m4(cur_mat);
     if (gpl->actframe != NULL) {
       if (gpl->parent != NULL) {

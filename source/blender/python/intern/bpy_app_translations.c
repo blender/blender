@@ -51,8 +51,8 @@
 
 typedef struct {
   PyObject_HEAD
-      /** The string used to separate context from actual message in PY_TRANSLATE RNA props. */
-      const char *context_separator;
+  /** The string used to separate context from actual message in PY_TRANSLATE RNA props. */
+  const char *context_separator;
   /** A "named tuple" (StructSequence actually...) containing all C-defined contexts. */
   PyObject *contexts;
   /** A readonly mapping {C context id: python id}  (actually, a MappingProxy). */
@@ -855,12 +855,12 @@ static PyTypeObject BlenderAppTranslationsType = {
                                 /* newfunc tp_new; */
     (newfunc)app_translations_new,
     /*  Low-level free-memory routine */
-    app_translations_free, /* freefunc tp_free;  */
+    app_translations_free, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */

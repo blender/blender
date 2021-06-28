@@ -1212,7 +1212,7 @@ static void tree_overlap_traverse_cb(BVHOverlapData_Thread *data_thread,
 }
 
 /**
- * a version of #tree_overlap_traverse_cb that that break on first true return.
+ * a version of #tree_overlap_traverse_cb that break on first true return.
  */
 static bool tree_overlap_traverse_num(BVHOverlapData_Thread *data_thread,
                                       const BVHNode *node1,

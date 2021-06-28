@@ -16,10 +16,23 @@
 
 #pragma once
 
+#include "BKE_geometry_set.hh"
+
 typedef struct SpaceSpreadsheet_Runtime {
   int visible_rows;
   int tot_rows;
   int tot_columns;
 } SpaceSpreadsheet_Runtime;
 
+struct bContext;
+
 void spreadsheet_operatortypes(void);
+void spreadsheet_update_context_path(const bContext *C);
+Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
+                                    const Depsgraph *depsgraph);
+
+namespace blender::ed::spreadsheet {
+GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
+                                                 Object *object_eval,
+                                                 const GeometryComponentType used_component_type);
+}

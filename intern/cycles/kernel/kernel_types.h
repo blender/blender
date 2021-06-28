@@ -302,7 +302,7 @@ enum PathRayFlag {
   PATH_RAY_DIFFUSE_ANCESTOR = (1 << 15),
   /* Single pass has been written. */
   PATH_RAY_SINGLE_PASS_DONE = (1 << 16),
-  /* Ray is behind a shadow catcher .*/
+  /* Ray is behind a shadow catcher. */
   PATH_RAY_SHADOW_CATCHER = (1 << 17),
   /* Store shadow data for shadow catcher or denoising. */
   PATH_RAY_STORE_SHADOW_INFO = (1 << 18),
@@ -694,17 +694,20 @@ typedef enum PrimitiveType {
    */
   PRIMITIVE_LAMP = (1 << 6),
 
+  PRIMITIVE_VOLUME = (1 << 7),
+
   PRIMITIVE_ALL_TRIANGLE = (PRIMITIVE_TRIANGLE | PRIMITIVE_MOTION_TRIANGLE),
   PRIMITIVE_ALL_CURVE = (PRIMITIVE_CURVE_THICK | PRIMITIVE_MOTION_CURVE_THICK |
                          PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON),
+  PRIMITIVE_ALL_VOLUME = (PRIMITIVE_VOLUME),
   PRIMITIVE_ALL_MOTION = (PRIMITIVE_MOTION_TRIANGLE | PRIMITIVE_MOTION_CURVE_THICK |
                           PRIMITIVE_MOTION_CURVE_RIBBON),
-  PRIMITIVE_ALL = (PRIMITIVE_ALL_TRIANGLE | PRIMITIVE_ALL_CURVE),
+  PRIMITIVE_ALL = (PRIMITIVE_ALL_TRIANGLE | PRIMITIVE_ALL_CURVE | PRIMITIVE_ALL_VOLUME),
 
   /* Total number of different traceable primitives.
    * NOTE: This is an actual value, not a bitflag.
    */
-  PRIMITIVE_NUM_TOTAL = 6,
+  PRIMITIVE_NUM_TOTAL = 7,
 } PrimitiveType;
 
 #define PRIMITIVE_PACK_SEGMENT(type, segment) ((segment << PRIMITIVE_NUM_TOTAL) | (type))
@@ -1479,7 +1482,8 @@ typedef struct KernelObject {
   float cryptomatte_object;
   float cryptomatte_asset;
 
-  float shadow_terminator_offset;
+  float shadow_terminator_shading_offset;
+  float shadow_terminator_geometry_offset;
   float pad1, pad2, pad3;
 } KernelObject;
 static_assert_align(KernelObject, 16);

@@ -745,7 +745,7 @@ static int volume_sequence_frame(const Depsgraph *depsgraph, const Volume *volum
     }
   }
 
-  /* Important to apply after, else we cant loop on e.g. frames 100 - 110. */
+  /* Important to apply after, else we can't loop on e.g. frames 100 - 110. */
   frame += frame_offset;
 
   return frame;
@@ -1224,7 +1224,7 @@ const VolumeGrid *BKE_volume_grid_active_get_for_read(const Volume *volume)
   return BKE_volume_grid_get_for_read(volume, index);
 }
 
-/* Tries to find a grid with the given name. Make sure that that the volume has been loaded. */
+/* Tries to find a grid with the given name. Make sure that the volume has been loaded. */
 const VolumeGrid *BKE_volume_grid_find_for_read(const Volume *volume, const char *name)
 {
   int num_grids = BKE_volume_num_grids(volume);

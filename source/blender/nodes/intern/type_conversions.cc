@@ -231,7 +231,7 @@ void DataTypeConversions::convert_to_uninitialized(const CPPType &from_type,
                                                    void *to_value) const
 {
   if (from_type == to_type) {
-    from_type.copy_to_uninitialized(from_value, to_value);
+    from_type.copy_construct(from_value, to_value);
     return;
   }
 

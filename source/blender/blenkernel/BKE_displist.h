@@ -32,11 +32,11 @@ extern "C" {
 
 /** #DispList.type */
 enum {
-  /** A closed polygon (that can be filled).  */
+  /** A closed polygon (that can be filled). */
   DL_POLY = 0,
-  /** An open polygon.  */
+  /** An open polygon. */
   DL_SEGM = 1,
-  /** A grid surface that respects #DL_CYCL_U & #DL_CYCL_V.  */
+  /** A grid surface that respects #DL_CYCL_U & #DL_CYCL_V. */
   DL_SURF = 2,
   /** Triangles. */
   DL_INDEX3 = 4,

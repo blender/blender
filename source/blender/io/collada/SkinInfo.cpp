@@ -231,7 +231,7 @@ void SkinInfo::link_armature(bContext *C,
   amd->object = ob_arm;
 
 #if 1
-  /* XXX Why do we enforce objects to be children of Armatures if they weren't so before ?*/
+  /* XXX Why do we enforce objects to be children of Armatures if they weren't so before? */
   if (!BKE_object_is_child_recursive(ob_arm, ob)) {
     bc_set_parent(ob, ob_arm, C);
   }

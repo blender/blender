@@ -70,4 +70,5 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_solvers.h"
 #include "BLI_math_statistics.h"
+#include "BLI_math_time.h"
 #include "BLI_math_vector.h"

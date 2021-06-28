@@ -147,7 +147,7 @@ typedef struct TaskParallelSettings {
    * (similar to OpenMP's firstprivate).
    */
   void *userdata_chunk;       /* Pointer to actual data. */
-  size_t userdata_chunk_size; /* Size of that data.  */
+  size_t userdata_chunk_size; /* Size of that data. */
   /* Function called from calling thread once whole range have been
    * processed.
    */

@@ -457,7 +457,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
   bConstraint *con;
   ListBase *opchans, *npchans;
 
-  /* get reference to list of bones in original and new armatures  */
+  /* Get reference to list of bones in original and new armatures. */
   opchans = &origArm->pose->chanbase;
   npchans = &newArm->pose->chanbase;
 
@@ -576,7 +576,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
     /* check if bone needs to be removed */
     if (is_select == (EBONE_VISIBLE(arm, curbone) && (curbone->flag & BONE_SELECTED))) {
 
-      /* clear the bone->parent var of any bone that had this as its parent  */
+      /* Clear the bone->parent var of any bone that had this as its parent. */
       LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
         if (ebo->parent == curbone) {
           ebo->parent = NULL;
@@ -838,7 +838,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* If there is only 1 selected bone, we assume that that is the active bone,
+  /* If there is only 1 selected bone, we assume that it is the active bone,
    * since a user will need to have clicked on a bone (thus selecting it) to make it active. */
   bool is_active_only_selected = false;
   if (actbone->flag & BONE_SELECTED) {

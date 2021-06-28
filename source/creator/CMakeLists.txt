@@ -371,14 +371,14 @@ if(WITH_PYTHON)
      "${BLENDER_VERSION_CYCLE}" STREQUAL "rc")
     set(ADDON_EXCLUDE_CONDITIONAL "addons_contrib/*")
   else()
-    set(ADDON_EXCLUDE_CONDITIONAL "_addons_contrib/*")  # dummy, wont do anything
+    set(ADDON_EXCLUDE_CONDITIONAL "_addons_contrib/*")  # dummy, won't do anything
   endif()
 
   # do not install freestyle dir if disabled
   if(NOT WITH_FREESTYLE)
     set(FREESTYLE_EXCLUDE_CONDITIONAL "freestyle/*")
   else()
-    set(FREESTYLE_EXCLUDE_CONDITIONAL "_freestyle/*")  # dummy, wont do anything
+    set(FREESTYLE_EXCLUDE_CONDITIONAL "_freestyle/*")  # dummy, won't do anything
   endif()
 
   install(
@@ -631,9 +631,9 @@ if(UNIX AND NOT APPLE)
           PATTERN "doc" EXCLUDE                   # ./doc
           PATTERN "tests" EXCLUDE                 # ./tests
           PATTERN "f2py" EXCLUDE                  # ./f2py - fortran/python interface code, not for blender.
-          PATTERN "include" EXCLUDE               # include dirs all over, we wont use NumPy/CAPI
+          PATTERN "include" EXCLUDE               # include dirs all over, we won't use NumPy/CAPI
           PATTERN "*.h" EXCLUDE                   # some includes are not in include dirs
-          PATTERN "*.a" EXCLUDE                   # ./core/lib/libnpymath.a - for linking, we dont need.
+          PATTERN "*.a" EXCLUDE                   # ./core/lib/libnpymath.a - for linking, we don't need.
         )
         unset(_suffix)
       endif()

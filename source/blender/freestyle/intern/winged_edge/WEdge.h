@@ -76,14 +76,14 @@ class WVertex {
     _Border = -1;
   }
 
-  /*! Copy constructor */
+  /** Copy constructor */
   WVertex(WVertex &iBrother);
   virtual WVertex *duplicate();
   virtual ~WVertex()
   {
   }
 
-  /*! accessors */
+  /** accessors */
   inline Vec3f &GetVertex()
   {
     return _Vertex;
@@ -111,7 +111,7 @@ class WVertex {
 
   bool isBoundary();
 
-  /*! modifiers */
+  /** modifiers */
   inline void setVertex(const Vec3f &v)
   {
     _Vertex = v;
@@ -147,7 +147,7 @@ class WVertex {
     }
   }
 
-  /*! Adds an edge to the edges list */
+  /** Adds an edge to the edges list */
   void AddEdge(WEdge *iEdge);
 
   virtual void ResetUserData()
@@ -156,7 +156,7 @@ class WVertex {
   }
 
  public:
-  /*! Iterator to iterate over a vertex incoming edges in the CCW order*/
+  /** Iterator to iterate over a vertex incoming edges in the CCW order. */
 #if defined(__GNUC__) && (__GNUC__ < 3)
   class incoming_edge_iterator : public input_iterator<WOEdge *, ptrdiff_t>
 #else
@@ -247,7 +247,7 @@ class WVertex {
 #endif
   };
 
-  /*! Iterator to iterate over a vertex faces in the CCW order */
+  /** Iterator to iterate over a vertex faces in the CCW order */
 #if defined(__GNUC__) && (__GNUC__ < 3)
   class face_iterator : public input_iterator<WFace *, ptrdiff_t>
 #else
@@ -336,7 +336,7 @@ class WVertex {
   };
 
  public:
-  /*! iterators access */
+  /** iterators access */
   virtual incoming_edge_iterator incoming_edges_begin();
   virtual incoming_edge_iterator incoming_edges_end();
 
@@ -404,11 +404,11 @@ class WOEdge {
 
   virtual ~WOEdge(){};  // soc
 
-  /*! copy constructor */
+  /** copy constructor */
   WOEdge(WOEdge &iBrother);
   virtual WOEdge *duplicate();
 
-  /*! accessors */
+  /** accessors */
 #if 0
   inline WOEdge *GetaCWEdge()
   {
@@ -466,7 +466,7 @@ class WOEdge {
     return _angle;
   }
 
-  /*! modifiers */
+  /** modifiers */
 #if 0
   inline void SetaCWEdge(WOEdge *pe)
   {
@@ -520,7 +520,7 @@ class WOEdge {
     _pOwner = pe;
   }
 
-  /*! Retrieves the list of edges in CW order */
+  /** Retrieves the list of edges in CW order */
   inline void RetrieveCWOrderedEdges(vector<WEdge *> &oEdges);
 
   WOEdge *twin();
@@ -579,7 +579,7 @@ class WEdge {
     userdata = NULL;
   }
 
-  /*! Copy constructor */
+  /** Copy constructor */
   WEdge(WEdge &iBrother);
   virtual WEdge *duplicate();
 
@@ -596,7 +596,7 @@ class WEdge {
     }
   }
 
-  /*! checks whether two WEdge have a common vertex.
+  /** checks whether two WEdge have a common vertex.
    *  Returns a pointer on the common vertex if it exists, NULL otherwise.
    */
   static inline WVertex *CommonVertex(WEdge *iEdge1, WEdge *iEdge2)
@@ -619,7 +619,7 @@ class WEdge {
     return NULL;
   }
 
-  /*! accessors */
+  /** accessors */
   inline WOEdge *GetaOEdge()
   {
     return _paOEdge;
@@ -675,7 +675,7 @@ class WEdge {
     }
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setaOEdge(WOEdge *iEdge)
   {
     _paOEdge = iEdge;
@@ -754,14 +754,14 @@ class WFace {
     _FrsMaterialIndex = 0;
   }
 
-  /*! copy constructor */
+  /** copy constructor */
   WFace(WFace &iBrother);
   virtual WFace *duplicate();
   virtual ~WFace()
   {
   }
 
-  /*! accessors */
+  /** accessors */
   inline const vector<WOEdge *> &getEdgeList()
   {
     return _OEdgeList;
@@ -794,7 +794,7 @@ class WFace {
 
   const FrsMaterial &frs_material();
 
-  /*! The vertex of index i corresponds to the a vertex of the edge of index i */
+  /** The vertex of index i corresponds to the a vertex of the edge of index i */
   inline WVertex *GetVertex(unsigned int index)
   {
 #if 0
@@ -805,7 +805,7 @@ class WFace {
     return _OEdgeList[index]->GetaVertex();
   }
 
-  /*! returns the index at which iVertex is stored in the array.
+  /** returns the index at which iVertex is stored in the array.
    * returns -1 if iVertex doesn't belong to the face.
    */
   inline int GetIndex(WVertex *iVertex)
@@ -868,19 +868,19 @@ class WFace {
     return _VerticesTexCoords;
   }
 
-  /*! Returns the normal of the vertex of index index */
+  /** Returns the normal of the vertex of `index`. */
   inline Vec3f &GetVertexNormal(int index)
   {
     return _VerticesNormals[index];
   }
 
-  /*! Returns the tex coords of the vertex of index index */
+  /** Returns the tex coords of the vertex of `index`. */
   inline Vec2f &GetVertexTexCoords(int index)
   {
     return _VerticesTexCoords[index];
   }
 
-  /*! Returns the normal of the vertex iVertex for that face */
+  /** Returns the normal of the vertex iVertex for that face */
   inline Vec3f &GetVertexNormal(WVertex *iVertex)
   {
     int i = 0;
@@ -933,7 +933,7 @@ class WFace {
     return _OEdgeList.size();
   }
 
-  /*! Returns true if the face has one ot its edge which is a border edge */
+  /** Returns true if the face has one ot its edge which is a border edge */
   inline bool isBorder() const
   {
     for (vector<WOEdge *>::const_iterator woe = _OEdgeList.begin(), woeend = _OEdgeList.end();
@@ -946,7 +946,7 @@ class WFace {
     return false;
   }
 
-  /*! modifiers */
+  /** modifiers */
   inline void setEdgeList(const vector<WOEdge *> &iEdgeList)
   {
     _OEdgeList = iEdgeList;
@@ -982,13 +982,13 @@ class WFace {
     _Mark = iMark;
   }
 
-  /*! designed to build a specialized WEdge for use in MakeEdge */
+  /** designed to build a specialized WEdge for use in MakeEdge */
   virtual WEdge *instanciateEdge() const
   {
     return new WEdge;
   }
 
-  /*! Builds an oriented edge
+  /** Builds an oriented edge
    *  Returns the built edge.
    *    v1, v2
    *      Vertices at the edge's extremities
@@ -996,18 +996,18 @@ class WFace {
    */
   virtual WOEdge *MakeEdge(WVertex *v1, WVertex *v2);
 
-  /*! Adds an edge to the edges list */
+  /** Adds an edge to the edges list */
   inline void AddEdge(WOEdge *iEdge)
   {
     _OEdgeList.push_back(iEdge);
   }
 
-  /*! For triangles, returns the edge opposite to the vertex in e.
+  /** For triangles, returns the edge opposite to the vertex in e.
    *  returns false if the face is not a triangle or if the vertex is not found
    */
   bool getOppositeEdge(const WVertex *v, WOEdge *&e);
 
-  /*! compute the area of the face */
+  /** compute the area of the face */
   float getArea();
 
   WShape *getShape();
@@ -1057,7 +1057,7 @@ class WShape {
     _SceneCurrentId++;
   }
 
-  /*! copy constructor */
+  /** copy constructor */
   WShape(WShape &iBrother);
   virtual WShape *duplicate();
 
@@ -1088,7 +1088,7 @@ class WShape {
     }
   }
 
-  /*! accessors */
+  /** accessors */
   inline vector<WEdge *> &getEdgeList()
   {
     return _EdgeList;
@@ -1144,7 +1144,7 @@ class WShape {
     return _LibraryPath;
   }
 
-  /*! modifiers */
+  /** modifiers */
   static inline void setCurrentId(const unsigned id)
   {
     _SceneCurrentId = id;
@@ -1198,13 +1198,13 @@ class WShape {
     _LibraryPath = path;
   }
 
-  /*! designed to build a specialized WFace for use in MakeFace */
+  /** designed to build a specialized WFace for use in MakeFace */
   virtual WFace *instanciateFace() const
   {
     return new WFace;
   }
 
-  /*! adds a new face to the shape
+  /** adds a new face to the shape
    *  returns the built face.
    *   iVertexList
    *      List of face's vertices. These vertices are not added to the WShape vertex list; they are
@@ -1217,7 +1217,7 @@ class WShape {
                           vector<bool> &iFaceEdgeMarksList,
                           unsigned iMaterialIndex);
 
-  /*! adds a new face to the shape. The difference with the previous method is that this one is
+  /** adds a new face to the shape. The difference with the previous method is that this one is
    * designed to build a WingedEdge structure for which there are per vertex normals, opposed to
    * per face normals. returns the built face. iVertexList List of face's vertices. These vertices
    * are not added to the WShape vertex list; they are supposed to be already stored when calling
@@ -1309,7 +1309,7 @@ class WShape {
 #endif
 
  protected:
-  /*!
+  /**
    * Builds the face passed as argument (which as already been allocated)
    * - iVertexList
    *   List of face's vertices. These vertices are not added to the WShape vertex list;

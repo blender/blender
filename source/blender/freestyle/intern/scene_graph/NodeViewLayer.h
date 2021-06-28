@@ -49,7 +49,7 @@ class NodeViewLayer : public Node {
     return _ViewLayer;
   }
 
-  /*! Accept the corresponding visitor */
+  /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v);
 
  protected:

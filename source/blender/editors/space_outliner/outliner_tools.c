@@ -86,6 +86,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "../../blender/blenloader/BLO_readfile.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -930,8 +932,14 @@ static void id_override_library_resync_fn(bContext *C,
       te->store_elem->id->tag |= LIB_TAG_DOIT;
     }
 
-    BKE_lib_override_library_resync(
-        bmain, scene, CTX_data_view_layer(C), id_root, NULL, do_hierarchy_enforce, true, reports);
+    BKE_lib_override_library_resync(bmain,
+                                    scene,
+                                    CTX_data_view_layer(C),
+                                    id_root,
+                                    NULL,
+                                    do_hierarchy_enforce,
+                                    true,
+                                    &(struct BlendFileReadReport){.reports = reports});
 
     WM_event_add_notifier(C, NC_WINDOW, NULL);
   }

@@ -1319,17 +1319,6 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
 
-/**
- * Which which point is in front (result should only be used for comparison).
- */
-static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
-{
-  if (rv3d->is_persp) {
-    return ED_view3d_calc_zfac(rv3d, co, NULL);
-  }
-  return -dot_v3v3(rv3d->viewinv[2], co);
-}
-
 /* only erase stroke points that are visible */
 static bool gpencil_stroke_eraser_is_occluded(
     tGPsdata *p, bGPDlayer *gpl, bGPDspoint *pt, const int x, const int y)
@@ -1359,10 +1348,10 @@ static bool gpencil_stroke_eraser_is_occluded(
     BKE_gpencil_layer_transform_matrix_get(p->depsgraph, obact, gpl, diff_mat);
 
     if (ED_view3d_autodist_simple(p->region, mval_i, mval_3d, 0, NULL)) {
-      const float depth_mval = view3d_point_depth(rv3d, mval_3d);
+      const float depth_mval = ED_view3d_calc_depth_for_comparison(rv3d, mval_3d);
 
       mul_v3_m4v3(fpt, diff_mat, &pt->x);
-      const float depth_pt = view3d_point_depth(rv3d, fpt);
+      const float depth_pt = ED_view3d_calc_depth_for_comparison(rv3d, fpt);
 
       /* Checked occlusion flag. */
       pt->flag |= GP_SPOINT_TEMP_TAG;
@@ -1433,7 +1422,7 @@ static void gpencil_stroke_soft_refine(bGPDstroke *gps)
   bGPDspoint *pt2 = NULL;
   int i;
 
-  /* check if enough points*/
+  /* Check if enough points. */
   if (gps->totpoints < 3) {
     return;
   }
@@ -1744,7 +1733,7 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
     if ((gp_settings != NULL) && (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
       View3D *v3d = p->area->spacedata.first;
       view3d_region_operator_needs_opengl(p->win, p->region);
-      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
+      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
     }
   }
 
@@ -1792,7 +1781,7 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
           }
         }
 
-        /* if not multiedit, exit loop*/
+        /* If not multi-edit, exit loop. */
         if (!is_multiedit) {
           break;
         }
@@ -2334,7 +2323,7 @@ static void gpencil_paint_strokeend(tGPsdata *p)
                              (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
                                  V3D_DEPTH_GPENCIL_ONLY :
                                  V3D_DEPTH_NO_GPENCIL,
-                             false);
+                             NULL);
   }
 
   /* check if doing eraser or not */
@@ -3178,7 +3167,7 @@ static void gpencil_guide_event_handling(bContext *C,
       guide->type = GP_GUIDE_CIRCULAR;
     }
   }
-  /* Change line angle  */
+  /* Change line angle. */
   else if (ELEM(event->type, EVT_JKEY, EVT_KKEY) && (event->val == KM_RELEASE)) {
     add_notifier = true;
     float angle = guide->angle;
@@ -3460,7 +3449,7 @@ static void gpencil_add_arc_points(tGPsdata *p, const float mval[2], int segment
     interp_v4_v4v4(
         pt->vert_color, pt_before->vert_color, pt_prev->vert_color, stepcolor * (i + 1));
 
-    /* Apply angle of stroke to brush size to interpolated points but slightly attenuated.. */
+    /* Apply angle of stroke to brush size to interpolated points but slightly attenuated. */
     if (brush_settings->draw_angle_factor != 0.0f) {
       gpencil_brush_angle_segment(p, pt_step, pt);
       CLAMP(pt->pressure, pt_prev->pressure * 0.5f, 1.0f);
@@ -3771,7 +3760,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
       else if (p->region) {
-        /* Perform bounds check using  */
+        /* Perform bounds check using. */
         const rcti *region_rect = ED_region_visible_rect(p->region);
         in_bounds = BLI_rcti_isect_pt_v(region_rect, event->mval);
       }

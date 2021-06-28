@@ -39,7 +39,7 @@
 #include "WM_message.h"
 #include "WM_types.h"
 
-/* ******************** default callbacks for statusbar space ********************  */
+/* ******************** default callbacks for statusbar space ******************** */
 
 static SpaceLink *statusbar_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {

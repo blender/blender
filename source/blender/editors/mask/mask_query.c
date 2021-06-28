@@ -169,7 +169,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
     }
 
     if (r_u) {
-      /* TODO(sergey): Projection fails in some weirdo cases.. */
+      /* TODO(sergey): Projection fails in some weirdo cases. */
       if (use_project) {
         u = BKE_mask_spline_project_co(point_spline, point, u, normal_co, MASK_PROJ_ANY);
       }

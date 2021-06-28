@@ -72,7 +72,7 @@ typedef struct CustomData {
   CustomDataLayer *layers;
   /**
    * runtime only! - maps types to indices of first layer of that type,
-   * MUST be >= CD_NUMTYPES, but we cant use a define here.
+   * MUST be >= CD_NUMTYPES, but we can't use a define here.
    * Correct size is ensured in CustomData_update_typemap assert().
    */
   int typemap[51];

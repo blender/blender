@@ -97,7 +97,7 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
    * in a consistent direction.
    *
    * These should be small enough for stack allocations because the current limit
-   * for #Curve.bevresol is 32.  */
+   * for #Curve.bevresol is 32. */
   float *quarter_coords_x = alloca(sizeof(float) * (cu->bevresol + 1));
   float *quarter_coords_y = alloca(sizeof(float) * (cu->bevresol + 1));
   bevel_quarter_fill(cu, quarter_coords_x, quarter_coords_y);

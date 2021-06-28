@@ -158,6 +158,7 @@ set(SRC
 )
 
 set(LIB
+  bf_blenkernel
 )
 
 blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

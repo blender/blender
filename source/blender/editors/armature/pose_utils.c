@@ -144,7 +144,9 @@ Object *poseAnim_object_get(Object *ob_)
   return NULL;
 }
 
-/* get sets of F-Curves providing transforms for the bones in the Pose  */
+/**
+ * Get sets of F-Curves providing transforms for the bones in the Pose.
+ */
 void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
 {
   /* for each Pose-Channel which gets affected, get the F-Curves for that channel
@@ -190,7 +192,7 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
   }
 }
 
-/* free F-Curve <-> PoseChannel links  */
+/* Free F-Curve <-> PoseChannel links. */
 void poseAnim_mapping_free(ListBase *pfLinks)
 {
   tPChanFCurveLink *pfl, *pfln = NULL;

@@ -366,7 +366,7 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to,
   }
 }
 
-/* byte to float pixels, input and output 4-channel RGBA  */
+/* Byte to float pixels, input and output 4-channel RGBA. */
 void IMB_buffer_float_from_byte(float *rect_to,
                                 const uchar *rect_from,
                                 int profile_to,

@@ -220,7 +220,7 @@ OperationCode bone_target_opcode(ID *target,
                                  const char *component_subdata,
                                  RootPChanMap *root_map)
 {
-  /* Same armature.  */
+  /* Same armature. */
   if (target == id) {
     /* Using "done" here breaks in-chain deps, while using
      * "ready" here breaks most production rigs instead.
@@ -240,7 +240,7 @@ bool object_have_geometry_component(const Object *object)
 
 }  // namespace
 
-/* **** General purpose functions ****  */
+/* **** General purpose functions **** */
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
                                                    Depsgraph *graph,
@@ -1148,7 +1148,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
     /* Special case for camera tracking -- it doesn't use targets to
      * define relations. */
     /* TODO: we can now represent dependencies in a much richer manner,
-     * so review how this is done.  */
+     * so review how this is done. */
     if (ELEM(cti->type,
              CONSTRAINT_TYPE_FOLLOWTRACK,
              CONSTRAINT_TYPE_CAMERASOLVER,
@@ -1911,7 +1911,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
     /* Effectors. */
     add_particle_forcefield_relations(
         psys_key, object, psys, part->effector_weights, part->type == PART_HAIR, "Particle Field");
-    /* Boids .*/
+    /* Boids. */
     if (part->boids != nullptr) {
       LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
         LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
@@ -1947,7 +1947,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
     switch (part->ren_as) {
       case PART_DRAW_OB:
         if (part->instance_object != nullptr) {
-          /* Make sure object's relations are all built.  */
+          /* Make sure object's relations are all built. */
           build_object(part->instance_object);
           /* Build relation for the particle visualization. */
           build_particle_system_visualization_object(object, psys, part->instance_object);

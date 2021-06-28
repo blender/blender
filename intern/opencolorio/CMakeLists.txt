@@ -48,6 +48,7 @@ if(WITH_OPENCOLORIO)
   )
 
   add_definitions(${GL_DEFINITIONS})
+  add_definitions(${OPENCOLORIO_DEFINITIONS})
 
   list(APPEND INC_SYS
     ${OPENCOLORIO_INCLUDE_DIRS}
@@ -66,9 +67,6 @@ if(WITH_OPENCOLORIO)
   if(WIN32)
     list(APPEND INC_SYS
       ${BOOST_INCLUDE_DIR}
-    )
-    add_definitions(
-      -DOpenColorIO_STATIC
     )
     list(APPEND LIB
       ${BOOST_LIBRARIES}

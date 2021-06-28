@@ -105,8 +105,9 @@ void _bli_array_grow_func(void **arr_p,
   ((void)BLI_array_grow_one(arr), (void)(arr[_##arr##_len - 1] = item))
 
 /**
- * appends an item to the array and returns a pointer to the item in the array.
- * item is not a pointer, but actual data value.*/
+ * Appends an item to the array and returns a pointer to the item in the array.
+ * item is not a pointer, but actual data value.
+ */
 #define BLI_array_append_r(arr, item) \
   ((void)BLI_array_grow_one(arr), (void)(arr[_##arr##_len - 1] = item), (&arr[_##arr##_len - 1]))
 

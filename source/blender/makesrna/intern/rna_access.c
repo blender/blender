@@ -226,7 +226,7 @@ void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
   {
     StructRNA *base;
     PointerRNA t_ptr;
-    *r_ptr = *ptr; /* initialize as the same in case cant recast */
+    *r_ptr = *ptr; /* initialize as the same in case can't recast */
 
     for (base = ptr->type->base; base; base = base->base) {
       t_ptr = rna_pointer_inherit_refine(ptr, base, ptr->data);
@@ -3681,7 +3681,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   }
   if (prop->flag & PROP_IDPROPERTY) {
     /* XXX temporary hack to add it automatically, reading should
-     * never do any write ops, to ensure thread safety etc .. */
+     * never do any write ops, to ensure thread safety etc. */
     RNA_property_pointer_add(ptr, prop);
     return RNA_property_pointer_get(ptr, prop);
   }
@@ -3766,16 +3766,16 @@ void RNA_property_pointer_set(PointerRNA *ptr,
 
 PointerRNA RNA_property_pointer_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop))
 {
-  /*PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop; */
+  // PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
-  /* BLI_assert(RNA_property_type(prop) == PROP_POINTER); */
+  // BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
   return PointerRNA_NULL; /* FIXME: there has to be a way... */
 }
 
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 {
-  /*IDProperty *idprop;*/
+  // IDProperty *idprop;
 
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
@@ -3960,7 +3960,7 @@ static bool property_collection_liboverride_editable(PointerRNA *ptr,
 
   if (!is_liboverride) {
     /* We return True also for linked data, as it allows tricks like py scripts 'overriding' data
-     * of those.*/
+     * of those. */
     return true;
   }
 
@@ -4005,7 +4005,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
       item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
     }
     IDP_AppendArray(idprop, item);
-    /* IDP_AppendArray does a shallow copy (memcpy), only free memory  */
+    /* IDP_AppendArray does a shallow copy (memcpy), only free memory. */
     /* IDP_FreePropertyContent(item); */
     MEM_freeN(item);
     rna_idproperty_touch(idprop);
@@ -4565,8 +4565,8 @@ static int rna_raw_access(ReportList *reports,
         return 1;
       }
 
-      /* could also be faster with non-matching types,
-       * for now we just do slower loop .. */
+      /* Could also be faster with non-matching types,
+       * for now we just do slower loop. */
     }
   }
 
@@ -5184,7 +5184,7 @@ static bool rna_path_parse_array_index(const char **path,
       /* location.x || scale.X, single dimension arrays only */
       token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 0);
       if (token == NULL) {
-        /* invalid syntax blah.. */
+        /* invalid syntax blah. */
         return false;
       }
       temp_index = RNA_property_array_item_index(prop, *token);
@@ -6869,7 +6869,7 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C,
         if (as_function && RNA_property_type(prop) == PROP_POINTER) {
           /* don't expand pointers for functions */
           if (flag & PROP_NEVER_NULL) {
-            /* we cant really do the right thing here. arg=arg?, hrmf! */
+            /* we can't really do the right thing here. arg=arg?, hrmf! */
             buf = BLI_strdup(arg_name);
           }
           else {
@@ -7375,7 +7375,7 @@ int RNA_parameter_list_ret_count(ParameterList *parms)
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 {
   /* may be useful but unused now */
-  /* RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr); */ /*UNUSED*/
+  // RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr); /* UNUSED */
 
   iter->parms = parms;
   iter->parm = parms->func->cont.properties.first;
@@ -8184,7 +8184,7 @@ void _RNA_warning(const char *format, ...)
   vprintf(format, args);
   va_end(args);
 
-  /* gcc macro adds '\n', but cant use for other compilers */
+  /* gcc macro adds '\n', but can't use for other compilers */
 #ifndef __GNUC__
   fputc('\n', stdout);
 #endif

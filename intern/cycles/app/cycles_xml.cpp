@@ -51,12 +51,12 @@ CCL_NAMESPACE_BEGIN
 /* XML reading state */
 
 struct XMLReadState : public XMLReader {
-  Scene *scene;      /* scene pointer */
-  Transform tfm;     /* current transform state */
-  bool smooth;       /* smooth normal state */
-  Shader *shader;    /* current shader */
-  string base;       /* base path to current file*/
-  float dicing_rate; /* current dicing rate */
+  Scene *scene;      /* Scene pointer. */
+  Transform tfm;     /* Current transform state. */
+  bool smooth;       /* Smooth normal state. */
+  Shader *shader;    /* Current shader. */
+  string base;       /* Base path to current file. */
+  float dicing_rate; /* Current dicing rate. */
 
   XMLReadState() : scene(NULL), smooth(false), shader(NULL), dicing_rate(1.0f)
   {
@@ -385,7 +385,7 @@ static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm)
   Mesh *mesh = new Mesh();
   scene->geometry.push_back(mesh);
 
-  /* create object*/
+  /* Create object. */
   Object *object = new Object();
   object->set_geometry(mesh);
   object->set_tfm(tfm);

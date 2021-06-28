@@ -414,7 +414,7 @@ static void rotate_right(DLRBT_Tree *tree, DLRBT_Node *root)
 }
 
 /* *********************************************** */
-/* Post-Insertion Balancing  */
+/* Post-Insertion Balancing */
 
 /* forward defines for insertion checks */
 static void insert_check_1(DLRBT_Tree *tree, DLRBT_Node *node);
@@ -472,7 +472,7 @@ static void insert_check_2(DLRBT_Tree *tree, DLRBT_Node *node)
   }
 }
 
-/* W. 4+5) Perform rotation on sub-tree containing the 'new' node, then do any  */
+/* W. 4+5) Perform rotation on sub-tree containing the 'new' node, then do any. */
 static void insert_check_3(DLRBT_Tree *tree, DLRBT_Node *node)
 {
   DLRBT_Node *gp = get_grandparent(node);

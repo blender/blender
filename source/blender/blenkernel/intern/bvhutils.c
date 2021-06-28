@@ -1143,7 +1143,7 @@ static BVHTree *bvhtree_from_editmesh_looptri_create_tree(float epsilon,
         bool insert = looptri_mask ? BLI_BITMAP_TEST_BOOL(looptri_mask, i) : true;
 
         if (insert) {
-          /* No reason found to block hit-testing the triangle for snap, so insert it now.*/
+          /* No reason found to block hit-testing the triangle for snap, so insert it now. */
           float co[3][3];
           copy_v3_v3(co[0], ltri[0]->v->co);
           copy_v3_v3(co[1], ltri[1]->v->co);

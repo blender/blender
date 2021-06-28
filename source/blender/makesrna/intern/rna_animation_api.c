@@ -70,7 +70,7 @@ static float rna_AnimData_nla_tweak_strip_time_to_scene(AnimData *adt, float fra
 void RNA_api_keyingset(StructRNA *srna)
 {
   FunctionRNA *func;
-  /*PropertyRNA *parm; */
+  // PropertyRNA *parm;
 
   /* validate relative Keying Set (used to ensure paths are ok for context) */
   func = RNA_def_function(srna, "refresh", "rna_KeyingSet_context_refresh");

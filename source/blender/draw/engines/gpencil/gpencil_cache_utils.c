@@ -102,7 +102,7 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
 
   transpose_m4(mat);
   /* mat is now a "normal" matrix which will transform
-   * BBox space normal to world space.  */
+   * BBox space normal to world space. */
   mul_mat3_m4_v3(mat, tgp_ob->plane_normal);
   normalize_v3(tgp_ob->plane_normal);
 

@@ -370,7 +370,7 @@ void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 /* Sync colors used for action/bone group with theme settings */
 void action_group_colors_sync(bActionGroup *grp, const bActionGroup *ref_grp)
 {
-  /* only do color copying if using a custom color (i.e. not default color)  */
+  /* Only do color copying if using a custom color (i.e. not default color). */
   if (grp->customCol) {
     if (grp->customCol > 0) {
       /* copy theme colors on-to group's custom color in case user tries to edit color */
@@ -486,8 +486,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 
     /* If grp is NULL, that means we fell through, and this F-Curve should be added as the new
      * first since group is (effectively) the first group. Thus, the existing first F-Curve becomes
-     * the second in the chain, etc. etc.
-     */
+     * the second in the chain, etc. */
     if (grp == NULL) {
       BLI_insertlinkbefore(&act->curves, act->curves.first, fcurve);
     }
@@ -846,8 +845,9 @@ void BKE_pose_copy_data_ex(bPose **dst,
     }
 
     if (copy_constraints) {
-      BKE_constraints_copy_ex(
-          &listb, &pchan->constraints, flag, true); /* BKE_constraints_copy NULLs listb */
+      /* #BKE_constraints_copy NULL's `listb` */
+      BKE_constraints_copy_ex(&listb, &pchan->constraints, flag, true);
+
       pchan->constraints = listb;
 
       /* XXX: This is needed for motionpath drawing to work.
@@ -1855,7 +1855,7 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
   /* Write channels */
   LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
     /* Write ID Properties -- and copy this comment EXACTLY for easy finding
-     * of library blocks that implement this.*/
+     * of library blocks that implement this. */
     if (chan->prop) {
       IDP_BlendWrite(writer, chan->prop);
     }

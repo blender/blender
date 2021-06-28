@@ -444,7 +444,7 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
              color_line);
 
   /* Draw triangles at the ends of the line in overshoot mode to indicate direction of 0-100%
-   * range.*/
+   * range. */
   if (pso->overshoot) {
     if (pso->factor > 1 + OVERSHOOT_RANGE_DELTA + 0.5) {
       draw_overshoot_triangle(color_line, false, main_line_rect.xmin, line_y);
@@ -1468,7 +1468,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* Reset transforms back to original state. */
         pose_slide_reset(pso);
 
-        /* Depsgraph updates + redraws.*/
+        /* Depsgraph updates + redraws. */
         pose_slide_refresh(C, pso);
 
         /* Clean up temp data. */
@@ -1513,7 +1513,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       if (event->val == KM_PRESS) {
         switch (event->type) {
-          /* Transform Channel Limits  */
+          /* Transform Channel Limits. */
           /* XXX: Replace these hard-coded hotkeys with a modal-map that can be customized. */
           case EVT_GKEY: /* Location */
           {

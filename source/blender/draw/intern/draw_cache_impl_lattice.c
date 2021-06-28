@@ -165,7 +165,7 @@ static LatticeRenderData *lattice_render_data_create(Lattice *lt, const int type
     }
     if (types & (LR_DATATYPE_EDGE)) {
       rdata->edge_len = lattice_render_edges_len_get(lt);
-      /*no edge data */
+      /* No edge data. */
     }
   }
 

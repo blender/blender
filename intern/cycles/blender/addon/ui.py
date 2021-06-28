@@ -821,6 +821,11 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_strand", text="Hair")
         col.prop(view_layer, "use_volumes", text="Volumes")
 
+        col = layout.column(heading="Use")
+        sub = col.row()
+        sub.prop(view_layer, "use_motion_blur", text="Motion Blur")
+        sub.active = rd.use_motion_blur
+
 
 class CYCLES_RENDER_PT_override(CyclesButtonsPanel, Panel):
     bl_label = "Override"
@@ -1218,20 +1223,31 @@ class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return CyclesButtonsPanel.poll(context) and (context.object)
+        if not CyclesButtonsPanel.poll(context):
+            return False
+
+        ob = context.object
+        return ob and has_geometry_visibility(ob)
+
+    def draw(self, context):
+        pass
+
+
+class CYCLES_OBJECT_PT_shading_shadow_terminator(CyclesButtonsPanel, Panel):
+    bl_label = "Shadow Terminator"
+    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_context = "object"
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-        layout = self.layout
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+
         ob = context.object
         cob = ob.cycles
-
-        if has_geometry_visibility(ob):
-            col = flow.column()
-            col.prop(cob, "shadow_terminator_offset")
+        flow.prop(cob, "shadow_terminator_geometry_offset", text="Geometry Offset")
+        flow.prop(cob, "shadow_terminator_offset", text="Shading Offset")
 
 
 class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
@@ -2311,6 +2327,7 @@ classes = (
     CYCLES_PT_context_material,
     CYCLES_OBJECT_PT_motion_blur,
     CYCLES_OBJECT_PT_shading,
+    CYCLES_OBJECT_PT_shading_shadow_terminator,
     CYCLES_OBJECT_PT_visibility,
     CYCLES_OBJECT_PT_visibility_ray_visibility,
     CYCLES_OBJECT_PT_visibility_culling,

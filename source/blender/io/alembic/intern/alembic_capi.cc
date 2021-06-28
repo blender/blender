@@ -737,7 +737,7 @@ void ABC_get_transform(CacheReader *reader, float r_mat_world[4][4], float time,
   /* Convert from the local matrix we obtain from Alembic to world coordinates
    * for Blender. This conversion is done here rather than by Blender due to
    * work around the non-standard interpretation of CONSTRAINT_SPACE_LOCAL in
-   * BKE_constraint_mat_convertspace().  */
+   * BKE_constraint_mat_convertspace(). */
   Object *object = abc_reader->object();
   if (object->parent == nullptr) {
     /* No parent, so local space is the same as world space. */

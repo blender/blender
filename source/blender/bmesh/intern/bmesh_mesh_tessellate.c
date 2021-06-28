@@ -406,6 +406,10 @@ void BM_mesh_calc_tessellation_with_partial_ex(BMesh *bm,
                                                const struct BMeshCalcTessellation_Params *params)
 {
   BLI_assert(bmpinfo->params.do_tessellate);
+  /* While harmless, exit early if there is nothing to do (avoids ensuring the index). */
+  if (UNLIKELY(bmpinfo->faces_len == 0)) {
+    return;
+  }
 
   BM_mesh_elem_index_ensure(bm, BM_LOOP | BM_FACE);
 

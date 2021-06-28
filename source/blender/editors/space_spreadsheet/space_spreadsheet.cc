@@ -47,6 +47,7 @@
 
 #include "spreadsheet_context.hh"
 #include "spreadsheet_data_source_geometry.hh"
+#include "spreadsheet_dataset_draw.hh"
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_layout.hh"
 #include "spreadsheet_row_filter.hh"
@@ -77,6 +78,15 @@ static SpaceLink *spreadsheet_create(const ScrArea *UNUSED(area), const Scene *U
     BLI_addtail(&spreadsheet_space->regionbase, region);
     region->regiontype = RGN_TYPE_FOOTER;
     region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+  }
+
+  {
+    /* Dataset Region */
+    ARegion *region = (ARegion *)MEM_callocN(sizeof(ARegion), "spreadsheet dataset region");
+    BLI_addtail(&spreadsheet_space->regionbase, region);
+    region->regiontype = RGN_TYPE_CHANNELS;
+    region->alignment = RGN_ALIGN_LEFT;
+    region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
   }
 
   {
@@ -195,7 +205,7 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
   }
 }
 
-ID *ED_spreadsheet_get_current_id(struct SpaceSpreadsheet *sspreadsheet)
+ID *ED_spreadsheet_get_current_id(const struct SpaceSpreadsheet *sspreadsheet)
 {
   if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
     return nullptr;
@@ -263,7 +273,7 @@ static void update_context_path_from_context(const bContext *C)
   }
 }
 
-static void update_context_path(const bContext *C)
+void spreadsheet_update_context_path(const bContext *C)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   if (sspreadsheet->flag & SPREADSHEET_FLAG_PINNED) {
@@ -274,28 +284,40 @@ static void update_context_path(const bContext *C)
   }
 }
 
+Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
+                                    const Depsgraph *depsgraph)
+{
+  ID *used_id = ED_spreadsheet_get_current_id(sspreadsheet);
+  if (used_id == nullptr) {
+    return nullptr;
+  }
+  const ID_Type id_type = GS(used_id->name);
+  if (id_type != ID_OB) {
+    return nullptr;
+  }
+  Object *object_orig = (Object *)used_id;
+  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
+    return nullptr;
+  }
+
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);
+  if (object_eval == nullptr) {
+    return nullptr;
+  }
+
+  return object_eval;
+}
+
 static std::unique_ptr<DataSource> get_data_source(const bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  ID *used_id = ED_spreadsheet_get_current_id(sspreadsheet);
-  if (used_id == nullptr) {
-    return {};
-  }
-  const ID_Type id_type = GS(used_id->name);
-  if (id_type != ID_OB) {
-    return {};
-  }
-  Object *object_orig = (Object *)used_id;
-  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
-    return {};
-  }
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);
-  if (object_eval == nullptr) {
-    return {};
-  }
 
-  return data_source_from_geometry(C, object_eval);
+  Object *object_eval = spreadsheet_get_object_eval(sspreadsheet, depsgraph);
+  if (object_eval) {
+    return data_source_from_geometry(C, object_eval);
+  }
+  return {};
 }
 
 static float get_column_width(const ColumnValues &values)
@@ -358,7 +380,7 @@ static void update_visible_columns(ListBase &columns, DataSource &data_source)
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  update_context_path(C);
+  spreadsheet_update_context_path(C);
 
   std::unique_ptr<DataSource> data_source = get_data_source(C);
   if (!data_source) {
@@ -442,7 +464,7 @@ static void spreadsheet_header_region_init(wmWindowManager *UNUSED(wm), ARegion 
 
 static void spreadsheet_header_region_draw(const bContext *C, ARegion *region)
 {
-  update_context_path(C);
+  spreadsheet_update_context_path(C);
   ED_region_header(C, region);
 }
 
@@ -534,6 +556,59 @@ static void spreadsheet_footer_region_listener(const wmRegionListenerParams *UNU
 {
 }
 
+static void spreadsheet_dataset_region_listener(const wmRegionListenerParams *params)
+{
+  ARegion *region = params->region;
+  wmNotifier *wmn = params->notifier;
+
+  switch (wmn->category) {
+    case NC_SCENE: {
+      switch (wmn->data) {
+        case ND_FRAME:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
+    }
+    case NC_TEXTURE:
+      ED_region_tag_redraw(region);
+      break;
+  }
+
+  spreadsheet_header_region_listener(params);
+}
+
+static void spreadsheet_dataset_region_init(wmWindowManager *wm, ARegion *region)
+{
+  region->v2d.scroll |= V2D_SCROLL_RIGHT;
+  region->v2d.scroll &= ~(V2D_SCROLL_LEFT | V2D_SCROLL_TOP | V2D_SCROLL_BOTTOM);
+  region->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+  region->v2d.scroll |= V2D_SCROLL_VERTICAL_HIDE;
+
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+
+  wmKeyMap *keymap = WM_keymap_ensure(
+      wm->defaultconf, "Spreadsheet Generic", SPACE_SPREADSHEET, 0);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+}
+
+static void spreadsheet_dataset_region_draw(const bContext *C, ARegion *region)
+{
+  spreadsheet_update_context_path(C);
+
+  View2D *v2d = &region->v2d;
+  UI_view2d_view_ortho(v2d);
+  UI_ThemeClearColor(TH_BACK);
+
+  draw_dataset_in_region(C, region);
+
+  /* reset view matrix */
+  UI_view2d_view_restore(C);
+
+  /* scrollers */
+  UI_view2d_scrollers_draw(v2d, NULL);
+}
+
 static void spreadsheet_sidebar_init(wmWindowManager *wm, ARegion *region)
 {
   UI_panel_category_active_set_default(region, "Filters");
@@ -618,6 +693,16 @@ void ED_spacetype_spreadsheet(void)
   BLI_addhead(&st->regiontypes, art);
 
   register_row_filter_panels(*art);
+
+  /* regions: channels */
+  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spreadsheet dataset region");
+  art->regionid = RGN_TYPE_CHANNELS;
+  art->prefsizex = 200 + V2D_SCROLL_WIDTH;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+  art->init = spreadsheet_dataset_region_init;
+  art->draw = spreadsheet_dataset_region_draw;
+  art->listener = spreadsheet_dataset_region_listener;
+  BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(st);
 }

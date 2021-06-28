@@ -409,7 +409,7 @@ ccl_device void subsurface_random_walk_coefficients(const ShaderClosure *sc,
 
 ccl_device_forceinline float eval_phase_dwivedi(float v, float phase_log, float cos_theta)
 {
-  /* Eq. 9 from [2] using precomputed log((v + 1) / (v - 1))*/
+  /* Eq. 9 from [2] using precomputed log((v + 1) / (v - 1)) */
   return 1.0f / ((v - cos_theta) * phase_log);
 }
 

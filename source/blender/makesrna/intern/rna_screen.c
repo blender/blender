@@ -169,7 +169,7 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 
       /* It is possible that new layers becomes visible. */
       if (area->spacetype == SPACE_VIEW3D) {
-        DEG_on_visible_update(CTX_data_main(C), false);
+        DEG_tag_on_visible_update(CTX_data_main(C), false);
       }
 
       CTX_wm_window_set(C, prevwin);
@@ -234,7 +234,7 @@ static int rna_Area_ui_type_get(PointerRNA *ptr)
    * the area type is changing.
    * So manually do the lookup in those cases, but do not actually change area->type
    * since that prevents a proper exit when the area type is changing.
-   * Logic copied from `ED_area_init()`.*/
+   * Logic copied from `ED_area_init()`. */
   SpaceType *type = area->type;
   if (type == NULL || area_changing) {
     type = BKE_spacetype_from_id(area_type);
@@ -288,7 +288,7 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
 
   if (region->regiondata != NULL) {
     if (region->regiontype == RGN_TYPE_WINDOW) {
-      /* We could make this static, it wont change at run-time. */
+      /* We could make this static, it won't change at run-time. */
       SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
       if (region->type == BKE_regiontype_from_id(st, region->regiontype)) {
         PointerRNA newptr;

@@ -79,8 +79,8 @@ typedef struct IDProperty {
   /** Note, alignment for 64 bits. */
   IDPropertyData data;
 
-  /* array length, also (this is important!) string length + 1.
-   * the idea is to be able to reuse array realloc functions on strings.*/
+  /* Array length, also (this is important!) string length + 1.
+   * the idea is to be able to reuse array realloc functions on strings. */
   int len;
 
   /* Strings and arrays are both buffered, though the buffer isn't saved. */
@@ -141,7 +141,7 @@ enum {
   IDP_FLAG_GHOST = 1 << 7,
 };
 
-/* add any future new id property types here.*/
+/* add any future new id property types here. */
 
 /* Static ID override structs. */
 
@@ -454,6 +454,10 @@ typedef struct PreviewImage {
 #define ID_TYPE_IS_COW(_id_type) \
   (!ELEM(_id_type, ID_LI, ID_IP, ID_SCR, ID_VF, ID_BR, ID_WM, ID_PAL, ID_PC, ID_WS, ID_IM))
 
+/* Check whether data-block type requires copy-on-write from #ID_RECALC_PARAMETERS.
+ * Keep in sync with #BKE_id_eval_properties_copy. */
+#define ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(id_type) ELEM(id_type, ID_ME)
+
 #ifdef GS
 #  undef GS
 #endif
@@ -602,10 +606,18 @@ typedef enum IDRecalcFlag {
    *
    * When object of armature type gets tagged with this flag, its pose is
    * re-evaluated.
+   *
    * When object of other type is tagged with this flag it makes the modifier
    * stack to be re-evaluated.
+   *
    * When object data type (mesh, curve, ...) gets tagged with this flag it
    * makes all objects which shares this data-block to be updated.
+   *
+   * Note that the evaluation depends on the object-mode.
+   * So edit-mesh data for example only reevaluate with the updated edit-mesh.
+   * When geometry in the original ID has been modified #ID_RECALC_GEOMETRY_ALL_MODES
+   * must be used instead.
+   *
    * When a collection gets tagged with this flag, all objects depending on the geometry and
    * transforms on any of the objects in the collection are updated. */
   ID_RECALC_GEOMETRY = (1 << 1),
@@ -665,6 +677,10 @@ typedef enum IDRecalcFlag {
 
   ID_RECALC_AUDIO = (1 << 20),
 
+  /* NOTE: This triggers copy on write for types that require it.
+   * Exceptions to this can be added using #ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW,
+   * this has the advantage that large arrays stored in the idea data don't
+   * have to be copied on every update. */
   ID_RECALC_PARAMETERS = (1 << 21),
 
   /* Input has changed and datablock is to be reload from disk.
@@ -688,6 +704,11 @@ typedef enum IDRecalcFlag {
   /* Update animation data-block itself, without doing full re-evaluation of
    * all dependent objects. */
   ID_RECALC_ANIMATION_NO_FLUSH = ID_RECALC_COPY_ON_WRITE,
+
+  /* Ensure geometry of object and edit modes are both up-to-date in the evaluated data-block.
+   * Example usage is when mesh validation modifies the non-edit-mode data,
+   * which we want to be copied over to the evaluated data-block. */
+  ID_RECALC_GEOMETRY_ALL_MODES = ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE,
 
   /***************************************************************************
    * Aggregate flags, use only for checks on runtime.

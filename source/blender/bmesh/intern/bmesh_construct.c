@@ -673,7 +673,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   ftable = MEM_mallocN(sizeof(BMFace *) * bm_old->totface, "BM_mesh_copy ftable");
 
   BM_ITER_MESH_INDEX (v, &iter, bm_old, BM_VERTS_OF_MESH, i) {
-    /* copy between meshes so cant use 'example' argument */
+    /* copy between meshes so can't use 'example' argument */
     v_new = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD);
     BM_elem_attrs_copy_ex(bm_old, bm_new, v, v_new, 0xff, 0x0);
     v_new->head.hflag = v->head.hflag; /* low level! don't do this for normal api use */

@@ -245,7 +245,7 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
 
   if (mb_data) {
     int mb_step = effects->motion_blur_step;
-    /* Store transform  */
+    /* Store transform. */
     DRW_hair_duplimat_get(ob, psys, md, mb_data->obmat[mb_step]);
 
     EEVEE_HairMotionData *mb_hair = EEVEE_motion_blur_hair_data_get(&effects->motion_blur, ob);
@@ -323,7 +323,7 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
 
   if (mb_data) {
     int mb_step = effects->motion_blur_step;
-    /* Store transform  */
+    /* Store transform. */
     copy_m4_m4(mb_data->obmat[mb_step], ob->obmat);
 
     EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(&effects->motion_blur,
@@ -349,7 +349,7 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
       }
 
       /* Avoid drawing object that has no motions since object_moves is always true. */
-      if (!mb_geom->use_deform && /* Object deformation can happen without transform.  */
+      if (!mb_geom->use_deform && /* Object deformation can happen without transform. */
           equals_m4m4(mb_data->obmat[MB_PREV], mb_data->obmat[MB_CURR]) &&
           equals_m4m4(mb_data->obmat[MB_NEXT], mb_data->obmat[MB_CURR])) {
         return;

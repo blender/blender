@@ -51,7 +51,7 @@ bool EDBM_op_call_and_selectf(struct BMEditMesh *em,
                               const bool select_replace,
                               const char *fmt,
                               ...);
-/* Same as above, but doesn't report errors.*/
+/* Same as above, but doesn't report errors. */
 bool EDBM_op_call_silentf(struct BMEditMesh *em, const char *fmt, ...);
 
 /* these next two functions are the split version of EDBM_op_callf, so you can
@@ -77,15 +77,15 @@ struct BMElem *EDBM_elem_from_selectmode(struct BMEditMesh *em,
                                          struct BMFace *efa);
 
 int EDBM_elem_to_index_any(struct BMEditMesh *em, struct BMElem *ele);
-struct BMElem *EDBM_elem_from_index_any(struct BMEditMesh *em, int index);
+struct BMElem *EDBM_elem_from_index_any(struct BMEditMesh *em, uint index);
 
 int EDBM_elem_to_index_any_multi(struct ViewLayer *view_layer,
                                  struct BMEditMesh *em,
                                  struct BMElem *ele,
                                  int *r_object_index);
 struct BMElem *EDBM_elem_from_index_any_multi(struct ViewLayer *view_layer,
-                                              int object_index,
-                                              int elem_index,
+                                              uint object_index,
+                                              uint elem_index,
                                               struct Object **r_obedit);
 
 bool edbm_extrude_edges_indiv(struct BMEditMesh *em,

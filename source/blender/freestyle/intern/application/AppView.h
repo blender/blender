@@ -83,7 +83,7 @@ class AppView {
   float _thickness;
 
  public:
-  /*! Sets the model to draw in the viewer
+  /** Sets the model to draw in the viewer
    *  iModel
    *    The Root Node of the model
    */
@@ -97,7 +97,7 @@ class AppView {
     AddModel(iModel);
   }
 
-  /*! Adds a model for displaying in the viewer */
+  /** Adds a model for displaying in the viewer */
   inline void AddModel(NodeGroup *iModel)
   {
     _ModelRootNode->AddChild(iModel);
@@ -226,14 +226,14 @@ class AppView {
   real zfar();
 
  public:
-  /*! Core scene drawing */
+  /** Core scene drawing */
   void DrawScene(SceneVisitor *iRenderer);
 
-  /*! 2D Scene Drawing */
+  /** 2D Scene Drawing */
   void Draw2DScene(SceneVisitor *iRenderer);
 
  protected:
-  /*! fabs or abs */
+  /** fabs or abs */
   inline int rabs(int x)
   {
     return abs(x);

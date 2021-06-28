@@ -327,7 +327,7 @@ bool BKE_where_on_path(const Object *ob,
   }
   const Nurb *nu = nurbs->first;
 
-  /* make sure that first and last frame are included in the vectors here  */
+  /* Make sure that first and last frame are included in the vectors here. */
   if (ELEM(nu->type, CU_POLY, CU_BEZIER, CU_NURBS)) {
     key_curve_position_weights(frac, w, KEY_LINEAR);
   }

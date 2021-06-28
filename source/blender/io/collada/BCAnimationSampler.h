@@ -88,7 +88,7 @@ class BCSampleFrame {
 
   BCSample &add(Object *ob);
 
-  /* Following methods return NULL if object is not in the sampleMap*/
+  /* Following methods return NULL if object is not in the sampleMap. */
   const BCSample *get_sample(Object *ob) const;
   const BCMatrix *get_sample_matrix(Object *ob) const;
   const BCMatrix *get_sample_matrix(Object *ob, Bone *bone) const;

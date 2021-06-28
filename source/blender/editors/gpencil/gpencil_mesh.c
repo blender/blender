@@ -159,7 +159,7 @@ static bool gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene
     if (ob == obact) {
       continue;
     }
-    /* Add selected meshes.*/
+    /* Add selected meshes. */
     if (ob->type == OB_MESH) {
       elem = MEM_callocN(sizeof(GpBakeOb), __func__);
       elem->ob = ob;

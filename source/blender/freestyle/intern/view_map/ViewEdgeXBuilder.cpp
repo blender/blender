@@ -601,7 +601,7 @@ OWXEdge ViewEdgeXBuilder::FindNextWEdge(const OWXEdge &iEdge)
   }
 
   if (((WXVertex *)v)->isFeature()) {
-    return nullptr; /* XXX eeek? NULL? OWXEdge(NULL, true/false)?*/
+    return nullptr; /* XXX eeek? NULL? OWXEdge(NULL, true/false)? */
   }
 
   int faceMarks = retrieveFaceMarks(iEdge.e);

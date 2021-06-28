@@ -68,7 +68,7 @@ class TaskPool {
 
   /* ** Statistics ** */
 
-  /* Time time stamp of first task pushed. */
+  /* Time stamp of first task pushed. */
   double start_time;
 
   /* Number of all tasks pushed to the pool. Cleared after wait_work() and cancel(). */
@@ -88,7 +88,7 @@ class TaskScheduler {
 
   /* Approximate number of threads that will work on task, which may be lower
    * or higher than the actual number of threads. Use as little as possible and
-   * leave splitting up tasks to the scheduler.. */
+   * leave splitting up tasks to the scheduler. */
   static int num_threads();
 
  protected:

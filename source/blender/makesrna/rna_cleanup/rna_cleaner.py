@@ -288,7 +288,7 @@ def write_files(basename, props_list, props_length_max):
     f_py.write("rna_api = [\n%s]\n" % py)
     f_rna.write("rna_api = [\n%s]\n" % rna)
 
-    # write useful py script, wont hurt
+    # write useful py script, won't hurt
     f_py.write("\n'''\n")
     f_py.write("for p_note, p_changed, p_class, p_from, p_to, p_check, p_type, p_desc in rna_api:\n")
     f_py.write("    print(p_to)\n")

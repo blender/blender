@@ -545,8 +545,8 @@ enum {
 /* convenience define for all selection flags */
 #define SEQ_ALLSEL (SELECT + SEQ_LEFTSEL + SEQ_RIGHTSEL)
 
-/* deprecated, don't use a flag anymore*/
-/*#define SEQ_ACTIVE                            1048576*/
+/* Deprecated, don't use a flag anymore. */
+// #define SEQ_ACTIVE 1048576
 
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
 #define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2

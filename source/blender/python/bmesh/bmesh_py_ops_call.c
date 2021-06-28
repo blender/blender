@@ -252,7 +252,7 @@ static int bpy_slot_from_py(BMesh *bm,
       const ushort size = pymat->num_col;
       if ((size != pymat->num_row) || (!ELEM(size, 3, 4))) {
         PyErr_Format(PyExc_TypeError,
-                     "%.200s: keyword \"%.200s\" expected a 3x3 or 4x4 matrix Matrix",
+                     "%.200s: keyword \"%.200s\" expected a 3x3 or 4x4 matrix",
                      opname,
                      slot_name);
         return -1;

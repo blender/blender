@@ -158,7 +158,7 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
   mb->editelems = NULL;
   /* Must always be cleared (meta's don't have their own edit-data). */
   mb->needs_flush_to_id = 0;
-  /*  mb->edit_elems.first= mb->edit_elems.last= NULL;*/
+  // mb->edit_elems.first = mb->edit_elems.last = NULL;
   mb->lastelem = NULL;
   mb->batch_cache = NULL;
 }

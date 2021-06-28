@@ -20,7 +20,7 @@
  * Interactive walk navigation modal operator
  * (similar to walking around in a first person game).
  *
- * \note Similar logic to `view3d_fly.c` changes here may apply there too.
+ * \note Similar logic to `view3d_navigate_fly.c` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_navigate - walk modal operator */
@@ -129,7 +129,7 @@ typedef enum eWalkGravityState {
   WALK_GRAVITY_STATE_ON,
 } eWalkGravityState;
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 void walk_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -234,7 +234,7 @@ typedef struct WalkInfo {
   wmNDOFMotionData *ndof;
 #endif
 
-  /* walk state state */
+  /* Walk state. */
   /** The base speed without run/slow down modifications. */
   float base_speed;
   /** The speed the view is moving per redraw. */
@@ -989,9 +989,6 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 #define WALK_MOVE_SPEED base_speed
 #define WALK_BOOST_FACTOR ((void)0, walk->speed_factor)
 
-  /* walk mode - Ctrl+Shift+F
-   * a walk loop where the user can move move the view as if they are in a walk game
-   */
   RegionView3D *rv3d = walk->rv3d;
   ARegion *region = walk->region;
 

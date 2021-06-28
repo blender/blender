@@ -224,7 +224,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, ePosePathC
 #endif
 
   /* For a single frame update it's faster to re-use existing dependency graph and avoid overhead
-   * of building all the relations and so on for a temporary one.  */
+   * of building all the relations and so on for a temporary one. */
   if (range == POSE_PATH_CALC_RANGE_CURRENT_FRAME) {
     /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
      * nested pointers, like animation data. */
@@ -455,7 +455,7 @@ static void ED_pose_clear_paths(Object *ob, bool only_selected)
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
-/* operator callback - wrapper for the backend function  */
+/* Operator callback - wrapper for the back-end function. */
 static int pose_clear_paths_exec(bContext *C, wmOperator *op)
 {
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
@@ -663,7 +663,7 @@ static int pose_bone_rotmode_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "type");
   Object *prev_ob = NULL;
 
-  /* set rotation mode of selected bones  */
+  /* Set rotation mode of selected bones. */
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     /* use API Method for conversions... */
     BKE_rotMode_change_values(

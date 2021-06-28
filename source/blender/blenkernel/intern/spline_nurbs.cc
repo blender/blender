@@ -26,21 +26,28 @@ using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::fn::GVArray;
+using blender::fn::GVArray_For_ArrayContainer;
 using blender::fn::GVArray_Typed;
+using blender::fn::GVArrayPtr;
 
-SplinePtr NURBSpline::copy() const
+void NURBSpline::copy_settings(Spline &dst) const
 {
-  return std::make_unique<NURBSpline>(*this);
+  NURBSpline &nurbs = static_cast<NURBSpline &>(dst);
+  nurbs.knots_mode = knots_mode;
+  nurbs.resolution_ = resolution_;
+  nurbs.order_ = order_;
 }
 
-SplinePtr NURBSpline::copy_settings() const
+void NURBSpline::copy_data(Spline &dst) const
 {
-  std::unique_ptr<NURBSpline> copy = std::make_unique<NURBSpline>();
-  copy_base_settings(*this, *copy);
-  copy->knots_mode = knots_mode;
-  copy->resolution_ = resolution_;
-  copy->order_ = order_;
-  return copy;
+  NURBSpline &nurbs = static_cast<NURBSpline &>(dst);
+  nurbs.positions_ = positions_;
+  nurbs.weights_ = weights_;
+  nurbs.knots_ = knots_;
+  nurbs.knots_dirty_ = knots_dirty_;
+  nurbs.radii_ = radii_;
+  nurbs.tilts_ = tilts_;
 }
 
 int NURBSpline::size() const
@@ -268,18 +275,18 @@ Span<float> NURBSpline::knots() const
 }
 
 static void calculate_basis_for_point(const float parameter,
-                                      const int points_len,
+                                      const int size,
                                       const int order,
                                       Span<float> knots,
                                       MutableSpan<float> basis_buffer,
                                       NURBSpline::BasisCache &basis_cache)
 {
   /* Clamp parameter due to floating point inaccuracy. */
-  const float t = std::clamp(parameter, knots[0], knots[points_len + order - 1]);
+  const float t = std::clamp(parameter, knots[0], knots[size + order - 1]);
 
   int start = 0;
   int end = 0;
-  for (const int i : IndexRange(points_len + order - 1)) {
+  for (const int i : IndexRange(size + order - 1)) {
     const bool knots_equal = knots[i] == knots[i + 1];
     if (knots_equal || t < knots[i] || t > knots[i + 1]) {
       basis_buffer[i] = 0.0f;
@@ -289,14 +296,14 @@ static void calculate_basis_for_point(const float parameter,
     basis_buffer[i] = 1.0f;
     start = std::max(i - order - 1, 0);
     end = i;
-    basis_buffer.slice(i + 1, points_len + order - 1 - i).fill(0.0f);
+    basis_buffer.slice(i + 1, size + order - 1 - i).fill(0.0f);
     break;
   }
-  basis_buffer[points_len + order - 1] = 0.0f;
+  basis_buffer[size + order - 1] = 0.0f;
 
   for (const int i_order : IndexRange(2, order - 1)) {
-    if (end + i_order >= points_len + order) {
-      end = points_len + order - 1 - i_order;
+    if (end + i_order >= size + order) {
+      end = size + order - 1 - i_order;
     }
     for (const int i : IndexRange(start, end - start + 1)) {
       float new_basis = 0.0f;
@@ -326,18 +333,18 @@ static void calculate_basis_for_point(const float parameter,
   basis_cache.start_index = start;
 }
 
-void NURBSpline::calculate_basis_cache() const
+Span<NURBSpline::BasisCache> NURBSpline::calculate_basis_cache() const
 {
   if (!basis_cache_dirty_) {
-    return;
+    return basis_cache_;
   }
 
   std::lock_guard lock{basis_cache_mutex_};
   if (!basis_cache_dirty_) {
-    return;
+    return basis_cache_;
   }
 
-  const int points_len = this->size();
+  const int size = this->size();
   const int eval_size = this->evaluated_points_size();
   BLI_assert(this->evaluated_edges_size() > 0);
   basis_cache_.resize(eval_size);
@@ -353,17 +360,17 @@ void NURBSpline::calculate_basis_cache() const
   Array<float> basis_buffer(this->knots_size());
 
   const float start = knots[order - 1];
-  const float end = is_cyclic_ ? knots[points_len + order - 1] : knots[points_len];
+  const float end = is_cyclic_ ? knots[size + order - 1] : knots[size];
   const float step = (end - start) / this->evaluated_edges_size();
   float parameter = start;
   for (const int i : IndexRange(eval_size)) {
     BasisCache &basis = basis_cache[i];
     calculate_basis_for_point(
-        parameter, points_len + (is_cyclic_ ? order - 1 : 0), order, knots, basis_buffer, basis);
+        parameter, size + (is_cyclic_ ? order - 1 : 0), order, knots, basis_buffer, basis);
     BLI_assert(basis.weights.size() <= order);
 
     for (const int j : basis.weights.index_range()) {
-      const int point_index = (basis.start_index + j) % points_len;
+      const int point_index = (basis.start_index + j) % size;
       basis.weights[j] *= control_weights[point_index];
     }
 
@@ -371,50 +378,47 @@ void NURBSpline::calculate_basis_cache() const
   }
 
   basis_cache_dirty_ = false;
+  return basis_cache_;
 }
 
 template<typename T>
-void interpolate_to_evaluated_points_impl(Span<NURBSpline::BasisCache> weights,
-                                          const blender::VArray<T> &source_data,
-                                          MutableSpan<T> result_data)
+void interpolate_to_evaluated_impl(Span<NURBSpline::BasisCache> weights,
+                                   const blender::VArray<T> &src,
+                                   MutableSpan<T> dst)
 {
-  const int points_len = source_data.size();
-  BLI_assert(result_data.size() == weights.size());
-  blender::attribute_math::DefaultMixer<T> mixer(result_data);
+  const int size = src.size();
+  BLI_assert(dst.size() == weights.size());
+  blender::attribute_math::DefaultMixer<T> mixer(dst);
 
-  for (const int i : result_data.index_range()) {
+  for (const int i : dst.index_range()) {
     Span<float> point_weights = weights[i].weights;
     const int start_index = weights[i].start_index;
-
     for (const int j : point_weights.index_range()) {
-      const int point_index = (start_index + j) % points_len;
-      mixer.mix_in(i, source_data[point_index], point_weights[j]);
+      const int point_index = (start_index + j) % size;
+      mixer.mix_in(i, src[point_index], point_weights[j]);
     }
   }
 
   mixer.finalize();
 }
 
-blender::fn::GVArrayPtr NURBSpline::interpolate_to_evaluated_points(
-    const blender::fn::GVArray &source_data) const
+GVArrayPtr NURBSpline::interpolate_to_evaluated(const GVArray &src) const
 {
-  BLI_assert(source_data.size() == this->size());
+  BLI_assert(src.size() == this->size());
 
-  if (source_data.is_single()) {
-    return source_data.shallow_copy();
+  if (src.is_single()) {
+    return src.shallow_copy();
   }
 
-  this->calculate_basis_cache();
-  Span<BasisCache> weights(basis_cache_);
+  Span<BasisCache> basis_cache = this->calculate_basis_cache();
 
-  blender::fn::GVArrayPtr new_varray;
-  blender::attribute_math::convert_to_static_type(source_data.type(), [&](auto dummy) {
+  GVArrayPtr new_varray;
+  blender::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
       Array<T> values(this->evaluated_points_size());
-      interpolate_to_evaluated_points_impl<T>(weights, source_data.typed<T>(), values);
-      new_varray = std::make_unique<blender::fn::GVArray_For_ArrayContainer<Array<T>>>(
-          std::move(values));
+      interpolate_to_evaluated_impl<T>(basis_cache, src.typed<T>(), values);
+      new_varray = std::make_unique<GVArray_For_ArrayContainer<Array<T>>>(std::move(values));
     }
   });
 
@@ -436,7 +440,7 @@ Span<float3> NURBSpline::evaluated_positions() const
   evaluated_position_cache_.resize(eval_size);
 
   /* TODO: Avoid copying the evaluated data from the temporary array. */
-  GVArray_Typed<float3> evaluated = Spline::interpolate_to_evaluated_points(positions_.as_span());
+  GVArray_Typed<float3> evaluated = Spline::interpolate_to_evaluated(positions_.as_span());
   evaluated->materialize(evaluated_position_cache_);
 
   position_cache_dirty_ = false;

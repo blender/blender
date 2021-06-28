@@ -246,7 +246,7 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
 #define B_REDR 1
 #define B_FMODIFIER_REDRAW 20
 
-/* callback to remove the given modifier  */
+/* Callback to remove the given modifier. */
 typedef struct FModifierDeleteContext {
   ID *owner_id;
   ListBase *modifiers;

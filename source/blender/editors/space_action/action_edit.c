@@ -163,7 +163,7 @@ void ACTION_OT_markers_make_local(wmOperatorType *ot)
 
 /* *************************** Calculate Range ************************** */
 
-/* Get the min/max keyframes*/
+/* Get the min/max keyframes. */
 static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const short onlySel)
 {
   ListBase anim_data = {NULL, NULL};
@@ -1137,7 +1137,7 @@ void ACTION_OT_clean(wmOperatorType *ot)
 
 /* ******************** Sample Keyframes Operator *********************** */
 
-/* Evaluates the curves between each selected keyframe on each frame, and keys the value  */
+/* Evaluates the curves between each selected keyframe on each frame, and keys the value. */
 static void sample_action_keys(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -1149,7 +1149,7 @@ static void sample_action_keys(bAnimContext *ac)
             ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* loop through filtered data and add keys between selected keyframes on every frame  */
+  /* Loop through filtered data and add keys between selected keyframes on every frame. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     sample_fcurve((FCurve *)ale->key_data);
 

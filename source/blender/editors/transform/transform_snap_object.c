@@ -1142,7 +1142,7 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
  * \param r_loc: Hit location.
  * \param r_no: Hit normal (optional).
  * \param r_index: Hit index or -1 when no valid index is found.
- * (currently only set to the polygon index when when using ``snap_to == SCE_SNAP_MODE_FACE``).
+ * (currently only set to the polygon index when using ``snap_to == SCE_SNAP_MODE_FACE``).
  * \param r_ob: Hit object.
  * \param r_obmat: Object matrix (may not be #Object.obmat with dupli-instances).
  * \param r_hit_list: List of #SnapObjectHitDepth (caller must free).
@@ -2777,7 +2777,7 @@ static void snap_obj_fn(SnapObjectContext *sctx,
  * \param r_loc: Hit location.
  * \param r_no: Hit normal (optional).
  * \param r_index: Hit index or -1 when no valid index is found.
- * (currently only set to the polygon index when when using ``snap_to == SCE_SNAP_MODE_FACE``).
+ * (currently only set to the polygon index when using ``snap_to == SCE_SNAP_MODE_FACE``).
  * \param r_ob: Hit object.
  * \param r_obmat: Object matrix (may not be #Object.obmat with dupli-instances).
  */

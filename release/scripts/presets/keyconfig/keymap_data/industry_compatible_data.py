@@ -2143,7 +2143,6 @@ def km_clip_dopesheet_editor(_params):
 
     return keymap
 
-
 def km_spreadsheet_generic(_params):
     items = []
     keymap = (
@@ -2154,12 +2153,11 @@ def km_spreadsheet_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
-            sidebar_key={"type": 'N', "value": 'PRESS'},
+            channels_key={"type": 'T', "value": 'PRESS'},
         ),
     ])
 
     return keymap
-
 
 # ------------------------------------------------------------------------------
 # Animation
@@ -4084,7 +4082,6 @@ def generate_keymaps_impl(params=None):
         km_image(params),
         km_node_generic(params),
         km_node_editor(params),
-        km_spreadsheet_generic(params),
         km_info(params),
         km_file_browser(params),
         km_file_browser_main(params),

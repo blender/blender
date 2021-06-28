@@ -44,7 +44,7 @@ typedef struct FluidsimSettings {
   char _pad1[4];
   /* domain, fluid or obstacle */
   short type;
-  /* display advanced options in fluid sim tab (on=1, off=0)*/
+  /* Display advanced options in fluid sim tab (on=1, off=0). */
   short show_advancedoptions;
 
   /* domain object settings */

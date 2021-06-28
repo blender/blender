@@ -2221,7 +2221,7 @@ int ED_view3d_backbuf_sample_size_clamp(ARegion *region, const float dist)
 /** \name Z-Depth Utilities
  * \{ */
 
-void view3d_update_depths_rect(ARegion *region, ViewDepths *d, rcti *rect)
+void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
 {
   /* clamp rect by region */
   rcti r = {
@@ -2242,70 +2242,44 @@ void view3d_update_depths_rect(ARegion *region, ViewDepths *d, rcti *rect)
   int h = BLI_rcti_size_y(rect);
 
   if (w <= 0 || h <= 0) {
-    if (d->depths) {
-      MEM_freeN(d->depths);
-    }
-    d->depths = NULL;
-
-    d->damaged = false;
-  }
-  else if (d->w != w || d->h != h || d->x != x || d->y != y || d->depths == NULL) {
-    d->x = x;
-    d->y = y;
-    d->w = w;
-    d->h = h;
-
-    if (d->depths) {
-      MEM_freeN(d->depths);
-    }
-
-    d->depths = MEM_mallocN(sizeof(float) * d->w * d->h, "View depths Subset");
-
-    d->damaged = true;
+    r_d->depths = NULL;
+    return;
   }
 
-  if (d->damaged) {
+  r_d->x = x;
+  r_d->y = y;
+  r_d->w = w;
+  r_d->h = h;
+
+  r_d->depths = MEM_mallocN(sizeof(float) * w * h, "View depths Subset");
+
+  {
     GPUViewport *viewport = WM_draw_region_get_viewport(region);
-    view3d_opengl_read_Z_pixels(viewport, rect, d->depths);
+    view3d_opengl_read_Z_pixels(viewport, rect, r_d->depths);
     /* Range is assumed to be this as they are never changed. */
-    d->depth_range[0] = 0.0;
-    d->depth_range[1] = 1.0;
-    d->damaged = false;
+    r_d->depth_range[0] = 0.0;
+    r_d->depth_range[1] = 1.0;
   }
 }
 
 /* Note, with nouveau drivers the glReadPixels() is very slow. T24339. */
-static void view3d_depth_cache_update(ARegion *region)
+static ViewDepths *view3d_depths_create(ARegion *region)
 {
-  RegionView3D *rv3d = region->regiondata;
+  ViewDepths *d = MEM_callocN(sizeof(ViewDepths), "ViewDepths");
+  d->w = region->winx;
+  d->h = region->winy;
+  d->depths = MEM_mallocN(sizeof(float) * d->w * d->h, "View depths");
 
-  /* Create storage for, and, if necessary, copy depth buffer. */
-  if (!rv3d->depths) {
-    rv3d->depths = MEM_callocN(sizeof(ViewDepths), "ViewDepths");
+  {
+    GPUViewport *viewport = WM_draw_region_get_viewport(region);
+    DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
+    GPU_framebuffer_read_depth(fbl->depth_only_fb, 0, 0, d->w, d->h, GPU_DATA_FLOAT, d->depths);
+
+    /* Assumed to be this as they are never changed. */
+    d->depth_range[0] = 0.0;
+    d->depth_range[1] = 1.0;
   }
-  if (rv3d->depths) {
-    ViewDepths *d = rv3d->depths;
-    if (d->w != region->winx || d->h != region->winy || !d->depths) {
-      d->w = region->winx;
-      d->h = region->winy;
-      if (d->depths) {
-        MEM_freeN(d->depths);
-      }
-      d->depths = MEM_mallocN(sizeof(float) * d->w * d->h, "View depths");
-      d->damaged = true;
-    }
-
-    if (d->damaged) {
-      GPUViewport *viewport = WM_draw_region_get_viewport(region);
-      DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
-      GPU_framebuffer_read_depth(fbl->depth_only_fb, 0, 0, d->w, d->h, GPU_DATA_FLOAT, d->depths);
-
-      /* Assumed to be this as they are never changed. */
-      d->depth_range[0] = 0.0;
-      d->depth_range[1] = 1.0;
-      d->damaged = false;
-    }
-  }
+  return d;
 }
 
 /* Utility function to find the closest Z value, use for auto-depth. */
@@ -2345,10 +2319,13 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
                               View3D *v3d,
                               Object *obact,
                               eV3DDepthOverrideMode mode,
-                              bool update_cache)
+                              ViewDepths **r_depths)
 {
   if (v3d->runtime.flag & V3D_RUNTIME_DEPTHBUF_OVERRIDDEN) {
-    return;
+    /* Force redraw if `r_depths` is required. */
+    if (!r_depths || *r_depths != NULL) {
+      return;
+    }
   }
   struct bThemeState theme_state;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -2390,12 +2367,11 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
         break;
     }
 
-    if (rv3d->depths != NULL) {
-      rv3d->depths->damaged = true;
-      /* TODO: Clear cache? */
-    }
-    if (update_cache) {
-      view3d_depth_cache_update(region);
+    if (r_depths) {
+      if (*r_depths) {
+        ED_view3d_depths_free(*r_depths);
+      }
+      *r_depths = view3d_depths_create(region);
     }
   }
 
@@ -2407,6 +2383,14 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   v3d->runtime.flag |= V3D_RUNTIME_DEPTHBUF_OVERRIDDEN;
 
   UI_Theme_Restore(&theme_state);
+}
+
+void ED_view3d_depths_free(ViewDepths *depths)
+{
+  if (depths->depths) {
+    MEM_freeN(depths->depths);
+  }
+  MEM_freeN(depths);
 }
 
 /** \} */

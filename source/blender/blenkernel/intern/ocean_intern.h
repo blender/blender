@@ -99,7 +99,7 @@ typedef struct Ocean {
   double *_N_x;    /* init w   sim w via plan? */
   /* all member of this array has same values,
    * so convert this array to a float to reduce memory usage (MEM01). */
-  /*float * _N_y; */
+  // float * _N_y;
   double _N_y;     /*          sim w ********* can be rearranged? */
   double *_N_z;    /* init w   sim w via plan? */
   double *_disp_x; /* init w   sim w via plan? */

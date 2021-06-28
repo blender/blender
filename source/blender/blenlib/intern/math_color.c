@@ -478,7 +478,7 @@ void minmax_rgb(short c[3])
  * accessible from the given triple of primaries.  Desaturate
  * it by adding white, equal quantities of R, G, and B, enough
  * to make RGB all positive.  The function returns 1 if the
- * components were modified, zero otherwise.*/
+ * components were modified, zero otherwise. */
 int constrain_rgb(float *r, float *g, float *b)
 {
   /* Amount of white needed */
@@ -717,13 +717,17 @@ void blackbody_temperature_to_rgb_table(float *r_table, int width, float min, fl
 /* ****************************** wavelength ******************************** */
 /* Wavelength to RGB. */
 
-/* CIE colour matching functions xBar, yBar, and zBar for
- *   wavelengths from 380 through 780 nanometers, every 5
- *   nanometers.
+/**
+ * CIE color matching functions `xBar`, `yBar`, and `zBar` for
+ * wavelengths from 380 through 780 nanometers, every 5 nanometers.
+ *
  * For a wavelength lambda in this range:
- *   cie_colour_match[(lambda - 380) / 5][0] = xBar
- *   cie_colour_match[(lambda - 380) / 5][1] = yBar
- *   cie_colour_match[(lambda - 380) / 5][2] = zBar */
+ * \code{.txt}
+ * cie_color_match[(lambda - 380) / 5][0] = xBar
+ * cie_color_match[(lambda - 380) / 5][1] = yBar
+ * cie_color_match[(lambda - 380) / 5][2] = zBar
+ * \endcode
+ */
 
 static float cie_colour_match[81][3] = {
     {0.0014f, 0.0000f, 0.0065f}, {0.0022f, 0.0001f, 0.0105f}, {0.0042f, 0.0001f, 0.0201f},

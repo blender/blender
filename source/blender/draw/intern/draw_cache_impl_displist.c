@@ -861,7 +861,7 @@ void DRW_displist_indexbuf_create_edges_adjacency_lines(struct ListBase *lb,
     }
     BLI_edgehashIterator_getKey(ehi, &v1, &v2);
     uint v0 = (uint)abs(v_data) - 1;
-    if (v_data < 0) { /* inv_opposite  */
+    if (v_data < 0) { /* inv_opposite */
       SWAP(uint, v1, v2);
     }
     GPU_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);

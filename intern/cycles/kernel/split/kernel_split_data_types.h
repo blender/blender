@@ -68,7 +68,7 @@ typedef ccl_global struct SplitBranchedState {
 
   uint lcg_state;
   LocalIntersection ss_isect;
-#  endif /*__SUBSURFACE__ */
+#  endif /* __SUBSURFACE__ */
 
   int shared_sample_count; /* number of branched samples shared with other threads */
   int original_ray;        /* index of original ray when sharing branched samples */

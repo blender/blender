@@ -1889,7 +1889,7 @@ static void draw_bone_name(ArmatureDrawContext *ctx,
   bool highlight = (pchan && (arm->flag & ARM_POSEMODE) && (boneflag & BONE_SELECTED)) ||
                    (eBone && (eBone->flag & BONE_SELECTED));
 
-  /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
+  /* Color Management: Exception here as texts are drawn in sRGB space directly. */
   UI_GetThemeColor4ubv(highlight ? TH_TEXT_HI : TH_TEXT, color);
 
   float *head = pchan ? pchan->pose_head : eBone->head;
@@ -2018,7 +2018,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
                  ((draw_ctx->object_mode == OB_MODE_OBJECT) &&
                   (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) == 0) ||
                  /* Allow selection when in weight-paint mode
-                  * (selection code ensures this wont become active). */
+                  * (selection code ensures this won't become active). */
                  ((draw_ctx->object_mode & OB_MODE_ALL_WEIGHT_PAINT) &&
                   (draw_ctx->object_pose != NULL))))) &&
         DRW_state_is_select();

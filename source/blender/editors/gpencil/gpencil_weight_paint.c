@@ -555,7 +555,7 @@ static bool gpencil_weightpaint_brush_do_frame(bContext *C,
         break;
     }
   }
-  /* Clear the selected array, but keep the memory allocation.*/
+  /* Clear the selected array, but keep the memory allocation. */
   gso->pbuffer = gpencil_select_buffer_ensure(
       gso->pbuffer, &gso->pbuffer_size, &gso->pbuffer_used, true);
 
@@ -774,7 +774,7 @@ static int gpencil_weightpaint_brush_modal(bContext *C, wmOperator *op, const wm
 
   /* The operator can be in 2 states: Painting and Idling */
   if (gso->is_painting) {
-    /* Painting  */
+    /* Painting. */
     switch (event->type) {
       /* Mouse Move = Apply somewhere else */
       case MOUSEMOVE:

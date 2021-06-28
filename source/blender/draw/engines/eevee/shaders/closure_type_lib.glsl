@@ -99,7 +99,7 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
   cl.flag = cl1.flag | cl2.flag;
   cl.ssr_data = mix(cl1.ssr_data, cl2.ssr_data, fac);
   bool use_cl1_ssr = FLAG_TEST(cl1.flag, CLOSURE_SSR_FLAG);
-  /* When mixing SSR don't blend roughness and normals but only specular (ssr_data.xyz).*/
+  /* When mixing SSR don't blend roughness and normals but only specular (ssr_data.xyz). */
   cl.ssr_data.w = (use_cl1_ssr) ? cl1.ssr_data.w : cl2.ssr_data.w;
   cl.ssr_normal = (use_cl1_ssr) ? cl1.ssr_normal : cl2.ssr_normal;
 
@@ -122,7 +122,7 @@ Closure closure_add(Closure cl1, Closure cl2)
   cl.flag = cl1.flag | cl2.flag;
   cl.ssr_data = cl1.ssr_data + cl2.ssr_data;
   bool use_cl1_ssr = FLAG_TEST(cl1.flag, CLOSURE_SSR_FLAG);
-  /* When mixing SSR don't blend roughness and normals.*/
+  /* When mixing SSR don't blend roughness and normals. */
   cl.ssr_data.w = (use_cl1_ssr) ? cl1.ssr_data.w : cl2.ssr_data.w;
   cl.ssr_normal = (use_cl1_ssr) ? cl1.ssr_normal : cl2.ssr_normal;
 

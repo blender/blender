@@ -153,7 +153,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     if (win->workspace_hook != NULL) {
       /* We need to restore a pointer to this later when reading workspaces,
        * so store in global oldnew-map.
-       * Note that this is only needed for versioning of older .blend files now.. */
+       * Note that this is only needed for versioning of older .blend files now. */
       BLO_read_data_globmap_add(reader, hook, win->workspace_hook);
       /* Cleanup pointers to data outside of this data-block scope. */
       win->workspace_hook->act_layout = NULL;

@@ -78,7 +78,7 @@ static CustomDataLayer *bpy_bmlayeritem_get(BPy_BMLayerItem *self)
 /* getseters
  * ========= */
 
-/* used for many different types  */
+/* used for many different types. */
 
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__float_doc,
              "Generic float custom-data layer.\n\ntype: :class:`BMLayerCollection`");

@@ -332,7 +332,7 @@ void SMAABlendingWeightCalculationOperation::executePixel(float output[4],
     /* in one of the boundaries is enough. */
     calculateDiagWeights(x, y, edges, output);
 
-    /* We give priority to diagonals, so if we find a diagonal we skip  */
+    /* We give priority to diagonals, so if we find a diagonal we skip. */
     /* horizontal/vertical processing. */
     if (!is_zero_v2(output)) {
       return;

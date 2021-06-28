@@ -1386,7 +1386,7 @@ static ITT_value intersect_tri_tri(const IMesh &tm, int t1, int t2)
   int sr1 = filter_plane_side(d_r1, d_r2, d_n2, abs_d_r1, abs_d_r2, abs_d_n2);
   if ((sp1 > 0 && sq1 > 0 && sr1 > 0) || (sp1 < 0 && sq1 < 0 && sr1 < 0)) {
 #  ifdef PERFDEBUG
-    incperfcount(2); /* Tri tri intersects decided by filter plane tests. */
+    incperfcount(2); /* Triangle-triangle intersects decided by filter plane tests. */
 #  endif
     if (dbg_level > 0) {
       std::cout << "no intersection, all t1's verts above or below t2\n";
@@ -1404,7 +1404,7 @@ static ITT_value intersect_tri_tri(const IMesh &tm, int t1, int t2)
   int sr2 = filter_plane_side(d_r2, d_r1, d_n1, abs_d_r2, abs_d_r1, abs_d_n1);
   if ((sp2 > 0 && sq2 > 0 && sr2 > 0) || (sp2 < 0 && sq2 < 0 && sr2 < 0)) {
 #  ifdef PERFDEBUG
-    incperfcount(2); /* Tri tri intersects decided by filter plane tests. */
+    incperfcount(2); /* Triangle-triangle intersects decided by filter plane tests. */
 #  endif
     if (dbg_level > 0) {
       std::cout << "no intersection, all t2's verts above or below t1\n";
@@ -1446,7 +1446,7 @@ static ITT_value intersect_tri_tri(const IMesh &tm, int t1, int t2)
       std::cout << "no intersection, all t1's verts above or below t2 (exact)\n";
     }
 #  ifdef PERFDEBUG
-    incperfcount(3); /* Tri tri intersects decided by exact plane tests. */
+    incperfcount(3); /* Triangle-triangle intersects decided by exact plane tests. */
 #  endif
     return ITT_value(INONE);
   }
@@ -1478,7 +1478,7 @@ static ITT_value intersect_tri_tri(const IMesh &tm, int t1, int t2)
       std::cout << "no intersection, all t2's verts above or below t1 (exact)\n";
     }
 #  ifdef PERFDEBUG
-    incperfcount(3); /* Tri tri intersects decided by exact plane tests. */
+    incperfcount(3); /* Triangle-triangle intersects decided by exact plane tests. */
 #  endif
     return ITT_value(INONE);
   }
@@ -1998,6 +1998,10 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
  * If this happens, we use the polyfill triangulator instead. We don't
  * use the polyfill triangulator by default because it can create degenerate
  * triangles (which we can handle but they'll create non-manifold meshes).
+ *
+ * While it is tempting to handle quadrilaterals specially, since that
+ * is by far the usual case, we need to know if the quad is convex when
+ * projected before doing so, and that takes a fair amount of computation by itself.
  */
 static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
 {
@@ -2098,20 +2102,6 @@ IMesh triangulate_polymesh(IMesh &imesh, IMeshArena *arena)
     int flen = f->size();
     if (flen == 3) {
       face_tris.append(f);
-    }
-    else if (flen == 4) {
-      const Vert *v0 = (*f)[0];
-      const Vert *v1 = (*f)[1];
-      const Vert *v2 = (*f)[2];
-      const Vert *v3 = (*f)[3];
-      int eo_01 = f->edge_orig[0];
-      int eo_12 = f->edge_orig[1];
-      int eo_23 = f->edge_orig[2];
-      int eo_30 = f->edge_orig[3];
-      Face *f0 = arena->add_face({v0, v1, v2}, f->orig, {eo_01, eo_12, -1}, {false, false, false});
-      Face *f1 = arena->add_face({v0, v2, v3}, f->orig, {-1, eo_23, eo_30}, {false, false, false});
-      face_tris.append(f0);
-      face_tris.append(f1);
     }
     else {
       Array<Face *> tris = triangulate_poly(f, arena);
@@ -2246,7 +2236,7 @@ class TriOverlaps {
       }
       overlap_tot_ += overlap_tot_;
     }
-    /* Sort the overlaps to bring all the intersects with a given indexA together.  */
+    /* Sort the overlaps to bring all the intersects with a given indexA together. */
     std::sort(overlap_, overlap_ + overlap_tot_, bvhtreeverlap_cmp);
     if (dbg_level > 0) {
       std::cout << overlap_tot_ << " overlaps found:\n";

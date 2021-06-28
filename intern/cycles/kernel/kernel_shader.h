@@ -274,7 +274,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
   /* primitive */
   sd->object = object;
   sd->lamp = LAMP_NONE;
-  /* currently no access to bvh prim index for strand sd->prim*/
+  /* Currently no access to bvh prim index for strand sd->prim. */
   sd->prim = prim;
   sd->u = u;
   sd->v = v;
@@ -1268,6 +1268,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
   sd->num_closure_left = max_closures;
   sd->flag = 0;
   sd->object_flag = 0;
+  sd->type = PRIMITIVE_VOLUME;
 
   for (int i = 0; stack[i].shader != SHADER_NONE; i++) {
     /* setup shaderdata from stack. it's mostly setup already in

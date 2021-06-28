@@ -42,7 +42,7 @@ enum {
   BLI_Buffer name_ = { \
       (name_##_static_), sizeof(type_), 0, static_count_, BLI_BUFFER_USE_STATIC | (flag_)}
 
-/* never use static*/
+/* Never use static. */
 #define BLI_buffer_declare(type_, name_, flag_) \
   bool name_##user; /* warn for free only */ \
   BLI_Buffer name_ = {NULL, sizeof(type_), 0, 0, (flag_)}

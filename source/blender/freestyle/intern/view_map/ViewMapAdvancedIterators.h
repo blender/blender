@@ -363,9 +363,9 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
 
 namespace ViewEdgeInternal {
 
-/*!----------------------*/
-/*! Iterators definition */
-/*!----------------------*/
+/**----------------------*/
+/** Iterators definition */
+/**----------------------*/
 template<class Traits>
 class edge_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag_Traits> {
  public:

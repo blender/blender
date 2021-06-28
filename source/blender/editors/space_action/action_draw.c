@@ -83,7 +83,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   /* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
   UI_view2d_sync(NULL, ac->area, v2d, V2D_LOCK_COPY);
 
-  /* loop through channels, and set up drawing depending on their type  */
+  /* Loop through channels, and set up drawing depending on their type. */
   { /* first pass: just the standard GL-drawing for backdrop + text */
     size_t channel_index = 0;
     float ymax = ACHANNEL_FIRST_TOP(ac);

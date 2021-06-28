@@ -325,7 +325,7 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature,
 
   BoneExtended *pbe = extended_bones[parentbone->name];
   if (dominant_child != nullptr) {
-    /* Found a valid chain. Now connect current bone with that chain.*/
+    /* Found a valid chain. Now connect current bone with that chain. */
     EditBone *pebone = bc_get_edit_bone(armature, parentbone->name);
     EditBone *cebone = bc_get_edit_bone(armature, dominant_child->get_name());
     if (pebone && !(cebone->flag & BONE_CONNECTED)) {
@@ -341,7 +341,7 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature,
 
       if (len_squared_v3(vec) > MINIMUM_BONE_LENGTH) {
         copy_v3_v3(pebone->tail, cebone->head);
-        pbe->set_tail(pebone->tail); /* to make fix_leafbone happy ...*/
+        pbe->set_tail(pebone->tail); /* To make fix_leafbone happy. */
         if (pbe && pbe->get_chain_length() >= this->import_settings->min_chain_length) {
 
           BoneExtended *cbe = extended_bones[cebone->name];

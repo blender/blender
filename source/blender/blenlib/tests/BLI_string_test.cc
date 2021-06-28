@@ -420,10 +420,103 @@ TEST(string, StrFormatByteUnits)
   EXPECT_STREQ("-8191.8472 PiB", size_str);
 }
 
+/* BLI_str_format_attribute_domain_size */
+TEST(string, StrFormatAttributeDomainSize)
+{
+  char size_str[7];
+  int size;
+
+  BLI_str_format_attribute_domain_size(size_str, size = 0);
+  EXPECT_STREQ("0", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 1);
+  EXPECT_STREQ("1", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 10);
+  EXPECT_STREQ("10", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 15);
+  EXPECT_STREQ("15", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 100);
+  EXPECT_STREQ("100", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 155);
+  EXPECT_STREQ("155", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 1000);
+  EXPECT_STREQ("1.0K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 1555);
+  EXPECT_STREQ("1.6K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 10000);
+  EXPECT_STREQ("10.0K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 15555);
+  EXPECT_STREQ("15.6K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 100000);
+  EXPECT_STREQ("100K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 100000);
+  EXPECT_STREQ("100K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 155555);
+  EXPECT_STREQ("156K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 1000000);
+  EXPECT_STREQ("1.0M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 1555555);
+  EXPECT_STREQ("1.6M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 10000000);
+  EXPECT_STREQ("10.0M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 15555555);
+  EXPECT_STREQ("15.6M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 100000000);
+  EXPECT_STREQ("100M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 155555555);
+  EXPECT_STREQ("156M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = 1000000000);
+  EXPECT_STREQ("1.0B", size_str);
+
+  /* Largest possible value. */
+  BLI_str_format_attribute_domain_size(size_str, size = INT32_MAX);
+  EXPECT_STREQ("2.1B", size_str);
+
+  BLI_str_format_attribute_domain_size(size_str, size = -0);
+  EXPECT_STREQ("0", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -1);
+  EXPECT_STREQ("-1", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -10);
+  EXPECT_STREQ("-10", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -15);
+  EXPECT_STREQ("-15", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -100);
+  EXPECT_STREQ("-100", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -155);
+  EXPECT_STREQ("-155", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -1000);
+  EXPECT_STREQ("-1.0K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -1555);
+  EXPECT_STREQ("-1.6K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -10000);
+  EXPECT_STREQ("-10.0K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -15555);
+  EXPECT_STREQ("-15.6K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -100000);
+  EXPECT_STREQ("-100K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -155555);
+  EXPECT_STREQ("-156K", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -1000000);
+  EXPECT_STREQ("-1.0M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -1555555);
+  EXPECT_STREQ("-1.6M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -10000000);
+  EXPECT_STREQ("-10.0M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -15555555);
+  EXPECT_STREQ("-15.6M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -100000000);
+  EXPECT_STREQ("-100M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -155555555);
+  EXPECT_STREQ("-156M", size_str);
+  BLI_str_format_attribute_domain_size(size_str, size = -1000000000);
+  EXPECT_STREQ("-1.0B", size_str);
+
+  /* Smallest possible value. */
+  BLI_str_format_attribute_domain_size(size_str, size = -INT32_MAX);
+  EXPECT_STREQ("-2.1B", size_str);
+}
+
 struct WordInfo {
-  WordInfo()
-  {
-  }
+  WordInfo() = default;
   WordInfo(int start, int end) : start(start), end(end)
   {
   }
@@ -441,9 +534,7 @@ static std::ostream &operator<<(std::ostream &os, const WordInfo &word_info)
 
 class StringFindSplitWords : public testing::Test {
  protected:
-  StringFindSplitWords()
-  {
-  }
+  StringFindSplitWords() = default;
 
   /* If max_words is -1 it will be initialized from the number of expected
    * words +1. This way there is no need to pass an explicit number of words,
@@ -807,9 +898,7 @@ TEST_F(StringCasecmpNatural, TextAndNumbers)
 
 class StringEscape : public testing::Test {
  protected:
-  StringEscape()
-  {
-  }
+  StringEscape() = default;
 
   using CompareWordsArray = vector<std::array<const char *, 2>>;
 
@@ -832,6 +921,9 @@ class StringEscape : public testing::Test {
 
 TEST_F(StringEscape, Simple)
 {
+  /* NOTE: clang-tidy `modernize-raw-string-literal` is disabled as it causes errors with MSVC.
+   * TODO: investigate resolving with `/Zc:preprocessor` flag. */
+
   const CompareWordsArray equal{
       {"", ""},
       {"/", "/"},
@@ -845,11 +937,16 @@ TEST_F(StringEscape, Simple)
       {"\\A", "\\\\A"},
       {"A\\B", "A\\\\B"},
       {"?", "?"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\"\\", "\\\"\\\\"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\\\"", "\\\\\\\""},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\"\\\"", "\\\"\\\\\\\""},
 
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\"\"\"", "\\\"\\\"\\\""},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\\\\\\", "\\\\\\\\\\\\"},
   };
 
@@ -868,8 +965,11 @@ TEST_F(StringEscape, Control)
       {"\f", "\\f"},
       {"A\n", "A\\n"},
       {"\nA", "\\nA"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\n\r\t\a\b\f", "\\n\\r\\t\\a\\b\\f"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\n_\r_\t_\a_\b_\f", "\\n_\\r_\\t_\\a_\\b_\\f"},
+      /* NOLINTNEXTLINE: modernize-raw-string-literal. */
       {"\n\\\r\\\t\\\a\\\b\\\f", "\\n\\\\\\r\\\\\\t\\\\\\a\\\\\\b\\\\\\f"},
   };
 

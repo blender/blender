@@ -745,7 +745,7 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s,
     mapping->ymax = (ymax - ymin) / (float)diameter;
   }
   else if (mapmode == MTEX_MAP_MODE_3D) {
-    /* 3D mapping, just mapping to canvas 0..1  */
+    /* 3D mapping, just mapping to canvas 0..1. */
     mapping->xmin = 2.0f * (ipos[0] * invw - 0.5f);
     mapping->ymin = 2.0f * (ipos[1] * invh - 0.5f);
     mapping->xmax = 2.0f * invw;

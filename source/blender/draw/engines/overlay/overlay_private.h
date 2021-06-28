@@ -358,7 +358,7 @@ typedef struct OVERLAY_PrivateData {
     bool select_vert;
     bool select_face;
     bool select_edge;
-    int flag; /** Copy of v3d->overlay.edit_flag.  */
+    int flag; /** Copy of #v3d->overlay.edit_flag. */
   } edit_mesh;
   struct {
     bool use_weight;

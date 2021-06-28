@@ -290,7 +290,7 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
  *          to have some way of writing the boxes back to the original data.
  * \param len: the number of boxes in the array.
  * \param r_tot_x, r_tot_y: set so you can normalize the data.
- *  */
+ */
 void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r_tot_y)
 {
   uint box_index, verts_pack_len, i, j, k;
@@ -298,8 +298,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
   bool isect;
   float tot_x = 0.0f, tot_y = 0.0f;
 
-  BoxPack *box, *box_test; /*current box and another for intersection tests*/
-  BoxVert *vert;           /* the current vert */
+  BoxPack *box, *box_test; /* Current box and another for intersection tests. */
+  BoxVert *vert;           /* The current vert. */
 
   struct VertSortContext vs_ctx;
 
@@ -312,7 +312,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
   /* Sort boxes, biggest first */
   qsort(boxarray, (size_t)len, sizeof(BoxPack), box_areasort);
 
-  /* add verts to the boxes, these are only used internally  */
+  /* Add verts to the boxes, these are only used internally. */
   vert = MEM_mallocN(sizeof(BoxVert[4]) * (size_t)len, "BoxPack Verts");
   vertex_pack_indices = MEM_mallocN(sizeof(int[3]) * (size_t)len, "BoxPack Indices");
 
@@ -357,7 +357,7 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
   /* Pack the First box!
    * then enter the main box-packing loop */
 
-  box = boxarray; /* get the first box  */
+  box = boxarray; /* Get the first box. */
   /* First time, no boxes packed */
   box->v[BL]->free = 0; /* Can't use any if these */
   box->v[BR]->free &= ~(BLF | BRF);

@@ -40,7 +40,8 @@ extern PyTypeObject Id_Type;
 
 /*---------------------------Python BPy_Id structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::Id *id;
+  PyObject_HEAD
+  Freestyle::Id *id;
 } BPy_Id;
 
 /*---------------------------Python BPy_Id visible prototypes-----------*/

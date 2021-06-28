@@ -861,7 +861,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         int i;
         for (i = 0; i < 3; i++) {
           if ((ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
-              (ob->scale[i] == 0.0f))   /* cant scale the dsize to give a non zero result,
+              (ob->scale[i] == 0.0f))   /* can't scale the dsize to give a non zero result,
                                          * so fallback to 1.0f */
           {
             ob->dscale[i] = 1.0f;
@@ -2614,9 +2614,9 @@ void do_versions_after_linking_260(Main *bmain)
 
       float input_locx = 1000000.0f, input_locy = 0.0f;
       float output_locx = -1000000.0f, output_locy = 0.0f;
-      /* rough guess, not nice but we don't have access to UI constants here ... */
-      static const float offsetx = 42 + 3 * 20 + 20;
-      /*static const float offsety = 0.0f;*/
+      /* Rough guess, not nice but we don't have access to UI constants here. */
+      const float offsetx = 42 + 3 * 20 + 20;
+      // const float offsety = 0.0f;
 
       if (create_io_nodes) {
         if (ntree->inputs.first) {

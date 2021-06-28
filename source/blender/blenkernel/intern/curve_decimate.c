@@ -32,8 +32,8 @@
 
 struct Knot {
   struct Knot *next, *prev;
-  uint point_index; /* index in point array */
-  uint knot_index;  /* index in knot array*/
+  uint point_index; /* Index in point array. */
+  uint knot_index;  /* Index in knot array. */
   float tan[2][3];
   float handles[2];
 

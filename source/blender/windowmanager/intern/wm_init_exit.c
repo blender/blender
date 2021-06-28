@@ -272,7 +272,7 @@ void WM_init(bContext *C, int argc, const char **argv)
    * for scripts that do background processing with preview icons. */
   BKE_icons_init(BIFICONID_LAST);
 
-  /* reports cant be initialized before the wm,
+  /* reports can't be initialized before the wm,
    * but keep before file reading, since that may report errors */
   wm_init_reports(C);
 
@@ -331,7 +331,7 @@ void WM_init(bContext *C, int argc, const char **argv)
    * startup.blend because it may contain PyDrivers. It also needs to be after
    * initializing space types and other internal data.
    *
-   * However cant redo this at the moment. Solution is to load python
+   * However can't redo this at the moment. Solution is to load python
    * before wm_homefile_read() or make py-drivers check if python is running.
    * Will try fix when the crash can be repeated. - campbell. */
 

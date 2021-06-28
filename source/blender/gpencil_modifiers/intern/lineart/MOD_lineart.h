@@ -53,7 +53,8 @@ typedef struct LineartTriangle {
   double gn[3];
 
   /* Material flag is removed to save space. */
-  unsigned char transparency_mask;
+  unsigned char material_mask_bits;
+  unsigned char mat_occlusion;
   unsigned char flags; /* #eLineartTriangleFlags */
 
   /**
@@ -101,13 +102,8 @@ typedef struct LineartEdgeSegment {
   /** Occlusion level after "at" point */
   unsigned char occlusion;
 
-  /**
-   * For determining lines behind a glass window material.
-   * the size of this variable should also be dynamically decided, 1 byte to 8 byte,
-   * allows 8 to 64 materials for "transparent mask". 1 byte (8 materials) should be
-   * enough for most cases.
-   */
-  unsigned char transparency_mask;
+  /* Used to filter line art occlusion edges */
+  unsigned char material_mask_bits;
 } LineartEdgeSegment;
 
 typedef struct LineartVert {
@@ -177,7 +173,7 @@ typedef struct LineartEdgeChain {
 
   /** Chain now only contains one type of segments */
   int type;
-  unsigned char transparency_mask;
+  unsigned char material_mask_bits;
 
   struct Object *object_ref;
 } LineartEdgeChain;
@@ -189,9 +185,9 @@ typedef struct LineartEdgeChainItem {
   /** For restoring position to 3d space */
   float gpos[3];
   float normal[3];
-  char line_type;
+  unsigned char line_type;
   char occlusion;
-  unsigned char transparency_mask;
+  unsigned char material_mask_bits;
   size_t index;
 } LineartEdgeChainItem;
 
@@ -267,6 +263,7 @@ typedef struct LineartRenderBuffer {
   ListBase crease;
   ListBase material;
   ListBase edge_mark;
+  ListBase floating;
 
   ListBase chains;
 
@@ -287,11 +284,20 @@ typedef struct LineartRenderBuffer {
   bool use_material;
   bool use_edge_marks;
   bool use_intersections;
+  bool use_floating;
   bool fuzzy_intersections;
   bool fuzzy_everything;
   bool allow_boundaries;
   bool allow_overlapping_edges;
+  bool allow_duplicated_types;
   bool remove_doubles;
+  bool floating_as_contour;
+  bool chain_floating_edges;
+  bool chain_geometry_space;
+
+  bool filter_face_mark;
+  bool filter_face_mark_invert;
+  bool filter_face_mark_boundaries;
 
   /* Keep an copy of these data so when line art is running it's self-contained. */
   bool cam_is_persp;
@@ -358,10 +364,9 @@ typedef struct LineartRenderTaskInfo {
   ListBase crease;
   ListBase material;
   ListBase edge_mark;
+  ListBase floating;
 
 } LineartRenderTaskInfo;
-
-struct BMesh;
 
 typedef struct LineartObjectInfo {
   struct LineartObjectInfo *next;
@@ -370,14 +375,14 @@ typedef struct LineartObjectInfo {
   double model_view_proj[4][4];
   double model_view[4][4];
   double normal[4][4];
-  LineartElementLinkNode *v_reln;
+  LineartElementLinkNode *v_eln;
   int usage;
   int global_i_offset;
 
   bool free_use_mesh;
 
   /* Threads will add lines inside here, when all threads are done, we combine those into the
-   * ones in LineartRenderBuffer.  */
+   * ones in LineartRenderBuffer. */
   ListBase contour;
   ListBase intersection;
   ListBase crease;
@@ -607,8 +612,8 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   int level_end,
                                   int mat_nr,
                                   short edge_types,
-                                  unsigned char transparency_flags,
-                                  unsigned char transparency_mask,
+                                  unsigned char material_mask_flags,
+                                  unsigned char material_mask_bits,
                                   short thickness,
                                   float opacity,
                                   const char *source_vgname,

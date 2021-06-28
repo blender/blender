@@ -819,7 +819,7 @@ static void layer_collection_sync(ViewLayer *view_layer,
     }
 
     /* We separate restrict viewport and visible view layer because a layer collection can be
-     * hidden in the view layer yet (locally) visible in a viewport (if it is not restricted).*/
+     * hidden in the view layer yet (locally) visible in a viewport (if it is not restricted). */
     if (child_restrict & COLLECTION_RESTRICT_VIEWPORT) {
       lc->runtime_flag |= LAYER_COLLECTION_RESTRICT_VIEWPORT;
     }
@@ -1000,7 +1000,7 @@ void BKE_main_collection_sync_remap(const Main *bmain)
   /* On remapping of object or collection pointers free caches. */
   /* TODO: try to make this faster */
 
-  for (const Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       MEM_SAFE_FREE(view_layer->object_bases_array);
 
@@ -1009,6 +1009,10 @@ void BKE_main_collection_sync_remap(const Main *bmain)
         view_layer->object_bases_hash = NULL;
       }
     }
+
+    BKE_collection_object_cache_free(scene->master_collection);
+    DEG_id_tag_update_ex((Main *)bmain, &scene->master_collection->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update_ex((Main *)bmain, &scene->id, ID_RECALC_COPY_ON_WRITE);
   }
 
   for (Collection *collection = bmain->collections.first; collection;
@@ -1823,7 +1827,7 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 
 /** \} */
 
-/* Evaluation  */
+/* Evaluation. */
 
 /* Applies object's restrict flags on top of flags coming from the collection
  * and stores those in base->flag. BASE_VISIBLE_DEPSGRAPH ignores viewport flags visibility

@@ -85,7 +85,7 @@ struct OpenVDBRemeshData {
   int out_tottris;
   int filter_type;
   enum OpenVDBLevelSet_FilterType filter_bias;
-  enum OpenVDBLevelSet_FilterBias filter_width; /* Parameter for gaussian, median, mean*/
+  enum OpenVDBLevelSet_FilterBias filter_width; /* Parameter for gaussian, median, mean. */
 
   float voxel_size;
   float isovalue;

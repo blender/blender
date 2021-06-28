@@ -247,7 +247,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   else if (STRPREFIX(opname, "MARKER_OT")) {
     km = WM_keymap_find_all(wm, "Markers", 0, 0);
   }
-  /* Import/Export*/
+  /* Import/Export */
   else if (STRPREFIX(opname, "IMPORT_") || STRPREFIX(opname, "EXPORT_")) {
     km = WM_keymap_find_all(wm, "Window", 0, 0);
   }

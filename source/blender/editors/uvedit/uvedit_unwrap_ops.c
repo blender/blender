@@ -498,7 +498,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* pointers to modifier data for unwrap control */
   ModifierData *md;
   SubsurfModifierData *smd_real;
-  /* modifier initialization data, will  control what type of subdivision will happen*/
+  /* Modifier initialization data, will  control what type of subdivision will happen. */
   SubsurfModifierData smd = {{NULL}};
   /* Used to hold subsurfed Mesh */
   DerivedMesh *derivedMesh, *initialDerived;
@@ -509,7 +509,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   MEdge *subsurfedEdges;
   MPoly *subsurfedPolys;
   MLoop *subsurfedLoops;
-  /* number of vertices and faces for subsurfed mesh*/
+  /* Number of vertices and faces for subsurfed mesh. */
   int numOfEdges, numOfFaces;
 
   /* holds a map to editfaces for every subsurfed MFace.
@@ -1367,7 +1367,7 @@ static void uv_map_rotation_matrix_ex(float result[4][4],
   rotup[2][2] = cosf(upangle) / radius;
   rotup[0][0] = 1.0f / radius;
 
-  /* calculate transforms*/
+  /* Calculate transforms. */
   mul_m4_series(result, rotup, rotside, viewmatrix, rotobj);
 }
 
@@ -2905,7 +2905,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   /* select all uv loops first - pack parameters needs this to make sure charts are registered */
   ED_uvedit_select_all(bm);
   uvedit_unwrap_cube_project(bm, 1.0, false, NULL);
-  /* set the margin really quickly before the packing operation*/
+  /* Set the margin really quickly before the packing operation. */
   scene->toolsettings->uvcalc_margin = 0.001f;
   uvedit_pack_islands(scene, ob, bm);
   BM_mesh_bm_to_me(bmain, bm, me, (&(struct BMeshToMeshParams){0}));

@@ -398,7 +398,7 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
     if (other2 != nullptr) {
       const CPPType &type = CPPType::get<T>();
       if (type == other2->type_) {
-        return type.is_equal(static_cast<const void *>(&value_), other2->value_);
+        return type.is_equal_or_false(static_cast<const void *>(&value_), other2->value_);
       }
     }
     return false;

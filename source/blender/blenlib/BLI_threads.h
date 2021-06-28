@@ -38,7 +38,7 @@ struct ListBase;
 
 /* Threading API */
 
-/*this is run once at startup*/
+/* This is run once at startup. */
 void BLI_threadapi_init(void);
 void BLI_threadapi_exit(void);
 

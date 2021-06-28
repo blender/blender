@@ -145,11 +145,7 @@ typedef struct FileData {
   ListBase *old_mainlist;
   struct IDNameLib_Map *old_idmap;
 
-  struct ReportList *reports;
-  /* Counters for amount of missing libraries, and missing IDs in libraries.
-   * Used to generate a synthetic report in the UI. */
-  int library_file_missing_count;
-  int library_id_missing_count;
+  struct BlendFileReadReport *reports;
 } FileData;
 
 #define SIZEOFBLENDERHEADER 12
@@ -161,11 +157,13 @@ void blo_split_main(ListBase *mainlist, struct Main *main);
 
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
-FileData *blo_filedata_from_file(const char *filepath, struct ReportList *reports);
-FileData *blo_filedata_from_memory(const void *mem, int memsize, struct ReportList *reports);
+FileData *blo_filedata_from_file(const char *filepath, struct BlendFileReadReport *reports);
+FileData *blo_filedata_from_memory(const void *mem,
+                                   int memsize,
+                                   struct BlendFileReadReport *reports);
 FileData *blo_filedata_from_memfile(struct MemFile *memfile,
                                     const struct BlendFileReadParams *params,
-                                    struct ReportList *reports);
+                                    struct BlendFileReadReport *reports);
 
 void blo_clear_proxy_pointers_from_lib(struct Main *oldmain);
 void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);

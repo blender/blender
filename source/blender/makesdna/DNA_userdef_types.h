@@ -496,7 +496,7 @@ typedef struct bTheme {
 
   /* 20 sets of bone colors for this theme */
   ThemeWireColor tarm[20];
-  /*ThemeWireColor tobj[20];*/
+  // ThemeWireColor tobj[20];
 
   /* See COLLECTION_COLOR_TOT for the number of collection colors. */
   ThemeCollectionColor collection_color[8];
@@ -1146,8 +1146,10 @@ typedef enum eAutokey_Mode {
   /* AUTOKEY_ON is a bitflag */
   AUTOKEY_ON = 1,
 
-  /** AUTOKEY_ON + 2**n...  (i.e. AUTOKEY_MODE_NORMAL = AUTOKEY_ON + 2)
-   * to preserve setting, even when autokey turned off  */
+  /**
+   * AUTOKEY_ON + 2**n...  (i.e. AUTOKEY_MODE_NORMAL = AUTOKEY_ON + 2)
+   * to preserve setting, even when auto-key turned off.
+   */
   AUTOKEY_MODE_NORMAL = 3,
   AUTOKEY_MODE_EDITKEYS = 5,
 } eAutokey_Mode;

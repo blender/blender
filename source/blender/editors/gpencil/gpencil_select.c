@@ -1276,7 +1276,7 @@ static bool gpencil_stroke_do_circle_sel(bGPdata *gpd,
     pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
     bGPDspoint pt_temp;
-    gpencil_point_to_parent_space(pt_active, diff_mat, &pt_temp);
+    gpencil_point_to_parent_space(pt, diff_mat, &pt_temp);
     gpencil_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
 
     /* do boundbox check first */
@@ -1374,7 +1374,7 @@ static bool gpencil_do_curve_circle_sel(bContext *C,
     const bool handles_visible = (v3d->overlay.handle_display != CURVE_HANDLE_NONE) &&
                                  (!only_selected || BEZT_ISSEL_ANY(bezt));
 
-    /* if the handles are not visible only check ctrl point (vec[1])*/
+    /* If the handles are not visible only check control point (vec[1]). */
     int from = (!handles_visible) ? 1 : 0;
     int to = (!handles_visible) ? 2 : 3;
 
@@ -1719,7 +1719,7 @@ static bool gpencil_generic_curve_select(bContext *C,
           }
         }
       }
-      /* if the handles are not visible only check ctrl point (vec[1])*/
+      /* If the handles are not visible only check ctrl point (vec[1]). */
       else {
         const bool is_select = bezt->f2;
         bool is_inside = is_inside_fn(region, gps_iter.diff_mat, bezt->vec[1], user_data);
@@ -1847,7 +1847,7 @@ static bool gpencil_generic_stroke_select(bContext *C,
     bGPDspoint *pt;
     int i;
     bool hit = false;
-    for (i = 0, pt = gps_active->points; i < gps_active->totpoints; i++, pt++) {
+    for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
       bGPDspoint *pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
       /* convert point coords to screenspace */
@@ -1889,7 +1889,7 @@ static bool gpencil_generic_stroke_select(bContext *C,
       mval[0] = (box.xmax + box.xmin) / 2;
       mval[1] = (box.ymax + box.ymin) / 2;
 
-      whole = ED_gpencil_stroke_point_is_inside(gps_active, &gsc, mval, gpstroke_iter.diff_mat);
+      whole = ED_gpencil_stroke_point_is_inside(gps, &gsc, mval, gpstroke_iter.diff_mat);
     }
 
     /* if stroke mode expand selection. */
@@ -2153,7 +2153,7 @@ static void gpencil_select_curve_point(bContext *C,
       const bool handles_visible = (v3d->overlay.handle_display != CURVE_HANDLE_NONE) &&
                                    (!only_selected || BEZT_ISSEL_ANY(bezt));
 
-      /* if the handles are not visible only check ctrl point (vec[1])*/
+      /* If the handles are not visible only check control point (vec[1]). */
       int from = (!handles_visible) ? 1 : 0;
       int to = (!handles_visible) ? 2 : 3;
 
@@ -2252,7 +2252,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
       int i;
 
       /* firstly, check for hit-point */
-      for (i = 0, pt = gps_active->points; i < gps_active->totpoints; i++, pt++) {
+      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
         int xy[2];
 
         bGPDspoint pt2;

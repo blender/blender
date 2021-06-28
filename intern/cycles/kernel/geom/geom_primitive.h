@@ -138,7 +138,7 @@ ccl_device_inline float4 primitive_surface_attribute_float4(KernelGlobals *kg,
 ccl_device_inline bool primitive_is_volume_attribute(const ShaderData *sd,
                                                      const AttributeDescriptor desc)
 {
-  return (sd->object != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL);
+  return sd->type == PRIMITIVE_VOLUME;
 }
 
 ccl_device_inline float primitive_volume_attribute_float(KernelGlobals *kg,

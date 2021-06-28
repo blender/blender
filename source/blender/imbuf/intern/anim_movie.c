@@ -1187,7 +1187,7 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim,
 
     /* If this packet contains an I-frame, this could be the frame that we need. */
     bool is_key_frame = read_packet->flags & AV_PKT_FLAG_KEY;
-    /* We need to check the packet timestamp as the key frame could be for a GOP forward in the the
+    /* We need to check the packet timestamp as the key frame could be for a GOP forward in the
      * video stream. So if it has a larger timestamp than the frame we want, ignore it.
      */
     cur_pts = timestamp_from_pts_or_dts(read_packet->pts, read_packet->dts);

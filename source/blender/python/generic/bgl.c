@@ -41,7 +41,7 @@
 /** \name Local utility defines for wrapping OpenGL
  * \{ */
 
-/*@ By golly George! It looks like fancy pants macro time!!! */
+/* By golly George! It looks like fancy pants macro time! */
 
 /* TYPE_str is the string to pass to Py_ArgParse (for the format) */
 /* TYPE_var is the name to pass to the GL function */
@@ -161,7 +161,7 @@ typedef struct BufferOrOffset {
 #  define buffer_def(number) Buffer *bgl_buffer##number
 #endif
 
-/*@The standard GL typedefs are used as prototypes, we can't
+/* The standard GL typedefs are used as prototypes, we can't
  * use the GL type directly because Py_ArgParse expects normal
  * C types.
  *
@@ -505,13 +505,13 @@ static bool compare_dimensions(int ndim, const int *dim1, const Py_ssize_t *dim2
  * \{ */
 
 static PySequenceMethods Buffer_SeqMethods = {
-    (lenfunc)Buffer_len,              /*sq_length */
-    (binaryfunc)NULL,                 /*sq_concat */
-    (ssizeargfunc)NULL,               /*sq_repeat */
-    (ssizeargfunc)Buffer_item,        /*sq_item */
-    (ssizessizeargfunc)NULL,          /*sq_slice, deprecated, handled in Buffer_item */
-    (ssizeobjargproc)Buffer_ass_item, /*sq_ass_item */
-    (ssizessizeobjargproc)NULL,       /*sq_ass_slice, deprecated handled in Buffer_ass_item */
+    (lenfunc)Buffer_len,              /* sq_length */
+    (binaryfunc)NULL,                 /* sq_concat */
+    (ssizeargfunc)NULL,               /* sq_repeat */
+    (ssizeargfunc)Buffer_item,        /* sq_item */
+    (ssizessizeargfunc)NULL,          /* sq_slice, deprecated, handled in Buffer_item */
+    (ssizeobjargproc)Buffer_ass_item, /* sq_ass_item */
+    (ssizessizeobjargproc)NULL,       /* sq_ass_slice, deprecated handled in Buffer_ass_item */
     (objobjproc)NULL,                 /* sq_contains */
     (binaryfunc)NULL,                 /* sq_inplace_concat */
     (ssizeargfunc)NULL,               /* sq_inplace_repeat */
@@ -582,17 +582,17 @@ static PyGetSetDef Buffer_getseters[] = {
 };
 
 PyTypeObject BGL_bufferType = {
-    PyVarObject_HEAD_INIT(NULL, 0) "bgl.Buffer", /*tp_name */
-    sizeof(Buffer),                              /*tp_basicsize */
-    0,                                           /*tp_itemsize */
-    (destructor)Buffer_dealloc,                  /*tp_dealloc */
-    (printfunc)NULL,                             /*tp_print */
-    NULL,                                        /*tp_getattr */
-    NULL,                                        /*tp_setattr */
-    NULL,                                        /*tp_compare */
-    (reprfunc)Buffer_repr,                       /*tp_repr */
-    NULL,                                        /*tp_as_number */
-    &Buffer_SeqMethods,                          /*tp_as_sequence */
+    PyVarObject_HEAD_INIT(NULL, 0) "bgl.Buffer", /* tp_name */
+    sizeof(Buffer),                              /* tp_basicsize */
+    0,                                           /* tp_itemsize */
+    (destructor)Buffer_dealloc,                  /* tp_dealloc */
+    (printfunc)NULL,                             /* tp_print */
+    NULL,                                        /* tp_getattr */
+    NULL,                                        /* tp_setattr */
+    NULL,                                        /* tp_compare */
+    (reprfunc)Buffer_repr,                       /* tp_repr */
+    NULL,                                        /* tp_as_number */
+    &Buffer_SeqMethods,                          /* tp_as_sequence */
     &Buffer_AsMapping,                           /* PyMappingMethods *tp_as_mapping; */
 
     /* More standard operations (here for binary compatibility) */
@@ -683,7 +683,7 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
     size *= dimensions[i];
   }
 
-  buf = MEM_mallocN(size, "Buffer buffer");
+  buf = MEM_mallocN(size, __func__);
 
   buffer = BGL_MakeBuffer_FromData(NULL, type, ndimensions, dimensions, buf);
 
@@ -790,7 +790,7 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
   }
   else {
     PyErr_Format(PyExc_TypeError,
-                 "invalid second argument argument expected a sequence "
+                 "invalid second argument expected a sequence "
                  "or an int, not a %.200s",
                  Py_TYPE(length_ob)->tp_name);
     return NULL;

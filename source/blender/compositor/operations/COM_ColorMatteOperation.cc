@@ -65,7 +65,7 @@ void ColorMatteOperation::executePixelSampled(float output[4],
    */
 
   if (
-      /* do hue last because it needs to wrap, and does some more checks  */
+      /* Do hue last because it needs to wrap, and does some more checks. */
 
       /* sat */ (fabsf(inColor[1] - inKey[1]) < sat) &&
       /* val */ (fabsf(inColor[2] - inKey[2]) < val) &&
@@ -77,8 +77,8 @@ void ColorMatteOperation::executePixelSampled(float output[4],
     output[0] = 0.0f; /* make transparent */
   }
 
-  else {                    /*pixel is outside key color */
-    output[0] = inColor[3]; /* make pixel just as transparent as it was before */
+  else {                    /* Pixel is outside key color. */
+    output[0] = inColor[3]; /* Make pixel just as transparent as it was before. */
   }
 }
 

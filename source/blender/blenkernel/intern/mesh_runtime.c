@@ -30,6 +30,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math_geom.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 
 #include "BKE_bvhutils.h"
@@ -151,6 +152,12 @@ int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
   return looptri_len;
 }
 
+static void mesh_runtime_looptri_recalc_isolated(void *userdata)
+{
+  Mesh *mesh = userdata;
+  BKE_mesh_runtime_looptri_recalc(mesh);
+}
+
 /* This is a ported copy of dm_getLoopTriArray(dm). */
 const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
 {
@@ -163,7 +170,8 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
     BLI_assert(BKE_mesh_runtime_looptri_len(mesh) == mesh->runtime.looptris.len);
   }
   else {
-    BKE_mesh_runtime_looptri_recalc(mesh);
+    /* Must isolate multithreaded tasks while holding a mutex lock. */
+    BLI_task_isolate(mesh_runtime_looptri_recalc_isolated, mesh);
     looptri = mesh->runtime.looptris.array;
   }
 

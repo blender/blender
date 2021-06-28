@@ -723,7 +723,7 @@ static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
   return NULL;
 }
 
-/* Switch NLA Strips/Actions  */
+/* Switch NLA Strips/Actions. */
 static void action_layer_switch_strip(
     AnimData *adt, NlaTrack *old_track, NlaStrip *old_strip, NlaTrack *nlt, NlaStrip *strip)
 {

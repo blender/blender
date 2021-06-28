@@ -1385,7 +1385,7 @@ static void region_rect_recursive(
       region->flag |= RGN_FLAG_SIZE_CLAMP_Y;
     }
 
-    /* We need to use a test that wont have been previously clamped. */
+    /* We need to use a test that won't have been previously clamped. */
     rcti winrct_test = {
         .xmin = region->winrct.xmin,
         .ymin = region->winrct.ymin,
@@ -1461,7 +1461,7 @@ static void region_rect_recursive(
     }
   }
   else if (ELEM(alignment, RGN_ALIGN_VSPLIT, RGN_ALIGN_HSPLIT)) {
-    /* percentage subdiv*/
+    /* Percentage subdiv. */
     region->winrct = *remainder;
 
     if (alignment == RGN_ALIGN_HSPLIT) {
@@ -2387,7 +2387,7 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
      * However, add-on install for example, forces the header to the top which shouldn't
      * be applied back to the previous space type when closing - see: T57724
      *
-     * Newly created windows wont have any space data, use the alignment
+     * Newly-created windows won't have any space data, use the alignment
      * the space type defaults to in this case instead
      * (needed for preferences to have space-type on bottom).
      */
@@ -3325,10 +3325,10 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
     maxco += UI_HEADER_OFFSET;
   }
 
-  /* always as last  */
+  /* Always as last. */
   UI_view2d_totRect_set(&region->v2d, maxco, region->winy);
 
-  /* restore view matrix */
+  /* Restore view matrix. */
   UI_view2d_view_restore(C);
 }
 

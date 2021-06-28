@@ -847,7 +847,7 @@ void ED_armature_to_edit(bArmature *arm)
 }
 
 /* *************************************************************** */
-/* Used by Undo for Armature EditMode*/
+/* Used by Undo for Armature EditMode. */
 
 /* free's bones and their properties */
 

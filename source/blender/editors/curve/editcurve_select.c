@@ -56,6 +56,10 @@
 
 #include "DEG_depsgraph.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
 /* returns 1 in case (de)selection was successful */
 bool select_beztriple(BezTriple *bezt, bool selstatus, uint8_t flag, eVisible_Types hidden)
 {
@@ -398,12 +402,18 @@ static void select_adjacent_cp(ListBase *editnurb,
   }
 }
 
-/**************** select start/end operators **************/
+/** \} */
 
-/* (de)selects first or last of visible part of each Nurb depending on selFirst
- * selFirst: defines the end of which to select
- * doswap: defines if selection state of each first/last control point is swapped
- * selstatus: selection status in case doswap is false
+/* -------------------------------------------------------------------- */
+/** \name Select Start/End Operators
+ * \{ */
+
+/**
+ * (De)selects first or last of visible part of each #Nurb depending on `selfirst`.
+ *
+ * \param selfirst: defines the end of which to select.
+ * \param doswap: defines if selection state of each first/last control point is swapped.
+ * \param selstatus: selection status in case `doswap` is false.
  */
 static void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap, bool selstatus)
 {
@@ -543,6 +553,12 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select All Operator
+ * \{ */
+
 static int de_select_all_exec(bContext *C, wmOperator *op)
 {
   int action = RNA_enum_get(op->ptr, "action");
@@ -612,7 +628,11 @@ void CURVE_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
-/***************** select linked operator ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked Operator
+ * \{ */
 
 static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -668,7 +688,11 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
   /* properties */
 }
 
-/***************** select linked pick operator ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked Pick Operator
+ * \{ */
 
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -740,7 +764,11 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
                   "Deselect linked control points rather than selecting them");
 }
 
-/***************** select row operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Row Operator
+ * \{ */
 
 static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -802,7 +830,11 @@ void CURVE_OT_select_row(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/***************** select next operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Next Operator
+ * \{ */
 
 static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -839,7 +871,11 @@ void CURVE_OT_select_next(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/***************** select previous operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Previous Operator
+ * \{ */
 
 static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -876,7 +912,11 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/***************** select more operator **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select More Operator
+ * \{ */
 
 static void curve_select_more(Object *obedit)
 {
@@ -885,10 +925,10 @@ static void curve_select_more(Object *obedit)
   int a;
   short sel = 0;
 
-  /* note that NURBS surface is a special case because we mimic */
-  /* the behavior of "select more" of mesh tools.       */
-  /* The algorithm is designed to work in planar cases so it    */
-  /* may not be optimal always (example: end of NURBS sphere)   */
+  /* NOTE: NURBS surface is a special case because we mimic
+   * the behavior of "select more" of mesh tools.
+   * The algorithm is designed to work in planar cases so it
+   * may not be optimal always (example: end of NURBS sphere). */
   if (obedit->type == OB_SURF) {
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       BLI_bitmap *selbpoints;
@@ -984,7 +1024,11 @@ void CURVE_OT_select_more(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/******************** select less operator *****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Less Operator
+ * \{ */
 
 /* basic method: deselect if control point doesn't have all neighbors selected */
 static void curve_select_less(Object *obedit)
@@ -1198,46 +1242,11 @@ void CURVE_OT_select_less(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** select random *********************/
+/** \} */
 
-static void curve_select_random(ListBase *editnurb, float randfac, int seed, bool select)
-{
-  BezTriple *bezt;
-  BPoint *bp;
-  int a;
-
-  RNG *rng = BLI_rng_new_srandom(seed);
-
-  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
-    if (nu->type == CU_BEZIER) {
-      bezt = nu->bezt;
-      a = nu->pntsu;
-      while (a--) {
-        if (!bezt->hide) {
-          if (BLI_rng_get_float(rng) < randfac) {
-            select_beztriple(bezt, select, SELECT, VISIBLE);
-          }
-        }
-        bezt++;
-      }
-    }
-    else {
-      bp = nu->bp;
-      a = nu->pntsu * nu->pntsv;
-
-      while (a--) {
-        if (!bp->hide) {
-          if (BLI_rng_get_float(rng) < randfac) {
-            select_bpoint(bp, select, SELECT, VISIBLE);
-          }
-        }
-        bp++;
-      }
-    }
-  }
-
-  BLI_rng_free(rng);
-}
+/* -------------------------------------------------------------------- */
+/** \name Select Random Operator
+ * \{ */
 
 static int curve_select_random_exec(bContext *C, wmOperator *op)
 {
@@ -1260,9 +1269,71 @@ static int curve_select_random_exec(bContext *C, wmOperator *op)
       seed_iter += BLI_ghashutil_strhash_p(obedit->id.name);
     }
 
-    curve_select_random(editnurb, randfac, seed_iter, select);
-    BKE_curve_nurb_vert_active_validate(obedit->data);
+    int totvert = 0;
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
+      if (nu->type == CU_BEZIER) {
+        int a = nu->pntsu;
+        BezTriple *bezt = nu->bezt;
+        while (a--) {
+          if (!bezt->hide) {
+            totvert++;
+          }
+          bezt++;
+        }
+      }
+      else {
+        int a = nu->pntsu * nu->pntsv;
+        BPoint *bp = nu->bp;
+        while (a--) {
+          if (!bp->hide) {
+            totvert++;
+          }
+          bp++;
+        }
+      }
+    }
 
+    BLI_bitmap *verts_selection_mask = BLI_BITMAP_NEW(totvert, __func__);
+    const int count_select = totvert * randfac;
+    for (int i = 0; i < count_select; i++) {
+      BLI_BITMAP_SET(verts_selection_mask, i, true);
+    }
+    BLI_bitmap_randomize(verts_selection_mask, totvert, seed_iter);
+
+    int bit_index = 0;
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
+      if (nu->type == CU_BEZIER) {
+        int a = nu->pntsu;
+        BezTriple *bezt = nu->bezt;
+
+        while (a--) {
+          if (!bezt->hide) {
+            if (BLI_BITMAP_TEST(verts_selection_mask, bit_index)) {
+              select_beztriple(bezt, select, SELECT, VISIBLE);
+            }
+            bit_index++;
+          }
+          bezt++;
+        }
+      }
+      else {
+        int a = nu->pntsu * nu->pntsv;
+        BPoint *bp = nu->bp;
+
+        while (a--) {
+          if (!bp->hide) {
+            if (BLI_BITMAP_TEST(verts_selection_mask, bit_index)) {
+              select_bpoint(bp, select, SELECT, VISIBLE);
+            }
+            bit_index++;
+          }
+          bp++;
+        }
+      }
+    }
+
+    MEM_freeN(verts_selection_mask);
+    BKE_curve_nurb_vert_active_validate(obedit->data);
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
@@ -1289,7 +1360,11 @@ void CURVE_OT_select_random(wmOperatorType *ot)
   WM_operator_properties_select_random(ot);
 }
 
-/********************* every nth number of point *******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Every Nth Number of Point Operator
+ * \{ */
 
 static void select_nth_bezt(Nurb *nu, BezTriple *bezt, const struct CheckerIntervalParams *params)
 {
@@ -1420,6 +1495,8 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 
   WM_operator_properties_checker_interval(ot, false);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Select Similar Operator

@@ -46,7 +46,7 @@
  * </pre>
  *
  * This function can also collapse edges too
- * in cases when it cant merge into faces.
+ * in cases when it can't merge into faces.
  *
  * \par Example:
  * <pre>
@@ -118,7 +118,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
   if (keepedge == NULL && len == 3) {
 #if 0
     /* handle specific case for three-valence.  solve it by
-     * increasing valence to four.  this may be hackish. .  */
+     * increasing valence to four.  this may be hackish. */
     BMLoop *l_a = BM_face_vert_share_loop(e->l->f, v);
     BMLoop *l_b = (e->l->v == v) ? e->l->next : e->l;
 
@@ -246,8 +246,8 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, const bool do_de
  * \param no_double: Use an existing edge if found
  *
  * \return Pointer to the newly created face representing one side of the split
- * if the split is successful (and the original original face will be the
- * other side). NULL if the split fails.
+ * if the split is successful (and the original face will be the other side).
+ * NULL if the split fails.
  */
 BMFace *BM_face_split(BMesh *bm,
                       BMFace *f,
@@ -328,8 +328,8 @@ BMFace *BM_face_split(BMesh *bm,
  * \param example: Edge used for attributes of splitting edge, if non-NULL.
  *
  * \return Pointer to the newly created face representing one side of the split
- * if the split is successful (and the original original face will be the
- * other side). NULL if the split fails.
+ * if the split is successful (and the original face will be the other side).
+ * NULL if the split fails.
  */
 BMFace *BM_face_split_n(BMesh *bm,
                         BMFace *f,
@@ -369,7 +369,7 @@ BMFace *BM_face_split_n(BMesh *bm,
 #endif
   /* bmesh_kernel_split_face_make_edge returns in 'l_new'
    * a Loop for f_new going from 'v_a' to 'v_b'.
-   * The radial_next is for 'f' and goes from 'v_b' to 'v_a'  */
+   * The radial_next is for 'f' and goes from 'v_b' to 'v_a'. */
 
   if (f_new) {
     e = l_new->e;
@@ -962,7 +962,7 @@ bool BM_edge_rotate_check_beauty(BMEdge *e, BMLoop *l1, BMLoop *l2)
 {
   /* Stupid check for now:
    * Could compare angles of surrounding edges
-   * before & after, but this is OK.*/
+   * before & after, but this is OK. */
   return (len_squared_v3v3(e->v1->co, e->v2->co) > len_squared_v3v3(l1->v->co, l2->v->co));
 }
 

@@ -280,8 +280,6 @@ struct GeometrySet {
   void compute_boundbox_without_instances(blender::float3 *r_min, blender::float3 *r_max) const;
 
   friend std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set);
-  friend bool operator==(const GeometrySet &a, const GeometrySet &b);
-  uint64_t hash() const;
 
   void clear();
 

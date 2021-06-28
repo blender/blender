@@ -293,8 +293,9 @@ static void ptile_restore_runtime_list(ListBase *paint_tiles)
       SWAP(uint *, ptile->rect.uint, tmpibuf->rect);
     }
 
-    BKE_image_free_gputextures(
-        image); /* force OpenGL reload (maybe partial update will operate better?) */
+    /* Force OpenGL reload (maybe partial update will operate better?) */
+    BKE_image_free_gputextures(image);
+
     if (ibuf->rect_float) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
     }
@@ -1040,7 +1041,7 @@ ListBase *ED_image_paint_tile_list_get(void)
   return &us->paint_tiles;
 }
 
-/* restore painting image to previous state. Used for anchored and drag-dot style brushes*/
+/* Restore painting image to previous state. Used for anchored and drag-dot style brushes. */
 void ED_image_undo_restore(UndoStep *us)
 {
   ListBase *paint_tiles = &((ImageUndoStep *)us)->paint_tiles;

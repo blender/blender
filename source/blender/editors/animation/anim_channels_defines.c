@@ -502,7 +502,7 @@ static bool acf_summary_setting_valid(bAnimContext *UNUSED(ac),
   return (setting == ACHANNEL_SETTING_EXPAND);
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_summary_setting_flag(bAnimContext *UNUSED(ac),
                                     eAnimChannel_Settings setting,
                                     bool *neg)
@@ -595,7 +595,7 @@ static bool acf_scene_setting_valid(bAnimContext *ac,
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_scene_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -766,7 +766,7 @@ static bool acf_object_setting_valid(bAnimContext *ac,
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_object_setting_flag(bAnimContext *UNUSED(ac),
                                    eAnimChannel_Settings setting,
                                    bool *neg)
@@ -949,7 +949,7 @@ static bool acf_group_setting_valid(bAnimContext *ac,
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
@@ -1086,7 +1086,7 @@ static bool acf_fcurve_setting_valid(bAnimContext *ac,
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac),
                                    eAnimChannel_Settings setting,
                                    bool *neg)
@@ -1212,7 +1212,7 @@ static bool acf_nla_controls_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_nla_controls_setting_flag(bAnimContext *UNUSED(ac),
                                          eAnimChannel_Settings setting,
                                          bool *neg)
@@ -1330,7 +1330,7 @@ static bool acf_fillactd_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_fillactd_setting_flag(bAnimContext *UNUSED(ac),
                                      eAnimChannel_Settings setting,
                                      bool *neg)
@@ -1425,7 +1425,7 @@ static bool acf_filldrivers_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_filldrivers_setting_flag(bAnimContext *UNUSED(ac),
                                         eAnimChannel_Settings setting,
                                         bool *neg)
@@ -1489,7 +1489,7 @@ static int acf_dsmat_icon(bAnimListElem *UNUSED(ale))
   return ICON_MATERIAL_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsmat_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -1568,7 +1568,7 @@ static int acf_dslight_icon(bAnimListElem *UNUSED(ale))
   return ICON_LIGHT_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dslight_setting_flag(bAnimContext *UNUSED(ac),
                                     eAnimChannel_Settings setting,
                                     bool *neg)
@@ -1656,7 +1656,7 @@ static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(al
   return 14; /* XXX: simply include this in indention instead? */
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dstex_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -1736,7 +1736,7 @@ static int acf_dscachefile_icon(bAnimListElem *ale)
   return ICON_FILE;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dscachefile_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
@@ -1818,7 +1818,7 @@ static int acf_dscam_icon(bAnimListElem *UNUSED(ale))
   return ICON_CAMERA_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -1911,7 +1911,7 @@ static int acf_dscur_icon(bAnimListElem *ale)
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dscur_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -2009,7 +2009,7 @@ static bool acf_dsskey_setting_valid(bAnimContext *ac,
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac),
                                    eAnimChannel_Settings setting,
                                    bool *neg)
@@ -2088,7 +2088,7 @@ static int acf_dswor_icon(bAnimListElem *UNUSED(ale))
   return ICON_WORLD_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dswor_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -2167,7 +2167,7 @@ static int acf_dspart_icon(bAnimListElem *UNUSED(ale))
   return ICON_PARTICLE_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac),
                                    eAnimChannel_Settings setting,
                                    bool *neg)
@@ -2246,7 +2246,7 @@ static int acf_dsmball_icon(bAnimListElem *UNUSED(ale))
   return ICON_META_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsmball_setting_flag(bAnimContext *UNUSED(ac),
                                     eAnimChannel_Settings setting,
                                     bool *neg)
@@ -2327,7 +2327,7 @@ static int acf_dsarm_icon(bAnimListElem *UNUSED(ale))
   return ICON_ARMATURE_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsarm_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -2417,7 +2417,7 @@ static short acf_dsntree_offset(bAnimContext *ac, bAnimListElem *ale)
   return offset;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac),
                                     eAnimChannel_Settings setting,
                                     bool *neg)
@@ -2498,7 +2498,7 @@ static int acf_dslinestyle_icon(bAnimListElem *UNUSED(ale))
   return ICON_LINE_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac),
                                         eAnimChannel_Settings setting,
                                         bool *neg)
@@ -2579,7 +2579,7 @@ static int acf_dsmesh_icon(bAnimListElem *UNUSED(ale))
   return ICON_MESH_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsmesh_setting_flag(bAnimContext *UNUSED(ac),
                                    eAnimChannel_Settings setting,
                                    bool *neg)
@@ -2659,7 +2659,7 @@ static int acf_dslat_icon(bAnimListElem *UNUSED(ale))
   return ICON_LATTICE_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -2739,7 +2739,7 @@ static int acf_dsspk_icon(bAnimListElem *UNUSED(ale))
   return ICON_SPEAKER;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac),
                                   eAnimChannel_Settings setting,
                                   bool *neg)
@@ -2818,7 +2818,7 @@ static int acf_dshair_icon(bAnimListElem *UNUSED(ale))
   return ICON_HAIR_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dshair_setting_flag(bAnimContext *UNUSED(ac),
                                    eAnimChannel_Settings setting,
                                    bool *neg)
@@ -2897,7 +2897,7 @@ static int acf_dspointcloud_icon(bAnimListElem *UNUSED(ale))
   return ICON_POINTCLOUD_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dspointcloud_setting_flag(bAnimContext *UNUSED(ac),
                                          eAnimChannel_Settings setting,
                                          bool *neg)
@@ -2978,7 +2978,7 @@ static int acf_dsvolume_icon(bAnimListElem *UNUSED(ale))
   return ICON_VOLUME_DATA;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsvolume_setting_flag(bAnimContext *UNUSED(ac),
                                      eAnimChannel_Settings setting,
                                      bool *neg)
@@ -3137,7 +3137,7 @@ static int acf_dsgpencil_icon(bAnimListElem *UNUSED(ale))
   return ICON_GREASEPENCIL;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsgpencil_setting_flag(bAnimContext *UNUSED(ac),
                                       eAnimChannel_Settings setting,
                                       bool *neg)
@@ -3218,7 +3218,7 @@ static int acf_dsmclip_icon(bAnimListElem *UNUSED(ale))
   return ICON_SEQUENCE;
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsmclip_setting_flag(bAnimContext *UNUSED(ac),
                                     eAnimChannel_Settings setting,
                                     bool *neg)
@@ -3343,7 +3343,7 @@ static bool acf_shapekey_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_shapekey_setting_flag(bAnimContext *UNUSED(ac),
                                      eAnimChannel_Settings setting,
                                      bool *neg)
@@ -3437,7 +3437,7 @@ static bool acf_gpd_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
@@ -3530,7 +3530,7 @@ static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
@@ -3616,7 +3616,7 @@ static bool acf_mask_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_mask_setting_flag(bAnimContext *UNUSED(ac),
                                  eAnimChannel_Settings setting,
                                  bool *neg)
@@ -3713,7 +3713,7 @@ static bool acf_masklay_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac),
                                     eAnimChannel_Settings setting,
                                     bool *neg)
@@ -3849,7 +3849,7 @@ static bool acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac),
                                      eAnimChannel_Settings setting,
                                      bool *neg)
@@ -4038,7 +4038,7 @@ static bool acf_nlaaction_setting_valid(bAnimContext *UNUSED(ac),
   }
 }
 
-/* get the appropriate flag(s) for the setting when it is valid  */
+/* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_nlaaction_setting_flag(bAnimContext *UNUSED(ac),
                                       eAnimChannel_Settings setting,
                                       bool *neg)
@@ -4415,7 +4415,7 @@ void ANIM_channel_draw(
   /* set blending again, as may not be set in previous step */
   GPU_blend(GPU_BLEND_ALPHA);
 
-  /* step 1) draw backdrop ...........................................  */
+  /* step 1) draw backdrop ........................................... */
   if (acf->draw_backdrop) {
     acf->draw_backdrop(ac, ale, yminc, ymaxc);
   }
@@ -5096,7 +5096,7 @@ static void draw_setting_widget(bAnimContext *ac,
     /* set call to send relevant notifiers and/or perform type-specific updates */
     if (but) {
       switch (setting) {
-        /* settings needing flushing up/down hierarchy  */
+        /* Settings needing flushing up/down hierarchy. */
         case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
         case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
         case ACHANNEL_SETTING_MUTE:    /* General - muting flags */
@@ -5184,12 +5184,12 @@ void ANIM_channel_draw_widgets(const bContext *C,
     if ((ac->spacetype == SPACE_GRAPH) &&
         (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
          acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
-      /* pin toggle  */
+      /* Pin toggle. */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) {
         draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_ALWAYS_VISIBLE);
         offset += ICON_WIDTH;
       }
-      /* visibility toggle  */
+      /* Visibility toggle. */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
         /* For F-curves, add the extra space for the color bands. */
         if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {

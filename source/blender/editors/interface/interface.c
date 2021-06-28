@@ -985,12 +985,12 @@ bool UI_but_active_only(const bContext *C, ARegion *region, uiBlock *block, uiBu
 
 /**
  * \warning This must run after other handlers have been added,
- * otherwise the handler wont be removed, see: T71112.
+ * otherwise the handler won't be removed, see: T71112.
  */
 bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, uiBlock *block)
 {
   /* Running this command before end-block has run, means buttons that open menus
-   * wont have those menus correctly positioned, see T83539. */
+   * won't have those menus correctly positioned, see T83539. */
   BLI_assert(block->endblock);
 
   bool done = false;
@@ -1198,7 +1198,7 @@ static bool ui_but_event_operator_string_from_menu(const bContext *C,
 
   /* annoying, create a property */
   const IDPropertyTemplate val = {0};
-  IDProperty *prop_menu = IDP_New(IDP_GROUP, &val, __func__); /* dummy, name is unimportant  */
+  IDProperty *prop_menu = IDP_New(IDP_GROUP, &val, __func__); /* Dummy, name is unimportant. */
   IDP_AddToGroup(prop_menu, IDP_NewString(mt->idname, "name", sizeof(mt->idname)));
 
   if (WM_key_event_operator_string(
@@ -1223,7 +1223,7 @@ static bool ui_but_event_operator_string_from_panel(const bContext *C,
 
   /* annoying, create a property */
   const IDPropertyTemplate val = {0};
-  IDProperty *prop_panel = IDP_New(IDP_GROUP, &val, __func__); /* dummy, name is unimportant  */
+  IDProperty *prop_panel = IDP_New(IDP_GROUP, &val, __func__); /* Dummy, name is unimportant. */
   IDP_AddToGroup(prop_panel, IDP_NewString(pt->idname, "name", sizeof(pt->idname)));
   IDP_AddToGroup(prop_panel,
                  IDP_New(IDP_INT,
@@ -1804,7 +1804,7 @@ void UI_block_update_from_old(const bContext *C, uiBlock *block)
 static void ui_but_validate(const uiBut *but)
 {
   /* Number buttons must have a click-step,
-   * assert instead of correcting the value to ensure the caller knows what they're doing.  */
+   * assert instead of correcting the value to ensure the caller knows what they're doing. */
   if (but->type == UI_BTYPE_NUM) {
     uiButNumber *number_but = (uiButNumber *)but;
 
@@ -2105,8 +2105,10 @@ void UI_region_message_subscribe(ARegion *region, struct wmMsgBus *mbus)
 int ui_but_is_pushed_ex(uiBut *but, double *value)
 {
   int is_push = 0;
-
-  if (but->bit) {
+  if (but->pushed_state_func) {
+    return but->pushed_state_func(but, but->pushed_state_arg);
+  }
+  else if (but->bit) {
     const bool state = !ELEM(
         but->type, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE_N, UI_BTYPE_CHECKBOX_N);
     int lvalue;
@@ -2253,7 +2255,6 @@ void ui_but_v3_get(uiBut *but, float vec[3])
   }
   else if (but->pointype == UI_BUT_POIN_CHAR) {
     const char *cp = (char *)but->poin;
-
     vec[0] = ((float)cp[0]) / 255.0f;
     vec[1] = ((float)cp[1]) / 255.0f;
     vec[2] = ((float)cp[2]) / 255.0f;
@@ -3223,8 +3224,8 @@ void ui_but_range_set_hard(uiBut *but)
 /* note: this could be split up into functions which handle arrays and not */
 void ui_but_range_set_soft(uiBut *but)
 {
-  /* ideally we would not limit this but practically, its more than
-   * enough worst case is very long vectors wont use a smart soft-range
+  /* Ideally we would not limit this, but practically it's more than
+   * enough. Worst case is very long vectors won't use a smart soft-range,
    * which isn't so bad. */
 
   if (but->rnaprop) {
@@ -3243,8 +3244,8 @@ void ui_but_range_set_soft(uiBut *but)
       RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
       softmin = (imin == INT_MIN) ? -1e4 : imin;
       softmax = (imin == INT_MAX) ? 1e4 : imax;
-      /*step = istep;*/  /*UNUSED*/
-      /*precision = 1;*/ /*UNUSED*/
+      // step = istep;  /* UNUSED */
+      // precision = 1; /* UNUSED */
 
       if (is_array) {
         int value_range[2];
@@ -3263,8 +3264,8 @@ void ui_but_range_set_soft(uiBut *but)
       RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
       softmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
       softmax = (fmax == FLT_MAX) ? (float)1e4 : fmax;
-      /*step = fstep;*/           /*UNUSED*/
-      /*precision = fprecision;*/ /*UNUSED*/
+      // step = fstep;           /* UNUSED */
+      // precision = fprecision; /* UNUSED */
 
       /* Use shared min/max for array values, except for color alpha. */
       if (is_array && !(subtype == PROP_COLOR && but->rnaindex == 3)) {
@@ -3578,7 +3579,7 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
     subtype = RNA_property_subtype(but->rnaprop);
   }
 
-  /* Change negative zero to regular zero, without altering anything else.  */
+  /* Change negative zero to regular zero, without altering anything else. */
   value += +0.0f;
 
   if (value == (double)FLT_MAX) {
@@ -3903,6 +3904,10 @@ static void ui_but_alloc_info(const eButType type,
       alloc_size = sizeof(uiButCurveProfile);
       alloc_str = "uiButCurveProfile";
       break;
+    case UI_BTYPE_DATASETROW:
+      alloc_size = sizeof(uiButDatasetRow);
+      alloc_str = "uiButDatasetRow";
+      break;
     default:
       alloc_size = sizeof(uiBut);
       alloc_str = "uiBut";
@@ -4100,6 +4105,7 @@ static uiBut *ui_def_but(uiBlock *block,
                 UI_BTYPE_BUT_MENU,
                 UI_BTYPE_SEARCH_MENU,
                 UI_BTYPE_PROGRESS_BAR,
+                UI_BTYPE_DATASETROW,
                 UI_BTYPE_POPOVER)) {
     but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
   }
@@ -4146,7 +4152,7 @@ static uiBut *ui_def_but(uiBlock *block,
   }
 
 #ifdef WITH_PYTHON
-  /* if the 'UI_OT_editsource' is running, extract the source info from the button  */
+  /* If the 'UI_OT_editsource' is running, extract the source info from the button. */
   if (UI_editsource_enable_check()) {
     UI_editsource_active_but_test(but);
   }
@@ -4184,7 +4190,7 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
   uiPopupBlockHandle *handle = block->handle;
   uiBut *but = (uiBut *)but_p;
 
-  /* see comment in ui_item_enum_expand, re: uiname  */
+  /* see comment in ui_item_enum_expand, re: `uiname`. */
   const EnumPropertyItem *item_array;
 
   UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
@@ -4589,7 +4595,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
 
   if (proptype == PROP_POINTER) {
     /* If the button shows an ID, automatically set it as focused in context so operators can
-     * access it.*/
+     * access it. */
     const PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
     if (pptr.data && RNA_struct_is_ID(pptr.type)) {
       but->context = CTX_store_add(&block->contexts, "id", &pptr);
@@ -6336,10 +6342,11 @@ void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *argN)
   but->tip_argN = argN;
 }
 
-void UI_but_func_pushed_state_set(uiBut *but, uiButPushedStateFunc func, void *arg)
+void UI_but_func_pushed_state_set(uiBut *but, uiButPushedStateFunc func, const void *arg)
 {
   but->pushed_state_func = func;
   but->pushed_state_arg = arg;
+  ui_but_update(but);
 }
 
 uiBut *uiDefBlockBut(uiBlock *block,
@@ -6822,6 +6829,55 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
   }
 
   return but;
+}
+
+void UI_but_datasetrow_indentation_set(uiBut *but, int indentation)
+{
+  uiButDatasetRow *but_dataset = (uiButDatasetRow *)but;
+  BLI_assert(but->type == UI_BTYPE_DATASETROW);
+
+  but_dataset->indentation = indentation;
+  BLI_assert(indentation >= 0);
+}
+
+/**
+ * Adds a hint to the button which draws right aligned, grayed out and never clipped.
+ */
+void UI_but_hint_drawstr_set(uiBut *but, const char *string)
+{
+  ui_but_add_shortcut(but, string, false);
+}
+
+void UI_but_datasetrow_component_set(uiBut *but, uint8_t geometry_component_type)
+{
+  uiButDatasetRow *but_dataset_row = (uiButDatasetRow *)but;
+  BLI_assert(but->type == UI_BTYPE_DATASETROW);
+
+  but_dataset_row->geometry_component_type = geometry_component_type;
+}
+
+void UI_but_datasetrow_domain_set(uiBut *but, uint8_t attribute_domain)
+{
+  uiButDatasetRow *but_dataset_row = (uiButDatasetRow *)but;
+  BLI_assert(but->type == UI_BTYPE_DATASETROW);
+
+  but_dataset_row->attribute_domain = attribute_domain;
+}
+
+uint8_t UI_but_datasetrow_component_get(uiBut *but)
+{
+  uiButDatasetRow *but_dataset_row = (uiButDatasetRow *)but;
+  BLI_assert(but->type == UI_BTYPE_DATASETROW);
+
+  return but_dataset_row->geometry_component_type;
+}
+
+uint8_t UI_but_datasetrow_domain_get(uiBut *but)
+{
+  uiButDatasetRow *but_dataset_row = (uiButDatasetRow *)but;
+  BLI_assert(but->type == UI_BTYPE_DATASETROW);
+
+  return but_dataset_row->attribute_domain;
 }
 
 void UI_but_node_link_set(uiBut *but, bNodeSocket *socket, const float draw_color[4])

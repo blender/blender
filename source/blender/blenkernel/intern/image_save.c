@@ -207,7 +207,7 @@ static bool image_save_single(ReportList *reports,
         goto cleanup;
       }
 
-      /* it shouldn't ever happen*/
+      /* It shouldn't ever happen. */
       if ((BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name)) == NULL) ||
           (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == NULL)) {
         BKE_reportf(reports,

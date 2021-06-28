@@ -287,7 +287,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
         pid2 = pid;
       }
       else if (cache->name[0] != '\0' && STREQ(cache->name, pid->cache->name)) {
-        /*TODO: report "name exists" to user */
+        /* TODO: report "name exists" to user. */
         BLI_strncpy(cache->name, cache->prev_name, sizeof(cache->name));
         use_new_name = false;
       }
@@ -2047,10 +2047,10 @@ static void rna_def_softbody(BlenderRNA *brna)
       prop, "Estimate Transforms", "Store the estimated transforms in the soft body settings");
 
   /***********************************************************************************/
-  /* these are not exactly settings, but reading calculated results*/
-  /* but i did not want to start a new property struct */
-  /* so rather rename this from SoftBodySettings to SoftBody */
-  /* translation */
+  /* These are not exactly settings, but reading calculated results
+   * but i did not want to start a new property struct
+   * so rather rename this from SoftBodySettings to SoftBody
+   * translation. */
   prop = RNA_def_property(srna, "location_mass_center", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_float_sdna(prop, NULL, "lcom");
   RNA_def_property_ui_text(prop, "Center of Mass", "Location of center of mass");

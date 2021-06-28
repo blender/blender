@@ -128,6 +128,7 @@ struct CurveDrawData {
   } prev;
 
   ViewContext vc;
+  ViewDepths *depths;
   enum {
     CURVE_DRAW_IDLE = 0,
     CURVE_DRAW_PAINTING = 1,
@@ -188,7 +189,6 @@ static bool stroke_elem_project(const struct CurveDrawData *cdd,
                                 float r_normal_world[3])
 {
   ARegion *region = cdd->vc.region;
-  RegionView3D *rv3d = cdd->vc.rv3d;
 
   bool is_location_world_set = false;
 
@@ -204,7 +204,7 @@ static bool stroke_elem_project(const struct CurveDrawData *cdd,
     }
   }
   else {
-    const ViewDepths *depths = rv3d->depths;
+    const ViewDepths *depths = cdd->depths;
     if (depths && ((uint)mval_i[0] < depths->w) && ((uint)mval_i[1] < depths->h)) {
       float depth_fl = 1.0f;
       ED_view3d_depth_read_cached(depths, mval_i, 0, &depth_fl);
@@ -219,7 +219,7 @@ static bool stroke_elem_project(const struct CurveDrawData *cdd,
           if (surface_offset != 0.0f) {
             const float offset = cdd->project.use_surface_offset_absolute ? 1.0f : radius;
             float normal[3];
-            if (ED_view3d_depth_read_cached_normal(&cdd->vc, mval_i, normal)) {
+            if (ED_view3d_depth_read_cached_normal(region, depths, mval_i, normal)) {
               madd_v3_v3fl(r_location_world, normal, offset * surface_offset);
               if (r_normal_world) {
                 copy_v3_v3(r_normal_world, normal);
@@ -528,7 +528,7 @@ static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
     if (ELEM(cps->surface_plane,
              CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,
              CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE)) {
-      if (ED_view3d_depth_read_cached_normal(&cdd->vc, event->mval, normal)) {
+      if (ED_view3d_depth_read_cached_normal(cdd->vc.region, cdd->depths, event->mval, normal)) {
         if (cps->surface_plane == CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW) {
           float cross_a[3], cross_b[3];
           cross_v3_v3v3(cross_a, rv3d->viewinv[2], normal);
@@ -622,6 +622,9 @@ static void curve_draw_exit(wmOperator *op)
       BLI_mempool_destroy(cdd->stroke_elem_pool);
     }
 
+    if (cdd->depths) {
+      ED_view3d_depths_free(cdd->depths);
+    }
     MEM_freeN(cdd);
     op->customdata = NULL;
   }
@@ -1084,10 +1087,14 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
         /* needed or else the draw matrix can be incorrect */
         view3d_operator_needs_opengl(C);
 
-        ED_view3d_depth_override(
-            cdd->vc.depsgraph, cdd->vc.region, cdd->vc.v3d, NULL, V3D_DEPTH_NO_GPENCIL, true);
+        ED_view3d_depth_override(cdd->vc.depsgraph,
+                                 cdd->vc.region,
+                                 cdd->vc.v3d,
+                                 NULL,
+                                 V3D_DEPTH_NO_GPENCIL,
+                                 &cdd->depths);
 
-        if (cdd->vc.rv3d->depths != NULL) {
+        if (cdd->depths != NULL) {
           cdd->project.use_depth = true;
         }
         else {

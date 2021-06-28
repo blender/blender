@@ -2147,7 +2147,7 @@ static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  /* XXX don't remove.. */
+  /* XXX don't remove. */
   CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
 
   return OPERATOR_FINISHED;

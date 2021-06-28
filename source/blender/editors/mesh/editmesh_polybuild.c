@@ -575,7 +575,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
     else {
       /* too involved to do inline */
 
-      /* Avoid using selection so failure wont leave modified state. */
+      /* Avoid using selection so failure won't leave modified state. */
       EDBM_flag_disable_all(em, BM_ELEM_TAG);
       BM_elem_flag_enable(v_act, BM_ELEM_TAG);
 

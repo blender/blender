@@ -330,6 +330,17 @@ float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_f
   return zfac;
 }
 
+/**
+ * Calculate a depth value from `co` (result should only be used for comparison).
+ */
+float ED_view3d_calc_depth_for_comparison(const RegionView3D *rv3d, const float co[3])
+{
+  if (rv3d->is_persp) {
+    return ED_view3d_calc_zfac(rv3d, co, NULL);
+  }
+  return -dot_v3v3(rv3d->viewinv[2], co);
+}
+
 static void view3d_win_to_ray_segment(struct Depsgraph *depsgraph,
                                       const ARegion *region,
                                       const View3D *v3d,
@@ -788,7 +799,7 @@ bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
 /** \name Utility functions for projection
  * \{ */
 
-void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, Object *ob, float r_pmat[4][4])
+void ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob, float r_pmat[4][4])
 {
   float vmat[4][4];
 

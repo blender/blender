@@ -255,7 +255,7 @@ static void eyedropper_gpencil_color_set(bContext *C, const wmEvent *event, Eyed
     copy_v3_v3(col_conv, eye->color);
   }
 
-  /* Add material or Palette color*/
+  /* Add material or Palette color. */
   if (eye->mode == 0) {
     eyedropper_add_material(C, col_conv, only_stroke, only_fill, both);
   }

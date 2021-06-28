@@ -337,9 +337,9 @@ bool BKE_object_obdata_texspace_get(struct Object *ob,
                                     float **r_loc,
                                     float **r_size);
 
-struct Mesh *BKE_object_get_evaluated_mesh(struct Object *object);
-struct Mesh *BKE_object_get_pre_modified_mesh(struct Object *object);
-struct Mesh *BKE_object_get_original_mesh(struct Object *object);
+struct Mesh *BKE_object_get_evaluated_mesh(const struct Object *object);
+struct Mesh *BKE_object_get_pre_modified_mesh(const struct Object *object);
+struct Mesh *BKE_object_get_original_mesh(const struct Object *object);
 
 /* Lattice accessors.
  * These functions return either the regular lattice, or the edit-mode lattice,
@@ -377,24 +377,24 @@ void BKE_object_runtime_reset_on_copy(struct Object *object, const int flag);
 void BKE_object_runtime_free_data(struct Object *object);
 
 void BKE_object_batch_cache_dirty_tag(struct Object *ob);
+void BKE_object_data_batch_cache_dirty_tag(struct ID *object_data);
 
 /* this function returns a superset of the scenes selection based on relationships */
 
 typedef enum eObRelationTypes {
-  OB_REL_NONE = 0,                      /* just the selection as is */
-  OB_REL_PARENT = (1 << 0),             /* immediate parent */
-  OB_REL_PARENT_RECURSIVE = (1 << 1),   /* parents up to root of selection tree*/
-  OB_REL_CHILDREN = (1 << 2),           /* immediate children */
-  OB_REL_CHILDREN_RECURSIVE = (1 << 3), /* All children */
-  OB_REL_MOD_ARMATURE = (1 << 4),       /* Armatures related to the selected objects */
-  /* OB_REL_SCENE_CAMERA = (1 << 5), */ /* you might want the scene camera too even if unselected?
-                                         */
+  OB_REL_NONE = 0,                      /* Just the selection as is. */
+  OB_REL_PARENT = (1 << 0),             /* Immediate parent. */
+  OB_REL_PARENT_RECURSIVE = (1 << 1),   /* Parents up to root of selection tree. */
+  OB_REL_CHILDREN = (1 << 2),           /* Immediate children. */
+  OB_REL_CHILDREN_RECURSIVE = (1 << 3), /* All children. */
+  OB_REL_MOD_ARMATURE = (1 << 4),       /* Armatures related to the selected objects. */
+  // OB_REL_SCENE_CAMERA = (1 << 5), /* You might want the scene camera too even if unselected? */
 } eObRelationTypes;
 
 typedef enum eObjectSet {
-  OB_SET_SELECTED, /* Selected Objects */
-  OB_SET_VISIBLE,  /* Visible Objects  */
-  OB_SET_ALL,      /* All Objects      */
+  OB_SET_SELECTED, /* Selected Objects. */
+  OB_SET_VISIBLE,  /* Visible Objects. */
+  OB_SET_ALL,      /* All Objects. */
 } eObjectSet;
 
 struct LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer,

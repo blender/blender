@@ -34,8 +34,8 @@ typedef struct {
   void *val;
 } SmallHashEntry;
 
-/* how much stack space to use before dynamically allocating memory.
- * set to match one of the values in 'hashsizes' to avoid too many mallocs  */
+/* How much stack space to use before dynamically allocating memory.
+ * set to match one of the values in 'hashsizes' to avoid too many mallocs. */
 #define SMSTACKSIZE 131
 typedef struct SmallHash {
   unsigned int nbuckets;

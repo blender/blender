@@ -176,7 +176,7 @@ static void createTransGPencil_curves(bContext *C,
           }
         }
 
-        /* If not multiedit out of loop. */
+        /* If not multi-edit out of loop. */
         if (!is_multiedit) {
           break;
         }
@@ -382,7 +382,7 @@ static void createTransGPencil_curves(bContext *C,
           }
         }
 
-        /* If not multiedit out of loop. */
+        /* If not multi-edit out of loop. */
         if (!is_multiedit) {
           break;
         }
@@ -470,7 +470,7 @@ static void createTransGPencil_strokes(bContext *C,
             }
           }
         }
-        /* If not multiedit out of loop. */
+        /* If not multi-edit out of loop. */
         if (!is_multiedit) {
           break;
         }
@@ -674,7 +674,7 @@ static void createTransGPencil_strokes(bContext *C,
             }
           }
         }
-        /* if not multiedit out of loop */
+        /* If not multi-edit out of loop. */
         if (!is_multiedit) {
           break;
         }

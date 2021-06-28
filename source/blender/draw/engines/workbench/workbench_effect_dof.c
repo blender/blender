@@ -157,7 +157,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
   const float *full_size = DRW_viewport_size_get();
   const int size[2] = {max_ii(1, (int)full_size[0] / 2), max_ii(1, (int)full_size[1] / 2)};
 #if 0 /* TODO(fclem): finish COC min_max optimization. */
-  /* NOTE: We Ceil here in order to not miss any edge texel if using a NPO2 texture.  */
+  /* NOTE: We Ceil here in order to not miss any edge texel if using a NPO2 texture. */
   int shrink_h_size[2] = {ceilf(size[0] / 8.0f), size[1]};
   int shrink_w_size[2] = {shrink_h_size[0], ceilf(size[1] / 8.0f)};
 #endif
@@ -218,9 +218,9 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
     float focus_dist = BKE_camera_object_dof_distance(camera);
     float focal_len = cam->lens;
 
-    /* TODO(fclem): deduplicate with eevee */
+    /* TODO(fclem): de-duplicate with EEVEE. */
     const float scale_camera = 0.001f;
-    /* we want radius here for the aperture number  */
+    /* We want radius here for the aperture number. */
     float aperture = 0.5f * scale_camera * focal_len / fstop;
     float focal_len_scaled = scale_camera * focal_len;
     float sensor_scaled = scale_camera * sensor;

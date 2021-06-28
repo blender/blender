@@ -25,18 +25,26 @@ using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::fn::GVArray;
+using blender::fn::GVArray_For_ArrayContainer;
+using blender::fn::GVArrayPtr;
 
-SplinePtr BezierSpline::copy() const
+void BezierSpline::copy_settings(Spline &dst) const
 {
-  return std::make_unique<BezierSpline>(*this);
+  BezierSpline &bezier = static_cast<BezierSpline &>(dst);
+  bezier.resolution_ = resolution_;
 }
 
-SplinePtr BezierSpline::copy_settings() const
+void BezierSpline::copy_data(Spline &dst) const
 {
-  std::unique_ptr<BezierSpline> copy = std::make_unique<BezierSpline>();
-  copy_base_settings(*this, *copy);
-  copy->resolution_ = resolution_;
-  return copy;
+  BezierSpline &bezier = static_cast<BezierSpline &>(dst);
+  bezier.positions_ = positions_;
+  bezier.handle_types_left_ = handle_types_left_;
+  bezier.handle_positions_left_ = handle_positions_left_;
+  bezier.handle_types_right_ = handle_types_right_;
+  bezier.handle_positions_right_ = handle_positions_right_;
+  bezier.radii_ = radii_;
+  bezier.tilts_ = tilts_;
 }
 
 int BezierSpline::size() const
@@ -389,13 +397,13 @@ Span<int> BezierSpline::control_point_offsets() const
     return offset_cache_;
   }
 
-  const int points_len = this->size();
-  offset_cache_.resize(points_len + 1);
+  const int size = this->size();
+  offset_cache_.resize(size + 1);
 
   MutableSpan<int> offsets = offset_cache_;
 
   int offset = 0;
-  for (const int i : IndexRange(points_len)) {
+  for (const int i : IndexRange(size)) {
     offsets[i] = offset;
     offset += this->segment_is_vector(i) ? 1 : resolution_;
   }
@@ -524,66 +532,66 @@ Span<float3> BezierSpline::evaluated_positions() const
 BezierSpline::InterpolationData BezierSpline::interpolation_data_from_index_factor(
     const float index_factor) const
 {
-  const int points_len = this->size();
+  const int size = this->size();
 
   if (is_cyclic_) {
-    if (index_factor < points_len) {
+    if (index_factor < size) {
       const int index = std::floor(index_factor);
-      const int next_index = (index < points_len - 1) ? index + 1 : 0;
+      const int next_index = (index < size - 1) ? index + 1 : 0;
       return InterpolationData{index, next_index, index_factor - index};
     }
-    return InterpolationData{points_len - 1, 0, 1.0f};
+    return InterpolationData{size - 1, 0, 1.0f};
   }
 
-  if (index_factor < points_len - 1) {
+  if (index_factor < size - 1) {
     const int index = std::floor(index_factor);
     const int next_index = index + 1;
     return InterpolationData{index, next_index, index_factor - index};
   }
-  return InterpolationData{points_len - 2, points_len - 1, 1.0f};
+  return InterpolationData{size - 2, size - 1, 1.0f};
 }
 
 /* Use a spline argument to avoid adding this to the header. */
 template<typename T>
-static void interpolate_to_evaluated_points_impl(const BezierSpline &spline,
-                                                 const blender::VArray<T> &source_data,
-                                                 MutableSpan<T> result_data)
+static void interpolate_to_evaluated_impl(const BezierSpline &spline,
+                                          const blender::VArray<T> &src,
+                                          MutableSpan<T> dst)
 {
+  BLI_assert(src.size() == spline.size());
+  BLI_assert(dst.size() == spline.evaluated_points_size());
   Span<float> mappings = spline.evaluated_mappings();
 
-  for (const int i : result_data.index_range()) {
+  for (const int i : dst.index_range()) {
     BezierSpline::InterpolationData interp = spline.interpolation_data_from_index_factor(
         mappings[i]);
 
-    const T &value = source_data[interp.control_point_index];
-    const T &next_value = source_data[interp.next_control_point_index];
+    const T &value = src[interp.control_point_index];
+    const T &next_value = src[interp.next_control_point_index];
 
-    result_data[i] = blender::attribute_math::mix2(interp.factor, value, next_value);
+    dst[i] = blender::attribute_math::mix2(interp.factor, value, next_value);
   }
 }
 
-blender::fn::GVArrayPtr BezierSpline::interpolate_to_evaluated_points(
-    const blender::fn::GVArray &source_data) const
+GVArrayPtr BezierSpline::interpolate_to_evaluated(const GVArray &src) const
 {
-  BLI_assert(source_data.size() == this->size());
+  BLI_assert(src.size() == this->size());
 
-  if (source_data.is_single()) {
-    return source_data.shallow_copy();
+  if (src.is_single()) {
+    return src.shallow_copy();
   }
 
   const int eval_size = this->evaluated_points_size();
   if (eval_size == 1) {
-    return source_data.shallow_copy();
+    return src.shallow_copy();
   }
 
-  blender::fn::GVArrayPtr new_varray;
-  blender::attribute_math::convert_to_static_type(source_data.type(), [&](auto dummy) {
+  GVArrayPtr new_varray;
+  blender::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
       Array<T> values(eval_size);
-      interpolate_to_evaluated_points_impl<T>(*this, source_data.typed<T>(), values);
-      new_varray = std::make_unique<blender::fn::GVArray_For_ArrayContainer<Array<T>>>(
-          std::move(values));
+      interpolate_to_evaluated_impl<T>(*this, src.typed<T>(), values);
+      new_varray = std::make_unique<GVArray_For_ArrayContainer<Array<T>>>(std::move(values));
     }
   });
 

@@ -106,7 +106,7 @@ typedef struct MetaBall {
   float thresh;
 
   /* used in editmode */
-  /*ListBase edit_elems;*/
+  // ListBase edit_elems;
   MetaElem *lastelem;
 
   void *batch_cache;

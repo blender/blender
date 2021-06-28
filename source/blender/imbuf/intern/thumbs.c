@@ -88,7 +88,7 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
   const char *subdir;
 #ifdef WIN32
   wchar_t dir_16[MAX_PATH];
-  /* yes, applications shouldn't store data there, but so does GIMP :)*/
+  /* Yes, applications shouldn't store data there, but so does GIMP :). */
   SHGetSpecialFolderPathW(0, dir_16, CSIDL_PROFILE, 0);
   conv_utf_16_to_8(dir_16, dir, FILE_MAX);
   s += strlen(dir);
@@ -144,8 +144,8 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
  * \{ */
 
 typedef enum {
-  UNSAFE_ALL = 0x1,        /* Escape all unsafe characters   */
-  UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+'  */
+  UNSAFE_ALL = 0x1,        /* Escape all unsafe characters. */
+  UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+' */
   UNSAFE_PATH = 0x8,       /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
   UNSAFE_HOST = 0x10,      /* Allows '/' and ':' and '@' */
   UNSAFE_SLASHES = 0x20,   /* Allows all characters except for '/' and '%' */

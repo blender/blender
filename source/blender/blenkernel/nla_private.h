@@ -39,13 +39,13 @@ struct AnimationEvalContext;
 typedef struct NlaEvalStrip {
   struct NlaEvalStrip *next, *prev;
 
-  NlaTrack *track; /* track that this strip belongs to */
-  NlaStrip *strip; /* strip that's being used */
+  NlaTrack *track; /* Track that this strip belongs to. */
+  NlaStrip *strip; /* Strip that's being used. */
 
-  short track_index; /* the index of the track within the list */
-  short strip_mode;  /* which end of the strip are we looking at */
+  short track_index; /* The index of the track within the list. */
+  short strip_mode;  /* Which end of the strip are we looking at. */
 
-  float strip_time; /* time at which which strip is being evaluated */
+  float strip_time; /* Time at which this strip is being evaluated. */
 } NlaEvalStrip;
 
 /* NlaEvalStrip->strip_mode */

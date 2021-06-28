@@ -668,7 +668,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
     radius = max_fff(size[0], size[1], size[2]) * 0.5f;
   }
 
-  /* calculate volume as appropriate  */
+  /* Calculate volume as appropriate. */
   switch (rbo->shape) {
     case RB_SHAPE_BOX:
       volume = size[0] * size[1] * size[2];
@@ -744,10 +744,10 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
    *   (i.e. Object pivot is centralized in boundbox)
    * - boundbox gives full width
    */
-  /* XXX: all dimensions are auto-determined now... later can add stored settings for this */
+  /* XXX: all dimensions are auto-determined now... later can add stored settings for this. */
   BKE_object_dimensions_get(ob, size);
 
-  /* calculate volume as appropriate  */
+  /* Calculate volume as appropriate. */
   switch (rbo->shape) {
     case RB_SHAPE_BOX:
     case RB_SHAPE_SPHERE:

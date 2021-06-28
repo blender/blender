@@ -54,7 +54,7 @@ class DataSource {
   }
 
   /**
-   * Returns true iff the data source has the ability to limit visible rows
+   * Returns true if the data source has the ability to limit visible rows
    * by user interface selection status.
    */
   virtual bool has_selection_filter() const

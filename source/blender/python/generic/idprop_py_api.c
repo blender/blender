@@ -611,8 +611,8 @@ static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
   keys = PyMapping_Keys(ob);
   vals = PyMapping_Values(ob);
 
-  /* we allocate the group first; if we hit any invalid data,
-   * we can delete it easily enough.*/
+  /* We allocate the group first; if we hit any invalid data,
+   * we can delete it easily enough. */
   prop = IDP_New(IDP_GROUP, &val, name);
   len = PyMapping_Length(ob);
   for (i = 0; i < len; i++) {
@@ -1051,7 +1051,7 @@ static PyObject *BPy_IDGroup_IterItems_CreatePyObject(BPy_IDProperty *group, con
 /** \name ID-Property Group View Types (Keys/Values/Items)
  *
  * This view types is a thin wrapper on keys/values/items, this matches Python's `dict_view` type.
- * The is returned by `property.keys()` and is separate from the iterator that loops over keys.
+ * This is returned by `property.keys()` and is separate from the iterator that loops over keys.
  *
  * There are some less common features this type could support (matching Python's `dict_view`)
  *
@@ -1284,8 +1284,8 @@ static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
   pyform = BPy_IDGroup_MapDataToPy(idprop);
   if (pyform == NULL) {
     /* ok something bad happened with the #PyObject,
-     * so don't remove the prop from the group.  if pyform is
-     * NULL, then it already should have raised an exception.*/
+     * so don't remove the prop from the group.  if `pyform is
+     * NULL, then it already should have raised an exception. */
     return NULL;
   }
 
@@ -1305,7 +1305,7 @@ static void BPy_IDGroup_CorrectListLen(IDProperty *prop, PyObject *seq, int len,
     PyList_SET_ITEM(seq, j, Py_INCREF_RET(Py_None));
   }
 
-  /*set correct group length*/
+  /* Set correct group length. */
   prop->len = len;
 }
 
@@ -1326,8 +1326,8 @@ PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
 
   if (i != prop->len) { /* if the loop didn't finish, we know the length is wrong */
     BPy_IDGroup_CorrectListLen(prop, list, i, __func__);
-    Py_DECREF(list); /*free the list*/
-    /*call self again*/
+    Py_DECREF(list); /* Free the list. */
+    /* Call self again. */
     return BPy_Wrap_GetKeys(prop);
   }
 
@@ -1346,8 +1346,8 @@ PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop)
 
   if (i != prop->len) {
     BPy_IDGroup_CorrectListLen(prop, list, i, __func__);
-    Py_DECREF(list); /*free the list*/
-    /*call self again*/
+    Py_DECREF(list); /* Free the list. */
+    /* Call self again. */
     return BPy_Wrap_GetValues(id, prop);
   }
 
@@ -1369,8 +1369,8 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
 
   if (i != prop->len) {
     BPy_IDGroup_CorrectListLen(prop, seq, i, __func__);
-    Py_DECREF(seq); /*free the list*/
-    /*call self again*/
+    Py_DECREF(seq); /* Free the list. */
+    /* Call self again. */
     return BPy_Wrap_GetItems(id, prop);
   }
 
@@ -1557,9 +1557,9 @@ static PySequenceMethods BPy_IDGroup_Seq = {
 };
 
 static PyMappingMethods BPy_IDGroup_Mapping = {
-    (lenfunc)BPy_IDGroup_Map_Len,           /*inquiry mp_length */
-    (binaryfunc)BPy_IDGroup_Map_GetItem,    /*binaryfunc mp_subscript */
-    (objobjargproc)BPy_IDGroup_Map_SetItem, /*objobjargproc mp_ass_subscript */
+    (lenfunc)BPy_IDGroup_Map_Len,           /* inquiry mp_length */
+    (binaryfunc)BPy_IDGroup_Map_GetItem,    /* binaryfunc mp_subscript */
+    (objobjargproc)BPy_IDGroup_Map_SetItem, /* objobjargproc mp_ass_subscript */
 };
 
 PyTypeObject BPy_IDGroup_Type = {
@@ -2040,12 +2040,12 @@ PyTypeObject BPy_IDArray_Type = {
     NULL,                  /* allocfunc tp_alloc; */
     NULL,                  /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */

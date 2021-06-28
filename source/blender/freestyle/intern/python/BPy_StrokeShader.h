@@ -41,7 +41,8 @@ extern PyTypeObject StrokeShader_Type;
 
 /*---------------------------Python BPy_StrokeShader structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::StrokeShader *ss;
+  PyObject_HEAD
+  Freestyle::StrokeShader *ss;
 } BPy_StrokeShader;
 
 /*---------------------------Python BPy_StrokeShader visible prototypes-----------*/

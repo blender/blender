@@ -45,7 +45,7 @@ namespace Freestyle {
 
 namespace ViewVertexInternal {
 
-/*! Class representing an iterator over oriented ViewEdges around a ViewVertex. This iterator
+/** Class representing an iterator over oriented ViewEdges around a ViewVertex. This iterator
  * allows a CCW iteration (in the image plane). An instance of an orientedViewEdgeIterator can only
  * be obtained from a ViewVertex by calling edgesBegin() or edgesEnd().
  */
@@ -73,7 +73,7 @@ class orientedViewEdgeIterator : public Iterator {
   edges_container::iterator _nontvertex_iter;
 
  public:
-  /*! Default constructor */
+  /** Default constructor */
   inline orientedViewEdgeIterator()
   {
   }
@@ -83,7 +83,7 @@ class orientedViewEdgeIterator : public Iterator {
     _Nature = iNature;
   }
 
-  /*! Copy constructor */
+  /** Copy constructor */
   orientedViewEdgeIterator(const orientedViewEdgeIterator &iBrother)
   {
     _Nature = iBrother._Nature;
@@ -125,7 +125,7 @@ class orientedViewEdgeIterator : public Iterator {
   }
 
  public:
-  /*! Tells whether the ViewEdge pointed by this iterator is the first one of the iteration list or
+  /** Tells whether the ViewEdge pointed by this iterator is the first one of the iteration list or
    * not. */
   virtual bool isBegin() const
   {
@@ -137,7 +137,7 @@ class orientedViewEdgeIterator : public Iterator {
     }
   }
 
-  /*! Tells whether the ViewEdge pointed by this iterator is after the last one of the iteration
+  /** Tells whether the ViewEdge pointed by this iterator is after the last one of the iteration
    * list or not. */
   virtual bool isEnd() const
   {
@@ -150,7 +150,7 @@ class orientedViewEdgeIterator : public Iterator {
   }
 
   // operators
-  /*! Increments. In the scripting language, call "increment()". */
+  /** Increments. In the scripting language, call "increment()". */
   // operator corresponding to ++i
   virtual orientedViewEdgeIterator &operator++()
   {
@@ -168,7 +168,7 @@ class orientedViewEdgeIterator : public Iterator {
   }
 
   // comparibility
-  /*! operator != */
+  /** operator != */
   virtual bool operator!=(const orientedViewEdgeIterator &b) const
   {
     if (_Nature & Nature::T_VERTEX) {
@@ -179,14 +179,14 @@ class orientedViewEdgeIterator : public Iterator {
     }
   }
 
-  /*! operator == */
+  /** operator == */
   virtual bool operator==(const orientedViewEdgeIterator &b) const
   {
     return !(*this != b);
   }
 
   // dereferencing
-  /*! Returns a reference to the pointed orientedViewEdge.
+  /** Returns a reference to the pointed orientedViewEdge.
    *  In the scripting language, you must call "getObject()" instead.
    */
   virtual ViewVertex::directedViewEdge &operator*() const
@@ -199,7 +199,7 @@ class orientedViewEdgeIterator : public Iterator {
       return (*_nontvertex_iter);
     }
   }
-  /*! Returns a pointer to the pointed orientedViewEdge.
+  /** Returns a pointer to the pointed orientedViewEdge.
    * Can't be called in the scripting language.
    */
   virtual ViewVertex::directedViewEdge *operator->() const
@@ -208,7 +208,7 @@ class orientedViewEdgeIterator : public Iterator {
   }
 
  public:
-  /*! increments.*/
+  /** increments. */
   virtual inline int increment()
   {
     if (_Nature & Nature::T_VERTEX) {
@@ -415,14 +415,14 @@ class SVertexIterator : public Interface0DIteratorNested {
 //
 ///////////////////////////////////////////////////////////
 
-/*! Base class for iterators over ViewEdges of the ViewMap Graph.
+/** Base class for iterators over ViewEdges of the ViewMap Graph.
  *  Basically the "increment()" operator of this class should be able to take the decision of
  * "where" (on which ViewEdge) to go when pointing on a given ViewEdge.
  *  ::Caution::: the dereferencing operator returns a *pointer* to the pointed ViewEdge.
  */
 class ViewEdgeIterator : public Iterator {
  public:
-  /*! Builds a ViewEdgeIterator from a starting ViewEdge and its orientation.
+  /** Builds a ViewEdgeIterator from a starting ViewEdge and its orientation.
    *  \param begin:
    *    The ViewEdge from where to start the iteration.
    *  \param orientation:
@@ -437,7 +437,7 @@ class ViewEdgeIterator : public Iterator {
     _begin = begin;
   }
 
-  /*! Copy constructor */
+  /** Copy constructor */
   ViewEdgeIterator(const ViewEdgeIterator &it)
   {
     _orientation = it._orientation;
@@ -449,55 +449,55 @@ class ViewEdgeIterator : public Iterator {
   {
   }
 
-  /*! Returns the string "ViewEdgeIterator" */
+  /** Returns the string "ViewEdgeIterator" */
   virtual string getExactTypeName() const
   {
     return "ViewEdgeIterator";
   }
 
-  /*! Returns the current pointed ViewEdge. */
+  /** Returns the current pointed ViewEdge. */
   ViewEdge *getCurrentEdge()
   {
     return _edge;
   }
 
-  /*! Sets the current pointed ViewEdge. */
+  /** Sets the current pointed ViewEdge. */
   void setCurrentEdge(ViewEdge *edge)
   {
     _edge = edge;
   }
 
-  /*! Returns the first ViewEdge used for the iteration. */
+  /** Returns the first ViewEdge used for the iteration. */
   ViewEdge *getBegin()
   {
     return _begin;
   }
 
-  /*! Sets the first ViewEdge used for the iteration. */
+  /** Sets the first ViewEdge used for the iteration. */
   void setBegin(ViewEdge *begin)
   {
     _begin = begin;
   }
 
-  /*! Gets the orientation of the pointed ViewEdge in the iteration. */
+  /** Gets the orientation of the pointed ViewEdge in the iteration. */
   bool getOrientation() const
   {
     return _orientation;
   }
 
-  /*! Sets the orientation of the pointed ViewEdge in the iteration. */
+  /** Sets the orientation of the pointed ViewEdge in the iteration. */
   void setOrientation(bool orientation)
   {
     _orientation = orientation;
   }
 
-  /*! Changes the current orientation. */
+  /** Changes the current orientation. */
   void changeOrientation()
   {
     _orientation = !_orientation;
   }
 
-  /*! Returns a *pointer* to the pointed ViewEdge. */
+  /** Returns a *pointer* to the pointed ViewEdge. */
   virtual ViewEdge *operator*()
   {
     return _edge;
@@ -508,14 +508,14 @@ class ViewEdgeIterator : public Iterator {
     return operator*();
   }
 
-  /*! Increments. In the scripting language, call "increment()". */
+  /** Increments. In the scripting language, call "increment()". */
   virtual ViewEdgeIterator &operator++()
   {
     increment();
     return *this;
   }
 
-  /*! Increments. In the scripting language, call "increment()". */
+  /** Increments. In the scripting language, call "increment()". */
   virtual ViewEdgeIterator operator++(int)
   {
     ViewEdgeIterator tmp(*this);
@@ -523,21 +523,21 @@ class ViewEdgeIterator : public Iterator {
     return tmp;
   }
 
-  /*! increments. */
+  /** increments. */
   virtual int increment()
   {
     cerr << "Warning: method increment() not implemented" << endl;
     return 0;
   }
 
-  /*! Decrements. In the scripting language, call "decrement()". */
+  /** Decrements. In the scripting language, call "decrement()". */
   virtual ViewEdgeIterator &operator--()
   {
     decrement();
     return *this;
   }
 
-  /*! Decrements. In the scripting language, call "decrement()". */
+  /** Decrements. In the scripting language, call "decrement()". */
   virtual ViewEdgeIterator operator--(int)
   {
     ViewEdgeIterator tmp(*this);
@@ -545,32 +545,32 @@ class ViewEdgeIterator : public Iterator {
     return tmp;
   }
 
-  /*! decrements. */
+  /** decrements. */
   virtual int decrement()
   {
     cerr << "Warning: method decrement() not implemented" << endl;
     return 0;
   }
 
-  /*! Returns true if the pointed ViewEdge is the first one used for the iteration. */
+  /** Returns true if the pointed ViewEdge is the first one used for the iteration. */
   virtual bool isBegin() const
   {
     return _edge == _begin;
   }
 
-  /*! Returns true if the pointed ViewEdge* equals 0. */
+  /** Returns true if the pointed ViewEdge* equals 0. */
   virtual bool isEnd() const
   {
     return !_edge;
   }
 
-  /*! operator == */
+  /** operator == */
   virtual bool operator==(ViewEdgeIterator &it) const
   {
     return _edge == it._edge;
   }
 
-  /*! operator != */
+  /** operator != */
   virtual bool operator!=(ViewEdgeIterator &it) const
   {
     return !(*this == it);

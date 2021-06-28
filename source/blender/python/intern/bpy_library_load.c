@@ -61,9 +61,9 @@
 #endif
 
 typedef struct {
-  PyObject_HEAD /* required python macro */
-      /* collection iterator specific parts */
-      char relpath[FILE_MAX];
+  PyObject_HEAD /* Required Python macro. */
+  /* Collection iterator specific parts. */
+  char relpath[FILE_MAX];
   char abspath[FILE_MAX]; /* absolute path */
   BlendHandle *blo_handle;
   int flag;
@@ -159,12 +159,12 @@ static PyTypeObject bpy_lib_Type = {
     NULL,                        /* allocfunc tp_alloc; */
     NULL,                        /* newfunc tp_new; */
     /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
+    NULL, /* freefunc tp_free; */
     /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
+    NULL, /* inquiry tp_is_gc; */
     NULL, /* PyObject *tp_bases; */
     /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
+    NULL, /* PyObject *tp_mro; */
     NULL, /* PyObject *tp_cache; */
     NULL, /* PyObject *tp_subclasses; */
     NULL, /* PyObject *tp_weaklist; */
@@ -257,8 +257,9 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   ReportList reports;
 
   BKE_reports_init(&reports, RPT_STORE);
+  BlendFileReadReport bf_reports = {.reports = &reports};
 
-  self->blo_handle = BLO_blendhandle_from_file(self->abspath, &reports);
+  self->blo_handle = BLO_blendhandle_from_file(self->abspath, &bf_reports);
 
   if (self->blo_handle == NULL) {
     if (BPy_reports_to_error(&reports, PyExc_IOError, true) != -1) {

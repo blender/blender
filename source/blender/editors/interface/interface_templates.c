@@ -344,7 +344,7 @@ typedef struct TemplateID {
   float scale;
 } TemplateID;
 
-/* Search browse menu, assign  */
+/* Search browse menu, assign. */
 static void template_ID_set_property_exec_fn(bContext *C, void *arg_template, void *item)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
@@ -674,7 +674,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           if (BKE_lib_id_make_local(bmain, id, false, 0)) {
             BKE_main_id_newptr_and_tag_clear(bmain);
 
-            /* reassign to get get proper updates/notifiers */
+            /* Reassign to get proper updates/notifiers. */
             idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
             undo_push_label = "Make Local";
           }
@@ -687,8 +687,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_OVERRIDE:
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
-        BKE_lib_override_library_free(&id->override_library, true);
-        /* reassign to get get proper updates/notifiers */
+        BKE_lib_override_library_make_local(id);
+        /* Reassign to get proper updates/notifiers. */
         idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
         RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
         RNA_property_update(C, &template_ui->ptr, template_ui->prop);
@@ -3050,7 +3050,7 @@ static void colorband_flip_cb(bContext *C, ColorBand *coba)
     coba->data[a] = data_tmp[a];
   }
 
-  /* may as well flip the cur*/
+  /* May as well flip the `cur`. */
   coba->cur = coba->tot - (coba->cur + 1);
 
   ED_undo_push(C, "Flip Color Ramp");
@@ -5883,7 +5883,7 @@ static void uilist_prepare(uiList *ui_list,
   }
 
   /* If list length changes or list is tagged to check this,
-   * and active is out of view, scroll to it .*/
+   * and active is out of view, scroll to it. */
   if (ui_list->list_last_len != len || ui_list->flag & UILST_SCROLL_TO_ACTIVE_ITEM) {
     if (activei_row < ui_list->list_scroll) {
       ui_list->list_scroll = activei_row;

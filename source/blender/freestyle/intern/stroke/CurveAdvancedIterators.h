@@ -50,7 +50,7 @@ class CurvePoint_nonconst_traits : public Nonconst_traits<CurvePoint *> {
 /*                                */
 /**********************************/
 
-/*! iterator on a curve. Allows an iterating outside initial vertices. A CurvePoint is
+/** iterator on a curve. Allows an iterating outside initial vertices. A CurvePoint is
  * instantiated and returned when the iterator is dereferenced.
  */
 template<class Traits>

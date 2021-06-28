@@ -47,7 +47,7 @@
 #endif
 
 #include <fcntl.h>
-#include <string.h> /* strcpy etc.. */
+#include <string.h> /* `strcpy` etc. */
 
 #ifdef WIN32
 #  include "BLI_string_utf8.h"

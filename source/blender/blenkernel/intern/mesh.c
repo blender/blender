@@ -413,8 +413,7 @@ static const char *cmpcode_to_str(int code)
   }
 }
 
-/* thresh is threshold for comparing vertices, uvs, vertex colors,
- * weights, etc.*/
+/** Thresh is threshold for comparing vertices, UV's, vertex colors, weights, etc. */
 static int customdata_compare(
     CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, const float thresh)
 {
@@ -479,11 +478,11 @@ static int customdata_compare(
         if (len_squared_v3v3(v1->co, v2->co) > thresh_sq) {
           return MESHCMP_VERTCOMISMATCH;
         }
-        /* I don't care about normals, let's just do coordinates */
+        /* I don't care about normals, let's just do coordinates. */
       }
     }
 
-    /*we're order-agnostic for edges here*/
+    /* We're order-agnostic for edges here. */
     if (l1->type == CD_MEDGE) {
       MEdge *e1 = l1->data;
       MEdge *e2 = l2->data;
@@ -748,12 +747,14 @@ bool BKE_mesh_clear_facemap_customdata(struct Mesh *me)
   return changed;
 }
 
-/* this ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
+/**
+ * This ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
  * mloopcol and mcol) have the same relative active/render/clone/mask indices.
  *
- * note that for undo mesh data we want to skip 'ensure_tess_cd' call since
+ * NOTE(campbell): that for undo mesh data we want to skip 'ensure_tess_cd' call since
  * we don't want to store memory for tessface when its only used for older
- * versions of the mesh. - campbell*/
+ * Versions of the mesh.
+ */
 static void mesh_update_linked_customdata(Mesh *me, const bool do_ensure_tess_cd)
 {
   if (do_ensure_tess_cd) {
@@ -811,7 +812,7 @@ static void mesh_clear_geometry(Mesh *mesh)
 
   /* Note that materials and shape keys are not freed here. This is intentional, as freeing
    * shape keys requires tagging the depsgraph for updated relations, which is expensive.
-   * Material slots should be kept in sync with the object.*/
+   * Material slots should be kept in sync with the object. */
 
   mesh->totvert = 0;
   mesh->totedge = 0;
@@ -2086,6 +2087,14 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 
   SplitFaceNewVert *new_verts = NULL;
   SplitFaceNewEdge *new_edges = NULL;
+
+  /* Ensure we own the layers, we need to do this before split_faces_prepare_new_verts as it will
+   * directly assign new indices to existing edges and loops. */
+  CustomData_duplicate_referenced_layers(&mesh->vdata, mesh->totvert);
+  CustomData_duplicate_referenced_layers(&mesh->edata, mesh->totedge);
+  CustomData_duplicate_referenced_layers(&mesh->ldata, mesh->totloop);
+  /* Update pointers in case we duplicated referenced layers. */
+  BKE_mesh_update_customdata_pointers(mesh, false);
 
   /* Detect loop normal spaces (a.k.a. smooth fans) that will need a new vert. */
   const int num_new_verts = split_faces_prepare_new_verts(

@@ -268,7 +268,7 @@ void ED_gpencil_layer_frames_duplicate(bGPDlayer *gpl)
     return;
   }
 
-  /* duplicate selected frames  */
+  /* Duplicate selected frames. */
   LISTBASE_FOREACH_MUTABLE (bGPDframe *, gpf, &gpl->frames) {
 
     /* duplicate this frame */
@@ -421,7 +421,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
     return false;
   }
 
-  /* check if single channel in buffer (disregard names if so)  */
+  /* Check if single channel in buffer (disregard names if so). */
   if (gpencil_anim_copybuf.first == gpencil_anim_copybuf.last) {
     no_name = true;
   }

@@ -392,9 +392,10 @@ GHOST_XrActionSet::GHOST_XrActionSet(XrInstance instance, const GHOST_XrActionSe
 {
   XrActionSetCreateInfo action_set_info{XR_TYPE_ACTION_SET_CREATE_INFO};
   strcpy(action_set_info.actionSetName, info.name);
-  strcpy(action_set_info.localizedActionSetName,
-         info.name); /* Just use same name for localized. This can be changed in the future if
-                        necessary. */
+
+  /* Just use same name for localized. This can be changed in the future if necessary. */
+  strcpy(action_set_info.localizedActionSetName, info.name);
+
   action_set_info.priority = 0; /* Use same (default) priority for all action sets. */
 
   CHECK_XR(xrCreateActionSet(instance, &action_set_info, &m_action_set),

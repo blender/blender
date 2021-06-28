@@ -130,7 +130,7 @@ static void attribute_convert_calc(GeometryComponent &component,
   const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(result_type);
   BLI_assert(cpp_type != nullptr);
 
-  cpp_type->copy_to_initialized_n(source_span.data(), result_span.data(), result_span.size());
+  cpp_type->copy_assign_n(source_span.data(), result_span.data(), result_span.size());
   result_attribute.save();
 }
 

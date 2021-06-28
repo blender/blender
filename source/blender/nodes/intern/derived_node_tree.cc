@@ -230,7 +230,7 @@ void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> origin_fn) c
 /* Calls `target_fn` for every "real" target socket. "Real" means that reroutes, muted nodes
  * and node groups are handled by this function. Target sockets are on the nodes that use the value
  * from this socket. The `skipped_fn` function is called for sockets that have been skipped during
- * the search for target sockets (e.g. reroutes).  */
+ * the search for target sockets (e.g. reroutes). */
 void DOutputSocket::foreach_target_socket(FunctionRef<void(DInputSocket)> target_fn,
                                           FunctionRef<void(DSocket)> skipped_fn) const
 {

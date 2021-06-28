@@ -191,7 +191,7 @@ void RE_SetCamera(Render *re, Object *cam_ob)
   BKE_camera_params_from_object(&params, cam_ob);
   BKE_camera_multiview_params(&re->r, &params, cam_ob, re->viewname);
 
-  /* compute matrix, viewplane, .. */
+  /* Compute matrix, view-plane, etc. */
   BKE_camera_params_compute_viewplane(&params, re->winx, re->winy, re->r.xasp, re->r.yasp);
   BKE_camera_params_compute_matrix(&params);
 
@@ -272,7 +272,7 @@ void RE_parts_init(Render *re)
   re->parts = BLI_ghash_new(
       BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, "render parts");
 
-  /* just for readable code.. */
+  /* Just for readable code. */
   xminb = re->disprect.xmin;
   yminb = re->disprect.ymin;
   xmaxb = re->disprect.xmax;

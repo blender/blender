@@ -39,7 +39,8 @@ extern PyTypeObject BBox_Type;
 
 /*---------------------------Python BPy_BBox structure definition----------*/
 typedef struct {
-  PyObject_HEAD Freestyle::BBox<Freestyle::Geometry::Vec3r> *bb;
+  PyObject_HEAD
+  Freestyle::BBox<Freestyle::Geometry::Vec3r> *bb;
 } BPy_BBox;
 
 /*---------------------------Python BPy_BBox visible prototypes-----------*/

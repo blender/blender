@@ -509,7 +509,7 @@ static int edbm_extrude_context_exec(bContext *C, wmOperator *op)
     edbm_extrude_mesh(obedit, em, op);
 
     /* This normally happens when pushing undo but modal operators
-     * like this one don't push undo data until after modal mode is done.*/
+     * like this one don't push undo data until after modal mode is done. */
     EDBM_update(obedit->data,
                 &(const struct EDBMUpdate_Params){
                     .calc_looptri = true,

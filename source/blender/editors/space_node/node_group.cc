@@ -926,7 +926,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
     }
   }
 
-  /* expose all unlinked sockets too but only the visible ones*/
+  /* Expose all unlinked sockets too but only the visible ones. */
   if (expose_visible) {
     LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
       if (node_group_make_use_node(node, gnode)) {

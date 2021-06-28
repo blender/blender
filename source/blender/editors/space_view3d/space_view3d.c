@@ -187,7 +187,7 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
  * view3d_project_short_clip and view3d_project_short_noclip in cases where
  * these functions are not used during draw_object
  */
-void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
+void ED_view3d_init_mats_rv3d(const struct Object *ob, struct RegionView3D *rv3d)
 {
   /* local viewmat and persmat, to calculate projections */
   mul_m4_m4m4(rv3d->viewmatob, rv3d->viewmat, ob->obmat);
@@ -197,7 +197,7 @@ void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
   ED_view3d_clipping_local(rv3d, ob->obmat);
 }
 
-void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d)
+void ED_view3d_init_mats_rv3d_gl(const struct Object *ob, struct RegionView3D *rv3d)
 {
   ED_view3d_init_mats_rv3d(ob, rv3d);
 
@@ -786,12 +786,6 @@ static void view3d_main_region_free(ARegion *region)
       RE_engine_free(rv3d->render_engine);
     }
 
-    if (rv3d->depths) {
-      if (rv3d->depths->depths) {
-        MEM_freeN(rv3d->depths->depths);
-      }
-      MEM_freeN(rv3d->depths);
-    }
     if (rv3d->sms) {
       MEM_freeN(rv3d->sms);
     }
@@ -815,7 +809,6 @@ static void *view3d_main_region_duplicate(void *poin)
       new->clipbb = MEM_dupallocN(rv3d->clipbb);
     }
 
-    new->depths = NULL;
     new->render_engine = NULL;
     new->sms = NULL;
     new->smooth_timer = NULL;
@@ -1624,7 +1617,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
      * This is ignored in the case the object is in any mode (besides object-mode),
      * since the object's mode impacts the current tool, cursor, gizmos etc.
      * If we didn't have this exception, changing visibility would need to perform
-     * many of the the same updates as changing the objects mode.
+     * many of the same updates as changing the objects mode.
      *
      * Further, there are multiple ways to hide objects - by collection, by object type, etc.
      * it's simplest if all these methods behave consistently - respecting the object-mode

@@ -19,7 +19,7 @@
  *
  * Interactive fly navigation modal operator (flying around in space).
  *
- * \note Similar logic to `view3d_walk.c` changes here may apply there too.
+ * \note Similar logic to `view3d_navigate_walk.c` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_fly modal operator */
@@ -101,7 +101,7 @@ typedef enum eFlyPanState {
   FLY_AXISLOCK_STATE_ACTIVE = 2,
 } eFlyPanState;
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* Called in transform_ops.c, on each regeneration of key-maps. */
 void fly_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -189,7 +189,7 @@ typedef struct FlyInfo {
   wmNDOFMotionData *ndof;
 #endif
 
-  /* fly state state */
+  /* Fly state. */
   /** The speed the view is moving per redraw. */
   float speed;
   /** Axis index to move along by default Z to move along the view. */
@@ -610,8 +610,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         fly->pan_view = false;
         break;
 
-      /* implement WASD keys,
-       * comments only for 'forward '*/
+      /* Implement WASD keys, comments only for 'forward'. */
       case FLY_MODAL_DIR_FORWARD:
         if (fly->axis == 2 && fly->speed < 0.0f) {
           /* reverse direction stops, tap again to continue */
@@ -758,9 +757,6 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
 #define FLY_SMOOTH_FAC 20.0f        /* higher value less lag */
 
-  /* fly mode - Shift+F
-   * a fly loop where the user can move move the view as if they are flying
-   */
   RegionView3D *rv3d = fly->rv3d;
 
   /* 3x3 copy of the view matrix so we can move along the view axis */
@@ -772,7 +768,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
   float moffset[2];  /* mouse offset from the views center */
   float tmp_quat[4]; /* used for rotating the view */
 
-  /* x and y margin are define the safe area where the mouses movement wont rotate the view */
+  /* x and y margin defining the safe area where the mouse's movement won't rotate the view */
   int xmargin, ymargin;
 
 #ifdef NDOF_FLY_DEBUG

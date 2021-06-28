@@ -714,7 +714,7 @@ static void initialize_group_input(NodesModifierData &nmd,
 {
   const SocketPropertyType *property_type = get_socket_property_type(socket);
   if (property_type == nullptr) {
-    cpp_type.copy_to_uninitialized(cpp_type.default_value(), r_value);
+    cpp_type.copy_construct(cpp_type.default_value(), r_value);
     return;
   }
   if (nmd.settings.properties == nullptr) {
@@ -1106,7 +1106,7 @@ static void modifyGeometrySet(ModifierData *md,
 
 /* Drawing the properties manually with #uiItemR instead of #uiDefAutoButsRNA allows using
  * the node socket identifier for the property names, since they are unique, but also having
- * the correct label displayed in the UI.  */
+ * the correct label displayed in the UI. */
 static void draw_property_for_socket(uiLayout *layout,
                                      PointerRNA *bmain_ptr,
                                      PointerRNA *md_ptr,

@@ -193,7 +193,7 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
   BezTriple *lastb;
   int totCount, i;
 
-  /* check if any points  */
+  /* Check if any points. */
   if ((fcu == NULL) || (fcu->bezt == NULL) || (fcu->totvert == 0) ||
       (!cleardefault && fcu->totvert == 1)) {
     return;
@@ -408,7 +408,7 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
 {
   FCurve *fcu = (FCurve *)ale->key_data;
 
-  /* Check if the curve actually has any points  */
+  /* Check if the curve actually has any points. */
   if (fcu == NULL || fcu->bezt == NULL || fcu->totvert == 0) {
     return true;
   }
@@ -588,7 +588,7 @@ typedef struct TempFrameValCache {
   float frame, val;
 } TempFrameValCache;
 
-/* Evaluates the curves between each selected keyframe on each frame, and keys the value  */
+/* Evaluates the curves between each selected keyframe on each frame, and keys the value. */
 void sample_fcurve(FCurve *fcu)
 {
   BezTriple *bezt, *start = NULL, *end = NULL;
@@ -600,7 +600,7 @@ void sample_fcurve(FCurve *fcu)
     return;
   }
 
-  /* find selected keyframes... once pair has been found, add keyframes  */
+  /* Find selected keyframes... once pair has been found, add keyframes. */
   for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
     /* check if selected, and which end this is */
     if (BEZT_ISSEL_ANY(bezt)) {
@@ -693,7 +693,7 @@ typedef struct tAnimCopybufItem {
   int totvert;     /* number of keyframes stored for this channel */
   BezTriple *bezt; /* keyframes in buffer */
 
-  short id_type; /* Result of GS(id->name)*/
+  short id_type; /* Result of `GS(id->name)`. */
   bool is_bone;  /* special flag for armature bones */
 } tAnimCopybufItem;
 
@@ -913,7 +913,7 @@ static tAnimCopybufItem *pastebuf_match_path_property(Main *bmain,
     if (aci->rna_path && fcu->rna_path) {
       /* find the property of the fcurve and compare against the end of the tAnimCopybufItem
        * more involved since it needs to do path lookups.
-       * This is not 100% reliable since the user could be editing the curves on a path that wont
+       * This is not 100% reliable since the user could be editing the curves on a path that won't
        * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
        * this should work out ok.
        */

@@ -486,7 +486,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
     }
   }
 
-  /* only one element, easy case, no need to do anything  */
+  /* Only one element, easy case, no need to do anything. */
   if (logImage->numElements == 1) {
     returnValue = convertLogElementToRGBA(
         elementData[0], data, logImage, logImage->element[0], dataIsLinearRGB);

@@ -347,7 +347,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
       BMOperator bmop_attr;
 
       /* The fill normal sign is ignored as the face-winding is defined by surrounding faces.
-       * The normal is passed so triangle fill wont have to calculate it. */
+       * The normal is passed so triangle fill won't have to calculate it. */
       normalize_v3_v3(normal_fill, plane_no_local);
 
       /* Fill */

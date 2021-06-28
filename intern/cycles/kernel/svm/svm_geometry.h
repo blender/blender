@@ -220,11 +220,13 @@ ccl_device void svm_node_hair_info(
       stack_store_float(stack, out_offset, data);
       break;
     }
-    /*case NODE_INFO_CURVE_FADE: {
+#  if 0
+    case NODE_INFO_CURVE_FADE: {
       data = sd->curve_transparency;
       stack_store_float(stack, out_offset, data);
       break;
-    }*/
+    }
+#  endif
     case NODE_INFO_CURVE_TANGENT_NORMAL: {
       data3 = curve_tangent_normal(kg, sd);
       stack_store_float3(stack, out_offset, data3);

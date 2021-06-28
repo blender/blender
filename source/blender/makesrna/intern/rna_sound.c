@@ -60,7 +60,7 @@ static void rna_def_sound(BlenderRNA *brna)
       srna, "Sound", "Sound data-block referencing an external or packed sound file");
   RNA_def_struct_ui_icon(srna, ICON_SOUND);
 
-  /*rna_def_ipo_common(srna); */
+  // rna_def_ipo_common(srna);
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, NULL, "filepath");

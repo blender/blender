@@ -288,7 +288,10 @@ typedef struct BevVert {
   VMesh *vmesh;
 } BevVert;
 
-/* Face classification. Note: depends on F_RECON > F_EDGE > F_VERT .*/
+/**
+ * Face classification.
+ * \note depends on `F_RECON > F_EDGE > F_VERT`.
+ */
 typedef enum {
   /** Used when there is no face at all. */
   F_NONE,
@@ -1680,7 +1683,7 @@ static void project_to_edge(const BMEdge *e,
 }
 
 /* If there is a bndv->ebev edge, find the mid control point if necessary.
- * It is the closest point on the beveled edge to the line segment between bndv and bndv->next.  */
+ * It is the closest point on the beveled edge to the line segment between bndv and bndv->next. */
 static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 {
   bool do_linear_interp = true;
@@ -2160,7 +2163,7 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
   /* Calculate the 3D locations for the profile points */
   calculate_profile_segments(
       pro, map, use_map, reversed, bp->seg, pro_spacing->xvals, pro_spacing->yvals, pro->prof_co);
-  /* Also calculate for the is the seg_2 case if it's needed .*/
+  /* Also calculate for the seg_2 case if it's needed. */
   if (need_2) {
     calculate_profile_segments(pro,
                                map,
@@ -2255,7 +2258,7 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {
   EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
 
-  /* First first edge with seam or sharp edge data. */
+  /* First edge with seam or sharp edge data. */
   while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag)) ||
          (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag))) {
     e = e->next;

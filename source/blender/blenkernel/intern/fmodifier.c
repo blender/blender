@@ -875,7 +875,7 @@ static void fcm_python_new_data(void *mdata)
 {
   FMod_Python *data = (FMod_Python *)mdata;
 
-  /* everything should be set correctly by calloc, except for the prop->type constant.*/
+  /* Everything should be set correctly by calloc, except for the prop->type constant. */
   data->prop = MEM_callocN(sizeof(IDProperty), "PyFModifierProps");
   data->prop->type = IDP_GROUP;
 }

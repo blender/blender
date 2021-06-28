@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_rand.hh"
@@ -149,18 +150,16 @@ void BLI_rng_get_tri_sample_float_v3(
 
 void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot)
 {
-  const uint elem_size = elem_size_i;
-  unsigned int i = elem_tot;
-  void *temp;
-
   if (elem_tot <= 1) {
     return;
   }
 
-  temp = malloc(elem_size);
+  const uint elem_size = elem_size_i;
+  unsigned int i = elem_tot;
+  void *temp = malloc(elem_size);
 
   while (i--) {
-    unsigned int j = BLI_rng_get_uint(rng) % elem_tot;
+    const unsigned int j = BLI_rng_get_uint(rng) % elem_tot;
     if (i != j) {
       void *iElem = (unsigned char *)data + i * elem_size_i;
       void *jElem = (unsigned char *)data + j * elem_size_i;
@@ -171,6 +170,24 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsig
   }
 
   free(temp);
+}
+
+void BLI_rng_shuffle_bitmap(struct RNG *rng, BLI_bitmap *bitmap, unsigned int bits_tot)
+{
+  if (bits_tot <= 1) {
+    return;
+  }
+
+  unsigned int i = bits_tot;
+  while (i--) {
+    const unsigned int j = BLI_rng_get_uint(rng) % bits_tot;
+    if (i != j) {
+      const bool i_bit = BLI_BITMAP_TEST(bitmap, i);
+      const bool j_bit = BLI_BITMAP_TEST(bitmap, j);
+      BLI_BITMAP_SET(bitmap, i, j_bit);
+      BLI_BITMAP_SET(bitmap, j, i_bit);
+    }
+  }
 }
 
 /**
@@ -214,6 +231,14 @@ void BLI_array_randomize(void *data,
 
   BLI_rng_seed(&rng, seed);
   BLI_rng_shuffle_array(&rng, data, elem_size, elem_tot);
+}
+
+void BLI_bitmap_randomize(BLI_bitmap *bitmap, unsigned int bits_tot, unsigned int seed)
+{
+  RNG rng;
+
+  BLI_rng_seed(&rng, seed);
+  BLI_rng_shuffle_bitmap(&rng, bitmap, bits_tot);
 }
 
 /* ********* for threaded random ************** */

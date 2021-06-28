@@ -589,7 +589,7 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 
 bool operator<(const Normal &a, const Normal &b)
 {
-  /* only needed to sort normal vectors and find() them later in a map.*/
+  /* Only needed to sort normal vectors and find() them later in a map. */
   return a.x < b.x || (a.x == b.x && (a.y < b.y || (a.y == b.y && a.z < b.z)));
 }
 

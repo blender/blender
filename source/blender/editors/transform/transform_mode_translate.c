@@ -52,12 +52,26 @@
 /** \name Transform (Translation)
  * \{ */
 
+static void translate_dist_to_str(char *r_str,
+                                  const int len_max,
+                                  const float val,
+                                  const UnitSettings *unit)
+{
+  if (unit) {
+    BKE_unit_value_as_string(
+        r_str, len_max, val * unit->scale_length, 4, B_UNIT_LENGTH, unit, false);
+  }
+  else {
+    /* Check range to prevent string buffer overflow. */
+    BLI_snprintf(r_str, len_max, IN_RANGE_INCL(val, -1e10f, 1e10f) ? "%.4f" : "%.4e", val);
+  }
+}
+
 static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_DRAW_STR])
 {
   size_t ofs = 0;
-  char tvec[NUM_STR_REP_LEN * 3];
-  char distvec[NUM_STR_REP_LEN];
-  char autoik[NUM_STR_REP_LEN];
+  char dvec_str[3][NUM_STR_REP_LEN];
+  char dist_str[NUM_STR_REP_LEN];
   float dist;
 
   UnitSettings *unit = NULL;
@@ -66,7 +80,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
 
   if (hasNumInput(&t->num)) {
-    outputNumInput(&(t->num), tvec, &t->scene->unit);
+    outputNumInput(&(t->num), dvec_str[0], &t->scene->unit);
     dist = len_v3(t->num.val);
   }
   else {
@@ -94,84 +108,57 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
 
     dist = len_v3(dvec);
 
-    if (unit) {
-      for (int i = 0; i < 3; i++) {
-        BKE_unit_value_as_string(&tvec[NUM_STR_REP_LEN * i],
-                                 NUM_STR_REP_LEN,
-                                 dvec[i] * unit->scale_length,
-                                 4,
-                                 B_UNIT_LENGTH,
-                                 unit,
-                                 true);
-      }
-    }
-    else {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", dvec[0]);
-      BLI_snprintf(&tvec[NUM_STR_REP_LEN], NUM_STR_REP_LEN, "%.4f", dvec[1]);
-      BLI_snprintf(&tvec[NUM_STR_REP_LEN * 2], NUM_STR_REP_LEN, "%.4f", dvec[2]);
+    for (int i = 0; i < 3; i++) {
+      translate_dist_to_str(dvec_str[i], sizeof(dvec_str[i]), dvec[i], unit);
     }
   }
 
-  if (unit) {
-    BKE_unit_value_as_string(
-        distvec, sizeof(distvec), dist * unit->scale_length, 4, B_UNIT_LENGTH, unit, false);
-  }
-  else if (dist > 1e10f || dist < -1e10f) {
-    /* prevent string buffer overflow */
-    BLI_snprintf(distvec, NUM_STR_REP_LEN, "%.4e", dist);
-  }
-  else {
-    BLI_snprintf(distvec, NUM_STR_REP_LEN, "%.4f", dist);
+  translate_dist_to_str(dist_str, sizeof(dist_str), dist, unit);
+
+  if (t->flag & T_PROP_EDIT_ALL) {
+    char prop_str[NUM_STR_REP_LEN];
+    translate_dist_to_str(prop_str, sizeof(prop_str), t->prop_size, unit);
+
+    ofs += BLI_snprintf_rlen(str + ofs,
+                             UI_MAX_DRAW_STR - ofs,
+                             "%s %s: %s   ",
+                             TIP_("Proportional Size"),
+                             t->proptext,
+                             prop_str);
   }
 
   if (t->flag & T_AUTOIK) {
     short chainlen = t->settings->autoik_chainlen;
-
     if (chainlen) {
-      BLI_snprintf(autoik, NUM_STR_REP_LEN, TIP_("AutoIK-Len: %d"), chainlen);
+      ofs += BLI_snprintf_rlen(str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("AutoIK-Len: %d"), chainlen);
+      ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
     }
-    else {
-      autoik[0] = '\0';
-    }
-  }
-  else {
-    autoik[0] = '\0';
   }
 
   if (t->con.mode & CON_APPLY) {
     switch (t->num.idx_max) {
       case 0:
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 UI_MAX_DRAW_STR - ofs,
-                                 "D: %s (%s)%s %s  %s",
-                                 &tvec[0],
-                                 distvec,
-                                 t->con.text,
-                                 t->proptext,
-                                 autoik);
+        ofs += BLI_snprintf_rlen(
+            str + ofs, UI_MAX_DRAW_STR - ofs, "D: %s (%s)%s", dvec_str[0], dist_str, t->con.text);
         break;
       case 1:
         ofs += BLI_snprintf_rlen(str + ofs,
                                  UI_MAX_DRAW_STR - ofs,
-                                 "D: %s   D: %s (%s)%s %s  %s",
-                                 &tvec[0],
-                                 &tvec[NUM_STR_REP_LEN],
-                                 distvec,
-                                 t->con.text,
-                                 t->proptext,
-                                 autoik);
+                                 "D: %s   D: %s (%s)%s",
+                                 dvec_str[0],
+                                 dvec_str[1],
+                                 dist_str,
+                                 t->con.text);
         break;
       case 2:
         ofs += BLI_snprintf_rlen(str + ofs,
                                  UI_MAX_DRAW_STR - ofs,
-                                 "D: %s   D: %s  D: %s (%s)%s %s  %s",
-                                 &tvec[0],
-                                 &tvec[NUM_STR_REP_LEN],
-                                 &tvec[NUM_STR_REP_LEN * 2],
-                                 distvec,
-                                 t->con.text,
-                                 t->proptext,
-                                 autoik);
+                                 "D: %s   D: %s   D: %s (%s)%s",
+                                 dvec_str[0],
+                                 dvec_str[1],
+                                 dvec_str[2],
+                                 dist_str,
+                                 t->con.text);
         break;
     }
   }
@@ -179,30 +166,22 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     if (t->flag & T_2D_EDIT) {
       ofs += BLI_snprintf_rlen(str + ofs,
                                UI_MAX_DRAW_STR - ofs,
-                               "Dx: %s   Dy: %s (%s)%s %s",
-                               &tvec[0],
-                               &tvec[NUM_STR_REP_LEN],
-                               distvec,
-                               t->con.text,
-                               t->proptext);
+                               "Dx: %s   Dy: %s (%s)%s",
+                               dvec_str[0],
+                               dvec_str[1],
+                               dist_str,
+                               t->con.text);
     }
     else {
       ofs += BLI_snprintf_rlen(str + ofs,
                                UI_MAX_DRAW_STR - ofs,
-                               "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s",
-                               &tvec[0],
-                               &tvec[NUM_STR_REP_LEN],
-                               &tvec[NUM_STR_REP_LEN * 2],
-                               distvec,
-                               t->con.text,
-                               t->proptext,
-                               autoik);
+                               "Dx: %s   Dy: %s   Dz: %s (%s)%s",
+                               dvec_str[0],
+                               dvec_str[1],
+                               dvec_str[2],
+                               dist_str,
+                               t->con.text);
     }
-  }
-
-  if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf_rlen(
-        str + ofs, UI_MAX_DRAW_STR - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
   }
 
   if (t->spacetype == SPACE_NODE) {
@@ -383,6 +362,11 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
   }
   else {
     copy_v3_v3(global_dir, t->values);
+    if (!is_zero_v3(t->values_modal_offset)) {
+      float values_ofs[3];
+      mul_v3_m3v3(values_ofs, t->spacemtx, t->values_modal_offset);
+      add_v3_v3(global_dir, values_ofs);
+    }
 
     t->tsnap.snapElem = 0;
     applySnapping(t, global_dir);

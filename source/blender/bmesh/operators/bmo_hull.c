@@ -603,7 +603,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
       bm, op, op->slots_out, "geom_interior.out", BM_ALL_NOLOOP, HULL_FLAG_INTERIOR_ELE);
 
   /* Output slot of input elements that ended up inside the hull and
-   * are are unused by other geometry. */
+   * are unused by other geometry. */
   BMO_slot_buffer_from_enabled_flag(
       bm, op, op->slots_out, "geom_unused.out", BM_ALL_NOLOOP, HULL_FLAG_DEL);
 

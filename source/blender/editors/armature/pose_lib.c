@@ -516,7 +516,7 @@ static int poselib_add_exec(bContext *C, wmOperator *op)
 
   /* use Keying Set to determine what to store for the pose */
 
-  /* this includes custom props :)*/
+  /* This includes custom props :). */
   ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_WHOLE_CHARACTER_SELECTED_ID);
 
   ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
@@ -863,7 +863,7 @@ typedef struct tPoseLib_PreviewData {
   /** active area. */
   ScrArea *area;
 
-  /** RNA-Pointer to Object 'ob' .*/
+  /** RNA-Pointer to Object 'ob'. */
   PointerRNA rna_ptr;
   /** object to work on. */
   Object *ob;
@@ -1100,7 +1100,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, tPoseLib_PreviewData 
 
   /* start tagging/keying */
   for (agrp = act->groups.first; agrp; agrp = agrp->next) {
-    /* only for selected bones unless there aren't any selected, in which case all are included  */
+    /* Only for selected bones unless there aren't any selected, in which case all are included. */
     pchan = BKE_pose_channel_find_name(pose, agrp->name);
 
     if (pchan) {
@@ -1462,7 +1462,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
       pld->state = PL_PREVIEW_CONFIRM;
       break;
 
-    /* toggle between original pose and poselib pose*/
+    /* Toggle between original pose and poselib pose. */
     case EVT_TABKEY:
       pld->flag |= PL_PREVIEW_SHOWORIGINAL;
       pld->redraw = PL_PREVIEW_REDRAWALL;

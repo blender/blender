@@ -604,7 +604,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Dependency Graph", "Dependencies in the scene data");
   RNA_def_property_pointer_funcs(prop, "rna_ViewLayer_depsgraph_get", NULL, NULL, NULL);
 
-  /* Nested Data  */
+  /* Nested Data. */
   /* *** Non-Animated *** */
   RNA_define_animate_sdna(false);
   rna_def_layer_collection(brna);

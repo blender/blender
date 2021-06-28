@@ -19,7 +19,7 @@
  * CLOSURE_EVAL_FUNCTION_3(name, Diffuse, Glossy, Refraction);
  * // Get the cl_out
  * closure.radiance = out_Diffuse_0.radiance + out_Glossy_1.radiance + out_Refraction_2.radiance;
- **/
+ */
 
 #define CLOSURE_VARS_DECLARE(t0, t1, t2, t3) \
   ClosureInputCommon in_common = CLOSURE_INPUT_COMMON_DEFAULT; \
@@ -291,7 +291,7 @@ ClosurePlanarData closure_planar_eval_init(inout ClosureEvalCommon cl_common)
   ClosurePlanarData planar;
   planar.attenuation = 0.0;
 
-  /* Find planar with the maximum weight. TODO(fclem)  */
+  /* TODO(fclem): Find planar with the maximum weight. */
   for (int i = 0; i < prbNumPlanar && i < MAX_PLANAR; i++) {
     float attenuation = probe_attenuation_planar(planars_data[i], cl_common.P);
     if (attenuation > planar.attenuation) {

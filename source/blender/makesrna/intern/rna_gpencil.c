@@ -1995,7 +1995,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Opacity", "Layer Opacity");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-  /* layer channel color (grease pencil)  */
+  /* Layer channel color (grease pencil). */
   prop = RNA_def_property(srna, "channel_color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, NULL, "color");
   RNA_def_property_array(prop, 3);

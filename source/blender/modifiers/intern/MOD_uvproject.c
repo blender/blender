@@ -169,7 +169,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         BKE_camera_params_init(&params);
         BKE_camera_params_from_object(&params, projectors[i].ob);
 
-        /* compute matrix, viewplane, .. */
+        /* Compute matrix, view-plane, etc. */
         BKE_camera_params_compute_viewplane(&params, 1, 1, aspx, aspy);
 
         /* scale the view-plane */

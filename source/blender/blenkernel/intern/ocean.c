@@ -248,7 +248,7 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u, float
 
     if (oc->_do_normals) {
       ocr->normal[0] = BILERP(oc->_N_x);
-      ocr->normal[1] = oc->_N_y /*BILERP(oc->_N_y) (MEM01)*/;
+      ocr->normal[1] = oc->_N_y /* BILERP(oc->_N_y) (MEM01) */;
       ocr->normal[2] = BILERP(oc->_N_z);
     }
 
@@ -347,7 +347,7 @@ void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u
     }
     if (oc->_do_normals) {
       ocr->normal[0] = INTERP(oc->_N_x);
-      ocr->normal[1] = oc->_N_y /*INTERP(oc->_N_y) (MEM01)*/;
+      ocr->normal[1] = oc->_N_y /* INTERP(oc->_N_y) (MEM01) */;
       ocr->normal[2] = INTERP(oc->_N_z);
     }
     if (oc->_do_chop) {
@@ -1052,7 +1052,7 @@ void BKE_ocean_free_data(struct Ocean *oc)
     fftw_destroy_plan(oc->_N_x_plan);
     fftw_destroy_plan(oc->_N_z_plan);
     MEM_freeN(oc->_N_x);
-    /*fftwf_free(oc->_N_y); (MEM01)*/
+    /* fftwf_free(oc->_N_y); (MEM01) */
     MEM_freeN(oc->_N_z);
   }
 
@@ -1437,9 +1437,9 @@ void BKE_ocean_bake(struct Ocean *o,
         rgb_to_rgba_unit_alpha(&ibuf_disp->rect_float[4 * (res_x * y + x)], ocr.disp);
 
         if (o->_do_jacobian) {
-          /* TODO, cleanup unused code - campbell */
+          /* TODO: cleanup unused code - campbell */
 
-          float /*r, */ /* UNUSED */ pr = 0.0f, foam_result;
+          float /* r, */ /* UNUSED */ pr = 0.0f, foam_result;
           float neg_disp, neg_eplus;
 
           ocr.foam = BKE_ocean_jminus_to_foam(ocr.Jminus, och->foam_coverage);
@@ -1449,9 +1449,9 @@ void BKE_ocean_bake(struct Ocean *o,
             pr = prev_foam[res_x * y + x];
           }
 
-          /* r = BLI_rng_get_float(rng); */ /* UNUSED */ /* randomly reduce foam */
+          // r = BLI_rng_get_float(rng); /* UNUSED */ /* randomly reduce foam */
 
-          /* pr = pr * och->foam_fade; */ /* overall fade */
+          // pr = pr * och->foam_fade; /* overall fade */
 
           /* Remember ocean coord sys is Y up!
            * break up the foam where height (Y) is low (wave valley),
@@ -1475,7 +1475,7 @@ void BKE_ocean_bake(struct Ocean *o,
 
           prev_foam[res_x * y + x] = foam_result;
 
-          /*foam_result = min_ff(foam_result, 1.0f); */
+          // foam_result = min_ff(foam_result, 1.0f);
 
           value_to_rgba_unit_alpha(&ibuf_foam->rect_float[4 * (res_x * y + x)], foam_result);
 

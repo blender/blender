@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
@@ -579,7 +581,7 @@ static bool object_select_all_by_particle(bContext *C, Object *ob)
 
   CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
     if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
-      /* loop through other particles*/
+      /* Loop through other particles. */
       ParticleSystem *psys;
 
       for (psys = base->object->particlesystem.first; psys; psys = psys->next) {
@@ -1454,20 +1456,28 @@ void OBJECT_OT_select_less(wmOperatorType *ot)
 
 static int object_select_random_exec(bContext *C, wmOperator *op)
 {
+  const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
   const float randfac = RNA_float_get(op->ptr, "ratio");
   const int seed = WM_operator_properties_select_random_seed_increment_get(op);
-  const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 
-  RNG *rng = BLI_rng_new_srandom(seed);
+  ListBase ctx_data_list;
+  CTX_data_selectable_bases(C, &ctx_data_list);
+  const int tot = BLI_listbase_count(&ctx_data_list);
+  int elem_map_len = 0;
+  Base **elem_map = MEM_mallocN(sizeof(*elem_map) * tot, __func__);
 
-  CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
-    if (BLI_rng_get_float(rng) < randfac) {
-      ED_object_base_select(base, select);
-    }
+  CollectionPointerLink *ctx_link;
+  for (ctx_link = ctx_data_list.first; ctx_link; ctx_link = ctx_link->next) {
+    elem_map[elem_map_len++] = ctx_link->ptr.data;
   }
-  CTX_DATA_END;
+  BLI_freelistN(&ctx_data_list);
 
-  BLI_rng_free(rng);
+  BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed);
+  const int count_select = elem_map_len * randfac;
+  for (int i = 0; i < count_select; i++) {
+    ED_object_base_select(elem_map[i], select);
+  }
+  MEM_freeN(elem_map);
 
   Scene *scene = CTX_data_scene(C);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);

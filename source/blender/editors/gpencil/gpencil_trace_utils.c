@@ -250,7 +250,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
                                       const int32_t thickness)
 {
 #define MAX_LENGTH 100.0f
-  /* Find materials and create them if not found.  */
+  /* Find materials and create them if not found. */
   int32_t mat_fill_idx = BKE_gpencil_material_find_index_by_name_prefix(ob, "Stroke");
   int32_t mat_mask_idx = BKE_gpencil_material_find_index_by_name_prefix(ob, "Holdout");
 

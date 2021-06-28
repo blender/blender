@@ -994,7 +994,7 @@ static void multiresModifier_disp_run(
     }
   }
 
-  /*numGrids = dm->getNumGrids(dm);*/ /*UNUSED*/
+  // numGrids = dm->getNumGrids(dm); /* UNUSED */
   gridSize = dm->getGridSize(dm);
   gridData = dm->getGridData(dm);
   gridOffset = dm->getGridOffset(dm);
@@ -1285,7 +1285,7 @@ DerivedMesh *multires_make_derived_from_derived(
   multires_set_tot_mdisps(me, mmd->totlvl);
   multiresModifier_ensure_external_read(me, mmd);
 
-  /*run displacement*/
+  /* Run displacement. */
   multiresModifier_disp_run(result, ob->data, dm, APPLY_DISPLACEMENTS, subGridData, mmd->totlvl);
 
   /* copy hidden elements for this level */
@@ -1514,7 +1514,7 @@ void multires_topology_changed(Mesh *me)
  *
  * Since the multires data files only contain displacement vectors without knowledge about
  * subdivision level some extra work is needed. Namely make is to all displacement grids have
- * proper level and number of displacement vectors set.  */
+ * proper level and number of displacement vectors set. */
 void multires_ensure_external_read(struct Mesh *mesh, int top_level)
 {
   if (!CustomData_external_test(&mesh->ldata, CD_MDISPS)) {

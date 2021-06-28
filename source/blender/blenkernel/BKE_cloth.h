@@ -103,11 +103,11 @@ typedef struct Cloth {
  * The definition of a cloth vertex.
  */
 typedef struct ClothVertex {
-  int flags;                  /* General flags per vertex.        */
-  float v[3];                 /* The velocity of the point.       */
+  int flags;                  /* General flags per vertex. */
+  float v[3];                 /* The velocity of the point. */
   float xconst[3];            /* constrained position         */
   float x[3];                 /* The current position of this vertex. */
-  float xold[3];              /* The previous position of this vertex.*/
+  float xold[3];              /* The previous position of this vertex. */
   float tx[3];                /* temporary position */
   float txold[3];             /* temporary old position */
   float tv[3];                /* temporary "velocity", mostly used as tv = tx-txold */
@@ -194,7 +194,7 @@ typedef struct ClothSpring {
   } \
   ((void)0)
 
-/* Spring types as defined in the paper.*/
+/* Spring types as defined in the paper. */
 typedef enum {
   CLOTH_SPRING_TYPE_STRUCTURAL = (1 << 1),
   CLOTH_SPRING_TYPE_SHEAR = (1 << 2),

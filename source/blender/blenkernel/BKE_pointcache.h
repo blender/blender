@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
- * and after are non inclusive (they wont remove the cfra) */
+ * and after are non-inclusive (they won't remove the cfra) */
 #define PTCACHE_CLEAR_ALL 0
 #define PTCACHE_CLEAR_FRAME 1
 #define PTCACHE_CLEAR_BEFORE 2

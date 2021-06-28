@@ -244,7 +244,7 @@ void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
     return;
   }
 
-  /* Rect of the combined areas.*/
+  /* Rect of the combined areas. */
   const bool vertical = SCREEN_DIR_IS_VERTICAL(dir);
   const rctf combined = {
       .xmin = vertical ? MAX2(sa1->totrct.xmin, sa2->totrct.xmin) :

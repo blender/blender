@@ -251,7 +251,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked,
 
   ANIM_animdata_freelist(&anim_data);
 
-  /* return return code - defaults to zero if nothing happened */
+  /* Return the return code (defaults to zero if nothing happened). */
   return ret;
 }
 
@@ -300,7 +300,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked,
 
   ANIM_animdata_freelist(&anim_data);
 
-  /* return return code - defaults to zero if nothing happened */
+  /* Return the return code (defaults to zero if nothing happened). */
   return ret;
 }
 
@@ -1109,7 +1109,7 @@ static short set_bezier_auto_clamped(KeyframeEditData *UNUSED(ked), BezTriple *b
   return 0;
 }
 
-/* Sets the selected bezier handles to type 'vector'  */
+/* Sets the selected bezier handles to type 'vector'. */
 static short set_bezier_vector(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
   /* If the key is selected, always apply to both handles. */
@@ -1164,7 +1164,7 @@ static short set_bezier_align(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
   return 0;
 }
 
-/* Sets selected bezier handles to type 'free'  */
+/* Sets selected bezier handles to type 'free'. */
 static short set_bezier_free(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
   /* If the key is selected, always apply to both handles. */

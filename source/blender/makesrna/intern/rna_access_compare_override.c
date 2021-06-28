@@ -748,7 +748,7 @@ bool RNA_struct_override_matches(Main *bmain,
       const char *prop_name = prop_local.identifier;
       const size_t prop_name_len = strlen(prop_name);
 
-      /* Inlined building, much much more efficient. */
+      /* Inlined building (significantly more efficient). */
       if (!prop_local.is_idprop) {
         rna_path_len = root_path_len + 1 + prop_name_len;
         if (rna_path_len >= RNA_PATH_BUFFSIZE) {

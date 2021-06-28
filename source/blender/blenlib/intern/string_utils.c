@@ -194,7 +194,7 @@ void BLI_string_flip_side_name(char *r_name,
 
   BLI_strncpy(prefix, r_name, name_len);
 
-  /* first case; separator . - _ with extensions r R l L  */
+  /* first case; separator . - _ with extensions r R l L. */
   if ((len > 1) && is_char_sep(r_name[len - 2])) {
     is_set = true;
     switch (r_name[len - 1]) {

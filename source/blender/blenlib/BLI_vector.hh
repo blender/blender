@@ -507,10 +507,10 @@ class Vector {
   }
 
   /**
-   * Enlarges the size of the internal buffer that is considered to be initialized. This invokes
-   * undefined behavior when when the new size is larger than the capacity. The method can be
-   * useful when you want to call constructors in the vector yourself. This should only be done in
-   * very rare cases and has to be justified every time.
+   * Enlarges the size of the internal buffer that is considered to be initialized.
+   * This invokes undefined behavior when the new size is larger than the capacity.
+   * The method can be useful when you want to call constructors in the vector yourself.
+   * This should only be done in very rare cases and has to be justified every time.
    */
   void increase_size_by_unchecked(const int64_t n) noexcept
   {
@@ -963,7 +963,7 @@ class Vector {
     }
 
     /* At least double the size of the previous allocation. Otherwise consecutive calls to grow can
-     * cause a reallocation every time even though min_capacity only increments.  */
+     * cause a reallocation every time even though min_capacity only increments. */
     const int64_t min_new_capacity = this->capacity() * 2;
 
     const int64_t new_capacity = std::max(min_capacity, min_new_capacity);

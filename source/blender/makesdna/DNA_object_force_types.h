@@ -279,7 +279,7 @@ typedef struct SoftBody {
   /* ---------------------------------------------------- */
   float secondspring;
 
-  /* self collision*/
+  /* Self collision. */
   /** Fixed collision ball size if > 0. */
   float colball;
   /** Cooling down collision response. */
@@ -319,7 +319,7 @@ typedef struct SoftBody {
 
 /* pd->flag: various settings */
 #define PFIELD_USEMAX (1 << 0)
-/*#define PDEFLE_DEFORM         (1 << 1)*/ /*UNUSED*/
+// #define PDEFLE_DEFORM         (1 << 1) /* UNUSED */
 /** TODO: do_versions for below */
 #define PFIELD_GUIDE_PATH_ADD (1 << 2)
 /** used for do_versions */

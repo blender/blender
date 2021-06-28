@@ -323,7 +323,7 @@ static void get_rgba(
     float *r, float *g, float *b, float *a, int total_cells, float *data, int sequential)
 {
   int i;
-  /* Use offsets to map RGB grids to to correct location in data grid. */
+  /* Use offsets to map RGB grids to correct location in data grid. */
   int m = 4, i_g = 1, i_b = 2, i_a = 3;
   if (sequential) {
     m = 1;

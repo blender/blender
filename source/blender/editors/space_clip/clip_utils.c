@@ -398,7 +398,7 @@ void clip_delete_plane_track(bContext *C, MovieClip *clip, MovieTrackingPlaneTra
   DEG_id_tag_update(&clip->id, 0);
 }
 
-/* Calculate space clip offset to be centered at the given point.  */
+/* Calculate space clip offset to be centered at the given point. */
 void clip_view_offset_for_center_to_point(
     SpaceClip *sc, const float x, const float y, float *r_offset_x, float *r_offset_y)
 {

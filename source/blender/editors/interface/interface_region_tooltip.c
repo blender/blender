@@ -188,11 +188,11 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
   /* tone_fg = rgb_to_grayscale(main_color); */
 
   /* mix the colors */
-  rgb_tint(value_color, 0.0f, 0.0f, tone_bg, 0.2f);  /* light gray */
-  rgb_tint(active_color, 0.6f, 0.2f, tone_bg, 0.2f); /* light blue */
-  rgb_tint(normal_color, 0.0f, 0.0f, tone_bg, 0.4f); /* gray       */
-  rgb_tint(python_color, 0.0f, 0.0f, tone_bg, 0.5f); /* dark gray  */
-  rgb_tint(alert_color, 0.0f, 0.8f, tone_bg, 0.1f);  /* red        */
+  rgb_tint(value_color, 0.0f, 0.0f, tone_bg, 0.2f);  /* Light gray. */
+  rgb_tint(active_color, 0.6f, 0.2f, tone_bg, 0.2f); /* Light blue. */
+  rgb_tint(normal_color, 0.0f, 0.0f, tone_bg, 0.4f); /* Gray. */
+  rgb_tint(python_color, 0.0f, 0.0f, tone_bg, 0.5f); /* Dark gray. */
+  rgb_tint(alert_color, 0.0f, 0.8f, tone_bg, 0.1f);  /* Red. */
 
   /* draw text */
   BLF_wordwrap(data->fstyle.uifont_id, data->wrap_width);

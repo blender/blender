@@ -48,34 +48,34 @@ class NodeDrawingStyle : public NodeGroup {
     _DrawingStyle = iDrawingStyle;
   }
 
-  /*! Sets the style. Must be one of FILLED, LINES, POINTS, INVISIBLE. */
+  /** Sets the style. Must be one of FILLED, LINES, POINTS, INVISIBLE. */
   inline void setStyle(const DrawingStyle::STYLE iStyle)
   {
     _DrawingStyle.setStyle(iStyle);
   }
 
-  /*! Sets the line width in the LINES style case */
+  /** Sets the line width in the LINES style case */
   inline void setLineWidth(const float iLineWidth)
   {
     _DrawingStyle.setLineWidth(iLineWidth);
   }
 
-  /*! Sets the Point size in the POINTS style case */
+  /** Sets the Point size in the POINTS style case */
   inline void setPointSize(const float iPointSize)
   {
     _DrawingStyle.setPointSize(iPointSize);
   }
 
-  /*! Enables or disables the lighting. true = enable */
+  /** Enables or disables the lighting. true = enable */
   inline void setLightingEnabled(const bool iEnableLighting)
   {
     _DrawingStyle.setLightingEnabled(iEnableLighting);
   }
 
-  /*! Accept the corresponding visitor */
+  /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v);
 
-  /*! accessors */
+  /** accessors */
   inline DrawingStyle::STYLE style() const
   {
     return _DrawingStyle.style();

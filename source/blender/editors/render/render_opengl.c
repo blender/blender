@@ -141,7 +141,9 @@ typedef struct OGLRender {
   wmWindowManager *wm;
   wmWindow *win;
 
-  wmTimer *timer; /* use to check if running modal or not (invoke'd or exec'd)*/
+  /** Use to check if running modal or not (invoke'd or exec'd). */
+  wmTimer *timer;
+
   void **movie_ctx_arr;
 
   TaskPool *task_pool;
@@ -461,7 +463,7 @@ static void screen_opengl_render_write(OGLRender *oglrender)
 
 static void UNUSED_FUNCTION(addAlphaOverFloat)(float dest[4], const float source[4])
 {
-  /* d = s + (1-alpha_s)d*/
+  /* `d = s + (1-alpha_s)d` */
   float mul;
 
   mul = 1.0f - source[3];
@@ -544,7 +546,7 @@ static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const An
       continue;
     }
 
-    bool found = false; /* Not interesting, we just want a starting point for the for-loop.*/
+    bool found = false; /* Not interesting, we just want a starting point for the for-loop. */
     int key_index = BKE_fcurve_bezt_binarysearch_index(
         fcu->bezt, frame_start, fcu->totvert, &found);
     for (; key_index < fcu->totvert; key_index++) {
@@ -645,7 +647,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_WM:  /* WindowManager */
     case ID_LS:  /* FreestyleLineStyle */
     case ID_PAL: /* Palette */
-    case ID_PC:  /* PaintCurve  */
+    case ID_PC:  /* PaintCurve */
     case ID_CF:  /* CacheFile */
     case ID_WS:  /* WorkSpace */
       /* Only follow pointers to specific datablocks, to avoid ending up in

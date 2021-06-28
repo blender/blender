@@ -40,7 +40,6 @@ class TreeElementOverridesBase final : public AbstractTreeElement {
 };
 
 class TreeElementOverridesProperty final : public AbstractTreeElement {
-  ID &id_;
   IDOverrideLibraryProperty &override_prop_;
 
  public:

@@ -108,6 +108,11 @@ struct Depsgraph {
   /* Indicates whether relations needs to be updated. */
   bool need_update;
 
+  /* Indicated whether IDs in this graph are to be tagged as if they first appear visible, with
+   * an optional tag for their animation (time) update. */
+  bool need_visibility_update;
+  bool need_visibility_time_update;
+
   /* Indicates which ID types were updated. */
   char id_type_updated[INDEX_ID_MAX];
 

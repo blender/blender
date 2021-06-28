@@ -39,7 +39,7 @@ namespace Freestyle {
 
 class Stroke;
 
-/*! Base class for Stroke Shaders.
+/** Base class for Stroke Shaders.
  *  Any Stroke Shader must inherit from this class and overload the shade() method.
  *  A StrokeShader is designed to modify any Stroke's attribute such as Thickness, Color,
  *  Geometry, Texture, Blending mode...
@@ -65,24 +65,24 @@ class StrokeShader {
  public:
   void *py_ss;
 
-  /*! Default constructor. */
+  /** Default constructor. */
   StrokeShader()
   {
     py_ss = 0;
   }
 
-  /*! Destructor. */
+  /** Destructor. */
   virtual ~StrokeShader()
   {
   }
 
-  /*! Returns the string corresponding to the shader's name. */
+  /** Returns the string corresponding to the shader's name. */
   virtual string getName() const
   {
     return "StrokeShader";
   }
 
-  /*! The shading method. This method must be overloaded by inherited classes.
+  /** The shading method. This method must be overloaded by inherited classes.
    *  \param ioStroke:
    *    The stroke we wish to shade. this Stroke is modified by the Shader (which typically
    *    modifies the Stroke's attribute's values such as Color, Thickness, Geometry...)

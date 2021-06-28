@@ -861,7 +861,7 @@ typedef enum eSAction_Flag {
   SACTION_NOTRANSKEYCULL = (1 << 4),
   /* don't include keyframes that are out of view */
   // SACTION_HORIZOPTIMISEON = (1 << 5), // XXX deprecated... old irrelevant trick
-  /* show pose-markers (local to action) in Action Editor mode  */
+  /* show pose-markers (local to action) in Action Editor mode. */
   SACTION_POSEMARKERS_SHOW = (1 << 6),
   /* don't draw action channels using group colors (where applicable) */
   /* SACTION_NODRAWGCOLORS = (1 << 7), DEPRECATED */

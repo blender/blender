@@ -181,7 +181,7 @@ void bilinear_interpolation_color_wrap(
     return;
   }
 
-  /* wrap interpolation pixels - main difference from bilinear_interpolation_color  */
+  /* Wrap interpolation pixels - main difference from #bilinear_interpolation_color. */
   if (x1 < 0) {
     x1 = in->x + x1;
   }
@@ -324,7 +324,7 @@ void nearest_interpolation_color_wrap(
   x = x % in->x;
   y = y % in->y;
 
-  /* wrap interpolation pixels - main difference from nearest_interpolation_color  */
+  /* Wrap interpolation pixels - main difference from #nearest_interpolation_color. */
   if (x < 0) {
     x += in->x;
   }

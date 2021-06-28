@@ -13,6 +13,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+#include "BKE_screen.h"
+
+#include "DNA_space_types.h"
+
+#include "ED_screen.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "BLI_listbase.h"
 
@@ -89,8 +100,50 @@ static void SPREADSHEET_OT_remove_row_filter_rule(wmOperatorType *ot)
   RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
 }
 
+static int select_component_domain_invoke(bContext *C,
+                                          wmOperator *op,
+                                          const wmEvent *UNUSED(event))
+{
+  GeometryComponentType component_type = static_cast<GeometryComponentType>(
+      RNA_int_get(op->ptr, "component_type"));
+  AttributeDomain attribute_domain = static_cast<AttributeDomain>(
+      RNA_int_get(op->ptr, "attribute_domain_type"));
+
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  sspreadsheet->geometry_component_type = component_type;
+  sspreadsheet->attribute_domain = attribute_domain;
+
+  /* Refresh header and main region. */
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static void SPREADSHEET_OT_change_spreadsheet_data_source(wmOperatorType *ot)
+{
+  ot->name = "Change Visible Data Source";
+  ot->description = "Change visible data source in the spreadsheet";
+  ot->idname = "SPREADSHEET_OT_change_spreadsheet_data_source";
+
+  ot->invoke = select_component_domain_invoke;
+
+  RNA_def_int(ot->srna, "component_type", 0, 0, INT16_MAX, "Component Type", "", 0, INT16_MAX);
+  RNA_def_int(ot->srna,
+              "attribute_domain_type",
+              0,
+              0,
+              INT16_MAX,
+              "Attribute Domain Type",
+              "",
+              0,
+              INT16_MAX);
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
 void spreadsheet_operatortypes()
 {
   WM_operatortype_append(SPREADSHEET_OT_add_row_filter_rule);
   WM_operatortype_append(SPREADSHEET_OT_remove_row_filter_rule);
+  WM_operatortype_append(SPREADSHEET_OT_change_spreadsheet_data_source);
 }

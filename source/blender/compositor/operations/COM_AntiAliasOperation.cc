@@ -202,4 +202,72 @@ void *AntiAliasOperation::initializeTileData(rcti *rect)
   return getInputOperation(0)->initializeTileData(rect);
 }
 
+void AntiAliasOperation::get_area_of_interest(const int input_idx,
+                                              const rcti &output_area,
+                                              rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  r_input_area.xmax = output_area.xmax + 1;
+  r_input_area.xmin = output_area.xmin - 1;
+  r_input_area.ymax = output_area.ymax + 1;
+  r_input_area.ymin = output_area.ymin - 1;
+}
+
+void AntiAliasOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                      const rcti &area,
+                                                      Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input = inputs[0];
+  const rcti &input_area = input->get_rect();
+  float ninepix[9];
+  for (int y = area.ymin; y < area.ymax; y++) {
+    float *out = output->get_elem(area.xmin, y);
+    const float *row_curr = input->get_elem(area.xmin, y);
+    const float *row_prev = row_curr - input->row_stride;
+    const float *row_next = row_curr + input->row_stride;
+    int x_offset = 0;
+    for (int x = area.xmin; x < area.xmax;
+         x++, out += output->elem_stride, x_offset += input->elem_stride) {
+      if (x == input_area.xmin || x == input_area.xmax - 1 || y == input_area.xmin ||
+          y == input_area.ymax - 1) {
+        out[0] = row_curr[x_offset];
+        continue;
+      }
+
+      if (extrapolate9(&ninepix[0],
+                       &ninepix[1],
+                       &ninepix[2],
+                       &ninepix[3],
+                       &ninepix[4],
+                       &ninepix[5],
+                       &ninepix[6],
+                       &ninepix[7],
+                       &ninepix[8],
+                       &row_prev[x_offset - input->elem_stride],
+                       &row_prev[x_offset],
+                       &row_prev[x_offset + input->elem_stride],
+                       &row_curr[x_offset - input->elem_stride],
+                       &row_curr[x_offset],
+                       &row_curr[x_offset + input->elem_stride],
+                       &row_next[x_offset - input->elem_stride],
+                       &row_next[x_offset],
+                       &row_next[x_offset + input->elem_stride])) {
+        /* Some rounding magic to make weighting correct with the
+         * original coefficients. */
+        unsigned char result = ((3 * ninepix[0] + 5 * ninepix[1] + 3 * ninepix[2] +
+                                 5 * ninepix[3] + 6 * ninepix[4] + 5 * ninepix[5] +
+                                 3 * ninepix[6] + 5 * ninepix[7] + 3 * ninepix[8]) *
+                                    255.0f +
+                                19.0f) /
+                               38.0f;
+        out[0] = result / 255.0f;
+      }
+      else {
+        out[0] = row_curr[x_offset];
+      }
+    }
+  }
+}
+
 }  // namespace blender::compositor

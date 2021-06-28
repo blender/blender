@@ -710,7 +710,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
      * unless its duplication is a sub-process of another one. */
     collection_new->id.tag &= ~LIB_TAG_NEW;
 
-    /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
+    /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW. */
     BKE_libblock_relink_to_newid(&collection_new->id);
 
 #ifndef NDEBUG
@@ -1458,7 +1458,7 @@ bool BKE_collection_cycle_find(Collection *new_ancestor, Collection *collection)
   }
 
   /* Find possible objects in collection or its children, that would instantiate the given ancestor
-   * collection (that would also make a fully invalid cycle of dependencies) .*/
+   * collection (that would also make a fully invalid cycle of dependencies). */
   return collection_instance_find_recursive(collection, new_ancestor);
 }
 

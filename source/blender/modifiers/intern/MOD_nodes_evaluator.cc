@@ -292,14 +292,22 @@ class LockedNode : NonCopyable, NonMovable {
   }
 };
 
-static const CPPType *get_socket_cpp_type(const DSocket socket)
-{
-  return nodes::socket_cpp_type_get(*socket->typeinfo());
-}
-
 static const CPPType *get_socket_cpp_type(const SocketRef &socket)
 {
-  return nodes::socket_cpp_type_get(*socket.typeinfo());
+  const CPPType *type = nodes::socket_cpp_type_get(*socket.typeinfo());
+  if (type == nullptr) {
+    return nullptr;
+  }
+  /* The evaluator only supports types that have special member functions. */
+  if (!type->has_special_member_functions()) {
+    return nullptr;
+  }
+  return type;
+}
+
+static const CPPType *get_socket_cpp_type(const DSocket socket)
+{
+  return get_socket_cpp_type(*socket.socket_ref());
 }
 
 static bool node_supports_laziness(const DNode node)
@@ -888,7 +896,7 @@ class GeometryNodesEvaluator {
       OutputState &output_state = node_state.outputs[socket->index()];
       output_state.has_been_computed = true;
       void *buffer = allocator.allocate(type->size(), type->alignment());
-      type->copy_to_uninitialized(type->default_value(), buffer);
+      type->copy_construct(type->default_value(), buffer);
       this->forward_output({node.context(), socket}, {*type, buffer});
     }
   }
@@ -967,7 +975,7 @@ class GeometryNodesEvaluator {
       /* Move value into memory owned by the outer allocator. */
       const CPPType &type = *input_state.type;
       void *buffer = outer_allocator_.allocate(type.size(), type.alignment());
-      type.move_to_uninitialized(value, buffer);
+      type.move_construct(value, buffer);
 
       params_.r_output_values.append({type, buffer});
     }
@@ -1041,13 +1049,14 @@ class GeometryNodesEvaluator {
         this->load_unlinked_input_value(locked_node, input_socket, input_state, origin_socket);
         locked_node.node_state.missing_required_inputs -= 1;
         this->schedule_node(locked_node);
-        return;
       }
-      /* The value has not been computed yet, so when it will be forwarded by another node, this
-       * node will be triggered. */
-      will_be_triggered_by_other_node = true;
+      else {
+        /* The value has not been computed yet, so when it will be forwarded by another node, this
+         * node will be triggered. */
+        will_be_triggered_by_other_node = true;
 
-      locked_node.delayed_required_outputs.append(DOutputSocket(origin_socket));
+        locked_node.delayed_required_outputs.append(DOutputSocket(origin_socket));
+      }
     }
     /* If this node will be triggered by another node, we don't have to schedule it now. */
     if (!will_be_triggered_by_other_node) {
@@ -1203,7 +1212,7 @@ class GeometryNodesEvaluator {
     }
     else {
       /* Cannot convert, use default value instead. */
-      to_type.copy_to_uninitialized(to_type.default_value(), buffer);
+      to_type.copy_construct(to_type.default_value(), buffer);
     }
     this->add_value_to_input_socket(to_socket, from_socket, {to_type, buffer});
   }
@@ -1229,7 +1238,7 @@ class GeometryNodesEvaluator {
       const CPPType &type = *value_to_forward.type();
       for (const DInputSocket &to_socket : to_sockets.drop_front(1)) {
         void *buffer = allocator.allocate(type.size(), type.alignment());
-        type.copy_to_uninitialized(value_to_forward.get(), buffer);
+        type.copy_construct(value_to_forward.get(), buffer);
         this->add_value_to_input_socket(to_socket, from_socket, {type, buffer});
       }
       /* Forward the original value to one of the targets. */
@@ -1330,7 +1339,7 @@ class GeometryNodesEvaluator {
     }
     /* Use a default fallback value when the loaded type is not compatible. */
     void *default_buffer = allocator.allocate(required_type.size(), required_type.alignment());
-    required_type.copy_to_uninitialized(required_type.default_value(), default_buffer);
+    required_type.copy_construct(required_type.default_value(), default_buffer);
     return {required_type, default_buffer};
   }
 
@@ -1455,9 +1464,11 @@ Vector<GMutablePointer> NodeParamsProvider::extract_multi_input(StringRef identi
 
   Vector<GMutablePointer> ret_values;
   socket.foreach_origin_socket([&](DSocket origin) {
-    for (const MultiInputValueItem &item : multi_value.items) {
-      if (item.origin == origin) {
+    for (MultiInputValueItem &item : multi_value.items) {
+      if (item.origin == origin && item.value != nullptr) {
         ret_values.append({*input_state.type, item.value});
+        /* Make sure we do not use the same value again if two values have the same origin. */
+        item.value = nullptr;
         return;
       }
     }

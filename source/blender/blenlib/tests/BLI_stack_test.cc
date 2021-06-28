@@ -137,7 +137,7 @@ TEST(stack, Clear)
     BLI_stack_clear(stack);
     EXPECT_TRUE(BLI_stack_is_empty(stack));
 
-    /* and again, this time check its valid */
+    /* and again, this time check it is valid */
     for (in = 0; in < tot; in++) {
       BLI_stack_push(stack, (void *)&in);
     }
@@ -150,7 +150,7 @@ TEST(stack, Clear)
 
     EXPECT_TRUE(BLI_stack_is_empty(stack));
 
-    /* without this, we wont test case when mixed free/used */
+    /* without this, we won't test case when mixed free/used */
     tot /= 2;
   }
 

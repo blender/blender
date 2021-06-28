@@ -205,7 +205,7 @@ class Polygon3r : public Polygon<Vec3r> {
     return _normal;
   }
 
-  /*! Check whether the Polygon intersects with the ray or not */
+  /** Check whether the Polygon intersects with the ray or not */
   inline bool rayIntersect(const Vec3r &orig,
                            const Vec3r &dir,
                            real &t,

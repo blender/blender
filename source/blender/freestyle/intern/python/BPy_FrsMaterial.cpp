@@ -548,7 +548,7 @@ PyTypeObject FrsMaterial_Type = {
     nullptr,                                      /* tp_as_number */
     nullptr,                                      /* tp_as_sequence */
     nullptr,                                      /* tp_as_mapping */
-    (hashfunc)FrsMaterial_hash,                   /* tp_hash  */
+    (hashfunc)FrsMaterial_hash,                   /* tp_hash */
     nullptr,                                      /* tp_call */
     nullptr,                                      /* tp_str */
     nullptr,                                      /* tp_getattro */

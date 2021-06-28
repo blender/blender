@@ -494,7 +494,7 @@ static bool format_stats(
   /* Create stats if they don't already exist. */
   SceneStats **stats_p = (v3d_local) ? &v3d_local->runtime.local_stats : &view_layer->stats;
   if (*stats_p == NULL) {
-    /* Do not not access dependency graph if interface is marked as locked. */
+    /* Don't access dependency graph if interface is marked as locked. */
     wmWindowManager *wm = bmain->wm.first;
     if (wm->is_interface_locked) {
       return false;

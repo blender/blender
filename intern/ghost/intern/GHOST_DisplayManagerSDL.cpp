@@ -160,7 +160,7 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
   else {
     /* this is a problem for the BGE player :S, perhaps SDL2 will resolve at some point.
      * we really need SDL_SetDisplayModeForDisplay() to become an API func! - campbell */
-    printf("no windows available, cant fullscreen\n");
+    printf("no windows available, can't fullscreen\n");
 
     /* do not fail, we will try again later when the window is created - wander */
     return GHOST_kSuccess;

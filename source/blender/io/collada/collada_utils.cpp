@@ -636,7 +636,7 @@ void BoneExtended::set_bone_layers(std::string layerString, std::vector<std::str
 
   while (ss >> layer) {
 
-    /* Blender uses numbers to specify layers*/
+    /* Blender uses numbers to specify layers. */
     if (isInteger(layer)) {
       pos = atoi(layer.c_str());
       if (pos >= 0 && pos < 32) {
@@ -645,10 +645,10 @@ void BoneExtended::set_bone_layers(std::string layerString, std::vector<std::str
       }
     }
 
-    /* layer uses labels (not supported by blender). Map to layer numbers:*/
+    /* Layer uses labels (not supported by blender). Map to layer numbers: */
     pos = find(layer_labels.begin(), layer_labels.end(), layer) - layer_labels.begin();
     if (pos >= layer_labels.size()) {
-      layer_labels.push_back(layer); /* remember layer number for future usage*/
+      layer_labels.push_back(layer); /* Remember layer number for future usage. */
     }
 
     if (pos > 31) {

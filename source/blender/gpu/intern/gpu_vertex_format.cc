@@ -284,7 +284,7 @@ void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uin
       data[i] = attr_name[i];
     }
     /* We use a hash to identify each data layer based on its name.
-     * NOTE: This is still prone to hash collision but the risks are very low.*/
+     * NOTE: This is still prone to hash collision but the risks are very low. */
     /* Start hashing after the first 2 chars. */
     *(uint *)&data[4] = BLI_ghashutil_strhash_p_murmur(attr_name + 4);
   }
@@ -306,7 +306,8 @@ void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uin
 #endif
 }
 
-/* Make attribute layout non-interleaved.
+/**
+ * Make attribute layout non-interleaved.
  * Warning! This does not change data layout!
  * Use direct buffer access to fill the data.
  * This is for advanced usage.
@@ -314,11 +315,11 @@ void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uin
  * De-interleaved data means all attribute data for each attribute
  * is stored continuously like this:
  * 000011112222
- * instead of :
+ * instead of:
  * 012012012012
  *
- * Note this is per attribute de-interleaving, NOT per component.
- *  */
+ * \note This is per attribute de-interleaving, NOT per component.
+ */
 void GPU_vertformat_deinterleave(GPUVertFormat *format)
 {
   /* Ideally we should change the stride and offset here. This would allow

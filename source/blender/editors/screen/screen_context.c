@@ -874,7 +874,7 @@ static eContextResult screen_ctx_editable_gpencil_strokes(const bContext *C,
             }
           }
         }
-        /* if not multiedit out of loop */
+        /* If not multi-edit out of loop. */
         if (!is_multiedit) {
           break;
         }

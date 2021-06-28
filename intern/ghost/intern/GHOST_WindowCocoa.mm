@@ -22,11 +22,7 @@
 #include "GHOST_Debug.h"
 #include "GHOST_SystemCocoa.h"
 
-#if defined(WITH_GL_EGL)
-#  include "GHOST_ContextEGL.h"
-#else
-#  include "GHOST_ContextCGL.h"
-#endif
+#include "GHOST_ContextCGL.h"
 
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>

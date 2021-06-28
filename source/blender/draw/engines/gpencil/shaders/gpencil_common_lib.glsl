@@ -101,23 +101,23 @@ void blend_mode_output(
 {
   switch (blend_mode) {
     case MODE_REGULAR:
-      /* Reminder: Blending func is premult alpha blend (dst.rgba * (1 - src.a) + src.rgb).*/
+      /* Reminder: Blending func is premult alpha blend (dst.rgba * (1 - src.a) + src.rgb). */
       color *= opacity;
       frag_color = color;
       frag_revealage = vec4(0.0, 0.0, 0.0, color.a);
       break;
     case MODE_MULTIPLY:
-      /* Reminder: Blending func is multiply blend (dst.rgba * src.rgba).*/
+      /* Reminder: Blending func is multiply blend (dst.rgba * src.rgba). */
       color.a *= opacity;
       frag_revealage = frag_color = (1.0 - color.a) + color.a * color;
       break;
     case MODE_DIVIDE:
-      /* Reminder: Blending func is multiply blend (dst.rgba * src.rgba).*/
+      /* Reminder: Blending func is multiply blend (dst.rgba * src.rgba). */
       color.a *= opacity;
       frag_revealage = frag_color = clamp(1.0 / max(vec4(1e-6), 1.0 - color * color.a), 0.0, 1e18);
       break;
     case MODE_HARDLIGHT:
-      /* Reminder: Blending func is multiply blend (dst.rgba * src.rgba).*/
+      /* Reminder: Blending func is multiply blend (dst.rgba * src.rgba). */
       /**
        * We need to separate the overlay equation into 2 term (one mul and one add).
        * This is the standard overlay equation (per channel):
@@ -135,14 +135,14 @@ void blend_mode_output(
       frag_revealage = max(vec4(0.0), frag_revealage);
       break;
     case MODE_HARDLIGHT_SECOND_PASS:
-      /* Reminder: Blending func is additive blend (dst.rgba + src.rgba).*/
+      /* Reminder: Blending func is additive blend (dst.rgba + src.rgba). */
       color = mix(vec4(0.5), color, color.a * opacity);
       frag_revealage = frag_color = (-1.0 + 2.0 * color) * step(-0.5, -color);
       frag_revealage = max(vec4(0.0), frag_revealage);
       break;
     case MODE_SUB:
     case MODE_ADD:
-      /* Reminder: Blending func is additive / subtractive blend (dst.rgba +/- src.rgba).*/
+      /* Reminder: Blending func is additive / subtractive blend (dst.rgba +/- src.rgba). */
       frag_color = color * color.a * opacity;
       frag_revealage = vec4(0.0);
       break;
@@ -238,7 +238,7 @@ in vec4 pos;  /* Prev adj vert */
 in vec4 pos1; /* Current edge */
 in vec4 pos2; /* Current edge */
 in vec4 pos3; /* Next adj vert */
-/* xy is UV for fills, z is U of stroke, w is strength.  */
+/* xy is UV for fills, z is U of stroke, w is strength. */
 in vec4 uv1;
 in vec4 uv2;
 in vec4 col1;
@@ -347,7 +347,7 @@ float stroke_thickness_modulate(float thickness)
 float clamp_small_stroke_thickness(float thickness)
 {
   /* To avoid aliasing artifacts, we clamp the line thickness and
-   * reduce its opacity in the fragment shader.*/
+   * reduce its opacity in the fragment shader. */
   float min_thickness = gl_Position.w * 1.3;
   thickness = max(min_thickness, thickness);
 
