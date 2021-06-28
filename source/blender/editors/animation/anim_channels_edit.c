@@ -2434,6 +2434,7 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* send notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);
 
   return OPERATOR_FINISHED;
 }
