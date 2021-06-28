@@ -18,7 +18,7 @@
 
 namespace blender::gpu::tests {
 
-TEST_F(GPUTest, gpu_shader_compute_2d)
+static void test_gpu_shader_compute_2d()
 {
 
   if (!GPU_compute_shader_support()) {
@@ -75,8 +75,9 @@ void main() {
   GPU_texture_free(texture);
   GPU_shader_free(shader);
 }
+GPU_TEST(gpu_shader_compute_2d)
 
-TEST_F(GPUTest, gpu_shader_compute_1d)
+static void test_gpu_shader_compute_1d()
 {
 
   if (!GPU_compute_shader_support()) {
@@ -137,8 +138,9 @@ void main() {
   GPU_texture_free(texture);
   GPU_shader_free(shader);
 }
+GPU_TEST(gpu_shader_compute_1d)
 
-TEST_F(GPUTest, gpu_shader_compute_vbo)
+static void test_gpu_shader_compute_vbo()
 {
 
   if (!GPU_compute_shader_support()) {
@@ -201,8 +203,9 @@ void main() {
   GPU_vertbuf_discard(vbo);
   GPU_shader_free(shader);
 }
+GPU_TEST(gpu_shader_compute_vbo)
 
-TEST_F(GPUTest, gpu_shader_compute_ibo)
+static void test_gpu_shader_compute_ibo()
 {
 
   if (!GPU_compute_shader_support()) {
@@ -258,8 +261,9 @@ void main() {
   GPU_indexbuf_discard(ibo);
   GPU_shader_free(shader);
 }
+GPU_TEST(gpu_shader_compute_ibo)
 
-TEST_F(GPUTest, gpu_shader_ssbo_binding)
+static void test_gpu_shader_ssbo_binding()
 {
   if (!GPU_compute_shader_support()) {
     /* We can't test as a the platform does not support compute shaders. */
@@ -297,5 +301,6 @@ void main() {
   GPU_shader_unbind();
   GPU_shader_free(shader);
 }
+GPU_TEST(gpu_shader_ssbo_binding)
 
 }  // namespace blender::gpu::tests
