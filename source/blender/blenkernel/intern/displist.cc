@@ -1641,12 +1641,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
                                   Object *ob,
                                   const bool for_render)
 {
-  /* The same check for duplis as in do_makeDispListCurveTypes.
-   * Happens when curve used for constraint/bevel was converted to mesh.
-   * check there is still needed for render displist and orco displists. */
-  if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
-    return;
-  }
+  BLI_assert(ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT));
 
   BKE_object_free_derived_caches(ob);
 
