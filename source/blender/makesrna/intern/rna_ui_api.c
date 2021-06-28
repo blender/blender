@@ -912,7 +912,12 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_boolean(func, "event", false, "", "Use button to input key events");
   RNA_def_boolean(
       func, "full_event", false, "", "Use button to input full events including modifiers");
-  RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, not just the icon/text");
+  RNA_def_boolean(func,
+                  "emboss",
+                  true,
+                  "",
+                  "Draw the button itself, not just the icon/text. When false, corresponds to the "
+                  "'NONE_OR_STATUS' layout emboss type");
   RNA_def_int(func,
               "index",
               /* RNA_NO_INDEX == -1 */
