@@ -20,7 +20,7 @@
  * Interactive walk navigation modal operator
  * (similar to walking around in a first person game).
  *
- * \note Similar logic to `view3d_fly.c` changes here may apply there too.
+ * \note Similar logic to `view3d_navigate_fly.c` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_navigate - walk modal operator */

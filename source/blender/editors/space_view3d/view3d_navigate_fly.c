@@ -19,7 +19,7 @@
  *
  * Interactive fly navigation modal operator (flying around in space).
  *
- * \note Similar logic to `view3d_walk.c` changes here may apply there too.
+ * \note Similar logic to `view3d_navigate_walk.c` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_fly modal operator */
