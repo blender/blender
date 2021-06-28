@@ -263,7 +263,7 @@ static Array<MFOutputSocket *> add_constant_folded_sockets(const MultiFunction &
         const CPPType &cpp_type = data_type.single_type();
         GMutableSpan array = params.computed_array(param_index);
         void *buffer = array.data();
-        scope.add(buffer, array.type().destruct_cb(), AT);
+        scope.add(buffer, array.type().members().destruct, AT);
 
         constant_fn = &scope.construct<CustomMF_GenericConstant>(AT, cpp_type, buffer);
         break;

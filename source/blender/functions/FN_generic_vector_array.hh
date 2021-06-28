@@ -154,7 +154,7 @@ class GVVectorArray_For_GVectorArray : public GVVectorArray {
                                const int64_t index_in_vector,
                                void *r_value) const override
   {
-    type_->copy_to_initialized(vector_array_[index][index_in_vector], r_value);
+    type_->copy_assign(vector_array_[index][index_in_vector], r_value);
   }
 };
 
