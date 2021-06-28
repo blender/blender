@@ -243,7 +243,7 @@ ccl_device float fast_sinpif(float x)
   const float P = 3.584135056f; /* P = 16-4*Q */
   return y * (Q + P * fabsf(y));
 
-  /* The original article used used inferior constants for Q and P and
+  /* The original article used inferior constants for Q and P and
    * so had max error 1.091e-3.
    *
    * The optimal value for Q was determined by exhaustive search, minimizing

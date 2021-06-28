@@ -744,7 +744,7 @@ static const char *unit_find_str(const char *str, const char *substr, bool case_
  *
  * "1m1cm+2mm"              - Original value.
  * "1*1#1*0.01#+2*0.001#"   - Replace numbers.
- * "1*1+1*0.01 +2*0.001 "   - Add add signs if ( + - * / | & ~ < > ^ ! = % ) not found in between.
+ * "1*1+1*0.01 +2*0.001 "   - Add plus signs if ( + - * / | & ~ < > ^ ! = % ) not found in between.
  */
 
 /* Not too strict, (+ - * /) are most common. */

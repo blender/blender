@@ -234,7 +234,7 @@ typedef struct WalkInfo {
   wmNDOFMotionData *ndof;
 #endif
 
-  /* walk state state */
+  /* Walk state. */
   /** The base speed without run/slow down modifications. */
   float base_speed;
   /** The speed the view is moving per redraw. */

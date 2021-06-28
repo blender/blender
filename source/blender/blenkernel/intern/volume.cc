@@ -1224,7 +1224,7 @@ const VolumeGrid *BKE_volume_grid_active_get_for_read(const Volume *volume)
   return BKE_volume_grid_get_for_read(volume, index);
 }
 
-/* Tries to find a grid with the given name. Make sure that that the volume has been loaded. */
+/* Tries to find a grid with the given name. Make sure that the volume has been loaded. */
 const VolumeGrid *BKE_volume_grid_find_for_read(const Volume *volume, const char *name)
 {
   int num_grids = BKE_volume_num_grids(volume);

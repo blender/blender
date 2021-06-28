@@ -1107,7 +1107,7 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* if there is only 1 selected bone, we assume that that is the active bone,
+  /* if there is only 1 selected bone, we assume that it is the active bone,
    * since a user will need to have clicked on a bone (thus selecting it) to make it active
    */
   num_selected_bones = CTX_DATA_COUNT(C, selected_editable_bones);

@@ -2321,7 +2321,7 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
     return false;
   }
 
-  /* If the the line is one of the edge in the triangle, then it's not occluded. */
+  /* If the line is one of the edge in the triangle, then it's not occluded. */
   if (lineart_edge_from_triangle(tri, e, allow_overlapping_edges)) {
     return false;
   }

@@ -242,7 +242,7 @@ typedef struct foreachScreenEdge_userData {
   rctf win_rect; /* copy of: vc.region->winx/winy, use for faster tests, minx/y will always be 0 */
 
   /**
-   * Clip plans defined by the the view bounds,
+   * Clip plans defined by the view bounds,
    * use when #V3D_PROJ_TEST_CLIP_CONTENT is enabled.
    */
   float content_planes[6][4];

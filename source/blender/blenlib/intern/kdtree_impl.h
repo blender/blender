@@ -967,7 +967,7 @@ static int kdtree_node_cmp_deduplicate(const void *n0_p, const void *n1_p)
 }
 
 /**
- * Remove exact duplicates (run before before balancing).
+ * Remove exact duplicates (run before balancing).
  *
  * Keep the first element added when duplicates are found.
  */

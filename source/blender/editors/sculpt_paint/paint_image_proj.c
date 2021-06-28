@@ -2602,8 +2602,8 @@ static void project_bucket_clip_face(const bool is_ortho,
     return;
   }
 
-  /* get the UV space bounding box */
-  /* use IsectPT2Df_limit here so we catch points are are touching the tri edge
+  /* Get the UV space bounding box. */
+  /* Use #IsectPT2Df_limit here so we catch points are touching the triangles edge
    * (or a small fraction over) */
   bucket_bounds_ss[0][0] = bucket_bounds->xmax;
   bucket_bounds_ss[0][1] = bucket_bounds->ymin;

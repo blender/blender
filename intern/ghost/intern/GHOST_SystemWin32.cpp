@@ -1012,8 +1012,8 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
 void GHOST_SystemWin32::processPointerEvent(
     UINT type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
 {
-  /* Pointer events might fire when changing windows for a device which is set to use Wintab, even
-   * when when Wintab is left enabled but set to the bottom of Wintab overlap order. */
+  /* Pointer events might fire when changing windows for a device which is set to use Wintab,
+   * even when Wintab is left enabled but set to the bottom of Wintab overlap order. */
   if (!window->usingTabletAPI(GHOST_kTabletWinPointer)) {
     return;
   }

@@ -142,7 +142,7 @@ typedef struct BMEdge {
   /**
    * Disk Cycle Pointers
    *
-   * relative data: d1 indicates indicates the next/prev
+   * relative data: d1 indicates the next/prev
    * edge around vertex v1 and d2 does the same for v2.
    */
   BMDiskLink v1_disk_link, v2_disk_link;

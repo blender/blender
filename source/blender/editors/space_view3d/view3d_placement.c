@@ -1957,7 +1957,7 @@ struct PlacementCursor {
 
   /**
    * Enable this while the modal operator is running,
-   * so the preview-plane doesn't show at the same time time as add-object preview shape
+   * so the preview-plane doesn't show at the same time as add-object preview shape
    * since it's distracting & not helpful.
    */
   bool do_draw;

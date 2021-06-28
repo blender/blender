@@ -868,13 +868,13 @@ class WFace {
     return _VerticesTexCoords;
   }
 
-  /** Returns the normal of the vertex of index index */
+  /** Returns the normal of the vertex of `index`. */
   inline Vec3f &GetVertexNormal(int index)
   {
     return _VerticesNormals[index];
   }
 
-  /** Returns the tex coords of the vertex of index index */
+  /** Returns the tex coords of the vertex of `index`. */
   inline Vec2f &GetVertexTexCoords(int index)
   {
     return _VerticesTexCoords[index];

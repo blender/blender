@@ -210,7 +210,7 @@ typedef enum {
    * \note Perspective views should enable #V3D_PROJ_TEST_CLIP_WIN along with
    * #V3D_PROJ_TEST_CLIP_NEAR as the near-plane-clipped location of a point
    * may become very large (even infinite) when projected into screen-space.
-   * Unless the that point happens to coincide with the camera's point of view.
+   * Unless that point happens to coincide with the camera's point of view.
    *
    * Use #V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT instead of #V3D_PROJ_TEST_CLIP_CONTENT,
    * to avoid accidentally enabling near clipping without clipping by window bounds.

@@ -44,7 +44,7 @@ extern const int DNAlen;
 /**
  * Primitive (non-struct, non-pointer/function/array) types,
  * \warning Don't change these values!
- * Currently changes here here will work on native endianness,
+ * Currently changes here will work on native endianness,
  * however #DNA_struct_switch_endian currently checks these
  * hard-coded values against those from old files.
  */

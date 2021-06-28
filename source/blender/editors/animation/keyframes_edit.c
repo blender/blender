@@ -251,7 +251,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked,
 
   ANIM_animdata_freelist(&anim_data);
 
-  /* return return code - defaults to zero if nothing happened */
+  /* Return the return code (defaults to zero if nothing happened). */
   return ret;
 }
 
@@ -300,7 +300,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked,
 
   ANIM_animdata_freelist(&anim_data);
 
-  /* return return code - defaults to zero if nothing happened */
+  /* Return the return code (defaults to zero if nothing happened). */
   return ret;
 }
 

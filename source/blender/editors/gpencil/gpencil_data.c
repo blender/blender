@@ -2718,9 +2718,8 @@ static void gpencil_joined_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
         fcu->rna_path = BKE_animsys_fix_rna_path_rename(
             id, fcu->rna_path, "layers", old_name, new_name, 0, 0, false);
 
-        /* we don't want to apply a second remapping on this F-Curve now,
-         * so stop trying to fix names names
-         */
+        /* We don't want to apply a second remapping on this F-Curve now,
+         * so stop trying to fix names. */
         break;
       }
     }

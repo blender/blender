@@ -2603,8 +2603,8 @@ static void object_data_convert_curve_to_mesh(Main *bmain, Depsgraph *depsgraph,
   /* Change objects which are using same curve.
    * A bit annoying, but:
    * - It's possible to have multiple curve objects selected which are sharing the same curve
-   *   datablock. We don't want mesh to be created for every of those objects.
-   * - This is how conversion worked for a long long time. */
+   *   data-block. We don't want mesh to be created for every of those objects.
+   * - This is how conversion worked for a long time. */
   LISTBASE_FOREACH (Object *, other_object, &bmain->objects) {
     if (other_object->data == curve) {
       other_object->type = OB_MESH;

@@ -189,7 +189,7 @@ typedef struct FlyInfo {
   wmNDOFMotionData *ndof;
 #endif
 
-  /* fly state state */
+  /* Fly state. */
   /** The speed the view is moving per redraw. */
   float speed;
   /** Axis index to move along by default Z to move along the view. */
@@ -758,7 +758,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
 #define FLY_SMOOTH_FAC 20.0f        /* higher value less lag */
 
   /* fly mode - Shift+F
-   * a fly loop where the user can move move the view as if they are flying
+   * a fly loop where the user can move the view as if they are flying
    */
   RegionView3D *rv3d = fly->rv3d;
 

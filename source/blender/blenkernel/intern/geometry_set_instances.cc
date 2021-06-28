@@ -264,7 +264,7 @@ static bool instances_attribute_foreach_recursive(const GeometrySet &geometry_se
     }
   }
 
-  /* Now that this this geometry set is visited, increase the count and check with the limit. */
+  /* Now that this geometry set is visited, increase the count and check with the limit. */
   if (limit > 0 && count++ > limit) {
     return false;
   }

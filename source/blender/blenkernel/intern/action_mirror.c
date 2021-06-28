@@ -343,7 +343,7 @@ static void action_flip_pchan(Object *ob_arm,
   } \
   ((void)0)
 
-    /* Write the values back the the F-curves. */
+    /* Write the values back the F-curves. */
     WRITE_ARRAY_FLT(loc);
     WRITE_ARRAY_FLT(eul);
     WRITE_ARRAY_FLT(quat);

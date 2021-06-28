@@ -1824,8 +1824,8 @@ float BM_vert_calc_edge_angle_ex(const BMVert *v, const float fallback)
 {
   BMEdge *e1, *e2;
 
-  /* saves BM_vert_edge_count(v) and and edge iterator,
-   * get the edges and count them both at once */
+  /* Saves `BM_vert_edge_count(v)` and edge iterator,
+   * get the edges and count them both at once. */
 
   if ((e1 = v->e) && (e2 = bmesh_disk_edge_next(e1, v)) && (e1 != e2) &&
       /* make sure we come full circle and only have 2 connected edges */

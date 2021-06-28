@@ -182,7 +182,7 @@ void BLI_stack_pop(BLI_Stack *stack, void *dst)
 }
 
 /**
- * A version of #BLI_stack_pop which which fills in an array.
+ * A version of #BLI_stack_pop which fills in an array.
  *
  * \param dst: The destination array,
  * must be at least (#BLI_Stack.elem_size * \a n) bytes long.
@@ -201,7 +201,7 @@ void BLI_stack_pop_n(BLI_Stack *stack, void *dst, unsigned int n)
 }
 
 /**
- * A version of #BLI_stack_pop_n which which fills in an array (in the reverse order).
+ * A version of #BLI_stack_pop_n which fills in an array (in the reverse order).
  *
  * \note The first item in the array will be first item added to the stack.
  */

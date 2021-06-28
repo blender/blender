@@ -104,7 +104,7 @@ class DNode {
  * nested node group hierarchy. This type is small and can be passed around by value.
  *
  * A #DSocket can represent an input or an output socket. If the type of a socket is known at
- * compile time is is preferable to use #DInputSocket or #DOutputSocket instead. */
+ * compile time is preferable to use #DInputSocket or #DOutputSocket instead. */
 class DSocket {
  protected:
   const DTreeContext *context_ = nullptr;

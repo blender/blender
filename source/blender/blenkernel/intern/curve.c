@@ -5135,7 +5135,7 @@ void BKE_curve_nurb_vert_active_set(Curve *cu, const Nurb *nu, const void *vert)
   }
 }
 
-/* Get points to active active nurb and active vert for curve */
+/* Get points to the active nurb and active vert for curve. */
 bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert)
 {
   Nurb *nu = NULL;

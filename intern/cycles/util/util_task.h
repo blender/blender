@@ -68,7 +68,7 @@ class TaskPool {
 
   /* ** Statistics ** */
 
-  /* Time time stamp of first task pushed. */
+  /* Time stamp of first task pushed. */
   double start_time;
 
   /* Number of all tasks pushed to the pool. Cleared after wait_work() and cancel(). */

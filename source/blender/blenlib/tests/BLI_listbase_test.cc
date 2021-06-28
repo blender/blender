@@ -192,7 +192,7 @@ TEST(listbase, Sort)
     EXPECT_TRUE(listbase_is_valid(&words_lb));
   }
 
-  /* sort single single */
+  /* Sort single list. */
   {
     LinkData link;
     link.data = words;

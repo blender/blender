@@ -3354,7 +3354,7 @@ static void bpy_bmesh_dealloc(BPy_BMesh *self)
 {
   BMesh *bm = self->bm;
 
-  /* have have been freed by bmesh */
+  /* The mesh has not been freed by #BMesh. */
   if (bm) {
     bm_dealloc_editmode_warn(self);
 

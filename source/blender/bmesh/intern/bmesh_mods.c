@@ -246,8 +246,8 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, const bool do_de
  * \param no_double: Use an existing edge if found
  *
  * \return Pointer to the newly created face representing one side of the split
- * if the split is successful (and the original original face will be the
- * other side). NULL if the split fails.
+ * if the split is successful (and the original face will be the other side).
+ * NULL if the split fails.
  */
 BMFace *BM_face_split(BMesh *bm,
                       BMFace *f,
@@ -328,8 +328,8 @@ BMFace *BM_face_split(BMesh *bm,
  * \param example: Edge used for attributes of splitting edge, if non-NULL.
  *
  * \return Pointer to the newly created face representing one side of the split
- * if the split is successful (and the original original face will be the
- * other side). NULL if the split fails.
+ * if the split is successful (and the original face will be the other side).
+ * NULL if the split fails.
  */
 BMFace *BM_face_split_n(BMesh *bm,
                         BMFace *f,

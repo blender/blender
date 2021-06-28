@@ -539,7 +539,7 @@ enum {
   CDT_MIX_ADD = 17,
   CDT_MIX_SUB = 18,
   CDT_MIX_MUL = 19,
-  /* etc. etc. */
+  /* Etc. */
 };
 
 typedef struct CustomDataTransferLayerMap {

@@ -1051,7 +1051,7 @@ static PyObject *BPy_IDGroup_IterItems_CreatePyObject(BPy_IDProperty *group, con
 /** \name ID-Property Group View Types (Keys/Values/Items)
  *
  * This view types is a thin wrapper on keys/values/items, this matches Python's `dict_view` type.
- * The is returned by `property.keys()` and is separate from the iterator that loops over keys.
+ * This is returned by `property.keys()` and is separate from the iterator that loops over keys.
  *
  * There are some less common features this type could support (matching Python's `dict_view`)
  *

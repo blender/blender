@@ -5883,7 +5883,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
          * wouldn't lead to cancel changes made to this button, but changing state to EXIT also
          * makes no button active for a while which leads to triggering operator when doing fast
          * scrolling mouse wheel. using post activate stuff from button allows to make button be
-         * active again after checking for all all that mouse leave and cancel stuff, so quick
+         * active again after checking for all that mouse leave and cancel stuff, so quick
          * scroll wouldn't be an issue anymore. Same goes for scrolling wheel in another
          * direction below (sergey).
          */
@@ -7992,8 +7992,7 @@ static void ui_blocks_set_tooltips(ARegion *region, const bool enable)
     return;
   }
 
-  /* we disabled buttons when when they were already shown, and
-   * re-enable them on mouse move */
+  /* We disabled buttons when they were already shown, and re-enable them on mouse move. */
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     block->tooltipdisabled = !enable;
   }

@@ -1681,10 +1681,8 @@ static int mouse_graph_keys(bAnimContext *ac,
     /* deselect all other keyframes (+ F-Curves too) */
     deselect_graph_keys(ac, 0, SELECT_SUBTRACT, true);
 
-    /* deselect other channels too, but only only do this if
-     * selection of channel when the visibility of keyframes
-     * doesn't depend on this
-     */
+    /* Deselect other channels too, but only do this if selection of channel
+     * when the visibility of keyframes doesn't depend on this. */
     if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
       ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     }

@@ -1617,7 +1617,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
      * This is ignored in the case the object is in any mode (besides object-mode),
      * since the object's mode impacts the current tool, cursor, gizmos etc.
      * If we didn't have this exception, changing visibility would need to perform
-     * many of the the same updates as changing the objects mode.
+     * many of the same updates as changing the objects mode.
      *
      * Further, there are multiple ways to hide objects - by collection, by object type, etc.
      * it's simplest if all these methods behave consistently - respecting the object-mode

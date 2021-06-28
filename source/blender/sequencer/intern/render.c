@@ -298,7 +298,7 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
     return true;
   }
 
-  /* If strip has effects in stack, and all effects are above this strip, it it not rendered. */
+  /* If strip has effects in stack, and all effects are above this strip, it is not rendered. */
   if (seq_have_effect_in_stack) {
     return false;
   }

@@ -2163,7 +2163,7 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
   /* Calculate the 3D locations for the profile points */
   calculate_profile_segments(
       pro, map, use_map, reversed, bp->seg, pro_spacing->xvals, pro_spacing->yvals, pro->prof_co);
-  /* Also calculate for the is the seg_2 case if it's needed. */
+  /* Also calculate for the seg_2 case if it's needed. */
   if (need_2) {
     calculate_profile_segments(pro,
                                map,
@@ -2258,7 +2258,7 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {
   EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
 
-  /* First first edge with seam or sharp edge data. */
+  /* First edge with seam or sharp edge data. */
   while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag)) ||
          (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag))) {
     e = e->next;
