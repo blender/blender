@@ -396,6 +396,7 @@ if(WITH_GTESTS)
       tests/gpu_testing.cc
 
       tests/gpu_index_buffer_test.cc
+      tests/gpu_shader_builtin_test.cc
       tests/gpu_shader_test.cc
 
       tests/gpu_testing.hh
