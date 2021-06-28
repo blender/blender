@@ -1200,45 +1200,6 @@ void CURVE_OT_select_less(wmOperatorType *ot)
 
 /********************** select random *********************/
 
-static void curve_select_random(ListBase *editnurb, float randfac, int seed, bool select)
-{
-  BezTriple *bezt;
-  BPoint *bp;
-  int a;
-
-  RNG *rng = BLI_rng_new_srandom(seed);
-
-  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
-    if (nu->type == CU_BEZIER) {
-      bezt = nu->bezt;
-      a = nu->pntsu;
-      while (a--) {
-        if (!bezt->hide) {
-          if (BLI_rng_get_float(rng) < randfac) {
-            select_beztriple(bezt, select, SELECT, VISIBLE);
-          }
-        }
-        bezt++;
-      }
-    }
-    else {
-      bp = nu->bp;
-      a = nu->pntsu * nu->pntsv;
-
-      while (a--) {
-        if (!bp->hide) {
-          if (BLI_rng_get_float(rng) < randfac) {
-            select_bpoint(bp, select, SELECT, VISIBLE);
-          }
-        }
-        bp++;
-      }
-    }
-  }
-
-  BLI_rng_free(rng);
-}
-
 static int curve_select_random_exec(bContext *C, wmOperator *op)
 {
   const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
@@ -1260,9 +1221,71 @@ static int curve_select_random_exec(bContext *C, wmOperator *op)
       seed_iter += BLI_ghashutil_strhash_p(obedit->id.name);
     }
 
-    curve_select_random(editnurb, randfac, seed_iter, select);
-    BKE_curve_nurb_vert_active_validate(obedit->data);
+    int totvert = 0;
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
+      if (nu->type == CU_BEZIER) {
+        int a = nu->pntsu;
+        BezTriple *bezt = nu->bezt;
+        while (a--) {
+          if (!bezt->hide) {
+            totvert++;
+          }
+          bezt++;
+        }
+      }
+      else {
+        int a = nu->pntsu * nu->pntsv;
+        BPoint *bp = nu->bp;
+        while (a--) {
+          if (!bp->hide) {
+            totvert++;
+          }
+          bp++;
+        }
+      }
+    }
 
+    BLI_bitmap *verts_selection_mask = BLI_BITMAP_NEW(totvert, __func__);
+    const int count_select = totvert * randfac;
+    for (int i = 0; i < count_select; i++) {
+      BLI_BITMAP_SET(verts_selection_mask, i, true);
+    }
+    BLI_bitmap_randomize(verts_selection_mask, totvert, seed_iter);
+
+    int bit_index = 0;
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
+      if (nu->type == CU_BEZIER) {
+        int a = nu->pntsu;
+        BezTriple *bezt = nu->bezt;
+
+        while (a--) {
+          if (!bezt->hide) {
+            if (BLI_BITMAP_TEST(verts_selection_mask, bit_index)) {
+              select_beztriple(bezt, select, SELECT, VISIBLE);
+            }
+            bit_index++;
+          }
+          bezt++;
+        }
+      }
+      else {
+        int a = nu->pntsu * nu->pntsv;
+        BPoint *bp = nu->bp;
+
+        while (a--) {
+          if (!bp->hide) {
+            if (BLI_BITMAP_TEST(verts_selection_mask, bit_index)) {
+              select_bpoint(bp, select, SELECT, VISIBLE);
+            }
+            bit_index++;
+          }
+          bp++;
+        }
+      }
+    }
+
+    MEM_freeN(verts_selection_mask);
+    BKE_curve_nurb_vert_active_validate(obedit->data);
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
