@@ -1191,7 +1191,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
 
   const eUIEmbossType prev_emboss = layout->emboss;
   if (flag & UI_ITEM_R_NO_BG) {
-    layout->emboss = UI_EMBOSS_NONE;
+    layout->emboss = UI_EMBOSS_NONE_OR_STATUS;
   }
 
   /* create the button */
@@ -2122,7 +2122,7 @@ void uiItemFullR(uiLayout *layout,
 
   const eUIEmbossType prev_emboss = layout->emboss;
   if (no_bg) {
-    layout->emboss = UI_EMBOSS_NONE;
+    layout->emboss = UI_EMBOSS_NONE_OR_STATUS;
   }
 
   uiBut *but = NULL;
