@@ -48,6 +48,7 @@ void ConstantFolder::make_constant(float value) const
 
   foreach (ShaderInput *sock, output->links) {
     sock->set(value);
+    sock->constant_folded_in = true;
   }
 
   graph->disconnect(output);
@@ -59,6 +60,7 @@ void ConstantFolder::make_constant(float3 value) const
 
   foreach (ShaderInput *sock, output->links) {
     sock->set(value);
+    sock->constant_folded_in = true;
   }
 
   graph->disconnect(output);
