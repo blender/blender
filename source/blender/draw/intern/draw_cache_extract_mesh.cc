@@ -649,20 +649,25 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   EXTRACT_ADD_REQUESTED(vbo, skin_roots);
 
   EXTRACT_ADD_REQUESTED(ibo, tris);
-  if (DRW_ibo_requested(mbc->ibo.lines)) {
+  if (DRW_ibo_requested(mbc->ibo.lines_loose)) {
+    /* `ibo.lines_loose` require the `ibo.lines` buffer. */
+    if (mbc->ibo.lines == nullptr) {
+      DRW_ibo_request(nullptr, &mbc->ibo.lines);
+    }
+    const MeshExtract *extractor = DRW_ibo_requested(mbc->ibo.lines) ?
+                                       &extract_lines_with_lines_loose :
+                                       &extract_lines_loose_only;
+    extractors.append(extractor);
+  }
+  else if (DRW_ibo_requested(mbc->ibo.lines)) {
     const MeshExtract *extractor;
     if (mbc->ibo.lines_loose != nullptr) {
-      /* Update #lines_loose ibo. */
+      /* Update `ibo.lines_loose` as it depends on `ibo.lines`. */
       extractor = &extract_lines_with_lines_loose;
     }
     else {
       extractor = &extract_lines;
     }
-    extractors.append(extractor);
-  }
-  else if (DRW_ibo_requested(mbc->ibo.lines_loose)) {
-    /* Note: #ibo.lines must have been created first. */
-    const MeshExtract *extractor = &extract_lines_loose_only;
     extractors.append(extractor);
   }
   EXTRACT_ADD_REQUESTED(ibo, points);
