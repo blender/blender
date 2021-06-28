@@ -757,9 +757,6 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
 #define FLY_SMOOTH_FAC 20.0f        /* higher value less lag */
 
-  /* fly mode - Shift+F
-   * a fly loop where the user can move the view as if they are flying
-   */
   RegionView3D *rv3d = fly->rv3d;
 
   /* 3x3 copy of the view matrix so we can move along the view axis */

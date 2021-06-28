@@ -989,9 +989,6 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 #define WALK_MOVE_SPEED base_speed
 #define WALK_BOOST_FACTOR ((void)0, walk->speed_factor)
 
-  /* walk mode - Ctrl+Shift+F
-   * a walk loop where the user can move move the view as if they are in a walk game
-   */
   RegionView3D *rv3d = walk->rv3d;
   ARegion *region = walk->region;
 
