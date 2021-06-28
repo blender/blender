@@ -155,7 +155,7 @@ void BKE_curve_editNurb_free(struct Curve *cu);
 struct ListBase *BKE_curve_editNurbs_get(struct Curve *cu);
 
 void BKE_curve_bevelList_free(struct ListBase *bev);
-void BKE_curve_bevelList_make(struct Object *ob, struct ListBase *nurbs, bool for_render);
+void BKE_curve_bevelList_make(struct Object *ob, const struct ListBase *nurbs, bool for_render);
 ListBase BKE_curve_bevel_make(const struct Curve *curve);
 
 void BKE_curve_forward_diff_bezier(

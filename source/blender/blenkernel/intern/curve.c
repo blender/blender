@@ -2646,7 +2646,7 @@ void BKE_curve_bevelList_free(ListBase *bev)
   BLI_listbase_clear(bev);
 }
 
-void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
+void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_render)
 {
   /*
    * - convert all curves to polys, with indication of resol and flags for double-vertices

@@ -247,7 +247,7 @@ int BKE_mesh_nurbs_to_mdata(Object *ob,
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* use specified dispbase */
-int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
+int BKE_mesh_nurbs_displist_to_mdata(const Object *ob,
                                      const ListBase *dispbase,
                                      MVert **r_allvert,
                                      int *r_totvert,
@@ -259,8 +259,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
                                      int *r_totloop,
                                      int *r_totpoly)
 {
-  Curve *cu = ob->data;
-  DispList *dl;
+  const Curve *cu = ob->data;
   MVert *mvert;
   MPoly *mpoly;
   MLoop *mloop;
@@ -276,8 +275,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
       (ob->type == OB_SURF));
 
   /* count */
-  dl = dispbase->first;
-  while (dl) {
+  LISTBASE_FOREACH (const DispList *, dl, dispbase) {
     if (dl->type == DL_SEGM) {
       totvert += dl->parts * dl->nr;
       totedge += dl->parts * (dl->nr - 1);
@@ -305,7 +303,6 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
       totpoly += tot;
       totloop += tot * 3;
     }
-    dl = dl->next;
   }
 
   if (totvert == 0) {
@@ -327,8 +324,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
   /* verts and faces */
   vertcount = 0;
 
-  dl = dispbase->first;
-  while (dl) {
+  LISTBASE_FOREACH (const DispList *, dl, dispbase) {
     const bool is_smooth = (dl->rt & CU_SMOOTH) != 0;
 
     if (dl->type == DL_SEGM) {
@@ -507,8 +503,6 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
         }
       }
     }
-
-    dl = dl->next;
   }
 
   if (totpoly) {
@@ -523,7 +517,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
   return 0;
 }
 
-Mesh *BKE_mesh_new_nomain_from_curve_displist(Object *ob, ListBase *dispbase)
+Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *dispbase)
 {
   Mesh *mesh;
   MVert *allvert;
