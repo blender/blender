@@ -1917,7 +1917,7 @@ void BKE_library_make_local(Main *bmain,
         ntree->tag &= ~LIB_TAG_DOIT;
       }
 
-      if (!ID_IS_LINKED(id->lib)) {
+      if (!ID_IS_LINKED(id)) {
         id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
         id->flag &= ~LIB_INDIRECT_WEAK_LINK;
         if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
