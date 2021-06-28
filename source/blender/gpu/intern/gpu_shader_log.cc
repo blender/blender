@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
+ * The Original Code is Copyright (C) 2021 Blender Foundation.
  * All rights reserved.
  */
 
@@ -41,7 +41,11 @@ namespace blender::gpu {
 /** \name Debug functions
  * \{ */
 
-void Shader::print_log(Span<const char *> sources, char *log, const char *stage, const bool error)
+void Shader::print_log(Span<const char *> sources,
+                       char *log,
+                       const char *stage,
+                       const bool error,
+                       GPULogParser *parser)
 {
   const char line_prefix[] = "      | ";
   char err_col[] = "\033[31;1m";
@@ -58,8 +62,9 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
   BLI_dynstr_appendf(dynstr, "\n");
 
   char *log_line = log, *line_end;
-  char *error_line_number_end;
-  int error_line, error_char, last_error_line = -2, last_error_char = -1;
+
+  LogCursor previous_location;
+
   bool found_line_id = false;
   while ((line_end = strchr(log_line, '\n'))) {
     /* Skip empty lines. */
@@ -67,82 +72,33 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
       log_line++;
       continue;
     }
-    /* 0 = error, 1 = warning. */
-    int type = -1;
-    /* Skip ERROR: or WARNING:. */
-    const char *prefix[] = {"ERROR", "WARNING"};
-    for (int i = 0; i < ARRAY_SIZE(prefix); i++) {
-      if (STREQLEN(log_line, prefix[i], strlen(prefix[i]))) {
-        log_line += strlen(prefix[i]);
-        type = i;
-        break;
-      }
-    }
-    /* Skip whitespaces and separators. */
-    while (ELEM(log_line[0], ':', '(', ' ')) {
-      log_line++;
-    }
-    /* Parse error line & char numbers. */
-    error_line = error_char = -1;
-    if (log_line[0] >= '0' && log_line[0] <= '9') {
-      error_line = (int)strtol(log_line, &error_line_number_end, 10);
-      /* Try to fetch the error character (not always available). */
-      if (ELEM(error_line_number_end[0], '(', ':') && error_line_number_end[1] != ' ') {
-        error_char = (int)strtol(error_line_number_end + 1, &log_line, 10);
-      }
-      else {
-        log_line = error_line_number_end;
-      }
-      /* There can be a 3rd number (case of mesa driver). */
-      if (ELEM(log_line[0], '(', ':') && log_line[1] >= '0' && log_line[1] <= '9') {
-        error_line = error_char;
-        error_char = (int)strtol(log_line + 1, &error_line_number_end, 10);
-        log_line = error_line_number_end;
-      }
-    }
-    /* Skip whitespaces and separators. */
-    while (ELEM(log_line[0], ':', ')', ' ')) {
-      log_line++;
-    }
-    if (error_line == -1) {
+
+    GPULogItem log_item;
+    log_line = parser->parse_line(log_line, log_item);
+
+    if (log_item.cursor.row == -1) {
       found_line_id = false;
     }
+
     const char *src_line = sources_combined;
-    if ((error_line != -1) && (error_char != -1)) {
-      if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL)) {
-        /* source:line */
-        int error_source = error_line;
-        if (error_source < sources.size()) {
-          src_line = sources[error_source];
-          error_line = error_char;
-          error_char = -1;
-        }
-      }
-      else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) ||
-               GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
-        /* 0:line */
-        error_line = error_char;
-        error_char = -1;
-      }
-      else {
-        /* line:char */
-      }
-    }
+
     /* Separate from previous block. */
-    if (last_error_line != error_line) {
+    if (previous_location.source != log_item.cursor.source ||
+        previous_location.row != log_item.cursor.row) {
       BLI_dynstr_appendf(dynstr, "%s%s%s\n", info_col, line_prefix, reset_col);
     }
-    else if (error_char != last_error_char) {
+    else if (log_item.cursor.column != previous_location.column) {
       BLI_dynstr_appendf(dynstr, "%s\n", line_prefix);
     }
     /* Print line from the source file that is producing the error. */
-    if ((error_line != -1) && (error_line != last_error_line || error_char != last_error_char)) {
+    if ((log_item.cursor.row != -1) && (log_item.cursor.row != previous_location.row ||
+                                        log_item.cursor.column != previous_location.column)) {
       const char *src_line_end;
       found_line_id = false;
       /* error_line is 1 based in this case. */
       int src_line_index = 1;
       while ((src_line_end = strchr(src_line, '\n'))) {
-        if (src_line_index == error_line) {
+        if (src_line_index == log_item.cursor.row) {
           found_line_id = true;
           break;
         }
@@ -157,7 +113,7 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
       }
       /* Print error source. */
       if (found_line_id) {
-        if (error_line != last_error_line) {
+        if (log_item.cursor.row != previous_location.row) {
           BLI_dynstr_appendf(dynstr, "%5d | ", src_line_index);
         }
         else {
@@ -166,8 +122,8 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
         BLI_dynstr_nappend(dynstr, src_line, (src_line_end + 1) - src_line);
         /* Print char offset. */
         BLI_dynstr_appendf(dynstr, line_prefix);
-        if (error_char != -1) {
-          for (int i = 0; i < error_char; i++) {
+        if (log_item.cursor.column != -1) {
+          for (int i = 0; i < log_item.cursor.column; i++) {
             BLI_dynstr_appendf(dynstr, " ");
           }
           BLI_dynstr_appendf(dynstr, "^");
@@ -176,23 +132,11 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
       }
     }
     BLI_dynstr_appendf(dynstr, line_prefix);
-    /* Skip to message. Avoid redundant info. */
-    const char *keywords[] = {"error", "warning"};
-    for (int i = 0; i < ARRAY_SIZE(prefix); i++) {
-      if (STREQLEN(log_line, keywords[i], strlen(keywords[i]))) {
-        log_line += strlen(keywords[i]);
-        type = i;
-        break;
-      }
-    }
-    /* Skip and separators. */
-    while (ELEM(log_line[0], ':', ')')) {
-      log_line++;
-    }
-    if (type == 0) {
+
+    if (log_item.severity == Severity::Error) {
       BLI_dynstr_appendf(dynstr, "%s%s%s: ", err_col, "Error", info_col);
     }
-    else if (type == 1) {
+    else if (log_item.severity == Severity::Error) {
       BLI_dynstr_appendf(dynstr, "%s%s%s: ", warn_col, "Warning", info_col);
     }
     /* Print the error itself. */
@@ -201,8 +145,7 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
     BLI_dynstr_append(dynstr, reset_col);
     /* Continue to next line. */
     log_line = line_end + 1;
-    last_error_line = error_line;
-    last_error_char = error_char;
+    previous_location = log_item.cursor;
   }
   MEM_freeN(sources_combined);
 
@@ -216,6 +159,30 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
   }
 
   BLI_dynstr_free(dynstr);
+}
+
+char *GPULogParser::skip_severity(char *log_line,
+                                  GPULogItem &log_item,
+                                  const char *error_msg,
+                                  const char *warning_msg) const
+{
+  if (STREQLEN(log_line, error_msg, strlen(error_msg))) {
+    log_line += strlen(error_msg);
+    log_item.severity = Severity::Error;
+  }
+  else if (STREQLEN(log_line, warning_msg, strlen(warning_msg))) {
+    log_line += strlen(warning_msg);
+    log_item.severity = Severity::Warning;
+  }
+  return log_line;
+}
+
+char *GPULogParser::skip_separators(char *log_line, char sep1, char sep2, char sep3) const
+{
+  while (ELEM(log_line[0], sep1, sep2, sep3)) {
+    log_line++;
+  }
+  return log_line;
 }
 
 /** \} */

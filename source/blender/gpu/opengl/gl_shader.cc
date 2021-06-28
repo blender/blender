@@ -158,18 +158,19 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
     char log[5000] = "";
     glGetShaderInfoLog(shader, sizeof(log), nullptr, log);
     if (log[0] != '\0') {
+      GLLogParser parser;
       switch (gl_stage) {
         case GL_VERTEX_SHADER:
-          this->print_log(sources, log, "VertShader", !status);
+          this->print_log(sources, log, "VertShader", !status, &parser);
           break;
         case GL_GEOMETRY_SHADER:
-          this->print_log(sources, log, "GeomShader", !status);
+          this->print_log(sources, log, "GeomShader", !status, &parser);
           break;
         case GL_FRAGMENT_SHADER:
-          this->print_log(sources, log, "FragShader", !status);
+          this->print_log(sources, log, "FragShader", !status, &parser);
           break;
         case GL_COMPUTE_SHADER:
-          this->print_log(sources, log, "ComputeShader", !status);
+          this->print_log(sources, log, "ComputeShader", !status, &parser);
           break;
       }
     }
@@ -220,7 +221,8 @@ bool GLShader::finalize()
     char log[5000];
     glGetProgramInfoLog(shader_program_, sizeof(log), nullptr, log);
     Span<const char *> sources;
-    this->print_log(sources, log, "Linking", true);
+    GLLogParser parser;
+    this->print_log(sources, log, "Linking", true, &parser);
     return false;
   }
 

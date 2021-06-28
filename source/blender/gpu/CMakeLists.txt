@@ -103,6 +103,7 @@ set(SRC
   opengl/gl_index_buffer.cc
   opengl/gl_query.cc
   opengl/gl_shader.cc
+  opengl/gl_shader_log.cc
   opengl/gl_shader_interface.cc
   opengl/gl_state.cc
   opengl/gl_texture.cc
