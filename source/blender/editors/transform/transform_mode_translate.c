@@ -238,13 +238,13 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 
 static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
-  const bool apply_snap_align_rotation = usingSnappingNormal(
-      t);  // && (t->tsnap.status & POINT_INIT);
+  const bool apply_snap_align_rotation = usingSnappingNormal(t);
   float tvec[3];
 
-  /* The ideal would be "apply_snap_align_rotation" only when a snap point is found
-   * so, maybe inside this function is not the best place to apply this rotation.
-   * but you need "handle snapping rotation before doing the translation" (really?) */
+  /* Ideally "apply_snap_align_rotation" would only be used when a snap point is found:
+   * `t->tsnap.status & POINT_INIT` - perhaps this function isn't the best place to apply rotation.
+   * However snapping rotation needs to be handled before doing the translation
+   * (unless the pivot is also translated). */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
     float pivot[3];
@@ -265,14 +265,14 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       float rotate_offset[3] = {0};
       bool use_rotate_offset = false;
 
-      /* handle snapping rotation before doing the translation */
+      /* Handle snapping rotation before doing the translation. */
       if (apply_snap_align_rotation) {
         float mat[3][3];
 
         if (validSnappingNormal(t)) {
           const float *original_normal;
 
-          /* In pose mode, we want to align normals with Y axis of bones... */
+          /* In pose mode, we want to align normals with Y axis of bones. */
           if (t->options & CTX_POSE_BONE) {
             original_normal = td->axismtx[1];
           }
@@ -308,7 +308,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       }
 
       if (t->options & CTX_GPENCIL_STROKES) {
-        /* grease pencil multiframe falloff */
+        /* Grease pencil multi-frame falloff. */
         bGPDstroke *gps = (bGPDstroke *)td->extra;
         if (gps != NULL) {
           mul_v3_fl(tvec, td->factor * gps->runtime.multi_frame_falloff);
@@ -318,7 +318,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
         }
       }
       else {
-        /* proportional editing falloff */
+        /* Proportional editing falloff. */
         mul_v3_fl(tvec, td->factor);
       }
 
