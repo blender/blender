@@ -1410,13 +1410,6 @@ static void evaluate_curve_type_object(Depsgraph *depsgraph,
 
   ListBase nubase = {nullptr, nullptr};
 
-  BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
-
-  if (ob->runtime.curve_cache->anim_path_accum_length) {
-    MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
-  }
-  ob->runtime.curve_cache->anim_path_accum_length = nullptr;
-
   if (ob->type == OB_FONT) {
     BKE_vfont_to_curve_nubase(ob, FO_EDIT, &nubase);
   }
@@ -1429,6 +1422,11 @@ static void evaluate_curve_type_object(Depsgraph *depsgraph,
 
   BKE_curve_bevelList_make(ob, &nubase, for_render);
 
+  if ((cu->flag & CU_PATH) ||
+      DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH) {
+    BKE_anim_path_calc_data(ob);
+  }
+
   /* If curve has no bevel will return nothing */
   ListBase dlbev = BKE_curve_bevel_make(cu);
 
@@ -1439,8 +1437,8 @@ static void evaluate_curve_type_object(Depsgraph *depsgraph,
   else {
     const float widfac = cu->width - 1.0f;
 
-    BevList *bl = (BevList *)ob->runtime.curve_cache->bev.first;
-    Nurb *nu = (Nurb *)nubase.first;
+    const BevList *bl = (BevList *)ob->runtime.curve_cache->bev.first;
+    const Nurb *nu = (Nurb *)nubase.first;
     for (; bl && nu; bl = bl->next, nu = nu->next) {
       float *data;
 
@@ -1605,16 +1603,12 @@ static void evaluate_curve_type_object(Depsgraph *depsgraph,
         }
       }
     }
-    BKE_displist_free(&dlbev);
   }
+
+  BKE_displist_free(&dlbev);
 
   if (!(cu->flag & CU_DEFORM_FILL)) {
     curve_to_filledpoly(cu, r_dispbase);
-  }
-
-  if ((cu->flag & CU_PATH) ||
-      DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH) {
-    BKE_anim_path_calc_data(ob);
   }
 
   BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);
