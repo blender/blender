@@ -1932,21 +1932,6 @@ static void lineart_object_load_worker(TaskPool *__restrict UNUSED(pool),
   }
 }
 
-static bool _lineart_object_not_in_source_collection(Collection *source, Object *ob)
-{
-  CollectionChild *cc;
-  Collection *c = source->id.orig_id ? (Collection *)source->id.orig_id : source;
-  if (BKE_collection_has_object_recursive_instanced(c, (Object *)(ob->id.orig_id))) {
-    return false;
-  }
-  for (cc = source->children.first; cc; cc = cc->next) {
-    if (!_lineart_object_not_in_source_collection(cc->collection, ob)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 static uchar lineart_intersection_mask_check(Collection *c, Object *ob)
 {
   LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
