@@ -38,6 +38,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <shellscalingapi.h>
 #include <string.h>
 #include <windowsx.h>
 
@@ -80,13 +81,10 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_wintab(NULL),
       m_lastPointerTabletData(GHOST_TABLET_DATA_NONE),
       m_normal_state(GHOST_kWindowStateNormal),
-      m_user32(NULL),
+      m_user32(::LoadLibrary("user32.dll")),
       m_parentWindowHwnd(parentwindow ? parentwindow->m_hWnd : HWND_DESKTOP),
       m_debug_context(is_debug)
 {
-  wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
-  RECT win_rect = {left, top, (long)(left + width), (long)(top + height)};
-
   DWORD style = parentwindow ?
                     WS_POPUPWINDOW | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX :
                     WS_OVERLAPPEDWINDOW;
@@ -105,27 +103,10 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
      */
   }
 
-  /* Monitor details. */
-  MONITORINFOEX monitor;
-  monitor.cbSize = sizeof(MONITORINFOEX);
-  monitor.dwFlags = 0;
-  GetMonitorInfo(MonitorFromRect(&win_rect, MONITOR_DEFAULTTONEAREST), &monitor);
+  RECT win_rect = {left, top, (long)(left + width), (long)(top + height)};
+  adjustWindowRectForClosestMonitor(&win_rect, style, extended_style);
 
-  /* Constrain requested size and position to fit within this monitor. */
-  width = min(monitor.rcWork.right - monitor.rcWork.left, win_rect.right - win_rect.left);
-  height = min(monitor.rcWork.bottom - monitor.rcWork.top, win_rect.bottom - win_rect.top);
-  win_rect.left = min(max(monitor.rcWork.left, win_rect.left), monitor.rcWork.right - width);
-  win_rect.right = win_rect.left + width;
-  win_rect.top = min(max(monitor.rcWork.top, win_rect.top), monitor.rcWork.bottom - height);
-  win_rect.bottom = win_rect.top + height;
-
-  /* Adjust to allow for caption, borders, shadows, scaling, etc. Resulting values can be
-   * correctly outside of monitor bounds. Note: You cannot specify WS_OVERLAPPED when calling. */
-  AdjustWindowRectEx(&win_rect, style & ~WS_OVERLAPPED, FALSE, extended_style);
-
-  /* But never allow a top position that can hide part of the title bar. */
-  win_rect.top = max(monitor.rcWork.top, win_rect.top);
-
+  wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
   m_hWnd = ::CreateWindowExW(extended_style,                  // window extended style
                              s_windowClassName,               // pointer to registered class name
                              title_16,                        // pointer to window name
@@ -152,8 +133,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
     m_hWnd = NULL;
     return;
   }
-
-  m_user32 = ::LoadLibrary("user32.dll");
 
   RegisterTouchWindow(m_hWnd, 0);
 
@@ -187,22 +166,22 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   ::ShowWindow(m_hWnd, nCmdShow);
 
 #ifdef WIN32_COMPOSITING
-      if (alphaBackground && parentwindowhwnd == 0) {
+  if (alphaBackground && parentwindowhwnd == 0) {
 
-        HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
 
-        /* Create and populate the Blur Behind structure. */
-        DWM_BLURBEHIND bb = {0};
+    /* Create and populate the Blur Behind structure. */
+    DWM_BLURBEHIND bb = {0};
 
-        /* Enable Blur Behind and apply to the entire client area. */
-        bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
-        bb.fEnable = true;
-        bb.hRgnBlur = CreateRectRgn(0, 0, -1, -1);
+    /* Enable Blur Behind and apply to the entire client area. */
+    bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
+    bb.fEnable = true;
+    bb.hRgnBlur = CreateRectRgn(0, 0, -1, -1);
 
-        /* Apply Blur Behind. */
-        hr = DwmEnableBlurBehindWindow(m_hWnd, &bb);
-        DeleteObject(bb.hRgnBlur);
-      }
+    /* Apply Blur Behind. */
+    hr = DwmEnableBlurBehindWindow(m_hWnd, &bb);
+    DeleteObject(bb.hRgnBlur);
+  }
 #endif
 
   /* Force an initial paint of the window. */
@@ -265,6 +244,47 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
     ::DestroyWindow(m_hWnd);
     m_hWnd = 0;
   }
+}
+
+void GHOST_WindowWin32::adjustWindowRectForClosestMonitor(LPRECT win_rect,
+                                                          DWORD dwStyle,
+                                                          DWORD dwExStyle)
+{
+  /* Get Details of the closest monitor. */
+  HMONITOR hmonitor = MonitorFromRect(win_rect, MONITOR_DEFAULTTONEAREST);
+  MONITORINFOEX monitor;
+  monitor.cbSize = sizeof(MONITORINFOEX);
+  monitor.dwFlags = 0;
+  GetMonitorInfo(hmonitor, &monitor);
+
+  /* Constrain requested size and position to fit within this monitor. */
+  LONG width = min(monitor.rcWork.right - monitor.rcWork.left, win_rect->right - win_rect->left);
+  LONG height = min(monitor.rcWork.bottom - monitor.rcWork.top, win_rect->bottom - win_rect->top);
+  win_rect->left = min(max(monitor.rcWork.left, win_rect->left), monitor.rcWork.right - width);
+  win_rect->right = win_rect->left + width;
+  win_rect->top = min(max(monitor.rcWork.top, win_rect->top), monitor.rcWork.bottom - height);
+  win_rect->bottom = win_rect->top + height;
+
+  /* With Windows 10 and newer we can adjust for chrome that differs with DPI and scale. */
+  GHOST_WIN32_AdjustWindowRectExForDpi fpAdjustWindowRectExForDpi = nullptr;
+  if (m_user32) {
+    fpAdjustWindowRectExForDpi = (GHOST_WIN32_AdjustWindowRectExForDpi)::GetProcAddress(
+        m_user32, "AdjustWindowRectExForDpi");
+  }
+
+  /* Adjust to allow for caption, borders, shadows, scaling, etc. Resulting values can be
+   * correctly outside of monitor bounds. Note: You cannot specify WS_OVERLAPPED when calling. */
+  if (fpAdjustWindowRectExForDpi) {
+    UINT dpiX, dpiY;
+    GetDpiForMonitor(hmonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+    fpAdjustWindowRectExForDpi(win_rect, dwStyle & ~WS_OVERLAPPED, FALSE, dwExStyle, dpiX);
+  }
+  else {
+    AdjustWindowRectEx(win_rect, dwStyle & ~WS_OVERLAPPED, FALSE, dwExStyle);
+  }
+
+  /* But never allow a top position that can hide part of the title bar. */
+  win_rect->top = max(monitor.rcWork.top, win_rect->top);
 }
 
 bool GHOST_WindowWin32::getValid() const
