@@ -43,6 +43,9 @@ class GHOST_DropTargetWin32;
 // typedefs for user32 functions to allow dynamic loading of Windows 10 DPI scaling functions
 typedef UINT(API *GHOST_WIN32_GetDpiForWindow)(HWND);
 
+typedef BOOL(API *GHOST_WIN32_AdjustWindowRectExForDpi)(
+    LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+
 struct GHOST_PointerInfoWin32 {
   GHOST_TInt32 pointerId;
   GHOST_TInt32 isPrimary;
@@ -97,6 +100,14 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * Closes the window and disposes resources allocated.
    */
   ~GHOST_WindowWin32();
+
+  /**
+   * Adjusts a requested window rect to fit and position correctly in monitor.
+   * \param win_rect: pointer to rectangle that will be modified.
+   * \param dwStyle: The Window Style of the window whose required size is to be calculated.
+   * \param dwExStyle: The Extended Window Style of the window.
+   */
+  void adjustWindowRectForClosestMonitor(LPRECT win_rect, DWORD dwStyle, DWORD dwExStyle);
 
   /**
    * Returns indication as to whether the window is valid.

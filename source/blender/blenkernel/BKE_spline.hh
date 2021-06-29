@@ -32,6 +32,7 @@
 #include "BKE_attribute_math.hh"
 
 struct Curve;
+struct ListBase;
 
 class Spline;
 using SplinePtr = std::unique_ptr<Spline>;
@@ -546,4 +547,6 @@ struct CurveEval {
   void assert_valid_point_attributes() const;
 };
 
-std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &curve);
+std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &curve,
+                                                     const ListBase &nurbs_list);
+std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve);

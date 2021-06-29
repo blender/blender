@@ -1766,7 +1766,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
   }
 }
 
-static void count_mutli_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
+static void count_multi_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
 {
   Map<bNodeSocket *, int> counts;
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -1800,7 +1800,7 @@ void node_update_nodetree(const bContext *C, bNodeTree *ntree)
   SpaceNode *snode = CTX_wm_space_node(C);
   ntreeTagUsedSockets(ntree);
 
-  count_mutli_input_socket_links(ntree, snode);
+  count_multi_input_socket_links(ntree, snode);
 
   /* Update nodes front to back, so children sizes get updated before parents. */
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree->nodes) {

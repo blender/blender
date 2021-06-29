@@ -709,7 +709,7 @@ static int apply_objects_internal(bContext *C,
           if (has_unparented_layers == false) {
             BKE_reportf(reports,
                         RPT_ERROR,
-                        "Can't apply to a GP datablock where all layers are parented: Object "
+                        "Can't apply to a GP data-block where all layers are parented: Object "
                         "\"%s\", %s \"%s\", aborting",
                         ob->id.name + 2,
                         BKE_idtype_idcode_to_name(ID_GD),
@@ -722,7 +722,7 @@ static int apply_objects_internal(bContext *C,
           BKE_reportf(
               reports,
               RPT_ERROR,
-              "Can't apply to GP datablock with no layers: Object \"%s\", %s \"%s\", aborting",
+              "Can't apply to GP data-block with no layers: Object \"%s\", %s \"%s\", aborting",
               ob->id.name + 2,
               BKE_idtype_idcode_to_name(ID_GD),
               gpd->id.name + 2);
@@ -1255,7 +1255,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
       }
       else if (ob->type == OB_FONT) {
-        /* Det from bounding-box. */
+        /* Get from bounding-box. */
 
         Curve *cu = ob->data;
 
@@ -1490,7 +1490,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       BKE_object_batch_cache_dirty_tag(tob);
       DEG_id_tag_update(&tob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
-    /* special support for dupligroups */
+    /* Special support for dupli-groups. */
     else if (tob->instance_collection && tob->instance_collection->id.tag & LIB_TAG_DOIT) {
       DEG_id_tag_update(&tob->id, ID_RECALC_TRANSFORM);
       DEG_id_tag_update(&tob->instance_collection->id, ID_RECALC_COPY_ON_WRITE);

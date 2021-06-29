@@ -71,6 +71,7 @@ bool SEQ_iterator_ensure(SeqCollection *collection,
 struct Sequence *SEQ_iterator_yield(SeqIterator *iterator);
 
 SeqCollection *SEQ_collection_create(void);
+uint SEQ_collection_count(SeqCollection *collection);
 bool SEQ_collection_append_strip(struct Sequence *seq, SeqCollection *data);
 bool SEQ_collection_remove_strip(struct Sequence *seq, SeqCollection *data);
 void SEQ_collection_free(SeqCollection *collection);

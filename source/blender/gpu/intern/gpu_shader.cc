@@ -35,7 +35,6 @@
 
 extern "C" char datatoc_gpu_shader_colorspace_lib_glsl[];
 
-
 using namespace blender;
 using namespace blender::gpu;
 

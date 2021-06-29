@@ -213,7 +213,8 @@ class Vector {
    * Example Usage:
    *  Vector<ModifierData *> modifiers(ob->modifiers);
    */
-  Vector(ListBase &values, Allocator allocator = {}) : Vector(NoExceptConstructor(), allocator)
+  Vector(const ListBase &values, Allocator allocator = {})
+      : Vector(NoExceptConstructor(), allocator)
   {
     LISTBASE_FOREACH (T, value, &values) {
       this->append(value);

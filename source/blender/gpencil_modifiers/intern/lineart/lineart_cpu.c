@@ -875,7 +875,7 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
        * (!in0) means "when point 0 is visible".
        * conditions for point 1, 2 are the same idea.
        *
-       * \code{.txt}
+       * \code{.txt}identify
        * 1-----|-------0
        * |     |   ---
        * |     |---
@@ -1463,6 +1463,10 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
     lr = e->l->radial_next;
   }
 
+  if (!ll && !lr) {
+    return LRT_EDGE_FLAG_LOOSE;
+  }
+
   FreestyleEdge *fel, *fer;
   bool face_mark_filtered = false;
   uint16_t edge_flag_result = 0;
@@ -1563,6 +1567,9 @@ static void lineart_add_edge_to_list(LineartRenderBuffer *rb, LineartEdge *e)
     case LRT_EDGE_FLAG_INTERSECTION:
       lineart_prepend_edge_direct(&rb->intersection.first, e);
       break;
+    case LRT_EDGE_FLAG_LOOSE:
+      lineart_prepend_edge_direct(&rb->floating.first, e);
+      break;
   }
 }
 
@@ -1590,7 +1597,7 @@ static void lineart_add_edge_to_list_thread(LineartObjectInfo *obi, LineartEdge 
     case LRT_EDGE_FLAG_INTERSECTION:
       LRT_ASSIGN_EDGE(intersection);
       break;
-    case LRT_EDGE_FLAG_FLOATING:
+    case LRT_EDGE_FLAG_LOOSE:
       LRT_ASSIGN_EDGE(floating);
       break;
   }
@@ -1632,7 +1639,7 @@ static int lineart_edge_type_duplication_count(char eflag)
 {
   int count = 0;
   /* See eLineartEdgeFlag for details. */
-  for (int i = 0; i < LRT_EDGE_FLAG_FLOATING; i++) {
+  for (int i = 0; i < 6; i++) {
     if (eflag & (1 << i)) {
       count++;
     }
@@ -1800,6 +1807,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
                                mat->lineart.mat_occlusion :
                                1);
 
+    tri->intersection_mask = obi->override_intersection_mask;
+
     double gn[3];
     copy_v3db_v3fl(gn, f->no);
     mul_v3_mat3_m4v3_db(tri->gn, normal, gn);
@@ -1868,7 +1877,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
     bool edge_added = false;
 
     /* See eLineartEdgeFlag for details. */
-    for (int flag_bit = 0; flag_bit < LRT_EDGE_FLAG_FLOATING; flag_bit++) {
+    for (int flag_bit = 0; flag_bit < 6; flag_bit++) {
       char use_type = 1 << flag_bit;
       if (!(use_type & e->head.hflag)) {
         continue;
@@ -1923,28 +1932,30 @@ static void lineart_object_load_worker(TaskPool *__restrict UNUSED(pool),
   }
 }
 
-static bool _lineart_object_not_in_source_collection(Collection *source, Object *ob)
+static uchar lineart_intersection_mask_check(Collection *c, Object *ob)
 {
-  CollectionChild *cc;
-  Collection *c = source->id.orig_id ? (Collection *)source->id.orig_id : source;
-  if (BKE_collection_has_object_recursive_instanced(c, (Object *)(ob->id.orig_id))) {
-    return false;
-  }
-  for (cc = source->children.first; cc; cc = cc->next) {
-    if (!_lineart_object_not_in_source_collection(cc->collection, ob)) {
-      return false;
+  LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
+    uchar result = lineart_intersection_mask_check(cc->collection, ob);
+    if (result) {
+      return result;
     }
   }
-  return true;
+
+  if (c->children.first == NULL) {
+    if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
+      if (c->lineart_flags & COLLECTION_LRT_USE_INTERSECTION_MASK) {
+        return c->lineart_intersection_mask;
+      }
+    }
+  }
+  return 0;
 }
 
 /**
  * See if this object in such collection is used for generating line art,
  * Disabling a collection for line art will doable all objects inside.
- * `_rb` is used to provide source selection info.
- * See the definition of `rb->_source_type` for details.
  */
-static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_rb)
+static int lineart_usage_check(Collection *c, Object *ob)
 {
 
   if (!c) {
@@ -1974,26 +1985,12 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
       }
       return ob->lineart.usage;
     }
-    return OBJECT_LRT_INHERIT;
   }
 
   LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
-    int result = lineart_usage_check(cc->collection, ob, _rb);
+    int result = lineart_usage_check(cc->collection, ob);
     if (result > OBJECT_LRT_INHERIT) {
       return result;
-    }
-  }
-
-  /* Temp solution to speed up calculation in the modifier without cache. See the definition of
-   * rb->_source_type for details. */
-  if (_rb->_source_type == LRT_SOURCE_OBJECT) {
-    if (ob != _rb->_source_object && ob->id.orig_id != (ID *)_rb->_source_object) {
-      return OBJECT_LRT_OCCLUSION_ONLY;
-    }
-  }
-  else if (_rb->_source_type == LRT_SOURCE_COLLECTION) {
-    if (_lineart_object_not_in_source_collection(_rb->_source_collection, ob)) {
-      return OBJECT_LRT_OCCLUSION_ONLY;
     }
   }
 
@@ -2116,7 +2113,9 @@ static void lineart_main_load_geometries(
 
   DEG_OBJECT_ITER_BEGIN (depsgraph, ob, flags) {
     LineartObjectInfo *obi = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartObjectInfo));
-    obi->usage = lineart_usage_check(scene->master_collection, ob, rb);
+    obi->usage = lineart_usage_check(scene->master_collection, ob);
+    obi->override_intersection_mask = lineart_intersection_mask_check(scene->master_collection,
+                                                                      ob);
     Mesh *use_mesh;
 
     if (obi->usage == OBJECT_LRT_EXCLUDE) {
@@ -2834,6 +2833,7 @@ static LineartEdge *lineart_triangle_intersect(LineartRenderBuffer *rb,
   BLI_addtail(&result->segments, es);
   /* Don't need to OR flags right now, just a type mark. */
   result->flags = LRT_EDGE_FLAG_INTERSECTION;
+  result->intersection_mask = (tri->intersection_mask | testing->intersection_mask);
 
   lineart_prepend_edge_direct(&rb->intersection.first, result);
   int r1, r2, c1, c2, row, col;
@@ -3033,9 +3033,9 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->fuzzy_everything = (lmd->calculation_flags & LRT_EVERYTHING_AS_CONTOUR) != 0;
   rb->allow_boundaries = (lmd->calculation_flags & LRT_ALLOW_CLIPPING_BOUNDARIES) != 0;
   rb->remove_doubles = (lmd->calculation_flags & LRT_REMOVE_DOUBLES) != 0;
-  rb->floating_as_contour = (lmd->calculation_flags & LRT_FLOATING_AS_CONTOUR) != 0;
-  rb->chain_floating_edges = (lmd->calculation_flags & LRT_CHAIN_FLOATING_EDGES) != 0;
-  rb->chain_geometry_space = (lmd->calculation_flags & LRT_CHAIN_GEOMETRY_SPACE) != 0;
+  rb->use_loose_as_contour = (lmd->calculation_flags & LRT_LOOSE_AS_CONTOUR) != 0;
+  rb->use_loose_edge_chain = (lmd->calculation_flags & LRT_CHAIN_LOOSE_EDGES) != 0;
+  rb->use_geometry_space_chain = (lmd->calculation_flags & LRT_CHAIN_GEOMETRY_SPACE) != 0;
 
   /* See lineart_edge_from_triangle() for how this option may impact performance. */
   rb->allow_overlapping_edges = (lmd->calculation_flags & LRT_ALLOW_OVERLAPPING_EDGES) != 0;
@@ -3049,7 +3049,7 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->use_material = (edge_types & LRT_EDGE_FLAG_MATERIAL) != 0;
   rb->use_edge_marks = (edge_types & LRT_EDGE_FLAG_EDGE_MARK) != 0;
   rb->use_intersections = (edge_types & LRT_EDGE_FLAG_INTERSECTION) != 0;
-  rb->use_floating = (edge_types & LRT_EDGE_FLAG_FLOATING) != 0;
+  rb->use_loose = (edge_types & LRT_EDGE_FLAG_LOOSE) != 0;
 
   rb->filter_face_mark_invert = (lmd->calculation_flags & LRT_FILTER_FACE_MARK_INVERT) != 0;
   rb->filter_face_mark = (lmd->calculation_flags & LRT_FILTER_FACE_MARK) != 0;
@@ -4168,7 +4168,7 @@ static int UNUSED_FUNCTION(lineart_rb_edge_types)(LineartRenderBuffer *rb)
   types |= rb->use_material ? LRT_EDGE_FLAG_MATERIAL : 0;
   types |= rb->use_edge_marks ? LRT_EDGE_FLAG_EDGE_MARK : 0;
   types |= rb->use_intersections ? LRT_EDGE_FLAG_INTERSECTION : 0;
-  types |= rb->use_floating ? LRT_EDGE_FLAG_FLOATING : 0;
+  types |= rb->use_loose ? LRT_EDGE_FLAG_LOOSE : 0;
   return types;
 }
 
@@ -4184,8 +4184,9 @@ static void lineart_gpencil_generate(LineartCache *cache,
                                      Object *source_object,
                                      Collection *source_collection,
                                      int types,
-                                     uchar material_mask_flags,
+                                     uchar mask_switches,
                                      uchar material_mask_bits,
+                                     uchar intersection_mask,
                                      short thickness,
                                      float opacity,
                                      const char *source_vgname,
@@ -4241,14 +4242,26 @@ static void lineart_gpencil_generate(LineartCache *cache,
         continue;
       }
     }
-    if (material_mask_flags & LRT_GPENCIL_MATERIAL_MASK_ENABLE) {
-      if (material_mask_flags & LRT_GPENCIL_MATERIAL_MASK_MATCH) {
+    if (mask_switches & LRT_GPENCIL_MATERIAL_MASK_ENABLE) {
+      if (mask_switches & LRT_GPENCIL_MATERIAL_MASK_MATCH) {
         if (ec->material_mask_bits != material_mask_bits) {
           continue;
         }
       }
       else {
         if (!(ec->material_mask_bits & material_mask_bits)) {
+          continue;
+        }
+      }
+    }
+    if (types & LRT_EDGE_FLAG_INTERSECTION) {
+      if (mask_switches & LRT_GPENCIL_INTERSECTION_MATCH) {
+        if (ec->intersection_mask != intersection_mask) {
+          continue;
+        }
+      }
+      else {
+        if ((intersection_mask) && !(ec->intersection_mask & intersection_mask)) {
           continue;
         }
       }
@@ -4347,8 +4360,9 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   int level_end,
                                   int mat_nr,
                                   short edge_types,
-                                  uchar material_mask_flags,
+                                  uchar mask_switches,
                                   uchar material_mask_bits,
+                                  uchar intersection_mask,
                                   short thickness,
                                   float opacity,
                                   const char *source_vgname,
@@ -4396,8 +4410,9 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                            source_object,
                            source_collection,
                            use_types,
-                           material_mask_flags,
+                           mask_switches,
                            material_mask_bits,
+                           intersection_mask,
                            thickness,
                            opacity,
                            source_vgname,

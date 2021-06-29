@@ -257,9 +257,10 @@ static SplinePtr spline_from_dna_poly(const Nurb &nurb)
   return spline;
 }
 
-std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
+std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve,
+                                                     const ListBase &nurbs_list)
 {
-  Vector<const Nurb *> nurbs(*BKE_curve_nurbs_get(&const_cast<Curve &>(dna_curve)));
+  Vector<const Nurb *> nurbs(nurbs_list);
 
   std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
   curve->resize(nurbs.size());
@@ -293,6 +294,11 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
   }
 
   return curve;
+}
+
+std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
+{
+  return curve_eval_from_dna_curve(dna_curve, *BKE_curve_nurbs_get_for_read(&dna_curve));
 }
 
 /**

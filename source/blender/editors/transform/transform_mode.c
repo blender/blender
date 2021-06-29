@@ -68,7 +68,7 @@ int transform_mode_really_used(bContext *C, int mode)
   return mode;
 }
 
-bool transdata_check_local_center(TransInfo *t, short around)
+bool transdata_check_local_center(const TransInfo *t, short around)
 {
   return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
           ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
@@ -248,7 +248,7 @@ void protectedSizeBits(short protectflag, float size[3])
 /** \name Transform Limits
  * \{ */
 
-void constraintTransLim(TransInfo *t, TransData *td)
+void constraintTransLim(const TransInfo *t, TransData *td)
 {
   if (td->con) {
     const bConstraintTypeInfo *ctiLoc = BKE_constraint_typeinfo_from_type(
@@ -359,7 +359,7 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
   }
 }
 
-static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
+static void constraintRotLim(const TransInfo *UNUSED(t), TransData *td)
 {
   if (td->con) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_ROTLIMIT);
@@ -432,7 +432,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
   }
 }
 
-void constraintSizeLim(TransInfo *t, TransData *td)
+void constraintSizeLim(const TransInfo *t, TransData *td)
 {
   if (td->con && td->ext) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_from_type(CONSTRAINT_TYPE_SIZELIMIT);
@@ -557,8 +557,8 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
  *
  * Protected axis and other transform settings are taken into account.
  */
-void ElementRotation_ex(TransInfo *t,
-                        TransDataContainer *tc,
+void ElementRotation_ex(const TransInfo *t,
+                        const TransDataContainer *tc,
                         TransData *td,
                         const float mat[3][3],
                         const float *center)
@@ -810,8 +810,11 @@ void ElementRotation_ex(TransInfo *t,
   }
 }
 
-void ElementRotation(
-    TransInfo *t, TransDataContainer *tc, TransData *td, float mat[3][3], const short around)
+void ElementRotation(const TransInfo *t,
+                     const TransDataContainer *tc,
+                     TransData *td,
+                     const float mat[3][3],
+                     const short around)
 {
   const float *center;
 
@@ -921,7 +924,10 @@ static void TransMat3ToSize(const float mat[3][3], const float smat[3][3], float
   }
 }
 
-void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, float mat[3][3])
+void ElementResize(const TransInfo *t,
+                   const TransDataContainer *tc,
+                   TransData *td,
+                   const float mat[3][3])
 {
   float tmat[3][3], smat[3][3], center[3];
   float vec[3];
@@ -1014,17 +1020,31 @@ void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, float ma
     sub_v3_v3(vec, td->center);
   }
 
-  /* grease pencil falloff */
+  /* Grease pencil falloff.
+   *
+   * FIXME: This is bad on multiple levels!
+   *
+   * - #applyNumInput is not intended to be run for every element,
+   *   this writes back into the number input in a way that doesn't make sense to run many times.
+   *
+   * - Writing into #TransInfo should be avoided since it means order of operations
+   *   may impact the result and isn't thread-safe.
+   *
+   *   Operating on copies as a temporary solution.
+   */
   if (t->options & CTX_GPENCIL_STROKES) {
     bGPDstroke *gps = (bGPDstroke *)td->extra;
     mul_v3_fl(vec, td->factor * gps->runtime.multi_frame_falloff);
 
-    /* scale stroke thickness */
+    /* Scale stroke thickness. */
     if (td->val) {
-      transform_snap_increment(t, t->values_final);
-      applyNumInput(&t->num, t->values_final);
+      NumInput num_evil = t->num;
+      float values_final_evil[4];
+      copy_v4_v4(values_final_evil, t->values_final);
+      transform_snap_increment(t, values_final_evil);
+      applyNumInput(&num_evil, values_final_evil);
 
-      float ratio = t->values_final[0];
+      float ratio = values_final_evil[0];
       *td->val = td->ival * ratio * gps->runtime.multi_frame_falloff;
       CLAMP_MIN(*td->val, 0.001f);
     }
@@ -1044,6 +1064,7 @@ void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, float ma
 
   constraintTransLim(t, td);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

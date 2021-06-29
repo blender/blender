@@ -128,7 +128,8 @@ struct Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference);
 /* These functions construct a new Mesh,
  * contrary to BKE_mesh_from_nurbs which modifies ob itself. */
 struct Mesh *BKE_mesh_new_nomain_from_curve(struct Object *ob);
-struct Mesh *BKE_mesh_new_nomain_from_curve_displist(struct Object *ob, struct ListBase *dispbase);
+struct Mesh *BKE_mesh_new_nomain_from_curve_displist(const struct Object *ob,
+                                                     const struct ListBase *dispbase);
 
 bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me);
 bool BKE_mesh_clear_facemap_customdata(struct Mesh *me);
@@ -151,7 +152,7 @@ int BKE_mesh_nurbs_to_mdata(struct Object *ob,
                             struct MPoly **r_allpoly,
                             int *r_totloop,
                             int *r_totpoly);
-int BKE_mesh_nurbs_displist_to_mdata(struct Object *ob,
+int BKE_mesh_nurbs_displist_to_mdata(const struct Object *ob,
                                      const struct ListBase *dispbase,
                                      struct MVert **r_allvert,
                                      int *r_totvert,

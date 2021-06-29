@@ -1634,7 +1634,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           }
 
           /* Reset pointer pen info if pen device has left tracking range. */
-          if (pointerInfo.pointerType == PT_PEN && !IS_POINTER_INRANGE_WPARAM(wParam)) {
+          if (pointerInfo.pointerType == PT_PEN) {
             window->resetPointerPenInfo();
             eventHandled = true;
           }

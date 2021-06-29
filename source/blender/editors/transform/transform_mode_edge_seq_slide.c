@@ -23,8 +23,10 @@
 
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
+#include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -36,6 +38,10 @@
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
+
+#include "SEQ_iterator.h"
+#include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "BLT_translation.h"
 
@@ -102,13 +108,11 @@ static void applySeqSlideValue(TransInfo *t, const float val[2])
   }
 }
 
-static void applySeqSlide(TransInfo *t, const int mval[2])
+static void applySeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
   float values_final[3] = {0.0f};
 
-  snapSequenceBounds(t, mval);
-  transform_convert_sequencer_channel_clamp(t);
   if (applyNumInput(&t->num, values_final)) {
     if (t->con.mode & CON_APPLY) {
       if (t->con.mode & CON_AXIS0) {
@@ -119,11 +123,14 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
       }
     }
   }
-  else if (t->con.mode & CON_APPLY) {
-    t->con.applyVec(t, NULL, NULL, t->values, values_final);
-  }
   else {
     copy_v2_v2(values_final, t->values);
+    applySnapping(t, values_final);
+    transform_convert_sequencer_channel_clamp(t, values_final);
+
+    if (t->con.mode & CON_APPLY) {
+      t->con.applyVec(t, NULL, NULL, t->values, values_final);
+    }
   }
 
   values_final[0] = floorf(values_final[0] + 0.5f);
@@ -142,6 +149,7 @@ void initSeqSlide(TransInfo *t)
 {
   t->transform = applySeqSlide;
   t->handleEvent = seq_slide_handleEvent;
+  t->tsnap.applySnap = transform_snap_sequencer_apply_translate;
 
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 
@@ -164,4 +172,5 @@ void initSeqSlide(TransInfo *t)
     t->custom.mode.data = (void *)WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
   }
 }
+
 /** \} */
