@@ -1463,6 +1463,10 @@ static uint16_t lineart_identify_feature_line(LineartRenderBuffer *rb,
     lr = e->l->radial_next;
   }
 
+  if (!ll && !lr) {
+    return LRT_EDGE_FLAG_LOOSE;
+  }
+
   FreestyleEdge *fel, *fer;
   bool face_mark_filtered = false;
   uint16_t edge_flag_result = 0;
@@ -1563,6 +1567,9 @@ static void lineart_add_edge_to_list(LineartRenderBuffer *rb, LineartEdge *e)
     case LRT_EDGE_FLAG_INTERSECTION:
       lineart_prepend_edge_direct(&rb->intersection.first, e);
       break;
+    case LRT_EDGE_FLAG_LOOSE:
+      lineart_prepend_edge_direct(&rb->floating.first, e);
+      break;
   }
 }
 
@@ -1590,7 +1597,7 @@ static void lineart_add_edge_to_list_thread(LineartObjectInfo *obi, LineartEdge 
     case LRT_EDGE_FLAG_INTERSECTION:
       LRT_ASSIGN_EDGE(intersection);
       break;
-    case LRT_EDGE_FLAG_FLOATING:
+    case LRT_EDGE_FLAG_LOOSE:
       LRT_ASSIGN_EDGE(floating);
       break;
   }
@@ -1632,7 +1639,7 @@ static int lineart_edge_type_duplication_count(char eflag)
 {
   int count = 0;
   /* See eLineartEdgeFlag for details. */
-  for (int i = 0; i < LRT_EDGE_FLAG_FLOATING; i++) {
+  for (int i = 0; i < 6; i++) {
     if (eflag & (1 << i)) {
       count++;
     }
@@ -1868,7 +1875,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
     bool edge_added = false;
 
     /* See eLineartEdgeFlag for details. */
-    for (int flag_bit = 0; flag_bit < LRT_EDGE_FLAG_FLOATING; flag_bit++) {
+    for (int flag_bit = 0; flag_bit < 6; flag_bit++) {
       char use_type = 1 << flag_bit;
       if (!(use_type & e->head.hflag)) {
         continue;
@@ -3033,9 +3040,9 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->fuzzy_everything = (lmd->calculation_flags & LRT_EVERYTHING_AS_CONTOUR) != 0;
   rb->allow_boundaries = (lmd->calculation_flags & LRT_ALLOW_CLIPPING_BOUNDARIES) != 0;
   rb->remove_doubles = (lmd->calculation_flags & LRT_REMOVE_DOUBLES) != 0;
-  rb->floating_as_contour = (lmd->calculation_flags & LRT_FLOATING_AS_CONTOUR) != 0;
-  rb->chain_floating_edges = (lmd->calculation_flags & LRT_CHAIN_FLOATING_EDGES) != 0;
-  rb->chain_geometry_space = (lmd->calculation_flags & LRT_CHAIN_GEOMETRY_SPACE) != 0;
+  rb->use_loose_as_contour = (lmd->calculation_flags & LRT_LOOSE_AS_CONTOUR) != 0;
+  rb->use_loose_edge_chain = (lmd->calculation_flags & LRT_CHAIN_LOOSE_EDGES) != 0;
+  rb->use_geometry_space_chain = (lmd->calculation_flags & LRT_CHAIN_GEOMETRY_SPACE) != 0;
 
   /* See lineart_edge_from_triangle() for how this option may impact performance. */
   rb->allow_overlapping_edges = (lmd->calculation_flags & LRT_ALLOW_OVERLAPPING_EDGES) != 0;
@@ -3049,7 +3056,7 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->use_material = (edge_types & LRT_EDGE_FLAG_MATERIAL) != 0;
   rb->use_edge_marks = (edge_types & LRT_EDGE_FLAG_EDGE_MARK) != 0;
   rb->use_intersections = (edge_types & LRT_EDGE_FLAG_INTERSECTION) != 0;
-  rb->use_floating = (edge_types & LRT_EDGE_FLAG_FLOATING) != 0;
+  rb->use_loose = (edge_types & LRT_EDGE_FLAG_LOOSE) != 0;
 
   rb->filter_face_mark_invert = (lmd->calculation_flags & LRT_FILTER_FACE_MARK_INVERT) != 0;
   rb->filter_face_mark = (lmd->calculation_flags & LRT_FILTER_FACE_MARK) != 0;
@@ -4168,7 +4175,7 @@ static int UNUSED_FUNCTION(lineart_rb_edge_types)(LineartRenderBuffer *rb)
   types |= rb->use_material ? LRT_EDGE_FLAG_MATERIAL : 0;
   types |= rb->use_edge_marks ? LRT_EDGE_FLAG_EDGE_MARK : 0;
   types |= rb->use_intersections ? LRT_EDGE_FLAG_INTERSECTION : 0;
-  types |= rb->use_floating ? LRT_EDGE_FLAG_FLOATING : 0;
+  types |= rb->use_loose ? LRT_EDGE_FLAG_LOOSE : 0;
   return types;
 }
 

@@ -2812,9 +2812,9 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
       prop, "Remove Doubles", "Remove doubles from the source geometry before generating stokes");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "floating_as_contour", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_FLOATING_AS_CONTOUR);
-  RNA_def_property_ui_text(prop, "Floating As Contour", "Floating edges will have contour type");
+  prop = RNA_def_property(srna, "use_loose_as_contour", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_LOOSE_AS_CONTOUR);
+  RNA_def_property_ui_text(prop, "Loose As Contour", "Loose edges will have contour type");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "invert_source_vertex_group", PROP_BOOLEAN, PROP_NONE);
@@ -2853,19 +2853,18 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 0.3f);
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "chain_floating_edges", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_CHAIN_FLOATING_EDGES);
-  RNA_def_property_ui_text(
-      prop, "Chain Floating Edges", "Allow floating edges to be chained together");
+  prop = RNA_def_property(srna, "use_loose_edge_chain", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_CHAIN_LOOSE_EDGES);
+  RNA_def_property_ui_text(prop, "Chain Loose Edges", "Allow loose edges to be chained together");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "chain_geometry_space", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_geometry_space_chain", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_CHAIN_GEOMETRY_SPACE);
   RNA_def_property_ui_text(
       prop, "Use Geometry Space", "Use geometry distance for chaining instead of image space");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "allow_overlap_edge_types", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_overlap_edge_type_support", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_ALLOW_OVERLAP_EDGE_TYPES);
   RNA_def_property_ui_text(prop,
                            "Overlapping Edge Types",
@@ -2898,9 +2897,9 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use Contour", "Generate strokes from contours lines");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "use_floating", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "edge_types", LRT_EDGE_FLAG_FLOATING);
-  RNA_def_property_ui_text(prop, "Use Floating", "Generate strokes from floating edges");
+  prop = RNA_def_property(srna, "use_loose", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "edge_types", LRT_EDGE_FLAG_LOOSE);
+  RNA_def_property_ui_text(prop, "Use Loose", "Generate strokes from loose edges");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_crease", PROP_BOOLEAN, PROP_NONE);

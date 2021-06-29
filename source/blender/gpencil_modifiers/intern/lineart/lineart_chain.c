@@ -729,8 +729,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
       }
     }
 
-    float new_len = rb->chain_geometry_space ? len_v3v3(cre->eci->gpos, eci->gpos) :
-                                               len_v2v2(cre->eci->pos, eci->pos);
+    float new_len = rb->use_geometry_space_chain ? len_v3v3(cre->eci->gpos, eci->gpos) :
+                                                   len_v2v2(cre->eci->pos, eci->pos);
     if (new_len < dist) {
       closest_cre = cre;
       dist = new_len;
@@ -801,7 +801,7 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
     }
     BLI_addtail(&rb->chains, ec);
 
-    if (ec->type == LRT_EDGE_FLAG_FLOATING && (!rb->chain_floating_edges)) {
+    if (ec->type == LRT_EDGE_FLAG_LOOSE && (!rb->use_loose_edge_chain)) {
       continue;
     }
 
