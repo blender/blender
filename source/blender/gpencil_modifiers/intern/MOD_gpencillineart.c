@@ -301,26 +301,6 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   else {
     /* Source is Scene. */
   }
-
-  uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Edge Types"));
-
-  uiItemR(col, ptr, "use_contour", 0, IFACE_("Contour"), ICON_NONE);
-  uiItemR(col, ptr, "use_loose", 0, IFACE_("Loose"), ICON_NONE);
-  uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
-  uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
-  uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
-
-  uiLayout *sub = uiLayoutRowWithHeading(col, false, IFACE_("Crease"));
-  uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
-  uiLayout *entry = uiLayoutRow(sub, false);
-  uiLayoutSetEnabled(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
-  if (use_cache && !is_first) {
-    uiItemL(entry, IFACE_("Angle Cached"), ICON_INFO);
-  }
-  else {
-    uiItemR(entry, ptr, "crease_threshold", UI_ITEM_R_SLIDER, " ", ICON_NONE);
-  }
-
   uiItemPointerR(layout, ptr, "target_layer", &obj_data_ptr, "layers", NULL, ICON_GREASEPENCIL);
 
   /* Material has to be used by grease pencil object already, it was possible to assign materials
@@ -343,6 +323,42 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
                  material_valid ? ICON_SHADING_TEXTURE : ICON_ERROR);
 
   gpencil_modifier_panel_end(layout, ptr);
+}
+
+static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+  PointerRNA ob_ptr;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
+
+  const bool is_baked = RNA_boolean_get(ptr, "is_baked");
+  const bool use_cache = RNA_boolean_get(ptr, "use_cached_result");
+  const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
+
+  uiLayoutSetEnabled(layout, !is_baked);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayout *col = uiLayoutColumn(layout, true);
+
+  uiItemR(col, ptr, "use_contour", 0, IFACE_("Contour"), ICON_NONE);
+  uiItemR(col, ptr, "use_loose", 0, IFACE_("Loose"), ICON_NONE);
+  uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
+  uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
+  uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
+
+  uiLayout *sub = uiLayoutRowWithHeading(col, false, IFACE_("Crease"));
+  uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
+  uiLayout *entry = uiLayoutRow(sub, false);
+  uiLayoutSetEnabled(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
+  if (use_cache && !is_first) {
+    uiItemL(entry, IFACE_("Angle Cached"), ICON_INFO);
+  }
+  else {
+    uiItemR(entry, ptr, "crease_threshold", UI_ITEM_R_SLIDER, " ", ICON_NONE);
+  }
+
+  uiItemR(layout, ptr, "use_overlap_edge_type_support", 0, IFACE_("Allow Overlap"), ICON_NONE);
 }
 
 static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -369,7 +385,6 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "use_edge_overlap", 0, IFACE_("Overlapping Edges As Contour"), ICON_NONE);
   uiItemR(col, ptr, "use_object_instances", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_clip_plane_boundaries", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "use_overlap_edge_type_support", 0, NULL, ICON_NONE);
 }
 
 static void style_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -599,6 +614,8 @@ static void panelRegister(ARegionType *region_type)
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Lineart, panel_draw);
 
+  gpencil_modifier_subpanel_register(
+      region_type, "edge_types", "Edge Types", NULL, edge_types_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
       region_type, "geometry", "Geometry Processing", NULL, options_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
