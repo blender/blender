@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include "BLI_math.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -35,6 +36,140 @@
 #include "transform.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Rotation) Matrix Cache
+ * \{ */
+
+struct RotateMatrixCache {
+  /**
+   * Counter for needed updates (when we need to update to non-default matrix,
+   * we also need another update on next iteration to go back to default matrix,
+   * hence the '2' value used here, instead of a mere boolean).
+   */
+  short do_update_matrix;
+  float mat[3][3];
+};
+
+static void rmat_cache_init(struct RotateMatrixCache *rmc, const float angle, const float axis[3])
+{
+  axis_angle_normalized_to_mat3(rmc->mat, axis, angle);
+  rmc->do_update_matrix = 0;
+}
+
+static void rmat_cache_reset(struct RotateMatrixCache *rmc)
+{
+  rmc->do_update_matrix = 2;
+}
+
+static void rmat_cache_update(struct RotateMatrixCache *rmc,
+                              const float axis[3],
+                              const float angle)
+{
+  if (rmc->do_update_matrix > 0) {
+    axis_angle_normalized_to_mat3(rmc->mat, axis, angle);
+    rmc->do_update_matrix--;
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Rotation) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_Rotate {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  const float axis[3];
+  float angle;
+  float angle_step;
+  bool is_large_rotation;
+};
+
+struct TransDataArgs_RotateTLS {
+  struct RotateMatrixCache rmc;
+};
+
+static void transdata_elem_rotate(const TransInfo *t,
+                                  const TransDataContainer *tc,
+                                  TransData *td,
+                                  const float axis[3],
+                                  const float angle,
+                                  const float angle_step,
+                                  const bool is_large_rotation,
+                                  struct RotateMatrixCache *rmc)
+{
+  float axis_buffer[3];
+  const float *axis_final = axis;
+
+  float angle_final = angle;
+  if (t->con.applyRot) {
+    copy_v3_v3(axis_buffer, axis);
+    axis_final = axis_buffer;
+    t->con.applyRot(t, tc, td, axis_buffer, NULL);
+    angle_final = angle * td->factor;
+    /* Even though final angle might be identical to orig value,
+     * we have to update the rotation matrix in that case... */
+    rmat_cache_reset(rmc);
+  }
+  else if (t->flag & T_PROP_EDIT) {
+    angle_final = angle * td->factor;
+  }
+
+  /* Rotation is very likely to be above 180°, we need to do rotation by steps.
+   * Note that this is only needed when doing 'absolute' rotation
+   * (i.e. from initial rotation again, typically when using numinput).
+   * regular incremental rotation (from mouse/widget/...) will be called often enough,
+   * hence steps are small enough to be properly handled without that complicated trick.
+   * Note that we can only do that kind of stepped rotation if we have initial rotation values
+   * (and access to some actual rotation value storage).
+   * Otherwise, just assume it's useless (e.g. in case of mesh/UV/etc. editing).
+   * Also need to be in Euler rotation mode, the others never allow more than one turn anyway.
+   */
+  if (is_large_rotation && td->ext != NULL && td->ext->rotOrder == ROT_MODE_EUL) {
+    copy_v3_v3(td->ext->rot, td->ext->irot);
+    for (float angle_progress = angle_step; fabsf(angle_progress) < fabsf(angle_final);
+         angle_progress += angle_step) {
+      axis_angle_normalized_to_mat3(rmc->mat, axis_final, angle_progress);
+      ElementRotation(t, tc, td, rmc->mat, t->around);
+    }
+    rmat_cache_reset(rmc);
+  }
+  else if (angle_final != angle) {
+    rmat_cache_reset(rmc);
+  }
+
+  rmat_cache_update(rmc, axis_final, angle_final);
+
+  ElementRotation(t, tc, td, rmc->mat, t->around);
+}
+
+static void transdata_elem_rotate_fn(void *__restrict iter_data_v,
+                                     const int iter,
+                                     const TaskParallelTLS *__restrict tls)
+{
+  struct TransDataArgs_Rotate *data = iter_data_v;
+  struct TransDataArgs_RotateTLS *tls_data = tls->userdata_chunk;
+
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_rotate(data->t,
+                        data->tc,
+                        td,
+                        data->axis,
+                        data->angle,
+                        data->angle_step,
+                        data->is_large_rotation,
+                        &tls_data->rmc);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Rotation)
@@ -115,12 +250,9 @@ static float large_rotation_limit(float angle)
 
 static void applyRotationValue(TransInfo *t,
                                float angle,
-                               float axis[3],
+                               const float axis[3],
                                const bool is_large_rotation)
 {
-  float mat[3][3];
-  int i;
-
   const float angle_sign = angle < 0.0f ? -1.0f : 1.0f;
   /* We cannot use something too close to 180°, or 'continuous' rotation may fail
    * due to computing error... */
@@ -132,60 +264,37 @@ static void applyRotationValue(TransInfo *t,
     angle = large_rotation_limit(angle);
   }
 
-  axis_angle_normalized_to_mat3(mat, axis, angle);
-  /* Counter for needed updates (when we need to update to non-default matrix,
-   * we also need another update on next iteration to go back to default matrix,
-   * hence the '2' value used here, instead of a mere boolean). */
-  short do_update_matrix = 0;
+  struct RotateMatrixCache rmc = {0};
+  rmat_cache_init(&rmc, angle, axis);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      if (td->flag & TD_SKIP) {
-        continue;
-      }
-
-      float angle_final = angle;
-      if (t->con.applyRot) {
-        t->con.applyRot(t, tc, td, axis, NULL);
-        angle_final = angle * td->factor;
-        /* Even though final angle might be identical to orig value,
-         * we have to update the rotation matrix in that case... */
-        do_update_matrix = 2;
-      }
-      else if (t->flag & T_PROP_EDIT) {
-        angle_final = angle * td->factor;
-      }
-
-      /* Rotation is very likely to be above 180°, we need to do rotation by steps.
-       * Note that this is only needed when doing 'absolute' rotation
-       * (i.e. from initial rotation again, typically when using numinput).
-       * regular incremental rotation (from mouse/widget/...) will be called often enough,
-       * hence steps are small enough to be properly handled without that complicated trick.
-       * Note that we can only do that kind of stepped rotation if we have initial rotation values
-       * (and access to some actual rotation value storage).
-       * Otherwise, just assume it's useless (e.g. in case of mesh/UV/etc. editing).
-       * Also need to be in Euler rotation mode, the others never allow more than one turn anyway.
-       */
-      if (is_large_rotation && td->ext != NULL && td->ext->rotOrder == ROT_MODE_EUL) {
-        copy_v3_v3(td->ext->rot, td->ext->irot);
-        for (float angle_progress = angle_step; fabsf(angle_progress) < fabsf(angle_final);
-             angle_progress += angle_step) {
-          axis_angle_normalized_to_mat3(mat, axis, angle_progress);
-          ElementRotation(t, tc, td, mat, t->around);
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (int i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
         }
-        do_update_matrix = 2;
+        transdata_elem_rotate(t, tc, td, axis, angle, angle_step, is_large_rotation, &rmc);
       }
-      else if (angle_final != angle) {
-        do_update_matrix = 2;
-      }
+    }
+    else {
+      struct TransDataArgs_Rotate data = {
+          .t = t,
+          .tc = tc,
+          .axis = {UNPACK3(axis)},
+          .angle = angle,
+          .angle_step = angle_step,
+          .is_large_rotation = is_large_rotation,
+      };
+      struct TransDataArgs_RotateTLS tls_data = {
+          .rmc = rmc,
+      };
 
-      if (do_update_matrix > 0) {
-        axis_angle_normalized_to_mat3(mat, axis, angle_final);
-        do_update_matrix--;
-      }
-
-      ElementRotation(t, tc, td, mat, t->around);
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      settings.userdata_chunk = &tls_data;
+      settings.userdata_chunk_size = sizeof(tls_data);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_rotate_fn, &settings);
     }
   }
 }

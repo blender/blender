@@ -25,6 +25,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -38,6 +39,50 @@
 #include "transform.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Bevel Weight) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_BevelWeight {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  float weight;
+};
+
+static void transdata_elem_bevel_weight(const TransInfo *UNUSED(t),
+                                        const TransDataContainer *UNUSED(tc),
+                                        TransData *td,
+                                        const float weight)
+{
+  if (td->val == NULL) {
+    return;
+  }
+  *td->val = td->ival + weight * td->factor;
+  if (*td->val < 0.0f) {
+    *td->val = 0.0f;
+  }
+  if (*td->val > 1.0f) {
+    *td->val = 1.0f;
+  }
+}
+
+static void transdata_elem_bevel_weight_fn(void *__restrict iter_data_v,
+                                           const int iter,
+                                           const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_BevelWeight *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_bevel_weight(data->t, data->tc, td, data->weight);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Bevel Weight)
@@ -83,17 +128,24 @@ static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      if (td->val) {
-        *td->val = td->ival + weight * td->factor;
-        if (*td->val < 0.0f) {
-          *td->val = 0.0f;
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
         }
-        if (*td->val > 1.0f) {
-          *td->val = 1.0f;
-        }
+        transdata_elem_bevel_weight(t, tc, td, weight);
       }
+    }
+    else {
+      struct TransDataArgs_BevelWeight data = {
+          .t = t,
+          .tc = tc,
+          .weight = weight,
+      };
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_bevel_weight_fn, &settings);
     }
   }
 

@@ -25,6 +25,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -38,6 +39,51 @@
 #include "transform.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Rotation - Trackball) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_Trackball {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  const float axis[3];
+  const float angle;
+  float mat[3][3];
+};
+
+static void transdata_elem_trackball(const TransInfo *t,
+                                     const TransDataContainer *tc,
+                                     TransData *td,
+                                     const float axis[3],
+                                     const float angle,
+                                     const float mat[3][3])
+{
+  float mat_buf[3][3];
+  const float(*mat_final)[3] = mat;
+  if (t->flag & T_PROP_EDIT) {
+    axis_angle_normalized_to_mat3(mat_buf, axis, td->factor * angle);
+    mat_final = mat_buf;
+  }
+  ElementRotation(t, tc, td, mat_final, t->around);
+}
+
+static void transdata_elem_trackball_fn(void *__restrict iter_data_v,
+                                        const int iter,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_Trackball *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_trackball(data->t, data->tc, td, data->axis, data->angle, data->mat);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Rotation - Trackball)
@@ -59,17 +105,27 @@ static void applyTrackballValue(TransInfo *t,
   axis_angle_normalized_to_mat3(mat, axis, angle);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      if (td->flag & TD_SKIP) {
-        continue;
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
+        }
+        transdata_elem_trackball(t, tc, td, axis, angle, mat);
       }
+    }
+    else {
+      struct TransDataArgs_Trackball data = {
+          .t = t,
+          .tc = tc,
+          .axis = {UNPACK3(axis)},
+          .angle = angle,
+      };
+      copy_m3_m3(data.mat, mat);
 
-      if (t->flag & T_PROP_EDIT) {
-        axis_angle_normalized_to_mat3(mat, axis, td->factor * angle);
-      }
-
-      ElementRotation(t, tc, td, mat, t->around);
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_trackball_fn, &settings);
     }
   }
 }

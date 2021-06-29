@@ -29,6 +29,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -47,6 +48,121 @@
 #include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Translation) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_Translate {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  const float tc_pivot[3];
+  const float vec[3];
+  bool apply_snap_align_rotation;
+  bool is_valid_snapping_normal;
+};
+
+static void transdata_elem_translate(const TransInfo *t,
+                                     const TransDataContainer *tc,
+                                     TransData *td,
+                                     const float pivot[3],
+                                     const float vec[3],
+                                     const bool apply_snap_align_rotation,
+                                     const bool is_valid_snapping_normal)
+{
+  float rotate_offset[3] = {0};
+  bool use_rotate_offset = false;
+
+  /* Handle snapping rotation before doing the translation. */
+  if (apply_snap_align_rotation) {
+    float mat[3][3];
+
+    if (is_valid_snapping_normal) {
+      const float *original_normal;
+
+      /* In pose mode, we want to align normals with Y axis of bones. */
+      if (t->options & CTX_POSE_BONE) {
+        original_normal = td->axismtx[1];
+      }
+      else {
+        original_normal = td->axismtx[2];
+      }
+
+      rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
+    }
+    else {
+      unit_m3(mat);
+    }
+
+    ElementRotation_ex(t, tc, td, mat, pivot);
+
+    if (td->loc) {
+      use_rotate_offset = true;
+      sub_v3_v3v3(rotate_offset, td->loc, td->iloc);
+    }
+  }
+
+  float tvec[3];
+
+  if (t->con.applyVec) {
+    t->con.applyVec(t, tc, td, vec, tvec);
+  }
+  else {
+    copy_v3_v3(tvec, vec);
+  }
+
+  mul_m3_v3(td->smtx, tvec);
+
+  if (use_rotate_offset) {
+    add_v3_v3(tvec, rotate_offset);
+  }
+
+  if (t->options & CTX_GPENCIL_STROKES) {
+    /* Grease pencil multi-frame falloff. */
+    bGPDstroke *gps = (bGPDstroke *)td->extra;
+    if (gps != NULL) {
+      mul_v3_fl(tvec, td->factor * gps->runtime.multi_frame_falloff);
+    }
+    else {
+      mul_v3_fl(tvec, td->factor);
+    }
+  }
+  else {
+    /* Proportional editing falloff. */
+    mul_v3_fl(tvec, td->factor);
+  }
+
+  protectedTransBits(td->protectflag, tvec);
+
+  if (td->loc) {
+    add_v3_v3v3(td->loc, td->iloc, tvec);
+  }
+
+  constraintTransLim(t, td);
+}
+
+static void transdata_elem_translate_fn(void *__restrict iter_data_v,
+                                        const int iter,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_Translate *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_translate(data->t,
+                           data->tc,
+                           td,
+                           data->tc_pivot,
+                           data->vec,
+                           data->apply_snap_align_rotation,
+                           data->is_valid_snapping_normal);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Translation)
@@ -242,14 +358,13 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
   const bool apply_snap_align_rotation = usingSnappingNormal(t);
-  float tvec[3];
+  const bool is_valid_snapping_normal = apply_snap_align_rotation && validSnappingNormal(t);
 
   /* Ideally "apply_snap_align_rotation" would only be used when a snap point is found:
    * `t->tsnap.status & POINT_INIT` - perhaps this function isn't the best place to apply rotation.
    * However snapping rotation needs to be handled before doing the translation
    * (unless the pivot is also translated). */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-
     float pivot[3];
     if (apply_snap_align_rotation) {
       copy_v3_v3(pivot, t->tsnap.snapTarget);
@@ -259,79 +374,28 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       }
     }
 
-    TransData *td = tc->data;
-    for (int i = 0; i < tc->data_len; i++, td++) {
-      if (td->flag & TD_SKIP) {
-        continue;
-      }
-
-      float rotate_offset[3] = {0};
-      bool use_rotate_offset = false;
-
-      /* Handle snapping rotation before doing the translation. */
-      if (apply_snap_align_rotation) {
-        float mat[3][3];
-
-        if (validSnappingNormal(t)) {
-          const float *original_normal;
-
-          /* In pose mode, we want to align normals with Y axis of bones. */
-          if (t->options & CTX_POSE_BONE) {
-            original_normal = td->axismtx[1];
-          }
-          else {
-            original_normal = td->axismtx[2];
-          }
-
-          rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (int i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
         }
-        else {
-          unit_m3(mat);
-        }
-
-        ElementRotation_ex(t, tc, td, mat, pivot);
-
-        if (td->loc) {
-          use_rotate_offset = true;
-          sub_v3_v3v3(rotate_offset, td->loc, td->iloc);
-        }
+        transdata_elem_translate(
+            t, tc, td, pivot, vec, apply_snap_align_rotation, is_valid_snapping_normal);
       }
-
-      if (t->con.applyVec) {
-        t->con.applyVec(t, tc, td, vec, tvec);
-      }
-      else {
-        copy_v3_v3(tvec, vec);
-      }
-
-      mul_m3_v3(td->smtx, tvec);
-
-      if (use_rotate_offset) {
-        add_v3_v3(tvec, rotate_offset);
-      }
-
-      if (t->options & CTX_GPENCIL_STROKES) {
-        /* Grease pencil multi-frame falloff. */
-        bGPDstroke *gps = (bGPDstroke *)td->extra;
-        if (gps != NULL) {
-          mul_v3_fl(tvec, td->factor * gps->runtime.multi_frame_falloff);
-        }
-        else {
-          mul_v3_fl(tvec, td->factor);
-        }
-      }
-      else {
-        /* Proportional editing falloff. */
-        mul_v3_fl(tvec, td->factor);
-      }
-
-      protectedTransBits(td->protectflag, tvec);
-
-      if (td->loc) {
-        add_v3_v3v3(td->loc, td->iloc, tvec);
-      }
-
-      constraintTransLim(t, td);
+    }
+    else {
+      struct TransDataArgs_Translate data = {
+          .t = t,
+          .tc = tc,
+          .tc_pivot = {UNPACK3(pivot)},
+          .vec = {UNPACK3(vec)},
+          .apply_snap_align_rotation = apply_snap_align_rotation,
+          .is_valid_snapping_normal = is_valid_snapping_normal,
+      };
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_translate_fn, &settings);
     }
   }
 }
