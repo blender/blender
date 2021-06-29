@@ -234,11 +234,10 @@ void transform_snap_sequencer_data_free(TransSeqSnapData *data)
   MEM_freeN(data);
 }
 
-bool transform_snap_sequencer_apply(TransInfo *t, float *vec, float *snap_point)
+bool transform_snap_sequencer_calc(TransInfo *t)
 {
   const TransSeqSnapData *snap_data = t->tsnap.seq_context;
   int best_dist = MAXFRAME, best_target_frame = 0, best_source_frame = 0;
-  *snap_point = 0;
 
   for (int i = 0; i < snap_data->source_snap_point_count; i++) {
     int snap_source_frame = snap_data->source_snap_points[i] + round_fl_to_int(t->values[0]);
@@ -260,7 +259,12 @@ bool transform_snap_sequencer_apply(TransInfo *t, float *vec, float *snap_point)
     return false;
   }
 
-  *snap_point = best_target_frame;
-  *vec += best_target_frame - best_source_frame;
+  t->tsnap.snapPoint[0] = best_target_frame;
+  t->tsnap.snapTarget[0] = best_source_frame;
   return true;
+}
+
+void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec)
+{
+  *vec += t->tsnap.snapPoint[0] - t->tsnap.snapTarget[0];
 }

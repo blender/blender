@@ -149,6 +149,7 @@ void initSeqSlide(TransInfo *t)
 {
   t->transform = applySeqSlide;
   t->handleEvent = seq_slide_handleEvent;
+  t->tsnap.applySnap = transform_snap_sequencer_apply_translate;
 
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 

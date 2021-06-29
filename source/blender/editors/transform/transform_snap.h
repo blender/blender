@@ -84,4 +84,5 @@ float transform_snap_distance_len_squared_fn(TransInfo *t, const float p1[3], co
 /* transform_snap_sequencer.c */
 struct TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t);
 void transform_snap_sequencer_data_free(struct TransSeqSnapData *data);
-bool transform_snap_sequencer_apply(struct TransInfo *t, float *vec, float *snap_point);
+bool transform_snap_sequencer_calc(struct TransInfo *t);
+void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec);

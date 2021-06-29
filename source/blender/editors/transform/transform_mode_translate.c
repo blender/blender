@@ -222,6 +222,9 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
       vec[1] = point[1] - t->tsnap.snapTarget[1];
     }
   }
+  else if (t->spacetype == SPACE_SEQ) {
+    transform_snap_sequencer_apply_translate(t, vec);
+  }
   else {
     if (t->spacetype == SPACE_VIEW3D) {
       if (t->options & CTX_PAINT_CURVE) {

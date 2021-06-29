@@ -499,7 +499,7 @@ void applySnapping(TransInfo *t, float *vec)
 
     t->tsnap.last = current;
 
-    if (t->tsnap.applySnap && validSnap(t)) {
+    if (validSnap(t)) {
       t->tsnap.applySnap(t, vec);
     }
   }
@@ -980,10 +980,10 @@ static void snap_calc_node_fn(TransInfo *t, float *UNUSED(vec))
   }
 }
 
-static void snap_calc_sequencer_fn(TransInfo *t, float *vec)
+static void snap_calc_sequencer_fn(TransInfo *t, float *UNUSED(vec))
 {
   BLI_assert(t->spacetype == SPACE_SEQ);
-  if (transform_snap_sequencer_apply(t, vec, t->tsnap.snapPoint)) {
+  if (transform_snap_sequencer_calc(t)) {
     t->tsnap.status |= (POINT_INIT | TARGET_INIT);
   }
   else {
