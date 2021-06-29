@@ -76,7 +76,10 @@ static bool doForceIncrementSnap(const TransInfo *t);
 static void setSnappingCallback(TransInfo *t);
 
 /* static void CalcSnapGrid(TransInfo *t, float *vec); */
-static void CalcSnapGeometry(TransInfo *t, float *vec);
+static void snap_calc_view3d_fn(TransInfo *t, float *vec);
+static void snap_calc_uv_fn(TransInfo *t, float *vec);
+static void snap_calc_node_fn(TransInfo *t, float *vec);
+static void snap_calc_sequencer_fn(TransInfo *t, float *vec);
 
 static void TargetSnapMedian(TransInfo *t);
 static void TargetSnapCenter(TransInfo *t);
@@ -752,9 +755,17 @@ void freeSnapping(TransInfo *t)
 
 static void setSnappingCallback(TransInfo *t)
 {
-  t->tsnap.calcSnap = CalcSnapGeometry;
-
-  if (t->spacetype == SPACE_SEQ) {
+  if (t->spacetype == SPACE_VIEW3D) {
+    t->tsnap.calcSnap = snap_calc_view3d_fn;
+  }
+  else if (t->spacetype == SPACE_IMAGE && t->obedit_type == OB_MESH) {
+    t->tsnap.calcSnap = snap_calc_uv_fn;
+  }
+  else if (t->spacetype == SPACE_NODE) {
+    t->tsnap.calcSnap = snap_calc_node_fn;
+  }
+  else if (t->spacetype == SPACE_SEQ) {
+    t->tsnap.calcSnap = snap_calc_sequencer_fn;
     /* The target is calculated along with the snap point. */
     return;
   }
@@ -878,97 +889,105 @@ void getSnapPoint(const TransInfo *t, float vec[3])
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Calc Snap (Generic)
+/** \name Calc Snap
  * \{ */
 
-static void CalcSnapGeometry(TransInfo *t, float *vec)
+static void snap_calc_view3d_fn(TransInfo *t, float *UNUSED(vec))
 {
-  if (t->spacetype == SPACE_VIEW3D) {
-    float loc[3];
-    float no[3];
-    float mval[2];
-    bool found = false;
-    short snap_elem = 0;
-    float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
+  BLI_assert(t->spacetype == SPACE_VIEW3D);
+  float loc[3];
+  float no[3];
+  float mval[2];
+  bool found = false;
+  short snap_elem = 0;
+  float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
 
-    mval[0] = t->mval[0];
-    mval[1] = t->mval[1];
+  mval[0] = t->mval[0];
+  mval[1] = t->mval[1];
 
-    if (t->tsnap.mode & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                         SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
-      zero_v3(no); /* objects won't set this */
-      snap_elem = snapObjectsTransform(t, mval, &dist_px, loc, no);
-      found = snap_elem != 0;
+  if (t->tsnap.mode & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
+                       SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+    zero_v3(no); /* objects won't set this */
+    snap_elem = snapObjectsTransform(t, mval, &dist_px, loc, no);
+    found = snap_elem != 0;
+  }
+  if ((found == false) && (t->tsnap.mode & SCE_SNAP_MODE_VOLUME)) {
+    found = peelObjectsTransform(
+        t, mval, (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0, loc, no, NULL);
+
+    if (found) {
+      snap_elem = SCE_SNAP_MODE_VOLUME;
     }
-    if ((found == false) && (t->tsnap.mode & SCE_SNAP_MODE_VOLUME)) {
-      found = peelObjectsTransform(
-          t, mval, (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0, loc, no, NULL);
+  }
 
-      if (found) {
-        snap_elem = SCE_SNAP_MODE_VOLUME;
-      }
-    }
+  if (found == true) {
+    copy_v3_v3(t->tsnap.snapPoint, loc);
+    copy_v3_v3(t->tsnap.snapNormal, no);
 
-    if (found == true) {
-      copy_v3_v3(t->tsnap.snapPoint, loc);
-      copy_v3_v3(t->tsnap.snapNormal, no);
+    t->tsnap.status |= POINT_INIT;
+  }
+  else {
+    t->tsnap.status &= ~POINT_INIT;
+  }
+
+  t->tsnap.snapElem = (char)snap_elem;
+}
+
+static void snap_calc_uv_fn(TransInfo *t, float *UNUSED(vec))
+{
+  BLI_assert(t->spacetype == SPACE_IMAGE && t->obedit_type == OB_MESH);
+  if (t->tsnap.mode & SCE_SNAP_MODE_VERTEX) {
+    float co[2];
+
+    UI_view2d_region_to_view(&t->region->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
+
+    uint objects_len = 0;
+    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+        t->view_layer, NULL, &objects_len);
+
+    float dist_sq = FLT_MAX;
+    if (ED_uvedit_nearest_uv_multi(
+            t->scene, objects, objects_len, co, &dist_sq, t->tsnap.snapPoint)) {
+      t->tsnap.snapPoint[0] *= t->aspect[0];
+      t->tsnap.snapPoint[1] *= t->aspect[1];
 
       t->tsnap.status |= POINT_INIT;
     }
     else {
       t->tsnap.status &= ~POINT_INIT;
     }
-
-    t->tsnap.snapElem = (char)snap_elem;
+    MEM_freeN(objects);
   }
-  else if (t->spacetype == SPACE_IMAGE && t->obedit_type == OB_MESH) {
-    if (t->tsnap.mode & SCE_SNAP_MODE_VERTEX) {
-      float co[2];
+}
 
-      UI_view2d_region_to_view(&t->region->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
+static void snap_calc_node_fn(TransInfo *t, float *UNUSED(vec))
+{
+  BLI_assert(t->spacetype == SPACE_NODE);
+  if (t->tsnap.mode & (SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y)) {
+    float loc[2];
+    float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
+    char node_border;
 
-      uint objects_len = 0;
-      Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-          t->view_layer, NULL, &objects_len);
+    if (snapNodesTransform(t, t->mval, loc, &dist_px, &node_border)) {
+      copy_v2_v2(t->tsnap.snapPoint, loc);
+      t->tsnap.snapNodeBorder = node_border;
 
-      float dist_sq = FLT_MAX;
-      if (ED_uvedit_nearest_uv_multi(
-              t->scene, objects, objects_len, co, &dist_sq, t->tsnap.snapPoint)) {
-        t->tsnap.snapPoint[0] *= t->aspect[0];
-        t->tsnap.snapPoint[1] *= t->aspect[1];
-
-        t->tsnap.status |= POINT_INIT;
-      }
-      else {
-        t->tsnap.status &= ~POINT_INIT;
-      }
-      MEM_freeN(objects);
-    }
-  }
-  else if (t->spacetype == SPACE_NODE) {
-    if (t->tsnap.mode & (SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y)) {
-      float loc[2];
-      float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
-      char node_border;
-
-      if (snapNodesTransform(t, t->mval, loc, &dist_px, &node_border)) {
-        copy_v2_v2(t->tsnap.snapPoint, loc);
-        t->tsnap.snapNodeBorder = node_border;
-
-        t->tsnap.status |= POINT_INIT;
-      }
-      else {
-        t->tsnap.status &= ~POINT_INIT;
-      }
-    }
-  }
-  else if (t->spacetype == SPACE_SEQ) {
-    if (transform_snap_sequencer_apply(t, vec, t->tsnap.snapPoint)) {
-      t->tsnap.status |= (POINT_INIT | TARGET_INIT);
+      t->tsnap.status |= POINT_INIT;
     }
     else {
-      t->tsnap.status &= ~(POINT_INIT | TARGET_INIT);
+      t->tsnap.status &= ~POINT_INIT;
     }
+  }
+}
+
+static void snap_calc_sequencer_fn(TransInfo *t, float *vec)
+{
+  BLI_assert(t->spacetype == SPACE_SEQ);
+  if (transform_snap_sequencer_apply(t, vec, t->tsnap.snapPoint)) {
+    t->tsnap.status |= (POINT_INIT | TARGET_INIT);
+  }
+  else {
+    t->tsnap.status &= ~(POINT_INIT | TARGET_INIT);
   }
 }
 
