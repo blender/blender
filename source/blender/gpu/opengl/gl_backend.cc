@@ -292,7 +292,7 @@ static void detect_workarounds()
    * `GL_INT_2_10_10_10_REV` data type correctly. This data type is used to pack normals and flags.
    * The work around uses `GPU_RGBA16I`.
    */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     const Vector<std::string> matches = {"RX 460",
                                          "RX 470",
                                          "RX 480",
