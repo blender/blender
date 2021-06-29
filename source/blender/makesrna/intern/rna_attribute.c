@@ -162,6 +162,9 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id, bool *r_free)
   const ID_Type id_type = GS(id->name);
   int totitem = 0, a;
 
+  static EnumPropertyItem mesh_vertex_domain_item = {
+      ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", "Attribute per point/vertex"};
+
   for (a = 0; rna_enum_attribute_domain_items[a].identifier; a++) {
     domain_item = &rna_enum_attribute_domain_items[a];
 
@@ -175,7 +178,12 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id, bool *r_free)
       continue;
     }
 
-    RNA_enum_item_add(&item, &totitem, domain_item);
+    if (domain_item->value == ATTR_DOMAIN_POINT && id_type == ID_ME) {
+      RNA_enum_item_add(&item, &totitem, &mesh_vertex_domain_item);
+    }
+    else {
+      RNA_enum_item_add(&item, &totitem, domain_item);
+    }
   }
   RNA_enum_item_end(&item, &totitem);
 

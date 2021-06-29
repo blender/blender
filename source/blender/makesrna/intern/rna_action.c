@@ -89,7 +89,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
     return;
   }
 
-  /* move every one one of the group's F-Curves out into the Action again */
+  /* Move every one of the group's F-Curves out into the Action again. */
   for (fcu = agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu = fcn) {
     fcn = fcu->next;
 

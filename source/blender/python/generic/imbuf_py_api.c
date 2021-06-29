@@ -178,7 +178,7 @@ static PyObject *py_imbuf_copy(Py_ImBuf *self)
   if (UNLIKELY(ibuf_copy == NULL)) {
     PyErr_SetString(PyExc_MemoryError,
                     "ImBuf.copy(): "
-                    "failed to allocate memory memory");
+                    "failed to allocate memory");
     return NULL;
   }
   return Py_ImBuf_CreatePyObject(ibuf_copy);

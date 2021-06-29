@@ -1056,9 +1056,11 @@ Image *BKE_image_add_generated(Main *bmain,
   return ima;
 }
 
-/* Create an image image from ibuf. The refcount of ibuf is increased,
+/**
+ * Create an image from ibuf. The refcount of ibuf is increased,
  * caller should take care to drop its reference by calling
- * IMB_freeImBuf if needed. */
+ * #IMB_freeImBuf if needed.
+ */
 Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
 {
   /* on save, type is changed to FILE in editsima.c */

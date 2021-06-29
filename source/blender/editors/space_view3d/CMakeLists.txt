@@ -46,7 +46,6 @@ set(SRC
   view3d_camera_control.c
   view3d_draw.c
   view3d_edit.c
-  view3d_fly.c
   view3d_gizmo_armature.c
   view3d_gizmo_camera.c
   view3d_gizmo_empty.c
@@ -60,6 +59,8 @@ set(SRC
   view3d_gizmo_tool_generic.c
   view3d_header.c
   view3d_iterators.c
+  view3d_navigate_fly.c
+  view3d_navigate_walk.c
   view3d_ops.c
   view3d_placement.c
   view3d_project.c
@@ -67,7 +68,6 @@ set(SRC
   view3d_snap.c
   view3d_utils.c
   view3d_view.c
-  view3d_walk.c
 
   view3d_intern.h
 )

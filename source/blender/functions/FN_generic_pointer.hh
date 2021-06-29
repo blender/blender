@@ -70,7 +70,7 @@ class GMutablePointer {
   {
     BLI_assert(this->is_type<T>());
     T value;
-    type_->relocate_to_initialized(data_, &value);
+    type_->relocate_assign(data_, &value);
     data_ = nullptr;
     type_ = nullptr;
     return value;

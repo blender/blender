@@ -26,7 +26,7 @@ void GVArray_For_GVVectorArrayIndex::get_impl(const int64_t index_in_vector, voi
 void GVArray_For_GVVectorArrayIndex::get_to_uninitialized_impl(const int64_t index_in_vector,
                                                                void *r_value) const
 {
-  type_->construct_default(r_value);
+  type_->default_construct(r_value);
   vector_array_.get_vector_element(index_, index_in_vector, r_value);
 }
 
@@ -56,7 +56,7 @@ void GVVectorArray_For_SingleGSpan::get_vector_element_impl(const int64_t UNUSED
                                                             const int64_t index_in_vector,
                                                             void *r_value) const
 {
-  type_->copy_to_initialized(span_[index_in_vector], r_value);
+  type_->copy_assign(span_[index_in_vector], r_value);
 }
 
 bool GVVectorArray_For_SingleGSpan::is_single_vector_impl() const

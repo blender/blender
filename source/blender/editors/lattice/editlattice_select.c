@@ -108,9 +108,9 @@ bool ED_lattice_deselect_all_multi(struct bContext *C)
 
 static int lattice_select_random_exec(bContext *C, wmOperator *op)
 {
+  const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
   const float randfac = RNA_float_get(op->ptr, "ratio");
   const int seed = WM_operator_properties_select_random_seed_increment_get(op);
-  const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
@@ -119,28 +119,35 @@ static int lattice_select_random_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+    int seed_iter = seed;
 
-    RNG *rng = BLI_rng_new_srandom(seed);
+    /* This gives a consistent result regardless of object order. */
+    if (ob_index) {
+      seed_iter += BLI_ghashutil_strhash_p(obedit->id.name);
+    }
 
-    int tot;
-    BPoint *bp;
+    int a = lt->pntsu * lt->pntsv * lt->pntsw;
+    int elem_map_len = 0;
+    BPoint **elem_map = MEM_mallocN(sizeof(*elem_map) * a, __func__);
+    BPoint *bp = lt->def;
 
-    tot = lt->pntsu * lt->pntsv * lt->pntsw;
-    bp = lt->def;
-    while (tot--) {
+    while (a--) {
       if (!bp->hide) {
-        if (BLI_rng_get_float(rng) < randfac) {
-          bpoint_select_set(bp, select);
-        }
+        elem_map[elem_map_len++] = bp;
       }
       bp++;
     }
 
+    BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed_iter);
+    const int count_select = elem_map_len * randfac;
+    for (int i = 0; i < count_select; i++) {
+      bpoint_select_set(elem_map[i], select);
+    }
+    MEM_freeN(elem_map);
+
     if (select == false) {
       lt->actbp = LT_ACTBP_NONE;
     }
-
-    BLI_rng_free(rng);
 
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);

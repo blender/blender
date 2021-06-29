@@ -154,7 +154,9 @@ static bool buttons_context_path_world(ButsContextPath *path)
   return false;
 }
 
-static bool buttons_context_path_collection(ButsContextPath *path, wmWindow *window)
+static bool buttons_context_path_collection(const bContext *C,
+                                            ButsContextPath *path,
+                                            wmWindow *window)
 {
   PointerRNA *ptr = &path->ptr[path->len - 1];
 
@@ -162,10 +164,19 @@ static bool buttons_context_path_collection(ButsContextPath *path, wmWindow *win
   if (RNA_struct_is_a(ptr->type, &RNA_Collection)) {
     return true;
   }
+
+  Scene *scene = CTX_data_scene(C);
+
   /* if we have a view layer, use the view layer's active collection */
   if (buttons_context_path_view_layer(path, window)) {
     ViewLayer *view_layer = path->ptr[path->len - 1].data;
     Collection *c = view_layer->active_collection->collection;
+
+    /* Do not show collection tab for master collection. */
+    if (c == scene->master_collection) {
+      return false;
+    }
+
     if (c) {
       RNA_id_pointer_create(&c->id, &path->ptr[path->len]);
       path->len++;
@@ -600,7 +611,7 @@ static bool buttons_context_path(
       found = buttons_context_path_world(path);
       break;
     case BCONTEXT_COLLECTION: /* This is for Line Art collection flags */
-      found = buttons_context_path_collection(path, window);
+      found = buttons_context_path_collection(C, path, window);
       break;
     case BCONTEXT_TOOL:
       found = true;

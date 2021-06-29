@@ -60,7 +60,7 @@ template<typename Key> class GValueMap {
   {
     const CPPType &type = *value.type();
     void *buffer = allocator_.allocate(type.size(), type.alignment());
-    type.move_to_uninitialized(value.get(), buffer);
+    type.move_construct(value.get(), buffer);
     values_.add_new_as(std::forward<ForwardKey>(key), GMutablePointer{type, buffer});
   }
 
@@ -70,7 +70,7 @@ template<typename Key> class GValueMap {
   {
     const CPPType &type = *value.type();
     void *buffer = allocator_.allocate(type.size(), type.alignment());
-    type.copy_to_uninitialized(value.get(), buffer);
+    type.copy_construct(value.get(), buffer);
     values_.add_new_as(std::forward<ForwardKey>(key), GMutablePointer{type, buffer});
   }
 
@@ -105,7 +105,7 @@ template<typename Key> class GValueMap {
     const CPPType &type = *value.type();
     BLI_assert(type.is<T>());
     T return_value;
-    type.relocate_to_initialized(value.get(), &return_value);
+    type.relocate_assign(value.get(), &return_value);
     return return_value;
   }
 

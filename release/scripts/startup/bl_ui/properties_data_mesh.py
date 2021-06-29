@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
+from collections import defaultdict
 
 
 class MESH_MT_vertex_group_context_menu(Menu):
@@ -117,7 +118,7 @@ class MESH_UL_shape_keys(UIList):
             split = layout.split(factor=0.66, align=False)
             split.prop(key_block, "name", text="", emboss=False, icon_value=icon)
             row = split.row(align=True)
-            row.emboss = 'UI_EMBOSS_NONE_OR_STATUS'
+            row.emboss = 'NONE_OR_STATUS'
             if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
                 row.active = False
             if not item.id_data.use_relative:
@@ -566,6 +567,89 @@ class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
     _property_type = bpy.types.Mesh
 
 
+class MESH_UL_attributes(UIList):
+    display_domain_names = {
+        'POINT': "Vertex",
+        'EDGE': "Edge",
+        'FACE': "Face",
+        'CORNER': "Face Corner",
+    }
+
+    def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
+        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+
+        domain_name = self.display_domain_names.get(attribute.domain, "")
+
+        split = layout.split(factor=0.50)
+        split.emboss = 'NONE'
+        split.prop(attribute, "name", text="")
+        sub = split.row()
+        sub.alignment = 'RIGHT'
+        sub.active = False
+        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+
+
+class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
+    bl_label = "Attributes"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        mesh = context.mesh
+
+        layout = self.layout
+        row = layout.row()
+
+        col = row.column()
+        col.template_list(
+            "MESH_UL_attributes",
+            "attributes",
+            mesh,
+            "attributes",
+            mesh.attributes,
+            "active_index",
+            rows=3,
+        )
+
+        col = row.column(align=True)
+        col.operator("geometry.attribute_add", icon='ADD', text="")
+        col.operator("geometry.attribute_remove", icon='REMOVE', text="")
+
+        self.draw_attribute_warnings(context, layout)
+
+    def draw_attribute_warnings(self, context, layout):
+        attributes_by_name = defaultdict(list)
+
+        ob = context.object
+        mesh = ob.data
+
+        builtin_attribute = object()
+
+        def add_builtin(name):
+            attributes_by_name[name].append(builtin_attribute)
+
+        def add_attributes(layers):
+            for layer in layers:
+                attributes_by_name[layer.name].append(layer)
+
+        add_builtin("position")
+        add_builtin("material_index")
+        add_builtin("shade_smooth")
+        add_builtin("normal")
+        add_builtin("crease")
+
+        add_attributes(mesh.attributes)
+        add_attributes(mesh.uv_layers)
+        add_attributes(mesh.vertex_colors)
+        add_attributes(ob.vertex_groups)
+
+        colliding_names = [name for name, layers in attributes_by_name.items() if len(layers) >= 2]
+        if len(colliding_names) == 0:
+            return
+
+        layout.label(text="Name Collisions: {}".format(", ".join(colliding_names)), icon='INFO')
+
+
 classes = (
     MESH_MT_vertex_group_context_menu,
     MESH_MT_shape_key_context_menu,
@@ -574,6 +658,7 @@ classes = (
     MESH_UL_shape_keys,
     MESH_UL_uvmaps,
     MESH_UL_vcols,
+    MESH_UL_attributes,
     DATA_PT_context_mesh,
     DATA_PT_vertex_groups,
     DATA_PT_shape_keys,
@@ -581,6 +666,7 @@ classes = (
     DATA_PT_vertex_colors,
     DATA_PT_sculpt_vertex_colors,
     DATA_PT_face_maps,
+    DATA_PT_mesh_attributes,
     DATA_PT_normals,
     DATA_PT_texture_space,
     DATA_PT_remesh,

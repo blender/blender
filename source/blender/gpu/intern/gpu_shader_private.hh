@@ -21,6 +21,7 @@
 #pragma once
 
 #include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 
 #include "GPU_shader.h"
 #include "gpu_shader_interface.hh"
@@ -28,6 +29,8 @@
 
 namespace blender {
 namespace gpu {
+
+class GPULogParser;
 
 /**
  * Implementation of shader compilation and uniforms handling.
@@ -74,7 +77,11 @@ class Shader {
   };
 
  protected:
-  void print_log(Span<const char *> sources, char *log, const char *stage, const bool error);
+  void print_log(Span<const char *> sources,
+                 char *log,
+                 const char *stage,
+                 const bool error,
+                 GPULogParser *parser);
 };
 
 /* Syntactic sugar. */
@@ -90,6 +97,41 @@ static inline const Shader *unwrap(const GPUShader *vert)
 {
   return reinterpret_cast<const Shader *>(vert);
 }
+
+enum class Severity {
+  Unknown,
+  Warning,
+  Error,
+};
+
+struct LogCursor {
+  int source = -1;
+  int row = -1;
+  int column = -1;
+};
+
+struct GPULogItem {
+  LogCursor cursor;
+  Severity severity = Severity::Unknown;
+};
+
+class GPULogParser {
+ public:
+  virtual char *parse_line(char *log_line, GPULogItem &log_item) = 0;
+
+ protected:
+  char *skip_severity(char *log_line,
+                      GPULogItem &log_item,
+                      const char *error_msg,
+                      const char *warning_msg) const;
+  char *skip_separators(char *log_line, const StringRef separators) const;
+  char *skip_until(char *log_line, char stop_char) const;
+  bool at_number(const char *log_line) const;
+  bool at_any(const char *log_line, const StringRef chars) const;
+  int parse_number(const char *log_line, char **r_new_position) const;
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("GPULogParser");
+};
 
 }  // namespace gpu
 }  // namespace blender

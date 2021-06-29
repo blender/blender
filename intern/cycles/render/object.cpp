@@ -93,7 +93,8 @@ NODE_DEFINE(Object)
   SOCKET_POINT(dupli_generated, "Dupli Generated", zero_float3());
   SOCKET_POINT2(dupli_uv, "Dupli UV", zero_float2());
   SOCKET_TRANSFORM_ARRAY(motion, "Motion", array<Transform>());
-  SOCKET_FLOAT(shadow_terminator_offset, "Terminator Offset", 0.0f);
+  SOCKET_FLOAT(shadow_terminator_shading_offset, "Shadow Terminator Shading Offset", 0.0f);
+  SOCKET_FLOAT(shadow_terminator_geometry_offset, "Shadow Terminator Geometry Offset", 0.1f);
   SOCKET_STRING(asset_name, "Asset Name", ustring());
 
   SOCKET_BOOLEAN(is_shadow_catcher, "Shadow Catcher", false);
@@ -507,7 +508,9 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     kobject.cryptomatte_asset = util_hash_to_float(hash_asset);
   }
 
-  kobject.shadow_terminator_offset = 1.0f / (1.0f - 0.5f * ob->shadow_terminator_offset);
+  kobject.shadow_terminator_shading_offset = 1.0f /
+                                             (1.0f - 0.5f * ob->shadow_terminator_shading_offset);
+  kobject.shadow_terminator_geometry_offset = ob->shadow_terminator_geometry_offset;
 
   /* Object flag. */
   if (ob->use_holdout) {

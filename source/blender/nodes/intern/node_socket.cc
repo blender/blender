@@ -662,10 +662,10 @@ static bNodeSocketType *make_socket_type_string()
   return socktype;
 }
 
-MAKE_CPP_TYPE(Object, Object *)
-MAKE_CPP_TYPE(Collection, Collection *)
-MAKE_CPP_TYPE(Texture, Tex *)
-MAKE_CPP_TYPE(Material, Material *)
+MAKE_CPP_TYPE(Object, Object *, CPPTypeFlags::BasicType)
+MAKE_CPP_TYPE(Collection, Collection *, CPPTypeFlags::BasicType)
+MAKE_CPP_TYPE(Texture, Tex *, CPPTypeFlags::BasicType)
+MAKE_CPP_TYPE(Material, Material *, CPPTypeFlags::BasicType)
 
 static bNodeSocketType *make_socket_type_object()
 {

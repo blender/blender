@@ -294,7 +294,7 @@ class GeoNodeExecParams {
   void check_input_access(StringRef identifier, const CPPType *requested_type = nullptr) const;
   void check_output_access(StringRef identifier, const CPPType &value_type) const;
 
-  /* Find the active socket socket with the input name (not the identifier). */
+  /* Find the active socket with the input name (not the identifier). */
   const bNodeSocket *find_available_socket(const StringRef name) const;
 };
 

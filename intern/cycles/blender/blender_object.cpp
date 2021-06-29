@@ -290,8 +290,12 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   bool is_shadow_catcher = get_boolean(cobject, "is_shadow_catcher");
   object->set_is_shadow_catcher(is_shadow_catcher);
 
-  float shadow_terminator_offset = get_float(cobject, "shadow_terminator_offset");
-  object->set_shadow_terminator_offset(shadow_terminator_offset);
+  float shadow_terminator_shading_offset = get_float(cobject, "shadow_terminator_offset");
+  object->set_shadow_terminator_shading_offset(shadow_terminator_shading_offset);
+
+  float shadow_terminator_geometry_offset = get_float(cobject,
+                                                      "shadow_terminator_geometry_offset");
+  object->set_shadow_terminator_geometry_offset(shadow_terminator_geometry_offset);
 
   /* sync the asset name for Cryptomatte */
   BL::Object parent = b_ob.parent();

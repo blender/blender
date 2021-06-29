@@ -22,7 +22,7 @@
 
 namespace blender::draw {
 
-TEST_F(DrawTest, workbench_glsl_shaders)
+static void test_workbench_glsl_shaders()
 {
   workbench_shader_library_ensure();
 
@@ -155,8 +155,9 @@ TEST_F(DrawTest, workbench_glsl_shaders)
 
   workbench_shader_free();
 }
+DRAW_TEST(workbench_glsl_shaders)
 
-TEST_F(DrawTest, gpencil_glsl_shaders)
+static void test_gpencil_glsl_shaders()
 {
   EXPECT_NE(GPENCIL_shader_antialiasing(0), nullptr);
   EXPECT_NE(GPENCIL_shader_antialiasing(1), nullptr);
@@ -177,8 +178,9 @@ TEST_F(DrawTest, gpencil_glsl_shaders)
 
   GPENCIL_shader_free();
 }
+DRAW_TEST(gpencil_glsl_shaders)
 
-TEST_F(DrawTest, image_glsl_shaders)
+static void test_image_glsl_shaders()
 {
   IMAGE_shader_library_ensure();
 
@@ -187,8 +189,9 @@ TEST_F(DrawTest, image_glsl_shaders)
 
   IMAGE_shader_free();
 }
+DRAW_TEST(image_glsl_shaders)
 
-TEST_F(DrawTest, overlay_glsl_shaders)
+static void test_overlay_glsl_shaders()
 {
   OVERLAY_shader_library_ensure();
 
@@ -280,8 +283,9 @@ TEST_F(DrawTest, overlay_glsl_shaders)
 
   OVERLAY_shader_free();
 }
+DRAW_TEST(overlay_glsl_shaders)
 
-TEST_F(DrawTest, eevee_glsl_shaders_static)
+static void test_eevee_glsl_shaders_static()
 {
   EEVEE_shaders_material_shaders_init();
 
@@ -370,6 +374,7 @@ TEST_F(DrawTest, eevee_glsl_shaders_static)
   EXPECT_NE(EEVEE_shaders_effect_reflection_resolve_sh_get(), nullptr);
   EEVEE_shaders_free();
 }
+DRAW_TEST(eevee_glsl_shaders_static)
 
 static void test_draw_shaders(eParticleRefineShaderType sh_type)
 {
@@ -378,7 +383,7 @@ static void test_draw_shaders(eParticleRefineShaderType sh_type)
   DRW_shaders_free();
 }
 
-TEST_F(DrawTest, draw_glsl_shaders)
+static void test_draw_glsl_shaders()
 {
 #ifndef __APPLE__
   test_draw_shaders(PART_REFINE_SHADER_TRANSFORM_FEEDBACK);
@@ -386,5 +391,6 @@ TEST_F(DrawTest, draw_glsl_shaders)
 #endif
   test_draw_shaders(PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND);
 }
+DRAW_TEST(draw_glsl_shaders)
 
 }  // namespace blender::draw

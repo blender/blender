@@ -9,9 +9,9 @@
 namespace blender::draw {
 
 /* Base class for draw test cases. It will setup and tear down the GPU part around each test. */
-void DrawTest::SetUp()
+void DrawOpenGLTest::SetUp()
 {
-  GPUTest::SetUp();
+  GPUOpenGLTest::SetUp();
   DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
 }
 

@@ -131,7 +131,7 @@ class GVArray {
   /* Same as `get_internal_single`, but `r_value` points to initialized memory. */
   void get_single_to_uninitialized(void *r_value) const
   {
-    type_->construct_default(r_value);
+    type_->default_construct(r_value);
     this->get_internal_single(r_value);
   }
 

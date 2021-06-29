@@ -2108,7 +2108,8 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
   if (but->pushed_state_func) {
     return but->pushed_state_func(but, but->pushed_state_arg);
   }
-  else if (but->bit) {
+
+  if (but->bit) {
     const bool state = !ELEM(
         but->type, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE_N, UI_BTYPE_CHECKBOX_N);
     int lvalue;

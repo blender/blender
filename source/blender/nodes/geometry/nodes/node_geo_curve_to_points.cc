@@ -298,7 +298,7 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
       if (size != 0) {
         BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
         spline_attribute->get(i, buffer);
-        type.fill_initialized(buffer, result[offset], size);
+        type.fill_assign_n(buffer, result[offset], size);
       }
     }
 

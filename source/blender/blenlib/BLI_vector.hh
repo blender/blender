@@ -213,7 +213,8 @@ class Vector {
    * Example Usage:
    *  Vector<ModifierData *> modifiers(ob->modifiers);
    */
-  Vector(ListBase &values, Allocator allocator = {}) : Vector(NoExceptConstructor(), allocator)
+  Vector(const ListBase &values, Allocator allocator = {})
+      : Vector(NoExceptConstructor(), allocator)
   {
     LISTBASE_FOREACH (T, value, &values) {
       this->append(value);
@@ -507,10 +508,10 @@ class Vector {
   }
 
   /**
-   * Enlarges the size of the internal buffer that is considered to be initialized. This invokes
-   * undefined behavior when when the new size is larger than the capacity. The method can be
-   * useful when you want to call constructors in the vector yourself. This should only be done in
-   * very rare cases and has to be justified every time.
+   * Enlarges the size of the internal buffer that is considered to be initialized.
+   * This invokes undefined behavior when the new size is larger than the capacity.
+   * The method can be useful when you want to call constructors in the vector yourself.
+   * This should only be done in very rare cases and has to be justified every time.
    */
   void increase_size_by_unchecked(const int64_t n) noexcept
   {

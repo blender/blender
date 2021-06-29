@@ -1197,7 +1197,7 @@ static blender::bke::OutputAttribute create_output_attribute(
       cpp_type->size() * domain_size, cpp_type->alignment(), __func__);
   if (ignore_old_values) {
     /* This does nothing for trivially constructible types, but is necessary for correctness. */
-    cpp_type->construct_default_n(data, domain);
+    cpp_type->default_construct_n(data, domain);
   }
   else {
     /* Fill the temporary array with values from the existing attribute. */

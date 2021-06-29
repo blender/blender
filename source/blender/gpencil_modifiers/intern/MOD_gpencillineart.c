@@ -101,8 +101,8 @@ static void generate_strokes_actual(
       lmd->use_multiple_levels ? lmd->level_end : lmd->level_start,
       lmd->target_material ? BKE_gpencil_object_material_index_get(ob, lmd->target_material) : 0,
       lmd->edge_types,
-      lmd->transparency_flags,
-      lmd->transparency_mask,
+      lmd->material_mask_flags,
+      lmd->material_mask_bits,
       lmd->thickness,
       lmd->opacity,
       lmd->source_vertex_group,
@@ -280,8 +280,6 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   const int source_type = RNA_enum_get(ptr, "source_type");
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
-  const bool use_cache = RNA_boolean_get(ptr, "use_cache");
-  const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetEnabled(layout, !is_baked);
@@ -301,26 +299,6 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   else {
     /* Source is Scene. */
   }
-
-  uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Edge Types"));
-
-  uiItemR(col, ptr, "use_contour", 0, IFACE_("Contour"), ICON_NONE);
-  uiItemR(col, ptr, "use_floating", 0, IFACE_("Floating"), ICON_NONE);
-  uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
-  uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
-  uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
-
-  uiLayout *sub = uiLayoutRowWithHeading(col, false, IFACE_("Crease"));
-  uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
-  uiLayout *entry = uiLayoutRow(sub, false);
-  uiLayoutSetEnabled(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
-  if (use_cache && !is_first) {
-    uiItemL(entry, IFACE_("Angle Cached"), ICON_INFO);
-  }
-  else {
-    uiItemR(entry, ptr, "crease_threshold", UI_ITEM_R_SLIDER, " ", ICON_NONE);
-  }
-
   uiItemPointerR(layout, ptr, "target_layer", &obj_data_ptr, "layers", NULL, ICON_GREASEPENCIL);
 
   /* Material has to be used by grease pencil object already, it was possible to assign materials
@@ -343,6 +321,42 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
                  material_valid ? ICON_SHADING_TEXTURE : ICON_ERROR);
 
   gpencil_modifier_panel_end(layout, ptr);
+}
+
+static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+  PointerRNA ob_ptr;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
+
+  const bool is_baked = RNA_boolean_get(ptr, "is_baked");
+  const bool use_cache = RNA_boolean_get(ptr, "use_cached_result");
+  const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
+
+  uiLayoutSetEnabled(layout, !is_baked);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayout *col = uiLayoutColumn(layout, true);
+
+  uiItemR(col, ptr, "use_contour", 0, IFACE_("Contour"), ICON_NONE);
+  uiItemR(col, ptr, "use_loose", 0, IFACE_("Loose"), ICON_NONE);
+  uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
+  uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
+  uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
+
+  uiLayout *sub = uiLayoutRowWithHeading(col, false, IFACE_("Crease"));
+  uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
+  uiLayout *entry = uiLayoutRow(sub, false);
+  uiLayoutSetEnabled(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
+  if (use_cache && !is_first) {
+    uiItemL(entry, IFACE_("Angle Cached"), ICON_INFO);
+  }
+  else {
+    uiItemR(entry, ptr, "crease_threshold", UI_ITEM_R_SLIDER, " ", ICON_NONE);
+  }
+
+  uiItemR(layout, ptr, "use_overlap_edge_type_support", 0, IFACE_("Allow Overlap"), ICON_NONE);
 }
 
 static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -369,7 +383,6 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "use_edge_overlap", 0, IFACE_("Overlapping Edges As Contour"), ICON_NONE);
   uiItemR(col, ptr, "use_object_instances", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_clip_plane_boundaries", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "allow_overlap_edge_types", 0, NULL, ICON_NONE);
 }
 
 static void style_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -411,7 +424,7 @@ static void occlusion_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 }
 
-static void transparency_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
+static void material_mask_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
@@ -419,10 +432,10 @@ static void transparency_panel_draw_header(const bContext *UNUSED(C), Panel *pan
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   uiLayoutSetEnabled(layout, !is_baked);
 
-  uiItemR(layout, ptr, "use_transparency", 0, IFACE_("Transparency"), ICON_NONE);
+  uiItemR(layout, ptr, "use_material_mask", 0, IFACE_("Material Mask"), ICON_NONE);
 }
 
-static void transparency_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void material_mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
@@ -432,21 +445,21 @@ static void transparency_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetEnabled(layout, RNA_boolean_get(ptr, "use_transparency"));
+  uiLayoutSetEnabled(layout, RNA_boolean_get(ptr, "use_material_mask"));
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetPropDecorate(row, false);
   uiLayout *sub = uiLayoutRowWithHeading(row, true, IFACE_("Masks"));
   char text[2] = "0";
 
-  PropertyRNA *prop = RNA_struct_find_property(ptr, "use_transparency_mask");
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "use_material_mask_bits");
   for (int i = 0; i < 8; i++, text[0]++) {
     uiItemFullR(sub, ptr, prop, i, 0, UI_ITEM_R_TOGGLE, text, ICON_NONE);
   }
   uiItemL(row, "", ICON_BLANK1); /* Space for decorator. */
 
   uiLayout *col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_transparency_match", 0, IFACE_("Match All Masks"), ICON_NONE);
+  uiItemR(col, ptr, "use_material_mask_match", 0, IFACE_("Match All Masks"), ICON_NONE);
 }
 
 static void face_mark_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
@@ -504,7 +517,7 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   const bool use_cache = RNA_boolean_get(ptr, "use_cache");
   const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
-  const bool is_geom = RNA_boolean_get(ptr, "chain_geometry_space");
+  const bool is_geom = RNA_boolean_get(ptr, "use_geometry_space_chain");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetEnabled(layout, !is_baked);
@@ -517,9 +530,9 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Chain"));
   uiItemR(col, ptr, "use_fuzzy_intersections", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_fuzzy_all", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "chain_floating_edges", 0, IFACE_("Floating Edges"), ICON_NONE);
-  uiItemR(col, ptr, "floating_as_contour", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "chain_geometry_space", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_loose_edge_chain", 0, IFACE_("Loose Edges"), ICON_NONE);
+  uiItemR(col, ptr, "use_loose_as_contour", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_geometry_space_chain", 0, NULL, ICON_NONE);
 
   uiItemR(layout,
           ptr,
@@ -600,16 +613,18 @@ static void panelRegister(ARegionType *region_type)
       region_type, eGpencilModifierType_Lineart, panel_draw);
 
   gpencil_modifier_subpanel_register(
+      region_type, "edge_types", "Edge Types", NULL, edge_types_panel_draw, panel_type);
+  gpencil_modifier_subpanel_register(
       region_type, "geometry", "Geometry Processing", NULL, options_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
       region_type, "style", "Style", NULL, style_panel_draw, panel_type);
   PanelType *occlusion_panel = gpencil_modifier_subpanel_register(
       region_type, "occlusion", "Occlusion", NULL, occlusion_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(region_type,
-                                     "transparency",
+                                     "material_mask",
                                      "",
-                                     transparency_panel_draw_header,
-                                     transparency_panel_draw,
+                                     material_mask_panel_draw_header,
+                                     material_mask_panel_draw,
                                      occlusion_panel);
   gpencil_modifier_subpanel_register(
       region_type, "face_mark", "", face_mark_panel_draw_header, face_mark_panel_draw, panel_type);

@@ -544,7 +544,7 @@ const EnumPropertyItem rna_enum_dt_mix_mode_items[] = {
      0,
      "Multiply",
      "Multiply source value to destination one, using given threshold as factor"},
-    /* etc. etc. */
+    /* Etc. */
     {0, NULL, 0, NULL, NULL},
 };
 

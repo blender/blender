@@ -838,7 +838,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* If there is only 1 selected bone, we assume that that is the active bone,
+  /* If there is only 1 selected bone, we assume that it is the active bone,
    * since a user will need to have clicked on a bone (thus selecting it) to make it active. */
   bool is_active_only_selected = false;
   if (actbone->flag & BONE_SELECTED) {

@@ -199,20 +199,6 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
   return stream;
 }
 
-/* This generally should not be used. It is necessary currently, so that GeometrySet can by used by
- * the CPPType system. */
-bool operator==(const GeometrySet &UNUSED(a), const GeometrySet &UNUSED(b))
-{
-  return false;
-}
-
-/* This generally should not be used. It is necessary currently, so that GeometrySet can by used by
- * the CPPType system. */
-uint64_t GeometrySet::hash() const
-{
-  return reinterpret_cast<uint64_t>(this);
-}
-
 /* Remove all geometry components from the geometry set. */
 void GeometrySet::clear()
 {

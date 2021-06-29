@@ -146,13 +146,21 @@ typedef enum eMaterialGPencilStyle_Mode {
 } eMaterialGPencilStyle_Mode;
 
 typedef struct MaterialLineArt {
-  int flags; /* eMaterialLineArtFlags */
-  unsigned char transparency_mask;
-  unsigned char _pad[3];
+  /* eMaterialLineArtFlags */
+  int flags;
+
+  /* Used to filter line art occlusion edges */
+  unsigned char material_mask_bits;
+
+  /** Maximum 255 levels of equivalent occlusion. */
+  unsigned char mat_occlusion;
+
+  unsigned char _pad[2];
 } MaterialLineArt;
 
 typedef enum eMaterialLineArtFlags {
-  LRT_MATERIAL_TRANSPARENCY_ENABLED = (1 << 0),
+  LRT_MATERIAL_MASK_ENABLED = (1 << 0),
+  LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS = (1 << 1),
 } eMaterialLineArtFlags;
 
 typedef struct Material {

@@ -683,7 +683,7 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
     size *= dimensions[i];
   }
 
-  buf = MEM_mallocN(size, "Buffer buffer");
+  buf = MEM_mallocN(size, __func__);
 
   buffer = BGL_MakeBuffer_FromData(NULL, type, ndimensions, dimensions, buf);
 
@@ -790,7 +790,7 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
   }
   else {
     PyErr_Format(PyExc_TypeError,
-                 "invalid second argument argument expected a sequence "
+                 "invalid second argument expected a sequence "
                  "or an int, not a %.200s",
                  Py_TYPE(length_ob)->tp_name);
     return NULL;

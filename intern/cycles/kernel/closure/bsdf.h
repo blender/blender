@@ -462,7 +462,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals *kg,
   else {
     /* Shadow terminator offset. */
     const float frequency_multiplier =
-        kernel_tex_fetch(__objects, sd->object).shadow_terminator_offset;
+        kernel_tex_fetch(__objects, sd->object).shadow_terminator_shading_offset;
     if (frequency_multiplier > 1.0f) {
       *eval *= shift_cos_in(dot(*omega_in, sc->N), frequency_multiplier);
     }
@@ -488,12 +488,9 @@ ccl_device_inline
               const float3 omega_in,
               float *pdf)
 {
-  /* For curves use the smooth normal, particularly for ribbons the geometric
-   * normal gives too much darkening otherwise. */
-  const float3 Ng = (sd->type & PRIMITIVE_ALL_CURVE) ? sd->N : sd->Ng;
   float3 eval;
 
-  if (dot(Ng, omega_in) >= 0.0f) {
+  if (dot(sd->N, omega_in) >= 0.0f) {
     switch (sc->type) {
       case CLOSURE_BSDF_DIFFUSE_ID:
       case CLOSURE_BSDF_BSSRDF_ID:
@@ -589,7 +586,7 @@ ccl_device_inline
     }
     /* Shadow terminator offset. */
     const float frequency_multiplier =
-        kernel_tex_fetch(__objects, sd->object).shadow_terminator_offset;
+        kernel_tex_fetch(__objects, sd->object).shadow_terminator_shading_offset;
     if (frequency_multiplier > 1.0f) {
       eval *= shift_cos_in(dot(omega_in, sc->N), frequency_multiplier);
     }

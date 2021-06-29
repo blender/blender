@@ -25,7 +25,7 @@ CustomMF_GenericConstant::CustomMF_GenericConstant(const CPPType &type, const vo
 {
   MFSignatureBuilder signature{"Constant " + type.name()};
   std::stringstream ss;
-  type.debug_print(value, ss);
+  type.print_or_default(value, ss, type.name());
   signature.single_output(ss.str(), type);
   signature_ = signature.build();
   this->set_signature(&signature_);
@@ -36,12 +36,12 @@ void CustomMF_GenericConstant::call(IndexMask mask,
                                     MFContext UNUSED(context)) const
 {
   GMutableSpan output = params.uninitialized_single_output(0);
-  type_.fill_uninitialized_indices(value_, output.data(), mask);
+  type_.fill_construct_indices(value_, output.data(), mask);
 }
 
 uint64_t CustomMF_GenericConstant::hash() const
 {
-  return type_.hash(value_);
+  return type_.hash_or_fallback(value_, (uintptr_t)this);
 }
 
 bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
@@ -58,11 +58,12 @@ bool CustomMF_GenericConstant::equals(const MultiFunction &other) const
 
 static std::string gspan_to_string(GSpan array)
 {
+  const CPPType &type = array.type();
   std::stringstream ss;
   ss << "[";
   const int64_t max_amount = 5;
   for (int64_t i : IndexRange(std::min(max_amount, array.size()))) {
-    array.type().debug_print(array[i], ss);
+    type.print_or_default(array[i], ss, type.name());
     ss << ", ";
   }
   if (max_amount < array.size()) {
@@ -117,7 +118,7 @@ void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext UNU
     if (param_type.data_type().is_single()) {
       GMutableSpan span = params.uninitialized_single_output(param_index);
       const CPPType &type = span.type();
-      type.fill_uninitialized_indices(type.default_value(), span.data(), mask);
+      type.fill_construct_indices(type.default_value(), span.data(), mask);
     }
   }
 }

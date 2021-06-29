@@ -4956,7 +4956,7 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 }
 
 /**
- * Uses the widget base drawing and colors from from the box widget, but ensures an opaque
+ * Uses the widget base drawing and colors from the box widget, but ensures an opaque
  * inner color.
  */
 void ui_draw_box_opaque(rcti *rect, int roundboxalign)

@@ -17,7 +17,7 @@
 #include "FN_cpp_type_make.hh"
 #include "NOD_geometry_exec.hh"
 
-MAKE_CPP_TYPE(GeometrySet, GeometrySet);
+MAKE_CPP_TYPE(GeometrySet, GeometrySet, CPPTypeFlags::Printable);
 
 namespace blender::nodes {
 

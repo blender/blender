@@ -370,7 +370,7 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
  * \param src: The escaped source string.
  * \param dst_maxncpy: The maximum number of bytes allowable to copy.
  *
- * \note This is used for for parsing animation paths in blend files.
+ * \note This is used for parsing animation paths in blend files.
  */
 size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
 {

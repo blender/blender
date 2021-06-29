@@ -176,8 +176,7 @@ ccl_device_noinline_cpu bool direct_emission(KernelGlobals *kg,
 
   if (ls->shader & SHADER_CAST_SHADOW) {
     /* setup ray */
-    bool transmit = (dot(sd->Ng, ls->D) < 0.0f);
-    ray->P = ray_offset(sd->P, (transmit) ? -sd->Ng : sd->Ng);
+    ray->P = ray_offset_shadow(kg, sd, ls->D);
 
     if (ls->t == FLT_MAX) {
       /* distant light */

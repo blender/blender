@@ -19,7 +19,7 @@
  *
  * Interactive fly navigation modal operator (flying around in space).
  *
- * \note Similar logic to `view3d_walk.c` changes here may apply there too.
+ * \note Similar logic to `view3d_navigate_walk.c` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_fly modal operator */
@@ -189,7 +189,7 @@ typedef struct FlyInfo {
   wmNDOFMotionData *ndof;
 #endif
 
-  /* fly state state */
+  /* Fly state. */
   /** The speed the view is moving per redraw. */
   float speed;
   /** Axis index to move along by default Z to move along the view. */
@@ -757,9 +757,6 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
 #define FLY_SMOOTH_FAC 20.0f        /* higher value less lag */
 
-  /* fly mode - Shift+F
-   * a fly loop where the user can move move the view as if they are flying
-   */
   RegionView3D *rv3d = fly->rv3d;
 
   /* 3x3 copy of the view matrix so we can move along the view axis */

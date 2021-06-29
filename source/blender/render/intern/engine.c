@@ -812,7 +812,7 @@ bool RE_bake_engine(Render *re,
   engine->flag &= ~RE_ENGINE_RENDERING;
 
   /* Free depsgraph outside of parts mutex lock, since this locks OpenGL context
-   * while the the UI drawing might also lock the OpenGL context and parts mutex. */
+   * while the UI drawing might also lock the OpenGL context and parts mutex. */
   engine_depsgraph_free(engine);
   BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
 
@@ -1037,7 +1037,7 @@ bool RE_engine_render(Render *re, bool do_all)
   /* re->engine becomes zero if user changed active render engine during render */
   if (!engine_keep_depsgraph(engine) || !re->engine) {
     /* Free depsgraph outside of parts mutex lock, since this locks OpenGL context
-     * while the the UI drawing might also lock the OpenGL context and parts mutex. */
+     * while the UI drawing might also lock the OpenGL context and parts mutex. */
     BLI_rw_mutex_unlock(&re->partsmutex);
     engine_depsgraph_free(engine);
     BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);

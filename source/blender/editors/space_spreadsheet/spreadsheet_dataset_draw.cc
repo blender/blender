@@ -119,7 +119,7 @@ void DatasetRegionDrawer::draw_hierarchy(const DatasetLayoutHierarchy &layout)
     /* Iterate attribute domains, skip unset ones (storage has to be in a enum-based, fixed size
      * array so uses optionals to support skipping enum values that shouldn't be displayed for a
      * component). */
-    for (auto &optional_domain : component.attr_domains) {
+    for (const auto &optional_domain : component.attr_domains) {
       if (!optional_domain) {
         continue;
       }
@@ -212,7 +212,7 @@ void DatasetRegionDrawer::draw_dataset_row(const int indentation,
                                 rect.ymin,
                                 BLI_rctf_size_x(&rect),
                                 BLI_rctf_size_y(&rect),
-                                NULL);
+                                nullptr);
 
   UI_but_datasetrow_indentation_set(bt, indentation);
 

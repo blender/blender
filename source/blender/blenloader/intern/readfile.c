@@ -729,7 +729,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, bool do_endian_swap)
       BLI_endian_switch_uint64(&bhead8->old);
     }
 
-    /* this patch is to avoid a long long being read from not-eight aligned positions
+    /* this patch is to avoid `intptr_t` being read from not-eight aligned positions
      * is necessary on any modern 64bit architecture) */
     memcpy(&old, &bhead8->old, 8);
     bhead4->old = (int)(old >> 3);

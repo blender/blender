@@ -606,7 +606,7 @@ static void spreadsheet_dataset_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
 static void spreadsheet_sidebar_init(wmWindowManager *wm, ARegion *region)

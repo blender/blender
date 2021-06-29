@@ -65,8 +65,8 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
                                                 float v_no[3])
 {
   /* Calculate the dot product of the two edges that meet at the loop's vertex. */
-  /* Edge vectors are calculated from e->v1 to e->v2, so adjust the dot product if one but not
-   * both loops actually runs from from e->v2 to e->v1. */
+  /* Edge vectors are calculated from `e->v1` to `e->v2`, so adjust the dot product if one but not
+   * both loops actually runs from `e->v2` to `e->v1`. */
   float dotprod = dot_v3v3(e1diff, e2diff);
   if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
     dotprod = -dotprod;

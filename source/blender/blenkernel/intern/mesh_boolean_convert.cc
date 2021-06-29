@@ -776,7 +776,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
 
 /**
  * Do a mesh boolean operation directly on meshes (without going back and forth to BMesh).
- * \param meshes: An array of of Mesh pointers.
+ * \param meshes: An array of Mesh pointers.
  * \param obmats: An array of pointers to the obmat matrices that transform local
  * coordinates to global ones. It is allowed for the pointers to be null, meaning the
  * transformation is the identity.

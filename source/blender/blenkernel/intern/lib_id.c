@@ -1941,13 +1941,13 @@ void BKE_library_make_local(Main *bmain,
         ntree->tag &= ~LIB_TAG_DOIT;
       }
 
-      if (id->lib == NULL) {
+      if (!ID_IS_LINKED(id)) {
         id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
         id->flag &= ~LIB_INDIRECT_WEAK_LINK;
         if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
             ELEM(lib, NULL, id->override_library->reference->lib) &&
             ((untagged_only == false) || !(id->tag & LIB_TAG_PRE_EXISTING))) {
-          BKE_lib_override_library_free(&id->override_library, true);
+          BKE_lib_override_library_make_local(id);
         }
       }
       /* The check on the fourth line (LIB_TAG_PRE_EXISTING) is done so it's possible to tag data

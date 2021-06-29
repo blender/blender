@@ -356,22 +356,22 @@ typedef struct TransCon {
 
   /** Apply function pointer for linear vectorial transformation
    * The last three parameters are pointers to the in/out/printable vectors. */
-  void (*applyVec)(struct TransInfo *t,
-                   struct TransDataContainer *tc,
+  void (*applyVec)(const struct TransInfo *t,
+                   const struct TransDataContainer *tc,
                    struct TransData *td,
                    const float in[3],
-                   float out[3]);
+                   float r_out[3]);
   /** Apply function pointer for size transformation. */
-  void (*applySize)(struct TransInfo *t,
-                    struct TransDataContainer *tc,
+  void (*applySize)(const struct TransInfo *t,
+                    const struct TransDataContainer *tc,
                     struct TransData *td,
-                    float smat[3][3]);
+                    float r_smat[3][3]);
   /** Apply function pointer for rotation transformation */
-  void (*applyRot)(struct TransInfo *t,
-                   struct TransDataContainer *tc,
+  void (*applyRot)(const struct TransInfo *t,
+                   const struct TransDataContainer *tc,
                    struct TransData *td,
-                   float vec[3],
-                   float *angle);
+                   float r_axis[3],
+                   float *r_angle);
 } TransCon;
 
 typedef struct MouseInput {

@@ -535,7 +535,7 @@ void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
  *
  * This has the advantage that it can operate on any data-types.
  *
- * \param totsource: The total number of elements the that \a final_origindex points to.
+ * \param totsource: The total number of elements that \a final_origindex points to.
  * \param totfinal: The size of \a final_origindex
  * \param final_origindex: The size of the final array.
  *
