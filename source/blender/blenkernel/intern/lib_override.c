@@ -646,8 +646,8 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
                instantiating_collection->id.lib->temp_index < id_root->lib->temp_index)) {
             break;
           }
-          else if (ID_IS_LINKED(instantiating_collection) &&
-                   (!is_resync || instantiating_collection->id.lib == id_root->lib)) {
+          if (ID_IS_LINKED(instantiating_collection) &&
+              (!is_resync || instantiating_collection->id.lib == id_root->lib)) {
             instantiating_collection_override_candidate = instantiating_collection;
           }
         }

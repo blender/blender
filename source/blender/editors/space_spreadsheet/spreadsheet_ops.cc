@@ -114,7 +114,7 @@ static int select_component_domain_invoke(bContext *C,
   sspreadsheet->attribute_domain = attribute_domain;
 
   /* Refresh header and main region. */
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 
   return OPERATOR_FINISHED;
 }
