@@ -48,8 +48,8 @@ void clipUVData(TransInfo *t);
 void transform_convert_mesh_customdatacorrect_init(TransInfo *t);
 
 /* transform_convert_sequencer.c */
-int transform_convert_sequencer_get_snap_bound(TransInfo *t);
-void transform_convert_sequencer_channel_clamp(TransInfo *t);
+void transform_convert_sequencer_channel_clamp(TransInfo *t, float r_val[2]);
+
 /********************* intern **********************/
 
 /* transform_convert.c */

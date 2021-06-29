@@ -1336,6 +1336,12 @@ typedef struct MeshStatVis {
 typedef struct SequencerToolSettings {
   /* eSeqImageFitMethod */
   int fit_method;
+  short snap_mode;
+  short snap_flag;
+  int _pad0;
+  /** When there are many snap points, 0-1 range corresponds to resolution from boundbox to all
+   * possible snap points. */
+  int snap_distance;
 } SequencerToolSettings;
 
 typedef enum eSeqImageFitMethod {
@@ -2039,6 +2045,7 @@ enum {
 #define SCE_SNAP_NO_SELF (1 << 4)
 #define SCE_SNAP_ABS_GRID (1 << 5)
 #define SCE_SNAP_BACKFACE_CULLING (1 << 6)
+#define SCE_SNAP_SEQ (1 << 7)
 
 /** #ToolSettings.snap_target */
 #define SCE_SNAP_TARGET_CLOSEST 0
@@ -2051,15 +2058,26 @@ enum {
 #define SCE_SNAP_MODE_EDGE (1 << 1)
 #define SCE_SNAP_MODE_FACE (1 << 2)
 #define SCE_SNAP_MODE_VOLUME (1 << 3)
-#define SCE_SNAP_MODE_INCREMENT (1 << 4)
-#define SCE_SNAP_MODE_EDGE_MIDPOINT (1 << 5)
-#define SCE_SNAP_MODE_EDGE_PERPENDICULAR (1 << 6)
+#define SCE_SNAP_MODE_EDGE_MIDPOINT (1 << 4)
+#define SCE_SNAP_MODE_EDGE_PERPENDICULAR (1 << 5)
+
+/** #SequencerToolSettings.snap_mode */
+#define SEQ_SNAP_TO_STRIPS (1 << 0)
+#define SEQ_SNAP_TO_PLAYHEAD (1 << 1)
+#define SEQ_SNAP_TO_STRIP_HOLD (1 << 2)
+
+/** #SequencerToolSettings.snap_flag */
+#define SEQ_SNAP_IGNORE_MUTED (1 << 0)
+#define SEQ_SNAP_IGNORE_SOUND (1 << 1)
 
 /** #ToolSettings.snap_node_mode */
-#define SCE_SNAP_MODE_NODE_X (1 << 5)
-#define SCE_SNAP_MODE_NODE_Y (1 << 6)
+#define SCE_SNAP_MODE_NODE_X (1 << 0)
+#define SCE_SNAP_MODE_NODE_Y (1 << 1)
 
-/** #ToolSettings.snap_mode and #ToolSettings.snap_node_mode */
+/**
+ * #ToolSettings.snap_mode and #ToolSettings.snap_node_mode
+ */
+#define SCE_SNAP_MODE_INCREMENT (1 << 6)
 #define SCE_SNAP_MODE_GRID (1 << 7)
 
 /** #ToolSettings.snap_transform_mode_flag */

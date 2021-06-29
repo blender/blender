@@ -41,9 +41,6 @@
 
 #include "RNA_access.h"
 
-#include "SEQ_sequencer.h"
-#include "SEQ_time.h"
-
 #include "WM_types.h"
 
 #include "ED_gizmo_library.h"
@@ -54,6 +51,10 @@
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
+
+#include "SEQ_iterator.h"
+#include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -164,10 +165,7 @@ bool transformModeUseSnap(const TransInfo *t)
   if (t->mode == TFM_RESIZE) {
     return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_SCALE) != 0;
   }
-  if (t->mode == TFM_VERT_SLIDE) {
-    return true;
-  }
-  if (t->mode == TFM_EDGE_SLIDE) {
+  if (ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE, TFM_SEQ_SLIDE)) {
     return true;
   }
 
@@ -292,6 +290,21 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
       immUnbindProgram();
 
+      GPU_blend(GPU_BLEND_NONE);
+    }
+  }
+  else if (t->spacetype == SPACE_SEQ) {
+    if (validSnap(t)) {
+      const ARegion *region = CTX_wm_region(C);
+      GPU_blend(GPU_BLEND_ALPHA);
+      uint pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBegin(GPU_PRIM_LINES, 2);
+      immVertex2f(pos, t->tsnap.snapPoint[0], region->v2d.cur.ymin);
+      immVertex2f(pos, t->tsnap.snapPoint[0], region->v2d.cur.ymax);
+      immEnd();
+      immUnbindProgram();
       GPU_blend(GPU_BLEND_NONE);
     }
   }
@@ -476,11 +489,14 @@ void applySnapping(TransInfo *t, float *vec)
     /* TODO: add exception for object mode, no need to slow it down then. */
     if (current - t->tsnap.last >= 0.01) {
       t->tsnap.calcSnap(t, vec);
-      t->tsnap.targetSnap(t);
-
-      t->tsnap.last = current;
+      if (t->tsnap.targetSnap) {
+        t->tsnap.targetSnap(t);
+      }
     }
-    if (validSnap(t)) {
+
+    t->tsnap.last = current;
+
+    if (t->tsnap.applySnap && validSnap(t)) {
       t->tsnap.applySnap(t, vec);
     }
   }
@@ -567,6 +583,9 @@ static void initSnappingMode(TransInfo *t)
 
     t->tsnap.mode = ts->snap_uv_mode;
   }
+  else if (t->spacetype == SPACE_SEQ) {
+    t->tsnap.mode = SEQ_tool_settings_snap_mode_get(t->scene);
+  }
   else {
     /* force project off when not supported */
     if ((ts->snap_mode & SCE_SNAP_MODE_FACE) == 0) {
@@ -626,16 +645,12 @@ static void initSnappingMode(TransInfo *t)
       t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
     }
   }
-  else if (t->spacetype == SPACE_NODE) {
+  else if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
     setSnappingCallback(t);
     t->tsnap.modeSelect = SNAP_NOT_SELECTED;
   }
-  else if (t->spacetype == SPACE_SEQ) {
-    /* We do our own snapping currently, so nothing here */
-    t->tsnap.mode = SCE_SNAP_MODE_GRID; /* Dummy, should we rather add a NOP mode? */
-  }
   else {
-    /* Always increment outside of 3D view */
+    /* Fallback. */
     t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
   }
 
@@ -654,6 +669,11 @@ static void initSnappingMode(TransInfo *t)
             bm_face_is_snap_target,
             POINTER_FROM_UINT((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
       }
+    }
+  }
+  else if (t->spacetype == SPACE_SEQ) {
+    if (t->tsnap.seq_context == NULL) {
+      t->tsnap.seq_context = transform_snap_sequencer_data_alloc(t);
     }
   }
 }
@@ -708,6 +728,9 @@ void initSnapping(TransInfo *t, wmOperator *op)
       t->tsnap.snap_self = !((t->settings->snap_flag & SCE_SNAP_NO_SELF) != 0);
       t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) != 0);
     }
+    else if ((t->spacetype == SPACE_SEQ) && (ts->snap_flag & SCE_SNAP_SEQ)) {
+      t->modifiers |= MOD_SNAP;
+    }
   }
 
   t->tsnap.target = snap_target;
@@ -717,7 +740,11 @@ void initSnapping(TransInfo *t, wmOperator *op)
 
 void freeSnapping(TransInfo *t)
 {
-  if (t->tsnap.object_context) {
+  if ((t->spacetype == SPACE_SEQ) && t->tsnap.seq_context) {
+    transform_snap_sequencer_data_free(t->tsnap.seq_context);
+    t->tsnap.seq_context = NULL;
+  }
+  else if (t->tsnap.object_context) {
     ED_transform_snap_object_context_destroy(t->tsnap.object_context);
     t->tsnap.object_context = NULL;
   }
@@ -726,6 +753,11 @@ void freeSnapping(TransInfo *t)
 static void setSnappingCallback(TransInfo *t)
 {
   t->tsnap.calcSnap = CalcSnapGeometry;
+
+  if (t->spacetype == SPACE_SEQ) {
+    /* The target is calculated along with the snap point. */
+    return;
+  }
 
   switch (t->tsnap.target) {
     case SCE_SNAP_TARGET_CLOSEST:
@@ -849,7 +881,7 @@ void getSnapPoint(const TransInfo *t, float vec[3])
 /** \name Calc Snap (Generic)
  * \{ */
 
-static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
+static void CalcSnapGeometry(TransInfo *t, float *vec)
 {
   if (t->spacetype == SPACE_VIEW3D) {
     float loc[3];
@@ -928,6 +960,14 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
       else {
         t->tsnap.status &= ~POINT_INIT;
       }
+    }
+  }
+  else if (t->spacetype == SPACE_SEQ) {
+    if (transform_snap_sequencer_apply(t, vec, t->tsnap.snapPoint)) {
+      t->tsnap.status |= (POINT_INIT | TARGET_INIT);
+    }
+    else {
+      t->tsnap.status &= ~(POINT_INIT | TARGET_INIT);
     }
   }
 }
@@ -1439,28 +1479,6 @@ void snapFrameTransform(TransInfo *t,
     }
   }
   *r_val = (float)val;
-}
-
-/*================================================================*/
-
-void snapSequenceBounds(TransInfo *t, const int mval[2])
-{
-  /* Reuse increment, strictly speaking could be another snap mode, but leave as is. */
-  if (!(t->modifiers & MOD_SNAP_INVERT)) {
-    return;
-  }
-
-  /* Convert to frame range. */
-  float xmouse, ymouse;
-  UI_view2d_region_to_view(&t->region->v2d, mval[0], mval[1], &xmouse, &ymouse);
-  const int frame_curr = round_fl_to_int(xmouse);
-
-  /* Now find the closest sequence. */
-  const int frame_near = SEQ_time_find_next_prev_edit(
-      t->scene, frame_curr, SEQ_SIDE_BOTH, true, false, true);
-
-  const int frame_snap = transform_convert_sequencer_get_snap_bound(t);
-  t->values[0] = frame_near - frame_snap;
 }
 
 static void snap_grid_apply(

@@ -162,6 +162,14 @@ class SEQUENCER_HT_header(Header):
                 if tool_settings.use_proportional_edit:
                     row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
+            tool_settings = context.tool_settings
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_snap_sequencer", text="")
+            sub = row.row(align=True)
+            sub.popover(panel="SEQUENCER_PT_snapping")
+            layout.separator_spacer()
+
         row = layout.row(align=True)
         row.prop(st, "show_strip_overlay", text="", icon='OVERLAY')
         sub = row.row(align=True)
@@ -2264,6 +2272,30 @@ class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
     bl_category = "Strip"
 
 
+class SEQUENCER_PT_snapping(Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = ""
+
+    def draw(self, context):
+        tool_settings = context.tool_settings
+        sequencer_tool_settings = tool_settings.sequencer_tool_settings
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column(heading="Snap to", align=True)
+        col.prop(sequencer_tool_settings, "snap_seq_element", expand=True)
+
+        col = layout.column(heading="Ignore", align=True)
+        col.prop(sequencer_tool_settings, "snap_ignore_muted", text="Muted Strips")
+        col.prop(sequencer_tool_settings, "snap_ignore_sound",text="Sound Strips")
+
+        col = layout.column()
+        col.prop(sequencer_tool_settings, "snap_distance", slider=True, text="Distance")
+
+
 classes = (
     SEQUENCER_MT_change,
     SEQUENCER_HT_tool_header,
@@ -2333,6 +2365,8 @@ classes = (
 
     SEQUENCER_PT_annotation,
     SEQUENCER_PT_annotation_onion,
+
+    SEQUENCER_PT_snapping,
 )
 
 if __name__ == "__main__":  # only for live edit.
