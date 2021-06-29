@@ -2058,7 +2058,7 @@ static void calc_bevel_sin_cos(
 
 static void tilt_bezpart(const BezTriple *prevbezt,
                          const BezTriple *bezt,
-                         Nurb *nu,
+                         const Nurb *nu,
                          float *tilt_array,
                          float *radius_array,
                          float *weight_array,
@@ -2620,7 +2620,7 @@ static void make_bevel_list_2D(BevList *bl)
   }
 }
 
-static void bevlist_firstlast_direction_calc_from_bpoint(Nurb *nu, BevList *bl)
+static void bevlist_firstlast_direction_calc_from_bpoint(const Nurb *nu, BevList *bl)
 {
   if (nu->pntsu > 1) {
     BPoint *first_bp = nu->bp, *last_bp = nu->bp + (nu->pntsu - 1);
