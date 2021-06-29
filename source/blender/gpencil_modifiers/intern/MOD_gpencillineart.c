@@ -280,8 +280,6 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   const int source_type = RNA_enum_get(ptr, "source_type");
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
-  const bool use_cache = RNA_boolean_get(ptr, "use_cache");
-  const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetEnabled(layout, !is_baked);
