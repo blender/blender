@@ -701,7 +701,7 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "UV Factor", "Amount of noise to apply uv rotation");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "random", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_random", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_NOISE_USE_RANDOM);
   RNA_def_property_ui_text(prop, "Random", "Use random values over time");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
