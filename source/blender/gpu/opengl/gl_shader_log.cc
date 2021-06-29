@@ -31,24 +31,24 @@ char *GLLogParser::parse_line(char *log_line, GPULogItem &log_item)
 {
   /* Skip ERROR: or WARNING:. */
   log_line = skip_severity_prefix(log_line, log_item);
-  log_line = skip_separators(log_line, ':', '(', ' ');
+  log_line = skip_separators(log_line, "(: ");
 
   /* Parse error line & char numbers. */
-  if (log_line[0] >= '0' && log_line[0] <= '9') {
+  if (at_number(log_line)) {
     char *error_line_number_end;
-    log_item.cursor.row = (int)strtol(log_line, &error_line_number_end, 10);
+    log_item.cursor.row = parse_number(log_line, &error_line_number_end);
     /* Try to fetch the error character (not always available). */
-    if (ELEM(error_line_number_end[0], '(', ':') && error_line_number_end[1] != ' ') {
-      log_item.cursor.column = (int)strtol(error_line_number_end + 1, &log_line, 10);
+    if (at_any(error_line_number_end, "(:") && at_number(&error_line_number_end[1])) {
+      log_item.cursor.column = parse_number(error_line_number_end + 1, &log_line);
     }
     else {
       log_line = error_line_number_end;
     }
     /* There can be a 3rd number (case of mesa driver). */
-    if (ELEM(log_line[0], '(', ':') && log_line[1] >= '0' && log_line[1] <= '9') {
+    if (at_any(log_line, "(:") && at_number(&log_line[1])) {
       log_item.cursor.source = log_item.cursor.row;
       log_item.cursor.row = log_item.cursor.column;
-      log_item.cursor.column = (int)strtol(log_line + 1, &error_line_number_end, 10);
+      log_item.cursor.column = parse_number(log_line + 1, &error_line_number_end);
       log_line = error_line_number_end;
     }
   }
@@ -65,11 +65,11 @@ char *GLLogParser::parse_line(char *log_line, GPULogItem &log_item)
     }
   }
 
-  log_line = skip_separators(log_line, ':', ')', ' ');
+  log_line = skip_separators(log_line, ":) ");
 
   /* Skip to message. Avoid redundant info. */
   log_line = skip_severity_keyword(log_line, log_item);
-  log_line = skip_separators(log_line, ':', ')', ' ');
+  log_line = skip_separators(log_line, ":) ");
 
   return log_line;
 }
