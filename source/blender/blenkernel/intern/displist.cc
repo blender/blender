@@ -1092,13 +1092,14 @@ static void displist_surf_indices(DispList *dl)
   }
 }
 
-static void displist_make_surf(Depsgraph *depsgraph,
-                               const Scene *scene,
-                               Object *ob,
-                               const bool for_render,
-                               ListBase *r_dispbase,
-                               Mesh **r_final)
+static void evaluate_surface_object(Depsgraph *depsgraph,
+                                    const Scene *scene,
+                                    Object *ob,
+                                    const bool for_render,
+                                    ListBase *r_dispbase,
+                                    Mesh **r_final)
 {
+  BLI_assert(ob->type == OB_SURF);
   ListBase nubase = {nullptr, nullptr};
   const Curve *cu = (const Curve *)ob->data;
 
@@ -1397,24 +1398,15 @@ static void calc_bevfac_mapping(const Curve *cu,
   }
 }
 
-static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
-                                      const Scene *scene,
-                                      Object *ob,
-                                      const bool for_render,
-                                      ListBase *r_dispbase,
-                                      Mesh **r_final)
+static void evaluate_curve_type_object(Depsgraph *depsgraph,
+                                       const Scene *scene,
+                                       Object *ob,
+                                       const bool for_render,
+                                       ListBase *r_dispbase,
+                                       Mesh **r_final)
 {
+  BLI_assert(ELEM(ob->type, OB_CURVE, OB_FONT));
   const Curve *cu = (const Curve *)ob->data;
-
-  /* we do allow duplis... this is only displist on curve level */
-  if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
-    return;
-  }
-
-  if (ob->type == OB_SURF) {
-    displist_make_surf(depsgraph, scene, ob, for_render, r_dispbase, r_final);
-    return;
-  }
 
   ListBase nubase = {nullptr, nullptr};
 
@@ -1653,7 +1645,12 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   ListBase *dispbase = &(ob->runtime.curve_cache->disp);
 
   Mesh *mesh_eval = nullptr;
-  do_makeDispListCurveTypes(depsgraph, scene, ob, for_render, dispbase, &mesh_eval);
+  if (ob->type == OB_SURF) {
+    evaluate_surface_object(depsgraph, scene, ob, for_render, dispbase, &mesh_eval);
+  }
+  else {
+    evaluate_curve_type_object(depsgraph, scene, ob, for_render, dispbase, &mesh_eval);
+  }
 
   if (mesh_eval != nullptr) {
     BKE_object_eval_assign_data(ob, &mesh_eval->id, true);
@@ -1663,14 +1660,19 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
 }
 
 void BKE_displist_make_curveTypes_forRender(
-    Depsgraph *depsgraph, const Scene *scene, Object *ob, ListBase *dispbase, Mesh **r_final)
+    Depsgraph *depsgraph, const Scene *scene, Object *ob, ListBase *r_dispbase, Mesh **r_final)
 {
   if (ob->runtime.curve_cache == nullptr) {
     ob->runtime.curve_cache = (CurveCache *)MEM_callocN(sizeof(CurveCache),
                                                         "CurveCache for Curve");
   }
 
-  do_makeDispListCurveTypes(depsgraph, scene, ob, true, dispbase, r_final);
+  if (ob->type == OB_SURF) {
+    evaluate_surface_object(depsgraph, scene, ob, true, r_dispbase, r_final);
+  }
+  else {
+    evaluate_curve_type_object(depsgraph, scene, ob, true, r_dispbase, r_final);
+  }
 }
 
 void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
