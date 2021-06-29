@@ -489,7 +489,8 @@ static void file_draw_preview(const SpaceFile *sfile,
       UI_but_drag_set_id(but, id);
     }
     /* path is no more static, cannot give it directly to but... */
-    else if (file->typeflag & FILE_TYPE_ASSET) {
+    else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
+             (file->typeflag & FILE_TYPE_ASSET) != 0) {
       char blend_path[FILE_MAX_LIBEXTRA];
 
       if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
