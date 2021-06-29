@@ -140,81 +140,80 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                              0);                    // pointer to window-creation data
   free(title_16);
 
+  if (m_hWnd == NULL) {
+    return;
+  }
+
+  /*  Store the device context. */
+  m_hDC = ::GetDC(m_hWnd);
+
+  if (!setDrawingContextType(type)) {
+    ::DestroyWindow(m_hWnd);
+    m_hWnd = NULL;
+    return;
+  }
+
   m_user32 = ::LoadLibrary("user32.dll");
 
-  if (m_hWnd) {
-    RegisterTouchWindow(m_hWnd, 0);
+  RegisterTouchWindow(m_hWnd, 0);
 
-    // Register this window as a droptarget. Requires m_hWnd to be valid.
-    // Note that OleInitialize(0) has to be called prior to this. Done in GHOST_SystemWin32.
-    m_dropTarget = new GHOST_DropTargetWin32(this, m_system);
-    if (m_dropTarget) {
-      ::RegisterDragDrop(m_hWnd, m_dropTarget);
-    }
+  /* Register as droptarget. OleInitialize(0) required first, done in GHOST_SystemWin32. */
+  m_dropTarget = new GHOST_DropTargetWin32(this, m_system);
+  ::RegisterDragDrop(m_hWnd, m_dropTarget);
 
-    // Store a pointer to this class in the window structure
-    ::SetWindowLongPtr(m_hWnd, GWLP_USERDATA, (LONG_PTR)this);
+  /* Store a pointer to this class in the window structure. */
+  ::SetWindowLongPtr(m_hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
-    if (!m_system->m_windowFocus) {
-      // Lower to bottom and don't activate if we don't want focus
-      ::SetWindowPos(m_hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-    }
+  if (!m_system->m_windowFocus) {
+    /* If we don't want focus then lower to bottom. */
+    ::SetWindowPos(m_hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+  }
 
-    // Store the device context
-    m_hDC = ::GetDC(m_hWnd);
+  /* Show the window. */
+  int nCmdShow;
+  switch (state) {
+    case GHOST_kWindowStateMaximized:
+      nCmdShow = SW_SHOWMAXIMIZED;
+      break;
+    case GHOST_kWindowStateMinimized:
+      nCmdShow = (m_system->m_windowFocus) ? SW_SHOWMINIMIZED : SW_SHOWMINNOACTIVE;
+      break;
+    case GHOST_kWindowStateNormal:
+    default:
+      nCmdShow = (m_system->m_windowFocus) ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE;
+      break;
+  }
 
-    GHOST_TSuccess success = setDrawingContextType(type);
+  ::ShowWindow(m_hWnd, nCmdShow);
 
-    if (success) {
-      // Show the window
-      int nCmdShow;
-      switch (state) {
-        case GHOST_kWindowStateMaximized:
-          nCmdShow = SW_SHOWMAXIMIZED;
-          break;
-        case GHOST_kWindowStateMinimized:
-          nCmdShow = (m_system->m_windowFocus) ? SW_SHOWMINIMIZED : SW_SHOWMINNOACTIVE;
-          break;
-        case GHOST_kWindowStateNormal:
-        default:
-          nCmdShow = (m_system->m_windowFocus) ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE;
-          break;
-      }
-
-      ::ShowWindow(m_hWnd, nCmdShow);
 #ifdef WIN32_COMPOSITING
       if (alphaBackground && parentwindowhwnd == 0) {
 
         HRESULT hr = S_OK;
 
-        // Create and populate the Blur Behind structure
+        /* Create and populate the Blur Behind structure. */
         DWM_BLURBEHIND bb = {0};
 
-        // Enable Blur Behind and apply to the entire client area
+        /* Enable Blur Behind and apply to the entire client area. */
         bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
         bb.fEnable = true;
         bb.hRgnBlur = CreateRectRgn(0, 0, -1, -1);
 
-        // Apply Blur Behind
+        /* Apply Blur Behind. */
         hr = DwmEnableBlurBehindWindow(m_hWnd, &bb);
         DeleteObject(bb.hRgnBlur);
       }
 #endif
-      // Force an initial paint of the window
-      ::UpdateWindow(m_hWnd);
-    }
-    else {
-      // invalidate the window
-      ::DestroyWindow(m_hWnd);
-      m_hWnd = NULL;
-    }
-  }
 
-  // Initialize Wintab
+  /* Force an initial paint of the window. */
+  ::UpdateWindow(m_hWnd);
+
+  /* Initialize Wintab. */
   if (system->getTabletAPI() != GHOST_kTabletWinPointer) {
     loadWintab(GHOST_kWindowStateMinimized != state);
   }
 
+  /* Allow the showing of a progress bar on the taskbar. */
   CoCreateInstance(
       CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_ITaskbarList3, (LPVOID *)&m_Bar);
 }
