@@ -2425,12 +2425,20 @@ void uiItemPopoverPanelFromGroup(uiLayout *layout,
 
 void uiItemMenuF(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg);
 void uiItemMenuFN(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *argN);
-void uiItemMenuEnumO_ptr(uiLayout *layout,
+void uiItemMenuEnumFullO_ptr(uiLayout *layout,
+                             struct bContext *C,
+                             struct wmOperatorType *ot,
+                             const char *propname,
+                             const char *name,
+                             int icon,
+                             struct PointerRNA *r_opptr);
+void uiItemMenuEnumFullO(uiLayout *layout,
                          struct bContext *C,
-                         struct wmOperatorType *ot,
+                         const char *opname,
                          const char *propname,
                          const char *name,
-                         int icon);
+                         int icon,
+                         struct PointerRNA *r_opptr);
 void uiItemMenuEnumO(uiLayout *layout,
                      struct bContext *C,
                      const char *opname,
