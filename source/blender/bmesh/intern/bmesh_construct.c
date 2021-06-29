@@ -671,7 +671,6 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
 
   for (int i = 0; i < 4; i++) {
     CustomData *cdata = srcdatas[i];
-    int type = 1 << i;
 
     if (CustomData_has_layer(cdata, CD_MESH_ID)) {
       int idx = CustomData_get_layer_index(cdata, CD_MESH_ID);
@@ -697,7 +696,6 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
   // flag mesh id layer as temporary
   for (int i = 0; i < 4; i++) {
     CustomData *cdata = dstdatas[i];
-    int type = 1 << i;
 
     if (CustomData_has_layer(cdata, CD_MESH_ID)) {
       int idx = CustomData_get_layer_index(cdata, CD_MESH_ID);
@@ -789,8 +787,6 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
     bm_init_idmap_cdlayers(bm_new);
   }
-
-  const int idflag = bm_new->idmap.flag;
 
   vtable = MEM_mallocN(sizeof(BMVert *) * bm_old->totvert, "BM_mesh_copy vtable");
   etable = MEM_mallocN(sizeof(BMEdge *) * bm_old->totedge, "BM_mesh_copy etable");

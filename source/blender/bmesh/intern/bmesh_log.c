@@ -433,7 +433,7 @@ static void bm_log_verts_unmake(
   }
 }
 
-ATTR_NO_OPT static void bm_log_faces_unmake(
+static void bm_log_faces_unmake(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -796,7 +796,6 @@ void BM_log_set_bm(BMesh *bm, BMLog *log)
 BMLog *BM_log_create(BMesh *bm, int cd_dyn_vert)
 {
   BMLog *log = MEM_callocN(sizeof(*log), __func__);
-  const uint reserve_num = (uint)(bm->totvert + bm->totface);
 
   BLI_rw_mutex_init(&log->lock);
 

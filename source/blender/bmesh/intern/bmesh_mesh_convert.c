@@ -804,7 +804,6 @@ void BM_mesh_bm_to_me(
     // clear mesh id layer flags
     if (params->copy_mesh_id_layers) {
       CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-      CustomData *dstdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
 
       for (int i = 0; i < 4; i++) {
         int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
@@ -1184,7 +1183,6 @@ void BM_mesh_bm_to_me(
   if (params->copy_mesh_id_layers) {
     // restore mesh id layer flags in bm
     CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-    CustomData *dstdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
 
     for (int i = 0; i < 4; i++) {
       int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);

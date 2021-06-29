@@ -1402,7 +1402,7 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
     BMCustomLayerReq *req = layers + i;
     int idx;
 
-    mask |= 1 << req->type;
+    mask |= 1LL << req->type;
 
     if (req->name) {
       idx = CustomData_get_named_layer_index(data, req->type, req->name);
