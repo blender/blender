@@ -462,6 +462,12 @@ set(XR_OPENXR_SDK_HASH 0df6b2fd6045423451a77ff6bc3e1a75)
 set(XR_OPENXR_SDK_HASH_TYPE MD5)
 set(XR_OPENXR_SDK_FILE OpenXR-SDK-${XR_OPENXR_SDK_VERSION}.tar.gz)
 
+set(WL_PROTOCOLS_VERSION 1.21)
+set(WL_PROTOCOLS_FILE wayland-protocols-${WL_PROTOCOLS_VERSION}.tar.gz)
+set(WL_PROTOCOLS_URI https://gitlab.freedesktop.org/wayland/wayland-protocols/-/archive/${WL_PROTOCOLS_VERSION}/${WL_PROTOCOLS_FILE})
+set(WL_PROTOCOLS_HASH af5ca07e13517cdbab33504492cef54a)
+set(WL_PROTOCOLS_HASH_TYPE MD5)
+
 if(BLENDER_PLATFORM_ARM)
   # Unreleased version with macOS arm support.
   set(ISPC_URI https://github.com/ispc/ispc/archive/f5949c055eb9eeb93696978a3da4bfb3a6a30b35.zip)
