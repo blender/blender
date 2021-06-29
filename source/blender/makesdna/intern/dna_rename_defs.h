@@ -134,6 +134,6 @@ DNA_STRUCT_RENAME_ELEM(RigidBodyWorld, steps_per_second, substeps_per_frame)
  * global_areas. See D9442. */
 DNA_STRUCT_RENAME_ELEM(wmWindow, global_area_map, global_areas)
 DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, line_types, edge_types)
-DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_flags, material_mask_flags)
+DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_flags, mask_switches)
 DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_mask, material_mask_bits)
 DNA_STRUCT_RENAME_ELEM(MaterialLineArt, transparency_mask, material_mask_bits)

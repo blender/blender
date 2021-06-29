@@ -46,15 +46,16 @@ typedef struct CollectionChild {
   struct Collection *collection;
 } CollectionChild;
 
-/**
- * \warning while the values seem to be flags, they aren't treated as flags.
- */
 enum eCollectionLineArt_Usage {
   COLLECTION_LRT_INCLUDE = 0,
   COLLECTION_LRT_OCCLUSION_ONLY = (1 << 0),
   COLLECTION_LRT_EXCLUDE = (1 << 1),
   COLLECTION_LRT_INTERSECTION_ONLY = (1 << 2),
   COLLECTION_LRT_NO_INTERSECTION = (1 << 3),
+};
+
+enum eCollectionLineArt_Flags {
+  COLLECTION_LRT_USE_INTERSECTION_MASK = (1 << 0),
 };
 
 typedef struct Collection {
@@ -74,8 +75,10 @@ typedef struct Collection {
   /* Runtime-only, always cleared on file load. */
   short tag;
 
-  /** Line Art engine specific */
-  short lineart_usage;
+  short lineart_usage;         /* eCollectionLineArt_Usage */
+  unsigned char lineart_flags; /* eCollectionLineArt_Flags */
+  unsigned char lineart_intersection_mask;
+  char _pad[6];
 
   int16_t color_tag;
 
