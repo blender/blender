@@ -97,7 +97,7 @@ static void view_vector_calc(const TransInfo *t, const float focus[3], float r_v
 /* ************************** CONSTRAINTS ************************* */
 #define CONSTRAIN_EPSILON 0.0001f
 
-static void constraint_plane_calc(TransInfo *t, float r_plane[4])
+static void constraint_plane_calc(const TransInfo *t, float r_plane[4])
 {
   const float *constraint_vector[2];
   int n = 0;
@@ -391,8 +391,11 @@ static void planeProjection(const TransInfo *t, const float in[3], float out[3])
  * projected along the view vector.
  * (in perspective mode, the view vector is relative to the position on screen)
  */
-static void applyAxisConstraintVec(
-    TransInfo *t, TransDataContainer *UNUSED(tc), TransData *td, const float in[3], float out[3])
+static void applyAxisConstraintVec(const TransInfo *t,
+                                   const TransDataContainer *UNUSED(tc),
+                                   TransData *td,
+                                   const float in[3],
+                                   float out[3])
 {
   copy_v3_v3(out, in);
   if (!td && t->con.mode & CON_APPLY) {
@@ -472,8 +475,11 @@ static void applyAxisConstraintVec(
  *
  * Further down, that vector is mapped to each data's space.
  */
-static void applyObjectConstraintVec(
-    TransInfo *t, TransDataContainer *tc, TransData *td, const float in[3], float out[3])
+static void applyObjectConstraintVec(const TransInfo *t,
+                                     const TransDataContainer *tc,
+                                     TransData *td,
+                                     const float in[3],
+                                     float out[3])
 {
   if (!td) {
     applyAxisConstraintVec(t, tc, td, in, out);
@@ -494,36 +500,36 @@ static void applyObjectConstraintVec(
 /**
  * Generic callback for constant spatial constraints applied to resize motion.
  */
-static void applyAxisConstraintSize(TransInfo *t,
-                                    TransDataContainer *UNUSED(tc),
+static void applyAxisConstraintSize(const TransInfo *t,
+                                    const TransDataContainer *UNUSED(tc),
                                     TransData *td,
-                                    float smat[3][3])
+                                    float r_smat[3][3])
 {
   if (!td && t->con.mode & CON_APPLY) {
     float tmat[3][3];
 
     if (!(t->con.mode & CON_AXIS0)) {
-      smat[0][0] = 1.0f;
+      r_smat[0][0] = 1.0f;
     }
     if (!(t->con.mode & CON_AXIS1)) {
-      smat[1][1] = 1.0f;
+      r_smat[1][1] = 1.0f;
     }
     if (!(t->con.mode & CON_AXIS2)) {
-      smat[2][2] = 1.0f;
+      r_smat[2][2] = 1.0f;
     }
 
-    mul_m3_m3m3(tmat, smat, t->spacemtx_inv);
-    mul_m3_m3m3(smat, t->spacemtx, tmat);
+    mul_m3_m3m3(tmat, r_smat, t->spacemtx_inv);
+    mul_m3_m3m3(r_smat, t->spacemtx, tmat);
   }
 }
 
 /**
  * Callback for object based spatial constraints applied to resize motion.
  */
-static void applyObjectConstraintSize(TransInfo *t,
-                                      TransDataContainer *tc,
+static void applyObjectConstraintSize(const TransInfo *t,
+                                      const TransDataContainer *tc,
                                       TransData *td,
-                                      float smat[3][3])
+                                      float r_smat[3][3])
 {
   if (td && t->con.mode & CON_APPLY) {
     float tmat[3][3];
@@ -532,26 +538,26 @@ static void applyObjectConstraintSize(TransInfo *t,
     invert_m3_m3(imat, td->axismtx);
 
     if (!(t->con.mode & CON_AXIS0)) {
-      smat[0][0] = 1.0f;
+      r_smat[0][0] = 1.0f;
     }
     if (!(t->con.mode & CON_AXIS1)) {
-      smat[1][1] = 1.0f;
+      r_smat[1][1] = 1.0f;
     }
     if (!(t->con.mode & CON_AXIS2)) {
-      smat[2][2] = 1.0f;
+      r_smat[2][2] = 1.0f;
     }
 
-    mul_m3_m3m3(tmat, smat, imat);
+    mul_m3_m3m3(tmat, r_smat, imat);
     if (t->flag & T_EDIT) {
-      mul_m3_m3m3(smat, tc->mat3_unit, smat);
+      mul_m3_m3m3(r_smat, tc->mat3_unit, r_smat);
     }
-    mul_m3_m3m3(smat, td->axismtx, tmat);
+    mul_m3_m3m3(r_smat, td->axismtx, tmat);
   }
 }
 
-static void constraints_rotation_impl(TransInfo *t,
+static void constraints_rotation_impl(const TransInfo *t,
                                       const float axismtx[3][3],
-                                      float r_vec[3],
+                                      float r_axis[3],
                                       float *r_angle)
 {
   BLI_assert(t->con.mode & CON_APPLY);
@@ -560,15 +566,15 @@ static void constraints_rotation_impl(TransInfo *t,
   switch (mode) {
     case CON_AXIS0:
     case (CON_AXIS1 | CON_AXIS2):
-      copy_v3_v3(r_vec, axismtx[0]);
+      copy_v3_v3(r_axis, axismtx[0]);
       break;
     case CON_AXIS1:
     case (CON_AXIS0 | CON_AXIS2):
-      copy_v3_v3(r_vec, axismtx[1]);
+      copy_v3_v3(r_axis, axismtx[1]);
       break;
     case CON_AXIS2:
     case (CON_AXIS0 | CON_AXIS1):
-      copy_v3_v3(r_vec, axismtx[2]);
+      copy_v3_v3(r_axis, axismtx[2]);
       break;
   }
   /* don't flip axis if asked to or if num input */
@@ -576,7 +582,7 @@ static void constraints_rotation_impl(TransInfo *t,
       !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL))) {
     float view_vector[3];
     view_vector_calc(t, t->center_global, view_vector);
-    if (dot_v3v3(r_vec, view_vector) > 0.0f) {
+    if (dot_v3v3(r_axis, view_vector) > 0.0f) {
       *r_angle = -(*r_angle);
     }
   }
@@ -595,11 +601,14 @@ static void constraints_rotation_impl(TransInfo *t,
  * This insures that the rotation is always logically following the mouse.
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
-static void applyAxisConstraintRot(
-    TransInfo *t, TransDataContainer *UNUSED(tc), TransData *td, float vec[3], float *angle)
+static void applyAxisConstraintRot(const TransInfo *t,
+                                   const TransDataContainer *UNUSED(tc),
+                                   TransData *td,
+                                   float r_axis[3],
+                                   float *r_angle)
 {
   if (!td && t->con.mode & CON_APPLY) {
-    constraints_rotation_impl(t, t->spacemtx, vec, angle);
+    constraints_rotation_impl(t, t->spacemtx, r_axis, r_angle);
   }
 }
 
@@ -616,8 +625,11 @@ static void applyAxisConstraintRot(
  * This insures that the rotation is always logically following the mouse.
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
-static void applyObjectConstraintRot(
-    TransInfo *t, TransDataContainer *tc, TransData *td, float vec[3], float *angle)
+static void applyObjectConstraintRot(const TransInfo *t,
+                                     const TransDataContainer *tc,
+                                     TransData *td,
+                                     float r_axis[3],
+                                     float *r_angle)
 {
   if (t->con.mode & CON_APPLY) {
     float tmp_axismtx[3][3];
@@ -638,7 +650,7 @@ static void applyObjectConstraintRot(
       axismtx = td->axismtx;
     }
 
-    constraints_rotation_impl(t, axismtx, vec, angle);
+    constraints_rotation_impl(t, axismtx, r_axis, r_angle);
   }
 }
 
@@ -1164,7 +1176,7 @@ bool isLockConstraint(TransInfo *t)
  * even if they aren't actually used in the callback function.
  * (Which could happen for weird constraints not yet designed. Along a path for example.)
  */
-int getConstraintSpaceDimension(TransInfo *t)
+int getConstraintSpaceDimension(const TransInfo *t)
 {
   int n = 0;
 

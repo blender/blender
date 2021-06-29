@@ -47,4 +47,4 @@ void setNearestAxis(TransInfo *t);
 int constraintModeToIndex(const TransInfo *t);
 char constraintModeToChar(const TransInfo *t);
 bool isLockConstraint(TransInfo *t);
-int getConstraintSpaceDimension(TransInfo *t);
+int getConstraintSpaceDimension(const TransInfo *t);

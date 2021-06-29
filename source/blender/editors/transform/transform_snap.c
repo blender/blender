@@ -1517,7 +1517,7 @@ bool transform_snap_grid(TransInfo *t, float *val)
   return true;
 }
 
-static void snap_increment_apply_ex(TransInfo *UNUSED(t),
+static void snap_increment_apply_ex(const TransInfo *UNUSED(t),
                                     const int max_index,
                                     const float increment_val,
                                     const float aspect[3],
@@ -1531,8 +1531,8 @@ static void snap_increment_apply_ex(TransInfo *UNUSED(t),
   }
 }
 
-static void snap_increment_apply(TransInfo *t,
-                                 int max_index,
+static void snap_increment_apply(const TransInfo *t,
+                                 const int max_index,
                                  const float increment_dist,
                                  float *r_val)
 {
@@ -1564,7 +1564,7 @@ static void snap_increment_apply(TransInfo *t,
   snap_increment_apply_ex(t, max_index, increment_dist, asp, r_val, r_val);
 }
 
-bool transform_snap_increment_ex(TransInfo *t, bool use_local_space, float *r_val)
+bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float *r_val)
 {
   if (!activeSnap(t)) {
     return false;
@@ -1595,7 +1595,7 @@ bool transform_snap_increment_ex(TransInfo *t, bool use_local_space, float *r_va
   return true;
 }
 
-bool transform_snap_increment(TransInfo *t, float *r_val)
+bool transform_snap_increment(const TransInfo *t, float *r_val)
 {
   return transform_snap_increment_ex(t, false, r_val);
 }
