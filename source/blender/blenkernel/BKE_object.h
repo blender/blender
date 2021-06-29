@@ -374,6 +374,10 @@ void BKE_object_runtime_free_data(struct Object *object);
 
 void BKE_object_batch_cache_dirty_tag(struct Object *ob);
 void BKE_object_data_batch_cache_dirty_tag(struct ID *object_data);
+void BKE_object_data_eval_batch_cache_dirty_tag(struct Depsgraph *depsgraph,
+                                                struct ID *object_data);
+void BKE_object_data_eval_batch_cache_deform_tag(struct Depsgraph *depsgraph,
+                                                 struct ID *object_data);
 
 /* this function returns a superset of the scenes selection based on relationships */
 

@@ -98,6 +98,8 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Geometry. */
     case OperationCode::GEOMETRY_EVAL_INIT:
       return "GEOMETRY_EVAL_INIT";
+    case OperationCode::GEOMETRY_EVAL_DEFORM:
+      return "GEOMETRY_EVAL_DEFORM";
     case OperationCode::GEOMETRY_EVAL:
       return "GEOMETRY_EVAL";
     case OperationCode::GEOMETRY_EVAL_DONE:
@@ -160,8 +162,12 @@ const char *operationCodeAsString(OperationCode opcode)
     case OperationCode::FILE_CACHE_UPDATE:
       return "FILE_CACHE_UPDATE";
     /* Batch cache. */
-    case OperationCode::GEOMETRY_SELECT_UPDATE:
-      return "GEOMETRY_SELECT_UPDATE";
+    case OperationCode::BATCH_UPDATE_SELECT:
+      return "BATCH_UPDATE_SELECT";
+    case OperationCode::BATCH_UPDATE_DEFORM:
+      return "BATCH_UPDATE_DEFORM";
+    case OperationCode::BATCH_UPDATE_ALL:
+      return "BATCH_UPDATE_ALL";
     /* Masks. */
     case OperationCode::MASK_ANIMATION:
       return "MASK_ANIMATION";

@@ -621,9 +621,9 @@ typedef enum IDRecalcFlag {
    * When a collection gets tagged with this flag, all objects depending on the geometry and
    * transforms on any of the objects in the collection are updated. */
   ID_RECALC_GEOMETRY = (1 << 1),
-
-  /* ** Animation or time changed and animation is to be re-evaluated. ** */
-  ID_RECALC_ANIMATION = (1 << 2),
+  /* Same as #ID_RECALC_GEOMETRY, but instead of tagging the batch cache as `dirty_all`, just tags
+     what matches the deform cache. */
+  ID_RECALC_GEOMETRY_DEFORM = (1 << 2),
 
   /* ** Particle system changed. ** */
   /* Only do pathcache etc. */
@@ -682,6 +682,9 @@ typedef enum IDRecalcFlag {
    * this has the advantage that large arrays stored in the idea data don't
    * have to be copied on every update. */
   ID_RECALC_PARAMETERS = (1 << 21),
+
+  /* ** Animation or time changed and animation is to be re-evaluated. ** */
+  ID_RECALC_ANIMATION = (1 << 22),
 
   /* Input has changed and datablock is to be reload from disk.
    * Applies to movie clips to inform that copy-on-written version is to be refreshed for the new

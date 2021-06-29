@@ -1495,7 +1495,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object, bool is_ob
   add_operation_node(
       &object->id,
       NodeType::BATCH_CACHE,
-      OperationCode::GEOMETRY_SELECT_UPDATE,
+      OperationCode::BATCH_UPDATE_SELECT,
       [object_cow](::Depsgraph *depsgraph) { BKE_object_select_update(depsgraph, object_cow); });
 }
 
@@ -1516,33 +1516,37 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
   if (key) {
     build_shapekeys(key);
   }
-  /* Nodes for result of obdata's evaluation, and geometry
-   * evaluation on object. */
+
+  /* Geometry evaluation. */
+  /* Entry operation, takes care of initialization, and some other
+   * relations which needs to be run prior to actual geometry evaluation. */
+  op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_INIT);
+  op_node->set_as_entry();
+
+  add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DEFORM);
+
   const ID_Type id_type = GS(obdata->name);
   switch (id_type) {
     case ID_ME: {
-      op_node = add_operation_node(obdata,
-                                   NodeType::GEOMETRY,
-                                   OperationCode::GEOMETRY_EVAL,
-                                   [obdata_cow](::Depsgraph *depsgraph) {
-                                     BKE_mesh_eval_geometry(depsgraph, (Mesh *)obdata_cow);
-                                   });
-      op_node->set_as_entry();
+      add_operation_node(obdata,
+                         NodeType::GEOMETRY,
+                         OperationCode::GEOMETRY_EVAL,
+                         [obdata_cow](::Depsgraph *depsgraph) {
+                           BKE_mesh_eval_geometry(depsgraph, (Mesh *)obdata_cow);
+                         });
       break;
     }
     case ID_MB: {
-      op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
-      op_node->set_as_entry();
+      add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
       break;
     }
     case ID_CU: {
-      op_node = add_operation_node(obdata,
-                                   NodeType::GEOMETRY,
-                                   OperationCode::GEOMETRY_EVAL,
-                                   [obdata_cow](::Depsgraph *depsgraph) {
-                                     BKE_curve_eval_geometry(depsgraph, (Curve *)obdata_cow);
-                                   });
-      op_node->set_as_entry();
+      add_operation_node(obdata,
+                         NodeType::GEOMETRY,
+                         OperationCode::GEOMETRY_EVAL,
+                         [obdata_cow](::Depsgraph *depsgraph) {
+                           BKE_curve_eval_geometry(depsgraph, (Curve *)obdata_cow);
+                         });
       /* Make sure objects used for bevel.taper are in the graph.
        * NOTE: This objects might be not linked to the scene. */
       Curve *cu = (Curve *)obdata;
@@ -1558,47 +1562,41 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
       break;
     }
     case ID_LT: {
-      op_node = add_operation_node(obdata,
-                                   NodeType::GEOMETRY,
-                                   OperationCode::GEOMETRY_EVAL,
-                                   [obdata_cow](::Depsgraph *depsgraph) {
-                                     BKE_lattice_eval_geometry(depsgraph, (Lattice *)obdata_cow);
-                                   });
-      op_node->set_as_entry();
+      add_operation_node(obdata,
+                         NodeType::GEOMETRY,
+                         OperationCode::GEOMETRY_EVAL,
+                         [obdata_cow](::Depsgraph *depsgraph) {
+                           BKE_lattice_eval_geometry(depsgraph, (Lattice *)obdata_cow);
+                         });
       break;
     }
 
     case ID_GD: {
       /* GPencil evaluation operations. */
-      op_node = add_operation_node(obdata,
-                                   NodeType::GEOMETRY,
-                                   OperationCode::GEOMETRY_EVAL,
-                                   [obdata_cow](::Depsgraph *depsgraph) {
-                                     BKE_gpencil_frame_active_set(depsgraph,
-                                                                  (bGPdata *)obdata_cow);
-                                   });
-      op_node->set_as_entry();
+      add_operation_node(obdata,
+                         NodeType::GEOMETRY,
+                         OperationCode::GEOMETRY_EVAL,
+                         [obdata_cow](::Depsgraph *depsgraph) {
+                           BKE_gpencil_frame_active_set(depsgraph, (bGPdata *)obdata_cow);
+                         });
       break;
     }
     case ID_HA: {
-      op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
-      op_node->set_as_entry();
+      add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
       break;
     }
     case ID_PT: {
-      op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
-      op_node->set_as_entry();
+      add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
       break;
     }
     case ID_VO: {
       /* Volume frame update. */
-      op_node = add_operation_node(obdata,
-                                   NodeType::GEOMETRY,
-                                   OperationCode::GEOMETRY_EVAL,
-                                   [obdata_cow](::Depsgraph *depsgraph) {
-                                     BKE_volume_eval_geometry(depsgraph, (Volume *)obdata_cow);
-                                   });
-      op_node->set_as_entry();
+      add_operation_node(obdata,
+                         NodeType::GEOMETRY,
+                         OperationCode::GEOMETRY_EVAL,
+                         [obdata_cow](::Depsgraph *depsgraph) {
+                           BKE_volume_eval_geometry(depsgraph, (Volume *)obdata_cow);
+                         });
       break;
     }
     default:
@@ -1612,9 +1610,21 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
   /* Batch cache. */
   add_operation_node(obdata,
                      NodeType::BATCH_CACHE,
-                     OperationCode::GEOMETRY_SELECT_UPDATE,
+                     OperationCode::BATCH_UPDATE_SELECT,
                      [obdata_cow](::Depsgraph *depsgraph) {
                        BKE_object_data_select_update(depsgraph, obdata_cow);
+                     });
+  add_operation_node(obdata,
+                     NodeType::BATCH_CACHE,
+                     OperationCode::BATCH_UPDATE_DEFORM,
+                     [obdata_cow](::Depsgraph *depsgraph) {
+                       BKE_object_data_eval_batch_cache_deform_tag(depsgraph, obdata_cow);
+                     });
+  add_operation_node(obdata,
+                     NodeType::BATCH_CACHE,
+                     OperationCode::BATCH_UPDATE_ALL,
+                     [obdata_cow](::Depsgraph *depsgraph) {
+                       BKE_object_data_eval_batch_cache_dirty_tag(depsgraph, obdata_cow);
                      });
 }
 

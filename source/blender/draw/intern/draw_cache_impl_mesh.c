@@ -821,6 +821,17 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
       mesh_batch_cache_discard_shaded_tri(cache);
       mesh_batch_cache_discard_uvedit(cache);
       break;
+    case BKE_MESH_BATCH_DIRTY_DEFORM:
+      FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
+        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.pos_nor);
+        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.lnor);
+        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_pos);
+        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_nor);
+        GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.tris);
+      }
+      batch_map = MDEPS_CREATE_MAP(vbo.pos_nor, vbo.lnor, vbo.fdots_pos, vbo.fdots_nor, ibo.tris);
+      mesh_batch_cache_discard_batch(cache, batch_map);
+      break;
     case BKE_MESH_BATCH_DIRTY_UVEDIT_ALL:
       mesh_batch_cache_discard_uvedit(cache);
       break;
