@@ -291,6 +291,7 @@ DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bound
 DefNode(GeometryNode, GEO_NODE_COLLECTION_INFO, def_geo_collection_info, "COLLECTION_INFO", CollectionInfo, "Collection Info", "")
 DefNode(GeometryNode, GEO_NODE_CONVEX_HULL, 0, "CONVEX_HULL", ConvexHull, "Convex Hull", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_LENGTH, 0, "CURVE_LENGTH", CurveLength, "Curve Length", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_STAR, 0, "CURVE_PRIMITIVE_STAR", CurveStar, "Star", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_RESAMPLE, def_geo_curve_resample, "CURVE_RESAMPLE", CurveResample, "Resample Curve", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_SUBDIVIDE, def_geo_curve_subdivide, "CURVE_SUBDIVIDE", CurveSubdivide, "Curve Subdivide", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "Curve to Mesh", "")
