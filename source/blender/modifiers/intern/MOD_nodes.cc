@@ -1381,6 +1381,10 @@ static void modifyGeometry(ModifierData *md,
     BKE_modifier_set_error(ctx->object, md, "Node group has cycles");
     return;
   }
+  if (tree.has_undefined_nodes_or_sockets()) {
+    BKE_modifier_set_error(ctx->object, md, "Node group has undefined nodes or sockets");
+    return;
+  }
 
   const NodeTreeRef &root_tree_ref = tree.root_context().tree();
   Span<const NodeRef *> input_nodes = root_tree_ref.nodes_by_type("NodeGroupInput");
