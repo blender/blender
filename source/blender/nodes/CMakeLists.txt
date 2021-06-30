@@ -164,6 +164,7 @@ set(SRC
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
   geometry/nodes/node_geo_curve_length.cc  
+  geometry/nodes/node_geo_curve_primitive_quadratic_bezier.cc
   geometry/nodes/node_geo_curve_primitive_spiral.cc
   geometry/nodes/node_geo_curve_primitive_star.cc
   geometry/nodes/node_geo_curve_to_mesh.cc
