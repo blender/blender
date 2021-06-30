@@ -54,6 +54,7 @@ struct TransDataArgs_PushPull {
 
   float distance;
   const float axis_global[3];
+  bool is_lock_constraint;
   bool is_data_space;
 };
 
@@ -62,6 +63,7 @@ static void transdata_elem_push_pull(const TransInfo *t,
                                      TransData *td,
                                      const float distance,
                                      const float axis_global[3],
+                                     const bool is_lock_constraint,
                                      const bool is_data_space)
 {
   float vec[3];
@@ -72,7 +74,7 @@ static void transdata_elem_push_pull(const TransInfo *t,
     t->con.applyRot(t, tc, td, axis, NULL);
 
     mul_m3_v3(td->smtx, axis);
-    if (isLockConstraint(t)) {
+    if (is_lock_constraint) {
       float dvec[3];
       project_v3_v3v3(dvec, vec, axis);
       sub_v3_v3(vec, dvec);
@@ -98,8 +100,13 @@ static void transdata_elem_push_pull_fn(void *__restrict iter_data_v,
   if (td->flag & TD_SKIP) {
     return;
   }
-  transdata_elem_push_pull(
-      data->t, data->tc, td, data->distance, data->axis_global, data->is_data_space);
+  transdata_elem_push_pull(data->t,
+                           data->tc,
+                           td,
+                           data->distance,
+                           data->axis_global,
+                           data->is_lock_constraint,
+                           data->is_data_space);
 }
 
 /** \} */
@@ -141,6 +148,7 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
     t->con.applyRot(t, NULL, NULL, axis_global, NULL);
   }
 
+  const bool is_lock_constraint = isLockConstraint(t);
   const bool is_data_space = (t->options & CTX_POSE_BONE) != 0;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -150,8 +158,8 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
         if (td->flag & TD_SKIP) {
           continue;
         }
-
-        transdata_elem_push_pull(t, tc, td, distance, axis_global, is_data_space);
+        transdata_elem_push_pull(
+            t, tc, td, distance, axis_global, is_lock_constraint, is_data_space);
       }
     }
     else {
@@ -159,6 +167,7 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
           .t = t,
           .tc = tc,
           .axis_global = {UNPACK3(axis_global)},
+          .is_lock_constraint = is_lock_constraint,
           .is_data_space = is_data_space,
       };
       TaskParallelSettings settings;
