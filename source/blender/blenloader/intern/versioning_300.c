@@ -441,6 +441,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       short snap_uv_mode = tool_settings->snap_uv_mode;
       tool_settings->snap_mode &= ~((1 << 4) | (1 << 5) | (1 << 6));
       tool_settings->snap_node_mode &= ~((1 << 5) | (1 << 6));
+      tool_settings->snap_uv_mode &= ~(1 << 4);
       if (snap_mode & (1 << 4)) {
         tool_settings->snap_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
       }
