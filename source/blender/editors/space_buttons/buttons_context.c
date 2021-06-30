@@ -154,7 +154,9 @@ static bool buttons_context_path_world(ButsContextPath *path)
   return false;
 }
 
-static bool buttons_context_path_collection(bContext *C, ButsContextPath *path, wmWindow *window)
+static bool buttons_context_path_collection(const bContext *C,
+                                            ButsContextPath *path,
+                                            wmWindow *window)
 {
   PointerRNA *ptr = &path->ptr[path->len - 1];
 
