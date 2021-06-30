@@ -70,7 +70,7 @@ static int cmp_fn(const void *a, const void *b)
   return (*(int *)a - *(int *)b);
 }
 
-static void seq_snap_source_points_build(const TransInfo *t,
+static void seq_snap_source_points_build(const TransInfo *UNUSED(t),
                                          TransSeqSnapData *snap_data,
                                          SeqCollection *snap_sources)
 {
@@ -125,7 +125,7 @@ static SeqCollection *query_snap_targets(const TransInfo *t)
 }
 
 static int seq_get_snap_target_points_count(const TransInfo *t,
-                                            TransSeqSnapData *snap_data,
+                                            TransSeqSnapData *UNUSED(snap_data),
                                             SeqCollection *snap_targets)
 {
   const short snap_mode = t->tsnap.mode;
