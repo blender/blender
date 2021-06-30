@@ -216,15 +216,15 @@ void BKE_vfont_free_data(struct VFont *vfont)
   }
 }
 
-static void *builtin_font_data = NULL;
+static const void *builtin_font_data = NULL;
 static int builtin_font_size = 0;
 
-bool BKE_vfont_is_builtin(struct VFont *vfont)
+bool BKE_vfont_is_builtin(const struct VFont *vfont)
 {
   return STREQ(vfont->filepath, FO_BUILTIN_NAME);
 }
 
-void BKE_vfont_builtin_register(void *mem, int size)
+void BKE_vfont_builtin_register(const void *mem, int size)
 {
   builtin_font_data = mem;
   builtin_font_size = size;
