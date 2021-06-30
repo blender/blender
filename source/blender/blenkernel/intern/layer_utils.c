@@ -164,11 +164,11 @@ Object **BKE_view_layer_array_from_objects_in_mode_params(ViewLayer *view_layer,
 /** \name Filter Functions
  * \{ */
 
-bool BKE_view_layer_filter_edit_mesh_has_uvs(Object *ob, void *UNUSED(user_data))
+bool BKE_view_layer_filter_edit_mesh_has_uvs(const Object *ob, void *UNUSED(user_data))
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = ob->data;
-    BMEditMesh *em = me->edit_mesh;
+    const Mesh *me = ob->data;
+    const BMEditMesh *em = me->edit_mesh;
     if (em != NULL) {
       if (CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV) != -1) {
         return true;
@@ -178,11 +178,11 @@ bool BKE_view_layer_filter_edit_mesh_has_uvs(Object *ob, void *UNUSED(user_data)
   return false;
 }
 
-bool BKE_view_layer_filter_edit_mesh_has_edges(Object *ob, void *UNUSED(user_data))
+bool BKE_view_layer_filter_edit_mesh_has_edges(const Object *ob, void *UNUSED(user_data))
 {
   if (ob->type == OB_MESH) {
-    Mesh *me = ob->data;
-    BMEditMesh *em = me->edit_mesh;
+    const Mesh *me = ob->data;
+    const BMEditMesh *em = me->edit_mesh;
     if (em != NULL) {
       if (em->bm->totedge != 0) {
         return true;

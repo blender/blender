@@ -25,6 +25,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -111,6 +112,74 @@ static void to_sphere_radius_update(TransInfo *t)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Transform (ToSphere) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_ToSphere {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  float ratio;
+  const struct ToSphereInfo to_sphere_info;
+  bool is_local_center;
+  bool is_data_space;
+};
+
+static void transdata_elem_to_sphere(const TransInfo *UNUSED(t),
+                                     const TransDataContainer *tc,
+                                     TransData *td,
+                                     const float ratio,
+                                     const struct ToSphereInfo *to_sphere_info,
+                                     const bool is_local_center,
+                                     const bool is_data_space)
+{
+  float vec[3];
+  const float *center = is_local_center ? td->center : tc->center_local;
+  if (is_data_space) {
+    copy_v3_v3(vec, td->center);
+  }
+  else {
+    copy_v3_v3(vec, td->iloc);
+  }
+
+  sub_v3_v3(vec, center);
+  const float radius = normalize_v3(vec);
+  const float tratio = ratio * td->factor;
+  mul_v3_fl(vec, radius * (1.0f - tratio) + to_sphere_info->radius * tratio);
+  add_v3_v3(vec, center);
+
+  if (is_data_space) {
+    sub_v3_v3(vec, td->center);
+    mul_m3_v3(td->smtx, vec);
+    add_v3_v3(vec, td->iloc);
+  }
+
+  copy_v3_v3(td->loc, vec);
+}
+
+static void transdata_elem_to_sphere_fn(void *__restrict iter_data_v,
+                                        const int iter,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_ToSphere *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_to_sphere(data->t,
+                           data->tc,
+                           td,
+                           data->ratio,
+                           &data->to_sphere_info,
+                           data->is_local_center,
+                           data->is_data_space);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Transform (ToSphere)
  * \{ */
 
@@ -119,8 +188,7 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
   const bool is_local_center = transdata_check_local_center(t, t->around);
   const bool is_data_space = (t->options & CTX_POSE_BONE) != 0;
 
-  float vec[3];
-  float ratio, radius;
+  float ratio;
   int i;
   char str[UI_MAX_DRAW_STR];
 
@@ -147,40 +215,33 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
     BLI_snprintf(str, sizeof(str), TIP_("To Sphere: %.4f %s"), ratio, t->proptext);
   }
 
-  const struct ToSphereInfo *data = t->custom.mode.data;
-  if (data->prop_size_prev != t->prop_size) {
+  const struct ToSphereInfo *to_sphere_info = t->custom.mode.data;
+  if (to_sphere_info->prop_size_prev != t->prop_size) {
     to_sphere_radius_update(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      float tratio;
-      if (td->flag & TD_SKIP) {
-        continue;
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
+        }
+        transdata_elem_to_sphere(t, tc, td, ratio, to_sphere_info, is_local_center, is_data_space);
       }
-
-      const float *center = is_local_center ? td->center : tc->center_local;
-      if (is_data_space) {
-        copy_v3_v3(vec, td->center);
-      }
-      else {
-        copy_v3_v3(vec, td->iloc);
-      }
-
-      sub_v3_v3(vec, center);
-      radius = normalize_v3(vec);
-      tratio = ratio * td->factor;
-      mul_v3_fl(vec, radius * (1.0f - tratio) + data->radius * tratio);
-      add_v3_v3(vec, center);
-
-      if (is_data_space) {
-        sub_v3_v3(vec, td->center);
-        mul_m3_v3(td->smtx, vec);
-        add_v3_v3(vec, td->iloc);
-      }
-
-      copy_v3_v3(td->loc, vec);
+    }
+    else {
+      struct TransDataArgs_ToSphere data = {
+          .t = t,
+          .tc = tc,
+          .ratio = ratio,
+          .to_sphere_info = *to_sphere_info,
+          .is_local_center = is_local_center,
+          .is_data_space = is_data_space,
+      };
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_to_sphere_fn, &settings);
     }
   }
 

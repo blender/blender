@@ -111,10 +111,10 @@ static bool swap_selection_bpoint(BPoint *bp)
   return select_bpoint(bp, SELECT, SELECT, VISIBLE);
 }
 
-bool ED_curve_nurb_select_check(View3D *v3d, Nurb *nu)
+bool ED_curve_nurb_select_check(const View3D *v3d, const Nurb *nu)
 {
   if (nu->type == CU_BEZIER) {
-    BezTriple *bezt;
+    const BezTriple *bezt;
     int i;
 
     for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
@@ -124,7 +124,7 @@ bool ED_curve_nurb_select_check(View3D *v3d, Nurb *nu)
     }
   }
   else {
-    BPoint *bp;
+    const BPoint *bp;
     int i;
 
     for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
@@ -136,12 +136,12 @@ bool ED_curve_nurb_select_check(View3D *v3d, Nurb *nu)
   return false;
 }
 
-int ED_curve_nurb_select_count(View3D *v3d, Nurb *nu)
+int ED_curve_nurb_select_count(const View3D *v3d, const Nurb *nu)
 {
   int sel = 0;
 
   if (nu->type == CU_BEZIER) {
-    BezTriple *bezt;
+    const BezTriple *bezt;
     int i;
 
     for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
@@ -151,7 +151,7 @@ int ED_curve_nurb_select_count(View3D *v3d, Nurb *nu)
     }
   }
   else {
-    BPoint *bp;
+    const BPoint *bp;
     int i;
 
     for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
@@ -227,7 +227,7 @@ bool ED_curve_nurb_deselect_all(const Nurb *nu)
   return changed;
 }
 
-int ED_curve_select_count(View3D *v3d, struct EditNurb *editnurb)
+int ED_curve_select_count(const View3D *v3d, const EditNurb *editnurb)
 {
   int sel = 0;
   Nurb *nu;
@@ -239,9 +239,9 @@ int ED_curve_select_count(View3D *v3d, struct EditNurb *editnurb)
   return sel;
 }
 
-bool ED_curve_select_check(View3D *v3d, struct EditNurb *editnurb)
+bool ED_curve_select_check(const View3D *v3d, const EditNurb *editnurb)
 {
-  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
+  LISTBASE_FOREACH (const Nurb *, nu, &editnurb->nurbs) {
     if (ED_curve_nurb_select_check(v3d, nu)) {
       return true;
     }

@@ -27,6 +27,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -42,6 +43,79 @@
 #include "transform.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Shear) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_Shear {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  float mat_final[3][3];
+  bool is_local_center;
+};
+
+static void transdata_elem_shear(const TransInfo *t,
+                                 const TransDataContainer *tc,
+                                 TransData *td,
+                                 const float mat_final[3][3],
+                                 const bool is_local_center)
+{
+  float tmat[3][3];
+  const float *center;
+  if (t->flag & T_EDIT) {
+    mul_m3_series(tmat, td->smtx, mat_final, td->mtx);
+  }
+  else {
+    copy_m3_m3(tmat, mat_final);
+  }
+
+  if (is_local_center) {
+    center = td->center;
+  }
+  else {
+    center = tc->center_local;
+  }
+
+  float vec[3];
+  sub_v3_v3v3(vec, td->iloc, center);
+  mul_m3_v3(tmat, vec);
+  add_v3_v3(vec, center);
+  sub_v3_v3(vec, td->iloc);
+
+  if (t->options & CTX_GPENCIL_STROKES) {
+    /* Grease pencil multi-frame falloff. */
+    bGPDstroke *gps = (bGPDstroke *)td->extra;
+    if (gps != NULL) {
+      mul_v3_fl(vec, td->factor * gps->runtime.multi_frame_falloff);
+    }
+    else {
+      mul_v3_fl(vec, td->factor);
+    }
+  }
+  else {
+    mul_v3_fl(vec, td->factor);
+  }
+
+  add_v3_v3v3(td->loc, td->iloc, vec);
+}
+
+static void transdata_elem_shear_fn(void *__restrict iter_data_v,
+                                    const int iter,
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_Shear *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_shear(data->t, data->tc, td, data->mat_final, data->is_local_center);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Shear)
@@ -117,8 +191,7 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
 
 static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 {
-  float vec[3];
-  float smat[3][3], tmat[3][3], totmat[3][3], axismat[3][3], axismat_inv[3][3];
+  float smat[3][3], axismat[3][3], axismat_inv[3][3], mat_final[3][3];
   float value;
   int i;
   char str[UI_MAX_DRAW_STR];
@@ -157,50 +230,29 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
   cross_v3_v3v3(axismat_inv[1], axismat_inv[0], axismat_inv[2]);
   invert_m3_m3(axismat, axismat_inv);
 
-  mul_m3_series(totmat, axismat_inv, smat, axismat);
+  mul_m3_series(mat_final, axismat_inv, smat, axismat);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      const float *center;
-      if (td->flag & TD_SKIP) {
-        continue;
-      }
-
-      if (t->flag & T_EDIT) {
-        mul_m3_series(tmat, td->smtx, totmat, td->mtx);
-      }
-      else {
-        copy_m3_m3(tmat, totmat);
-      }
-
-      if (is_local_center) {
-        center = td->center;
-      }
-      else {
-        center = tc->center_local;
-      }
-
-      sub_v3_v3v3(vec, td->iloc, center);
-      mul_m3_v3(tmat, vec);
-      add_v3_v3(vec, center);
-      sub_v3_v3(vec, td->iloc);
-
-      if (t->options & CTX_GPENCIL_STROKES) {
-        /* grease pencil multiframe falloff */
-        bGPDstroke *gps = (bGPDstroke *)td->extra;
-        if (gps != NULL) {
-          mul_v3_fl(vec, td->factor * gps->runtime.multi_frame_falloff);
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
         }
-        else {
-          mul_v3_fl(vec, td->factor);
-        }
+        transdata_elem_shear(t, tc, td, mat_final, is_local_center);
       }
-      else {
-        mul_v3_fl(vec, td->factor);
-      }
+    }
+    else {
+      struct TransDataArgs_Shear data = {
+          .t = t,
+          .tc = tc,
+          .is_local_center = is_local_center,
+      };
+      copy_m3_m3(data.mat_final, mat_final);
 
-      add_v3_v3v3(td->loc, td->iloc, vec);
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_shear_fn, &settings);
     }
   }
 

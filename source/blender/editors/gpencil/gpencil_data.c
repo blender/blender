@@ -871,20 +871,20 @@ void GPENCIL_OT_frame_clean_loose(wmOperatorType *ot)
 }
 
 /* ********************* Clean Duplicated Frames ************************** */
-static bool gpencil_frame_is_equal(bGPDframe *gpf_a, bGPDframe *gpf_b)
+static bool gpencil_frame_is_equal(const bGPDframe *gpf_a, const bGPDframe *gpf_b)
 {
   if ((gpf_a == NULL) || (gpf_b == NULL)) {
     return false;
   }
   /* If the number of strokes is different, cannot be equal. */
-  int totstrokes_a = BLI_listbase_count(&gpf_a->strokes);
-  int totstrokes_b = BLI_listbase_count(&gpf_b->strokes);
+  const int totstrokes_a = BLI_listbase_count(&gpf_a->strokes);
+  const int totstrokes_b = BLI_listbase_count(&gpf_b->strokes);
   if ((totstrokes_a == 0) || (totstrokes_b == 0) || (totstrokes_a != totstrokes_b)) {
     return false;
   }
   /* Loop all strokes and check. */
-  bGPDstroke *gps_a = gpf_a->strokes.first;
-  bGPDstroke *gps_b = gpf_b->strokes.first;
+  const bGPDstroke *gps_a = gpf_a->strokes.first;
+  const bGPDstroke *gps_b = gpf_b->strokes.first;
   for (int i = 0; i < totstrokes_a; i++) {
     /* If the number of points is different, cannot be equal. */
     if (gps_a->totpoints != gps_b->totpoints) {
@@ -924,8 +924,8 @@ static bool gpencil_frame_is_equal(bGPDframe *gpf_a, bGPDframe *gpf_b)
 
     /* Loop points and check if equals or not. */
     for (int p = 0; p < gps_a->totpoints; p++) {
-      bGPDspoint *pt_a = &gps_a->points[p];
-      bGPDspoint *pt_b = &gps_b->points[p];
+      const bGPDspoint *pt_a = &gps_a->points[p];
+      const bGPDspoint *pt_b = &gps_b->points[p];
       if (!equals_v3v3(&pt_a->x, &pt_b->x)) {
         return false;
       }

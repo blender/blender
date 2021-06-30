@@ -52,14 +52,14 @@ typedef struct TransSeqSnapData {
 /** \name Snap sources
  * \{ */
 
-static int seq_get_snap_source_points_count(SeqCollection *snap_sources)
+static int seq_get_snap_source_points_len(SeqCollection *snap_sources)
 {
-  return SEQ_collection_count(snap_sources) * 2;
+  return SEQ_collection_len(snap_sources) * 2;
 }
 
 static void seq_snap_source_points_alloc(TransSeqSnapData *snap_data, SeqCollection *snap_sources)
 {
-  const size_t point_count = seq_get_snap_source_points_count(snap_sources);
+  const size_t point_count = seq_get_snap_source_points_len(snap_sources);
   snap_data->source_snap_points = MEM_callocN(sizeof(int) * point_count, __func__);
   memset(snap_data->source_snap_points, 0, sizeof(int));
   snap_data->source_snap_point_count = point_count;
@@ -70,7 +70,7 @@ static int cmp_fn(const void *a, const void *b)
   return (*(int *)a - *(int *)b);
 }
 
-static void seq_snap_source_points_build(const TransInfo *t,
+static void seq_snap_source_points_build(const TransInfo *UNUSED(t),
                                          TransSeqSnapData *snap_data,
                                          SeqCollection *snap_sources)
 {
@@ -125,7 +125,7 @@ static SeqCollection *query_snap_targets(const TransInfo *t)
 }
 
 static int seq_get_snap_target_points_count(const TransInfo *t,
-                                            TransSeqSnapData *snap_data,
+                                            TransSeqSnapData *UNUSED(snap_data),
                                             SeqCollection *snap_targets)
 {
   const short snap_mode = t->tsnap.mode;
@@ -136,7 +136,7 @@ static int seq_get_snap_target_points_count(const TransInfo *t,
     count += 2;
   }
 
-  count *= SEQ_collection_count(snap_targets);
+  count *= SEQ_collection_len(snap_targets);
 
   if (snap_mode & SEQ_SNAP_TO_PLAYHEAD) {
     count++;

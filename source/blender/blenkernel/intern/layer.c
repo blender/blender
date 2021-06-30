@@ -676,10 +676,10 @@ LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, Lay
 /**
  * Recursively get the count of collections
  */
-static int collection_count(ListBase *lb)
+static int collection_count(const ListBase *lb)
 {
   int i = 0;
-  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
+  LISTBASE_FOREACH (const LayerCollection *, lc, lb) {
     i += collection_count(&lc->layer_collections) + 1;
   }
   return i;
@@ -689,7 +689,7 @@ static int collection_count(ListBase *lb)
  * Get the total number of collections
  * (including all the nested collections)
  */
-int BKE_layer_collection_count(ViewLayer *view_layer)
+int BKE_layer_collection_count(const ViewLayer *view_layer)
 {
   return collection_count(&view_layer->layer_collections);
 }
@@ -1504,7 +1504,7 @@ static LayerCollection *find_layer_collection_by_scene_collection(LayerCollectio
 /**
  * Return the first matching LayerCollection in the ViewLayer for the Collection.
  */
-LayerCollection *BKE_layer_collection_first_from_scene_collection(ViewLayer *view_layer,
+LayerCollection *BKE_layer_collection_first_from_scene_collection(const ViewLayer *view_layer,
                                                                   const Collection *collection)
 {
   LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
@@ -1520,7 +1520,7 @@ LayerCollection *BKE_layer_collection_first_from_scene_collection(ViewLayer *vie
 /**
  * See if view layer has the scene collection linked directly, or indirectly (nested)
  */
-bool BKE_view_layer_has_collection(ViewLayer *view_layer, const Collection *collection)
+bool BKE_view_layer_has_collection(const ViewLayer *view_layer, const Collection *collection)
 {
   return BKE_layer_collection_first_from_scene_collection(view_layer, collection) != NULL;
 }

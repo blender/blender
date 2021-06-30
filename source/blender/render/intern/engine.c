@@ -735,9 +735,9 @@ void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
   render_copy_renderdata(&re->r, &scene->r);
 }
 
-bool RE_bake_has_engine(Render *re)
+bool RE_bake_has_engine(const Render *re)
 {
-  RenderEngineType *type = RE_engines_find(re->r.engine);
+  const RenderEngineType *type = RE_engines_find(re->r.engine);
   return (type->bake != NULL);
 }
 

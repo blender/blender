@@ -163,7 +163,7 @@ void modifier_vgroup_ui(uiLayout *layout,
  * Check whether Modifier is a simulation or not. Used for switching to the
  * physics/particles context tab.
  */
-static int modifier_is_simulation(ModifierData *md)
+static int modifier_is_simulation(const ModifierData *md)
 {
   /* Physic Tab */
   if (ELEM(md->type,

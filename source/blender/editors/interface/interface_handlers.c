@@ -469,7 +469,7 @@ typedef struct uiAfterFunc {
   PropertyRNA *rnaprop;
 
   void *search_arg;
-  uiButSearchArgFreeFn search_arg_free_fn;
+  uiFreeArgFunc search_arg_free_fn;
 
   bContextStore *context;
 

@@ -1150,7 +1150,7 @@ int constraintModeToIndex(const TransInfo *t)
   }
 }
 
-bool isLockConstraint(TransInfo *t)
+bool isLockConstraint(const TransInfo *t)
 {
   int mode = t->con.mode;
 

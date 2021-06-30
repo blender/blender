@@ -87,7 +87,7 @@ static void seq_sequence_lookup_rebuild(const struct Scene *scene, struct Sequen
   seq_sequence_lookup_build(scene, *lookup);
 }
 
-static bool seq_sequence_lookup_is_valid(struct SequenceLookup *lookup)
+static bool seq_sequence_lookup_is_valid(const struct SequenceLookup *lookup)
 {
   return (lookup->tag & SEQ_LOOKUP_TAG_INVALID) == 0;
 }

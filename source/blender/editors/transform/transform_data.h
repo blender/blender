@@ -149,6 +149,8 @@ typedef struct TransData {
   short protectflag;
 } TransData;
 
+#define TRANSDATA_THREAD_LIMIT 1024
+
 /** #TransData.flag */
 enum {
   TD_SELECTED = 1 << 0,

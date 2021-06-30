@@ -1357,6 +1357,11 @@ typedef struct NodeSwitch {
   uint8_t input_type;
 } NodeSwitch;
 
+typedef struct NodeGeometryCurvePrimitiveBezierSegment {
+  /* GeometryNodeCurvePrimitiveBezierSegmentMode. */
+  uint8_t mode;
+} NodeGeometryCurvePrimitiveBezierSegment;
+
 typedef struct NodeGeometryCurveResample {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
@@ -1888,6 +1893,11 @@ typedef enum GeometryNodeMeshLineCountMode {
   GEO_NODE_MESH_LINE_COUNT_TOTAL = 0,
   GEO_NODE_MESH_LINE_COUNT_RESOLUTION = 1,
 } GeometryNodeMeshLineCountMode;
+
+typedef enum GeometryNodeCurvePrimitiveBezierSegmentMode {
+  GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION = 0,
+  GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_OFFSET = 1,
+} GeometryNodeCurvePrimitiveBezierSegmentMode;
 
 typedef enum GeometryNodeCurveSampleMode {
   GEO_NODE_CURVE_SAMPLE_COUNT = 0,

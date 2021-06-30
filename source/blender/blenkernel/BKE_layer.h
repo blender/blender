@@ -92,7 +92,7 @@ bool BKE_layer_collection_activate(struct ViewLayer *view_layer, struct LayerCol
 struct LayerCollection *BKE_layer_collection_activate_parent(struct ViewLayer *view_layer,
                                                              struct LayerCollection *lc);
 
-int BKE_layer_collection_count(struct ViewLayer *view_layer);
+int BKE_layer_collection_count(const struct ViewLayer *view_layer);
 
 struct LayerCollection *BKE_layer_collection_from_index(struct ViewLayer *view_layer,
                                                         const int index);
@@ -107,8 +107,8 @@ void BKE_layer_collection_local_sync_all(const struct Main *bmain);
 void BKE_main_collection_sync_remap(const struct Main *bmain);
 
 struct LayerCollection *BKE_layer_collection_first_from_scene_collection(
-    struct ViewLayer *view_layer, const struct Collection *collection);
-bool BKE_view_layer_has_collection(struct ViewLayer *view_layer,
+    const struct ViewLayer *view_layer, const struct Collection *collection);
+bool BKE_view_layer_has_collection(const struct ViewLayer *view_layer,
                                    const struct Collection *collection);
 bool BKE_scene_has_object(struct Scene *scene, struct Object *ob);
 
@@ -367,7 +367,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 struct ObjectsInViewLayerParams {
   uint no_dup_data : 1;
 
-  bool (*filter_fn)(struct Object *ob, void *user_data);
+  bool (*filter_fn)(const struct Object *ob, void *user_data);
   void *filter_userdata;
 };
 
@@ -388,7 +388,7 @@ struct ObjectsInModeParams {
   int object_mode;
   uint no_dup_data : 1;
 
-  bool (*filter_fn)(struct Object *ob, void *user_data);
+  bool (*filter_fn)(const struct Object *ob, void *user_data);
   void *filter_userdata;
 };
 
@@ -412,8 +412,8 @@ struct Object **BKE_view_layer_array_from_objects_in_mode_params(
   BKE_view_layer_array_from_bases_in_mode_params( \
       view_layer, v3d, r_len, &(const struct ObjectsInModeParams)__VA_ARGS__)
 
-bool BKE_view_layer_filter_edit_mesh_has_uvs(struct Object *ob, void *user_data);
-bool BKE_view_layer_filter_edit_mesh_has_edges(struct Object *ob, void *user_data);
+bool BKE_view_layer_filter_edit_mesh_has_uvs(const struct Object *ob, void *user_data);
+bool BKE_view_layer_filter_edit_mesh_has_edges(const struct Object *ob, void *user_data);
 
 /* Utility macros that wrap common args (add more as needed). */
 

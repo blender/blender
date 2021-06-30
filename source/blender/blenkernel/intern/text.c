@@ -781,12 +781,12 @@ static void txt_curs_sel(Text *text, TextLine ***linep, int **charp)
   *charp = &text->selc;
 }
 
-bool txt_cursor_is_line_start(Text *text)
+bool txt_cursor_is_line_start(const Text *text)
 {
   return (text->selc == 0);
 }
 
-bool txt_cursor_is_line_end(Text *text)
+bool txt_cursor_is_line_end(const Text *text)
 {
   return (text->selc == text->sell->len);
 }
@@ -1239,7 +1239,7 @@ void txt_order_cursors(Text *text, const bool reverse)
   }
 }
 
-bool txt_has_sel(Text *text)
+bool txt_has_sel(const Text *text)
 {
   return ((text->curl != text->sell) || (text->curc != text->selc));
 }

@@ -29,6 +29,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -47,9 +48,12 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Transform (Bend)
+/** \name Transform (Bend) Custom Data
  * \{ */
 
+/**
+ * Custom data, stored in #TransInfo.custom.mode.data
+ */
 struct BendCustomData {
   /* All values are in global space. */
   float warp_sta[3];
@@ -61,6 +65,122 @@ struct BendCustomData {
   /* for applying the mouse distance */
   float warp_init_dist;
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Bend) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be copied for faster memory access.
+ */
+struct TransDataArgs_Bend {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+
+  float angle;
+  struct BendCustomData bend_data;
+
+  const float warp_sta_local[3];
+  const float warp_end_local[3];
+  const float warp_end_radius_local[3];
+  const float pivot_local[3];
+  bool is_clamp;
+};
+
+static void transdata_elem_bend(const TransInfo *t,
+                                const TransDataContainer *tc,
+                                TransData *td,
+                                float angle,
+                                const struct BendCustomData *bend_data,
+                                const float warp_sta_local[3],
+                                const float UNUSED(warp_end_local[3]),
+                                const float warp_end_radius_local[3],
+                                const float pivot_local[3],
+
+                                bool is_clamp)
+{
+  if (UNLIKELY(angle == 0.0f)) {
+    copy_v3_v3(td->loc, td->iloc);
+    return;
+  }
+
+  float vec[3];
+  float mat[3][3];
+  float delta[3];
+  float fac, fac_scaled;
+
+  copy_v3_v3(vec, td->iloc);
+  mul_m3_v3(td->mtx, vec);
+
+  fac = line_point_factor_v3(vec, warp_sta_local, warp_end_radius_local);
+  if (is_clamp) {
+    CLAMP(fac, 0.0f, 1.0f);
+  }
+
+  if (t->options & CTX_GPENCIL_STROKES) {
+    /* grease pencil multiframe falloff */
+    bGPDstroke *gps = (bGPDstroke *)td->extra;
+    if (gps != NULL) {
+      fac_scaled = fac * td->factor * gps->runtime.multi_frame_falloff;
+    }
+    else {
+      fac_scaled = fac * td->factor;
+    }
+  }
+  else {
+    fac_scaled = fac * td->factor;
+  }
+
+  axis_angle_normalized_to_mat3(mat, bend_data->warp_nor, angle * fac_scaled);
+  interp_v3_v3v3(delta, warp_sta_local, warp_end_radius_local, fac_scaled);
+  sub_v3_v3(delta, warp_sta_local);
+
+  /* delta is subtracted, rotation adds back this offset */
+  sub_v3_v3(vec, delta);
+
+  sub_v3_v3(vec, pivot_local);
+  mul_m3_v3(mat, vec);
+  add_v3_v3(vec, pivot_local);
+
+  mul_m3_v3(td->smtx, vec);
+
+  /* rotation */
+  if ((t->flag & T_POINTS) == 0) {
+    ElementRotation(t, tc, td, mat, V3D_AROUND_LOCAL_ORIGINS);
+  }
+
+  /* location */
+  copy_v3_v3(td->loc, vec);
+}
+
+static void transdata_elem_bend_fn(void *__restrict iter_data_v,
+                                   const int iter,
+                                   const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_Bend *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_bend(data->t,
+                      data->tc,
+                      td,
+                      data->angle,
+                      &data->bend_data,
+                      data->warp_sta_local,
+                      data->warp_end_local,
+                      data->warp_end_radius_local,
+                      data->pivot_local,
+                      data->is_clamp);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Bend)
+ * \{ */
 
 static eRedrawFlag handleEventBend(TransInfo *UNUSED(t), const wmEvent *event)
 {
@@ -75,12 +195,11 @@ static eRedrawFlag handleEventBend(TransInfo *UNUSED(t), const wmEvent *event)
 
 static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 {
-  float vec[3];
   float pivot_global[3];
   float warp_end_radius_global[3];
   int i;
   char str[UI_MAX_DRAW_STR];
-  const struct BendCustomData *data = t->custom.mode.data;
+  const struct BendCustomData *bend_data = t->custom.mode.data;
   const bool is_clamp = (t->flag & T_ALT_TRANSFORM) == 0;
 
   union {
@@ -100,7 +219,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
    * this isn't essential but nicer to give reasonable snapping values for radius. */
   if (t->tsnap.mode & SCE_SNAP_MODE_INCREMENT) {
     const float radius_snap = 0.1f;
-    const float snap_hack = (t->snap[0] * data->warp_init_dist) / radius_snap;
+    const float snap_hack = (t->snap[0] * bend_data->warp_init_dist) / radius_snap;
     values.scale *= snap_hack;
     transform_snap_increment(t, values.vector);
     values.scale /= snap_hack;
@@ -108,7 +227,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 #endif
 
   if (applyNumInput(&t->num, values.vector)) {
-    values.scale = values.scale / data->warp_init_dist;
+    values.scale = values.scale / bend_data->warp_init_dist;
   }
 
   copy_v2_v2(t->values_final, values.vector);
@@ -132,34 +251,33 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
                  sizeof(str),
                  TIP_("Bend Angle: %.3f Radius: %.4f, Alt, Clamp %s"),
                  RAD2DEGF(values.angle),
-                 values.scale * data->warp_init_dist,
+                 values.scale * bend_data->warp_init_dist,
                  WM_bool_as_string(is_clamp));
   }
 
   values.angle *= -1.0f;
-  values.scale *= data->warp_init_dist;
+  values.scale *= bend_data->warp_init_dist;
 
   /* calc 'data->warp_end' from 'data->warp_end_init' */
-  copy_v3_v3(warp_end_radius_global, data->warp_end);
-  dist_ensure_v3_v3fl(warp_end_radius_global, data->warp_sta, values.scale);
+  copy_v3_v3(warp_end_radius_global, bend_data->warp_end);
+  dist_ensure_v3_v3fl(warp_end_radius_global, bend_data->warp_sta, values.scale);
   /* done */
 
   /* calculate pivot */
-  copy_v3_v3(pivot_global, data->warp_sta);
+  copy_v3_v3(pivot_global, bend_data->warp_sta);
   if (values.angle > 0.0f) {
     madd_v3_v3fl(pivot_global,
-                 data->warp_tan,
+                 bend_data->warp_tan,
                  -values.scale * shell_angle_to_dist((float)M_PI_2 - values.angle));
   }
   else {
     madd_v3_v3fl(pivot_global,
-                 data->warp_tan,
+                 bend_data->warp_tan,
                  +values.scale * shell_angle_to_dist((float)M_PI_2 + values.angle));
   }
 
   /* TODO(campbell): xform, compensate object center. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
 
     float warp_sta_local[3];
     float warp_end_local[3];
@@ -167,74 +285,52 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
     float pivot_local[3];
 
     if (tc->use_local_mat) {
-      sub_v3_v3v3(warp_sta_local, data->warp_sta, tc->mat[3]);
-      sub_v3_v3v3(warp_end_local, data->warp_end, tc->mat[3]);
+      sub_v3_v3v3(warp_sta_local, bend_data->warp_sta, tc->mat[3]);
+      sub_v3_v3v3(warp_end_local, bend_data->warp_end, tc->mat[3]);
       sub_v3_v3v3(warp_end_radius_local, warp_end_radius_global, tc->mat[3]);
       sub_v3_v3v3(pivot_local, pivot_global, tc->mat[3]);
     }
     else {
-      copy_v3_v3(warp_sta_local, data->warp_sta);
-      copy_v3_v3(warp_end_local, data->warp_end);
+      copy_v3_v3(warp_sta_local, bend_data->warp_sta);
+      copy_v3_v3(warp_end_local, bend_data->warp_end);
       copy_v3_v3(warp_end_radius_local, warp_end_radius_global);
       copy_v3_v3(pivot_local, pivot_global);
     }
 
-    for (i = 0; i < tc->data_len; i++, td++) {
-      float mat[3][3];
-      float delta[3];
-      float fac, fac_scaled;
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
 
-      if (td->flag & TD_SKIP) {
-        continue;
-      }
-
-      if (UNLIKELY(values.angle == 0.0f)) {
-        copy_v3_v3(td->loc, td->iloc);
-        continue;
-      }
-
-      copy_v3_v3(vec, td->iloc);
-      mul_m3_v3(td->mtx, vec);
-
-      fac = line_point_factor_v3(vec, warp_sta_local, warp_end_radius_local);
-      if (is_clamp) {
-        CLAMP(fac, 0.0f, 1.0f);
-      }
-
-      if (t->options & CTX_GPENCIL_STROKES) {
-        /* grease pencil multiframe falloff */
-        bGPDstroke *gps = (bGPDstroke *)td->extra;
-        if (gps != NULL) {
-          fac_scaled = fac * td->factor * gps->runtime.multi_frame_falloff;
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
         }
-        else {
-          fac_scaled = fac * td->factor;
-        }
+        transdata_elem_bend(t,
+                            tc,
+                            td,
+                            values.angle,
+                            bend_data,
+                            warp_sta_local,
+                            warp_end_local,
+                            warp_end_radius_local,
+                            pivot_local,
+                            is_clamp);
       }
-      else {
-        fac_scaled = fac * td->factor;
-      }
-
-      axis_angle_normalized_to_mat3(mat, data->warp_nor, values.angle * fac_scaled);
-      interp_v3_v3v3(delta, warp_sta_local, warp_end_radius_local, fac_scaled);
-      sub_v3_v3(delta, warp_sta_local);
-
-      /* delta is subtracted, rotation adds back this offset */
-      sub_v3_v3(vec, delta);
-
-      sub_v3_v3(vec, pivot_local);
-      mul_m3_v3(mat, vec);
-      add_v3_v3(vec, pivot_local);
-
-      mul_m3_v3(td->smtx, vec);
-
-      /* rotation */
-      if ((t->flag & T_POINTS) == 0) {
-        ElementRotation(t, tc, td, mat, V3D_AROUND_LOCAL_ORIGINS);
-      }
-
-      /* location */
-      copy_v3_v3(td->loc, vec);
+    }
+    else {
+      struct TransDataArgs_Bend data = {
+          .t = t,
+          .tc = tc,
+          .angle = values.angle,
+          .bend_data = *bend_data,
+          .warp_sta_local = {UNPACK3(warp_sta_local)},
+          .warp_end_local = {UNPACK3(warp_end_local)},
+          .warp_end_radius_local = {UNPACK3(warp_end_radius_local)},
+          .pivot_local = {UNPACK3(pivot_local)},
+          .is_clamp = is_clamp,
+      };
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_bend_fn, &settings);
     }
   }
 

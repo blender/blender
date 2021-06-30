@@ -25,6 +25,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -41,6 +42,47 @@
 #include "transform.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Shrink-Fatten) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_ShrinkFatten {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  float distance;
+};
+
+static void transdata_elem_shrink_fatten(const TransInfo *t,
+                                         const TransDataContainer *UNUSED(tc),
+                                         TransData *td,
+                                         const float distance)
+{
+  /* Get the final offset. */
+  float tdistance = distance * td->factor;
+  if (td->ext && (t->flag & T_ALT_TRANSFORM) != 0) {
+    tdistance *= td->ext->isize[0]; /* shell factor */
+  }
+
+  madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
+}
+
+static void transdata_elem_shrink_fatten_fn(void *__restrict iter_data_v,
+                                            const int iter,
+                                            const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_ShrinkFatten *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_shrink_fatten(data->t, data->tc, td, data->distance);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Shrink-Fatten)
@@ -114,20 +156,24 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   /* done with header string */
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      float tdistance; /* temp dist */
-      if (td->flag & TD_SKIP) {
-        continue;
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
+        }
+        transdata_elem_shrink_fatten(t, tc, td, distance);
       }
-
-      /* get the final offset */
-      tdistance = distance * td->factor;
-      if (td->ext && (t->flag & T_ALT_TRANSFORM) != 0) {
-        tdistance *= td->ext->isize[0]; /* shell factor */
-      }
-
-      madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
+    }
+    else {
+      struct TransDataArgs_ShrinkFatten data = {
+          .t = t,
+          .tc = tc,
+          .distance = distance,
+      };
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_shrink_fatten_fn, &settings);
     }
   }
 

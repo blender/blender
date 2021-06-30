@@ -509,6 +509,12 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurveLength"),
         NodeItem("GeometryNodeCurveReverse"),
     ]),
+    GeometryNodeCategory("GEO_PRIMITIVES_CURVE", "Curve Primitives", items=[
+        NodeItem("GeometryNodeCurveStar"),
+        NodeItem("GeometryNodeCurveSpiral"),
+        NodeItem("GeometryNodeCurveQuadraticBezier"),
+        NodeItem("GeometryNodeCurvePrimitiveBezierSegment"),
+    ]),
     GeometryNodeCategory("GEO_GEOMETRY", "Geometry", items=[
         NodeItem("GeometryNodeBoundBox"),
         NodeItem("GeometryNodeConvexHull"),
@@ -540,7 +546,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeSubdivisionSurface"),
         NodeItem("GeometryNodeSubdivide"),
     ]),
-    GeometryNodeCategory("GEO_PRIMITIVES", "Mesh Primitives", items=[
+    GeometryNodeCategory("GEO_PRIMITIVES_MESH", "Mesh Primitives", items=[
         NodeItem("GeometryNodeMeshCircle"),
         NodeItem("GeometryNodeMeshCone"),
         NodeItem("GeometryNodeMeshCube"),

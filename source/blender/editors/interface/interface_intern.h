@@ -221,7 +221,8 @@ struct uiBut {
 
   const char *tip;
   uiButToolTipFunc tip_func;
-  void *tip_argN;
+  void *tip_arg;
+  uiFreeArgFunc tip_arg_free;
 
   /** info on why button is disabled, displayed in tooltip */
   const char *disabled_info;
@@ -316,7 +317,7 @@ typedef struct uiButSearch {
   void *item_active;
 
   void *arg;
-  uiButSearchArgFreeFn arg_free_fn;
+  uiFreeArgFunc arg_free_fn;
 
   uiButSearchContextMenuFn item_context_menu_fn;
   uiButSearchTooltipFn item_tooltip_fn;
@@ -704,7 +705,7 @@ struct uiPopupBlockCreate {
   uiBlockCreateFunc create_func;
   uiBlockHandleCreateFunc handle_create_func;
   void *arg;
-  void (*arg_free)(void *arg);
+  uiFreeArgFunc arg_free;
 
   int event_xy[2];
 
@@ -828,7 +829,7 @@ uiPopupBlockHandle *ui_popup_block_create(struct bContext *C,
                                           uiBlockCreateFunc create_func,
                                           uiBlockHandleCreateFunc handle_create_func,
                                           void *arg,
-                                          void (*arg_free)(void *arg));
+                                          uiFreeArgFunc arg_free);
 uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C,
                                          struct ARegion *butregion,
                                          uiBut *but,

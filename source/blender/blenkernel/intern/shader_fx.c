@@ -58,9 +58,9 @@ static ShaderFxTypeInfo *shader_fx_types[NUM_SHADER_FX_TYPES] = {NULL};
 /* Methods - Evaluation Loops, etc. */
 
 /* check if exist grease pencil effects */
-bool BKE_shaderfx_has_gpencil(Object *ob)
+bool BKE_shaderfx_has_gpencil(const Object *ob)
 {
-  ShaderFxData *fx;
+  const ShaderFxData *fx;
   for (fx = ob->shader_fx.first; fx; fx = fx->next) {
     const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(fx->type);
     if (fxi->type == eShaderFxType_GpencilType) {

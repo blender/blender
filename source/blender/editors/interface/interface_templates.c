@@ -6205,7 +6205,7 @@ void uiTemplateList(uiLayout *layout,
                                0,
                                TIP_("Double click to rename"));
           if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr, item_dyntip_propname))) {
-            UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data);
+            UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data, MEM_freeN);
           }
 
           sub = uiLayoutRow(overlap, false);
@@ -6762,7 +6762,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                                                                             NULL);
 
       but_progress->progress = progress;
-      UI_but_func_tooltip_set(&but_progress->but, progress_tooltip_func, tip_arg);
+      UI_but_func_tooltip_set(&but_progress->but, progress_tooltip_func, tip_arg, MEM_freeN);
     }
 
     if (!wm->is_interface_locked) {

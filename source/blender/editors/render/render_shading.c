@@ -103,7 +103,7 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob);
 /** \name Local Utilities
  * \{ */
 
-static bool object_array_for_shading_edit_mode_enabled_filter(Object *ob, void *user_data)
+static bool object_array_for_shading_edit_mode_enabled_filter(const Object *ob, void *user_data)
 {
   bContext *C = user_data;
   if (object_materials_supported_poll_ex(C, ob)) {
@@ -120,7 +120,7 @@ static Object **object_array_for_shading_edit_mode_enabled(bContext *C, uint *r_
       C, object_array_for_shading_edit_mode_enabled_filter, C, r_objects_len);
 }
 
-static bool object_array_for_shading_edit_mode_disabled_filter(Object *ob, void *user_data)
+static bool object_array_for_shading_edit_mode_disabled_filter(const Object *ob, void *user_data)
 {
   bContext *C = user_data;
   if (object_materials_supported_poll_ex(C, ob)) {
