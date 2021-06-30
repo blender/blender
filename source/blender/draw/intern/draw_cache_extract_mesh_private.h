@@ -258,11 +258,30 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRDataType data_flag);
 
 /* draw_cache_extract_mesh_extractors.c */
+typedef struct EditLoopData {
+  uchar v_flag;
+  uchar e_flag;
+  uchar crease;
+  uchar bweight;
+} EditLoopData;
+
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferCache *mbc);
 eMRIterType mesh_extract_iter_type(const MeshExtract *ext);
 const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
                                              const bool do_hq_normals,
                                              const bool do_single_mat);
+void mesh_render_data_face_flag(const MeshRenderData *mr,
+                                const BMFace *efa,
+                                const int cd_ofs,
+                                EditLoopData *eattr);
+void mesh_render_data_loop_flag(const MeshRenderData *mr,
+                                BMLoop *l,
+                                const int cd_ofs,
+                                EditLoopData *eattr);
+void mesh_render_data_loop_edge_flag(const MeshRenderData *mr,
+                                     BMLoop *l,
+                                     const int cd_ofs,
+                                     EditLoopData *eattr);
 
 extern const MeshExtract extract_tris;
 extern const MeshExtract extract_tris_single_mat;

@@ -61,6 +61,26 @@ set(SRC
   intern/mesh_extractors/extract_mesh_ibo_lines.cc
   intern/mesh_extractors/extract_mesh_ibo_points.cc
   intern/mesh_extractors/extract_mesh_ibo_tris.cc
+  intern/mesh_extractors/extract_mesh_vbo_edge_fac.cc
+  intern/mesh_extractors/extract_mesh_vbo_edit_data.cc
+  intern/mesh_extractors/extract_mesh_vbo_edituv_data.cc
+  intern/mesh_extractors/extract_mesh_vbo_edituv_stretch_angle.cc
+  intern/mesh_extractors/extract_mesh_vbo_edituv_stretch_area.cc
+  intern/mesh_extractors/extract_mesh_vbo_fdots_edituv_data.cc
+  intern/mesh_extractors/extract_mesh_vbo_fdots_nor.cc
+  intern/mesh_extractors/extract_mesh_vbo_fdots_pos.cc
+  intern/mesh_extractors/extract_mesh_vbo_fdots_uv.cc
+  intern/mesh_extractors/extract_mesh_vbo_lnor.cc
+  intern/mesh_extractors/extract_mesh_vbo_mesh_analysis.cc
+  intern/mesh_extractors/extract_mesh_vbo_orco.cc
+  intern/mesh_extractors/extract_mesh_vbo_pos_nor.cc
+  intern/mesh_extractors/extract_mesh_vbo_sculpt_data.cc
+  intern/mesh_extractors/extract_mesh_vbo_select_idx.cc
+  intern/mesh_extractors/extract_mesh_vbo_skin_roots.cc
+  intern/mesh_extractors/extract_mesh_vbo_tan.cc
+  intern/mesh_extractors/extract_mesh_vbo_uv.cc
+  intern/mesh_extractors/extract_mesh_vbo_vcol.cc
+  intern/mesh_extractors/extract_mesh_vbo_weights.cc
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_displist.c
   intern/draw_cache_impl_gpencil.c
