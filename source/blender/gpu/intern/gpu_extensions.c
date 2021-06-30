@@ -26,6 +26,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
@@ -244,6 +245,19 @@ bool GPU_use_hq_normals_workaround(void)
   return GG.use_hq_normals_workaround;
 }
 
+static bool match_renderer(const char *renderer, int items_len, const char **items)
+{
+  char wrapped[16];
+  for (int i = 0; i < items_len; i++) {
+    const char *item = items[i];
+    BLI_snprintf(wrapped, sizeof(wrapped), " %s ", item);
+    if (strstr(renderer, wrapped) || BLI_str_endswith(renderer, item)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void gpu_extensions_init(void)
 {
   /* during 2.8 development each platform has its own OpenGL minimum requirements
@@ -330,15 +344,28 @@ void gpu_extensions_init(void)
    * Vertex and Face normals would still render resulting in undefined behavior during selection
    * and rendering. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    /* On Linux the driver does not report its version. Test the OpenGL version in stead. */
-    if (strstr(renderer, " RX 460 ") || strstr(renderer, " RX 470 ") ||
-        strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
-        strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
-        strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
-        strstr(renderer, " RX 580X ") || strstr(renderer, " RX 590 ") ||
-        strstr(renderer, " RX550/550 ") || strstr(renderer, "(TM) 520 ") ||
-        strstr(renderer, "(TM) 530 ") || strstr(renderer, "(TM) 535 ") ||
-        strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
+    static const char *failing_renderers[] = {
+        "RX 460",
+        "RX 470",
+        "RX 480",
+        "RX 490",
+        "RX 560",
+        "RX 560X",
+        "RX 570",
+        "RX 580",
+        "RX 580X",
+        "RX 590",
+        "RX550/550",
+        "(TM) 520",
+        "(TM) 530",
+        "(TM) 535",
+        "R5",
+        "R7",
+        "R9",
+    };
+    static const int num_failing_renderers = 17;
+
+    if (match_renderer(renderer, num_failing_renderers, failing_renderers)) {
       GG.use_hq_normals_workaround = true;
     }
   }
