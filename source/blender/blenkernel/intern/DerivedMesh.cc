@@ -1173,7 +1173,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if (use_deform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) {
+    if (mti->dependsOnTime && mti->dependsOnTime(md)) {
       continue;
     }
 
