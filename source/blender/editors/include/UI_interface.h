@@ -504,7 +504,6 @@ typedef void (*uiButSearchUpdateFn)(const struct bContext *C,
                                     const char *str,
                                     uiSearchItems *items,
                                     const bool is_first);
-typedef void (*uiButSearchArgFreeFn)(void *arg);
 typedef bool (*uiButSearchContextMenuFn)(struct bContext *C,
                                          void *arg,
                                          void *active,
@@ -532,6 +531,8 @@ typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
  * \return true when the button was changed.
  */
 typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
+
+typedef void (*uiFreeArgFunc)(void *arg);
 
 /* interface_query.c */
 bool UI_but_has_tooltip_label(const uiBut *but);
@@ -619,11 +620,11 @@ typedef void (*uiBlockCancelFunc)(struct bContext *C, void *arg1);
 void UI_popup_block_invoke(struct bContext *C,
                            uiBlockCreateFunc func,
                            void *arg,
-                           void (*arg_free)(void *arg));
+                           uiFreeArgFunc arg_free);
 void UI_popup_block_invoke_ex(struct bContext *C,
                               uiBlockCreateFunc func,
                               void *arg,
-                              void (*arg_free)(void *arg),
+                              uiFreeArgFunc arg_free,
                               bool can_refresh);
 void UI_popup_block_ex(struct bContext *C,
                        uiBlockCreateFunc func,
@@ -1599,7 +1600,7 @@ void UI_but_func_search_set(uiBut *but,
                             uiButSearchUpdateFn search_update_fn,
                             void *arg,
                             const bool free_arg,
-                            uiButSearchArgFreeFn search_arg_free_fn,
+                            uiFreeArgFunc search_arg_free_fn,
                             uiButHandleFunc search_exec_fn,
                             void *active);
 void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn);
@@ -1644,7 +1645,7 @@ void UI_but_func_drawextra_set(
 
 void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func);
 
-void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *argN);
+void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg);
 void UI_but_tooltip_refresh(struct bContext *C, uiBut *but);
 void UI_but_tooltip_timer_remove(struct bContext *C, uiBut *but);
 

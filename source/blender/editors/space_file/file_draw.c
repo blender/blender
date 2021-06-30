@@ -25,6 +25,8 @@
 #include <math.h>
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_alloca.h"
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
@@ -165,7 +167,7 @@ static void file_draw_icon(const SpaceFile *sfile,
   const float a2 = dimmed ? 0.3f : 0.0f;
   but = uiDefIconBut(
       block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, a1, a2, NULL);
-  UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path));
+  UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path), MEM_freeN);
 
   if (drag) {
     /* TODO duplicated from file_draw_preview(). */
