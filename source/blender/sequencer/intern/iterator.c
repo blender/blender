@@ -117,7 +117,7 @@ SeqCollection *SEQ_collection_create(void)
 /**
  * Return number of items in collection.
  */
-uint SEQ_collection_count(SeqCollection *collection)
+uint SEQ_collection_len(SeqCollection *collection)
 {
   return BLI_gset_len(collection->set);
 }
