@@ -48,7 +48,7 @@
 struct TransDataArgs_SkinResize {
   const TransInfo *t;
   const TransDataContainer *tc;
-  float mat[3][3];
+  float mat_final[3][3];
 };
 
 static void transdata_elem_skin_resize(const TransInfo *t,
@@ -85,7 +85,7 @@ static void transdata_elem_skin_resize_fn(void *__restrict iter_data_v,
   if (td->flag & TD_SKIP) {
     return;
   }
-  transdata_elem_skin_resize(data->t, data->tc, td, data->mat);
+  transdata_elem_skin_resize(data->t, data->tc, td, data->mat_final);
 }
 
 /** \} */
@@ -96,7 +96,7 @@ static void transdata_elem_skin_resize_fn(void *__restrict iter_data_v,
 
 static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
 {
-  float mat[3][3];
+  float mat_final[3][3];
   int i;
   char str[UI_MAX_DRAW_STR];
 
@@ -115,7 +115,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
     applySnapping(t, t->values_final);
   }
 
-  size_to_mat3(mat, t->values_final);
+  size_to_mat3(mat_final, t->values_final);
 
   headerResize(t, t->values_final, str, sizeof(str));
 
@@ -126,7 +126,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_skin_resize(t, tc, td, mat);
+        transdata_elem_skin_resize(t, tc, td, mat_final);
       }
     }
     else {
@@ -134,7 +134,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
           .t = t,
           .tc = tc,
       };
-      copy_m3_m3(data.mat, mat);
+      copy_m3_m3(data.mat_final, mat_final);
       TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
       BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_skin_resize_fn, &settings);

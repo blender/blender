@@ -54,23 +54,23 @@
 struct TransDataArgs_Shear {
   const TransInfo *t;
   const TransDataContainer *tc;
-  float totmat[3][3];
+  float mat_final[3][3];
   bool is_local_center;
 };
 
 static void transdata_elem_shear(const TransInfo *t,
                                  const TransDataContainer *tc,
                                  TransData *td,
-                                 const float totmat[3][3],
+                                 const float mat_final[3][3],
                                  const bool is_local_center)
 {
   float tmat[3][3];
   const float *center;
   if (t->flag & T_EDIT) {
-    mul_m3_series(tmat, td->smtx, totmat, td->mtx);
+    mul_m3_series(tmat, td->smtx, mat_final, td->mtx);
   }
   else {
-    copy_m3_m3(tmat, totmat);
+    copy_m3_m3(tmat, mat_final);
   }
 
   if (is_local_center) {
@@ -112,7 +112,7 @@ static void transdata_elem_shear_fn(void *__restrict iter_data_v,
   if (td->flag & TD_SKIP) {
     return;
   }
-  transdata_elem_shear(data->t, data->tc, td, data->totmat, data->is_local_center);
+  transdata_elem_shear(data->t, data->tc, td, data->mat_final, data->is_local_center);
 }
 
 /** \} */
@@ -191,7 +191,7 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
 
 static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 {
-  float smat[3][3], totmat[3][3], axismat[3][3], axismat_inv[3][3];
+  float smat[3][3], axismat[3][3], axismat_inv[3][3], mat_final[3][3];
   float value;
   int i;
   char str[UI_MAX_DRAW_STR];
@@ -230,7 +230,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
   cross_v3_v3v3(axismat_inv[1], axismat_inv[0], axismat_inv[2]);
   invert_m3_m3(axismat, axismat_inv);
 
-  mul_m3_series(totmat, axismat_inv, smat, axismat);
+  mul_m3_series(mat_final, axismat_inv, smat, axismat);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
@@ -239,7 +239,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_shear(t, tc, td, totmat, is_local_center);
+        transdata_elem_shear(t, tc, td, mat_final, is_local_center);
       }
     }
     else {
@@ -248,7 +248,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
           .tc = tc,
           .is_local_center = is_local_center,
       };
-      copy_m3_m3(data.totmat, totmat);
+      copy_m3_m3(data.mat_final, mat_final);
 
       TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);

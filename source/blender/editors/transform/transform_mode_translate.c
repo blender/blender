@@ -59,7 +59,7 @@
 struct TransDataArgs_Translate {
   const TransInfo *t;
   const TransDataContainer *tc;
-  const float tc_pivot[3];
+  const float pivot_local[3];
   const float vec[3];
   bool apply_snap_align_rotation;
   bool is_valid_snapping_normal;
@@ -68,7 +68,7 @@ struct TransDataArgs_Translate {
 static void transdata_elem_translate(const TransInfo *t,
                                      const TransDataContainer *tc,
                                      TransData *td,
-                                     const float pivot[3],
+                                     const float pivot_local[3],
                                      const float vec[3],
                                      const bool apply_snap_align_rotation,
                                      const bool is_valid_snapping_normal)
@@ -97,7 +97,7 @@ static void transdata_elem_translate(const TransInfo *t,
       unit_m3(mat);
     }
 
-    ElementRotation_ex(t, tc, td, mat, pivot);
+    ElementRotation_ex(t, tc, td, mat, pivot_local);
 
     if (td->loc) {
       use_rotate_offset = true;
@@ -156,7 +156,7 @@ static void transdata_elem_translate_fn(void *__restrict iter_data_v,
   transdata_elem_translate(data->t,
                            data->tc,
                            td,
-                           data->tc_pivot,
+                           data->pivot_local,
                            data->vec,
                            data->apply_snap_align_rotation,
                            data->is_valid_snapping_normal);
@@ -363,14 +363,14 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
   /* Ideally "apply_snap_align_rotation" would only be used when a snap point is found:
    * `t->tsnap.status & POINT_INIT` - perhaps this function isn't the best place to apply rotation.
    * However snapping rotation needs to be handled before doing the translation
-   * (unless the pivot is also translated). */
+   * (unless the pivot_local is also translated). */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    float pivot[3];
+    float pivot_local[3];
     if (apply_snap_align_rotation) {
-      copy_v3_v3(pivot, t->tsnap.snapTarget);
+      copy_v3_v3(pivot_local, t->tsnap.snapTarget);
       /* The pivot has to be in local-space (see T49494) */
       if (tc->use_local_mat) {
-        mul_m4_v3(tc->imat, pivot);
+        mul_m4_v3(tc->imat, pivot_local);
       }
     }
 
@@ -381,14 +381,14 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
           continue;
         }
         transdata_elem_translate(
-            t, tc, td, pivot, vec, apply_snap_align_rotation, is_valid_snapping_normal);
+            t, tc, td, pivot_local, vec, apply_snap_align_rotation, is_valid_snapping_normal);
       }
     }
     else {
       struct TransDataArgs_Translate data = {
           .t = t,
           .tc = tc,
-          .tc_pivot = {UNPACK3(pivot)},
+          .pivot_local = {UNPACK3(pivot_local)},
           .vec = {UNPACK3(vec)},
           .apply_snap_align_rotation = apply_snap_align_rotation,
           .is_valid_snapping_normal = is_valid_snapping_normal,

@@ -52,7 +52,7 @@ struct TransDataArgs_Trackball {
   const TransDataContainer *tc;
   const float axis[3];
   const float angle;
-  float mat[3][3];
+  float mat_final[3][3];
 };
 
 static void transdata_elem_trackball(const TransInfo *t,
@@ -60,15 +60,15 @@ static void transdata_elem_trackball(const TransInfo *t,
                                      TransData *td,
                                      const float axis[3],
                                      const float angle,
-                                     const float mat[3][3])
+                                     const float mat_final[3][3])
 {
   float mat_buf[3][3];
-  const float(*mat_final)[3] = mat;
+  const float(*mat)[3] = mat_final;
   if (t->flag & T_PROP_EDIT) {
     axis_angle_normalized_to_mat3(mat_buf, axis, td->factor * angle);
-    mat_final = mat_buf;
+    mat = mat_buf;
   }
-  ElementRotation(t, tc, td, mat_final, t->around);
+  ElementRotation(t, tc, td, mat, t->around);
 }
 
 static void transdata_elem_trackball_fn(void *__restrict iter_data_v,
@@ -80,7 +80,7 @@ static void transdata_elem_trackball_fn(void *__restrict iter_data_v,
   if (td->flag & TD_SKIP) {
     return;
   }
-  transdata_elem_trackball(data->t, data->tc, td, data->axis, data->angle, data->mat);
+  transdata_elem_trackball(data->t, data->tc, td, data->axis, data->angle, data->mat_final);
 }
 
 /** \} */
@@ -94,7 +94,7 @@ static void applyTrackballValue(TransInfo *t,
                                 const float axis2[3],
                                 const float angles[2])
 {
-  float mat[3][3];
+  float mat_final[3][3];
   float axis[3];
   float angle;
   int i;
@@ -102,7 +102,7 @@ static void applyTrackballValue(TransInfo *t,
   mul_v3_v3fl(axis, axis1, angles[0]);
   madd_v3_v3fl(axis, axis2, angles[1]);
   angle = normalize_v3(axis);
-  axis_angle_normalized_to_mat3(mat, axis, angle);
+  axis_angle_normalized_to_mat3(mat_final, axis, angle);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
@@ -111,7 +111,7 @@ static void applyTrackballValue(TransInfo *t,
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_trackball(t, tc, td, axis, angle, mat);
+        transdata_elem_trackball(t, tc, td, axis, angle, mat_final);
       }
     }
     else {
@@ -121,7 +121,7 @@ static void applyTrackballValue(TransInfo *t,
           .axis = {UNPACK3(axis)},
           .angle = angle,
       };
-      copy_m3_m3(data.mat, mat);
+      copy_m3_m3(data.mat_final, mat_final);
 
       TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
