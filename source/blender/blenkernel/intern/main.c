@@ -38,6 +38,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
+#include "BKE_main_idmap.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -192,6 +193,10 @@ void BKE_main_free(Main *mainvar)
 
   if (mainvar->relations) {
     BKE_main_relations_free(mainvar);
+  }
+
+  if (mainvar->id_map) {
+    BKE_main_idmap_destroy(mainvar->id_map);
   }
 
   BLI_spin_end((SpinLock *)mainvar->lock);
