@@ -438,6 +438,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       tool_settings->snap_flag |= SCE_SNAP_SEQ;
       short snap_mode = tool_settings->snap_mode;
       short snap_node_mode = tool_settings->snap_node_mode;
+      short snap_uv_mode = tool_settings->snap_uv_mode;
       tool_settings->snap_mode &= ~((1 << 4) | (1 << 5) | (1 << 6));
       tool_settings->snap_node_mode &= ~((1 << 5) | (1 << 6));
       if (snap_mode & (1 << 4)) {
@@ -454,6 +455,9 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       if (snap_node_mode & (1 << 6)) {
         tool_settings->snap_node_mode |= (1 << 1); /* SCE_SNAP_MODE_NODE_Y */
+      }
+      if (snap_uv_mode & (1 << 4)) {
+        tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
       }
 
       SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
