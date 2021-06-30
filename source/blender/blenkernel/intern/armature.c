@@ -358,7 +358,7 @@ bArmature *BKE_armature_from_object(Object *ob)
   return NULL;
 }
 
-int BKE_armature_bonelist_count(ListBase *lb)
+int BKE_armature_bonelist_count(const ListBase *lb)
 {
   int i = 0;
   LISTBASE_FOREACH (Bone *, bone, lb) {

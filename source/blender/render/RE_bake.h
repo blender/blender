@@ -76,7 +76,7 @@ typedef struct BakeHighPolyData {
 } BakeHighPolyData;
 
 /* external_engine.c */
-bool RE_bake_has_engine(struct Render *re);
+bool RE_bake_has_engine(const struct Render *re);
 
 bool RE_bake_engine(struct Render *re,
                     struct Depsgraph *depsgraph,

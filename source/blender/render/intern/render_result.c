@@ -804,9 +804,9 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
   }
 }
 
-bool render_result_has_views(RenderResult *rr)
+bool render_result_has_views(const RenderResult *rr)
 {
-  RenderView *rv = rr->views.first;
+  const RenderView *rv = rr->views.first;
   return (rv && (rv->next || rv->name[0]));
 }
 

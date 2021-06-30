@@ -2810,7 +2810,7 @@ bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
 /* --------------- API/Per-Datablock Handling ------------------- */
 
 /* Checks if some F-Curve has a keyframe for a given frame */
-bool fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
+bool fcurve_frame_has_keyframe(const FCurve *fcu, float frame, short filter)
 {
   /* quick sanity check */
   if (ELEM(NULL, fcu, fcu->bezt)) {

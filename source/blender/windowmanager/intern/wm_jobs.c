@@ -113,7 +113,7 @@ struct wmJob {
   unsigned int note, endnote;
 
   /* internal */
-  void *owner;
+  const void *owner;
   int flag;
   short suspended, running, ready, do_update, stop, job_type;
   float progress;
@@ -158,7 +158,7 @@ static void wm_job_main_thread_yield(wmJob *wm_job)
 /**
  * Finds if type or owner, compare for it, otherwise any matching job.
  */
-static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const int job_type)
+static wmJob *wm_job_find(const wmWindowManager *wm, const void *owner, const int job_type)
 {
   if (owner && job_type) {
     LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
@@ -193,8 +193,12 @@ static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const int job_type)
  * \note every owner only gets a single job,
  * adding a new one will stop running job and when stopped it starts the new one.
  */
-wmJob *WM_jobs_get(
-    wmWindowManager *wm, wmWindow *win, void *owner, const char *name, int flag, int job_type)
+wmJob *WM_jobs_get(wmWindowManager *wm,
+                   wmWindow *win,
+                   const void *owner,
+                   const char *name,
+                   int flag,
+                   int job_type)
 {
   wmJob *wm_job = wm_job_find(wm, owner, job_type);
 
@@ -220,7 +224,7 @@ wmJob *WM_jobs_get(
 }
 
 /* returns true if job runs, for UI (progress) indicators */
-bool WM_jobs_test(wmWindowManager *wm, void *owner, int job_type)
+bool WM_jobs_test(const wmWindowManager *wm, const void *owner, int job_type)
 {
   /* job can be running or about to run (suspended) */
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
@@ -236,9 +240,9 @@ bool WM_jobs_test(wmWindowManager *wm, void *owner, int job_type)
   return false;
 }
 
-float WM_jobs_progress(wmWindowManager *wm, void *owner)
+float WM_jobs_progress(const wmWindowManager *wm, const void *owner)
 {
-  wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
+  const wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
 
   if (wm_job && wm_job->flag & WM_JOB_PROGRESS) {
     return wm_job->progress;
@@ -278,9 +282,9 @@ static void wm_jobs_update_progress_bars(wmWindowManager *wm)
 }
 
 /* time that job started */
-double WM_jobs_starttime(wmWindowManager *wm, void *owner)
+double WM_jobs_starttime(const wmWindowManager *wm, const void *owner)
 {
-  wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
+  const wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
 
   if (wm_job && wm_job->flag & WM_JOB_PROGRESS) {
     return wm_job->start_time;
@@ -289,7 +293,7 @@ double WM_jobs_starttime(wmWindowManager *wm, void *owner)
   return 0;
 }
 
-char *WM_jobs_name(wmWindowManager *wm, void *owner)
+const char *WM_jobs_name(const wmWindowManager *wm, const void *owner)
 {
   wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
 
@@ -300,7 +304,7 @@ char *WM_jobs_name(wmWindowManager *wm, void *owner)
   return NULL;
 }
 
-void *WM_jobs_customdata(wmWindowManager *wm, void *owner)
+void *WM_jobs_customdata(wmWindowManager *wm, const void *owner)
 {
   wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
 
@@ -322,12 +326,12 @@ void *WM_jobs_customdata_from_type(wmWindowManager *wm, int job_type)
   return NULL;
 }
 
-bool WM_jobs_is_running(wmJob *wm_job)
+bool WM_jobs_is_running(const wmJob *wm_job)
 {
   return wm_job->running;
 }
 
-bool WM_jobs_is_stopped(wmWindowManager *wm, void *owner)
+bool WM_jobs_is_stopped(const wmWindowManager *wm, const void *owner)
 {
   wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
   return wm_job ? wm_job->stop : true; /* XXX to be redesigned properly. */
@@ -560,7 +564,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
 }
 
 /* wait until every job ended, except for one owner (used in undo to keep screen job alive) */
-void WM_jobs_kill_all_except(wmWindowManager *wm, void *owner)
+void WM_jobs_kill_all_except(wmWindowManager *wm, const void *owner)
 {
   LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner != owner) {
@@ -569,7 +573,7 @@ void WM_jobs_kill_all_except(wmWindowManager *wm, void *owner)
   }
 }
 
-void WM_jobs_kill_type(struct wmWindowManager *wm, void *owner, int job_type)
+void WM_jobs_kill_type(struct wmWindowManager *wm, const void *owner, int job_type)
 {
   LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (!owner || wm_job->owner == owner) {
@@ -581,7 +585,7 @@ void WM_jobs_kill_type(struct wmWindowManager *wm, void *owner, int job_type)
 }
 
 /* signal job(s) from this owner or callback to stop, timer is required to get handled */
-void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
+void WM_jobs_stop(wmWindowManager *wm, const void *owner, void *startjob)
 {
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->owner == owner || wm_job->startjob == startjob) {
@@ -702,9 +706,9 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
   wm_jobs_update_progress_bars(wm);
 }
 
-bool WM_jobs_has_running(wmWindowManager *wm)
+bool WM_jobs_has_running(const wmWindowManager *wm)
 {
-  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+  LISTBASE_FOREACH (const wmJob *, wm_job, &wm->jobs) {
     if (wm_job->running) {
       return true;
     }

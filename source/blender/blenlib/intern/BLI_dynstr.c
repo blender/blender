@@ -283,7 +283,7 @@ void BLI_dynstr_appendf(DynStr *__restrict ds, const char *__restrict format, ..
  * \param ds: The DynStr of interest.
  * \return The length of \a ds.
  */
-int BLI_dynstr_get_len(DynStr *ds)
+int BLI_dynstr_get_len(const DynStr *ds)
 {
   return ds->curlen;
 }
@@ -296,10 +296,10 @@ int BLI_dynstr_get_len(DynStr *ds)
  * \param ds: The DynStr of interest.
  * \param rets: The string to fill.
  */
-void BLI_dynstr_get_cstring_ex(DynStr *__restrict ds, char *__restrict rets)
+void BLI_dynstr_get_cstring_ex(const DynStr *__restrict ds, char *__restrict rets)
 {
   char *s;
-  DynStrElem *dse;
+  const DynStrElem *dse;
 
   for (s = rets, dse = ds->elems; dse; dse = dse->next) {
     int slen = strlen(dse->str);
@@ -320,7 +320,7 @@ void BLI_dynstr_get_cstring_ex(DynStr *__restrict ds, char *__restrict rets)
  * \param ds: The DynStr of interest.
  * \return The contents of \a ds as a c-string.
  */
-char *BLI_dynstr_get_cstring(DynStr *ds)
+char *BLI_dynstr_get_cstring(const DynStr *ds)
 {
   char *rets = MEM_mallocN(ds->curlen + 1, "dynstr_cstring");
   BLI_dynstr_get_cstring_ex(ds, rets);

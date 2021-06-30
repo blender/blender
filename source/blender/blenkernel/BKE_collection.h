@@ -164,7 +164,8 @@ bool BKE_collection_move(struct Main *bmain,
 bool BKE_collection_cycle_find(struct Collection *new_ancestor, struct Collection *collection);
 bool BKE_collection_cycles_fix(struct Main *bmain, struct Collection *collection);
 
-bool BKE_collection_has_collection(struct Collection *parent, struct Collection *collection);
+bool BKE_collection_has_collection(const struct Collection *parent,
+                                   const struct Collection *collection);
 
 void BKE_collection_parent_relations_rebuild(struct Collection *collection);
 void BKE_main_collections_parent_relations_rebuild(struct Main *bmain);

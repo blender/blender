@@ -83,7 +83,7 @@ static bool vertex_group_supported_poll_ex(bContext *C, const Object *ob);
 /** \name Local Utility Functions
  * \{ */
 
-static bool object_array_for_wpaint_filter(Object *ob, void *user_data)
+static bool object_array_for_wpaint_filter(const Object *ob, void *user_data)
 {
   bContext *C = user_data;
   if (vertex_group_supported_poll_ex(C, ob)) {

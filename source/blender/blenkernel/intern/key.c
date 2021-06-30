@@ -2048,9 +2048,9 @@ void BKE_keyblock_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 
 /************************* Curve ************************/
 
-int BKE_keyblock_curve_element_count(ListBase *nurb)
+int BKE_keyblock_curve_element_count(const ListBase *nurb)
 {
-  Nurb *nu;
+  const Nurb *nu;
   int tot = 0;
 
   nu = nurb->first;

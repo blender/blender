@@ -1217,7 +1217,7 @@ static bool skip_fcurve_with_name(
  *
  * \return true if F-Curve has errors/is disabled
  */
-static bool fcurve_has_errors(FCurve *fcu)
+static bool fcurve_has_errors(const FCurve *fcu)
 {
   /* F-Curve disabled - path eval error */
   if (fcu->flag & FCURVE_DISABLED) {
@@ -1226,7 +1226,7 @@ static bool fcurve_has_errors(FCurve *fcu)
 
   /* driver? */
   if (fcu->driver) {
-    ChannelDriver *driver = fcu->driver;
+    const ChannelDriver *driver = fcu->driver;
     DriverVar *dvar;
 
     /* error flag on driver usually means that there is an error

@@ -1357,9 +1357,9 @@ void NODE_OT_duplicate(wmOperatorType *ot)
       ot->srna, "keep_inputs", false, "Keep Inputs", "Keep the input links to duplicated nodes");
 }
 
-bool ED_node_select_check(ListBase *lb)
+bool ED_node_select_check(const ListBase *lb)
 {
-  LISTBASE_FOREACH (bNode *, node, lb) {
+  LISTBASE_FOREACH (const bNode *, node, lb) {
     if (node->flag & NODE_SELECT) {
       return true;
     }

@@ -189,7 +189,7 @@ bool ED_gpencil_layer_frames_looper(struct bGPDlayer *gpl,
                                     bool (*gpf_cb)(struct bGPDframe *, struct Scene *));
 void ED_gpencil_layer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, bool onlysel);
 
-bool ED_gpencil_layer_frame_select_check(struct bGPDlayer *gpl);
+bool ED_gpencil_layer_frame_select_check(const struct bGPDlayer *gpl);
 void ED_gpencil_layer_frame_select_set(struct bGPDlayer *gpl, short mode);
 void ED_gpencil_layer_frames_select_box(struct bGPDlayer *gpl,
                                         float min,
@@ -364,23 +364,23 @@ void ED_gpencil_init_random_settings(struct Brush *brush,
                                      const int mval[2],
                                      struct GpRandomSettings *random_settings);
 
-bool ED_gpencil_stroke_check_collision(struct GP_SpaceConversion *gsc,
+bool ED_gpencil_stroke_check_collision(const struct GP_SpaceConversion *gsc,
                                        struct bGPDstroke *gps,
                                        const float mouse[2],
                                        const int radius,
                                        const float diff_mat[4][4]);
-bool ED_gpencil_stroke_point_is_inside(struct bGPDstroke *gps,
-                                       struct GP_SpaceConversion *gsc,
-                                       int mouse[2],
+bool ED_gpencil_stroke_point_is_inside(const struct bGPDstroke *gps,
+                                       const struct GP_SpaceConversion *gsc,
+                                       const int mouse[2],
                                        const float diff_mat[4][4]);
-void ED_gpencil_projected_2d_bound_box(struct GP_SpaceConversion *gsc,
-                                       struct bGPDstroke *gps,
+void ED_gpencil_projected_2d_bound_box(const struct GP_SpaceConversion *gsc,
+                                       const struct bGPDstroke *gps,
                                        const float diff_mat[4][4],
                                        float r_min[2],
                                        float r_max[2]);
 
 struct bGPDstroke *ED_gpencil_stroke_nearest_to_ends(struct bContext *C,
-                                                     struct GP_SpaceConversion *gsc,
+                                                     const struct GP_SpaceConversion *gsc,
                                                      struct bGPDlayer *gpl,
                                                      struct bGPDframe *gpf,
                                                      struct bGPDstroke *gps,

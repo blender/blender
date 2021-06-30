@@ -7357,17 +7357,17 @@ void RNA_parameter_list_free(ParameterList *parms)
   parms->func = NULL;
 }
 
-int RNA_parameter_list_size(ParameterList *parms)
+int RNA_parameter_list_size(const ParameterList *parms)
 {
   return parms->alloc_size;
 }
 
-int RNA_parameter_list_arg_count(ParameterList *parms)
+int RNA_parameter_list_arg_count(const ParameterList *parms)
 {
   return parms->arg_count;
 }
 
-int RNA_parameter_list_ret_count(ParameterList *parms)
+int RNA_parameter_list_ret_count(const ParameterList *parms)
 {
   return parms->ret_count;
 }

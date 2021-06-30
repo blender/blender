@@ -49,7 +49,7 @@ struct Sequence *SEQ_get_sequence_by_name(struct ListBase *seqbase,
                                           bool recursive);
 struct Mask *SEQ_active_mask_get(struct Scene *scene);
 void SEQ_alpha_mode_from_file_extension(struct Sequence *seq);
-bool SEQ_sequence_has_source(struct Sequence *seq);
+bool SEQ_sequence_has_source(const struct Sequence *seq);
 void SEQ_set_scale_to_fit(const struct Sequence *seq,
                           const int image_width,
                           const int image_height,

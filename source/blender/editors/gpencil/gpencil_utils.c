@@ -3106,8 +3106,8 @@ void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
 }
 
 /* Get the bigger 2D bound box points. */
-void ED_gpencil_projected_2d_bound_box(GP_SpaceConversion *gsc,
-                                       bGPDstroke *gps,
+void ED_gpencil_projected_2d_bound_box(const GP_SpaceConversion *gsc,
+                                       const bGPDstroke *gps,
                                        const float diff_mat[4][4],
                                        float r_min[2],
                                        float r_max[2])
@@ -3140,7 +3140,7 @@ void ED_gpencil_projected_2d_bound_box(GP_SpaceConversion *gsc,
 }
 
 /* Check if the stroke collides with brush. */
-bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
+bool ED_gpencil_stroke_check_collision(const GP_SpaceConversion *gsc,
                                        bGPDstroke *gps,
                                        const float mouse[2],
                                        const int radius,
@@ -3175,9 +3175,9 @@ bool ED_gpencil_stroke_check_collision(GP_SpaceConversion *gsc,
  * \param diff_mat: View matrix.
  * \return True if the point is inside.
  */
-bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,
-                                       GP_SpaceConversion *gsc,
-                                       int mouse[2],
+bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
+                                       const GP_SpaceConversion *gsc,
+                                       const int mouse[2],
                                        const float diff_mat[4][4])
 {
   bool hit = false;
@@ -3190,7 +3190,7 @@ bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,
   mcoords = MEM_mallocN(sizeof(int[2]) * len, __func__);
 
   /* Convert stroke to 2D array of points. */
-  bGPDspoint *pt;
+  const bGPDspoint *pt;
   int i;
   for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
     bGPDspoint pt2;
@@ -3214,7 +3214,7 @@ bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,
 }
 
 bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
-                                              GP_SpaceConversion *gsc,
+                                              const GP_SpaceConversion *gsc,
                                               bGPDlayer *gpl,
                                               bGPDframe *gpf,
                                               bGPDstroke *gps,
