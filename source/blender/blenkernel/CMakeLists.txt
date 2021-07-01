@@ -190,6 +190,7 @@ set(SRC
   intern/mesh_mapping.c
   intern/mesh_merge.c
   intern/mesh_mirror.c
+  intern/mesh_normals.c
   intern/mesh_remap.c
   intern/mesh_remesh_voxel.c
   intern/mesh_runtime.c

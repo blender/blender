@@ -299,7 +299,7 @@ void BKE_mesh_recalc_looptri_with_normals(const struct MLoop *mloop,
                                           struct MLoopTri *mlooptri,
                                           const float (*poly_normals)[3]);
 
-/* *** mesh_evaluate.c *** */
+/* *** mesh_normals.c *** */
 
 void BKE_mesh_calc_normals_mapping_simple(struct Mesh *me);
 void BKE_mesh_calc_normals_mapping(struct MVert *mverts,
@@ -493,6 +493,8 @@ void BKE_mesh_calc_normals_split_ex(struct Mesh *mesh,
 
 void BKE_mesh_set_custom_normals(struct Mesh *mesh, float (*r_custom_loopnors)[3]);
 void BKE_mesh_set_custom_normals_from_vertices(struct Mesh *mesh, float (*r_custom_vertnors)[3]);
+
+/* *** mesh_evaluate.c *** */
 
 void BKE_mesh_calc_poly_normal(const struct MPoly *mpoly,
                                const struct MLoop *loopstart,

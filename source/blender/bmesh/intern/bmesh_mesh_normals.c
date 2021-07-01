@@ -18,6 +18,8 @@
  * \ingroup bmesh
  *
  * BM mesh normal calculation functions.
+ *
+ * \see mesh_normals.c for the equivalent #Mesh functionality.
  */
 
 #include "MEM_guardedalloc.h"
