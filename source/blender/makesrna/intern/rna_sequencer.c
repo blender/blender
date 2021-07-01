@@ -1921,16 +1921,6 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
-  prop = RNA_def_property(srna, "speed_factor", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "speed_fader");
-  RNA_def_property_ui_text(
-      prop,
-      "Speed Factor",
-      "Multiply the current speed of the sequence with this number or remap current frame "
-      "to this frame");
-  RNA_def_property_update(
-      prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
-
   /* modifiers */
   prop = RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "SequenceModifier");
@@ -2787,24 +2777,48 @@ static void rna_def_speed_control(StructRNA *srna)
 
   RNA_def_struct_sdna_from(srna, "SpeedControlVars", "effectdata");
 
-  prop = RNA_def_property(srna, "multiply_speed", PROP_FLOAT, PROP_UNSIGNED);
-  RNA_def_property_float_sdna(prop, NULL, "globalSpeed");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* seq->facf0 is used to animate this */
-  RNA_def_property_ui_text(
-      prop, "Multiply Speed", "Multiply the resulting speed after the speed factor");
-  RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, -1);
+  static const EnumPropertyItem speed_control_items[] = {
+      {SEQ_SPEED_STRETCH,
+       "STRETCH",
+       0,
+       "Stretch",
+       "Adjust input playback speed, so its duration fits strip length"},
+      {SEQ_SPEED_MULTIPLY, "MULTIPLY", 0, "Multiply", "Multiply with the speed factor"},
+      {SEQ_SPEED_FRAME_NUMBER,
+       "FRAME_NUMBER",
+       0,
+       "Frame Number",
+       "Frame number of the input strip"},
+      {SEQ_SPEED_LENGTH, "LENGTH", 0, "Length", "Percentage of the input strip length"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  prop = RNA_def_property(srna, "speed_control", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "speed_control_type");
+  RNA_def_property_enum_items(prop, speed_control_items);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Speed Control", "Speed control method");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
-  prop = RNA_def_property(srna, "use_as_speed", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_INTEGRATE);
+  prop = RNA_def_property(srna, "speed_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "speed_fader");
   RNA_def_property_ui_text(
-      prop, "Use as Speed", "Interpret the value as speed instead of a frame number");
+      prop,
+      "Multiply Factor",
+      "Multiply the current speed of the sequence with this number or remap current frame "
+      "to this frame");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
-  prop = RNA_def_property(srna, "use_scale_to_length", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_COMPRESS_IPO_Y);
-  RNA_def_property_ui_text(
-      prop, "Scale to Length", "Scale values from 0.0 to 1.0 to target sequence length");
+  prop = RNA_def_property(srna, "speed_frame_number", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "speed_fader_frame_number");
+  RNA_def_property_ui_text(prop, "Frame Number", "Frame number of input strip");
+  RNA_def_property_ui_range(prop, 0.0, MAXFRAME, 1.0, -1);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+
+  prop = RNA_def_property(srna, "speed_length", PROP_FLOAT, PROP_PERCENTAGE);
+  RNA_def_property_float_sdna(prop, NULL, "speed_fader_length");
+  RNA_def_property_ui_text(prop, "Length", "Percentage of input strip length");
+  RNA_def_property_ui_range(prop, 0.0, 100.0, 1, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "use_frame_interpolate", PROP_BOOLEAN, PROP_NONE);

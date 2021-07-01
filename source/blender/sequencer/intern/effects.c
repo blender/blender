@@ -3086,10 +3086,12 @@ static void init_speed_effect(Sequence *seq)
   seq->effectdata = MEM_callocN(sizeof(SpeedControlVars), "speedcontrolvars");
 
   v = (SpeedControlVars *)seq->effectdata;
-  v->globalSpeed = 1.0;
   v->frameMap = NULL;
-  v->flags |= SEQ_SPEED_INTEGRATE; /* should be default behavior */
   v->length = 0;
+  v->speed_control_type = SEQ_SPEED_STRETCH;
+  v->speed_fader = 1.0f;
+  v->speed_fader_length = 0.0f;
+  v->speed_fader_frame_number = 0.0f;
 }
 
 static void load_speed_effect(Sequence *seq)
@@ -3131,29 +3133,6 @@ static int early_out_speed(Sequence *UNUSED(seq), float UNUSED(facf0), float UNU
   return EARLY_DO_EFFECT;
 }
 
-static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *ymin, float *ymax)
-{
-  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
-
-  /* if not already done, load / initialize data */
-  SEQ_effect_handle_get(seq);
-
-  if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
-    *ymin = -100.0;
-    *ymax = 100.0;
-  }
-  else {
-    if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-      *ymin = 0.0;
-      *ymax = 1.0;
-    }
-    else {
-      *ymin = 0.0;
-      *ymax = seq->len;
-    }
-  }
-}
-
 /**
  * Generator strips with zero inputs have their length set to 1 permanently. In some cases it is
  * useful to use speed effect on these strips because they can be animated. This can be done by
@@ -3174,7 +3153,6 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
   float fallback_fac = 1.0f;
   SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   FCurve *fcu = NULL;
-  int flags = v->flags;
 
   /* if not already done, load / initialize data */
   SEQ_effect_handle_get(seq);
@@ -3189,7 +3167,20 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
 
   /* XXX(campbell): new in 2.5x. should we use the animation system this way?
    * The fcurve is needed because many frames need evaluating at once. */
-  fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
+  switch (v->speed_control_type) {
+    case SEQ_SPEED_MULTIPLY: {
+      fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
+      break;
+    }
+    case SEQ_SPEED_FRAME_NUMBER: {
+      fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_frame_number", 0, NULL);
+      break;
+    }
+    case SEQ_SPEED_LENGTH: {
+      fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_length", 0, NULL);
+      break;
+    }
+  }
   if (!v->frameMap || v->length != seq->len) {
     if (v->frameMap) {
       MEM_freeN(v->frameMap);
@@ -3204,21 +3195,33 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
 
   const int target_strip_length = seq_effect_speed_get_strip_content_length(seq->seq1);
 
-  if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
+  if (v->speed_control_type == SEQ_SPEED_STRETCH) {
     if ((seq->seq1->enddisp != seq->seq1->start) && (target_strip_length != 0)) {
       fallback_fac = (float)target_strip_length / (float)(seq->seq1->enddisp - seq->seq1->start);
-      flags = SEQ_SPEED_INTEGRATE;
       fcu = NULL;
     }
   }
   else {
     /* if there is no fcurve, use value as simple multiplier */
     if (!fcu) {
-      fallback_fac = seq->speed_fader; /* Same as speed_factor in RNA. */
+      switch (v->speed_control_type) {
+        case SEQ_SPEED_MULTIPLY: {
+          fallback_fac = v->speed_fader;
+          break;
+        }
+        case SEQ_SPEED_FRAME_NUMBER: {
+          fallback_fac = v->speed_fader_frame_number;
+          break;
+        }
+        case SEQ_SPEED_LENGTH: {
+          fallback_fac = v->speed_fader_length;
+          break;
+        }
+      }
     }
   }
 
-  if (flags & SEQ_SPEED_INTEGRATE) {
+  if (ELEM(v->speed_control_type, SEQ_SPEED_MULTIPLY, SEQ_SPEED_STRETCH)) {
     float cursor = 0;
     float facf;
 
@@ -3232,7 +3235,6 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
       else {
         facf = fallback_fac;
       }
-      facf *= v->globalSpeed;
 
       cursor += facf;
 
@@ -3258,10 +3260,10 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq, bool force)
         facf = fallback_fac;
       }
 
-      if (flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+      if (v->speed_control_type == SEQ_SPEED_LENGTH) {
         facf *= target_strip_length;
+        facf /= 100.0f;
       }
-      facf *= v->globalSpeed;
 
       if (facf >= target_strip_length) {
         facf = target_strip_length - 1;
@@ -4083,14 +4085,6 @@ static int early_out_mul_input2(Sequence *UNUSED(seq), float facf0, float facf1)
   return EARLY_DO_EFFECT;
 }
 
-static void store_icu_yrange_noop(Sequence *UNUSED(seq),
-                                  short UNUSED(adrcode),
-                                  float *UNUSED(ymin),
-                                  float *UNUSED(ymax))
-{
-  /* defaults are fine */
-}
-
 static void get_default_fac_noop(Sequence *UNUSED(seq),
                                  float UNUSED(timeline_frame),
                                  float *facf0,
@@ -4130,7 +4124,6 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
   rval.free = free_noop;
   rval.early_out = early_out_noop;
   rval.get_default_fac = get_default_fac_noop;
-  rval.store_icu_yrange = store_icu_yrange_noop;
   rval.execute = NULL;
   rval.init_execution = init_execution;
   rval.execute_slice = NULL;
@@ -4244,7 +4237,6 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
       rval.copy = copy_speed_effect;
       rval.execute = do_speed_effect;
       rval.early_out = early_out_speed;
-      rval.store_icu_yrange = store_icu_yrange_speed;
       break;
     case SEQ_TYPE_COLOR:
       rval.init = init_solid_color;
