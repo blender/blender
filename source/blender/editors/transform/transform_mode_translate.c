@@ -50,6 +50,23 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Transform (Translate) Custom Data
+ * \{ */
+
+/**
+ * Custom data, stored in #TransInfo.custom.mode.data
+ */
+struct TranslateCustomData {
+  /** Settings used in the last call to #applyTranslation. */
+  struct {
+    bool apply_snap_align_rotation;
+    bool is_valid_snapping_normal;
+  } prev;
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Transform (Translation) Element
  * \{ */
 
@@ -357,13 +374,35 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 
 static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
-  const bool apply_snap_align_rotation = activeSnap(t) && usingSnappingNormal(t);
-  const bool is_valid_snapping_normal = apply_snap_align_rotation && validSnappingNormal(t);
+  struct TranslateCustomData *custom_data = t->custom.mode.data;
 
-  /* Ideally "apply_snap_align_rotation" would only be used when a snap point is found:
-   * `t->tsnap.status & POINT_INIT` - perhaps this function isn't the best place to apply rotation.
-   * However snapping rotation needs to be handled before doing the translation
-   * (unless the pivot_local is also translated). */
+  bool apply_snap_align_rotation = false;
+  bool is_valid_snapping_normal = false;
+
+  if (activeSnap(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
+    apply_snap_align_rotation = true;
+    is_valid_snapping_normal = true;
+  }
+
+  /* Check to see if this needs to be re-enabled. */
+  if (apply_snap_align_rotation == false) {
+    if (t->flag & T_POINTS) {
+      /* When transforming points, only use rotation when snapping is enabled
+       * since re-applying translation without rotation removes rotation. */
+    }
+    else {
+      /* When transforming data that it's self stores rotation (objects, bones etc),
+       * apply rotation if it was applied (with the snap normal) previously.
+       * This is needed because failing to rotate will leave the rotation at the last
+       * value used before snapping was disabled. */
+      if (custom_data->prev.apply_snap_align_rotation &&
+          custom_data->prev.is_valid_snapping_normal) {
+        BLI_assert(is_valid_snapping_normal == false);
+        apply_snap_align_rotation = true;
+      }
+    }
+  }
+
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     float pivot_local[3];
     if (apply_snap_align_rotation) {
@@ -398,6 +437,9 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_translate_fn, &settings);
     }
   }
+
+  custom_data->prev.apply_snap_align_rotation = apply_snap_align_rotation;
+  custom_data->prev.is_valid_snapping_normal = is_valid_snapping_normal;
 }
 
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
@@ -524,5 +566,11 @@ void initTranslation(TransInfo *t)
 
   transform_mode_default_modal_orientation_set(
       t, (t->options & CTX_CAMERA) ? V3D_ORIENT_VIEW : V3D_ORIENT_GLOBAL);
+
+  struct TranslateCustomData *custom_data = MEM_callocN(sizeof(*custom_data), __func__);
+  custom_data->prev.apply_snap_align_rotation = false;
+  custom_data->prev.is_valid_snapping_normal = false;
+  t->custom.mode.data = custom_data;
+  t->custom.mode.use_free = true;
 }
 /** \} */
