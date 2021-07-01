@@ -31,65 +31,81 @@ template <class T> void SafeRelease(T **ppT)
 	}
 }
 
-void WASAPIDevice::runMixingThread()
+HRESULT WASAPIDevice::setupRenderClient(IAudioRenderClient*& render_client, UINT32& buffer_size)
 {
-	UINT32 buffer_size;
+	const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
+
 	UINT32 padding;
 	UINT32 length;
 	data_t* buffer;
 
-	IAudioRenderClient* render_client = nullptr;
+	HRESULT result;
 
-	{
-		std::lock_guard<ILockable> lock(*this);
+	if(FAILED(result = m_audio_client->GetBufferSize(&buffer_size)))
+		return result;
 
-		const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
+	if(FAILED(result = m_audio_client->GetService(IID_IAudioRenderClient, reinterpret_cast<void**>(&render_client))))
+		return result;
 
-		if(FAILED(m_audio_client->GetBufferSize(&buffer_size)))
-			goto init_error;
+	if(FAILED(result = m_audio_client->GetCurrentPadding(&padding)))
+		return result;
 
-		if(FAILED(m_audio_client->GetService(IID_IAudioRenderClient, reinterpret_cast<void**>(&render_client))))
-			goto init_error;
+	length = buffer_size - padding;
 
-		if(FAILED(m_audio_client->GetCurrentPadding(&padding)))
-			goto init_error;
+	if(FAILED(result = render_client->GetBuffer(length, &buffer)))
+		return result;
 
-		length = buffer_size - padding;
+	mix((data_t*)buffer, length);
 
-		if(FAILED(render_client->GetBuffer(length, &buffer)))
-			goto init_error;
-
-		mix((data_t*)buffer, length);
-
-		if(FAILED(render_client->ReleaseBuffer(length, 0)))
-		{
-			init_error:
-				SafeRelease(&render_client);
-				doStop();
-				return;
-		}
-	}
+	if(FAILED(result = render_client->ReleaseBuffer(length, 0)))
+		return result;
 
 	m_audio_client->Start();
 
-	auto sleepDuration = std::chrono::milliseconds(buffer_size * 1000 / int(m_specs.rate) / 2);
+	return result;
+}
+
+void WASAPIDevice::runMixingThread()
+{
+	UINT32 buffer_size;
+
+	IAudioRenderClient* render_client = nullptr;
+
+	std::chrono::milliseconds sleep_duration;
+
+	bool run_init = true;
 
 	for(;;)
 	{
+		HRESULT result = S_OK;
+
 		{
+			UINT32 padding;
+			UINT32 length;
+			data_t* buffer;
 			std::lock_guard<ILockable> lock(*this);
 
-			if(FAILED(m_audio_client->GetCurrentPadding(&padding)))
+			if(run_init)
+			{
+				result = setupRenderClient(render_client, buffer_size);
+
+				if(FAILED(result))
+					goto stop_thread;
+
+				sleep_duration = std::chrono::milliseconds(buffer_size * 1000 / int(m_specs.rate) / 2);
+			}
+
+			if(FAILED(result = m_audio_client->GetCurrentPadding(&padding)))
 				goto stop_thread;
 
 			length = buffer_size - padding;
 
-			if(FAILED(render_client->GetBuffer(length, &buffer)))
+			if(FAILED(result = render_client->GetBuffer(length, &buffer)))
 				goto stop_thread;
 
 			mix((data_t*)buffer, length);
 
-			if(FAILED(render_client->ReleaseBuffer(length, 0)))
+			if(FAILED(result = render_client->ReleaseBuffer(length, 0)))
 				goto stop_thread;
 
 			// stop thread
@@ -98,52 +114,50 @@ void WASAPIDevice::runMixingThread()
 				stop_thread:
 					m_audio_client->Stop();
 					SafeRelease(&render_client);
-					doStop();
-					return;
+
+					if(result == AUDCLNT_E_DEVICE_INVALIDATED)
+					{
+						DeviceSpecs specs = m_specs;
+						if(!setupDevice(specs))
+							result = S_FALSE;
+						else
+						{
+							setSpecs(specs);
+
+							run_init = true;
+						}
+					}
+
+					if(result != AUDCLNT_E_DEVICE_INVALIDATED)
+					{
+						doStop();
+						return;
+					}
 			}
 		}
 
-		std::this_thread::sleep_for(sleepDuration);
+		std::this_thread::sleep_for(sleep_duration);
 	}
 }
 
-WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
-	m_imm_device_enumerator(nullptr),
-	m_imm_device(nullptr),
-	m_audio_client(nullptr),
-
-	m_wave_format_extensible({})
+bool WASAPIDevice::setupDevice(DeviceSpecs &specs)
 {
-	// initialize COM if it hasn't happened yet
-	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+	SafeRelease(&m_audio_client);
+	SafeRelease(&m_imm_device);
 
-	const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
-	const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
 	const IID IID_IAudioClient = __uuidof(IAudioClient);
+
+	if(FAILED(m_imm_device_enumerator->GetDefaultAudioEndpoint(eRender, eMultimedia, &m_imm_device)))
+		return false;
+
+	if(FAILED(m_imm_device->Activate(IID_IAudioClient, CLSCTX_ALL, nullptr, reinterpret_cast<void**>(&m_audio_client))))
+		return false;
 
 	WAVEFORMATEXTENSIBLE wave_format_extensible_closest_match;
 	WAVEFORMATEXTENSIBLE* closest_match_pointer = &wave_format_extensible_closest_match;
 
-	HRESULT result;
-
 	REFERENCE_TIME minimum_time = 0;
 	REFERENCE_TIME buffer_duration;
-
-	if(FAILED(CoCreateInstance(CLSID_MMDeviceEnumerator, nullptr, CLSCTX_ALL, IID_IMMDeviceEnumerator, reinterpret_cast<void**>(&m_imm_device_enumerator))))
-		goto error;
-
-	if(FAILED(m_imm_device_enumerator->GetDefaultAudioEndpoint(eRender, eMultimedia, &m_imm_device)))
-		goto error;
-
-	if(FAILED(m_imm_device->Activate(IID_IAudioClient, CLSCTX_ALL, nullptr, reinterpret_cast<void**>(&m_audio_client))))
-		goto error;
-
-	if(specs.channels == CHANNELS_INVALID)
-		specs.channels = CHANNELS_STEREO;
-	if(specs.format == FORMAT_INVALID)
-		specs.format = FORMAT_FLOAT32;
-	if(specs.rate == RATE_INVALID)
-		specs.rate = RATE_48000;
 
 	switch(specs.format)
 	{
@@ -203,12 +217,14 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 	m_wave_format_extensible.Format.cbSize = 22;
 	m_wave_format_extensible.Samples.wValidBitsPerSample = m_wave_format_extensible.Format.wBitsPerSample;
 
-	result = m_audio_client->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, reinterpret_cast<const WAVEFORMATEX*>(&m_wave_format_extensible), reinterpret_cast<WAVEFORMATEX**>(&closest_match_pointer));
+	HRESULT result = m_audio_client->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, reinterpret_cast<const WAVEFORMATEX*>(&m_wave_format_extensible), reinterpret_cast<WAVEFORMATEX**>(&closest_match_pointer));
 
 	if(result == S_FALSE)
 	{
+		bool errored = false;
+
 		if(closest_match_pointer->Format.wFormatTag != WAVE_FORMAT_EXTENSIBLE)
-			goto error;
+			goto closest_match_error;
 
 		specs.channels = Channels(closest_match_pointer->Format.nChannels);
 		specs.rate = closest_match_pointer->Format.nSamplesPerSec;
@@ -220,7 +236,7 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 			else if(closest_match_pointer->Format.wBitsPerSample == 64)
 				specs.format = FORMAT_FLOAT64;
 			else
-				goto error;
+				goto closest_match_error;
 		}
 		else if(closest_match_pointer->SubFormat == KSDATAFORMAT_SUBTYPE_PCM)
 		{
@@ -239,44 +255,81 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 				specs.format = FORMAT_S32;
 				break;
 			default:
-				goto error;
+				goto closest_match_error;
 				break;
 			}
 		}
 		else
-			goto error;
+			goto closest_match_error;
 
 		m_wave_format_extensible = *closest_match_pointer;
+
+		if(false)
+		{
+			closest_match_error:
+			errored = true;
+		}
 
 		if(closest_match_pointer != &wave_format_extensible_closest_match)
 		{
 			CoTaskMemFree(closest_match_pointer);
 			closest_match_pointer = &wave_format_extensible_closest_match;
 		}
+
+		if(errored)
+			return false;
 	}
 	else if(FAILED(result))
-		goto error;
+		return false;
 
 	if(FAILED(m_audio_client->GetDevicePeriod(nullptr, &minimum_time)))
-		goto error;
+		return false;
 
-	buffer_duration = REFERENCE_TIME(buffersize) * REFERENCE_TIME(10000000) / REFERENCE_TIME(specs.rate);
+	buffer_duration = REFERENCE_TIME(m_buffersize) * REFERENCE_TIME(10000000) / REFERENCE_TIME(specs.rate);
 
 	if(minimum_time > buffer_duration)
 		buffer_duration = minimum_time;
 
-	m_specs = specs;
-
 	if(FAILED(m_audio_client->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, buffer_duration, 0, reinterpret_cast<WAVEFORMATEX*>(&m_wave_format_extensible), nullptr)))
+		return false;
+
+	return true;
+}
+
+WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
+	m_buffersize(buffersize),
+	m_imm_device_enumerator(nullptr),
+	m_imm_device(nullptr),
+	m_audio_client(nullptr),
+
+	m_wave_format_extensible({})
+{
+	// initialize COM if it hasn't happened yet
+	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+	const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
+	const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
+
+	if(specs.channels == CHANNELS_INVALID)
+		specs.channels = CHANNELS_STEREO;
+	if(specs.format == FORMAT_INVALID)
+		specs.format = FORMAT_FLOAT32;
+	if(specs.rate == RATE_INVALID)
+		specs.rate = RATE_48000;
+
+	if(FAILED(CoCreateInstance(CLSID_MMDeviceEnumerator, nullptr, CLSCTX_ALL, IID_IMMDeviceEnumerator, reinterpret_cast<void**>(&m_imm_device_enumerator))))
 		goto error;
+
+	if(!setupDevice(specs))
+		goto error;
+
+	m_specs = specs;
 
 	create();
 
 	return;
 
 	error:
-	if(closest_match_pointer != &wave_format_extensible_closest_match)
-		CoTaskMemFree(closest_match_pointer);
 	SafeRelease(&m_imm_device);
 	SafeRelease(&m_imm_device_enumerator);
 	SafeRelease(&m_audio_client);
