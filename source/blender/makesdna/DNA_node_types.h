@@ -1362,6 +1362,11 @@ typedef struct NodeGeometryCurvePrimitiveBezierSegment {
   uint8_t mode;
 } NodeGeometryCurvePrimitiveBezierSegment;
 
+typedef struct NodeGeometryCurvePrimitiveCircle {
+  /* GeometryNodeCurvePrimitiveMode. */
+  uint8_t mode;
+} NodeGeometryCurvePrimitiveCircle;
+
 typedef struct NodeGeometryCurveResample {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
@@ -1794,6 +1799,11 @@ typedef enum GeometryNodeBooleanOperation {
   GEO_NODE_BOOLEAN_UNION = 1,
   GEO_NODE_BOOLEAN_DIFFERENCE = 2,
 } GeometryNodeBooleanOperation;
+
+typedef enum GeometryNodeCurvePrimitiveCircleMode {
+  GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS = 0,
+  GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS = 1
+} GeometryNodeCurvePrimitiveCircleMode;
 
 typedef enum GeometryNodeTriangulateNGons {
   GEO_NODE_TRIANGULATE_NGON_BEAUTY = 0,
