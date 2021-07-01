@@ -182,12 +182,6 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
       BMO_face_flag_enable(bm, f_iter, FACE_ORIG);
     }
 
-    if (BMO_error_occurred(bm)) {
-      BMO_error_clear(bm);
-      BMO_error_raise(bm, op, "Could not dissolve faces");
-      goto cleanup;
-    }
-
     BLI_array_append(faces, NULL);
     BLI_array_append(regions, faces);
   }

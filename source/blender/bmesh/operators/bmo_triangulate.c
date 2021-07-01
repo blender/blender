@@ -253,9 +253,6 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
             BMO_face_flag_enable(bm, f_new, ELE_NEW);
             BM_edge_kill(bm, e);
           }
-          else {
-            BMO_error_clear(bm);
-          }
         }
         else if (e->l == NULL) {
           BM_edge_kill(bm, e);

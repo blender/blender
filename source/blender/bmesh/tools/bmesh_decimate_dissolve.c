@@ -376,9 +376,6 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
             }
           } while ((l_iter = l_iter->next) != l_first);
         }
-        else {
-          BMO_error_clear(bm);
-        }
       }
 
       if (UNLIKELY(f_new == NULL)) {
