@@ -247,7 +247,7 @@ AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, int sampl
 
 		buffer[i * 3] = min;
 		buffer[i * 3 + 1] = max;
-		buffer[i * 3 + 2] = sqrt(power) / len;
+		buffer[i * 3 + 2] = sqrt(power / len); // RMS
 
 		if(overallmax < max)
 			overallmax = max;
