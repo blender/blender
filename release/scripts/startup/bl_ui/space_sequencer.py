@@ -2286,14 +2286,12 @@ class SEQUENCER_PT_snapping(Panel):
         layout.use_property_decorate = False
 
         col = layout.column(heading="Snap to", align=True)
-        col.prop(sequencer_tool_settings, "snap_seq_element", expand=True)
+        col.prop(sequencer_tool_settings, "snap_to_current_frame" )
+        col.prop(sequencer_tool_settings, "snap_to_hold_offset")
 
         col = layout.column(heading="Ignore", align=True)
         col.prop(sequencer_tool_settings, "snap_ignore_muted", text="Muted Strips")
         col.prop(sequencer_tool_settings, "snap_ignore_sound",text="Sound Strips")
-
-        col = layout.column()
-        col.prop(sequencer_tool_settings, "snap_distance", slider=True, text="Distance")
 
 
 classes = (
