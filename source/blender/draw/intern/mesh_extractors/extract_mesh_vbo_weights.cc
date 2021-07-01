@@ -33,12 +33,12 @@ namespace blender::draw {
 /** \name Extract Vertex Weight
  * \{ */
 
-typedef struct MeshExtract_Weight_Data {
+struct MeshExtract_Weight_Data {
   float *vbo_data;
   const DRW_MeshWeightState *wstate;
   const MDeformVert *dvert; /* For #Mesh. */
   int cd_ofs;               /* For #BMesh. */
-} MeshExtract_Weight_Data;
+};
 
 static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeightState *wstate)
 {

@@ -29,11 +29,11 @@ namespace blender::draw {
 /** \name Extract Face-dots UV
  * \{ */
 
-typedef struct MeshExtract_FdotUV_Data {
+struct MeshExtract_FdotUV_Data {
   float (*vbo_data)[2];
   MLoopUV *uv_data;
   int cd_ofs;
-} MeshExtract_FdotUV_Data;
+};
 
 static void extract_fdots_uv_init(const MeshRenderData *mr,
                                   struct MeshBatchCache *UNUSED(cache),

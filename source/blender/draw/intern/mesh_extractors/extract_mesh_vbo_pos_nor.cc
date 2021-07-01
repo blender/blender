@@ -31,15 +31,15 @@ namespace blender::draw {
 /** \name Extract Position and Vertex Normal
  * \{ */
 
-typedef struct PosNorLoop {
+struct PosNorLoop {
   float pos[3];
   GPUPackedNormal nor;
-} PosNorLoop;
+};
 
-typedef struct MeshExtract_PosNor_Data {
+struct MeshExtract_PosNor_Data {
   PosNorLoop *vbo_data;
   GPUNormal *normals;
-} MeshExtract_PosNor_Data;
+};
 
 static void extract_pos_nor_init(const MeshRenderData *mr,
                                  struct MeshBatchCache *UNUSED(cache),
@@ -218,15 +218,15 @@ constexpr MeshExtract create_extractor_pos_nor()
 /** \name Extract Position and High Quality Vertex Normal
  * \{ */
 
-typedef struct PosNorHQLoop {
+struct PosNorHQLoop {
   float pos[3];
   short nor[4];
-} PosNorHQLoop;
+};
 
-typedef struct MeshExtract_PosNorHQ_Data {
+struct MeshExtract_PosNorHQ_Data {
   PosNorHQLoop *vbo_data;
   GPUNormal *normals;
-} MeshExtract_PosNorHQ_Data;
+};
 
 static void extract_pos_nor_hq_init(const MeshRenderData *mr,
                                     struct MeshBatchCache *UNUSED(cache),

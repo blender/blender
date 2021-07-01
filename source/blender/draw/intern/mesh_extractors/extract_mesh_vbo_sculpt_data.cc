@@ -58,10 +58,10 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
 
-  typedef struct gpuSculptData {
+  struct gpuSculptData {
     uint8_t face_set_color[4];
     float mask;
-  } gpuSculptData;
+  };
 
   gpuSculptData *vbo_data = (gpuSculptData *)GPU_vertbuf_get_data(vbo);
   MLoop *loops = (MLoop *)CustomData_get_layer(cd_ldata, CD_MLOOP);

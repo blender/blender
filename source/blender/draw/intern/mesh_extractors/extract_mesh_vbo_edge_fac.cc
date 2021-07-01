@@ -34,12 +34,12 @@ namespace blender::draw {
  * Defines how much an edge is visible.
  * \{ */
 
-typedef struct MeshExtract_EdgeFac_Data {
+struct MeshExtract_EdgeFac_Data {
   uchar *vbo_data;
   bool use_edge_render;
   /* Number of loop per edge. */
   uchar *edge_loop_count;
-} MeshExtract_EdgeFac_Data;
+};
 
 static float loop_edge_factor_get(const float f_no[3],
                                   const float v_co[3],

@@ -29,10 +29,10 @@ namespace blender::draw {
 /** \name Extract Orco
  * \{ */
 
-typedef struct MeshExtract_Orco_Data {
+struct MeshExtract_Orco_Data {
   float (*vbo_data)[4];
   float (*orco)[3];
-} MeshExtract_Orco_Data;
+};
 
 static void extract_orco_init(const MeshRenderData *mr,
                               struct MeshBatchCache *UNUSED(cache),

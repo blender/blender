@@ -30,10 +30,10 @@ namespace blender::draw {
 /** \name Extract Edit UV Data / Flags
  * \{ */
 
-typedef struct MeshExtract_EditUVData_Data {
+struct MeshExtract_EditUVData_Data {
   EditLoopData *vbo_data;
   int cd_ofs;
-} MeshExtract_EditUVData_Data;
+};
 
 static void extract_edituv_data_init(const MeshRenderData *mr,
                                      struct MeshBatchCache *UNUSED(cache),

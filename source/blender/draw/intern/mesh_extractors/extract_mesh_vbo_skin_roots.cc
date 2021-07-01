@@ -29,10 +29,10 @@ namespace blender::draw {
 /** \name Extract Skin Modifier Roots
  * \{ */
 
-typedef struct SkinRootData {
+struct SkinRootData {
   float size;
   float local_pos[3];
-} SkinRootData;
+};
 
 static void extract_skin_roots_init(const MeshRenderData *mr,
                                     struct MeshBatchCache *UNUSED(cache),

@@ -30,10 +30,10 @@ namespace blender::draw {
 /** \name Extract Face-dots  Edit UV flag
  * \{ */
 
-typedef struct MeshExtract_EditUVFdotData_Data {
+struct MeshExtract_EditUVFdotData_Data {
   EditLoopData *vbo_data;
   int cd_ofs;
-} MeshExtract_EditUVFdotData_Data;
+};
 
 static void extract_fdots_edituv_data_init(const MeshRenderData *mr,
                                            struct MeshBatchCache *UNUSED(cache),

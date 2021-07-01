@@ -33,18 +33,18 @@ namespace blender::draw {
 /** \name Extract Edit UV angle stretch
  * \{ */
 
-typedef struct UVStretchAngle {
+struct UVStretchAngle {
   int16_t angle;
   int16_t uv_angles[2];
-} UVStretchAngle;
+};
 
-typedef struct MeshExtract_StretchAngle_Data {
+struct MeshExtract_StretchAngle_Data {
   UVStretchAngle *vbo_data;
   MLoopUV *luv;
   float auv[2][2], last_auv[2];
   float av[2][3], last_av[3];
   int cd_ofs;
-} MeshExtract_StretchAngle_Data;
+};
 
 static void compute_normalize_edge_vectors(float auv[2][2],
                                            float av[2][3],

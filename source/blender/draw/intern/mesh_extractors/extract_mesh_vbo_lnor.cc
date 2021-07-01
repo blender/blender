@@ -125,9 +125,9 @@ constexpr MeshExtract create_extractor_lnor()
 /** \name Extract HQ Loop Normal
  * \{ */
 
-typedef struct gpuHQNor {
+struct gpuHQNor {
   short x, y, z, w;
-} gpuHQNor;
+};
 
 static void extract_lnor_hq_init(const MeshRenderData *mr,
                                  struct MeshBatchCache *UNUSED(cache),
