@@ -2459,7 +2459,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             scene->toolsettings->snap_node_mode = (1 << 6); /* SCE_SNAP_MODE_NODE_Y */
             break;
           case 7:
-            scene->toolsettings->snap_node_mode = (1 << 5) | (1 << 6); /* SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y */
+            scene->toolsettings->snap_node_mode =
+                (1 << 5) | (1 << 6); /* SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y */
             break;
           case 8:
             scene->toolsettings->snap_node_mode = (1 << 7); /* SCE_SNAP_MODE_GRID */
