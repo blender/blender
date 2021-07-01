@@ -1076,10 +1076,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         continue;
       }
 
-      if (mti->dependsOnTime && mti->dependsOnTime(md)) {
-        continue;
-      }
-
       if (mti->type == eModifierTypeType_OnlyDeform && !sculpt_dyntopo) {
         if (!deformed_verts) {
           deformed_verts = BKE_mesh_vert_coords_alloc(mesh_input, &num_deformed_verts);
@@ -1170,10 +1166,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     }
 
     if (need_mapping && !BKE_modifier_supports_mapping(md)) {
-      continue;
-    }
-
-    if (mti->dependsOnTime && mti->dependsOnTime(md)) {
       continue;
     }
 
