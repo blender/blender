@@ -53,14 +53,23 @@
 /** \name Transform (Translate) Custom Data
  * \{ */
 
+/** Rotation may be enabled when snapping. */
+enum eTranslateRotateMode {
+  /** Don't rotate (default). */
+  TRANSLATE_ROTATE_OFF = 0,
+  /** Perform rotation (currently only snap to normal is used). */
+  TRANSLATE_ROTATE_ON,
+  /** Rotate, resetting back to the disabled state. */
+  TRANSLATE_ROTATE_RESET,
+};
+
 /**
  * Custom data, stored in #TransInfo.custom.mode.data
  */
 struct TranslateCustomData {
   /** Settings used in the last call to #applyTranslation. */
   struct {
-    bool apply_snap_align_rotation;
-    bool is_valid_snapping_normal;
+    enum eTranslateRotateMode rotate_mode;
   } prev;
 };
 
@@ -78,8 +87,7 @@ struct TransDataArgs_Translate {
   const TransDataContainer *tc;
   const float pivot_local[3];
   const float vec[3];
-  bool apply_snap_align_rotation;
-  bool is_valid_snapping_normal;
+  enum eTranslateRotateMode rotate_mode;
 };
 
 static void transdata_elem_translate(const TransInfo *t,
@@ -87,17 +95,21 @@ static void transdata_elem_translate(const TransInfo *t,
                                      TransData *td,
                                      const float pivot_local[3],
                                      const float vec[3],
-                                     const bool apply_snap_align_rotation,
-                                     const bool is_valid_snapping_normal)
+                                     enum eTranslateRotateMode rotate_mode)
 {
   float rotate_offset[3] = {0};
   bool use_rotate_offset = false;
 
   /* Handle snapping rotation before doing the translation. */
-  if (apply_snap_align_rotation) {
+  if (rotate_mode != TRANSLATE_ROTATE_OFF) {
     float mat[3][3];
 
-    if (is_valid_snapping_normal) {
+    if (rotate_mode == TRANSLATE_ROTATE_RESET) {
+      unit_m3(mat);
+    }
+    else {
+      BLI_assert(rotate_mode == TRANSLATE_ROTATE_ON);
+
       const float *original_normal;
 
       /* In pose mode, we want to align normals with Y axis of bones. */
@@ -109,9 +121,6 @@ static void transdata_elem_translate(const TransInfo *t,
       }
 
       rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
-    }
-    else {
-      unit_m3(mat);
     }
 
     ElementRotation_ex(t, tc, td, mat, pivot_local);
@@ -170,13 +179,7 @@ static void transdata_elem_translate_fn(void *__restrict iter_data_v,
   if (td->flag & TD_SKIP) {
     return;
   }
-  transdata_elem_translate(data->t,
-                           data->tc,
-                           td,
-                           data->pivot_local,
-                           data->vec,
-                           data->apply_snap_align_rotation,
-                           data->is_valid_snapping_normal);
+  transdata_elem_translate(data->t, data->tc, td, data->pivot_local, data->vec, data->rotate_mode);
 }
 
 /** \} */
@@ -376,16 +379,14 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
   struct TranslateCustomData *custom_data = t->custom.mode.data;
 
-  bool apply_snap_align_rotation = false;
-  bool is_valid_snapping_normal = false;
+  enum eTranslateRotateMode rotate_mode = TRANSLATE_ROTATE_OFF;
 
   if (activeSnap(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
-    apply_snap_align_rotation = true;
-    is_valid_snapping_normal = true;
+    rotate_mode = TRANSLATE_ROTATE_ON;
   }
 
   /* Check to see if this needs to be re-enabled. */
-  if (apply_snap_align_rotation == false) {
+  if (rotate_mode == TRANSLATE_ROTATE_OFF) {
     if (t->flag & T_POINTS) {
       /* When transforming points, only use rotation when snapping is enabled
        * since re-applying translation without rotation removes rotation. */
@@ -395,17 +396,15 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
        * apply rotation if it was applied (with the snap normal) previously.
        * This is needed because failing to rotate will leave the rotation at the last
        * value used before snapping was disabled. */
-      if (custom_data->prev.apply_snap_align_rotation &&
-          custom_data->prev.is_valid_snapping_normal) {
-        BLI_assert(is_valid_snapping_normal == false);
-        apply_snap_align_rotation = true;
+      if (custom_data->prev.rotate_mode == TRANSLATE_ROTATE_ON) {
+        rotate_mode = TRANSLATE_ROTATE_RESET;
       }
     }
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     float pivot_local[3];
-    if (apply_snap_align_rotation) {
+    if (rotate_mode != TRANSLATE_ROTATE_OFF) {
       copy_v3_v3(pivot_local, t->tsnap.snapTarget);
       /* The pivot has to be in local-space (see T49494) */
       if (tc->use_local_mat) {
@@ -419,8 +418,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_translate(
-            t, tc, td, pivot_local, vec, apply_snap_align_rotation, is_valid_snapping_normal);
+        transdata_elem_translate(t, tc, td, pivot_local, vec, rotate_mode);
       }
     }
     else {
@@ -429,8 +427,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
           .tc = tc,
           .pivot_local = {UNPACK3(pivot_local)},
           .vec = {UNPACK3(vec)},
-          .apply_snap_align_rotation = apply_snap_align_rotation,
-          .is_valid_snapping_normal = is_valid_snapping_normal,
+          .rotate_mode = rotate_mode,
       };
       TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
@@ -438,8 +435,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
     }
   }
 
-  custom_data->prev.apply_snap_align_rotation = apply_snap_align_rotation;
-  custom_data->prev.is_valid_snapping_normal = is_valid_snapping_normal;
+  custom_data->prev.rotate_mode = rotate_mode;
 }
 
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
@@ -568,8 +564,7 @@ void initTranslation(TransInfo *t)
       t, (t->options & CTX_CAMERA) ? V3D_ORIENT_VIEW : V3D_ORIENT_GLOBAL);
 
   struct TranslateCustomData *custom_data = MEM_callocN(sizeof(*custom_data), __func__);
-  custom_data->prev.apply_snap_align_rotation = false;
-  custom_data->prev.is_valid_snapping_normal = false;
+  custom_data->prev.rotate_mode = TRANSLATE_ROTATE_OFF;
   t->custom.mode.data = custom_data;
   t->custom.mode.use_free = true;
 }
