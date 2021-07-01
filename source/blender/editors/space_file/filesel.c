@@ -1047,7 +1047,7 @@ FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *region)
  * Support updating the directory even when this isn't the active space
  * needed so RNA properties update function isn't context sensitive, see T70255.
  */
-void ED_file_change_dir_ex(bContext *C, bScreen *screen, ScrArea *area)
+void ED_file_change_dir_ex(bContext *C, ScrArea *area)
 {
   /* May happen when manipulating non-active spaces. */
   if (UNLIKELY(area->spacetype != SPACE_FILE)) {
@@ -1057,10 +1057,7 @@ void ED_file_change_dir_ex(bContext *C, bScreen *screen, ScrArea *area)
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   if (params) {
     wmWindowManager *wm = CTX_wm_manager(C);
-    Scene *scene = WM_windows_scene_get_from_screen(wm, screen);
-    if (LIKELY(scene != NULL)) {
-      ED_fileselect_clear(wm, scene, sfile);
-    }
+    ED_fileselect_clear(wm, sfile);
 
     /* Clear search string, it is very rare to want to keep that filter while changing dir,
      * and usually very annoying to keep it actually! */
@@ -1085,9 +1082,8 @@ void ED_file_change_dir_ex(bContext *C, bScreen *screen, ScrArea *area)
 
 void ED_file_change_dir(bContext *C)
 {
-  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
-  ED_file_change_dir_ex(C, screen, area);
+  ED_file_change_dir_ex(C, area);
 }
 
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file)
@@ -1183,11 +1179,11 @@ int autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
   return match;
 }
 
-void ED_fileselect_clear(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfile)
+void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
 {
   /* only NULL in rare cases - T29734. */
   if (sfile->files) {
-    filelist_readjob_stop(wm, owner_scene);
+    filelist_readjob_stop(sfile->files, wm);
     filelist_freelib(sfile->files);
     filelist_clear(sfile->files);
   }
@@ -1197,7 +1193,7 @@ void ED_fileselect_clear(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfi
   WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 
-void ED_fileselect_exit(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfile)
+void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
 {
   if (!sfile) {
     return;
@@ -1224,7 +1220,7 @@ void ED_fileselect_exit(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfil
   folder_history_list_free(sfile);
 
   if (sfile->files) {
-    ED_fileselect_clear(wm, owner_scene, sfile);
+    ED_fileselect_clear(wm, sfile);
     filelist_free(sfile->files);
     MEM_freeN(sfile->files);
     sfile->files = NULL;

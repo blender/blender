@@ -552,7 +552,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
       }
 
       /* to make sure we show what is on disk */
-      ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+      ED_fileselect_clear(wm, sfile);
     }
 
     ED_region_tag_redraw(region);

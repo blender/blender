@@ -141,8 +141,8 @@ bool filelist_islibrary(struct FileList *filelist, char *dir, char **r_group);
 void filelist_freelib(struct FileList *filelist);
 
 void filelist_readjob_start(struct FileList *filelist, const struct bContext *C);
-void filelist_readjob_stop(struct wmWindowManager *wm, struct Scene *owner_scene);
-int filelist_readjob_running(struct wmWindowManager *wm, struct Scene *owner_scene);
+void filelist_readjob_stop(struct FileList *filelist, struct wmWindowManager *wm);
+int filelist_readjob_running(struct FileList *filelist, struct wmWindowManager *wm);
 
 bool filelist_cache_previews_update(struct FileList *filelist);
 void filelist_cache_previews_set(struct FileList *filelist, const bool use_previews);

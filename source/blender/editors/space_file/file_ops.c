@@ -1882,7 +1882,7 @@ static int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
   SpaceFile *sfile = CTX_wm_space_file(C);
   struct FSMenu *fsmenu = ED_fsmenu_get();
 
-  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+  ED_fileselect_clear(wm, sfile);
 
   /* refresh system directory menu */
   fsmenu_refresh_system_category(fsmenu);
@@ -2360,7 +2360,7 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
   sfile->scroll_offset = 0;
 
   /* reload dir to make sure we're seeing what's in the directory */
-  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+  ED_fileselect_clear(wm, sfile);
 
   if (do_diropen) {
     BLI_strncpy(params->dir, path, sizeof(params->dir));
@@ -2611,7 +2611,7 @@ static int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
 
   if (params) {
     params->flag ^= FILE_HIDE_DOT;
-    ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+    ED_fileselect_clear(wm, sfile);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
   }
 
@@ -2908,7 +2908,7 @@ static int file_delete_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+  ED_fileselect_clear(wm, sfile);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
   return OPERATOR_FINISHED;

@@ -2980,7 +2980,7 @@ static void rna_FileBrowser_FSMenu_active_range(PointerRNA *UNUSED(ptr),
 static void rna_FileBrowser_FSMenu_active_update(struct bContext *C, PointerRNA *ptr)
 {
   ScrArea *area = rna_area_from_space(ptr);
-  ED_file_change_dir_ex(C, (bScreen *)ptr->owner_id, area);
+  ED_file_change_dir_ex(C, area);
 }
 
 static int rna_FileBrowser_FSMenuSystem_active_get(PointerRNA *ptr)
