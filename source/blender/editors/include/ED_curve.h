@@ -60,21 +60,21 @@ bool ED_curve_editnurb_select_pick(
 struct Nurb *ED_curve_add_nurbs_primitive(
     struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
 
-bool ED_curve_nurb_select_check(struct View3D *v3d, struct Nurb *nu);
-int ED_curve_nurb_select_count(struct View3D *v3d, struct Nurb *nu);
+bool ED_curve_nurb_select_check(const struct View3D *v3d, const struct Nurb *nu);
+int ED_curve_nurb_select_count(const struct View3D *v3d, const struct Nurb *nu);
 bool ED_curve_nurb_select_all(const struct Nurb *nu);
 bool ED_curve_nurb_deselect_all(const struct Nurb *nu);
 
 int ED_curve_join_objects_exec(struct bContext *C, struct wmOperator *op);
 
 /* editcurve_select.c */
-bool ED_curve_select_check(struct View3D *v3d, struct EditNurb *editnurb);
+bool ED_curve_select_check(const struct View3D *v3d, const struct EditNurb *editnurb);
 bool ED_curve_deselect_all(struct EditNurb *editnurb);
 bool ED_curve_deselect_all_multi_ex(struct Base **bases, int bases_len);
 bool ED_curve_deselect_all_multi(struct bContext *C);
 bool ED_curve_select_all(struct EditNurb *editnurb);
 bool ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);
-int ED_curve_select_count(struct View3D *v3d, struct EditNurb *editnurb);
+int ED_curve_select_count(const struct View3D *v3d, const struct EditNurb *editnurb);
 
 /* editcurve_undo.c */
 void ED_curve_undosys_type(struct UndoType *ut);

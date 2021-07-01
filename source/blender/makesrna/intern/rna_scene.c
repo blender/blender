@@ -190,6 +190,16 @@ const EnumPropertyItem rna_enum_snap_node_element_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_snap_seq_element_items[] = {
+    {SEQ_SNAP_TO_CURRENT_FRAME,
+     "CURRENT_FRAME",
+     ICON_NONE,
+     "Current Frame",
+     "Snap to current frame"},
+    {SEQ_SNAP_TO_STRIP_HOLD, "STRIP_HOLD", ICON_NONE, "Hold Offset", "Snap to strip hold offset"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem snap_uv_element_items[] = {
     {SCE_SNAP_MODE_INCREMENT,
@@ -3111,6 +3121,12 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       "Absolute grid alignment while translating (based on the pivot center)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
+  prop = RNA_def_property(srna, "use_snap_sequencer", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_SEQ);
+  RNA_def_property_ui_text(prop, "Use Snapping", "Snap to strip edges or current frame");
+  RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
+  RNA_def_property_boolean_default(prop, true);
+
   prop = RNA_def_property(srna, "snap_elements", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "snap_mode");
   RNA_def_property_enum_items(prop, rna_enum_snap_element_items);
@@ -3505,9 +3521,36 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_SequencerToolSettings_path");
   RNA_def_struct_ui_text(srna, "Sequencer Tool Settings", "");
 
+  /* Add strip settings. */
   prop = RNA_def_property(srna, "fit_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, scale_fit_methods);
   RNA_def_property_ui_text(prop, "Fit Method", "Scale fit method");
+
+  /* Transform snapping. */
+
+  /* Sequencer editor uses own set of snap modes */
+  prop = RNA_def_property(srna, "snap_seq_element", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "snap_mode");
+  RNA_def_property_enum_items(prop, rna_enum_snap_seq_element_items);
+  RNA_def_property_ui_text(prop, "Snap To", "Type of element to snap to");
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
+  prop = RNA_def_property(srna, "snap_ignore_muted", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SEQ_SNAP_IGNORE_MUTED);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop, "Ignore Muted Strips", "Don't snap to hidden strips");
+
+  prop = RNA_def_property(srna, "snap_ignore_sound", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SEQ_SNAP_IGNORE_SOUND);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop, "Ignore Sound Strips", "Don't snap to sound strips");
+
+  prop = RNA_def_property(srna, "snap_distance", PROP_INT, PROP_PIXEL);
+  RNA_def_property_int_sdna(prop, NULL, "snap_distance");
+  RNA_def_property_int_default(prop, 15);
+  RNA_def_property_ui_range(prop, 0, 50, 1, 1);
+  RNA_def_property_ui_text(prop, "Snapping Distance", "Maximum distance for snapping in pixels");
 }
 
 static void rna_def_unified_paint_settings(BlenderRNA *brna)

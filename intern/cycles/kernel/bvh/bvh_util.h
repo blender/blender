@@ -85,7 +85,9 @@ ccl_device_inline float3 smooth_surface_offset(KernelGlobals *kg, ShaderData *sd
   const float w = 1 - u - v;
   float3 P = V[0] * u + V[1] * v + V[2] * w; /* Local space */
   float3 n = N[0] * u + N[1] * v + N[2] * w; /* We get away without normalization */
-  n = transform_direction(&(sd->ob_tfm), n); /* Normal x scale, world space */
+
+  n = normalize(
+      transform_direction_transposed_auto(&sd->ob_itfm, n)); /* Normal x scale, world space */
 
   /* Parabolic approximation */
   float a = dot(N[2] - N[0], V[0] - V[2]);

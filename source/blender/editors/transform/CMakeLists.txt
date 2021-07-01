@@ -102,6 +102,7 @@ set(SRC
   transform_orientations.c
   transform_snap.c
   transform_snap_object.c
+  transform_snap_sequencer.c
 
   transform.h
   transform_constraints.h

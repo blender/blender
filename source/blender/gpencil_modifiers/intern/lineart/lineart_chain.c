@@ -38,7 +38,8 @@
 static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
                                                LineartVert *vt,
                                                LineartVert **new_vt,
-                                               int match_flag)
+                                               int match_flag,
+                                               unsigned char match_isec_mask)
 {
   for (int i = 0; i < ba->line_count; i++) {
     LineartEdge *n_e = ba->linked_lines[i];
@@ -48,6 +49,10 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
     }
 
     if (match_flag && ((n_e->flags & LRT_EDGE_FLAG_ALL_TYPE) & match_flag) == 0) {
+      continue;
+    }
+
+    if (n_e->intersection_mask != match_isec_mask) {
       continue;
     }
 
@@ -112,11 +117,11 @@ static LineartEdgeChainItem *lineart_chain_append_point(LineartRenderBuffer *rb,
     /* Because the new chain point is overlapping, just replace the type and occlusion level of the
      * current point. This makes it so that the line to the point after this one has the correct
      * type and level. */
-    LineartEdgeChainItem *old_rlci = ec->chain.last;
-    old_rlci->line_type = type;
-    old_rlci->occlusion = level;
-    old_rlci->material_mask_bits = material_mask_bits;
-    return old_rlci;
+    LineartEdgeChainItem *old_eci = ec->chain.last;
+    old_eci->line_type = type;
+    old_eci->occlusion = level;
+    old_eci->material_mask_bits = material_mask_bits;
+    return old_eci;
   }
 
   eci = lineart_mem_acquire(rb->chain_data_pool, sizeof(LineartEdgeChainItem));
@@ -194,9 +199,10 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
 
     ec = lineart_chain_create(rb);
 
-    /* One chain can only have one object_ref,
-     * so we assign it based on the first segment we found. */
+    /* One chain can only have one object_ref and intersection_mask,
+     * so we assign them based on the first segment we found. */
     ec->object_ref = e->object_ref;
+    ec->intersection_mask = e->intersection_mask;
 
     LineartEdge *new_e;
     LineartVert *new_vt;
@@ -230,7 +236,8 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                 es->occlusion,
                                 es->material_mask_bits,
                                 e->v1_obindex);
-    while (ba && (new_e = lineart_line_get_connected(ba, new_vt, &new_vt, e->flags))) {
+    while (ba && (new_e = lineart_line_get_connected(
+                      ba, new_vt, &new_vt, e->flags, e->intersection_mask))) {
       new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
 
       if (new_e->t1 || new_e->t2) {
@@ -360,7 +367,8 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
     /*  Step 3: grow right. */
     ba = MOD_lineart_get_bounding_area(rb, e->v2->fbcoord[0], e->v2->fbcoord[1]);
     new_vt = e->v2;
-    while (ba && (new_e = lineart_line_get_connected(ba, new_vt, &new_vt, e->flags))) {
+    while (ba && (new_e = lineart_line_get_connected(
+                      ba, new_vt, &new_vt, e->flags, e->intersection_mask))) {
       new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
 
       if (new_e->t1 || new_e->t2) {
@@ -560,8 +568,8 @@ static void lineart_bounding_area_link_chain(LineartRenderBuffer *rb, LineartEdg
 
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
 {
-  LineartEdgeChain *ec, *new_rlc;
-  LineartEdgeChainItem *eci, *next_rlci;
+  LineartEdgeChain *ec, *new_ec;
+  LineartEdgeChainItem *eci, *next_eci;
   ListBase swap = {0};
 
   swap.first = rb->chains.first;
@@ -572,16 +580,16 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
   while ((ec = BLI_pophead(&swap)) != NULL) {
     ec->next = ec->prev = NULL;
     BLI_addtail(&rb->chains, ec);
-    LineartEdgeChainItem *first_rlci = (LineartEdgeChainItem *)ec->chain.first;
-    int fixed_occ = first_rlci->occlusion;
-    unsigned char fixed_mask = first_rlci->material_mask_bits;
+    LineartEdgeChainItem *first_eci = (LineartEdgeChainItem *)ec->chain.first;
+    int fixed_occ = first_eci->occlusion;
+    unsigned char fixed_mask = first_eci->material_mask_bits;
     ec->level = fixed_occ;
     ec->material_mask_bits = fixed_mask;
-    for (eci = first_rlci->next; eci; eci = next_rlci) {
-      next_rlci = eci->next;
+    for (eci = first_eci->next; eci; eci = next_eci) {
+      next_eci = eci->next;
       if (eci->occlusion != fixed_occ || eci->material_mask_bits != fixed_mask) {
-        if (next_rlci) {
-          if (lineart_point_overlapping(next_rlci, eci->pos[0], eci->pos[1], 1e-5)) {
+        if (next_eci) {
+          if (lineart_point_overlapping(next_eci, eci->pos[0], eci->pos[1], 1e-5)) {
             continue;
           }
         }
@@ -593,9 +601,9 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
           /* No need to split at the last point anyway. */
           break;
         }
-        new_rlc = lineart_chain_create(rb);
-        new_rlc->chain.first = eci;
-        new_rlc->chain.last = ec->chain.last;
+        new_ec = lineart_chain_create(rb);
+        new_ec->chain.first = eci;
+        new_ec->chain.last = ec->chain.last;
         ec->chain.last = eci->prev;
         ((LineartEdgeChainItem *)ec->chain.last)->next = 0;
         eci->prev = 0;
@@ -610,9 +618,10 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
                                    fixed_occ,
                                    fixed_mask,
                                    eci->index);
-        new_rlc->object_ref = ec->object_ref;
-        new_rlc->type = ec->type;
-        ec = new_rlc;
+        new_ec->object_ref = ec->object_ref;
+        new_ec->type = ec->type;
+        new_ec->intersection_mask = ec->intersection_mask;
+        ec = new_ec;
         fixed_occ = eci->occlusion;
         fixed_mask = eci->material_mask_bits;
         ec->level = fixed_occ;
@@ -684,6 +693,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
                                                                 LineartEdgeChainItem *eci,
                                                                 int occlusion,
                                                                 unsigned char material_mask_bits,
+                                                                unsigned char isec_mask,
                                                                 float dist,
                                                                 float *result_new_len,
                                                                 LineartBoundingArea *caller_ba)
@@ -712,7 +722,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
       continue;
     }
     if (cre->ec == ec || (!cre->ec->chain.first) || (cre->ec->level != occlusion) ||
-        (cre->ec->material_mask_bits != material_mask_bits)) {
+        (cre->ec->material_mask_bits != material_mask_bits) ||
+        (cre->ec->intersection_mask != isec_mask)) {
       continue;
     }
     if (!rb->fuzzy_everything) {
@@ -748,8 +759,16 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
   if (dist_to < dist && dist_to > 0) { \
     LISTBASE_FOREACH (LinkData *, ld, list) { \
       LineartBoundingArea *sba = (LineartBoundingArea *)ld->data; \
-      adjacent_closest = lineart_chain_get_closest_cre( \
-          rb, sba, ec, eci, occlusion, material_mask_bits, dist, &adjacent_new_len, ba); \
+      adjacent_closest = lineart_chain_get_closest_cre(rb, \
+                                                       sba, \
+                                                       ec, \
+                                                       eci, \
+                                                       occlusion, \
+                                                       material_mask_bits, \
+                                                       isec_mask, \
+                                                       dist, \
+                                                       &adjacent_new_len, \
+                                                       ba); \
       if (adjacent_new_len < dist) { \
         dist = adjacent_new_len; \
         closest_cre = adjacent_closest; \
@@ -776,13 +795,13 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
 void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
 {
   LineartEdgeChain *ec;
-  LineartEdgeChainItem *rlci_l, *rlci_r;
+  LineartEdgeChainItem *eci_l, *eci_r;
   LineartBoundingArea *ba_l, *ba_r;
   LineartChainRegisterEntry *closest_cre_l, *closest_cre_r, *closest_cre;
   float dist = rb->chaining_image_threshold;
   float dist_l, dist_r;
   int occlusion, reverse_main;
-  unsigned char material_mask_bits;
+  unsigned char material_mask_bits, isec_mask;
   ListBase swap = {0};
 
   if (rb->chaining_image_threshold < 0.0001) {
@@ -807,15 +826,16 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
 
     occlusion = ec->level;
     material_mask_bits = ec->material_mask_bits;
+    isec_mask = ec->intersection_mask;
 
-    rlci_l = ec->chain.first;
-    rlci_r = ec->chain.last;
-    while ((ba_l = lineart_bounding_area_get_end_point(rb, rlci_l)) &&
-           (ba_r = lineart_bounding_area_get_end_point(rb, rlci_r))) {
+    eci_l = ec->chain.first;
+    eci_r = ec->chain.last;
+    while ((ba_l = lineart_bounding_area_get_end_point(rb, eci_l)) &&
+           (ba_r = lineart_bounding_area_get_end_point(rb, eci_r))) {
       closest_cre_l = lineart_chain_get_closest_cre(
-          rb, ba_l, ec, rlci_l, occlusion, material_mask_bits, dist, &dist_l, NULL);
+          rb, ba_l, ec, eci_l, occlusion, material_mask_bits, isec_mask, dist, &dist_l, NULL);
       closest_cre_r = lineart_chain_get_closest_cre(
-          rb, ba_r, ec, rlci_r, occlusion, material_mask_bits, dist, &dist_r, NULL);
+          rb, ba_r, ec, eci_r, occlusion, material_mask_bits, isec_mask, dist, &dist_r, NULL);
       if (closest_cre_l && closest_cre_r) {
         if (dist_l < dist_r) {
           closest_cre = closest_cre_l;
@@ -847,8 +867,8 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
         lineart_chain_connect(rb, ec, closest_cre->ec, reverse_main, 1);
       }
       BLI_remlink(&swap, closest_cre->ec);
-      rlci_l = ec->chain.first;
-      rlci_r = ec->chain.last;
+      eci_l = ec->chain.first;
+      eci_r = ec->chain.last;
     }
     ec->picked = 1;
   }
@@ -876,9 +896,9 @@ float MOD_lineart_chain_compute_length(LineartEdgeChain *ec)
 
 void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float threshold)
 {
-  LineartEdgeChain *ec, *next_rlc;
-  for (ec = rb->chains.first; ec; ec = next_rlc) {
-    next_rlc = ec->next;
+  LineartEdgeChain *ec, *next_ec;
+  for (ec = rb->chains.first; ec; ec = next_ec) {
+    next_ec = ec->next;
     if (MOD_lineart_chain_compute_length(ec) < threshold) {
       BLI_remlink(&rb->chains, ec);
     }
@@ -910,8 +930,8 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
  */
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad)
 {
-  LineartEdgeChain *ec, *new_rlc;
-  LineartEdgeChainItem *eci, *next_rlci, *prev_rlci;
+  LineartEdgeChain *ec, *new_ec;
+  LineartEdgeChainItem *eci, *next_eci, *prev_eci;
   ListBase swap = {0};
 
   swap.first = rb->chains.first;
@@ -922,21 +942,21 @@ void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshol
   while ((ec = BLI_pophead(&swap)) != NULL) {
     ec->next = ec->prev = NULL;
     BLI_addtail(&rb->chains, ec);
-    LineartEdgeChainItem *first_rlci = (LineartEdgeChainItem *)ec->chain.first;
-    for (eci = first_rlci->next; eci; eci = next_rlci) {
-      next_rlci = eci->next;
-      prev_rlci = eci->prev;
+    LineartEdgeChainItem *first_eci = (LineartEdgeChainItem *)ec->chain.first;
+    for (eci = first_eci->next; eci; eci = next_eci) {
+      next_eci = eci->next;
+      prev_eci = eci->prev;
       float angle = M_PI;
-      if (next_rlci && prev_rlci) {
-        angle = angle_v2v2v2(prev_rlci->pos, eci->pos, next_rlci->pos);
+      if (next_eci && prev_eci) {
+        angle = angle_v2v2v2(prev_eci->pos, eci->pos, next_eci->pos);
       }
       else {
         break; /* No need to split at the last point anyway. */
       }
       if (angle < angle_threshold_rad) {
-        new_rlc = lineart_chain_create(rb);
-        new_rlc->chain.first = eci;
-        new_rlc->chain.last = ec->chain.last;
+        new_ec = lineart_chain_create(rb);
+        new_ec->chain.first = eci;
+        new_ec->chain.last = ec->chain.last;
         ec->chain.last = eci->prev;
         ((LineartEdgeChainItem *)ec->chain.last)->next = 0;
         eci->prev = 0;
@@ -951,11 +971,11 @@ void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshol
                                    ec->level,
                                    eci->material_mask_bits,
                                    eci->index);
-        new_rlc->object_ref = ec->object_ref;
-        new_rlc->type = ec->type;
-        new_rlc->level = ec->level;
-        new_rlc->material_mask_bits = ec->material_mask_bits;
-        ec = new_rlc;
+        new_ec->object_ref = ec->object_ref;
+        new_ec->type = ec->type;
+        new_ec->level = ec->level;
+        new_ec->material_mask_bits = ec->material_mask_bits;
+        ec = new_ec;
       }
     }
   }

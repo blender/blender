@@ -44,6 +44,8 @@
 #include "readfile.h"
 #include "versioning_common.h"
 
+#include "SEQ_sequencer.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "versioning_common.h"
@@ -427,6 +429,42 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
         }
       }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 7)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      tool_settings->snap_flag |= SCE_SNAP_SEQ;
+      short snap_mode = tool_settings->snap_mode;
+      short snap_node_mode = tool_settings->snap_node_mode;
+      short snap_uv_mode = tool_settings->snap_uv_mode;
+      tool_settings->snap_mode &= ~((1 << 4) | (1 << 5) | (1 << 6));
+      tool_settings->snap_node_mode &= ~((1 << 5) | (1 << 6));
+      tool_settings->snap_uv_mode &= ~(1 << 4);
+      if (snap_mode & (1 << 4)) {
+        tool_settings->snap_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
+      }
+      if (snap_mode & (1 << 5)) {
+        tool_settings->snap_mode |= (1 << 4); /* SCE_SNAP_MODE_EDGE_MIDPOINT */
+      }
+      if (snap_mode & (1 << 6)) {
+        tool_settings->snap_mode |= (1 << 5); /* SCE_SNAP_MODE_EDGE_PERPENDICULAR */
+      }
+      if (snap_node_mode & (1 << 5)) {
+        tool_settings->snap_node_mode |= (1 << 0); /* SCE_SNAP_MODE_NODE_X */
+      }
+      if (snap_node_mode & (1 << 6)) {
+        tool_settings->snap_node_mode |= (1 << 1); /* SCE_SNAP_MODE_NODE_Y */
+      }
+      if (snap_uv_mode & (1 << 4)) {
+        tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
+      }
+
+      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      sequencer_tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
+                                           SEQ_SNAP_TO_STRIP_HOLD;
+      sequencer_tool_settings->snap_distance = 15;
     }
   }
 

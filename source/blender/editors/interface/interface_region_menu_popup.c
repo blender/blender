@@ -591,7 +591,7 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
  * \{ */
 
 void UI_popup_block_invoke_ex(
-    bContext *C, uiBlockCreateFunc func, void *arg, void (*arg_free)(void *arg), bool can_refresh)
+    bContext *C, uiBlockCreateFunc func, void *arg, uiFreeArgFunc arg_free, bool can_refresh)
 {
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;
@@ -608,10 +608,7 @@ void UI_popup_block_invoke_ex(
   WM_event_add_mousemove(window);
 }
 
-void UI_popup_block_invoke(bContext *C,
-                           uiBlockCreateFunc func,
-                           void *arg,
-                           void (*arg_free)(void *arg))
+void UI_popup_block_invoke(bContext *C, uiBlockCreateFunc func, void *arg, uiFreeArgFunc arg_free)
 {
   UI_popup_block_invoke_ex(C, func, arg, arg_free, true);
 }

@@ -122,8 +122,8 @@ struct GHash {
 
 BLI_INLINE void ghash_entry_copy(GHash *gh_dst,
                                  Entry *dst,
-                                 GHash *gh_src,
-                                 Entry *src,
+                                 const GHash *gh_src,
+                                 const Entry *src,
                                  GHashKeyCopyFP keycopyfp,
                                  GHashValCopyFP valcopyfp)
 {
@@ -143,7 +143,7 @@ BLI_INLINE void ghash_entry_copy(GHash *gh_dst,
 /**
  * Get the full hash for a key.
  */
-BLI_INLINE uint ghash_keyhash(GHash *gh, const void *key)
+BLI_INLINE uint ghash_keyhash(const GHash *gh, const void *key)
 {
   return gh->hashfp(key);
 }
@@ -151,7 +151,7 @@ BLI_INLINE uint ghash_keyhash(GHash *gh, const void *key)
 /**
  * Get the full hash for an entry.
  */
-BLI_INLINE uint ghash_entryhash(GHash *gh, const Entry *e)
+BLI_INLINE uint ghash_entryhash(const GHash *gh, const Entry *e)
 {
   return gh->hashfp(e->key);
 }
@@ -159,7 +159,7 @@ BLI_INLINE uint ghash_entryhash(GHash *gh, const Entry *e)
 /**
  * Get the bucket-index for an already-computed full hash.
  */
-BLI_INLINE uint ghash_bucket_index(GHash *gh, const uint hash)
+BLI_INLINE uint ghash_bucket_index(const GHash *gh, const uint hash)
 {
 #ifdef GHASH_USE_MODULO_BUCKETS
   return hash % gh->nbuckets;
@@ -171,7 +171,7 @@ BLI_INLINE uint ghash_bucket_index(GHash *gh, const uint hash)
 /**
  * Find the index of next used bucket, starting from \a curr_bucket (\a gh is assumed non-empty).
  */
-BLI_INLINE uint ghash_find_next_bucket_index(GHash *gh, uint curr_bucket)
+BLI_INLINE uint ghash_find_next_bucket_index(const GHash *gh, uint curr_bucket)
 {
   if (curr_bucket >= gh->nbuckets) {
     curr_bucket = 0;
@@ -381,7 +381,7 @@ BLI_INLINE void ghash_buckets_reset(GHash *gh, const uint nentries)
  * Takes hash and bucket_index arguments to avoid calling #ghash_keyhash and #ghash_bucket_index
  * multiple times.
  */
-BLI_INLINE Entry *ghash_lookup_entry_ex(GHash *gh, const void *key, const uint bucket_index)
+BLI_INLINE Entry *ghash_lookup_entry_ex(const GHash *gh, const void *key, const uint bucket_index)
 {
   Entry *e;
   /* If we do not store GHash, not worth computing it for each entry here!
@@ -422,7 +422,7 @@ BLI_INLINE Entry *ghash_lookup_entry_prev_ex(GHash *gh,
 /**
  * Internal lookup function. Only wraps #ghash_lookup_entry_ex
  */
-BLI_INLINE Entry *ghash_lookup_entry(GHash *gh, const void *key)
+BLI_INLINE Entry *ghash_lookup_entry(const GHash *gh, const void *key)
 {
   const uint hash = ghash_keyhash(gh, key);
   const uint bucket_index = ghash_bucket_index(gh, hash);
@@ -652,7 +652,7 @@ static void ghash_free_cb(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP va
 /**
  * Copy the GHash.
  */
-static GHash *ghash_copy(GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP valcopyfp)
+static GHash *ghash_copy(const GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP valcopyfp)
 {
   GHash *gh_new;
   uint i;
@@ -724,7 +724,7 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info)
  * Copy given GHash. Keys and values are also copied if relevant callback is provided,
  * else pointers remain the same.
  */
-GHash *BLI_ghash_copy(GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP valcopyfp)
+GHash *BLI_ghash_copy(const GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP valcopyfp)
 {
   return ghash_copy(gh, keycopyfp, valcopyfp);
 }
@@ -741,7 +741,7 @@ void BLI_ghash_reserve(GHash *gh, const uint nentries_reserve)
 /**
  * \return size of the GHash.
  */
-uint BLI_ghash_len(GHash *gh)
+uint BLI_ghash_len(const GHash *gh)
 {
   return gh->nentries;
 }
@@ -800,7 +800,7 @@ void *BLI_ghash_replace_key(GHash *gh, void *key)
  * \note When NULL is a valid value, use #BLI_ghash_lookup_p to differentiate a missing key
  * from a key with a NULL value. (Avoids calling #BLI_ghash_haskey before #BLI_ghash_lookup)
  */
-void *BLI_ghash_lookup(GHash *gh, const void *key)
+void *BLI_ghash_lookup(const GHash *gh, const void *key)
 {
   GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
   BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
@@ -810,7 +810,7 @@ void *BLI_ghash_lookup(GHash *gh, const void *key)
 /**
  * A version of #BLI_ghash_lookup which accepts a fallback argument.
  */
-void *BLI_ghash_lookup_default(GHash *gh, const void *key, void *val_default)
+void *BLI_ghash_lookup_default(const GHash *gh, const void *key, void *val_default)
 {
   GHashEntry *e = (GHashEntry *)ghash_lookup_entry(gh, key);
   BLI_assert(!(gh->flag & GHASH_FLAG_IS_GSET));
@@ -938,7 +938,7 @@ void *BLI_ghash_popkey(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp)
 /**
  * \return true if the \a key is in \a gh.
  */
-bool BLI_ghash_haskey(GHash *gh, const void *key)
+bool BLI_ghash_haskey(const GHash *gh, const void *key)
 {
   return (ghash_lookup_entry(gh, key) != NULL);
 }
@@ -1130,12 +1130,12 @@ GSet *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info)
 /**
  * Copy given GSet. Keys are also copied if callback is provided, else pointers remain the same.
  */
-GSet *BLI_gset_copy(GSet *gs, GHashKeyCopyFP keycopyfp)
+GSet *BLI_gset_copy(const GSet *gs, GHashKeyCopyFP keycopyfp)
 {
-  return (GSet *)ghash_copy((GHash *)gs, keycopyfp, NULL);
+  return (GSet *)ghash_copy((const GHash *)gs, keycopyfp, NULL);
 }
 
-uint BLI_gset_len(GSet *gs)
+uint BLI_gset_len(const GSet *gs)
 {
   return ((GHash *)gs)->nentries;
 }
@@ -1172,7 +1172,7 @@ bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key)
 {
   const uint hash = ghash_keyhash((GHash *)gs, key);
   const uint bucket_index = ghash_bucket_index((GHash *)gs, hash);
-  GSetEntry *e = (GSetEntry *)ghash_lookup_entry_ex((GHash *)gs, key, bucket_index);
+  GSetEntry *e = (GSetEntry *)ghash_lookup_entry_ex((const GHash *)gs, key, bucket_index);
   const bool haskey = (e != NULL);
 
   if (!haskey) {
@@ -1213,9 +1213,9 @@ bool BLI_gset_remove(GSet *gs, const void *key, GSetKeyFreeFP keyfreefp)
   return BLI_ghash_remove((GHash *)gs, key, keyfreefp, NULL);
 }
 
-bool BLI_gset_haskey(GSet *gs, const void *key)
+bool BLI_gset_haskey(const GSet *gs, const void *key)
 {
-  return (ghash_lookup_entry((GHash *)gs, key) != NULL);
+  return (ghash_lookup_entry((const GHash *)gs, key) != NULL);
 }
 
 /**
@@ -1277,9 +1277,9 @@ void BLI_gset_flag_clear(GSet *gs, uint flag)
 /**
  * Returns the pointer to the key if it's found.
  */
-void *BLI_gset_lookup(GSet *gs, const void *key)
+void *BLI_gset_lookup(const GSet *gs, const void *key)
 {
-  Entry *e = ghash_lookup_entry((GHash *)gs, key);
+  Entry *e = ghash_lookup_entry((const GHash *)gs, key);
   return e ? e->key : NULL;
 }
 
@@ -1311,13 +1311,13 @@ void *BLI_gset_pop_key(GSet *gs, const void *key)
 /**
  * \return number of buckets in the GHash.
  */
-int BLI_ghash_buckets_len(GHash *gh)
+int BLI_ghash_buckets_len(const GHash *gh)
 {
   return (int)gh->nbuckets;
 }
-int BLI_gset_buckets_len(GSet *gs)
+int BLI_gset_buckets_len(const GSet *gs)
 {
-  return BLI_ghash_buckets_len((GHash *)gs);
+  return BLI_ghash_buckets_len((const GHash *)gs);
 }
 
 /**

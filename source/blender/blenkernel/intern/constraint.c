@@ -1476,7 +1476,10 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
          * to get a time factor. */
         curvetime /= cu->pathlen;
 
-        if (cu->flag & CU_PATH_CLAMP) {
+        Nurb *nu = cu->nurb.first;
+        if (!(nu && nu->flagu & CU_NURB_CYCLIC) && cu->flag & CU_PATH_CLAMP) {
+          /* If curve is not cyclic, clamp to the begin/end points if the curve clamp option is on.
+           */
           CLAMP(curvetime, 0.0f, 1.0f);
         }
       }

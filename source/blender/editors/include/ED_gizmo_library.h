@@ -275,7 +275,7 @@ void ED_gizmotypes_snap_3d_flag_clear(struct wmGizmo *gz, eSnapGizmo flag);
 bool ED_gizmotypes_snap_3d_flag_test(struct wmGizmo *gz, eSnapGizmo flag);
 
 bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *gz);
-bool ED_gizmotypes_snap_3d_is_enabled(struct wmGizmo *gz);
+bool ED_gizmotypes_snap_3d_is_enabled(const struct wmGizmo *gz);
 
 short ED_gizmotypes_snap_3d_update(struct wmGizmo *gz,
                                    struct Depsgraph *depsgraph,

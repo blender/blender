@@ -29,6 +29,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -47,6 +48,141 @@
 #include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Translate) Custom Data
+ * \{ */
+
+/** Rotation may be enabled when snapping. */
+enum eTranslateRotateMode {
+  /** Don't rotate (default). */
+  TRANSLATE_ROTATE_OFF = 0,
+  /** Perform rotation (currently only snap to normal is used). */
+  TRANSLATE_ROTATE_ON,
+  /** Rotate, resetting back to the disabled state. */
+  TRANSLATE_ROTATE_RESET,
+};
+
+/**
+ * Custom data, stored in #TransInfo.custom.mode.data
+ */
+struct TranslateCustomData {
+  /** Settings used in the last call to #applyTranslation. */
+  struct {
+    enum eTranslateRotateMode rotate_mode;
+  } prev;
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Translation) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_Translate {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  const float pivot_local[3];
+  const float vec[3];
+  enum eTranslateRotateMode rotate_mode;
+};
+
+static void transdata_elem_translate(const TransInfo *t,
+                                     const TransDataContainer *tc,
+                                     TransData *td,
+                                     const float pivot_local[3],
+                                     const float vec[3],
+                                     enum eTranslateRotateMode rotate_mode)
+{
+  float rotate_offset[3] = {0};
+  bool use_rotate_offset = false;
+
+  /* Handle snapping rotation before doing the translation. */
+  if (rotate_mode != TRANSLATE_ROTATE_OFF) {
+    float mat[3][3];
+
+    if (rotate_mode == TRANSLATE_ROTATE_RESET) {
+      unit_m3(mat);
+    }
+    else {
+      BLI_assert(rotate_mode == TRANSLATE_ROTATE_ON);
+
+      const float *original_normal;
+
+      /* In pose mode, we want to align normals with Y axis of bones. */
+      if (t->options & CTX_POSE_BONE) {
+        original_normal = td->axismtx[1];
+      }
+      else {
+        original_normal = td->axismtx[2];
+      }
+
+      rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
+    }
+
+    ElementRotation_ex(t, tc, td, mat, pivot_local);
+
+    if (td->loc) {
+      use_rotate_offset = true;
+      sub_v3_v3v3(rotate_offset, td->loc, td->iloc);
+    }
+  }
+
+  float tvec[3];
+
+  if (t->con.applyVec) {
+    t->con.applyVec(t, tc, td, vec, tvec);
+  }
+  else {
+    copy_v3_v3(tvec, vec);
+  }
+
+  mul_m3_v3(td->smtx, tvec);
+
+  if (use_rotate_offset) {
+    add_v3_v3(tvec, rotate_offset);
+  }
+
+  if (t->options & CTX_GPENCIL_STROKES) {
+    /* Grease pencil multi-frame falloff. */
+    bGPDstroke *gps = (bGPDstroke *)td->extra;
+    if (gps != NULL) {
+      mul_v3_fl(tvec, td->factor * gps->runtime.multi_frame_falloff);
+    }
+    else {
+      mul_v3_fl(tvec, td->factor);
+    }
+  }
+  else {
+    /* Proportional editing falloff. */
+    mul_v3_fl(tvec, td->factor);
+  }
+
+  protectedTransBits(td->protectflag, tvec);
+
+  if (td->loc) {
+    add_v3_v3v3(td->loc, td->iloc, tvec);
+  }
+
+  constraintTransLim(t, td);
+}
+
+static void transdata_elem_translate_fn(void *__restrict iter_data_v,
+                                        const int iter,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_Translate *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_translate(data->t, data->tc, td, data->pivot_local, data->vec, data->rotate_mode);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Translation)
@@ -222,6 +358,9 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
       vec[1] = point[1] - t->tsnap.snapTarget[1];
     }
   }
+  else if (t->spacetype == SPACE_SEQ) {
+    transform_snap_sequencer_apply_translate(t, vec);
+  }
   else {
     if (t->spacetype == SPACE_VIEW3D) {
       if (t->options & CTX_PAINT_CURVE) {
@@ -238,99 +377,65 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 
 static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
-  const bool apply_snap_align_rotation = usingSnappingNormal(t);
-  float tvec[3];
+  struct TranslateCustomData *custom_data = t->custom.mode.data;
 
-  /* Ideally "apply_snap_align_rotation" would only be used when a snap point is found:
-   * `t->tsnap.status & POINT_INIT` - perhaps this function isn't the best place to apply rotation.
-   * However snapping rotation needs to be handled before doing the translation
-   * (unless the pivot is also translated). */
-  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+  enum eTranslateRotateMode rotate_mode = TRANSLATE_ROTATE_OFF;
 
-    float pivot[3];
-    if (apply_snap_align_rotation) {
-      copy_v3_v3(pivot, t->tsnap.snapTarget);
-      /* The pivot has to be in local-space (see T49494) */
-      if (tc->use_local_mat) {
-        mul_m4_v3(tc->imat, pivot);
-      }
+  if (activeSnap(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
+    rotate_mode = TRANSLATE_ROTATE_ON;
+  }
+
+  /* Check to see if this needs to be re-enabled. */
+  if (rotate_mode == TRANSLATE_ROTATE_OFF) {
+    if (t->flag & T_POINTS) {
+      /* When transforming points, only use rotation when snapping is enabled
+       * since re-applying translation without rotation removes rotation. */
     }
-
-    TransData *td = tc->data;
-    for (int i = 0; i < tc->data_len; i++, td++) {
-      if (td->flag & TD_SKIP) {
-        continue;
+    else {
+      /* When transforming data that it's self stores rotation (objects, bones etc),
+       * apply rotation if it was applied (with the snap normal) previously.
+       * This is needed because failing to rotate will leave the rotation at the last
+       * value used before snapping was disabled. */
+      if (custom_data->prev.rotate_mode == TRANSLATE_ROTATE_ON) {
+        rotate_mode = TRANSLATE_ROTATE_RESET;
       }
-
-      float rotate_offset[3] = {0};
-      bool use_rotate_offset = false;
-
-      /* Handle snapping rotation before doing the translation. */
-      if (apply_snap_align_rotation) {
-        float mat[3][3];
-
-        if (validSnappingNormal(t)) {
-          const float *original_normal;
-
-          /* In pose mode, we want to align normals with Y axis of bones. */
-          if (t->options & CTX_POSE_BONE) {
-            original_normal = td->axismtx[1];
-          }
-          else {
-            original_normal = td->axismtx[2];
-          }
-
-          rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
-        }
-        else {
-          unit_m3(mat);
-        }
-
-        ElementRotation_ex(t, tc, td, mat, pivot);
-
-        if (td->loc) {
-          use_rotate_offset = true;
-          sub_v3_v3v3(rotate_offset, td->loc, td->iloc);
-        }
-      }
-
-      if (t->con.applyVec) {
-        t->con.applyVec(t, tc, td, vec, tvec);
-      }
-      else {
-        copy_v3_v3(tvec, vec);
-      }
-
-      mul_m3_v3(td->smtx, tvec);
-
-      if (use_rotate_offset) {
-        add_v3_v3(tvec, rotate_offset);
-      }
-
-      if (t->options & CTX_GPENCIL_STROKES) {
-        /* Grease pencil multi-frame falloff. */
-        bGPDstroke *gps = (bGPDstroke *)td->extra;
-        if (gps != NULL) {
-          mul_v3_fl(tvec, td->factor * gps->runtime.multi_frame_falloff);
-        }
-        else {
-          mul_v3_fl(tvec, td->factor);
-        }
-      }
-      else {
-        /* Proportional editing falloff. */
-        mul_v3_fl(tvec, td->factor);
-      }
-
-      protectedTransBits(td->protectflag, tvec);
-
-      if (td->loc) {
-        add_v3_v3v3(td->loc, td->iloc, tvec);
-      }
-
-      constraintTransLim(t, td);
     }
   }
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    float pivot_local[3];
+    if (rotate_mode != TRANSLATE_ROTATE_OFF) {
+      copy_v3_v3(pivot_local, t->tsnap.snapTarget);
+      /* The pivot has to be in local-space (see T49494) */
+      if (tc->use_local_mat) {
+        mul_m4_v3(tc->imat, pivot_local);
+      }
+    }
+
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (int i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
+        }
+        transdata_elem_translate(t, tc, td, pivot_local, vec, rotate_mode);
+      }
+    }
+    else {
+      struct TransDataArgs_Translate data = {
+          .t = t,
+          .tc = tc,
+          .pivot_local = {UNPACK3(pivot_local)},
+          .vec = {UNPACK3(vec)},
+          .rotate_mode = rotate_mode,
+      };
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_translate_fn, &settings);
+    }
+  }
+
+  custom_data->prev.rotate_mode = rotate_mode;
 }
 
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
@@ -457,5 +562,10 @@ void initTranslation(TransInfo *t)
 
   transform_mode_default_modal_orientation_set(
       t, (t->options & CTX_CAMERA) ? V3D_ORIENT_VIEW : V3D_ORIENT_GLOBAL);
+
+  struct TranslateCustomData *custom_data = MEM_callocN(sizeof(*custom_data), __func__);
+  custom_data->prev.rotate_mode = TRANSLATE_ROTATE_OFF;
+  t->custom.mode.data = custom_data;
+  t->custom.mode.use_free = true;
 }
 /** \} */

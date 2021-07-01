@@ -530,7 +530,7 @@ void SEQ_alpha_mode_from_file_extension(Sequence *seq)
 
 /* called on draw, needs to be fast,
  * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
-bool SEQ_sequence_has_source(Sequence *seq)
+bool SEQ_sequence_has_source(const Sequence *seq)
 {
   switch (seq->type) {
     case SEQ_TYPE_MASK:

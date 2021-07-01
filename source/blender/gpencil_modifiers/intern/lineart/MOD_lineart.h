@@ -52,8 +52,8 @@ typedef struct LineartTriangle {
   /* first culled in line list to use adjacent triangle info, then go through triangle list. */
   double gn[3];
 
-  /* Material flag is removed to save space. */
   unsigned char material_mask_bits;
+  unsigned char intersection_mask;
   unsigned char mat_occlusion;
   unsigned char flags; /* #eLineartTriangleFlags */
 
@@ -149,6 +149,7 @@ typedef struct LineartEdge {
 
   /** Also for line type determination on chaining. */
   unsigned char flags;
+  unsigned char intersection_mask;
 
   /**
    * Still need this entry because culled lines will not add to object
@@ -174,6 +175,7 @@ typedef struct LineartEdgeChain {
   /** Chain now only contains one type of segments */
   int type;
   unsigned char material_mask_bits;
+  unsigned char intersection_mask;
 
   struct Object *object_ref;
 } LineartEdgeChain;
@@ -188,6 +190,7 @@ typedef struct LineartEdgeChainItem {
   unsigned char line_type;
   char occlusion;
   unsigned char material_mask_bits;
+  unsigned char intersection_mask;
   size_t index;
 } LineartEdgeChainItem;
 
@@ -377,6 +380,7 @@ typedef struct LineartObjectInfo {
   double normal[4][4];
   LineartElementLinkNode *v_eln;
   int usage;
+  uint8_t override_intersection_mask;
   int global_i_offset;
 
   bool free_use_mesh;
@@ -612,8 +616,9 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   int level_end,
                                   int mat_nr,
                                   short edge_types,
-                                  unsigned char material_mask_flags,
+                                  unsigned char mask_switches,
                                   unsigned char material_mask_bits,
+                                  unsigned char intersection_mask,
                                   short thickness,
                                   float opacity,
                                   const char *source_vgname,

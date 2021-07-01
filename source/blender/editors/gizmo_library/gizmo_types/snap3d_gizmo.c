@@ -319,9 +319,9 @@ bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *gz)
 #endif
 }
 
-bool ED_gizmotypes_snap_3d_is_enabled(wmGizmo *gz)
+bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *gz)
 {
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  const SnapGizmo3D *snap_gizmo = (const SnapGizmo3D *)gz;
   return snap_gizmo->is_enabled;
 }
 

@@ -193,7 +193,7 @@ BLI_INLINE EdgeHashEntry *edgehash_insert(EdgeHash *eh, Edge edge, void *value)
   }
 }
 
-BLI_INLINE EdgeHashEntry *edgehash_lookup_entry(EdgeHash *eh, uint v0, uint v1)
+BLI_INLINE EdgeHashEntry *edgehash_lookup_entry(const EdgeHash *eh, uint v0, uint v1)
 {
   Edge edge = init_edge(v0, v1);
 
@@ -310,7 +310,7 @@ bool BLI_edgehash_reinsert(EdgeHash *eh, uint v0, uint v1, void *value)
 /**
  * A version of #BLI_edgehash_lookup which accepts a fallback argument.
  */
-void *BLI_edgehash_lookup_default(EdgeHash *eh, uint v0, uint v1, void *default_value)
+void *BLI_edgehash_lookup_default(const EdgeHash *eh, uint v0, uint v1, void *default_value)
 {
   EdgeHashEntry *entry = edgehash_lookup_entry(eh, v0, v1);
   return entry ? entry->value : default_value;
@@ -322,7 +322,7 @@ void *BLI_edgehash_lookup_default(EdgeHash *eh, uint v0, uint v1, void *default_
  * to differentiate between key-value being NULL and
  * lack of key then see #BLI_edgehash_lookup_p().
  */
-void *BLI_edgehash_lookup(EdgeHash *eh, uint v0, uint v1)
+void *BLI_edgehash_lookup(const EdgeHash *eh, uint v0, uint v1)
 {
   EdgeHashEntry *entry = edgehash_lookup_entry(eh, v0, v1);
   return entry ? entry->value : NULL;
@@ -423,7 +423,7 @@ void *BLI_edgehash_popkey(EdgeHash *eh, uint v0, uint v1)
 /**
  * Return boolean true/false if edge (v0,v1) in hash.
  */
-bool BLI_edgehash_haskey(EdgeHash *eh, uint v0, uint v1)
+bool BLI_edgehash_haskey(const EdgeHash *eh, uint v0, uint v1)
 {
   return edgehash_lookup_entry(eh, v0, v1) != NULL;
 }
@@ -431,7 +431,7 @@ bool BLI_edgehash_haskey(EdgeHash *eh, uint v0, uint v1)
 /**
  * Return number of keys in hash.
  */
-int BLI_edgehash_len(EdgeHash *eh)
+int BLI_edgehash_len(const EdgeHash *eh)
 {
   return (int)eh->length;
 }
@@ -533,7 +533,7 @@ void BLI_edgeset_free(EdgeSet *es)
   MEM_freeN(es);
 }
 
-int BLI_edgeset_len(EdgeSet *es)
+int BLI_edgeset_len(const EdgeSet *es)
 {
   return (int)es->length;
 }
@@ -608,7 +608,7 @@ void BLI_edgeset_insert(EdgeSet *es, uint v0, uint v1)
   }
 }
 
-bool BLI_edgeset_haskey(EdgeSet *es, uint v0, uint v1)
+bool BLI_edgeset_haskey(const EdgeSet *es, uint v0, uint v1)
 {
   Edge edge = init_edge(v0, v1);
 

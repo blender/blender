@@ -91,7 +91,7 @@ typedef struct PrefetchJob {
   bool stop;
 } PrefetchJob;
 
-static bool seq_prefetch_is_playing(Main *bmain)
+static bool seq_prefetch_is_playing(const Main *bmain)
 {
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
     if (screen->animtimer) {
@@ -101,7 +101,7 @@ static bool seq_prefetch_is_playing(Main *bmain)
   return false;
 }
 
-static bool seq_prefetch_is_scrubbing(Main *bmain)
+static bool seq_prefetch_is_scrubbing(const Main *bmain)
 {
 
   for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {

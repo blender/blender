@@ -115,6 +115,14 @@ SeqCollection *SEQ_collection_create(void)
 }
 
 /**
+ * Return number of items in collection.
+ */
+uint SEQ_collection_len(const SeqCollection *collection)
+{
+  return BLI_gset_len(collection->set);
+}
+
+/**
  * Query strips from seqbase. seq_reference is used by query function as filter condition.
  *
  * \param seq_reference: reference strip for query function

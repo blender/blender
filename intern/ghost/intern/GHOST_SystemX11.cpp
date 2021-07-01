@@ -1044,33 +1044,30 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       GHOST_TKey gkey;
 
 #ifdef USE_NON_LATIN_KB_WORKAROUND
-      /* XXX Code below is kinda awfully convoluted... Issues are:
-       *
-       *     - In keyboards like latin ones, numbers need a 'Shift' to be accessed but key_sym
-       *       is unmodified (or anyone swapping the keys with xmodmap).
-       *
-       *     - XLookupKeysym seems to always use first defined keymap (see T47228), which generates
-       *       keycodes unusable by ghost_key_from_keysym for non-Latin-compatible keymaps.
+      /* XXX: Code below is kinda awfully convoluted... Issues are:
+       * - In keyboards like latin ones, numbers need a 'Shift' to be accessed but key_sym
+       *   is unmodified (or anyone swapping the keys with `xmodmap`).
+       * - #XLookupKeysym seems to always use first defined key-map (see T47228), which generates
+       *   key-codes unusable by ghost_key_from_keysym for non-Latin-compatible key-maps.
        *
        * To address this, we:
-       *
-       *     - Try to get a 'number' key_sym using XLookupKeysym (with virtual shift modifier),
-       *       in a very restrictive set of cases.
-       *     - Fallback to XLookupString to get a key_sym from active user-defined keymap.
+       * - Try to get a 'number' key_sym using #XLookupKeysym (with virtual shift modifier),
+       *   in a very restrictive set of cases.
+       * - Fallback to #XLookupString to get a key_sym from active user-defined key-map.
        *
        * Note that:
-       *     - This effectively 'lock' main number keys to always output number events
-       *       (except when using alt-gr).
-       *     - This enforces users to use an ASCII-compatible keymap with Blender -
-       *       but at least it gives predictable and consistent results.
+       * - This effectively 'lock' main number keys to always output number events
+       *   (except when using alt-gr).
+       * - This enforces users to use an ASCII-compatible key-map with Blender -
+       *   but at least it gives predictable and consistent results.
        *
        * Also, note that nothing in XLib sources [1] makes it obvious why those two functions give
-       * different key_sym results...
+       * different key_sym results.
        *
        * [1] http://cgit.freedesktop.org/xorg/lib/libX11/tree/src/KeyBind.c
        */
       KeySym key_sym_str;
-      /* Mode_switch 'modifier' is AltGr - when this one or Shift are enabled,
+      /* Mode_switch 'modifier' is `AltGr` - when this one or Shift are enabled,
        * we do not want to apply that 'forced number' hack. */
       const unsigned int mode_switch_mask = XkbKeysymToModifiers(xke->display, XK_Mode_switch);
       const unsigned int number_hack_forbidden_kmods_mask = mode_switch_mask | ShiftMask;

@@ -107,7 +107,7 @@ void ED_gpencil_layer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlys
 /* Selection Tools */
 
 /* check if one of the frames in this layer is selected */
-bool ED_gpencil_layer_frame_select_check(bGPDlayer *gpl)
+bool ED_gpencil_layer_frame_select_check(const bGPDlayer *gpl)
 {
   /* error checking */
   if (gpl == NULL) {
@@ -115,7 +115,7 @@ bool ED_gpencil_layer_frame_select_check(bGPDlayer *gpl)
   }
 
   /* stop at the first one found */
-  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+  LISTBASE_FOREACH (const bGPDframe *, gpf, &gpl->frames) {
     if (gpf->flag & GP_FRAME_SELECT) {
       return true;
     }

@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include "BLI_math.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -37,6 +38,30 @@
 #include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_snap.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Transform (Resize) Element
+ * \{ */
+
+struct ElemResizeData {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+  float mat[3][3];
+};
+
+static void element_resize_fn(void *__restrict iter_data_v,
+                              const int iter,
+                              const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct ElemResizeData *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  ElementResize(data->t, data->tc, td, data->mat);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Resize)
@@ -123,13 +148,27 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
   copy_m3_m3(t->mat, mat); /* used in gizmo */
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      if (td->flag & TD_SKIP) {
-        continue;
-      }
 
-      ElementResize(t, tc, td, mat);
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
+        }
+
+        ElementResize(t, tc, td, mat);
+      }
+    }
+    else {
+      struct ElemResizeData data = {
+          .t = t,
+          .tc = tc,
+      };
+      copy_m3_m3(data.mat, mat);
+
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, element_resize_fn, &settings);
     }
   }
 

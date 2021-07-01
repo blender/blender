@@ -100,7 +100,7 @@ bool ED_masklayer_frames_looper(struct MaskLayer *mask_layer,
                                                             struct Scene *));
 void ED_masklayer_make_cfra_list(struct MaskLayer *mask_layer, ListBase *elems, bool onlysel);
 
-bool ED_masklayer_frame_select_check(struct MaskLayer *mask_layer);
+bool ED_masklayer_frame_select_check(const struct MaskLayer *mask_layer);
 void ED_masklayer_frame_select_set(struct MaskLayer *mask_layer, short mode);
 void ED_masklayer_frames_select_box(struct MaskLayer *mask_layer,
                                     float min,

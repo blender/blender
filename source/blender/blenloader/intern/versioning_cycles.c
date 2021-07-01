@@ -182,7 +182,7 @@ static void displacement_principled_nodes(bNode *node)
   }
 }
 
-static bool node_has_roughness(bNode *node)
+static bool node_has_roughness(const bNode *node)
 {
   return ELEM(node->type,
               SH_NODE_BSDF_ANISOTROPIC,

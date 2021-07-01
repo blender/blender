@@ -315,11 +315,11 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
   return key;
 }
 
-/* Sort shape keys and Ipo curves after a change.  This assumes that at most
- * one key was moved, which is a valid assumption for the places it's
- * currently being called.
+/**
+ * Sort shape keys after a change.
+ * This assumes that at most one key was moved,
+ * which is a valid assumption for the places it's currently being called.
  */
-
 void BKE_key_sort(Key *key)
 {
   KeyBlock *kb;
@@ -2048,9 +2048,9 @@ void BKE_keyblock_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 
 /************************* Curve ************************/
 
-int BKE_keyblock_curve_element_count(ListBase *nurb)
+int BKE_keyblock_curve_element_count(const ListBase *nurb)
 {
-  Nurb *nu;
+  const Nurb *nu;
   int tot = 0;
 
   nu = nurb->first;

@@ -2616,7 +2616,7 @@ void BKE_gpencil_transform(bGPdata *gpd, const float mat[4][4])
 }
 
 /* Used for "move only origins" in object_data_transform.c */
-int BKE_gpencil_stroke_point_count(bGPdata *gpd)
+int BKE_gpencil_stroke_point_count(const bGPdata *gpd)
 {
   int total_points = 0;
 
@@ -2624,7 +2624,7 @@ int BKE_gpencil_stroke_point_count(bGPdata *gpd)
     return 0;
   }
 
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+  LISTBASE_FOREACH (const bGPDlayer *, gpl, &gpd->layers) {
     /* FIXME: For now, we just skip parented layers.
      * Otherwise, we have to update each frame to find
      * the current parent position/effects.
@@ -2633,7 +2633,7 @@ int BKE_gpencil_stroke_point_count(bGPdata *gpd)
       continue;
     }
 
-    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+    LISTBASE_FOREACH (const bGPDframe *, gpf, &gpl->frames) {
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         total_points += gps->totpoints;
       }

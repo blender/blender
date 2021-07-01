@@ -304,7 +304,7 @@ int SVMCompiler::stack_assign(ShaderOutput *output)
 
 int SVMCompiler::stack_assign_if_linked(ShaderInput *input)
 {
-  if (input->link)
+  if (input->link || input->constant_folded_in)
     return stack_assign(input);
 
   return SVM_STACK_INVALID;

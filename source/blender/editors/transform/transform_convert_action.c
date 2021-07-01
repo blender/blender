@@ -210,12 +210,13 @@ static TransData *ActionFCurveToTransData(TransData *td,
   return td;
 }
 
-/* This function advances the address to which td points to, so it must return
+/**
+ * This function advances the address to which td points to, so it must return
  * the new address so that the next time new transform data is added, it doesn't
- * overwrite the existing ones...  i.e.   td = GPLayerToTransData(td, ipo, ob, side, cfra);
+ * overwrite the existing ones: e.g. `td += GPLayerToTransData(td, ...);`
  *
- * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
- * on the named side are used.
+ * \param side: is needed for the extend mode. 'B' = both sides,
+ * 'R'/'L' mean only data on the named side are used.
  */
 static int GPLayerToTransData(TransData *td,
                               tGPFtransdata *tfd,
@@ -242,7 +243,7 @@ static int GPLayerToTransData(TransData *td,
         tfd->val = (float)gpf->framenum;
         tfd->sdata = &gpf->framenum;
 
-        /* advance td now */
+        /* Advance `td` now. */
         td++;
         tfd++;
         count++;
@@ -339,7 +340,7 @@ void createTransActionData(bContext *C, TransInfo *t)
     t->frame_side = 'B';
   }
 
-  /* loop 1: fully select ipo-keys and count how many BezTriples are selected */
+  /* loop 1: fully select F-curve keys and count how many BezTriples are selected */
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     int adt_count = 0;

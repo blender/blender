@@ -2411,8 +2411,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
 
       /* 'Increment' mode disabled for nodes, use true grid snapping instead */
-      if (scene->toolsettings->snap_node_mode == SCE_SNAP_MODE_INCREMENT) {
-        scene->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
+      if (scene->toolsettings->snap_node_mode == 0) { /* SCE_SNAP_MODE_INCREMENT */
+        scene->toolsettings->snap_node_mode = 8;      /* SCE_SNAP_MODE_GRID */
       }
 
 #ifdef WITH_FFMPEG

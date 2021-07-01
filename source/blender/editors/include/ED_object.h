@@ -62,7 +62,8 @@ struct Object *ED_object_active_context(const struct bContext *C);
 void ED_collection_hide_menu_draw(const struct bContext *C, struct uiLayout *layout);
 
 Object **ED_object_array_in_mode_or_selected(struct bContext *C,
-                                             bool (*filter_fn)(struct Object *ob, void *user_data),
+                                             bool (*filter_fn)(const struct Object *ob,
+                                                               void *user_data),
                                              void *filter_user_data,
                                              uint *r_objects_len);
 
@@ -387,7 +388,7 @@ void ED_object_mode_generic_exit(struct Main *bmain,
                                  struct Depsgraph *depsgraph,
                                  struct Scene *scene,
                                  struct Object *ob);
-bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, struct Object *ob);
+bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, const struct Object *ob);
 
 void ED_object_posemode_set_for_weight_paint(struct bContext *C,
                                              struct Main *bmain,

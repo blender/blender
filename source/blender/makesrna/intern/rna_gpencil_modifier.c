@@ -2997,15 +2997,13 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_material_mask", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, NULL, "material_mask_flags", LRT_GPENCIL_MATERIAL_MASK_ENABLE);
+  RNA_def_property_boolean_sdna(prop, NULL, "mask_switches", LRT_GPENCIL_MATERIAL_MASK_ENABLE);
   RNA_def_property_ui_text(
       prop, "Use Material Mask", "Use material masks to filter out occluded strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_material_mask_match", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, NULL, "material_mask_flags", LRT_GPENCIL_MATERIAL_MASK_MATCH);
+  RNA_def_property_boolean_sdna(prop, NULL, "mask_switches", LRT_GPENCIL_MATERIAL_MASK_MATCH);
   RNA_def_property_ui_text(
       prop, "Match Masks", "Require matching all material masks instead of just one");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
@@ -3013,7 +3011,19 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_material_mask_bits", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "material_mask_bits", 1);
   RNA_def_property_array(prop, 8);
-  RNA_def_property_ui_text(prop, "Mask", "");
+  RNA_def_property_ui_text(prop, "Masks", "Mask bits to match from Material Line Art settings");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_intersection_match", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "mask_switches", LRT_GPENCIL_INTERSECTION_MATCH);
+  RNA_def_property_ui_text(
+      prop, "Match Intersection", "Require matching all intersection masks instead of just one");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_intersection_mask", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "intersection_mask", 1);
+  RNA_def_property_array(prop, 8);
+  RNA_def_property_ui_text(prop, "Masks", "Mask bits to match from Collection Line Art settings");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   RNA_define_lib_overridable(false);

@@ -60,7 +60,7 @@
 #include "GPU_init_exit.h"
 
 extern int datatoc_bfont_ttf_size;
-extern char datatoc_bfont_ttf[];
+extern char const datatoc_bfont_ttf[];
 
 typedef struct _LoggerWindow LoggerWindow;
 typedef struct _MultiTestApp MultiTestApp;

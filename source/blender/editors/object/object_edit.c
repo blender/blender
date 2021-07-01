@@ -157,7 +157,7 @@ Object *ED_object_active_context(const bContext *C)
  *   (assuming they need to be modified).
  */
 Object **ED_object_array_in_mode_or_selected(bContext *C,
-                                             bool (*filter_fn)(Object *ob, void *user_data),
+                                             bool (*filter_fn)(const Object *ob, void *user_data),
                                              void *filter_user_data,
                                              uint *r_objects_len)
 {

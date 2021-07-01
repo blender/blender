@@ -25,6 +25,7 @@
 
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
@@ -41,12 +42,82 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Transform (Push/Pull) Element
+ * \{ */
+
+/**
+ * \note Small arrays / data-structures should be stored copied for faster memory access.
+ */
+struct TransDataArgs_PushPull {
+  const TransInfo *t;
+  const TransDataContainer *tc;
+
+  float distance;
+  const float axis_global[3];
+  bool is_lock_constraint;
+  bool is_data_space;
+};
+
+static void transdata_elem_push_pull(const TransInfo *t,
+                                     const TransDataContainer *tc,
+                                     TransData *td,
+                                     const float distance,
+                                     const float axis_global[3],
+                                     const bool is_lock_constraint,
+                                     const bool is_data_space)
+{
+  float vec[3];
+  sub_v3_v3v3(vec, tc->center_local, td->center);
+  if (t->con.applyRot && t->con.mode & CON_APPLY) {
+    float axis[3];
+    copy_v3_v3(axis, axis_global);
+    t->con.applyRot(t, tc, td, axis, NULL);
+
+    mul_m3_v3(td->smtx, axis);
+    if (is_lock_constraint) {
+      float dvec[3];
+      project_v3_v3v3(dvec, vec, axis);
+      sub_v3_v3(vec, dvec);
+    }
+    else {
+      project_v3_v3v3(vec, vec, axis);
+    }
+  }
+  normalize_v3_length(vec, distance * td->factor);
+  if (is_data_space) {
+    mul_m3_v3(td->smtx, vec);
+  }
+
+  add_v3_v3v3(td->loc, td->iloc, vec);
+}
+
+static void transdata_elem_push_pull_fn(void *__restrict iter_data_v,
+                                        const int iter,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  struct TransDataArgs_PushPull *data = iter_data_v;
+  TransData *td = &data->tc->data[iter];
+  if (td->flag & TD_SKIP) {
+    return;
+  }
+  transdata_elem_push_pull(data->t,
+                           data->tc,
+                           td,
+                           data->distance,
+                           data->axis_global,
+                           data->is_lock_constraint,
+                           data->is_data_space);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Transform (Push/Pull)
  * \{ */
 
 static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 {
-  float vec[3], axis_global[3];
+  float axis_global[3];
   float distance;
   int i;
   char str[UI_MAX_DRAW_STR];
@@ -77,37 +148,31 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
     t->con.applyRot(t, NULL, NULL, axis_global, NULL);
   }
 
+  const bool is_lock_constraint = isLockConstraint(t);
   const bool is_data_space = (t->options & CTX_POSE_BONE) != 0;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
-      if (td->flag & TD_SKIP) {
-        continue;
-      }
-
-      sub_v3_v3v3(vec, tc->center_local, td->center);
-      if (t->con.applyRot && t->con.mode & CON_APPLY) {
-        float axis[3];
-        copy_v3_v3(axis, axis_global);
-        t->con.applyRot(t, tc, td, axis, NULL);
-
-        mul_m3_v3(td->smtx, axis);
-        if (isLockConstraint(t)) {
-          float dvec[3];
-          project_v3_v3v3(dvec, vec, axis);
-          sub_v3_v3(vec, dvec);
+    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
+      TransData *td = tc->data;
+      for (i = 0; i < tc->data_len; i++, td++) {
+        if (td->flag & TD_SKIP) {
+          continue;
         }
-        else {
-          project_v3_v3v3(vec, vec, axis);
-        }
+        transdata_elem_push_pull(
+            t, tc, td, distance, axis_global, is_lock_constraint, is_data_space);
       }
-      normalize_v3_length(vec, distance * td->factor);
-      if (is_data_space) {
-        mul_m3_v3(td->smtx, vec);
-      }
-
-      add_v3_v3v3(td->loc, td->iloc, vec);
+    }
+    else {
+      struct TransDataArgs_PushPull data = {
+          .t = t,
+          .tc = tc,
+          .axis_global = {UNPACK3(axis_global)},
+          .is_lock_constraint = is_lock_constraint,
+          .is_data_space = is_data_space,
+      };
+      TaskParallelSettings settings;
+      BLI_parallel_range_settings_defaults(&settings);
+      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_push_pull_fn, &settings);
     }
   }
 

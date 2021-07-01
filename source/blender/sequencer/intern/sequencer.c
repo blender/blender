@@ -311,6 +311,9 @@ SequencerToolSettings *SEQ_tool_settings_init(void)
   SequencerToolSettings *tool_settings = MEM_callocN(sizeof(SequencerToolSettings),
                                                      "Sequencer tool settings");
   tool_settings->fit_method = SEQ_SCALE_TO_FIT;
+  tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
+                             SEQ_SNAP_TO_STRIP_HOLD;
+  tool_settings->snap_distance = 15;
   return tool_settings;
 }
 
@@ -334,6 +337,24 @@ eSeqImageFitMethod SEQ_tool_settings_fit_method_get(Scene *scene)
 {
   const SequencerToolSettings *tool_settings = SEQ_tool_settings_ensure(scene);
   return tool_settings->fit_method;
+}
+
+short SEQ_tool_settings_snap_mode_get(Scene *scene)
+{
+  const SequencerToolSettings *tool_settings = SEQ_tool_settings_ensure(scene);
+  return tool_settings->snap_mode;
+}
+
+short SEQ_tool_settings_snap_flag_get(Scene *scene)
+{
+  const SequencerToolSettings *tool_settings = SEQ_tool_settings_ensure(scene);
+  return tool_settings->snap_flag;
+}
+
+int SEQ_tool_settings_snap_distance_get(Scene *scene)
+{
+  const SequencerToolSettings *tool_settings = SEQ_tool_settings_ensure(scene);
+  return tool_settings->snap_distance;
 }
 
 void SEQ_tool_settings_fit_method_set(Scene *scene, eSeqImageFitMethod fit_method)

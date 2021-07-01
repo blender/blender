@@ -227,9 +227,9 @@ struct FCurve *BKE_fcurve_find_by_rna_context_ui(struct bContext *C,
 /* Binary search algorithm for finding where to 'insert' BezTriple with given frame number.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
-int BKE_fcurve_bezt_binarysearch_index(struct BezTriple array[],
-                                       float frame,
-                                       int arraylen,
+int BKE_fcurve_bezt_binarysearch_index(const struct BezTriple array[],
+                                       const float frame,
+                                       const int arraylen,
                                        bool *r_replace);
 
 /* fcurve_cache.c */

@@ -638,7 +638,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   cuma->mintable = clipr->xmin;
   cuma->maxtable = clipr->xmax;
 
-  /* hrmf... we now rely on blender ipo beziers, these are more advanced */
+  /* Rely on Blender interpolation for bezier curves, support extra functionality here as well. */
   bezt = MEM_callocN(cuma->totpoint * sizeof(BezTriple), "beztarr");
 
   for (int a = 0; a < cuma->totpoint; a++) {
