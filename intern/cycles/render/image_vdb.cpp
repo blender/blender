@@ -16,6 +16,7 @@
 
 #include "render/image_vdb.h"
 
+#include "util/util_logging.h"
 #include "util/util_openvdb.h"
 
 #ifdef WITH_OPENVDB
@@ -61,7 +62,13 @@ struct ToNanoOp {
   bool operator()(const openvdb::GridBase::ConstPtr &grid)
   {
     if constexpr (!std::is_same_v<GridType, openvdb::MaskGrid>) {
-      nanogrid = nanovdb::openToNanoVDB(FloatGridType(*openvdb::gridConstPtrCast<GridType>(grid)));
+      try {
+        nanogrid = nanovdb::openToNanoVDB(
+            FloatGridType(*openvdb::gridConstPtrCast<GridType>(grid)));
+      }
+      catch (const std::exception &e) {
+        VLOG(1) << "Error converting OpenVDB to NanoVDB grid: " << e.what();
+      }
       return true;
     }
     else {
