@@ -3765,8 +3765,11 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
         vs[2] = ls[3]->v;
 
         BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f, false, false);
+
+        printf("%p %p %p\n", f2->l_first->prev->head.data, ls[3]->head.data);
+
         CustomData_bmesh_swap_data_simple(
-            &pbvh->bm->pdata, &f2->l_first->prev->head.data, &ls[3]->head.data);
+            &pbvh->bm->ldata, &f2->l_first->prev->head.data, &ls[3]->head.data);
 
         CustomData_bmesh_copy_data(
             &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &f2->l_first->head.data);

@@ -61,14 +61,16 @@
 
 #include "mesh_intern.h" /* own include */
 
+#include "../sculpt_paint/sculpt_intern.h"
+
 static bool geometry_extract_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob != NULL && ob->mode == OB_MODE_SCULPT) {
-    if (ob->sculpt->bm) {
-      CTX_wm_operator_poll_msg_set(C, "The geometry can not be extracted with dyntopo activated");
-      return false;
-    }
+    // if (ob->sculpt->bm) {
+    // CTX_wm_operator_poll_msg_set(C, "The geometry can not be extracted with dyntopo activated");
+    // return false;
+    //}
     return ED_operator_object_active_editable_mesh(C);
   }
   return false;
@@ -120,7 +122,8 @@ static int geometry_extract_apply(bContext *C,
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(NULL, bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      new_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -373,6 +376,7 @@ static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent *U
   ED_workspace_status_text(C, TIP_("Click on the mesh to select a Face Set"));
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
   WM_event_add_modal_handler(C, op);
+
   return OPERATOR_RUNNING_MODAL;
 }
 
@@ -513,7 +517,8 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(NULL, bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      new_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -544,7 +549,8 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
                             .use_toolflags = true,
                         }));
 
-    BM_mesh_bm_from_me(NULL, bm,
+    BM_mesh_bm_from_me(NULL,
+                       bm,
                        new_ob_mesh,
                        (&(struct BMeshFromMeshParams){
                            .calc_face_normal = true,
@@ -580,14 +586,41 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
   if (ob->mode == OB_MODE_SCULPT) {
     SculptSession *ss = ob->sculpt;
-    ss->face_sets = CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_SCULPT_FACE_SETS);
-    if (ss->face_sets) {
-      /* Assign a new Face Set ID to the new faces created by the slice operation. */
-      const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(ob->data);
-      ED_sculpt_face_sets_initialize_none_to_id(ob->data, next_face_set_id);
+
+    /* Assign a new Face Set ID to the new faces created by the slice operation. */
+
+    switch (BKE_pbvh_type(ss->pbvh)) {
+      case PBVH_GRIDS:
+      case PBVH_FACES:
+        ss->face_sets = CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_SCULPT_FACE_SETS);
+
+        if (ss->face_sets) {
+          const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(ob->data);
+          ED_sculpt_face_sets_initialize_none_to_id(ob->data, next_face_set_id);
+        }
+        break;
+      case PBVH_BMESH: {
+        if (ss->bm && CustomData_has_layer(&ss->bm->pdata, CD_SCULPT_FACE_SETS)) {
+          const int cd_fset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
+          BMFace *f;
+          BMIter iter;
+
+          const int next_face_set_id = SCULPT_face_set_next_available_get(ss);
+
+          BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+            int fset = BM_ELEM_CD_GET_INT(f, cd_fset);
+
+            if (fset == SCULPT_FACE_SET_NONE) {
+              BM_ELEM_CD_SET_INT(f, cd_fset, next_face_set_id);
+            }
+          }
+        }
+        break;
+      }
     }
-    ED_sculpt_undo_geometry_end(ob);
   }
+
+  ED_sculpt_undo_geometry_end(ob);
 
   BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
