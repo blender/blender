@@ -266,6 +266,12 @@ protected:
 	void setSpecs(Specs specs);
 
 	/**
+	 * Sets the audio output specification of the device.
+	 * \param specs The output specification.
+	 */
+	void setSpecs(DeviceSpecs specs);
+
+	/**
 	 * Empty default constructor. To setup the device call the function create()
 	 * and to uninitialize call destroy().
 	 */
