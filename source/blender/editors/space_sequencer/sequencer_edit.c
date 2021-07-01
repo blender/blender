@@ -2984,8 +2984,10 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Only text strips that are not muted and don't end with negative frame. */
   SEQ_ALL_BEGIN (ed, seq) {
-    if (seq->type == SEQ_TYPE_TEXT) {
+    if ((seq->type == SEQ_TYPE_TEXT) && ((seq->flag & SEQ_MUTE) == 0) &&
+        (seq->enddisp > scene->r.sfra)) {
       BLI_addtail(&text_seq, MEM_dupallocN(seq));
     }
   }
@@ -3006,16 +3008,17 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     char timecode_str_start[32];
     char timecode_str_end[32];
 
+    /* Write timecode relative to start frame of scene. Don't allow negative timecodes. */
     BLI_timecode_string_from_time(timecode_str_start,
                                   sizeof(timecode_str_start),
                                   -2,
-                                  FRA2TIME(seq->startdisp),
+                                  FRA2TIME(max_ii(seq->startdisp - scene->r.sfra, 0)),
                                   FPS,
                                   USER_TIMECODE_SUBRIP);
     BLI_timecode_string_from_time(timecode_str_end,
                                   sizeof(timecode_str_end),
                                   -2,
-                                  FRA2TIME(seq->enddisp),
+                                  FRA2TIME(seq->enddisp - scene->r.sfra),
                                   FPS,
                                   USER_TIMECODE_SUBRIP);
 
