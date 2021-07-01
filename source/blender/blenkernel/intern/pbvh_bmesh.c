@@ -3766,8 +3766,6 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
 
         BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f, false, false);
 
-        printf("%p %p %p\n", f2->l_first->prev->head.data, ls[3]->head.data);
-
         CustomData_bmesh_swap_data_simple(
             &pbvh->bm->ldata, &f2->l_first->prev->head.data, &ls[3]->head.data);
 
@@ -3779,9 +3777,6 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
         normal_tri_v3(
             f2->no, f2->l_first->v->co, f2->l_first->next->v->co, f2->l_first->prev->v->co);
         BM_log_face_added(pbvh->bm_log, f2);
-      }
-      else {
-        // printf("eek2!\n");
       }
 
       if (f1) {
