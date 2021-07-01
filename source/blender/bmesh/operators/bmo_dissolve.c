@@ -184,7 +184,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
     if (BMO_error_occurred(bm)) {
       BMO_error_clear(bm);
-      BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED, NULL);
+      BMO_error_raise(bm, op, "Could not dissolve faces");
       goto cleanup;
     }
 
@@ -201,8 +201,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
     faces = regions[i];
     if (!faces[0]) {
-      BMO_error_raise(
-          bm, op, BMERR_DISSOLVEFACES_FAILED, "Could not find boundary of dissolve region");
+      BMO_error_raise(bm, op, "Could not find boundary of dissolve region");
       goto cleanup;
     }
 
@@ -220,7 +219,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
       totface_target -= tot - 1;
     }
     else {
-      BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED, "Could not create merged face");
+      BMO_error_raise(bm, op, "Could not create merged face");
       goto cleanup;
     }
 

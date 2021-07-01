@@ -42,17 +42,6 @@ static int bmo_name_to_slotcode(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char
 static int bmo_name_to_slotcode_check(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                                       const char *identifier);
 
-static const char *bmo_error_messages[] = {
-    NULL,
-    N_("Could not connect vertices"),
-    N_("Could not dissolve faces"),
-    N_("Invalid selection"),
-    N_("Internal mesh error"),
-    N_("Convex hull failed"),
-};
-
-BLI_STATIC_ASSERT(ARRAY_SIZE(bmo_error_messages) == BMERR_TOTAL, "message mismatch");
-
 /* operator slot type information - size of one element of the type given. */
 const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
     0,                /*  0: BMO_OP_SLOT_SENTINEL */
@@ -1562,7 +1551,6 @@ bool BMO_iter_map_value_bool(BMOIter *iter)
 /* error system */
 typedef struct BMOpError {
   struct BMOpError *next, *prev;
-  int errorcode;
   BMOperator *op;
   const char *msg;
 } BMOpError;
@@ -1574,14 +1562,10 @@ void BMO_error_clear(BMesh *bm)
   }
 }
 
-void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
+void BMO_error_raise(BMesh *bm, BMOperator *owner, const char *msg)
 {
   BMOpError *err = MEM_callocN(sizeof(BMOpError), "bmop_error");
 
-  err->errorcode = errcode;
-  if (!msg) {
-    msg = bmo_error_messages[errcode];
-  }
   err->msg = msg;
   err->op = owner;
 
@@ -1594,35 +1578,35 @@ bool BMO_error_occurred(BMesh *bm)
 }
 
 /* returns error code or 0 if no error */
-int BMO_error_get(BMesh *bm, const char **msg, BMOperator **op)
+bool BMO_error_get(BMesh *bm, const char **r_msg, BMOperator **r_op)
 {
   BMOpError *err = bm->errorstack.first;
-  if (!err) {
-    return 0;
+  if (err == NULL) {
+    return false;
   }
 
-  if (msg) {
-    *msg = err->msg;
+  if (r_msg) {
+    *r_msg = err->msg;
   }
-  if (op) {
-    *op = err->op;
+  if (r_op) {
+    *r_op = err->op;
   }
 
-  return err->errorcode;
+  return true;
 }
 
-int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op)
+bool BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op)
 {
-  int errorcode = BMO_error_get(bm, msg, op);
+  bool result = BMO_error_get(bm, msg, op);
 
-  if (errorcode) {
+  if (result) {
     BMOpError *err = bm->errorstack.first;
 
     BLI_remlink(&bm->errorstack, bm->errorstack.first);
     MEM_freeN(err);
   }
 
-  return errorcode;
+  return result;
 }
 
 #define NEXT_CHAR(fmt) ((fmt)[0] != 0 ? (fmt)[1] : 0)

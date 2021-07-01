@@ -1143,7 +1143,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
   count = BM_mesh_edgeloops_find(bm, &eloops_rim, bm_edge_rim_test_cb, (void *)bm);
 
   if (count < 2) {
-    BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "No edge rings found");
+    BMO_error_raise(bm, op, "No edge rings found");
     goto cleanup;
   }
   else if (count == 2) {
@@ -1167,7 +1167,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
       changed = true;
     }
     else {
-      BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Edge-ring pair isn't connected");
+      BMO_error_raise(bm, op, "Edge-ring pair isn't connected");
       goto cleanup;
     }
   }
@@ -1179,7 +1179,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
     LoopPairStore **lpair_arr;
 
     if (eloop_pairs_gs == NULL) {
-      BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Edge-rings are not connected");
+      BMO_error_raise(bm, op, "Edge-rings are not connected");
       goto cleanup;
     }
 

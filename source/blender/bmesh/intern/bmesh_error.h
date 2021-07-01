@@ -26,42 +26,26 @@
 
 /* Pushes an error onto the bmesh error stack.
  * if msg is null, then the default message for the `errcode` is used. */
-void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg);
+void BMO_error_raise(BMesh *bm, BMOperator *owner, const char *msg) ATTR_NONNULL(1, 2, 3);
 
 /* Gets the topmost error from the stack.
  * returns error code or 0 if no error. */
-int BMO_error_get(BMesh *bm, const char **msg, BMOperator **op);
+bool BMO_error_get(BMesh *bm, const char **r_msg, BMOperator **r_op);
 bool BMO_error_occurred(BMesh *bm);
 
 /* Same as #BMO_error_get, only pops the error off the stack as well. */
-int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op);
+bool BMO_error_pop(BMesh *bm, const char **r_msg, BMOperator **r_op);
 void BMO_error_clear(BMesh *bm);
 
 /* This is meant for handling errors, like self-intersection test failures.
  * it's dangerous to handle errors in general though, so disabled for now. */
 
-/* Catches an error raised by the op pointed to by catchop.
- * errorcode is either the errorcode, or BMERR_ALL for any
- * error. */
-
+/* Catches an error raised by the op pointed to by catchop. */
 /* Not yet implemented. */
-// int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
+// int BMO_error_catch_op(BMesh *bm, BMOperator *catchop, char **msg);
 
 #define BM_ELEM_INDEX_VALIDATE(_bm, _msg_a, _msg_b) \
   BM_mesh_elem_index_validate(_bm, __FILE__ ":" STRINGIFY(__LINE__), __func__, _msg_a, _msg_b)
-
-/*------ error code defines -------*/
-
-/** Error messages. */
-enum {
-  BMERR_CONNECTVERT_FAILED = 1,
-  BMERR_DISSOLVEFACES_FAILED,
-  BMERR_INVALID_SELECTION,
-  BMERR_MESH_ERROR,
-  BMERR_CONVEX_HULL_FAILED,
-
-  BMERR_TOTAL,
-};
 
 /* BMESH_ASSERT */
 #ifdef WITH_ASSERT_ABORT
