@@ -308,7 +308,7 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
 
 static SeqCollection *query_strips_at_frame(ListBase *seqbase, const int timeline_frame)
 {
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
 
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (SEQ_time_strip_intersects_frame(seq, timeline_frame)) {

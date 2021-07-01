@@ -106,9 +106,9 @@ void SEQ_collection_free(SeqCollection *collection)
  *
  * \return empty strip collection.
  */
-SeqCollection *SEQ_collection_create(void)
+SeqCollection *SEQ_collection_create(const char *name)
 {
-  SeqCollection *collection = MEM_callocN(sizeof(SeqCollection), "SeqCollection");
+  SeqCollection *collection = MEM_callocN(sizeof(SeqCollection), name);
   collection->set = BLI_gset_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "SeqCollection GSet");
   return collection;
@@ -136,7 +136,7 @@ SeqCollection *SEQ_query_by_reference(Sequence *seq_reference,
                                                           ListBase *seqbase,
                                                           SeqCollection *collection))
 {
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   seq_query_func(seq_reference, seqbase, collection);
   return collection;
 }
@@ -223,7 +223,7 @@ void SEQ_collection_expand(ListBase *seqbase,
  */
 SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_META) {
       SEQ_collection_merge(collection, SEQ_query_all_strips_recursive(&seq->seqbase));
@@ -241,7 +241,7 @@ SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase)
  */
 SeqCollection *SEQ_query_all_strips(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     SEQ_collection_append_strip(seq, collection);
   }
@@ -256,7 +256,7 @@ SeqCollection *SEQ_query_all_strips(ListBase *seqbase)
  */
 SeqCollection *SEQ_query_selected_strips(ListBase *seqbase)
 {
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->flag & SELECT) == 0) {
       continue;
