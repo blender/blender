@@ -96,21 +96,21 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
   MutableSpan<float3> positions = spline->positions();
 
   float3 center;
-  /* Midpoints of P1->P2 and P2->P3. */
+  /* Midpoints of `P1->P2` and `P2->P3`. */
   const float3 q1 = float3::interpolate(p1, p2, 0.5f);
   const float3 q2 = float3::interpolate(p2, p3, 0.5f);
 
-  /* Normal Vectors of P1->P2 and P2->P3*/
+  /* Normal Vectors of `P1->P2` and `P2->P3` */
   const float3 v1 = (p2 - p1).normalized();
   const float3 v2 = (p3 - p2).normalized();
 
-  /*Normal of plane of main 2 segments P1->P2 and P2->P3. */
+  /* Normal of plane of main 2 segments P1->P2 and `P2->P3`. */
   const float3 v3 = float3::cross(v1, v2).normalized();
 
-  /*Normal of plane of first perpendicular bisector and P1->P2. */
+  /* Normal of plane of first perpendicular bisector and `P1->P2`. */
   const float3 v4 = float3::cross(v3, v1).normalized();
 
-  /* Determine Centerpoint from the intersection of 3 planes. */
+  /* Determine Center-point from the intersection of 3 planes. */
   float plane_1[4], plane_2[4], plane_3[4];
   plane_from_point_normal_v3(plane_1, q1, v3);
   plane_from_point_normal_v3(plane_2, q1, v1);
@@ -121,13 +121,13 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
     return nullptr;
   }
 
-  /* Get the radius from the centerpoint to p1. */
+  /* Get the radius from the center-point to p1. */
   const float r = float3::distance(p1, center);
   const float theta_step = ((2 * M_PI) / (float)resolution);
   for (const int i : IndexRange(resolution)) {
 
-    /* Formula for a circle around a point and 2 unit vectors perp. to each other and the axis of
-     * the cirlce from
+    /* Formula for a circle around a point and 2 unit vectors perpendicular.
+     * to each other and the axis of the circle from:
      * https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
      */
 

@@ -186,7 +186,7 @@ template<typename T> uint64_t hash_cb(const void *value)
 }  // namespace blender::fn::cpp_type_util
 
 /**
- * Different types support different features. Features like copy constructibility can be detected
+ * Different types support different features. Features like copy constructability can be detected
  * automatically easily. For some features this is harder as of C++17. Those have flags in this
  * enum and need to be determined by the programmer.
  */
