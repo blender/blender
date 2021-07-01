@@ -490,7 +490,7 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
       }
 
       if (ELEM(ipotype, COLBAND_INTERP_B_SPLINE, COLBAND_INTERP_CARDINAL)) {
-        /* ipo from right to left: 3 2 1 0 */
+        /* Interpolate from right to left: `3 2 1 0`. */
         float t[4];
 
         if (a >= coba->tot - 1) {

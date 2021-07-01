@@ -295,8 +295,11 @@ bool ED_editors_flush_edits(Main *bmain)
 
 /* ***** XXX: functions are using old blender names, cleanup later ***** */
 
-/* now only used in 2d spaces, like time, ipo, nla, sima... */
-/* XXX shift/ctrl not configurable */
+/**
+ * Now only used in 2D spaces, like time, f-curve, NLA, image, etc.
+ *
+ * \note Shift/Control are not configurable key-bindings.
+ */
 void apply_keyb_grid(
     int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert)
 {

@@ -1816,8 +1816,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
       /* Remove seq so overlap tests don't conflict,
        * see seq_free_sequence below for the real freeing. */
       BLI_remlink(ed->seqbasep, seq);
-      /* if (seq->ipo) id_us_min(&seq->ipo->id); */
-      /* XXX, remove fcurve and assign to split image strips */
+      /* TODO: remove f-curve and assign to split image strips.
+       * The old animation system would remove the user of `seq->ipo`. */
 
       start_ofs = timeline_frame = SEQ_transform_get_left_handle_frame(seq);
       frame_end = SEQ_transform_get_right_handle_frame(seq);

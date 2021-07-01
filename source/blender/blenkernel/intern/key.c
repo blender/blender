@@ -315,11 +315,11 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
   return key;
 }
 
-/* Sort shape keys and Ipo curves after a change.  This assumes that at most
- * one key was moved, which is a valid assumption for the places it's
- * currently being called.
+/**
+ * Sort shape keys after a change.
+ * This assumes that at most one key was moved,
+ * which is a valid assumption for the places it's currently being called.
  */
-
 void BKE_key_sort(Key *key)
 {
   KeyBlock *kb;
