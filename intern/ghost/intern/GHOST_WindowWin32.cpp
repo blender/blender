@@ -136,7 +136,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 
   RegisterTouchWindow(m_hWnd, 0);
 
-  /* Register as droptarget. OleInitialize(0) required first, done in GHOST_SystemWin32. */
+  /* Register as drop-target. #OleInitialize(0) required first, done in GHOST_SystemWin32. */
   m_dropTarget = new GHOST_DropTargetWin32(this, m_system);
   ::RegisterDragDrop(m_hWnd, m_dropTarget);
 

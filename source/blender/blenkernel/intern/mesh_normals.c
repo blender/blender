@@ -715,7 +715,7 @@ void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
                                           const float custom_lnor[3],
                                           short r_clnor_data[2])
 {
-  /* We use null vector as NOP custom normal (can be simpler than giving autocomputed lnor...). */
+  /* We use null vector as NOP custom normal (can be simpler than giving auto-computed `lnor`). */
   if (is_zero_v3(custom_lnor) || compare_v3v3(lnor_space->vec_lnor, custom_lnor, 1e-4f)) {
     r_clnor_data[0] = r_clnor_data[1] = 0;
     return;
@@ -768,7 +768,7 @@ void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
 typedef struct LoopSplitTaskData {
   /* Specific to each instance (each task). */
 
-  /** We have to create those outside of tasks, since afaik memarena is not threadsafe. */
+  /** We have to create those outside of tasks, since #MemArena is not thread-safe. */
   MLoopNorSpace *lnor_space;
   float (*lnor)[3];
   const MLoop *ml_curr;
@@ -924,7 +924,7 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
  * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
  *
  * Used when defining an empty custom loop normals data layer,
- * to keep same shading as with autosmooth!
+ * to keep same shading as with auto-smooth!
  */
 void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
                                     const int UNUSED(numVerts),
@@ -1481,11 +1481,11 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
        * If we find a new, never-processed cyclic smooth fan, we can do it now using that loop/edge
        * as 'entry point', otherwise we can skip it. */
 
-      /* Note: In theory, we could make loop_split_generator_check_cyclic_smooth_fan() store
+      /* Note: In theory, we could make #loop_split_generator_check_cyclic_smooth_fan() store
        * mlfan_vert_index'es and edge indexes in two stacks, to avoid having to fan again around
-       * the vert during actual computation of clnor & clnorspace. However, this would complicate
-       * the code, add more memory usage, and despite its logical complexity,
-       * loop_manifold_fan_around_vert_next() is quite cheap in term of CPU cycles,
+       * the vert during actual computation of `clnor` & `clnorspace`.
+       * However, this would complicate the code, add more memory usage, and despite its logical
+       * complexity, #loop_manifold_fan_around_vert_next() is quite cheap in term of CPU cycles,
        * so really think it's not worth it. */
       if (!IS_EDGE_SHARP(e2l_curr) && (BLI_BITMAP_TEST(skip_loops, ml_curr_index) ||
                                        !loop_split_generator_check_cyclic_smooth_fan(mloops,
