@@ -191,7 +191,11 @@ const EnumPropertyItem rna_enum_snap_node_element_items[] = {
 };
 
 const EnumPropertyItem rna_enum_snap_seq_element_items[] = {
-    {SEQ_SNAP_TO_PLAYHEAD, "PLAYHEAD", ICON_NONE, "Playhead", "Snap to current frame"},
+    {SEQ_SNAP_TO_CURRENT_FRAME,
+     "CURRENT_FRAME",
+     ICON_NONE,
+     "Current Frame",
+     "Snap to current frame"},
     {SEQ_SNAP_TO_STRIP_HOLD, "STRIP_HOLD", ICON_NONE, "Hold Offset", "Snap to strip hold offset"},
     {0, NULL, 0, NULL, NULL},
 };

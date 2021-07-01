@@ -2063,7 +2063,7 @@ enum {
 
 /** #SequencerToolSettings.snap_mode */
 #define SEQ_SNAP_TO_STRIPS (1 << 0)
-#define SEQ_SNAP_TO_PLAYHEAD (1 << 1)
+#define SEQ_SNAP_TO_CURRENT_FRAME (1 << 1)
 #define SEQ_SNAP_TO_STRIP_HOLD (1 << 2)
 
 /** #SequencerToolSettings.snap_flag */

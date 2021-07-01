@@ -311,7 +311,8 @@ SequencerToolSettings *SEQ_tool_settings_init(void)
   SequencerToolSettings *tool_settings = MEM_callocN(sizeof(SequencerToolSettings),
                                                      "Sequencer tool settings");
   tool_settings->fit_method = SEQ_SCALE_TO_FIT;
-  tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_PLAYHEAD | SEQ_SNAP_TO_STRIP_HOLD;
+  tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
+                             SEQ_SNAP_TO_STRIP_HOLD;
   tool_settings->snap_distance = 15;
   return tool_settings;
 }

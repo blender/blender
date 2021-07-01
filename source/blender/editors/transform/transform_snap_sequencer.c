@@ -138,7 +138,7 @@ static int seq_get_snap_target_points_count(const TransInfo *t,
 
   count *= SEQ_collection_len(snap_targets);
 
-  if (snap_mode & SEQ_SNAP_TO_PLAYHEAD) {
+  if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
     count++;
   }
 
@@ -164,7 +164,7 @@ static void seq_snap_target_points_build(const TransInfo *t,
 
   int i = 0;
 
-  if (snap_mode & SEQ_SNAP_TO_PLAYHEAD) {
+  if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
     snap_data->target_snap_points[i] = CFRA;
     i++;
   }
