@@ -357,7 +357,7 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 
 static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
-  const bool apply_snap_align_rotation = usingSnappingNormal(t);
+  const bool apply_snap_align_rotation = activeSnap(t) && usingSnappingNormal(t);
   const bool is_valid_snapping_normal = apply_snap_align_rotation && validSnappingNormal(t);
 
   /* Ideally "apply_snap_align_rotation" would only be used when a snap point is found:
