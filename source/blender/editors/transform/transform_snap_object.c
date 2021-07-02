@@ -255,7 +255,7 @@ static SnapObjectData *snap_object_data_lookup(SnapObjectContext *sctx, Object *
 
 static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
                                                  Object *ob_eval,
-                                                 Mesh *me_eval,
+                                                 const Mesh *me_eval,
                                                  bool use_hide)
 {
   SnapObjectData *sod;
@@ -687,7 +687,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
                         const float ray_start[3],
                         const float ray_dir[3],
                         Object *ob_eval,
-                        Mesh *me_eval,
+                        const Mesh *me_eval,
                         const float obmat[4][4],
                         const uint ob_index,
                         bool use_hide,
@@ -1088,7 +1088,7 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
     case OB_SURF:
     case OB_FONT: {
       if (!is_object_active) {
-        Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+        const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
         if (mesh_eval) {
           retval = raycastMesh(sctx,
                                dt->ray_start,

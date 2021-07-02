@@ -175,7 +175,7 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
   }
   else {
     /* Must isolate multithreaded tasks while holding a mutex lock. */
-    BLI_task_isolate(mesh_runtime_looptri_recalc_isolated, mesh);
+    BLI_task_isolate(mesh_runtime_looptri_recalc_isolated, (void *)mesh);
     looptri = mesh->runtime.looptris.array;
   }
 

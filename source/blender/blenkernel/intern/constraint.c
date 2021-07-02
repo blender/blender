@@ -5099,7 +5099,7 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
   }
 
   Object *depth_object = context->depth_object;
-  Mesh *depth_mesh = BKE_object_get_evaluated_mesh(depth_object);
+  const Mesh *depth_mesh = BKE_object_get_evaluated_mesh(depth_object);
   if (depth_mesh == NULL) {
     return;
   }
