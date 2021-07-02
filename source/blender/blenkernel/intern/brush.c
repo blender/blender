@@ -2001,6 +2001,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_DRAW_FACE_SETS:
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
+    case SCULPT_TOOL_ARRAY:
       br->add_col[0] = 0.75f;
       br->add_col[1] = 0.75f;
       br->add_col[2] = 0.75f;

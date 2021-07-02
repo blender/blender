@@ -478,6 +478,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_SCENE_PROJECT = 34,
   SCULPT_TOOL_SYMMETRIZE = 35,
   SCULPT_TOOL_TWIST = 36,
+  SCULPT_TOOL_ARRAY = 37,
 } eBrushSculptTool;
 
 /* Brush.uv_sculpt_tool */

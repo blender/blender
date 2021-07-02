@@ -524,6 +524,10 @@ typedef struct SculptSession {
   bool show_mask;
   bool show_face_sets;
 
+  /* Setting this to true allows a PBVH rebuild when evaluating the object even if the stroke or
+  * filter caches are active. */
+  bool needs_pbvh_rebuild;
+
   /* Painting on deformed mesh */
   bool deform_modifiers_active; /* Object is deformed with some modifiers. */
   float (*orig_cos)[3];         /* Coords of un-deformed mesh. */

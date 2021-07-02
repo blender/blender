@@ -2513,6 +2513,9 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_GRAB:
       return root_alpha * feather;
 
+    case SCULPT_TOOL_ARRAY:
+      return root_alpha * feather;
+
     case SCULPT_TOOL_ROTATE:
       return alpha * pressure * feather;
 
@@ -6941,6 +6944,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     case SCULPT_TOOL_SYMMETRIZE:
       SCULPT_do_symmetrize_brush(sd, ob, nodes, totnode);
       break;
+    case SCULPT_TOOL_ARRAY:
+      SCULPT_do_array_brush(sd, ob, nodes, totnode);
+      break;
   }
 
   if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
@@ -7541,6 +7547,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Symmetrize Brush";
     case SCULPT_TOOL_TWIST:
       return "Clay Strips Brush";
+    case SCULPT_TOOL_ARRAY:
+      return "Array Brush";
   }
 
   return "Sculpting";
@@ -7824,6 +7832,7 @@ static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
            SCULPT_TOOL_GRAB,
            SCULPT_TOOL_POSE,
            SCULPT_TOOL_BOUNDARY,
+           SCULPT_TOOL_ARRAY,
            SCULPT_TOOL_THUMB,
            SCULPT_TOOL_ELASTIC_DEFORM)) {
     return true;
@@ -7876,6 +7885,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
             SCULPT_TOOL_SNAKE_HOOK,
             SCULPT_TOOL_POSE,
             SCULPT_TOOL_BOUNDARY,
+            SCULPT_TOOL_ARRAY,
             SCULPT_TOOL_THUMB) &&
       !sculpt_brush_use_topology_rake(ss, brush)) {
     return;
@@ -8797,6 +8807,11 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     sculpt_update_cache_invariants(C, sd, ss, op, mouse);
 
     SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));
+    
+    Brush *brush = BKE_paint_brush(&sd->paint);
+    if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+      SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+    }
 
     return true;
   }
@@ -8839,6 +8854,19 @@ static void sculpt_stroke_update_step(bContext *C,
   }
 
   do_symmetrical_brush_actions(sd, ob, do_brush_action, ups);
+
+   if (ss->needs_pbvh_rebuild) {
+    /* The mesh was modified, rebuild the PBVH. */
+    SCULPT_pbvh_clear(ob);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+
+    if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+      SCULPT_tag_update_overlays(C);
+    }
+    ss->needs_pbvh_rebuild = false;
+  }
+
   sculpt_combine_proxies(sd, ob);
 
   if (brush->sculpt_tool == SCULPT_TOOL_FAIRING) {
@@ -8939,6 +8967,10 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
   SCULPT_cache_free(ss->cache);
   ss->cache = NULL;
 
+  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+    SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+  }
+  
   SCULPT_undo_push_end();
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {

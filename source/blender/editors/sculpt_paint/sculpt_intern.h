@@ -535,6 +535,9 @@ void SCULPT_boundary_edges_preview_draw(const uint gpuattr,
                                         const float outline_alpha);
 void SCULPT_boundary_pivot_line_preview_draw(const uint gpuattr, struct SculptSession *ss);
 
+/* Array Brush. */
+void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+
 /* Multi-plane Scrape Brush. */
 void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,

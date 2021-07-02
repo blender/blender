@@ -142,6 +142,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_SCENE_PROJECT, "SCENE_PROJECT", ICON_BRUSH_MASK, "Scene Project", ""},
     {SCULPT_TOOL_DRAW_FACE_SETS, "DRAW_FACE_SETS", ICON_BRUSH_MASK, "Draw Face Sets", ""},
     {SCULPT_TOOL_SYMMETRIZE, "SYMMETRIZE", ICON_BRUSH_SCULPT_DRAW, "Symmetrize", ""},
+    {SCULPT_TOOL_ARRAY, "ARRAY", ICON_BRUSH_SCULPT_DRAW, "Array", ""},
     {0, NULL, 0, NULL, NULL},
 };
 /* clang-format on */
