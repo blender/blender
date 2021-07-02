@@ -981,6 +981,9 @@ typedef struct StrokeCache {
   /* Multires Displacement Smear. */
   float (*prev_displacement)[3];
   float (*limit_surface_co)[3];
+  
+  /* Array brush. */
+  float (*array_orco)[3];
 
   /* The rest is temporary storage that isn't saved as a property */
 
