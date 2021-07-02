@@ -43,8 +43,6 @@
 #include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -118,41 +116,27 @@ static void deformStroke(GpencilModifierData *md,
   }
 
   float stroke_thickness_inv = 1.0f / max_ii(gps->thickness, 1);
+  const bool is_normalized = (mmd->flag & GP_THICK_NORMALIZE);
+  bool is_inverted = ((mmd->flag & GP_THICK_WEIGHT_FACTOR) == 0) &&
+                     ((mmd->flag & GP_THICK_INVERT_VGROUP) != 0);
 
   for (int i = 0; i < gps->totpoints; i++) {
     bGPDspoint *pt = &gps->points[i];
     MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
     /* Verify point is part of vertex group. */
-    float weight = get_modifier_point_weight(
-        dvert, (mmd->flag & GP_THICK_INVERT_VGROUP) != 0, def_nr);
+    float weight = get_modifier_point_weight(dvert, is_inverted, def_nr);
     if (weight < 0.0f) {
       continue;
     }
 
-    float curvef = 1.0f;
-
-    float factor_depth = 1.0f;
-
-    if (mmd->flag & GP_THICK_FADING) {
-      if (mmd->object) {
-        float gvert[3];
-        mul_v3_m4v3(gvert, ob->obmat, &pt->x);
-        float dist = len_v3v3(mmd->object->obmat[3], gvert);
-        float fading_max = MAX2(mmd->fading_start, mmd->fading_end);
-        float fading_min = MIN2(mmd->fading_start, mmd->fading_end);
-
-        /* Better with ratiof() function from line art. */
-        if (dist > fading_max) {
-          factor_depth = 0.0f;
-        }
-        else if (dist <= fading_max && dist > fading_min) {
-          factor_depth = (fading_max - dist) / (fading_max - fading_min);
-        }
-        else {
-          factor_depth = 1.0f;
-        }
-      }
+    /* Apply weight directly. */
+    if ((!is_normalized) && (mmd->flag & GP_THICK_WEIGHT_FACTOR)) {
+      pt->pressure *= ((mmd->flag & GP_THICK_INVERT_VGROUP) ? 1.0f - weight : weight);
+      CLAMP_MIN(pt->pressure, 0.0f);
+      continue;
     }
+
+    float curvef = 1.0f;
 
     if ((mmd->flag & GP_THICK_CUSTOM_CURVE) && (mmd->curve_thickness)) {
       /* Normalize value to evaluate curve. */
@@ -161,18 +145,13 @@ static void deformStroke(GpencilModifierData *md,
     }
 
     float target;
-    if (mmd->flag & GP_THICK_NORMALIZE) {
+    if (is_normalized) {
       target = mmd->thickness * stroke_thickness_inv;
       target *= curvef;
     }
     else {
       target = pt->pressure * mmd->thickness_fac;
       weight *= curvef;
-    }
-
-    /* Apply distance fading. */
-    if (mmd->flag & GP_THICK_FADING) {
-      target = interpf(target, mmd->fading_end_factor, factor_depth);
     }
 
     pt->pressure = interpf(target, pt->pressure, weight);
@@ -202,32 +181,6 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   ThickGpencilModifierData *mmd = (ThickGpencilModifierData *)md;
 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
-  walk(userData, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
-}
-
-static void updateDepsgraph(GpencilModifierData *md,
-                            const ModifierUpdateDepsgraphContext *ctx,
-                            const int UNUSED(mode))
-{
-  ThickGpencilModifierData *mmd = (ThickGpencilModifierData *)md;
-  if (mmd->object != NULL) {
-    DEG_add_object_relation(ctx->node, mmd->object, DEG_OB_COMP_TRANSFORM, "Thickness Modifier");
-  }
-  DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Thickness Modifier");
-}
-
-static void fading_header_draw(const bContext *UNUSED(C), Panel *panel)
-{
-  uiLayout *layout = panel->layout;
-
-  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
-
-  uiItemR(layout, ptr, "use_fading", 0, NULL, ICON_NONE);
-}
-
-static void fading_panel_draw(const bContext *C, Panel *panel)
-{
-  gpencil_modifier_fading_draw(C, panel);
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -239,12 +192,17 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, ptr, "normalize_thickness", 0, NULL, ICON_NONE);
-
   if (RNA_boolean_get(ptr, "normalize_thickness")) {
     uiItemR(layout, ptr, "thickness", 0, NULL, ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "thickness_factor", 0, NULL, ICON_NONE);
+    const bool is_weighted = !RNA_boolean_get(ptr, "use_weight_factor");
+    uiLayout *row = uiLayoutRow(layout, true);
+    uiLayoutSetActive(row, is_weighted);
+    uiItemR(row, ptr, "thickness_factor", 0, NULL, ICON_NONE);
+    uiLayout *sub = uiLayoutRow(row, true);
+    uiLayoutSetActive(sub, true);
+    uiItemR(row, ptr, "use_weight_factor", 0, "", ICON_MOD_VERTEX_WEIGHT);
   }
 
   gpencil_modifier_panel_end(layout, ptr);
@@ -259,8 +217,6 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Thick, panel_draw);
-  gpencil_modifier_subpanel_register(
-      region_type, "fading", "", fading_header_draw, fading_panel_draw, panel_type);
   PanelType *mask_panel_type = gpencil_modifier_subpanel_register(
       region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(region_type,
@@ -288,7 +244,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Thick = {
     /* initData */ initData,
     /* freeData */ freeData,
     /* isDisabled */ NULL,
-    /* updateDepsgraph */ updateDepsgraph,
+    /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,

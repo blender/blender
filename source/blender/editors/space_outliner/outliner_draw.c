@@ -2356,6 +2356,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
             case eGpencilModifierType_Texture:
               data.icon = ICON_TEXTURE;
               break;
+            case eGpencilModifierType_Weight:
+              data.icon = ICON_MOD_VERTEX_WEIGHT;
+              break;
 
               /* Default */
             default:

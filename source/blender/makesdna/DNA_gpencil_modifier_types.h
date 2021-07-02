@@ -55,6 +55,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_Texture = 18,
   eGpencilModifierType_Lineart = 19,
   eGpencilModifierType_Length = 20,
+  eGpencilModifierType_Weight = 21,
   /* Keep last. */
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
@@ -188,12 +189,7 @@ typedef struct ThickGpencilModifierData {
   int thickness;
   /** Custom index for passes. */
   int layer_pass;
-  /** Start/end distances of the fading effect. */
-  float fading_start;
-  float fading_end;
-  float fading_end_factor;
-  /** Fading reference object */
-  struct Object *object;
+  char _pad[4];
   struct CurveMapping *curve_thickness;
 } ThickGpencilModifierData;
 
@@ -205,7 +201,7 @@ typedef enum eThickGpencil_Flag {
   GP_THICK_NORMALIZE = (1 << 4),
   GP_THICK_INVERT_LAYERPASS = (1 << 5),
   GP_THICK_INVERT_MATERIAL = (1 << 6),
-  GP_THICK_FADING = (1 << 7),
+  GP_THICK_WEIGHT_FACTOR = (1 << 7),
 } eThickGpencil_Flag;
 
 typedef struct TimeGpencilModifierData {
@@ -298,16 +294,9 @@ typedef struct OpacityGpencilModifierData {
   int flag;
   /** Main Opacity factor. */
   float factor;
-  /** Fading controlling object */
-  int _pad0;
-  struct Object *object;
-  /** Start/end distances of the fading effect. */
-  float fading_start;
-  float fading_end;
-  float fading_end_factor;
   /** Modify stroke, fill or both. */
   char modify_color;
-  char _pad1[3];
+  char _pad[3];
   /** Custom index for passes. */
   int layer_pass;
 
@@ -323,7 +312,7 @@ typedef enum eOpacityGpencil_Flag {
   GP_OPACITY_INVERT_MATERIAL = (1 << 5),
   GP_OPACITY_CUSTOM_CURVE = (1 << 6),
   GP_OPACITY_NORMALIZE = (1 << 7),
-  GP_OPACITY_FADING = (1 << 8),
+  GP_OPACITY_WEIGHT_FACTOR = (1 << 8),
 } eOpacityGpencil_Flag;
 
 typedef struct ArrayGpencilModifierData {
@@ -814,6 +803,7 @@ typedef enum eTintGpencil_Flag {
   GP_TINT_INVERT_LAYERPASS = (1 << 4),
   GP_TINT_INVERT_MATERIAL = (1 << 5),
   GP_TINT_CUSTOM_CURVE = (1 << 6),
+  GP_TINT_WEIGHT_FACTOR = (1 << 7),
 } eTintGpencil_Flag;
 
 typedef struct TextureGpencilModifierData {
@@ -866,6 +856,61 @@ typedef enum eTextureGpencil_Mode {
   FILL = 1,
   STROKE_AND_FILL = 2,
 } eTextureGpencil_Mode;
+
+typedef struct WeightGpencilModifierData {
+  GpencilModifierData modifier;
+  /** Target vertexgroup name, MAX_VGROUP_NAME. */
+  char target_vgname[64];
+  /** Material for filtering. */
+  struct Material *material;
+  /** Layer name. */
+  char layername[64];
+  /** Optional vertexgroup filter name, MAX_VGROUP_NAME. */
+  char vgname[64];
+  /** Custom index for passes. */
+  int pass_index;
+  /** Flags. */
+  int flag;
+  /** Minimum valid weight (clamp value). */
+  float min_weight;
+  /** Custom index for passes. */
+  int layer_pass;
+  /** Calculation Mode. */
+  short mode;
+  /** Axis. */
+  short axis;
+  /** Angle */
+  float angle;
+  /** Start/end distances. */
+  float dist_start;
+  float dist_end;
+  /** Space (Local/World). */
+  short space;
+  char _pad[6];
+
+  /** Reference object */
+  struct Object *object;
+} WeightGpencilModifierData;
+
+typedef enum eWeightGpencil_Flag {
+  GP_WEIGHT_INVERT_LAYER = (1 << 0),
+  GP_WEIGHT_INVERT_PASS = (1 << 1),
+  GP_WEIGHT_INVERT_VGROUP = (1 << 2),
+  GP_WEIGHT_INVERT_LAYERPASS = (1 << 3),
+  GP_WEIGHT_INVERT_MATERIAL = (1 << 4),
+  GP_WEIGHT_BLEND_DATA = (1 << 5),
+  GP_WEIGHT_INVERT_OUTPUT = (1 << 6),
+} eWeightGpencil_Flag;
+
+typedef enum eWeightGpencilModifierMode {
+  GP_WEIGHT_MODE_DISTANCE = 0,
+  GP_WEIGHT_MODE_ANGLE = 1,
+} eWeightGpencilModifierMode;
+
+typedef enum eGpencilModifierSpace {
+  GP_SPACE_LOCAL = 0,
+  GP_SPACE_WORLD = 1,
+} eGpencilModifierSpace;
 
 typedef enum eLineartGpencilModifierSource {
   LRT_SOURCE_COLLECTION = 0,
