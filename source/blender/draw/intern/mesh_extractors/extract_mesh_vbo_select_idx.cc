@@ -29,7 +29,7 @@ namespace blender::draw {
 /** \name Extract Selection Index
  * \{ */
 
-static void extract_select_idx_init_impl(const MeshRenderData *mr,
+static void extract_select_idx_init_impl(const MeshRenderData *UNUSED(mr),
                                          const int len,
                                          void *buf,
                                          void *tls_data)

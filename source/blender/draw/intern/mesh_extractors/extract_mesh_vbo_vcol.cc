@@ -103,9 +103,9 @@ static void extract_vcol_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
 
-  typedef struct gpuMeshVcol {
+  using gpuMeshVcol = struct gpuMeshVcol {
     ushort r, g, b, a;
-  } gpuMeshVcol;
+  };
 
   gpuMeshVcol *vcol_data = (gpuMeshVcol *)GPU_vertbuf_get_data(vbo);
   MLoop *loops = (MLoop *)CustomData_get_layer(cd_ldata, CD_MLOOP);
