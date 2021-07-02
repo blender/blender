@@ -554,7 +554,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 
   /* Verify that at least three verts in the input */
   if (!hull_num_input_verts_is_ok(op)) {
-    BMO_error_raise(bm, op, "Requires at least three vertices");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Requires at least three vertices");
     return;
   }
 

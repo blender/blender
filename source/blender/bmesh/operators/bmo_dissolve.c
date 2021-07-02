@@ -257,7 +257,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  BLI_assert(!BMO_error_occurred(bm));
+  BLI_assert(!BMO_error_occurred_at_level(bm, BMO_ERROR_FATAL));
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
 

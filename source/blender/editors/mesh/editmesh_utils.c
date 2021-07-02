@@ -116,45 +116,6 @@ void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Edit-Mesh Copy API (Internal)
- * \{ */
-
-static void edbm_op_emcopy_incref_and_ensure(BMEditMesh *em, const BMOperator *UNUSED(bmop))
-{
-  if (em->emcopy == NULL) {
-    em->emcopy = BKE_editmesh_copy(em);
-  }
-  em->emcopyusers++;
-}
-
-static void edbm_op_emcopy_decref(BMEditMesh *em, const BMOperator *UNUSED(bmop))
-{
-  em->emcopyusers--;
-  if (em->emcopyusers < 0) {
-    printf("warning: em->emcopyusers was less than zero.\n");
-  }
-  if (em->emcopyusers <= 0) {
-    BKE_editmesh_free(em->emcopy);
-    MEM_freeN(em->emcopy);
-    em->emcopy = NULL;
-  }
-}
-
-static void edbm_op_emcopy_restore_and_clear(BMEditMesh *em, const BMOperator *UNUSED(bmop))
-{
-  BLI_assert(em->emcopy != NULL);
-  BMEditMesh *emcopy = em->emcopy;
-  EDBM_mesh_free(em);
-  *em = *emcopy;
-
-  MEM_freeN(emcopy);
-  em->emcopyusers = 0;
-  em->emcopy = NULL;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name BMesh Operator (BMO) API Wrapper
  * \{ */
 
@@ -171,8 +132,6 @@ bool EDBM_op_init(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *
     return false;
   }
 
-  edbm_op_emcopy_incref_and_ensure(em, bmop);
-
   va_end(list);
 
   return true;
@@ -187,29 +146,62 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 {
   const char *errmsg;
 
+#ifndef NDEBUG
+  struct {
+    int verts_len, edges_len, loops_len, faces_len;
+  } em_state_prev = {
+      .verts_len = em->bm->totvert,
+      .edges_len = em->bm->totedge,
+      .loops_len = em->bm->totloop,
+      .faces_len = em->bm->totface,
+  };
+#endif
+
   BMO_op_finish(em->bm, bmop);
 
-  if (BMO_error_get(em->bm, &errmsg, NULL)) {
-    BLI_assert(em->emcopy != NULL);
+  bool changed = false;
+  bool changed_was_set = false;
+
+  eBMOpErrorLevel level;
+  while (BMO_error_pop(em->bm, &errmsg, NULL, &level)) {
+    ReportType type = RPT_INFO;
+    switch (level) {
+      case BMO_ERROR_CANCEL: {
+        changed_was_set = true;
+        break;
+      }
+      case BMO_ERROR_WARN: {
+        type = RPT_WARNING;
+        changed_was_set = true;
+        changed = true;
+        break;
+      }
+      case BMO_ERROR_FATAL: {
+        type = RPT_ERROR;
+        changed_was_set = true;
+        changed = true;
+        break;
+      }
+    }
 
     if (do_report) {
-      BKE_report(op->reports, RPT_ERROR, errmsg);
+      BKE_report(op->reports, type, errmsg);
     }
-
-    edbm_op_emcopy_restore_and_clear(em, bmop);
-
-    /* when copying, tessellation isn't to for faster copying,
-     * but means we need to re-tessellate here */
-    if (em->looptris == NULL) {
-      BKE_editmesh_looptri_calc(em);
-    }
-
-    return false;
+  }
+  if (changed_was_set == false) {
+    changed = true;
   }
 
-  edbm_op_emcopy_decref(em, bmop);
+#ifndef NDEBUG
+  if (changed == false) {
+    BLI_assert((em_state_prev.verts_len == em->bm->totvert) &&
+               (em_state_prev.edges_len == em->bm->totedge) &&
+               (em_state_prev.loops_len == em->bm->totloop) &&
+               (em_state_prev.faces_len == em->bm->totface));
+  }
+#endif
 
-  return true;
+  return changed;
 }
 
 bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
@@ -225,8 +217,6 @@ bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
     va_end(list);
     return false;
   }
-
-  edbm_op_emcopy_incref_and_ensure(em, &bmop);
 
   BMO_op_exec(bm, &bmop);
 
@@ -254,8 +244,6 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em,
     va_end(list);
     return false;
   }
-
-  edbm_op_emcopy_incref_and_ensure(em, &bmop);
 
   BMO_op_exec(bm, &bmop);
 
@@ -286,8 +274,6 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
     va_end(list);
     return false;
   }
-
-  edbm_op_emcopy_incref_and_ensure(em, &bmop);
 
   BMO_op_exec(bm, &bmop);
 

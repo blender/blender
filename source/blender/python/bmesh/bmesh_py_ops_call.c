@@ -44,10 +44,10 @@ BLI_STATIC_ASSERT(sizeof(PyC_FlagSet) == sizeof(BMO_FlagSet), "size mismatch");
 
 static int bpy_bm_op_as_py_error(BMesh *bm)
 {
-  if (BMO_error_occurred(bm)) {
+  if (BMO_error_occurred_at_level(bm, BMO_ERROR_FATAL)) {
     /* NOTE: we could have multiple errors. */
     const char *errmsg;
-    if (BMO_error_get(bm, &errmsg, NULL)) {
+    if (BMO_error_get(bm, &errmsg, NULL, NULL)) {
       PyErr_Format(PyExc_RuntimeError, "bmesh operator: %.200s", errmsg);
       BMO_error_clear(bm);
       return -1;

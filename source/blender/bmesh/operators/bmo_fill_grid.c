@@ -619,6 +619,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
      * extract two 'rail' loops from a single edge loop, see T72075. */
     BMO_error_raise(bm,
                     op,
+                    BMO_ERROR_CANCEL,
                     "Select two edge loops "
                     "or a single closed edge loop from which two edge loops can be calculated");
     goto cleanup;
@@ -633,7 +634,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   v_b_last = ((LinkData *)BM_edgeloop_verts_get(estore_b)->last)->data;
 
   if (BM_edgeloop_is_closed(estore_a) || BM_edgeloop_is_closed(estore_b)) {
-    BMO_error_raise(bm, op, "Closed loops unsupported");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Closed loops unsupported");
     goto cleanup;
   }
 
@@ -671,7 +672,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   bm_edgeloop_flag_set(estore_b, BM_ELEM_HIDDEN, false);
 
   if (BLI_listbase_is_empty(&eloops_rail)) {
-    BMO_error_raise(bm, op, "Loops are not connected by wire/boundary edges");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Loops are not connected by wire/boundary edges");
     goto cleanup;
   }
 
@@ -679,7 +680,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   BLI_assert(v_a_last != v_b_last);
 
   if (BM_edgeloop_overlap_check(estore_rail_a, estore_rail_b)) {
-    BMO_error_raise(bm, op, "Connecting edge loops overlap");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Connecting edge loops overlap");
     goto cleanup;
   }
 

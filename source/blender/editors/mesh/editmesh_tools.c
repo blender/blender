@@ -1264,9 +1264,12 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
     }
   }
   if (checks_succeded) {
+    BMBackup em_backup = EDBM_redo_state_store(em);
+
     BM_custom_loop_normals_to_vector_layer(bm);
 
     BMO_op_exec(bm, &bmop);
+    const bool failure = BMO_error_occurred_at_level(bm, BMO_ERROR_FATAL);
     len = BMO_slot_get(bmop.slots_out, "edges.out")->len;
 
     if (len && is_pair) {
@@ -1275,8 +1278,14 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
           em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
     }
 
-    if (!EDBM_op_finish(em, &bmop, op, true)) {
+    bool em_backup_free = true;
+    if (!EDBM_op_finish(em, &bmop, op, false)) {
       len = 0;
+    }
+    else if (failure) {
+      len = 0;
+      EDBM_redo_state_free(&em_backup, em, true);
+      em_backup_free = false;
     }
     else {
       /* so newly created edges get the selection state from the vertex */
@@ -1290,6 +1299,10 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
                       .calc_normals = false,
                       .is_destructive = true,
                   });
+    }
+
+    if (em_backup_free) {
+      EDBM_redo_state_free(&em_backup, NULL, false);
     }
   }
   MEM_freeN(verts);
@@ -7304,7 +7317,7 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
 
   BMO_op_exec(em->bm, &bmop);
 
-  if (!BMO_error_occurred(em->bm)) {
+  if (!BMO_error_occurred_at_level(em->bm, BMO_ERROR_CANCEL)) {
     /* when merge is used the edges are joined and remain selected */
     if (use_merge == false) {
       EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -7670,7 +7683,7 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
     BMO_op_exec(em->bm, &bmop);
 
     /* Hull fails if input is coplanar */
-    if (BMO_error_occurred(em->bm)) {
+    if (BMO_error_occurred_at_level(em->bm, BMO_ERROR_CANCEL)) {
       EDBM_op_finish(em, &bmop, op, true);
       continue;
     }

@@ -296,7 +296,7 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
       bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE), "convex_hull input=%hv", BM_ELEM_TAG);
   BMO_op_exec(bm, &op);
 
-  if (BMO_error_occurred(bm)) {
+  if (BMO_error_occurred_at_level(bm, BMO_ERROR_CANCEL)) {
     BMO_op_finish(bm, &op);
     return false;
   }

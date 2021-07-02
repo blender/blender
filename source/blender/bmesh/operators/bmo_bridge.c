@@ -576,12 +576,12 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
   BM_mesh_edgeloops_calc_center(bm, &eloops);
 
   if (count < 2) {
-    BMO_error_raise(bm, op, "Select at least two edge loops");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Select at least two edge loops");
     goto cleanup;
   }
 
   if (use_pairs && (count % 2)) {
-    BMO_error_raise(bm, op, "Select an even number of loops to bridge pairs");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Select an even number of loops to bridge pairs");
     goto cleanup;
   }
 
@@ -595,7 +595,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
       }
     }
     if (!match) {
-      BMO_error_raise(bm, op, "Selected loops must have equal edge counts");
+      BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Selected loops must have equal edge counts");
       goto cleanup;
     }
   }

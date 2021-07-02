@@ -50,7 +50,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
   BMO_slot_vec_get(op->slots_in, "plane_no", plane_no);
 
   if (is_zero_v3(plane_no)) {
-    BMO_error_raise(bm, op, "Zero normal given");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Zero normal given");
     return;
   }
 
