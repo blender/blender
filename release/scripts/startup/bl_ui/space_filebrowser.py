@@ -552,6 +552,10 @@ class FILEBROWSER_MT_context_menu(Menu):
         sub.operator_context = 'EXEC_DEFAULT'
         sub.operator("file.delete", text="Delete")
 
+        active_asset = asset_utils.SpaceAssetInfo.get_active_asset(context)
+        if active_asset:
+            layout.operator("asset.open_containing_blend_file")
+
         layout.separator()
 
         sub = layout.row()
@@ -612,6 +616,8 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
             col.label(text="Source:")
             row = col.row()
             row.label(text=asset_lib_path)
+
+        row.operator("asset.open_containing_blend_file", text="", icon='TOOL_SETTINGS')
 
 
 class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
