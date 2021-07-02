@@ -335,12 +335,6 @@ typedef struct Object {
    */
   float imat[4][4];
 
-  /* Previously 'imat' was used at render time, but as other places use it too
-   * the interactive ui of 2.5 creates problems. So now only 'imat_ren' should
-   * be used when ever the inverse of ob->obmat * re->viewmat is needed! - jahka
-   */
-  float imat_ren[4][4];
-
   /** Copy of Base's layer in the scene. */
   unsigned int lay DNA_DEPRECATED;
 
