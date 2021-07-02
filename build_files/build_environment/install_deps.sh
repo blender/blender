@@ -1073,7 +1073,7 @@ OPENVDB_SOURCE=( "https://github.com/AcademySoftwareFoundation/openvdb/archive/v
 #~ OPENVDB_SOURCE_REPO_BRANCH="dev"
 
 NANOVDB_USE_REPO=false
-NANOVDB_SOURCE_REPO_UID="e62f7a0bf1e27397223c61ddeaaf57edf111b77f"
+NANOVDB_SOURCE_REPO_UID="dc37d8a631922e7bef46712947dc19b755f3e841"
 NANOVDB_SOURCE=( "https://github.com/AcademySoftwareFoundation/openvdb/archive/${NANOVDB_SOURCE_REPO_UID}.tar.gz" )
 
 ALEMBIC_USE_REPO=false
