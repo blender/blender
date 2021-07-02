@@ -158,8 +158,12 @@ static void mesh_runtime_looptri_recalc_isolated(void *userdata)
   BKE_mesh_runtime_looptri_recalc(mesh);
 }
 
-/* This is a ported copy of dm_getLoopTriArray(dm). */
-const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
+/**
+ * \note This function only fills a cache, and therefore the mesh argument can
+ * be considered logically const. Concurrent access is protected by a mutex.
+ * \note This is a ported copy of dm_getLoopTriArray(dm).
+ */
+const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
 {
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
   BLI_mutex_lock(mesh_eval_mutex);

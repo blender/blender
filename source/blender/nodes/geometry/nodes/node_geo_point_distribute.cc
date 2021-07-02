@@ -83,8 +83,7 @@ static float3 normal_to_euler_rotation(const float3 normal)
 
 static Span<MLoopTri> get_mesh_looptris(const Mesh &mesh)
 {
-  /* This only updates a cache and can be considered to be logically const. */
-  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(const_cast<Mesh *>(&mesh));
+  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(&mesh);
   const int looptris_len = BKE_mesh_runtime_looptri_len(&mesh);
   return {looptris, looptris_len};
 }

@@ -1438,9 +1438,12 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
 
 /**
  * Builds or queries a bvhcache for the cache bvhtree of the request type.
+ *
+ * \note This function only fills a cache, and therefore the mesh argument can
+ * be considered logically const. Concurrent access is protected by a mutex.
  */
 BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
-                                   struct Mesh *mesh,
+                                   const struct Mesh *mesh,
                                    const BVHCacheType bvh_cache_type,
                                    const int tree_type)
 {
@@ -1448,7 +1451,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
   BVHCache **bvh_cache_p = (BVHCache **)&mesh->runtime.bvh_cache;
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
 
-  bool is_cached = bvhcache_find(bvh_cache_p, bvh_cache_type, &tree, nullptr, nullptr);
+  const bool is_cached = bvhcache_find(bvh_cache_p, bvh_cache_type, &tree, nullptr, nullptr);
 
   if (is_cached && tree == nullptr) {
     memset(data, 0, sizeof(*data));

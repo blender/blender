@@ -95,7 +95,7 @@ static void raycast_to_mesh(const Mesh *mesh,
   BLI_assert(ray_origins.size() == r_hit_distances.size() || r_hit_distances.is_empty());
 
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, const_cast<Mesh *>(mesh), BVHTREE_FROM_LOOPTRI, 4);
+  BKE_bvhtree_from_mesh_get(&tree_data, mesh, BVHTREE_FROM_LOOPTRI, 4);
 
   if (tree_data.tree != nullptr) {
     for (const int i : ray_origins.index_range()) {
