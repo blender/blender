@@ -306,9 +306,13 @@ void GHOST_WindowWin32::setTitle(const char *title)
 
 std::string GHOST_WindowWin32::getTitle() const
 {
-  char buf[s_maxTitleLength]; /* CHANGE + never used yet. */
-  ::GetWindowText(m_hWnd, buf, s_maxTitleLength);
-  return std::string(buf);
+  std::wstring wtitle(::GetWindowTextLengthW(m_hWnd) + 1, L'\0');
+  ::GetWindowTextW(m_hWnd, &wtitle[0], wtitle.capacity());
+
+  std::string title(count_utf_8_from_16(wtitle.c_str()) + 1, '\0');
+  conv_utf_16_to_8(wtitle.c_str(), &title[0], title.capacity());
+
+  return title;
 }
 
 void GHOST_WindowWin32::getWindowBounds(GHOST_Rect &bounds) const
