@@ -1382,40 +1382,6 @@ static void filelist_entry_clear(FileDirEntry *entry)
     BKE_icon_delete(entry->preview_icon_id);
     entry->preview_icon_id = 0;
   }
-  /* For now, consider FileDirEntryRevision::poin as not owned here,
-   * so no need to do anything about it */
-
-  if (!BLI_listbase_is_empty(&entry->variants)) {
-    FileDirEntryVariant *var;
-
-    for (var = entry->variants.first; var; var = var->next) {
-      if (var->name) {
-        MEM_freeN(var->name);
-      }
-      if (var->description) {
-        MEM_freeN(var->description);
-      }
-
-      if (!BLI_listbase_is_empty(&var->revisions)) {
-        FileDirEntryRevision *rev;
-
-        for (rev = var->revisions.first; rev; rev = rev->next) {
-          if (rev->comment) {
-            MEM_freeN(rev->comment);
-          }
-        }
-
-        BLI_freelistN(&var->revisions);
-      }
-    }
-
-    /* TODO: tags! */
-
-    BLI_freelistN(&entry->variants);
-  }
-  else if (entry->entry) {
-    MEM_freeN(entry->entry);
-  }
 }
 
 static void filelist_entry_free(FileDirEntry *entry)
@@ -1954,16 +1920,12 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   FileListInternEntry *entry = filelist->filelist_intern.filtered[index];
   FileListEntryCache *cache = &filelist->filelist_cache;
   FileDirEntry *ret;
-  FileDirEntryRevision *rev;
 
   ret = MEM_callocN(sizeof(*ret), __func__);
-  rev = MEM_callocN(sizeof(*rev), __func__);
 
-  rev->size = (uint64_t)entry->st.st_size;
+  ret->size = (uint64_t)entry->st.st_size;
+  ret->time = (int64_t)entry->st.st_mtime;
 
-  rev->time = (int64_t)entry->st.st_mtime;
-
-  ret->entry = rev;
   ret->relpath = BLI_strdup(entry->relpath);
   if (entry->free_name) {
     ret->name = BLI_strdup(entry->name);

@@ -727,40 +727,45 @@ static void draw_columnheader_columns(const FileSelectParams *params,
 /**
  * Updates the stat string stored in file->entry if necessary.
  */
-static const char *filelist_get_details_column_string(FileAttributeColumnType column,
-                                                      const FileDirEntry *file,
-                                                      const bool small_size,
-                                                      const bool update_stat_strings)
+static const char *filelist_get_details_column_string(
+    FileAttributeColumnType column,
+    /* Generated string will be cached in the file, so non-const. */
+    FileDirEntry *file,
+    const bool small_size,
+    const bool update_stat_strings)
 {
   switch (column) {
     case COLUMN_DATETIME:
       if (!(file->typeflag & FILE_TYPE_BLENDERLIB) && !FILENAME_IS_CURRPAR(file->relpath)) {
-        if ((file->entry->datetime_str[0] == '\0') || update_stat_strings) {
+        if ((file->draw_data.datetime_str[0] == '\0') || update_stat_strings) {
           char date[FILELIST_DIRENTRY_DATE_LEN], time[FILELIST_DIRENTRY_TIME_LEN];
           bool is_today, is_yesterday;
 
           BLI_filelist_entry_datetime_to_string(
-              NULL, file->entry->time, small_size, time, date, &is_today, &is_yesterday);
+              NULL, file->time, small_size, time, date, &is_today, &is_yesterday);
 
           if (is_today || is_yesterday) {
             BLI_strncpy(date, is_today ? N_("Today") : N_("Yesterday"), sizeof(date));
           }
-          BLI_snprintf(
-              file->entry->datetime_str, sizeof(file->entry->datetime_str), "%s %s", date, time);
+          BLI_snprintf(file->draw_data.datetime_str,
+                       sizeof(file->draw_data.datetime_str),
+                       "%s %s",
+                       date,
+                       time);
         }
 
-        return file->entry->datetime_str;
+        return file->draw_data.datetime_str;
       }
       break;
     case COLUMN_SIZE:
       if ((file->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) ||
           !(file->typeflag & (FILE_TYPE_DIR | FILE_TYPE_BLENDERLIB))) {
-        if ((file->entry->size_str[0] == '\0') || update_stat_strings) {
+        if ((file->draw_data.size_str[0] == '\0') || update_stat_strings) {
           BLI_filelist_entry_size_to_string(
-              NULL, file->entry->size, small_size, file->entry->size_str);
+              NULL, file->size, small_size, file->draw_data.size_str);
         }
 
-        return file->entry->size_str;
+        return file->draw_data.size_str;
       }
       break;
     default:
@@ -772,7 +777,7 @@ static const char *filelist_get_details_column_string(FileAttributeColumnType co
 
 static void draw_details_columns(const FileSelectParams *params,
                                  const FileLayout *layout,
-                                 const FileDirEntry *file,
+                                 FileDirEntry *file,
                                  const int pos_x,
                                  const int pos_y,
                                  const uchar text_col[4])
