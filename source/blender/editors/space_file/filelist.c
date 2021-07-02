@@ -263,8 +263,7 @@ ListBase folder_history_list_duplicate(ListBase *listbase)
 typedef struct FileListInternEntry {
   struct FileListInternEntry *next, *prev;
 
-  /** ASSET_UUID_LENGTH */
-  char uuid[16];
+  FileUID uid;
 
   /** eFileSel_File_Types */
   int typeflag;
@@ -306,7 +305,7 @@ typedef struct FileListIntern {
   ListBase entries;
   FileListInternEntry **filtered;
 
-  char curr_uuid[16]; /* Used to generate uuid during internal listing. */
+  FileUID curr_uid; /* Used to generate UID during internal listing. */
 } FileListIntern;
 
 #define FILELIST_ENTRYCACHESIZE_DEFAULT 1024 /* Keep it a power of two! */
@@ -329,8 +328,8 @@ typedef struct FileListEntryCache {
   int *misc_entries_indices;
   GHash *misc_entries;
 
-  /* Allows to quickly get a cached entry from its UUID. */
-  GHash *uuids;
+  /* Allows to quickly get a cached entry from its UID. */
+  GHash *uids;
 
   /* Previews handling. */
   TaskPool *previews_pool;
@@ -1662,9 +1661,8 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
   copy_vn_i(cache->misc_entries_indices, cache_size, -1);
   cache->misc_cursor = 0;
 
-  /* XXX This assumes uint is 32 bits and uuid is 128 bits (char[16]), be careful! */
-  cache->uuids = BLI_ghash_new_ex(
-      BLI_ghashutil_uinthash_v4_p, BLI_ghashutil_uinthash_v4_cmp, __func__, cache_size * 2);
+  cache->uids = BLI_ghash_new_ex(
+      BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__, cache_size * 2);
 
   cache->size = cache_size;
   cache->flags = FLC_IS_INIT;
@@ -1688,7 +1686,7 @@ static void filelist_cache_free(FileListEntryCache *cache)
   BLI_ghash_free(cache->misc_entries, NULL, NULL);
   MEM_freeN(cache->misc_entries_indices);
 
-  BLI_ghash_free(cache->uuids, NULL, NULL);
+  BLI_ghash_free(cache->uids, NULL, NULL);
 
   for (entry = cache->cached_entries.first; entry; entry = entry_next) {
     entry_next = entry->next;
@@ -1721,7 +1719,7 @@ static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
   }
   copy_vn_i(cache->misc_entries_indices, new_size, -1);
 
-  BLI_ghash_clear_ex(cache->uuids, NULL, NULL, new_size * 2);
+  BLI_ghash_clear_ex(cache->uids, NULL, NULL, new_size * 2);
 
   cache->size = new_size;
 
@@ -1738,8 +1736,7 @@ FileList *filelist_new(short type)
 
   filelist_cache_init(&p->filelist_cache, FILELIST_ENTRYCACHESIZE_DEFAULT);
 
-  p->selection_state = BLI_ghash_new(
-      BLI_ghashutil_uinthash_v4_p, BLI_ghashutil_uinthash_v4_cmp, __func__);
+  p->selection_state = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
   p->filelist.nbr_entries = FILEDIR_NBR_ENTRIES_UNSET;
   filelist_settype(p, type);
 
@@ -1798,7 +1795,7 @@ void filelist_clear_ex(struct FileList *filelist, const bool do_cache, const boo
   filelist_direntryarr_free(&filelist->filelist);
 
   if (do_selection && filelist->selection_state) {
-    BLI_ghash_clear(filelist->selection_state, MEM_freeN, NULL);
+    BLI_ghash_clear(filelist->selection_state, NULL, NULL);
   }
 }
 
@@ -1819,7 +1816,7 @@ void filelist_free(struct FileList *filelist)
   filelist_cache_free(&filelist->filelist_cache);
 
   if (filelist->selection_state) {
-    BLI_ghash_free(filelist->selection_state, MEM_freeN, NULL);
+    BLI_ghash_free(filelist->selection_state, NULL, NULL);
     filelist->selection_state = NULL;
   }
 
@@ -1976,7 +1973,7 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
     ret->name = entry->name;
   }
   ret->description = BLI_strdupcat(filelist->filelist.root, entry->relpath);
-  memcpy(ret->uuid, entry->uuid, sizeof(ret->uuid));
+  ret->uid = entry->uid;
   ret->blentype = entry->blentype;
   ret->typeflag = entry->typeflag;
   ret->attributes = entry->attributes;
@@ -2034,11 +2031,11 @@ FileDirEntry *filelist_file_ex(struct FileList *filelist, const int index, const
   ret = filelist_file_create_entry(filelist, index);
   old_index = cache->misc_entries_indices[cache->misc_cursor];
   if ((old = BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(old_index), NULL))) {
-    BLI_ghash_remove(cache->uuids, old->uuid, NULL, NULL);
+    BLI_ghash_remove(cache->uids, POINTER_FROM_UINT(old->uid), NULL, NULL);
     filelist_file_release_entry(filelist, old);
   }
   BLI_ghash_insert(cache->misc_entries, POINTER_FROM_INT(index), ret);
-  BLI_ghash_insert(cache->uuids, ret->uuid, ret);
+  BLI_ghash_insert(cache->uids, POINTER_FROM_UINT(ret->uid), ret);
 
   cache->misc_entries_indices[cache->misc_cursor] = index;
   cache->misc_cursor = (cache->misc_cursor + 1) % cache_size;
@@ -2087,33 +2084,31 @@ ID *filelist_file_get_id(const FileDirEntry *file)
   return file->id;
 }
 
-FileDirEntry *filelist_entry_find_uuid(struct FileList *filelist, const int uuid[4])
+#define FILE_UID_UNSET 0
+
+static FileUID filelist_uid_generate(FileList *filelist)
 {
-  if (filelist->filelist.nbr_entries_filtered == FILEDIR_NBR_ENTRIES_UNSET) {
-    return NULL;
-  }
-
-  if (filelist->filelist_cache.uuids) {
-    FileDirEntry *entry = BLI_ghash_lookup(filelist->filelist_cache.uuids, uuid);
-    if (entry) {
-      return entry;
-    }
-  }
-
-  {
-    int fidx;
-
-    for (fidx = 0; fidx < filelist->filelist.nbr_entries_filtered; fidx++) {
-      FileListInternEntry *entry = filelist->filelist_intern.filtered[fidx];
-      if (memcmp(entry->uuid, uuid, sizeof(entry->uuid)) == 0) {
-        return filelist_file(filelist, fidx);
-      }
-    }
-  }
-
-  return NULL;
+  /* Using an atomic operation to avoid having to lock thread...
+   * Note that we do not really need this here currently, since there is a single listing thread,
+   * but better remain consistent about threading! */
+  return atomic_add_and_fetch_uint32(&filelist->filelist_intern.curr_uid, 1);
 }
 
+bool filelist_uid_is_set(const FileUID uid)
+{
+  FileUID unset_uid;
+  filelist_uid_unset(&unset_uid);
+  return unset_uid != uid;
+}
+
+void filelist_uid_unset(FileUID *r_uid)
+{
+  *r_uid = FILE_UID_UNSET;
+}
+
+/**
+ * \warning: The UID will only be valid for the current session. Use as runtime data only!
+ */
 void filelist_file_cache_slidingwindow_set(FileList *filelist, size_t window_size)
 {
   /* Always keep it power of 2, in [256, 8192] range for now,
@@ -2147,7 +2142,7 @@ static bool filelist_file_cache_block_create(FileList *filelist,
       /* That entry might have already been requested and stored in misc cache... */
       if ((entry = BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(idx), NULL)) == NULL) {
         entry = filelist_file_create_entry(filelist, idx);
-        BLI_ghash_insert(cache->uuids, entry->uuid, entry);
+        BLI_ghash_insert(cache->uids, POINTER_FROM_UINT(entry->uid), entry);
       }
       cache->block_entries[cursor] = entry;
     }
@@ -2173,7 +2168,7 @@ static void filelist_file_cache_block_release(struct FileList *filelist,
              __func__,
              cursor /*, cache->block_entries[cursor], cache->block_entries[cursor]->relpath*/);
 #endif
-      BLI_ghash_remove(cache->uuids, entry->uuid, NULL, NULL);
+      BLI_ghash_remove(cache->uids, POINTER_FROM_UINT(entry->uid), NULL, NULL);
       filelist_file_release_entry(filelist, entry);
 #ifndef NDEBUG
       cache->block_entries[cursor] = NULL;
@@ -2635,7 +2630,7 @@ uint filelist_entry_select_set(const FileList *filelist,
                                FileCheckType check)
 {
   /* Default NULL pointer if not found is fine here! */
-  void **es_p = BLI_ghash_lookup_p(filelist->selection_state, entry->uuid);
+  void **es_p = BLI_ghash_lookup_p(filelist->selection_state, POINTER_FROM_UINT(entry->uid));
   uint entry_flag = es_p ? POINTER_AS_UINT(*es_p) : 0;
   const uint org_entry_flag = entry_flag;
 
@@ -2663,13 +2658,12 @@ uint filelist_entry_select_set(const FileList *filelist,
         *es_p = POINTER_FROM_UINT(entry_flag);
       }
       else {
-        BLI_ghash_remove(filelist->selection_state, entry->uuid, MEM_freeN, NULL);
+        BLI_ghash_remove(filelist->selection_state, POINTER_FROM_UINT(entry->uid), NULL, NULL);
       }
     }
     else if (entry_flag) {
-      void *key = MEM_mallocN(sizeof(entry->uuid), __func__);
-      memcpy(key, entry->uuid, sizeof(entry->uuid));
-      BLI_ghash_insert(filelist->selection_state, key, POINTER_FROM_UINT(entry_flag));
+      BLI_ghash_insert(
+          filelist->selection_state, POINTER_FROM_UINT(entry->uid), POINTER_FROM_UINT(entry_flag));
     }
   }
 
@@ -2707,7 +2701,8 @@ uint filelist_entry_select_get(FileList *filelist, FileDirEntry *entry, FileChec
   if (((check == CHECK_ALL)) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
       ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR))) {
     /* Default NULL pointer if not found is fine here! */
-    return POINTER_AS_UINT(BLI_ghash_lookup(filelist->selection_state, entry->uuid));
+    return POINTER_AS_UINT(
+        BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(entry->uid)));
   }
 
   return 0;
@@ -2732,7 +2727,7 @@ bool filelist_entry_is_selected(FileList *filelist, const int index)
   /* BLI_ghash_lookup returns NULL if not found, which gets mapped to 0, which gets mapped to
    * "not selected". */
   const uint selection_state = POINTER_AS_UINT(
-      BLI_ghash_lookup(filelist->selection_state, intern_entry->uuid));
+      BLI_ghash_lookup(filelist->selection_state, POINTER_FROM_UINT(intern_entry->uid)));
 
   return selection_state != 0;
 }
@@ -3202,14 +3197,7 @@ static void filelist_readjob_do(const bool do_lib,
     for (entry = entries.first; entry; entry = entry->next) {
       BLI_join_dirfile(dir, sizeof(dir), rel_subdir, entry->relpath);
 
-      /* Generate our entry uuid. Abusing uuid as an uint32, shall be more than enough here,
-       * things would crash way before we overflow that counter!
-       * Using an atomic operation to avoid having to lock thread...
-       * Note that we do not really need this here currently,
-       * since there is a single listing thread, but better
-       * remain consistent about threading! */
-      *((uint32_t *)entry->uuid) = atomic_add_and_fetch_uint32(
-          (uint32_t *)filelist->filelist_intern.curr_uuid, 1);
+      entry->uid = filelist_uid_generate(filelist);
 
       /* Only thing we change in direntry here, so we need to free it first. */
       MEM_freeN(entry->relpath);
@@ -3334,8 +3322,7 @@ static void filelist_readjob_main_assets(Main *current_main,
     entry->free_name = false;
     entry->typeflag |= FILE_TYPE_BLENDERLIB | FILE_TYPE_ASSET;
     entry->blentype = GS(id_iter->name);
-    *((uint32_t *)entry->uuid) = atomic_add_and_fetch_uint32(
-        (uint32_t *)filelist->filelist_intern.curr_uuid, 1);
+    entry->uid = filelist_uid_generate(filelist);
     entry->local_data.preview_image = BKE_asset_metadata_preview_get_from_id(id_iter->asset_data,
                                                                              id_iter);
     entry->local_data.id = id_iter;
@@ -3381,9 +3368,7 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
 
   flrj->tmp_filelist->filelist_intern.filtered = NULL;
   BLI_listbase_clear(&flrj->tmp_filelist->filelist_intern.entries);
-  memset(flrj->tmp_filelist->filelist_intern.curr_uuid,
-         0,
-         sizeof(flrj->tmp_filelist->filelist_intern.curr_uuid));
+  filelist_uid_unset(&flrj->tmp_filelist->filelist_intern.curr_uid);
 
   flrj->tmp_filelist->libfiledata = NULL;
   memset(&flrj->tmp_filelist->filelist_cache, 0, sizeof(flrj->tmp_filelist->filelist_cache));
@@ -3423,7 +3408,7 @@ static void filelist_readjob_update(void *flrjv)
   BLI_mutex_unlock(&flrj->lock);
 
   if (new_nbr_entries) {
-    /* Do not clear selection cache, we can assume already 'selected' uuids are still valid! */
+    /* Do not clear selection cache, we can assume already 'selected' UIDs are still valid! */
     filelist_clear_ex(flrj->filelist, true, false);
 
     flrj->filelist->flags |= (FL_NEED_SORTING | FL_NEED_FILTERING);

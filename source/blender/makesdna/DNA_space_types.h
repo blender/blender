@@ -1110,7 +1110,7 @@ typedef struct FileDirEntryVariant {
 typedef struct FileDirEntry {
   struct FileDirEntry *next, *prev;
 
-  int uuid[4];
+  uint32_t uid; /* FileUID */
   /* Name needs freeing if FILE_ENTRY_NAME_FREE is set. Otherwise this is a direct pointer to a
    * name buffer. */
   char *name;
