@@ -249,7 +249,7 @@ static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
   return !(mmd->target_vgname && mmd->target_vgname[0] != '\0');
 }
 
-static void distance_panel_draw(const bContext *C, Panel *panel)
+static void distance_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 

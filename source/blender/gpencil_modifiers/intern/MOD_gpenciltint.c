@@ -176,8 +176,8 @@ static void deformStroke(GpencilModifierData *md,
         /* Use weightened factor. */
         if (mmd->flag & GP_TINT_WEIGHT_FACTOR) {
           /* Use first point for weight. */
-          MDeformVert *dvert = (gps->dvert != NULL) ? &gps->dvert[0] : NULL;
-          float weight = get_modifier_point_weight(dvert, is_inverted, def_nr);
+          MDeformVert *dvert_fill = (gps->dvert != NULL) ? &gps->dvert[0] : NULL;
+          float weight = get_modifier_point_weight(dvert_fill, is_inverted, def_nr);
           if (weight >= 0.0f) {
             fill_factor = ((mmd->flag & GP_TINT_INVERT_VGROUP) ? 1.0f - weight : weight);
           }
