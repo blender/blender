@@ -274,7 +274,7 @@ static void setViewPortGL(GHOST_WindowHandle hWindow)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(-w, w, -h, h, 5.0, 60.0);
-  /* glOrtho(0, bnds.getWidth(), 0, bnds.getHeight(), -10, 10); */
+  // glOrtho(0, bnds.getWidth(), 0, bnds.getHeight(), -10, 10);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glTranslatef(0.0, 0.0, -40.0);

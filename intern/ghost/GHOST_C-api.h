@@ -507,7 +507,7 @@ extern GHOST_TimerProcPtr GHOST_GetTimerProc(GHOST_TimerTaskHandle timertaskhand
 
 /**
  * Changes the timer callback.
- * \param timertaskhandle: The handle to the timertask.
+ * \param timertaskhandle: The handle to the timer-task.
  * \param timerProc: The timer callback.
  */
 extern void GHOST_SetTimerProc(GHOST_TimerTaskHandle timertaskhandle,
@@ -515,14 +515,14 @@ extern void GHOST_SetTimerProc(GHOST_TimerTaskHandle timertaskhandle,
 
 /**
  * Returns the timer user data.
- * \param timertaskhandle: The handle to the timertask.
+ * \param timertaskhandle: The handle to the timer-task.
  * \return The timer user data.
  */
 extern GHOST_TUserDataPtr GHOST_GetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle);
 
 /**
  * Changes the time user data.
- * \param timertaskhandle: The handle to the timertask.
+ * \param timertaskhandle: The handle to the timer-task.
  * \param userdata: The timer user data.
  */
 extern void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle,

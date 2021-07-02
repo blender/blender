@@ -137,7 +137,7 @@ class GHOST_SystemCocoa : public GHOST_System {
   bool processEvents(bool waitForEvent);
 
   /**
-   * Handle User request to quit, from Menu bar Quit, and Cmd+Q
+   * Handle User request to quit, from Menu bar Quit, and Command+Q
    * Display alert panel if changes performed since last save
    */
   void handleQuitRequest();

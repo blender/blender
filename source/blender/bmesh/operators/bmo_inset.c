@@ -1016,8 +1016,8 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
               if (use_even_boundary) {
 
                 /**
-                 * This case where only one edge attached to #v_split
-                 * is used - ei - the face to inset is on a boundary.
+                 * This case where only one edge attached to #v_split is used.
+                 * i.e. the face to inset is on a boundary.
                  *
                  * <pre>
                  *                  We want the inset to align flush with the

@@ -3008,7 +3008,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     char timecode_str_start[32];
     char timecode_str_end[32];
 
-    /* Write timecode relative to start frame of scene. Don't allow negative timecodes. */
+    /* Write time-code relative to start frame of scene. Don't allow negative time-codes. */
     BLI_timecode_string_from_time(timecode_str_start,
                                   sizeof(timecode_str_start),
                                   -2,

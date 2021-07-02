@@ -366,7 +366,7 @@ typedef struct wmKeyMapItem {
   short type;
   /** KM_ANY, KM_PRESS, KM_NOTHING etc. */
   short val;
-  /** Oskey is apple or windowskey, value denotes order of pressed. */
+  /** `oskey` also known as apple, windows-key or super, value denotes order of pressed. */
   short shift, ctrl, alt, oskey;
   /** Raw-key modifier. */
   short keymodifier;

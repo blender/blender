@@ -2194,9 +2194,9 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 
 float evaluate_fcurve_only_curve(FCurve *fcu, float evaltime)
 {
-  /* Can be used to evaluate the (keyframed) fcurve only.
-   * Also works for driver-fcurves when the driver itself is not relevant.
-   * E.g. when inserting a keyframe in a driver fcurve. */
+  /* Can be used to evaluate the (key-framed) f-curve only.
+   * Also works for driver-f-curves when the driver itself is not relevant.
+   * E.g. when inserting a keyframe in a driver f-curve. */
   return evaluate_fcurve_ex(fcu, evaltime, 0.0);
 }
 

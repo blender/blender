@@ -896,7 +896,9 @@ template<typename T> inline bool is_original_vert(const CDTVert<T> *v, CDT_state
   return (v->index < cdt->input_vert_tot);
 }
 
-/* Return the Symedge that goes from v1 to v2, if it exists, else return nullptr. */
+/**
+ * Return the #SymEdge that goes from v1 to v2, if it exists, else return nullptr.
+ */
 template<typename T>
 SymEdge<T> *find_symedge_between_verts(const CDTVert<T> *v1, const CDTVert<T> *v2)
 {

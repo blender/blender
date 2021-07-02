@@ -688,8 +688,8 @@ void BKE_lnor_space_custom_data_to_normal(MLoopNorSpace *lnor_space,
   }
 
   {
-    /* TODO Check whether using sincosf() gives any noticeable benefit
-     *      (could not even get it working under linux though)! */
+    /* TODO: Check whether using #sincosf() gives any noticeable benefit
+     * (could not even get it working under linux though)! */
     const float pi2 = (float)(M_PI * 2.0);
     const float alphafac = unit_short_to_float(clnor_data[0]);
     const float alpha = (alphafac > 0.0f ? lnor_space->ref_alpha : pi2 - lnor_space->ref_alpha) *

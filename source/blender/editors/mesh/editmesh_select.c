@@ -964,7 +964,7 @@ static bool unified_findnearest(ViewContext *vc,
     }
   }
 
-  /* return only one of 3 pointers, for frontbuffer redraws */
+  /* Return only one of 3 pointers, for front-buffer redraws. */
   if (hit.v.ele) {
     hit.f.ele = NULL;
     hit.e.ele = NULL;
