@@ -76,6 +76,20 @@ void BKE_pose_apply_action_all_bones(struct Object *ob,
   animsys_evaluate_action(&pose_owner_ptr, action, anim_eval_context, false);
 }
 
+void BKE_pose_apply_action_blend(struct Object *ob,
+                                 struct bAction *action,
+                                 struct AnimationEvalContext *anim_eval_context,
+                                 const float blend_factor)
+{
+  auto evaluate_and_blend = [blend_factor](PointerRNA *ptr,
+                                           bAction *act,
+                                           const AnimationEvalContext *anim_eval_context) {
+    animsys_blend_in_action(ptr, act, anim_eval_context, blend_factor);
+  };
+
+  pose_apply(ob, action, anim_eval_context, evaluate_and_blend);
+}
+
 namespace {
 void pose_apply(struct Object *ob,
                 struct bAction *action,

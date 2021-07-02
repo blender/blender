@@ -215,6 +215,10 @@ void BKE_pose_apply_action_all_bones(struct Object *ob,
                                      struct bAction *action,
                                      struct AnimationEvalContext *anim_eval_context);
 
+void BKE_pose_apply_action_blend(struct Object *ob,
+                                 struct bAction *action,
+                                 struct AnimationEvalContext *anim_eval_context,
+                                 float blend_factor);
 
 void vec_roll_to_mat3(const float vec[3], const float roll, float r_mat[3][3]);
 void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_mat[3][3]);
