@@ -47,11 +47,14 @@
 #include <xkbcommon/xkbcommon.h>
 
 #include <fcntl.h>
-#include <linux/input-event-codes.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
 #include <cstring>
+
+#define BTN_LEFT    0x110
+#define BTN_RIGHT   0x111
+#define BTN_MIDDLE  0x112
 
 struct buffer_t {
   void *data;
