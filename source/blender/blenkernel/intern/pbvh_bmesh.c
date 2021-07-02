@@ -53,6 +53,8 @@ Topology rake:
 #include "PIL_time.h"
 #include "atomic_ops.h"
 
+#include "DNA_material_types.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_ccg.h"
 #include "BKE_pbvh.h"
@@ -506,10 +508,7 @@ static void pbvh_bmesh_node_split(
   n->bm_other_verts = NULL;
   n->layer_disp = NULL;
 
-  if (n->draw_buffers) {
-    GPU_pbvh_buffers_free(n->draw_buffers);
-    n->draw_buffers = NULL;
-  }
+  pbvh_free_all_draw_buffers(n);
   n->flag &= ~PBVH_Leaf;
 
   /* Recurse */
@@ -3999,6 +3998,20 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   return modified;
 }
 
+static void pbvh_free_tribuf(PBVHTriBuf *tribuf)
+{
+  MEM_SAFE_FREE(tribuf->verts);
+  MEM_SAFE_FREE(tribuf->tris);
+  MEM_SAFE_FREE(tribuf->loops);
+
+  tribuf->verts = NULL;
+  tribuf->tris = NULL;
+  tribuf->loops = NULL;
+
+  tribuf->verts_size = 0;
+  tribuf->tris_size = 0;
+}
+
 PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node)
 {
   BKE_pbvh_bmesh_check_tris(pbvh, node);
@@ -4009,11 +4022,20 @@ PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node)
 void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node)
 {
   if (node->tribuf) {
-    MEM_SAFE_FREE(node->tribuf->verts);
-    MEM_SAFE_FREE(node->tribuf->tris);
-    MEM_SAFE_FREE(node->tribuf->loops);
+    pbvh_free_tribuf(node->tribuf);
     MEM_freeN(node->tribuf);
     node->tribuf = NULL;
+  }
+
+  if (node->tri_buffers) {
+    for (int i = 0; i < node->tot_tri_buffers; i++) {
+      pbvh_free_tribuf(node->tri_buffers + i);
+    }
+
+    MEM_SAFE_FREE(node->tri_buffers);
+
+    node->tri_buffers = NULL;
+    node->tot_tri_buffers = 0;
   }
 }
 
@@ -4138,41 +4160,87 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
 
   return true;
 }
+
+ATTR_NO_OPT BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
+{
+  tribuf->tottri++;
+
+  if (tribuf->tottri >= tribuf->tris_size) {
+    size_t newsize = (size_t)32 + (size_t)tribuf->tris_size + (size_t)(tribuf->tris_size >> 1);
+
+    if (!tribuf->tris) {
+      tribuf->tris = MEM_mallocN(sizeof(*tribuf->tris) * newsize, "tribuf tris");
+    }
+    else {
+      tribuf->tris = MEM_reallocN_id(tribuf->tris, sizeof(*tribuf->tris) * newsize, "tribuf tris");
+    }
+
+    tribuf->tris_size = newsize;
+  }
+
+  return tribuf->tris + tribuf->tottri - 1;
+}
+
+ATTR_NO_OPT BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, SculptVertRef vertex)
+{
+  tribuf->totvert++;
+
+  if (tribuf->totvert >= tribuf->verts_size) {
+    size_t newsize = (size_t)32 + (size_t)(tribuf->verts_size << 1);
+
+    if (!tribuf->verts) {
+      tribuf->verts = MEM_mallocN(sizeof(*tribuf->verts) * newsize, "tribuf verts");
+    }
+    else {
+      tribuf->verts = MEM_reallocN_id(
+          tribuf->verts, sizeof(*tribuf->verts) * newsize, "tribuf verts");
+    }
+
+    tribuf->verts_size = newsize;
+  }
+
+  tribuf->verts[tribuf->totvert - 1] = vertex;
+}
+
 /* In order to perform operations on the original node coordinates
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->bm;
 
   if (!(node->flag & PBVH_UpdateTris) && node->tribuf) {
-    return;
+    return false;
+  }
+
+  GHash *vmap = BLI_ghash_ptr_new("pbvh_bmesh.c vmap");
+  GHash *mat_vmaps[MAXMAT];
+
+  int mat_map[MAXMAT];
+
+  for (int i = 0; i < MAXMAT; i++) {
+    mat_map[i] = -1;
+    mat_vmaps[i] = NULL;
   }
 
   if (node->tribuf) {
-    MEM_SAFE_FREE(node->tribuf->verts);
-    MEM_SAFE_FREE(node->tribuf->tris);
-    MEM_SAFE_FREE(node->tribuf->loops);
-
-    node->tribuf->tottri = 0;
-    node->tribuf->totvert = 0;
-    node->tribuf->totloop = 0;
+    pbvh_free_tribuf(node->tribuf);
   }
   else {
     node->tribuf = MEM_callocN(sizeof(*node->tribuf), "node->tribuf");
-    node->tribuf->loops = NULL;
-    node->tribuf->totloop = 0;
   }
 
+  PBVHTriBuf *tribufs = NULL;  // material-specific tribuffers
+  BLI_array_declare(tribufs);
+
+  node->tribuf->mat_nr = 0;
+  node->tribuf->tottri = 0;
+  node->tribuf->totvert = 0;
+  node->tribuf->totloop = 0;
+
   node->flag &= ~PBVH_UpdateTris;
-  PBVHTri *tris = NULL;
-  SculptVertRef *verts = NULL;
 
-  BLI_array_declare(tris);
-  BLI_array_declare(verts);
-
-  GHash *vmap = BLI_ghash_ptr_new("pbvh_bmesh.c vmap");
   BMFace *f;
 
   float min[3], max[3];
@@ -4180,7 +4248,26 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   INIT_MINMAX(min, max);
 
   TGSET_ITER (f, node->bm_faces) {
-    PBVHTri tri = {0};
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+
+    PBVHTri *tri = pbvh_tribuf_add_tri(node->tribuf);
+    const int mat_nr = f->mat_nr;
+
+    if (mat_map[mat_nr] == -1) {
+      PBVHTriBuf _tribuf = {0};
+
+      _tribuf.mat_nr = mat_nr;
+
+      mat_map[mat_nr] = BLI_array_len(tribufs);
+      mat_vmaps[mat_nr] = BLI_ghash_ptr_new("pbvh_bmesh.c vmap");
+
+      BLI_array_append(tribufs, _tribuf);
+    }
+
+    PBVHTriBuf *mat_tribuf = tribufs + mat_map[mat_nr];
+    PBVHTri *mat_tri = pbvh_tribuf_add_tri(mat_tribuf);
 
     BMLoop *l = f->l_first;
     int j = 0;
@@ -4193,11 +4280,23 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
         minmax_v3v3_v3(min, max, l->v->co);
 
-        *val = (void *)BLI_array_len(verts);
-        BLI_array_append(verts, sv);
+        *val = (void *)node->tribuf->totvert;
+        pbvh_tribuf_add_vert(node->tribuf, sv);
       }
 
-      tri.v[j] = (intptr_t)val[0];
+      tri->v[j] = (intptr_t)val[0];
+
+      val = NULL;
+      if (!BLI_ghash_ensure_p(mat_vmaps[mat_nr], l->v, &val)) {
+        SculptVertRef sv = {(intptr_t)l->v};
+
+        minmax_v3v3_v3(min, max, l->v->co);
+
+        *val = (void *)mat_tribuf->totvert;
+        pbvh_tribuf_add_vert(mat_tribuf, sv);
+      }
+
+      mat_tri->v[j] = (intptr_t)val[0];
 
       j++;
 
@@ -4208,19 +4307,15 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       l = l->next;
     } while (l != f->l_first);
 
-    copy_v3_v3(tri.no, f->no);
-    tri.f.i = (intptr_t)f;
-
-    BLI_array_append(tris, tri);
+    copy_v3_v3(tri->no, f->no);
+    tri->f.i = (intptr_t)f;
   }
   TGSET_ITER_END
 
   bm->elem_index_dirty |= BM_VERT;
 
-  node->tribuf->tris = tris;
-  node->tribuf->tottri = BLI_array_len(tris);
-  node->tribuf->verts = verts;
-  node->tribuf->totvert = BLI_array_len(verts);
+  node->tri_buffers = tribufs;
+  node->tot_tri_buffers = BLI_array_len(tribufs);
 
   if (node->tribuf->totvert) {
     copy_v3_v3(node->tribuf->min, min);
@@ -4232,6 +4327,13 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   }
 
   BLI_ghash_free(vmap, NULL, NULL);
+  for (int i = 0; i < MAXMAT; i++) {
+    if (mat_vmaps[i]) {
+      BLI_ghash_free(mat_vmaps[i], NULL, NULL);
+    }
+  }
+
+  return true;
 }
 
 static int pbvh_count_subtree_verts(PBVH *pbvh, PBVHNode *n)
@@ -4322,7 +4424,8 @@ static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *pa
     BMVert *v;
 
     node->children_offset = 0;
-    node->draw_buffers = NULL;
+
+    pbvh_free_all_draw_buffers(node);
 
     // rebuild bm_other_verts
     BMFace *f;
@@ -4433,10 +4536,9 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
         MEM_freeN(n->layer_disp);
         n->layer_disp = NULL;
       }
-      if (n->draw_buffers) {
-        GPU_pbvh_buffers_free(n->draw_buffers);
-        n->draw_buffers = NULL;
-      }
+
+      pbvh_free_all_draw_buffers(n);
+
       if (n->vert_indices) {
         MEM_freeN((void *)n->vert_indices);
         n->vert_indices = NULL;
@@ -5188,7 +5290,8 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
       f1->head.index = f2->head.index = BLI_array_len(faces);
       BLI_array_append(faces, f2);
 
-      // CustomData_bmesh_copy_data(&pbvh->bm->pdata, &bm2->pdata, f1->head.data, &f2->head.data);
+      // CustomData_bmesh_copy_data(&pbvh->bm->pdata, &bm2->pdata, f1->head.data,
+      // &f2->head.data);
       BM_elem_attrs_copy_ex(pbvh->bm, bm2, f1, f2, 0, 0L);
 
       BMLoop *l2 = f2->l_first;

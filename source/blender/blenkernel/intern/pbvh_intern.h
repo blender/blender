@@ -17,6 +17,7 @@
 #pragma once
 
 #include "BLI_ghash.h"
+#include "DNA_material_types.h"
 
 /** \file
  * \ingroup bli
@@ -37,6 +38,8 @@ typedef struct {
 struct PBVHNode {
   /* Opaque handle for drawing code */
   struct GPU_PBVH_Buffers *draw_buffers;
+  struct GPU_PBVH_Buffers **mat_draw_buffers;  // currently only used by pbvh_bmesh
+  int tot_mat_draw_buffers;
 
   int id;
 
@@ -107,7 +110,9 @@ struct PBVHNode {
   TableGSet *bm_unique_verts;
   TableGSet *bm_other_verts;
 
-  PBVHTriBuf *tribuf;
+  PBVHTriBuf *tribuf;       // all triangles
+  PBVHTriBuf *tri_buffers;  // tribuffers, one per material used
+  int tot_tri_buffers;
 
   int updategen;
 
@@ -259,3 +264,6 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
                                     int stroke_id);
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
+
+void pbvh_free_all_draw_buffers(PBVHNode *node);
+void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node);

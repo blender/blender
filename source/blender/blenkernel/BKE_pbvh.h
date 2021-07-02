@@ -64,10 +64,11 @@ typedef struct PBVHTriBuf {
   PBVHTri *tris;
   SculptVertRef *verts;
   int tottri, totvert;
+  int tris_size, verts_size;
 
   // private field
   intptr_t *loops;
-  int totloop;
+  int totloop, mat_nr;
   float min[3], max[3];
 } PBVHTriBuf;
 
@@ -703,7 +704,7 @@ bool BKE_pbvh_curvature_update_get(PBVHNode *node);
 
 int BKE_pbvh_get_totnodes(PBVH *pbvh);
 
-void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node);
+bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node);
 PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
 
