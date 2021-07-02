@@ -2480,9 +2480,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
 
   /* Use evaluated data to get mesh with all modifiers on top. */
   Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, ob_mesh);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  MPoly *mp, *mpoly = me_eval->mpoly;
-  MLoop *mloop = me_eval->mloop;
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const MPoly *mpoly = me_eval->mpoly;
+  const MLoop *mloop = me_eval->mloop;
   int mpoly_len = me_eval->totpoly;
   char element_name[200];
 
@@ -2515,8 +2515,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
           gpl_fill, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
       int i;
-      for (i = 0, mp = mpoly; i < mpoly_len; i++, mp++) {
-        MLoop *ml = &mloop[mp->loopstart];
+      for (i = 0; i < mpoly_len; i++) {
+        const MPoly *mp = &mpoly[i];
+
         /* Find material. */
         int mat_idx = 0;
         Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
@@ -2539,8 +2540,10 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gps_fill->flag |= GP_STROKE_CYCLIC;
 
         /* Add points to strokes. */
-        for (int j = 0; j < mp->totloop; j++, ml++) {
-          MVert *mv = &me_eval->mvert[ml->v];
+        for (int j = 0; j < mp->totloop; j++) {
+          const MLoop *ml = &mloop[mp->loopstart + j];
+          const MVert *mv = &me_eval->mvert[ml->v];
+
           bGPDspoint *pt = &gps_fill->points[j];
           copy_v3_v3(&pt->x, mv->co);
           mul_m4_v3(matrix, &pt->x);

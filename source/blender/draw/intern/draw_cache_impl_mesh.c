@@ -1052,7 +1052,7 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(Mesh *me)
   return cache->batch.surface;
 }
 
-int DRW_mesh_material_count_get(Mesh *me)
+int DRW_mesh_material_count_get(const Mesh *me)
 {
   return mesh_render_mat_len_get(me);
 }

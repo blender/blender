@@ -470,7 +470,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   /* when not in EditMode, use the 'final' evaluated mesh, depsgraph
    * ensures we build with CD_MDEFORMVERT layer
    */
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   float plane[3];
   float imat[3][3], tmat[3][3];
@@ -488,17 +488,17 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   float normal[3] = {0.0f, 0.0f, 0.0f};
   float weightsum = 0.0f;
   if (me_eval) {
-    MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
+    const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
     int numVerts = me_eval->totvert;
 
     /* check that dvert is a valid pointers (just in case) */
     if (dvert) {
-      MDeformVert *dv = dvert;
-      MVert *mv = me_eval->mvert;
 
       /* get the average of all verts with that are in the vertex-group */
-      for (int i = 0; i < numVerts; i++, dv++, mv++) {
-        MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
+      for (int i = 0; i < numVerts; i++) {
+        const MDeformVert *dv = &dvert[i];
+        const MVert *mv = &me_eval->mvert[i];
+        const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {
           float nor[3];
