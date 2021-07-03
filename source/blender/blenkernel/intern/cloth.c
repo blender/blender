@@ -991,7 +991,7 @@ static void cloth_hair_update_bending_targets(ClothModifierData *clmd)
     return;
   }
 
-  /* XXX Note: we need to propagate frames from the root up,
+  /* XXX NOTE: we need to propagate frames from the root up,
    * but structural hair springs are stored in reverse order.
    * The bending springs however are then inserted in the same
    * order as vertices again ...
@@ -1049,7 +1049,7 @@ static void cloth_hair_update_bending_rest_targets(ClothModifierData *clmd)
     return;
   }
 
-  /* XXX Note: we need to propagate frames from the root up,
+  /* XXX NOTE: we need to propagate frames from the root up,
    * but structural hair springs are stored in reverse order.
    * The bending springs however are then inserted in the same
    * order as vertices again ...
@@ -1883,7 +1883,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     cloth_hair_update_bending_rest_targets(clmd);
   }
 
-  /* note: the edges may already exist so run reinsert */
+  /* NOTE: the edges may already exist so run reinsert. */
 
   /* insert other near springs in edgeset AFTER bending springs are calculated (for selfcolls) */
   for (int i = 0; i < numedges; i++) { /* struct springs */

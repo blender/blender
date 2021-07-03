@@ -37,7 +37,7 @@ struct MLoopNorSpaceArray;
 
 struct BLI_mempool;
 
-/* note: it is very important for BMHeader to start with two
+/* NOTE: it is very important for BMHeader to start with two
  * pointers. this is a requirement of mempool's method of
  * iteration.
  *

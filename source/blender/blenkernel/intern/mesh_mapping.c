@@ -776,7 +776,7 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
       }
       if (UNLIKELY(gid_bit > 31)) {
         /* All bits used in contiguous smooth groups, we can't do much!
-         * Note: this is *very* unlikely - theoretically, four groups are enough,
+         * NOTE: this is *very* unlikely - theoretically, four groups are enough,
          *       I don't think we can reach this goal with such a simple algorithm,
          *       but I don't think either we'll never need all 32 groups!
          */
@@ -1140,7 +1140,7 @@ static bool mesh_calc_islands_loop_poly_uv(MVert *UNUSED(verts),
   poly_indices = MEM_mallocN(sizeof(*poly_indices) * (size_t)totpoly, __func__);
   loop_indices = MEM_mallocN(sizeof(*loop_indices) * (size_t)totloop, __func__);
 
-  /* Note: here we ignore '0' invalid group - this should *never* happen in this case anyway? */
+  /* NOTE: here we ignore '0' invalid group - this should *never* happen in this case anyway? */
   for (grp_idx = 1; grp_idx <= num_poly_groups; grp_idx++) {
     num_pidx = num_lidx = 0;
     if (num_edge_borders) {

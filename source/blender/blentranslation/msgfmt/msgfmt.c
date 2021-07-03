@@ -313,7 +313,7 @@ static int make(const char *input_file_name, const char *output_file_name)
   const size_t msgid_plural_len = strlen(msgid_plural_kw);
   const size_t msgstr_len = strlen(msgstr_kw);
 
-  /* Note: For now, we assume file encoding is always utf-8. */
+  /* NOTE: For now, we assume file encoding is always utf-8. */
 
   eSectionType section = SECTION_NONE;
   bool is_plural = false;

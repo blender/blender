@@ -176,7 +176,7 @@ float sample_cube_shadow(int shadow_id, vec3 P)
   float dist = max(sd(shadow_id).sh_near, max_v3(abs(cubevec)) - sd(shadow_id).sh_bias);
   dist = buffer_depth(true, dist, sd(shadow_id).sh_far, sd(shadow_id).sh_near);
   /* Manual Shadow Cube Layer indexing. */
-  /* TODO Shadow Cube Array. */
+  /* TODO: Shadow Cube Array. */
   float face = cubeFaceIndexEEVEE(cubevec);
   vec2 coord = cubeFaceCoordEEVEE(cubevec, face, shadowCubeTexture);
   /* tex_id == data_id for cube shadowmap */

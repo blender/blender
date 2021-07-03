@@ -694,7 +694,7 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
         walk->is_cursor_first = false;
       }
       else {
-        /* note, its possible the system isn't giving us the warp event
+        /* NOTE: its possible the system isn't giving us the warp event
          * ideally we shouldn't have to worry about this, see: T45361 */
         wmWindow *win = CTX_wm_window(C);
         WM_cursor_warp(win,

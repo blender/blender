@@ -35,8 +35,8 @@ vec3 sss_profile(float s)
 float light_translucent_power_with_falloff(LightData ld, vec3 N, vec4 l_vector)
 {
   float power, falloff;
-  /* XXX : Removing Area Power. */
-  /* TODO : put this out of the shader. */
+  /* XXX: Removing Area Power. */
+  /* TODO: put this out of the shader. */
   if (ld.l_type >= AREA_RECT) {
     power = (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
     if (ld.l_type == AREA_ELLIPSE) {
@@ -134,7 +134,7 @@ vec3 light_translucent(LightData ld, vec3 P, vec3 N, vec4 l_vector, vec2 rand, f
     /* Size of a texel in world space.
      * FIXME This is only correct if l_right is the same right vector used for shadowmap creation.
      * This won't work if the shadow matrix is rotated (soft shadows).
-     * TODO precompute */
+     * TODO: precompute. */
     float unit_world_in_uv_space = length(mat3(scascade(data_id).shadowmat[int(id)]) * ld.l_right);
     float dx_scale = 2.0 * ofs.x / unit_world_in_uv_space;
 

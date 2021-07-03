@@ -566,7 +566,7 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
                        WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                        WM_JOB_TYPE_OBJECT_BAKE_TEXTURE);
   WM_jobs_customdata_set(wm_job, bkr, multiresbake_freejob);
-  WM_jobs_timer(wm_job, 0.5, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
+  WM_jobs_timer(wm_job, 0.5, NC_IMAGE, 0); /* TODO: only draw bake image, can we enforce this. */
   WM_jobs_callbacks(wm_job, multiresbake_startjob, NULL, NULL, NULL);
 
   G.is_break = false;

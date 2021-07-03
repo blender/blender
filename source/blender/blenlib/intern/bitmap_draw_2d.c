@@ -496,7 +496,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
 
     /* Scan for new x-nodes */
     while ((span_y_index < span_y_len) && (verts[span_y[span_y_index][0]][1] == pixel_y)) {
-      /* note, node_x these are just added at the end,
+      /* NOTE: node_x these are just added at the end,
        * not ideal but sorting once will resolve. */
 
       /* x is initialized for the next pixel_y */

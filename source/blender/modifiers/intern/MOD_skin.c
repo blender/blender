@@ -1202,7 +1202,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n, BMVert **orig_
 
     slot_targetmap = BMO_slot_get(op.slots_in, "targetmap");
 
-    /* Note: could probably calculate merges in one go to be
+    /* NOTE: could probably calculate merges in one go to be
      * faster */
 
     v_safe = shortest_edge->v1;

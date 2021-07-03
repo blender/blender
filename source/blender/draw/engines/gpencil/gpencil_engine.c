@@ -262,7 +262,7 @@ void GPENCIL_cache_init(void *ved)
         pd->sbuffer_gpd = gpd;
         pd->sbuffer_stroke = DRW_cache_gpencil_sbuffer_stroke_data_get(pd->obact);
         pd->sbuffer_layer = BKE_gpencil_layer_active_get(pd->sbuffer_gpd);
-        pd->do_fast_drawing = false; /* TODO option */
+        pd->do_fast_drawing = false; /* TODO: option. */
       }
     }
   }

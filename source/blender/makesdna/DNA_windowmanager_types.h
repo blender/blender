@@ -553,7 +553,7 @@ enum {
   /* in case operator got executed outside WM code... like via fileselect */
   OPERATOR_HANDLED = (1 << 4),
   /* used for operators that act indirectly (eg. popup menu)
-   * note: this isn't great design (using operators to trigger UI) avoid where possible. */
+   * NOTE: this isn't great design (using operators to trigger UI) avoid where possible. */
   OPERATOR_INTERFACE = (1 << 5),
 };
 #define OPERATOR_FLAGS_ALL \

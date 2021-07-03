@@ -181,7 +181,7 @@ static void particle_batch_cache_clear_point(ParticlePointCache *point_cache)
 
 void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
 {
-  /* TODO more granular update tagging. */
+  /* TODO: more granular update tagging. */
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_point_buf);
   DRW_TEXTURE_FREE_SAFE(hair_cache->point_tex);
 
@@ -560,7 +560,7 @@ static int particle_batch_cache_fill_segments(ParticleSystem *psys,
               (is_simple && is_child) ? (*r_parent_uvs)[psys->child[i].parent][k] : uv[k]);
         }
         for (int k = 0; k < num_col_layers; k++) {
-          /* TODO Put the conversion outside the loop */
+          /* TODO: Put the conversion outside the loop. */
           ushort scol[4];
           particle_pack_mcol(
               (is_simple && is_child) ? &(*r_parent_mcol)[psys->child[i].parent][k] : &mcol[k],
@@ -587,7 +587,7 @@ static int particle_batch_cache_fill_segments(ParticleSystem *psys,
                                                        uv[k]);
       }
       for (int k = 0; k < num_col_layers; k++) {
-        /* TODO Put the conversion outside the loop */
+        /* TODO: Put the conversion outside the loop. */
         ushort scol[4];
         particle_pack_mcol((is_simple && is_child) ? &(*r_parent_mcol)[psys->child[i].parent][k] :
                                                      &mcol[k],

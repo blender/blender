@@ -92,7 +92,7 @@ static void greasepencil_copy_data(Main *UNUSED(bmain),
   LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
     /* make a copy of source layer and its data */
 
-    /* TODO here too could add unused flags... */
+    /* TODO: here too could add unused flags... */
     bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src, true, true);
 
     /* Apply local layer transform to all frames. Calc the active frame is not enough

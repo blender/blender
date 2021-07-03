@@ -302,9 +302,9 @@ GHOST_TUns8 GHOST_SystemX11::getNumDisplays() const
 void GHOST_SystemX11::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
 {
   if (m_display) {
-    /* note, for this to work as documented,
+    /* NOTE(campbell): for this to work as documented,
      * we would need to use Xinerama check r54370 for code that did this,
-     * we've since removed since its not worth the extra dep - campbell */
+     * we've since removed since its not worth the extra dependency. */
     getAllDisplayDimensions(width, height);
   }
 }

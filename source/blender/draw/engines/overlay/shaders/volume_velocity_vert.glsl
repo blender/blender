@@ -33,7 +33,7 @@ const vec3 corners[4] = vec3[4](vec3(0.0, 0.2, -0.5),
 const int indices[12] = int[12](0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3);
 
 /* Straight Port from BKE_defvert_weight_to_rgb()
- * TODO port this to a color ramp. */
+ * TODO: port this to a color ramp. */
 vec3 weight_to_color(float weight)
 {
   vec3 r_rgb = vec3(0.0);

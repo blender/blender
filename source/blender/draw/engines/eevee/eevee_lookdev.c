@@ -205,7 +205,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       stl->lookdev_lightcache = EEVEE_lightcache_create(
           1, 1, cube_res, 8, (int[3]){grid_res, grid_res, 1});
 
-      /* XXX: Fix memleak. TODO find out why. */
+      /* XXX: Fix memleak. TODO: find out why. */
       MEM_SAFE_FREE(stl->lookdev_cube_mips);
 
       /* We do this to use a special light cache for lookdev.

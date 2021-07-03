@@ -172,7 +172,7 @@ static const unsigned char acceptable[96] = {
 
 static const char hex[17] = "0123456789abcdef";
 
-/* Note: This escape function works on file: URIs, but if you want to
+/* NOTE: This escape function works on file: URIs, but if you want to
  * escape something else, please read RFC-2396 */
 static void escape_uri_string(const char *string,
                               char *escaped_string,

@@ -124,7 +124,7 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(const SmallHash *sh, const uintptr_t
 
   BLI_assert(key != SMHASH_KEY_UNUSED);
 
-  /* note: there are always more buckets than entries,
+  /* NOTE: there are always more buckets than entries,
    * so we know there will always be a free bucket if the key isn't found. */
   for (e = &sh->buckets[h % sh->nbuckets]; e->val != SMHASH_CELL_FREE;
        h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % sh->nbuckets]) {
@@ -353,8 +353,8 @@ void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr
 /** \name Debugging & Introspection
  * \{ */
 
-/* note, this was called _print_smhash in knifetool.c
- * it may not be intended for general use - campbell */
+/* NOTE(campbell): this was called _print_smhash in knifetool.c
+ * it may not be intended for general use. */
 #if 0
 void BLI_smallhash_print(SmallHash *sh)
 {

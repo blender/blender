@@ -467,7 +467,7 @@ typedef struct DRWCommandSmallChunk {
   uint32_t command_len;
   uint32_t command_used;
   /* 4bits for each command. */
-  /* TODO reduce size of command_type. */
+  /* TODO: reduce size of command_type. */
   uint64_t command_type[6];
   DRWCommand commands[6];
 } DRWCommandSmallChunk;
@@ -498,7 +498,7 @@ typedef struct DRWDebugSphere {
 #define STENCIL_UNDEFINED 256
 #define DRW_DRAWLIST_LEN 256
 typedef struct DRWManager {
-  /* TODO clean up this struct a bit */
+  /* TODO: clean up this struct a bit. */
   /* Cache generation */
   ViewportMemoryPool *vmempool;
   DRWInstanceDataList *idatalist;

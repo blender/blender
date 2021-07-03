@@ -1197,8 +1197,8 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     // Don't call ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
     // composition.
     else if (MapVirtualKeyW(vk, 2) != 0) {
-      // todo: ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
-      // Could be up to 24 utf8 bytes.
+      /* TODO: #ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
+       * Could be up to 24 utf8 bytes. */
       if ((r = ToUnicodeEx(
                vk, raw.data.keyboard.MakeCode, state, utf16, 2, 0, system->m_keylayout))) {
         if ((r > 0 && r < 3)) {

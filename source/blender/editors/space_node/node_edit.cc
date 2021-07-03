@@ -2313,7 +2313,7 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
     // nodeSocketCopyValue(sock, &ntree_ptr, active_sock, &ntree_ptr);
   }
   else {
-    /* XXX TODO define default socket type for a tree! */
+    /* XXX TODO: define default socket type for a tree! */
     sock = ntreeAddSocketInterface(ntree, in_out, "NodeSocketFloat", default_name);
   }
 

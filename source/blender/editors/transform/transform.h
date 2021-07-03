@@ -353,7 +353,7 @@ typedef struct TransCon {
   eTConstraint mode;
   void (*drawExtra)(struct TransInfo *t);
 
-  /* Note: if 'tc' is NULL, 'td' must also be NULL.
+  /* NOTE: if 'tc' is NULL, 'td' must also be NULL.
    * For constraints that needs to draw differently from the other
    * uses this instead of the generic draw function. */
 
@@ -802,7 +802,7 @@ struct Object *transform_object_deform_pose_armature_get(const TransInfo *t, str
 
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 
-/* TODO. transform_query.c */
+/* TODO: `transform_query.c`. */
 bool checkUseAxisMatrix(TransInfo *t);
 
 #define TRANSFORM_SNAP_MAX_PX 100.0f

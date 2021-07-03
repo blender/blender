@@ -290,7 +290,7 @@ static int txtfmt_py_literal_numeral(const char *string, char prev_fmt)
       return 1 + txtfmt_py_find_numeral_inner(string + 1);
     }
     /* Previous was a number; if immediately followed by '.' it's a floating point decimal number.
-     * Note: keep the decimal point, it's needed to allow leading zeros. */
+     * NOTE: keep the decimal point, it's needed to allow leading zeros. */
     if (first == '.') {
       return txtfmt_py_find_numeral_inner(string);
     }

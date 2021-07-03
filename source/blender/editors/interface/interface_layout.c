@@ -643,7 +643,7 @@ static void ui_item_array(uiLayout *layout,
                    NULL);
   }
   else {
-    /* note, this block of code is a bit arbitrary and has just been made
+    /* NOTE: this block of code is a bit arbitrary and has just been made
      * to work with common cases, but may need to be re-worked */
 
     /* special case, boolean array in a menu, this could be used in a more generic way too */

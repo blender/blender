@@ -455,7 +455,7 @@ void applyTransformOrientation(const TransformOrientation *ts, float r_mat[3][3]
 
 /* Updates all `BONE_TRANSFORM` flags.
  * Returns total number of bones with `BONE_TRANSFORM`.
- * Note: `transform_convert_pose_transflags_update` has a similar logic. */
+ * NOTE: `transform_convert_pose_transflags_update` has a similar logic. */
 static int armature_bone_transflags_update_recursive(bArmature *arm,
                                                      ListBase *lb,
                                                      const bool do_it)

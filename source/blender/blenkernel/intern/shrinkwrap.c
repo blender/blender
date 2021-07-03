@@ -1440,7 +1440,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
     Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, smd->target);
     calc.target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
 
-    /* TODO there might be several "bugs" with non-uniform scales matrices
+    /* TODO: there might be several "bugs" with non-uniform scales matrices
      * because it will no longer be nearest surface, not sphere projection
      * because space has been deformed */
     BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob, ob_target);
@@ -1460,7 +1460,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
       ssmd.subdivType = ME_CC_SUBSURF;  /* catmull clark */
       ssmd.levels = smd->subsurfLevels; /* levels */
 
-      /* TODO to be moved to Mesh once we are done with changes in subsurf code. */
+      /* TODO: to be moved to Mesh once we are done with changes in subsurf code. */
       DerivedMesh *dm = CDDM_from_mesh(mesh);
 
       ss_mesh = subsurf_make_derived_from_derived(

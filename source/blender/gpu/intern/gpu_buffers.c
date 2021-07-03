@@ -707,7 +707,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
 
             float fno[3];
             short no_short[3];
-            /* Note: Clockwise indices ordering, that's why we invert order here. */
+            /* NOTE: Clockwise indices ordering, that's why we invert order here. */
             normal_quad_v3(fno, co[3], co[2], co[1], co[0]);
             normal_float_to_short_v3(no_short, fno);
 
@@ -916,7 +916,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
     return;
   }
 
-  /* TODO, make mask layer optional for bmesh buffer */
+  /* TODO: make mask layer optional for bmesh buffer. */
   const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
 
   /* Fill vertex buffer */

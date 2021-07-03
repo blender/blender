@@ -37,7 +37,7 @@ static void extract_select_idx_init_impl(const MeshRenderData *UNUSED(mr),
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    /* TODO rename "color" to something more descriptive. */
+    /* TODO: rename "color" to something more descriptive. */
     GPU_vertformat_attr_add(&format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
   }
   GPU_vertbuf_init_with_format(vbo, &format);
@@ -53,7 +53,7 @@ static void extract_select_idx_init(const MeshRenderData *mr,
   extract_select_idx_init_impl(mr, mr->loop_len + mr->loop_loose_len, buf, tls_data);
 }
 
-/* TODO Use #glVertexID to get loop index and use the data structure on the CPU to retrieve the
+/* TODO: Use #glVertexID to get loop index and use the data structure on the CPU to retrieve the
  * select element associated with this loop ID. This would remove the need for this separate
  * index VBO's. We could upload the p/e/v_origindex as a buffer texture and sample it inside the
  * shader to output original index. */

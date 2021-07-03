@@ -135,7 +135,7 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
   container_is_open = open_animation_container(container_is_open, ob);
 
   /* Now take care of the Object Animations
-   * Note: For Armatures the skeletal animation has already been exported (see above)
+   * NOTE: For Armatures the skeletal animation has already been exported (see above)
    * However Armatures also can have Object animation.
    */
   bool export_as_matrix = this->export_settings.get_animation_transformation_type() ==
@@ -168,7 +168,7 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
 /*
  * Export all animation FCurves of an Object.
  *
- * Note: This uses the keyframes as sample points,
+ * NOTE: This uses the keyframes as sample points,
  * and exports "baked keyframes" while keeping the tangent information
  * of the FCurves intact. This works for simple cases, but breaks
  * especially when negative scales are involved in the animation.
@@ -337,7 +337,7 @@ void AnimationExporter::export_curve_animation(Object *ob, BCAnimationCurve &cur
   /*
    * Some curves can not be exported as is and need some conversion
    * For more information see implementation of get_modified_export_curve()
-   * note: if mcurve is not NULL then it must be deleted at end of this method;
+   * NOTE: if mcurve is not NULL then it must be deleted at end of this method;
    */
 
   int channel_index = curve.get_channel_index();
@@ -775,7 +775,7 @@ std::string AnimationExporter::get_collada_name(std::string channel_type) const
 {
   /*
    * Translation table to map FCurve animation types to Collada animation.
-   * Todo: Maybe we can keep the names from the fcurves here instead of
+   * TODO: Maybe we can keep the names from the fcurves here instead of
    * mapping. However this is what i found in the old code. So keep
    * this map for now.
    */
@@ -799,9 +799,9 @@ std::string AnimationExporter::get_collada_name(std::string channel_type) const
       {"spot_size", "falloff_angle"},
       {"fall_off_exponent", "falloff_exponent"},
       {"spot_blend", "falloff_exponent"},
-      /* Special blender profile (todo: make this more elegant). */
+      /* Special blender profile (TODO: make this more elegant). */
       {"blender/blender_dist", "blender/blender_dist"},
-      /* Special blender profile (todo: make this more elegant). */
+      /* Special blender profile (TODO: make this more elegant). */
       {"distance", "blender/blender_dist"},
 
       /* Cameras */

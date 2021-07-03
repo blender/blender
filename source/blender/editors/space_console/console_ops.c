@@ -415,7 +415,7 @@ static int console_insert_exec(bContext *C, wmOperator *op)
 
 static int console_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  /* Note, the "text" property is always set from key-map,
+  /* NOTE: the "text" property is always set from key-map,
    * so we can't use #RNA_struct_property_is_set, check the length instead. */
   if (!RNA_string_length(op->ptr, "text")) {
     /* if alt/ctrl/super are pressed pass through except for utf8 character event
@@ -790,7 +790,7 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
   SpaceConsole *sc = CTX_wm_space_console(C);
   ARegion *region = CTX_wm_region(C);
 
-  /* TODO - stupid, just prevents crashes when no command line */
+  /* TODO: stupid, just prevents crashes when no command line. */
   ConsoleLine *ci = console_history_verify(C);
   const bool reverse = RNA_boolean_get(op->ptr, "reverse"); /* assumes down, reverse is up */
   int prev_len = ci->len;
@@ -1109,7 +1109,7 @@ typedef struct SetConsoleCursor {
   int sel_init;
 } SetConsoleCursor;
 
-/* TODO, cursor placement without selection */
+/* TODO: cursor placement without selection. */
 static void console_cursor_set_to_pos(
     SpaceConsole *sc, ARegion *region, SetConsoleCursor *scu, const int mval[2], int UNUSED(sel))
 {

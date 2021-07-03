@@ -70,7 +70,7 @@ void COM_execute(RenderData *render_data,
                  const ColorManagedDisplaySettings *displaySettings,
                  const char *viewName)
 {
-  /* Initialize mutex, TODO this mutex init is actually not thread safe and
+  /* Initialize mutex, TODO: this mutex init is actually not thread safe and
    * should be done somewhere as part of blender startup, all the other
    * initializations can be done lazily. */
   if (!g_compositor.is_initialized) {

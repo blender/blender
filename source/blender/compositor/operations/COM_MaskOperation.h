@@ -35,7 +35,7 @@ class MaskOperation : public NodeOperation {
  protected:
   Mask *m_mask;
 
-  /* note, these are used more like aspect,
+  /* NOTE: these are used more like aspect,
    * but they _do_ impact on mask detail */
   int m_maskWidth;
   int m_maskHeight;

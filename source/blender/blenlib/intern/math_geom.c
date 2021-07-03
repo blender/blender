@@ -1756,8 +1756,8 @@ bool isect_ray_tri_v3(const float ray_origin[3],
                       float *r_lambda,
                       float r_uv[2])
 {
-  /* note: these values were 0.000001 in 2.4x but for projection snapping on
-   * a human head (1BU == 1m), subsurf level 2, this gave many errors - campbell */
+  /* NOTE(campbell): these values were 0.000001 in 2.4x but for projection snapping on
+   * a human head (1BU == 1m), subsurf level 2, this gave many errors. */
   const float epsilon = 0.00000001f;
   float p[3], s[3], e1[3], e2[3], q[3];
   float a, f, u, v;
@@ -3287,8 +3287,8 @@ bool isect_ray_aabb_v3(const struct IsectRayAABB_Precalc *data,
     tmin = tzmin;
   }
 
-  /* Note: tmax does not need to be updated since we don't use it
-   * keeping this here for future reference - jwilkins */
+  /* NOTE(jwilkins): tmax does not need to be updated since we don't use it
+   * keeping this here for future reference. */
   // if (tzmax < tmax) tmax = tzmax;
 
   if (tmin_out) {
@@ -3559,7 +3559,7 @@ static bool point_in_slice(const float p[3],
 
   sub_v3_v3v3(rp, p, v1);
   h = dot_v3v3(q, rp) / dot_v3v3(q, q);
-  /* note: when 'h' is nan/-nan, this check returns false
+  /* NOTE: when 'h' is nan/-nan, this check returns false
    * without explicit check - covering the degenerate case */
   return (h >= 0.0f && h <= 1.0f);
 }
@@ -4020,7 +4020,7 @@ void barycentric_weights_v2_persp(
 
 /**
  * same as #barycentric_weights_v2 but works with a quad,
- * note: untested for values outside the quad's bounds
+ * NOTE: untested for values outside the quad's bounds
  * this is #interp_weights_poly_v2 expanded for quads only
  */
 void barycentric_weights_v2_quad(const float v1[2],
@@ -4030,10 +4030,11 @@ void barycentric_weights_v2_quad(const float v1[2],
                                  const float co[2],
                                  float w[4])
 {
-  /* note: fabsf() here is not needed for convex quads (and not used in interp_weights_poly_v2).
-   * but in the case of concave/bow-tie quads for the mask rasterizer it gives unreliable results
-   * without adding absf(). If this becomes an issue for more general usage we could have
-   * this optional or use a different function - Campbell */
+  /* NOTE(campbell): fabsf() here is not needed for convex quads
+   * (and not used in #interp_weights_poly_v2).
+   * But in the case of concave/bow-tie quads for the mask rasterizer it
+   * gives unreliable results without adding absf(). If this becomes an issue for more general
+   * usage we could have this optional or use a different function. */
 #define MEAN_VALUE_HALF_TAN_V2(_area, i1, i2) \
   ((_area = cross_v2v2(dirs[i1], dirs[i2])) != 0.0f ? \
        fabsf(((lens[i1] * lens[i2]) - dot_v2v2(dirs[i1], dirs[i2])) / _area) : \
@@ -4820,7 +4821,7 @@ void orthographic_m4(float matrix[4][4],
   matrix[3][0] = -(right + left) / Xdelta;
   matrix[1][1] = 2.0f / Ydelta;
   matrix[3][1] = -(top + bottom) / Ydelta;
-  matrix[2][2] = -2.0f / Zdelta; /* note: negate Z */
+  matrix[2][2] = -2.0f / Zdelta; /* NOTE: negate Z. */
   matrix[3][2] = -(farClip + nearClip) / Zdelta;
 }
 
@@ -4844,7 +4845,7 @@ void perspective_m4(float mat[4][4],
   }
   mat[0][0] = nearClip * 2.0f / Xdelta;
   mat[1][1] = nearClip * 2.0f / Ydelta;
-  mat[2][0] = (right + left) / Xdelta; /* note: negate Z */
+  mat[2][0] = (right + left) / Xdelta; /* NOTE: negate Z. */
   mat[2][1] = (top + bottom) / Ydelta;
   mat[2][2] = -(farClip + nearClip) / Zdelta;
   mat[2][3] = -1.0f;

@@ -165,7 +165,7 @@ typedef struct WorkSpaceDataRelation {
 
   /** The data used to identify the relation
    * (e.g. to find screen-layout (= value) from/for a hook).
-   * Note: Now runtime only. */
+   * NOTE: Now runtime only. */
   void *parent;
   /** The value for this parent-data/workspace relation. */
   void *value;

@@ -1699,7 +1699,7 @@ bool ED_view3d_depth_read_cached_normal(const ARegion *region,
                                         const int mval[2],
                                         float r_normal[3])
 {
-  /* Note: we could support passing in a radius.
+  /* NOTE: we could support passing in a radius.
    * For now just read 9 pixels. */
 
   /* pixels surrounding */

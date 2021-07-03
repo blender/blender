@@ -2108,7 +2108,7 @@ template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CD
  * for the boundary of the input face.
  * fedge_start..fedge_end is the inclusive range of edge input ids that are for the given face.
  *
- * Note: if the input face is not CCW oriented, we'll be labeling the outside, not the inside.
+ * NOTE: if the input face is not CCW oriented, we'll be labeling the outside, not the inside.
  * Note 2: if the boundary has self-crossings, this method will arbitrarily pick one of the
  * contiguous set of faces enclosed by parts of the boundary, leaving the other such un-tagged.
  * This may be a feature instead of a bug if the first contiguous section is most of the face and

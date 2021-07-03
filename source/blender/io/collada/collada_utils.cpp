@@ -159,7 +159,7 @@ std::vector<bAction *> bc_getSceneActions(const bContext *C, Object *ob, bool al
     for (id = (ID *)bmain->actions.first; id; id = (ID *)(id->next)) {
       bAction *act = (bAction *)id;
       /* XXX This currently creates too many actions.
-       * TODO Need to check if the action is compatible to the given object. */
+       * TODO: Need to check if the action is compatible to the given object. */
       actions.push_back(act);
     }
   }
@@ -281,7 +281,7 @@ bool bc_has_object_type(LinkNode *export_set, short obtype)
 
   for (node = export_set; node; node = node->next) {
     Object *ob = (Object *)node->link;
-    /* XXX - why is this checking for ob->data? - we could be looking for empties */
+    /* XXX: why is this checking for ob->data? - we could be looking for empties. */
     if (ob->type == obtype && ob->data) {
       return true;
     }
@@ -728,7 +728,7 @@ void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4])
 /**
  * Stores a Float value as a custom bone property
  *
- * Note: This function is currently not needed. Keep for future usage
+ * NOTE: This function is currently not needed. Keep for future usage
  */
 static void bc_set_IDProperty(EditBone *ebone, const char *key, float value)
 {
@@ -1018,7 +1018,7 @@ void bc_apply_global_transform(Vector &to_vec, const BCMatrix &global_transform,
  * Check if custom information about bind matrix exists and modify the from_mat
  * accordingly.
  *
- * Note: This is old style for Blender <= 2.78 only kept for compatibility
+ * NOTE: This is old style for Blender <= 2.78 only kept for compatibility
  */
 void bc_create_restpose_mat(BCExportSettings &export_settings,
                             Bone *bone,

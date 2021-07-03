@@ -1037,7 +1037,7 @@ static mpq2 project_3d_to_2d(const mpq3 &p3d, int proj_axis)
  * So the sign of E is the same as the sign of E_exact if
  *    |E| > supremum(E) * index(E) * DBL_EPSILON
  *
- * Note: a possible speedup would be to have a simple function
+ * NOTE: a possible speedup would be to have a simple function
  * that calculates the error bound if one knows that all values
  * are less than some global maximum - most of the function would
  * be calculated ahead of time. The global max could be passed

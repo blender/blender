@@ -83,8 +83,8 @@ static float bezier_handle_calc_length_v3(const float co_a[3],
   float fac = 1.333333f;
   float len;
   if (dot < 0.0f) {
-    /* scale down to 0.666 if we point directly at each other rough but ok */
-    /* TODO, current blend from dot may not be optimal but its also a detail */
+    /* Scale down to 0.666 if we point directly at each other rough but ok. */
+    /* TODO: current blend from dot may not be optimal but its also a detail. */
     const float t = 1.0f + dot;
     fac = (fac * t) + (0.75f * (1.0f - t));
   }
@@ -821,7 +821,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
  */
 static void bm_face_slice(BMesh *bm, BMLoop *l, const int cuts)
 {
-  /* TODO, interpolate edge data */
+  /* TODO: interpolate edge data. */
   BMLoop *l_new = l;
   int i;
 

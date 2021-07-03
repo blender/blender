@@ -604,7 +604,7 @@ static void bm_mesh_loops_calc_normals(BMesh *bm,
        * If we find a new, never-processed cyclic smooth fan, we can do it now using that loop/edge
        * as 'entry point', otherwise we can skip it. */
 
-      /* Note: In theory, we could make bm_mesh_loop_check_cyclic_smooth_fan() store
+      /* NOTE: In theory, we could make bm_mesh_loop_check_cyclic_smooth_fan() store
        * mlfan_pivot's in a stack, to avoid having to fan again around
        * the vert during actual computation of clnor & clnorspace. However, this would complicate
        * the code, add more memory usage, and
@@ -1281,7 +1281,7 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
   BMVert *v;
   BMLoop *l;
   BMIter viter, liter;
-  /* Note: we could use temp tag of BMItem for that,
+  /* NOTE: we could use temp tag of BMItem for that,
    * but probably better not use it in such a low-level func?
    * --mont29 */
   BLI_bitmap *done_verts = BLI_BITMAP_NEW(bm->totvert, __func__);

@@ -31,7 +31,7 @@
 #    ifdef __GNUC__
 #      define DNA_DEPRECATED __attribute__((deprecated))
 #    else
-/* TODO, msvc & others */
+/* TODO: MSVC & others. */
 #      define DNA_DEPRECATED
 #    endif
 #  endif

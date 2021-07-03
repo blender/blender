@@ -14,7 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* note: the original vertex color stuff is now just used for
+/* NOTE: the original vertex color stuff is now just used for
  * getting info on the layers themselves, accessing the data is
  * done through the (not yet written) mpoly interfaces. */
 
@@ -1084,7 +1084,7 @@ static void rna_Mesh_face_map_remove(struct Mesh *me,
 static int rna_MeshPoly_vertices_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
   MPoly *mp = (MPoly *)ptr->data;
-  /* note, raw access uses dummy item, this _could_ crash,
+  /* NOTE: raw access uses dummy item, this _could_ crash,
    * watch out for this, mface uses it but it can't work here. */
   return (length[0] = mp->totloop);
 }
@@ -3006,7 +3006,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Loop Triangles", "Tessellation of mesh polygons into triangles");
   rna_def_mesh_looptris(brna, prop);
 
-  /* TODO, should this be allowed to be its self? */
+  /* TODO: should this be allowed to be its self? */
   prop = RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
@@ -3098,7 +3098,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "All vertex colors");
   rna_def_vert_colors(brna, prop);
 
-  /* TODO, edge customdata layers (bmesh py api can access already) */
+  /* TODO: edge customdata layers (bmesh py api can access already). */
   prop = RNA_def_property(srna, "vertex_layers_float", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "vdata.layers", "vdata.totlayer");
   RNA_def_property_collection_funcs(prop,

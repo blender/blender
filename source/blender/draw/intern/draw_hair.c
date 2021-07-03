@@ -197,7 +197,7 @@ static ParticleHairCache *drw_hair_particle_cache_get(
   return cache;
 }
 
-/* Note: Only valid after DRW_hair_update(). */
+/* NOTE: Only valid after DRW_hair_update(). */
 GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, ModifierData *md)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -262,7 +262,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
 
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(shgrp_parent);
 
-  /* TODO optimize this. Only bind the ones GPUMaterial needs. */
+  /* TODO: optimize this. Only bind the ones GPUMaterial needs. */
   for (int i = 0; i < hair_cache->num_uv_layers; i++) {
     for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->uv_layer_names[i][n][0] != '\0'; n++) {
       DRW_shgroup_uniform_texture(shgrp, hair_cache->uv_layer_names[i][n], hair_cache->uv_tex[i]);

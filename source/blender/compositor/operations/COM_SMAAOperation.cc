@@ -43,7 +43,7 @@ namespace blender::compositor {
  * Currently only SMAA 1x mode is provided, so the operation will be done
  * with no spatial multisampling nor temporal supersampling.
  *
- * Note: This program assumes the screen coordinates are DirectX style, so
+ * NOTE: This program assumes the screen coordinates are DirectX style, so
  * the vertical direction is upside-down. "top" and "bottom" actually mean
  * bottom and top, respectively.
  */

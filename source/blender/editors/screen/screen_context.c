@@ -896,11 +896,11 @@ static eContextResult screen_ctx_active_operator(const bContext *C, bContextData
     /* do nothing */
   }
   else {
-    /* note, this checks poll, could be a problem, but this also
+    /* NOTE: this checks poll, could be a problem, but this also
      * happens for the toolbar */
     op = WM_operator_last_redo(C);
   }
-  /* TODO, get the operator from popup's */
+  /* TODO: get the operator from popup's. */
 
   if (op && op->ptr) {
     CTX_data_pointer_set(result, NULL, &RNA_Operator, op);

@@ -597,12 +597,12 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   return seq;
 }
 
-/* note: caller should run SEQ_time_update_sequence(scene, seq) after */
+/* NOTE: caller should run SEQ_time_update_sequence(scene, seq) after. */
 void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const bool lock_range)
 {
   char path[FILE_MAX];
   int prev_startdisp = 0, prev_enddisp = 0;
-  /* note: don't rename the strip, will break animation curves */
+  /* NOTE: don't rename the strip, will break animation curves. */
 
   if (ELEM(seq->type,
            SEQ_TYPE_MOVIE,

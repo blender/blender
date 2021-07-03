@@ -357,7 +357,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   step_tot = ((step_tot + 1) * ltmd->iter) - (ltmd->iter - 1);
 
   /* Will the screw be closed?
-   * Note! smaller than `FLT_EPSILON * 100`
+   * NOTE: smaller than `FLT_EPSILON * 100`
    * gives problems with float precision so its never closed. */
   if (fabsf(screw_ofs) <= (FLT_EPSILON * 100.0f) &&
       fabsf(fabsf(angle) - ((float)M_PI * 2.0f)) <= (FLT_EPSILON * 100.0f) && step_tot > 3) {

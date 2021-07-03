@@ -271,7 +271,7 @@ typedef enum PropertyFlag {
 
   /**
    * flag contains multiple enums.
-   * note: not to be confused with prop->enumbitflags
+   * NOTE: not to be confused with prop->enumbitflags
    * this exposes the flag as multiple options in python and the UI.
    *
    * \note These can't be animated so use with care.
@@ -443,7 +443,7 @@ typedef struct CollectionListBase {
 
 typedef enum RawPropertyType {
   PROP_RAW_UNSET = -1,
-  PROP_RAW_INT, /* XXX - abused for types that are not set, eg. MFace.verts, needs fixing. */
+  PROP_RAW_INT, /* XXX: abused for types that are not set, eg. MFace.verts, needs fixing. */
   PROP_RAW_SHORT,
   PROP_RAW_CHAR,
   PROP_RAW_BOOLEAN,

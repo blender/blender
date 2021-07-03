@@ -571,7 +571,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
     }
 
     /* create a new 'basis_nor' from the best direction.
-     * note: we could add the directions,
+     * NOTE: we could add the directions,
      * but this more often gives 45d rotated matrix, so just use the best one. */
     copy_v3_v3(basis_nor, axis_pair[axis_pair[0].angle_cos < axis_pair[1].angle_cos].nor);
     project_plane_normalized_v3_v3v3(basis_nor, basis_nor, basis_dir);

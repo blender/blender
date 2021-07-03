@@ -128,8 +128,8 @@ static void palette_blend_read_data(BlendDataReader *reader, ID *id)
 static void palette_undo_preserve(BlendLibReader *UNUSED(reader), ID *id_new, ID *id_old)
 {
   /* Whole Palette is preserved across undo-steps, and it has no extra pointer, simple. */
-  /* Note: We do not care about potential internal references to self here, Palette has none. */
-  /* Note: We do not swap IDProperties, as dealing with potential ID pointers in those would be
+  /* NOTE: We do not care about potential internal references to self here, Palette has none. */
+  /* NOTE: We do not swap IDProperties, as dealing with potential ID pointers in those would be
    *       fairly delicate. */
   BKE_lib_id_swap(NULL, id_new, id_old);
   SWAP(IDProperty *, id_new->properties, id_old->properties);
@@ -2067,7 +2067,7 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
     /* If a sculpt session is active, ensure we have its faceset data porperly up-to-date. */
     object->sculpt->face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
 
-    /* Note: In theory we could add that on the fly when required by sculpt code.
+    /* NOTE: In theory we could add that on the fly when required by sculpt code.
      * But this then requires proper update of depsgraph etc. For now we play safe, optimization is
      * always possible later if it's worth it. */
     BKE_sculpt_mask_layers_ensure(object, mmd);

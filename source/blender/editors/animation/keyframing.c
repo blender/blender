@@ -1672,7 +1672,7 @@ int delete_keyframe(Main *bmain,
   }
 
   /* get F-Curve
-   * Note: here is one of the places where we don't want new Action + F-Curve added!
+   * NOTE: here is one of the places where we don't want new Action + F-Curve added!
    *      so 'add' var must be 0
    */
   if (act == NULL) {
@@ -1779,7 +1779,7 @@ static int clear_keyframe(Main *bmain,
   }
 
   /* get F-Curve
-   * Note: here is one of the places where we don't want new Action + F-Curve added!
+   * NOTE: here is one of the places where we don't want new Action + F-Curve added!
    *      so 'add' var must be 0
    */
   if (act == NULL) {
@@ -2931,7 +2931,7 @@ static bool object_frame_has_keyframe(Object *ob, float frame, short filter)
     }
 
     /* 2. test for time */
-    /* TODO... yet to be implemented (this feature may evolve before then anyway) */
+    /* TODO: yet to be implemented (this feature may evolve before then anyway). */
   }
 
   /* try materials */
@@ -3101,7 +3101,7 @@ bool ED_autokeyframe_property(
       ToolSettings *ts = scene->toolsettings;
       const eInsertKeyFlags flag = ANIM_get_keyframing_flags(scene, true);
 
-      /* Note: We use rnaindex instead of fcu->array_index,
+      /* NOTE: We use rnaindex instead of fcu->array_index,
        *       because a button may control all items of an array at once.
        *       E.g., color wheels (see T42567). */
       BLI_assert((fcu->array_index == rnaindex) || (rnaindex == -1));

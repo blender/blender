@@ -3260,7 +3260,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Restore Mesh", "Allow a single dot to be carefully positioned");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  /* only for projection paint & vertex paint, TODO, other paint modes */
+  /* only for projection paint & vertex paint, TODO: other paint modes. */
   prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BRUSH_LOCK_ALPHA);
   RNA_def_property_ui_text(

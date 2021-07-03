@@ -187,7 +187,7 @@ void GPU_point_size(float size)
 /* Programmable point size
  * - shaders set their own point size when enabled
  * - use GPU_point_size when disabled */
-/* TODO remove and use program point size everywhere */
+/* TODO: remove and use program point size everywhere. */
 void GPU_program_point_size(bool enable)
 {
   StateManager *stack = Context::get()->state_manager;

@@ -364,7 +364,7 @@ static void node_foreach_cache(ID *id,
   key.offset_in_ID = offsetof(bNodeTree, previews);
   key.cache_v = nodetree->previews;
 
-  /* TODO, see also `direct_link_nodetree()` in readfile.c. */
+  /* TODO: see also `direct_link_nodetree()` in readfile.c. */
 #if 0
   function_callback(id, &key, (void **)&nodetree->previews, 0, user_data);
 #endif
@@ -645,7 +645,7 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 /* ntree itself has been read! */
 void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 {
-  /* note: writing and reading goes in sync, for speed */
+  /* NOTE: writing and reading goes in sync, for speed. */
   ntree->init = 0; /* to set callbacks and force setting types */
   ntree->is_updating = false;
   ntree->typeinfo = nullptr;
@@ -796,7 +796,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
     BLO_read_data_address(reader, &link->tosock);
   }
 
-  /* TODO, should be dealt by new generic cache handling of IDs... */
+  /* TODO: should be dealt by new generic cache handling of IDs... */
   ntree->previews = nullptr;
 
   /* type verification is in lib-link */
@@ -1042,7 +1042,7 @@ static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType 
   }
 }
 
-/* Note: This function is called to initialize node data based on the type.
+/* NOTE: This function is called to initialize node data based on the type.
  * The bNodeType may not be registered at creation time of the node,
  * so this can be delayed until the node type gets registered.
  */
@@ -1064,7 +1064,7 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
   node->height = ntype->height;
   node->color[0] = node->color[1] = node->color[2] = 0.608; /* default theme color */
   /* initialize the node name with the node label.
-   * note: do this after the initfunc so nodes get their data set which may be used in naming
+   * NOTE: do this after the initfunc so nodes get their data set which may be used in naming
    * (node groups for example) */
   /* XXX Do not use nodeLabel() here, it returns translated content for UI,
    *     which should *only* be used in UI, *never* in data...
@@ -2883,7 +2883,7 @@ void BKE_node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, boo
         BKE_node_instance_hash_insert(to_ntree->previews, key, preview);
       }
 
-      /* Note: null free function here,
+      /* NOTE: null free function here,
        * because pointers have already been moved over to to_ntree->previews! */
       BKE_node_instance_hash_free(from_ntree->previews, nullptr);
       from_ntree->previews = nullptr;
@@ -3274,7 +3274,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 {
   if (ntree) {
     /* Make full copy outside of Main database.
-     * Note: previews are not copied here.
+     * NOTE: previews are not copied here.
      */
     bNodeTree *ltree = (bNodeTree *)BKE_id_copy_ex(
         nullptr, &ntree->id, nullptr, (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA));
@@ -4751,7 +4751,7 @@ static bool node_undefined_poll(bNodeType *UNUSED(ntype),
 /* register fallback types used for undefined tree, nodes, sockets */
 static void register_undefined_types()
 {
-  /* Note: these types are not registered in the type hashes,
+  /* NOTE: these types are not registered in the type hashes,
    * they are just used as placeholders in case the actual types are not registered.
    */
 

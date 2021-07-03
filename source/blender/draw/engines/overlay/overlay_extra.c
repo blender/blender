@@ -928,7 +928,7 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
       const float *bundle_color;
       if (track->flag & TRACK_CUSTOMCOLOR) {
         /* Meh, hardcoded srgb transform here. */
-        /* TODO change the actual DNA color to be linear. */
+        /* TODO: change the actual DNA color to be linear. */
         srgb_to_linearrgb_v3_v3(bundle_color_custom, track->color);
         bundle_color = bundle_color_custom;
       }

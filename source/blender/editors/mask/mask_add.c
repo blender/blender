@@ -145,7 +145,7 @@ static void setup_vertex_point(Mask *mask,
       /* parent */
       reference_parent_point = close_point;
 
-      /* note, we may want to copy other attributes later, radius? pressure? color? */
+      /* NOTE: we may want to copy other attributes later, radius? pressure? color? */
     }
   }
 
@@ -189,7 +189,7 @@ static void finSelectedSplinePoint(MaskLayer *mask_layer,
   *point = NULL;
 
   if (check_active) {
-    /* TODO, having an active point but no active spline is possible, why? */
+    /* TODO: having an active point but no active spline is possible, why? */
     if (mask_layer->act_spline && mask_layer->act_point &&
         MASKPOINT_ISSEL_ANY(mask_layer->act_point)) {
       *spline = mask_layer->act_spline;
@@ -277,7 +277,7 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
 
     setup_vertex_point(mask, spline, new_point, co, u, ctime, NULL, true);
 
-    /* TODO - we could pass the spline! */
+    /* TODO: we could pass the spline! */
     BKE_mask_layer_shape_changed_add(mask_layer,
                                      BKE_mask_layer_shape_spline_to_index(mask_layer, spline) +
                                          point_index + 1,
@@ -479,7 +479,7 @@ static int add_vertex_handle_cyclic_at_point(bContext *C,
 
   spline->flag |= MASK_SPLINE_CYCLIC;
 
-  /* TODO, update keyframes in time. */
+  /* TODO: update keyframes in time. */
   BKE_mask_calc_handle_point_auto(spline, active_point, false);
   BKE_mask_calc_handle_point_auto(spline, other_point, false);
 
@@ -526,7 +526,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
   float co[2];
   RNA_float_get_array(op->ptr, "location", co);
 
-  /* TODO, having an active point but no active spline is possible, why? */
+  /* TODO: having an active point but no active spline is possible, why? */
   if (mask_layer && mask_layer->act_spline && mask_layer->act_point &&
       MASKPOINT_ISSEL_ANY(mask_layer->act_point)) {
     MaskSpline *spline = mask_layer->act_spline;

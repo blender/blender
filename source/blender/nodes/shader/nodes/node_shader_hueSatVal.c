@@ -37,7 +37,7 @@ static bNodeSocketTemplate sh_node_hue_sat_out[] = {
     {-1, ""},
 };
 
-/* note: it would be possible to use CMP version for both nodes */
+/* NOTE: it would be possible to use CMP version for both nodes. */
 static void do_hue_sat_fac(
     bNode *UNUSED(node), float *out, float hue, float sat, float val, const float in[4], float fac)
 {

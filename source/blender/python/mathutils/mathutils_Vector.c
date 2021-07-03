@@ -628,7 +628,7 @@ PyDoc_STRVAR(Vector_to_tuple_doc,
              "   :type precision: int\n"
              "   :return: the values of the vector rounded by *precision*\n"
              "   :rtype: tuple\n");
-/* note: BaseMath_ReadCallback must be called beforehand */
+/* NOTE: BaseMath_ReadCallback must be called beforehand. */
 static PyObject *Vector_to_tuple_ex(VectorObject *self, int ndigits)
 {
   PyObject *ret;
@@ -3019,8 +3019,7 @@ static struct PyMethodDef Vector_methods[] = {
 };
 
 /**
- * Note:
- * #Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
+ * NOTE: #Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
  * but this means for eg that (vec * mat) and (mat * vec)
  * both get sent to Vector_mul and it needs to sort out the order
  */

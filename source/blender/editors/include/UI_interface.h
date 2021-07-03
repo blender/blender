@@ -251,7 +251,7 @@ enum {
 #define UI_PANEL_BOX_STYLE_MARGIN (U.widget_unit * 0.2f)
 
 /* but->drawflag - these flags should only affect how the button is drawn. */
-/* Note: currently, these flags _are not passed_ to the widget's state() or draw() functions
+/* NOTE: currently, these flags _are not passed_ to the widget's state() or draw() functions
  *       (except for the 'align' ones)!
  */
 enum {
@@ -1370,7 +1370,7 @@ typedef struct uiStringInfo {
   char *strinfo;
 } uiStringInfo;
 
-/* Note: Expects pointers to uiStringInfo structs as parameters.
+/* NOTE: Expects pointers to uiStringInfo structs as parameters.
  *       Will fill them with translated strings, when possible.
  *       Strings in uiStringInfo must be MEM_freeN'ed by caller. */
 void UI_but_string_info_get(struct bContext *C, uiBut *but, ...) ATTR_SENTINEL(0);

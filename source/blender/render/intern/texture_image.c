@@ -634,11 +634,11 @@ static void boxsample(ImBuf *ibuf,
    * If variable 'imaprepeat' has been set, the
    * clipped-away parts are sampled as well.
    */
-  /* note: actually minx etc isn't in the proper range...
-   *       this due to filter size and offset vectors for bump */
-  /* note: talpha must be initialized */
-  /* note: even when 'imaprepeat' is set, this can only repeat once in any direction.
-   * the point which min/max is derived from is assumed to be wrapped */
+  /* NOTE: actually minx etc isn't in the proper range...
+   *       this due to filter size and offset vectors for bump. */
+  /* NOTE: talpha must be initialized. */
+  /* NOTE: even when 'imaprepeat' is set, this can only repeat once in any direction.
+   * the point which min/max is derived from is assumed to be wrapped. */
   TexResult texr;
   rctf *rf, stack[8];
   float opp, tot, alphaclip = 1.0;

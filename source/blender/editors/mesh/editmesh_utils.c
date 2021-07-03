@@ -199,7 +199,7 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
     edbm_op_emcopy_restore_and_clear(em, bmop);
 
     /**
-     * Note, we could pass in the mesh, however this is an exceptional case, allow a slow lookup.
+     * NOTE: we could pass in the mesh, however this is an exceptional case, allow a slow lookup.
      *
      * This is needed because the COW mesh makes a full copy of the #BMEditMesh
      * instead of sharing the pointer, tagging since this has been freed above,
@@ -1489,7 +1489,7 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
   }
 
   if (params->is_destructive) {
-    /* TODO. we may be able to remove this now! - Campbell */
+    /* TODO(campbell): we may be able to remove this now! */
     // BM_mesh_elem_table_free(em->bm, BM_ALL_NOLOOP);
   }
   else {

@@ -597,7 +597,7 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
       BLI_stack_discard(edge_vectors);
       nbr++;
     }
-    /* Note: In theory, this could be 'nbr > 2',
+    /* NOTE: In theory, this could be 'nbr > 2',
      *       but there is one case where we only have two edges for two loops:
      *       a smooth vertex with only two edges and two faces (our Monkey's nose has that, e.g.).
      */
@@ -827,7 +827,7 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
   const int numEdges = data->numEdges;
   const int numPolys = data->numPolys;
 
-  float(*loopnors)[3] = data->loopnors; /* Note: loopnors may be NULL here. */
+  float(*loopnors)[3] = data->loopnors; /* NOTE: loopnors may be NULL here. */
   const float(*polynors)[3] = data->polynors;
 
   int(*edge_to_loops)[2] = data->edge_to_loops;
@@ -879,7 +879,7 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
          */
         if (!(mp->flag & ME_SMOOTH) || (medges[ml_curr->e].flag & ME_SHARP) ||
             ml_curr->v == mloops[e2l[0]].v || is_angle_sharp) {
-          /* Note: we are sure that loop != 0 here ;) */
+          /* NOTE: we are sure that loop != 0 here ;). */
           e2l[1] = INDEX_INVALID;
 
           /* We want to avoid tagging edges as sharp when it is already defined as such by
@@ -1481,7 +1481,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
        * If we find a new, never-processed cyclic smooth fan, we can do it now using that loop/edge
        * as 'entry point', otherwise we can skip it. */
 
-      /* Note: In theory, we could make #loop_split_generator_check_cyclic_smooth_fan() store
+      /* NOTE: In theory, we could make #loop_split_generator_check_cyclic_smooth_fan() store
        * mlfan_vert_index'es and edge indexes in two stacks, to avoid having to fan again around
        * the vert during actual computation of `clnor` & `clnorspace`.
        * However, this would complicate the code, add more memory usage, and despite its logical

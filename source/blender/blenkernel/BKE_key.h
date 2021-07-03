@@ -71,7 +71,7 @@ void BKE_keyblock_copy_settings(struct KeyBlock *kb_dst, const struct KeyBlock *
 char *BKE_keyblock_curval_rnapath_get(struct Key *key, struct KeyBlock *kb);
 
 /* conversion functions */
-/* Note: 'update_from' versions do not (re)allocate mem in kb, while 'convert_from' do. */
+/* NOTE: 'update_from' versions do not (re)allocate mem in kb, while 'convert_from' do. */
 void BKE_keyblock_update_from_lattice(struct Lattice *lt, struct KeyBlock *kb);
 void BKE_keyblock_convert_from_lattice(struct Lattice *lt, struct KeyBlock *kb);
 void BKE_keyblock_convert_to_lattice(struct KeyBlock *kb, struct Lattice *lt);

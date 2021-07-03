@@ -379,10 +379,10 @@ static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
   BKE_lib_id_swap(NULL, id_new, id_old);
 
   /* `id_new` now has content from `id_old`, we need to ensure those old ID pointers are valid.
-   * Note: Since we want to re-use all old pointers here, code is much simpler than for Scene. */
+   * NOTE: Since we want to re-use all old pointers here, code is much simpler than for Scene. */
   BKE_library_foreach_ID_link(NULL, id_new, brush_undo_preserve_cb, reader, IDWALK_NOP);
 
-  /* Note: We do not swap IDProperties, as dealing with potential ID pointers in those would be
+  /* NOTE: We do not swap IDProperties, as dealing with potential ID pointers in those would be
    *       fairly delicate. */
   SWAP(IDProperty *, id_new->properties, id_old->properties);
 }

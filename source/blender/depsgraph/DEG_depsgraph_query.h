@@ -180,7 +180,7 @@ void DEG_iterator_objects_next(struct BLI_Iterator *iter);
 void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 
 /**
- * Note: Be careful with DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY objects.
+ * NOTE: Be careful with DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY objects.
  * Although they are available they have no overrides (collection_properties)
  * and will crash if you try to access it.
  */

@@ -290,7 +290,7 @@ static void mesh_runtime_debug_info_layers(DynStr *dynstr, CustomData *cd)
 
   for (type = 0; type < CD_NUMTYPES; type++) {
     if (CustomData_has_layer(cd, type)) {
-      /* note: doesn't account for multiple layers */
+      /* NOTE: doesn't account for multiple layers. */
       const char *name = CustomData_layertype_name(type);
       const int size = CustomData_sizeof(type);
       const void *pt = CustomData_get_layer(cd, type);

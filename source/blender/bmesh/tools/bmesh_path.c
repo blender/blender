@@ -142,7 +142,7 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
   BMVert **verts_prev;
   int i, totvert;
 
-  /* Note, would pass #BM_EDGE except we are looping over all faces anyway. */
+  /* NOTE: would pass #BM_EDGE except we are looping over all faces anyway. */
   // BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
 
   BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
@@ -322,7 +322,7 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
   BMEdge **edges_prev;
   int i, totedge;
 
-  /* Note, would pass #BM_EDGE except we are looping over all edges anyway. */
+  /* NOTE: would pass #BM_EDGE except we are looping over all edges anyway. */
   BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */);
 
   BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
@@ -523,7 +523,7 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
   /* Start measuring face path at the face edges, ignoring their centers. */
   const void *const f_endpoints[2] = {f_src, f_dst};
 
-  /* Note, would pass #BM_EDGE except we are looping over all faces anyway. */
+  /* NOTE: would pass #BM_EDGE except we are looping over all faces anyway. */
   // BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
 
   BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {

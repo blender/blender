@@ -153,7 +153,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     WM_gizmo_set_scale(cagzgroup->dop_dist, ca->drawsize);
     WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, false);
 
-    /* Need to set property here for undo. TODO would prefer to do this in _init */
+    /* Need to set property here for undo. TODO: would prefer to do this in _init. */
     PointerRNA camera_dof_ptr;
     RNA_pointer_create(&ca->id, &RNA_CameraDOFSettings, &ca->dof, &camera_dof_ptr);
     WM_gizmo_target_property_def_rna(
@@ -163,7 +163,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, true);
   }
 
-  /* TODO - make focal length/ortho ob_scale_inv widget optional */
+  /* TODO: make focal length/ortho ob_scale_inv widget optional. */
   const Scene *scene = CTX_data_scene(C);
   const float aspx = (float)scene->r.xsch * scene->r.xasp;
   const float aspy = (float)scene->r.ysch * scene->r.yasp;

@@ -1223,7 +1223,7 @@ BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data,
                                              int q,
                                              float dfdx[3][3])
 {
-  const float delta = 0.00001f; /* TODO find a good heuristic for this */
+  const float delta = 0.00001f; /* TODO: find a good heuristic for this. */
   float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
   float f[3];
   int a, b;
@@ -1234,7 +1234,7 @@ BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data,
   copy_m3_m3(dvec_neg, dvec_pos);
   negate_m3(dvec_neg);
 
-  /* XXX TODO offset targets to account for position dependency */
+  /* XXX TODO: offset targets to account for position dependency. */
 
   for (a = 0; a < 3; a++) {
     spring_angbend_forces(
@@ -1262,7 +1262,7 @@ BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data,
                                              int q,
                                              float dfdv[3][3])
 {
-  const float delta = 0.00001f; /* TODO find a good heuristic for this */
+  const float delta = 0.00001f; /* TODO: find a good heuristic for this. */
   float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
   float f[3];
   int a, b;
@@ -1273,7 +1273,7 @@ BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data,
   copy_m3_m3(dvec_neg, dvec_pos);
   negate_m3(dvec_neg);
 
-  /* XXX TODO offset targets to account for position dependency */
+  /* XXX TODO: offset targets to account for position dependency. */
 
   for (a = 0; a < 3; a++) {
     spring_angbend_forces(

@@ -112,7 +112,7 @@ static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
           const float distance = sqrt(u * u + v * v);
 
           /* Pointer offset to the alpha value of pixel. */
-          /* Note, the left corner is flipped in the X-axis. */
+          /* NOTE: the left corner is flipped in the X-axis. */
           const int offset_l = 4 * (size - x - x - 1) + 3;
           const int offset_r = 4 * (ibuf->x - size) + 3;
 

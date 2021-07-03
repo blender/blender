@@ -115,7 +115,7 @@ enum {
                                          MREMAP_USE_INTERP,
 
   /* ***** Target's loops ***** */
-  /* Note: when islands are given to loop mapping func,
+  /* NOTE: when islands are given to loop mapping func,
    * all loops from the same destination face will always be mapped
    * to loops of source faces within a same island, regardless of mapping mode. */
   MREMAP_MODE_LOOP = 1 << 26,

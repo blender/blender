@@ -140,7 +140,7 @@ void ED_view3d_update_viewmat(Depsgraph *depsgraph,
       rect_scale[0] = (float)BLI_rcti_size_x(rect) / (float)region->winx;
       rect_scale[1] = (float)BLI_rcti_size_y(rect) / (float)region->winy;
     }
-    /* note: calls BKE_object_where_is_calc for camera... */
+    /* NOTE: calls BKE_object_where_is_calc for camera... */
     view3d_viewmatrix_set(depsgraph, scene, v3d, rv3d, rect ? rect_scale : NULL);
   }
   /* update utility matrices */
@@ -167,7 +167,7 @@ void ED_view3d_update_viewmat(Depsgraph *depsgraph,
 
   /* Calculate pixel-size factor once, this is used for lights and object-centers. */
   {
-    /* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
+    /* NOTE:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
      * because of float point precision problems at large values T23908. */
     float v1[3], v2[3];
     float len_px, len_sc;
@@ -563,10 +563,10 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
   /* apply offsets so the real 3D camera shows through */
 
-  /* note: quite un-scientific but without this bit extra
+  /* NOTE: quite un-scientific but without this bit extra
    * 0.0001 on the lower left the 2D border sometimes
    * obscures the 3D camera border */
-  /* note: with VIEW3D_CAMERA_BORDER_HACK defined this error isn't noticeable
+  /* NOTE: with VIEW3D_CAMERA_BORDER_HACK defined this error isn't noticeable
    * but keep it here in case we need to remove the workaround */
   x1i = (int)(x1 - 1.0001f);
   y1i = (int)(y1 - 1.0001f);
@@ -780,7 +780,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
       /* draw */
       immUniformThemeColorShadeAlpha(TH_VIEW_OVERLAY, 100, 255);
 
-      /* TODO Was using:
+      /* TODO: Was using:
        * UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color);
        * We'll probably need a new imm_draw_line_roundbox_dashed dor that - though in practice the
        * 2.0f round corner effect was nearly not visible anyway... */
@@ -1159,7 +1159,7 @@ static void view3d_draw_border(const bContext *C, ARegion *region)
  */
 static void view3d_draw_grease_pencil(const bContext *UNUSED(C))
 {
-  /* TODO viewport */
+  /* TODO: viewport. */
 }
 
 /**
@@ -2262,7 +2262,7 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
   }
 }
 
-/* Note, with nouveau drivers the glReadPixels() is very slow. T24339. */
+/* NOTE: with nouveau drivers the glReadPixels() is very slow. T24339. */
 static ViewDepths *view3d_depths_create(ARegion *region)
 {
   ViewDepths *d = MEM_callocN(sizeof(ViewDepths), "ViewDepths");

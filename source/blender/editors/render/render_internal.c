@@ -793,7 +793,7 @@ static int render_breakjob(void *rjv)
 
 /**
  * For exec() when there is no render job
- * note: this won't check for the escape key being pressed, but doing so isn't thread-safe.
+ * NOTE: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
 static int render_break(void *UNUSED(rjv))
 {

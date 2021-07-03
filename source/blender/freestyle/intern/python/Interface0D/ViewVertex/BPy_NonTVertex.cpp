@@ -48,7 +48,7 @@ PyDoc_STRVAR(
     "   :arg svertex: An SVertex object.\n"
     "   :type svertex: :class:`SVertex`");
 
-/* Note: No copy constructor in Python because the C++ copy constructor is 'protected'. */
+/* NOTE: No copy constructor in Python because the C++ copy constructor is 'protected'. */
 
 static int NonTVertex_init(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 {

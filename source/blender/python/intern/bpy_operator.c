@@ -82,8 +82,8 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 
   int context = WM_OP_EXEC_DEFAULT;
 
-  /* XXX Todo, work out a better solution for passing on context,
-   * could make a tuple from self and pack the name and Context into it... */
+  /* XXX TODO: work out a better solution for passing on context,
+   * could make a tuple from self and pack the name and Context into it. */
   bContext *C = BPY_context_get();
 
   if (C == NULL) {
@@ -169,8 +169,8 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   int context = WM_OP_EXEC_DEFAULT;
   int is_undo = false;
 
-  /* XXX Todo, work out a better solution for passing on context,
-   * could make a tuple from self and pack the name and Context into it... */
+  /* XXX TODO: work out a better solution for passing on context,
+   * could make a tuple from self and pack the name and Context into it. */
   bContext *C = BPY_context_get();
 
   if (C == NULL) {
@@ -276,7 +276,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 #ifdef BPY_RELEASE_GIL
       /* release GIL, since a thread could be started from an operator
        * that updates a driver */
-      /* note: I have not seen any examples of code that does this
+      /* NOTE: I have not seen any examples of code that does this
        * so it may not be officially supported but seems to work ok. */
       {
         PyThreadState *ts = PyEval_SaveThread();

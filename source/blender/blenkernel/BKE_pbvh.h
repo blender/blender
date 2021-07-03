@@ -329,7 +329,7 @@ bool BKE_pbvh_is_deformed(struct PBVH *pbvh);
  * - allow the compiler to eliminate dead code and variables
  * - spend most of the time in the relatively simple inner loop */
 
-/* note: PBVH_ITER_ALL does not skip hidden vertices,
+/* NOTE: PBVH_ITER_ALL does not skip hidden vertices,
  * PBVH_ITER_UNIQUE does */
 #define PBVH_ITER_ALL 0
 #define PBVH_ITER_UNIQUE 1

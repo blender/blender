@@ -829,7 +829,7 @@ void BMO_slot_buffer_from_all(BMesh *bm,
 
     BMO_slot_buffer_alloc(op, slot_args, slot_name, totelement);
 
-    /* TODO - collapse these loops into one */
+    /* TODO: collapse these loops into one. */
 
     if (htype & BM_VERT) {
       BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
@@ -890,7 +890,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm,
 
     BMO_slot_buffer_alloc(op, slot_args, slot_name, totelement);
 
-    /* TODO - collapse these loops into one */
+    /* TODO: collapse these loops into one. */
 
     if (htype & BM_VERT) {
       BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
@@ -1061,7 +1061,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm,
 
     ele_array = (BMHeader **)slot->data.buf;
 
-    /* TODO - collapse these loops into one */
+    /* TODO: collapse these loops into one. */
 
     if (htype & BM_VERT) {
       BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
@@ -1953,7 +1953,7 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
   return true;
 error:
 
-  /* non urgent todo - explain exactly what is failing */
+  /* TODO: explain exactly what is failing (not urgent). */
   fprintf(stderr, "%s: error parsing formatting string\n", __func__);
 
   fprintf(stderr, "string: '%s', position %d\n", _fmt, (int)(fmt - ofmt));

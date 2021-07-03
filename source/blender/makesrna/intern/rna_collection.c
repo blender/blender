@@ -189,7 +189,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
     return false;
   }
 
-  /* XXX TODO We most certainly rather want to have a 'swap object pointer in collection'
+  /* XXX TODO: We most certainly rather want to have a 'swap object pointer in collection'
    * util in BKE_collection. This is only temp quick dirty test! */
   id_us_min(&cob_dst->ob->id);
   cob_dst->ob = ob_src;
@@ -292,7 +292,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
     return false;
   }
 
-  /* XXX TODO We most certainly rather want to have a 'swap object pointer in collection'
+  /* XXX TODO: We most certainly rather want to have a 'swap object pointer in collection'
    * util in BKE_collection. This is only temp quick dirty test! */
   id_us_min(&collchild_dst->collection->id);
   collchild_dst->collection = subcoll_src;

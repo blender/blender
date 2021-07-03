@@ -933,7 +933,7 @@ static const EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C,
   return eprop->item_fn(C, ptr, prop, r_free);
 }
 
-/* XXX - not sure this is needed? */
+/* XXX: not sure this is needed? */
 static int rna_EnumProperty_default_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -1529,7 +1529,7 @@ int rna_property_override_diff_default(Main *bmain,
 
   BLI_assert(len_a == len_b);
 
-  /* Note: at this point, we are sure that when len_a is zero,
+  /* NOTE: at this point, we are sure that when len_a is zero,
    * we are not handling an (empty) array. */
 
   const bool do_create = override != NULL && (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
@@ -1537,7 +1537,7 @@ int rna_property_override_diff_default(Main *bmain,
 
   const bool no_ownership = (prop_a->rnaprop->flag & PROP_PTR_NO_OWNERSHIP) != 0;
 
-  /* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
+  /* NOTE: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
    * and that we never remove anything. */
   const bool use_collection_insertion = (prop_a->rnaprop->flag_override &
                                          PROPOVERRIDE_LIBRARY_INSERTION) &&
@@ -1564,7 +1564,7 @@ int rna_property_override_diff_default(Main *bmain,
         const int comp = memcmp(array_a, array_b, sizeof(bool) * len_a);
 
         if (do_create && comp != 0) {
-          /* XXX TODO this will have to be refined to handle array items */
+          /* XXX TODO: this will have to be refined to handle array items. */
           op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) {
@@ -1625,7 +1625,7 @@ int rna_property_override_diff_default(Main *bmain,
         const int comp = memcmp(array_a, array_b, sizeof(int) * len_a);
 
         if (do_create && comp != 0) {
-          /* XXX TODO this will have to be refined to handle array items */
+          /* XXX TODO: this will have to be refined to handle array items. */
           op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) {
@@ -1686,7 +1686,7 @@ int rna_property_override_diff_default(Main *bmain,
         const int comp = memcmp(array_a, array_b, sizeof(float) * len_a);
 
         if (do_create && comp != 0) {
-          /* XXX TODO this will have to be refined to handle array items */
+          /* XXX TODO: this will have to be refined to handle array items. */
           op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
           if (op != NULL && created) {
@@ -1758,7 +1758,7 @@ int rna_property_override_diff_default(Main *bmain,
           ptr_a, rawprop_a, fixed_a, sizeof(fixed_a), &len_str_a);
       char *value_b = RNA_property_string_get_alloc(
           ptr_b, rawprop_b, fixed_b, sizeof(fixed_b), &len_str_b);
-      /* TODO we could do a check on length too,
+      /* TODO: we could do a check on length too,
        * but then we would not have a 'real' string comparison...
        * Maybe behind a eRNAOverrideMatch flag? */
 #  if 0
@@ -2079,7 +2079,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
     return changed;
   }
 
-  /* XXX TODO About range limits.
+  /* XXX TODO: About range limits.
    * Ideally, it would be great to get rid of RNA range in that specific case.
    * However, this won't be that easy and will add yet another layer of complexity in
    * generated code, not to mention that we could most likely *not* bypass custom setters anyway.
@@ -2088,7 +2088,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
    * Time will say whether this is acceptable limitation or not. */
   switch (RNA_property_type(prop_local)) {
     case PROP_BOOLEAN:
-      /* TODO support boolean ops? Really doubt this would ever be useful though... */
+      /* TODO: support boolean ops? Really doubt this would ever be useful though. */
       BLI_assert(0 && "Boolean properties support no override diff operation");
       break;
     case PROP_INT: {
@@ -2306,7 +2306,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
       return true;
     }
     case PROP_ENUM:
-      /* TODO support add/sub, for bitflags? */
+      /* TODO: support add/sub, for bitflags? */
       BLI_assert(0 && "Enum properties support no override diff operation");
       break;
     case PROP_POINTER:
@@ -2316,7 +2316,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
       BLI_assert(0 && "String properties support no override diff operation");
       break;
     case PROP_COLLECTION:
-      /* XXX TODO support this of course... */
+      /* XXX TODO: support this of course... */
       BLI_assert(0 && "Collection properties support no override diff operation");
       break;
     default:
@@ -2564,7 +2564,7 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
         case IDOVERRIDE_LIBRARY_OP_REPLACE:
           RNA_property_enum_set(ptr_dst, prop_dst, value);
           break;
-        /* TODO support add/sub, for bitflags? */
+        /* TODO: support add/sub, for bitflags? */
         default:
           BLI_assert(0 && "Unsupported RNA override operation on enum");
           return false;

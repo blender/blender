@@ -667,7 +667,7 @@ ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const eDupli_ID_Flags duplica
       ID_NEW_SET(key, key_new);
     }
 
-    /* Note: embedded data (root nodetrees and master collections) should never be referenced by
+    /* NOTE: embedded data (root nodetrees and master collections) should never be referenced by
      * anything else, so we do not need to set their newid pointer and flag. */
 
     BKE_animdata_duplicate_id_action(bmain, id_new, duplicate_flags);
@@ -1099,7 +1099,7 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
 
-      /* TODO to be removed from here! */
+      /* TODO: to be removed from here! */
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
         DEG_id_type_tag(bmain, type);
       }
@@ -1234,11 +1234,11 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
 
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
     /* r_newid already contains pointer to allocated memory. */
-    /* TODO do we want to memset(0) whole mem before filling it? */
+    /* TODO: do we want to memset(0) whole mem before filling it? */
     BLI_strncpy(new_id->name, id->name, sizeof(new_id->name));
     new_id->us = 0;
     new_id->tag |= LIB_TAG_NOT_ALLOCATED | LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT;
-    /* TODO Do we want/need to copy more from ID struct itself? */
+    /* TODO: Do we want/need to copy more from ID struct itself? */
   }
   else {
     new_id = BKE_libblock_alloc(bmain, GS(id->name), id->name + 2, flag);
@@ -1380,7 +1380,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 
   /* Step one: We go backward over a whole chunk of items at once, until we find a limit item
    * that is lower than, or equal (should never happen!) to the one we want to insert. */
-  /* Note: We start from the end, because in typical 'heavy' case (insertion of lots of IDs at
+  /* NOTE: We start from the end, because in typical 'heavy' case (insertion of lots of IDs at
    * once using the same base name), newly inserted items will generally be towards the end
    * (higher extension numbers). */
   bool is_in_library = false;
@@ -1450,7 +1450,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 #undef ID_SORT_STEP_SIZE
 }
 
-/* Note: this code assumes and ensures that the suffix number can never go beyond 1 billion. */
+/* NOTE: this code assumes and ensures that the suffix number can never go beyond 1 billion. */
 #define MAX_NUMBER 1000000000
 /* We do not want to get "name.000", so minimal number is 1. */
 #define MIN_NUMBER 1
@@ -1605,7 +1605,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
     }
 
     /* In case we get an insane initial number suffix in given name. */
-    /* Note: BLI_split_name_num() cannot return negative numbers, so we do not have to check for
+    /* NOTE: BLI_split_name_num() cannot return negative numbers, so we do not have to check for
      * that here. */
     if (number >= MAX_NUMBER || number < MIN_NUMBER) {
       number = MIN_NUMBER;
@@ -1892,7 +1892,7 @@ static void library_make_local_copying_check(ID *id,
  * \param set_fake: If true, set fake user on all localized data-blocks
  * (except group and objects ones).
  */
-/* Note: Old (2.77) version was simply making (tagging) data-blocks as local,
+/* NOTE: Old (2.77) version was simply making (tagging) data-blocks as local,
  * without actually making any check whether they were also indirectly used or not...
  *
  * Current version uses regular id_make_local callback, with advanced pre-processing step to
@@ -2070,7 +2070,7 @@ void BKE_library_make_local(Main *bmain,
    * ID in a separated loop,
    * as lbarray ordering is not enough to ensure us we did catch all dependencies
    * (e.g. if making local a parent object before its child...). See T48907. */
-  /* TODO This is now the biggest step by far (in term of processing time).
+  /* TODO: This is now the biggest step by far (in term of processing time).
    * We may be able to gain here by using again main->relations mapping, but...
    * this implies BKE_libblock_remap & co to be able to update main->relations on the fly.
    * Have to think about it a bit more, and see whether new code is OK first, anyway. */

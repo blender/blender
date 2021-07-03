@@ -624,7 +624,7 @@ static void ui_block_colorpicker(uiBlock *block,
     bt->custom_data = cpicker;
   }
 
-  /* Note: don't disable UI_BUT_UNDO for RGBA values, since these don't add undo steps. */
+  /* NOTE: don't disable UI_BUT_UNDO for RGBA values, since these don't add undo steps. */
 
   /* RGB values */
   UI_block_align_begin(block);

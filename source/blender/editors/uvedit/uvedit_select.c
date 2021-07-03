@@ -1351,7 +1351,7 @@ static void uv_select_linked_multi(Scene *scene,
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
 
-    /* Note, we had 'use winding' so we don't consider overlapping islands as connected, see T44320
+    /* NOTE: we had 'use winding' so we don't consider overlapping islands as connected, see T44320
      * this made *every* projection split the island into front/back islands.
      * Keep 'use_winding' to false, see: T50970.
      *

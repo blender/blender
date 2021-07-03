@@ -1096,7 +1096,7 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
   ScrArea *area = params->area;
   ARegion *region = params->region;
 
-  /* Developer note: there are many properties that impact 3D view drawing,
+  /* Developer NOTE: there are many properties that impact 3D view drawing,
    * so instead of subscribing to individual properties, just subscribe to types
    * accepting some redundant redraws.
    *

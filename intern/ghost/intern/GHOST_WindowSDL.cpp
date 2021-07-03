@@ -556,7 +556,7 @@ static SDL_Cursor *sdl_ghost_CreateCursor(
   return cursor;
 }
 
-/* TODO, this is currently never freed but it won't leak either. */
+/* TODO: this is currently never freed but it won't leak either. */
 static SDL_Cursor *getStandardCursorShape(GHOST_TStandardCursor shape)
 {
   if (sdl_std_cursor_array[0] == NULL) {
@@ -576,7 +576,7 @@ static SDL_Cursor *getStandardCursorShape(GHOST_TStandardCursor shape)
     DEF_CURSOR(left_ptr, GHOST_kStandardCursorDefault);
     DEF_CURSOR(right_ptr, GHOST_kStandardCursorRightArrow);
     DEF_CURSOR(left_ptr, GHOST_kStandardCursorLeftArrow);
-    DEF_CURSOR(umbrella, GHOST_kStandardCursorInfo);  // TODO, replace this one.
+    DEF_CURSOR(umbrella, GHOST_kStandardCursorInfo); /* TODO: replace this one. */
     DEF_CURSOR(pirate, GHOST_kStandardCursorDestroy);
     DEF_CURSOR(question_arrow, GHOST_kStandardCursorHelp);
     DEF_CURSOR(watch, GHOST_kStandardCursorWait);

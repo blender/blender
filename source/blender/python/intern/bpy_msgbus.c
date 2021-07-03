@@ -90,12 +90,12 @@ static int py_msgbus_rna_key_from_py(PyObject *py_sub,
     msg_key_params->prop = data_prop->prop;
   }
   else if (BPy_StructRNA_Check(py_sub)) {
-    /* note, this isn't typically used since we don't edit structs directly. */
+    /* NOTE: this isn't typically used since we don't edit structs directly. */
     BPy_StructRNA *data_srna = (BPy_StructRNA *)py_sub;
     PYRNA_STRUCT_CHECK_INT(data_srna);
     msg_key_params->ptr = data_srna->ptr;
   }
-  /* TODO - property / type, not instance. */
+  /* TODO: property / type, not instance. */
   else if (PyType_Check(py_sub)) {
     StructRNA *data_type = pyrna_struct_as_srna(py_sub, false, error_prefix);
     if (data_type == NULL) {
@@ -264,7 +264,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
     return NULL;
   }
 
-  /* Note: we may want to have a way to pass this in. */
+  /* NOTE: we may want to have a way to pass this in. */
   bContext *C = BPY_context_get();
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
   wmMsgParams_RNA msg_key_params = {{0}};
@@ -339,7 +339,7 @@ static PyObject *bpy_msgbus_publish_rna(PyObject *UNUSED(self), PyObject *args, 
     return NULL;
   }
 
-  /* Note: we may want to have a way to pass this in. */
+  /* NOTE: we may want to have a way to pass this in. */
   bContext *C = BPY_context_get();
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
   wmMsgParams_RNA msg_key_params = {{0}};

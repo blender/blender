@@ -221,7 +221,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
               }
             }
 
-            /* Note: instead of duplicate code in alternate direction,
+            /* NOTE: instead of duplicate code in alternate direction,
              * we can be sure to hit the other vertex, so the code above runs. */
 #if 0
             else if (BM_elem_index_get(l->prev->v) == -1) {

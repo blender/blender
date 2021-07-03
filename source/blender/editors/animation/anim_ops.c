@@ -465,7 +465,7 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
   /* rna */
   /* used to define frame range.
    *
-   * note: border Y values are not used,
+   * NOTE: border Y values are not used,
    * but are needed by box_select gesture operator stuff */
   WM_operator_properties_border(ot);
 }

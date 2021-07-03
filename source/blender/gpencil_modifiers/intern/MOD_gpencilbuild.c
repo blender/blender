@@ -112,7 +112,7 @@ static void gpf_clear_all_strokes(bGPDframe *gpf)
 
 /* Reduce the number of points in the stroke
  *
- * Note: This won't be called if all points are present/removed
+ * NOTE: This won't be called if all points are present/removed
  */
 static void reduce_stroke_points(bGPdata *gpd,
                                  bGPDstroke *gps,

@@ -545,7 +545,7 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__even(
       float u = (float)j / resol, weight;
       float co[2], n[2];
 
-      /* TODO - these calls all calculate similar things
+      /* TODO: these calls all calculate similar things
        * could be unified for some speed */
       BKE_mask_point_segment_co(spline, point_prev, u, co);
       BKE_mask_point_normal(spline, point_prev, u, n);
@@ -691,7 +691,7 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
         float weight_uw, weight_scalar;
         float co[2];
 
-        /* TODO - these calls all calculate similar things
+        /* TODO: these calls all calculate similar things
          * could be unified for some speed */
         BKE_mask_point_segment_co(spline, point_prev, u, co);
 

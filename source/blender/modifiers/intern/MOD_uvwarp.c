@@ -233,7 +233,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   settings.use_threading = (numPolys > 1000);
   BLI_task_parallel_range(0, numPolys, &data, uv_warp_compute, &settings);
 
-  /* XXX TODO is this still needed? */
+  /* XXX TODO: is this still needed? */
   //  me_eval->dirty |= DM_DIRTY_TESS_CDLAYERS;
 
   mesh->runtime.is_original = false;

@@ -240,7 +240,7 @@ void BLI_path_normalize(const char *relabase, char *path)
        * simply strip this prefix then evaluate the path as usual.
        * pythons os.path.normpath() does this */
 
-      /* Note: previous version of following call used an offset of 3 instead of 4,
+      /* NOTE: previous version of following call used an offset of 3 instead of 4,
        * which meant that the "/../home/me" example actually became "home/me".
        * Using offset of 3 gives behavior consistent with the aforementioned
        * Python routine. */

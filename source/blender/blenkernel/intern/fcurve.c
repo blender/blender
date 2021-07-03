@@ -2147,7 +2147,7 @@ static float fcurve_eval_samples(FCurve *fcu, FPoint *fpts, float evaltime)
  * \{ */
 
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime")
- * Note: this is also used for drivers.
+ * NOTE: this is also used for drivers.
  */
 static float evaluate_fcurve_ex(FCurve *fcu, float evaltime, float cvalue)
 {

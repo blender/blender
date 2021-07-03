@@ -400,7 +400,7 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
   }
 
   if (data) {
-    /* Note: we cannot use IMB_allocFromBuffer(), since it tries to dupalloc passed buffer,
+    /* NOTE: we cannot use IMB_allocFromBuffer(), since it tries to dupalloc passed buffer,
      *       which will fail here (we do not want to pass the first two ints!). */
     img = IMB_allocImBuf(
         (unsigned int)data->width, (unsigned int)data->height, 32, IB_rect | IB_metadata);

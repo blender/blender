@@ -26,7 +26,7 @@
  *
  * See: http://www.gris.uni-tuebingen.de/people/staff/jmezger/papers/bvh.pdf
  *
- * implements a bvh-tree structure with support for:
+ * implements a BVH-tree structure with support for:
  *
  * - Ray-cast:
  *   #BLI_bvhtree_ray_cast, #BVHRayCastData
@@ -726,7 +726,7 @@ static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
   /* Save split axis (this can be used on ray-tracing to speedup the query time) */
   parent->main_axis = split_axis / 2;
 
-  /* Split the children along the split_axis, note: its not needed to sort the whole leafs array
+  /* Split the children along the split_axis, NOTE: its not needed to sort the whole leafs array
    * Only to assure that the elements are partitioned on a way that each child takes the elements
    * it would take in case the whole array was sorted.
    * Split_leafs takes care of that "sort" problem. */
@@ -1805,7 +1805,7 @@ static float ray_nearest_hit(const BVHRayCastData *data, const float bv[6])
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  * [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  *
- * TODO this doesn't take data->ray.radius into consideration */
+ * TODO: this doesn't take data->ray.radius into consideration. */
 static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *node)
 {
   const float *bv = node->bv;

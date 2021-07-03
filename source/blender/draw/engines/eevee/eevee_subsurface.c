@@ -198,7 +198,7 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
 
   /* Limit of 8 bit stencil buffer. ID 255 is refraction. */
   if (effects->sss_surface_count >= 254) {
-    /* TODO : display message. */
+    /* TODO: display message. */
     printf("Error: Too many different Subsurface shader in the scene.\n");
     return;
   }

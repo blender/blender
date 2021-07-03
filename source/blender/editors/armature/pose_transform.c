@@ -457,7 +457,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
   /* For the affected bones, reset specific constraints that are now known to be invalid. */
   applyarmature_reset_constraints(pose, use_selected);
 
-  /* note, notifier might evolve */
+  /* NOTE: notifier might evolve. */
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 
@@ -557,7 +557,7 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
-      /* note, notifier might evolve */
+      /* NOTE: notifier might evolve. */
       WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
     }
 
@@ -1228,7 +1228,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
 
       DEG_id_tag_update(&ob_iter->id, ID_RECALC_GEOMETRY);
 
-      /* note, notifier might evolve */
+      /* NOTE: notifier might evolve. */
       WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob_iter);
     }
   }

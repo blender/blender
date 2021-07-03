@@ -183,7 +183,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
     }
 
     /* collapse the vertex */
-    /* note, the baseedge can be a boundary of manifold, use this as join_faces arg */
+    /* NOTE: the baseedge can be a boundary of manifold, use this as join_faces arg. */
     e = BM_vert_collapse_faces(
         bm, baseedge, v, 1.0, true, !BM_edge_is_boundary(baseedge), true, true);
 
@@ -873,7 +873,7 @@ bool BM_edge_rotate_check(BMEdge *e)
  */
 bool BM_edge_rotate_check_degenerate(BMEdge *e, BMLoop *l1, BMLoop *l2)
 {
-  /* note: for these vars 'old' just means initial edge state. */
+  /* NOTE: for these vars 'old' just means initial edge state. */
 
   float ed_dir_old[3];      /* edge vector */
   float ed_dir_new[3];      /* edge vector */
@@ -1054,7 +1054,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
     return NULL;
   }
 
-  /* note, this assumes joining the faces _didnt_ also remove the verts.
+  /* NOTE: this assumes joining the faces _didnt_ also remove the verts.
    * the #BM_edge_rotate_check will ensure this, but its possibly corrupt state or future edits
    * break this */
   if ((l1 = BM_face_vert_share_loop(f, v1)) && (l2 = BM_face_vert_share_loop(f, v2)) &&

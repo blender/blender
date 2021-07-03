@@ -829,7 +829,7 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
   }
 
   if (do_loop_normals) {
-    /* Compute loop normals (note: will compute poly and vert normals as well, if needed!) */
+    /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). */
     BKE_mesh_calc_normals_split(mesh_final);
     BKE_mesh_tessface_clear(mesh_final);
   }
@@ -1404,7 +1404,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
    * we need to apply these back onto the Mesh. If we have no
    * Mesh then we need to build one. */
   if (mesh_final == nullptr) {
-    /* Note: this check on cdmask is a bit dodgy, it handles the issue at stake here (see T68211),
+    /* NOTE: this check on cdmask is a bit dodgy, it handles the issue at stake here (see T68211),
      * but other cases might require similar handling?
      * Could be a good idea to define a proper CustomData_MeshMask for that then. */
     if (deformed_verts == nullptr && allow_shared_mesh &&
@@ -2418,7 +2418,7 @@ static void dm_debug_info_layers(DynStr *dynstr,
 
   for (type = 0; type < CD_NUMTYPES; type++) {
     if (CustomData_has_layer(cd, type)) {
-      /* note: doesn't account for multiple layers */
+      /* NOTE: doesn't account for multiple layers. */
       const char *name = CustomData_layertype_name(type);
       const int size = CustomData_sizeof(type);
       const void *pt = getElemDataArray(dm, type);

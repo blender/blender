@@ -407,7 +407,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
                            "Enter edit mode when adding this object");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
-  /* note: this property gets hidden for add-camera operator */
+  /* NOTE: this property gets hidden for add-camera operator. */
   prop = RNA_def_enum(
       ot->srna, "align", align_options, ALIGN_WORLD, "Align", "The alignment of the new object");
   RNA_def_property_update_runtime(prop, view_align_update);
@@ -1325,7 +1325,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
   float loc[3], rot[3];
   bool newob = false;
 
-  /* Note: We use 'Y' here (not 'Z'), as */
+  /* NOTE: We use 'Y' here (not 'Z'), as. */
   WM_operator_view3d_unit_defaults(C, op);
   if (!ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, NULL, NULL, &local_view_bits, NULL)) {
     return OPERATOR_CANCELLED;
@@ -1977,7 +1977,7 @@ void OBJECT_OT_pointcloud_add(wmOperatorType *ot)
 /** \name Delete Object Operator
  * \{ */
 /* remove base from a specific scene */
-/* note: now unlinks constraints as well */
+/* NOTE: now unlinks constraints as well. */
 void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
 {
   if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
@@ -2163,7 +2163,7 @@ static void copy_object_set_idnew(bContext *C)
 /** \name Make Instanced Objects Real Operator
  * \{ */
 
-/* XXX TODO That whole hierarchy handling based on persistent_id tricks is
+/* XXX TODO: That whole hierarchy handling based on persistent_id tricks is
  * very confusing and convoluted, and it will fail in many cases besides basic ones.
  * Think this should be replaced by a proper tree-like representation of the instantiations,
  * should help a lot in both readability, and precise consistent rebuilding of hierarchy.
@@ -2442,7 +2442,7 @@ static void make_object_duplilist_real(bContext *C,
     }
 
     if (ob_dst->parent) {
-      /* note, this may be the parent of other objects, but it should
+      /* NOTE: this may be the parent of other objects, but it should
        * still work out ok */
       BKE_object_apply_mat4(ob_dst, dob->mat, false, true);
 
@@ -2906,7 +2906,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       /* make new mesh data from the original copy */
-      /* note: get the mesh from the original, not from the copy in some
+      /* NOTE: get the mesh from the original, not from the copy in some
        * cases this doesn't give correct results (when MDEF is used for eg)
        */
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
@@ -3349,8 +3349,8 @@ static Base *object_add_duplicate_internal(Main *bmain,
 
 /* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 /* leaves selection of base/object unaltered.
- * note: don't call this within a loop since clear_* funcs loop over the entire database.
- * note: caller must do DAG_relations_tag_update(bmain);
+ * NOTE: don't call this within a loop since clear_* funcs loop over the entire database.
+ * NOTE: caller must do DAG_relations_tag_update(bmain);
  *       this is not done automatic since we may duplicate many objects in a batch */
 Base *ED_object_add_duplicate(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, const eDupli_ID_Flags dupflag)

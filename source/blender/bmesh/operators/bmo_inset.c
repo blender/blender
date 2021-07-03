@@ -822,7 +822,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     /* this could go in its own loop,
      * only use the 'es->l->f' so we don't store loops for faces which have no mixed selection
      *
-     * note: faces on the other side of the inset will be interpolated too since this is hard to
+     * NOTE: faces on the other side of the inset will be interpolated too since this is hard to
      * detect, just allow it even though it will cause some redundant interpolation */
     if (use_interpolate) {
       BMIter viter;

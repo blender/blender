@@ -1291,7 +1291,7 @@ bool invert_m4_m4(float inverse[4][4], const float mat[4][4])
  * to the Aligned Inherit Scale mode, in order to avoid creating shear.
  * If A scale is uniform, the result is equivalent to ordinary multiplication.
  *
- * Note: this effectively takes output location from simple multiplication,
+ * NOTE: this effectively takes output location from simple multiplication,
  *       and uses mul_m4_m4m4_split_channels for rotation and scale.
  */
 void mul_m4_m4m4_aligned_scale(float R[4][4], const float A[4][4], const float B[4][4])
@@ -2274,8 +2274,8 @@ void mat4_to_loc_quat(float loc[3], float quat[4], const float wmat[4][4])
   copy_m3_m4(mat3, wmat);
   normalize_m3_m3(mat3_n, mat3);
 
-  /* so scale doesn't interfere with rotation T24291. */
-  /* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
+  /* So scale doesn't interfere with rotation T24291. */
+  /* FIXME: this is a workaround for negative matrix not working for rotation conversion. */
   if (is_negative_m3(mat3)) {
     negate_m3(mat3_n);
   }

@@ -300,7 +300,7 @@ static void pe_update_hair_particle_edit_pointers(PTCacheEdit *edit)
 
 /* always gets at least the first particlesystem even if PSYS_CURRENT flag is not set
  *
- * note: this function runs on poll, therefore it can runs many times a second
+ * NOTE: this function runs on poll, therefore it can runs many times a second
  * keep it fast! */
 static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *ob, bool create)
 {
@@ -631,7 +631,7 @@ static bool key_inside_circle(const PEData *data, float rad, const float co[3], 
   float dx, dy, dist;
   int screen_co[2];
 
-  /* TODO, should this check V3D_PROJ_TEST_CLIP_BB too? */
+  /* TODO: should this check V3D_PROJ_TEST_CLIP_BB too? */
   if (ED_view3d_project_int_global(data->vc.region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
       V3D_PROJ_RET_OK) {
     return 0;
@@ -5444,7 +5444,7 @@ void ED_object_particle_edit_mode_enter_ex(Depsgraph *depsgraph, Scene *scene, O
   edit = PE_create_current(depsgraph, scene, ob);
 
   /* Mesh may have changed since last entering editmode.
-   * note, this may have run before if the edit data was just created,
+   * NOTE: this may have run before if the edit data was just created,
    * so could avoid this and speed up a little. */
   if (edit && edit->psys) {
     /* Make sure pointer to the evaluated modifier data is up to date,

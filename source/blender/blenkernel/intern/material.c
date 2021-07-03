@@ -135,7 +135,7 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
 
   BLI_listbase_clear(&material_dst->gpumaterial);
 
-  /* TODO Duplicate Engine Settings and set runtime to NULL */
+  /* TODO: Duplicate Engine Settings and set runtime to NULL. */
 }
 
 static void material_free_data(ID *id)
@@ -864,7 +864,7 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
     ob->mat = newmatar;
     ob->matbits = newmatbits;
   }
-  /* XXX, why not realloc on shrink? - campbell */
+  /* XXX(campbell): why not realloc on shrink? */
 
   ob->totcol = totcol;
   if (ob->totcol && ob->actcol == 0) {
@@ -1168,7 +1168,7 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, ID *data_e
   BKE_object_materials_test(bmain, ob_orig, data_orig);
 }
 
-/* XXX - this calls many more update calls per object then are needed, could be optimized */
+/* XXX: this calls many more update calls per object then are needed, could be optimized. */
 void BKE_object_material_array_assign(Main *bmain,
                                       struct Object *ob,
                                       struct Material ***matar,
@@ -1823,7 +1823,7 @@ void BKE_material_copybuf_copy(Main *bmain, Material *ma)
 
   matcopybuf.preview = NULL;
   BLI_listbase_clear(&matcopybuf.gpumaterial);
-  /* TODO Duplicate Engine Settings and set runtime to NULL */
+  /* TODO: Duplicate Engine Settings and set runtime to NULL. */
   matcopied = 1;
 }
 

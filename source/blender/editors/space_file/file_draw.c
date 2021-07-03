@@ -110,7 +110,7 @@ void ED_file_path_button(bScreen *screen,
   UI_but_func_complete_set(but, autocomplete_directory, NULL);
   UI_but_funcN_set(but, file_directory_enter_handle, NULL, but);
 
-  /* TODO, directory editing is non-functional while a library is loaded
+  /* TODO: directory editing is non-functional while a library is loaded
    * until this is properly supported just disable it. */
   if (sfile && sfile->files && filelist_lib(sfile->files)) {
     UI_but_flag_enable(but, UI_BUT_DISABLED);
@@ -170,7 +170,7 @@ static void file_draw_icon(const SpaceFile *sfile,
   UI_but_func_tooltip_set(but, file_draw_tooltip_func, BLI_strdup(path), MEM_freeN);
 
   if (drag) {
-    /* TODO duplicated from file_draw_preview(). */
+    /* TODO: duplicated from file_draw_preview(). */
     ID *id;
 
     if ((id = filelist_file_get_id(file))) {

@@ -176,7 +176,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
   }
   Text *text = (Text *)id;
 
-  /* Note: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */
+  /* NOTE: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */
   if ((text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) {
     text->flags &= ~TXT_ISEXT;
   }
@@ -2397,7 +2397,7 @@ int text_check_bracket(const char ch)
   return 0;
 }
 
-/* TODO, have a function for operators -
+/* TODO: have a function for operators -
  * http://docs.python.org/py3k/reference/lexical_analysis.html#operators */
 bool text_check_delim(const char ch)
 {

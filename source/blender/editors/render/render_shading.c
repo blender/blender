@@ -294,7 +294,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
     }
     else {
       /* Find the first matching material.
-       * Note: there may be multiple but that's not a common use case. */
+       * NOTE: there may be multiple but that's not a common use case. */
       for (int i = 0; i < ob->totcol; i++) {
         const Material *mat = BKE_object_material_get(ob, i + 1);
         if (mat_active == mat) {
@@ -401,7 +401,7 @@ static int material_slot_de_select(bContext *C, bool select)
     }
     else {
       /* Find the first matching material.
-       * Note: there may be multiple but that's not a common use case. */
+       * NOTE: there may be multiple but that's not a common use case. */
       for (int i = 0; i < ob->totcol; i++) {
         const Material *mat = BKE_object_material_get(ob, i + 1);
         if (mat_active == mat) {
@@ -1183,7 +1183,7 @@ static int light_cache_bake_exec(bContext *C, wmOperator *op)
 
   G.is_break = false;
 
-  /* TODO abort if selected engine is not eevee. */
+  /* TODO: abort if selected engine is not eevee. */
   void *rj = EEVEE_lightbake_job_data_alloc(bmain, view_layer, scene, false, scene->r.cfra);
 
   light_cache_bake_tag_cache(scene, op);

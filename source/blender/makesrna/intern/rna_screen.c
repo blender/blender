@@ -495,7 +495,7 @@ static void rna_def_view2d(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "View2D", "Scroll and zoom for a 2D region");
   RNA_def_struct_sdna(srna, "View2D");
 
-  /* TODO more View2D properties could be exposed here (read-only) */
+  /* TODO: more View2D properties could be exposed here (read-only). */
 
   rna_def_view2d_api(srna);
 }

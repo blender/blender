@@ -116,7 +116,7 @@ vec3 sample_uniform_cone(vec3 rand, float angle)
 vec3 sample_uniform_cone(vec3 rand, float angle, vec3 N, vec3 T, vec3 B)
 {
   vec3 Ht = sample_uniform_cone(rand, angle);
-  /* TODO pdf? */
+  /* TODO: pdf? */
   return tangent_to_world(Ht, N, T, B);
 }
 

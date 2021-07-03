@@ -271,7 +271,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
       view_pan_apply(C, op);
       break;
     }
-    /* XXX - Mode switching isn't implemented. See comments in 36818.
+    /* XXX: Mode switching isn't implemented. See comments in 36818.
      * switch to zoom */
 #if 0
     case LEFTMOUSE:
@@ -1527,7 +1527,7 @@ struct SmoothView2DStore {
 /**
  * function to get a factor out of a rectangle
  *
- * note: this doesn't always work as well as it might because the target size
+ * NOTE: this doesn't always work as well as it might because the target size
  *       may not be reached because of clamping the desired rect, we _could_
  *       attempt to clamp the rect before working out the zoom factor but its
  *       not really worthwhile for the few cases this happens.
@@ -2132,7 +2132,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
       scroller_activate_exit(C, op);
 
       /* can't catch this event for ourselves, so let it go to someone else? */
-      /* XXX note: if handlers use mask rect to clip input, input will fail for this case */
+      /* XXX NOTE: if handlers use mask rect to clip input, input will fail for this case. */
       return OPERATOR_PASS_THROUGH;
     }
 

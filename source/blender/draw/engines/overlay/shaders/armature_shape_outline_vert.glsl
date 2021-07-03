@@ -36,7 +36,7 @@ void main()
   /* This is slow and run per vertex, but it's still faster than
    * doing it per instance on CPU and sending it on via instance attribute. */
   mat3 normal_mat = transpose(inverse(mat3(model_mat)));
-  /* TODO FIX: there is still a problem with this vector
+  /* TODO: FIX: there is still a problem with this vector
    * when the bone is scaled or in persp mode. But it's
    * barely visible at the outline corners. */
   ssNor = normalize(normal_world_to_view(normal_mat * snor).xy);

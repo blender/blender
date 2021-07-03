@@ -1439,7 +1439,7 @@ static void eevee_material_post_eval(GPUMaterial *mat,
   const bool is_mesh = (options & VAR_MAT_MESH) != 0;
 
   /* Force geometry usage if GPU_BARYCENTRIC_DIST or GPU_BARYCENTRIC_TEXCO are used.
-   * Note: GPU_BARYCENTRIC_TEXCO only requires it if the shader is not drawing hairs. */
+   * NOTE: GPU_BARYCENTRIC_TEXCO only requires it if the shader is not drawing hairs. */
   if (!is_hair && is_mesh && GPU_material_flag_get(mat, GPU_MATFLAG_BARYCENTRIC) &&
       *geom_code == NULL) {
     *geom_code = e_data.surface_geom_barycentric;
@@ -1493,7 +1493,7 @@ static struct GPUMaterial *eevee_material_get_ex(
   return mat;
 }
 
-/* Note: Compilation is not deferred. */
+/* NOTE: Compilation is not deferred. */
 struct GPUMaterial *EEVEE_material_default_get(struct Scene *scene, Material *ma, int options)
 {
   Material *def_ma = (ma && (options & VAR_MAT_VOLUME)) ? BKE_material_default_volume() :

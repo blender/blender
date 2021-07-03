@@ -2291,7 +2291,7 @@ static bool ed_object_select_pick(bContext *C,
   /* In edit-mode do not activate. */
   if (obcenter) {
 
-    /* note; shift+alt goes to group-flush-selecting */
+    /* NOTE: shift+alt goes to group-flush-selecting. */
     if (enumerate) {
       basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, extend, deselect, toggle);
     }
@@ -2354,10 +2354,10 @@ static bool ed_object_select_pick(bContext *C,
     // TIMEIT_END(select_time);
 
     if (hits > 0) {
-      /* note: bundles are handling in the same way as bones */
+      /* NOTE: bundles are handling in the same way as bones. */
       const bool has_bones = object ? false : selectbuffer_has_bones(buffer, hits);
 
-      /* note; shift+alt goes to group-flush-selecting */
+      /* NOTE: shift+alt goes to group-flush-selecting. */
       if (enumerate) {
         if (has_bones &&
             bone_mouse_select_menu(C, buffer, hits, false, extend, deselect, toggle)) {

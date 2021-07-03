@@ -132,7 +132,7 @@ void BLI_kdtree_nd_(insert)(KDTree *tree, int index, const float co[KD_DIMS])
   BLI_assert(tree->nodes_len <= tree->nodes_len_capacity);
 #endif
 
-  /* note, array isn't calloc'd,
+  /* NOTE: array isn't calloc'd,
    * need to initialize all struct members */
 
   node->left = node->right = KD_NODE_UNSET;

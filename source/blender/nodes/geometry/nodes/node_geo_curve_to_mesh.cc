@@ -337,7 +337,7 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
   curve_set = bke::geometry_set_realize_instances(curve_set);
   profile_set = bke::geometry_set_realize_instances(profile_set);
 
-  /* Note: Theoretically an "is empty" check would be more correct for errors. */
+  /* NOTE: Theoretically an "is empty" check would be more correct for errors. */
   if (profile_set.has_mesh() && !profile_set.has_curve()) {
     params.error_message_add(NodeWarningType::Warning,
                              TIP_("No curve data available in profile input"));

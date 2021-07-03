@@ -179,7 +179,7 @@ static void stats_object(Object *ob,
       int totv = 0, totf = 0, tottri = 0;
 
       if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
-        /* Note: We only get the same curve_cache for instances of the same curve/font/...
+        /* NOTE: We only get the same curve_cache for instances of the same curve/font/...
          * For simple linked duplicated objects, each has its own dispList. */
         if (!BLI_gset_add(objects_gset, ob->runtime.curve_cache)) {
           break;

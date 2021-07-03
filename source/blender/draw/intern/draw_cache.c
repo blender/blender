@@ -580,7 +580,7 @@ static void circle_dashed_verts(
   }
 }
 
-/* XXX TODO move that 1 unit cube to more common/generic place? */
+/* XXX TODO: move that 1 unit cube to more common/generic place? */
 static const float bone_box_verts[8][3] = {
     {1.0f, 0.0f, 1.0f},
     {1.0f, 0.0f, -1.0f},
@@ -762,7 +762,7 @@ GPUBatch *DRW_cache_normal_arrow_get(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 2);
 
-    /* TODO real arrow. For now, it's a line positioned in the vertex shader. */
+    /* TODO: real arrow. For now, it's a line positioned in the vertex shader. */
 
     SHC.drw_normal_arrow = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
   }
@@ -802,7 +802,7 @@ GPUBatch *DRW_cache_object_all_edges_get(Object *ob)
     case OB_MESH:
       return DRW_cache_mesh_all_edges_get(ob);
 
-    /* TODO, should match 'DRW_cache_object_surface_get' */
+    /* TODO: should match #DRW_cache_object_surface_get. */
     default:
       return NULL;
   }
@@ -2181,7 +2181,7 @@ GPUBatch *DRW_cache_bone_envelope_solid_get(void)
       float lat = 0.0f;
       float co1[3], co2[3];
 
-      /* Note: the poles are duplicated on purpose, to restart the strip. */
+      /* NOTE: the poles are duplicated on purpose, to restart the strip. */
 
       /* 1st sphere */
       for (int j = 0; j < lat_res; j++, lat += lat_inc) {
@@ -2627,7 +2627,7 @@ GPUBatch *DRW_cache_bone_dof_sphere_get(void)
         pz = z;
       }
     }
-    /* TODO allocate right count from the beginning. */
+    /* TODO: allocate right count from the beginning. */
     GPU_vertbuf_data_resize(vbo, v);
 
     SHC.drw_bone_dof_sphere = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
@@ -3599,7 +3599,7 @@ void drw_batch_cache_generate_requested(Object *ob)
       }
       DRW_curve_batch_cache_create_requested(ob, scene);
       break;
-    /* TODO all cases */
+    /* TODO: all cases. */
     default:
       break;
   }
@@ -3625,7 +3625,7 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
         DRW_mesh_batch_cache_free_old(mesh_eval, ctime);
       }
       break;
-    /* TODO all cases */
+    /* TODO: all cases. */
     default:
       break;
   }

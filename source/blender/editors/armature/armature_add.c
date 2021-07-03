@@ -225,7 +225,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  /* TODO most of this code is copied from set3dcursor_invoke,
+  /* TODO: most of this code is copied from set3dcursor_invoke,
    * it would be better to reuse code in set3dcursor_invoke */
 
   /* temporarily change 3d cursor position */
@@ -1601,7 +1601,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
   ED_armature_edit_refresh_layer_used(obedit->data);
 
-  /* note, notifier might evolve */
+  /* NOTE: notifier might evolve. */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
   DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_edit_bone_tag(C);
@@ -1692,7 +1692,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  /* note, notifier might evolve */
+  /* NOTE: notifier might evolve. */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
   DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_edit_bone_tag(C);

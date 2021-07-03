@@ -97,15 +97,15 @@ struct ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx,
                                            struct ScanFillVert *v2);
 
 enum {
-  /* note: using BLI_SCANFILL_CALC_REMOVE_DOUBLES
+  /* NOTE(campbell): using BLI_SCANFILL_CALC_REMOVE_DOUBLES
    * Assumes ordered edges, otherwise we risk an eternal loop
-   * removing double verts. - campbell */
+   * removing double verts. */
   BLI_SCANFILL_CALC_REMOVE_DOUBLES = (1 << 1),
 
   /* calculate isolated polygons */
   BLI_SCANFILL_CALC_POLYS = (1 << 2),
 
-  /* note: This flag removes checks for overlapping polygons.
+  /* NOTE: This flag removes checks for overlapping polygons.
    * when this flag is set, we'll never get back more faces than (totvert - 2) */
   BLI_SCANFILL_CALC_HOLES = (1 << 3),
 

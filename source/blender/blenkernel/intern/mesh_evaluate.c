@@ -191,7 +191,7 @@ void BKE_mesh_calc_poly_center(const MPoly *mpoly,
   }
 }
 
-/* note, passing polynormal is only a speedup so we can skip calculating it */
+/* NOTE: passing poly-normal is only a speedup so we can skip calculating it. */
 float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const MVert *mvarray)
 {
   if (mpoly->totloop == 3) {
@@ -656,7 +656,7 @@ void BKE_mesh_calc_volume(const MVert *mverts,
     }
   }
 
-  /* Note: Depending on arbitrary centroid position,
+  /* NOTE: Depending on arbitrary centroid position,
    * totvol can become negative even for a valid mesh.
    * The true value is always the positive value.
    */
@@ -664,7 +664,7 @@ void BKE_mesh_calc_volume(const MVert *mverts,
     *r_volume = fabsf(totvol);
   }
   if (r_center) {
-    /* Note: Factor 1/3 is applied once for all vertices here.
+    /* NOTE: Factor 1/3 is applied once for all vertices here.
      * This also automatically negates the vector if totvol is negative.
      */
     if (totvol != 0.0f) {
@@ -943,7 +943,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id,
     }
   }
 
-  /* note, we don't convert NGons at all, these are not even real ngons,
+  /* NOTE: we don't convert NGons at all, these are not even real ngons,
    * they have their own UV's, colors etc - its more an editing feature. */
 
   BLI_edgehash_free(eh, NULL);

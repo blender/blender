@@ -263,7 +263,7 @@ Mathutils_Callback mathutils_matrix_col_cb = {
 /* ----------------------------------------------------------------------------
  * matrix row callbacks
  * this is so you can do matrix.translation = val
- * note, this is _exactly like matrix.col except the 4th component is always omitted */
+ * NOTE: this is _exactly like matrix.col except the 4th component is always omitted. */
 
 uchar mathutils_matrix_translation_cb_index = -1;
 
@@ -1938,7 +1938,7 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
     return NULL;
   }
 
-  /* TODO, different sized matrix */
+  /* TODO: different sized matrix. */
   if (self->num_col == 4 && self->num_row == 4) {
 #ifdef MATH_STANDALONE
     blend_m4_m4m4((float(*)[4])mat, (float(*)[4])self->matrix, (float(*)[4])mat2->matrix, fac);
@@ -3614,7 +3614,7 @@ static int MatrixAccess_ass_subscript(MatrixAccessObject *self, PyObject *item, 
     }
     return Matrix_ass_item_col(matrix_user, i, value);
   }
-  /* TODO, slice */
+  /* TODO: slice. */
 
   PyErr_Format(
       PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);

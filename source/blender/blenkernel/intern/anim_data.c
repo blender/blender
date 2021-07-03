@@ -336,7 +336,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
      * BKE_id_copy_ex().
      * So in case we do copy the ID and its sub-IDs in bmain, silence the 'no usercount' flag for
      * the sub-IDs copying.
-     * Note: This is a bit weak, as usually when it comes to recursive ID copy. Should work for
+     * NOTE: This is a bit weak, as usually when it comes to recursive ID copy. Should work for
      * now, but we may have to revisit this at some point and add a proper extra flag to deal with
      * that situation. Or refactor completely the way we handle such recursion, by flattening it
      * e.g. */
@@ -1563,7 +1563,7 @@ void BKE_animdata_blend_write(BlendWriter *writer, struct AnimData *adt)
     BLO_write_string(writer, aor->rna_path);
   }
 
-  /* TODO write the remaps (if they are needed) */
+  /* TODO: write the remaps (if they are needed). */
 
   /* write NLA data */
   BKE_nla_blend_write(writer, &adt->nla_tracks);

@@ -40,7 +40,7 @@ ccl_device_noinline void compute_light_pass(
   /* Evaluate surface shader. */
   shader_eval_surface(kg, sd, &state, NULL, state.flag);
 
-  /* TODO, disable more closures we don't need besides transparent */
+  /* TODO: disable more closures we don't need besides transparent. */
   shader_bsdf_disable_transparency(kg, sd);
 
   /* Init ray. */

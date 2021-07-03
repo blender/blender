@@ -1610,7 +1610,7 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   ot->cancel = view3d_interactive_add_cancel;
   ot->poll = view3d_interactive_add_poll;
 
-  /* Note, let the operator we call handle undo and registering itself. */
+  /* NOTE: let the operator we call handle undo and registering itself. */
   /* flags */
   ot->flag = 0;
 

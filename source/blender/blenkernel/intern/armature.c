@@ -2405,9 +2405,9 @@ static void pose_proxy_sync(Object *ob, Object *from, int layer_protected)
   BKE_pose_rest(frompose, false);
 
   /* copy over all of the proxy's bone groups */
-  /* TODO for later
+  /* TODO: for later
    * - implement 'local' bone groups as for constraints
-   * Note: this isn't trivial, as bones reference groups by index not by pointer,
+   * NOTE: this isn't trivial, as bones reference groups by index not by pointer,
    *       so syncing things correctly needs careful attention */
   BLI_freelistN(&pose->agroups);
   BLI_duplicatelist(&pose->agroups, &frompose->agroups);
@@ -2543,7 +2543,7 @@ static int rebuild_pose_bone(
    * (grand-(grand-(...)))-child (as processed by the recursive, depth-first nature of this
    * function) of the previous sibling.
    *
-   * Note: In most cases there is nothing to do here, but pose list may get out of order when some
+   * NOTE: In most cases there is nothing to do here, but pose list may get out of order when some
    * bones are added, removed or moved in the armature data. */
   bPoseChannel *pchan_prev = pchan->prev;
   const Bone *last_visited_bone = *r_last_visited_bone_p;

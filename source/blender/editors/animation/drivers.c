@@ -581,7 +581,7 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports),
     }
     else {
       /* find the matching driver and remove it only
-       * Note: here is one of the places where we don't want new F-Curve + Driver added!
+       * NOTE: here is one of the places where we don't want new F-Curve + Driver added!
        *      so 'add' var must be 0
        */
       fcu = verify_driver_fcurve(id, rna_path, array_index, DRIVER_FCURVE_LOOKUP_ONLY);

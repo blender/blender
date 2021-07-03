@@ -263,7 +263,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
           immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
         }
         else if (ac->datatype == ANIMCONT_MASK) {
-          /* TODO --- this is a copy of gpencil */
+          /* TODO: this is a copy of gpencil. */
           /* frames less than one get less saturated background */
           uchar *color = sel ? col1 : col2;
           immUniformColor4ubv(color);

@@ -143,7 +143,7 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   mesh_dst->mselect = MEM_dupallocN(mesh_dst->mselect);
 
-  /* TODO Do we want to add flag to prevent this? */
+  /* TODO: Do we want to add flag to prevent this? */
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &mesh_src->key->id, (ID **)&mesh_dst->key, flag);
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
@@ -657,12 +657,12 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 
       CustomData_from_bmeshpoly(&me->fdata, &me->ldata, me->totface);
 
-      /* TODO - add some --debug-mesh option */
+      /* TODO: add some `--debug-mesh` option. */
       if (G.debug & G_DEBUG) {
-        /* note: this warning may be un-called for if we are initializing the mesh for the
-         * first time from bmesh, rather than giving a warning about this we could be smarter
+        /* NOTE(campbell): this warning may be un-called for if we are initializing the mesh for
+         * the first time from #BMesh, rather than giving a warning about this we could be smarter
          * and check if there was any data to begin with, for now just print the warning with
-         * some info to help troubleshoot what's going on - campbell */
+         * some info to help troubleshoot what's going on. */
         printf(
             "%s: warning! Tessellation uvs or vcol data got out of sync, "
             "had to reset!\n    CD_MTFACE: %d != CD_MLOOPUV: %d || CD_MCOL: %d != CD_MLOOPCOL: "
@@ -2126,7 +2126,7 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
     }
   }
 
-  /* Note: after this point mesh is expected to be valid again. */
+  /* NOTE: after this point mesh is expected to be valid again. */
 
   /* CD_NORMAL is expected to be temporary only. */
   if (free_loop_normals) {

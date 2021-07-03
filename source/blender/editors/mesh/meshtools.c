@@ -390,7 +390,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   /* Apply parent transform if the active object's parent was joined to it.
-   * Note: This doesn't apply recursive parenting. */
+   * NOTE: This doesn't apply recursive parenting. */
   if (join_parent) {
     ob->parent = NULL;
     BKE_object_apply_mat4_ex(ob, ob->obmat, ob->parent, ob->parentinv, false);
@@ -1060,7 +1060,7 @@ static float *editmesh_get_mirror_uv(
     cent_vec[1] = face_cent[1];
   }
 
-  /* TODO - Optimize */
+  /* TODO: Optimize. */
   {
     BMIter iter;
     BMFace *efa;

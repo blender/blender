@@ -434,7 +434,7 @@ struct NearestEdgeUserData {
   struct NearestEdgeUserData_Hit hit_cycle;
 };
 
-/* note; uses v3d, so needs active 3d window */
+/* NOTE: uses v3d, so needs active 3d window. */
 static void find_nearest_edge__doClosest(
     void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index)
 {
@@ -3446,7 +3446,7 @@ static void edbm_select_linked_pick_ex(BMEditMesh *em, BMElem *ele, bool sel, in
     select_linked_delimit_begin(bm, delimit);
   }
 
-  /* Note: logic closely matches 'edbm_select_linked_exec', keep in sync */
+  /* NOTE: logic closely matches #edbm_select_linked_exec, keep in sync. */
 
   if (ele->head.htype == BM_VERT) {
     BMVert *eve = (BMVert *)ele;

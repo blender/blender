@@ -51,7 +51,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* note; image_panel_properties() uses pointer to sima->image directly */
+/* NOTE: image_panel_properties() uses pointer to sima->image directly. */
 Image *ED_space_image(SpaceImage *sima)
 {
   return sima->image;

@@ -301,7 +301,7 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
 
 static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
 {
-  /* note: don't use wmEvent coords because of continuous grab T36409. */
+  /* NOTE: don't use wmEvent coords because of continuous grab T36409. */
   int cx, cy;
   wm_cursor_position_get(win, &cx, &cy);
   WM_cursor_warp(win, cx + x, cy + y);

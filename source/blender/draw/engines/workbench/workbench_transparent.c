@@ -46,7 +46,7 @@ void workbench_transparent_engine_init(WORKBENCH_Data *data)
   DrawEngineType *owner = (DrawEngineType *)&workbench_transparent_engine_init;
 
   /* Reuse same format as opaque pipeline to reuse the textures. */
-  /* Note: Floating point texture is required for the reveal_tex as it is used for
+  /* NOTE: Floating point texture is required for the reveal_tex as it is used for
    * the alpha accumulation component (see accumulation shader for more explanation). */
   const eGPUTextureFormat accum_tex_format = GPU_RGBA16F;
   const eGPUTextureFormat reveal_tex_format = NORMAL_ENCODING_ENABLED() ? GPU_RG16F : GPU_RGBA32F;

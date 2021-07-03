@@ -589,7 +589,7 @@ void DRW_fluid_ensure_range_field(FluidModifierData *fmd)
 #endif /* WITH_FLUID */
 }
 
-/* TODO Unify with the other GPU_free_smoke. */
+/* TODO: Unify with the other #GPU_free_smoke. */
 void DRW_smoke_free_velocity(FluidModifierData *fmd)
 {
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {

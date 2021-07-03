@@ -2315,7 +2315,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   }
   if (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT) {
     if (!(v3d->flag2 & V3D_HIDE_OVERLAYS)) {
-      /* Note: don't use "BKE_object_pose_armature_get" here, it breaks selection. */
+      /* NOTE: don't use "BKE_object_pose_armature_get" here, it breaks selection. */
       Object *obpose = OBPOSE_FROM_OBACT(obact);
       if (obpose == NULL) {
         Object *obweight = OBWEIGHTPAINT_FROM_OBACT(obact);
@@ -3147,7 +3147,7 @@ void DRW_opengl_render_context_enable(void *re_gl_context)
   /* If thread is main you should use DRW_opengl_context_enable(). */
   BLI_assert(!BLI_thread_is_main());
 
-  /* TODO get rid of the blocking. Only here because of the static global DST. */
+  /* TODO: get rid of the blocking. Only here because of the static global DST. */
   BLI_ticket_mutex_lock(DST.gl_context_mutex);
   WM_opengl_context_activate(re_gl_context);
 }
@@ -3155,7 +3155,7 @@ void DRW_opengl_render_context_enable(void *re_gl_context)
 void DRW_opengl_render_context_disable(void *re_gl_context)
 {
   WM_opengl_context_release(re_gl_context);
-  /* TODO get rid of the blocking. */
+  /* TODO: get rid of the blocking. */
   BLI_ticket_mutex_unlock(DST.gl_context_mutex);
 }
 

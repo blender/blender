@@ -321,7 +321,7 @@ typedef struct BevelParams {
   GHash *vert_hash;
   /** Records new faces: key BMFace*, value one of {VERT/EDGE/RECON}_POLY. */
   GHash *face_hash;
-  /** Use for all allocs while bevel runs. Note: If we need to free we can switch to mempool. */
+  /** Use for all allocs while bevel runs. NOTE: If we need to free we can switch to mempool. */
   MemArena *mem_arena;
   /** Profile vertex location and spacings. */
   ProfileSpacing pro_spacing;
@@ -1225,7 +1225,7 @@ static void offset_meet_lines_percent_or_absolute(BevelParams *bp,
                                                   float r_l2b[3])
 {
   /* Get points the specified distance along each leg.
-   * Note: not all BevVerts and EdgeHalfs have been made yet, so we have
+   * NOTE: not all BevVerts and EdgeHalfs have been made yet, so we have
    * to find required edges by moving around faces and use fake EdgeHalfs for
    * some of the edges. If there aren't faces to move around, we have to give up.
    * The legs we need are:
@@ -3621,7 +3621,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
   } while (v && v != vstart);
   EIG_linear_solver_solve(solver);
 #ifdef DEBUG_ADJUST
-  /* Note: this print only works after solve, but by that time b has been cleared. */
+  /* NOTE: this print only works after solve, but by that time b has been cleared. */
   EIG_linear_solver_print_matrix(solver);
   printf("\nSolution:\n");
   for (i = 0; i < np; i++) {
@@ -3682,7 +3682,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 static void adjust_offsets(BevelParams *bp, BMesh *bm)
 {
   /* Find and process chains and cycles of unvisited BoundVerts that have eon set. */
-  /* Note: for repeatability, iterate over all verts of mesh rather than over ghash'ed BMVerts. */
+  /* NOTE: for repeatability, iterate over all verts of mesh rather than over ghash'ed BMVerts. */
   BMIter iter;
   BMVert *bmv;
   BM_ITER_MESH (bmv, &iter, bm, BM_VERTS_OF_MESH) {
@@ -6194,7 +6194,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
       weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
       bv->offset *= weight;
     }
-    /* Find center axis. Note: Don't use vert normal, can give unwanted results. */
+    /* Find center axis. NOTE: Don't use vert normal, can give unwanted results. */
     if (ELEM(bp->offset_type, BEVEL_AMT_WIDTH, BEVEL_AMT_DEPTH)) {
       float edge_dir[3];
       EdgeHalf *e = bv->edges;
@@ -6872,7 +6872,7 @@ static double find_superellipse_chord_endpoint(double x0, double dtarget, float 
   double ymin = superellipse_co(xmin, r, rbig);
   double ymax = superellipse_co(xmax, r, rbig);
 
-  /* Note: using distance**2 (no sqrt needed) does not converge that well. */
+  /* NOTE: using distance**2 (no sqrt needed) does not converge that well. */
   double dmaxerr = sqrt(pow((xmax - x0), 2) + pow((ymax - y0), 2)) - dtarget;
   double dminerr = sqrt(pow((xmin - x0), 2) + pow((ymin - y0), 2)) - dtarget;
 
@@ -7253,7 +7253,7 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
     return no_collide_offset;
   }
   float kb = eb->offset_l_spec;
-  EdgeHalf *ea = eb->next; /* Note: this is in direction b --> a. */
+  EdgeHalf *ea = eb->next; /* NOTE: this is in direction b --> a. */
   float ka = ea->offset_r_spec;
   BMVert *vb, *vc;
   if (eb->is_rev) {
@@ -7282,7 +7282,7 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
     return no_collide_offset;
   }
   if (ebother != NULL) {
-    ec = ebother->prev; /* Note: this is in direction c --> d. */
+    ec = ebother->prev; /* NOTE: this is in direction c --> d. */
     vc = bvc->v;
     kc = ec->offset_l_spec;
     vd = ec->is_rev ? ec->e->v1 : ec->e->v2;

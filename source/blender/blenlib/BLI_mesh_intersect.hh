@@ -405,7 +405,7 @@ bool bbs_might_intersect(const BoundingBox &bb_a, const BoundingBox &bb_b);
  * that the output triangle was a part of (input can have -1 for that field and then
  * the index in `tri[]` will be used as the original index).
  * The orig structure of the output #IMesh gives the originals for vertices and edges.
- * Note: if the input tm_in has a non-empty orig structure, then it is ignored.
+ * NOTE: if the input tm_in has a non-empty orig structure, then it is ignored.
  */
 IMesh trimesh_self_intersect(const IMesh &tm_in, IMeshArena *arena);
 

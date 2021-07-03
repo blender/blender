@@ -69,7 +69,7 @@ static void mask_copy_data(Main *UNUSED(bmain),
 
   BLI_listbase_clear(&mask_dst->masklayers);
 
-  /* TODO add unused flag to those as well. */
+  /* TODO: add unused flag to those as well. */
   BKE_mask_layer_copy_list(&mask_dst->masklayers, &mask_src->masklayers);
 
   /* enable fake user by default */
@@ -372,7 +372,7 @@ MaskLayer *BKE_mask_layer_new(Mask *mask, const char *name)
   return masklay;
 }
 
-/* note: may still be hidden, caller needs to check */
+/* NOTE: may still be hidden, caller needs to check. */
 MaskLayer *BKE_mask_layer_active(Mask *mask)
 {
   return BLI_findlink(&mask->masklayers, mask->masklay_act);
@@ -1133,7 +1133,7 @@ MaskSpline *BKE_mask_spline_copy(const MaskSpline *spline)
   return nspline;
 }
 
-/* note: does NOT add to the list */
+/* NOTE: Does NOT add to the list. */
 MaskLayerShape *BKE_mask_layer_shape_alloc(MaskLayer *masklay, const int frame)
 {
   MaskLayerShape *masklay_shape;
@@ -1422,7 +1422,7 @@ void BKE_mask_get_handle_point_adjacent(MaskSpline *spline,
                                         MaskSplinePoint **r_point_prev,
                                         MaskSplinePoint **r_point_next)
 {
-  /* TODO, could avoid calling this at such low level */
+  /* TODO: could avoid calling this at such low level. */
   MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
 
   *r_point_prev = mask_spline_point_prev(spline, points_array, point);
@@ -1472,7 +1472,7 @@ void BKE_mask_calc_handle_adjacent_interp(MaskSpline *spline,
                                           MaskSplinePoint *point,
                                           const float u)
 {
-  /* TODO! - make this interpolate between siblings - not always midpoint! */
+  /* TODO: make this interpolate between siblings - not always midpoint! */
   int length_tot = 0;
   float length_average = 0.0f;
   float weight_average = 0.0f;
@@ -1942,7 +1942,7 @@ void BKE_mask_layer_shape_changed_add(MaskLayer *masklay,
     int tot = BKE_mask_layer_shape_totvert(masklay) - 1;
 
     /* for interpolation */
-    /* TODO - assumes closed curve for now */
+    /* TODO: assumes closed curve for now. */
     float uv[3][2]; /* 3x 2D handles */
     const int pi_curr = spline_point_index;
     const int pi_prev = ((spline_point_index - 1) + spline->tot_point) % spline->tot_point;

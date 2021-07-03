@@ -262,7 +262,7 @@ static StripColorBalance calc_cb(StripColorBalance *cb_)
   return cb;
 }
 
-/* note: lift is actually 2-lift */
+/* NOTE: lift is actually 2-lift. */
 MINLINE float color_balance_fl(
     float in, const float lift, const float gain, const float gamma, const float mul)
 {

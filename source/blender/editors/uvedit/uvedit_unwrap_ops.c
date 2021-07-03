@@ -2319,7 +2319,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
   const bool use_orthographic = RNA_boolean_get(op->ptr, "orthographic");
 
-  /* Note: objects that aren't touched are set to NULL (to skip clipping). */
+  /* NOTE: objects that aren't touched are set to NULL (to skip clipping). */
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       view_layer, v3d, &objects_len);

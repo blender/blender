@@ -330,7 +330,7 @@ static bool node_select_grouped_name(SpaceNode *snode, bNode *node_act, const bo
   pref_len_act = BLI_str_partition_ex_utf8(
       node_act->name, nullptr, delims, &sep, &suf_act, from_right);
 
-  /* Note: in case we are searching for suffix, and found none, use whole name as suffix. */
+  /* NOTE: in case we are searching for suffix, and found none, use whole name as suffix. */
   if (from_right && !(sep && suf_act)) {
     pref_len_act = 0;
     suf_act = node_act->name;

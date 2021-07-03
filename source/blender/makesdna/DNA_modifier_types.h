@@ -1840,7 +1840,7 @@ typedef struct CorrectiveSmoothModifierData {
    * use for MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND */
   float (*bind_coords)[3];
 
-  /* note: -1 is used to bind */
+  /* NOTE: -1 is used to bind. */
   unsigned int bind_coords_num;
 
   float lambda, scale;

@@ -130,7 +130,7 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   local_id->override_library->reference = reference_id;
   id_us_plus(local_id->override_library->reference);
   local_id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_REFOK;
-  /* TODO do we want to add tag or flag to referee to mark it as such? */
+  /* TODO: do we want to add tag or flag to referee to mark it as such? */
   return local_id->override_library;
 }
 
@@ -217,7 +217,7 @@ static ID *lib_override_library_create_from(Main *bmain,
                                             ID *reference_id,
                                             const int lib_id_copy_flags)
 {
-  /* Note: We do not want to copy possible override data from reference here (whether it is an
+  /* NOTE: We do not want to copy possible override data from reference here (whether it is an
    * override template, or already an override of some other ref data). */
   ID *local_id = BKE_id_copy_ex(bmain,
                                 reference_id,
@@ -232,7 +232,7 @@ static ID *lib_override_library_create_from(Main *bmain,
 
   BKE_lib_override_library_init(local_id, reference_id);
 
-  /* Note: From liboverride perspective (and RNA one), shape keys are considered as local embedded
+  /* NOTE: From liboverride perspective (and RNA one), shape keys are considered as local embedded
    * data-blocks, just like root node trees or master collections. Therefore, we never need to
    * create overrides for them. We need a way to mark them as overrides though. */
   Key *reference_key;
@@ -369,7 +369,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     /* If `newid` is already set, assume it has been handled by calling code.
      * Only current use case: re-using proxy ID when converting to liboverride. */
     if (reference_id->newid == NULL) {
-      /* Note: `no main` case is used during resync procedure, to support recursive resync.
+      /* NOTE: `no main` case is used during resync procedure, to support recursive resync.
        * This requires extra care further down the resync process,
        * see: #BKE_lib_override_library_resync. */
       reference_id->newid = lib_override_library_create_from(
@@ -569,7 +569,7 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
 
     /* We tag all collections and objects for override. And we also tag all other data-blocks which
      * would use one of those.
-     * Note: missing IDs (aka placeholders) are never overridden. */
+     * NOTE: missing IDs (aka placeholders) are never overridden. */
     if (ELEM(GS(to_id->name), ID_OB, ID_GR)) {
       if ((to_id->tag & LIB_TAG_MISSING)) {
         to_id->tag |= missing_tag;
@@ -1347,7 +1347,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
 
   if (do_post_process) {
     /* Essentially ensures that potentially new overrides of new objects will be instantiated. */
-    /* Note: Here 'reference' collection and 'newly added' collection are the same, which is fine
+    /* NOTE: Here 'reference' collection and 'newly added' collection are the same, which is fine
      * since we already relinked old root override collection to new resync'ed one above. So this
      * call is not expected to instantiate this new resync'ed collection anywhere, just to ensure
      * that we do not have any stray objects. */
@@ -2820,7 +2820,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
 
   local->tag |= LIB_TAG_OVERRIDE_LIBRARY_REFOK;
 
-  /* Note: Since we reload full content from linked ID here, potentially from edited local
+  /* NOTE: Since we reload full content from linked ID here, potentially from edited local
    * override, we do not really have a way to know *what* is changed, so we need to rely on the
    * massive destruction weapon of `ID_RECALC_ALL` here. */
   DEG_id_tag_update_ex(bmain, local, ID_RECALC_ALL);
@@ -2907,7 +2907,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
    * other-ID-reference creation/update in that case (since no differential operation is expected
    * to involve those anyway). */
 #if 0
-  /* XXX TODO We may also want a specialized handling of things here too, to avoid copying heavy
+  /* XXX TODO: We may also want a specialized handling of things here too, to avoid copying heavy
    * never-overridable data (like Mesh geometry etc.)? And also maybe avoid lib
    * reference-counting completely (shallow copy). */
   /* This would imply change in handling of user-count all over RNA

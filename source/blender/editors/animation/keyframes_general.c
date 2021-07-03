@@ -932,7 +932,7 @@ static tAnimCopybufItem *pastebuf_match_path_property(Main *bmain,
           int len_id = strlen(identifier);
           int len_path = strlen(fcu->rna_path);
           if (len_id <= len_path) {
-            /* note, paths which end with "] will fail with this test - Animated ID Props */
+            /* NOTE: paths which end with "] will fail with this test - Animated ID Props. */
             if (STREQ(identifier, fcu->rna_path + (len_path - len_id))) {
               if ((from_single) || (aci->array_index == fcu->array_index)) {
                 break;

@@ -410,7 +410,7 @@ void applyProject(TransInfo *t)
 
             transform_data_ext_rotate(td, mat, true);
 
-            /* TODO support constraints for rotation too? see ElementRotation */
+            /* TODO: support constraints for rotation too? see #ElementRotation. */
           }
         }
       }

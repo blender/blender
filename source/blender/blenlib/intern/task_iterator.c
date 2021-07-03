@@ -80,7 +80,7 @@ BLI_INLINE void task_parallel_calc_chunk_size(const TaskParallelSettings *settin
      *              else 3 if num_tasks < 48;
      *              else 4 if num_tasks < 64;
      *                   etc.
-     * Note: If we wanted to keep the 'power of two' multiplier, we'd need something like:
+     * NOTE: If we wanted to keep the 'power of two' multiplier, we'd need something like:
      *     1 << max_ii(0, (int)(sizeof(int) * 8) - 1 - bitscan_reverse_i(num_tasks) - 3)
      */
     const int num_tasks_factor = max_ii(1, num_tasks >> 3);

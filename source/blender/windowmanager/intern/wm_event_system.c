@@ -129,7 +129,7 @@ wmEvent *wm_event_add_ex(wmWindow *win,
     BLI_addtail(&win->event_queue, event);
   }
   else {
-    /* Note: strictly speaking this breaks const-correctness,
+    /* NOTE: strictly speaking this breaks const-correctness,
      * however we're only changing 'next' member. */
     BLI_insertlinkafter(&win->event_queue, (void *)event_to_add_after, event);
   }
@@ -189,7 +189,7 @@ void wm_event_free(wmEvent *event)
 
   if (event->customdata) {
     if (event->customdatafree) {
-      /* Note: pointer to listbase struct elsewhere. */
+      /* NOTE: pointer to listbase struct elsewhere. */
       if (event->custom == EVT_DATA_DRAGDROP) {
         ListBase *lb = event->customdata;
         WM_drag_free_list(lb);
@@ -915,7 +915,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
 {
   if (G.background == 0 && caller_owns_reports == false) { /* popup */
     if (op->reports->list.first) {
-      /* FIXME, temp setting window, see other call to UI_popup_menu_reports for why. */
+      /* FIXME: temp setting window, see other call to #UI_popup_menu_reports for why. */
       wmWindow *win_prev = CTX_wm_window(C);
       ScrArea *area_prev = CTX_wm_area(C);
       ARegion *region_prev = CTX_wm_region(C);
@@ -1370,7 +1370,7 @@ static int wm_operator_invoke(bContext *C,
       CLOG_ERROR(WM_LOG_OPERATORS, "invalid operator call '%s'", op->idname);
     }
 
-    /* Note, if the report is given as an argument then assume the caller will deal with displaying
+    /* NOTE: if the report is given as an argument then assume the caller will deal with displaying
      * them currently Python only uses this. */
     if (!(retval & OPERATOR_HANDLED) && (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED))) {
       /* Only show the report if the report list was not given in the function. */
@@ -2379,9 +2379,9 @@ static int wm_handler_fileselect_do(bContext *C,
 
         if (handler->op->reports->list.first) {
 
-          /* FIXME, temp setting window, this is really bad!
+          /* FIXME(campbell): temp setting window, this is really bad!
            * only have because lib linking errors need to be seen by users :(
-           * it can be removed without breaking anything but then no linking errors - campbell */
+           * it can be removed without breaking anything but then no linking errors. */
           wmWindow *win_prev = CTX_wm_window(C);
           ScrArea *area_prev = CTX_wm_area(C);
           ARegion *region_prev = CTX_wm_region(C);
@@ -2393,7 +2393,7 @@ static int wm_handler_fileselect_do(bContext *C,
           BKE_report_print_level_set(handler->op->reports, RPT_WARNING);
           UI_popup_menu_reports(C, handler->op->reports);
 
-          /* XXX - copied from 'wm_operator_finished()' */
+          /* XXX: copied from 'wm_operator_finished()'. */
           /* add reports to the global list, otherwise they are not seen */
           BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
@@ -2796,7 +2796,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
   /* Modal handlers can get removed in this loop, we keep the loop this way.
    *
-   * Note: check 'handlers->first' because in rare cases the handlers can be cleared
+   * NOTE: check 'handlers->first' because in rare cases the handlers can be cleared
    * by the event that's called, for eg:
    *
    * Calling a python script which changes the area.type, see T32232. */
@@ -3398,7 +3398,7 @@ void wm_event_do_handlers(bContext *C)
       wm_tweakevent_test(C, event, action);
 
       if ((action & WM_HANDLER_BREAK) == 0) {
-        /* Note: setting subwin active should be done here, after modal handlers have been done */
+        /* NOTE: setting subwin active should be done here, after modal handlers have been done. */
         if (event->type == MOUSEMOVE) {
           /* State variables in screen, cursors.
            * Also used in wm_draw.c, fails for modal handlers though. */
@@ -4011,7 +4011,7 @@ wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBas
   return handler;
 }
 
-/* XXX solution works, still better check the real cause (ton) */
+/* XXX(ton): solution works, still better check the real cause. */
 void WM_event_remove_area_handler(ListBase *handlers, void *area)
 {
   LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, handlers) {

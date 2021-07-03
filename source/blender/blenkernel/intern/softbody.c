@@ -1907,7 +1907,7 @@ static void sb_spring_force(
 #endif
   }
   else {
-    /* TODO make this debug option */
+    /* TODO: make this debug option. */
     CLOG_WARN(&LOG, "bodypoint <bpi> is not attached to spring  <*bs>");
     return;
   }

@@ -105,8 +105,10 @@ typedef struct LayerTypeInfo {
 
   /**
    * default layer name.
-   * note! when NULL this is a way to ensure there is only ever one item
-   * see: CustomData_layertype_is_singleton() */
+   *
+   * \note when NULL this is a way to ensure there is only ever one item
+   * see: CustomData_layertype_is_singleton().
+   */
   const char *defaultname;
 
   /**
@@ -329,7 +331,7 @@ static void layerInterp_normal(const void **sources,
                                int count,
                                void *dest)
 {
-  /* Note: This is linear interpolation, which is not optimal for vectors.
+  /* NOTE: This is linear interpolation, which is not optimal for vectors.
    * Unfortunately, spherical interpolation of more than two values is hairy,
    * so for now it will do... */
   float no[3] = {0.0f};
@@ -1594,7 +1596,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 14: CD_ORCO */
     {sizeof(float[3]), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 15: CD_MTEXPOLY */ /* DEPRECATED */
-    /* note, when we expose the UV Map / TexFace split to the user,
+    /* NOTE: when we expose the UV Map / TexFace split to the user,
      * change this back to face Texture. */
     {sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
     /* 16: CD_MLOOPUV */
@@ -3805,7 +3807,7 @@ void *CustomData_bmesh_get_n(const CustomData *data, void *block, int type, int 
   return POINTER_OFFSET(block, data->layers[layer_index + n].offset);
 }
 
-/* Gets from the layer at physical index n, note: doesn't check type. */
+/* Gets from the layer at physical index n, NOTE: doesn't check type. */
 void *CustomData_bmesh_get_layer_n(const CustomData *data, void *block, int n)
 {
   if (n < 0 || n >= data->totlayer) {
@@ -4974,7 +4976,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
   size_t tmp_buff_size = 32;
   const void **tmp_data_src = NULL;
 
-  /* Note: NULL data_src may happen and be valid (see vgroups...). */
+  /* NOTE: NULL data_src may happen and be valid (see vgroups...). */
   if (!data_dst) {
     return;
   }
@@ -4991,7 +4993,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
   else {
     const LayerTypeInfo *type_info = layerType_getInfo(data_type);
 
-    /* Note: we can use 'fake' CDLayers, like e.g. for crease, bweight, etc. :/ */
+    /* NOTE: we can use 'fake' CDLayers, like e.g. for crease, bweight, etc. :/. */
     data_size = (size_t)type_info->size;
     data_step = laymap->elem_size ? laymap->elem_size : data_size;
     data_offset = laymap->data_offset;

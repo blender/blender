@@ -89,7 +89,7 @@ BLI_INLINE void lines_adjacency_triangle(
       *pval = POINTER_FROM_INT(NO_EDGE);
       bool inv_opposite = (v_data < 0);
       uint l_opposite = (uint)abs(v_data) - 1;
-      /* TODO Make this part thread-safe. */
+      /* TODO: Make this part thread-safe. */
       if (inv_opposite == inv_indices) {
         /* Don't share edge if triangles have non matching winding. */
         GPU_indexbuf_add_line_adj_verts(elb, l1, l2, l3, l1);

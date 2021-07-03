@@ -965,7 +965,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree,
 /** \name Shader Nodes
  * \{ */
 
-/* note: types are needed to restore callbacks, don't change values */
+/* NOTE: types are needed to restore callbacks, don't change values. */
 /* range 1 - 100 is reserved for common nodes */
 /* using toolbox, we add node groups by assuming the values below
  * don't exceed NODE_GROUP_MENU for now. */
@@ -1132,7 +1132,7 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 // #define RRES_OUT_SUBSURFACE_COLOR 30
 // #define RRES_OUT_DEBUG 31
 
-/* note: types are needed to restore callbacks, don't change values */
+/* NOTE: types are needed to restore callbacks, don't change values. */
 #define CMP_NODE_VIEWER 201
 #define CMP_NODE_RGB 202
 #define CMP_NODE_VALUE 203

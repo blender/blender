@@ -191,7 +191,7 @@
 #  define BCHUNK_SIZE_MIN_DIV 8
 
 /* Disallow chunks bigger than the regular chunk size scaled by this value
- * note: must be at least 2!
+ * NOTE: must be at least 2!
  * however, this code runs won't run in tests unless it's ~1.1 ugh.
  * so lower only to check splitting works.
  */
@@ -980,7 +980,7 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
                                      const size_t offset,
                                      const hash_key *UNUSED(table_hash_array))
 {
-  const size_t data_hash_len = BCHUNK_HASH_LEN * info->chunk_stride; /* TODO, cache */
+  const size_t data_hash_len = BCHUNK_HASH_LEN * info->chunk_stride; /* TODO: cache. */
 
   size_t size_left = data_len - offset;
   hash_key key = hash_data(&data[offset], MIN2(data_hash_len, size_left));
@@ -1155,7 +1155,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
       use_aligned = true;
     }
     else {
-      /* TODO, walk over chunks and check if some arbitrary amount align */
+      /* TODO: walk over chunks and check if some arbitrary amount align. */
     }
   }
 #endif /* USE_ALIGN_CHUNKS_TEST */
@@ -1787,7 +1787,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
   }
 
   return ok;
-  /* TODO, dangling pointer checks */
+  /* TODO: dangling pointer checks. */
 }
 
 /** \} */

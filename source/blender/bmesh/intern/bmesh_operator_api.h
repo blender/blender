@@ -537,7 +537,7 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm,
                                    const bool do_flush);
 
 /* puts every element of type 'type' (which is a bitmask) with header
- * flag 'flag', into a slot.  note: ignores hidden elements
+ * flag 'flag', into a slot.  NOTE: ignores hidden elements
  * (e.g. elements with header flag BM_ELEM_HIDDEN set). */
 void BMO_slot_buffer_from_enabled_hflag(BMesh *bm,
                                         BMOperator *op,
@@ -547,7 +547,7 @@ void BMO_slot_buffer_from_enabled_hflag(BMesh *bm,
                                         const char hflag);
 
 /* puts every element of type 'type' (which is a bitmask) without
- * header flag 'flag', into a slot.  note: ignores hidden elements
+ * header flag 'flag', into a slot.  NOTE: ignores hidden elements
  * (e.g. elements with header flag BM_ELEM_HIDDEN set). */
 void BMO_slot_buffer_from_disabled_hflag(BMesh *bm,
                                          BMOperator *op,

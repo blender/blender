@@ -1336,7 +1336,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             }
 
             /* untransformed Bounding Box of MetaElem */
-            /* TODO, its possible the elem type has been changed and the exp*
+            /* TODO: its possible the elem type has been changed and the exp*
              * values can use a fallback. */
             copy_v3_fl3(new_ml->bb->vec[0], -expx, -expy, -expz); /* 0 */
             copy_v3_fl3(new_ml->bb->vec[1], +expx, -expy, -expz); /* 1 */
@@ -1438,7 +1438,7 @@ void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBa
     build_bvh_spatial(&process, &process.metaball_bvh, 0, process.totelem, &process.allbb);
 
     /* Don't polygonize meta-balls with too high resolution (base mball too small)
-     * note: Eps was 0.0001f but this was giving problems for blood animation for
+     * NOTE: Eps was 0.0001f but this was giving problems for blood animation for
      * the open movie "Sintel", using 0.00001f. */
     if (ob->scale[0] > 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||
         ob->scale[1] > 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||

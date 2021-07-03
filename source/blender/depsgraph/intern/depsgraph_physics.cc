@@ -80,7 +80,7 @@ ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collect
   if (hash == nullptr) {
     return nullptr;
   }
-  /* Note: nullptr is a valid lookup key here as it means that the relation is not bound to a
+  /* NOTE: nullptr is a valid lookup key here as it means that the relation is not bound to a
    * specific collection. */
   ID *collection_orig = DEG_get_original_id(object_id_safe(collection));
   return hash->lookup_default(collection_orig, nullptr);
@@ -96,7 +96,7 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
   if (hash == nullptr) {
     return nullptr;
   }
-  /* Note: nullptr is a valid lookup key here as it means that the relation is not bound to a
+  /* NOTE: nullptr is a valid lookup key here as it means that the relation is not bound to a
    * specific collection. */
   ID *collection_orig = DEG_get_original_id(object_id_safe(collection));
   return hash->lookup_default(collection_orig, nullptr);

@@ -114,7 +114,7 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   /* XXX overriding viewport size. Simplify things but is not really 100% safe. */
   DRW_render_viewport_size_set(final_res);
 
-  /* TODO 32 bit depth */
+  /* TODO: 32 bit depth. */
   DRW_texture_ensure_fullscreen_2d(&dtxl->depth, GPU_DEPTH24_STENCIL8, 0);
   DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA32F, DRW_TEX_FILTER);
 

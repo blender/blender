@@ -124,7 +124,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
    * 3. schedule read back from opencl to main device (outputbuffer)
    * 4. schedule native callback
    *
-   * note: list of cl_mem will be filled by 2, and needs to be cleaned up by 4
+   * NOTE: list of cl_mem will be filled by 2, and needs to be cleaned up by 4
    */
   // STEP 1
   const unsigned int outputBufferWidth = outputBuffer->getWidth();

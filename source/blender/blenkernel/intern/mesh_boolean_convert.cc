@@ -611,7 +611,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
             source_cd, target_cd, source_layer_i, target_layer_i, orig_loop_index, loop_index, 1);
       }
       else {
-        /* Note: although CustomData_bmesh_interp_n function has bmesh in its name, nothing about
+        /* NOTE: although CustomData_bmesh_interp_n function has bmesh in its name, nothing about
          * it is BMesh-specific. We can't use CustomData_interp because it assumes that
          * all source layers exist in the dest.
          * A non bmesh version could have the benefit of not copying data into src_blocks_ofs -

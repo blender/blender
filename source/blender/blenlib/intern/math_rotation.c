@@ -511,7 +511,7 @@ void rotation_between_vecs_to_mat3(float m[3][3], const float v1[3], const float
   }
 }
 
-/* note: expects vectors to be normalized */
+/* NOTE: expects vectors to be normalized. */
 void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3])
 {
   float axis[3];

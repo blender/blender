@@ -79,7 +79,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
     if (!op_from || op_to_list.is_empty()) {
       /* XXX allow this? error/debug message? */
       // BLI_assert(false);
-      /* XXX note: this can happen with certain nodes (e.g. OutputFile)
+      /* XXX NOTE: this can happen with certain nodes (e.g. OutputFile)
        * which only generate operations in certain circumstances (rendering)
        * just let this pass silently for now ...
        */
@@ -138,7 +138,7 @@ void NodeOperationBuilder::mapInputSocket(NodeInput *node_socket,
   BLI_assert(m_current_node);
   BLI_assert(node_socket->getNode() == m_current_node);
 
-  /* note: this maps operation sockets to node sockets.
+  /* NOTE: this maps operation sockets to node sockets.
    * for resolving links the map will be inverted first in convertToOperations,
    * to get a list of links for each node input socket.
    */
@@ -284,7 +284,7 @@ void NodeOperationBuilder::add_datatype_conversions()
 
 void NodeOperationBuilder::add_operation_input_constants()
 {
-  /* Note: unconnected inputs cached first to avoid modifying
+  /* NOTE: unconnected inputs cached first to avoid modifying
    *       m_operations while iterating over it
    */
   Vector<NodeOperationInput *> pending_inputs;
@@ -537,7 +537,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
 
 void NodeOperationBuilder::add_complex_operation_buffers()
 {
-  /* note: complex ops and get cached here first, since adding operations
+  /* NOTE: complex ops and get cached here first, since adding operations
    * will invalidate iterators over the main m_operations
    */
   Vector<NodeOperation *> complex_ops;

@@ -380,9 +380,9 @@ typedef struct Object {
 
   /** Custom index, for renderpasses. */
   short index;
-  /** Current deformation group, note: index starts at 1. */
+  /** Current deformation group, NOTE: index starts at 1. */
   unsigned short actdef;
-  /** Current face map, note: index starts at 1. */
+  /** Current face map, NOTE: index starts at 1. */
   unsigned short actfmap;
   char _pad2[2];
   /** Object color (in most cases the material color is used for drawing). */

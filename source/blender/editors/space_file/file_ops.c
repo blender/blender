@@ -1023,7 +1023,7 @@ void FILE_OT_view_selected(wmOperatorType *ot)
 
 /* Note we could get rid of this one, but it's used by some addon so...
  * Does not hurt keeping it around for now. */
-/* TODO disallow bookmark editing in assets mode? */
+/* TODO: disallow bookmark editing in assets mode? */
 static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2093,7 +2093,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
       sfile->layout, (int)region->v2d.cur.xmin, (int)-region->v2d.cur.ymax);
   const int last_visible_item = first_visible_item + numfiles_layout + 1;
 
-  /* Note: the special case for vertical layout is because filename is at the bottom of items then,
+  /* NOTE: the special case for vertical layout is because filename is at the bottom of items then,
    * so we artificially move current row back one step, to ensure we show bottom of
    * active item rather than its top (important in case visible height is low). */
   const int middle_offset = max_ii(
@@ -2400,7 +2400,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 /** \name Refresh File List Operator
  * \{ */
 
-/* TODO This should go to BLI_path_utils. */
+/* TODO: This should go to BLI_path_utils. */
 static void file_expand_directory(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
@@ -2441,7 +2441,7 @@ static void file_expand_directory(bContext *C)
   }
 }
 
-/* TODO check we still need this, it's annoying to have OS-specific code here... :/ */
+/* TODO: check we still need this, it's annoying to have OS-specific code here... :/. */
 #if defined(WIN32)
 static bool can_create_dir(const char *dir)
 {

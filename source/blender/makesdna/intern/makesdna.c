@@ -360,7 +360,7 @@ static int add_type(const char *str, int size)
     return -1;
   }
   if (strchr(str, '*')) {
-    /* note: this is valid C syntax but we can't parse, complain!
+    /* NOTE: this is valid C syntax but we can't parse, complain!
      * `struct SomeStruct* some_var;` <-- correct but we can't handle right now. */
     return -1;
   }
@@ -567,7 +567,7 @@ static short *add_struct(int namecode)
 
 static int preprocess_include(char *maindata, const int maindata_len)
 {
-  /* note: len + 1, last character is a dummy to prevent
+  /* NOTE: len + 1, last character is a dummy to prevent
    * comparisons using uninitialized memory */
   char *temp = MEM_mallocN(maindata_len + 1, "preprocess_include");
   temp[maindata_len] = ' ';

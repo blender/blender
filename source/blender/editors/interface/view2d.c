@@ -347,7 +347,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
       v2d->keeptot = V2D_KEEPTOT_BOUNDS;
 
-      /* note, scroll is being flipped in ED_region_panels() drawing */
+      /* NOTE: scroll is being flipped in #ED_region_panels() drawing. */
       v2d->scroll |= (V2D_SCROLL_HORIZONTAL_HIDE | V2D_SCROLL_VERTICAL_HIDE);
 
       if (do_init) {
@@ -717,7 +717,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
        *
        * So, resolution is to just shift view by the gap between the extremities.
        * We favor moving the 'minimum' across, as that's origin for most things.
-       * (XXX - in the past, max was favored... if there are bugs, swap!)
+       * (XXX: in the past, max was favored... if there are bugs, swap!)
        */
       if ((cur->xmin < tot->xmin) && (cur->xmax > tot->xmax)) {
         /* outside boundaries on both sides,
@@ -1059,7 +1059,7 @@ void UI_view2d_zoom_cache_reset(void)
   /* While scaling we can accumulate fonts at many sizes (~20 or so).
    * Not an issue with embedded font, but can use over 500Mb with i18n ones! See T38244. */
 
-  /* Note: only some views draw text, we could check for this case to avoid cleaning cache. */
+  /* NOTE: only some views draw text, we could check for this case to avoid cleaning cache. */
   BLF_cache_clear();
 }
 
@@ -1158,7 +1158,7 @@ void UI_view2d_view_orthoSpecial(ARegion *region, View2D *v2d, const bool xaxis)
    * correspondence with pixels for smooth UI drawing,
    * but only applied where requested.
    */
-  /* XXX temp (ton) */
+  /* XXX(ton): temp. */
   xofs = 0.0f;  // (v2d->flag & V2D_PIXELOFS_X) ? GLA_PIXEL_OFS : 0.0f;
   yofs = 0.0f;  // (v2d->flag & V2D_PIXELOFS_Y) ? GLA_PIXEL_OFS : 0.0f;
 

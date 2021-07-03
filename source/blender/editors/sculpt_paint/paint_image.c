@@ -176,7 +176,7 @@ void imapaint_image_update(
     ibuf->userflags |= IB_MIPMAP_INVALID;
   }
 
-  /* todo: should set_tpage create ->rect? */
+  /* TODO: should set_tpage create ->rect? */
   if (texpaint || (sima && sima->lock)) {
     int w = imapaintpartial.x2 - imapaintpartial.x1;
     int h = imapaintpartial.y2 - imapaintpartial.y1;
@@ -681,7 +681,7 @@ static bool paint_stroke_test_start(bContext *C, wmOperator *op, const float mou
 {
   PaintOperation *pop;
 
-  /* TODO Should avoid putting this here. Instead, last position should be requested
+  /* TODO: Should avoid putting this here. Instead, last position should be requested
    * from stroke system. */
 
   if (!(pop = texture_paint_init(C, op, mouse))) {

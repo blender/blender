@@ -52,7 +52,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_hflag_enable(bm, op->slots_in, "edges", BM_EDGE, BM_ELEM_TAG, false);
 
   BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
-  BM_mesh_edgenet(bm, true, true); /* TODO, sides */
+  BM_mesh_edgenet(bm, true, true); /* TODO: sides. */
 
   BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 

@@ -1214,7 +1214,7 @@ static void clip_header_region_listener(const wmRegionListenerParams *params)
       switch (wmn->data) {
         /* for proportional editmode only */
         case ND_TOOLSETTINGS:
-          /* TODO - should do this when in mask mode only but no data available */
+          /* TODO: should do this when in mask mode only but no data available. */
           // if (sc->mode == SC_MODE_MASKEDIT)
           {
             ED_region_tag_redraw(region);

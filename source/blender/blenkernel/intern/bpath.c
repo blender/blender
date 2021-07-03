@@ -18,7 +18,7 @@
  * \ingroup bli
  */
 
-/* TODO,
+/* TODO:
  * currently there are some cases we don't support.
  * - passing output paths to the visitor?, like render out.
  * - passing sequence strips with many images.

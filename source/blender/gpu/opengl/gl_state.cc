@@ -131,7 +131,7 @@ void GLStateManager::set_state(const GPUState &state)
     set_shadow_bias(state.shadow_bias);
   }
 
-  /* TODO remove */
+  /* TODO: remove. */
   if (changed.polygon_smooth) {
     if (state.polygon_smooth) {
       glEnable(GL_POLYGON_SMOOTH);
@@ -156,7 +156,7 @@ void GLStateManager::set_mutable_state(const GPUStateMutable &state)
 {
   GPUStateMutable changed = state ^ current_mutable_;
 
-  /* TODO remove, should be uniform. */
+  /* TODO: remove, should be uniform. */
   if (float_as_uint(changed.point_size) != 0) {
     if (state.point_size > 0.0f) {
       glEnable(GL_PROGRAM_POINT_SIZE);
@@ -168,12 +168,12 @@ void GLStateManager::set_mutable_state(const GPUStateMutable &state)
   }
 
   if (changed.line_width != 0) {
-    /* TODO remove, should use wide line shader. */
+    /* TODO: remove, should use wide line shader. */
     glLineWidth(clamp_f(state.line_width, line_width_range_[0], line_width_range_[1]));
   }
 
   if (changed.depth_range[0] != 0 || changed.depth_range[1] != 0) {
-    /* TODO remove, should modify the projection matrix instead. */
+    /* TODO: remove, should modify the projection matrix instead. */
     glDepthRange(UNPACK2(state.depth_range));
   }
 

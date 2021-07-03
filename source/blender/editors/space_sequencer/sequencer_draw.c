@@ -101,7 +101,7 @@
 #define SEQ_SCROLLER_TEXT_OFFSET 8
 #define MUTE_ALPHA 120
 
-/* Note, Don't use SEQ_ALL_BEGIN/SEQ_ALL_END while drawing!
+/* NOTE: Don't use SEQ_ALL_BEGIN/SEQ_ALL_END while drawing!
  * it messes up transform. */
 #undef SEQ_ALL_BEGIN
 #undef SEQ_ALL_END

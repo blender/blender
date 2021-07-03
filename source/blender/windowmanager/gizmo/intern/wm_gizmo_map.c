@@ -918,7 +918,7 @@ static bool wm_gizmomap_select_all_intern(bContext *C, wmGizmoMap *gzmap)
  * Select/Deselect all selectable gizmos in \a gzmap.
  * \return if selection has changed.
  *
- * TODO select all by type
+ * TODO: select all by type.
  */
 bool WM_gizmomap_select_all(bContext *C, wmGizmoMap *gzmap, const int action)
 {

@@ -1260,7 +1260,7 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
                        float frame_index,
                        bool make_float)
 {
-  /* TODO - add option to rasterize to alpha imbuf? */
+  /* TODO: add option to rasterize to alpha imbuf? */
   ImBuf *ibuf = NULL;
   float *maskbuf;
   int i;

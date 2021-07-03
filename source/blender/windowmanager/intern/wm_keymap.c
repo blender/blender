@@ -135,7 +135,7 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
         /* matches wm_keymap_item_properties_set but doesn't alloc new ptr */
         WM_operator_properties_create_ptr(kmi->ptr, ot);
         /* 'kmi->ptr->data' NULL'd above, keep using existing properties.
-         * Note: the operators property types may have changed,
+         * NOTE: the operators property types may have changed,
          * we will need a more comprehensive sanitize function to support this properly.
          */
         if (kmi->properties) {

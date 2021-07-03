@@ -1053,7 +1053,7 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
                                               uint verts_region_len,
                                               uint *r_depth)
 {
-  /* note, keep deterministic where possible (geometry order independent)
+  /* NOTE: keep deterministic where possible (geometry order independent)
    * this function assumed all visit faces & edges are tagged */
 
   BLI_LINKSTACK_DECLARE(vert_queue_prev, BMVert *);

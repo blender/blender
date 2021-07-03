@@ -157,7 +157,7 @@ void ED_operatormacros_node(void)
   WM_operatortype_macro_define(ot, "NODE_OT_attach");
   WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
-  /* Note: Currently not in a default keymap or menu due to messy keymaps
+  /* NOTE: Currently not in a default keymap or menu due to messy keymaps
    * and tricky invoke functionality.
    * Kept around in case users want to make own shortcuts.
    */

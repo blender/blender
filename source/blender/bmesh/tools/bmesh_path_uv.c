@@ -139,7 +139,7 @@ struct LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
   int i = 0, totloop;
   BMFace *f;
 
-  /* Note, would pass BM_EDGE except we are looping over all faces anyway. */
+  /* NOTE: would pass BM_EDGE except we are looping over all faces anyway. */
   // BM_mesh_elem_index_ensure(bm, BM_LOOP); // NOT NEEDED FOR FACETAG
 
   BM_ITER_MESH (f, &viter, bm, BM_FACES_OF_MESH) {
@@ -377,7 +377,7 @@ struct LinkNode *BM_mesh_calc_path_uv_face(BMesh *bm,
   /* Start measuring face path at the face edges, ignoring their centers. */
   const void *const f_endpoints[2] = {f_src, f_dst};
 
-  /* Note, would pass BM_EDGE except we are looping over all faces anyway. */
+  /* NOTE: would pass BM_EDGE except we are looping over all faces anyway. */
   // BM_mesh_elem_index_ensure(bm, BM_LOOP); // NOT NEEDED FOR FACETAG
 
   {

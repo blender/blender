@@ -340,7 +340,7 @@ typedef struct bNode {
 #define NODE_TRANSFORM (1 << 13)
 /* node is active texture */
 
-/* note: take care with this flag since its possible it gets
+/* NOTE: take care with this flag since its possible it gets
  * `stuck` inside/outside the active group - which makes buttons
  * window texture not update, we try to avoid it by clearing the
  * flag when toggling group editing - Campbell */

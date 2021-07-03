@@ -29,7 +29,7 @@ extern "C" {
  * \ingroup bli
  */
 
-/* note: using a temp char to switch endian is a lot slower,
+/* NOTE: using a temp char to switch endian is a lot slower,
  * use bit shifting instead. */
 
 /* *** 16 *** */

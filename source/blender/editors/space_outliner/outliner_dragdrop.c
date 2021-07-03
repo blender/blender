@@ -1325,7 +1325,7 @@ static TreeElement *outliner_item_drag_element_find(SpaceOutliner *space_outline
                                                     ARegion *region,
                                                     const wmEvent *event)
 {
-  /* note: using EVT_TWEAK_ events to trigger dragging is fine,
+  /* NOTE: using EVT_TWEAK_ events to trigger dragging is fine,
    * it sends coordinates from where dragging was started */
   const float my = UI_view2d_region_to_view_y(&region->v2d, event->mval[1]);
   return outliner_find_item_at_y(space_outliner, &space_outliner->tree, my);

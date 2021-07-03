@@ -1272,10 +1272,10 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
   ID *id = ptr->owner_id;
   const bool is_render = (id && GS(id->name) == ID_SCE);
 
-  /* note, we need to act differently for render
+  /* NOTE(campbell): we need to act differently for render
    * where 'BW' will force grayscale even if the output format writes
    * as RGBA, this is age old blender convention and not sure how useful
-   * it really is but keep it for now - campbell */
+   * it really is but keep it for now. */
   char chan_flag = BKE_imtype_valid_channels(imf->imtype, true) |
                    (is_render ? IMA_CHAN_FLAG_BW : 0);
 
@@ -2166,7 +2166,7 @@ static char *rna_MeshStatVis_path(PointerRNA *UNUSED(ptr))
   return BLI_strdup("tool_settings.statvis");
 }
 
-/* note: without this, when Multi-Paint is activated/deactivated, the colors
+/* NOTE: without this, when Multi-Paint is activated/deactivated, the colors
  * will not change right away when multiple bones are selected, this function
  * is not for general use and only for the few cases where changing scene
  * settings and NOT for general purpose updates, possibly this should be
@@ -5386,7 +5386,7 @@ static void rna_def_image_format_stereo3d_format(BlenderRNA *brna)
 }
 
 /* use for render output and image save operator,
- * note: there are some cases where the members act differently when this is
+ * NOTE: there are some cases where the members act differently when this is
  * used from a scene, video formats can only be selected for render output
  * for example, this is checked by seeing if the ptr->owner_id is a Scene id */
 

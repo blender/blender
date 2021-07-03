@@ -527,7 +527,7 @@ static void unpack_generate_paths(const char *name,
   BLI_split_dirfile(name, tempdir, tempname, sizeof(tempdir), sizeof(tempname));
 
   if (tempname[0] == '\0') {
-    /* Note: we generally do not have any real way to re-create extension out of data. */
+    /* NOTE: we generally do not have any real way to re-create extension out of data. */
     BLI_strncpy(tempname, id->name + 2, sizeof(tempname));
     printf("%s\n", tempname);
 

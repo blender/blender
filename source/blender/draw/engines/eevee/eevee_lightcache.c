@@ -75,7 +75,7 @@
   (IRRADIANCE_MAX_POOL_SIZE / IRRADIANCE_SAMPLE_SIZE_X) * \
       (IRRADIANCE_MAX_POOL_SIZE / IRRADIANCE_SAMPLE_SIZE_Y)
 
-/* TODO should be replace by a more elegant alternative. */
+/* TODO: should be replace by a more elegant alternative. */
 extern void DRW_opengl_context_enable(void);
 extern void DRW_opengl_context_disable(void);
 
@@ -165,7 +165,7 @@ typedef struct EEVEE_LightBake {
   bool own_resources;
   /** If the light-cache was created for baking, it's first owned by the baker. */
   bool own_light_cache;
-  /** ms. delay the start of the baking to not slowdown interactions (TODO remove) */
+  /** ms. delay the start of the baking to not slowdown interactions (TODO: remove). */
   int delay;
   /** Scene frame to bake. */
   int frame;
@@ -715,7 +715,7 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
    * by the DRW mutex. */
   lbake->lcache = eevee->light_cache_data;
 
-  /* TODO validate irradiance and reflection cache independently... */
+  /* TODO: validate irradiance and reflection cache independently... */
   if (!EEVEE_lightcache_validate(
           lbake->lcache, lbake->cube_len, lbake->ref_cube_res, lbake->grid_len, lbake->irr_size)) {
     eevee->light_cache_data = lbake->lcache = NULL;
@@ -764,7 +764,7 @@ wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
   if (old_lbake && (old_lbake->view_layer_input == view_layer) && (old_lbake->bmain == bmain)) {
     lbake = MEM_callocN(sizeof(EEVEE_LightBake), "EEVEE_LightBake");
     /* Cannot reuse depsgraph for now because we cannot get the update from the
-     * main database directly. TODO reuse depsgraph and only update positions. */
+     * main database directly. TODO: reuse depsgraph and only update positions. */
     /* lbake->depsgraph = old_lbake->depsgraph; */
     lbake->depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
 
@@ -838,7 +838,7 @@ void EEVEE_lightbake_job_data_free(void *custom_data)
 {
   EEVEE_LightBake *lbake = (EEVEE_LightBake *)custom_data;
 
-  /* TODO reuse depsgraph. */
+  /* TODO: reuse depsgraph. */
   /* if (lbake->own_resources) { */
   DEG_graph_free(lbake->depsgraph);
   /* } */
@@ -923,7 +923,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
   stl->g_data->background_alpha = 1.0f;
   stl->g_data->render_timesteps = 1;
 
-  /* XXX TODO remove this. This is in order to make the init functions work. */
+  /* XXX TODO: remove this. This is in order to make the init functions work. */
   if (DRW_view_default_get() == NULL) {
     float winmat[4][4], viewmat[4][4];
     unit_m4(viewmat);
@@ -1010,7 +1010,7 @@ static void eevee_lightbake_render_world_sample(void *ved, void *user_data)
   float clamp = scene_eval->eevee.gi_glossy_clamp;
   float filter_quality = scene_eval->eevee.gi_filter_quality;
 
-  /* TODO do this once for the whole bake when we have independent DRWManagers. */
+  /* TODO: do this once for the whole bake when we have independent DRWManagers. */
   eevee_lightbake_cache_create(vedata, lbake);
 
   sldata->common_data.ray_type = EEVEE_RAY_GLOSSY;
@@ -1133,7 +1133,7 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
   /* Use the previous bounce for rendering this bounce. */
   SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
 
-  /* TODO do this once for the whole bake when we have independent DRWManagers.
+  /* TODO: do this once for the whole bake when we have independent DRWManagers.
    * Warning: Some of the things above require this. */
   eevee_lightbake_cache_create(vedata, lbake);
 
@@ -1210,7 +1210,7 @@ static void eevee_lightbake_render_probe_sample(void *ved, void *user_data)
   float clamp = scene_eval->eevee.gi_glossy_clamp;
   float filter_quality = scene_eval->eevee.gi_filter_quality;
 
-  /* TODO do this once for the whole bake when we have independent DRWManagers. */
+  /* TODO: do this once for the whole bake when we have independent DRWManagers. */
   eevee_lightbake_cache_create(vedata, lbake);
 
   /* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */
@@ -1420,7 +1420,7 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
   /* HACK: Sleep to delay the first rendering operation
    * that causes a small freeze (caused by VBO generation)
    * because this step is locking at this moment. */
-  /* TODO remove this. */
+  /* TODO: remove this. */
   if (lbake->delay) {
     PIL_sleep_ms(lbake->delay);
   }

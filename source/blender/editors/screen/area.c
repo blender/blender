@@ -1680,7 +1680,7 @@ static void ed_default_handlers(
 {
   BLI_assert(region ? (&region->handlers == handlers) : (&area->handlers == handlers));
 
-  /* note, add-handler checks if it already exists */
+  /* NOTE: add-handler checks if it already exists. */
 
   /* XXX it would be good to have boundbox checks for some of these... */
   if (flag & ED_KEYMAP_UI) {
@@ -2081,7 +2081,7 @@ void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free)
   }
   BKE_spacedata_copylist(&area_dst->spacedata, &area_src->spacedata);
 
-  /* Note; SPACE_EMPTY is possible on new screens */
+  /* NOTE: SPACE_EMPTY is possible on new screens. */
 
   /* regions */
   if (do_free) {

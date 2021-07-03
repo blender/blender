@@ -593,7 +593,7 @@ void ED_object_parent_clear(Object *ob, const int type)
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 }
 
-/* note, poll should check for editable scene */
+/* NOTE: poll should check for editable scene. */
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -791,8 +791,8 @@ bool ED_object_parent_set(ReportList *reports,
        * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL,
        * creating the virtual modifiers.
        */
-      ob->partype = PAROBJECT;     /* Note: DNA define, not operator property. */
-      /* ob->partype = PARSKEL; */ /* Note: DNA define, not operator property. */
+      ob->partype = PAROBJECT;     /* NOTE: DNA define, not operator property. */
+      /* ob->partype = PARSKEL; */ /* NOTE: DNA define, not operator property. */
 
       /* BUT, to keep the deforms, we need a modifier,
        * and then we need to set the object that it uses
@@ -837,14 +837,14 @@ bool ED_object_parent_set(ReportList *reports,
       }
       break;
     case PAR_BONE:
-      ob->partype = PARBONE; /* Note: DNA define, not operator property. */
+      ob->partype = PARBONE; /* NOTE: DNA define, not operator property. */
       if (pchan->bone) {
         pchan->bone->flag &= ~BONE_RELATIVE_PARENTING;
         pchan_eval->bone->flag &= ~BONE_RELATIVE_PARENTING;
       }
       break;
     case PAR_BONE_RELATIVE:
-      ob->partype = PARBONE; /* Note: DNA define, not operator property. */
+      ob->partype = PARBONE; /* NOTE: DNA define, not operator property. */
       if (pchan->bone) {
         pchan->bone->flag |= BONE_RELATIVE_PARENTING;
         pchan_eval->bone->flag |= BONE_RELATIVE_PARENTING;
@@ -860,7 +860,7 @@ bool ED_object_parent_set(ReportList *reports,
       break;
     case PAR_OBJECT:
     case PAR_FOLLOW:
-      ob->partype = PAROBJECT; /* Note: DNA define, not operator property. */
+      ob->partype = PAROBJECT; /* NOTE: DNA define, not operator property. */
       break;
   }
 
@@ -1248,7 +1248,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 
         /* set parenting type for object - object only... */
         ob->parent = par;
-        ob->partype = PAROBJECT; /* note, dna define, not operator property */
+        ob->partype = PAROBJECT; /* NOTE: DNA define, not operator property. */
       }
     }
   }
@@ -1298,7 +1298,7 @@ static const EnumPropertyItem prop_clear_track_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* note, poll should check for editable scene */
+/* NOTE: poll should check for editable scene. */
 static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2236,7 +2236,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "type");
   int a;
 
-  /* Note: we (ab)use LIB_TAG_PRE_EXISTING to cherry pick which ID to make local... */
+  /* NOTE: we (ab)use LIB_TAG_PRE_EXISTING to cherry pick which ID to make local... */
   if (mode == MAKE_LOCAL_ALL) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Collection *collection = CTX_data_collection(C);

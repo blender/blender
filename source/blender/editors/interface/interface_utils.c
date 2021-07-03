@@ -932,7 +932,7 @@ void UI_butstore_update(uiBlock *block)
           uiBut *but_new = ui_but_find_new(block, *bs_elem->but_p);
 
           /* can be NULL if the buttons removed,
-           * note: we could allow passing in a callback when buttons are removed
+           * NOTE: we could allow passing in a callback when buttons are removed
            * so the caller can cleanup */
           *bs_elem->but_p = but_new;
         }

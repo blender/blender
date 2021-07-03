@@ -472,7 +472,7 @@ static int distribute_binary_search(const float *sum, int n, float value)
  * be sure to keep up to date if this changes */
 #define PSYS_RND_DIST_SKIP 3
 
-/* note: this function must be thread safe, for from == PART_FROM_CHILD */
+/* NOTE: this function must be thread safe, for `from == PART_FROM_CHILD`. */
 #define ONLY_WORKING_WITH_PA_VERTS 0
 static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, int p)
 {
@@ -1214,7 +1214,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
      * It allows us to consider pos as 'midpoint between v and v+1'
      * (or 'p and p+1', depending whether we have more vertices than particles or not),
      * and avoid stumbling over float impression in element_sum.
-     * Note: moved face and volume distribution to this as well (instead of starting at zero),
+     * NOTE: moved face and volume distribution to this as well (instead of starting at zero),
      * for the same reasons, see T52682. */
     pos = (totpart < totmapped) ? 0.5 / (double)totmapped :
                                   step * 0.5; /* We choose the smaller step. */

@@ -565,7 +565,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
 
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
     if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-      /* note, any edge with loops can work, but we won't get predictable results, so bail out */
+      /* NOTE: any edge with loops can work, but we won't get predictable results, so bail out. */
       if (!BM_edge_is_manifold(e) && !BM_edge_is_boundary(e)) {
         /* can edges with at least once face user */
         MEM_freeN(sld);
@@ -818,7 +818,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
           /* if there are non-contiguous faces, we can still recover
            * the loops of the new edges faces */
 
-          /* note!, the behavior in this case means edges may move in opposite directions,
+          /* NOTE:, the behavior in this case means edges may move in opposite directions,
            * this could be made to work more usefully. */
 
           if (l_a_ok_prev) {

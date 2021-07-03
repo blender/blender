@@ -225,7 +225,7 @@ void drw_state_set(DRWState state)
     GPU_shadow_offset(false);
   }
 
-  /* TODO this should be part of shader state. */
+  /* TODO: this should be part of shader state. */
   if (state & DRW_STATE_CLIP_PLANES) {
     GPU_clip_distances(DST.view_active->clip_planes_len);
   }
@@ -383,10 +383,10 @@ static bool draw_culling_sphere_test(const BoundSphere *frustum_bsphere,
   if (center_dist_sq > square_f(radius_sum)) {
     return false;
   }
-  /* TODO we could test against the inscribed sphere of the frustum to early out positively. */
+  /* TODO: we could test against the inscribed sphere of the frustum to early out positively. */
 
   /* Test against the 6 frustum planes. */
-  /* TODO order planes with sides first then far then near clip. Should be better culling
+  /* TODO: order planes with sides first then far then near clip. Should be better culling
    * heuristic when sculpting. */
   for (int p = 0; p < 6; p++) {
     float dist = plane_point_side_v3(frustum_planes[p], bsphere->center);
@@ -818,7 +818,7 @@ static void draw_call_single_do(DRWShadingGroup *shgroup,
 
   draw_call_resource_bind(state, &handle);
 
-  /* TODO This is Legacy. Need to be removed. */
+  /* TODO: This is Legacy. Need to be removed. */
   if (state->obmats_loc == -1 && (state->obmat_loc != -1 || state->obinv_loc != -1)) {
     draw_legacy_matrix_update(shgroup, &handle, state->obmat_loc, state->obinv_loc);
   }
@@ -1076,7 +1076,7 @@ static void drw_update_view(void)
   /* TODO(fclem): update a big UBO and only bind ranges here. */
   GPU_uniformbuf_update(G_draw.view_ubo, &DST.view_active->storage);
 
-  /* TODO get rid of this. */
+  /* TODO: get rid of this. */
   DST.view_storage_cpy = DST.view_active->storage;
 
   draw_compute_culling(DST.view_active);

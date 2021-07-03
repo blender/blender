@@ -259,7 +259,7 @@ static void node_reroute_update_internal_links(bNodeTree *ntree, bNode *node)
 
 static void node_reroute_init(bNodeTree *ntree, bNode *node)
 {
-  /* Note: Cannot use socket templates for this, since it would reset the socket type
+  /* NOTE: Cannot use socket templates for this, since it would reset the socket type
    * on each file read via the template verification procedure.
    */
   nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "Input", "Input");

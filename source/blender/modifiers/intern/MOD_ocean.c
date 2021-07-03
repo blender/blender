@@ -455,7 +455,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 
   /* displace the geometry */
 
-  /* Note: tried to parallelized that one and previous foam loop,
+  /* NOTE: tried to parallelized that one and previous foam loop,
    * but gives 20% slower results... odd. */
   {
     const int num_verts = result->totvert;

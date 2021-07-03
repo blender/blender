@@ -169,7 +169,7 @@ static void do_versions_image_settings_2_60(Scene *sce)
     R_JPEG2K_CINE_48FPS = (1 << 9),
   };
 
-  /* note: rd->subimtype is moved into individual settings now and no longer
+  /* NOTE: rd->subimtype is moved into individual settings now and no longer
    * exists */
   RenderData *rd = &sce->r;
   ImageFormatData *imf = &sce->r.im_format;
@@ -2594,11 +2594,11 @@ void do_versions_after_linking_260(Main *bmain)
    *
    * This assumes valid typeinfo pointers, as set in lib_link_ntree.
    *
-   * Note: theoretically only needed in node groups (main->nodetree),
+   * NOTE: theoretically only needed in node groups (main->nodetree),
    * but due to a temporary bug such links could have been added in all trees,
    * so have to clean up all of them ...
    *
-   * Note: this always runs, without it links with NULL fromnode and tonode remain
+   * NOTE: this always runs, without it links with NULL fromnode and tonode remain
    * which causes problems.
    */
   if (!MAIN_VERSION_ATLEAST(bmain, 266, 3)) {

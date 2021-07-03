@@ -704,7 +704,7 @@ typedef struct SculptThreadedTaskData {
 
   /* Data specific to some callbacks. */
 
-  /* Note: even if only one or two of those are used at a time,
+  /* NOTE: even if only one or two of those are used at a time,
    *       keeping them separated, names help figuring out
    *       what it is, and memory overhead is ridiculous anyway. */
   float flippedbstrength;

@@ -49,7 +49,7 @@ PyDoc_STRVAR(TVertex_doc,
              "\n"
              "   Default constructor.");
 
-/* Note: No copy constructor in Python because the C++ copy constructor is 'protected'. */
+/* NOTE: No copy constructor in Python because the C++ copy constructor is 'protected'. */
 
 static int TVertex_init(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {

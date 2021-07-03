@@ -691,7 +691,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
       }
 
       if (data_dst_to_delete) {
-        /* Note:
+        /* NOTE:
          * This won't affect newly created layers, if any, since tot_dst has not been updated!
          * Also, looping backward ensures us we do not suffer
          * from index shifting when deleting a layer. */
@@ -764,7 +764,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
     }
   }
   else if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
-    /* Note: use_delete has not much meaning in this case, ignored. */
+    /* NOTE: use_delete has not much meaning in this case, ignored. */
 
     if (fromlayers >= 0) { /* Real-layer index */
       idx_src = fromlayers;

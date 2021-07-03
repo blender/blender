@@ -406,7 +406,7 @@ static void blf_texture_draw(const unsigned char color[4],
                              float y2)
 {
   /* Only one vertex per glyph, geometry shader expand it into a quad. */
-  /* TODO Get rid of Geom Shader because it's not optimal AT ALL for the GPU */
+  /* TODO: Get rid of Geom Shader because it's not optimal AT ALL for the GPU. */
   copy_v4_fl4(GPU_vertbuf_raw_step(&g_batch.pos_step),
               x1 + g_batch.ofs[0],
               y1 + g_batch.ofs[1],

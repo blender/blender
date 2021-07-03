@@ -203,7 +203,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   BKE_reports_init(&reports, RPT_STORE);
 
-  /* Note: no islands precision for now here. */
+  /* NOTE: no islands precision for now here. */
   if (BKE_object_data_transfer_ex(ctx->depsgraph,
                                   scene,
                                   ob_source,

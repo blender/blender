@@ -77,7 +77,7 @@ static void bm_vert_boundary_tangent(
   }
 
   if (e_a && e_b) {
-    /* note, with an incorrectly flushed selection this can crash */
+    /* NOTE: with an incorrectly flushed selection this can crash. */
     l_a = bm_edge_tag_faceloop(e_a);
     l_b = bm_edge_tag_faceloop(e_b);
 

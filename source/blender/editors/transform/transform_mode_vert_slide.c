@@ -158,7 +158,7 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
   TransDataVertSlideVert *sv;
   int i;
 
-  /* note: we could save a matrix-multiply for each vertex
+  /* NOTE: we could save a matrix-multiply for each vertex
    * by finding the closest edge in local-space.
    * However this skews the outcome with non-uniform-scale. */
 

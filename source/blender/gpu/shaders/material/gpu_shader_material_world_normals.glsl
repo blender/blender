@@ -1,4 +1,4 @@
-/* TODO : clean this ifdef mess */
+/* TODO: clean this `ifdef` mess. */
 void world_normals_get(out vec3 N)
 {
 #ifndef VOLUMETRICS

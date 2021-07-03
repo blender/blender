@@ -449,7 +449,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
           /* now we can blend values */
           next = row1[step];
 
-          /* note, prev value can be next value, but we do this loop to clear 128 then */
+          /* NOTE: prev value can be next value, but we do this loop to clear 128 then. */
           for (a = 0; a < step; a++) {
             int fac, mfac;
 
@@ -480,7 +480,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
         if (y + step != ysize) {
           /* now we can blend values */
           next = row1[step * xsize];
-          /* note, prev value can be next value, but we do this loop to clear 128 then */
+          /* NOTE: prev value can be next value, but we do this loop to clear 128 then. */
           for (a = 0; a < step; a++) {
             int fac, mfac;
 

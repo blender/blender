@@ -126,7 +126,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
   FileSelectParams *base_params = &asset_params->base_params;
   base_params->file[0] = '\0';
   base_params->filter_glob[0] = '\0';
-  /* TODO this way of using filters to form categories is notably slower than specifying a
+  /* TODO: this way of using filters to form categories is notably slower than specifying a
    * "group" to read. That's because all types are read and filtering is applied afterwards. Would
    * be nice if we could lazy-read individual groups. */
   base_params->flag |= U_default.file_space_data.flag | FILE_ASSETS_ONLY | FILE_FILTER;

@@ -49,7 +49,7 @@
  *
  * \{ */
 
-/* Note: All these flags _must_ be cleared on exit */
+/* NOTE: All these flags _must_ be cleared on exit. */
 
 /* face is a part of the edge-net (including the original face we're splitting) */
 #define FACE_NET _FLAG_WALK
@@ -519,7 +519,7 @@ bool BM_face_split_edgenet(BMesh *bm,
   } while ((l_iter = l_iter->next) != l_first);
 #endif
 
-  /* Note: 'VERT_IN_QUEUE' is often not needed at all,
+  /* NOTE: 'VERT_IN_QUEUE' is often not needed at all,
    * however in rare cases verts are added multiple times to the queue,
    * that on its own is harmless but in _very_ rare cases,
    * the queue will overflow its maximum size,
@@ -1299,7 +1299,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
         BMVert *v_delimit = (&edge_arr[i]->v1)[j];
         BMVert *v_other;
 
-        /* note, remapping will _never_ map a vertex to an already mapped vertex */
+        /* NOTE: remapping will _never_ map a vertex to an already mapped vertex. */
         while (UNLIKELY((v_other = bm_face_split_edgenet_partial_connect(bm, v_delimit, f)))) {
           struct TempVertPair *tvp = BLI_memarena_alloc(mem_arena, sizeof(*tvp));
           tvp->next = temp_vert_pairs.list;

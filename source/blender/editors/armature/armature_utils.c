@@ -391,7 +391,7 @@ void armature_tag_unselect(bArmature *arm)
 
 void ED_armature_ebone_transform_mirror_update(bArmature *arm, EditBone *ebo, bool check_select)
 {
-  /* TODO When this function is called by property updates,
+  /* TODO: When this function is called by property updates,
    * canceling the value change will not restore mirrored bone correctly. */
 
   /* Currently check_select==true when this function is called from a transform operator,

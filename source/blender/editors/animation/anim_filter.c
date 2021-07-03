@@ -32,7 +32,7 @@
  * are being edited. Likewise, the NLA Editor also uses this for its channel list and in
  * its operators.
  *
- * Note: much of the original system this was based on was built before the creation of the RNA
+ * NOTE: much of the original system this was based on was built before the creation of the RNA
  * system. In future, it would be interesting to replace some parts of this code with RNA queries,
  * however, RNA does not eliminate some of the boiler-plate reduction benefits presented by this
  * system, so if any such work does occur, it should only be used for the internals used here...
@@ -131,7 +131,7 @@ static void animedit_get_yscale_factor(bAnimContext *ac)
 /* ----------- Private Stuff - Action Editor ------------- */
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
-/* Note: there's a similar function in key.c (BKE_key_from_object) */
+/* NOTE: there's a similar function in key.c #BKE_key_from_object. */
 static Key *actedit_get_shapekeys(bAnimContext *ac)
 {
   ViewLayer *view_layer = ac->view_layer;
@@ -222,9 +222,9 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
       ac->mode = saction->mode;
       return true;
 
-    case SACTCONT_MASK: /* Mask */ /* XXX review how this mode is handled... */
+    case SACTCONT_MASK: /* Mask */ /* XXX: review how this mode is handled. */
     {
-      /* TODO, other methods to get the mask */
+      /* TODO: other methods to get the mask. */
 #if 0
       Sequence *seq = SEQ_select_active_get(ac->scene);
       MovieClip *clip = ac->scene->clip;
@@ -454,7 +454,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  *    keep expander channels with no sub-data out, as those cases should get
  *    dealt with by the recursive detection idiom in place.
  *
- * Implementation Note:
+ * Implementation NOTE:
  *  YES the _doSubChannels variable is NOT read anywhere. BUT, this is NOT an excuse
  *  to go steamrolling the logic into a single-line expression as from experience,
  *  those are notoriously difficult to read + debug when extending later on. The code

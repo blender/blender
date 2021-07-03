@@ -559,7 +559,7 @@ bool BKE_mball_minmax_ex(
         copy_v3_v3(centroid, &ml->x);
       }
 
-      /* TODO, non circle shapes cubes etc, probably nobody notices - campbell */
+      /* TODO(campbell): non circle shapes cubes etc, probably nobody notices. */
       for (int i = -1; i != 3; i += 2) {
         copy_v3_v3(vec, centroid);
         add_v3_fl(vec, scale_mb * i);

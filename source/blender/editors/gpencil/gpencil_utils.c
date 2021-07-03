@@ -1227,7 +1227,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
     float xy[2];
 
     /* 3D to Screen-space */
-    /* Note: We can't use gpencil_point_to_xy() here because that uses ints for the screen-space
+    /* NOTE: We can't use gpencil_point_to_xy() here because that uses ints for the screen-space
      * coordinates, resulting in lost precision, which in turn causes stair-stepping
      * artifacts in the final points. */
 

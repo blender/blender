@@ -100,7 +100,7 @@ typedef struct MainIDRelations {
   /* Mapping from an ID pointer to all of its parents (IDs using it) and children (IDs it uses).
    * Values are `MainIDRelationsEntry` pointers. */
   struct GHash *relations_from_pointers;
-  /* Note: we could add more mappings when needed (e.g. from session uuid?). */
+  /* NOTE: we could add more mappings when needed (e.g. from session uuid?). */
 
   short flag;
 

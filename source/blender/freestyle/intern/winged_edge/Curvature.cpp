@@ -98,7 +98,7 @@ static real angle_from_cotan(WVertex *vo, WVertex *v1, WVertex *v2)
   udotv = u * v;
   denom = sqrt(u.squareNorm() * v.squareNorm() - udotv * udotv);
 
-  /* Note: I assume this is what they mean by using atan2(). -Ray Jones */
+  /* NOTE(Ray Jones): I assume this is what they mean by using #atan2. */
 
   /* tan = denom/udotv = y/x (see man page for atan2) */
   return (fabs(atan2(denom, udotv)));
@@ -112,7 +112,7 @@ static real angle_from_cotan(WVertex *vo, WVertex *v1, WVertex *v2)
  *  Computes the Discrete Mean Curvature Normal approximation at \a v.
  *  The mean curvature at \a v is half the magnitude of the vector \a Kh.
  *
- *  Note: the normal computed is not unit length, and may point either into or out of the surface,
+ *  NOTE: the normal computed is not unit length, and may point either into or out of the surface,
  * depending on the curvature at \a v. It is the responsibility of the caller of the function to
  * use the mean curvature normal appropriately.
  *

@@ -600,7 +600,7 @@ void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref)
 }
 #endif
 
-/* TODO remove */
+/* TODO: remove. */
 int GPU_texture_opengl_bindcode(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->gl_bindcode_get();

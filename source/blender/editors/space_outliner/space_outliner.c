@@ -179,7 +179,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_GROUP:
-      /* all actions now, todo: check outliner view mode? */
+      /* All actions now, TODO: check outliner view mode? */
       ED_region_tag_redraw(region);
       break;
     case NC_LAMP:

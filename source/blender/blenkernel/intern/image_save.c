@@ -169,7 +169,7 @@ static bool image_save_single(ReportList *reports,
     }
   }
   else {
-    /* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
+    /* TODO: better solution, if a 24bit image is painted onto it may contain alpha. */
     if ((opts->im_format.planes == R_IMF_PLANES_RGBA) &&
         /* it has been painted onto */
         (ibuf->userflags & IB_BITMAPDIRTY)) {

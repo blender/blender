@@ -220,7 +220,7 @@ static void playanim_window_get_size(int *r_width, int *r_height)
 static void playanim_gl_matrix(void)
 {
   /* unified matrix, note it affects offset for drawing */
-  /* note! cannot use GPU_matrix_ortho_2d_set here because shader ignores. */
+  /* NOTE: cannot use GPU_matrix_ortho_2d_set here because shader ignores. */
   GPU_matrix_ortho_set(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
 }
 
@@ -1114,7 +1114,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 #ifdef WITH_AUDASPACE
               {
                 PlayAnimPict *picture = picsbase.first;
-                /* TODO - store in ps direct? */
+                /* TODO: store in ps direct? */
                 int i = 0;
 
                 while (picture && picture != ps->picture) {
@@ -1151,7 +1151,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 #ifdef WITH_AUDASPACE
             {
               PlayAnimPict *picture = picsbase.first;
-              /* TODO - store in ps direct? */
+              /* TODO: store in ps direct? */
               int i = 0;
               while (picture && picture != ps->picture) {
                 i++;

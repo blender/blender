@@ -164,7 +164,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
 {
   for (unsigned int i = 0; i < cu->totvert; i++) {
-    /* TODO convert handles too */
+    /* TODO: convert handles too. */
     cu->bezt[i].vec[1][1] *= DEG2RADF(1.0f);
     cu->bezt[i].vec[0][1] *= DEG2RADF(1.0f);
     cu->bezt[i].vec[2][1] *= DEG2RADF(1.0f);
@@ -174,7 +174,7 @@ void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
 void AnimationImporter::fcurve_scale(FCurve *cu, int scale)
 {
   for (unsigned int i = 0; i < cu->totvert; i++) {
-    /* TODO convert handles too */
+    /* TODO: convert handles too. */
     cu->bezt[i].vec[1][1] *= scale;
     cu->bezt[i].vec[0][1] *= scale;
     cu->bezt[i].vec[2][1] *= scale;
@@ -305,7 +305,7 @@ bool AnimationImporter::write_animation(const COLLADAFW::Animation *anim)
           animation_to_fcurves(curve);
           break;
         default:
-          /* TODO there are also CARDINAL, HERMITE, BSPLINE and STEP types. */
+          /* TODO: there are also CARDINAL, HERMITE, BSPLINE and STEP types. */
           fprintf(stderr,
                   "CARDINAL, HERMITE and BSPLINE anim interpolation types not supported yet.\n");
           break;
@@ -624,7 +624,7 @@ void AnimationImporter::Assign_transform_animations(
           }
         } break;
         case COLLADAFW::AnimationList::AXISANGLE:
-        /* TODO convert axis-angle to quat? or XYZ? */
+        /* TODO: convert axis-angle to quat? or XYZ? */
         default:
           unused_fcurve(curves);
           fprintf(stderr,
@@ -972,7 +972,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
 /*
  * This function returns the aspect ration from the Collada camera.
  *
- * Note:COLLADA allows to specify either XFov, or YFov alone.
+ * NOTE:COLLADA allows to specify either XFov, or YFov alone.
  * In that case the aspect ratio can be determined from
  * the viewport aspect ratio (which is 1:1 ?)
  * XXX: check this: its probably wrong!
@@ -1979,7 +1979,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
           return false;
         }
 
-        /* TODO support other animclasses */
+        /* TODO: support other animclasses. */
         if (animclass != COLLADAFW::AnimationList::ANGLE) {
           report_class_type_unsupported(path, animclass, type);
           return false;

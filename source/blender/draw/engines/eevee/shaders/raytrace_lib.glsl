@@ -101,7 +101,7 @@ struct RayTraceParameters {
 };
 
 /* Returns true on hit. */
-/* TODO fclem remove the backface check and do it the SSR resolve code. */
+/* TODO: fclem remove the backface check and do it the SSR resolve code. */
 bool raytrace(Ray ray,
               RayTraceParameters params,
               const bool discard_backface,

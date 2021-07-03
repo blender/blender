@@ -1839,7 +1839,7 @@ static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain),
 
 /* Space Properties */
 
-/* note: this function exists only to avoid id refcounting */
+/* NOTE: this function exists only to avoid id refcounting. */
 static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr,
                                            PointerRNA value,
                                            struct ReportList *UNUSED(reports))
@@ -2756,7 +2756,7 @@ static void rna_FileBrowser_FSMenuEntry_path_set(PointerRNA *ptr, const char *va
 {
   FSMenuEntry *fsm = ptr->data;
 
-  /* Note: this will write to file immediately.
+  /* NOTE: this will write to file immediately.
    * Not nice (and to be fixed ultimately), but acceptable in this case for now. */
   ED_fsmenu_entry_set_path(fsm, value);
 }
@@ -2775,7 +2775,7 @@ static void rna_FileBrowser_FSMenuEntry_name_set(PointerRNA *ptr, const char *va
 {
   FSMenuEntry *fsm = ptr->data;
 
-  /* Note: this will write to file immediately.
+  /* NOTE: this will write to file immediately.
    * Not nice (and to be fixed ultimately), but acceptable in this case for now. */
   ED_fsmenu_entry_set_name(fsm, value);
 }
@@ -3438,7 +3438,7 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "UV Opacity", "Opacity of UV overlays");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-  /* todo: move edge and face drawing options here from G.f */
+  /* TODO: move edge and face drawing options here from `G.f`. */
 
   prop = RNA_def_property(srna, "pixel_snap_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, pixel_snap_mode_items);
@@ -5073,7 +5073,7 @@ static void rna_def_space_properties(BlenderRNA *brna)
   prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "pinid");
   RNA_def_property_struct_type(prop, "ID");
-  /* note: custom set function is ONLY to avoid rna setting a user for this. */
+  /* NOTE: custom set function is ONLY to avoid rna setting a user for this. */
   RNA_def_property_pointer_funcs(
       prop, NULL, "rna_SpaceProperties_pin_id_set", "rna_SpaceProperties_pin_id_typef", NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);

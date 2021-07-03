@@ -635,7 +635,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
 }
 
 /**
- * Note: segment type (crease/material/contour...) is ambiguous after this.
+ * NOTE: segment type (crease/material/contour...) is ambiguous after this.
  */
 static void lineart_chain_connect(LineartRenderBuffer *UNUSED(rb),
                                   LineartEdgeChain *onto,

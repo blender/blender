@@ -2258,7 +2258,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
         break;
     }
 
-    /* XXX - Should be a generic function. */
+    /* XXX: Should be a generic function. */
     for (iseq = scene->ed->seqbasep->first; iseq; iseq = iseq->next) {
       if ((iseq->type & SEQ_TYPE_EFFECT) &&
           (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
@@ -2804,9 +2804,9 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
     RNA_string_get(op->ptr, "directory", directory);
     if (is_relative_path) {
-      /* TODO, shouldn't this already be relative from the filesel?
+      /* TODO(campbell): shouldn't this already be relative from the filesel?
        * (as the 'filepath' is) for now just make relative here,
-       * but look into changing after 2.60 - campbell */
+       * but look into changing after 2.60. */
       BLI_path_rel(directory, BKE_main_blendfile_path(bmain));
     }
     BLI_strncpy(seq->strip->dir, directory, sizeof(seq->strip->dir));

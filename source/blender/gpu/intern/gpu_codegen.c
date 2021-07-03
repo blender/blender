@@ -810,7 +810,7 @@ static char *code_generate_geometry(GPUNodeGraph *graph,
   }
 
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
-    /* TODO let shader choose what to do depending on what the attribute is. */
+    /* TODO: let shader choose what to do depending on what the attribute is. */
     BLI_dynstr_appendf(ds, "dataAttrOut.var%d = dataAttrIn[vert].var%d;\\\n", attr->id, attr->id);
   }
   BLI_dynstr_append(ds, "}\n\n");

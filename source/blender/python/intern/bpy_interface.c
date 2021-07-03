@@ -154,7 +154,7 @@ void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
     fprintf(stderr, "ERROR: Python context internal state bug. this should not happen!\n");
   }
   else if (py_call_level == 0) {
-    /* XXX - Calling classes currently won't store the context :\,
+    /* XXX: Calling classes currently won't store the context :\,
      * can't set NULL because of this. but this is very flakey still. */
 #if 0
     BPY_context_set(NULL);
@@ -763,7 +763,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 }
 
 #ifdef WITH_PYTHON_MODULE
-/* TODO, reloading the module isn't functional at the moment. */
+/* TODO: reloading the module isn't functional at the moment. */
 
 static void bpy_module_free(void *mod);
 
@@ -825,7 +825,7 @@ static void dealloc_obj_dealloc(PyObject *self)
 {
   bpy_module_delay_init(((dealloc_obj *)self)->mod);
 
-  /* Note, for subclassed PyObjects we can't just call PyObject_DEL() directly or it will crash */
+  /* NOTE: for subclassed PyObjects we can't just call PyObject_DEL() directly or it will crash. */
   dealloc_obj_Type.tp_free(self);
 }
 

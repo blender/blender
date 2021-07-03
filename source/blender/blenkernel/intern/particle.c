@@ -2811,7 +2811,7 @@ static void psys_task_init_path(ParticleTask *task, ParticleSimulationData *sim)
   task->rng_path = BLI_rng_new(seed);
 }
 
-/* note: this function must be thread safe, except for branching! */
+/* NOTE: this function must be thread safe, except for branching! */
 static void psys_thread_create_path(ParticleTask *task,
                                     struct ChildParticle *cpa,
                                     ParticleCacheKey *child_keys,
@@ -5400,8 +5400,8 @@ void BKE_particle_system_blend_read_lib(BlendLibReader *reader,
       BLO_read_id_address(reader, id->lib, &psys->target_ob);
 
       if (psys->clmd) {
-        /* XXX - from reading existing code this seems correct but intended usage of
-         * pointcache /w cloth should be added in 'ParticleSystem' - campbell */
+        /* XXX(campbell): from reading existing code this seems correct but intended usage of
+         * pointcache /w cloth should be added in 'ParticleSystem'. */
         psys->clmd->point_cache = psys->pointcache;
         psys->clmd->ptcaches.first = psys->clmd->ptcaches.last = NULL;
         BLO_read_id_address(reader, id->lib, &psys->clmd->coll_parms->group);

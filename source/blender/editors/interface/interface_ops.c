@@ -1215,7 +1215,7 @@ static void UI_OT_jump_to_target_button(wmOperatorType *ot)
 
 /* ------------------------------------------------------------------------- */
 /* EditSource Utility funcs and operator,
- * note, this includes utility functions and button matching checks */
+ * NOTE: this includes utility functions and button matching checks. */
 
 typedef struct uiEditSourceStore {
   uiBut but_orig;

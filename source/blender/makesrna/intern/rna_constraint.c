@@ -2841,7 +2841,7 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
   RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "target"); /* TODO, mesh type */
+  RNA_def_property_pointer_sdna(prop, NULL, "target"); /* TODO: mesh type. */
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Mesh_object_poll");
   RNA_def_property_ui_text(prop, "Target", "Target Mesh object");
   RNA_def_property_flag(prop, PROP_EDITABLE);

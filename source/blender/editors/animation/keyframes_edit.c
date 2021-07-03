@@ -1024,7 +1024,7 @@ static short mirror_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* Note: for markers and 'value', the values to use must be supplied as the first float value */
+/* NOTE: for markers and 'value', the values to use must be supplied as the first float value. */
 /* calchandles_fcurve */
 KeyframeEditFunc ANIM_editkeyframes_mirror(short mode)
 {

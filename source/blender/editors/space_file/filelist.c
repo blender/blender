@@ -323,7 +323,7 @@ typedef struct FileListEntryCache {
   int block_start_index, block_end_index, block_center_index, block_cursor;
 
   /* Misc cache: random indices, FIFO behavior.
-   * Note: Not 100% sure we actually need that, time will say. */
+   * NOTE: Not 100% sure we actually need that, time will say. */
   int misc_cursor;
   int *misc_entries_indices;
   GHash *misc_entries;
@@ -2024,9 +2024,9 @@ int filelist_file_findpath(struct FileList *filelist, const char *filename)
     return fidx;
   }
 
-  /* XXX TODO Cache could probably use a ghash on paths too? Not really urgent though.
-   *          This is only used to find again renamed entry,
-   *          annoying but looks hairy to get rid of it currently. */
+  /* XXX TODO: Cache could probably use a ghash on paths too? Not really urgent though.
+   * This is only used to find again renamed entry,
+   * annoying but looks hairy to get rid of it currently. */
 
   for (fidx = 0; fidx < filelist->filelist.nbr_entries_filtered; fidx++) {
     FileListInternEntry *entry = filelist->filelist_intern.filtered[fidx];
@@ -2262,7 +2262,7 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index)
 
       if (start_index < cache->block_start_index) {
         /* Add (request) needed entries before already cached ones. */
-        /* Note: We need some index black magic to wrap around (cycle)
+        /* NOTE: We need some index black magic to wrap around (cycle)
          * inside our cache_size array... */
         int size1 = cache->block_start_index - start_index;
         int size2 = 0;
@@ -2294,7 +2294,7 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index)
       //          printf("\tstart-extended...\n");
       if (end_index > cache->block_end_index) {
         /* Add (request) needed entries after already cached ones. */
-        /* Note: We need some index black magic to wrap around (cycle)
+        /* NOTE: We need some index black magic to wrap around (cycle)
          * inside our cache_size array... */
         int size1 = end_index - cache->block_end_index;
         int size2 = 0;
@@ -3030,7 +3030,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
             files->entry->relpath = BLI_strdup(relname);
           }
 //                  files->type |= S_IFREG;
-#  if 0 /* XXX TODO show the selection status of the objects */
+#  if 0 /* XXX TODO: show the selection status of the objects. */
           if (!filelist->has_func) { /* F4 DATA BROWSE */
             if (idcode == ID_OB) {
               if ( ((Object *)id)->flag & SELECT) {

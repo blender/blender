@@ -896,9 +896,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   writestruct(wd, GLOB, FileGlobal, 1, &fg);
 }
 
-/* preview image, first 2 values are width and height
- * second are an RGBA image (uchar)
- * note, this uses 'TEST' since new types will segfault on file load for older blender versions.
+/**
+ * Preview image, first 2 values are width and height
+ * second are an RGBA image (uchar).
+ * \note this uses 'TEST' since new types will segfault on file load for older blender versions.
  */
 static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 {

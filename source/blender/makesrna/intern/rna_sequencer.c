@@ -234,7 +234,7 @@ static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *it
     internal->link = NULL;
 
     do {
-      seq = seq->tmp; /* XXX - seq's don't reference their parents! */
+      seq = seq->tmp; /* XXX: seq's don't reference their parents! */
       if (seq && seq->next) {
         internal->link = (Link *)seq->next;
         break;
@@ -308,7 +308,7 @@ static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
   }
 
   if (SEQ_transform_test_overlap(seqbase, seq)) {
-    SEQ_transform_seqbase_shuffle(seqbase, seq, scene); /* XXX - BROKEN!, uses context seqbasep */
+    SEQ_transform_seqbase_shuffle(seqbase, seq, scene); /* XXX: BROKEN!, uses context seqbasep. */
   }
   SEQ_sort(seqbase);
 }
@@ -488,7 +488,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
   seq->machine = value;
 
   if (SEQ_transform_test_overlap(seqbase, seq)) {
-    /* XXX - BROKEN!, uses context seqbasep */
+    /* XXX: BROKEN!, uses context seqbasep. */
     SEQ_transform_seqbase_shuffle_ex(seqbase, seq, scene, channel_delta);
   }
   SEQ_sort(seqbase);
@@ -799,7 +799,7 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
   return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, ms->parseq);
 }
 
-/* TODO, expose seq path setting as a higher level sequencer BKE function */
+/* TODO: expose seq path setting as a higher level sequencer BKE function. */
 static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 {
   Sequence *seq = (Sequence *)(ptr->data);
@@ -2513,7 +2513,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
       srna, "MovieClip Sequence", "Sequence strip to load a video from the clip editor");
   RNA_def_struct_sdna(srna, "Sequence");
 
-  /* TODO - add clip property? */
+  /* TODO: add clip property? */
 
   prop = RNA_def_property(srna, "undistort", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "clip_flag", SEQ_MOVIECLIP_RENDER_UNDISTORTED);

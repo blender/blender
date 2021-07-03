@@ -132,7 +132,7 @@ bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
 {
   if (prop->magic == RNA_MAGIC) {
     /* Special handling for insertions of constraints or modifiers... */
-    /* TODO Note We may want to add a more generic system to RNA
+    /* TODO: Note We may want to add a more generic system to RNA
      * (like a special property in struct of items)
      * if we get more overridable collections,
      * for now we can live with those special-cases handling I think. */
@@ -234,7 +234,7 @@ bool RNA_property_copy(
   prop_src = rna_ensure_property_realdata(&prop_src, fromptr);
 
   /* IDprops: destination may not exist, if source does and is set, try to create it. */
-  /* Note: this is sort of quick hack/bandage to fix the issue,
+  /* NOTE: this is sort of quick hack/bandage to fix the issue,
    * we need to rethink how IDProps are handled in 'diff' RNA code completely, imho... */
   if (prop_src != NULL && prop_dst == NULL && RNA_property_is_set(fromptr, prop)) {
     BLI_assert(prop_src->magic != RNA_MAGIC);
@@ -681,7 +681,7 @@ bool RNA_struct_override_matches(Main *bmain,
      * ensure this is valid, but in some situations (like hidden collections etc.) this won't
      * be the case, so we need to take care of this ourselves.
      *
-     * Note: Typically callers of this function (from BKE_lib_override area) will already have
+     * NOTE: Typically callers of this function (from BKE_lib_override area) will already have
      * ensured this. However, studio is still reporting sporadic, unreproducible crashes due to
      * invalid pose data, so think there are still some cases where some armatures are somehow
      * missing updates (possibly due to dependencies?). Since calling this function on same ID
@@ -741,7 +741,7 @@ bool RNA_struct_override_matches(Main *bmain,
     char *rna_path = rna_path_buffer;
     size_t rna_path_len = 0;
 
-    /* XXX TODO this will have to be refined to handle collections insertions, and array items */
+    /* XXX TODO: this will have to be refined to handle collections insertions, and array items. */
     if (root_path) {
       BLI_assert(strlen(root_path) == root_path_len);
 
@@ -1138,7 +1138,7 @@ static void rna_property_override_apply_ex(Main *bmain,
       continue;
     }
 
-    /* Note: will have to think about putting that logic into its own function maybe?
+    /* NOTE: will have to think about putting that logic into its own function maybe?
      * Would be nice to have it in a single place...
      * Note that here, src is the local saved ID, and dst is a copy of the linked ID (since we use
      * local ID as storage to apply local changes on top of a clean copy of the linked data). */
@@ -1192,7 +1192,7 @@ void RNA_struct_override_apply(Main *bmain,
 #ifdef DEBUG_OVERRIDE_TIMEIT
   TIMEIT_START_AVERAGED(RNA_struct_override_apply);
 #endif
-  /* Note: Applying insert operations in a separate pass is mandatory.
+  /* NOTE: Applying insert operations in a separate pass is mandatory.
    * We could optimize this later, but for now, as inefficient as it is,
    * don't think this is a critical point.
    */

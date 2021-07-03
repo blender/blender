@@ -47,7 +47,7 @@ bool BLT_is_default_context(const char *msgctxt)
   /* We use the "short" test, a more complete one could be:
    * return (!msgctxt || !msgctxt[0] || STREQ(msgctxt, BLT_I18NCONTEXT_DEFAULT_BPYRNA))
    */
-  /* Note: trying without the void string check for now, it *should* not be necessary... */
+  /* NOTE: trying without the void string check for now, it *should* not be necessary... */
   return (!msgctxt || msgctxt[0] == BLT_I18NCONTEXT_DEFAULT_BPYRNA[0]);
 }
 

@@ -345,7 +345,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
   ScrArea *area = params->area;
   wmNotifier *wmn = params->notifier;
 
-  /* note, ED_area_tag_refresh will re-execute compositor */
+  /* NOTE: #ED_area_tag_refresh will re-execute compositor. */
   SpaceNode *snode = area->spacedata.first;
   /* shaderfrom is only used for new shading nodes, otherwise all shaders are from objects */
   short shader_type = snode->shaderfrom;
@@ -563,7 +563,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
     BLI_listbase_clear(&snoden->runtime->linkdrag);
   }
 
-  /* Note: no need to set node tree user counts,
+  /* NOTE: no need to set node tree user counts,
    * the editor only keeps at least 1 (id_us_ensure_real),
    * which is already done by the original SpaceNode.
    */

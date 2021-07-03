@@ -25,7 +25,7 @@
 
 #include "DNA_defs.h"
 
-/* XXX, temp feature - campbell */
+/* XXX(campbell): temp feature. */
 #define DURIAN_CAMERA_SWITCH
 
 /* check for cyclic set-scene,
@@ -397,7 +397,7 @@ typedef enum eStereo3dInterlaceType {
 /* Generic image format settings,
  * this is used for NodeImageFile and IMAGE_OT_save_as operator too.
  *
- * note: its a bit strange that even though this is an image format struct
+ * NOTE: its a bit strange that even though this is an image format struct
  * the imtype can still be used to select video formats.
  * RNA ensures these enum's are only selectable for render output.
  */

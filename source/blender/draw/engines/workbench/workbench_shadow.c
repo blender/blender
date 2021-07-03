@@ -65,7 +65,7 @@ static void workbench_shadow_update(WORKBENCH_PrivateData *wpd)
     const float up[3] = {0.0f, 0.0f, 1.0f};
     unit_m4(wpd->shadow_mat);
 
-    /* TODO fix singularity. */
+    /* TODO: fix singularity. */
     copy_v3_v3(wpd->shadow_mat[2], wpd->shadow_direction_ws);
     cross_v3_v3v3(wpd->shadow_mat[0], wpd->shadow_mat[2], up);
     normalize_v3(wpd->shadow_mat[0]);

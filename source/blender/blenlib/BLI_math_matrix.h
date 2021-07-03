@@ -278,7 +278,7 @@ bool is_orthonormal_m4(const float mat[4][4]);
 bool is_uniform_scaled_m3(const float mat[3][3]);
 bool is_uniform_scaled_m4(const float m[4][4]);
 
-/* Note: 'adjoint' here means the adjugate (adjunct, "classical adjoint") matrix!
+/* NOTE: 'adjoint' here means the adjugate (adjunct, "classical adjoint") matrix!
  * Nowadays 'adjoint' usually refers to the conjugate transpose,
  * which for real-valued matrices is simply the transpose.
  */

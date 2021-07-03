@@ -592,7 +592,7 @@ static void waveform_draw_one(float *waveform, int nbr, const float col[3])
 
   GPU_vertbuf_attr_fill(vbo, pos_id, waveform);
 
-  /* TODO store the GPUBatch inside the scope */
+  /* TODO: store the #GPUBatch inside the scope. */
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, NULL, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
   GPU_batch_uniform_4f(batch, "color", col[0], col[1], col[2], 1.0f);
@@ -2350,7 +2350,7 @@ void ui_draw_dropshadow(
         true, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax - 10.0f + a, rad + a, color);
 #endif
     /* Compute final visibility to match old method result. */
-    /* TODO we could just find a better fit function inside the shader instead of this. */
+    /* TODO: we could just find a better fit function inside the shader instead of this. */
     visibility = visibility * (1.0f - calpha);
     calpha += dalpha;
   }

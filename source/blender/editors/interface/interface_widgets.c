@@ -237,7 +237,7 @@ typedef struct uiWidgetTrias {
 #define WIDGET_SIZE_MAX (WIDGET_CURVE_RESOLU * 4)
 
 typedef struct uiWidgetBase {
-  /* TODO remove these completely */
+  /* TODO: remove these completely. */
   int totvert, halfwayvert;
   float outer_v[WIDGET_SIZE_MAX][2];
   float inner_v[WIDGET_SIZE_MAX][2];
@@ -399,7 +399,7 @@ static struct {
   GPUBatch *roundbox_widget;
   GPUBatch *roundbox_shadow;
 
-  /* TODO remove */
+  /* TODO: remove. */
   GPUVertFormat format;
   uint vflag_id;
 } g_ui_batch_cache = {0};
@@ -523,7 +523,7 @@ void UI_draw_anti_tria(
 
   float draw_color[4];
   copy_v4_v4(draw_color, color);
-  /* Note: This won't give back the original color. */
+  /* NOTE: This won't give back the original color. */
   draw_color[3] *= 1.0f / WIDGET_AA_JITTER;
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1641,7 +1641,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
         /* Corner case, the str already takes all available mem,
          * and the ellipsis chars would actually add more chars.
          * Better to just trim one or two letters to the right in this case...
-         * Note: with a single-char ellipsis, this should never happen! But better be safe
+         * NOTE: with a single-char ellipsis, this should never happen! But better be safe
          * here...
          */
         ui_text_clip_right_ex(
@@ -2006,7 +2006,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       drawstr_left_len = INT_MAX;
 
 #ifdef WITH_INPUT_IME
-      /* FIXME, IME is modifying 'const char *drawstr! */
+      /* FIXME: IME is modifying `const char *drawstr`! */
       ime_data = ui_but_ime_data_get(but);
 
       if (ime_data && ime_data->composite_len) {
@@ -4306,7 +4306,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
   widget_init(&wtb);
 
   if (but->block->drawextra) {
-    /* note: drawextra can change rect +1 or -1, to match round errors of existing previews */
+    /* NOTE: drawextra can change rect +1 or -1, to match round errors of existing previews. */
     but->block->drawextra(
         C, but->poin, but->block->drawextra_arg1, but->block->drawextra_arg2, rect);
 

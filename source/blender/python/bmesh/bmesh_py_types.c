@@ -553,7 +553,7 @@ static PyObject *bpy_bmloop_is_convex_get(BPy_BMLoop *self)
 /* ElemSeq
  * ^^^^^^^ */
 
-/* note: use for bmvert/edge/face/loop seq's use these, not bmelemseq directly */
+/* NOTE: use for bmvert/edge/face/loop seq's use these, not bmelemseq directly. */
 PyDoc_STRVAR(bpy_bmelemseq_layers_vert_doc,
              "custom-data layers (read-only).\n\n:type: :class:`BMLayerAccessVert`");
 PyDoc_STRVAR(bpy_bmelemseq_layers_edge_doc,
@@ -2588,7 +2588,7 @@ PyDoc_STRVAR(
  * If a portable alternative to qsort_r becomes available, remove this static
  * var hack!
  *
- * Note: the functions below assumes the keys array has been allocated and it
+ * NOTE: the functions below assumes the keys array has been allocated and it
  * has enough elements to complete the task.
  */
 

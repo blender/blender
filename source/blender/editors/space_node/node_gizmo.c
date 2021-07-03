@@ -155,7 +155,7 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmGizmoGroup *
     WM_gizmo_set_matrix_location(cage, origin);
     WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, false);
 
-    /* need to set property here for undo. TODO would prefer to do this in _init */
+    /* Need to set property here for undo. TODO: would prefer to do this in _init. */
     SpaceNode *snode = CTX_wm_space_node(C);
 #if 0
     PointerRNA nodeptr;
@@ -492,7 +492,7 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = nodeGetActive(snode->edittree);
 
-    /* need to set property here for undo. TODO would prefer to do this in _init */
+    /* Need to set property here for undo. TODO: would prefer to do this in _init. */
     PointerRNA nodeptr;
     RNA_pointer_create((ID *)snode->edittree, &RNA_CompositorNodeSunBeams, node, &nodeptr);
     WM_gizmo_target_property_def_rna(gz, "offset", &nodeptr, "source", -1);
@@ -604,7 +604,7 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = nodeGetActive(snode->edittree);
 
-    /* need to set property here for undo. TODO would prefer to do this in _init */
+    /* need to set property here for undo. TODO: would prefer to do this in _init. */
     int i = 0;
     for (bNodeSocket *sock = node->inputs.first; sock && i < 4; sock = sock->next) {
       if (sock->type == SOCK_VECTOR) {

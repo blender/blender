@@ -392,7 +392,7 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
     view3d_boxview_copy(CTX_wm_area(C), region);
   }
 
-  /* note: this doesn't work right because the v3d->lens is now used in ortho mode r51636,
+  /* NOTE: this doesn't work right because the v3d->lens is now used in ortho mode r51636,
    * when switching camera in quad-view the other ortho views would zoom & reset.
    *
    * For now only redraw all regions when smooth-view finishes.

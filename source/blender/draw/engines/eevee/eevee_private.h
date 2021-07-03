@@ -44,12 +44,12 @@ struct RenderLayer;
 extern struct DrawEngineType draw_engine_eevee_type;
 
 /* Minimum UBO is 16384 bytes */
-#define MAX_PROBE 128 /* TODO : find size by dividing UBO max size by probe data size */
-#define MAX_GRID 64   /* TODO : find size by dividing UBO max size by grid data size */
-#define MAX_PLANAR 16 /* TODO : find size by dividing UBO max size by grid data size */
-#define MAX_LIGHT 128 /* TODO : find size by dividing UBO max size by light data size */
+#define MAX_PROBE 128 /* TODO: find size by dividing UBO max size by probe data size. */
+#define MAX_GRID 64   /* TODO: find size by dividing UBO max size by grid data size. */
+#define MAX_PLANAR 16 /* TODO: find size by dividing UBO max size by grid data size. */
+#define MAX_LIGHT 128 /* TODO: find size by dividing UBO max size by light data size. */
 #define MAX_CASCADE_NUM 4
-#define MAX_SHADOW 128 /* TODO : Make this depends on GL_MAX_ARRAY_TEXTURE_LAYERS */
+#define MAX_SHADOW 128 /* TODO: Make this depends on #GL_MAX_ARRAY_TEXTURE_LAYERS. */
 #define MAX_SHADOW_CASCADE 8
 #define MAX_SHADOW_CUBE (MAX_SHADOW - MAX_CASCADE_NUM * MAX_SHADOW_CASCADE)
 #define MAX_BLOOM_STEP 16
@@ -238,7 +238,7 @@ typedef struct EEVEE_PlanarReflection {
   float clip_edge_y_pos, clip_edge_y_neg;
   float facing_scale, facing_bias, clipsta, pad;
   float reflectionmat[4][4]; /* Used for sampling the texture. */
-  float mtx[4][4];           /* Not used in shader. TODO move elsewhere. */
+  float mtx[4][4];           /* Not used in shader. TODO: move elsewhere. */
 } EEVEE_PlanarReflection;
 
 /* --------------------------------------- */
@@ -1000,7 +1000,7 @@ typedef struct EEVEE_PrivateData {
   struct DRWShadingGroup *shadow_accum_shgrp;
   struct DRWCallBuffer *planar_display_shgrp;
   struct GHash *material_hash;
-  float background_alpha; /* TODO find a better place for this. */
+  float background_alpha; /* TODO: find a better place for this. */
   /* Chosen lightcache: can come from Lookdev or the viewlayer. */
   struct LightCache *light_cache;
   /* For planar probes */

@@ -350,7 +350,7 @@ GpencilModifierData *BKE_gpencil_modifier_new(int type)
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(type);
   GpencilModifierData *md = MEM_callocN(mti->struct_size, mti->struct_name);
 
-  /* note, this name must be made unique later */
+  /* NOTE: this name must be made unique later. */
   BLI_strncpy(md->name, DATA_(mti->name), sizeof(md->name));
 
   md->type = type;

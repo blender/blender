@@ -471,7 +471,7 @@ void seq_time_gap_info_get(const Scene *scene,
 
 /**
  * Test if strip intersects with timeline frame.
- * Note: This checks if strip would be rendered at this frame. For rendering it is assumed, that
+ * NOTE: This checks if strip would be rendered at this frame. For rendering it is assumed, that
  * timeline frame has width of 1 frame and therefore ends at timeline_frame + 1
  *
  * \param seq: Sequence to be checked

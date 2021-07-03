@@ -476,7 +476,7 @@ void ui_block_bounds_calc(uiBlock *block)
 
 static void ui_block_bounds_calc_centered(wmWindow *window, uiBlock *block)
 {
-  /* note: this is used for the splash where window bounds event has not been
+  /* NOTE: this is used for the splash where window bounds event has not been
    * updated by ghost, get the window bounds from ghost directly */
 
   const int xmax = WM_window_pixels_x(window);
@@ -862,7 +862,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
     SWAP(void *, but->dragpoin, oldbut->dragpoin);
   }
 
-  /* note: if layout hasn't been applied yet, it uses old button pointers... */
+  /* NOTE: if layout hasn't been applied yet, it uses old button pointers... */
 }
 
 /**
@@ -1945,8 +1945,8 @@ void ui_fontscale(short *points, float aspect)
   if (aspect < 0.9f || aspect > 1.1f) {
     float pointsf = *points;
 
-    /* for some reason scaling fonts goes too fast compared to widget size */
-    /* XXX not true anymore? (ton) */
+    /* For some reason scaling fonts goes too fast compared to widget size. */
+    /* XXX(ton): not true anymore? */
     // aspect = sqrt(aspect);
     pointsf /= aspect;
 
@@ -3223,7 +3223,7 @@ void ui_but_range_set_hard(uiBut *but)
   }
 }
 
-/* note: this could be split up into functions which handle arrays and not */
+/* NOTE: this could be split up into functions which handle arrays and not. */
 void ui_but_range_set_soft(uiBut *but)
 {
   /* Ideally we would not limit this, but practically it's more than
@@ -4247,7 +4247,7 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
     uiItemS(layout);
   }
 
-  /* note, item_array[...] is reversed on access */
+  /* NOTE: `item_array[...]` is reversed on access. */
 
   /* create items */
   uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
@@ -4550,7 +4550,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
     else if (proptype == PROP_STRING) {
       min = 0;
       max = RNA_property_string_maxlength(prop);
-      /* note, 'max' may be zero (code for dynamically resized array) */
+      /* NOTE: 'max' may be zero (code for dynamically resized array). */
     }
   }
 
@@ -6757,7 +6757,7 @@ static void operator_enum_search_update_fn(const struct bContext *C,
 
     for (int i = 0; i < filtered_amount; i++) {
       const EnumPropertyItem *item = filtered_items[i];
-      /* note: need to give the index rather than the
+      /* NOTE: need to give the index rather than the
        * identifier because the enum can be freed */
       if (!UI_search_item_add(
               items, item->name, POINTER_FROM_INT(item->value), item->icon, 0, 0)) {

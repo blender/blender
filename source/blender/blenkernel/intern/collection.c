@@ -115,7 +115,7 @@ static void collection_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
              ((collection_src->id.flag & LIB_EMBEDDED_DATA) != 0));
 
   /* Do not copy collection's preview (same behavior as for objects). */
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO temp hack */
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO: temp hack. */
     BKE_previewimg_id_copy(&collection_dst->id, &collection_src->id);
   }
   else {
@@ -1706,7 +1706,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
   for (Collection *collection = bmain->collections.first; collection != NULL;
        collection = collection->id.next) {
     if (collection->tag & COLLECTION_TAG_RELATION_REBUILD) {
-      /* Note: we do not have easy access to 'which collections is root' info in that case, which
+      /* NOTE: we do not have easy access to 'which collections is root' info in that case, which
        * means test for cycles in collection relationships may fail here. I don't think that is an
        * issue in practice here, but worth keeping in mind... */
       collection_parents_rebuild_recursive(collection);
@@ -1896,7 +1896,7 @@ static void layer_collection_flags_restore_recursive(LayerCollection *layer_coll
    * and now we moved a new collection to be part of the background this collection should
    * probably be disabled.
    *
-   * Note: If we were to also keep the exclude flag we would need to re-sync the collections.
+   * NOTE: If we were to also keep the exclude flag we would need to re-sync the collections.
    */
   layer_collection->flag = flag->flag | (layer_collection->flag & LAYER_COLLECTION_EXCLUDE);
 }
@@ -2203,8 +2203,8 @@ void BKE_scene_objects_iterator_end(BLI_Iterator *iter)
  * Generate a new GSet (or extend given `objects_gset` if not NULL) with all objects referenced by
  * all collections of given `scene`.
  *
- * \note: This will include objects without a base currently (because they would belong to excluded
- * collections only e.g.).
+ * \note This will include objects without a base currently
+ * (because they would belong to excluded collections only e.g.).
  */
 GSet *BKE_scene_objects_as_gset(Scene *scene, GSet *objects_gset)
 {

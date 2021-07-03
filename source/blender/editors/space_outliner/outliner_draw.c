@@ -355,7 +355,7 @@ static void outliner_base_or_object_pointer_create(
   }
 }
 
-/* Note: Collection is only valid when we want to change the collection data, otherwise we get it
+/* NOTE: Collection is only valid when we want to change the collection data, otherwise we get it
  * from layer collection. Layer collection is valid whenever we are looking at a view layer. */
 static void outliner_collection_set_flag_recursive(Scene *scene,
                                                    ViewLayer *view_layer,
@@ -374,7 +374,7 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
 
   /* Set the same flag for the nested objects as well. */
   if (base_or_object_prop) {
-    /* Note: We can't use BKE_collection_object_cache_get()
+    /* NOTE: We can't use BKE_collection_object_cache_get()
      * otherwise we would not take collection exclusion into account. */
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
 
@@ -414,7 +414,7 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
  * A collection is isolated if all its parents and children are "visible".
  * All the other collections must be "invisible".
  *
- * Note: We could/should boost performance by iterating over the tree twice.
+ * NOTE: We could/should boost performance by iterating over the tree twice.
  * First tagging all the children/parent collections, then getting their values and comparing.
  * To run BKE_collection_has_collection() so many times is silly and slow.
  */

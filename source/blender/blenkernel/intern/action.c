@@ -120,7 +120,7 @@ static void action_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
   for (fcurve_src = action_src->curves.first; fcurve_src; fcurve_src = fcurve_src->next) {
     /* Duplicate F-Curve. */
 
-    /* XXX TODO pass subdata flag?
+    /* XXX TODO: pass subdata flag?
      * But surprisingly does not seem to be doing any ID refcounting... */
     fcurve_dst = BKE_fcurve_copy(fcurve_src);
 

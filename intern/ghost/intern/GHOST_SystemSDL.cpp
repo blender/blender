@@ -121,7 +121,7 @@ GHOST_TSuccess GHOST_SystemSDL::init()
 void GHOST_SystemSDL::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
 {
   SDL_DisplayMode mode;
-  SDL_GetDesktopDisplayMode(0, &mode); /* note, always 0 display */
+  SDL_GetDesktopDisplayMode(0, &mode); /* NOTE: always 0 display. */
   width = mode.w;
   height = mode.h;
 }
@@ -129,7 +129,7 @@ void GHOST_SystemSDL::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 
 void GHOST_SystemSDL::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
 {
   SDL_DisplayMode mode;
-  SDL_GetCurrentDisplayMode(0, &mode); /* note, always 0 display */
+  SDL_GetCurrentDisplayMode(0, &mode); /* NOTE: always 0 display. */
   width = mode.w;
   height = mode.h;
 }
@@ -468,8 +468,8 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       assert(window != NULL);
 
       GHOST_TKey gkey = convertSDLKey(sdl_sub_evt.keysym.scancode);
-      /* note, the sdl_sub_evt.keysym.sym is truncated,
-       * for unicode support ghost has to be modified */
+      /* NOTE: the `sdl_sub_evt.keysym.sym` is truncated,
+       * for unicode support ghost has to be modified. */
       /* printf("%d\n", sym); */
       if (sym > 127) {
         switch (sym) {
@@ -755,5 +755,5 @@ void GHOST_SystemSDL::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 GHOST_TUns64 GHOST_SystemSDL::getMilliSeconds()
 {
-  return GHOST_TUns64(SDL_GetTicks()); /* note, 32 -> 64bits */
+  return GHOST_TUns64(SDL_GetTicks()); /* NOTE: 32 -> 64bits. */
 }

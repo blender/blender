@@ -641,7 +641,7 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   e.is_repeat = false;
   e.x = x;
   e.y = y;
-  /* Note: KM_MOD_FIRST, KM_MOD_SECOND aren't used anywhere, set as bools */
+  /* NOTE: KM_MOD_FIRST, KM_MOD_SECOND aren't used anywhere, set as bools. */
   e.shift = shift;
   e.ctrl = ctrl;
   e.alt = alt;

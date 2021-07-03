@@ -1526,7 +1526,7 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
 
     /* Clear Tags
      *
-     * Note: It's better this way, as we are sure that
+     * NOTE: It's better this way, as we are sure that
      * we don't miss anything, though things will be
      * slightly slower as a result
      */
@@ -2174,7 +2174,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
       /* Add a new frame if needed (and based off the active frame,
        * as we need some existing strokes to erase)
        *
-       * Note: We don't add a new frame if there's nothing there now, so
+       * NOTE: We don't add a new frame if there's nothing there now, so
        *       -> If there are no frames at all, don't add one
        *       -> If there are no strokes in that frame, don't add a new empty frame
        */

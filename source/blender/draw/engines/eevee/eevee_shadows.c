@@ -193,7 +193,7 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
 static bool sphere_bbox_intersect(const BoundSphere *bs, const EEVEE_BoundBox *bb)
 {
   /* We are testing using a rougher AABB vs AABB test instead of full AABB vs Sphere. */
-  /* TODO test speed with AABB vs Sphere. */
+  /* TODO: test speed with AABB vs Sphere. */
   bool x = fabsf(bb->center[0] - bs->center[0]) <= (bb->halfdim[0] + bs->radius);
   bool y = fabsf(bb->center[1] - bs->center[1]) <= (bb->halfdim[1] + bs->radius);
   bool z = fabsf(bb->center[2] - bs->center[2]) <= (bb->halfdim[2] + bs->radius);

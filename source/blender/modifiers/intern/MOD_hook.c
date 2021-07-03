@@ -94,7 +94,7 @@ static void requiredDataMask(Object *UNUSED(ob),
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }
   if (hmd->indexar != NULL) {
-    /* TODO check which origindex are actually needed? */
+    /* TODO: check which origindex are actually needed? */
     r_cddata_masks->vmask |= CD_MASK_ORIGINDEX;
     r_cddata_masks->emask |= CD_MASK_ORIGINDEX;
     r_cddata_masks->pmask |= CD_MASK_ORIGINDEX;

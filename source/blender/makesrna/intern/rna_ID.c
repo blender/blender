@@ -384,7 +384,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
 
 StructRNA *ID_code_to_RNA_type(short idcode)
 {
-  /* Note, this switch doesn't use a 'default',
+  /* NOTE: this switch doesn't use a 'default',
    * so adding new ID's causes a warning. */
   switch ((ID_Type)idcode) {
     case ID_AC:
@@ -538,7 +538,7 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain),
     return NULL;
   }
 
-  /* note: it looks like there is no length limit on the srna id since its
+  /* NOTE: it looks like there is no length limit on the srna id since its
    * just a char pointer, but take care here, also be careful that python
    * owns the string pointer which it could potentially free while blender
    * is running. */

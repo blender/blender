@@ -279,7 +279,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
   for (int i = 0; i < NUM_VALUE_KINDS; i++) {
     opdata->shift_value[i] = -1.0f;
     opdata->initial_length[i] = -1.0f;
-    /* note: scale for OFFSET_VALUE will get overwritten in edbm_bevel_invoke */
+    /* NOTE: scale for #OFFSET_VALUE will get overwritten in #edbm_bevel_invoke. */
     opdata->scale[i] = value_scale_per_inch[i] / pixels_per_inch;
 
     initNumInput(&opdata->num_input[i]);

@@ -758,7 +758,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 
   uiItemR(layout, ptr, "extension", DEFAULT_FLAGS, "", ICON_NONE);
 
-  /* note: image user properties used directly here, unlike compositor image node,
+  /* NOTE: image user properties used directly here, unlike compositor image node,
    * which redefines them in the node struct RNA to get proper updates.
    */
   node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false, true);
@@ -4195,7 +4195,7 @@ void node_draw_link_bezier(const View2D *v2d,
   }
 }
 
-/* note; this is used for fake links in groups too */
+/* NOTE: this is used for fake links in groups too. */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
   int th_col1 = TH_WIRE_INNER, th_col2 = TH_WIRE_INNER, th_col3 = TH_WIRE;

@@ -1307,7 +1307,7 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(BRUSH_OT_stencil_fit_image_aspect);
   WM_operatortype_append(BRUSH_OT_stencil_reset_transform);
 
-  /* note, particle uses a different system, can be added with existing operators in wm.py */
+  /* NOTE: particle uses a different system, can be added with existing operators in `wm.py`. */
   WM_operatortype_append(PAINT_OT_brush_select);
 
   /* image */

@@ -1324,7 +1324,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   /* For all remaining faces of v_del, create a new face that is the
    * same except it uses v_conn instead of v_del */
-  /* Note: this could be done with BM_vert_splice(), but that
+  /* NOTE: this could be done with BM_vert_splice(), but that
    * requires handling other issues like duplicate edges, so doesn't
    * really buy anything. */
   BLI_buffer_clear(deleted_faces);

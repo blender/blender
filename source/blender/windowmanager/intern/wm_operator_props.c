@@ -133,7 +133,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   }
 
   if (action == FILE_SAVE) {
-    /* note, this is only used to check if we should highlight the filename area red when the
+    /* NOTE: this is only used to check if we should highlight the filename area red when the
      * filepath is an existing file. */
     prop = RNA_def_boolean(ot->srna,
                            "check_existing",
@@ -198,7 +198,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
       ot->srna, "filter_blenlib", (filter & FILE_TYPE_BLENDERLIB) != 0, "Filter Blender IDs", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-  /* TODO asset only filter? */
+  /* TODO: asset only filter? */
 
   prop = RNA_def_int(
       ot->srna,

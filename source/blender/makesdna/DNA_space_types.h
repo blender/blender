@@ -987,7 +987,7 @@ typedef enum eFileSel_Params_Flag {
 } eFileSel_Params_Flag;
 
 /* sfile->params->rename_flag */
-/* Note: short flag. Defined as bitflags, but currently only used as exclusive status markers... */
+/* NOTE: short flag. Defined as bitflags, but currently only used as exclusive status markers... */
 typedef enum eFileSel_Params_RenameFlag {
   /** Used when we only have the name of the entry we want to rename,
    * but not yet access to its matching file entry. */

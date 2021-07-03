@@ -191,7 +191,7 @@ static void bm_rotate_edges_shared(
 
           edges_len_rotate += 1;
 
-          /* Note: we could validate all edges which have not been rotated
+          /* NOTE: we could validate all edges which have not been rotated
            * (not just previously degenerate edges).
            * However there is no real need -
            * they can be left until they're popped off the queue. */

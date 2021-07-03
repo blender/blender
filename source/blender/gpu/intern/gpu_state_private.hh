@@ -96,7 +96,7 @@ inline GPUState operator~(const GPUState &a)
 union GPUStateMutable {
   struct {
     /* Viewport State */
-    /** TODO remove */
+    /** TODO: remove. */
     float depth_range[2];
     /** Positive if using program point size. */
     /* TODO(fclem): should be passed as uniform to all shaders. */

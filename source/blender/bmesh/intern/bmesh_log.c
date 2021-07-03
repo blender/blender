@@ -397,7 +397,7 @@ static BMLogEntry *bm_log_entry_create(void)
 
 /* Free the data in a log entry
  *
- * Note: does not free the log entry itself */
+ * NOTE: does not free the log entry itself. */
 static void bm_log_entry_free(BMLogEntry *entry)
 {
   BLI_ghash_free(entry->deleted_verts, NULL, NULL);

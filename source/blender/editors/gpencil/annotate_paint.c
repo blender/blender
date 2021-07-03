@@ -708,7 +708,7 @@ static void annotation_stroke_arrow_init_conv_point(bGPDspoint *pt, const float 
 static void annotation_stroke_arrow_init_point(
     tGPsdata *p, tGPspoint *ptc, bGPDspoint *pt, const float co[8], const int co_idx)
 {
-  /* Note: provided co_idx should be always pair number as it's [x1, y1, x2, y2, x3, y3]. */
+  /* NOTE: provided co_idx should be always pair number as it's [x1, y1, x2, y2, x3, y3]. */
   const float real_co[2] = {co[co_idx], co[co_idx + 1]};
   copy_v2_v2(&ptc->x, real_co);
   annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
@@ -1141,7 +1141,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
 
     /* Clear Tags
      *
-     * Note: It's better this way, as we are sure that
+     * NOTE: It's better this way, as we are sure that
      * we don't miss anything, though things will be
      * slightly slower as a result
      */
