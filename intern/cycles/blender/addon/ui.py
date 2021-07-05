@@ -485,9 +485,11 @@ class CYCLES_RENDER_PT_light_paths_max_bounces(CyclesButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(cscene, "diffuse_bounces", text="Diffuse")
         col.prop(cscene, "glossy_bounces", text="Glossy")
-        col.prop(cscene, "transparent_max_bounces", text="Transparency")
         col.prop(cscene, "transmission_bounces", text="Transmission")
         col.prop(cscene, "volume_bounces", text="Volume")
+
+        col = layout.column(align=True)
+        col.prop(cscene, "transparent_max_bounces", text="Transparent")
 
 
 class CYCLES_RENDER_PT_light_paths_clamping(CyclesButtonsPanel, Panel):
