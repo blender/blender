@@ -325,7 +325,6 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
   }
 }
 
-
 static void sculpt_array_deform(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode) {
     SculptSession *ss = ob->sculpt;
   /* Threaded loop over nodes. */
@@ -356,6 +355,32 @@ static void sculpt_array_ensure_original_coordinates(Object *ob, SculptArray *ar
   }
 }
 
+
+static void sculpt_array_stroke_sample_add(Object *ob, SculptArray *array) {
+  SculptSession *ss = ob->sculpt;
+
+  if (!array->path.points) {
+    array->path.points = MEM_malloc_arrayN(9999, sizeof(ScultpArrayPathPoint), "Array Path");
+  }
+
+  const int current_point_index = array->path.tot_points;
+  const int prev_point_index = current_point_index - 1;
+  
+  ScultpArrayPathPoint *path_point = &array->path.points[current_point_index];
+  add_v3_v3v3(path_point->co, ss->cache->true_initial_location, ss->cache->grab_delta);
+  if (current_point_index == 0) {
+    /* First point of the path. */
+    path_point->length = 0.0f;
+  }
+  else {
+    ScultpArrayPathPoint *prev_path_point = &array->path.points[prev_point_index];
+    sub_v3_v3v3(prev_path_point->direction, path_point->co, prev_path_point->co);
+    path_point->length += normalize_v3(prev_path_point->direction);
+  }
+
+  array->path.tot_points++;
+}
+
 void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
@@ -374,21 +399,7 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	  return;
   }
    
-  /* TODO: delete this. */
-  sculpt_array_ensure_original_coordinates(ob, ss->cache->array);
-  /*
-  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
-   const int totvert = SCULPT_vertex_count_get(ss);
-
-   if (!ss->cache->array_orco) {
-  ss->cache->array_orco = MEM_calloc_arrayN(sculpt_mesh->totvert, sizeof(float) * 3, "array orco");
-  for (int i = 0; i < sculpt_mesh->totvert; i++) {
-	copy_v3_v3(ss->cache->array_orco[i], sculpt_mesh->mvert[i].co);
-  }
-   }
-   */
-
-
+   sculpt_array_ensure_original_coordinates(ob, ss->cache->array);
    sculpt_array_update(ob, brush, ss->cache->array);
    sculpt_array_deform(sd, ob, nodes, totnode);
 

@@ -456,10 +456,25 @@ typedef struct SculptArrayCopy {
   float origin[3];
 } SculptArrayCopy;
 
+typedef struct ScultpArrayPathPoint {
+  float length;
+  float co[3];
+  float direction[3];
+} ScultpArrayPathPoint;
+
 typedef struct SculptArray {
   float (*orco)[3];
   SculptArrayCopy *copies[PAINT_SYMM_AREAS];
   int num_copies;
+
+  struct {
+    ScultpArrayPathPoint * points;
+    int tot_points;
+    int capacity;
+    float total_length;
+  } path;
+  
+
 } SculptArray;
 
 typedef struct SculptFakeNeighbors {
