@@ -813,7 +813,6 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
     viewrotate_apply_dyn_ofs(vod, vod->curr.viewquat);
   }
   else {
-    /* New turntable view code by John Aughey */
     float quat_local_x[4], quat_global_z[4];
     float m[3][3];
     float m_inv[3][3];
@@ -1201,7 +1200,7 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof,
   if (U.ndof_flag & NDOF_TURNTABLE) {
     float rot[3];
 
-    /* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
+    /* Turntable view code adapted for 3D mouse use. */
     float angle, quat[4];
     float xvec[3] = {1, 0, 0};
 
