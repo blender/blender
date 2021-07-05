@@ -583,7 +583,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
     BKE_mesh_runtime_looptri_ensure(me_highpoly[i]);
 
     if (me_highpoly[i]->runtime.looptris.len != 0) {
-      /* Create a bvh-tree for each highpoly object */
+      /* Create a BVH-tree for each highpoly object. */
       BKE_bvhtree_from_mesh_get(&treeData[i], me_highpoly[i], BVHTREE_FROM_LOOPTRI, 2);
 
       if (treeData[i].tree == NULL) {

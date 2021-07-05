@@ -901,7 +901,7 @@ static void free_softbody_baked(SoftBody *sb)
 static void free_scratch(SoftBody *sb)
 {
   if (sb->scratch) {
-    /* todo make sure everything is cleaned up nicly */
+    /* TODO: make sure everything is cleaned up nicely. */
     if (sb->scratch->colliderhash) {
       BLI_ghash_free(sb->scratch->colliderhash,
                      NULL,
@@ -973,7 +973,7 @@ static void free_softbody_intern(SoftBody *sb)
  *    and need to tell their neighbors exactly what happens via spring forces
  * unless sbObjectStep( .. ) is called on sub frame timing level
  * BTW that also questions the use of a 'implicit' solvers on softbodies
- * since that would only valid for 'slow' moving collision targets and dito particles
+ * since that would only valid for 'slow' moving collision targets and ditto particles.
  */
 
 /* +++ dependency information functions. */
@@ -1994,12 +1994,12 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
     return 999;
   }
 
-  /* debugerin */
+  /* Debugging. */
   if (sb->totpoint < ifirst) {
     printf("Aye 998");
     return 998;
   }
-  /* debugerin */
+  /* Debugging. */
 
   bp = &sb->bpoint[ifirst];
   for (bb = number_of_points_here; bb > 0; bb--, bp++) {
@@ -2413,9 +2413,9 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
         copy_v3_v3(dx, bp->vec);
       }
 
-      /* so here is (x)'= v(elocity) */
-      /* the euler step for location then becomes */
-      /* x(t + dt) = x(t) + v(t~) * dt */
+      /* So here is: `(x)'= v(elocity)`.
+       * The euler step for location then becomes:
+       * `x(t + dt) = x(t) + v(t~) * dt` */
       mul_v3_fl(dx, forcetime);
 
       /* the freezer coming sooner or later */
@@ -2644,7 +2644,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
  */
 
 /* Resetting a Mesh SB object's springs */
-/* Spring length are caculted from'raw' mesh vertices that are NOT altered by modifier stack. */
+/* Spring length are calculated from 'raw' mesh vertices that are NOT altered by modifier stack. */
 static void springs_from_mesh(Object *ob)
 {
   SoftBody *sb;
@@ -3009,7 +3009,7 @@ static void curve_surf_to_softbody(Object *ob)
 
   for (nu = cu->nurb.first; nu; nu = nu->next) {
     if (nu->bezt) {
-      /* Bezier case; this is nicly said naive; who ever wrote this part,
+      /* Bezier case; this is nicely said naive; who ever wrote this part,
        * it was not me (JOW) :).
        *
        * a: never ever make tangent handles (sub) and or (ob)ject to collision.

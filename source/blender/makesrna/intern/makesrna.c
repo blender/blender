@@ -2140,7 +2140,7 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
     return;
   }
 
-  /* disabled for now to avoid msvc compiler error due to large file size */
+  /* Disabled for now to avoid MSVC compiler error due to large file size. */
 #if 0
   if (prop->name && prop->description && prop->description[0] != '\0') {
     fprintf(f, "\t/* %s: %s */\n", prop->name, prop->description);
@@ -2407,7 +2407,7 @@ static void rna_def_struct_function_prototype_cpp(FILE *f,
 static void rna_def_struct_function_header_cpp(FILE *f, StructRNA *srna, FunctionDefRNA *dfunc)
 {
   if (dfunc->call) {
-    /* disabled for now to avoid msvc compiler error due to large file size */
+    /* Disabled for now to avoid MSVC compiler error due to large file size. */
 #if 0
     FunctionRNA *func = dfunc->func;
     fprintf(f, "\n\t/* %s */\n", func->description);

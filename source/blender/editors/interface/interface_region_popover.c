@@ -420,7 +420,7 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
    * For now close this style of popovers when accessed. */
   UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
 
-  /* panels are created flipped (from event handling pov) */
+  /* Panels are created flipped (from event handling POV). */
   pup->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 

@@ -5522,7 +5522,7 @@ static void dynamicPaint_doEffectStep(
   if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP && force) {
     const float eff_scale = distance_scale * EFF_MOVEMENT_PER_FRAME * timescale / 2.0f;
 
-    /* Same as BLI_bitmask, but handled atomicaly as 'ePoint' locks. */
+    /* Same as #BLI_bitmask, but handled atomically as 'ePoint' locks. */
     const size_t point_locks_size = (sData->total_points / 8) + 1;
     uint8_t *point_locks = MEM_callocN(sizeof(*point_locks) * point_locks_size, __func__);
 
@@ -6070,7 +6070,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   if (bData) {
     const bool surface_moved = dynamicPaint_surfaceHasMoved(surface, ob);
 
-    /* get previous speed for accelertaion */
+    /* Get previous speed for acceleration. */
     if (do_accel_data && bData->prev_velocity && bData->velocity) {
       memcpy(bData->prev_velocity, bData->velocity, sData->total_points * sizeof(Vec3f));
     }

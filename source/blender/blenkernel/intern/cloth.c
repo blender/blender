@@ -96,7 +96,7 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
     return NULL;
   }
 
-  /* create quadtree with k=26 */
+  /* Create quad-tree with k=26. */
   BVHTree *bvhtree = BLI_bvhtree_new(cloth->primitive_num, epsilon, 4, 26);
 
   /* fill tree */

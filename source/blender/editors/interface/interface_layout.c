@@ -169,7 +169,7 @@ struct uiLayout {
   bool enabled;
   bool redalert;
   bool keepaspect;
-  /** For layouts inside gridflow, they and their items shall never have a fixed maximal size. */
+  /** For layouts inside grid-flow, they and their items shall never have a fixed maximal size. */
   bool variable_size;
   char alignment;
   eUIEmbossType emboss;
@@ -662,7 +662,7 @@ static void ui_item_array(uiLayout *layout,
         }
       }
 
-      /* show checkboxes for rna on a non-emboss block (menu for eg) */
+      /* Show check-boxes for rna on a non-emboss block (menu for eg). */
       bool *boolarr = NULL;
       if (type == PROP_BOOLEAN &&
           ELEM(layout->root->block->emboss, UI_EMBOSS_NONE, UI_EMBOSS_PULLDOWN)) {
@@ -1818,7 +1818,7 @@ static void ui_item_rna_size(uiLayout *layout,
     }
     else if (type == PROP_BOOLEAN) {
       if (icon == ICON_NONE) {
-        /* Exception for checkboxes, they need a little less space to align nicely. */
+        /* Exception for check-boxes, they need a little less space to align nicely. */
         is_checkbox_only = true;
       }
       icon = ICON_DOT;
@@ -1984,7 +1984,7 @@ void uiItemFullR(uiLayout *layout,
    * a label to display in the first column, the heading is inserted there. Otherwise it's inserted
    * as a new row before the first item. */
   uiLayout *heading_layout = ui_layout_heading_find(layout);
-  /* Although checkboxes use the split layout, they are an exception and should only place their
+  /* Although check-boxes use the split layout, they are an exception and should only place their
    * label in the second column, to not make that almost empty.
    *
    * Keep using 'use_prop_sep' instead of disabling it entirely because
@@ -2062,7 +2062,7 @@ void uiItemFullR(uiLayout *layout,
 
     /* Menus and pie-menus don't show checkbox without this. */
     if ((layout->root->type == UI_LAYOUT_MENU) ||
-        /* Use checkboxes only as a fallback in pie-menu's, when no icon is defined. */
+        /* Use check-boxes only as a fallback in pie-menu's, when no icon is defined. */
         ((layout->root->type == UI_LAYOUT_PIEMENU) && (icon == ICON_NONE))) {
       const int prop_flag = RNA_property_flag(prop);
       if (type == PROP_BOOLEAN) {
@@ -2353,7 +2353,7 @@ void uiItemFullR(uiLayout *layout,
     }
   }
 
-  /* Mark non-embossed textfields inside a listbox. */
+  /* Mark non-embossed text-fields inside a list-box. */
   if (but && (block->flag & UI_BLOCK_LIST_ITEM) && (but->type == UI_BTYPE_TEXT) &&
       ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) {
     UI_but_flag_enable(but, UI_BUT_LIST_ITEM);
@@ -2831,7 +2831,7 @@ void ui_item_paneltype_func(bContext *C, uiLayout *layout, void *arg_pt)
   PanelType *pt = (PanelType *)arg_pt;
   UI_paneltype_draw(C, pt, layout);
 
-  /* panels are created flipped (from event handling pov) */
+  /* Panels are created flipped (from event handling POV). */
   layout->root->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
@@ -3147,7 +3147,7 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
     but->drawflag |= UI_BUT_TEXT_RIGHT;
   }
 
-  /* Mark as a label inside a listbox. */
+  /* Mark as a label inside a list-box. */
   if (block->flag & UI_BLOCK_LIST_ITEM) {
     but->flag |= UI_BUT_LIST_ITEM;
   }
@@ -4639,7 +4639,7 @@ static void ui_litem_init_from_parent(uiLayout *litem, uiLayout *layout, int ali
 {
   litem->root = layout->root;
   litem->align = align;
-  /* Children of gridflow layout shall never have "ideal big size" returned as estimated size. */
+  /* Children of grid-flow layout shall never have "ideal big size" returned as estimated size. */
   litem->variable_size = layout->variable_size || layout->item.type == ITEM_LAYOUT_GRID_FLOW;
   litem->active = true;
   litem->enabled = true;

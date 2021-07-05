@@ -1916,7 +1916,7 @@ class SShape {
     return _LibraryPath;
   }
 
-  /* Modififers */
+  /* Modifiers */
   /** Sets the Id of the shape. */
   inline void setId(Id id)
   {

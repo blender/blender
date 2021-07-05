@@ -51,7 +51,7 @@ enum eView2D_CommonViewTypes {
   V2D_COMMONVIEW_STANDARD,
   /* listview (i.e. Outliner) */
   V2D_COMMONVIEW_LIST,
-  /* stackview (this is basically a list where new items are added at the top) */
+  /* Stack-view (this is basically a list where new items are added at the top). */
   V2D_COMMONVIEW_STACK,
   /* headers (this is basically the same as listview, but no y-panning) */
   V2D_COMMONVIEW_HEADER,

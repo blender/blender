@@ -448,7 +448,7 @@ typedef struct SpaceGraph {
   /** Mode for the Graph editor (eGraphEdit_Mode). */
   short mode;
   /**
-   * Time-transform autosnapping settings for Graph editor
+   * Time-transform auto-snapping settings for Graph editor
    * (eAnimEdit_AutoSnap in DNA_action_types.h).
    */
   short autosnap;

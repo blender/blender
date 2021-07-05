@@ -2223,9 +2223,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
 
 /* ****************************************************** */
 
-/* TODO: high quality UI drop shadows using GLSL shader and single draw call
- * would replace / modify the following 3 functions  - merwin
- */
+/* TODO(merwin): high quality UI drop shadows using GLSL shader and single draw call
+ * would replace / modify the following 3 functions. */
 
 static void ui_shadowbox(const rctf *rect, uint pos, uint color, float shadsize, uchar alpha)
 {

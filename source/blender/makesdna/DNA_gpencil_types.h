@@ -246,11 +246,11 @@ typedef struct bGPDstroke_Runtime {
   /** Runtime falloff factor (only for transform). */
   float multi_frame_falloff;
 
-  /** Vertex offset in the vbo where this stroke starts. */
+  /** Vertex offset in the VBO where this stroke starts. */
   int stroke_start;
   /** Triangle offset in the ibo where this fill starts. */
   int fill_start;
-  /** Curve Handles offset in the ibo where this handle starts. */
+  /** Curve Handles offset in the IBO where this handle starts. */
   int curve_start;
 
   /** Original stroke (used to dereference evaluated data) */

@@ -314,7 +314,7 @@ typedef struct FileListEntryCache {
 
   int flags;
 
-  /* This one gathers all entries from both block and misc caches. Used for easy bulk-freing. */
+  /* This one gathers all entries from both block and misc caches. Used for easy bulk-freeing. */
   ListBase cached_entries;
 
   /* Block cache: all entries between start and end index.

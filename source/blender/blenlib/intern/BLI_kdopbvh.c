@@ -98,8 +98,8 @@ struct BVHTree {
   int totleaf;         /* leafs */
   int totbranch;
   axis_t start_axis, stop_axis; /* bvhtree_kdop_axes array indices according to axis */
-  axis_t axis;                  /* kdop type (6 => OBB, 7 => AABB, ...) */
-  char tree_type;               /* type of tree (4 => quadtree) */
+  axis_t axis;                  /* KDOP type (6 => OBB, 7 => AABB, ...) */
+  char tree_type;               /* type of tree (4 => quad-tree). */
 };
 
 /* optimization, ensure we stay small */
@@ -881,7 +881,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 
   /* tree epsilon must be >= FLT_EPSILON
    * so that tangent rays can still hit a bounding volume..
-   * this bug would show up when casting a ray aligned with a kdop-axis
+   * this bug would show up when casting a ray aligned with a KDOP-axis
    * and with an edge of 2 faces */
   epsilon = max_ff(FLT_EPSILON, epsilon);
 
@@ -1423,7 +1423,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 
 static bool tree_intersect_plane_test(const float *bv, const float plane[4])
 {
-  /* TODO(germano): Support other kdop geometries. */
+  /* TODO(germano): Support other KDOP geometries. */
   const float bb_min[3] = {bv[0], bv[2], bv[4]};
   const float bb_max[3] = {bv[1], bv[3], bv[5]};
   float bb_near[3], bb_far[3];

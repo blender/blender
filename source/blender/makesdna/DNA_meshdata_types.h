@@ -151,7 +151,7 @@ enum {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Loop Tesselation Runtime Data
+/** \name Loop Tessellation Runtime Data
  * \{ */
 
 /**

@@ -432,7 +432,7 @@ void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *s
 }
 
 /**
- * Deep-duplicate of an array of direntries, including the array itself.
+ * Deep-duplicate of a #direntry array including the array itself.
  */
 void BLI_filelist_duplicate(struct direntry **dest_filelist,
                             struct direntry *const src_filelist,

@@ -1654,7 +1654,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-/* event can enterkey, then it opens/closes */
+/* Event can enter-key, then it opens/closes. */
 static int outliner_item_activate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool extend = RNA_boolean_get(op->ptr, "extend");

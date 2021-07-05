@@ -1320,7 +1320,7 @@ static void outliner_sort(ListBase *lb)
   }
   TreeStoreElem *tselem = TREESTORE(te);
 
-  /* sorting rules; only object lists, ID lists, or deformgroups */
+  /* Sorting rules; only object lists, ID lists, or deform-groups. */
   if (ELEM(tselem->type, TSE_DEFGROUP, TSE_ID_BASE) ||
       ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB))) {
     int totelem = BLI_listbase_count(lb);

@@ -493,7 +493,7 @@ bool BKE_shrinkwrap_project_normal(char options,
     }
 
     if (options & MOD_SHRINKWRAP_CULL_TARGET_MASK) {
-      /* apply backface */
+      /* Apply back-face. */
       const float dot = dot_v3v3(dir, hit_tmp.no);
       if (((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f) ||
           ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f)) {
@@ -502,7 +502,7 @@ bool BKE_shrinkwrap_project_normal(char options,
     }
 
     if (transf) {
-      /* Inverting space transform (TODO make coeherent with the initial dist readjust) */
+      /* Inverting space transform (TODO: make coherent with the initial dist readjust). */
       BLI_space_transform_invert(transf, hit_tmp.co);
 #ifdef USE_DIST_CORRECT
       hit_tmp.dist = len_v3v3(vert, hit_tmp.co);

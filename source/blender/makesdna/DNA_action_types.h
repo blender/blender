@@ -135,7 +135,7 @@ typedef struct bAnimVizSettings {
 
 /* bAnimVizSettings->recalc */
 typedef enum eAnimViz_RecalcFlags {
-  /* motionpaths need recalculating */
+  /* Motion-paths need recalculating. */
   ANIMVIZ_RECALC_PATHS = (1 << 0),
 } eAnimViz_RecalcFlags;
 

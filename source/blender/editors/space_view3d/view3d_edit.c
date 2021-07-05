@@ -392,9 +392,9 @@ enum eViewOpsFlag {
   /** When enabled, use the depth under the cursor for navigation. */
   VIEWOPS_FLAG_DEPTH_NAVIGATE = (1 << 1),
   /**
-   * When enabled run #ED_view3d_persp_ensure this may switch out of
-   * camera view when orbiting or switch from ortho to perspective when auto-persp is enabled.
-   * Some operations don't require this (view zoom/pan or ndof where subtle rotation is common
+   * When enabled run #ED_view3d_persp_ensure this may switch out of camera view
+   * when orbiting or switch from orthographic to perspective when auto-perspective is enabled.
+   * Some operations don't require this (view zoom/pan or NDOF where subtle rotation is common
    * so we don't want it to trigger auto-perspective). */
   VIEWOPS_FLAG_PERSP_ENSURE = (1 << 2),
   /** When set, ignore any options that depend on initial cursor location. */

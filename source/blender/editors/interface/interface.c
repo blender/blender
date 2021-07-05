@@ -587,7 +587,7 @@ void UI_block_bounds_set_normal(uiBlock *block, int addval)
   block->bounds_type = UI_BLOCK_BOUNDS;
 }
 
-/* used for pulldowns */
+/* Used for pull-downs. */
 void UI_block_bounds_set_text(uiBlock *block, int addval)
 {
   block->bounds = addval;
@@ -3140,7 +3140,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
     return true;
   }
   else if (str[0] == '#') {
-    /* shortcut to create new driver expression (versus immediate Py-execution) */
+    /* Shortcut to create new driver expression (versus immediate Python-execution). */
     return ui_but_anim_expression_create(but, str + 1);
   }
   else {
