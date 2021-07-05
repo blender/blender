@@ -25,11 +25,13 @@ namespace blender::compositor {
 class BufferOperation : public NodeOperation {
  private:
   MemoryBuffer *buffer_;
+  MemoryBuffer *inflated_buffer_;
 
  public:
   BufferOperation(MemoryBuffer *buffer, DataType data_type);
 
   void *initializeTileData(rcti *rect) override;
+  void deinitExecution() override;
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
   void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2]) override;
 };

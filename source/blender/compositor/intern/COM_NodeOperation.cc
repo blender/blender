@@ -328,6 +328,7 @@ Vector<NodeOperationOutput *> NodeOperation::replace_inputs_with_buffers(
     BufferOperation *buffer_op = new BufferOperation(inputs_bufs[i], input_socket->getDataType());
     orig_links[i] = input_socket->getLink();
     input_socket->setLink(buffer_op->getOutputSocket());
+    buffer_op->initExecution();
   }
   return orig_links;
 }
@@ -340,6 +341,7 @@ void NodeOperation::remove_buffers_and_restore_original_inputs(
     NodeOperation *buffer_op = get_input_operation(i);
     BLI_assert(buffer_op != nullptr);
     BLI_assert(typeid(*buffer_op) == typeid(BufferOperation));
+    buffer_op->deinitExecution();
     NodeOperationInput *input_socket = getInputSocket(i);
     input_socket->setLink(original_inputs_links[i]);
     delete buffer_op;

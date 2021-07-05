@@ -129,6 +129,18 @@ void MemoryBuffer::clear()
   memset(m_buffer, 0, buffer_len() * m_num_channels * sizeof(float));
 }
 
+/**
+ * Converts a single elem buffer to a full size buffer (allocates memory for all
+ * elements in resolution).
+ */
+MemoryBuffer *MemoryBuffer::inflate() const
+{
+  BLI_assert(is_a_single_elem());
+  MemoryBuffer *inflated = new MemoryBuffer(this->m_datatype, this->m_rect, false);
+  inflated->copy_from(this, this->m_rect);
+  return inflated;
+}
+
 float MemoryBuffer::get_max_value() const
 {
   float result = this->m_buffer[0];
