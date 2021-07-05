@@ -634,6 +634,7 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
       }
+      BKE_defvert_clear(dv);
     }
     MEM_freeN(gps->dvert);
     gps->dvert = new_dv;
@@ -696,6 +697,7 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
       }
+      BKE_defvert_clear(dv);
     }
     new_gps->dvert = new_dv;
   }
