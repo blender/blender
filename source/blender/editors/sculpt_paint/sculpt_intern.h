@@ -476,6 +476,11 @@ BLI_INLINE bool SCULPT_tool_needs_all_pbvh_nodes(const Brush *brush)
     return true;
   }
 
+  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+    /* Array Brush updates and modifies the entire mesh. */
+    return true;
+  }
+
   if (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) {
     /* Boundary needs all nodes because it is not possible to know where the boundary
      * deformation is going to be propagated before calculating it. */
@@ -537,6 +542,7 @@ void SCULPT_boundary_pivot_line_preview_draw(const uint gpuattr, struct SculptSe
 
 /* Array Brush. */
 void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_array_datalayers_free(Object *ob);
 
 /* Multi-plane Scrape Brush. */
 void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
@@ -982,9 +988,6 @@ typedef struct StrokeCache {
   float (*prev_displacement)[3];
   float (*limit_surface_co)[3];
   
-  /* Array brush. */
-  float (*array_orco)[3];
-
   /* The rest is temporary storage that isn't saved as a property */
 
   bool first_time; /* Beginning of stroke may do some things special */
@@ -1084,6 +1087,9 @@ typedef struct StrokeCache {
 
   /* Layer brush */
   float *layer_displacement_factor;
+
+  /* Array Brush */
+  struct ArrayBrush *array;
 
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;

@@ -6718,6 +6718,10 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     return;
   }
 
+  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY && type != PBVH_FACES) {
+    return;
+  }
+
   /* Build a list of all nodes that are potentially within the brush's area of influence */
 
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
@@ -8969,6 +8973,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
   if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
     SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+    SCULPT_array_datalayers_free(ob);
   }
   
   SCULPT_undo_push_end();

@@ -61,62 +61,46 @@
 static const char array_symmetry_pass_cd_name[] = "v_symmetry_pass";
 static const char array_instance_cd_name[] = "v_array_instance";
 
-#define SCUPT_ARRAY_COUNT 5
+#define SCULPT_ARRAY_COUNT 5
 #define ARRAY_INSTANCE_ORIGINAL -1 
 
-static void sculpt_array_modify_sculpt_mesh(Object *ob, Mesh *array_mesh)
-{
-  SculptSession *ss = ob->sculpt;	
-  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
-  BMesh *bm;
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, array_mesh);
-  bm = BM_mesh_create(&allocsize,
-                      &((struct BMeshCreateParams){
-                          .use_toolflags = false,
-                      }));
 
-  BM_mesh_bm_from_me(bm,
-                     sculpt_mesh,
-                     &((struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                     }));
-
-  BM_mesh_bm_from_me(bm,
-                     array_mesh,
-                     &((struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                     }));
-
-
-  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, sculpt_mesh);
-  BM_mesh_free(bm);
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-  BKE_mesh_nomain_to_mesh(result, ob->data, ob, &CD_MASK_MESH, true);
-  BKE_mesh_free(result);
-  BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
-  ss->needs_pbvh_rebuild = true;
-}
-
-
-const float source_geometry_threshold = 0.5f;
-static BMesh *sculpt_array_source_mesh_calculate(Sculpt *sd, Object *ob) {
-  SculptSession *ss = ob->sculpt;
-  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
-  const int totvert = SCULPT_vertex_count_get(ss);
-
-  int *v_array_instance = CustomData_add_layer_named(&sculpt_mesh->vdata,
+static void sculpt_array_datalayers_add(Mesh *mesh) {
+  int *v_array_instance = CustomData_add_layer_named(&mesh->vdata,
                                                     CD_PROP_INT32,
                                                     CD_CALLOC,
                                                     NULL,
-                                                    sculpt_mesh->totvert,
+                                                    mesh->totvert,
                                                     array_instance_cd_name);
-
-  for (int i = 0; i < sculpt_mesh->totvert; i++) {
+  for (int i = 0; i < mesh->totvert; i++) {
     v_array_instance[i] = ARRAY_INSTANCE_ORIGINAL;
   }
 
-  printf("ARRAY INSTANCE SET\n");
+  CustomData_add_layer_named(&mesh->vdata,
+                                                    CD_PROP_INT32,
+                                                    CD_CALLOC,
+                                                    NULL,
+                                                    mesh->totvert,
+                                                    array_symmetry_pass_cd_name);
+}
 
+void SCULPT_array_datalayers_free(Object *ob) {
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  int v_layer_index = CustomData_get_named_layer_index(&mesh->vdata, CD_PROP_INT32, array_instance_cd_name);
+  if (v_layer_index != -1) {
+    CustomData_free_layer(&mesh->vdata, CD_PROP_INT32, mesh->totvert, v_layer_index);
+  }
+
+  v_layer_index = CustomData_get_named_layer_index(&mesh->vdata, CD_PROP_INT32, array_symmetry_pass_cd_name);
+  if (v_layer_index != -1) {
+    CustomData_free_layer(&mesh->vdata, CD_PROP_INT32, mesh->totvert, v_layer_index);
+  }
+}
+
+const float source_geometry_threshold = 0.5f;
+
+static BMesh *sculpt_array_source_build(Object *ob, Brush *brush) {
+  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
 
   BMesh *srcbm;
   const BMAllocTemplate allocsizea = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh);
@@ -134,6 +118,7 @@ static BMesh *sculpt_array_source_mesh_calculate(Sculpt *sd, Object *ob) {
   BM_mesh_elem_table_ensure(srcbm, BM_VERT);
   BM_mesh_elem_index_ensure(srcbm, BM_VERT); 
 
+  SculptSession *ss = ob->sculpt;
   for (int i = 0; i < srcbm->totvert; i++) {
 	const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, i);
 	const float mask = 1.0f - SCULPT_vertex_mask_get(ss, i);
@@ -144,23 +129,51 @@ static BMesh *sculpt_array_source_mesh_calculate(Sculpt *sd, Object *ob) {
 	BMVert *vert = BM_vert_at_index(srcbm, i);
 	BM_elem_flag_set(vert, BM_ELEM_TAG, true);
   }
-
-  /* TODO: Handle individual Face Sets for Face Set automasking. */
+  
+  /* TODO(pablodp606): Handle individual Face Sets for Face Set automasking. */
   BM_mesh_delete_hflag_context(srcbm, BM_ELEM_TAG, DEL_VERTS);
-  
-  
-  /*
-  BMO_op_callf(srcbm,
-               (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-               "duplicate geom=%hvef use_select_history=%b use_edge_flip_from_face=%b",
-               BM_ELEM_TAG, false, false);
-	       */
-	       
 
+  return srcbm;
+}
 
-  //CustomData_bmesh_merge(&srcbm->vdata, &destbm->vdata, CD_NA, 0, destbm, BM_VERT).
+void sculpt_array_source_datalayer_update(BMesh *bm, const int symm_pass, const int copy_index) {
+  const int cd_array_instance_index = CustomData_get_named_layer_index(
+      &bm->vdata, CD_PROP_INT32, array_instance_cd_name);
+  const int cd_array_instance_offset = CustomData_get_n_offset(
+      &bm->vdata, CD_PROP_INT32, cd_array_instance_index);
 
-  
+  const int cd_array_symm_pass_index = CustomData_get_named_layer_index(
+      &bm->vdata, CD_PROP_INT32, array_symmetry_pass_cd_name);
+  const int cd_array_symm_pass_offset = CustomData_get_n_offset(
+      &bm->vdata, CD_PROP_INT32, cd_array_symm_pass_index);
+
+  BM_mesh_elem_table_ensure(bm, BM_VERT);
+  BM_mesh_elem_index_ensure(bm, BM_VERT); 
+
+  BMVert *v;
+  BMIter iter;
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+		  BM_ELEM_CD_SET_INT(v, cd_array_instance_offset, copy_index);
+		  BM_ELEM_CD_SET_INT(v, cd_array_symm_pass_offset, symm_pass);
+  }
+}
+
+static void sculpt_array_final_mesh_write(Object *ob, BMesh *final_mesh) {
+  SculptSession *ss = ob->sculpt;
+  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
+  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(final_mesh, NULL, sculpt_mesh);
+  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  BKE_mesh_nomain_to_mesh(result, ob->data, ob, &CD_MASK_MESH, true);
+  BKE_mesh_free(result);
+  BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+  ss->needs_pbvh_rebuild = true;
+}
+
+static void sculpt_array_mesh_build(Sculpt *sd, Object *ob) {
+  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
+  sculpt_array_datalayers_add(sculpt_mesh);
+
+  BMesh *srcbm = sculpt_array_source_build(ob, NULL);
   
   BMesh *destbm;
   const BMAllocTemplate allocsizeb = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh);
@@ -168,83 +181,179 @@ static BMesh *sculpt_array_source_mesh_calculate(Sculpt *sd, Object *ob) {
                       &((struct BMeshCreateParams){
                           .use_toolflags = true,
                       }));
-
   BM_mesh_bm_from_me(destbm,
                      sculpt_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
                      }));
 
-/*
-  BM_mesh_elem_table_ensure(srcbm, BM_VERT);
-  BM_mesh_elem_index_ensure(srcbm, BM_VERT); 
-  for (int i = 0; i < srcbm->totvert; i++) {
-	BMVert *vert = BM_vert_at_index(srcbm, i);
-	BM_elem_flag_set(vert, BM_ELEM_TAG, true);
-	BM_elem_flag_set(vert, BM_ELEM_SELECT, true);
-  }
-  */
-
-/*
-  CustomData_bmesh_merge(&srcbm->vdata, &destbm->vdata, &CD_MASK_BMESH, 0, destbm, BM_VERT);
-  CustomData_bmesh_merge(&srcbm->edata, &destbm->edata, &CD_MASK_BMESH, 0, destbm, BM_EDGE);
-  CustomData_bmesh_merge(&srcbm->pdata, &destbm->pdata, &CD_MASK_BMESH, 0, destbm, BM_FACE);
-  CustomData_bmesh_merge(&srcbm->ldata, &destbm->ldata, &CD_MASK_BMESH, 0, destbm, BM_LOOP);
-  */
-
-
-  printf("GET LAYER INDEX\n");
-
-  const int cd_array_instance_index = CustomData_get_named_layer_index(
-      &srcbm->vdata, CD_PROP_INT32, array_instance_cd_name);
-
-  printf("DONE\n");
-
-  if (cd_array_instance_index == -1) {
-      printf("NO DATALAYER INDEX\n");
-  }
-
-  printf("GET LAYER OFFSET\n");
-
-  const int cd_array_instance_offset = CustomData_get_n_offset(
-      &srcbm->vdata, CD_PROP_INT32, cd_array_instance_index);
-
-  printf("DONE\n");
-
-  if (cd_array_instance_offset == -1) {
-      printf("NO DATALAYER offset\n");
-  }
-
 
   BM_mesh_elem_toolflags_ensure(destbm);
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  for (char symm_it = 0; symm_it <= symm; symm_it++) {
+    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+      continue;
+    }
 
-  BM_mesh_elem_table_ensure(srcbm, BM_VERT);
-  BM_mesh_elem_index_ensure(srcbm, BM_VERT); 
+  for (int copy_index = 0; copy_index < SCULPT_ARRAY_COUNT; copy_index++) {
+    sculpt_array_source_datalayer_update(srcbm, symm_it, copy_index);
 
-  for (int i = 0; i < SCUPT_ARRAY_COUNT; i++) {
-  	for (int j = 0; j < srcbm->totvert; j++) {
-		BMVert *vert = BM_vert_at_index(srcbm, j);
-		printf("SET INDEX %d\n", i);
-		BM_ELEM_CD_SET_INT(vert, cd_array_instance_offset, i);
-  	}
+    /* TODO: ya tal */
+    BM_mesh_copy_init_customdata(destbm, srcbm, &bm_mesh_allocsize_default);
   	const int opflag = (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE);
-        //CustomData_bmesh_merge(&srcbm->vdata, &destbm->vdata, &CD_MASK_BMESH.vmask, 0, destbm, BM_VERT);
-        BM_mesh_copy_init_customdata(destbm, srcbm, &bm_mesh_allocsize_default);
   	BMO_op_callf(srcbm, opflag, "duplicate geom=%avef dest=%p", destbm);
   }
+  }
+
+  sculpt_array_final_mesh_write(ob, destbm);
+  BM_mesh_free(srcbm);
+  BM_mesh_free(destbm);
+}
+
+static SculptArray *sculpt_array_cache_create(Object *ob, const int num_copies) {
+
+  SculptArray *array = MEM_callocN(sizeof(SculptArray), "Sculpt Array");
+  array->num_copies = num_copies;
+
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  for (char symm_it = 0; symm_it <= symm; symm_it++) {
+    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+      continue;
+    }
+    array->copies[symm_it] = MEM_malloc_arrayN(num_copies, sizeof(SculptArrayCopy), "Sculpt array copies");
+  }
+  return array;
+}
+
+static void sculpt_array_cache_free(SculptArray *array) {
+  for (int symm_pass = 0; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
+      MEM_SAFE_FREE(array->copies[symm_pass]);
+  }
+  MEM_freeN(array);
+}
+
+static void sculpt_array_init(Object *ob, SculptArray *array) {
+  SculptSession *ss = ob->sculpt;
+  for (int symm_pass = 0; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
+      if (array->copies[symm_pass] == NULL) {
+        continue;
+      }
+      for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
+        SculptArrayCopy *copy = &array->copies[symm_pass][copy_index];
+        unit_m4(copy->mat);
+        copy->symm_pass = symm_pass;
+        copy->index = copy_index;
+        float symm_location[3];
+        flip_v3_v3(symm_location, ss->cache->location, symm_pass);
+        copy_v3_v3(copy->origin, symm_location);
+      }
+  }
+}
+
+static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, SculptArrayCopy *copy) {
+  const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
+  float delta[3];
+  flip_v3_v3(delta, cache->grab_delta, copy->symm_pass);
+  mul_v3_v3fl(copy->mat[3], delta, fade);
 
 
+  const float scale = cache->bstrength;
+  copy->mat[0][0] = scale;
+  copy->mat[1][1] = scale;
+  copy->mat[2][2] = scale;
 
-  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(destbm, NULL, sculpt_mesh);
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-  BKE_mesh_nomain_to_mesh(result, ob->data, ob, &CD_MASK_MESH, true);
+}
+
+static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
+  SculptSession *ss = ob->sculpt;
+
+  for (int symm_pass = 0; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
+      if (array->copies[symm_pass] == NULL) {
+        continue;
+      }
+      for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
+        SculptArrayCopy *copy = &array->copies[symm_pass][copy_index];
+        sculpt_array_update_copy(ss->cache, array, copy);
+      }
+  }
+}
+
+static void do_array_deform_task_cb_ex(void *__restrict userdata,
+                                     const int n,
+                                     const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  SculptArray *array = ss->cache->array;
+
+    Mesh *mesh = BKE_object_get_original_mesh(data->ob);
+
+    int *cd_array_instance = CustomData_get_layer_named(
+    &mesh->vdata, CD_PROP_INT32, array_instance_cd_name);
+
+    int *cd_array_symm_pass = CustomData_get_layer_named(
+    &mesh->vdata, CD_PROP_INT32, array_symmetry_pass_cd_name);
+
+    bool any_modified = false;
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+   	const int array_index = cd_array_instance[vd.index];
+    if (array_index == -1) {
+      continue;
+    }
+   	const int array_symm_pass = cd_array_symm_pass[vd.index];
+    if (array_symm_pass != ss->cache->mirror_symmetry_pass) {
+      continue;
+    }
 
 
-  BKE_mesh_free(result);
-  BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
-  ss->needs_pbvh_rebuild = true;
+    SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
+    mul_v3_m4v3(vd.co, copy->mat, array->orco[vd.index]);
 
-  return srcbm;
+    any_modified = true;
+
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (any_modified) {
+  BKE_pbvh_node_mark_update(data->nodes[n]);
+  }
+}
+
+
+static void sculpt_array_deform(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode) {
+    SculptSession *ss = ob->sculpt;
+  /* Threaded loop over nodes. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(
+      0, totnode, &data, do_array_deform_task_cb_ex, &settings);
+}
+
+static void sculpt_array_ensure_original_coordinates(Object *ob, SculptArray *array){
+  SculptSession *ss = ob->sculpt;
+  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
+  const int totvert = SCULPT_vertex_count_get(ss);
+
+   if (array->orco) {
+     return;
+   }
+
+  array->orco = MEM_malloc_arrayN(sculpt_mesh->totvert, sizeof(float) * 3, "array orco");
+  for (int i = 0; i < totvert; i++) {
+	  copy_v3_v3(array->orco[i], SCULPT_vertex_co_get(ss, i));
+  }
 }
 
 void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -252,35 +361,23 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+  if (!SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
+      /* This brush manages its own symmetry. */
+      return;
+  }
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-	/* Calculate source array mesh. */
-	sculpt_array_source_mesh_calculate(sd, ob);
-	
-	/* Insert copies and prepare datalayers. */
-
-        Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
-	int *cd_array_instance = CustomData_get_layer_named(
-      &sculpt_mesh->vdata, CD_PROP_INT32, array_instance_cd_name);
-
-	if (!cd_array_instance) {
-		printf("NO CD LAYER\n");
-		return;
-	}
-
-	const int totvert = SCULPT_vertex_count_get(ss);
-
-	for (int i = 0; i < totvert; i++) {
-		const int array_index = cd_array_instance[i];
-		//printf("array index %d\n", array_index);
-	}
-	return;
+    sculpt_array_mesh_build(sd, ob);
+    ss->cache->array = sculpt_array_cache_create(ob, SCULPT_ARRAY_COUNT);
+    sculpt_array_init(ob, ss->cache->array);
+    /* Original coordinates can't be stored yet as the SculptSession data needs to be updated after the mesh modifications performed when building the array geometry. */
+	  return;
   }
    
-
-    Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
-    int *cd_array_instance = CustomData_get_layer_named(
-    &sculpt_mesh->vdata, CD_PROP_INT32, array_instance_cd_name);
+  /* TODO: delete this. */
+  sculpt_array_ensure_original_coordinates(ob, ss->cache->array);
+  /*
+  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
    const int totvert = SCULPT_vertex_count_get(ss);
 
    if (!ss->cache->array_orco) {
@@ -288,18 +385,11 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   for (int i = 0; i < sculpt_mesh->totvert; i++) {
 	copy_v3_v3(ss->cache->array_orco[i], sculpt_mesh->mvert[i].co);
   }
-
-
    }
+   */
 
-   for (int i = 0; i < totvert; i++) {
-   	const int array_index = cd_array_instance[i];
-	const float fade = ((float)array_index + 1.0f) / (float)(SCUPT_ARRAY_COUNT);
-	madd_v3_v3v3fl(ss->mvert[i].co, ss->cache->array_orco[i], ss->cache->grab_delta_symmetry, fade);
-   }
- 
-  for (int i = 0; i < totnode; i++) {
-    BKE_pbvh_node_mark_update(nodes[i]);
-  }
+
+   sculpt_array_update(ob, brush, ss->cache->array);
+   sculpt_array_deform(sd, ob, nodes, totnode);
 
 }

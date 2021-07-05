@@ -448,6 +448,20 @@ typedef struct SculptBoundary {
   } circle;
 } SculptBoundary;
 
+/* Array Brush. */
+typedef struct SculptArrayCopy {
+  int index;
+  int symm_pass;
+  float mat[4][4];
+  float origin[3];
+} SculptArrayCopy;
+
+typedef struct SculptArray {
+  float (*orco)[3];
+  SculptArrayCopy *copies[PAINT_SYMM_AREAS];
+  int num_copies;
+} SculptArray;
+
 typedef struct SculptFakeNeighbors {
   bool use_fake_neighbors;
 
