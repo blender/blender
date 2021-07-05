@@ -569,7 +569,7 @@ bool ED_spreadsheet_context_path_exists(Main *UNUSED(bmain), SpaceSpreadsheet *s
       }
       return false;
     }
-    else if (node->id != nullptr) {
+    if (node->id != nullptr) {
       if (GS(node->id->name) != ID_NT) {
         return false;
       }
