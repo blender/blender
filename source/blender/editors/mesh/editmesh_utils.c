@@ -68,6 +68,9 @@
  * just as the undo stack would.
  * So leaving this as an interface for further work */
 
+/**
+ * Save a copy of the #BMesh for restoring later.
+ */
 BMBackup EDBM_redo_state_store(BMEditMesh *em)
 {
   BMBackup backup;
@@ -75,41 +78,40 @@ BMBackup EDBM_redo_state_store(BMEditMesh *em)
   return backup;
 }
 
-void EDBM_redo_state_restore(BMBackup backup, BMEditMesh *em, int recalctess)
+void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
 {
   BMesh *tmpbm;
-  if (!em || !backup.bmcopy) {
-    return;
-  }
 
   BM_mesh_data_free(em->bm);
-  tmpbm = BM_mesh_copy(backup.bmcopy);
+  tmpbm = BM_mesh_copy(backup->bmcopy);
   *em->bm = *tmpbm;
   MEM_freeN(tmpbm);
   tmpbm = NULL;
 
-  if (recalctess) {
+  if (recalc_looptri) {
     BKE_editmesh_looptri_calc(em);
   }
 }
 
-void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
+/**
+ * Delete the backup, flushing it to an edit-mesh.
+ */
+void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
 {
-  if (em && backup->bmcopy) {
-    BM_mesh_data_free(em->bm);
-    *em->bm = *backup->bmcopy;
-  }
-  else if (backup->bmcopy) {
-    BM_mesh_data_free(backup->bmcopy);
-  }
-
-  if (backup->bmcopy) {
-    MEM_freeN(backup->bmcopy);
-  }
+  BM_mesh_data_free(em->bm);
+  *em->bm = *backup->bmcopy;
+  MEM_freeN(backup->bmcopy);
   backup->bmcopy = NULL;
-
-  if (recalctess && em) {
+  if (recalc_looptri) {
     BKE_editmesh_looptri_calc(em);
+  }
+}
+
+void EDBM_redo_state_free(BMBackup *backup)
+{
+  if (backup->bmcopy) {
+    BM_mesh_data_free(backup->bmcopy);
+    MEM_freeN(backup->bmcopy);
   }
 }
 

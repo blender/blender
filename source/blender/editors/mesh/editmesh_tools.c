@@ -1284,7 +1284,7 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
     }
     else if (failure) {
       len = 0;
-      EDBM_redo_state_free(&em_backup, em, true);
+      EDBM_redo_state_restore_and_free(&em_backup, em, true);
       em_backup_free = false;
     }
     else {
@@ -1302,7 +1302,7 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, struct Mesh *me, wmOperator *
     }
 
     if (em_backup_free) {
-      EDBM_redo_state_free(&em_backup, NULL, false);
+      EDBM_redo_state_free(&em_backup);
     }
   }
   MEM_freeN(verts);

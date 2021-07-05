@@ -67,7 +67,7 @@ typedef struct {
 
   /* Aligned with objects array. */
   struct {
-    BMBackup mesh;
+    BMBackup mesh_backup;
     bool is_valid;
     bool is_dirty;
   } * backup;
@@ -160,7 +160,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
       if (em->bm->totedgesel != 0) {
         opdata->backup[ob_index].is_valid = true;
-        opdata->backup[ob_index].mesh = EDBM_redo_state_store(em);
+        opdata->backup[ob_index].mesh_backup = EDBM_redo_state_store(em);
       }
     }
 
@@ -184,7 +184,7 @@ static void edbm_bisect_exit(bContext *C, BisectData *opdata)
 
   for (int ob_index = 0; ob_index < opdata->backup_len; ob_index++) {
     if (opdata->backup[ob_index].is_valid) {
-      EDBM_redo_state_free(&opdata->backup[ob_index].mesh, NULL, false);
+      EDBM_redo_state_free(&opdata->backup[ob_index].mesh_backup);
     }
   }
   MEM_freeN(opdata->backup);
@@ -301,7 +301,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 
     if (opdata != NULL) {
       if (opdata->backup[ob_index].is_dirty) {
-        EDBM_redo_state_restore(opdata->backup[ob_index].mesh, em, false);
+        EDBM_redo_state_restore(&opdata->backup[ob_index].mesh_backup, em, false);
         opdata->backup[ob_index].is_dirty = false;
       }
     }

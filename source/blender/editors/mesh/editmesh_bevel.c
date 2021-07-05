@@ -347,7 +347,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 
     /* revert to original mesh */
     if (opdata->is_modal) {
-      EDBM_redo_state_restore(opdata->ob_store[ob_index].mesh_backup, em, false);
+      EDBM_redo_state_restore(&opdata->ob_store[ob_index].mesh_backup, em, false);
     }
 
     const int material = CLAMPIS(material_init, -1, obedit->totcol - 1);
@@ -436,7 +436,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
     View3D *v3d = CTX_wm_view3d(C);
     ARegion *region = CTX_wm_region(C);
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-      EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, NULL, false);
+      EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup);
     }
     ED_region_draw_cb_exit(region->type, opdata->draw_handle_pixel);
     if (v3d) {
@@ -456,7 +456,7 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
       Object *obedit = opdata->ob_store[ob_index].ob;
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
-      EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, em, true);
+      EDBM_redo_state_restore_and_free(&opdata->ob_store[ob_index].mesh_backup, em, true);
       EDBM_update(obedit->data,
                   &(const struct EDBMUpdate_Params){
                       .calc_looptri = false,
