@@ -3154,7 +3154,7 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
 
     /* finish the operator */
     if (!EDBM_op_finish(em, &bmop, op, true)) {
-      return OPERATOR_CANCELLED;
+      continue;
     }
 
     EDBM_update(obedit->data,
