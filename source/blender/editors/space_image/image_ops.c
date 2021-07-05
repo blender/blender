@@ -2738,7 +2738,8 @@ static int image_flip_exec(bContext *C, wmOperator *op)
         const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
         const int source_pixel_y = use_flip_y ? size_y - y - 1 : y;
 
-        float *source_pixel = &orig_float_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
+        const float *source_pixel =
+            &orig_float_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
         float *target_pixel = &float_pixels[4 * (x + y * size_x)];
 
         copy_v4_v4(target_pixel, source_pixel);
@@ -2758,7 +2759,8 @@ static int image_flip_exec(bContext *C, wmOperator *op)
         const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
         const int source_pixel_y = use_flip_y ? size_y - y - 1 : y;
 
-        char *source_pixel = &orig_char_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
+        const char *source_pixel =
+            &orig_char_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
         char *target_pixel = &char_pixels[4 * (x + y * size_x)];
 
         copy_v4_v4_char(target_pixel, source_pixel);

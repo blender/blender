@@ -938,9 +938,9 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   return pass;
 }
 
-static int count_active_texture_sampler(GPUShader *shader, char *source)
+static int count_active_texture_sampler(GPUShader *shader, const char *source)
 {
-  char *code = source;
+  const char *code = source;
 
   /* Remember this is per stage. */
   GSet *sampler_ids = BLI_gset_int_new(__func__);
