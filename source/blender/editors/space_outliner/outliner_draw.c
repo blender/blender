@@ -3731,7 +3731,7 @@ static void outliner_update_viewable_area(ARegion *region,
 }
 
 /* ****************************************************** */
-/* Main Entrypoint - Draw contents of Outliner editor */
+/* Main Entry-point - Draw contents of Outliner editor */
 
 void draw_outliner(const bContext *C)
 {

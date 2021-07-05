@@ -1844,7 +1844,7 @@ View2D *UI_view2d_fromcontext(const bContext *C)
   return &(region->v2d);
 }
 
-/* same as above, but it returns regionwindow. Utility for pulldowns or buttons */
+/* Same as above, but it returns region-window. Utility for pull-downs or buttons. */
 View2D *UI_view2d_fromcontext_rwin(const bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);

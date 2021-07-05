@@ -1932,7 +1932,7 @@ static Face *cdt_tri_as_imesh_face(
  */
 static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
 {
-  /* Similar to loop body in BM_mesh_calc_tesselation. */
+  /* Similar to loop body in #BM_mesh_calc_tessellation. */
   int flen = f->size();
   BLI_assert(flen > 4);
   if (!f->plane_populated()) {
@@ -1946,7 +1946,7 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
   float(*projverts)[2];
   unsigned int(*tris)[3];
   const int totfilltri = flen - 2;
-  /* Prepare projected vertices and array to receive triangles in tesselation. */
+  /* Prepare projected vertices and array to receive triangles in tessellation. */
   tris = static_cast<unsigned int(*)[3]>(MEM_malloc_arrayN(totfilltri, sizeof(*tris), __func__));
   projverts = static_cast<float(*)[2]>(MEM_malloc_arrayN(flen, sizeof(*projverts), __func__));
   axis_dominant_v3_to_m3_negate(axis_mat, no);
@@ -1956,7 +1956,7 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
     mul_v2_m3v3(projverts[j], axis_mat, co);
   }
   BLI_polyfill_calc(projverts, flen, 1, tris);
-  /* Put tesselation triangles into Face form. Record original edges where they exist. */
+  /* Put tessellation triangles into Face form. Record original edges where they exist. */
   Array<Face *> ans(totfilltri);
   for (int t = 0; t < totfilltri; ++t) {
     unsigned int *tri = tris[t];
@@ -2098,7 +2098,7 @@ IMesh triangulate_polymesh(IMesh &imesh, IMeshArena *arena)
   constexpr int estimated_tris_per_face = 3;
   face_tris.reserve(estimated_tris_per_face * imesh.face_size());
   for (Face *f : imesh.faces()) {
-    /* Tessellate face f, following plan similar to #BM_face_calc_tesselation. */
+    /* Tessellate face f, following plan similar to #BM_face_calc_tessellation. */
     int flen = f->size();
     if (flen == 3) {
       face_tris.append(f);

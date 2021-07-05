@@ -530,7 +530,7 @@ void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph,
 }
 /**
  * Action to take when rotating the view,
- * handle auto-persp and logic for switching out of views.
+ * handle auto-perspective and logic for switching out of views.
  *
  * shared with NDOF.
  */

@@ -4700,7 +4700,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
 
     if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
       int ret = WM_UI_HANDLER_BREAK;
-      /* XXX (a bit ugly) Special case handling for filebrowser drag button */
+      /* XXX: (a bit ugly) Special case handling for file-browser drag button. */
       if (but->dragpoin && but->imb && ui_but_contains_point_px_icon(but, data->region, event)) {
         ret = WM_UI_HANDLER_CONTINUE;
       }

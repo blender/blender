@@ -126,7 +126,7 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
   const float theta_step = ((2 * M_PI) / (float)resolution);
   for (const int i : IndexRange(resolution)) {
 
-    /* Formula for a circle around a point and 2 unit vectors perpendicular.
+    /* Formula for a circle around a point and 2 unit vectors perpendicular
      * to each other and the axis of the circle from:
      * https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
      */

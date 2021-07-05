@@ -173,7 +173,7 @@ static void deformStroke(GpencilModifierData *md,
       if (mmd->mode != GPPAINT_MODE_STROKE) {
         float fill_factor = mmd->factor;
 
-        /* Use weightened factor. */
+        /* Use weighted factor. */
         if (mmd->flag & GP_TINT_WEIGHT_FACTOR) {
           /* Use first point for weight. */
           MDeformVert *dvert_fill = (gps->dvert != NULL) ? &gps->dvert[0] : NULL;

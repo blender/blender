@@ -1768,7 +1768,7 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
       angle_cos = dot_v3v3(viewDirPersp, no);
     }
 
-    /* If backface culling is disabled, allow painting on back faces. */
+    /* If back-face culling is disabled, allow painting on back faces. */
     if (!ps->do_backfacecull) {
       angle_cos = fabsf(angle_cos);
     }
@@ -4358,7 +4358,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
 
 #endif  // PROJ_DEBUG_WINCLIP
 
-        /* backface culls individual triangles but mask normal will use polygon */
+        /* Back-face culls individual triangles but mask normal will use polygon. */
         if (ps->do_backfacecull) {
           if (ps->do_mask_normal) {
             if (prev_poly != lt->poly) {
