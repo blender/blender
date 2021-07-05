@@ -55,11 +55,7 @@
                     windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 
 #ifdef WITH_INPUT_IME
-- (void)beginIME:(GHOST_TInt32)x
-               y:(GHOST_TInt32)y
-               w:(GHOST_TInt32)w
-               h:(GHOST_TInt32)h
-       completed:(bool)completed;
+- (void)beginIME:(int32_t)x y:(int32_t)y w:(int32_t)w h:(int32_t)h completed:(bool)completed;
 
 - (void)endIME;
 #endif
@@ -439,18 +435,14 @@
   [self checkImeEnabled];
 }
 
-- (void)setImeCandidateWinPos:(GHOST_TInt32)x y:(GHOST_TInt32)y w:(GHOST_TInt32)w h:(GHOST_TInt32)h
+- (void)setImeCandidateWinPos:(int32_t)x y:(int32_t)y w:(int32_t)w h:(int32_t)h
 {
-  GHOST_TInt32 outX, outY;
+  int32_t outX, outY;
   associatedWindow->clientToScreen(x, y, outX, outY);
   ime.candidate_window_position = NSMakeRect((CGFloat)outX, (CGFloat)outY, (CGFloat)w, (CGFloat)h);
 }
 
-- (void)beginIME:(GHOST_TInt32)x
-               y:(GHOST_TInt32)y
-               w:(GHOST_TInt32)w
-               h:(GHOST_TInt32)h
-       completed:(bool)completed
+- (void)beginIME:(int32_t)x y:(int32_t)y w:(int32_t)w h:(int32_t)h completed:(bool)completed
 {
   ime.state_flag |= GHOST_IME_INPUT_FOCUSED;
   [self checkImeEnabled];

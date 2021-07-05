@@ -255,7 +255,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
   }
 
 #ifdef WITH_INPUT_IME
-  void beginIME(GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 w, GHOST_TInt32 h, int completed);
+  void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed);
   void endIME();
 #endif /* WITH_INPUT_IME */
 
@@ -332,7 +332,7 @@ class GHOST_EventIME : public GHOST_Event {
    * \param type: The type of key event.
    * \param key: The key code of the key.
    */
-  GHOST_EventIME(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow *window, void *customdata)
+  GHOST_EventIME(uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window, void *customdata)
       : GHOST_Event(msec, type, window)
   {
     this->m_data = customdata;

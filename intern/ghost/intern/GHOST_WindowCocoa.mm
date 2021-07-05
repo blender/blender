@@ -1217,14 +1217,13 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(
 }
 
 #ifdef WITH_INPUT_IME
-void GHOST_WindowCocoa::beginIME(
-    GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 w, GHOST_TInt32 h, int completed)
+void GHOST_WindowCocoa::beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed)
 {
   if (m_openGLView) {
-    [m_openGLView beginIME:x y:y w:w h:h completed:(bool)completed];
+    [m_openGLView beginIME:x y:y w:w h:h completed:completed];
   }
   else {
-    [m_metalView beginIME:x y:y w:w h:h completed:(bool)completed];
+    [m_metalView beginIME:x y:y w:w h:h completed:completed];
   }
 }
 
