@@ -663,7 +663,7 @@ enum {
   UI_BLOCK_THEME_STYLE_POPUP = 1,
 };
 void UI_block_theme_style_set(uiBlock *block, char theme_style);
-char UI_block_emboss_get(uiBlock *block);
+eUIEmbossType UI_block_emboss_get(uiBlock *block);
 void UI_block_emboss_set(uiBlock *block, eUIEmbossType emboss);
 bool UI_block_is_search_only(const uiBlock *block);
 void UI_block_set_search_only(uiBlock *block, bool search_only);

@@ -3542,7 +3542,7 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eU
   return block;
 }
 
-char UI_block_emboss_get(uiBlock *block)
+eUIEmbossType UI_block_emboss_get(uiBlock *block)
 {
   return block->emboss;
 }
