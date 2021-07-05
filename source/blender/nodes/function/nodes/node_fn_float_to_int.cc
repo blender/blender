@@ -14,9 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <math.h>
+#include <cmath>
 
-#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "RNA_enum_types.h"
@@ -54,7 +53,7 @@ static void node_float_to_int_label(bNodeTree *UNUSED(ntree), bNode *node, char 
 static const blender::fn::MultiFunction &get_multi_function(bNode &bnode)
 {
   static blender::fn::CustomMF_SI_SO<float, int> round_fn{"Round",
-                                                          [](float a) { return std::round(a); }};
+                                                          [](float a) { return (int)round(a); }};
   static blender::fn::CustomMF_SI_SO<float, int> floor_fn{"Floor",
                                                           [](float a) { return (int)floor(a); }};
   static blender::fn::CustomMF_SI_SO<float, int> ceil_fn{"Ceiling",
