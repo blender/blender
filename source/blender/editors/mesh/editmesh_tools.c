@@ -3025,10 +3025,8 @@ static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 
     BMOperator bmop;
 
-    /* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
     EDBM_op_init(em, &bmop, op, "rotate_uvs faces=%hf use_ccw=%b", BM_ELEM_SELECT, use_ccw);
 
-    /* execute the operator */
     BMO_op_exec(em->bm, &bmop);
 
     if (!EDBM_op_finish(em, &bmop, op, true)) {
@@ -3063,13 +3061,10 @@ static int edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
 
     BMOperator bmop;
 
-    /* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
     EDBM_op_init(em, &bmop, op, "reverse_uvs faces=%hf", BM_ELEM_SELECT);
 
-    /* execute the operator */
     BMO_op_exec(em->bm, &bmop);
 
-    /* finish the operator */
     if (!EDBM_op_finish(em, &bmop, op, true)) {
       continue;
     }
@@ -3104,13 +3099,10 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 
     BMOperator bmop;
 
-    /* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
     EDBM_op_init(em, &bmop, op, "rotate_colors faces=%hf use_ccw=%b", BM_ELEM_SELECT, use_ccw);
 
-    /* execute the operator */
     BMO_op_exec(em->bm, &bmop);
 
-    /* finish the operator */
     if (!EDBM_op_finish(em, &bmop, op, true)) {
       continue;
     }
@@ -3146,13 +3138,10 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
 
     BMOperator bmop;
 
-    /* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
     EDBM_op_init(em, &bmop, op, "reverse_colors faces=%hf", BM_ELEM_SELECT);
 
-    /* execute the operator */
     BMO_op_exec(em->bm, &bmop);
 
-    /* finish the operator */
     if (!EDBM_op_finish(em, &bmop, op, true)) {
       continue;
     }
