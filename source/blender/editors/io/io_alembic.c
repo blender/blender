@@ -126,7 +126,6 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
       .curves_as_mesh = RNA_boolean_get(op->ptr, "curves_as_mesh"),
       .flatten_hierarchy = RNA_boolean_get(op->ptr, "flatten"),
       .visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only"),
-      .renderable_only = RNA_boolean_get(op->ptr, "renderable_only"),
       .face_sets = RNA_boolean_get(op->ptr, "face_sets"),
       .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
       .export_hair = RNA_boolean_get(op->ptr, "export_hair"),
@@ -194,7 +193,6 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
   sub = uiLayoutColumnWithHeading(col, true, IFACE_("Only"));
   uiItemR(sub, imfptr, "selected", 0, IFACE_("Selected Objects"), ICON_NONE);
-  uiItemR(sub, imfptr, "renderable_only", 0, IFACE_("Renderable Objects"), ICON_NONE);
   uiItemR(sub, imfptr, "visible_objects_only", 0, IFACE_("Visible Objects"), ICON_NONE);
 
   /* Object Data */
@@ -353,12 +351,6 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "selected", 0, "Selected Objects Only", "Export only selected objects");
-
-  RNA_def_boolean(ot->srna,
-                  "renderable_only",
-                  1,
-                  "Renderable Objects Only",
-                  "Export only objects marked renderable in the outliner");
 
   RNA_def_boolean(ot->srna,
                   "visible_objects_only",

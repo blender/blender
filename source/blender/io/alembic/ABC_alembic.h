@@ -54,7 +54,6 @@ struct AlembicExportParams {
   bool curves_as_mesh;
   bool flatten_hierarchy;
   bool visible_objects_only;
-  bool renderable_only;
   bool face_sets;
   bool use_subdiv_schema;
   bool packuv;
