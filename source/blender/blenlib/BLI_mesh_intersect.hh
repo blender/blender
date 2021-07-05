@@ -225,6 +225,7 @@ class IMeshArena : NonCopyable, NonMovable {
    */
   const Vert *add_or_find_vert(const mpq3 &co, int orig);
   const Vert *add_or_find_vert(const double3 &co, int orig);
+  const Vert *add_or_find_vert(Vert *vert);
 
   Face *add_face(Span<const Vert *> verts,
                  int orig,

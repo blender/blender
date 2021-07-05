@@ -28,6 +28,7 @@
 #    define NOMINMAX
 #    define TBB_MIN_MAX_CLEANUP
 #  endif
+#  include "tbb/parallel_reduce.h"
 #  include <tbb/blocked_range.h>
 #  include <tbb/parallel_for.h>
 #  include <tbb/parallel_for_each.h>
@@ -73,6 +74,27 @@ void parallel_for(IndexRange range, int64_t grain_size, const Function &function
 #else
   UNUSED_VARS(grain_size);
   function(range);
+#endif
+}
+
+template<typename Value, typename Function, typename Reduction>
+Value parallel_reduce(IndexRange range,
+                      int64_t grain_size,
+                      const Value &identity,
+                      const Function &function,
+                      const Reduction &reduction)
+{
+#ifdef WITH_TBB
+  return tbb::parallel_reduce(
+      tbb::blocked_range<int64_t>(range.first(), range.one_after_last(), grain_size),
+      identity,
+      [&](const tbb::blocked_range<int64_t> &subrange, const Value &ident) {
+        return function(IndexRange(subrange.begin(), subrange.size()), ident);
+      },
+      reduction);
+#else
+  UNUSED_VARS(grain_size, reduction);
+  return function(range, identity);
 #endif
 }
 
