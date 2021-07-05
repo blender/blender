@@ -337,6 +337,31 @@ const EnumPropertyItem rna_enum_node_float_compare_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_node_float_to_int_items[] = {
+    {FN_NODE_FLOAT_TO_INT_ROUND,
+     "ROUND",
+     0,
+     "Round",
+     "Round the float up or down to the nearest integer"},
+    {FN_NODE_FLOAT_TO_INT_FLOOR,
+     "FLOOR",
+     0,
+     "Floor",
+     "Round the float down to the next smallest integer"},
+    {FN_NODE_FLOAT_TO_INT_CEIL,
+     "CEILING",
+     0,
+     "Ceiling",
+     "Round the float up to the next largest integer"},
+    {FN_NODE_FLOAT_TO_INT_TRUNCATE,
+     "TRUNCATE",
+     0,
+     "Truncate",
+     "Round the float to the closest integer in the direction of zero (floor if positive; ceiling "
+     "if negative)"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 const EnumPropertyItem rna_enum_node_map_range_items[] = {
     {NODE_MAP_RANGE_LINEAR,
      "LINEAR",
@@ -4792,6 +4817,18 @@ static void def_float_compare(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_node_float_compare_items);
   RNA_def_property_ui_text(prop, "Operation", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_float_to_int(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "rounding_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_node_float_to_int_items);
+  RNA_def_property_ui_text(
+      prop, "Rounding Mode", "Method used to convert the float to an integer");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_vector_math(StructRNA *srna)

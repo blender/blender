@@ -1688,6 +1688,14 @@ typedef enum FloatCompareOperation {
   NODE_FLOAT_COMPARE_NOT_EQUAL = 5,
 } FloatCompareOperation;
 
+/* Float to Int node operations. */
+typedef enum FloatToIntRoundingMode {
+  FN_NODE_FLOAT_TO_INT_ROUND = 0,
+  FN_NODE_FLOAT_TO_INT_FLOOR = 1,
+  FN_NODE_FLOAT_TO_INT_CEIL = 2,
+  FN_NODE_FLOAT_TO_INT_TRUNCATE = 3,
+} FloatToIntRoundingMode;
+
 /* Clamp node types. */
 enum {
   NODE_CLAMP_MINMAX = 0,
