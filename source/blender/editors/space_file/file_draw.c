@@ -542,13 +542,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
       else {
         /* If rename is successful, scroll to newly renamed entry. */
         BLI_strncpy(params->renamefile, filename, sizeof(params->renamefile));
-        params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_PENDING;
-
-        if (sfile->smoothscroll_timer != NULL) {
-          WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
-        }
-        sfile->smoothscroll_timer = WM_event_add_timer(wm, CTX_wm_window(C), TIMER1, 1.0 / 1000.0);
-        sfile->scroll_offset = 0;
+        file_params_invoke_rename_postscroll(wm, CTX_wm_window(C), sfile);
       }
 
       /* to make sure we show what is on disk */

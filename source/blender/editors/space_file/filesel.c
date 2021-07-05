@@ -1227,6 +1227,37 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
   }
 }
 
+void file_params_smoothscroll_timer_clear(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
+{
+  WM_event_remove_timer(wm, win, sfile->smoothscroll_timer);
+  sfile->smoothscroll_timer = NULL;
+}
+
+/**
+ * Set the renaming-state to #FILE_PARAMS_RENAME_POSTSCROLL_PENDING and trigger the smooth-scroll
+ * timer. To be used right after a file was renamed.
+ * Note that the caller is responsible for setting the correct rename-file info
+ * (#FileSelectParams.renamefile or #FileSelectParams.renamefile_uuid).
+ */
+void file_params_invoke_rename_postscroll(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
+{
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_PENDING;
+
+  if (sfile->smoothscroll_timer != NULL) {
+    file_params_smoothscroll_timer_clear(wm, win, sfile);
+  }
+  sfile->smoothscroll_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 1000.0);
+  sfile->scroll_offset = 0;
+}
+
+void file_params_renamefile_clear(FileSelectParams *params)
+{
+  params->renamefile[0] = '\0';
+  params->rename_flag = 0;
+}
+
 /**
  * Helper used by both main update code, and smooth-scroll timer,
  * to try to enable rename editing from #FileSelectParams.renamefile name.
@@ -1260,8 +1291,7 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
   /* File listing is now async, only reset renaming if matching entry is not found
    * when file listing is not done. */
   else if (filelist_is_ready(sfile->files)) {
-    params->renamefile[0] = '\0';
-    params->rename_flag = 0;
+    file_params_renamefile_clear(params);
   }
 }
 

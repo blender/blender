@@ -113,6 +113,13 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 int autocomplete_directory(struct bContext *C, char *str, void *arg_v);
 int autocomplete_file(struct bContext *C, char *str, void *arg_v);
 
+void file_params_smoothscroll_timer_clear(struct wmWindowManager *wm,
+                                          struct wmWindow *win,
+                                          SpaceFile *sfile);
+void file_params_renamefile_clear(struct FileSelectParams *params);
+void file_params_invoke_rename_postscroll(struct wmWindowManager *wm,
+                                          struct wmWindow *win,
+                                          SpaceFile *sfile);
 void file_params_renamefile_activate(struct SpaceFile *sfile, struct FileSelectParams *params);
 
 typedef void *onReloadFnData;
