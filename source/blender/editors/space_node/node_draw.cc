@@ -1405,28 +1405,6 @@ static void node_draw_basis(const bContext *C,
                  "");
     UI_block_emboss_set(node->block, UI_EMBOSS);
   }
-  if (ntree->type == NTREE_GEOMETRY) {
-    /* Active preview toggle. */
-    iconofs -= iconbutw;
-    UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    int icon = (node->flag & NODE_ACTIVE_PREVIEW) ? ICON_RESTRICT_VIEW_OFF : ICON_RESTRICT_VIEW_ON;
-    uiBut *but = uiDefIconBut(node->block,
-                              UI_BTYPE_BUT_TOGGLE,
-                              0,
-                              icon,
-                              iconofs,
-                              rct->ymax - NODE_DY,
-                              iconbutw,
-                              UI_UNIT_Y,
-                              nullptr,
-                              0,
-                              0,
-                              0,
-                              0,
-                              "Show this node's geometry output in the spreadsheet");
-    UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_active_preview_toggle");
-    UI_block_emboss_set(node->block, UI_EMBOSS);
-  }
 
   node_add_error_message_button(C, *ntree, *node, *rct, iconofs);
 

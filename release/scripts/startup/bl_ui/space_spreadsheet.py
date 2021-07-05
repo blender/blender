@@ -54,6 +54,9 @@ class SPREADSHEET_HT_header(bpy.types.Header):
         pin_icon = 'PINNED' if space.is_pinned else 'UNPINNED'
         layout.operator("spreadsheet.toggle_pin", text="", icon=pin_icon, emboss=False)
 
+        if space.object_eval_state == 'VIEWER_NODE' and len(context_path) < 3:
+            layout.label(text="No active viewer node.", icon='INFO')
+
         layout.separator_spacer()
         
         row = layout.row(align=True)

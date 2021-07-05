@@ -768,22 +768,6 @@ static Vector<SpaceSpreadsheet *> find_spreadsheet_editors(Main *bmain)
 
 using PreviewSocketMap = blender::MultiValueMap<DSocket, uint64_t>;
 
-static DSocket try_find_preview_socket_in_node(const DNode node)
-{
-  for (const SocketRef *socket : node->outputs()) {
-    if (socket->bsocket()->type == SOCK_GEOMETRY) {
-      return {node.context(), socket};
-    }
-  }
-  for (const SocketRef *socket : node->inputs()) {
-    if (socket->bsocket()->type == SOCK_GEOMETRY &&
-        (socket->bsocket()->flag & SOCK_MULTI_INPUT) == 0) {
-      return {node.context(), socket};
-    }
-  }
-  return {};
-}
-
 static DSocket try_get_socket_to_preview_for_spreadsheet(SpaceSpreadsheet *sspreadsheet,
                                                          NodesModifierData *nmd,
                                                          const ModifierEvalContext *ctx,
@@ -839,7 +823,17 @@ static DSocket try_get_socket_to_preview_for_spreadsheet(SpaceSpreadsheet *sspre
   const NodeTreeRef &tree_ref = context->tree();
   for (const NodeRef *node_ref : tree_ref.nodes()) {
     if (node_ref->name() == last_context->node_name) {
-      return try_find_preview_socket_in_node({context, node_ref});
+      const DNode viewer_node{context, node_ref};
+      DSocket socket_to_view;
+      viewer_node.input(0).foreach_origin_socket(
+          [&](const DSocket socket) { socket_to_view = socket; });
+      if (!socket_to_view) {
+        return {};
+      }
+      bNodeSocket *bsocket = socket_to_view->bsocket();
+      if (bsocket->type == SOCK_GEOMETRY && bsocket->flag != SOCK_MULTI_INPUT) {
+        return socket_to_view;
+      }
     }
   }
   return {};
@@ -975,6 +969,8 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   blender::modifiers::geometry_nodes::GeometryNodesEvaluationParams eval_params;
   eval_params.input_values = group_inputs;
   eval_params.output_sockets = group_outputs;
+  eval_params.force_compute_sockets.extend(preview_sockets.keys().begin(),
+                                           preview_sockets.keys().end());
   eval_params.mf_by_node = &mf_by_node;
   eval_params.modifier_ = nmd;
   eval_params.depsgraph = ctx->depsgraph;

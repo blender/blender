@@ -325,6 +325,7 @@ typedef struct bNode {
 #define NODE_HIDDEN 8
 #define NODE_ACTIVE 16
 #define NODE_ACTIVE_ID 32
+/* Used to indicate which group output node is used and which viewer node is active. */
 #define NODE_DO_OUTPUT 64
 #define __NODE_GROUP_EDIT 128 /* DEPRECATED */
 /* free test flag, undefined */
@@ -359,7 +360,7 @@ typedef struct bNode {
  */
 #define NODE_DO_OUTPUT_RECALC (1 << 17)
 /* A preview for the data in this node can be displayed in the spreadsheet editor. */
-#define NODE_ACTIVE_PREVIEW (1 << 18)
+#define __NODE_ACTIVE_PREVIEW (1 << 18) /* deprecated */
 
 /* node->update */
 /* XXX NODE_UPDATE is a generic update flag. More fine-grained updates

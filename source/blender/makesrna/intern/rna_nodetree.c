@@ -11320,12 +11320,6 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Texture", "Display node in viewport textured shading mode");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "active_preview", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_ACTIVE_PREVIEW);
-  RNA_def_property_ui_text(prop, "Active Preview", "Node is previewed in other editor");
-  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-  RNA_def_property_update(prop, NC_NODE, NULL);
-
   /* generic property update function */
   func = RNA_def_function(srna, "socket_value_update", "rna_Node_socket_value_update");
   RNA_def_function_ui_description(func, "Update after property changes");

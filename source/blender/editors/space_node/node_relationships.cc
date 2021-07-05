@@ -40,10 +40,13 @@
 #include "ED_node.h" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
+#include "ED_spreadsheet.h"
 #include "ED_util.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -156,6 +159,11 @@ bool node_connected_to_output(Main *bmain, bNodeTree *ntree, bNode *node)
       }
     }
     if (current_node->flag & NODE_DO_OUTPUT) {
+      if (ntree_check_nodes_connected(ntree, node, current_node)) {
+        return true;
+      }
+    }
+    if (current_node->type == GEO_NODE_VIEWER) {
       if (ntree_check_nodes_connected(ntree, node, current_node)) {
         return true;
       }
@@ -610,14 +618,14 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
   if (tonode == nullptr || BLI_listbase_is_empty(&tonode->outputs)) {
     return OPERATOR_CANCELLED;
   }
-  if (ELEM(tonode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+  if (ELEM(tonode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER)) {
     return OPERATOR_CANCELLED;
   }
 
   /* get viewer */
   bNode *viewer_node = nullptr;
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-    if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+    if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER)) {
       if (node->flag & NODE_DO_OUTPUT) {
         viewer_node = node;
         break;
@@ -627,7 +635,7 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
   /* no viewer, we make one active */
   if (viewer_node == nullptr) {
     LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-      if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+      if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER)) {
         node->flag |= NODE_DO_OUTPUT;
         viewer_node = node;
         break;
@@ -686,7 +694,8 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
     /* add a new viewer if none exists yet */
     if (!viewer_node) {
       /* XXX location is a quick hack, just place it next to the linked socket */
-      viewer_node = node_add_node(C, nullptr, CMP_NODE_VIEWER, sock->locx + 100, sock->locy);
+      const int viewer_type = ED_node_is_compositor(snode) ? CMP_NODE_VIEWER : GEO_NODE_VIEWER;
+      viewer_node = node_add_node(C, nullptr, viewer_type, sock->locx + 100, sock->locy);
       if (!viewer_node) {
         return OPERATOR_CANCELLED;
       }
@@ -712,8 +721,13 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
       /* make sure the dependency sorting is updated */
       snode->edittree->update |= NTREE_UPDATE_LINKS;
     }
+    if (ED_node_is_geometry(snode)) {
+      ED_spreadsheet_context_paths_set_geometry_node(CTX_data_main(C), snode, viewer_node);
+    }
+
     ntreeUpdateTree(CTX_data_main(C), snode->edittree);
     snode_update(snode, viewer_node);
+    DEG_id_tag_update(&snode->edittree->id, 0);
   }
 
   return OPERATOR_FINISHED;
@@ -739,6 +753,15 @@ static int node_active_link_viewer_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
+static bool node_active_link_viewer_poll(bContext *C)
+{
+  if (!ED_operator_node_editable(C)) {
+    return false;
+  }
+  SpaceNode *snode = CTX_wm_space_node(C);
+  return ED_node_is_compositor(snode) || ED_node_is_geometry(snode);
+}
+
 void NODE_OT_link_viewer(wmOperatorType *ot)
 {
   /* identifiers */
@@ -748,7 +771,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = node_active_link_viewer_exec;
-  ot->poll = composite_node_editable;
+  ot->poll = node_active_link_viewer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

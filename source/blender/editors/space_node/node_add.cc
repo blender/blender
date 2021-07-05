@@ -90,7 +90,7 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
   nodeSetSelected(node, true);
 
   ntreeUpdateTree(bmain, snode->edittree);
-  ED_node_set_active(bmain, snode->edittree, node, nullptr);
+  ED_node_set_active(bmain, snode, snode->edittree, node, nullptr);
 
   snode_update(snode, node);
 

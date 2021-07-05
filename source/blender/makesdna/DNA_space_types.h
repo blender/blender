@@ -1922,6 +1922,7 @@ typedef enum eSpreadsheetFilterOperation {
 typedef enum eSpaceSpreadsheet_ObjectEvalState {
   SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED = 0,
   SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL = 1,
+  SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE = 2,
 } eSpaceSpreadsheet_Context;
 
 typedef enum eSpaceSpreadsheet_ContextType {

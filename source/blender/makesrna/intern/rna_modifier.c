@@ -690,6 +690,7 @@ static void rna_Modifier_is_active_set(PointerRNA *ptr, bool value)
     }
 
     md->flag |= eModifierFlag_Active;
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
   }
 }
 

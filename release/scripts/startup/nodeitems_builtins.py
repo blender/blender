@@ -581,6 +581,9 @@ geometry_node_categories = [
         NodeItem("ShaderNodeVectorMath"),
         NodeItem("ShaderNodeVectorRotate"),
     ]),
+    GeometryNodeCategory("GEO_OUTPUT", "Output", items=[
+        NodeItem("GeometryNodeViewer"),
+    ]),
     GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
         NodeItem("GeometryNodePointsToVolume"),
         NodeItem("GeometryNodeVolumeToMesh"),

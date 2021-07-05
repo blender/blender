@@ -404,6 +404,9 @@ class GeometryNodesEvaluator {
     for (const DInputSocket &socket : params_.output_sockets) {
       nodes_to_check.push(socket.node());
     }
+    for (const DSocket &socket : params_.force_compute_sockets) {
+      nodes_to_check.push(socket.node());
+    }
     /* Use the local allocator because the states do not need to outlive the evaluator. */
     LinearAllocator<> &allocator = local_allocators_.local();
     while (!nodes_to_check.is_empty()) {
@@ -501,7 +504,8 @@ class GeometryNodesEvaluator {
           },
           {});
       if (output_state.potential_users == 0) {
-        /* If it does not have any potential users, it is unused. */
+        /* If it does not have any potential users, it is unused. It might become required again in
+         * `schedule_initial_nodes`. */
         output_state.output_usage = ValueUsage::Unused;
       }
     }
@@ -574,6 +578,20 @@ class GeometryNodesEvaluator {
       this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
         /* Setting an input as required will schedule any linked node. */
         this->set_input_required(locked_node, socket);
+      });
+    }
+    for (const DSocket socket : params_.force_compute_sockets) {
+      const DNode node = socket.node();
+      NodeState &node_state = this->get_node_state(node);
+      this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+        if (socket->is_input()) {
+          this->set_input_required(locked_node, DInputSocket(socket));
+        }
+        else {
+          OutputState &output_state = node_state.outputs[socket->index()];
+          output_state.output_usage = ValueUsage::Required;
+          this->schedule_node(locked_node);
+        }
       });
     }
   }
@@ -1124,10 +1142,14 @@ class GeometryNodesEvaluator {
     this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
       output_state.potential_users -= 1;
       if (output_state.potential_users == 0) {
-        /* The output socket has no users anymore. */
-        output_state.output_usage = ValueUsage::Unused;
-        /* Schedule the origin node in case it wants to set its inputs as unused as well. */
-        this->schedule_node(locked_node);
+        /* The socket might be required even though the output is not used by other sockets. That
+         * can happen when the socket is forced to be computed. */
+        if (output_state.output_usage != ValueUsage::Required) {
+          /* The output socket has no users anymore. */
+          output_state.output_usage = ValueUsage::Unused;
+          /* Schedule the origin node in case it wants to set its inputs as unused as well. */
+          this->schedule_node(locked_node);
+        }
       }
     });
   }
