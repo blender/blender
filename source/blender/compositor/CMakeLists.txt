@@ -82,6 +82,8 @@ set(SRC
   intern/COM_MetaData.h
   intern/COM_MultiThreadedOperation.cc
   intern/COM_MultiThreadedOperation.h
+  intern/COM_MultiThreadedRowOperation.cc
+  intern/COM_MultiThreadedRowOperation.h
   intern/COM_Node.cc
   intern/COM_Node.h
   intern/COM_NodeConverter.cc
