@@ -198,23 +198,6 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 
     edbm_op_emcopy_restore_and_clear(em, bmop);
 
-    /**
-     * NOTE: we could pass in the mesh, however this is an exceptional case, allow a slow lookup.
-     *
-     * This is needed because the COW mesh makes a full copy of the #BMEditMesh
-     * instead of sharing the pointer, tagging since this has been freed above,
-     * the #BMEditMesh.emcopy needs to be flushed to the COW edit-mesh, see T55457.
-     */
-    {
-      Main *bmain = G_MAIN;
-      for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
-        if (mesh->edit_mesh == em) {
-          DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
-          break;
-        }
-      }
-    }
-
     /* when copying, tessellation isn't to for faster copying,
      * but means we need to re-tessellate here */
     if (em->looptris == NULL) {
