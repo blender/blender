@@ -74,12 +74,7 @@
     composing = YES;
 
     // interpret event to call insertText
-    NSMutableArray *events;
-    events = [[NSMutableArray alloc] initWithCapacity:1];
-    [events addObject:event];
-    [self interpretKeyEvents:events];  // calls insertText
-    [events removeObject:event];
-    [events release];
+    [self interpretKeyEvents:[NSArray arrayWithObject:event]];  // calls insertText
     return;
   }
 }
