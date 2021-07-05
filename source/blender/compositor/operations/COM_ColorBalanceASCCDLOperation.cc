@@ -76,6 +76,23 @@ void ColorBalanceASCCDLOperation::executePixelSampled(float output[4],
   output[3] = inputColor[3];
 }
 
+void ColorBalanceASCCDLOperation::update_memory_buffer_row(PixelCursor &p)
+{
+  for (; p.out < p.row_end; p.next()) {
+    const float *in_factor = p.ins[0];
+    const float *in_color = p.ins[1];
+    const float fac = MIN2(1.0f, in_factor[0]);
+    const float fac_m = 1.0f - fac;
+    p.out[0] = fac_m * in_color[0] +
+               fac * colorbalance_cdl(in_color[0], m_offset[0], m_power[0], m_slope[0]);
+    p.out[1] = fac_m * in_color[1] +
+               fac * colorbalance_cdl(in_color[1], m_offset[1], m_power[1], m_slope[1]);
+    p.out[2] = fac_m * in_color[2] +
+               fac * colorbalance_cdl(in_color[2], m_offset[2], m_power[2], m_slope[2]);
+    p.out[3] = in_color[3];
+  }
+}
+
 void ColorBalanceASCCDLOperation::deinitExecution()
 {
   this->m_inputValueOperation = nullptr;
