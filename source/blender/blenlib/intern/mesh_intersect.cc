@@ -1918,9 +1918,22 @@ static Face *cdt_tri_as_imesh_face(
   return facep;
 }
 
+/* Like BLI_math's is_quad_flip_v3_first_third_fast_with_normal, with const double3's. */
+static bool is_quad_flip_first_third(const double3 &v1,
+                                     const double3 &v2,
+                                     const double3 &v3,
+                                     const double3 &v4,
+                                     const double3 &normal)
+{
+  double3 dir_v3v1 = v3 - v1;
+  double3 tangent = double3::cross_high_precision(dir_v3v1, normal);
+  double dot = double3::dot(v1, tangent);
+  return (double3::dot(v4, tangent) >= dot) || (double3::dot(v2, tangent) <= dot);
+}
+
 /**
  * Tessellate face f into triangles and return an array of `const Face *`
- * giving that triangulation. Intended to be used when f has > 4 vertices.
+ * giving that triangulation. Intended to be used when f has => 4 vertices.
  * Care is taken so that the original edge index associated with
  * each edge in the output triangles either matches the original edge
  * for the (identical) edge of f, or else is -1. So diagonals added
@@ -1934,15 +1947,34 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
 {
   /* Similar to loop body in #BM_mesh_calc_tessellation. */
   int flen = f->size();
-  BLI_assert(flen > 4);
+  BLI_assert(flen >= 4);
   if (!f->plane_populated()) {
     f->populate_plane(false);
   }
-  /* Project along negative face normal so (x,y) can be used in 2d. */
   const double3 &poly_normal = f->plane->norm;
   float no[3] = {float(poly_normal[0]), float(poly_normal[1]), float(poly_normal[2])};
   normalize_v3(no);
-  float axis_mat[3][3];
+  if (flen == 4) {
+    const Vert *v0 = (*f)[0];
+    const Vert *v1 = (*f)[1];
+    const Vert *v2 = (*f)[2];
+    const Vert *v3 = (*f)[3];
+    int eo_01 = f->edge_orig[0];
+    int eo_12 = f->edge_orig[1];
+    int eo_23 = f->edge_orig[2];
+    int eo_30 = f->edge_orig[3];
+    Face *f0, *f1;
+    if (UNLIKELY(is_quad_flip_first_third(v0->co, v1->co, v2->co, v3->co, f->plane->norm))) {
+      f0 = arena->add_face({v0, v1, v3}, f->orig, {eo_01, -1, eo_30}, {false, false, false});
+      f1 = arena->add_face({v1, v2, v3}, f->orig, {eo_12, eo_23, -1}, {false, false, false});
+    }
+    else {
+      f0 = arena->add_face({v0, v1, v2}, f->orig, {eo_01, eo_12, -1}, {false, false, false});
+      f1 = arena->add_face({v0, v2, v3}, f->orig, {-1, eo_23, eo_30}, {false, false, false});
+    }
+    return Array<Face *>{f0, f1};
+  }
+  /* Project along negative face normal so (x,y) can be used in 2d. */ float axis_mat[3][3];
   float(*projverts)[2];
   unsigned int(*tris)[3];
   const int totfilltri = flen - 2;
@@ -1986,11 +2018,7 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
 
 /**
  * Tessellate face f into triangles and return an array of `const Face *`
- * giving that triangulation.
- * Care is taken so that the original edge index associated with
- * each edge in the output triangles either matches the original edge
- * for the (identical) edge of f, or else is -1. So diagonals added
- * for triangulation can later be identified by having #NO_INDEX for original.
+ * giving that triangulation, using an exact triangulation method.
  *
  * The method used is to use the CDT triangulation. Usually that triangulation
  * will only use the existing vertices. However, if the face self-intersects
@@ -2003,7 +2031,7 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
  * is by far the usual case, we need to know if the quad is convex when
  * projected before doing so, and that takes a fair amount of computation by itself.
  */
-static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
+static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
 {
   int flen = f->size();
   CDT_input<mpq_class> cdt_in;
@@ -2082,6 +2110,68 @@ static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
       ans[t] = arena->add_face(
           {v[0], v[1], v[2]}, f->orig, {eo[0], eo[1], eo[2]}, {false, false, false});
     }
+  }
+  return ans;
+}
+
+static bool face_is_degenerate(const Face *f)
+{
+  const Face &face = *f;
+  const Vert *v0 = face[0];
+  const Vert *v1 = face[1];
+  const Vert *v2 = face[2];
+  if (v0 == v1 || v0 == v2 || v1 == v2) {
+    return true;
+  }
+  double3 da = v2->co - v0->co;
+  double3 db = v2->co - v1->co;
+  double3 dab = double3::cross_high_precision(da, db);
+  double dab_length_squared = dab.length_squared();
+  double err_bound = supremum_dot_cross(dab, dab) * index_dot_cross * DBL_EPSILON;
+  if (dab_length_squared > err_bound) {
+    return false;
+  }
+  mpq3 a = v2->co_exact - v0->co_exact;
+  mpq3 b = v2->co_exact - v1->co_exact;
+  mpq3 ab = mpq3::cross(a, b);
+  if (ab.x == 0 && ab.y == 0 && ab.z == 0) {
+    return true;
+  }
+
+  return false;
+}
+
+/** Fast check for degenerate tris. Only tests for when verts are identical,
+ * not cases where there are zero-length edges. */
+static bool any_degenerate_tris_fast(const Array<Face *> triangulation)
+{
+  for (const Face *f : triangulation) {
+    const Vert *v0 = (*f)[0];
+    const Vert *v1 = (*f)[1];
+    const Vert *v2 = (*f)[2];
+    if (v0 == v1 || v0 == v2 || v1 == v2) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Tessellate face f into triangles and return an array of `const Face *`
+ * giving that triangulation.
+ * Care is taken so that the original edge index associated with
+ * each edge in the output triangles either matches the original edge
+ * for the (identical) edge of f, or else is -1. So diagonals added
+ * for triangulation can later be identified by having #NO_INDEX for original.
+ */
+static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
+{
+  /* Try the much faster method using Blender's BLI_polyfill_calc. */
+  Array<Face *> ans = polyfill_triangulate_poly(f, arena);
+
+  /* This may create degenerate triangles. If so, try the exact CDT-based triangulator. */
+  if (any_degenerate_tris_fast(ans)) {
+    return exact_triangulate_poly(f, arena);
   }
   return ans;
 }
@@ -2723,33 +2813,6 @@ static CoplanarClusterInfo find_clusters(const IMesh &tm,
   }
 
   return ans;
-}
-
-static bool face_is_degenerate(const Face *f)
-{
-  const Face &face = *f;
-  const Vert *v0 = face[0];
-  const Vert *v1 = face[1];
-  const Vert *v2 = face[2];
-  if (v0 == v1 || v0 == v2 || v1 == v2) {
-    return true;
-  }
-  double3 da = v2->co - v0->co;
-  double3 db = v2->co - v1->co;
-  double3 dab = double3::cross_high_precision(da, db);
-  double dab_length_squared = dab.length_squared();
-  double err_bound = supremum_dot_cross(dab, dab) * index_dot_cross * DBL_EPSILON;
-  if (dab_length_squared > err_bound) {
-    return false;
-  }
-  mpq3 a = v2->co_exact - v0->co_exact;
-  mpq3 b = v2->co_exact - v1->co_exact;
-  mpq3 ab = mpq3::cross(a, b);
-  if (ab.x == 0 && ab.y == 0 && ab.z == 0) {
-    return true;
-  }
-
-  return false;
 }
 
 /* Data and functions to test triangle degeneracy in parallel. */
