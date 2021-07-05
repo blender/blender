@@ -510,6 +510,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurveReverse"),
     ]),
     GeometryNodeCategory("GEO_PRIMITIVES_CURVE", "Curve Primitives", items=[
+        NodeItem("GeometryNodeCurvePrimitiveLine"),
         NodeItem("GeometryNodeCurvePrimitiveCircle"),
         NodeItem("GeometryNodeCurveStar"),
         NodeItem("GeometryNodeCurveSpiral"),
