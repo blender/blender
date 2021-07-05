@@ -2013,7 +2013,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         /* insert composite string into cursor pos */
         BLI_snprintf((char *)drawstr,
                      UI_MAX_DRAW_STR,
-                     "%s%s%s",
+                     "%.*s%s%s",
+                     but->pos,
                      but->editstr,
                      ime_data->str_composite,
                      but->editstr + but->pos);
