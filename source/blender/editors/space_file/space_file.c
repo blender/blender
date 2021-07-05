@@ -429,10 +429,10 @@ static void file_reset_filelist_showing_main_data(ScrArea *area, SpaceFile *sfil
   }
 }
 
-static void file_listener(const wmSpaceTypeListenerParams *params)
+static void file_listener(const wmSpaceTypeListenerParams *listener_params)
 {
-  ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  ScrArea *area = listener_params->area;
+  wmNotifier *wmn = listener_params->notifier;
   SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
 
   /* context changes */
@@ -508,10 +508,10 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
-static void file_main_region_listener(const wmRegionListenerParams *params)
+static void file_main_region_listener(const wmRegionListenerParams *listener_params)
 {
-  ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  ARegion *region = listener_params->region;
+  wmNotifier *wmn = listener_params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -716,14 +716,14 @@ static void file_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_tools_region_listener(const wmRegionListenerParams *UNUSED(params))
+static void file_tools_region_listener(const wmRegionListenerParams *UNUSED(listener_params))
 {
 }
 
-static void file_tool_props_region_listener(const wmRegionListenerParams *params)
+static void file_tool_props_region_listener(const wmRegionListenerParams *listener_params)
 {
-  const wmNotifier *wmn = params->notifier;
-  ARegion *region = params->region;
+  const wmNotifier *wmn = listener_params->notifier;
+  ARegion *region = listener_params->region;
 
   switch (wmn->category) {
     case NC_ID:
@@ -789,10 +789,10 @@ static void file_execution_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_ui_region_listener(const wmRegionListenerParams *params)
+static void file_ui_region_listener(const wmRegionListenerParams *listener_params)
 {
-  ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  ARegion *region = listener_params->region;
+  wmNotifier *wmn = listener_params->notifier;
 
   /* context changes */
   switch (wmn->category) {
