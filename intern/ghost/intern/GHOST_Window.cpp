@@ -31,8 +31,8 @@
 
 #include <assert.h>
 
-GHOST_Window::GHOST_Window(GHOST_TUns32 width,
-                           GHOST_TUns32 height,
+GHOST_Window::GHOST_Window(uint32_t width,
+                           uint32_t height,
                            GHOST_TWindowState state,
                            const bool wantStereoVisual,
                            const bool /*exclusive*/)
@@ -143,7 +143,7 @@ GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode,
                                            GHOST_TAxisFlag wrap_axis,
                                            GHOST_Rect *bounds,
-                                           GHOST_TInt32 mouse_ungrab_xy[2])
+                                           int32_t mouse_ungrab_xy[2])
 {
   if (m_cursorGrab == mode)
     return GHOST_kSuccess;
@@ -192,13 +192,8 @@ GHOST_TSuccess GHOST_Window::setCursorShape(GHOST_TStandardCursor cursorShape)
   }
 }
 
-GHOST_TSuccess GHOST_Window::setCustomCursorShape(GHOST_TUns8 *bitmap,
-                                                  GHOST_TUns8 *mask,
-                                                  int sizex,
-                                                  int sizey,
-                                                  int hotX,
-                                                  int hotY,
-                                                  bool canInvertColor)
+GHOST_TSuccess GHOST_Window::setCustomCursorShape(
+    uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
 {
   if (setWindowCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor)) {
     m_cursorShape = GHOST_kStandardCursorCustom;

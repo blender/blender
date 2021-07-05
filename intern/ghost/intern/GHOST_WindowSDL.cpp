@@ -28,10 +28,10 @@
 
 GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  const char *title,
-                                 GHOST_TInt32 left,
-                                 GHOST_TInt32 top,
-                                 GHOST_TUns32 width,
-                                 GHOST_TUns32 height,
+                                 int32_t left,
+                                 int32_t top,
+                                 uint32_t width,
+                                 uint32_t height,
                                  GHOST_TWindowState state,
                                  GHOST_TDrawingContextType type,
                                  const bool stereoVisual,
@@ -175,7 +175,7 @@ void GHOST_WindowSDL::getClientBounds(GHOST_Rect &bounds) const
   bounds.m_b = y + h;
 }
 
-GHOST_TSuccess GHOST_WindowSDL::setClientWidth(GHOST_TUns32 width)
+GHOST_TSuccess GHOST_WindowSDL::setClientWidth(uint32_t width)
 {
   int height;
   SDL_GetWindowSize(m_sdl_win, NULL, &height);
@@ -183,7 +183,7 @@ GHOST_TSuccess GHOST_WindowSDL::setClientWidth(GHOST_TUns32 width)
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_WindowSDL::setClientHeight(GHOST_TUns32 height)
+GHOST_TSuccess GHOST_WindowSDL::setClientHeight(uint32_t height)
 {
   int width;
   SDL_GetWindowSize(m_sdl_win, &width, NULL);
@@ -191,16 +191,13 @@ GHOST_TSuccess GHOST_WindowSDL::setClientHeight(GHOST_TUns32 height)
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_WindowSDL::setClientSize(GHOST_TUns32 width, GHOST_TUns32 height)
+GHOST_TSuccess GHOST_WindowSDL::setClientSize(uint32_t width, uint32_t height)
 {
   SDL_SetWindowSize(m_sdl_win, width, height);
   return GHOST_kSuccess;
 }
 
-void GHOST_WindowSDL::screenToClient(GHOST_TInt32 inX,
-                                     GHOST_TInt32 inY,
-                                     GHOST_TInt32 &outX,
-                                     GHOST_TInt32 &outY) const
+void GHOST_WindowSDL::screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const
 {
   /* XXXSDL_WEAK_ABS_COORDS */
   int x_win, y_win;
@@ -209,10 +206,7 @@ void GHOST_WindowSDL::screenToClient(GHOST_TInt32 inX,
   outX = inX - x_win;
   outY = inY - y_win;
 }
-void GHOST_WindowSDL::clientToScreen(GHOST_TInt32 inX,
-                                     GHOST_TInt32 inY,
-                                     GHOST_TInt32 &outX,
-                                     GHOST_TInt32 &outY) const
+void GHOST_WindowSDL::clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const
 {
   /* XXXSDL_WEAK_ABS_COORDS */
   int x_win, y_win;
@@ -622,13 +616,8 @@ GHOST_TSuccess GHOST_WindowSDL::hasCursorShape(GHOST_TStandardCursor shape)
   return (getStandardCursorShape(shape)) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
-GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
-                                                           GHOST_TUns8 *mask,
-                                                           int sizex,
-                                                           int sizey,
-                                                           int hotX,
-                                                           int hotY,
-                                                           bool canInvertColor)
+GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(
+    uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
 {
   if (m_sdl_custom_cursor) {
     SDL_FreeCursor(m_sdl_custom_cursor);
@@ -647,7 +636,7 @@ GHOST_TSuccess GHOST_WindowSDL::setWindowCursorVisibility(bool visible)
   return GHOST_kSuccess;
 }
 
-GHOST_TUns16 GHOST_WindowSDL::getDPIHint()
+uint16_t GHOST_WindowSDL::getDPIHint()
 {
   int displayIndex = SDL_GetWindowDisplayIndex(m_sdl_win);
   if (displayIndex < 0) {

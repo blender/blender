@@ -29,26 +29,26 @@ GHOST_DisplayManagerCocoa::GHOST_DisplayManagerCocoa(void)
 {
 }
 
-GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(GHOST_TUns8 &numDisplays) const
+GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(uint8_t &numDisplays) const
 {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  numDisplays = (GHOST_TUns8)[[NSScreen screens] count];
+  numDisplays = (uint8_t)[[NSScreen screens] count];
 
   [pool drain];
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplaySettings(GHOST_TUns8 display,
-                                                                GHOST_TInt32 &numSettings) const
+GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplaySettings(uint8_t display,
+                                                                int32_t &numSettings) const
 {
-  numSettings = (GHOST_TInt32)3;  // Width, Height, BitsPerPixel
+  numSettings = (int32_t)3;  // Width, Height, BitsPerPixel
 
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(GHOST_TUns8 display,
-                                                            GHOST_TInt32 index,
+GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(uint8_t display,
+                                                            int32_t index,
                                                             GHOST_DisplaySetting &setting) const
 {
   NSScreen *askedDisplay;
@@ -86,7 +86,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(GHOST_TUns8 display,
 }
 
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
-    GHOST_TUns8 display, GHOST_DisplaySetting &setting) const
+    uint8_t display, GHOST_DisplaySetting &setting) const
 {
   NSScreen *askedDisplay;
 
@@ -127,7 +127,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
 }
 
 GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
-    GHOST_TUns8 display, const GHOST_DisplaySetting &setting)
+    uint8_t display, const GHOST_DisplaySetting &setting)
 {
   GHOST_ASSERT(
       (display == kMainDisplay),

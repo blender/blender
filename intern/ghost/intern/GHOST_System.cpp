@@ -56,19 +56,19 @@ GHOST_System::~GHOST_System()
   exit();
 }
 
-GHOST_TUns64 GHOST_System::getMilliSeconds() const
+uint64_t GHOST_System::getMilliSeconds() const
 {
   return std::chrono::duration_cast<std::chrono::milliseconds>(
              std::chrono::steady_clock::now().time_since_epoch())
       .count();
 }
 
-GHOST_ITimerTask *GHOST_System::installTimer(GHOST_TUns64 delay,
-                                             GHOST_TUns64 interval,
+GHOST_ITimerTask *GHOST_System::installTimer(uint64_t delay,
+                                             uint64_t interval,
                                              GHOST_TimerProcPtr timerProc,
                                              GHOST_TUserDataPtr userData)
 {
-  GHOST_TUns64 millis = getMilliSeconds();
+  uint64_t millis = getMilliSeconds();
   GHOST_TimerTask *timer = new GHOST_TimerTask(millis + delay, interval, timerProc, userData);
   if (timer) {
     if (m_timerManager->addTimer(timer) == GHOST_kSuccess) {

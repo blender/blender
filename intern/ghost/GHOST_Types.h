@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
@@ -56,13 +58,6 @@ GHOST_DECLARE_HANDLE(GHOST_EventConsumerHandle);
 GHOST_DECLARE_HANDLE(GHOST_ContextHandle);
 GHOST_DECLARE_HANDLE(GHOST_XrContextHandle);
 
-typedef char GHOST_TInt8;
-typedef unsigned char GHOST_TUns8;
-typedef short GHOST_TInt16;
-typedef unsigned short GHOST_TUns16;
-typedef int GHOST_TInt32;
-typedef unsigned int GHOST_TUns32;
-
 typedef struct {
   int flags;
 } GHOST_GLSettings;
@@ -77,14 +72,6 @@ typedef enum GHOST_DialogOptions {
   GHOST_DialogWarning = (1 << 0),
   GHOST_DialogError = (1 << 1),
 } GHOST_DialogOptions;
-
-#ifdef _MSC_VER
-typedef __int64 GHOST_TInt64;
-typedef unsigned __int64 GHOST_TUns64;
-#else
-typedef long long GHOST_TInt64;
-typedef unsigned long long GHOST_TUns64;
-#endif
 
 typedef void *GHOST_TUserDataPtr;
 
@@ -436,9 +423,9 @@ typedef void *GHOST_TEventDataPtr;
 
 typedef struct {
   /** The x-coordinate of the cursor position. */
-  GHOST_TInt32 x;
+  int32_t x;
   /** The y-coordinate of the cursor position. */
-  GHOST_TInt32 y;
+  int32_t y;
   /** Associated tablet data. */
   GHOST_TabletData tablet;
 } GHOST_TEventCursorData;
@@ -452,7 +439,7 @@ typedef struct {
 
 typedef struct {
   /** Displacement of a mouse wheel. */
-  GHOST_TInt32 z;
+  int32_t z;
 } GHOST_TEventWheelData;
 
 typedef enum {
@@ -468,13 +455,13 @@ typedef struct {
   /** The event subtype */
   GHOST_TTrackpadEventSubTypes subtype;
   /** The x-location of the trackpad event */
-  GHOST_TInt32 x;
+  int32_t x;
   /** The y-location of the trackpad event */
-  GHOST_TInt32 y;
+  int32_t y;
   /** The x-delta or value of the trackpad event */
-  GHOST_TInt32 deltaX;
+  int32_t deltaX;
   /** The y-delta (currently only for scroll subtype) of the trackpad event */
-  GHOST_TInt32 deltaY;
+  int32_t deltaY;
   /** The delta is inverted from the device due to system preferences. */
   char isDirectionInverted;
 } GHOST_TEventTrackpadData;
@@ -488,9 +475,9 @@ typedef enum {
 
 typedef struct {
   /** The x-coordinate of the cursor position. */
-  GHOST_TInt32 x;
+  int32_t x;
   /** The y-coordinate of the cursor position. */
-  GHOST_TInt32 y;
+  int32_t y;
   /** The dropped item type */
   GHOST_TDragnDropTypes dataType;
   /** The "dropped content" */
@@ -515,7 +502,7 @@ typedef struct {
 
 typedef struct {
   int count;
-  GHOST_TUns8 **strings;
+  uint8_t **strings;
 } GHOST_TStringArray;
 
 typedef enum {
@@ -587,13 +574,13 @@ typedef enum {
 
 typedef struct {
   /** Number of pixels on a line. */
-  GHOST_TUns32 xPixels;
+  uint32_t xPixels;
   /** Number of lines. */
-  GHOST_TUns32 yPixels;
+  uint32_t yPixels;
   /** Number of bits per pixel. */
-  GHOST_TUns32 bpp;
+  uint32_t bpp;
   /** Refresh rate (in Hertz). */
-  GHOST_TUns32 frequency;
+  uint32_t frequency;
 } GHOST_DisplaySetting;
 
 #ifdef _WIN32
@@ -613,10 +600,10 @@ typedef int GHOST_TEmbedderWindowID;
  */
 #ifdef __cplusplus
 class GHOST_ITimerTask;
-typedef void (*GHOST_TimerProcPtr)(GHOST_ITimerTask *task, GHOST_TUns64 time);
+typedef void (*GHOST_TimerProcPtr)(GHOST_ITimerTask *task, uint64_t time);
 #else
 struct GHOST_TimerTaskHandle__;
-typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, GHOST_TUns64 time);
+typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, uint64_t time);
 #endif
 
 #ifdef WITH_XR_OPENXR
@@ -724,7 +711,7 @@ typedef enum GHOST_XrActionType {
 typedef struct GHOST_XrActionInfo {
   const char *name;
   GHOST_XrActionType type;
-  GHOST_TUns32 count_subaction_paths;
+  uint32_t count_subaction_paths;
   const char **subaction_paths;
   /** States for each subaction path. */
   void *states;
@@ -735,7 +722,7 @@ typedef struct GHOST_XrActionInfo {
 
 typedef struct GHOST_XrActionSpaceInfo {
   const char *action_name;
-  GHOST_TUns32 count_subaction_paths;
+  uint32_t count_subaction_paths;
   const char **subaction_paths;
   /** Poses for each subaction path. */
   const GHOST_XrPose *poses;
@@ -743,14 +730,14 @@ typedef struct GHOST_XrActionSpaceInfo {
 
 typedef struct GHOST_XrActionBindingInfo {
   const char *action_name;
-  GHOST_TUns32 count_interaction_paths;
+  uint32_t count_interaction_paths;
   /** Interaction path: User (sub-action) path + component path. */
   const char **interaction_paths;
 } GHOST_XrActionBindingInfo;
 
 typedef struct GHOST_XrActionProfileInfo {
   const char *profile_path;
-  GHOST_TUns32 count_bindings;
+  uint32_t count_bindings;
   const GHOST_XrActionBindingInfo *bindings;
 } GHOST_XrActionProfileInfo;
 

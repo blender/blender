@@ -54,7 +54,7 @@
 
 static bool nVidiaWindows;  // very dirty but hey, it's for testing only
 
-static void gearsTimerProc(GHOST_ITimerTask *task, GHOST_TUns64 time);
+static void gearsTimerProc(GHOST_ITimerTask *task, uint64_t time);
 
 static class Application *fApp;
 static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
@@ -71,7 +71,7 @@ void StereoProjection(float left,
                       float dist,
                       float eye);
 
-static void testTimerProc(GHOST_ITimerTask * /*task*/, GHOST_TUns64 time)
+static void testTimerProc(GHOST_ITimerTask * /*task*/, uint64_t time)
 {
   std::cout << "timer1, time=" << (int)time << "\n";
 }
@@ -731,7 +731,7 @@ int main(int /*argc*/, char ** /*argv*/)
   return 0;
 }
 
-static void gearsTimerProc(GHOST_ITimerTask *task, GHOST_TUns64 /*time*/)
+static void gearsTimerProc(GHOST_ITimerTask *task, uint64_t /*time*/)
 {
   fAngle += 2.0;
   view_roty += 1.0;

@@ -56,10 +56,10 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 
 GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      const char *title,
-                                     GHOST_TInt32 left,
-                                     GHOST_TInt32 top,
-                                     GHOST_TUns32 width,
-                                     GHOST_TUns32 height,
+                                     int32_t left,
+                                     int32_t top,
+                                     uint32_t width,
+                                     uint32_t height,
                                      GHOST_TWindowState state,
                                      GHOST_TDrawingContextType type,
                                      bool wantStereoVisual,
@@ -354,12 +354,12 @@ void GHOST_WindowWin32::getClientBounds(GHOST_Rect &bounds) const
   }
 }
 
-GHOST_TSuccess GHOST_WindowWin32::setClientWidth(GHOST_TUns32 width)
+GHOST_TSuccess GHOST_WindowWin32::setClientWidth(uint32_t width)
 {
   GHOST_TSuccess success;
   GHOST_Rect cBnds, wBnds;
   getClientBounds(cBnds);
-  if (cBnds.getWidth() != (GHOST_TInt32)width) {
+  if (cBnds.getWidth() != (int32_t)width) {
     getWindowBounds(wBnds);
     int cx = wBnds.getWidth() + width - cBnds.getWidth();
     int cy = wBnds.getHeight();
@@ -373,12 +373,12 @@ GHOST_TSuccess GHOST_WindowWin32::setClientWidth(GHOST_TUns32 width)
   return success;
 }
 
-GHOST_TSuccess GHOST_WindowWin32::setClientHeight(GHOST_TUns32 height)
+GHOST_TSuccess GHOST_WindowWin32::setClientHeight(uint32_t height)
 {
   GHOST_TSuccess success;
   GHOST_Rect cBnds, wBnds;
   getClientBounds(cBnds);
-  if (cBnds.getHeight() != (GHOST_TInt32)height) {
+  if (cBnds.getHeight() != (int32_t)height) {
     getWindowBounds(wBnds);
     int cx = wBnds.getWidth();
     int cy = wBnds.getHeight() + height - cBnds.getHeight();
@@ -392,12 +392,12 @@ GHOST_TSuccess GHOST_WindowWin32::setClientHeight(GHOST_TUns32 height)
   return success;
 }
 
-GHOST_TSuccess GHOST_WindowWin32::setClientSize(GHOST_TUns32 width, GHOST_TUns32 height)
+GHOST_TSuccess GHOST_WindowWin32::setClientSize(uint32_t width, uint32_t height)
 {
   GHOST_TSuccess success;
   GHOST_Rect cBnds, wBnds;
   getClientBounds(cBnds);
-  if ((cBnds.getWidth() != (GHOST_TInt32)width) || (cBnds.getHeight() != (GHOST_TInt32)height)) {
+  if ((cBnds.getWidth() != (int32_t)width) || (cBnds.getHeight() != (int32_t)height)) {
     getWindowBounds(wBnds);
     int cx = wBnds.getWidth() + width - cBnds.getWidth();
     int cy = wBnds.getHeight() + height - cBnds.getHeight();
@@ -423,10 +423,10 @@ GHOST_TWindowState GHOST_WindowWin32::getState() const
   return GHOST_kWindowStateNormal;
 }
 
-void GHOST_WindowWin32::screenToClient(GHOST_TInt32 inX,
-                                       GHOST_TInt32 inY,
-                                       GHOST_TInt32 &outX,
-                                       GHOST_TInt32 &outY) const
+void GHOST_WindowWin32::screenToClient(int32_t inX,
+                                       int32_t inY,
+                                       int32_t &outX,
+                                       int32_t &outY) const
 {
   POINT point = {inX, inY};
   ::ScreenToClient(m_hWnd, &point);
@@ -434,10 +434,10 @@ void GHOST_WindowWin32::screenToClient(GHOST_TInt32 inX,
   outY = point.y;
 }
 
-void GHOST_WindowWin32::clientToScreen(GHOST_TInt32 inX,
-                                       GHOST_TInt32 inY,
-                                       GHOST_TInt32 &outX,
-                                       GHOST_TInt32 &outY) const
+void GHOST_WindowWin32::clientToScreen(int32_t inX,
+                                       int32_t inY,
+                                       int32_t &outX,
+                                       int32_t &outY) const
 {
   POINT point = {inX, inY};
   ::ClientToScreen(m_hWnd, &point);
@@ -666,7 +666,7 @@ HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
   // Convert GHOST cursor to Windows OEM cursor
   HANDLE cursor = NULL;
   HMODULE module = ::GetModuleHandle(0);
-  GHOST_TUns32 flags = LR_SHARED | LR_DEFAULTSIZE;
+  uint32_t flags = LR_SHARED | LR_DEFAULTSIZE;
   int cx = 0, cy = 0;
 
   switch (shape) {
@@ -835,7 +835,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
       /* use to generate a mouse move event, otherwise the last event
        * blender gets can be outside the screen causing menus not to show
        * properly unless the user moves the mouse */
-      GHOST_TInt32 pos[2];
+      int32_t pos[2];
       m_system->getCursorPosition(pos[0], pos[1]);
       m_system->setCursorPosition(pos[0], pos[1]);
     }
@@ -867,10 +867,10 @@ GHOST_TSuccess GHOST_WindowWin32::hasCursorShape(GHOST_TStandardCursor cursorSha
 GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
     std::vector<GHOST_PointerInfoWin32> &outPointerInfo, WPARAM wParam, LPARAM lParam)
 {
-  GHOST_TInt32 pointerId = GET_POINTERID_WPARAM(wParam);
-  GHOST_TInt32 isPrimary = IS_POINTER_PRIMARY_WPARAM(wParam);
+  int32_t pointerId = GET_POINTERID_WPARAM(wParam);
+  int32_t isPrimary = IS_POINTER_PRIMARY_WPARAM(wParam);
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)GHOST_System::getSystem();
-  GHOST_TUns32 outCount = 0;
+  uint32_t outCount = 0;
 
   if (!(GetPointerPenInfoHistory(pointerId, &outCount, NULL))) {
     return GHOST_kFailure;
@@ -883,7 +883,7 @@ GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
     return GHOST_kFailure;
   }
 
-  for (GHOST_TUns32 i = 0; i < outCount; i++) {
+  for (uint32_t i = 0; i < outCount; i++) {
     POINTER_INFO pointerApiInfo = pointerPenInfo[i].pointerInfo;
     // Obtain the basic information from the event
     outPointerInfo[i].pointerId = pointerId;
@@ -964,7 +964,7 @@ void GHOST_WindowWin32::loadWintab(bool enable)
 
         /* Focus Wintab if cursor is inside this window. This ensures Wintab is enabled when the
          * tablet is used to change the Tablet API. */
-        GHOST_TInt32 x, y;
+        int32_t x, y;
         if (m_system->getCursorPosition(x, y)) {
           GHOST_Rect rect;
           getClientBounds(rect);
@@ -1012,7 +1012,7 @@ GHOST_TabletData GHOST_WindowWin32::getTabletData()
   }
 }
 
-GHOST_TUns16 GHOST_WindowWin32::getDPIHint()
+uint16_t GHOST_WindowWin32::getDPIHint()
 {
   if (m_user32) {
     GHOST_WIN32_GetDpiForWindow fpGetDpiForWindow = (GHOST_WIN32_GetDpiForWindow)::GetProcAddress(
@@ -1026,8 +1026,8 @@ GHOST_TUns16 GHOST_WindowWin32::getDPIHint()
   return USER_DEFAULT_SCREEN_DPI;
 }
 
-/** Reverse the bits in a GHOST_TUns8 */
-static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
+/** Reverse the bits in a uint8_t */
+static uint8_t uns8ReverseBits(uint8_t ch)
 {
   ch = ((ch >> 1) & 0x55) | ((ch << 1) & 0xAA);
   ch = ((ch >> 2) & 0x33) | ((ch << 2) & 0xCC);
@@ -1036,8 +1036,8 @@ static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 }
 
 #if 0 /* UNUSED */
-/** Reverse the bits in a GHOST_TUns16 */
-static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
+/** Reverse the bits in a uint16_t */
+static uint16_t uns16ReverseBits(uint16_t shrt)
 {
   shrt = ((shrt >> 1) & 0x5555) | ((shrt << 1) & 0xAAAA);
   shrt = ((shrt >> 2) & 0x3333) | ((shrt << 2) & 0xCCCC);
@@ -1047,17 +1047,12 @@ static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 }
 #endif
 
-GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
-                                                             GHOST_TUns8 *mask,
-                                                             int sizeX,
-                                                             int sizeY,
-                                                             int hotX,
-                                                             int hotY,
-                                                             bool canInvertColor)
+GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(
+    uint8_t *bitmap, uint8_t *mask, int sizeX, int sizeY, int hotX, int hotY, bool canInvertColor)
 {
-  GHOST_TUns32 andData[32];
-  GHOST_TUns32 xorData[32];
-  GHOST_TUns32 fullBitRow, fullMaskRow;
+  uint32_t andData[32];
+  uint32_t xorData[32];
+  uint32_t fullBitRow, fullMaskRow;
   int x, y, cols;
 
   cols = sizeX / 8; /* Number of whole bytes per row (width of bitmap/mask). */
@@ -1115,10 +1110,9 @@ GHOST_TSuccess GHOST_WindowWin32::endProgressBar()
 }
 
 #ifdef WITH_INPUT_IME
-void GHOST_WindowWin32::beginIME(
-    GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 w, GHOST_TInt32 h, int completed)
+void GHOST_WindowWin32::beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed)
 {
-  m_imeInput.BeginIME(m_hWnd, GHOST_Rect(x, y - h, x, y), (bool)completed);
+  m_imeInput.BeginIME(m_hWnd, GHOST_Rect(x, y - h, x, y), completed);
 }
 
 void GHOST_WindowWin32::endIME()

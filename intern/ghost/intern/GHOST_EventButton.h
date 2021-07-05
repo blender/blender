@@ -40,7 +40,7 @@ class GHOST_EventButton : public GHOST_Event {
    * \param button: The state of the buttons were at the time of the event.
    * \param tablet: The tablet data associated with this event.
    */
-  GHOST_EventButton(GHOST_TUns64 time,
+  GHOST_EventButton(uint64_t time,
                     GHOST_TEventType type,
                     GHOST_IWindow *window,
                     GHOST_TButtonMask button,

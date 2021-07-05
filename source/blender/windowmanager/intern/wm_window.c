@@ -462,7 +462,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
     /* Informs GHOST of unsaved changes, to set window modified visual indicator (macOS)
      * and to give hint of unsaved changes for a user warning mechanism in case of OS application
      * terminate request (e.g. OS Shortcut Alt+F4, Command+Q, (...), or session end). */
-    GHOST_SetWindowModifiedState(win->ghostwin, (GHOST_TUns8)!wm->file_saved);
+    GHOST_SetWindowModifiedState(win->ghostwin, (bool)!wm->file_saved);
   }
 }
 
@@ -1722,7 +1722,7 @@ static char *wm_clipboard_text_get_ex(bool selection, int *r_len, bool firstline
     return NULL;
   }
 
-  char *buf = (char *)GHOST_getClipboard(selection);
+  char *buf = GHOST_getClipboard(selection);
   if (!buf) {
     *r_len = 0;
     return NULL;
@@ -1809,10 +1809,10 @@ void WM_clipboard_text_set(const char *buf, bool selection)
     }
     *p2 = '\0';
 
-    GHOST_putClipboard((GHOST_TInt8 *)newbuf, selection);
+    GHOST_putClipboard(newbuf, selection);
     MEM_freeN(newbuf);
 #else
-    GHOST_putClipboard((GHOST_TInt8 *)buf, selection);
+    GHOST_putClipboard(buf, selection);
 #endif
   }
 }

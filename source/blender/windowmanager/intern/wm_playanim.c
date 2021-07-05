@@ -1357,7 +1357,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 static void playanim_window_open(const char *title, int posx, int posy, int sizex, int sizey)
 {
   GHOST_GLSettings glsettings = {0};
-  GHOST_TUns32 scr_w, scr_h;
+  uint32_t scr_w, scr_h;
 
   GHOST_GetMainDisplayDimensions(g_WS.ghost_system, &scr_w, &scr_h);
 
@@ -1405,7 +1405,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 {
   struct ImBuf *ibuf = NULL;
   static char filepath[FILE_MAX]; /* abused to return dropped file path */
-  GHOST_TUns32 maxwinx, maxwiny;
+  uint32_t maxwinx, maxwiny;
   int i;
   /* This was done to disambiguate the name for use under c++. */
   int start_x = 0, start_y = 0;

@@ -56,10 +56,10 @@ typedef std::unique_ptr<std::remove_pointer_t<HMODULE>, decltype(&::FreeLibrary)
 typedef std::unique_ptr<std::remove_pointer_t<HCTX>, GHOST_WIN32_WTClose> unique_hctx;
 
 struct GHOST_WintabInfoWin32 {
-  GHOST_TInt32 x, y;
+  int32_t x, y;
   GHOST_TEventType type;
   GHOST_TButtonMask button;
-  GHOST_TUns64 time;
+  uint64_t time;
   GHOST_TabletData tabletData;
 };
 
@@ -178,7 +178,7 @@ class GHOST_Wintab {
   bool m_focused = false;
 
   /** Pressed button map. */
-  GHOST_TUns8 m_buttons = 0;
+  uint8_t m_buttons = 0;
 
   /** Range of a coordinate space. */
   struct Range {

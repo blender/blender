@@ -191,8 +191,7 @@ bool BKE_appdir_folder_documents(char *dir)
 {
   dir[0] = '\0';
 
-  const char *documents_path = (const char *)GHOST_getUserSpecialDir(
-      GHOST_kUserSpecialDirDocuments);
+  const char *documents_path = GHOST_getUserSpecialDir(GHOST_kUserSpecialDirDocuments);
 
   /* Usual case: Ghost gave us the documents path. We're done here. */
   if (documents_path && BLI_is_dir(documents_path)) {
@@ -462,7 +461,7 @@ static bool get_path_user_ex(char *targetpath,
   }
   user_path[0] = '\0';
 
-  user_base_path = (const char *)GHOST_getUserDir(version, blender_version_decimal(version));
+  user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
   if (user_base_path) {
     BLI_strncpy(user_path, user_base_path, FILE_MAX);
   }
@@ -522,7 +521,7 @@ static bool get_path_system_ex(char *targetpath,
   }
 
   system_path[0] = '\0';
-  system_base_path = (const char *)GHOST_getSystemDir(version, blender_version_decimal(version));
+  system_base_path = GHOST_getSystemDir(version, blender_version_decimal(version));
   if (system_base_path) {
     BLI_strncpy(system_path, system_base_path, FILE_MAX);
   }
