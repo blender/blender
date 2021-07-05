@@ -214,21 +214,29 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
     BMFace *f_new = BM_faces_join(bm, faces, faces_len, true);
     if (f_new != NULL) {
-      /* maintain active face */
+      /* Maintain the active face. */
       if (act_face && bm->act_face == NULL) {
         bm->act_face = f_new;
       }
       totface_target -= faces_len - 1;
+
+      /* If making the new face failed (e.g. overlapping test)
+       * un-mark the original faces for deletion. */
+      BMO_face_flag_disable(bm, f_new, FACE_ORIG);
+      BMO_face_flag_enable(bm, f_new, FACE_NEW);
     }
     else {
-      BMO_error_raise(bm, op, "Could not create merged face");
-      goto cleanup;
-    }
+      /* NOTE: prior to 3.0 this raised an error: "Could not create merged face".
+       * Change behavior since it's not useful to fail entirely when a single face-group
+       * can't be merged into one face. Continue with other face groups instead.
+       *
+       * This could optionally do a partial merge, where some faces are joined. */
 
-    /* if making the new face failed (e.g. overlapping test)
-     * unmark the original faces for deletion */
-    BMO_face_flag_disable(bm, f_new, FACE_ORIG);
-    BMO_face_flag_enable(bm, f_new, FACE_NEW);
+      /* Prevent these faces from being removed. */
+      for (i = 0; i < faces_len; i++) {
+        BMO_face_flag_disable(bm, faces[i], FACE_ORIG);
+      }
+    }
   }
 
   /* Typically no faces need to be deleted */
@@ -253,7 +261,6 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
 
-cleanup:
   /* free/cleanup */
   for (i = 0; i < BLI_array_len(regions); i++) {
     MEM_freeN(regions[i].faces);
