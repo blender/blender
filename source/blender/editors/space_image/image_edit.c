@@ -64,8 +64,6 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Object *obedit, Image *im
     sima->pin = true;
   }
 
-  /* change the space ima after because uvedit_face_visible_test uses the space ima
-   * to check if the face is displayed in UV-localview */
   sima->image = ima;
 
   if (ima == NULL || ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE) {
