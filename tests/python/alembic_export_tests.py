@@ -197,7 +197,7 @@ class HierarchicalAndFlatExportTest(AbstractAlembicTest):
     def test_hierarchical_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'cubes_hierarchical.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_objects_only=True, flatten=False)" % abc.as_posix()
+                 "visible_objects_only=True, flatten=False)" % abc.as_posix()
         self.run_blender('cubes-hierarchy.blend', script)
 
         # Now check the resulting Alembic file.
@@ -215,7 +215,7 @@ class HierarchicalAndFlatExportTest(AbstractAlembicTest):
     def test_flat_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'cubes_flat.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_objects_only=True, flatten=True)" % abc.as_posix()
+                 "visible_objects_only=True, flatten=True)" % abc.as_posix()
         self.run_blender('cubes-hierarchy.blend', script)
 
         # Now check the resulting Alembic file.
@@ -236,7 +236,7 @@ class DupliGroupExportTest(AbstractAlembicTest):
     def test_hierarchical_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'dupligroup_hierarchical.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_objects_only=True, flatten=False)" % abc.as_posix()
+                 "visible_objects_only=True, flatten=False)" % abc.as_posix()
         self.run_blender('dupligroup-scene.blend', script)
 
         # Now check the resulting Alembic file.
@@ -254,7 +254,7 @@ class DupliGroupExportTest(AbstractAlembicTest):
     def test_flat_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'dupligroup_hierarchical.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_objects_only=True, flatten=True)" % abc.as_posix()
+                 "visible_objects_only=True, flatten=True)" % abc.as_posix()
         self.run_blender('dupligroup-scene.blend', script)
 
         # Now check the resulting Alembic file.
@@ -332,7 +332,7 @@ class CurveExportTest(AbstractAlembicTest):
     def test_export_single_curve(self, tempdir: pathlib.Path):
         abc = tempdir / 'single-curve.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_objects_only=True, flatten=False)" % abc.as_posix()
+                 "visible_objects_only=True, flatten=False)" % abc.as_posix()
         self.run_blender('single-curve.blend', script)
 
         # Now check the resulting Alembic file.
@@ -353,7 +353,7 @@ class HairParticlesExportTest(AbstractAlembicTest):
     def _do_test(self, tempdir: pathlib.Path, export_hair: bool, export_particles: bool) -> pathlib.Path:
         abc = tempdir / 'hair-particles.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=True, visible_objects_only=True, flatten=False, " \
+                 "visible_objects_only=True, flatten=False, " \
                  "export_hair=%r, export_particles=%r, as_background_job=False)" \
                  % (abc.as_posix(), export_hair, export_particles)
         self.run_blender('hair-particles.blend', script)
@@ -419,7 +419,7 @@ class UVMapExportTest(AbstractAlembicTest):
         basename = 'T77021-multiple-uvmaps-animated-mesh'
         abc = tempdir / f'{basename}.abc'
         script = f"import bpy; bpy.ops.wm.alembic_export(filepath='{abc.as_posix()}', start=1, end=1, " \
-                 f"renderable_only=True, visible_objects_only=True, flatten=False)"
+                 f"visible_objects_only=True, flatten=False)"
         self.run_blender(f'{basename}.blend', script)
 
         self.maxDiff = 1000
@@ -468,7 +468,7 @@ class LongNamesExportTest(AbstractAlembicTest):
     def test_export_long_names(self, tempdir: pathlib.Path):
         abc = tempdir / 'long-names.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1, " \
-                 "renderable_only=False, visible_objects_only=False, flatten=False)" % abc.as_posix()
+                 "visible_objects_only=False, flatten=False)" % abc.as_posix()
         self.run_blender('long-names.blend', script)
 
         name_parts = [
@@ -565,7 +565,7 @@ class InvisibleObjectExportTest(AbstractAlembicTest):
     def test_hierarchical_export(self, tempdir: pathlib.Path):
         abc = tempdir / 'visibility.abc'
         script = "import bpy; bpy.ops.wm.alembic_export(filepath='%s', start=1, end=2, " \
-                 "renderable_only=False, visible_objects_only=False)" % abc.as_posix()
+                 "visible_objects_only=False)" % abc.as_posix()
         self.run_blender('visibility.blend', script)
 
         def test(cube_name: str, expect_visible: bool):
