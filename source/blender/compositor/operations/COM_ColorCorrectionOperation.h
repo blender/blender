@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedRowOperation.h"
 
 namespace blender::compositor {
 
-class ColorCorrectionOperation : public NodeOperation {
+class ColorCorrectionOperation : public MultiThreadedRowOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -69,6 +69,8 @@ class ColorCorrectionOperation : public NodeOperation {
   {
     this->m_blueChannelEnabled = enabled;
   }
+
+  void update_memory_buffer_row(PixelCursor &p) override;
 };
 
 }  // namespace blender::compositor
