@@ -1041,6 +1041,8 @@ static void object_blend_read_expand(BlendExpander *expander, ID *id)
 
   BLO_expand(expander, ob->data);
 
+  BLO_expand(expander, ob->parent);
+
   /* expand_object_expandModifier() */
   if (ob->modifiers.first) {
     BKE_modifiers_foreach_ID_link(ob, expand_object_expandModifiers, expander);
