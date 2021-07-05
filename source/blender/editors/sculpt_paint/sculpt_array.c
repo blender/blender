@@ -400,7 +400,28 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   }
    
    sculpt_array_ensure_original_coordinates(ob, ss->cache->array);
+   sculpt_array_stroke_sample_add(ob, ss->cache->array);
    sculpt_array_update(ob, brush, ss->cache->array);
    sculpt_array_deform(sd, ob, nodes, totnode);
 
+}
+
+void SCULPT_scultp_array_path_draw(const uint gpuattr,
+                                           Brush *brush,
+                                           SculptSession *ss) {
+    SculptArray *array = ss->cache->array;
+    if (!array) {
+      return;
+    }
+
+    if (!array->path.points) {
+      return;
+    }
+
+    const int tot_points = array->path.tot_points - 1; 
+    immBegin(GPU_PRIM_LINE_STRIP, tot_points);
+    for (int i = 0; i < tot_points; i++) {
+      immVertex3fv(gpuattr, array->path.points[i].co);
+    }
+    immEnd();
 }

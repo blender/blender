@@ -1782,6 +1782,11 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
         pcontext->pos, brush, ss, pcontext->outline_col, pcontext->outline_alpha);
   }
 
+  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+    /* Draw Array Path. */
+    SCULPT_array_path_draw(pcontext->pos, brush, ss);
+  }
+
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
     if (brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_PLANE) {
       SCULPT_cloth_plane_falloff_preview_draw(
