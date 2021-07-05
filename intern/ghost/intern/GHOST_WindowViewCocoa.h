@@ -47,6 +47,7 @@
     GHOST_TEventImeData event;
     std::string result;
     std::string composite;
+    std::string combined_result;
   } ime;
 #endif
 }
@@ -123,6 +124,20 @@
 
     // interpret event to call insertText
     [self interpretKeyEvents:[NSArray arrayWithObject:event]];  // calls insertText
+
+#ifdef WITH_INPUT_IME
+    // For Korean input, control characters are also processed by handleKeyEvent.
+    const int controlCharForKorean = (GHOST_IME_COMPOSITION_EVENT | GHOST_IME_RESULT_EVENT |
+                                      GHOST_IME_KEY_CONTROL_CHAR);
+    if (((ime.state_flag & controlCharForKorean) == controlCharForKorean)) {
+      systemCocoa->handleKeyEvent(event);
+    }
+
+    ime.state_flag &= ~(GHOST_IME_COMPOSITION_EVENT | GHOST_IME_RESULT_EVENT);
+
+    ime.combined_result.clear();
+#endif
+
     return;
   }
 }
@@ -261,9 +276,23 @@
       [self processImeEvent:GHOST_kEventImeCompositionStart];
     }
 
-    [self setImeResult:[self convertNSString:chars]];
+    // For Chinese and Korean input, insertText may be executed twice with a single keyDown.
+    if (ime.state_flag & GHOST_IME_RESULT_EVENT) {
+      ime.combined_result += [self convertNSString:chars];
+    }
+    else {
+      ime.combined_result = [self convertNSString:chars];
+    }
 
-    [self processImeEvent:GHOST_kEventImeComposition];
+    [self setImeResult:ime.combined_result];
+
+    /* For Korean input, both "Result Event" and "Composition Event"
+     * can occur in a single keyDown. */
+    if (![self ime_did_composition]) {
+      [self processImeEvent:GHOST_kEventImeComposition];
+    }
+    ime.state_flag |= GHOST_IME_RESULT_EVENT;
+
     [self processImeEvent:GHOST_kEventImeCompositionEnd];
     ime.state_flag &= ~GHOST_IME_COMPOSING;
   }
@@ -313,7 +342,11 @@
 
     [self setImeComposition:composing_text selectedRange:range];
 
-    [self processImeEvent:GHOST_kEventImeComposition];
+    // For Korean input, setMarkedText may be executed twice with a single keyDown.
+    if (![self ime_did_composition]) {
+      ime.state_flag |= GHOST_IME_COMPOSITION_EVENT;
+      [self processImeEvent:GHOST_kEventImeComposition];
+    }
   }
 #endif
 }
@@ -457,7 +490,11 @@
 - (void)setImeComposition:(NSString *)inString selectedRange:(NSRange)range
 {
   ime.composite = [self convertNSString:inString];
-  ime.result.clear();
+
+  // For Korean input, both "Result Event" and "Composition Event" can occur in a single keyDown.
+  if (!(ime.state_flag & GHOST_IME_RESULT_EVENT)) {
+    ime.result.clear();
+  }
 
   /* The target string is equivalent to the string in selectedRange of setMarkedText.
    * The cursor is displayed at the beginning of the target string. */
@@ -523,6 +560,12 @@
       ime.state_flag |= GHOST_IME_KEY_CONTROL_CHAR;
       return;
   }
+}
+
+- (bool)ime_did_composition
+{
+  return (ime.state_flag & GHOST_IME_COMPOSITION_EVENT) ||
+         (ime.state_flag & GHOST_IME_RESULT_EVENT);
 }
 
 /* Even if IME is enabled, when not composing, control characters
