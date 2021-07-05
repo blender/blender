@@ -33,7 +33,7 @@ struct NumChannelsOp {
   int num_channels = 0;
 
   template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
-  bool operator()(const openvdb::GridBase::ConstPtr &grid)
+  bool operator()(const openvdb::GridBase::ConstPtr &)
   {
     num_channels = channels;
     return true;
