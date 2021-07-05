@@ -2734,8 +2734,8 @@ static int image_flip_exec(bContext *C, wmOperator *op)
 
     float *orig_float_pixels = MEM_dupallocN(float_pixels);
     for (int x = 0; x < size_x; x++) {
+      const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
       for (int y = 0; y < size_y; y++) {
-        const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
         const int source_pixel_y = use_flip_y ? size_y - y - 1 : y;
 
         const float *source_pixel =
@@ -2755,8 +2755,8 @@ static int image_flip_exec(bContext *C, wmOperator *op)
     char *char_pixels = (char *)ibuf->rect;
     char *orig_char_pixels = MEM_dupallocN(char_pixels);
     for (int x = 0; x < size_x; x++) {
+      const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
       for (int y = 0; y < size_y; y++) {
-        const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
         const int source_pixel_y = use_flip_y ? size_y - y - 1 : y;
 
         const char *source_pixel =
