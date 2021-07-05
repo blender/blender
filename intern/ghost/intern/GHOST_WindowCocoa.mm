@@ -1221,3 +1221,26 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
   [pool drain];
   return GHOST_kSuccess;
 }
+
+#ifdef WITH_INPUT_IME
+void GHOST_WindowCocoa::beginIME(
+    GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 w, GHOST_TInt32 h, int completed)
+{
+  if (m_openGLView) {
+    [m_openGLView beginIME:x y:y w:w h:h completed:(bool)completed];
+  }
+  else {
+    [m_metalView beginIME:x y:y w:w h:h completed:(bool)completed];
+  }
+}
+
+void GHOST_WindowCocoa::endIME()
+{
+  if (m_openGLView) {
+    [m_openGLView endIME];
+  }
+  else {
+    [m_metalView endIME];
+  }
+}
+#endif /* WITH_INPUT_IME */

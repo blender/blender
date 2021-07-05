@@ -155,6 +155,9 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
   endif()
 
 elseif(APPLE AND NOT WITH_GHOST_X11)
+  if(WITH_INPUT_IME)
+    add_definitions(-DWITH_INPUT_IME)
+  endif()
   list(APPEND SRC
     intern/GHOST_DisplayManagerCocoa.mm
     intern/GHOST_SystemCocoa.mm

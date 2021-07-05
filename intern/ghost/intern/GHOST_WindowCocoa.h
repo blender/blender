@@ -29,6 +29,9 @@
 #endif  // __APPLE__
 
 #include "GHOST_Window.h"
+#ifdef WITH_INPUT_IME
+#  include "GHOST_Event.h"
+#endif
 
 @class CAMetalLayer;
 @class CocoaMetalView;
@@ -263,6 +266,11 @@ class GHOST_WindowCocoa : public GHOST_Window {
     return m_immediateDraw;
   }
 
+#ifdef WITH_INPUT_IME
+  void beginIME(GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 w, GHOST_TInt32 h, int completed);
+  void endIME();
+#endif /* WITH_INPUT_IME */
+
  protected:
   /**
    * \param type: The type of rendering context create.
@@ -326,3 +334,28 @@ class GHOST_WindowCocoa : public GHOST_Window {
   bool m_debug_context;  // for debug messages during context setup
   bool m_is_dialog;
 };
+
+#ifdef WITH_INPUT_IME
+class GHOST_EventIME : public GHOST_Event {
+ public:
+  /**
+   * Constructor.
+   * \param msec: The time this event was generated.
+   * \param type: The type of key event.
+   * \param key: The key code of the key.
+   */
+  GHOST_EventIME(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow *window, void *customdata)
+      : GHOST_Event(msec, type, window)
+  {
+    this->m_data = customdata;
+  }
+};
+
+typedef int GHOST_ImeStateFlagCocoa;
+enum {
+  GHOST_IME_INPUT_FOCUSED = (1 << 0),
+  GHOST_IME_ENABLED = (1 << 1),
+  GHOST_IME_COMPOSING = (1 << 2),
+  GHOST_IME_KEY_CONTROL_CHAR = (1 << 3)
+};
+#endif /* WITH_INPUT_IME */

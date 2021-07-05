@@ -217,8 +217,8 @@ enum {
 
 #define WM_KEYCONFIG_STR_DEFAULT "Blender"
 
-/* IME is win32 only! */
-#if !defined(WIN32) && !defined(DNA_DEPRECATED)
+/* IME is win32 and apple only! */
+#if !(defined(WIN32) || defined(__APPLE__)) && !defined(DNA_DEPRECATED)
 #  ifdef __GNUC__
 #    define ime_data ime_data __attribute__((deprecated))
 #  endif
@@ -302,7 +302,7 @@ typedef struct wmWindow {
   struct wmGesture *tweak;
 
   /* Input Method Editor data - complex character input (especially for Asian character input)
-   * Currently WIN32, runtime-only data. */
+   * Currently WIN32 and APPLE, runtime-only data. */
   struct wmIMEData *ime_data;
 
   /** All events #wmEvent (ghost level events were handled). */
