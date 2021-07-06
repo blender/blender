@@ -888,7 +888,7 @@ Collection *BKE_collection_master_add()
 {
   /* Not an actual datablock, but owned by scene. */
   Collection *master_collection = BKE_libblock_alloc(
-      NULL, ID_GR, "Master Collection", LIB_ID_CREATE_NO_MAIN);
+      NULL, ID_GR, BKE_SCENE_COLLECTION_NAME, LIB_ID_CREATE_NO_MAIN);
   master_collection->id.flag |= LIB_EMBEDDED_DATA;
   master_collection->flag |= COLLECTION_IS_MASTER;
   master_collection->color_tag = COLLECTION_COLOR_NONE;

@@ -7962,10 +7962,10 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "master_collection");
   RNA_def_property_struct_type(prop, "Collection");
   RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
-  RNA_def_property_ui_text(
-      prop,
-      "Collection",
-      "Scene master collection that objects and other collections in the scene");
+  RNA_def_property_ui_text(prop,
+                           "Collection",
+                           "Scene root collection that owns all the objects and other collections "
+                           "instantiated in the scene");
 
   /* Scene Display */
   prop = RNA_def_property(srna, "display", PROP_POINTER, PROP_NONE);

@@ -28,12 +28,14 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_genfile.h"
 #include "DNA_listBase.h"
 #include "DNA_modifier_types.h"
 #include "DNA_text_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -465,6 +467,16 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       sequencer_tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
                                            SEQ_SNAP_TO_STRIP_HOLD;
       sequencer_tool_settings->snap_distance = 15;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 8)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->master_collection != NULL) {
+        BLI_strncpy(scene->master_collection->id.name + 2,
+                    BKE_SCENE_COLLECTION_NAME,
+                    sizeof(scene->master_collection->id.name) - 2);
+      }
     }
   }
 
