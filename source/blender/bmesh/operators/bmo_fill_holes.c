@@ -66,7 +66,7 @@ void bmo_holes_fill_exec(BMesh *bm, BMOperator *op)
   BMO_op_exec(bm, &op_attr);
 
   /* check if some faces couldn't be touched */
-  if (BMO_slot_buffer_count(op_attr.slots_out, "faces_fail.out")) {
+  if (BMO_slot_buffer_len(op_attr.slots_out, "faces_fail.out")) {
     BMOIter siter;
     BMFace *f;
 

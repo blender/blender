@@ -74,7 +74,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
   uint nors_tot;
   bool calc_winding = false;
 
-  sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_count(op->slots_in, "edges"));
+  sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_len(op->slots_in, "edges"));
 
   BMO_slot_vec_get(op->slots_in, "normal", normal);
 

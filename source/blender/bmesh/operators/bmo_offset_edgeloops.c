@@ -74,7 +74,7 @@ static BMFace *bm_face_split_walk_back(BMesh *bm, BMLoop *l_src, BMLoop **r_l)
 
 void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 {
-  const int edges_num = BMO_slot_buffer_count(op->slots_in, "edges");
+  const int edges_num = BMO_slot_buffer_len(op->slots_in, "edges");
   BMVert **verts;
   STACK_DECLARE(verts);
   int i;

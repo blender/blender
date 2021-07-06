@@ -973,7 +973,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 #ifdef USE_FACE_CREATE_SEL_EXTEND
     /* normally we would want to leave the new geometry selected,
      * but being able to press F many times to add geometry is too useful! */
-    if (ele_desel && (BMO_slot_buffer_count(bmop.slots_out, "faces.out") == 1) &&
+    if (ele_desel && (BMO_slot_buffer_len(bmop.slots_out, "faces.out") == 1) &&
         (ele_desel_face = BMO_slot_buffer_get_first(bmop.slots_out, "faces.out"))) {
       edbm_add_edge_face_exec__tricky_finalize_sel(em->bm, ele_desel, ele_desel_face);
     }
@@ -2344,7 +2344,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
     BMO_slot_buffer_hflag_enable(
         em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
 
-    const int tot_rotate = BMO_slot_buffer_count(bmop.slots_out, "edges.out");
+    const int tot_rotate = BMO_slot_buffer_len(bmop.slots_out, "edges.out");
     const int tot_failed = tot - tot_rotate;
 
     tot_rotate_all += tot_rotate;

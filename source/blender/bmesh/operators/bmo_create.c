@@ -172,7 +172,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
     BMO_op_exec(bm, &op_sub);
 
     /* return if edge net create did something */
-    if (BMO_slot_buffer_count(op_sub.slots_out, "faces.out")) {
+    if (BMO_slot_buffer_len(op_sub.slots_out, "faces.out")) {
       BMO_slot_copy(&op_sub, slots_out, "faces.out", op, slots_out, "faces.out");
       BMO_op_finish(bm, &op_sub);
       return;
@@ -191,7 +191,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
     BMO_op_exec(bm, &op_sub);
 
     /* if we dissolved anything, then return */
-    if (BMO_slot_buffer_count(op_sub.slots_out, "region.out")) {
+    if (BMO_slot_buffer_len(op_sub.slots_out, "region.out")) {
       BMO_slot_copy(&op_sub, slots_out, "region.out", op, slots_out, "faces.out");
       BMO_op_finish(bm, &op_sub);
       return;
@@ -211,7 +211,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
     BMO_op_exec(bm, &op_sub);
 
     /* return if edge loop fill did something */
-    if (BMO_slot_buffer_count(op_sub.slots_out, "faces.out")) {
+    if (BMO_slot_buffer_len(op_sub.slots_out, "faces.out")) {
       BMO_slot_copy(&op_sub, slots_out, "faces.out", op, slots_out, "faces.out");
       BMO_op_finish(bm, &op_sub);
       return;

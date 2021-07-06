@@ -678,7 +678,7 @@ void BMO_mesh_selected_remap(BMesh *bm,
   }
 }
 
-int BMO_slot_buffer_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
+int BMO_slot_buffer_len(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
   BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
   BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
@@ -691,7 +691,7 @@ int BMO_slot_buffer_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot
   return slot->len;
 }
 
-int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
+int BMO_slot_map_len(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
   BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
   BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
