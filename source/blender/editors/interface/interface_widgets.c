@@ -3720,10 +3720,6 @@ static void widget_progressbar(
   /* "slider" bar color */
   copy_v3_v3_uchar(wcol->inner, wcol->item);
   widgetbase_draw(&wtb_bar, wcol);
-
-  /* raise text a bit */
-  rect->xmin += (BLI_rcti_size_x(&rect_prog) / 2);
-  rect->xmax += (BLI_rcti_size_x(&rect_prog) / 2);
 }
 
 static void widget_datasetrow(

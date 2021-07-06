@@ -4106,7 +4106,6 @@ static uiBut *ui_def_but(uiBlock *block,
                 UI_BTYPE_BLOCK,
                 UI_BTYPE_BUT_MENU,
                 UI_BTYPE_SEARCH_MENU,
-                UI_BTYPE_PROGRESS_BAR,
                 UI_BTYPE_DATASETROW,
                 UI_BTYPE_POPOVER)) {
     but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
