@@ -34,6 +34,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_text_types.h"
 
+#include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_collection.h"
 #include "BKE_fcurve_driver.h"
@@ -480,17 +481,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 9)) {
+    /* Fix a bug where reordering FCurves and bActionGroups could cause some corruption. Just
+     * reconstruct all the action groups & ensure that the FCurves of a group are continuously
+     * stored (i.e. not mixed with other groups) to be sure. See T89435. */
+    LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
+      BKE_action_groups_reconstruct(act);
+    }
 
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_GEOMETRY) {
@@ -502,5 +499,18 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

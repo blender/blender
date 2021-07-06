@@ -497,9 +497,8 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 }
 
 /* Reconstruct group channel pointers.
- * Assumes that the channels are still in the proper order, i.e. that channels of the same group
- * are adjacent in the act->channels list. It also assumes that the groups
- * referred to by the FCurves are already in act->groups.
+ * Assumes that the groups referred to by the FCurves are already in act->groups.
+ * Reorders the main channel list to match group order.
  */
 void BKE_action_groups_reconstruct(bAction *act)
 {
@@ -514,23 +513,30 @@ void BKE_action_groups_reconstruct(bAction *act)
     BLI_listbase_clear(&group->channels);
   }
 
-  bActionGroup *grp;
-  bActionGroup *last_grp = NULL;
-  LISTBASE_FOREACH (FCurve *, fcurve, &act->curves) {
-    if (fcurve->grp == NULL) {
-      continue;
-    }
+  /* Sort the channels into the group lists, destroying the act->curves list. */
+  ListBase ungrouped = {NULL, NULL};
 
-    grp = fcurve->grp;
-    if (last_grp != grp) {
-      /* If this is the first time we see this group, this must be the first channel. */
-      grp->channels.first = fcurve;
-    }
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcurve, &act->curves) {
+    if (fcurve->grp) {
+      BLI_assert(BLI_findindex(&act->groups, fcurve->grp) >= 0);
 
-    /* This is the last channel, until it's overwritten by a later iteration. */
-    grp->channels.last = fcurve;
-    last_grp = grp;
+      BLI_addtail(&fcurve->grp->channels, fcurve);
+    }
+    else {
+      BLI_addtail(&ungrouped, fcurve);
+    }
   }
+
+  /* Recombine into the main list. */
+  BLI_listbase_clear(&act->curves);
+
+  LISTBASE_FOREACH (bActionGroup *, group, &act->groups) {
+    /* Copy the list header to preserve the pointers in the group. */
+    ListBase tmp = group->channels;
+    BLI_movelisttolist(&act->curves, &tmp);
+  }
+
+  BLI_movelisttolist(&act->curves, &ungrouped);
 }
 
 /* Remove the given channel from all groups */

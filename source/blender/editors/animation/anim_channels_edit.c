@@ -1283,6 +1283,9 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
     else {
       group_fcurves_last->next->prev = group_fcurves_first->prev;
     }
+
+    /* Clear links pointing outside the per-group list. */
+    group_fcurves_first->prev = group_fcurves_last->next = NULL;
   }
 
   /* Initialize memory for temp-group */
@@ -1337,23 +1340,11 @@ static void join_groups_action_temp(bAction *act)
     if (agrp->flag & AGRP_TEMP) {
       LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
         fcu->grp = NULL;
-        if (fcu == agrp->channels.last) {
-          break;
-        }
       }
 
       BLI_remlink(&act->groups, agrp);
       break;
     }
-  }
-
-  /* BLI_movelisttolist() doesn't touch first->prev and last->next pointers in its "dst" list.
-   * Ensure that after the reshuffling the list is properly terminated. */
-  if (!BLI_listbase_is_empty(&act->curves)) {
-    FCurve *act_fcurves_first = act->curves.first;
-    act_fcurves_first->prev = NULL;
-    FCurve *act_fcurves_last = act->curves.last;
-    act_fcurves_last->next = NULL;
   }
 }
 
