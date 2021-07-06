@@ -92,13 +92,15 @@ static ConstantOperation *create_constant_operation(DataType data_type, const fl
 ConstantOperation *ConstantFolder::fold_operation(NodeOperation *operation)
 {
   const DataType data_type = operation->getOutputSocket()->getDataType();
-  MemoryBuffer *fold_buf = create_constant_buffer(data_type);
+  MemoryBuffer fold_buf(data_type, first_elem_area_);
   Vector<MemoryBuffer *> input_bufs = get_constant_input_buffers(operation);
-  operation->render(fold_buf, {first_elem_area_}, input_bufs);
+  operation->render(&fold_buf, {first_elem_area_}, input_bufs);
 
-  ConstantOperation *constant_op = create_constant_operation(data_type, fold_buf->getBuffer());
+  MemoryBuffer *constant_buf = create_constant_buffer(data_type);
+  constant_buf->copy_from(&fold_buf, first_elem_area_);
+  ConstantOperation *constant_op = create_constant_operation(data_type, constant_buf->getBuffer());
   operations_builder_.replace_operation_with_constant(operation, constant_op);
-  constant_buffers_.add_new(constant_op, fold_buf);
+  constant_buffers_.add_new(constant_op, constant_buf);
   return constant_op;
 }
 
