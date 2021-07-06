@@ -28,6 +28,7 @@ GammaOperation::GammaOperation()
   this->addOutputSocket(DataType::Color);
   this->m_inputProgram = nullptr;
   this->m_inputGammaProgram = nullptr;
+  flags.can_be_constant = true;
 }
 void GammaOperation::initExecution()
 {

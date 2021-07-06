@@ -46,6 +46,7 @@ ColorBalanceLGGOperation::ColorBalanceLGGOperation()
   this->m_inputValueOperation = nullptr;
   this->m_inputColorOperation = nullptr;
   this->setResolutionInputSocketIndex(1);
+  flags.can_be_constant = true;
 }
 
 void ColorBalanceLGGOperation::initExecution()
