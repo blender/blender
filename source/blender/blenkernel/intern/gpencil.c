@@ -2694,19 +2694,57 @@ static bool gpencil_is_layer_mask(ViewLayer *view_layer, bGPdata *gpd, bGPDlayer
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Iterators
+/** \name Iterator
+ *
+ * Iterate over all visible stroke of all visible layers inside a grease pencil datablock.
+ * \{ */
+
+void BKE_gpencil_visible_stroke_iter(bGPdata *gpd,
+                                     gpIterCb layer_cb,
+                                     gpIterCb stroke_cb,
+                                     void *thunk)
+{
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+
+    if (gpl->flag & GP_LAYER_HIDE) {
+      continue;
+    }
+
+    /* If scale to 0 the layer must be invisible. */
+    if (is_zero_v3(gpl->scale)) {
+      continue;
+    }
+
+    bGPDframe *act_gpf = gpl->actframe;
+    if (layer_cb) {
+      layer_cb(gpl, act_gpf, NULL, thunk);
+    }
+
+    if (act_gpf) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &act_gpf->strokes) {
+        if (gps->totpoints == 0) {
+          continue;
+        }
+        stroke_cb(gpl, act_gpf, gps, thunk);
+      }
+    }
+  }
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Advanced Iterator
  *
  * Iterate over all visible stroke of all visible layers inside a gpObject.
  * Also take into account onion-skinning.
  * \{ */
 
-void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
-                                     Object *ob,
-                                     gpIterCb layer_cb,
-                                     gpIterCb stroke_cb,
-                                     void *thunk,
-                                     bool do_onion,
-                                     int cfra)
+void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
+                                              Object *ob,
+                                              gpIterCb layer_cb,
+                                              gpIterCb stroke_cb,
+                                              void *thunk,
+                                              bool do_onion,
+                                              int cfra)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = ((GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) && (!GPENCIL_PLAY_ON(gpd)));

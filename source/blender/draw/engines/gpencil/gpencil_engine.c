@@ -640,13 +640,13 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
       }
     }
 
-    BKE_gpencil_visible_stroke_iter(is_final_render ? pd->view_layer : NULL,
-                                    ob,
-                                    gpencil_layer_cache_populate,
-                                    gpencil_stroke_cache_populate,
-                                    &iter,
-                                    do_onion,
-                                    pd->cfra);
+    BKE_gpencil_visible_stroke_advanced_iter(is_final_render ? pd->view_layer : NULL,
+                                             ob,
+                                             gpencil_layer_cache_populate,
+                                             gpencil_stroke_cache_populate,
+                                             &iter,
+                                             do_onion,
+                                             pd->cfra);
 
     gpencil_drawcall_flush(&iter);
 

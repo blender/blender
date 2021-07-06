@@ -422,7 +422,7 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
         .tri_len = 0,
         .curve_len = 0,
     };
-    BKE_gpencil_visible_stroke_iter(
+    BKE_gpencil_visible_stroke_advanced_iter(
         NULL, ob, NULL, gpencil_object_verts_count_cb, &iter, do_onion, cfra);
 
     /* Create VBOs. */
@@ -439,7 +439,8 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
     GPU_indexbuf_init(&iter.ibo, GPU_PRIM_TRIS, iter.tri_len, iter.vert_len);
 
     /* Fill buffers with data. */
-    BKE_gpencil_visible_stroke_iter(NULL, ob, NULL, gpencil_stroke_iter_cb, &iter, do_onion, cfra);
+    BKE_gpencil_visible_stroke_advanced_iter(
+        NULL, ob, NULL, gpencil_stroke_iter_cb, &iter, do_onion, cfra);
 
     /* Mark last 2 verts as invalid. */
     for (int i = 0; i < 2; i++) {
@@ -514,7 +515,7 @@ GPUBatch *DRW_cache_gpencil_face_wireframe_get(Object *ob)
 
     /* IMPORTANT: Keep in sync with gpencil_edit_batches_ensure() */
     bool do_onion = true;
-    BKE_gpencil_visible_stroke_iter(
+    BKE_gpencil_visible_stroke_advanced_iter(
         NULL, ob, NULL, gpencil_lines_indices_cb, &iter, do_onion, cfra);
 
     GPUIndexBuf *ibo = GPU_indexbuf_build(&iter.ibo);
@@ -856,7 +857,7 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
     iter.verts = (gpEditVert *)GPU_vertbuf_get_data(cache->edit_vbo);
 
     /* Fill buffers with data. */
-    BKE_gpencil_visible_stroke_iter(
+    BKE_gpencil_visible_stroke_advanced_iter(
         NULL, ob, NULL, gpencil_edit_stroke_iter_cb, &iter, do_onion, cfra);
 
     /* Create the batches */
@@ -883,7 +884,7 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
     cache->edit_curve_vbo = GPU_vertbuf_create_with_format(format);
 
     /* Count data. */
-    BKE_gpencil_visible_stroke_iter(
+    BKE_gpencil_visible_stroke_advanced_iter(
         NULL, ob, NULL, gpencil_edit_curve_stroke_count_cb, &iterdata, false, cfra);
 
     gpEditCurveIterData iter;
@@ -894,7 +895,7 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
       iter.verts = (gpEditCurveVert *)GPU_vertbuf_get_data(cache->edit_curve_vbo);
 
       /* Fill buffers with data. */
-      BKE_gpencil_visible_stroke_iter(
+      BKE_gpencil_visible_stroke_advanced_iter(
           NULL, ob, NULL, gpencil_edit_curve_stroke_iter_cb, &iter, false, cfra);
 
       cache->edit_curve_handles_batch = GPU_batch_create(
