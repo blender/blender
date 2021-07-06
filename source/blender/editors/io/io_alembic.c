@@ -63,9 +63,25 @@
 #  include "WM_api.h"
 #  include "WM_types.h"
 
+#  include "DEG_depsgraph.h"
+
 #  include "io_alembic.h"
 
 #  include "ABC_alembic.h"
+
+const EnumPropertyItem rna_enum_abc_export_evaluation_mode_items[] = {
+    {DAG_EVAL_RENDER,
+     "RENDER",
+     0,
+     "Render",
+     "Use Render settings for object visibility, modifier settings, etc"},
+    {DAG_EVAL_VIEWPORT,
+     "VIEWPORT",
+     0,
+     "Viewport",
+     "Use Viewport settings for object visibility, modifier settings, etc"},
+    {0, NULL, 0, NULL, NULL},
+};
 
 static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -136,6 +152,7 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
       .triangulate = RNA_boolean_get(op->ptr, "triangulate"),
       .quad_method = RNA_enum_get(op->ptr, "quad_method"),
       .ngon_method = RNA_enum_get(op->ptr, "ngon_method"),
+      .evaluation_mode = RNA_enum_get(op->ptr, "evaluation_mode"),
 
       .global_scale = RNA_float_get(op->ptr, "global_scale"),
   };
@@ -194,6 +211,9 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumnWithHeading(col, true, IFACE_("Only"));
   uiItemR(sub, imfptr, "selected", 0, IFACE_("Selected Objects"), ICON_NONE);
   uiItemR(sub, imfptr, "visible_objects_only", 0, IFACE_("Visible Objects"), ICON_NONE);
+
+  col = uiLayoutColumn(box, true);
+  uiItemR(col, imfptr, "evaluation_mode", 0, NULL, ICON_NONE);
 
   /* Object Data */
   box = uiLayoutBox(layout);
@@ -459,6 +479,14 @@ void WM_OT_alembic_export(wmOperatorType *ot)
       "Enable this to run the import in the background, disable to block Blender while importing. "
       "This option is deprecated; EXECUTE this operator to run in the foreground, and INVOKE it "
       "to run as a background job");
+
+  RNA_def_enum(ot->srna,
+               "evaluation_mode",
+               rna_enum_abc_export_evaluation_mode_items,
+               DAG_EVAL_RENDER,
+               "Use Settings for",
+               "Determines visibility of objects, modifier settings, and other areas where there "
+               "are different settings for viewport and rendering");
 
   /* This dummy prop is used to check whether we need to init the start and
    * end frame values to that of the scene's, otherwise they are reset at
