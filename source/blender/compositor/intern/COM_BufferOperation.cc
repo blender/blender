@@ -31,6 +31,13 @@ BufferOperation::BufferOperation(MemoryBuffer *buffer, DataType data_type)
   resolution[1] = buffer->getHeight();
   setResolution(resolution);
   addOutputSocket(data_type);
+  flags.is_constant_operation = buffer_->is_a_single_elem();
+}
+
+const float *BufferOperation::get_constant_elem()
+{
+  BLI_assert(buffer_->is_a_single_elem());
+  return buffer_->getBuffer();
 }
 
 void *BufferOperation::initializeTileData(rcti * /*rect*/)

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_ConstantOperation.h"
 
 namespace blender::compositor {
 
@@ -26,7 +26,7 @@ namespace blender::compositor {
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-class SetValueOperation : public NodeOperation {
+class SetValueOperation : public ConstantOperation {
  private:
   float m_value;
 
@@ -35,6 +35,11 @@ class SetValueOperation : public NodeOperation {
    * Default constructor
    */
   SetValueOperation();
+
+  const float *get_constant_elem() override
+  {
+    return &m_value;
+  }
 
   float getValue()
   {

@@ -116,7 +116,7 @@ class DebugInfo {
     }
   };
 
-  static void graphviz(const ExecutionSystem *system);
+  static void graphviz(const ExecutionSystem *system, StringRefNull name = "");
 
  protected:
   static int graphviz_operation(const ExecutionSystem *system,

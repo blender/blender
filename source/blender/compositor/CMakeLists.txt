@@ -59,6 +59,8 @@ set(SRC
   intern/COM_ChunkOrderHotspot.h
   intern/COM_CompositorContext.cc
   intern/COM_CompositorContext.h
+  intern/COM_ConstantFolder.cc
+  intern/COM_ConstantFolder.h
   intern/COM_Converter.cc
   intern/COM_Converter.h
   intern/COM_Debug.cc
@@ -450,6 +452,8 @@ set(SRC
   operations/COM_MixOperation.h
   operations/COM_ReadBufferOperation.cc
   operations/COM_ReadBufferOperation.h
+  operations/COM_ConstantOperation.cc
+  operations/COM_ConstantOperation.h
   operations/COM_SetColorOperation.cc
   operations/COM_SetColorOperation.h
   operations/COM_SetValueOperation.cc

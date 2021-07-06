@@ -401,7 +401,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   return (len < maxlen);
 }
 
-void DebugInfo::graphviz(const ExecutionSystem *system)
+void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
 {
   if (!COM_EXPORT_GRAPHVIZ) {
     return;
@@ -411,7 +411,12 @@ void DebugInfo::graphviz(const ExecutionSystem *system)
     char basename[FILE_MAX];
     char filename[FILE_MAX];
 
-    BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", m_file_index);
+    if (name.is_empty()) {
+      BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", m_file_index);
+    }
+    else {
+      BLI_strncpy(basename, (name + ".dot").c_str(), sizeof(basename));
+    }
     BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), basename);
     m_file_index++;
 

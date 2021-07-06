@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_ConstantOperation.h"
 
 namespace blender::compositor {
 
@@ -26,12 +26,14 @@ namespace blender::compositor {
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-class SetVectorOperation : public NodeOperation {
+class SetVectorOperation : public ConstantOperation {
  private:
-  float m_x;
-  float m_y;
-  float m_z;
-  float m_w;
+  struct {
+    float x;
+    float y;
+    float z;
+    float w;
+  } vector_;
 
  public:
   /**
@@ -39,37 +41,42 @@ class SetVectorOperation : public NodeOperation {
    */
   SetVectorOperation();
 
+  const float *get_constant_elem() override
+  {
+    return reinterpret_cast<float *>(&vector_);
+  }
+
   float getX()
   {
-    return this->m_x;
+    return vector_.x;
   }
   void setX(float value)
   {
-    this->m_x = value;
+    vector_.x = value;
   }
   float getY()
   {
-    return this->m_y;
+    return vector_.y;
   }
   void setY(float value)
   {
-    this->m_y = value;
+    vector_.y = value;
   }
   float getZ()
   {
-    return this->m_z;
+    return vector_.z;
   }
   void setZ(float value)
   {
-    this->m_z = value;
+    vector_.z = value;
   }
   float getW()
   {
-    return this->m_w;
+    return vector_.w;
   }
   void setW(float value)
   {
-    this->m_w = value;
+    vector_.w = value;
   }
 
   /**

@@ -60,7 +60,7 @@ void FullFrameExecutionModel::execute(ExecutionSystem &exec_system)
   const bNodeTree *node_tree = this->context_.getbNodeTree();
   node_tree->stats_draw(node_tree->sdh, TIP_("Compositing | Initializing execution"));
 
-  DebugInfo::graphviz(&exec_system);
+  DebugInfo::graphviz(&exec_system, "compositor_prior_rendering");
 
   determine_areas_to_render_and_reads();
   render_operations();
@@ -101,9 +101,7 @@ MemoryBuffer *FullFrameExecutionModel::create_operation_buffer(NodeOperation *op
   BLI_rcti_init(&op_rect, 0, op->getWidth(), 0, op->getHeight());
 
   const DataType data_type = op->getOutputSocket(0)->getDataType();
-  /* TODO: We should check if the operation is constant instead of is_set_operation. Finding a way
-   * to know if an operation is constant has to be implemented yet. */
-  const bool is_a_single_elem = op->get_flags().is_set_operation;
+  const bool is_a_single_elem = op->get_flags().is_constant_operation;
   return new MemoryBuffer(data_type, op_rect, is_a_single_elem);
 }
 

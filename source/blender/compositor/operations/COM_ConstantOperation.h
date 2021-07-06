@@ -18,23 +18,19 @@
 
 #pragma once
 
-#include "COM_ConstantOperation.h"
+#include "COM_NodeOperation.h"
 
 namespace blender::compositor {
 
-class BufferOperation : public ConstantOperation {
- private:
-  MemoryBuffer *buffer_;
-  MemoryBuffer *inflated_buffer_;
-
+/**
+ * Base class for primitive constant operations (Color/Vector/Value). The rest of operations that
+ * can be constant are evaluated into primitives during constant folding.
+ */
+class ConstantOperation : public NodeOperation {
  public:
-  BufferOperation(MemoryBuffer *buffer, DataType data_type);
+  ConstantOperation();
 
-  const float *get_constant_elem() override;
-  void *initializeTileData(rcti *rect) override;
-  void deinitExecution() override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2]) override;
+  virtual const float *get_constant_elem() = 0;
 };
 
 }  // namespace blender::compositor

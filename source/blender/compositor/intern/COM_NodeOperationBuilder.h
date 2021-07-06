@@ -41,6 +41,7 @@ class NodeOperationOutput;
 class PreviewOperation;
 class WriteBufferOperation;
 class ViewerOperation;
+class ConstantOperation;
 
 class NodeOperationBuilder {
  public:
@@ -96,6 +97,8 @@ class NodeOperationBuilder {
   void convertToOperations(ExecutionSystem *system);
 
   void addOperation(NodeOperation *operation);
+  void replace_operation_with_constant(NodeOperation *operation,
+                                       ConstantOperation *constant_operation);
 
   /** Map input socket of the current node to an operation socket */
   void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);

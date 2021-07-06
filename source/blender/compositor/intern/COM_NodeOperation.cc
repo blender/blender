@@ -441,6 +441,12 @@ std::ostream &operator<<(std::ostream &os, const NodeOperationFlags &node_operat
   if (node_operation_flags.is_fullframe_operation) {
     os << "full_frame,";
   }
+  if (node_operation_flags.is_constant_operation) {
+    os << "contant_operation,";
+  }
+  if (node_operation_flags.can_be_constant) {
+    os << "can_be_constant,";
+  }
 
   return os;
 }

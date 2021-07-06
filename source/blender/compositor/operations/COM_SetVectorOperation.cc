@@ -32,9 +32,9 @@ void SetVectorOperation::executePixelSampled(float output[4],
                                              float /*y*/,
                                              PixelSampler /*sampler*/)
 {
-  output[0] = this->m_x;
-  output[1] = this->m_y;
-  output[2] = this->m_z;
+  output[0] = vector_.x;
+  output[1] = vector_.y;
+  output[2] = vector_.z;
 }
 
 void SetVectorOperation::determineResolution(unsigned int resolution[2],

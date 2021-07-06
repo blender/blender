@@ -221,6 +221,7 @@ struct NodeOperationFlags {
 
   /**
    * Is this a set operation (value, color, vector).
+   * TODO: To be replaced by is_constant_operation flag once tiled implementation is removed.
    */
   bool is_set_operation : 1;
   bool is_write_buffer_operation : 1;
@@ -242,6 +243,17 @@ struct NodeOperationFlags {
    */
   bool is_fullframe_operation : 1;
 
+  /**
+   * Whether operation is a primitive constant operation (Color/Vector/Value).
+   */
+  bool is_constant_operation : 1;
+
+  /**
+   * Whether operation have constant elements/pixels values when all its inputs are constant
+   * operations.
+   */
+  bool can_be_constant : 1;
+
   NodeOperationFlags()
   {
     complex = false;
@@ -258,6 +270,8 @@ struct NodeOperationFlags {
     is_preview_operation = false;
     use_datatype_conversion = true;
     is_fullframe_operation = false;
+    is_constant_operation = false;
+    can_be_constant = false;
   }
 };
 

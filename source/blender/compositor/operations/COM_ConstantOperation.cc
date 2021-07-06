@@ -16,25 +16,13 @@
  * Copyright 2021, Blender Foundation.
  */
 
-#pragma once
-
 #include "COM_ConstantOperation.h"
 
 namespace blender::compositor {
 
-class BufferOperation : public ConstantOperation {
- private:
-  MemoryBuffer *buffer_;
-  MemoryBuffer *inflated_buffer_;
-
- public:
-  BufferOperation(MemoryBuffer *buffer, DataType data_type);
-
-  const float *get_constant_elem() override;
-  void *initializeTileData(rcti *rect) override;
-  void deinitExecution() override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2]) override;
-};
+ConstantOperation::ConstantOperation()
+{
+  flags.is_constant_operation = true;
+}
 
 }  // namespace blender::compositor
