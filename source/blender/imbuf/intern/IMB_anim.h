@@ -91,6 +91,7 @@ struct anim {
   int duration_in_frames;
   int frs_sec;
   double frs_sec_base;
+  double start_offset;
   int x, y;
 
   /* for number */

@@ -86,6 +86,7 @@ AUD_API AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 	info.specs.channels = AUD_CHANNELS_INVALID;
 	info.specs.rate = AUD_RATE_INVALID;
 	info.length = 0.0f;
+	info.start_offset = 0.0f;
 
 	try
 	{
@@ -95,6 +96,7 @@ AUD_API AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 		{
 			info.specs = convSpecToC(reader->getSpecs());
 			info.length = reader->getLength() / (float) info.specs.rate;
+			info.start_offset = reader->getStartOffset();
 		}
 	}
 	catch(Exception&)
