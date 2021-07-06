@@ -10,11 +10,13 @@ from typing import Dict, List
 
 from .test import TestCollection
 
+
 def get_build_hash(args: None) -> str:
     import bpy
     import sys
     build_hash = bpy.app.build_hash.decode('utf-8')
     return '' if build_hash == 'Unknown' else build_hash
+
 
 @dataclass
 class TestEntry:
@@ -41,6 +43,7 @@ class TestEntry:
     def from_json(self, json_dict):
         for field in self.__dataclass_fields__:
             setattr(self, field, json_dict[field])
+
 
 class TestQueue:
     """Queue of tests to be run or inspected. Matches JSON file on disk."""
@@ -98,6 +101,7 @@ class TestQueue:
         json_entries = [entry.to_json() for entry in self.entries]
         with open(self.filepath, 'w') as f:
             json.dump(json_entries, f, indent=2)
+
 
 class TestConfig:
     """Test configuration, containing a subset of revisions, tests and devices."""

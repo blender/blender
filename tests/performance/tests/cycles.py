@@ -3,6 +3,7 @@
 import api
 import os
 
+
 def _run(args):
     import bpy
     import time
@@ -39,6 +40,7 @@ def _run(args):
 
     return None
 
+
 class CyclesTest(api.Test):
     def __init__(self, filepath):
         self.filepath = filepath
@@ -73,6 +75,7 @@ class CyclesTest(api.Test):
                 return {'time': float(time)}
 
         raise Exception("Error parsing render time output")
+
 
 def generate(env):
     filepaths = env.find_blend_files('cycles-x/*')

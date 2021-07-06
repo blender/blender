@@ -781,7 +781,6 @@ class I18nMessages:
             print("Could not import bpy, find_best_messages_matches must be run from whithin Blender.")
             return
 
-
         # Build helper mappings.
         # Note it's user responsibility to know when to invalidate (and hence force rebuild) this cache!
         if self._reverse_cache is None:

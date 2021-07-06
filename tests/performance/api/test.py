@@ -4,6 +4,7 @@ import abc
 import fnmatch
 from typing import Dict, List
 
+
 class Test:
     @abc.abstractmethod
     def name(self) -> str:
@@ -28,6 +29,7 @@ class Test:
         """
         Execute the test and report results.
         """
+
 
 class TestCollection:
     def __init__(self, env, names_filter: List=['*'], categories_filter: List=['*']):

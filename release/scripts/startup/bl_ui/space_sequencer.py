@@ -400,7 +400,7 @@ class SEQUENCER_MT_view(Menu):
             layout.menu("SEQUENCER_MT_proxy")
 
             layout.operator_context = 'INVOKE_DEFAULT'
-        
+
         layout.separator()
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("sequencer.refresh_all", icon='FILE_REFRESH', text="Refresh All")
@@ -466,6 +466,7 @@ class SEQUENCER_MT_select_handle(Menu):
         layout.operator("sequencer.select_handles", text="Both Neighbors").side = 'BOTH_NEIGHBORS'
         layout.operator("sequencer.select_handles", text="Left Neighbor").side = 'LEFT_NEIGHBOR'
         layout.operator("sequencer.select_handles", text="Right Neighbor").side = 'RIGHT_NEIGHBOR'
+
 
 class SEQUENCER_MT_select_channel(Menu):
     bl_label = "Select Channel"
@@ -1415,14 +1416,13 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                 split.label(text="%dx%d" % size, translate=False)
             else:
                 split.label(text="None")
-            #FPS
+            # FPS
             if elem.orig_fps:
                 split = col.split(factor=0.5, align=False)
                 split.alignment = 'RIGHT'
                 split.label(text="FPS")
                 split.alignment = 'LEFT'
                 split.label(text="%.2f" % elem.orig_fps, translate=False)
-
 
 
 class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
@@ -1857,7 +1857,7 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         show_developer_ui = context.preferences.view.show_developer_ui
-        return cls.has_sequencer(context) and  context.scene.sequence_editor and show_developer_ui
+        return cls.has_sequencer(context) and context.scene.sequence_editor and show_developer_ui
 
     def draw(self, context):
         layout = self.layout
@@ -2286,12 +2286,12 @@ class SEQUENCER_PT_snapping(Panel):
         layout.use_property_decorate = False
 
         col = layout.column(heading="Snap to", align=True)
-        col.prop(sequencer_tool_settings, "snap_to_current_frame" )
+        col.prop(sequencer_tool_settings, "snap_to_current_frame")
         col.prop(sequencer_tool_settings, "snap_to_hold_offset")
 
         col = layout.column(heading="Ignore", align=True)
         col.prop(sequencer_tool_settings, "snap_ignore_muted", text="Muted Strips")
-        col.prop(sequencer_tool_settings, "snap_ignore_sound",text="Sound Strips")
+        col.prop(sequencer_tool_settings, "snap_ignore_sound", text="Sound Strips")
 
 
 classes = (

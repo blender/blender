@@ -3,6 +3,7 @@
 import api
 import os
 
+
 def _run(args):
     import bpy
     import time
@@ -18,6 +19,7 @@ def _run(args):
     result = {'time': elapsed_time}
     return result
 
+
 class AnimationTest(api.Test):
     def __init__(self, filepath):
         self.filepath = filepath
@@ -32,6 +34,7 @@ class AnimationTest(api.Test):
         args = {}
         result, _ = env.run_in_blender(_run, args)
         return result
+
 
 def generate(env):
     filepaths = env.find_blend_files('animation')

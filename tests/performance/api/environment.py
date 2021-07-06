@@ -15,6 +15,7 @@ from typing import Callable, Dict, List
 from .config import TestConfig
 from .device import TestMachine
 
+
 class TestEnvironment:
     def __init__(self, blender_git_dir: pathlib.Path, base_dir: pathlib.Path):
         self.blender_git_dir = blender_git_dir

@@ -57,6 +57,7 @@ BLACKLIST_GPU = [
     'transparent_shadow_hair.*.blend',
 ]
 
+
 def get_arguments(filepath, output_filepath):
     dirname = os.path.dirname(filepath)
     basedir = os.path.dirname(dirname)

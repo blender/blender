@@ -3129,7 +3129,6 @@ class VIEW3D_MT_mask(Menu):
         layout.menu("VIEW3D_MT_random_mask", text="Random Mask")
 
 
-
 class VIEW3D_MT_face_sets(Menu):
     bl_label = "Face Sets"
 
@@ -3258,6 +3257,7 @@ class VIEW3D_MT_random_mask(Menu):
 
         op = layout.operator("sculpt.mask_init", text='Per Loose Part')
         op.mode = 'RANDOM_PER_LOOSE_PART'
+
 
 class VIEW3D_MT_particle(Menu):
     bl_label = "Particle"

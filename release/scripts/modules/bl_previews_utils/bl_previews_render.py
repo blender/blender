@@ -37,6 +37,7 @@ OBJECT_TYPES_RENDER = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'}
 def ids_nolib(bids):
     return (bid for bid in bids if not bid.library)
 
+
 def ids_nolib_with_preview(bids):
     return (bid for bid in bids if (not bid.library and bid.preview))
 

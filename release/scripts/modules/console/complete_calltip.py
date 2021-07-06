@@ -41,7 +41,7 @@ RE_DEF_COMPLETE = re.compile(
     # allow empty string
     '''|)'''
     # allow opening bracket(s)
-    '''(?:\(|\s)*)$''')
+    r'''(?:\(|\s)*)$''')
 
 
 def reduce_newlines(text):

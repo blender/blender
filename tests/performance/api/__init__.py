@@ -5,4 +5,3 @@ from .device import TestDevice, TestMachine
 from .config import TestEntry, TestQueue, TestConfig
 from .test import Test, TestCollection
 from .graph import TestGraph
-

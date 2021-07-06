@@ -58,7 +58,7 @@ class SPREADSHEET_HT_header(bpy.types.Header):
             layout.label(text="No active viewer node.", icon='INFO')
 
         layout.separator_spacer()
-        
+
         row = layout.row(align=True)
         sub = row.row(align=True)
         sub.active = self.selection_filter_available(space)
@@ -114,6 +114,7 @@ class SPREADSHEET_HT_header(bpy.types.Header):
         if obj.type != 'MESH' or obj.mode != 'EDIT':
             return False
         return True
+
 
 classes = (
     SPREADSHEET_HT_header,

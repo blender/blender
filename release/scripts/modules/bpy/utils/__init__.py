@@ -155,6 +155,7 @@ def _test_import(module_name, loaded_modules):
 # This supports the case of loading a new preferences file which may reset scripts path.
 _sys_path_ensure_paths = set()
 
+
 def _sys_path_ensure_prepend(path):
     if path not in _sys.path:
         _sys.path.insert(0, path)

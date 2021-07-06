@@ -260,6 +260,7 @@ class IMAGE_MT_image_flip(Menu):
         layout.operator("image.flip", text="Horizontally").use_flip_x = True
         layout.operator("image.flip", text="Vertically").use_flip_y = True
 
+
 class IMAGE_MT_image_invert(Menu):
     bl_label = "Invert"
 

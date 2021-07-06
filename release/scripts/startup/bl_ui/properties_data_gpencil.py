@@ -93,8 +93,8 @@ class GPENCIL_MT_layer_context_menu(Menu):
         gpd = ob.data
         gpl = gpd.layers.active
 
-        layout.operator("gpencil.layer_duplicate", text="Duplicate", icon='DUPLICATE').mode='ALL'
-        layout.operator("gpencil.layer_duplicate", text="Duplicate Empty Keyframes").mode='EMPTY'
+        layout.operator("gpencil.layer_duplicate", text="Duplicate", icon='DUPLICATE').mode = 'ALL'
+        layout.operator("gpencil.layer_duplicate", text="Duplicate Empty Keyframes").mode = 'EMPTY'
 
         layout.separator()
 
@@ -113,8 +113,8 @@ class GPENCIL_MT_layer_context_menu(Menu):
         layout.operator("gpencil.layer_merge", icon='SORT_ASC', text="Merge Down")
 
         layout.separator()
-        layout.operator("gpencil.layer_duplicate_object", text="Copy Layer to Selected").only_active=True
-        layout.operator("gpencil.layer_duplicate_object", text="Copy All Layers to Selected").only_active=False
+        layout.operator("gpencil.layer_duplicate_object", text="Copy Layer to Selected").only_active = True
+        layout.operator("gpencil.layer_duplicate_object", text="Copy All Layers to Selected").only_active = False
 
 
 class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):

@@ -31,10 +31,12 @@ owner = object()
 
 subscribe_to = bpy.context.object.location
 
+
 def msgbus_callback(*args):
     # This will print:
     # Something changed! (1, 2, 3)
     print("Something changed!", args)
+
 
 bpy.msgbus.subscribe_rna(
     key=subscribe_to,

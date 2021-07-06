@@ -6,6 +6,7 @@ import json
 import pathlib
 from typing import Dict, List
 
+
 class TestGraph:
     def __init__(self, json_filepaths: List[pathlib.Path]):
         # Initialize graph from JSON file. Note that this is implemented without
@@ -102,4 +103,3 @@ class TestGraph:
         contents = template.replace('%JSON_DATA%', self.json)
         with open(filepath, "w") as f:
             f.write(contents)
-

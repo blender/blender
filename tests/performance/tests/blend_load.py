@@ -4,6 +4,7 @@ import api
 import os
 import pathlib
 
+
 def _run(filepath):
     import bpy
     import time
@@ -20,6 +21,7 @@ def _run(filepath):
     result = {'time': elapsed_time}
     return result
 
+
 class BlendLoadTest(api.Test):
     def __init__(self, filepath):
         self.filepath = filepath
@@ -33,6 +35,7 @@ class BlendLoadTest(api.Test):
     def run(self, env, device_id):
         result, _ = env.run_in_blender(_run, str(self.filepath))
         return result
+
 
 def generate(env):
     filepaths = env.find_blend_files('*/*')

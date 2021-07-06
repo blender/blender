@@ -40,6 +40,7 @@ class AbstractAnimationTest:
         self.assertTrue(self.testdir.exists(),
                         'Test dir %s should exist' % self.testdir)
 
+
 class FCurveEvaluationTest(AbstractAnimationTest, unittest.TestCase):
     def test_fcurve_versioning_291(self):
         # See D8752.

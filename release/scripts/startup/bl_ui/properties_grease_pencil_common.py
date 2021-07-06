@@ -847,6 +847,7 @@ class GreasePencilLayerRelationsPanel:
         col.enabled = bool(gpl.viewlayer_render)
         col.prop(gpl, "use_viewlayer_masks")
 
+
 class GreasePencilLayerDisplayPanel:
 
     def draw(self, context):

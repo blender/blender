@@ -1477,9 +1477,13 @@ class CLIP_MT_track(Menu):
 
         layout.separator()
 
-        layout.operator("clip.solve_camera",
-                     text="Solve Camera Motion" if tracking_object.is_camera
-                     else "Solve Object Motion")
+        layout.operator(
+            "clip.solve_camera",
+            text=(
+                "Solve Camera Motion" if tracking_object.is_camera else
+                "Solve Object Motion"
+            ),
+        )
 
         layout.separator()
 

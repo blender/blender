@@ -4,6 +4,7 @@ import platform
 import subprocess
 from typing import List
 
+
 def get_cpu_name() -> str:
     # Get full CPU name.
     if platform.system() == "Windows":
@@ -18,6 +19,7 @@ def get_cpu_name() -> str:
                     return line.split(':')[1].strip()
 
     return "Unknown CPU"
+
 
 def get_gpu_device(args: None) -> List:
     # Get the list of available Cycles GPU devices.
@@ -41,12 +43,14 @@ def get_gpu_device(args: None) -> List:
 
     return result
 
+
 class TestDevice:
     def __init__(self, device_type: str, device_id: str, name: str, operating_system: str):
         self.type = device_type
         self.id = device_id
         self.name = name
         self.operating_system = operating_system
+
 
 class TestMachine:
     def __init__(self, env, need_gpus: bool):
@@ -65,4 +69,3 @@ class TestMachine:
 
     def cpu_device(self) -> TestDevice:
         return self.devices[0]
-

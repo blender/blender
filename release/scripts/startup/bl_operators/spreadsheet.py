@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from bpy.types import Operator
 
+
 class SPREADSHEET_OT_toggle_pin(Operator):
     '''Turn on or off pinning'''
     bl_idname = "spreadsheet.toggle_pin"

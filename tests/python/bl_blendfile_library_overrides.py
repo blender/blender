@@ -69,7 +69,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
 
         assert(len(local_id.override_library.properties) == 1)
         override_prop = local_id.override_library.properties[0]
-        assert(override_prop.rna_path == "location");
+        assert(override_prop.rna_path == "location")
         assert(len(override_prop.operations) == 1)
         override_operation = override_prop.operations[0]
         assert(override_operation.operation == 'REPLACE')
@@ -96,7 +96,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         self.assertIsNone(local_id.data.override_library)
         assert(len(local_id.override_library.properties) == 1)
         override_prop = local_id.override_library.properties[0]
-        assert(override_prop.rna_path == "scale");
+        assert(override_prop.rna_path == "scale")
         assert(len(override_prop.operations) == 1)
         override_operation = override_prop.operations[0]
         assert(override_operation.operation == 'NOOP')
@@ -116,14 +116,14 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
 
         assert(len(local_id.override_library.properties) == 2)
         override_prop = local_id.override_library.properties[0]
-        assert(override_prop.rna_path == "scale");
+        assert(override_prop.rna_path == "scale")
         assert(len(override_prop.operations) == 1)
         override_operation = override_prop.operations[0]
         assert(override_operation.operation == 'NOOP')
         assert(override_operation.subitem_local_index == -1)
 
         override_prop = local_id.override_library.properties[1]
-        assert(override_prop.rna_path == "location");
+        assert(override_prop.rna_path == "location")
         assert(len(override_prop.operations) == 1)
         override_operation = override_prop.operations[0]
         assert(override_operation.operation == 'REPLACE')
