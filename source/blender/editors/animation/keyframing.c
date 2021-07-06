@@ -2087,29 +2087,6 @@ static int delete_key_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const int prop_type = RNA_property_type(op->type->prop);
-  if (prop_type == PROP_ENUM) {
-    int type = RNA_property_enum_get(op->ptr, op->type->prop);
-    ks = ANIM_keyingset_get_from_enum_type(scene, type);
-    if (ks == NULL) {
-      BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
-      return OPERATOR_CANCELLED;
-    }
-  }
-  else if (prop_type == PROP_STRING) {
-    char type_id[MAX_ID_NAME - 2];
-    RNA_property_string_get(op->ptr, op->type->prop, type_id);
-    ks = ANIM_keyingset_get_from_idname(scene, type_id);
-
-    if (ks == NULL) {
-      BKE_reportf(op->reports, RPT_ERROR, "Active Keying Set '%s' not found", type_id);
-      return OPERATOR_CANCELLED;
-    }
-  }
-  else {
-    BLI_assert(0);
-  }
-
   /* report failure */
   if (ks == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
