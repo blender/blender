@@ -65,7 +65,7 @@ struct WorkScheduler {
    * for every device a thread is created.
    * \see initialize Initialization and query of the number of devices
    */
-  static void start(CompositorContext &context);
+  static void start(const CompositorContext &context);
 
   /**
    * \brief stop the execution

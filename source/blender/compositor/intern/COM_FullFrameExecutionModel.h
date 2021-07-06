@@ -50,19 +50,12 @@ class FullFrameExecutionModel : public ExecutionModel {
    */
   Vector<eCompositorPriority> priorities_;
 
-  ThreadMutex work_mutex_;
-  ThreadCondition work_finished_cond_;
-
  public:
   FullFrameExecutionModel(CompositorContext &context,
                           SharedOperationBuffers &shared_buffers,
                           Span<NodeOperation *> operations);
-  ~FullFrameExecutionModel();
 
   void execute(ExecutionSystem &exec_system) override;
-
-  void execute_work(const rcti &work_rect,
-                    std::function<void(const rcti &split_rect)> work_func) override;
 
  private:
   void determine_areas_to_render_and_reads();

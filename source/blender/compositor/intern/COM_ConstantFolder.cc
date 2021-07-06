@@ -23,6 +23,7 @@
 #include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
+#include "COM_WorkScheduler.h"
 
 namespace blender::compositor {
 
@@ -147,6 +148,7 @@ Vector<ConstantOperation *> ConstantFolder::try_fold_operations(Span<NodeOperati
  */
 int ConstantFolder::fold_operations()
 {
+  WorkScheduler::start(operations_builder_.context());
   Vector<ConstantOperation *> last_folds = try_fold_operations(
       operations_builder_.get_operations());
   int folds_count = last_folds.size();
@@ -158,6 +160,7 @@ int ConstantFolder::fold_operations()
     last_folds = try_fold_operations(ops_to_fold);
     folds_count += last_folds.size();
   }
+  WorkScheduler::stop();
 
   delete_constant_buffers();
 
