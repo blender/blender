@@ -296,6 +296,7 @@ void NODE_OT_clipboard_paste(struct wmOperatorType *ot);
 
 void NODE_OT_tree_socket_add(struct wmOperatorType *ot);
 void NODE_OT_tree_socket_remove(struct wmOperatorType *ot);
+void NODE_OT_tree_socket_change_type(struct wmOperatorType *ot);
 void NODE_OT_tree_socket_move(struct wmOperatorType *ot);
 
 void NODE_OT_shader_script_update(struct wmOperatorType *ot);

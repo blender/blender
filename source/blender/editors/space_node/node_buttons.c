@@ -151,10 +151,37 @@ static void draw_socket_list(const bContext *C,
 
   bNodeSocket *socket = node_tree_find_active_socket(ntree, in_out);
   if (socket != NULL) {
-    uiLayoutSetPropSep(layout, true);
-    uiLayoutSetPropDecorate(layout, false);
     PointerRNA socket_ptr;
     RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, socket, &socket_ptr);
+
+    {
+      /* Mimicking property split */
+      uiLayoutSetPropSep(layout, false);
+      uiLayoutSetPropDecorate(layout, false);
+      uiLayout *layout_row = uiLayoutRow(layout, true);
+      uiLayout *layout_split = uiLayoutSplit(layout_row, 0.4f, true);
+
+      uiLayout *label_column = uiLayoutColumn(layout_split, true);
+      uiLayoutSetAlignment(label_column, UI_LAYOUT_ALIGN_RIGHT);
+      /* Menu to change the socket type. */
+      uiItemL(label_column, "Type", ICON_NONE);
+
+      uiLayout *property_row = uiLayoutRow(layout_split, true);
+
+      PointerRNA props_ptr;
+      uiItemMenuEnumFullO(property_row,
+                          (bContext *)C,
+                          "NODE_OT_tree_socket_change_type",
+                          "socket_type",
+                          nodeSocketTypeLabel(socket->typeinfo),
+                          ICON_NONE,
+                          &props_ptr);
+      RNA_enum_set(&props_ptr, "in_out", in_out);
+    }
+
+    uiLayoutSetPropSep(layout, true);
+    uiLayoutSetPropDecorate(layout, false);
+
     uiItemR(layout, &socket_ptr, "name", 0, NULL, ICON_NONE);
 
     /* Display descriptions only for Geometry Nodes, since it's only used in the modifier panel. */

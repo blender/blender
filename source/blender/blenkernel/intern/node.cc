@@ -1425,6 +1425,12 @@ GHashIterator *nodeSocketTypeGetIterator(void)
   return BLI_ghashIterator_new(nodesockettypes_hash);
 }
 
+const char *nodeSocketTypeLabel(const bNodeSocketType *stype)
+{
+  /* Use socket type name as a fallback if label is undefined. */
+  return stype->label[0] != '\0' ? stype->label : RNA_struct_ui_name(stype->ext_socket.srna);
+}
+
 struct bNodeSocket *nodeFindSocket(const bNode *node,
                                    eNodeSocketInOut in_out,
                                    const char *identifier)
@@ -1585,13 +1591,15 @@ static void socket_id_user_decrement(bNodeSocket *sock)
   }
 }
 
-void nodeModifySocketType(
-    bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *sock, int type, int subtype)
+void nodeModifySocketType(bNodeTree *ntree,
+                          bNode *UNUSED(node),
+                          bNodeSocket *sock,
+                          const char *idname)
 {
-  const char *idname = nodeStaticSocketType(type, subtype);
+  bNodeSocketType *socktype = nodeSocketTypeFind(idname);
 
-  if (!idname) {
-    CLOG_ERROR(&LOG, "static node socket type %d undefined", type);
+  if (!socktype) {
+    CLOG_ERROR(&LOG, "node socket type %s undefined", idname);
     return;
   }
 
@@ -1601,9 +1609,21 @@ void nodeModifySocketType(
     sock->default_value = nullptr;
   }
 
-  sock->type = type;
   BLI_strncpy(sock->idname, idname, sizeof(sock->idname));
-  node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(idname));
+  node_socket_set_typeinfo(ntree, sock, socktype);
+}
+
+void nodeModifySocketTypeStatic(
+    bNodeTree *ntree, bNode *node, bNodeSocket *sock, int type, int subtype)
+{
+  const char *idname = nodeStaticSocketType(type, subtype);
+
+  if (!idname) {
+    CLOG_ERROR(&LOG, "static node socket type %d undefined", type);
+    return;
+  }
+
+  nodeModifySocketType(ntree, node, sock, idname);
 }
 
 bNodeSocket *nodeAddSocket(bNodeTree *ntree,
@@ -1645,6 +1665,15 @@ bNodeSocket *nodeInsertSocket(bNodeTree *ntree,
   node->update |= NODE_UPDATE;
 
   return sock;
+}
+
+bool nodeIsStaticSocketType(const struct bNodeSocketType *stype)
+{
+  /*
+   * Cannot rely on type==SOCK_CUSTOM here, because type is 0 by default
+   * and can be changed on custom sockets.
+   */
+  return RNA_struct_is_a(stype->ext_socket.srna, &RNA_NodeSocketStandard);
 }
 
 const char *nodeStaticSocketType(int type, int subtype)
@@ -1797,6 +1826,39 @@ const char *nodeStaticSocketInterfaceType(int type, int subtype)
       return "NodeSocketInterfaceTexture";
     case SOCK_MATERIAL:
       return "NodeSocketInterfaceMaterial";
+  }
+  return nullptr;
+}
+
+const char *nodeStaticSocketLabel(int type, int UNUSED(subtype))
+{
+  switch (type) {
+    case SOCK_FLOAT:
+      return "Float";
+    case SOCK_INT:
+      return "Integer";
+    case SOCK_BOOLEAN:
+      return "Boolean";
+    case SOCK_VECTOR:
+      return "Vector";
+    case SOCK_RGBA:
+      return "Color";
+    case SOCK_STRING:
+      return "String";
+    case SOCK_SHADER:
+      return "Shader";
+    case SOCK_OBJECT:
+      return "Object";
+    case SOCK_IMAGE:
+      return "Image";
+    case SOCK_GEOMETRY:
+      return "Geometry";
+    case SOCK_COLLECTION:
+      return "Collection";
+    case SOCK_TEXTURE:
+      return "Texture";
+    case SOCK_MATERIAL:
+      return "Material";
   }
   return nullptr;
 }

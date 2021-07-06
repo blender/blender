@@ -450,6 +450,7 @@ extern StructRNA RNA_NodeOutputFileSlotFile;
 extern StructRNA RNA_NodeOutputFileSlotLayer;
 extern StructRNA RNA_NodeSocket;
 extern StructRNA RNA_NodeSocketInterface;
+extern StructRNA RNA_NodeSocketStandard;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NoiseGpencilModifier;
 extern StructRNA RNA_NoiseTexture;
