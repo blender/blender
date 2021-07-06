@@ -97,6 +97,7 @@ typedef struct SoundInfo {
     eSoundChannels channels;
   } specs;
   float length;
+  double start_offset;
 } SoundInfo;
 
 /* Get information about given sound. Returns truth on success., false if sound can not be loaded
@@ -139,8 +140,12 @@ void BKE_sound_remove_scene_sound(struct Scene *scene, void *handle);
 
 void BKE_sound_mute_scene_sound(void *handle, char mute);
 
-void BKE_sound_move_scene_sound(
-    struct Scene *scene, void *handle, int startframe, int endframe, int frameskip);
+void BKE_sound_move_scene_sound(struct Scene *scene,
+                                void *handle,
+                                int startframe,
+                                int endframe,
+                                int frameskip,
+                                double audio_offset);
 void BKE_sound_move_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence);
 
 void BKE_sound_update_scene_sound(void *handle, struct bSound *sound);

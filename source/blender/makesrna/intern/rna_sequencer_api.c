@@ -310,7 +310,8 @@ static Sequence *rna_Sequences_new_movie(ID *id,
   SEQ_add_load_data_init(&load_data, name, file, frame_start, channel);
   load_data.fit_method = fit_method;
   load_data.allow_invalid_file = true;
-  Sequence *seq = SEQ_add_movie_strip(bmain, scene, seqbase, &load_data);
+  double video_start_offset;
+  Sequence *seq = SEQ_add_movie_strip(bmain, scene, seqbase, &load_data, &video_start_offset);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -359,7 +360,7 @@ static Sequence *rna_Sequences_new_sound(ID *id,
   SeqLoadData load_data;
   SEQ_add_load_data_init(&load_data, name, file, frame_start, channel);
   load_data.allow_invalid_file = true;
-  Sequence *seq = SEQ_add_sound_strip(bmain, scene, seqbase, &load_data);
+  Sequence *seq = SEQ_add_sound_strip(bmain, scene, seqbase, &load_data, 0.0f);
 
   if (seq == NULL) {
     BKE_report(reports, RPT_ERROR, "Sequences.new_sound: unable to open sound file");

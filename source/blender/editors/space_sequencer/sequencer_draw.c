@@ -284,10 +284,12 @@ static void draw_seq_waveform_overlay(View2D *v2d,
       return;
     }
 
-    startsample = floor((seq->startofs + seq->anim_startofs) / FPS *
-                        SOUND_WAVE_SAMPLES_PER_SECOND);
-    endsample = ceil((seq->startofs + seq->anim_startofs + seq->enddisp - seq->startdisp) / FPS *
-                     SOUND_WAVE_SAMPLES_PER_SECOND);
+    startsample = (seq->startofs + seq->anim_startofs) / FPS * SOUND_WAVE_SAMPLES_PER_SECOND;
+    startsample += seq->sound->offset_time * SOUND_WAVE_SAMPLES_PER_SECOND;
+
+    endsample = (seq->enddisp - seq->startdisp) / FPS * SOUND_WAVE_SAMPLES_PER_SECOND;
+    endsample += startsample;
+
     samplestep = (endsample - startsample) * stepsize / (x2 - x1);
 
     length = min_ii(

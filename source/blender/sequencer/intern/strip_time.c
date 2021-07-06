@@ -34,6 +34,7 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "DNA_sound_types.h"
 #include "IMB_imbuf.h"
 
 #include "SEQ_iterator.h"
@@ -134,7 +135,8 @@ static void seq_update_sound_bounds_recursive_impl(Scene *scene,
                                    seq->scene_sound,
                                    seq->start + startofs,
                                    seq->start + seq->len - endofs,
-                                   startofs + seq->anim_startofs);
+                                   startofs + seq->anim_startofs,
+                                   seq->sound->offset_time);
       }
     }
   }

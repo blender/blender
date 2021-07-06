@@ -709,7 +709,7 @@ void *BKE_sound_scene_add_scene_sound(
                             sequence->scene->sound_scene,
                             startframe / fps,
                             endframe / fps,
-                            frameskip / fps);
+                            frameskip / fps + sequence->sound->offset_time);
   }
   return NULL;
 }
@@ -737,7 +737,7 @@ void *BKE_sound_add_scene_sound(
                                   sequence->sound->playback_handle,
                                   startframe / fps,
                                   endframe / fps,
-                                  frameskip / fps);
+                                  frameskip / fps + sequence->sound->offset_time);
   AUD_SequenceEntry_setMuted(handle, (sequence->flag & SEQ_MUTE) != 0);
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_VOLUME, CFRA, &sequence->volume, 0);
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, CFRA, &sequence->pitch, 0);
@@ -765,11 +765,11 @@ void BKE_sound_mute_scene_sound(void *handle, char mute)
 }
 
 void BKE_sound_move_scene_sound(
-    Scene *scene, void *handle, int startframe, int endframe, int frameskip)
+    Scene *scene, void *handle, int startframe, int endframe, int frameskip, double audio_offset)
 {
   sound_verify_evaluated_id(&scene->id);
   const double fps = FPS;
-  AUD_SequenceEntry_move(handle, startframe / fps, endframe / fps, frameskip / fps);
+  AUD_SequenceEntry_move(handle, startframe / fps, endframe / fps, frameskip / fps + audio_offset);
 }
 
 void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
@@ -780,7 +780,8 @@ void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
                                sequence->scene_sound,
                                sequence->startdisp,
                                sequence->enddisp,
-                               sequence->startofs + sequence->anim_startofs);
+                               sequence->startofs + sequence->anim_startofs,
+                               sequence->sound->offset_time);
   }
 }
 
@@ -1213,6 +1214,7 @@ static bool sound_info_from_playback_handle(void *playback_handle, SoundInfo *so
   AUD_SoundInfo info = AUD_getInfo(playback_handle);
   sound_info->specs.channels = (eSoundChannels)info.specs.channels;
   sound_info->length = info.length;
+  sound_info->start_offset = info.start_offset;
   return true;
 }
 

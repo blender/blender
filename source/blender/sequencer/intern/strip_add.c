@@ -382,9 +382,14 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
  * \return created strip
  */
 
-Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
+Sequence *SEQ_add_sound_strip(Main *bmain,
+                              Scene *scene,
+                              ListBase *seqbase,
+                              SeqLoadData *load_data,
+                              const double audio_offset)
 {
   bSound *sound = BKE_sound_new_file(bmain, load_data->path); /* Handles relative paths. */
+  sound->offset_time = audio_offset;
   SoundInfo info;
   bool sound_loaded = BKE_sound_info_get(bmain, sound, &info);
 
@@ -398,14 +403,36 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     return NULL;
   }
 
-  Sequence *seq = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SOUND_RAM);
+  /* If this sound it part of a video, then the sound might start after the video.
+   * In this case we need to then offset the start frame of the audio so it syncs up
+   * properly with the video.
+   */
+  int start_frame_offset = info.start_offset * FPS;
+  double start_frame_offset_remainer = (info.start_offset * FPS - start_frame_offset) / FPS;
+
+  if (start_frame_offset_remainer > FLT_EPSILON) {
+    /* We can't represent a fraction of a frame, so skip the first frame fraction of sound so we
+     * start on a "whole" frame.
+     */
+    start_frame_offset++;
+  }
+
+  sound->offset_time += start_frame_offset_remainer;
+
+  Sequence *seq = SEQ_sequence_alloc(seqbase,
+                                     load_data->start_frame + start_frame_offset,
+                                     load_data->channel,
+                                     SEQ_TYPE_SOUND_RAM);
   seq->sound = sound;
   seq->scene_sound = NULL;
 
-  /* We add a very small negative offset here, because
-   * ceil(132.0) == 133.0, not nice with videos, see T47135. */
-  seq->len = MAX2(1, (int)ceil((double)info.length * FPS - 1e-4));
+  /* We round the frame duration as the audio sample lenghts usually does not
+   * line up with the video frames. Therefore we round this number to the
+   * nearsest frame as the audio track usually overshoots or undershoots the
+   * end frame ofthe video by a little bit.
+   * See T47135 for under shoot example.
+   */
+  seq->len = MAX2(1, round((info.length - sound->offset_time) * FPS));
 
   Strip *strip = seq->strip;
   /* We only need 1 element to store the filename. */
@@ -477,7 +504,11 @@ Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
+Sequence *SEQ_add_movie_strip(Main *bmain,
+                              Scene *scene,
+                              ListBase *seqbase,
+                              SeqLoadData *load_data,
+                              double *r_video_start_offset)
 {
   char path[sizeof(load_data->path)];
   BLI_strncpy(path, load_data->path, sizeof(path));
@@ -552,6 +583,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   if (anim_arr[0] != NULL) {
     seq->len = IMB_anim_get_duration(anim_arr[0], IMB_TC_RECORD_RUN);
+    *r_video_start_offset = IMD_anim_get_offset(anim_arr[0]);
 
     IMB_anim_load_metadata(anim_arr[0]);
 

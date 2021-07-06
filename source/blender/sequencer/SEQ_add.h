@@ -79,14 +79,16 @@ struct Sequence *SEQ_add_image_strip(struct Main *bmain,
 struct Sequence *SEQ_add_sound_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
-                                     struct SeqLoadData *load_data);
+                                     struct SeqLoadData *load_data,
+                                     const double audio_offset);
 struct Sequence *SEQ_add_meta_strip(struct Scene *scene,
                                     struct ListBase *seqbase,
                                     struct SeqLoadData *load_data);
 struct Sequence *SEQ_add_movie_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
-                                     struct SeqLoadData *load_data);
+                                     struct SeqLoadData *load_data,
+                                     double *r_video_start_offset);
 struct Sequence *SEQ_add_scene_strip(struct Scene *scene,
                                      struct ListBase *seqbase,
                                      struct SeqLoadData *load_data);

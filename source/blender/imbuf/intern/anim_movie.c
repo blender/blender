@@ -425,6 +425,7 @@ static int startavi(struct anim *anim)
   }
 
   anim->duration_in_frames = anim->avi->header->TotalFrames;
+  anim->start_offset = 0.0f;
   anim->params = NULL;
 
   anim->x = anim->avi->header->Width;
@@ -597,6 +598,13 @@ static int startffmpeg(struct anim *anim)
     return -1;
   }
 
+  double video_start = 0;
+  double pts_time_base = av_q2d(video_stream->time_base);
+
+  if (video_stream->start_time != AV_NOPTS_VALUE) {
+    video_start = video_stream->start_time * pts_time_base;
+  }
+
   frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, NULL);
   anim->duration_in_frames = 0;
 
@@ -620,19 +628,13 @@ static int startffmpeg(struct anim *anim)
    * This is because the video stream duration can be shorter than the pFormatCtx->duration.
    */
   if (anim->duration_in_frames == 0) {
-    double pts_time_base = av_q2d(video_stream->time_base);
     double stream_dur;
 
     if (video_stream->duration != AV_NOPTS_VALUE) {
       stream_dur = video_stream->duration * pts_time_base;
     }
     else {
-      double video_start = 0;
       double audio_start = 0;
-
-      if (video_stream->start_time != AV_NOPTS_VALUE) {
-        video_start = video_stream->start_time * pts_time_base;
-      }
 
       /* Find audio stream to guess the duration of the video.
        * Sometimes the audio AND the video stream have a start offset.
@@ -662,6 +664,11 @@ static int startffmpeg(struct anim *anim)
     anim->duration_in_frames = (int)(stream_dur * av_q2d(frame_rate) + 0.5f);
   }
 
+  double ctx_start = 0;
+  if (pFormatCtx->start_time != AV_NOPTS_VALUE) {
+    ctx_start = (double)pFormatCtx->start_time / AV_TIME_BASE;
+  }
+
   frs_num = frame_rate.num;
   frs_den = frame_rate.den;
 
@@ -674,6 +681,9 @@ static int startffmpeg(struct anim *anim)
 
   anim->frs_sec = frs_num;
   anim->frs_sec_base = frs_den;
+  /* Save the relative start time for the video. IE the start time in relation to where playback
+   * starts. */
+  anim->start_offset = video_start - ctx_start;
 
   anim->params = 0;
 
@@ -1670,6 +1680,11 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc)
   }
 
   return IMB_indexer_get_duration(idx);
+}
+
+double IMD_anim_get_offset(struct anim *anim)
+{
+  return anim->start_offset;
 }
 
 bool IMB_anim_get_fps(struct anim *anim, short *frs_sec, float *frs_sec_base, bool no_av_base)
