@@ -66,11 +66,11 @@ class FullFrameExecutionModel : public ExecutionModel {
 
  private:
   void determine_areas_to_render_and_reads();
-  void render_operations(ExecutionSystem &exec_system);
-  void render_output_dependencies(NodeOperation *output_op, ExecutionSystem &exec_system);
+  void render_operations();
+  void render_output_dependencies(NodeOperation *output_op);
   Vector<MemoryBuffer *> get_input_buffers(NodeOperation *op);
   MemoryBuffer *create_operation_buffer(NodeOperation *op);
-  void render_operation(NodeOperation *op, ExecutionSystem &exec_system);
+  void render_operation(NodeOperation *op);
 
   void operation_finished(NodeOperation *operation);
 

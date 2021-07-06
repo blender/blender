@@ -63,7 +63,7 @@ void FullFrameExecutionModel::execute(ExecutionSystem &exec_system)
   DebugInfo::graphviz(&exec_system);
 
   determine_areas_to_render_and_reads();
-  render_operations(exec_system);
+  render_operations();
 }
 
 void FullFrameExecutionModel::determine_areas_to_render_and_reads()
@@ -107,14 +107,14 @@ MemoryBuffer *FullFrameExecutionModel::create_operation_buffer(NodeOperation *op
   return new MemoryBuffer(data_type, op_rect, is_a_single_elem);
 }
 
-void FullFrameExecutionModel::render_operation(NodeOperation *op, ExecutionSystem &exec_system)
+void FullFrameExecutionModel::render_operation(NodeOperation *op)
 {
   Vector<MemoryBuffer *> input_bufs = get_input_buffers(op);
 
   const bool has_outputs = op->getNumberOfOutputSockets() > 0;
   MemoryBuffer *op_buf = has_outputs ? create_operation_buffer(op) : nullptr;
   Span<rcti> areas = active_buffers_.get_areas_to_render(op);
-  op->render(op_buf, areas, input_bufs, exec_system);
+  op->render(op_buf, areas, input_bufs);
   active_buffers_.set_rendered_buffer(op, std::unique_ptr<MemoryBuffer>(op_buf));
 
   operation_finished(op);
@@ -123,7 +123,7 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op, ExecutionSyste
 /**
  * Render output operations in order of priority.
  */
-void FullFrameExecutionModel::render_operations(ExecutionSystem &exec_system)
+void FullFrameExecutionModel::render_operations()
 {
   const bool is_rendering = context_.isRendering();
 
@@ -131,8 +131,8 @@ void FullFrameExecutionModel::render_operations(ExecutionSystem &exec_system)
   for (eCompositorPriority priority : priorities_) {
     for (NodeOperation *op : operations_) {
       if (op->isOutputOperation(is_rendering) && op->getRenderPriority() == priority) {
-        render_output_dependencies(op, exec_system);
-        render_operation(op, exec_system);
+        render_output_dependencies(op);
+        render_operation(op);
       }
     }
   }
@@ -166,14 +166,13 @@ static Vector<NodeOperation *> get_operation_dependencies(NodeOperation *operati
   return dependencies;
 }
 
-void FullFrameExecutionModel::render_output_dependencies(NodeOperation *output_op,
-                                                         ExecutionSystem &exec_system)
+void FullFrameExecutionModel::render_output_dependencies(NodeOperation *output_op)
 {
   BLI_assert(output_op->isOutputOperation(context_.isRendering()));
   Vector<NodeOperation *> dependencies = get_operation_dependencies(output_op);
   for (NodeOperation *op : dependencies) {
     if (!active_buffers_.is_operation_rendered(op)) {
-      render_operation(op, exec_system);
+      render_operation(op);
     }
   }
 }

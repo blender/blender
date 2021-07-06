@@ -44,8 +44,7 @@ void SetValueOperation::determineResolution(unsigned int resolution[2],
 
 void SetValueOperation::update_memory_buffer(MemoryBuffer *output,
                                              const rcti &area,
-                                             Span<MemoryBuffer *> UNUSED(inputs),
-                                             ExecutionSystem &UNUSED(exec_system))
+                                             Span<MemoryBuffer *> UNUSED(inputs))
 {
   BLI_assert(output->is_a_single_elem());
   float *out_elem = output->get_elem(area.xmin, area.ymin);

@@ -226,18 +226,16 @@ void NodeOperation::get_area_of_interest(NodeOperation *input_op,
  * \param output_buf: Buffer to write result to.
  * \param areas: Areas within this operation bounds to render.
  * \param inputs_bufs: Inputs operations buffers.
- * \param exec_system: Execution system.
  */
 void NodeOperation::render(MemoryBuffer *output_buf,
                            Span<rcti> areas,
-                           Span<MemoryBuffer *> inputs_bufs,
-                           ExecutionSystem &exec_system)
+                           Span<MemoryBuffer *> inputs_bufs)
 {
   if (get_flags().is_fullframe_operation) {
-    render_full_frame(output_buf, areas, inputs_bufs, exec_system);
+    render_full_frame(output_buf, areas, inputs_bufs);
   }
   else {
-    render_full_frame_fallback(output_buf, areas, inputs_bufs, exec_system);
+    render_full_frame_fallback(output_buf, areas, inputs_bufs);
   }
 }
 
@@ -246,12 +244,11 @@ void NodeOperation::render(MemoryBuffer *output_buf,
  */
 void NodeOperation::render_full_frame(MemoryBuffer *output_buf,
                                       Span<rcti> areas,
-                                      Span<MemoryBuffer *> inputs_bufs,
-                                      ExecutionSystem &exec_system)
+                                      Span<MemoryBuffer *> inputs_bufs)
 {
   initExecution();
   for (const rcti &area : areas) {
-    update_memory_buffer(output_buf, area, inputs_bufs, exec_system);
+    update_memory_buffer(output_buf, area, inputs_bufs);
   }
   deinitExecution();
 }
@@ -261,8 +258,7 @@ void NodeOperation::render_full_frame(MemoryBuffer *output_buf,
  */
 void NodeOperation::render_full_frame_fallback(MemoryBuffer *output_buf,
                                                Span<rcti> areas,
-                                               Span<MemoryBuffer *> inputs_bufs,
-                                               ExecutionSystem &exec_system)
+                                               Span<MemoryBuffer *> inputs_bufs)
 {
   Vector<NodeOperationOutput *> orig_input_links = replace_inputs_with_buffers(inputs_bufs);
 
@@ -274,7 +270,7 @@ void NodeOperation::render_full_frame_fallback(MemoryBuffer *output_buf,
   }
   else {
     for (const rcti &rect : areas) {
-      exec_system.execute_work(rect, [=](const rcti &split_rect) {
+      exec_system_->execute_work(rect, [=](const rcti &split_rect) {
         rcti tile_rect = split_rect;
         if (is_output_operation) {
           executeRegion(&tile_rect, 0);
