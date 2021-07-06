@@ -19,7 +19,7 @@
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_curve_primitive_star_in[] = {
-    {SOCK_INT, N_("Points"), 8.0f, 0.0f, 0.0f, 0.0f, 4, 256, PROP_UNSIGNED},
+    {SOCK_INT, N_("Points"), 8.0f, 0.0f, 0.0f, 0.0f, 3, 256, PROP_UNSIGNED},
     {SOCK_FLOAT, N_("Inner Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_FLOAT, N_("Outer Radius"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_FLOAT, N_("Twist"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_ANGLE},
@@ -64,7 +64,7 @@ static void geo_node_curve_primitive_star_exec(GeoNodeExecParams params)
       std::max(params.extract_input<float>("Inner Radius"), 0.0f),
       std::max(params.extract_input<float>("Outer Radius"), 0.0f),
       params.extract_input<float>("Twist"),
-      std::max(params.extract_input<int>("Points"), 4));
+      std::max(params.extract_input<int>("Points"), 3));
   params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
 }
 
