@@ -803,7 +803,7 @@ char *GHOST_getClipboard(bool selection)
   return system->getClipboard(selection);
 }
 
-void GHOST_putClipboard(char *buffer, bool selection)
+void GHOST_putClipboard(const char *buffer, bool selection)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   system->putClipboard(buffer, selection);

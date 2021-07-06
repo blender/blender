@@ -229,7 +229,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param selection: Used by X11 only.
    * \return No return.
    */
-  void putClipboard(char *buffer, bool selection) const;
+  void putClipboard(const char *buffer, bool selection) const;
 
   /**
    * Show a system message box

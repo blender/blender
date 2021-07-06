@@ -215,7 +215,7 @@ class GHOST_SystemCocoa : public GHOST_System {
    * \param buffer: The buffer to be copied.
    * \param selection: Indicates which buffer to copy too, only used on X11.
    */
-  void putClipboard(char *buffer, bool selection) const;
+  void putClipboard(const char *buffer, bool selection) const;
 
   /**
    * Handles a window event. Called by GHOST_WindowCocoa window delegate

@@ -893,7 +893,7 @@ extern char *GHOST_getClipboard(bool selection);
  * \param buffer: the string buffer to set.
  * \param selection: Set the selection instead, X11 only feature.
  */
-extern void GHOST_putClipboard(char *buffer, bool selection);
+extern void GHOST_putClipboard(const char *buffer, bool selection);
 
 /**
  * Toggles console

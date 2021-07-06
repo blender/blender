@@ -436,7 +436,7 @@ class GHOST_ISystem {
   /**
    * Put data to the Clipboard
    */
-  virtual void putClipboard(char *buffer, bool selection) const = 0;
+  virtual void putClipboard(const char *buffer, bool selection) const = 0;
 
   /***************************************************************************************
    * System Message Box.

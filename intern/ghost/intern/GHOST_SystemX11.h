@@ -229,7 +229,7 @@ class GHOST_SystemX11 : public GHOST_System {
    * \param buffer: The buffer to copy to the clipboard.
    * \param selection: Set the selection into the clipboard, X11 only feature.
    */
-  void putClipboard(char *buffer, bool selection) const;
+  void putClipboard(const char *buffer, bool selection) const;
 
   /**
    * Show a system message box

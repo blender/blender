@@ -56,7 +56,7 @@ class GHOST_SystemNULL : public GHOST_System {
   {
     return NULL;
   }
-  void putClipboard(char *buffer, bool selection) const
+  void putClipboard(const char *buffer, bool selection) const
   { /* nop */
   }
   uint64_t getMilliSeconds() const

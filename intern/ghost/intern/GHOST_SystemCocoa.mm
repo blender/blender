@@ -1969,7 +1969,7 @@ char *GHOST_SystemCocoa::getClipboard(bool selection) const
   }
 }
 
-void GHOST_SystemCocoa::putClipboard(char *buffer, bool selection) const
+void GHOST_SystemCocoa::putClipboard(const char *buffer, bool selection) const
 {
   if (selection)
     return;  // for copying the selection, used on X11

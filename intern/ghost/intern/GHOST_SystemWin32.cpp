@@ -2059,7 +2059,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
   }
 }
 
-void GHOST_SystemWin32::putClipboard(char *buffer, bool selection) const
+void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
 {
   if (selection) {
     return;

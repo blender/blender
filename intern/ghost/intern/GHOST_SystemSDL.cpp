@@ -748,7 +748,7 @@ char *GHOST_SystemSDL::getClipboard(bool selection) const
   return (char *)SDL_GetClipboardText();
 }
 
-void GHOST_SystemSDL::putClipboard(char *buffer, bool selection) const
+void GHOST_SystemSDL::putClipboard(const char *buffer, bool selection) const
 {
   SDL_SetClipboardText(buffer);
 }
