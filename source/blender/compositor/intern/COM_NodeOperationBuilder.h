@@ -68,6 +68,7 @@ class NodeOperationBuilder {
  private:
   const CompositorContext *m_context;
   NodeGraph m_graph;
+  ExecutionSystem *exec_system_;
 
   Vector<NodeOperation *> m_operations;
   Vector<Link> m_links;
@@ -87,7 +88,9 @@ class NodeOperationBuilder {
   ViewerOperation *m_active_viewer;
 
  public:
-  NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree);
+  NodeOperationBuilder(const CompositorContext *context,
+                       bNodeTree *b_nodetree,
+                       ExecutionSystem *system);
 
   const CompositorContext &context() const
   {

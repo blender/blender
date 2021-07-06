@@ -64,7 +64,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
   this->m_context.setDisplaySettings(displaySettings);
 
   {
-    NodeOperationBuilder builder(&m_context, editingtree);
+    NodeOperationBuilder builder(&m_context, editingtree, this);
     builder.convertToOperations(this);
   }
 
@@ -101,9 +101,6 @@ void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
 {
   m_operations = operations;
   m_groups = groups;
-  for (NodeOperation *op : m_operations) {
-    op->set_execution_system(this);
-  }
 }
 
 void ExecutionSystem::execute()

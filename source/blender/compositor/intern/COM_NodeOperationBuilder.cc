@@ -41,8 +41,10 @@
 
 namespace blender::compositor {
 
-NodeOperationBuilder::NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree)
-    : m_context(context), m_current_node(nullptr), m_active_viewer(nullptr)
+NodeOperationBuilder::NodeOperationBuilder(const CompositorContext *context,
+                                           bNodeTree *b_nodetree,
+                                           ExecutionSystem *system)
+    : m_context(context), exec_system_(system), m_current_node(nullptr), m_active_viewer(nullptr)
 {
   m_graph.from_bNodeTree(*context, b_nodetree);
 }
@@ -140,6 +142,7 @@ void NodeOperationBuilder::addOperation(NodeOperation *operation)
     operation->set_name(m_current_node->getbNode()->name);
   }
   operation->set_execution_model(m_context->get_execution_model());
+  operation->set_execution_system(exec_system_);
 }
 
 void NodeOperationBuilder::replace_operation_with_constant(NodeOperation *operation,
