@@ -104,15 +104,6 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile,
   return sel;
 }
 
-static void file_deselect_all(SpaceFile *sfile, uint flag)
-{
-  FileSelection sel;
-  sel.first = 0;
-  sel.last = filelist_files_ensure(sfile->files) - 1;
-
-  filelist_entries_select_index_range_set(sfile->files, &sel, FILE_SEL_REMOVE, flag, CHECK_ALL);
-}
-
 typedef enum FileSelect {
   FILE_SELECT_NOTHING = 0,
   FILE_SELECT_DIR = 1,
@@ -444,7 +435,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
     if ((sel.first != params->sel_first) || (sel.last != params->sel_last)) {
       int idx;
 
-      file_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
+      file_select_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
       filelist_entries_select_index_range_set(
           sfile->files, &sel, FILE_SEL_ADD, FILE_SEL_HIGHLIGHTED, CHECK_ALL);
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
@@ -472,7 +463,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
     params->highlight_file = -1;
     params->sel_first = params->sel_last = -1;
     fileselect_file_set(sfile, params->active_file);
-    file_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
+    file_select_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
   }
 
@@ -491,7 +482,7 @@ static int file_box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    file_deselect_all(sfile, FILE_SEL_SELECTED);
+    file_select_deselect_all(sfile, FILE_SEL_SELECTED);
   }
 
   ED_fileselect_layout_isect_rect(sfile->layout, &region->v2d, &rect, &rect);
@@ -573,7 +564,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if ((idx >= 0) && (idx < numfiles)) {
       /* single select, deselect all selected first */
       if (!extend) {
-        file_deselect_all(sfile, FILE_SEL_SELECTED);
+        file_select_deselect_all(sfile, FILE_SEL_SELECTED);
       }
     }
   }
@@ -588,7 +579,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (ret == FILE_SELECT_NOTHING) {
     if (deselect_all) {
-      file_deselect_all(sfile, FILE_SEL_SELECTED);
+      file_select_deselect_all(sfile, FILE_SEL_SELECTED);
     }
   }
   else if (ret == FILE_SELECT_DIR) {
@@ -721,7 +712,7 @@ static bool file_walk_select_selection_set(wmWindow *win,
   }
   else {
     /* deselect all first */
-    file_deselect_all(sfile, FILE_SEL_SELECTED);
+    file_select_deselect_all(sfile, FILE_SEL_SELECTED);
 
     /* highlight file under mouse pos */
     params->highlight_file = -1;

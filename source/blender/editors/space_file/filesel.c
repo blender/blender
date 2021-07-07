@@ -1086,6 +1086,15 @@ void ED_file_change_dir(bContext *C)
   ED_file_change_dir_ex(C, area);
 }
 
+void file_select_deselect_all(SpaceFile *sfile, uint flag)
+{
+  FileSelection sel;
+  sel.first = 0;
+  sel.last = filelist_files_ensure(sfile->files) - 1;
+
+  filelist_entries_select_index_range_set(sfile->files, &sel, FILE_SEL_REMOVE, flag, CHECK_ALL);
+}
+
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file)
 {
   int match = 0;
