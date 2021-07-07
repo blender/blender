@@ -59,7 +59,6 @@ PyDoc_STRVAR(
     "   :type name: string\n"
     "   :return: The Preview matching given name, or a new empty one.\n"
     "   :rtype: :class:`bpy.types.ImagePreview`\n"
-    "   :rtype: :class:`bpy.types.ImagePreview`\n"
     /* This is only true when accessed via 'bpy.utils.previews.ImagePreviewCollection.load',
      * however this is the public API, allow this minor difference to the internal version here. */
     "   :raises KeyError: if ``name`` already exists.");

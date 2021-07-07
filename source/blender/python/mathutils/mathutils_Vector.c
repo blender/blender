@@ -149,7 +149,7 @@ static PyObject *C_Vector_Fill(PyObject *cls, PyObject *args)
 }
 
 PyDoc_STRVAR(C_Vector_Range_doc,
-             ".. classmethod:: Range(start=0, stop, step=1)\n"
+             ".. classmethod:: Range(start, stop, step=1)\n"
              "\n"
              "   Create a filled with a range of values.\n"
              "\n"
