@@ -25,7 +25,7 @@
  * \see bmesh_mesh_normals.c for the equivalent #BMesh functionality.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "CLG_log.h"
 
@@ -90,15 +90,15 @@ void BKE_mesh_calc_normals_mapping_simple(struct Mesh *mesh)
                                    mesh->mpoly,
                                    mesh->totloop,
                                    mesh->totpoly,
-                                   NULL,
+                                   nullptr,
                                    mesh->mface,
                                    mesh->totface,
-                                   NULL,
-                                   NULL,
+                                   nullptr,
+                                   nullptr,
                                    only_face_normals);
 }
 
-/* Calculate vertex and face normals, face normals are returned in *r_faceNors if non-NULL
+/* Calculate vertex and face normals, face normals are returned in *r_faceNors if non-nullptr
  * and vertex normals are stored in actual mverts.
  */
 void BKE_mesh_calc_normals_mapping(MVert *mverts,
@@ -150,13 +150,13 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
   }
 
   /* if we are not calculating verts and no verts were passes then we have nothing to do */
-  if ((only_face_normals == true) && (r_polyNors == NULL) && (r_faceNors == NULL)) {
+  if ((only_face_normals == true) && (r_polyNors == nullptr) && (r_faceNors == nullptr)) {
     CLOG_WARN(&LOG, "called with nothing to do");
     return;
   }
 
   if (!pnors) {
-    pnors = MEM_calloc_arrayN((size_t)numPolys, sizeof(float[3]), __func__);
+    pnors = (float(*)[3])MEM_calloc_arrayN((size_t)numPolys, sizeof(float[3]), __func__);
   }
   /* NO NEED TO ALLOC YET */
   /* if (!fnors) fnors = MEM_calloc_arrayN(numFaces, sizeof(float[3]), "face nors mesh.c"); */
@@ -165,7 +165,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
     /* vertex normals are optional, they require some extra calculations,
      * so make them optional */
     BKE_mesh_calc_normals_poly(
-        mverts, NULL, numVerts, mloop, mpolys, numLoops, numPolys, pnors, false);
+        mverts, nullptr, numVerts, mloop, mpolys, numLoops, numPolys, pnors, false);
   }
   else {
     /* only calc poly normals */
@@ -177,7 +177,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
 
   if (origIndexFace &&
       /* fnors == r_faceNors */ /* NO NEED TO ALLOC YET */
-          fnors != NULL &&
+          fnors != nullptr &&
       numFaces) {
     const MFace *mf = mfaces;
     for (int i = 0; i < numFaces; i++, mf++, origIndexFace++) {
@@ -196,23 +196,23 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
   }
   /* if (fnors != r_faceNors) MEM_freeN(fnors); */ /* NO NEED TO ALLOC YET */
 
-  fnors = pnors = NULL;
+  fnors = pnors = nullptr;
 }
 
-typedef struct MeshCalcNormalsData {
+struct MeshCalcNormalsData {
   const MPoly *mpolys;
   const MLoop *mloop;
   MVert *mverts;
   float (*pnors)[3];
   float (*lnors_weighted)[3];
   float (*vnors)[3];
-} MeshCalcNormalsData;
+};
 
 static void mesh_calc_normals_poly_cb(void *__restrict userdata,
                                       const int pidx,
                                       const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  MeshCalcNormalsData *data = userdata;
+  MeshCalcNormalsData *data = (MeshCalcNormalsData *)userdata;
   const MPoly *mp = &data->mpolys[pidx];
 
   BKE_mesh_calc_poly_normal(mp, data->mloop + mp->loopstart, data->mverts, data->pnors[pidx]);
@@ -222,7 +222,7 @@ static void mesh_calc_normals_poly_prepare_cb(void *__restrict userdata,
                                               const int pidx,
                                               const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  MeshCalcNormalsData *data = userdata;
+  MeshCalcNormalsData *data = (MeshCalcNormalsData *)userdata;
   const MPoly *mp = &data->mpolys[pidx];
   const MLoop *ml = &data->mloop[mp->loopstart];
   const MVert *mverts = data->mverts;
@@ -232,7 +232,7 @@ static void mesh_calc_normals_poly_prepare_cb(void *__restrict userdata,
   float(*lnors_weighted)[3] = data->lnors_weighted;
 
   const int nverts = mp->totloop;
-  float(*edgevecbuf)[3] = BLI_array_alloca(edgevecbuf, (size_t)nverts);
+  float(*edgevecbuf)[3] = (float(*)[3])BLI_array_alloca(edgevecbuf, (size_t)nverts);
 
   /* Polygon Normal and edge-vector */
   /* inline version of #BKE_mesh_calc_poly_normal, also does edge-vectors */
@@ -285,7 +285,7 @@ static void mesh_calc_normals_poly_finalize_cb(void *__restrict userdata,
                                                const int vidx,
                                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  MeshCalcNormalsData *data = userdata;
+  MeshCalcNormalsData *data = (MeshCalcNormalsData *)userdata;
 
   MVert *mv = &data->mverts[vidx];
   float *no = data->vnors[vidx];
@@ -315,42 +315,40 @@ void BKE_mesh_calc_normals_poly(MVert *mverts,
   settings.min_iter_per_thread = 1024;
 
   if (only_face_normals) {
-    BLI_assert((pnors != NULL) || (numPolys == 0));
-    BLI_assert(r_vertnors == NULL);
+    BLI_assert((pnors != nullptr) || (numPolys == 0));
+    BLI_assert(r_vertnors == nullptr);
 
-    MeshCalcNormalsData data = {
-        .mpolys = mpolys,
-        .mloop = mloop,
-        .mverts = mverts,
-        .pnors = pnors,
-    };
+    MeshCalcNormalsData data;
+    data.mpolys = mpolys;
+    data.mloop = mloop;
+    data.mverts = mverts;
+    data.pnors = pnors;
 
     BLI_task_parallel_range(0, numPolys, &data, mesh_calc_normals_poly_cb, &settings);
     return;
   }
 
   float(*vnors)[3] = r_vertnors;
-  float(*lnors_weighted)[3] = MEM_malloc_arrayN(
+  float(*lnors_weighted)[3] = (float(*)[3])MEM_malloc_arrayN(
       (size_t)numLoops, sizeof(*lnors_weighted), __func__);
   bool free_vnors = false;
 
   /* first go through and calculate normals for all the polys */
-  if (vnors == NULL) {
-    vnors = MEM_calloc_arrayN((size_t)numVerts, sizeof(*vnors), __func__);
+  if (vnors == nullptr) {
+    vnors = (float(*)[3])MEM_calloc_arrayN((size_t)numVerts, sizeof(*vnors), __func__);
     free_vnors = true;
   }
   else {
     memset(vnors, 0, sizeof(*vnors) * (size_t)numVerts);
   }
 
-  MeshCalcNormalsData data = {
-      .mpolys = mpolys,
-      .mloop = mloop,
-      .mverts = mverts,
-      .pnors = pnors,
-      .lnors_weighted = lnors_weighted,
-      .vnors = vnors,
-  };
+  MeshCalcNormalsData data;
+  data.mpolys = mpolys;
+  data.mloop = mloop;
+  data.mverts = mverts;
+  data.pnors = pnors;
+  data.lnors_weighted = lnors_weighted;
+  data.vnors = vnors;
 
   /* Compute poly normals, and prepare weighted loop normals. */
   BLI_task_parallel_range(0, numPolys, &data, mesh_calc_normals_poly_prepare_cb, &settings);
@@ -400,19 +398,21 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
     }
   }
 
-  float(*poly_nors)[3] = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+  float(*poly_nors)[3] = (float(*)[3])CustomData_get_layer(&mesh->pdata, CD_NORMAL);
   const bool do_vert_normals = (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) != 0;
-  const bool do_poly_normals = (mesh->runtime.cd_dirty_poly & CD_MASK_NORMAL || poly_nors == NULL);
+  const bool do_poly_normals = (mesh->runtime.cd_dirty_poly & CD_MASK_NORMAL ||
+                                poly_nors == nullptr);
 
   if (do_vert_normals || do_poly_normals) {
-    const bool do_add_poly_nors_cddata = (poly_nors == NULL);
+    const bool do_add_poly_nors_cddata = (poly_nors == nullptr);
     if (do_add_poly_nors_cddata) {
-      poly_nors = MEM_malloc_arrayN((size_t)mesh->totpoly, sizeof(*poly_nors), __func__);
+      poly_nors = (float(*)[3])MEM_malloc_arrayN(
+          (size_t)mesh->totpoly, sizeof(*poly_nors), __func__);
     }
 
     /* calculate poly/vert normals */
     BKE_mesh_calc_normals_poly(mesh->mvert,
-                               NULL,
+                               nullptr,
                                mesh->totvert,
                                mesh->mloop,
                                mesh->mpoly,
@@ -438,13 +438,13 @@ void BKE_mesh_calc_normals(Mesh *mesh)
   TIMEIT_START_AVERAGED(BKE_mesh_calc_normals);
 #endif
   BKE_mesh_calc_normals_poly(mesh->mvert,
-                             NULL,
+                             nullptr,
                              mesh->totvert,
                              mesh->mloop,
                              mesh->mpoly,
                              mesh->totloop,
                              mesh->totpoly,
-                             NULL,
+                             nullptr,
                              false);
 #ifdef DEBUG_TIME
   TIMEIT_END_AVERAGED(BKE_mesh_calc_normals);
@@ -459,10 +459,10 @@ void BKE_mesh_calc_normals_looptri(MVert *mverts,
                                    int looptri_num,
                                    float (*r_tri_nors)[3])
 {
-  float(*tnorms)[3] = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tnorms), "tnorms");
-  float(*fnors)[3] = (r_tri_nors) ?
-                         r_tri_nors :
-                         MEM_calloc_arrayN((size_t)looptri_num, sizeof(*fnors), "meshnormals");
+  float(*tnorms)[3] = (float(*)[3])MEM_calloc_arrayN((size_t)numVerts, sizeof(*tnorms), "tnorms");
+  float(*fnors)[3] = (r_tri_nors) ? r_tri_nors :
+                                    (float(*)[3])MEM_calloc_arrayN(
+                                        (size_t)looptri_num, sizeof(*fnors), "meshnormals");
 
   if (!tnorms || !fnors) {
     goto cleanup;
@@ -519,9 +519,10 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
       lnors_spacearr->mem = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
     }
     mem = lnors_spacearr->mem;
-    lnors_spacearr->lspacearr = BLI_memarena_calloc(mem,
-                                                    sizeof(MLoopNorSpace *) * (size_t)numLoops);
-    lnors_spacearr->loops_pool = BLI_memarena_alloc(mem, sizeof(LinkNode) * (size_t)numLoops);
+    lnors_spacearr->lspacearr = (MLoopNorSpace **)BLI_memarena_calloc(
+        mem, sizeof(MLoopNorSpace *) * (size_t)numLoops);
+    lnors_spacearr->loops_pool = (LinkNode *)BLI_memarena_alloc(
+        mem, sizeof(LinkNode) * (size_t)numLoops);
 
     lnors_spacearr->num_spaces = 0;
   }
@@ -532,9 +533,9 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
 void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
 {
   lnors_spacearr->num_spaces = 0;
-  lnors_spacearr->lspacearr = NULL;
-  lnors_spacearr->loops_pool = NULL;
-  if (lnors_spacearr->mem != NULL) {
+  lnors_spacearr->lspacearr = nullptr;
+  lnors_spacearr->loops_pool = nullptr;
+  if (lnors_spacearr->mem != nullptr) {
     BLI_memarena_clear(lnors_spacearr->mem);
   }
 }
@@ -542,16 +543,16 @@ void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
 void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr)
 {
   lnors_spacearr->num_spaces = 0;
-  lnors_spacearr->lspacearr = NULL;
-  lnors_spacearr->loops_pool = NULL;
+  lnors_spacearr->lspacearr = nullptr;
+  lnors_spacearr->loops_pool = nullptr;
   BLI_memarena_free(lnors_spacearr->mem);
-  lnors_spacearr->mem = NULL;
+  lnors_spacearr->mem = nullptr;
 }
 
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
 {
   lnors_spacearr->num_spaces++;
-  return BLI_memarena_calloc(lnors_spacearr->mem, sizeof(MLoopNorSpace));
+  return (MLoopNorSpace *)BLI_memarena_calloc(lnors_spacearr->mem, sizeof(MLoopNorSpace));
 }
 
 /* This threshold is a bit touchy (usual float precision issue), this value seems OK. */
@@ -592,7 +593,7 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
     float alpha = 0.0f;
     int nbr = 0;
     while (!BLI_stack_is_empty(edge_vectors)) {
-      const float *vec = BLI_stack_peek(edge_vectors);
+      const float *vec = (const float *)BLI_stack_peek(edge_vectors);
       alpha += saacosf(dot_v3v3(vec, lnor));
       BLI_stack_discard(edge_vectors);
       nbr++;
@@ -637,10 +638,10 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
 /**
  * Add a new given loop to given lnor_space.
  * Depending on \a lnor_space->data_type, we expect \a bm_loop to be a pointer to BMLoop struct
- * (in case of BMLOOP_PTR), or NULL (in case of LOOP_INDEX), loop index is then stored in pointer.
- * If \a is_single is set, the BMLoop or loop index is directly stored in \a lnor_space->loops
- * pointer (since there is only one loop in this fan),
- * else it is added to the linked list of loops in the fan.
+ * (in case of BMLOOP_PTR), or nullptr (in case of LOOP_INDEX), loop index is then stored in
+ * pointer. If \a is_single is set, the BMLoop or loop index is directly stored in \a
+ * lnor_space->loops pointer (since there is only one loop in this fan), else it is added to the
+ * linked list of loops in the fan.
  */
 void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr,
                              MLoopNorSpace *lnor_space,
@@ -648,17 +649,17 @@ void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr,
                              void *bm_loop,
                              const bool is_single)
 {
-  BLI_assert((lnors_spacearr->data_type == MLNOR_SPACEARR_LOOP_INDEX && bm_loop == NULL) ||
-             (lnors_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR && bm_loop != NULL));
+  BLI_assert((lnors_spacearr->data_type == MLNOR_SPACEARR_LOOP_INDEX && bm_loop == nullptr) ||
+             (lnors_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR && bm_loop != nullptr));
 
   lnors_spacearr->lspacearr[ml_index] = lnor_space;
-  if (bm_loop == NULL) {
+  if (bm_loop == nullptr) {
     bm_loop = POINTER_FROM_INT(ml_index);
   }
   if (is_single) {
-    BLI_assert(lnor_space->loops == NULL);
+    BLI_assert(lnor_space->loops == nullptr);
     lnor_space->flags |= MLNOR_SPACE_IS_SINGLE;
-    lnor_space->loops = bm_loop;
+    lnor_space->loops = (LinkNode *)bm_loop;
   }
   else {
     BLI_assert((lnor_space->flags & MLNOR_SPACE_IS_SINGLE) == 0);
@@ -715,7 +716,8 @@ void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
                                           const float custom_lnor[3],
                                           short r_clnor_data[2])
 {
-  /* We use null vector as NOP custom normal (can be simpler than giving auto-computed `lnor`). */
+  /* We use nullptr vector as NOP custom normal (can be simpler than giving auto-computed `lnor`).
+   */
   if (is_zero_v3(custom_lnor) || compare_v3v3(lnor_space->vec_lnor, custom_lnor, 1e-4f)) {
     r_clnor_data[0] = r_clnor_data[1] = 0;
     return;
@@ -765,7 +767,7 @@ void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
 
 #define LOOP_SPLIT_TASK_BLOCK_SIZE 1024
 
-typedef struct LoopSplitTaskData {
+struct LoopSplitTaskData {
   /* Specific to each instance (each task). */
 
   /** We have to create those outside of tasks, since #MemArena is not thread-safe. */
@@ -784,9 +786,9 @@ typedef struct LoopSplitTaskData {
   BLI_Stack *edge_vectors;
 
   char pad_c;
-} LoopSplitTaskData;
+};
 
-typedef struct LoopSplitTaskDataCommon {
+struct LoopSplitTaskDataCommon {
   /* Read/write.
    * Note we do not need to protect it, though, since two different tasks will *always* affect
    * different elements in the arrays. */
@@ -806,7 +808,7 @@ typedef struct LoopSplitTaskDataCommon {
   int numEdges;
   int numLoops;
   int numPolys;
-} LoopSplitTaskDataCommon;
+};
 
 #define INDEX_UNSET INT_MIN
 #define INDEX_INVALID -1
@@ -827,13 +829,13 @@ static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
   const int numEdges = data->numEdges;
   const int numPolys = data->numPolys;
 
-  float(*loopnors)[3] = data->loopnors; /* NOTE: loopnors may be NULL here. */
+  float(*loopnors)[3] = data->loopnors; /* NOTE: loopnors may be nullptr here. */
   const float(*polynors)[3] = data->polynors;
 
   int(*edge_to_loops)[2] = data->edge_to_loops;
   int *loop_to_poly = data->loop_to_poly;
 
-  BLI_bitmap *sharp_edges = do_sharp_edges_tag ? BLI_BITMAP_NEW(numEdges, __func__) : NULL;
+  BLI_bitmap *sharp_edges = do_sharp_edges_tag ? BLI_BITMAP_NEW(numEdges, __func__) : nullptr;
 
   const MPoly *mp;
   int mp_index;
@@ -943,22 +945,22 @@ void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
   }
 
   /* Mapping edge -> loops. See BKE_mesh_normals_loop_split() for details. */
-  int(*edge_to_loops)[2] = MEM_calloc_arrayN((size_t)numEdges, sizeof(*edge_to_loops), __func__);
+  int(*edge_to_loops)[2] = (int(*)[2])MEM_calloc_arrayN(
+      (size_t)numEdges, sizeof(*edge_to_loops), __func__);
 
   /* Simple mapping from a loop to its polygon index. */
-  int *loop_to_poly = MEM_malloc_arrayN((size_t)numLoops, sizeof(*loop_to_poly), __func__);
+  int *loop_to_poly = (int *)MEM_malloc_arrayN((size_t)numLoops, sizeof(*loop_to_poly), __func__);
 
-  LoopSplitTaskDataCommon common_data = {
-      .mverts = mverts,
-      .medges = medges,
-      .mloops = mloops,
-      .mpolys = mpolys,
-      .edge_to_loops = edge_to_loops,
-      .loop_to_poly = loop_to_poly,
-      .polynors = polynors,
-      .numEdges = numEdges,
-      .numPolys = numPolys,
-  };
+  LoopSplitTaskDataCommon common_data;
+  common_data.mverts = mverts;
+  common_data.medges = medges;
+  common_data.mloops = mloops;
+  common_data.mpolys = mpolys;
+  common_data.edge_to_loops = edge_to_loops;
+  common_data.loop_to_poly = loop_to_poly;
+  common_data.polynors = polynors;
+  common_data.numEdges = numEdges;
+  common_data.numPolys = numPolys;
 
   mesh_edges_sharp_tag(&common_data, true, split_angle, true);
 
@@ -1065,10 +1067,10 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
     sub_v3_v3v3(vec_prev, mv_3->co, mv_pivot->co);
     normalize_v3(vec_prev);
 
-    BKE_lnor_space_define(lnor_space, *lnor, vec_curr, vec_prev, NULL);
+    BKE_lnor_space_define(lnor_space, *lnor, vec_curr, vec_prev, nullptr);
     /* We know there is only one loop in this space,
      * no need to create a linklist in this case... */
-    BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, ml_curr_index, NULL, true);
+    BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, ml_curr_index, nullptr, true);
 
     if (clnors_data) {
       BKE_lnor_space_custom_data_to_normal(lnor_space, clnors_data[ml_curr_index], *lnor);
@@ -1125,7 +1127,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 
   /* We validate clnors data on the fly - cheapest way to do! */
   int clnors_avg[2] = {0, 0};
-  short(*clnor_ref)[2] = NULL;
+  short(*clnor_ref)[2] = nullptr;
   int clnors_nbr = 0;
   bool clnors_invalid = false;
 
@@ -1205,7 +1207,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 
     if (lnors_spacearr) {
       /* Assign current lnor space to current 'vertex' loop. */
-      BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, mlfan_vert_index, NULL, false);
+      BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, mlfan_vert_index, nullptr, false);
       if (me_curr != me_org) {
         /* We store here all edges-normalized vectors processed. */
         BLI_stack_push(edge_vectors, vec_curr);
@@ -1261,7 +1263,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
           if (G.debug & G_DEBUG) {
             printf("Invalid clnors in this fan!\n");
           }
-          while ((clnor = BLI_SMALLSTACK_POP(clnors))) {
+          while ((clnor = (short *)BLI_SMALLSTACK_POP(clnors))) {
             // print_v2("org clnor", clnor);
             clnor[0] = (short)clnors_avg[0];
             clnor[1] = (short)clnors_avg[1];
@@ -1280,7 +1282,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
       /* Copy back the final computed normal into all related loop-normals. */
       float *nor;
 
-      while ((nor = BLI_SMALLSTACK_POP(normal))) {
+      while ((nor = (float *)BLI_SMALLSTACK_POP(normal))) {
         copy_v3_v3(nor, lnor);
       }
     }
@@ -1295,7 +1297,7 @@ static void loop_split_worker_do(LoopSplitTaskDataCommon *common_data,
 {
   BLI_assert(data->ml_curr);
   if (data->e2l_prev) {
-    BLI_assert((edge_vectors == NULL) || BLI_stack_is_empty(edge_vectors));
+    BLI_assert((edge_vectors == nullptr) || BLI_stack_is_empty(edge_vectors));
     data->edge_vectors = edge_vectors;
     split_loop_nor_fan_do(common_data, data);
   }
@@ -1307,21 +1309,21 @@ static void loop_split_worker_do(LoopSplitTaskDataCommon *common_data,
 
 static void loop_split_worker(TaskPool *__restrict pool, void *taskdata)
 {
-  LoopSplitTaskDataCommon *common_data = BLI_task_pool_user_data(pool);
-  LoopSplitTaskData *data = taskdata;
+  LoopSplitTaskDataCommon *common_data = (LoopSplitTaskDataCommon *)BLI_task_pool_user_data(pool);
+  LoopSplitTaskData *data = (LoopSplitTaskData *)taskdata;
 
   /* Temp edge vectors stack, only used when computing lnor spacearr. */
   BLI_Stack *edge_vectors = common_data->lnors_spacearr ?
                                 BLI_stack_new(sizeof(float[3]), __func__) :
-                                NULL;
+                                nullptr;
 
 #ifdef DEBUG_TIME
   TIMEIT_START_AVERAGED(loop_split_worker);
 #endif
 
   for (int i = 0; i < LOOP_SPLIT_TASK_BLOCK_SIZE; i++, data++) {
-    /* A NULL ml_curr is used to tag ended data! */
-    if (data->ml_curr == NULL) {
+    /* A nullptr ml_curr is used to tag ended data! */
+    if (data->ml_curr == nullptr) {
       break;
     }
 
@@ -1434,12 +1436,12 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 
   BLI_bitmap *skip_loops = BLI_BITMAP_NEW(numLoops, __func__);
 
-  LoopSplitTaskData *data_buff = NULL;
+  LoopSplitTaskData *data_buff = nullptr;
   int data_idx = 0;
 
   /* Temp edge vectors stack, only used when computing lnor spacearr
    * (and we are not multi-threading). */
-  BLI_Stack *edge_vectors = NULL;
+  BLI_Stack *edge_vectors = nullptr;
 
 #ifdef DEBUG_TIME
   TIMEIT_START_AVERAGED(loop_split_generator);
@@ -1508,7 +1510,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 
         if (pool) {
           if (data_idx == 0) {
-            data_buff = MEM_calloc_arrayN(
+            data_buff = (LoopSplitTaskData *)MEM_calloc_arrayN(
                 LOOP_SPLIT_TASK_BLOCK_SIZE, sizeof(*data_buff), __func__);
           }
           data = &data_buff[data_idx];
@@ -1525,7 +1527,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
           data->ml_curr_index = ml_curr_index;
 #if 0 /* Not needed for 'single' loop. */
           data->ml_prev_index = ml_prev_index;
-          data->e2l_prev = NULL; /* Tag as 'single' task. */
+          data->e2l_prev = nullptr; /* Tag as 'single' task. */
 #endif
           data->mp_index = mp_index;
           if (lnors_spacearr) {
@@ -1559,7 +1561,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
         if (pool) {
           data_idx++;
           if (data_idx == LOOP_SPLIT_TASK_BLOCK_SIZE) {
-            BLI_task_pool_push(pool, loop_split_worker, data_buff, true, NULL);
+            BLI_task_pool_push(pool, loop_split_worker, data_buff, true, nullptr);
             data_idx = 0;
           }
         }
@@ -1573,10 +1575,10 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
     }
   }
 
-  /* Last block of data... Since it is calloc'ed and we use first NULL item as stopper,
+  /* Last block of data... Since it is calloc'ed and we use first nullptr item as stopper,
    * everything is fine. */
   if (pool && data_idx) {
-    BLI_task_pool_push(pool, loop_split_worker, data_buff, true, NULL);
+    BLI_task_pool_push(pool, loop_split_worker, data_buff, true, nullptr);
   }
 
   if (edge_vectors) {
@@ -1659,17 +1661,18 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
    * However, if needed, we can store the negated value of loop index instead of INDEX_INVALID
    * to retrieve the real value later in code).
    * Note also that loose edges always have both values set to 0! */
-  int(*edge_to_loops)[2] = MEM_calloc_arrayN((size_t)numEdges, sizeof(*edge_to_loops), __func__);
+  int(*edge_to_loops)[2] = (int(*)[2])MEM_calloc_arrayN(
+      (size_t)numEdges, sizeof(*edge_to_loops), __func__);
 
   /* Simple mapping from a loop to its polygon index. */
-  int *loop_to_poly = r_loop_to_poly ?
-                          r_loop_to_poly :
-                          MEM_malloc_arrayN((size_t)numLoops, sizeof(*loop_to_poly), __func__);
+  int *loop_to_poly = r_loop_to_poly ? r_loop_to_poly :
+                                       (int *)MEM_malloc_arrayN(
+                                           (size_t)numLoops, sizeof(*loop_to_poly), __func__);
 
   /* When using custom loop normals, disable the angle feature! */
-  const bool check_angle = (split_angle < (float)M_PI) && (clnors_data == NULL);
+  const bool check_angle = (split_angle < (float)M_PI) && (clnors_data == nullptr);
 
-  MLoopNorSpaceArray _lnors_spacearr = {NULL};
+  MLoopNorSpaceArray _lnors_spacearr = {nullptr};
 
 #ifdef DEBUG_TIME
   TIMEIT_START_AVERAGED(BKE_mesh_normals_loop_split);
@@ -1684,28 +1687,27 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
   }
 
   /* Init data common to all tasks. */
-  LoopSplitTaskDataCommon common_data = {
-      .lnors_spacearr = r_lnors_spacearr,
-      .loopnors = r_loopnors,
-      .clnors_data = clnors_data,
-      .mverts = mverts,
-      .medges = medges,
-      .mloops = mloops,
-      .mpolys = mpolys,
-      .edge_to_loops = edge_to_loops,
-      .loop_to_poly = loop_to_poly,
-      .polynors = polynors,
-      .numEdges = numEdges,
-      .numLoops = numLoops,
-      .numPolys = numPolys,
-  };
+  LoopSplitTaskDataCommon common_data;
+  common_data.lnors_spacearr = r_lnors_spacearr;
+  common_data.loopnors = r_loopnors;
+  common_data.clnors_data = clnors_data;
+  common_data.mverts = mverts;
+  common_data.medges = medges;
+  common_data.mloops = mloops;
+  common_data.mpolys = mpolys;
+  common_data.edge_to_loops = edge_to_loops;
+  common_data.loop_to_poly = loop_to_poly;
+  common_data.polynors = polynors;
+  common_data.numEdges = numEdges;
+  common_data.numLoops = numLoops;
+  common_data.numPolys = numPolys;
 
   /* This first loop check which edges are actually smooth, and compute edge vectors. */
   mesh_edges_sharp_tag(&common_data, check_angle, split_angle, false);
 
   if (numLoops < LOOP_SPLIT_TASK_BLOCK_SIZE * 8) {
     /* Not enough loops to be worth the whole threading overhead... */
-    loop_split_generator(NULL, &common_data);
+    loop_split_generator(nullptr, &common_data);
   }
   else {
     TaskPool *task_pool = BLI_task_pool_create(&common_data, TASK_PRIORITY_HIGH);
@@ -1766,10 +1768,10 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
    * (and perhaps from some editing tools later?).
    * So better to keep some simplicity here, and just call BKE_mesh_normals_loop_split() twice!
    */
-  MLoopNorSpaceArray lnors_spacearr = {NULL};
+  MLoopNorSpaceArray lnors_spacearr = {nullptr};
   BLI_bitmap *done_loops = BLI_BITMAP_NEW((size_t)numLoops, __func__);
-  float(*lnors)[3] = MEM_calloc_arrayN((size_t)numLoops, sizeof(*lnors), __func__);
-  int *loop_to_poly = MEM_malloc_arrayN((size_t)numLoops, sizeof(int), __func__);
+  float(*lnors)[3] = (float(*)[3])MEM_calloc_arrayN((size_t)numLoops, sizeof(*lnors), __func__);
+  int *loop_to_poly = (int *)MEM_malloc_arrayN((size_t)numLoops, sizeof(int), __func__);
   /* In this case we always consider split nors as ON,
    * and do not want to use angle to define smooth fans! */
   const bool use_split_normals = true;
@@ -1791,7 +1793,7 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
                               use_split_normals,
                               split_angle,
                               &lnors_spacearr,
-                              NULL,
+                              nullptr,
                               loop_to_poly);
 
   /* Set all given zero vectors to their default value. */
@@ -1823,12 +1825,12 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
     for (int i = 0; i < numLoops; i++) {
       if (!lnors_spacearr.lspacearr[i]) {
         /* This should not happen in theory, but in some rare case (probably ugly geometry)
-         * we can get some NULL loopspacearr at this point. :/
+         * we can get some nullptr loopspacearr at this point. :/
          * Maybe we should set those loops' edges as sharp?
          */
         BLI_BITMAP_ENABLE(done_loops, i);
         if (G.debug & G_DEBUG) {
-          printf("WARNING! Getting invalid NULL loop space for loop %d!\n", i);
+          printf("WARNING! Getting invalid nullptr loop space for loop %d!\n", i);
         }
         continue;
       }
@@ -1849,8 +1851,8 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
         }
 
         LinkNode *loops = lnors_spacearr.lspacearr[i]->loops;
-        MLoop *prev_ml = NULL;
-        const float *org_nor = NULL;
+        MLoop *prev_ml = nullptr;
+        const float *org_nor = nullptr;
 
         while (loops) {
           const int lidx = POINTER_AS_INT(loops->link);
@@ -1916,7 +1918,7 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
                                 use_split_normals,
                                 split_angle,
                                 &lnors_spacearr,
-                                NULL,
+                                nullptr,
                                 loop_to_poly);
   }
   else {
@@ -1929,7 +1931,8 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
     if (!lnors_spacearr.lspacearr[i]) {
       BLI_BITMAP_DISABLE(done_loops, i);
       if (G.debug & G_DEBUG) {
-        printf("WARNING! Still getting invalid NULL loop space in second loop for loop %d!\n", i);
+        printf("WARNING! Still getting invalid nullptr loop space in second loop for loop %d!\n",
+               i);
       }
       continue;
     }
@@ -1970,7 +1973,7 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
         mul_v3_fl(avg_nor, 1.0f / (float)nbr_nors);
         BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], avg_nor, clnor_data_tmp);
 
-        while ((clnor_data = BLI_SMALLSTACK_POP(clnors_data))) {
+        while ((clnor_data = (short *)BLI_SMALLSTACK_POP(clnors_data))) {
           clnor_data[0] = clnor_data_tmp[0];
           clnor_data[1] = clnor_data_tmp[1];
         }
@@ -2041,20 +2044,21 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
   short(*clnors)[2];
   const int numloops = mesh->totloop;
 
-  clnors = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
-  if (clnors != NULL) {
+  clnors = (short(*)[2])CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+  if (clnors != nullptr) {
     memset(clnors, 0, sizeof(*clnors) * (size_t)numloops);
   }
   else {
-    clnors = CustomData_add_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, numloops);
+    clnors = (short(*)[2])CustomData_add_layer(
+        &mesh->ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, nullptr, numloops);
   }
 
-  float(*polynors)[3] = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+  float(*polynors)[3] = (float(*)[3])CustomData_get_layer(&mesh->pdata, CD_NORMAL);
   bool free_polynors = false;
-  if (polynors == NULL) {
-    polynors = MEM_mallocN(sizeof(float[3]) * (size_t)mesh->totpoly, __func__);
+  if (polynors == nullptr) {
+    polynors = (float(*)[3])MEM_mallocN(sizeof(float[3]) * (size_t)mesh->totpoly, __func__);
     BKE_mesh_calc_normals_poly(mesh->mvert,
-                               NULL,
+                               nullptr,
                                mesh->totvert,
                                mesh->mloop,
                                mesh->mpoly,
@@ -2119,7 +2123,8 @@ void BKE_mesh_normals_loop_to_vertex(const int numVerts,
                                      const float (*clnors)[3],
                                      float (*r_vert_clnors)[3])
 {
-  int *vert_loops_nbr = MEM_calloc_arrayN((size_t)numVerts, sizeof(*vert_loops_nbr), __func__);
+  int *vert_loops_nbr = (int *)MEM_calloc_arrayN(
+      (size_t)numVerts, sizeof(*vert_loops_nbr), __func__);
 
   copy_vn_fl((float *)r_vert_clnors, 3 * numVerts, 0.0f);
 

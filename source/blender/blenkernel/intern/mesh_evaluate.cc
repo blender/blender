@@ -23,7 +23,7 @@
  * Functions to evaluate mesh data.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 
@@ -200,7 +200,7 @@ float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const 
   }
 
   const MLoop *l_iter = loopstart;
-  float(*vertexcos)[3] = BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
+  float(*vertexcos)[3] = (float(*)[3])BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
 
   /* pack vertex cos into an array for area_poly_v3 */
   for (int i = 0; i < mpoly->totloop; i++, l_iter++) {
@@ -236,7 +236,7 @@ float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
 
   int i, l_iter = mpoly->loopstart;
   float area;
-  float(*vertexcos)[2] = BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
+  float(*vertexcos)[2] = (float(*)[2])BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
 
   /* pack vertex cos into an array for area_poly_v2 */
   for (i = 0; i < mpoly->totloop; i++, l_iter++) {
@@ -404,7 +404,7 @@ void BKE_mesh_poly_edgehash_insert(EdgeHash *ehash, const MPoly *mp, const MLoop
   ml = &ml_next[i - 1]; /* last loop */
 
   while (i-- != 0) {
-    BLI_edgehash_reinsert(ehash, ml->v, ml_next->v, NULL);
+    BLI_edgehash_reinsert(ehash, ml->v, ml_next->v, nullptr);
 
     ml = ml_next;
     ml_next++;
@@ -692,9 +692,9 @@ static void bm_corners_to_loops_ex(ID *id,
   MFace *mf = mface + findex;
 
   for (int i = 0; i < numTex; i++) {
-    MTFace *texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
+    MTFace *texface = (MTFace *)CustomData_get_n(fdata, CD_MTFACE, findex, i);
 
-    MLoopUV *mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
+    MLoopUV *mloopuv = (MLoopUV *)CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
     copy_v2_v2(mloopuv->uv, texface->uv[0]);
     mloopuv++;
     copy_v2_v2(mloopuv->uv, texface->uv[1]);
@@ -709,8 +709,8 @@ static void bm_corners_to_loops_ex(ID *id,
   }
 
   for (int i = 0; i < numCol; i++) {
-    MLoopCol *mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
-    MCol *mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
+    MLoopCol *mloopcol = (MLoopCol *)CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
+    MCol *mcol = (MCol *)CustomData_get_n(fdata, CD_MCOL, findex, i);
 
     MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[0]);
     mloopcol++;
@@ -725,8 +725,8 @@ static void bm_corners_to_loops_ex(ID *id,
   }
 
   if (CustomData_has_layer(fdata, CD_TESSLOOPNORMAL)) {
-    float(*lnors)[3] = CustomData_get(ldata, loopstart, CD_NORMAL);
-    short(*tlnors)[3] = CustomData_get(fdata, findex, CD_TESSLOOPNORMAL);
+    float(*lnors)[3] = (float(*)[3])CustomData_get(ldata, loopstart, CD_NORMAL);
+    short(*tlnors)[3] = (short(*)[3])CustomData_get(fdata, findex, CD_TESSLOOPNORMAL);
     const int max = mf->v4 ? 4 : 3;
 
     for (int i = 0; i < max; i++, lnors++, tlnors++) {
@@ -735,8 +735,8 @@ static void bm_corners_to_loops_ex(ID *id,
   }
 
   if (CustomData_has_layer(fdata, CD_MDISPS)) {
-    MDisps *ld = CustomData_get(ldata, loopstart, CD_MDISPS);
-    MDisps *fd = CustomData_get(fdata, findex, CD_MDISPS);
+    MDisps *ld = (MDisps *)CustomData_get(ldata, loopstart, CD_MDISPS);
+    MDisps *fd = (MDisps *)CustomData_get(fdata, findex, CD_MDISPS);
     float(*disps)[3] = fd->disps;
     int tot = mf->v4 ? 4 : 3;
     int corners;
@@ -767,7 +767,8 @@ static void bm_corners_to_loops_ex(ID *id,
           MEM_freeN(ld->disps);
         }
 
-        ld->disps = MEM_malloc_arrayN((size_t)side_sq, sizeof(float[3]), "converted loop mdisps");
+        ld->disps = (float(*)[3])MEM_malloc_arrayN(
+            (size_t)side_sq, sizeof(float[3]), "converted loop mdisps");
         if (fd->disps) {
           memcpy(ld->disps, disps, (size_t)side_sq * sizeof(float[3]));
         }
@@ -864,7 +865,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id,
   CustomData_free(pdata, totpoly_i);
 
   totpoly = totface_i;
-  mpoly = MEM_calloc_arrayN((size_t)totpoly, sizeof(MPoly), "mpoly converted");
+  mpoly = (MPoly *)MEM_calloc_arrayN((size_t)totpoly, sizeof(MPoly), "mpoly converted");
   CustomData_add_layer(pdata, CD_MPOLY, CD_ASSIGN, mpoly, totpoly);
 
   numTex = CustomData_number_of_layers(fdata, CD_MTFACE);
@@ -876,7 +877,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id,
     totloop += mf->v4 ? 4 : 3;
   }
 
-  mloop = MEM_calloc_arrayN((size_t)totloop, sizeof(MLoop), "mloop converted");
+  mloop = (MLoop *)MEM_calloc_arrayN((size_t)totloop, sizeof(MLoop), "mloop converted");
 
   CustomData_add_layer(ldata, CD_MLOOP, CD_ASSIGN, mloop, totloop);
 
@@ -900,7 +901,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id,
     me->flag &= ~ME_FGON;
   }
 
-  polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
+  polyindex = (int *)CustomData_get_layer(fdata, CD_ORIGINDEX);
 
   j = 0; /* current loop index */
   ml = mloop;
@@ -946,7 +947,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id,
   /* NOTE: we don't convert NGons at all, these are not even real ngons,
    * they have their own UV's, colors etc - its more an editing feature. */
 
-  BLI_edgehash_free(eh, NULL);
+  BLI_edgehash_free(eh, nullptr);
 
   *r_totpoly = totpoly;
   *r_totloop = totloop;
@@ -1050,8 +1051,8 @@ void BKE_mesh_polygon_flip_ex(MPoly *mpoly,
 
 void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
 {
-  MDisps *mdisp = CustomData_get_layer(ldata, CD_MDISPS);
-  BKE_mesh_polygon_flip_ex(mpoly, mloop, ldata, NULL, mdisp, true);
+  MDisps *mdisp = (MDisps *)CustomData_get_layer(ldata, CD_MDISPS);
+  BKE_mesh_polygon_flip_ex(mpoly, mloop, ldata, nullptr, mdisp, true);
 }
 
 /**
@@ -1061,12 +1062,12 @@ void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
  */
 void BKE_mesh_polygons_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata, int totpoly)
 {
-  MDisps *mdisp = CustomData_get_layer(ldata, CD_MDISPS);
+  MDisps *mdisp = (MDisps *)CustomData_get_layer(ldata, CD_MDISPS);
   MPoly *mp;
   int i;
 
   for (mp = mpoly, i = 0; i < totpoly; mp++, i++) {
-    BKE_mesh_polygon_flip_ex(mp, mloop, ldata, NULL, mdisp, true);
+    BKE_mesh_polygon_flip_ex(mp, mloop, ldata, nullptr, mdisp, true);
   }
 }
 
@@ -1277,7 +1278,7 @@ void BKE_mesh_calc_relative_deform(const MPoly *mpoly,
   const MPoly *mp;
   int i;
 
-  int *vert_accum = MEM_calloc_arrayN((size_t)totvert, sizeof(*vert_accum), __func__);
+  int *vert_accum = (int *)MEM_calloc_arrayN((size_t)totvert, sizeof(*vert_accum), __func__);
 
   memset(vert_cos_new, '\0', sizeof(*vert_cos_new) * (size_t)totvert);
 
