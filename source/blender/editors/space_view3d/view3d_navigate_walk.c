@@ -708,8 +708,6 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
       walk->is_cursor_absolute = true;
       copy_v2_v2_int(walk->prev_mval, event->mval);
       copy_v2_v2_int(walk->center_mval, event->mval);
-      /* Without this we can't turn 180d with the default speed of 1.0. */
-      walk->mouse_speed *= 4.0f;
     }
 #endif /* USE_TABLET_SUPPORT */
 
@@ -982,8 +980,8 @@ static float getVelocityZeroTime(const float gravity, const float velocity)
 
 static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 {
-#define WALK_ROTATE_RELATIVE_FAC 2.2f           /* More is faster, relative to region size. */
-#define WALK_ROTATE_CONSTANT_FAC DEG2RAD(0.15f) /* More is faster, radians per-pixel. */
+#define WALK_ROTATE_TABLET_FAC 8.8f             /* Higher is faster, relative to region size. */
+#define WALK_ROTATE_CONSTANT_FAC DEG2RAD(0.15f) /* Higher is faster, radians per-pixel. */
 #define WALK_TOP_LIMIT DEG2RADF(85.0f)
 #define WALK_BOTTOM_LIMIT DEG2RADF(-80.0f)
 #define WALK_MOVE_SPEED base_speed
@@ -1064,7 +1062,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 #ifdef USE_TABLET_SUPPORT
           if (walk->is_cursor_absolute) {
             y /= region->winy;
-            y *= WALK_ROTATE_RELATIVE_FAC;
+            y *= WALK_ROTATE_TABLET_FAC;
           }
           else
 #endif
@@ -1113,7 +1111,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 #ifdef USE_TABLET_SUPPORT
           if (walk->is_cursor_absolute) {
             x /= region->winx;
-            x *= WALK_ROTATE_RELATIVE_FAC;
+            x *= WALK_ROTATE_TABLET_FAC;
           }
           else
 #endif
@@ -1333,7 +1331,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
   }
 
   return OPERATOR_FINISHED;
-#undef WALK_ROTATE_RELATIVE_FAC
+#undef WALK_ROTATE_TABLET_FAC
 #undef WALK_TOP_LIMIT
 #undef WALK_BOTTOM_LIMIT
 #undef WALK_MOVE_SPEED
