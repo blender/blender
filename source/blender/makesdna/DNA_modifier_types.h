@@ -2256,6 +2256,10 @@ typedef struct NodesModifierData {
   ModifierData modifier;
   struct bNodeTree *node_group;
   struct NodesModifierSettings settings;
+
+  /* Contains logged information from the last evaluation. This can be used to help the user to
+   * debug a node tree. */
+  void *runtime_eval_log;
 } NodesModifierData;
 
 typedef struct MeshToVolumeModifierData {

@@ -16,8 +16,6 @@
 
 #include "DNA_modifier_types.h"
 
-#include "BKE_node_ui_storage.hh"
-
 #include "DEG_depsgraph_query.h"
 
 #include "NOD_geometry_exec.hh"
@@ -26,21 +24,14 @@
 
 #include "node_geometry_util.hh"
 
+using blender::nodes::geometry_nodes_eval_log::LocalGeoLogger;
+
 namespace blender::nodes {
 
 void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::string message) const
 {
-  bNodeTree *btree_cow = provider_->dnode->btree();
-  BLI_assert(btree_cow != nullptr);
-  if (btree_cow == nullptr) {
-    return;
-  }
-  bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
-
-  const NodeTreeEvaluationContext context(*provider_->self_object, *provider_->modifier);
-
-  BKE_nodetree_error_message_add(
-      *btree_original, context, *provider_->dnode->bnode(), type, std::move(message));
+  LocalGeoLogger &local_logger = provider_->logger->local();
+  local_logger.log_node_warning(provider_->dnode, type, std::move(message));
 }
 
 const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const

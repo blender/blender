@@ -172,12 +172,6 @@ typedef struct Object_Runtime {
   struct GeometrySet *geometry_set_eval;
 
   /**
-   * A GHash that contains geometry sets for intermediate stages of evaluation. The keys are just a
-   * hash and are not owned by the map. The geometry sets are owned.
-   */
-  void *geometry_set_previews;
-
-  /**
    * Mesh structure created during object evaluation.
    * It has deformation only modifiers applied on it.
    */

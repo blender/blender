@@ -19,19 +19,20 @@
 #include "BLI_map.hh"
 
 #include "NOD_derived_node_tree.hh"
+#include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_tree_multi_function.hh"
 
 #include "FN_generic_pointer.hh"
 
 #include "DNA_modifier_types.h"
 
+namespace geo_log = blender::nodes::geometry_nodes_eval_log;
+
 namespace blender::modifiers::geometry_nodes {
 
 using namespace nodes::derived_node_tree_types;
 using fn::GMutablePointer;
 using fn::GPointer;
-
-using LogSocketValueFn = std::function<void(DSocket, Span<GPointer>)>;
 
 struct GeometryNodesEvaluationParams {
   blender::LinearAllocator<> allocator;
@@ -48,7 +49,7 @@ struct GeometryNodesEvaluationParams {
   const NodesModifierData *modifier_;
   Depsgraph *depsgraph;
   Object *self_object;
-  LogSocketValueFn log_socket_value_fn;
+  geo_log::GeoLogger *geo_logger;
 
   Vector<GMutablePointer> r_output_values;
 };
