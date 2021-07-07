@@ -2428,7 +2428,7 @@ static int ntree_socket_change_type_exec(bContext *C, wmOperator *op)
   Main *main = CTX_data_main(C);
 
   bNodeSocket *iosock = ntree_get_active_interface_socket(sockets);
-  if (iosock == NULL) {
+  if (iosock == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2438,7 +2438,7 @@ static int ntree_socket_change_type_exec(bContext *C, wmOperator *op)
   }
 
   /* Don't handle subtypes for now. */
-  nodeModifySocketType(ntree, NULL, iosock, socket_type->idname);
+  nodeModifySocketType(ntree, nullptr, iosock, socket_type->idname);
 
   /* Need the extra update here because the loop above does not check for valid links in the node
    * group we're currently editing. */
@@ -2456,7 +2456,7 @@ static int ntree_socket_change_type_exec(bContext *C, wmOperator *op)
   snode_notify(C, snode);
   snode_dag_update(C, snode);
 
-  WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
+  WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
 }

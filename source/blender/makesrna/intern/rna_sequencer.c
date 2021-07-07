@@ -103,17 +103,6 @@ typedef struct SequenceSearchData {
   SequenceModifierData *smd;
 } SequenceSearchData;
 
-/* build a temp reference to the parent */
-static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
-{
-  for (; seq; seq = seq->next) {
-    seq->tmp = seq_par;
-    if (seq->type == SEQ_TYPE_META) {
-      meta_tmp_ref(seq, seq->seqbase.first);
-    }
-  }
-}
-
 static void rna_SequenceElement_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
