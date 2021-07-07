@@ -1511,7 +1511,7 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_gpencil_type_items, 0, "Type", "");
   RNA_def_boolean(ot->srna,
                   "use_in_front",
-                  false,
+                  true,
                   "In Front",
                   "Show line art grease pencil in front of everything");
   RNA_def_enum(
