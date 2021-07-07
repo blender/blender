@@ -199,7 +199,10 @@ static void rna_SequenceEditor_sequences_all_begin(CollectionPropertyIterator *i
   bli_iter->data = MEM_callocN(sizeof(SeqIterator), __func__);
   iter->internal.custom = bli_iter;
 
-  SEQ_iterator_ensure(all_strips, bli_iter->data, (Sequence **)&bli_iter->current);
+  if (!SEQ_iterator_ensure(all_strips, bli_iter->data, (Sequence **)&bli_iter->current)) {
+    SEQ_collection_free(all_strips);
+  }
+
   iter->valid = bli_iter->current != NULL;
 }
 
@@ -220,7 +223,9 @@ static void rna_SequenceEditor_sequences_all_end(CollectionPropertyIterator *ite
 {
   BLI_Iterator *bli_iter = iter->internal.custom;
   SeqIterator *seq_iter = bli_iter->data;
-  SEQ_collection_free(seq_iter->collection);
+  if (seq_iter->collection != NULL) {
+    SEQ_collection_free(seq_iter->collection);
+  }
   MEM_freeN(seq_iter);
   MEM_freeN(bli_iter);
 }
