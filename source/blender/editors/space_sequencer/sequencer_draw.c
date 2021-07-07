@@ -2479,12 +2479,13 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
 
+  UI_view2d_view_ortho(v2d);
+  draw_cache_view(C);
+
   if (scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
-    UI_view2d_view_ortho(v2d);
-    draw_cache_view(C);
     draw_overlap_frame_indicator(scene, v2d);
-    UI_view2d_view_restore(C);
   }
+  UI_view2d_view_restore(C);
 
   ED_time_scrub_draw_current_frame(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
   UI_view2d_scrollers_draw(v2d, NULL);
