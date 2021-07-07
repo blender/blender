@@ -180,7 +180,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   node_identifier.operation_name = "";
   node_identifier.operation_name_tag = -1;
   /* Handling of commonly known scenarios. */
-  if (prop != nullptr && RNA_property_is_idprop(prop)) {
+  if (prop != nullptr && RNA_property_is_idprop(prop) &&
+      !RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
     node_identifier.type = NodeType::PARAMETERS;
     node_identifier.operation_code = OperationCode::ID_PROPERTY;
     node_identifier.operation_name = RNA_property_identifier(
