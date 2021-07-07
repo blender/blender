@@ -5106,11 +5106,11 @@ static void registerGeometryNodes()
   register_node_type_geo_attribute_mix();
   register_node_type_geo_attribute_proximity();
   register_node_type_geo_attribute_randomize();
+  register_node_type_geo_attribute_remove();
   register_node_type_geo_attribute_separate_xyz();
   register_node_type_geo_attribute_transfer();
   register_node_type_geo_attribute_vector_math();
   register_node_type_geo_attribute_vector_rotate();
-  register_node_type_geo_attribute_remove();
   register_node_type_geo_boolean();
   register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();
@@ -5123,11 +5123,11 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_primitive_quadratic_bezier();
   register_node_type_geo_curve_primitive_spiral();
   register_node_type_geo_curve_primitive_star();
-  register_node_type_geo_curve_to_mesh();
-  register_node_type_geo_curve_to_points();
   register_node_type_geo_curve_resample();
   register_node_type_geo_curve_reverse();
   register_node_type_geo_curve_subdivide();
+  register_node_type_geo_curve_to_mesh();
+  register_node_type_geo_curve_to_points();
   register_node_type_geo_delete_geometry();
   register_node_type_geo_edge_split();
   register_node_type_geo_input_material();
@@ -5143,6 +5143,7 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_primitive_ico_sphere();
   register_node_type_geo_mesh_primitive_line();
   register_node_type_geo_mesh_primitive_uv_sphere();
+  register_node_type_geo_mesh_subdivide();
   register_node_type_geo_mesh_to_curve();
   register_node_type_geo_object_info();
   register_node_type_geo_point_distribute();
@@ -5156,7 +5157,6 @@ static void registerGeometryNodes()
   register_node_type_geo_sample_texture();
   register_node_type_geo_select_by_material();
   register_node_type_geo_separate_components();
-  register_node_type_geo_mesh_subdivide();
   register_node_type_geo_subdivision_surface();
   register_node_type_geo_switch();
   register_node_type_geo_transform();
