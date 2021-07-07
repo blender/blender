@@ -121,6 +121,10 @@ void file_params_renamefile_clear(struct FileSelectParams *params);
 void file_params_invoke_rename_postscroll(struct wmWindowManager *wm,
                                           struct wmWindow *win,
                                           SpaceFile *sfile);
+void file_params_rename_end(struct wmWindowManager *wm,
+                            struct wmWindow *win,
+                            SpaceFile *sfile,
+                            struct FileDirEntry *rename_file);
 void file_params_renamefile_activate(struct SpaceFile *sfile, struct FileSelectParams *params);
 
 typedef void *onReloadFnData;

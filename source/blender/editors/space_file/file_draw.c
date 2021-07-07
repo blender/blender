@@ -523,6 +523,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
   char orgname[FILE_MAX + 12];
   char filename[FILE_MAX + 12];
   wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = CTX_wm_window(C);
   SpaceFile *sfile = (SpaceFile *)CTX_wm_space_data(C);
   ARegion *region = CTX_wm_region(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
@@ -542,11 +543,15 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
       else {
         /* If rename is successful, scroll to newly renamed entry. */
         BLI_strncpy(params->renamefile, filename, sizeof(params->renamefile));
-        file_params_invoke_rename_postscroll(wm, CTX_wm_window(C), sfile);
+        file_params_invoke_rename_postscroll(wm, win, sfile);
       }
 
       /* to make sure we show what is on disk */
       ED_fileselect_clear(wm, sfile);
+    }
+    else {
+      /* Renaming failed, reset the name for further renaming handling. */
+      BLI_strncpy(params->renamefile, oldname, sizeof(params->renamefile));
     }
 
     ED_region_tag_redraw(region);
@@ -812,6 +817,8 @@ static void draw_details_columns(const FileSelectParams *params,
 
 void file_draw_list(const bContext *C, ARegion *region)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = CTX_wm_window(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   FileLayout *layout = ED_fileselect_get_layout(sfile, region);
@@ -882,12 +889,12 @@ void file_draw_list(const bContext *C, ARegion *region)
       //          printf("%s: preview task: %d\n", __func__, previews_running);
       if (previews_running && !sfile->previews_timer) {
         sfile->previews_timer = WM_event_add_timer_notifier(
-            CTX_wm_manager(C), CTX_wm_window(C), NC_SPACE | ND_SPACE_FILE_PREVIEW, 0.01);
+            wm, win, NC_SPACE | ND_SPACE_FILE_PREVIEW, 0.01);
       }
       if (!previews_running && sfile->previews_timer) {
         /* Preview is not running, no need to keep generating update events! */
         //              printf("%s: Inactive preview task, sleeping!\n", __func__);
-        WM_event_remove_timer_notifier(CTX_wm_manager(C), CTX_wm_window(C), sfile->previews_timer);
+        WM_event_remove_timer_notifier(wm, win, sfile->previews_timer);
         sfile->previews_timer = NULL;
       }
     }
@@ -998,8 +1005,19 @@ void file_draw_list(const bContext *C, ARegion *region)
       UI_but_flag_enable(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
       UI_but_flag_disable(but, UI_BUT_UNDO);
       if (false == UI_but_active_only(C, region, block, but)) {
-        file_selflag = filelist_entry_select_set(
-            sfile->files, file, FILE_SEL_REMOVE, FILE_SEL_EDITING, CHECK_ALL);
+        /* Note that this is the only place where we can also handle a cancelled renaming. */
+
+        file_params_rename_end(wm, win, sfile, file);
+
+        /* After the rename button is removed, we need to make sure the view is redrawn once more,
+         * in case selection changed. Usually UI code would trigger that redraw, but the rename
+         * operator may have been called from a different region.
+         * Tagging regions for redrawing while drawing is rightfully prevented. However, this
+         * active button removing basically introduces handling logic to drawing code. So a
+         * notifier should be an acceptable workaround. */
+        WM_event_add_notifier_ex(wm, win, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
+        file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
       }
     }
 

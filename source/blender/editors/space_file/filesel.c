@@ -1261,6 +1261,26 @@ void file_params_invoke_rename_postscroll(wmWindowManager *wm, wmWindow *win, Sp
   sfile->scroll_offset = 0;
 }
 
+/**
+ * To be executed whenever renaming ends (successfully or not).
+ */
+void file_params_rename_end(wmWindowManager *wm,
+                            wmWindow *win,
+                            SpaceFile *sfile,
+                            FileDirEntry *rename_file)
+{
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  filelist_entry_select_set(
+      sfile->files, rename_file, FILE_SEL_REMOVE, FILE_SEL_EDITING, CHECK_ALL);
+
+  /* Ensure smooth-scroll timer is active, even if not needed, because that way rename state is
+   * handled properly. */
+  file_params_invoke_rename_postscroll(wm, win, sfile);
+  /* Also always activate the rename file, even if renaming was cancelled. */
+  file_params_renamefile_activate(sfile, params);
+}
+
 void file_params_renamefile_clear(FileSelectParams *params)
 {
   params->renamefile[0] = '\0';
@@ -1292,7 +1312,10 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
       params->rename_flag = FILE_PARAMS_RENAME_ACTIVE;
     }
     else if ((params->rename_flag & FILE_PARAMS_RENAME_POSTSCROLL_PENDING) != 0) {
-      filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_HIGHLIGHTED, CHECK_ALL);
+      file_select_deselect_all(sfile, FILE_SEL_SELECTED);
+      filelist_entry_select_set(
+          sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED, CHECK_ALL);
+      params->active_file = idx;
       params->renamefile[0] = '\0';
       params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE;
     }
