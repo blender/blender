@@ -49,6 +49,23 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Transform (Translate) Custom Data
+ * \{ */
+
+/**
+ * Custom data, stored in #TransInfo.custom.mode.data
+ */
+struct TranslateCustomData {
+  /** Settings used in the last call to #applyTranslation. */
+  struct {
+    bool apply_snap_align_rotation;
+    bool is_valid_snapping_normal;
+  } prev;
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Transform (Translation)
  * \{ */
 
@@ -259,8 +276,35 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 
 static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
-  const bool apply_snap_align_rotation = usingSnappingNormal(
-      t);  // && (t->tsnap.status & POINT_INIT);
+  struct TranslateCustomData *custom_data = t->custom.mode.data;
+
+  bool apply_snap_align_rotation = false;
+  bool is_valid_snapping_normal = false;
+
+  if (activeSnap(t) && usingSnappingNormal(t) && validSnappingNormal(t)) {
+    apply_snap_align_rotation = true;
+    is_valid_snapping_normal = true;
+  }
+
+  /* Check to see if this needs to be re-enabled. */
+  if (apply_snap_align_rotation == false) {
+    if (t->flag & T_POINTS) {
+      /* When transforming points, only use rotation when snapping is enabled
+       * since re-applying translation without rotation removes rotation. */
+    }
+    else {
+      /* When transforming data that it's self stores rotation (objects, bones etc),
+       * apply rotation if it was applied (with the snap normal) previously.
+       * This is needed because failing to rotate will leave the rotation at the last
+       * value used before snapping was disabled. */
+      if (custom_data->prev.apply_snap_align_rotation &&
+          custom_data->prev.is_valid_snapping_normal) {
+        BLI_assert(is_valid_snapping_normal == false);
+        apply_snap_align_rotation = true;
+      }
+    }
+  }
+
   float tvec[3];
 
   /* The ideal would be "apply_snap_align_rotation" only when a snap point is found
@@ -290,7 +334,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       if (apply_snap_align_rotation) {
         float mat[3][3];
 
-        if (validSnappingNormal(t)) {
+        if (is_valid_snapping_normal) {
           const float *original_normal;
 
           /* In pose mode, we want to align normals with Y axis of bones... */
@@ -352,6 +396,9 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       constraintTransLim(t, td);
     }
   }
+
+  custom_data->prev.apply_snap_align_rotation = apply_snap_align_rotation;
+  custom_data->prev.is_valid_snapping_normal = is_valid_snapping_normal;
 }
 
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
@@ -473,5 +520,11 @@ void initTranslation(TransInfo *t)
 
   transform_mode_default_modal_orientation_set(
       t, (t->options & CTX_CAMERA) ? V3D_ORIENT_VIEW : V3D_ORIENT_GLOBAL);
+
+  struct TranslateCustomData *custom_data = MEM_callocN(sizeof(*custom_data), __func__);
+  custom_data->prev.apply_snap_align_rotation = false;
+  custom_data->prev.is_valid_snapping_normal = false;
+  t->custom.mode.data = custom_data;
+  t->custom.mode.use_free = true;
 }
 /** \} */
