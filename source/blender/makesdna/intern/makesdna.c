@@ -43,6 +43,7 @@
 
 #define DNA_DEPRECATED_ALLOW
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -271,6 +272,37 @@ void print_struct_sizes(void);
  *
  * Make DNA string (write to file).
  * \{ */
+
+static bool match_identifier_with_len(const char *str,
+                                      const char *identifier,
+                                      const size_t identifier_len)
+{
+  if (strncmp(str, identifier, identifier_len) == 0) {
+    /* Check `str` isn't a prefix to a longer identifier. */
+    if (isdigit(str[identifier_len]) || isalpha(str[identifier_len]) ||
+        (str[identifier_len] == '_')) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+static bool match_identifier(const char *str, const char *identifier)
+{
+  const size_t identifier_len = strlen(identifier);
+  return match_identifier_with_len(str, identifier, identifier_len);
+}
+
+static bool match_identifier_and_advance(char **str_ptr, const char *identifier)
+{
+  const size_t identifier_len = strlen(identifier);
+  if (match_identifier_with_len(*str_ptr, identifier, identifier_len)) {
+    (*str_ptr) += identifier_len;
+    return true;
+  }
+  return false;
+}
 
 static const char *version_struct_static_from_alias(const char *str)
 {
@@ -619,7 +651,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
     else if (cp[-1] == '*' && cp[0] == ' ') {
       /* pointers with a space */
     } /* skip special keywords */
-    else if (strncmp("DNA_DEPRECATED", cp, 14) == 0) {
+    else if (match_identifier(cp, "DNA_DEPRECATED")) {
       /* single values are skipped already, so decrement 1 less */
       a -= 13;
       cp += 13;
@@ -721,7 +753,7 @@ static int convert_include(const char *filename)
         md1++;
 
         /* we've got a struct name when... */
-        if (strncmp(md1 - 7, "struct", 6) == 0) {
+        if (match_identifier(md1 - 7, "struct")) {
 
           const int strct = add_type(md1, 0);
           if (strct == -1) {
@@ -756,14 +788,22 @@ static int convert_include(const char *filename)
 
             /* skip when it says 'struct' or 'unsigned' or 'const' */
             if (*md1) {
-              if (strncmp(md1, "struct", 6) == 0) {
-                md1 += 7;
-              }
-              if (strncmp(md1, "unsigned", 8) == 0) {
-                md1 += 9;
-              }
-              if (strncmp(md1, "const", 5) == 0) {
-                md1 += 6;
+              const char *md1_prev = md1;
+              while (match_identifier_and_advance(&md1, "struct") ||
+                     match_identifier_and_advance(&md1, "unsigned") ||
+                     match_identifier_and_advance(&md1, "const")) {
+                if (UNLIKELY(!ELEM(*md1, '\0', ' '))) {
+                  /* This will happen with: `unsigned(*value)[3]` which isn't supported. */
+                  fprintf(stderr,
+                          "File '%s' contains non white space character "
+                          "\"%c\" after identifier \"%s\"\n",
+                          filename,
+                          *md1,
+                          md1_prev);
+                  return 1;
+                }
+                /* Skip ' ' or '\0'. */
+                md1++;
               }
 
               /* we've got a type! */
