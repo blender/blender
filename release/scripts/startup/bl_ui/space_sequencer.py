@@ -2293,6 +2293,9 @@ class SEQUENCER_PT_snapping(Panel):
         col.prop(sequencer_tool_settings, "snap_ignore_muted", text="Muted Strips")
         col.prop(sequencer_tool_settings, "snap_ignore_sound", text="Sound Strips")
 
+        col = layout.column()
+        col.prop(sequencer_tool_settings, "use_snap_current_frame_to_strips")
+
 
 classes = (
     SEQUENCER_MT_change,

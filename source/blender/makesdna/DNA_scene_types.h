@@ -2069,6 +2069,7 @@ enum {
 /** #SequencerToolSettings.snap_flag */
 #define SEQ_SNAP_IGNORE_MUTED (1 << 0)
 #define SEQ_SNAP_IGNORE_SOUND (1 << 1)
+#define SEQ_SNAP_CURRENT_FRAME_TO_STRIPS (1 << 2)
 
 /** #ToolSettings.snap_node_mode */
 #define SCE_SNAP_MODE_NODE_X (1 << 0)

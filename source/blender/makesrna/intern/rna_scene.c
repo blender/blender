@@ -3535,6 +3535,11 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SEQ_SNAP_IGNORE_SOUND);
   RNA_def_property_ui_text(prop, "Ignore Sound Strips", "Don't snap to sound strips");
 
+  prop = RNA_def_property(srna, "use_snap_current_frame_to_strips", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SEQ_SNAP_CURRENT_FRAME_TO_STRIPS);
+  RNA_def_property_ui_text(
+      prop, "Snap Current Frame to Strips", "Snap current frame to strip start or end");
+
   prop = RNA_def_property(srna, "snap_distance", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "snap_distance");
   RNA_def_property_int_default(prop, 15);
