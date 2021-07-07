@@ -51,6 +51,7 @@ void register_node_type_geo_boolean(void);
 void register_node_type_geo_bounding_box(void);
 void register_node_type_geo_collection_info(void);
 void register_node_type_geo_convex_hull(void);
+void register_node_type_geo_curve_endpoints(void);
 void register_node_type_geo_curve_length(void);
 void register_node_type_geo_curve_primitive_bezier_segment(void);
 void register_node_type_geo_curve_primitive_circle(void);

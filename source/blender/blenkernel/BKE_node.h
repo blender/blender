@@ -1457,6 +1457,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_CURVE_PRIMITIVE_CIRCLE 1066
 #define GEO_NODE_VIEWER 1067
 #define GEO_NODE_CURVE_PRIMITIVE_LINE 1068
+#define GEO_NODE_CURVE_ENDPOINTS 1069
 
 /** \} */
 

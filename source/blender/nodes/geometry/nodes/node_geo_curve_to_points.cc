@@ -118,22 +118,6 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
   return {0};
 }
 
-/**
- * \note This doesn't store a map for spline domain attributes.
- */
-struct ResultAttributes {
-  int result_size;
-  MutableSpan<float3> positions;
-  MutableSpan<float> radii;
-  MutableSpan<float> tilts;
-
-  Map<std::string, GMutableSpan> point_attributes;
-
-  MutableSpan<float3> tangents;
-  MutableSpan<float3> normals;
-  MutableSpan<float3> rotations;
-};
-
 static GMutableSpan create_attribute_and_retrieve_span(PointCloudComponent &points,
                                                        const StringRef name,
                                                        const CustomDataType data_type)
@@ -153,13 +137,10 @@ static MutableSpan<T> create_attribute_and_retrieve_span(PointCloudComponent &po
   return attribute.typed<T>();
 }
 
-/**
- * Create references for all result point cloud attributes to simplify accessing them later on.
- */
-static ResultAttributes create_point_attributes(PointCloudComponent &points,
-                                                const CurveEval &curve)
+CurveToPointsResults curve_to_points_create_result_attributes(PointCloudComponent &points,
+                                                              const CurveEval &curve)
 {
-  ResultAttributes attributes;
+  CurveToPointsResults attributes;
 
   attributes.result_size = points.attribute_domain_size(ATTR_DOMAIN_POINT);
 
@@ -190,7 +171,7 @@ static ResultAttributes create_point_attributes(PointCloudComponent &points,
  */
 static void copy_evaluated_point_attributes(Span<SplinePtr> splines,
                                             Span<int> offsets,
-                                            ResultAttributes &data)
+                                            CurveToPointsResults &data)
 {
   threading::parallel_for(splines.index_range(), 64, [&](IndexRange range) {
     for (const int i : range) {
@@ -221,7 +202,7 @@ static void copy_evaluated_point_attributes(Span<SplinePtr> splines,
 
 static void copy_uniform_sample_point_attributes(Span<SplinePtr> splines,
                                                  Span<int> offsets,
-                                                 ResultAttributes &data)
+                                                 CurveToPointsResults &data)
 {
   threading::parallel_for(splines.index_range(), 64, [&](IndexRange range) {
     for (const int i : range) {
@@ -307,13 +288,14 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
   });
 }
 
-static void create_default_rotation_attribute(ResultAttributes &data)
+void curve_create_default_rotation_attribute(Span<float3> tangents,
+                                             Span<float3> normals,
+                                             MutableSpan<float3> rotations)
 {
-  threading::parallel_for(IndexRange(data.result_size), 512, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
     for (const int i : range) {
-      data.rotations[i] = float4x4::from_normalized_axis_data(
-                              {0, 0, 0}, data.normals[i], data.tangents[i])
-                              .to_euler();
+      rotations[i] =
+          float4x4::from_normalized_axis_data({0, 0, 0}, normals[i], tangents[i]).to_euler();
     }
   });
 }
@@ -348,8 +330,8 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
   GeometrySet result = GeometrySet::create_with_pointcloud(BKE_pointcloud_new_nomain(total_size));
   PointCloudComponent &point_component = result.get_component_for_write<PointCloudComponent>();
 
-  ResultAttributes new_attributes = create_point_attributes(point_component, curve);
-
+  CurveToPointsResults new_attributes = curve_to_points_create_result_attributes(point_component,
+                                                                                 curve);
   switch (mode) {
     case GEO_NODE_CURVE_SAMPLE_COUNT:
     case GEO_NODE_CURVE_SAMPLE_LENGTH:
@@ -361,7 +343,8 @@ static void geo_node_curve_to_points_exec(GeoNodeExecParams params)
   }
 
   copy_spline_domain_attributes(curve_component, offsets, point_component);
-  create_default_rotation_attribute(new_attributes);
+  curve_create_default_rotation_attribute(
+      new_attributes.tangents, new_attributes.normals, new_attributes.rotations);
 
   /* The default radius is way too large for points, divide by 10. */
   for (float &radius : new_attributes.radii) {

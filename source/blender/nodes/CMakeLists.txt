@@ -164,6 +164,7 @@ set(SRC
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
+  geometry/nodes/node_geo_curve_endpoints.cc
   geometry/nodes/node_geo_curve_length.cc  
   geometry/nodes/node_geo_curve_primitive_bezier_segment.cc
   geometry/nodes/node_geo_curve_primitive_circle.cc
