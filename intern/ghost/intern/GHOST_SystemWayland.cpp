@@ -52,6 +52,13 @@
 
 #include <cstring>
 
+#include <linux/input-event-codes.h>
+
+/* selected input event code defines from 'linux/input-event-codes.h'
+ * We include some of the button input event codes here, since the header is
+ * only available in more recent kernel versions. The event codes are used to
+ * to differentiate from which mouse button an event comes from.
+ */
 #define BTN_LEFT    0x110
 #define BTN_RIGHT   0x111
 #define BTN_MIDDLE  0x112
