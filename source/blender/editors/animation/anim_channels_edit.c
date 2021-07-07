@@ -747,7 +747,7 @@ static bool animedit_poll_channels_active(bContext *C)
   return 1;
 }
 
-/* poll callback for Animation Editor channels list region + not in NLA-tweakmode for NLA */
+/* Poll callback for Animation Editor channels list region + not in NLA-tweak-mode for NLA. */
 static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -763,7 +763,7 @@ static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
     return 0;
   }
 
-  /* NLA TweakMode test */
+  /* NLA tweak-mode test. */
   if (area->spacetype == SPACE_NLA) {
     if ((scene == NULL) || (scene->flag & SCE_NLA_EDIT_ON)) {
       return 0;

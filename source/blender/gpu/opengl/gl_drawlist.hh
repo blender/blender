@@ -72,7 +72,7 @@ class GLDrawList : public DrawList {
   GLuint buffer_id_;
   /** Length of whole the buffer (in byte). */
   GLsizeiptr buffer_size_;
-  /** Offset of data_ inside the whole buffer (in byte). */
+  /** Offset of `data_` inside the whole buffer (in byte). */
   GLintptr data_offset_;
 
   /** To free the buffer_id_. */

@@ -2052,7 +2052,7 @@ static bool line_clip_rect2f(const rctf *cliprect,
                              float l2_clip[2])
 {
   /* first account for horizontal, then vertical lines */
-  /* horiz */
+  /* Horizontal. */
   if (fabsf(l1[1] - l2[1]) < PROJ_PIXEL_TOLERANCE) {
     /* is the line out of range on its Y axis? */
     if (l1[1] < rect->ymin || l1[1] > rect->ymax) {

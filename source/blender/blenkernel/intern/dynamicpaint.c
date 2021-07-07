@@ -248,7 +248,7 @@ typedef struct PaintAdjData {
   int *n_target;
   /** Index to start reading n_target for each point. */
   int *n_index;
-  /** Num of neighs for each point. */
+  /** Number of neighbors for each point. */
   int *n_num;
   /** Vertex adjacency flags. */
   int *flags;

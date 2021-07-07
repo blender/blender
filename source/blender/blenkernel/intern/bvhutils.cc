@@ -1290,9 +1290,9 @@ BVHTree *bvhtree_from_editmesh_looptri(
 }
 
 /**
- * Builds a bvh tree where nodes are the looptri faces of the given dm
+ * Builds a BVH-tree where nodes are the looptri faces of the given mesh.
  *
- * \note for editmesh this is currently a duplicate of bvhtree_from_mesh_faces_ex
+ * \note for edit-mesh this is currently a duplicate of #bvhtree_from_mesh_faces_ex
  */
 BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                       const struct MVert *vert,

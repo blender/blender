@@ -680,7 +680,7 @@ typedef struct EEVEE_GeometryMotionData {
   int use_deform;
 
   struct GPUBatch *batch;    /* Batch for time = t. */
-  struct GPUVertBuf *vbo[2]; /* Vbo for time = t +/- step. */
+  struct GPUVertBuf *vbo[2]; /* VBO for time = t +/- step. */
 } EEVEE_GeometryMotionData;
 
 /* ************ EFFECTS DATA ************* */

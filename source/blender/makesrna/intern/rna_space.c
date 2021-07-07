@@ -2136,7 +2136,7 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
     return;
   }
 
-  /* Exit editmode first - we cannot change actions while in tweakmode. */
+  /* Exit editmode first - we cannot change actions while in tweak-mode. */
   BKE_nla_tweakmode_exit(adt);
 
   /* To prevent data loss (i.e. if users flip between actions using the Browse menu),

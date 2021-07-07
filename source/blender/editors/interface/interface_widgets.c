@@ -2088,7 +2088,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     but_pos_ofs = but->pos;
 
 #ifdef WITH_INPUT_IME
-    /* if is ime compositing, move the cursor */
+    /* If is IME compositing, move the cursor. */
     if (ime_data && ime_data->composite_len && ime_data->cursor_pos != -1) {
       but_pos_ofs += ime_data->cursor_pos;
     }
@@ -2140,12 +2140,12 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
 
 #ifdef WITH_INPUT_IME
-    /* ime cursor following */
+    /* IME cursor following. */
     if (ime_reposition_window) {
       ui_but_ime_reposition(but, ime_win_x, ime_win_y, false);
     }
     if (ime_data && ime_data->composite_len) {
-      /* composite underline */
+      /* Composite underline. */
       widget_draw_text_ime_underline(fstyle, wcol, but, rect, ime_data, drawstr);
     }
 #endif

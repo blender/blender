@@ -235,13 +235,13 @@ void BLI_path_normalize(const char *relabase, char *path)
       memmove(path + a, eind, strlen(eind) + 1);
     }
     else {
-      /* support for odd paths: eg /../home/me --> /home/me
+      /* Support for odd paths: eg `/../home/me` --> `/home/me`
        * this is a valid path in blender but we can't handle this the usual way below
        * simply strip this prefix then evaluate the path as usual.
-       * pythons os.path.normpath() does this */
+       * Python's `os.path.normpath()` does this. */
 
       /* NOTE: previous version of following call used an offset of 3 instead of 4,
-       * which meant that the "/../home/me" example actually became "home/me".
+       * which meant that the `/../home/me` example actually became `home/me`.
        * Using offset of 3 gives behavior consistent with the aforementioned
        * Python routine. */
       memmove(path, path + 3, strlen(path + 3) + 1);
@@ -1070,8 +1070,8 @@ bool BLI_path_abs(char *path, const char *basepath)
    * paths relative to the .blend file -elubie */
   BLI_str_replace_char(tmp + BLI_path_unc_prefix_len(tmp), '\\', '/');
 
-  /* Paths starting with // will get the blend file as their base,
-   * this isn't standard in any os but is used in blender all over the place */
+  /* Paths starting with `//` will get the blend file as their base,
+   * this isn't standard in any OS but is used in blender all over the place. */
   if (wasrelative) {
     const char *lslash;
     BLI_strncpy(base, basepath, sizeof(base));

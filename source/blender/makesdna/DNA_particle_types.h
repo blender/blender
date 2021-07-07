@@ -74,8 +74,9 @@ typedef struct ParticleSpring {
 
 /* Child particles are created around or between parent particles */
 typedef struct ChildParticle {
-  /** Num is face index on the final derived mesh. */
-  int num, parent;
+  /** Face index on the final derived mesh. */
+  int num;
+  int parent;
   /** Nearest particles to the child, used for the interpolation. */
   int pa[4];
   /** Interpolation weights for the above particles. */

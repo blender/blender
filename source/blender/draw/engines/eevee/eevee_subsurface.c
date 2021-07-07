@@ -144,7 +144,7 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata),
   /* Clear texture.
    * Due to the late initialization of the SSS it can happen that the `taa_current_sample` is
    * already higher than one. This is noticeable when loading a file that has the diffuse light
-   * pass in look dev mode active. `texture_created` will make sure that newly created textures
+   * pass in look-dev mode active. `texture_created` will make sure that newly created textures
    * are cleared. */
   if (effects->taa_current_sample == 1 || texture_created) {
     const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};

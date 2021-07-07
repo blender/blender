@@ -6560,7 +6560,7 @@ enum {
 typedef struct BMElemSort {
   /** Sort factor */
   float srt;
-  /** Original index of this element _in its mempool_ */
+  /** Original index of this element (in its #BLI_mempool). */
   int org_idx;
 } BMElemSort;
 

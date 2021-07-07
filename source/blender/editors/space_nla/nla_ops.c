@@ -39,17 +39,16 @@
 
 /* ************************** poll callbacks for operators **********************************/
 
-/* tweakmode is NOT enabled */
+/* Tweak-mode is NOT enabled. */
 bool nlaop_poll_tweakmode_off(bContext *C)
 {
   Scene *scene;
 
   /* for now, we check 2 things:
    * 1) active editor must be NLA
-   * 2) tweakmode is currently set as a 'per-scene' flag
+   * 2) tweak-mode is currently set as a 'per-scene' flag
    *    so that it will affect entire NLA data-sets,
-   *    but not all AnimData blocks will be in tweakmode for
-   *    various reasons
+   *    but not all AnimData blocks will be in tweak-mode for various reasons.
    */
   if (ED_operator_nla_active(C) == 0) {
     return 0;
@@ -63,17 +62,16 @@ bool nlaop_poll_tweakmode_off(bContext *C)
   return 1;
 }
 
-/* tweakmode IS enabled */
+/* Tweak-mode IS enabled. */
 bool nlaop_poll_tweakmode_on(bContext *C)
 {
   Scene *scene;
 
   /* for now, we check 2 things:
    * 1) active editor must be NLA
-   * 2) tweakmode is currently set as a 'per-scene' flag
+   * 2) tweak-mode is currently set as a 'per-scene' flag
    *    so that it will affect entire NLA data-sets,
-   *    but not all AnimData blocks will be in tweakmode for
-   *    various reasons
+   *    but not all AnimData blocks will be in tweak-mode for various reasons.
    */
   if (ED_operator_nla_active(C) == 0) {
     return 0;
@@ -87,7 +85,7 @@ bool nlaop_poll_tweakmode_on(bContext *C)
   return 1;
 }
 
-/* is tweakmode enabled - for use in NLA operator code */
+/* is tweak-mode enabled - for use in NLA operator code */
 bool nlaedit_is_tweakmode_on(bAnimContext *ac)
 {
   if (ac && ac->scene) {

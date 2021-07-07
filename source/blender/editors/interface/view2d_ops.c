@@ -1745,7 +1745,7 @@ typedef struct v2dScrollerMove {
  * This is a CUT DOWN VERSION of the 'real' version, which is defined in view2d.c,
  * as we only need focus bubble info.
  *
- * \warning: The start of this struct must not change,
+ * \warning The start of this struct must not change,
  * so that it stays in sync with the 'real' version.
  * For now, we don't need to have a separate (internal) header for structs like this...
  */

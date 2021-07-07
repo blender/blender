@@ -535,7 +535,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
  * \{ */
 
 /* Store all ray-hits
- * Support for storing all depths, not just the first (raycast 'all') */
+ * Support for storing all depths, not just the first (ray-cast 'all'). */
 
 struct RayCastAll_Data {
   void *bvhdata;
@@ -626,7 +626,7 @@ static bool raycast_tri_backface_culling_test(
   return dot_v3v3(no, dir) < 0.0f;
 }
 
-/* Callback to raycast with backface culling (Mesh). */
+/* Callback to ray-cast with back-face culling (#Mesh). */
 static void mesh_looptri_raycast_backface_culling_cb(void *userdata,
                                                      int index,
                                                      const BVHTreeRay *ray,
@@ -653,7 +653,7 @@ static void mesh_looptri_raycast_backface_culling_cb(void *userdata,
   }
 }
 
-/* Callback to raycast with backface culling (EditMesh). */
+/* Callback to ray-cast with back-face culling (#EditMesh). */
 static void editmesh_looptri_raycast_backface_culling_cb(void *userdata,
                                                          int index,
                                                          const BVHTreeRay *ray,

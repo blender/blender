@@ -95,7 +95,7 @@ struct ViewLayer *DEG_get_evaluated_view_layer(const struct Depsgraph *graph);
 /* Get evaluated version of object for given original one. */
 struct Object *DEG_get_evaluated_object(const struct Depsgraph *depsgraph, struct Object *object);
 
-/* Get evaluated version of given ID datablock. */
+/* Get evaluated version of given ID data-block. */
 struct ID *DEG_get_evaluated_id(const struct Depsgraph *depsgraph, struct ID *id);
 
 /* Get evaluated version of data pointed to by RNA pointer */
@@ -106,7 +106,7 @@ void DEG_get_evaluated_rna_pointer(const struct Depsgraph *depsgraph,
 /* Get original version of object for given evaluated one. */
 struct Object *DEG_get_original_object(struct Object *object);
 
-/* Get original version of given evaluated ID datablock. */
+/* Get original version of given evaluated ID data-block. */
 struct ID *DEG_get_original_id(struct ID *id);
 
 /* Check whether given ID is an original,
@@ -122,7 +122,7 @@ bool DEG_is_original_object(const struct Object *object);
 bool DEG_is_evaluated_id(const struct ID *id);
 bool DEG_is_evaluated_object(const struct Object *object);
 
-/* Check whether depsgraph os fully evaluated. This includes the following checks:
+/* Check whether depsgraph is fully evaluated. This includes the following checks:
  * - Relations are up-to-date.
  * - Nothing is tagged for update. */
 bool DEG_is_fully_evaluated(const struct Depsgraph *depsgraph);

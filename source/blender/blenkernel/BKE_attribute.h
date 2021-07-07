@@ -39,8 +39,8 @@ struct ReportList;
 
 /* Attribute.domain */
 /**
- * \warning: Careful when changing existing items. Arrays may be initialized from this (e.g.
- *           #DATASET_layout_hierarchy).
+ * \warning Careful when changing existing items.
+ * Arrays may be initialized from this (e.g. #DATASET_layout_hierarchy).
  */
 typedef enum AttributeDomain {
   ATTR_DOMAIN_AUTO = -1,  /* Use for nodes to choose automatically based on other data. */

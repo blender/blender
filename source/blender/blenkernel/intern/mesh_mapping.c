@@ -998,7 +998,7 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
 }
 
 /* TODO: I'm not sure edge seam flag is enough to define UV islands?
- *       Maybe we should also consider UVmaps values
+ *       Maybe we should also consider UV-maps values
  *       themselves (i.e. different UV-edges for a same mesh-edge => boundary edge too?).
  *       Would make things much more complex though,
  *       and each UVMap would then need its own mesh mapping, not sure we want that at all!

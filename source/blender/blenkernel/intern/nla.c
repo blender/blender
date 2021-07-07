@@ -631,10 +631,10 @@ float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode)
 {
   NlaStrip *strip;
 
-  /* sanity checks
-   * - obviously we've got to have some starting data
-   * - when not in tweakmode, the active Action does not have any scaling applied :)
-   * - when in tweakmode, if the no-mapping flag is set, do not map
+  /* Sanity checks:
+   * - Obviously we've got to have some starting data.
+   * - When not in tweak-mode, the active Action does not have any scaling applied :)
+   * - When in tweak-mode, if the no-mapping flag is set, do not map.
    */
   if ((adt == NULL) || (adt->flag & ADT_NLA_EDIT_ON) == 0 || (adt->flag & ADT_NLA_EDIT_NOMAP)) {
     return cframe;
@@ -2089,9 +2089,8 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
     return false;
   }
 
-  /* if block is already in tweakmode, just leave, but we should report
-   * that this block is in tweakmode (as our returncode)
-   */
+  /* If block is already in tweak-mode, just leave, but we should report
+   * that this block is in tweak-mode (as our returncode). */
   if (adt->flag & ADT_NLA_EDIT_ON) {
     return true;
   }
@@ -2111,8 +2110,8 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
     }
   }
 
-  /* There are situations where we may have multiple strips selected and we want to enter tweakmode
-   * on all of those at once. Usually in those cases,
+  /* There are situations where we may have multiple strips selected and we want to enter
+   * tweak-mode on all of those at once. Usually in those cases,
    * it will usually just be a single strip per AnimData.
    * In such cases, compromise and take the last selected track and/or last selected strip, T28468.
    */
@@ -2142,7 +2141,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 
   if (ELEM(NULL, activeTrack, activeStrip, activeStrip->act)) {
     if (G.debug & G_DEBUG) {
-      printf("NLA tweakmode enter - neither active requirement found\n");
+      printf("NLA tweak-mode enter - neither active requirement found\n");
       printf("\tactiveTrack = %p, activeStrip = %p\n", (void *)activeTrack, (void *)activeStrip);
     }
     return false;
@@ -2192,7 +2191,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
   return true;
 }
 
-/* Exit tweakmode for this AnimData block */
+/* Exit tweak-mode for this AnimData block. */
 void BKE_nla_tweakmode_exit(AnimData *adt)
 {
   NlaStrip *strip;

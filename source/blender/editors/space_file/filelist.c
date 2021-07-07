@@ -2069,7 +2069,7 @@ void filelist_uid_unset(FileUID *r_uid)
 }
 
 /**
- * \warning: The UID will only be valid for the current session. Use as runtime data only!
+ * \warning The UID will only be valid for the current session. Use as runtime data only!
  */
 void filelist_file_cache_slidingwindow_set(FileList *filelist, size_t window_size)
 {

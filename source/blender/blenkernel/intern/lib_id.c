@@ -1642,9 +1642,8 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
      * already.
      */
     if (!is_orig_name_used) {
-      /* Don't bother updating prev_ static variables here, this case is not supposed to happen
-       * that often, and is not straight-forward here, so just ignore and reset them to default.
-       */
+      /* Don't bother updating `prev_*` static variables here, this case is not supposed to happen
+       * that often, and is not straight-forward here, so just ignore and reset them to default. */
       prev_id_type = ID_LINK_PLACEHOLDER;
       prev_final_base_name[0] = '\0';
       prev_number = MIN_NUMBER - 1;
@@ -1684,7 +1683,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
       continue;
     }
 
-    /* Update prev_ static variables, in case next call is for the same type of IDs and with the
+    /* Update `prev_*` static variables, in case next call is for the same type of IDs and with the
      * same initial base name, we can skip a lot of above process. */
     prev_id_type = id_type;
     strcpy(prev_final_base_name, base_name);

@@ -167,7 +167,7 @@ void invert_qt_qt_normalized(float q1[4], const float q2[4])
   invert_qt_normalized(q1);
 }
 
-/* simple mult */
+/* Simple multiply. */
 void mul_qt_fl(float q[4], const float f)
 {
   q[0] *= f;

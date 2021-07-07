@@ -2157,7 +2157,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
 
     const float *co[3];
     if (origco) {
-      /* intersect with backuped original coordinates */
+      /* Intersect with backed up original coordinates. */
       co[0] = origco[face_verts[0]];
       co[1] = origco[face_verts[1]];
       co[2] = origco[face_verts[2]];

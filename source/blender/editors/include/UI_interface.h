@@ -245,7 +245,7 @@ enum {
 #define UI_PANEL_BOX_STYLE_MARGIN (U.widget_unit * 0.2f)
 
 /* but->drawflag - these flags should only affect how the button is drawn. */
-/* NOTE: currently, these flags _are not passed_ to the widget's state() or draw() functions
+/* NOTE: currently, these flags *are not passed* to the widget's state() or draw() functions
  *       (except for the 'align' ones)!
  */
 enum {
@@ -678,7 +678,7 @@ void UI_block_region_set(uiBlock *block, struct ARegion *region);
 void UI_block_lock_set(uiBlock *block, bool val, const char *lockstr);
 void UI_block_lock_clear(uiBlock *block);
 
-/* automatic aligning, horiz or verical */
+/* Automatic aligning, horizontal or vertical. */
 void UI_block_align_begin(uiBlock *block);
 void UI_block_align_end(uiBlock *block);
 

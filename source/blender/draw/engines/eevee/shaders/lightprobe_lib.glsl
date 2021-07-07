@@ -278,7 +278,7 @@ vec3 probe_evaluate_grid(GridData gd, vec3 P, vec3 N, vec3 localpos)
     float ws_dist_point_to_cell = length(ws_point_to_cell);
     vec3 ws_light = ws_point_to_cell / ws_dist_point_to_cell;
 
-    /* Smooth backface test */
+    /* Smooth back-face test. */
     float weight = saturate(dot(ws_light, N));
 
     /* Precomputed visibility */

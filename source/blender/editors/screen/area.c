@@ -1539,8 +1539,8 @@ static void region_rect_recursive(
   region->winx = BLI_rcti_size_x(&region->winrct) + 1;
   region->winy = BLI_rcti_size_y(&region->winrct) + 1;
 
-  /* if region opened normally, we store this for hide/reveal usage */
-  /* prevent rounding errors for UI_DPI_FAC mult and divide */
+  /* If region opened normally, we store this for hide/reveal usage. */
+  /* Prevent rounding errors for UI_DPI_FAC multiply and divide. */
   if (region->winx > 1) {
     region->sizex = (region->winx + 0.5f) / UI_DPI_FAC;
   }

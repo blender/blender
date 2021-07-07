@@ -239,7 +239,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 }
 
 /**
- * \warning: loops over all files so better use cautiously
+ * \warning Loops over all files so better use cautiously.
  */
 static bool file_is_any_selected(struct FileList *files)
 {

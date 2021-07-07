@@ -562,7 +562,7 @@ static void splineik_evaluate_bone(
      * spline dictates, while still maintaining roll control from the existing bone animation. */
     mul_m3_m3m3(pose_mat, dmat, rmat);
 
-    /* Attempt to reduce shearing, though I doubt this'll really help too much now... */
+    /* Attempt to reduce shearing, though I doubt this will really help too much now. */
     normalize_m3(pose_mat);
 
     mul_m3_m3m3(base_pose_mat, dmat, base_pose_mat);

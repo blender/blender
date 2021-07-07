@@ -24,7 +24,7 @@ void main()
   workbench_float_pair_decode(mat_data.a, roughness, metallic);
 
 #ifdef V3D_LIGHTING_MATCAP
-  /* When using matcaps, mat_data.a is the backface sign. */
+  /* When using matcaps, mat_data.a is the back-face sign. */
   N = (mat_data.a > 0.0) ? N : -N;
 
   fragColor.rgb = get_matcap_lighting(base_color, N, I);

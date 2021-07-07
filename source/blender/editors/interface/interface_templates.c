@@ -4015,23 +4015,23 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
     case UICURVE_FUNC_RESET_VIEW:
       BKE_curvemapping_reset_view(cumap);
       break;
-    case UICURVE_FUNC_HANDLE_VECTOR: /* set vector */
+    case UICURVE_FUNC_HANDLE_VECTOR: /* Set vector. */
       BKE_curvemap_handle_set(cuma, HD_VECT);
       BKE_curvemapping_changed(cumap, false);
       break;
-    case UICURVE_FUNC_HANDLE_AUTO: /* set auto */
+    case UICURVE_FUNC_HANDLE_AUTO: /* Set auto. */
       BKE_curvemap_handle_set(cuma, HD_AUTO);
       BKE_curvemapping_changed(cumap, false);
       break;
-    case UICURVE_FUNC_HANDLE_AUTO_ANIM: /* set auto-clamped */
+    case UICURVE_FUNC_HANDLE_AUTO_ANIM: /* Set auto-clamped. */
       BKE_curvemap_handle_set(cuma, HD_AUTO_ANIM);
       BKE_curvemapping_changed(cumap, false);
       break;
-    case UICURVE_FUNC_EXTEND_HOZ: /* extend horiz */
+    case UICURVE_FUNC_EXTEND_HOZ: /* Extend horizontal. */
       cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
       BKE_curvemapping_changed(cumap, false);
       break;
-    case UICURVE_FUNC_EXTEND_EXP: /* extend extrapolate */
+    case UICURVE_FUNC_EXTEND_EXP: /* Extend extrapolate. */
       cumap->flag |= CUMA_EXTEND_EXTRAPOLATE;
       BKE_curvemapping_changed(cumap, false);
       break;

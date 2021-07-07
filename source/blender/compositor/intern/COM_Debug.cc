@@ -53,7 +53,7 @@ DebugInfo::GroupStateMap DebugInfo::m_group_states;
 static std::string operation_class_name(NodeOperation *op)
 {
   std::string full_name = typeid(*op).name();
-  /* Remove namespaces. */
+  /* Remove name-spaces. */
   size_t pos = full_name.find_last_of(':');
   BLI_assert(pos != std::string::npos);
   return full_name.substr(pos + 1);

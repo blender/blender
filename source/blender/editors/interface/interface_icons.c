@@ -1519,7 +1519,7 @@ static void icon_draw_rect(float x,
       draw_h = h;
       draw_x += (w - draw_w) / 2;
     }
-    /* if the image is squared, the draw_ initialization values are good */
+    /* If the image is squared, the `draw_*` initialization values are good. */
 
     /* first allocate imbuf for scaling and copy preview into it */
     ima = IMB_allocImBuf(rw, rh, 32, IB_rect);

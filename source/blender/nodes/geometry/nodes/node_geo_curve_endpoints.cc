@@ -81,9 +81,11 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
   });
 }
 
-/* Get the offsets for the splines whose endpoints we want to output. Filter those which are cylic,
- * or that evaluate to empty. Could be easily adapted to include a selection argument to support
- * attribute selection. */
+/**
+ * Get the offsets for the splines whose endpoints we want to output.
+ * Filter those which are cyclic, or that evaluate to empty.
+ * Could be easily adapted to include a selection argument to support attribute selection.
+ */
 static blender::Vector<int> get_endpoint_spline_offsets(Span<SplinePtr> splines)
 {
   blender::Vector<int> spline_offsets;

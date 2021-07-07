@@ -135,7 +135,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ale->data;
 
-    /* try entering tweakmode if valid */
+    /* Try entering tweak-mode if valid. */
     ok |= BKE_nla_tweakmode_enter(adt);
 
     /* mark the active track as being "solo"? */
@@ -154,9 +154,8 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
   ANIM_animdata_update(&ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
 
-  /* if we managed to enter tweakmode on at least one AnimData block,
-   * set the flag for this in the active scene and send notifiers
-   */
+  /* If we managed to enter tweak-mode on at least one AnimData block,
+   * set the flag for this in the active scene and send notifiers. */
   if (ac.scene && ok) {
     /* set editing flag */
     ac.scene->flag |= SCE_NLA_EDIT_ON;
@@ -206,7 +205,7 @@ void NLA_OT_tweakmode_enter(wmOperatorType *ot)
 /** \name Disable Tweak-Mode Operator
  * \{ */
 
-/* NLA Editor internal API function for exiting tweakmode */
+/* NLA Editor internal API function for exiting tweak-mode. */
 bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
 {
   ListBase anim_data = {NULL, NULL};
@@ -232,7 +231,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
       BKE_nlatrack_solo_toggle(adt, NULL);
     }
 
-    /* to be sure that we're doing everything right, just exit tweakmode... */
+    /* To be sure that we're doing everything right, just exit tweak-mode. */
     BKE_nla_tweakmode_exit(adt);
 
     ale->update |= ANIM_UPDATE_DEPS;
@@ -242,7 +241,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
 
-  /* if we managed to enter tweakmode on at least one AnimData block,
+  /* if we managed to enter tweak-mode on at least one AnimData block,
    * set the flag for this in the active scene and send notifiers
    */
   if (ac->scene) {
@@ -257,7 +256,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
   return true;
 }
 
-/* exit tweakmode operator callback */
+/* Exit tweak-mode operator callback. */
 static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;

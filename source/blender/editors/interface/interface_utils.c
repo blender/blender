@@ -701,7 +701,7 @@ int UI_calc_float_precision(int prec, double value)
 
   /* Check on the number of decimal places need to display the number,
    * this is so 0.00001 is not displayed as 0.00,
-   * _but_, this is only for small values si 10.0001 will not get the same treatment.
+   * _but_, this is only for small values as 10.0001 will not get the same treatment.
    */
   value = fabs(value);
   if ((value < pow10_neg[prec]) && (value > (1.0 / max_pow))) {

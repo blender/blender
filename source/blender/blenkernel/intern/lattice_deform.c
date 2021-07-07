@@ -108,7 +108,7 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
     invert_m4_m4(imat, latmat);
   }
 
-  /* Prefetch latice deform group weights. */
+  /* Prefetch lattice deform group weights. */
   int defgrp_index = -1;
   const MDeformVert *dvert = BKE_lattice_deform_verts_get(oblatt);
   if (lt->vgroup[0] && dvert) {

@@ -237,7 +237,7 @@ ccl_device bool curve_intersect_iterative(const float3 ray_dir,
         return false; /* Rejects NaNs */
       }
 
-      /* Backface culling. */
+      /* Back-face culling. */
       const float3 R = normalize(Q - P);
       const float3 U = dradiusdu * R + dPdu;
       const float3 V = cross(dPdu, R);
@@ -458,10 +458,12 @@ ccl_device_inline bool cylinder_culling_test(const float2 p1, const float2 p2, c
   return num * num <= r * r * den2;
 }
 
-/*! Intersects a ray with a quad with backface culling
- *  enabled. The quad v0,v1,v2,v3 is split into two triangles
- *  v0,v1,v3 and v2,v3,v1. The edge v1,v2 decides which of the two
- *  triangles gets intersected. */
+/**
+ * Intersects a ray with a quad with back-face culling
+ * enabled. The quad v0,v1,v2,v3 is split into two triangles
+ * v0,v1,v3 and v2,v3,v1. The edge v1,v2 decides which of the two
+ * triangles gets intersected.
+ */
 ccl_device_inline bool ribbon_intersect_quad(const float ray_tfar,
                                              const float3 quad_v0,
                                              const float3 quad_v1,

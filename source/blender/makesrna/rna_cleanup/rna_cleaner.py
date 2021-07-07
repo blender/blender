@@ -229,7 +229,7 @@ def sort(props_list, sort_priority):
 
 
 def file_basename(input_filename):
-    # if needed will use os.path
+    # If needed will use `os.path`.
     if input_filename.endswith(".txt"):
         if input_filename.endswith("_work.txt"):
             base_filename = input_filename.replace("_work.txt", "")

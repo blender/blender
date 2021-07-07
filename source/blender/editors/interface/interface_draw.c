@@ -229,7 +229,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
       {0.98, 0.805},
   };
 
-  /* mult */
+  /* Multiply. */
   for (a = 0; a < 4; a++) {
     mul_v2_fl(vec[a], rad);
   }

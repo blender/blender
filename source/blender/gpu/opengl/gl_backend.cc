@@ -365,8 +365,8 @@ static void detect_workarounds()
       (strstr(version, "Build 20.19.15.4285"))) {
     GCaps.use_main_context_workaround = true;
   }
-  /* See T70187: merging vertices fail. This has been tested from 18.2.2 till 19.3.0~dev of the
-   * Mesa driver */
+  /* See T70187: merging vertices fail. This has been tested from `18.2.2` till `19.3.0~dev`
+   * of the Mesa driver */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
       (strstr(version, "Mesa 18.") || strstr(version, "Mesa 19.0") ||
        strstr(version, "Mesa 19.1") || strstr(version, "Mesa 19.2"))) {
