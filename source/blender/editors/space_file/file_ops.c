@@ -2340,6 +2340,7 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
 
   /* If we don't enter the directory directly, remember file to jump into editing. */
   if (do_diropen == false) {
+    BLI_assert(params->rename_id == NULL || !"File rename handling should immediately clear rename_id when done, because otherwise it will keep taking precedence over renamefile.");
     BLI_strncpy(params->renamefile, name, FILE_MAXFILE);
     rename_flag = FILE_PARAMS_RENAME_PENDING;
   }

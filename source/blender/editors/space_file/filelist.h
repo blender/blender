@@ -97,7 +97,8 @@ int filelist_needs_reading(struct FileList *filelist);
 FileDirEntry *filelist_file(struct FileList *filelist, int index);
 FileDirEntry *filelist_file_ex(struct FileList *filelist, int index, bool use_request);
 
-int filelist_file_findpath(struct FileList *filelist, const char *file);
+int filelist_file_find_path(struct FileList *filelist, const char *file);
+int filelist_file_find_id(const struct FileList *filelist, const struct ID *id);
 struct ID *filelist_file_get_id(const struct FileDirEntry *file);
 bool filelist_uid_is_set(const FileUID uid);
 void filelist_uid_unset(FileUID *r_uid);

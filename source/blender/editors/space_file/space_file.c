@@ -32,6 +32,7 @@
 #include "BKE_appdir.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 
 #include "RNA_access.h"
@@ -469,10 +470,19 @@ static void file_listener(const wmSpaceTypeListenerParams *listener_params)
       break;
     case NC_ID: {
       switch (wmn->action) {
-        case NA_RENAME:
+        case NA_RENAME: {
+          const ID *active_file_id = ED_fileselect_active_asset_get(sfile);
+          /* If a renamed ID is active in the file browser, update scrolling to keep it in view. */
+          if (active_file_id && (wmn->reference == active_file_id)) {
+            FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+            params->rename_id = active_file_id;
+            file_params_invoke_rename_postscroll(G_MAIN->wm.first, listener_params->window, sfile);
+          }
+
           /* Force list to update sorting (with a full reset for now). */
           file_reset_filelist_showing_main_data(area, sfile);
           break;
+        }
       }
       break;
     }

@@ -1734,6 +1734,12 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       sfile->runtime = NULL;
       BLO_read_data_address(reader, &sfile->params);
       BLO_read_data_address(reader, &sfile->asset_params);
+      if (sfile->params) {
+        sfile->params->rename_id = NULL;
+      }
+      if (sfile->asset_params) {
+        sfile->asset_params->base_params.rename_id = NULL;
+      }
     }
     else if (sl->spacetype == SPACE_ACTION) {
       SpaceAction *saction = (SpaceAction *)sl;

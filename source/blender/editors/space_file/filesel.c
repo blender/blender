@@ -1284,7 +1284,15 @@ void file_params_rename_end(wmWindowManager *wm,
 void file_params_renamefile_clear(FileSelectParams *params)
 {
   params->renamefile[0] = '\0';
+  params->rename_id = NULL;
   params->rename_flag = 0;
+}
+
+static int file_params_find_renamed(const FileSelectParams *params, struct FileList *filelist)
+{
+  /* Find the file either through the local ID/asset it represents or its relative path. */
+  return (params->rename_id != NULL) ? filelist_file_find_id(filelist, params->rename_id) :
+                                       filelist_file_find_path(filelist, params->renamefile);
 }
 
 /**
@@ -1300,12 +1308,15 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
     return;
   }
 
-  BLI_assert(params->renamefile[0] != '\0');
+  BLI_assert(params->renamefile[0] != '\0' || params->rename_id != NULL);
 
-  const int idx = filelist_file_findpath(sfile->files, params->renamefile);
+  const int idx = file_params_find_renamed(params, sfile->files);
   if (idx >= 0) {
     FileDirEntry *file = filelist_file(sfile->files, idx);
     BLI_assert(file != NULL);
+
+    params->active_file = idx;
+    filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 
     if ((params->rename_flag & FILE_PARAMS_RENAME_PENDING) != 0) {
       filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_EDITING, CHECK_ALL);
@@ -1316,7 +1327,7 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
       filelist_entry_select_set(
           sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED, CHECK_ALL);
       params->active_file = idx;
-      params->renamefile[0] = '\0';
+      file_params_renamefile_clear(params);
       params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE;
     }
   }

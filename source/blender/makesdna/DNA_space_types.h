@@ -727,6 +727,12 @@ typedef struct FileSelectParams {
 
   char renamefile[256];
   short rename_flag;
+  char _pad[4];
+  /** An ID that was just renamed. Used to identify a renamed asset file over re-reads, similar to
+   * `renamefile` but for local IDs (takes precedence). Don't keep this stored across handlers!
+   * Would break on undo. */
+  const ID *rename_id;
+  void *_pad3;
 
   /** List of filetypes to filter (FILE_MAXFILE). */
   char filter_glob[256];
@@ -734,7 +740,6 @@ typedef struct FileSelectParams {
   /** Text items name must match to be shown. */
   char filter_search[64];
   /** Same as filter, but for ID types (aka library groups). */
-  int _pad0;
   uint64_t filter_id;
 
   /** Active file used for keyboard navigation. */

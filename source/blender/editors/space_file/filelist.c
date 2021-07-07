@@ -2016,21 +2016,43 @@ FileDirEntry *filelist_file(struct FileList *filelist, int index)
   return filelist_file_ex(filelist, index, true);
 }
 
-int filelist_file_findpath(struct FileList *filelist, const char *filename)
+/**
+ * Find a file from a file name, or more precisely, its file-list relative path, inside the
+ * filtered items. \return The index of the found file or -1.
+ */
+int filelist_file_find_path(struct FileList *filelist, const char *filename)
 {
-  int fidx = -1;
-
   if (filelist->filelist.nbr_entries_filtered == FILEDIR_NBR_ENTRIES_UNSET) {
-    return fidx;
+    return -1;
   }
 
   /* XXX TODO: Cache could probably use a ghash on paths too? Not really urgent though.
    * This is only used to find again renamed entry,
    * annoying but looks hairy to get rid of it currently. */
 
-  for (fidx = 0; fidx < filelist->filelist.nbr_entries_filtered; fidx++) {
+  for (int fidx = 0; fidx < filelist->filelist.nbr_entries_filtered; fidx++) {
     FileListInternEntry *entry = filelist->filelist_intern.filtered[fidx];
     if (STREQ(entry->relpath, filename)) {
+      return fidx;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Find a file representing \a id.
+ * \return The index of the found file or -1.
+ */
+int filelist_file_find_id(const FileList *filelist, const ID *id)
+{
+  if (filelist->filelist.nbr_entries_filtered == FILEDIR_NBR_ENTRIES_UNSET) {
+    return -1;
+  }
+
+  for (int fidx = 0; fidx < filelist->filelist.nbr_entries_filtered; fidx++) {
+    FileListInternEntry *entry = filelist->filelist_intern.filtered[fidx];
+    if (entry->local_data.id == id) {
       return fidx;
     }
   }
