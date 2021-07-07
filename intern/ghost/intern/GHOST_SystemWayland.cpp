@@ -59,9 +59,9 @@
  * only available in more recent kernel versions. The event codes are used to
  * to differentiate from which mouse button an event comes from.
  */
-#define BTN_LEFT    0x110
-#define BTN_RIGHT   0x111
-#define BTN_MIDDLE  0x112
+#define BTN_LEFT 0x110
+#define BTN_RIGHT 0x111
+#define BTN_MIDDLE 0x112
 
 struct buffer_t {
   void *data;
