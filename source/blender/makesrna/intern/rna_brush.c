@@ -2221,6 +2221,13 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_array_deform_type_items[] = {
+      {BRUSH_ARRAY_DEFORM_LINEAR, "LINEAR", 0, "Linear", ""},
+      {BRUSH_ARRAY_DEFORM_RADIAL, "RADIAL", 0, "Radial", ""},
+      {BRUSH_ARRAY_DEFORM_PATH, "PATH", 0, "Path", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem brush_pose_origin_type_items[] = {
       {BRUSH_POSE_ORIGIN_TOPOLOGY,
        "TOPOLOGY",
@@ -2452,6 +2459,21 @@ static void rna_def_brush(BlenderRNA *brna)
       "Project Direction",
       "Direction that is going to be used to project the vertices into the scene");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+
+  prop = RNA_def_property(srna, "array_deform_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_array_deform_type_items);
+  RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "array_count", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, NULL, "array_count");
+  RNA_def_property_range(prop, 1, 10000);
+  RNA_def_property_ui_range(prop, 1, 50, 1, -1);
+  RNA_def_property_ui_text(
+      prop, "Count", "Number of copies");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
 
   prop = RNA_def_property(srna, "jitter_unit", PROP_ENUM, PROP_NONE); /* as an enum */
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");

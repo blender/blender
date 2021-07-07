@@ -336,6 +336,10 @@ typedef struct Brush {
 
   float cloth_constraint_softbody_strength;
 
+  /* array */
+  int array_deform_type;
+  int array_count;
+
   /* smooth */
   int smooth_deform_type;
   float surface_smooth_shape_preservation;

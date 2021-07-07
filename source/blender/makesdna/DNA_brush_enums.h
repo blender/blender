@@ -268,6 +268,12 @@ typedef enum eBrushSmearDeformType {
   BRUSH_SMEAR_DEFORM_EXPAND = 2,
 } eBrushSmearDeformType;
 
+typedef enum eBrushArrayDeformType {
+  BRUSH_ARRAY_DEFORM_LINEAR = 0,
+  BRUSH_ARRAY_DEFORM_RADIAL = 1,
+  BRUSH_ARRAY_DEFORM_PATH = 2,
+} eBrushArrayDeformType;
+
 typedef enum eBrushSlideDeformType {
   BRUSH_SLIDE_DEFORM_DRAG = 0,
   BRUSH_SLIDE_DEFORM_PINCH = 1,

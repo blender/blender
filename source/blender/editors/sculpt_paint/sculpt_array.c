@@ -196,7 +196,7 @@ static void sculpt_array_final_mesh_write(Object *ob, BMesh *final_mesh) {
   ss->needs_pbvh_rebuild = true;
 }
 
-static void sculpt_array_mesh_build(Sculpt *sd, Object *ob) {
+static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array) {
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
   sculpt_array_datalayers_add(sculpt_mesh);
 
@@ -222,10 +222,9 @@ static void sculpt_array_mesh_build(Sculpt *sd, Object *ob) {
       continue;
     }
 
-  for (int copy_index = 0; copy_index < SCULPT_ARRAY_COUNT; copy_index++) {
+  for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
     sculpt_array_source_datalayer_update(srcbm, symm_it, copy_index);
 
-    /* TODO: ya tal */
     BM_mesh_copy_init_customdata(destbm, srcbm, &bm_mesh_allocsize_default);
   	const int opflag = (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE);
   	BMO_op_callf(srcbm, opflag, "duplicate geom=%avef dest=%p", destbm);
@@ -280,7 +279,7 @@ static void sculpt_array_init(Object *ob, SculptArray *array) {
 
 static void sculpt_array_position_in_path_search(float *r_position, float *r_direction, SculptArray *array, const int index) {
   const float path_length = array->path.points[array->path.tot_points-1].length;
-  const float step_distance = path_length / (float)SCULPT_ARRAY_COUNT;
+  const float step_distance = path_length / (float)array->num_copies;
   const float copy_distance = step_distance * (index + 1);
 
 
@@ -322,7 +321,7 @@ static void sculpt_array_linear_position_get(float *r_position, SculptArray *arr
 
 }
 
-static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, SculptArrayCopy *copy) {
+static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, SculptArrayCopy *copy, eBrushArrayDeformType array_type) {
   /*
   const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
   float delta[3];
@@ -333,13 +332,30 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
   float copy_position[3];
   unit_m4(copy->mat);
 
-  //sculpt_array_position_in_path_search(copy->mat[3], NULL, array, copy->index);
-  
+  switch (array_type)
+  {
+  case BRUSH_ARRAY_DEFORM_LINEAR: {
+  const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
+  float delta[3];
+  flip_v3_v3(delta, cache->grab_delta, copy->symm_pass);
+  mul_v3_v3fl(copy->mat[3], delta, fade);
+  }
+    break;
 
+  case BRUSH_ARRAY_DEFORM_RADIAL: {
   float pos[3];
   const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
   copy_v3_v3(pos, cache->grab_delta);
   rotate_v3_v3v3fl(copy->mat[3], pos, cache->view_normal,  fade * M_PI * 2.0f);
+  }
+    break;
+
+  case BRUSH_ARRAY_DEFORM_PATH:
+    sculpt_array_position_in_path_search(copy->mat[3], NULL, array, copy->index);
+    break;
+  
+  }
+
  
  /*
   copy->mat[3][0] += (BLI_hash_int_01(copy->index) * 2.0f - 0.5f) * cache->radius;
@@ -357,14 +373,13 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
 
 }
 
-
-static void sculpt_array_linear_update(Object *ob, Brush *brush, SculptArray *array) {
+static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
   SculptSession *ss = ob->sculpt;
 
   /* Main symmetry pass. */
   for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
     SculptArrayCopy *copy = &array->copies[0][copy_index];
-    sculpt_array_update_copy(ss->cache, array, copy);
+    sculpt_array_update_copy(ss->cache, array, copy, brush->array_deform_type);
   }
 
   for (int symm_pass = 1; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
@@ -379,10 +394,6 @@ static void sculpt_array_linear_update(Object *ob, Brush *brush, SculptArray *ar
        flip_v3_v3(copy->mat[3],main_copy->mat[3], symm_pass);
       }
   }
-}
-
-static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
-  sculpt_array_linear_update(ob, brush, array);
 }
 
 static void do_array_deform_task_cb_ex(void *__restrict userdata,
@@ -493,16 +504,21 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+
+  if (brush->array_count == 0) {
+    return;
+  }
+
   if (!SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
       /* This brush manages its own symmetry. */
       return;
   }
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-    ss->cache->array = sculpt_array_cache_create(ob, SCULPT_ARRAY_COUNT);
+    ss->cache->array = sculpt_array_cache_create(ob, brush->array_count);
     sculpt_array_init(ob, ss->cache->array);
     sculpt_array_stroke_sample_add(ob, ss->cache->array);
-    sculpt_array_mesh_build(sd, ob);
+    sculpt_array_mesh_build(sd, ob, ss->cache->array);
     /* Original coordinates can't be stored yet as the SculptSession data needs to be updated after the mesh modifications performed when building the array geometry. */
 	  return;
   }

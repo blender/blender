@@ -760,6 +760,11 @@ def brush_settings(layout, context, brush, popover=False):
             col = layout.column()
             col.prop(brush, "scene_project_direction_type")
 
+        elif sculpt_tool == 'ARRAY':
+            col = layout.column()
+            col.prop(brush, "array_deform_type")
+            col.prop(brush, "array_count")
+
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
             col.prop(brush, "smooth_deform_type")
