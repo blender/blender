@@ -1246,7 +1246,7 @@ void file_params_smoothscroll_timer_clear(wmWindowManager *wm, wmWindow *win, Sp
  * Set the renaming-state to #FILE_PARAMS_RENAME_POSTSCROLL_PENDING and trigger the smooth-scroll
  * timer. To be used right after a file was renamed.
  * Note that the caller is responsible for setting the correct rename-file info
- * (#FileSelectParams.renamefile or #FileSelectParams.renamefile_uuid).
+ * (#FileSelectParams.renamefile or #FileSelectParams.rename_id).
  */
 void file_params_invoke_rename_postscroll(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
 {
