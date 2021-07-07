@@ -204,7 +204,7 @@ set(SRC
   geometry/nodes/node_geo_raycast.cc
   geometry/nodes/node_geo_select_by_material.cc
   geometry/nodes/node_geo_separate_components.cc
-  geometry/nodes/node_geo_subdivide.cc
+  geometry/nodes/node_geo_mesh_subdivide.cc
   geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_switch.cc
   geometry/nodes/node_geo_transform.cc

@@ -210,7 +210,8 @@ static void geo_node_curve_primitive_circle_exec(GeoNodeExecParams params)
 void register_node_type_geo_curve_primitive_circle()
 {
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_CIRCLE, "Circle", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_CURVE_PRIMITIVE_CIRCLE, "Curve Circle", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(
       &ntype, geo_node_curve_primitive_circle_in, geo_node_curve_primitive_circle_out);
 
