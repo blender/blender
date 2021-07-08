@@ -511,6 +511,9 @@ struct uiBlock {
   uiBlockHandleFunc handle_func;
   void *handle_func_arg;
 
+  /** Custom interaction data. */
+  uiBlockInteraction_CallbackData custom_interaction_callbacks;
+
   /** Custom extra event handling. */
   int (*block_event_func)(const struct bContext *C, struct uiBlock *, const struct wmEvent *);
 

@@ -58,6 +58,7 @@ struct bNodeTree;
 struct bScreen;
 struct rctf;
 struct rcti;
+struct uiBlockInteraction_Handle;
 struct uiButSearch;
 struct uiFontStyle;
 struct uiList;
@@ -513,6 +514,54 @@ typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *ti
 typedef int (*uiButPushedStateFunc)(struct uiBut *but, const void *arg);
 
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Interaction
+ *
+ * Sometimes it's useful to create data that remains available
+ * while the user interacts with a button.
+ *
+ * A common case is dragging a number button or slider
+ * however this could be used in other cases too.
+ * \{ */
+
+struct uiBlockInteraction_Params {
+  /**
+   * When true, this interaction is not modal
+   * (user clicking on a number button arrows or pasting a value for example).
+   */
+  bool is_click;
+  /**
+   * Array of unique event ID's (values from #uiBut.retval).
+   * There may be more than one for multi-button editing (see #UI_BUT_DRAG_MULTI).
+   */
+  int *unique_retval_ids;
+  uint unique_retval_ids_len;
+};
+
+/** Returns 'user_data', freed by #uiBlockInteractionEndFn. */
+typedef void *(*uiBlockInteractionBeginFn)(struct bContext *C,
+                                           const struct uiBlockInteraction_Params *params,
+                                           void *arg1);
+typedef void (*uiBlockInteractionEndFn)(struct bContext *C,
+                                        const struct uiBlockInteraction_Params *params,
+                                        void *arg1,
+                                        void *user_data);
+typedef void (*uiBlockInteractionUpdateFn)(struct bContext *C,
+                                           const struct uiBlockInteraction_Params *params,
+                                           void *arg1,
+                                           void *user_data);
+
+typedef struct uiBlockInteraction_CallbackData {
+  uiBlockInteractionBeginFn begin_fn;
+  uiBlockInteractionEndFn end_fn;
+  uiBlockInteractionUpdateFn update_fn;
+  void *arg1;
+} uiBlockInteraction_CallbackData;
+
+void UI_block_interaction_set(uiBlock *block, uiBlockInteraction_CallbackData *callbacks);
+
+/** \} */
 
 /* Menu Callbacks */
 

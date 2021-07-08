@@ -35,10 +35,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_array_utils.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_sort_utils.h"
 #include "BLI_string.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
@@ -170,6 +172,20 @@ static bool ui_but_find_select_in_enum__cmp(const uiBut *but_a, const uiBut *but
 static void ui_textedit_string_set(uiBut *but, struct uiHandleButtonData *data, const char *str);
 static void button_tooltip_timer_reset(bContext *C, uiBut *but);
 
+static void ui_block_interaction_begin_ensure(bContext *C,
+                                              uiBlock *block,
+                                              struct uiHandleButtonData *data,
+                                              const bool is_click);
+static struct uiBlockInteraction_Handle *ui_block_interaction_begin(struct bContext *C,
+                                                                    uiBlock *block,
+                                                                    const bool is_click);
+static void ui_block_interaction_end(struct bContext *C,
+                                     uiBlockInteraction_CallbackData *callbacks,
+                                     struct uiBlockInteraction_Handle *interaction);
+static void ui_block_interaction_update(struct bContext *C,
+                                        uiBlockInteraction_CallbackData *callbacks,
+                                        struct uiBlockInteraction_Handle *interaction);
+
 #ifdef USE_KEYNAV_LIMIT
 static void ui_mouse_motion_keynav_init(struct uiKeyNavLock *keynav, const wmEvent *event);
 static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEvent *event);
@@ -224,6 +240,19 @@ typedef enum uiMenuScrollType {
   MENU_SCROLL_TOP,
   MENU_SCROLL_BOTTOM,
 } uiMenuScrollType;
+
+typedef struct uiBlockInteraction_Handle {
+  struct uiBlockInteraction_Params params;
+  void *user_data;
+  /**
+   * This is shared between #uiHandleButtonData and #uiAfterFunc,
+   * the last user runs the end callback and frees the data.
+   *
+   * This is needed as the order of freeing changes depending on
+   * accepting/canceling the operation.
+   */
+  int user_count;
+} uiBlockInteraction_Handle;
 
 #ifdef USE_ALLSELECT
 
@@ -430,6 +459,8 @@ typedef struct uiHandleButtonData {
   uiSelectContextStore select_others;
 #endif
 
+  struct uiBlockInteraction_Handle *custom_interaction_handle;
+
   /* Text field undo. */
   struct uiUndoStack_Text *undo_stack_text;
 
@@ -470,6 +501,9 @@ typedef struct uiAfterFunc {
 
   void *search_arg;
   uiFreeArgFunc search_arg_free_fn;
+
+  uiBlockInteraction_CallbackData custom_interaction_callbacks;
+  uiBlockInteraction_Handle *custom_interaction_handle;
 
   bContextStore *context;
 
@@ -827,6 +861,27 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
       search_but->arg = NULL;
     }
 
+    if (but->active != NULL) {
+      uiHandleButtonData *data = but->active;
+      if (data->custom_interaction_handle != NULL) {
+        after->custom_interaction_callbacks = block->custom_interaction_callbacks;
+        after->custom_interaction_handle = data->custom_interaction_handle;
+
+        /* Ensure this callback runs once and last. */
+        uiAfterFunc *after_prev = after->prev;
+        if (after_prev &&
+            (after_prev->custom_interaction_handle == data->custom_interaction_handle)) {
+          after_prev->custom_interaction_handle = NULL;
+          memset(&after_prev->custom_interaction_callbacks,
+                 0x0,
+                 sizeof(after_prev->custom_interaction_callbacks));
+        }
+        else {
+          after->custom_interaction_handle->user_count++;
+        }
+      }
+    }
+
     if (but->context) {
       after->context = CTX_store_copy(but->context);
     }
@@ -995,6 +1050,18 @@ static void ui_apply_but_funcs_after(bContext *C)
 
     if (after.search_arg_free_fn) {
       after.search_arg_free_fn(after.search_arg);
+    }
+
+    if (after.custom_interaction_handle != NULL) {
+      after.custom_interaction_handle->user_count--;
+      BLI_assert(after.custom_interaction_handle->user_count >= 0);
+      if (after.custom_interaction_handle->user_count == 0) {
+        ui_block_interaction_update(
+            C, &after.custom_interaction_callbacks, after.custom_interaction_handle);
+        ui_block_interaction_end(
+            C, &after.custom_interaction_callbacks, after.custom_interaction_handle);
+      }
+      after.custom_interaction_handle = NULL;
     }
 
     ui_afterfunc_update_preferences_dirty(&after);
@@ -2282,6 +2349,11 @@ static void ui_apply_but(
   else if (but_type == UI_BTYPE_CURVEPROFILE) {
     uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
     but_profile->edit_profile = editprofile;
+  }
+
+  if (data->custom_interaction_handle != NULL) {
+    ui_block_interaction_update(
+        C, &block->custom_interaction_callbacks, data->custom_interaction_handle);
   }
 }
 
@@ -4852,6 +4924,8 @@ static bool ui_numedit_but_NUM(uiButNumber *number_but,
     return changed;
   }
 
+  ui_block_interaction_begin_ensure(but->block->evil_C, but->block, data, false);
+
   if (ui_but_is_cursor_warp(but)) {
     const float softmin = but->softmin;
     const float softmax = but->softmax;
@@ -5361,6 +5435,8 @@ static bool ui_numedit_but_SLI(uiBut *but,
       (ui_but_dragedit_update_mval(data, mx) == false)) {
     return changed;
   }
+
+  ui_block_interaction_begin_ensure(but->block->evil_C, but->block, data, false);
 
   const PropertyScaleType scale_type = ui_but_scale_type(but);
 
@@ -8239,6 +8315,16 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
     but->flag &= ~UI_SELECT;
   }
 
+  if (state == BUTTON_STATE_TEXT_EDITING) {
+    ui_block_interaction_begin_ensure(C, but->block, data, true);
+  }
+  else if (state == BUTTON_STATE_EXIT) {
+    if (data->state == BUTTON_STATE_NUM_EDITING) {
+      /* This happens on pasting values for example. */
+      ui_block_interaction_begin_ensure(C, but->block, data, true);
+    }
+  }
+
   data->state = state;
 
   if (state != BUTTON_STATE_EXIT) {
@@ -8466,6 +8552,21 @@ static void button_activate_exit(
   /* redraw and refresh (for popups) */
   ED_region_tag_redraw_no_rebuild(data->region);
   ED_region_tag_refresh_ui(data->region);
+
+  if ((but->flag & UI_BUT_DRAG_MULTI) == 0) {
+    if (data->custom_interaction_handle != NULL) {
+      /* Should only set when the button is modal. */
+      BLI_assert(but->active != NULL);
+      data->custom_interaction_handle->user_count--;
+
+      BLI_assert(data->custom_interaction_handle->user_count >= 0);
+      if (data->custom_interaction_handle->user_count == 0) {
+        ui_block_interaction_end(
+            C, &but->block->custom_interaction_callbacks, data->custom_interaction_handle);
+      }
+      data->custom_interaction_handle = NULL;
+    }
+  }
 
   /* clean up button */
   if (but->active) {
@@ -11311,6 +11412,103 @@ bool UI_but_active_drop_color(bContext *C)
   }
 
   return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI Block Interaction API
+ * \{ */
+
+void UI_block_interaction_set(uiBlock *block, uiBlockInteraction_CallbackData *callbacks)
+{
+  block->custom_interaction_callbacks = *callbacks;
+}
+
+static uiBlockInteraction_Handle *ui_block_interaction_begin(bContext *C,
+                                                             uiBlock *block,
+                                                             const bool is_click)
+{
+  BLI_assert(block->custom_interaction_callbacks.begin_fn != NULL);
+  uiBlockInteraction_Handle *interaction = MEM_callocN(sizeof(*interaction), __func__);
+
+  int unique_retval_ids_len = 0;
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+    if (but->active || (but->flag & UI_BUT_DRAG_MULTI)) {
+      unique_retval_ids_len++;
+    }
+  }
+
+  int *unique_retval_ids = MEM_mallocN(sizeof(*unique_retval_ids) * unique_retval_ids_len,
+                                       __func__);
+  unique_retval_ids_len = 0;
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+    if (but->active || (but->flag & UI_BUT_DRAG_MULTI)) {
+      unique_retval_ids[unique_retval_ids_len++] = but->retval;
+    }
+  }
+
+  if (unique_retval_ids_len > 1) {
+    qsort(unique_retval_ids, unique_retval_ids_len, sizeof(int), BLI_sortutil_cmp_int);
+    unique_retval_ids_len = BLI_array_deduplicate_ordered(unique_retval_ids,
+                                                          unique_retval_ids_len);
+    unique_retval_ids = MEM_reallocN(unique_retval_ids,
+                                     sizeof(*unique_retval_ids) * unique_retval_ids_len);
+  }
+
+  interaction->params.is_click = is_click;
+  interaction->params.unique_retval_ids = unique_retval_ids;
+  interaction->params.unique_retval_ids_len = unique_retval_ids_len;
+
+  interaction->user_data = block->custom_interaction_callbacks.begin_fn(
+      C, &interaction->params, block->custom_interaction_callbacks.arg1);
+  return interaction;
+}
+
+static void ui_block_interaction_end(bContext *C,
+                                     uiBlockInteraction_CallbackData *callbacks,
+                                     uiBlockInteraction_Handle *interaction)
+{
+  BLI_assert(callbacks->end_fn != NULL);
+  callbacks->end_fn(C, &interaction->params, callbacks->arg1, interaction->user_data);
+  MEM_freeN(interaction->params.unique_retval_ids);
+  MEM_freeN(interaction);
+}
+
+static void ui_block_interaction_update(bContext *C,
+                                        uiBlockInteraction_CallbackData *callbacks,
+                                        uiBlockInteraction_Handle *interaction)
+{
+  BLI_assert(callbacks->update_fn != NULL);
+  callbacks->update_fn(C, &interaction->params, callbacks->arg1, interaction->user_data);
+}
+
+/**
+ * \note #ui_block_interaction_begin cannot be called when setting the button state
+ * (e.g. #BUTTON_STATE_NUM_EDITING) for the following reasons.
+ *
+ * - Other buttons may still be activated using #UI_BUT_DRAG_MULTI
+ *   which is necessary before gathering all the #uiBut.retval values to initialize
+ *   #uiBlockInteraction_Params.unique_retval_ids.
+ * - When clicking on a number button it's not known if the event is a click or a drag.
+ *
+ * Instead, it must be called immediately before the drag action begins.
+ */
+static void ui_block_interaction_begin_ensure(bContext *C,
+                                              uiBlock *block,
+                                              uiHandleButtonData *data,
+                                              const bool is_click)
+{
+  if (data->custom_interaction_handle) {
+    return;
+  }
+  if (block->custom_interaction_callbacks.begin_fn == NULL) {
+    return;
+  }
+
+  uiBlockInteraction_Handle *interaction = ui_block_interaction_begin(C, block, is_click);
+  interaction->user_count = 1;
+  data->custom_interaction_handle = interaction;
 }
 
 /** \} */
