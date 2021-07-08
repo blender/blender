@@ -30,6 +30,7 @@
 
 #define RNA_MAGIC ((int)~0)
 
+struct AssetLibraryReference;
 struct FreestyleSettings;
 struct ID;
 struct IDOverrideLibrary;
@@ -265,6 +266,16 @@ void rna_def_mtex_common(struct BlenderRNA *brna,
                          const char *update_index);
 void rna_def_texpaint_slots(struct BlenderRNA *brna, struct StructRNA *srna);
 void rna_def_view_layer_common(struct BlenderRNA *brna, struct StructRNA *srna, const bool scene);
+
+PropertyRNA *rna_def_asset_library_reference_common(struct StructRNA *srna,
+                                                    const char *get,
+                                                    const char *set);
+int rna_asset_library_reference_get(const struct AssetLibraryReference *library);
+void rna_asset_library_reference_set(struct AssetLibraryReference *library, int value);
+const EnumPropertyItem *rna_asset_library_reference_itemf(struct bContext *C,
+                                                          struct PointerRNA *ptr,
+                                                          struct PropertyRNA *prop,
+                                                          bool *r_free);
 
 void rna_def_actionbone_group_common(struct StructRNA *srna,
                                      int update_flag,

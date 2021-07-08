@@ -110,6 +110,11 @@ void BKE_asset_metadata_tag_remove(AssetMetaData *asset_data, AssetTag *tag)
   BLI_assert(BLI_listbase_count(&asset_data->tags) == asset_data->tot_tags);
 }
 
+void BKE_asset_library_reference_init_default(AssetLibraryReference *library_ref)
+{
+  memcpy(library_ref, DNA_struct_default_get(AssetLibraryReference), sizeof(*library_ref));
+}
+
 /* Queries -------------------------------------------- */
 
 PreviewImage *BKE_asset_metadata_preview_get_from_id(const AssetMetaData *UNUSED(asset_data),

@@ -24,10 +24,16 @@
 extern "C" {
 #endif
 
+struct AssetLibraryReference;
+struct bContext;
+
 bool ED_asset_mark_id(const struct bContext *C, struct ID *id);
 bool ED_asset_clear_id(struct ID *id);
 
 bool ED_asset_can_make_single_from_context(const struct bContext *C);
+
+int ED_asset_library_reference_to_enum_value(const struct AssetLibraryReference *library);
+struct AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
 
 void ED_operatortypes_asset(void);
 

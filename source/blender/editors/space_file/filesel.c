@@ -118,7 +118,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
     asset_params = sfile->asset_params = MEM_callocN(sizeof(*asset_params),
                                                      "FileAssetSelectParams");
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
-    asset_params->asset_library.type = FILE_ASSET_LIBRARY_LOCAL;
+    asset_params->asset_library.type = ASSET_LIBRARY_LOCAL;
     asset_params->asset_library.custom_library_index = -1;
     asset_params->import_type = FILE_ASSET_IMPORT_APPEND;
   }
@@ -420,26 +420,26 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   bUserAssetLibrary *user_library = NULL;
 
   /* Ensure valid repository, or fall-back to local one. */
-  if (library->type == FILE_ASSET_LIBRARY_CUSTOM) {
+  if (library->type == ASSET_LIBRARY_CUSTOM) {
     BLI_assert(library->custom_library_index >= 0);
 
     user_library = BKE_preferences_asset_library_find_from_index(&U,
                                                                  library->custom_library_index);
     if (!user_library) {
-      library->type = FILE_ASSET_LIBRARY_LOCAL;
+      library->type = ASSET_LIBRARY_LOCAL;
     }
   }
 
   switch (library->type) {
-    case FILE_ASSET_LIBRARY_LOCAL:
+    case ASSET_LIBRARY_LOCAL:
       base_params->dir[0] = '\0';
       break;
-    case FILE_ASSET_LIBRARY_CUSTOM:
+    case ASSET_LIBRARY_CUSTOM:
       BLI_assert(user_library);
       BLI_strncpy(base_params->dir, user_library->path, sizeof(base_params->dir));
       break;
   }
-  base_params->type = (library->type == FILE_ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET : FILE_LOADLIB;
+  base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET : FILE_LOADLIB;
 }
 
 void fileselect_refresh_params(SpaceFile *sfile)

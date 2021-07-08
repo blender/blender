@@ -2561,6 +2561,8 @@ static PointerRNA rna_FileSelectParams_filter_id_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_FileSelectIDFilter, ptr->data);
 }
 
+/* TODO use rna_def_asset_library_reference_common() */
+
 static int rna_FileAssetSelectParams_asset_library_get(PointerRNA *ptr)
 {
   FileAssetSelectParams *params = ptr->data;
@@ -2568,7 +2570,7 @@ static int rna_FileAssetSelectParams_asset_library_get(PointerRNA *ptr)
   BLI_assert(ptr->type == &RNA_FileAssetSelectParams);
 
   /* Simple case: Predefined repo, just set the value. */
-  if (params->asset_library.type < FILE_ASSET_LIBRARY_CUSTOM) {
+  if (params->asset_library.type < ASSET_LIBRARY_CUSTOM) {
     return params->asset_library.type;
   }
 
@@ -2577,11 +2579,11 @@ static int rna_FileAssetSelectParams_asset_library_get(PointerRNA *ptr)
   const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
       &U, params->asset_library.custom_library_index);
   if (user_library) {
-    return FILE_ASSET_LIBRARY_CUSTOM + params->asset_library.custom_library_index;
+    return ASSET_LIBRARY_CUSTOM + params->asset_library.custom_library_index;
   }
 
   BLI_assert(0);
-  return FILE_ASSET_LIBRARY_LOCAL;
+  return ASSET_LIBRARY_LOCAL;
 }
 
 static void rna_FileAssetSelectParams_asset_library_set(PointerRNA *ptr, int value)
@@ -2589,26 +2591,26 @@ static void rna_FileAssetSelectParams_asset_library_set(PointerRNA *ptr, int val
   FileAssetSelectParams *params = ptr->data;
 
   /* Simple case: Predefined repo, just set the value. */
-  if (value < FILE_ASSET_LIBRARY_CUSTOM) {
+  if (value < ASSET_LIBRARY_CUSTOM) {
     params->asset_library.type = value;
     params->asset_library.custom_library_index = -1;
-    BLI_assert(ELEM(value, FILE_ASSET_LIBRARY_LOCAL));
+    BLI_assert(ELEM(value, ASSET_LIBRARY_LOCAL));
     return;
   }
 
   const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-      &U, value - FILE_ASSET_LIBRARY_CUSTOM);
+      &U, value - ASSET_LIBRARY_CUSTOM);
 
   /* Note that the path isn't checked for validity here. If an invalid library path is used, the
    * Asset Browser can give a nice hint on what's wrong. */
   const bool is_valid = (user_library->name[0] && user_library->path[0]);
   if (!user_library) {
-    params->asset_library.type = FILE_ASSET_LIBRARY_LOCAL;
+    params->asset_library.type = ASSET_LIBRARY_LOCAL;
     params->asset_library.custom_library_index = -1;
   }
   else if (user_library && is_valid) {
-    params->asset_library.custom_library_index = value - FILE_ASSET_LIBRARY_CUSTOM;
-    params->asset_library.type = FILE_ASSET_LIBRARY_CUSTOM;
+    params->asset_library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
+    params->asset_library.type = ASSET_LIBRARY_CUSTOM;
   }
 }
 
@@ -2617,8 +2619,8 @@ static const EnumPropertyItem *rna_FileAssetSelectParams_asset_library_itemf(
 {
   const EnumPropertyItem predefined_items[] = {
       /* For the future. */
-      // {FILE_ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
-      {FILE_ASSET_LIBRARY_LOCAL,
+      // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
+      {ASSET_LIBRARY_LOCAL,
        "LOCAL",
        ICON_BLENDER,
        "Current File",
@@ -2646,7 +2648,7 @@ static const EnumPropertyItem *rna_FileAssetSelectParams_asset_library_itemf(
     }
 
     /* Use library path as description, it's a nice hint for users. */
-    EnumPropertyItem tmp = {FILE_ASSET_LIBRARY_CUSTOM + i,
+    EnumPropertyItem tmp = {ASSET_LIBRARY_CUSTOM + i,
                             user_library->name,
                             ICON_NONE,
                             user_library->name,

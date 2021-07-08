@@ -65,3 +65,56 @@ bool ED_asset_can_make_single_from_context(const bContext *C)
   /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_clear() to use. */
   return CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data != nullptr;
 }
+
+/* TODO better place? */
+/* TODO What about the setter and the itemf? */
+#include "BKE_preferences.h"
+#include "DNA_asset_types.h"
+#include "DNA_userdef_types.h"
+int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *library)
+{
+  /* Simple case: Predefined repo, just set the value. */
+  if (library->type < ASSET_LIBRARY_CUSTOM) {
+    return library->type;
+  }
+
+  /* Note that the path isn't checked for validity here. If an invalid library path is used, the
+   * Asset Browser can give a nice hint on what's wrong. */
+  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
+      &U, library->custom_library_index);
+  if (user_library) {
+    return ASSET_LIBRARY_CUSTOM + library->custom_library_index;
+  }
+
+  BLI_assert(0);
+  return ASSET_LIBRARY_LOCAL;
+}
+
+AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
+{
+  AssetLibraryReference library;
+
+  /* Simple case: Predefined repo, just set the value. */
+  if (value < ASSET_LIBRARY_CUSTOM) {
+    library.type = value;
+    library.custom_library_index = -1;
+    BLI_assert(ELEM(value, ASSET_LIBRARY_LOCAL));
+    return library;
+  }
+
+  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
+      &U, value - ASSET_LIBRARY_CUSTOM);
+
+  /* Note that the path isn't checked for validity here. If an invalid library path is used, the
+   * Asset Browser can give a nice hint on what's wrong. */
+  const bool is_valid = (user_library->name[0] && user_library->path[0]);
+  if (!user_library) {
+    library.type = ASSET_LIBRARY_LOCAL;
+    library.custom_library_index = -1;
+  }
+  else if (user_library && is_valid) {
+    library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
+    library.type = ASSET_LIBRARY_CUSTOM;
+  }
+  return library;
+}
