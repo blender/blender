@@ -33,6 +33,8 @@ struct Main;
 struct ReportList;
 struct wmNotifier;
 
+typedef struct AssetTempIDConsumer AssetTempIDConsumer;
+
 bool ED_asset_mark_id(const struct bContext *C, struct ID *id);
 bool ED_asset_clear_id(struct ID *id);
 
@@ -46,6 +48,15 @@ void ED_asset_handle_get_full_library_path(const struct bContext *C,
                                            const AssetLibraryReference *asset_library,
                                            const AssetHandle *asset,
                                            char r_full_lib_path[]);
+
+AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const AssetHandle *handle);
+void ED_asset_temp_id_consumer_free(AssetTempIDConsumer **consumer);
+struct ID *ED_asset_temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer,
+                                                     const struct bContext *C,
+                                                     const AssetLibraryReference *asset_library,
+                                                     ID_Type id_type,
+                                                     struct Main *bmain,
+                                                     struct ReportList *reports);
 
 void ED_assetlist_storage_fetch(const struct AssetLibraryReference *library_reference,
                                 const struct AssetFilterSettings *filter_settings,

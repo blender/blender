@@ -33,6 +33,7 @@ set(SRC
   asset_edit.cc
   asset_list.cc
   asset_ops.cc
+  asset_temp_id_consumer.cc
 )
 
 set(LIB
