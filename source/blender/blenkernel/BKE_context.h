@@ -357,6 +357,8 @@ int CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
+const struct AssetLibraryReference *CTX_wm_asset_library(const bContext *C);
+
 bool CTX_wm_interface_locked(const bContext *C);
 
 /* Gets pointer to the dependency graph.

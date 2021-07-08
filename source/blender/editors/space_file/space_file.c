@@ -868,7 +868,12 @@ static void file_space_subtype_item_extend(bContext *UNUSED(C),
   }
 }
 
-static const char *file_context_dir[] = {"active_file", "id", NULL};
+static const char *file_context_dir[] = {
+    "active_file",
+    "asset_library",
+    "id",
+    NULL,
+};
 
 static int /*eContextResult*/ file_context(const bContext *C,
                                            const char *member,
@@ -897,6 +902,23 @@ static int /*eContextResult*/ file_context(const bContext *C,
     }
 
     CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
+    return CTX_RESULT_OK;
+  }
+  if (CTX_data_equals(member, "asset_library")) {
+    FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+    if (!asset_params) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    BLI_STATIC_ASSERT(offsetof(FileSelectAssetLibraryUID, type) ==
+                          offsetof(AssetLibraryReference, type),
+                      "Expected FileSelectAssetLibraryUID to match AssetLibraryReference");
+    BLI_STATIC_ASSERT(offsetof(FileSelectAssetLibraryUID, custom_library_index) ==
+                          offsetof(AssetLibraryReference, custom_library_index),
+                      "Expected FileSelectAssetLibraryUID to match AssetLibraryReference");
+
+    CTX_data_pointer_set(
+        result, &screen->id, &RNA_AssetLibraryReference, &asset_params->asset_library);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "id")) {

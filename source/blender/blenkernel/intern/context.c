@@ -1448,6 +1448,11 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
   return ctx_data_collection_get(C, "editable_gpencil_strokes", list);
 }
 
+const AssetLibraryReference *CTX_wm_asset_library(const bContext *C)
+{
+  return ctx_data_pointer_get(C, "asset_library");
+}
+
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)
 {
   Main *bmain = CTX_data_main(C);

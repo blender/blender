@@ -36,6 +36,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
@@ -111,6 +112,7 @@ const char *screen_context_dir[] = {
     "selected_editable_fcurves",
     "active_editable_fcurve",
     "selected_editable_keyframes",
+    "asset_library",
     NULL,
 };
 
@@ -1024,6 +1026,14 @@ static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
   return CTX_RESULT_NO_DATA;
 }
 
+static eContextResult screen_ctx_asset_library(const bContext *C, bContextDataResult *result)
+{
+  WorkSpace *workspace = CTX_wm_workspace(C);
+  CTX_data_pointer_set(
+      result, &workspace->id, &RNA_AssetLibraryReference, &workspace->active_asset_library);
+  return CTX_RESULT_OK;
+}
+
 /* Registry of context callback functions. */
 
 typedef eContextResult (*context_callback)(const bContext *C, bContextDataResult *result);
@@ -1098,6 +1108,7 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("selected_visible_fcurves", screen_ctx_selected_visible_fcurves);
   register_context_function("active_editable_fcurve", screen_ctx_active_editable_fcurve);
   register_context_function("selected_editable_keyframes", screen_ctx_selected_editable_keyframes);
+  register_context_function("asset_library", screen_ctx_asset_library);
 }
 
 /* Entry point for the screen context. */
