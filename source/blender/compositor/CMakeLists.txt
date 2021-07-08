@@ -68,6 +68,7 @@ set(SRC
   intern/COM_Device.cc
   intern/COM_Device.h
   intern/COM_Enums.cc
+  intern/COM_Enums.h
   intern/COM_ExecutionGroup.cc
   intern/COM_ExecutionGroup.h
   intern/COM_ExecutionModel.cc
@@ -446,14 +447,14 @@ set(SRC
   operations/COM_BrightnessOperation.h
   operations/COM_ColorCorrectionOperation.cc
   operations/COM_ColorCorrectionOperation.h
+  operations/COM_ConstantOperation.cc
+  operations/COM_ConstantOperation.h
   operations/COM_GammaOperation.cc
   operations/COM_GammaOperation.h
   operations/COM_MixOperation.cc
   operations/COM_MixOperation.h
   operations/COM_ReadBufferOperation.cc
   operations/COM_ReadBufferOperation.h
-  operations/COM_ConstantOperation.cc
-  operations/COM_ConstantOperation.h
   operations/COM_SetColorOperation.cc
   operations/COM_SetColorOperation.h
   operations/COM_SetValueOperation.cc

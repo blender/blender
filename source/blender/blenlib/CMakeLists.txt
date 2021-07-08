@@ -188,6 +188,7 @@ set(SRC
   BLI_dynstr.h
   BLI_easing.h
   BLI_edgehash.h
+  BLI_endian_defines.h
   BLI_endian_switch.h
   BLI_endian_switch_inline.h
   BLI_enumerable_thread_specific.hh

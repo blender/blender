@@ -51,14 +51,14 @@ set(INC
 
 set(SRC
   intern/draw_cache.c
+  intern/draw_cache_extract_mesh.cc
   intern/draw_cache_extract_mesh_extractors.c
   intern/draw_cache_extract_mesh_render_data.c
-  intern/draw_cache_extract_mesh.cc
   intern/mesh_extractors/extract_mesh_ibo_edituv.cc
   intern/mesh_extractors/extract_mesh_ibo_fdots.cc
+  intern/mesh_extractors/extract_mesh_ibo_lines.cc
   intern/mesh_extractors/extract_mesh_ibo_lines_adjacency.cc
   intern/mesh_extractors/extract_mesh_ibo_lines_paint_mask.cc
-  intern/mesh_extractors/extract_mesh_ibo_lines.cc
   intern/mesh_extractors/extract_mesh_ibo_points.cc
   intern/mesh_extractors/extract_mesh_ibo_tris.cc
   intern/mesh_extractors/extract_mesh_vbo_edge_fac.cc
@@ -205,8 +205,8 @@ set(SRC
   intern/draw_manager_profiling.h
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
-  intern/draw_view.h
   intern/draw_shader.h
+  intern/draw_view.h
   intern/smaa_textures.h
   engines/basic/basic_engine.h
   engines/eevee/eevee_engine.h
@@ -515,6 +515,8 @@ if(WITH_GTESTS)
     set(TEST_SRC
       tests/draw_testing.cc
       tests/shaders_test.cc
+
+      tests/draw_testing.hh
     )
     set(TEST_INC
       "../../../intern/ghost/"

@@ -293,6 +293,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       intern/GHOST_WindowWayland.cpp
 
       intern/GHOST_SystemWayland.h
+      intern/GHOST_WaylandCursorSettings.h
       intern/GHOST_WindowWayland.h
     )
 
