@@ -1022,9 +1022,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       *ctx->object);
   modifyGeometry(md, ctx, geometry_set);
 
-  /* This function is only called when applying modifiers. In this case it makes sense to realize
-   * instances, otherwise in some cases there might be no results when applying the modifier. */
-  geometry_set = blender::bke::geometry_set_realize_mesh_for_modifier(geometry_set);
+  if (ctx->flag & MOD_APPLY_TO_BASE_MESH) {
+    /* In this case it makes sense to realize instances, otherwise in some cases there might be no
+     * results when applying the modifier. */
+    geometry_set = blender::bke::geometry_set_realize_mesh_for_modifier(geometry_set);
+  }
 
   Mesh *new_mesh = geometry_set.get_component_for_write<MeshComponent>().release();
   if (new_mesh == nullptr) {
