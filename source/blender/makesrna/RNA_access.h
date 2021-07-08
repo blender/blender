@@ -71,6 +71,7 @@ extern StructRNA RNA_ArrayGpencilModifier;
 extern StructRNA RNA_ArrayModifier;
 extern StructRNA RNA_Attribute;
 extern StructRNA RNA_AttributeGroup;
+extern StructRNA RNA_AssetHandle;
 extern StructRNA RNA_AssetLibraryReference;
 extern StructRNA RNA_AssetMetaData;
 extern StructRNA RNA_AssetTag;

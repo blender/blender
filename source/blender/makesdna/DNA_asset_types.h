@@ -97,6 +97,17 @@ typedef struct AssetLibraryReference {
   int custom_library_index;
 } AssetLibraryReference;
 
+/**
+ * Not part of the core design, we should try to get rid of it. Only needed to wrap FileDirEntry
+ * into a type with PropertyGroup as base, so we can have an RNA collection of #AssetHandle's to
+ * pass to the UI.
+ */
+#
+#
+typedef struct AssetHandle {
+  struct FileDirEntry *file_data;
+} AssetHandle;
+
 #ifdef __cplusplus
 }
 #endif

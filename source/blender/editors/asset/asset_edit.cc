@@ -23,6 +23,8 @@
 #include "BKE_lib_id.h"
 
 #include "DNA_ID.h"
+#include "DNA_asset_types.h"
+#include "DNA_space_types.h"
 
 #include "UI_interface_icons.h"
 
@@ -117,4 +119,9 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
     library.type = ASSET_LIBRARY_CUSTOM;
   }
   return library;
+}
+
+const char *ED_asset_handle_get_name(const AssetHandle *asset)
+{
+  return asset->file_data->name;
 }

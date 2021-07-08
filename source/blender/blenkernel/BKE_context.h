@@ -23,6 +23,9 @@
  * \ingroup bke
  */
 
+/* XXX temporary, until AssetHandle is designed properly and queries can return a pointer to it. */
+#include "DNA_asset_types.h"
+
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
 #include "RNA_types.h"
@@ -358,6 +361,7 @@ int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
 const struct AssetLibraryReference *CTX_wm_asset_library(const bContext *C);
+struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
 
 bool CTX_wm_interface_locked(const bContext *C);
 

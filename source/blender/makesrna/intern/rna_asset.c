@@ -125,6 +125,20 @@ static void rna_AssetMetaData_active_tag_range(
   *max = *softmax = MAX2(asset_data->tot_tags - 1, 0);
 }
 
+static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
+{
+  AssetHandle *asset_handle = ptr->data;
+  return rna_pointer_inherit_refine(ptr, &RNA_FileSelectEntry, asset_handle->file_data);
+}
+
+static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *UNUSED(reports))
+{
+  AssetHandle *asset_handle = ptr->data;
+  asset_handle->file_data = value.data;
+}
+
 int rna_asset_library_reference_get(const AssetLibraryReference *library)
 {
   return ED_asset_library_reference_to_enum_value(library);
@@ -278,6 +292,23 @@ static void rna_def_asset_data(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Active Tag", "Index of the tag set for editing");
 }
 
+static void rna_def_asset_handle(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "AssetHandle", "PropertyGroup");
+  RNA_def_struct_ui_text(srna, "Asset Handle", "Reference to some asset");
+
+  /* TODO why is this editable? There probably shouldn't be a setter. */
+  prop = RNA_def_property(srna, "file_data", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "FileSelectEntry");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_AssetHandle_file_data_get", "rna_AssetHandle_file_data_set", NULL, NULL);
+  RNA_def_property_ui_text(prop, "File Entry", "File data used to refer to the asset");
+}
+
 static void rna_def_asset_library_reference(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "AssetLibraryReference", NULL);
@@ -306,6 +337,7 @@ void RNA_def_asset(BlenderRNA *brna)
   rna_def_asset_tag(brna);
   rna_def_asset_data(brna);
   rna_def_asset_library_reference(brna);
+  rna_def_asset_handle(brna);
 
   RNA_define_animate_sdna(true);
 }
