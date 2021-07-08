@@ -1411,7 +1411,7 @@ BLI_INLINE bool ui_layout_is_radial(const uiLayout *layout)
 }
 
 /**
- * Create ui items for enum items in \a item_array.
+ * Create UI items for enum items in \a item_array.
  *
  * A version of #uiItemsFullEnumO that takes pre-calculated item array.
  */

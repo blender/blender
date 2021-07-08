@@ -3086,7 +3086,7 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
     if (sb->solverflags & SBSO_ESTIMATEIPO) {
       SB_estimate_transform(ob, sb->lcom, sb->lrot, sb->lscale);
     }
-    /* inverse matrix is not uptodate... */
+    /* Inverse matrix is not up to date. */
     invert_m4_m4(ob->imat, ob->obmat);
 
     for (a = 0; a < numVerts; a++, bp++) {

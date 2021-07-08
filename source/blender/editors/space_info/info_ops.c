@@ -564,12 +564,11 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 /** \name Report Box Operator
  * \{ */
 
-/* Hard to decide whether to keep this as an operator,
- * or turn it into a hardcoded ui control feature,
- * handling TIMER events for all regions in interface_handlers.c
+/* NOTE(matt): Hard to decide whether to keep this as an operator,
+ * or turn it into a hard_coded UI control feature,
+ * handling TIMER events for all regions in `interface_handlers.c`.
  * Not sure how good that is to be accessing UI data from
- * inactive regions, so use this for now. --matt
- */
+ * inactive regions, so use this for now. */
 
 #define INFO_TIMEOUT 5.0f
 #define ERROR_TIMEOUT 10.0f

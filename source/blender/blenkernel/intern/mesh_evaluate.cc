@@ -676,7 +676,7 @@ void BKE_mesh_calc_volume(const MVert *mverts,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name NGon Tessellation (NGon/Tessface Conversion)
+/** \name NGon Tessellation (NGon to MFace Conversion)
  * \{ */
 
 static void bm_corners_to_loops_ex(ID *id,
@@ -750,9 +750,9 @@ static void bm_corners_to_loops_ex(ID *id,
     corners = multires_mdisp_corners(fd);
 
     if (corners == 0) {
-      /* Empty MDisp layers appear in at least one of the sintel.blend files.
+      /* Empty #MDisp layers appear in at least one of the `sintel.blend` files.
        * Not sure why this happens, but it seems fine to just ignore them here.
-       * If (corners == 0) for a non-empty layer though, something went wrong. */
+       * If `corners == 0` for a non-empty layer though, something went wrong. */
       BLI_assert(fd->totdisp == 0);
     }
     else {
@@ -802,15 +802,16 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 
 /**
  * The same as #BKE_mesh_convert_mfaces_to_mpolys
- * but oriented to be used in #do_versions from readfile.c
- * the difference is how active/render/clone/stencil indices are handled here
+ * but oriented to be used in #do_versions from `readfile.c`
+ * the difference is how active/render/clone/stencil indices are handled here.
  *
- * normally thay're being set from pdata which totally makes sense for meshes which are already
- * converted to bmesh structures, but when loading older files indices shall be updated in other
- * way around, so newly added pdata and ldata would have this indices set based on fdata layer
+ * normally they're being set from `pdata` which totally makes sense for meshes which are already
+ * converted to #BMesh structures, but when loading older files indices shall be updated in other
+ * way around, so newly added `pdata` and `ldata` would have this indices set
+ * based on `fdata`  layer.
  *
  * this is normally only needed when reading older files,
- * in all other cases #BKE_mesh_convert_mfaces_to_mpolys shall be always used
+ * in all other cases #BKE_mesh_convert_mfaces_to_mpolys shall be always used.
  */
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 {

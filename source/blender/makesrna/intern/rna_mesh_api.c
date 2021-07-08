@@ -249,7 +249,7 @@ void RNA_api_mesh(StructRNA *srna)
   func = RNA_def_function(srna, "split_faces", "rna_Mesh_split_faces");
   RNA_def_function_ui_description(func, "Split faces based on the edge angle");
   RNA_def_boolean(
-      func, "free_loop_normals", 1, "Free Loop Notmals", "Free loop normals custom data layer");
+      func, "free_loop_normals", 1, "Free Loop Normals", "Free loop normals custom data layer");
 
   func = RNA_def_function(srna, "calc_tangents", "rna_Mesh_calc_tangents");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);

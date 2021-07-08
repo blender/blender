@@ -1464,7 +1464,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 
   /* XXX: RNA buts show data in native types (i.e. quats, 4-component axis/angle, etc.)
    * but old-school UI shows in eulers always. Do we want to be able to still display in Eulers?
-   * Maybe needs RNA/ui options to display rotations as different types... */
+   * Maybe needs RNA/UI options to display rotations as different types. */
   v3d_transform_butsR(col, &pchanptr);
 }
 

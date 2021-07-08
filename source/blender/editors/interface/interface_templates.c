@@ -2399,8 +2399,8 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     op->type->ui((bContext *)C, op);
     op->layout = NULL;
 
-    /* UI_LAYOUT_OP_SHOW_EMPTY ignored. retun_info is ignored too. We could
-     * allow ot.ui callback to return this, but not needed right now. */
+    /* #UI_LAYOUT_OP_SHOW_EMPTY ignored. retun_info is ignored too.
+     * We could allow #wmOperatorType.ui callback to return this, but not needed right now. */
   }
   else {
     wmWindowManager *wm = CTX_wm_manager(C);

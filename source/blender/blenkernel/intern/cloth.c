@@ -597,7 +597,7 @@ static void cloth_to_object(Object *ob, ClothModifierData *clmd, float (*vertexC
   Cloth *cloth = clmd->clothObject;
 
   if (clmd->clothObject) {
-    /* inverse matrix is not uptodate... */
+    /* Inverse matrix is not up to date. */
     invert_m4_m4(ob->imat, ob->obmat);
 
     for (i = 0; i < cloth->mvert_num; i++) {

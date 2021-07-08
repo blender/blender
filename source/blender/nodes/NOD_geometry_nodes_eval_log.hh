@@ -17,7 +17,7 @@
 #pragma once
 
 /**
- * Many geometry nodes related ui features need access to data produced during evaluation. Not only
+ * Many geometry nodes related UI features need access to data produced during evaluation. Not only
  * is the final output required but also the intermediate results. Those features include
  * attribute search, node warnings, socket inspection and the viewer node.
  *
@@ -25,8 +25,8 @@
  * evaluation.
  *
  * During logging every thread gets its own local logger to avoid too much locking (logging
- * generally happens for every socket). After geometry nodes evaluation is done, the threadlocal
- * logging information is combined and postprocessed to make it easier for the ui to lookup
+ * generally happens for every socket). After geometry nodes evaluation is done, the thread-local
+ * logging information is combined and post-processed to make it easier for the UI to lookup.
  * necessary information.
  */
 
@@ -268,7 +268,7 @@ class ModifierLog {
     return *root_tree_logs_;
   }
 
-  /* Utilities to find logged informatiton for a specific context. */
+  /* Utilities to find logged information for a specific context. */
   static const ModifierLog *find_root_by_node_editor_context(const SpaceNode &snode);
   static const TreeLog *find_tree_by_node_editor_context(const SpaceNode &snode);
   static const NodeLog *find_node_by_node_editor_context(const SpaceNode &snode,

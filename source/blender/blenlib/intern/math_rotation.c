@@ -373,7 +373,7 @@ void mat3_normalized_to_quat(float q[4], const float mat[3][3])
       q[2] = (mat[2][1] + mat[1][2]) * s;
     }
 
-    /* Make sure w is nonnegative for a canonical result. */
+    /* Make sure W is non-negative for a canonical result. */
     if (q[0] < 0) {
       negate_v4(q);
     }

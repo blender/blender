@@ -560,7 +560,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     const bool is_overridable = (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE) != 0;
 
     /* Set the (button_pointer, button_prop)
-     * and pointer data for Python access to the hovered ui element. */
+     * and pointer data for Python access to the hovered UI element. */
     uiLayoutSetContextFromBut(layout, but);
 
     /* Keyframes */
