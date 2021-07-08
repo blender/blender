@@ -65,7 +65,6 @@
 static const char array_symmetry_pass_cd_name[] = "v_symmetry_pass";
 static const char array_instance_cd_name[] = "v_array_instance";
 
-#define SCULPT_ARRAY_COUNT 15
 #define ARRAY_INSTANCE_ORIGINAL -1 
 
 
@@ -103,7 +102,7 @@ void SCULPT_array_datalayers_free(Object *ob) {
 
 const float source_geometry_threshold = 0.5f;
 
-static BMesh *sculpt_array_source_build(Object *ob, Brush *brush) {
+static BMesh *sculpt_array_source_build(Object *ob, Brush *brush, SculptArray *array) {
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
 
   BMesh *srcbm;
@@ -122,18 +121,30 @@ static BMesh *sculpt_array_source_build(Object *ob, Brush *brush) {
   BM_mesh_elem_table_ensure(srcbm, BM_VERT);
   BM_mesh_elem_index_ensure(srcbm, BM_VERT); 
 
+  int vert_count = 0;
+  zero_v3(array->source_origin);
+
   SculptSession *ss = ob->sculpt;
   for (int i = 0; i < srcbm->totvert; i++) {
 	const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, i);
 	const float mask = 1.0f - SCULPT_vertex_mask_get(ss, i);
 	const float influence = mask * automask;
+	BMVert *vert = BM_vert_at_index(srcbm, i);
 	if (influence >= source_geometry_threshold) {
+    vert_count++;
+    add_v3_v3(array->source_origin, vert->co);
 		continue;
 	}
-	BMVert *vert = BM_vert_at_index(srcbm, i);
 	BM_elem_flag_set(vert, BM_ELEM_TAG, true);
   }
-  
+
+ 
+  if (vert_count == 0) {
+    return srcbm;
+  }
+
+  mul_v3_fl(array->source_origin, 1.0f / vert_count);
+
   /* TODO(pablodp606): Handle individual Face Sets for Face Set automasking. */
   BM_mesh_delete_hflag_context(srcbm, BM_ELEM_TAG, DEL_VERTS);
 
@@ -200,7 +211,7 @@ static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array) 
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
   sculpt_array_datalayers_add(sculpt_mesh);
 
-  BMesh *srcbm = sculpt_array_source_build(ob, NULL);
+  BMesh *srcbm = sculpt_array_source_build(ob, NULL, array);
   
   BMesh *destbm;
   const BMAllocTemplate allocsizeb = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh);
@@ -277,7 +288,7 @@ static void sculpt_array_init(Object *ob, SculptArray *array) {
 }
 
 
-static void sculpt_array_position_in_path_search(float *r_position, float *r_direction, SculptArray *array, const int index) {
+static void sculpt_array_position_in_path_search(float *r_position, float *r_direction, float *r_scale, SculptArray *array, const int index) {
   const float path_length = array->path.points[array->path.tot_points-1].length;
   const float step_distance = path_length / (float)array->num_copies;
   const float copy_distance = step_distance * (index + 1);
@@ -288,6 +299,9 @@ static void sculpt_array_position_in_path_search(float *r_position, float *r_dir
     if (r_direction) {
       zero_v3(r_direction);
     }
+    if (r_scale) {
+      *r_scale = 1.0f;
+    }
     return;
   }
 
@@ -296,16 +310,19 @@ static void sculpt_array_position_in_path_search(float *r_position, float *r_dir
     if (copy_distance >= path_point->length) {
       continue;
     }    
-    /* TODO: interpolate with prev. */
     ScultpArrayPathPoint *prev_path_point = &array->path.points[i - 1];
 
     const float remaining_dist = copy_distance - prev_path_point->length;
     const float segment_length = path_point->length - prev_path_point->length;
-    interp_v3_v3v3(r_position, prev_path_point->co, path_point->co, remaining_dist / segment_length);
+    const float interp_factor = remaining_dist / segment_length;
+    interp_v3_v3v3(r_position, prev_path_point->co, path_point->co, interp_factor);
     if (r_direction) {
       copy_v3_v3(r_direction, path_point->direction);
     }
-
+    if (r_scale) {
+      const float s = 1.0f - interp_factor;
+      *r_scale = s * prev_path_point->strength + interp_factor * path_point->strength;
+    }
     return;
   }
 
@@ -314,23 +331,17 @@ static void sculpt_array_position_in_path_search(float *r_position, float *r_dir
   if (r_direction) {
   copy_v3_v3(r_direction, last_path_point->direction);
   }
-
-}
-
-static void sculpt_array_linear_position_get(float *r_position, SculptArray *array, const int index) {
-
+  if (r_scale) {
+    *r_scale = last_path_point->strength;
+  }
 }
 
 static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, SculptArrayCopy *copy, eBrushArrayDeformType array_type) {
-  /*
-  const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
-  float delta[3];
-  flip_v3_v3(delta, cache->grab_delta, copy->symm_pass);
-  mul_v3_v3fl(copy->mat[3], delta, fade);
-  */
 
   float copy_position[3];
   unit_m4(copy->mat);
+
+  float scale = 1.0f;
 
   switch (array_type)
   {
@@ -351,7 +362,7 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
     break;
 
   case BRUSH_ARRAY_DEFORM_PATH:
-    sculpt_array_position_in_path_search(copy->mat[3], NULL, array, copy->index);
+    sculpt_array_position_in_path_search(copy->mat[3], NULL, &scale, array, copy->index);
     break;
   
   }
@@ -364,12 +375,9 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
   */
   
 
-/*
-  const float scale = cache->bstrength;
   copy->mat[0][0] = scale;
   copy->mat[1][1] = scale;
   copy->mat[2][2] = scale;
-  */
 
 }
 
@@ -391,7 +399,12 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
        SculptArrayCopy *copy = &array->copies[symm_pass][copy_index];
        SculptArrayCopy *main_copy = &array->copies[0][copy_index];
        unit_m4(copy->mat);
-       flip_v3_v3(copy->mat[3],main_copy->mat[3], symm_pass);
+      flip_v3_v3(copy->mat[3],main_copy->mat[3], symm_pass);
+      /*
+       for (int m = 0; m < 3; m++) {
+        flip_v3_v3(copy->mat[m],main_copy->mat[m], symm_pass);
+       }
+       */
       }
   }
 }
@@ -423,7 +436,10 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
 
    	const int array_symm_pass = cd_array_symm_pass[vd.index];
     SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
-    mul_v3_m4v3(vd.co, copy->mat, array->orco[vd.index]);
+    float co[3];
+    sub_v3_v3v3(co, array->orco[vd.index], array->source_origin);
+    mul_v3_m4v3(co, copy->mat, co);
+    add_v3_v3v3(vd.co, co, array->source_origin);
 
     any_modified = true;
 
@@ -484,8 +500,8 @@ static void sculpt_array_stroke_sample_add(Object *ob, SculptArray *array) {
 
   //add_v3_v3v3(path_point->co, ss->cache->orig_grab_location, ss->cache->grab_delta);
   copy_v3_v3(path_point->co, ss->cache->grab_delta);
+  path_point->strength = ss->cache->bstrength;
   
-
   if (current_point_index == 0) {
     /* First point of the path. */
     path_point->length = 0.0f;
@@ -546,7 +562,10 @@ void SCULPT_array_path_draw(const uint gpuattr,
     const int tot_points = array->path.tot_points; 
     immBegin(GPU_PRIM_LINE_STRIP, tot_points);
     for (int i = 0; i < tot_points; i++) {
-      immVertex3fv(gpuattr, array->path.points[i].co);
+      float co[3];
+      copy_v3_v3(co, array->path.points[i].co);
+      add_v3_v3(co, array->source_origin);
+      immVertex3fv(gpuattr, co);
     }
     immEnd();
 }

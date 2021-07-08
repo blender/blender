@@ -2514,7 +2514,8 @@ static float brush_strength(const Sculpt *sd,
       return root_alpha * feather;
 
     case SCULPT_TOOL_ARRAY:
-      return root_alpha * feather;
+      //return root_alpha * feather;
+      return alpha * pressure * overlap * feather;
 
     case SCULPT_TOOL_ROTATE:
       return alpha * pressure * feather;
