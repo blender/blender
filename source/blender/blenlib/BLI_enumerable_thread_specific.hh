@@ -77,17 +77,18 @@ template<typename T> class EnumerableThreadSpecific : NonCopyable, NonMovable {
    * their addresses do not change when the map grows. */
   Map<int, std::reference_wrapper<T>> values_;
   Vector<std::unique_ptr<T>> owned_values_;
-  std::function<T()> initializer_;
+  std::function<void(void *)> initializer_;
 
  public:
   using iterator = typename Map<int, std::reference_wrapper<T>>::MutableValueIterator;
 
-  EnumerableThreadSpecific() : initializer_([]() { return T(); })
+  EnumerableThreadSpecific() : initializer_([](void *buffer) { new (buffer) T(); })
   {
   }
 
   template<typename F>
-  EnumerableThreadSpecific(F initializer) : initializer_(std::move(initializer))
+  EnumerableThreadSpecific(F initializer)
+      : initializer_([=](void *buffer) { new (buffer) T(initializer()); })
   {
   }
 
@@ -96,11 +97,10 @@ template<typename T> class EnumerableThreadSpecific : NonCopyable, NonMovable {
     const int thread_id = enumerable_thread_specific_utils::thread_id;
     std::lock_guard lock{mutex_};
     return values_.lookup_or_add_cb(thread_id, [&]() {
-      /* `std::make_unique` does not work here if T is non-copyable and non-movable. */
-      std::unique_ptr<T> value{new T(initializer_())};
-      std::reference_wrapper<T> ref = *value;
-      owned_values_.append(std::move(value));
-      return ref;
+      T *value = (T *)::operator new(sizeof(T));
+      initializer_(value);
+      owned_values_.append(std::unique_ptr<T>{value});
+      return std::reference_wrapper<T>{*value};
     });
   }
 
