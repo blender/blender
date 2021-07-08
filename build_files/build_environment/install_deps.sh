@@ -2738,7 +2738,7 @@ _init_openvdb() {
   _git=false
   _inst=$INST/openvdb-$OPENVDB_VERSION_SHORT
   _inst_shortcut=$INST/openvdb
-  
+
   _openvdb_source=$OPENVDB_SOURCE
   if [ "$WITH_NANOVDB" = true ]; then
     _openvdb_source=$NANOVDB_SOURCE
@@ -2843,7 +2843,7 @@ compile_OPENVDB() {
     if [ -d $INST/blosc ]; then
       cmake_d="$cmake_d -D Blosc_ROOT=$INST/blosc"
     fi
-  
+
     cmake $cmake_d ..
 
     make -j$THREADS install
