@@ -4143,6 +4143,30 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
   return ok;
 }
 
+struct GPencilStrokePointIterData {
+  const float (*obmat)[4];
+
+  void (*point_func_cb)(const float co[3], void *user_data);
+  void *user_data;
+};
+
+static void foreach_display_point_gpencil_stroke_fn(bGPDlayer *UNUSED(layer),
+                                                    bGPDframe *UNUSED(frame),
+                                                    bGPDstroke *stroke,
+                                                    void *thunk)
+{
+  struct GPencilStrokePointIterData *iter_data = thunk;
+  {
+    bGPDspoint *pt;
+    int i;
+    for (i = 0, pt = stroke->points; i < stroke->totpoints; i++, pt++) {
+      float co[3];
+      mul_v3_m4v3(co, iter_data->obmat, &pt->x);
+      iter_data->point_func_cb(co, iter_data->user_data);
+    }
+  }
+}
+
 void BKE_object_foreach_display_point(Object *ob,
                                       const float obmat[4][4],
                                       void (*func_cb)(const float[3], void *),
@@ -4159,6 +4183,13 @@ void BKE_object_foreach_display_point(Object *ob,
       mul_v3_m4v3(co, obmat, mv->co);
       func_cb(co, user_data);
     }
+  }
+  else if (ob->type == OB_GPENCIL) {
+    struct GPencilStrokePointIterData iter_data = {
+        .obmat = obmat, .point_func_cb = func_cb, .user_data = user_data};
+
+    BKE_gpencil_visible_stroke_iter(
+        ob->data, NULL, foreach_display_point_gpencil_stroke_fn, &iter_data);
   }
   else if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
     DispList *dl;
