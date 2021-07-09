@@ -31,6 +31,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "ED_image.h"
@@ -222,19 +223,30 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
         copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
       }
       else if ((sima_flag & SI_SHOW_R) != 0) {
-        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+        if (IMB_alpha_affects_rgb(ibuf)) {
+          draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        }
         copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
       }
       else if ((sima_flag & SI_SHOW_G) != 0) {
-        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        draw_flags |=  IMAGE_DRAW_FLAG_SHUFFLING;
+        if (IMB_alpha_affects_rgb(ibuf)) {
+          draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        }
         copy_v4_fl4(shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
       }
       else if ((sima_flag & SI_SHOW_B) != 0) {
-        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+        if (IMB_alpha_affects_rgb(ibuf)) {
+          draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        }
         copy_v4_fl4(shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
       }
       else /* RGB */ {
-        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        if (IMB_alpha_affects_rgb(ibuf)) {
+          draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        }
       }
     }
     if (space_type == SPACE_NODE) {
@@ -248,19 +260,30 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
         copy_v4_fl4(shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
       }
       else if ((snode->flag & SNODE_SHOW_R) != 0) {
-        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+        if (IMB_alpha_affects_rgb(ibuf)) {
+          draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        }
         copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
       }
       else if ((snode->flag & SNODE_SHOW_G) != 0) {
-        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+        if (IMB_alpha_affects_rgb(ibuf)) {
+          draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        }
         copy_v4_fl4(shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
       }
       else if ((snode->flag & SNODE_SHOW_B) != 0) {
-        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA | IMAGE_DRAW_FLAG_SHUFFLING;
+        draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
+        if (IMB_alpha_affects_rgb(ibuf)) {
+          draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        }
         copy_v4_fl4(shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
       }
       else /* RGB */ {
-        draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        if (IMB_alpha_affects_rgb(ibuf)) {
+          draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
+        }
       }
     }
 
