@@ -252,8 +252,41 @@ static void ASSET_OT_clear(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 
+static bool asset_list_refresh_poll(bContext *C)
+{
+  const AssetLibraryReference *library = CTX_wm_asset_library(C);
+  if (!library) {
+    return false;
+  }
+
+  return ED_assetlist_storage_has_list_for_library(library);
+}
+
+static int asset_list_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
+{
+  const AssetLibraryReference *library = CTX_wm_asset_library(C);
+  ED_assetlist_clear(library, C);
+  return OPERATOR_FINISHED;
+}
+
+static void ASSET_OT_list_refresh(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Refresh Asset List";
+  ot->description = "Trigger a reread of the assets";
+  ot->idname = "ASSET_OT_list_refresh";
+
+  /* api callbacks */
+  ot->exec = asset_list_refresh_exec;
+  ot->poll = asset_list_refresh_poll;
+}
+
+/* -------------------------------------------------------------------- */
+
 void ED_operatortypes_asset(void)
 {
   WM_operatortype_append(ASSET_OT_mark);
   WM_operatortype_append(ASSET_OT_clear);
+
+  WM_operatortype_append(ASSET_OT_list_refresh);
 }

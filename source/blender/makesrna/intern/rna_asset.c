@@ -25,6 +25,7 @@
 
 #include "DNA_asset_types.h"
 #include "DNA_defs.h"
+#include "DNA_space_types.h"
 
 #include "rna_internal.h"
 
@@ -129,6 +130,17 @@ static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
 {
   AssetHandle *asset_handle = ptr->data;
   return rna_pointer_inherit_refine(ptr, &RNA_FileSelectEntry, asset_handle->file_data);
+}
+
+static void rna_AssetHandle_get_full_library_path(
+    // AssetHandle *asset,
+    bContext *C,
+    FileDirEntry *asset_file,
+    AssetLibraryReference *library,
+    char r_result[FILE_MAX_LIBEXTRA])
+{
+  AssetHandle asset = {.file_data = asset_file};
+  ED_asset_handle_get_full_library_path(C, library, &asset, r_result);
 }
 
 static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
@@ -292,6 +304,30 @@ static void rna_def_asset_data(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Active Tag", "Index of the tag set for editing");
 }
 
+static void rna_def_asset_handle_api(StructRNA *srna)
+{
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  func = RNA_def_function(srna, "get_full_library_path", "rna_AssetHandle_get_full_library_path");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  /* TODO temporarily static function, for until .py can receive the asset handle from context
+   * properly. `asset_file_handle` should go away too then. */
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "asset_file_handle", "FileSelectEntry", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func,
+                         "asset_library",
+                         "AssetLibraryReference",
+                         "",
+                         "The asset library containing the given asset, only valid if the asset "
+                         "library is external (i.e. not the \"Current File\" one");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_string(func, "result", NULL, FILE_MAX_LIBEXTRA, "result", "");
+  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_function_output(func, parm);
+}
+
 static void rna_def_asset_handle(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -307,6 +343,8 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, "rna_AssetHandle_file_data_get", "rna_AssetHandle_file_data_set", NULL, NULL);
   RNA_def_property_ui_text(prop, "File Entry", "File data used to refer to the asset");
+
+  rna_def_asset_handle_api(srna);
 }
 
 static void rna_def_asset_library_reference(BlenderRNA *brna)

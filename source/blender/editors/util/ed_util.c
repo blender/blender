@@ -46,6 +46,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
+#include "ED_asset.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -168,6 +169,8 @@ void ED_editors_init(bContext *C)
   if (scene) {
     ED_space_image_paint_update(bmain, wm, scene);
   }
+
+  ED_assetlist_storage_tag_main_data_dirty();
 
   SWAP(int, reports->flag, reports_flag_prev);
   wm->op_undo_depth--;

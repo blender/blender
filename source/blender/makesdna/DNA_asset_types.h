@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus
@@ -35,6 +36,16 @@ typedef struct AssetTag {
   struct AssetTag *next, *prev;
   char name[64]; /* MAX_NAME */
 } AssetTag;
+
+#
+#
+typedef struct AssetFilterSettings {
+  /** Tags to match against. These are newly allocated, and compared against the
+   * #AssetMetaData.tags.
+   * TODO not used and doesn't do anything yet. */
+  ListBase tags;     /* AssetTag */
+  uint64_t id_types; /* rna_enum_id_type_filter_items */
+} AssetFilterSettings;
 
 /**
  * \brief The meta-data of an asset.

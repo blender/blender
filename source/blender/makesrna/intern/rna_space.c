@@ -509,6 +509,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include "DNA_anim_types.h"
+#  include "DNA_asset_types.h"
 #  include "DNA_scene_types.h"
 #  include "DNA_screen_types.h"
 #  include "DNA_userdef_types.h"

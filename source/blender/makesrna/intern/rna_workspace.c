@@ -425,6 +425,7 @@ static void rna_def_workspace(BlenderRNA *brna)
                            "Asset Library",
                            "Active asset library to show in the UI, not used by the Asset Browser "
                            "(which has its own active asset library)");
+  RNA_def_property_update(prop, NC_ASSET | ND_ASSET_LIST_READING, NULL);
 
   RNA_api_workspace(srna);
 }

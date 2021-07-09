@@ -18,9 +18,14 @@
  * \ingroup edasset
  */
 
+#include <memory>
+#include <string>
+
 #include "BKE_asset.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+
+#include "BLO_readfile.h"
 
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
@@ -31,6 +36,8 @@
 #include "RNA_access.h"
 
 #include "ED_asset.h"
+
+using namespace blender;
 
 bool ED_asset_mark_id(const bContext *C, ID *id)
 {
@@ -47,6 +54,9 @@ bool ED_asset_mark_id(const bContext *C, ID *id)
 
   UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
 
+  /* Important for asset storage to update properly! */
+  ED_assetlist_storage_tag_main_data_dirty();
+
   return true;
 }
 
@@ -58,6 +68,9 @@ bool ED_asset_clear_id(ID *id)
   BKE_asset_metadata_free(&id->asset_data);
   /* Don't clear fake user here, there's no guarantee that it was actually set by
    * #ED_asset_mark_id(), it might have been something/someone else. */
+
+  /* Important for asset storage to update properly! */
+  ED_assetlist_storage_tag_main_data_dirty();
 
   return true;
 }
@@ -124,4 +137,19 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
 const char *ED_asset_handle_get_name(const AssetHandle *asset)
 {
   return asset->file_data->name;
+}
+
+void ED_asset_handle_get_full_library_path(const bContext *C,
+                                           const AssetLibraryReference *asset_library,
+                                           const AssetHandle *asset,
+                                           char r_full_lib_path[FILE_MAX_LIBEXTRA])
+{
+  *r_full_lib_path = '\0';
+
+  std::string asset_path = ED_assetlist_asset_filepath_get(C, *asset_library, *asset);
+  if (asset_path.empty()) {
+    return;
+  }
+
+  BLO_library_path_explode(asset_path.c_str(), r_full_lib_path, nullptr, nullptr);
 }

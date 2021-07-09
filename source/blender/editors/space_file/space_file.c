@@ -367,7 +367,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
 
   if (filelist_needs_reading(sfile->files)) {
     if (!filelist_pending(sfile->files)) {
-      filelist_readjob_start(sfile->files, C);
+      filelist_readjob_start(sfile->files, NC_SPACE | ND_SPACE_FILE_LIST, C);
     }
   }
 

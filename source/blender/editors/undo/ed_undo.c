@@ -50,6 +50,7 @@
 
 #include "BLO_blend_validate.h"
 
+#include "ED_asset.h"
 #include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
@@ -267,6 +268,8 @@ static void ed_undo_step_post(bContext *C,
 
   WM_toolsystem_refresh_active(C);
   WM_toolsystem_refresh_screen_all(bmain);
+
+  ED_assetlist_storage_tag_main_data_dirty();
 
   if (CLOG_CHECK(&LOG, 1)) {
     BKE_undosys_print(wm->undo_stack);
