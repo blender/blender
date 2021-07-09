@@ -98,7 +98,7 @@ enum {
   WALK_MODAL_JUMP,
   WALK_MODAL_JUMP_STOP,
   WALK_MODAL_TELEPORT,
-  WALK_MODAL_TOGGLE,
+  WALK_MODAL_GRAVITY_TOGGLE,
   WALK_MODAL_ACCELERATE,
   WALK_MODAL_DECELERATE,
 };
@@ -164,7 +164,7 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
       {WALK_MODAL_JUMP, "JUMP", 0, "Jump", "Jump when in walk mode"},
       {WALK_MODAL_JUMP_STOP, "JUMP_STOP", 0, "Jump (Off)", "Stop pushing jump"},
 
-      {WALK_MODAL_TOGGLE, "GRAVITY_TOGGLE", 0, "Toggle Gravity", "Toggle gravity effect"},
+      {WALK_MODAL_GRAVITY_TOGGLE, "GRAVITY_TOGGLE", 0, "Toggle Gravity", "Toggle gravity effect"},
 
       {0, NULL, 0, NULL, NULL},
   };
@@ -939,7 +939,7 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
 #undef JUMP_TIME_MAX
 #undef JUMP_SPEED_MIN
 
-      case WALK_MODAL_TOGGLE:
+      case WALK_MODAL_GRAVITY_TOGGLE:
         if (walk->navigation_mode == WALK_MODE_GRAVITY) {
           walk_navigation_mode_set(walk, WALK_MODE_FREE);
         }
