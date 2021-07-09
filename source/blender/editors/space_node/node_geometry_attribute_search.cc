@@ -155,6 +155,9 @@ static void attribute_search_update_fn(
 
 static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
 {
+  if (item_v == nullptr) {
+    return;
+  }
   AttributeSearchData *data = static_cast<AttributeSearchData *>(data_v);
   GeometryAttributeInfo *item = (GeometryAttributeInfo *)item_v;
 
