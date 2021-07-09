@@ -143,6 +143,13 @@ static void rna_AssetHandle_get_full_library_path(
   ED_asset_handle_get_full_library_path(C, library, &asset, r_result);
 }
 
+static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
+{
+  const AssetHandle *asset = ptr->data;
+  ID *id = ED_assetlist_asset_local_id_get(asset);
+  return rna_pointer_inherit_refine(ptr, &RNA_ID, id);
+}
+
 static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
                                           PointerRNA value,
                                           struct ReportList *UNUSED(reports))
@@ -343,6 +350,15 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, "rna_AssetHandle_file_data_get", "rna_AssetHandle_file_data_set", NULL, NULL);
   RNA_def_property_ui_text(prop, "File Entry", "File data used to refer to the asset");
+
+  prop = RNA_def_property(srna, "local_id", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ID");
+  RNA_def_property_pointer_funcs(prop, "rna_AssetHandle_local_id_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(prop,
+                           "",
+                           "The local data-block this asset represents; only valid if that is a "
+                           "data-block in this file");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   rna_def_asset_handle_api(srna);
 }
