@@ -604,6 +604,12 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
  * used for keymaps and macros */
 void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
 {
+  IDProperty *tmp_properties = NULL;
+  /* Allow passing NULL for properties, just create the properties here then. */
+  if (properties == NULL) {
+    properties = &tmp_properties;
+  }
+
   if (*properties == NULL) {
     IDPropertyTemplate val = {0};
     *properties = IDP_New(IDP_GROUP, &val, "wmOpItemProp");

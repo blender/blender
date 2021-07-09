@@ -5835,6 +5835,15 @@ static void uilist_free_dyn_data(uiList *ui_list)
     return;
   }
 
+  if (dyn_data->custom_activate_opptr) {
+    WM_operator_properties_free(dyn_data->custom_activate_opptr);
+    MEM_freeN(dyn_data->custom_activate_opptr);
+  }
+  if (dyn_data->custom_drag_opptr) {
+    WM_operator_properties_free(dyn_data->custom_drag_opptr);
+    MEM_freeN(dyn_data->custom_drag_opptr);
+  }
+
   MEM_SAFE_FREE(dyn_data->items_filter_flags);
   MEM_SAFE_FREE(dyn_data->items_filter_neworder);
   MEM_SAFE_FREE(dyn_data->customdata);
@@ -6846,6 +6855,46 @@ void uiTemplateList(uiLayout *layout,
                     columns,
                     flags,
                     NULL);
+}
+
+/**
+ * \return: A RNA pointer for the operator properties.
+ */
+PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
+                                                 const char *opname,
+                                                 bool create_properties)
+{
+  uiListDyn *dyn_data = ui_list->dyn_data;
+  dyn_data->custom_activate_optype = WM_operatortype_find(opname, false);
+  if (!dyn_data->custom_activate_optype) {
+    return NULL;
+  }
+
+  if (create_properties) {
+    WM_operator_properties_alloc(&dyn_data->custom_activate_opptr, NULL, opname);
+  }
+
+  return dyn_data->custom_activate_opptr;
+}
+
+/**
+ * \return: A RNA pointer for the operator properties.
+ */
+PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
+                                             const char *opname,
+                                             bool create_properties)
+{
+  uiListDyn *dyn_data = ui_list->dyn_data;
+  dyn_data->custom_drag_optype = WM_operatortype_find(opname, false);
+  if (!dyn_data->custom_drag_optype) {
+    return NULL;
+  }
+
+  if (create_properties) {
+    WM_operator_properties_alloc(&dyn_data->custom_drag_opptr, NULL, opname);
+  }
+
+  return dyn_data->custom_drag_opptr;
 }
 
 /** \} */

@@ -767,23 +767,34 @@ static uiAfterFunc *ui_afterfunc_new(void)
  * For executing operators after the button is pressed.
  * (some non operator buttons need to trigger operators), see: T37795.
  *
+ * \param context_but: A button from which to get the context from (`uiBut.context`) for the
+ *                     operator execution.
+ *
+ * \note Ownership over \a properties is moved here. The after-func owns it now.
  * \note Can only call while handling buttons.
  */
-PointerRNA *ui_handle_afterfunc_add_operator(wmOperatorType *ot, int opcontext, bool create_props)
+static void ui_handle_afterfunc_add_operator_ex(wmOperatorType *ot,
+                                                PointerRNA **properties,
+                                                int opcontext,
+                                                const uiBut *context_but)
 {
-  PointerRNA *ptr = NULL;
   uiAfterFunc *after = ui_afterfunc_new();
 
   after->optype = ot;
   after->opcontext = opcontext;
-
-  if (create_props) {
-    ptr = MEM_callocN(sizeof(PointerRNA), __func__);
-    WM_operator_properties_create_ptr(ptr, ot);
-    after->opptr = ptr;
+  if (properties) {
+    after->opptr = *properties;
+    *properties = NULL;
   }
 
-  return ptr;
+  if (context_but && context_but->context) {
+    after->context = CTX_store_copy(context_but->context);
+  }
+}
+
+void ui_handle_afterfunc_add_operator(wmOperatorType *ot, int opcontext)
+{
+  ui_handle_afterfunc_add_operator_ex(ot, NULL, opcontext, NULL);
 }
 
 static void popup_check(bContext *C, wmOperator *op)
@@ -1143,6 +1154,42 @@ static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 
   data->retval = but->retval;
   data->applied = true;
+}
+
+/**
+ * \note Ownership of \a properties is moved here. The after-func owns it now.
+ *
+ * \param context_but: The button to use context from when calling or polling the operator.
+ *
+ * \returns true if the operator was executed, otherwise false.
+ */
+static bool ui_list_invoke_item_operator(bContext *C,
+                                         const uiBut *context_but,
+                                         wmOperatorType *ot,
+                                         PointerRNA **properties)
+{
+  if (!ui_but_context_poll_operator(C, ot, context_but)) {
+    return false;
+  }
+
+  /* Allow the context to be set from the hovered button, so the list item draw callback can set
+   * context for the operators. */
+  ui_handle_afterfunc_add_operator_ex(ot, properties, WM_OP_INVOKE_DEFAULT, context_but);
+  return true;
+}
+
+static void ui_apply_but_LISTROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
+{
+  uiBut *listbox = ui_list_find_from_row(data->region, but);
+  if (listbox) {
+    uiList *list = listbox->custom_data;
+    if (list && list->dyn_data->custom_activate_optype) {
+      ui_list_invoke_item_operator(
+          C, but, list->dyn_data->custom_activate_optype, &list->dyn_data->custom_activate_opptr);
+    }
+  }
+
+  ui_apply_but_ROW(C, block, but, data);
 }
 
 static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -1617,7 +1664,7 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
    */
   if (drag_info->is_xy_lock_init == false) {
     /* first store the buttons original coords */
-    uiBut *but = ui_but_find_mouse_over_ex(region, xy_input[0], xy_input[1], true);
+    uiBut *but = ui_but_find_mouse_over_ex(region, xy_input[0], xy_input[1], true, NULL, NULL);
 
     if (but) {
       if (but->flag & UI_BUT_DRAG_LOCK) {
@@ -1688,7 +1735,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
     wmWindow *win = CTX_wm_window(C);
     const ARegion *region = CTX_wm_region(C);
     uiBut *but = ui_but_find_mouse_over_ex(
-        region, drag_info->xy_init[0], drag_info->xy_init[1], true);
+        region, drag_info->xy_init[0], drag_info->xy_init[1], true, NULL, NULL);
 
     if (but) {
       ui_apply_but_undo(but);
@@ -2250,8 +2297,10 @@ static void ui_apply_but(
       ui_apply_but_TOG(C, but, data);
       break;
     case UI_BTYPE_ROW:
-    case UI_BTYPE_LISTROW:
       ui_apply_but_ROW(C, block, but, data);
+      break;
+    case UI_BTYPE_LISTROW:
+      ui_apply_but_LISTROW(C, block, but, data);
       break;
     case UI_BTYPE_DATASETROW:
       ui_apply_but_ROW(C, block, but, data);
@@ -4284,7 +4333,7 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
                                             uiButtonActivateType activate_type)
 {
   ARegion *region = CTX_wm_region(C);
-  uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->x, event->y, true);
+  uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->x, event->y, true, NULL, NULL);
 
   if (labelbut && labelbut->type == UI_BTYPE_TEXT && !(labelbut->flag & UI_BUT_DISABLED)) {
     /* exit listrow */
@@ -4777,6 +4826,15 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
       /* XXX: (a bit ugly) Special case handling for file-browser drag button. */
       if (but->dragpoin && but->imb && ui_but_contains_point_px_icon(but, data->region, event)) {
         ret = WM_UI_HANDLER_CONTINUE;
+      }
+      /* Same special case handling for UI lists. Return CONTINUE so that a tweak or CLICK event
+       * will be sent for the list to work with. */
+      const uiBut *listbox = ui_list_find_mouse_over(data->region, event);
+      if (listbox) {
+        const uiList *ui_list = listbox->custom_data;
+        if (ui_list && ui_list->dyn_data->custom_drag_optype) {
+          ret = WM_UI_HANDLER_CONTINUE;
+        }
       }
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       return ret;
@@ -9289,6 +9347,128 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
   return retval;
 }
 
+/**
+ * Activate the underlying list-row button, so the row is highlighted.
+ * Early exits if \a activate_dragging is true, but the custom drag operator fails to execute.
+ * Gives the wanted behavior where the item is activated on a tweak event when the custom drag
+ * operator is executed.
+ */
+static int ui_list_activate_hovered_row(bContext *C,
+                                        ARegion *region,
+                                        const uiList *ui_list,
+                                        const wmEvent *event,
+                                        bool activate_dragging)
+{
+  const bool do_drag = activate_dragging && ui_list->dyn_data->custom_drag_optype;
+
+  if (do_drag) {
+    const uiBut *hovered_but = ui_but_find_mouse_over(region, event);
+    if (!ui_list_invoke_item_operator(C,
+                                      hovered_but,
+                                      ui_list->dyn_data->custom_drag_optype,
+                                      &ui_list->dyn_data->custom_drag_opptr)) {
+      return WM_UI_HANDLER_CONTINUE;
+    }
+  }
+
+  const int *mouse_xy = ISTWEAK(event->type) ? &event->prevclickx : &event->x;
+  uiBut *listrow = ui_list_row_find_mouse_over(region, mouse_xy[0], mouse_xy[1]);
+  if (listrow) {
+    wmOperatorType *custom_activate_optype = ui_list->dyn_data->custom_activate_optype;
+
+    /* Hacky: Ensure the custom activate operator is not called when the custom drag operator
+     * was. Only one should run! */
+    if (activate_dragging && do_drag) {
+      ((uiList *)ui_list)->dyn_data->custom_activate_optype = NULL;
+    }
+
+    /* Simulate click on listrow button itself (which may be overlapped by another button). Also
+     * calls the custom activate operator (ui_list->custom_activate_opname). */
+    UI_but_execute(C, region, listrow);
+
+    ((uiList *)ui_list)->dyn_data->custom_activate_optype = custom_activate_optype;
+  }
+
+  return WM_UI_HANDLER_BREAK;
+}
+
+static bool ui_list_is_hovering_draggable_but(bContext *C,
+                                              const uiList *list,
+                                              const ARegion *region,
+                                              const wmEvent *event)
+{
+  /* On a tweak event, uses the coordinates from where tweaking was started. */
+  const int *mouse_xy = ISTWEAK(event->type) ? &event->prevclickx : &event->x;
+  const uiBut *hovered_but = ui_but_find_mouse_over_ex(
+      region, mouse_xy[0], mouse_xy[1], false, NULL, NULL);
+
+  if (list->dyn_data->custom_drag_optype) {
+    if (ui_but_context_poll_operator(C, list->dyn_data->custom_drag_optype, hovered_but)) {
+      return true;
+    }
+  }
+
+  return (hovered_but && hovered_but->dragpoin);
+}
+
+static int ui_list_handle_click_drag(bContext *C,
+                                     const uiList *ui_list,
+                                     ARegion *region,
+                                     const wmEvent *event)
+{
+  if (!ELEM(event->type, LEFTMOUSE, EVT_TWEAK_L)) {
+    return WM_HANDLER_CONTINUE;
+  }
+
+  int retval = WM_HANDLER_CONTINUE;
+
+  const bool is_draggable = ui_list_is_hovering_draggable_but(C, ui_list, region, event);
+  bool activate = false;
+  bool activate_dragging = false;
+
+  if (event->type == EVT_TWEAK_L) {
+    if (is_draggable) {
+      activate_dragging = true;
+      activate = true;
+    }
+  }
+  /* KM_CLICK is only sent after an uncaught release event, so the forground button gets all
+   * regular events (including mouse presses to start dragging) and this part only kicks in if it
+   * hasn't handled the release event. Note that if there's no overlaid button, the row selects
+   * on the press event already via regular UI_BTYPE_LISTROW handling. */
+  else if ((event->type == LEFTMOUSE) && (event->val == KM_CLICK)) {
+    activate = true;
+  }
+
+  if (activate) {
+    retval = ui_list_activate_hovered_row(C, region, ui_list, event, activate_dragging);
+  }
+
+  return retval;
+}
+
+static void ui_list_activate_row_from_index(
+    bContext *C, ARegion *region, uiBut *listbox, uiList *ui_list, int index)
+{
+  uiBut *new_active_row = ui_list_row_find_from_index(region, index, listbox);
+  if (new_active_row) {
+    /* Preferred way to update the active item, also calls the custom activate operator
+     * (#uiList.custom_activate_opname). */
+    UI_but_execute(C, region, new_active_row);
+  }
+  else {
+    /* A bit ugly, set the active index in RNA directly. That's because a button that's
+     * scrolled away in the list box isn't created at all.
+     * The custom activate operator (#uiList.custom_activate_opname) is not called in this case
+     * (which may need the row button context).*/
+    RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, index);
+    RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);
+    ui_apply_but_undo(listbox);
+  }
+
+  ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+}
+
 static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *region, uiBut *listbox)
 {
   int retval = WM_UI_HANDLER_CONTINUE;
@@ -9322,7 +9502,10 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     }
   }
 
-  if (val == KM_PRESS) {
+  if (ELEM(event->type, LEFTMOUSE, EVT_TWEAK_L)) {
+    retval = ui_list_handle_click_drag(C, ui_list, region, event);
+  }
+  else if (val == KM_PRESS) {
     if ((ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY) &&
          !IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) ||
         ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->ctrl &&
@@ -9384,12 +9567,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
       CLAMP(value, min, max);
 
       if (value != value_orig) {
-        RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, value);
-        RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);
-
-        ui_apply_but_undo(listbox);
-
-        ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
+        ui_list_activate_row_from_index(C, region, listbox, ui_list, value);
         redraw = true;
       }
       retval = WM_UI_HANDLER_BREAK;

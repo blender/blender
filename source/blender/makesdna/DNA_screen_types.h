@@ -287,6 +287,11 @@ typedef struct uiListDyn {
   int *items_filter_flags;
   /** Org_idx -> new_idx, items_len length. */
   int *items_filter_neworder;
+
+  struct wmOperatorType *custom_drag_optype;
+  struct PointerRNA *custom_drag_opptr;
+  struct wmOperatorType *custom_activate_optype;
+  struct PointerRNA *custom_activate_opptr;
 } uiListDyn;
 
 typedef struct uiList { /* some list UI data need to be saved in file */
@@ -312,6 +317,12 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   char filter_byname[64];
   int filter_flag;
   int filter_sort_flag;
+
+  /** Operator executed when activating an item. */
+  const char *custom_activate_opname;
+  /** Operator executed when dragging an item (item gets activated too, without running
+   * custom_activate_opname above). */
+  const char *custom_drag_opname;
 
   /* Custom sub-classes properties. */
   IDProperty *properties;

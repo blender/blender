@@ -266,11 +266,29 @@ bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *region, const wmEv
   return BLI_rcti_isect_pt(&rect, x, y);
 }
 
+static uiBut *ui_but_find(const ARegion *region,
+                          const uiButFindPollFn find_poll,
+                          const void *find_custom_data)
+{
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
+      if (find_poll && find_poll(but, find_custom_data) == false) {
+        continue;
+      }
+      return but;
+    }
+  }
+
+  return NULL;
+}
+
 /* x and y are only used in case event is NULL... */
 uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
                                  const int x,
                                  const int y,
-                                 const bool labeledit)
+                                 const bool labeledit,
+                                 const uiButFindPollFn find_poll,
+                                 const void *find_custom_data)
 {
   uiBut *butover = NULL;
 
@@ -282,6 +300,9 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
     ui_window_to_block_fl(region, block, &mx, &my);
 
     LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
+      if (find_poll && find_poll(but, find_custom_data) == false) {
+        continue;
+      }
       if (ui_but_is_interactive(but, labeledit)) {
         if (but->pie_dir != UI_RADIAL_NONE) {
           if (ui_but_isect_pie_seg(block, but)) {
@@ -310,7 +331,7 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
 
 uiBut *ui_but_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
-  return ui_but_find_mouse_over_ex(region, event->x, event->y, event->ctrl != 0);
+  return ui_but_find_mouse_over_ex(region, event->x, event->y, event->ctrl != 0, NULL, NULL);
 }
 
 uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
@@ -351,7 +372,7 @@ uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
   return butover;
 }
 
-uiBut *ui_list_find_mouse_over_ex(ARegion *region, int x, int y)
+uiBut *ui_list_find_mouse_over_ex(const ARegion *region, int x, int y)
 {
   if (!ui_region_contains_point_px(region, x, y)) {
     return NULL;
@@ -369,9 +390,75 @@ uiBut *ui_list_find_mouse_over_ex(ARegion *region, int x, int y)
   return NULL;
 }
 
-uiBut *ui_list_find_mouse_over(ARegion *region, const wmEvent *event)
+uiBut *ui_list_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
+  if (event == NULL) {
+    /* If there is no info about the mouse, just act as if there is nothing underneath it. */
+    return NULL;
+  }
   return ui_list_find_mouse_over_ex(region, event->x, event->y);
+}
+
+uiList *UI_list_find_mouse_over(const ARegion *region, const wmEvent *event)
+{
+  uiBut *list_but = ui_list_find_mouse_over(region, event);
+  if (!list_but) {
+    return NULL;
+  }
+
+  return list_but->custom_data;
+}
+
+static bool ui_list_contains_row(const uiBut *listbox_but, const uiBut *listrow_but)
+{
+  BLI_assert(listbox_but->type == UI_BTYPE_LISTBOX);
+  BLI_assert(listrow_but->type == UI_BTYPE_LISTROW);
+  /* The list box and its rows have the same RNA data (active data pointer/prop). */
+  return ui_but_rna_equals(listbox_but, listrow_but);
+}
+
+static bool ui_but_is_listbox_with_row(const uiBut *but, const void *customdata)
+{
+  const uiBut *row_but = customdata;
+  return (but->type == UI_BTYPE_LISTBOX) && ui_list_contains_row(but, row_but);
+}
+
+uiBut *ui_list_find_from_row(const ARegion *region, const uiBut *row_but)
+{
+  return ui_but_find(region, ui_but_is_listbox_with_row, row_but);
+}
+
+static bool ui_but_is_listrow(const uiBut *but, const void *UNUSED(customdata))
+{
+  return but->type == UI_BTYPE_LISTROW;
+}
+
+uiBut *ui_list_row_find_mouse_over(const ARegion *region, const int x, const int y)
+{
+  return ui_but_find_mouse_over_ex(region, x, y, false, ui_but_is_listrow, NULL);
+}
+
+struct ListRowFindIndexData {
+  int index;
+  uiBut *listbox;
+};
+
+static bool ui_but_is_listrow_at_index(const uiBut *but, const void *customdata)
+{
+  const struct ListRowFindIndexData *find_data = customdata;
+
+  return ui_but_is_listrow(but, NULL) && ui_list_contains_row(find_data->listbox, but) &&
+         (but->hardmax == find_data->index);
+}
+
+uiBut *ui_list_row_find_from_index(const ARegion *region, const int index, uiBut *listbox)
+{
+  BLI_assert(listbox->type == UI_BTYPE_LISTBOX);
+  struct ListRowFindIndexData data = {
+      .index = index,
+      .listbox = listbox,
+  };
+  return ui_but_find(region, ui_but_is_listrow_at_index, &data);
 }
 
 /** \} */
