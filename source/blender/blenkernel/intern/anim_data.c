@@ -89,16 +89,16 @@ bool id_can_have_animdata(const ID *id)
   return id_type_can_have_animdata(GS(id->name));
 }
 
-/* Get AnimData from the given ID-block. In order for this to work, we assume that
- * the AnimData pointer is stored immediately after the given ID-block in the struct,
- * as per IdAdtTemplate.
+/**
+ * Get #AnimData from the given ID-block.
  */
 AnimData *BKE_animdata_from_id(ID *id)
 {
-  /* only some ID-blocks have this info for now, so we cast the
-   * types that do to be of type IdAdtTemplate, and extract the
-   * AnimData that way
-   */
+  /* In order for this to work, we assume that the #AnimData pointer is stored
+   * immediately after the given ID-block in the struct, as per IdAdtTemplate. */
+
+  /* Only some ID-blocks have this info for now, so we cast the types that do
+   * to be of type IdAdtTemplate, and add the AnimData to it using the template. */
   if (id_can_have_animdata(id)) {
     IdAdtTemplate *iat = (IdAdtTemplate *)id;
     return iat->adt;
@@ -106,16 +106,16 @@ AnimData *BKE_animdata_from_id(ID *id)
   return NULL;
 }
 
-/* Add AnimData to the given ID-block. In order for this to work, we assume that
- * the AnimData pointer is stored immediately after the given ID-block in the struct,
- * as per IdAdtTemplate. Also note that
+/**
+ * Ensure #AnimData exists in the given ID-block (when supported).
  */
-AnimData *BKE_animdata_add_id(ID *id)
+AnimData *BKE_animdata_ensure_id(ID *id)
 {
-  /* Only some ID-blocks have this info for now, so we cast the
-   * types that do to be of type IdAdtTemplate, and add the AnimData
-   * to it using the template
-   */
+  /* In order for this to work, we assume that the #AnimData pointer is stored
+   * immediately after the given ID-block in the struct, as per IdAdtTemplate. */
+
+  /* Only some ID-blocks have this info for now, so we cast the types that do
+   * to be of type IdAdtTemplate, and add the AnimData to it using the template. */
   if (id_can_have_animdata(id)) {
     IdAdtTemplate *iat = (IdAdtTemplate *)id;
 
@@ -667,7 +667,7 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
 
   /* get animdata from src, and create for destination (if needed) */
   srcAdt = BKE_animdata_from_id(srcID);
-  dstAdt = BKE_animdata_add_id(dstID);
+  dstAdt = BKE_animdata_ensure_id(dstID);
 
   if (ELEM(NULL, srcAdt, dstAdt)) {
     if (G.debug & G_DEBUG) {

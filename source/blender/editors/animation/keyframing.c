@@ -142,7 +142,7 @@ bAction *ED_id_action_ensure(Main *bmain, ID *id)
   /* init animdata if none available yet */
   adt = BKE_animdata_from_id(id);
   if (adt == NULL) {
-    adt = BKE_animdata_add_id(id);
+    adt = BKE_animdata_ensure_id(id);
   }
   if (adt == NULL) {
     /* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */

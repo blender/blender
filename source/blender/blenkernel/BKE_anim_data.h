@@ -50,8 +50,8 @@ bool id_can_have_animdata(const struct ID *id);
 /* Get AnimData from the given ID-block */
 struct AnimData *BKE_animdata_from_id(struct ID *id);
 
-/* Add AnimData to the given ID-block */
-struct AnimData *BKE_animdata_add_id(struct ID *id);
+/* Ensure AnimData is present in the ID-block (when supported). */
+struct AnimData *BKE_animdata_ensure_id(struct ID *id);
 
 /* Set active action used by AnimData from the given ID-block */
 bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct bAction *act);

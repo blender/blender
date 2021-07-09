@@ -2813,7 +2813,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 
     /* add new animdata block */
     if (!ob->adt) {
-      ob->adt = BKE_animdata_add_id(&ob->id);
+      ob->adt = BKE_animdata_ensure_id(&ob->id);
     }
 
     /* make a copy of all the drivers (for now), then correct any links that need fixing */

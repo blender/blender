@@ -80,7 +80,7 @@ FCurve *verify_driver_fcurve(ID *id,
   /* init animdata if none available yet */
   adt = BKE_animdata_from_id(id);
   if (adt == NULL && creation_mode != DRIVER_FCURVE_LOOKUP_ONLY) {
-    adt = BKE_animdata_add_id(id);
+    adt = BKE_animdata_ensure_id(id);
   }
   if (adt == NULL) {
     /* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
