@@ -1435,8 +1435,9 @@ int BKE_ffmpeg_append(void *context_v,
   }
 
 #  ifdef WITH_AUDASPACE
-  write_audio_frames(context,
-                     (frame - start_frame) / (((double)rd->frs_sec) / (double)rd->frs_sec_base));
+  /* Add +1 frame because we want to encode audio up until the next video frame. */
+  write_audio_frames(
+      context, (frame - start_frame + 1) / (((double)rd->frs_sec) / (double)rd->frs_sec_base));
 #  endif
   return success;
 }
