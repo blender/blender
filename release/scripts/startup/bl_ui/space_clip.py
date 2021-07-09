@@ -72,8 +72,9 @@ class CLIP_PT_marker_display(Panel):
         col.prop(view, "show_marker_pattern", text="Pattern")
         col.prop(view, "show_marker_search", text="Search")
 
-        col.active = view.show_track_path
         col.prop(view, "show_track_path", text="Path")
+        col = col.column()
+        col.active = view.show_track_path
         col.prop(view, "path_length", text="Length")
 
         col = row.column()
