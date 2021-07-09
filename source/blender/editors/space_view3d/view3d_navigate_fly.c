@@ -122,7 +122,7 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
       {FLY_MODAL_DECELERATE, "DECELERATE", 0, "Decelerate", ""},
 
       {FLY_MODAL_AXIS_LOCK_X, "AXIS_LOCK_X", 0, "X Axis Correction", "X axis correction (toggle)"},
-      {FLY_MODAL_AXIS_LOCK_Z, "AXIS_LOCK_Z", 0, "X Axis Correction", "Z axis correction (toggle)"},
+      {FLY_MODAL_AXIS_LOCK_Z, "AXIS_LOCK_Z", 0, "Z Axis Correction", "Z axis correction (toggle)"},
 
       {FLY_MODAL_PRECISION_ENABLE, "PRECISION_ENABLE", 0, "Precision", ""},
       {FLY_MODAL_PRECISION_DISABLE, "PRECISION_DISABLE", 0, "Precision (Off)", ""},
