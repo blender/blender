@@ -40,7 +40,6 @@ set(INC
 set(SRC
   drawnode.cc
   node_add.cc
-  node_buttons.c
   node_draw.cc
   node_edit.cc
   node_geometry_attribute_search.cc

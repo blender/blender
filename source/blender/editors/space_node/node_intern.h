@@ -140,9 +140,6 @@ void node_to_view(const struct bNode *node, float x, float y, float *rx, float *
 void node_to_updated_rect(const struct bNode *node, rctf *r_rect);
 void node_from_view(const struct bNode *node, float x, float y, float *rx, float *ry);
 
-/* node_buttons.c */
-void node_buttons_register(struct ARegionType *art);
-
 /* node_toolbar.c */
 void node_toolbar_register(struct ARegionType *art);
 

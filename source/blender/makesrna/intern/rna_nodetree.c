@@ -3205,7 +3205,7 @@ static void rna_NodeSocketInterfaceStandard_draw(ID *id,
                                                  struct uiLayout *layout)
 {
   PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);
+  RNA_pointer_create(id, &RNA_NodeSocketInterface, sock, &ptr);
   sock->typeinfo->interface_draw(C, layout, &ptr);
 }
 
@@ -3215,7 +3215,7 @@ static void rna_NodeSocketInterfaceStandard_draw_color(ID *id,
                                                        float r_color[4])
 {
   PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);
+  RNA_pointer_create(id, &RNA_NodeSocketInterface, sock, &ptr);
   sock->typeinfo->interface_draw_color(C, &ptr, r_color);
 }
 
