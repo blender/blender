@@ -572,7 +572,7 @@ FFMPEG_FORCE_REBUILD=false
 FFMPEG_SKIP=false
 _ffmpeg_list_sep=";"
 
-XR_OPENXR_VERSION="1.0.14"
+XR_OPENXR_VERSION="1.0.17"
 XR_OPENXR_VERSION_SHORT="1.0"
 XR_OPENXR_VERSION_MIN="1.0.8"
 XR_OPENXR_VERSION_MAX="2.0"
@@ -1108,9 +1108,9 @@ FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
 XR_OPENXR_USE_REPO=false
 XR_OPENXR_SOURCE=("https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_VERSION}.tar.gz")
-#~ XR_OPENXR_SOURCE_REPO=("https://github.com/KhronosGroup/OpenXR-SDK.git")
-#~ XR_OPENXR_REPO_UID="5900c51562769b03bea699dc0352cae56acb6419d"
-#~ XR_OPENXR_REPO_BRANCH="master"
+XR_OPENXR_SOURCE_REPO=("https://github.com/KhronosGroup/OpenXR-SDK.git")
+XR_OPENXR_REPO_UID="bf21ccb1007bb531b45d9978919a56ea5059c245"
+XR_OPENXR_REPO_BRANCH="master"
 
 # C++11 is required now
 CXXFLAGS_BACK=$CXXFLAGS
