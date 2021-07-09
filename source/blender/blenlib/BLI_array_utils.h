@@ -44,6 +44,10 @@ void _bli_array_permute(void *arr,
 #define BLI_array_permute_ex(arr, arr_len, order, arr_temp) \
   _bli_array_permute(arr, arr_len, sizeof(*(arr)), order, arr_temp)
 
+unsigned int _bli_array_deduplicate_ordered(void *arr, unsigned int arr_len, size_t arr_stride);
+#define BLI_array_deduplicate_ordered(arr, arr_len) \
+  _bli_array_deduplicate_ordered(arr, arr_len, sizeof(*(arr)))
+
 int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p);
 #define BLI_array_findindex(arr, arr_len, p) _bli_array_findindex(arr, arr_len, sizeof(*(arr)), p)
 

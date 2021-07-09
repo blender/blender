@@ -121,6 +121,35 @@ void _bli_array_permute(void *arr,
 }
 
 /**
+ * In-place array de-duplication of an ordered array.
+ *
+ * \return The new length of the array.
+ *
+ * Access via #BLI_array_deduplicate_ordered
+ */
+unsigned int _bli_array_deduplicate_ordered(void *arr, unsigned int arr_len, size_t arr_stride)
+{
+  if (UNLIKELY(arr_len <= 1)) {
+    return arr_len;
+  }
+
+  const unsigned int arr_stride_uint = (unsigned int)arr_stride;
+  uint j = 0;
+  for (uint i = 0; i < arr_len; i++) {
+    if ((i == j) || (memcmp(POINTER_OFFSET(arr, arr_stride_uint * i),
+                            POINTER_OFFSET(arr, arr_stride_uint * j),
+                            arr_stride) == 0)) {
+      continue;
+    }
+    j += 1;
+    memcpy(POINTER_OFFSET(arr, arr_stride_uint * j),
+           POINTER_OFFSET(arr, arr_stride_uint * i),
+           arr_stride);
+  }
+  return j + 1;
+}
+
+/**
  * Find the first index of an item in an array.
  *
  * Access via #BLI_array_findindex
