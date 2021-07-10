@@ -109,7 +109,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
 
-  walk(userData, ob, (ID **)&bmd->collection, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&bmd->collection, IDWALK_CB_USER);
   walk(userData, ob, (ID **)&bmd->object, IDWALK_CB_NOP);
 }
 
