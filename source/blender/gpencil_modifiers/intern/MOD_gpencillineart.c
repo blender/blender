@@ -338,7 +338,7 @@ static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
-  const bool use_cache = RNA_boolean_get(ptr, "use_cached_result");
+  const bool use_cache = RNA_boolean_get(ptr, "use_cache");
   const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
 
   uiLayoutSetEnabled(layout, !is_baked);
