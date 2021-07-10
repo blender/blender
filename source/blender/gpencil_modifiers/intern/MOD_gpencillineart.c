@@ -205,11 +205,18 @@ static void bakeModifier(Main *UNUSED(bmain),
   }
 
   if (!gpd->runtime.lineart_cache) {
+    /* Only calculate for this modifer, thus no need to get maximum values from all line art
+     * modifiers in the stack. */
+    lmd->edge_types_override = lmd->edge_types;
+    lmd->level_end_override = lmd->level_end;
+
     MOD_lineart_compute_feature_lines(depsgraph, lmd, &gpd->runtime.lineart_cache);
     MOD_lineart_destroy_render_data(lmd);
   }
 
   generate_strokes_actual(md, depsgraph, ob, gpl, gpf);
+
+  MOD_lineart_clear_cache(&gpd->runtime.lineart_cache);
 }
 
 static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
