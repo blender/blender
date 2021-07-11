@@ -27,7 +27,7 @@ namespace blender::compositor {
 /* soms macros for color handling */
 typedef float fRGB[4];
 
-/* TODO - replace with BLI_math_vector */
+/* TODO: replace with BLI_math_vector. */
 /* multiply c2 by color rgb, rgb as separate arguments */
 #define fRGB_rgbmult(c, r, g, b) \
   { \

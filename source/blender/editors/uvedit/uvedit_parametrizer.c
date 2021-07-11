@@ -2154,7 +2154,7 @@ static void p_collapse_cost_vertex(PVert *vert, float *r_mincost, PEdge **r_mine
 
 static void p_chart_post_collapse_flush(PChart *chart, PEdge *collapsed)
 {
-  /* move to collapsed_ */
+  /* Move to `collapsed_*`. */
 
   PVert *v, *nextv = NULL, *verts = chart->verts;
   PEdge *e, *nexte = NULL, *edges = chart->edges, *laste = NULL;
@@ -2224,7 +2224,7 @@ static void p_chart_post_collapse_flush(PChart *chart, PEdge *collapsed)
 
 static void p_chart_post_split_flush(PChart *chart)
 {
-  /* move from collapsed_ */
+  /* Move from `collapsed_*`. */
 
   PVert *v, *nextv = NULL;
   PEdge *e, *nexte = NULL;
@@ -2259,7 +2259,7 @@ static void p_chart_post_split_flush(PChart *chart)
 static void p_chart_simplify_compute(PChart *chart)
 {
   /* Computes a list of edge collapses / vertex splits. The collapsed
-   * simplices go in the chart->collapsed_* lists, The original and
+   * simplices go in the `chart->collapsed_*` lists, The original and
    * collapsed may then be view as stacks, where the next collapse/split
    * is at the top of the respective lists. */
 

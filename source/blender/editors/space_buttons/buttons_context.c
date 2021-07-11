@@ -126,7 +126,7 @@ static bool buttons_context_path_view_layer(ButsContextPath *path, wmWindow *win
   return false;
 }
 
-/* note: this function can return true without adding a world to the path
+/* NOTE: this function can return true without adding a world to the path
  * so the buttons stay visible, but be sure to check the ID type if a ID_WO */
 static bool buttons_context_path_world(ButsContextPath *path)
 {

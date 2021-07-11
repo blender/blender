@@ -203,20 +203,6 @@ void gpencil_modifier_curve_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiTemplateCurveMapping(layout, ptr, "curve", 0, false, false, false, false);
 }
 
-void gpencil_modifier_fading_draw(const bContext *UNUSED(C), Panel *panel)
-{
-  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
-
-  uiLayout *layout = panel->layout;
-  uiLayoutSetPropSep(layout, true);
-
-  uiItemR(layout, ptr, "object", 0, NULL, ICON_CUBE);
-  uiLayout *sub = uiLayoutColumn(layout, true);
-  uiItemR(sub, ptr, "fading_start", 0, NULL, ICON_NONE);
-  uiItemR(sub, ptr, "fading_end", 0, IFACE_("End"), ICON_NONE);
-  uiItemR(layout, ptr, "fading_end_factor", 0, NULL, ICON_NONE);
-}
-
 /**
  * Draw modifier error message.
  */

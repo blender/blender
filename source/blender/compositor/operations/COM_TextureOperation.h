@@ -31,7 +31,7 @@ namespace blender::compositor {
 /**
  * Base class for all renderlayeroperations
  *
- * \todo: rename to operation.
+ * \todo Rename to operation.
  */
 class TextureBaseOperation : public NodeOperation {
  private:

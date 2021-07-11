@@ -29,6 +29,9 @@
 #endif  // __APPLE__
 
 #include "GHOST_Window.h"
+#ifdef WITH_INPUT_IME
+#  include "GHOST_Event.h"
+#endif
 
 @class CAMetalLayer;
 @class CocoaMetalView;
@@ -57,10 +60,10 @@ class GHOST_WindowCocoa : public GHOST_Window {
    */
   GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                     const char *title,
-                    GHOST_TInt32 left,
-                    GHOST_TInt32 bottom,
-                    GHOST_TUns32 width,
-                    GHOST_TUns32 height,
+                    int32_t left,
+                    int32_t bottom,
+                    uint32_t width,
+                    uint32_t height,
                     GHOST_TWindowState state,
                     GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
                     const bool stereoVisual = false,
@@ -116,20 +119,20 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * Resizes client rectangle width.
    * \param width: The new width of the client area of the window.
    */
-  GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
+  GHOST_TSuccess setClientWidth(uint32_t width);
 
   /**
    * Resizes client rectangle height.
    * \param height: The new height of the client area of the window.
    */
-  GHOST_TSuccess setClientHeight(GHOST_TUns32 height);
+  GHOST_TSuccess setClientHeight(uint32_t height);
 
   /**
    * Resizes client rectangle.
    * \param width: The new width of the client area of the window.
    * \param height: The new height of the client area of the window.
    */
-  GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height);
+  GHOST_TSuccess setClientSize(uint32_t width, uint32_t height);
 
   /**
    * Returns the state of the window (normal, minimized, maximized).
@@ -151,10 +154,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param outX: The x-coordinate in the client rectangle.
    * \param outY: The y-coordinate in the client rectangle.
    */
-  void screenToClient(GHOST_TInt32 inX,
-                      GHOST_TInt32 inY,
-                      GHOST_TInt32 &outX,
-                      GHOST_TInt32 &outY) const;
+  void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
@@ -163,10 +163,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param outX: The x-coordinate on the screen.
    * \param outY: The y-coordinate on the screen.
    */
-  void clientToScreen(GHOST_TInt32 inX,
-                      GHOST_TInt32 inY,
-                      GHOST_TInt32 &outX,
-                      GHOST_TInt32 &outY) const;
+  void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
@@ -176,10 +173,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param outX: The x-coordinate on the screen.
    * \param outY: The y-coordinate on the screen.
    */
-  void clientToScreenIntern(GHOST_TInt32 inX,
-                            GHOST_TInt32 inY,
-                            GHOST_TInt32 &outX,
-                            GHOST_TInt32 &outY) const;
+  void clientToScreenIntern(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates,
@@ -189,10 +183,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * \param outX: The x-coordinate on the screen.
    * \param outY: The y-coordinate on the screen.
    */
-  void screenToClientIntern(GHOST_TInt32 inX,
-                            GHOST_TInt32 inY,
-                            GHOST_TInt32 &outX,
-                            GHOST_TInt32 &outY) const;
+  void screenToClientIntern(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
 
   /**
    * Gets the screen the window is displayed in
@@ -263,6 +254,11 @@ class GHOST_WindowCocoa : public GHOST_Window {
     return m_immediateDraw;
   }
 
+#ifdef WITH_INPUT_IME
+  void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed);
+  void endIME();
+#endif /* WITH_INPUT_IME */
+
  protected:
   /**
    * \param type: The type of rendering context create.
@@ -299,8 +295,8 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * Sets the cursor shape on the window using
    * native window system calls.
    */
-  GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
-                                            GHOST_TUns8 *mask,
+  GHOST_TSuccess setWindowCustomCursorShape(uint8_t *bitmap,
+                                            uint8_t *mask,
                                             int sizex,
                                             int sizey,
                                             int hotX,
@@ -326,3 +322,30 @@ class GHOST_WindowCocoa : public GHOST_Window {
   bool m_debug_context;  // for debug messages during context setup
   bool m_is_dialog;
 };
+
+#ifdef WITH_INPUT_IME
+class GHOST_EventIME : public GHOST_Event {
+ public:
+  /**
+   * Constructor.
+   * \param msec: The time this event was generated.
+   * \param type: The type of key event.
+   * \param key: The key code of the key.
+   */
+  GHOST_EventIME(uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window, void *customdata)
+      : GHOST_Event(msec, type, window)
+  {
+    this->m_data = customdata;
+  }
+};
+
+typedef int GHOST_ImeStateFlagCocoa;
+enum {
+  GHOST_IME_INPUT_FOCUSED = (1 << 0),
+  GHOST_IME_ENABLED = (1 << 1),
+  GHOST_IME_COMPOSING = (1 << 2),
+  GHOST_IME_KEY_CONTROL_CHAR = (1 << 3),
+  GHOST_IME_COMPOSITION_EVENT = (1 << 4),  // For Korean input
+  GHOST_IME_RESULT_EVENT = (1 << 5)        // For Korean input
+};
+#endif /* WITH_INPUT_IME */

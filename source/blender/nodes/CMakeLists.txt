@@ -134,6 +134,7 @@ set(SRC
 
   function/nodes/node_fn_boolean_math.cc
   function/nodes/node_fn_float_compare.cc
+  function/nodes/node_fn_float_to_int.cc
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
   function/nodes/node_fn_random_float.cc
@@ -163,17 +164,19 @@ set(SRC
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
-  geometry/nodes/node_geo_curve_length.cc  
+  geometry/nodes/node_geo_curve_endpoints.cc
+  geometry/nodes/node_geo_curve_length.cc
   geometry/nodes/node_geo_curve_primitive_bezier_segment.cc
   geometry/nodes/node_geo_curve_primitive_circle.cc
+  geometry/nodes/node_geo_curve_primitive_line.cc
   geometry/nodes/node_geo_curve_primitive_quadratic_bezier.cc
   geometry/nodes/node_geo_curve_primitive_spiral.cc
   geometry/nodes/node_geo_curve_primitive_star.cc
-  geometry/nodes/node_geo_curve_to_mesh.cc
-  geometry/nodes/node_geo_curve_to_points.cc
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_curve_reverse.cc
   geometry/nodes/node_geo_curve_subdivide.cc
+  geometry/nodes/node_geo_curve_to_mesh.cc
+  geometry/nodes/node_geo_curve_to_points.cc
   geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_material.cc
@@ -189,6 +192,7 @@ set(SRC
   geometry/nodes/node_geo_mesh_primitive_ico_sphere.cc
   geometry/nodes/node_geo_mesh_primitive_line.cc
   geometry/nodes/node_geo_mesh_primitive_uv_sphere.cc
+  geometry/nodes/node_geo_mesh_subdivide.cc
   geometry/nodes/node_geo_mesh_to_curve.cc
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_point_distribute.cc
@@ -201,11 +205,11 @@ set(SRC
   geometry/nodes/node_geo_raycast.cc
   geometry/nodes/node_geo_select_by_material.cc
   geometry/nodes/node_geo_separate_components.cc
-  geometry/nodes/node_geo_subdivide.cc
   geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_switch.cc
   geometry/nodes/node_geo_transform.cc
   geometry/nodes/node_geo_triangulate.cc
+  geometry/nodes/node_geo_viewer.cc
   geometry/nodes/node_geo_volume_to_mesh.cc
   geometry/node_geometry_exec.cc
   geometry/node_geometry_tree.cc
@@ -331,6 +335,7 @@ set(SRC
   texture/node_texture_util.c
 
   intern/derived_node_tree.cc
+  intern/geometry_nodes_eval_log.cc
   intern/math_functions.cc
   intern/node_common.c
   intern/node_exec.cc
@@ -354,6 +359,7 @@ set(SRC
   NOD_function.h
   NOD_geometry.h
   NOD_geometry_exec.hh
+  NOD_geometry_nodes_eval_log.hh
   NOD_math_functions.hh
   NOD_node_tree_multi_function.hh
   NOD_node_tree_ref.hh
@@ -414,6 +420,11 @@ if(WITH_TBB)
     ${TBB_INCLUDE_DIRS}
   )
   add_definitions(-DWITH_TBB)
+  if(WIN32)
+    # TBB includes Windows.h which will define min/max macros
+    # that will collide with the stl versions.
+    add_definitions(-DNOMINMAX)
+  endif()
 endif()
 
 if(WITH_IMAGE_OPENEXR)

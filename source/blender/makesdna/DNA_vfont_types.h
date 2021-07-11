@@ -45,7 +45,7 @@ typedef struct VFont {
   struct PackedFile *packedfile;
 
   /* runtime only, holds memory for freetype to read from
-   * TODO, replace this with blf_font_new() style loading */
+   * TODO: replace this with #blf_font_new() style loading. */
   struct PackedFile *temp_pf;
 } VFont;
 

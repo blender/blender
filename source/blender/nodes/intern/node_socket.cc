@@ -117,7 +117,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree,
   }
   if (sock) {
     if (sock->type != stemp->type) {
-      nodeModifySocketType(ntree, node, sock, stemp->type, stemp->subtype);
+      nodeModifySocketTypeStatic(ntree, node, sock, stemp->type, stemp->subtype);
     }
     sock->flag |= stemp->flag;
   }
@@ -533,12 +533,14 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
 {
   const char *socket_idname = nodeStaticSocketType(type, subtype);
   const char *interface_idname = nodeStaticSocketInterfaceType(type, subtype);
+  const char *socket_label = nodeStaticSocketLabel(type, subtype);
   bNodeSocketType *stype;
   StructRNA *srna;
 
   stype = (bNodeSocketType *)MEM_callocN(sizeof(bNodeSocketType), "node socket C type");
   stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
   BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
+  BLI_strncpy(stype->label, socket_label, sizeof(stype->label));
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */

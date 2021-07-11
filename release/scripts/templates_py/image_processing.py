@@ -20,9 +20,9 @@ input_image.pixels.foreach_get(pixel_data.ravel())
 
 # Do whatever image processing you want using numpy here:
 # Example 1: Inverse red green and blue channels.
-pixel_data[:,:,:3] = 1.0 - pixel_data[:,:,:3]
+pixel_data[:, :, :3] = 1.0 - pixel_data[:, :, :3]
 # Example 2: Change gamma on the red channel.
-pixel_data[:,:,0] = np.power(pixel_data[:,:,0], 1.5)
+pixel_data[:, :, 0] = np.power(pixel_data[:, :, 0], 1.5)
 
 # Create output image.
 if output_image_name in bpy.data.images:

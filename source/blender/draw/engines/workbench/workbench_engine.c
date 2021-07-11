@@ -460,7 +460,7 @@ void workbench_cache_finish(void *ved)
 
   workbench_update_material_ubos(wpd);
 
-  /* TODO don't free reuse next redraw. */
+  /* TODO: don't free reuse next redraw. */
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 2; j++) {
       for (int k = 0; k < WORKBENCH_DATATYPE_MAX; k++) {

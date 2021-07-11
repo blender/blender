@@ -634,6 +634,7 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
       }
+      BKE_defvert_clear(dv);
     }
     MEM_freeN(gps->dvert);
     gps->dvert = new_dv;
@@ -696,6 +697,7 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
       }
+      BKE_defvert_clear(dv);
     }
     new_gps->dvert = new_dv;
   }
@@ -2480,9 +2482,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
 
   /* Use evaluated data to get mesh with all modifiers on top. */
   Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, ob_mesh);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  MPoly *mp, *mpoly = me_eval->mpoly;
-  MLoop *mloop = me_eval->mloop;
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const MPoly *mpoly = me_eval->mpoly;
+  const MLoop *mloop = me_eval->mloop;
   int mpoly_len = me_eval->totpoly;
   char element_name[200];
 
@@ -2515,8 +2517,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
           gpl_fill, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
       int i;
-      for (i = 0, mp = mpoly; i < mpoly_len; i++, mp++) {
-        MLoop *ml = &mloop[mp->loopstart];
+      for (i = 0; i < mpoly_len; i++) {
+        const MPoly *mp = &mpoly[i];
+
         /* Find material. */
         int mat_idx = 0;
         Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
@@ -2539,8 +2542,10 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gps_fill->flag |= GP_STROKE_CYCLIC;
 
         /* Add points to strokes. */
-        for (int j = 0; j < mp->totloop; j++, ml++) {
-          MVert *mv = &me_eval->mvert[ml->v];
+        for (int j = 0; j < mp->totloop; j++) {
+          const MLoop *ml = &mloop[mp->loopstart + j];
+          const MVert *mv = &me_eval->mvert[ml->v];
+
           bGPDspoint *pt = &gps_fill->points[j];
           copy_v3_v3(&pt->x, mv->co);
           mul_m4_v3(matrix, &pt->x);
@@ -3558,7 +3563,7 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
  * Stroke to view space
  * Transforms a stroke to view space. This allows for manipulations in 2D but also easy conversion
  * back to 3D.
- * Note: also takes care of parent space transform
+ * NOTE: also takes care of parent space transform
  */
 void BKE_gpencil_stroke_to_view_space(RegionView3D *rv3d,
                                       bGPDstroke *gps,
@@ -3577,7 +3582,7 @@ void BKE_gpencil_stroke_to_view_space(RegionView3D *rv3d,
  * Stroke from view space
  * Transforms a stroke from view space back to world space. Inverse of
  * BKE_gpencil_stroke_to_view_space
- * Note: also takes care of parent space transform
+ * NOTE: also takes care of parent space transform
  */
 void BKE_gpencil_stroke_from_view_space(RegionView3D *rv3d,
                                         bGPDstroke *gps,

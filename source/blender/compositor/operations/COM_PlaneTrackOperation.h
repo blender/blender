@@ -37,7 +37,7 @@ class PlaneTrackCommon {
   char m_trackingObjectName[64];
   char m_planeTrackName[64];
 
-  /* note: this class is not an operation itself (to prevent virtual inheritance issues)
+  /* NOTE: this class is not an operation itself (to prevent virtual inheritance issues)
    * implementation classes must make wrappers to use these methods, see below.
    */
   void read_and_calculate_corners(PlaneDistortBaseOperation *distort_op);

@@ -293,8 +293,8 @@ typedef struct SculptGestureContext {
   /* These store the view origin and normal in world space, which is used in some gestures to
    * generate geometry aligned from the view directly in world space. */
   /* World space view origin and normal are not affected by object symmetry when doing symmetry
-   * passes, so there is no separate variables with the true_ prefix to store their original values
-   * without symmetry modifications. */
+   * passes, so there is no separate variables with the `true_` prefix to store their original
+   * values without symmetry modifications. */
   float world_space_view_origin[3];
   float world_space_view_normal[3];
 

@@ -1746,7 +1746,8 @@ static void stitch_draw_vbo(GPUVertBuf *vbo, GPUPrimType prim_type, const float 
   GPU_batch_discard(batch);
 }
 
-/* TODO make things pretier : store batches inside StitchPreviewer instead of the bare verts pos */
+/* TODO: make things pretier : store batches inside StitchPreviewer instead of the bare verts pos
+ */
 static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
 {
 

@@ -1180,7 +1180,7 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
   return di;
 }
 
-/* note!, returns unscaled by DPI */
+/* NOTE:, returns unscaled by DPI. */
 int UI_icon_get_width(int icon_id)
 {
   Icon *icon = BKE_icon_get(icon_id);
@@ -1519,7 +1519,7 @@ static void icon_draw_rect(float x,
       draw_h = h;
       draw_x += (w - draw_w) / 2;
     }
-    /* if the image is squared, the draw_ initialization values are good */
+    /* If the image is squared, the `draw_*` initialization values are good. */
 
     /* first allocate imbuf for scaling and copy preview into it */
     ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
@@ -2294,7 +2294,7 @@ int UI_icon_from_idcode(const int idcode)
     case ID_ME:
       return ICON_MESH_DATA;
     case ID_MSK:
-      return ICON_MOD_MASK; /* TODO! this would need its own icon! */
+      return ICON_MOD_MASK; /* TODO: this would need its own icon! */
     case ID_NT:
       return ICON_NODETREE;
     case ID_OB:
@@ -2302,9 +2302,9 @@ int UI_icon_from_idcode(const int idcode)
     case ID_PA:
       return ICON_PARTICLE_DATA;
     case ID_PAL:
-      return ICON_COLOR; /* TODO! this would need its own icon! */
+      return ICON_COLOR; /* TODO: this would need its own icon! */
     case ID_PC:
-      return ICON_CURVE_BEZCURVE; /* TODO! this would need its own icon! */
+      return ICON_CURVE_BEZCURVE; /* TODO: this would need its own icon! */
     case ID_LP:
       return ICON_OUTLINER_DATA_LIGHTPROBE;
     case ID_SCE:

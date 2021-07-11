@@ -44,7 +44,7 @@ static float quad_calc_error(const float v1[3],
 {
   /* Gives a 'weight' to a pair of triangles that join an edge
    * to decide how good a join they would make. */
-  /* Note: this is more complicated than it needs to be and should be cleaned up. */
+  /* NOTE: this is more complicated than it needs to be and should be cleaned up. */
   float error = 0.0f;
 
   /* Normal difference */

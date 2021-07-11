@@ -78,7 +78,7 @@ bool ui_but_is_toggle(const uiBut *but)
  */
 bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
 {
-  /* note, UI_BTYPE_LABEL is included for highlights, this allows drags */
+  /* NOTE: #UI_BTYPE_LABEL is included for highlights, this allows drags. */
   if ((but->type == UI_BTYPE_LABEL) && but->dragpoin == NULL) {
     return false;
   }

@@ -178,6 +178,9 @@ class Session {
 
   void run();
 
+  bool run_update_for_next_iteration();
+  bool run_wait_for_work(bool no_tiles);
+
   void update_status_time(bool show_pause = false, bool show_done = false);
 
   void render(bool use_denoise);

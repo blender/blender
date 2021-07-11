@@ -225,7 +225,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  /* TODO most of this code is copied from set3dcursor_invoke,
+  /* TODO: most of this code is copied from set3dcursor_invoke,
    * it would be better to reuse code in set3dcursor_invoke */
 
   /* temporarily change 3d cursor position */
@@ -438,17 +438,15 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
   }
 }
 
-static void updateDuplicateActionConstraintSettings(EditBone *dup_bone,
-                                                    EditBone *orig_bone,
-                                                    Object *ob,
-                                                    bConstraint *curcon)
+static void updateDuplicateActionConstraintSettings(
+    EditBone *dup_bone, EditBone *orig_bone, Object *ob, bPoseChannel *pchan, bConstraint *curcon)
 {
   bActionConstraint *act_con = (bActionConstraint *)curcon->data;
   bAction *act = (bAction *)act_con->act;
 
   float mat[4][4];
 
-  bConstraintOb cob = {.depsgraph = NULL, .scene = NULL, .ob = ob, .pchan = NULL};
+  bConstraintOb cob = {.depsgraph = NULL, .scene = NULL, .ob = ob, .pchan = pchan};
   BKE_constraint_custom_object_space_get(cob.space_obj_world_matrix, curcon);
 
   unit_m4(mat);
@@ -832,7 +830,7 @@ static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig
   for (curcon = conlist->first; curcon; curcon = curcon->next) {
     switch (curcon->type) {
       case CONSTRAINT_TYPE_ACTION:
-        updateDuplicateActionConstraintSettings(dup_bone, orig_bone, ob, curcon);
+        updateDuplicateActionConstraintSettings(dup_bone, orig_bone, ob, pchan, curcon);
         break;
       case CONSTRAINT_TYPE_KINEMATIC:
         updateDuplicateKinematicConstraintSettings(curcon);
@@ -1603,7 +1601,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
   ED_armature_edit_refresh_layer_used(obedit->data);
 
-  /* note, notifier might evolve */
+  /* NOTE: notifier might evolve. */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
   DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_edit_bone_tag(C);
@@ -1694,7 +1692,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  /* note, notifier might evolve */
+  /* NOTE: notifier might evolve. */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
   DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_edit_bone_tag(C);

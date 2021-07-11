@@ -129,7 +129,7 @@ template<typename Key, typename Value> class MultiValueMap {
   }
 
   /**
-   * Note: This signature will change when the implementation changes.
+   * NOTE: This signature will change when the implementation changes.
    */
   typename MapType::ItemIterator items() const
   {
@@ -137,7 +137,7 @@ template<typename Key, typename Value> class MultiValueMap {
   }
 
   /**
-   * Note: This signature will change when the implementation changes.
+   * NOTE: This signature will change when the implementation changes.
    */
   typename MapType::KeyIterator keys() const
   {
@@ -145,7 +145,7 @@ template<typename Key, typename Value> class MultiValueMap {
   }
 
   /**
-   * Note: This signature will change when the implementation changes.
+   * NOTE: This signature will change when the implementation changes.
    */
   typename MapType::ValueIterator values() const
   {

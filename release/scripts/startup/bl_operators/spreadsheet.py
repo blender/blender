@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from bpy.types import Operator
 
+
 class SPREADSHEET_OT_toggle_pin(Operator):
     '''Turn on or off pinning'''
     bl_idname = "spreadsheet.toggle_pin"
@@ -47,18 +48,7 @@ class SPREADSHEET_OT_toggle_pin(Operator):
     def unpin(self, context):
         space = context.space_data
         space.is_pinned = False
-
-        space.context_path.clear()
-
-        # Try to find a node with an active preview in any open editor.
-        if space.object_eval_state == 'EVALUATED':
-            node_editors = self.find_geometry_node_editors(context)
-            for node_editor in node_editors:
-                ntree = node_editor.edit_tree
-                for node in ntree.nodes:
-                    if node.active_preview:
-                        space.set_geometry_node_context(node_editor, node)
-                        return
+        space.context_path.guess()
 
     def find_geometry_node_editors(self, context):
         editors = []

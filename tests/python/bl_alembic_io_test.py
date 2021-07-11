@@ -300,7 +300,6 @@ class CameraExportImportTest(unittest.TestCase):
         abc_path = self.tempdir / "camera_transforms.abc"
         self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
             filepath=str(abc_path),
-            renderable_only=False,
             flatten=flatten,
         ))
 

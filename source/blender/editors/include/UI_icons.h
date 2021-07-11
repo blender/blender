@@ -21,7 +21,7 @@
  * \ingroup editorui
  */
 
-/* Note: this is included multiple times with different #defines for DEF_ICON. */
+/* NOTE: this is included multiple times with different #defines for DEF_ICON. */
 
 /* Auto define more specific types for places that do not need the distinction. */
 #ifndef DEF_ICON_SCENE

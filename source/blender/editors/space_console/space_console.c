@@ -107,7 +107,7 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  /* TODO - duplicate?, then we also need to duplicate the py namespace */
+  /* TODO: duplicate?, then we also need to duplicate the py namespace. */
   BLI_listbase_clear(&sconsolen->scrollback);
   BLI_listbase_clear(&sconsolen->history);
 

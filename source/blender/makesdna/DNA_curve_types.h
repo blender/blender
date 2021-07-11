@@ -598,7 +598,7 @@ typedef enum eBezTriple_KeyframeType {
 
 /* CharInfo.flag */
 enum {
-  /* note: CU_CHINFO_WRAP, CU_CHINFO_SMALLCAPS_TEST and CU_CHINFO_TRUNCATE are set dynamically */
+  /* NOTE: CU_CHINFO_WRAP, CU_CHINFO_SMALLCAPS_TEST and CU_CHINFO_TRUNCATE are set dynamically. */
   CU_CHINFO_BOLD = 1 << 0,
   CU_CHINFO_ITALIC = 1 << 1,
   CU_CHINFO_UNDERLINE = 1 << 2,

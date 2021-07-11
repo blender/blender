@@ -244,7 +244,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     }
 
     if (ibuf->zbuf) {
-      /* TODO, blend depth (not urgent). */
+      /* TODO: blend depth (not urgent). */
       info->z = ibuf->zbuf[y * ibuf->x + x];
       info->zp = &info->z;
       if (ibuf->zbuf == (int *)ibuf->rect) {
@@ -252,7 +252,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
       }
     }
     if (ibuf->zbuf_float) {
-      /* TODO, blend depth (not urgent). */
+      /* TODO: blend depth (not urgent). */
       info->zf = ibuf->zbuf_float[y * ibuf->x + x];
       info->zfp = &info->zf;
       if (ibuf->zbuf_float == ibuf->rect_float) {

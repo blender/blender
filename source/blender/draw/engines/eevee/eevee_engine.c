@@ -22,7 +22,7 @@
 
 #include "DRW_render.h"
 
-#include "draw_color_management.h" /* TODO remove dependency */
+#include "draw_color_management.h" /* TODO: remove dependency. */
 
 #include "BLI_rand.h"
 
@@ -189,7 +189,7 @@ static void eevee_cache_finish(void *vedata)
 /* As renders in an HDR offscreen buffer, we need draw everything once
  * during the background pass. This way the other drawing callback between
  * the background and the scene pass are visible.
- * Note: we could break it up in two passes using some depth test
+ * NOTE: we could break it up in two passes using some depth test
  * to reduce the fillrate */
 static void eevee_draw_scene(void *vedata)
 {

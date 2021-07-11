@@ -426,8 +426,8 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
       IMB_exr_write_channels(exrhandle);
     }
     else {
-      /* TODO, get the error from openexr's exception */
-      /* XXX nice way to do report? */
+      /* TODO: get the error from openexr's exception. */
+      /* XXX: nice way to do report? */
       printf("Error Writing Render Result, see console\n");
     }
 

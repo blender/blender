@@ -70,7 +70,7 @@ typedef struct EeveeMaterialCache {
 
 /* *********** FUNCTIONS *********** */
 
-/* XXX TODO define all shared resources in a shared place without duplication */
+/* XXX TODO: define all shared resources in a shared place without duplication. */
 struct GPUTexture *EEVEE_materials_get_util_tex(void)
 {
   return e_data.util_tex;
@@ -691,7 +691,7 @@ static EeveeMaterialCache material_transparent(EEVEE_Data *vedata,
   }
   {
     /* Shading */
-    int ssr_id = -1; /* TODO transparent SSR */
+    int ssr_id = -1; /* TODO: transparent SSR. */
     int mat_options = VAR_MAT_MESH | VAR_MAT_BLEND;
     SET_FLAG_FROM_TEST(mat_options, use_ssrefract, VAR_MAT_REFRACT);
     GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
@@ -866,7 +866,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
               continue;
             }
 
-            /* XXX TODO rewrite this to include the dupli objects.
+            /* XXX TODO: rewrite this to include the dupli objects.
              * This means we cannot exclude dupli objects from reflections!!! */
             EEVEE_ObjectEngineData *oedata = NULL;
             if ((ob->base_flag & BASE_FROM_DUPLI) == 0) {

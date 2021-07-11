@@ -280,7 +280,7 @@ struct FunctionRNA {
   CallFunc call;
 
   /* parameter for the return value
-   * note: this is only the C return value, rna functions can have multiple return values */
+   * NOTE: this is only the C return value, rna functions can have multiple return values. */
   PropertyRNA *c_ret;
 };
 

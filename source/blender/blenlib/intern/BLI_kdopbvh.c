@@ -26,7 +26,7 @@
  *
  * See: http://www.gris.uni-tuebingen.de/people/staff/jmezger/papers/bvh.pdf
  *
- * implements a bvh-tree structure with support for:
+ * implements a BVH-tree structure with support for:
  *
  * - Ray-cast:
  *   #BLI_bvhtree_ray_cast, #BVHRayCastData
@@ -98,8 +98,8 @@ struct BVHTree {
   int totleaf;         /* leafs */
   int totbranch;
   axis_t start_axis, stop_axis; /* bvhtree_kdop_axes array indices according to axis */
-  axis_t axis;                  /* kdop type (6 => OBB, 7 => AABB, ...) */
-  char tree_type;               /* type of tree (4 => quadtree) */
+  axis_t axis;                  /* KDOP type (6 => OBB, 7 => AABB, ...) */
+  char tree_type;               /* type of tree (4 => quad-tree). */
 };
 
 /* optimization, ensure we stay small */
@@ -726,7 +726,7 @@ static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
   /* Save split axis (this can be used on ray-tracing to speedup the query time) */
   parent->main_axis = split_axis / 2;
 
-  /* Split the children along the split_axis, note: its not needed to sort the whole leafs array
+  /* Split the children along the split_axis, NOTE: its not needed to sort the whole leafs array
    * Only to assure that the elements are partitioned on a way that each child takes the elements
    * it would take in case the whole array was sorted.
    * Split_leafs takes care of that "sort" problem. */
@@ -881,7 +881,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 
   /* tree epsilon must be >= FLT_EPSILON
    * so that tangent rays can still hit a bounding volume..
-   * this bug would show up when casting a ray aligned with a kdop-axis
+   * this bug would show up when casting a ray aligned with a KDOP-axis
    * and with an edge of 2 faces */
   epsilon = max_ff(FLT_EPSILON, epsilon);
 
@@ -1423,7 +1423,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 
 static bool tree_intersect_plane_test(const float *bv, const float plane[4])
 {
-  /* TODO(germano): Support other kdop geometries. */
+  /* TODO(germano): Support other KDOP geometries. */
   const float bb_min[3] = {bv[0], bv[2], bv[4]};
   const float bb_max[3] = {bv[1], bv[3], bv[5]};
   float bb_near[3], bb_far[3];
@@ -1805,7 +1805,7 @@ static float ray_nearest_hit(const BVHRayCastData *data, const float bv[6])
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  * [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  *
- * TODO this doesn't take data->ray.radius into consideration */
+ * TODO: this doesn't take data->ray.radius into consideration. */
 static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *node)
 {
   const float *bv = node->bv;

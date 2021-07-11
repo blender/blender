@@ -1808,7 +1808,7 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
   /* Frame Number */
   prop = RNA_def_property(srna, "frame_number", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "framenum");
-  /* XXX note: this cannot occur on the same frame as another sketch */
+  /* XXX NOTE: this cannot occur on the same frame as another sketch. */
   RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
   RNA_def_property_ui_text(prop, "Frame Number", "The frame on which this sketch appears");
 

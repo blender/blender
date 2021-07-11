@@ -96,7 +96,7 @@ typedef struct SceneStatsFmt {
   char totgpstroke[MAX_INFO_NUM_LEN], totgppoint[MAX_INFO_NUM_LEN];
 } SceneStatsFmt;
 
-static bool stats_mesheval(Mesh *me_eval, bool is_selected, SceneStats *stats)
+static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *stats)
 {
   if (me_eval == NULL) {
     return false;
@@ -149,8 +149,8 @@ static void stats_object(Object *ob,
   switch (ob->type) {
     case OB_MESH: {
       /* we assume evaluated mesh is already built, this strictly does stats now. */
-      Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-      if (!BLI_gset_add(objects_gset, me_eval)) {
+      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
+      if (!BLI_gset_add(objects_gset, (void *)me_eval)) {
         break;
       }
       stats_mesheval(me_eval, is_selected, stats);
@@ -165,8 +165,8 @@ static void stats_object(Object *ob,
     case OB_SURF:
     case OB_CURVE:
     case OB_FONT: {
-      Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-      if ((me_eval != NULL) && !BLI_gset_add(objects_gset, me_eval)) {
+      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
+      if ((me_eval != NULL) && !BLI_gset_add(objects_gset, (void *)me_eval)) {
         break;
       }
 
@@ -179,7 +179,7 @@ static void stats_object(Object *ob,
       int totv = 0, totf = 0, tottri = 0;
 
       if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
-        /* Note: We only get the same curve_cache for instances of the same curve/font/...
+        /* NOTE: We only get the same curve_cache for instances of the same curve/font/...
          * For simple linked duplicated objects, each has its own dispList. */
         if (!BLI_gset_add(objects_gset, ob->runtime.curve_cache)) {
           break;

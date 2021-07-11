@@ -213,10 +213,10 @@ static XVisualInfo *x11_visualinfo_from_glx(Display *display,
 GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                                  Display *display,
                                  const char *title,
-                                 GHOST_TInt32 left,
-                                 GHOST_TInt32 top,
-                                 GHOST_TUns32 width,
-                                 GHOST_TUns32 height,
+                                 int32_t left,
+                                 int32_t top,
+                                 uint32_t width,
+                                 uint32_t height,
                                  GHOST_TWindowState state,
                                  GHOST_WindowX11 *parentWindow,
                                  GHOST_TDrawingContextType type,
@@ -622,7 +622,7 @@ void GHOST_WindowX11::getClientBounds(GHOST_Rect &bounds) const
   Window root_return;
   int x_return, y_return;
   unsigned int w_return, h_return, border_w_return, depth_return;
-  GHOST_TInt32 screen_x, screen_y;
+  int32_t screen_x, screen_y;
 
   XGetGeometry(m_display,
                m_window,
@@ -642,7 +642,7 @@ void GHOST_WindowX11::getClientBounds(GHOST_Rect &bounds) const
   bounds.m_b = bounds.m_t + h_return;
 }
 
-GHOST_TSuccess GHOST_WindowX11::setClientWidth(GHOST_TUns32 width)
+GHOST_TSuccess GHOST_WindowX11::setClientWidth(uint32_t width)
 {
   XWindowChanges values;
   unsigned int value_mask = CWWidth;
@@ -652,7 +652,7 @@ GHOST_TSuccess GHOST_WindowX11::setClientWidth(GHOST_TUns32 width)
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_WindowX11::setClientHeight(GHOST_TUns32 height)
+GHOST_TSuccess GHOST_WindowX11::setClientHeight(uint32_t height)
 {
   XWindowChanges values;
   unsigned int value_mask = CWHeight;
@@ -661,7 +661,7 @@ GHOST_TSuccess GHOST_WindowX11::setClientHeight(GHOST_TUns32 height)
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_WindowX11::setClientSize(GHOST_TUns32 width, GHOST_TUns32 height)
+GHOST_TSuccess GHOST_WindowX11::setClientSize(uint32_t width, uint32_t height)
 {
   XWindowChanges values;
   unsigned int value_mask = CWWidth | CWHeight;
@@ -671,10 +671,7 @@ GHOST_TSuccess GHOST_WindowX11::setClientSize(GHOST_TUns32 width, GHOST_TUns32 h
   return GHOST_kSuccess;
 }
 
-void GHOST_WindowX11::screenToClient(GHOST_TInt32 inX,
-                                     GHOST_TInt32 inY,
-                                     GHOST_TInt32 &outX,
-                                     GHOST_TInt32 &outY) const
+void GHOST_WindowX11::screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const
 {
   /* This is correct! */
 
@@ -687,10 +684,7 @@ void GHOST_WindowX11::screenToClient(GHOST_TInt32 inX,
   outY = ay;
 }
 
-void GHOST_WindowX11::clientToScreen(GHOST_TInt32 inX,
-                                     GHOST_TInt32 inY,
-                                     GHOST_TInt32 &outX,
-                                     GHOST_TInt32 &outY) const
+void GHOST_WindowX11::clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const
 {
   int ax, ay;
   Window temp;
@@ -1590,8 +1584,8 @@ GHOST_TSuccess GHOST_WindowX11::hasCursorShape(GHOST_TStandardCursor shape)
   return getStandardCursor(shape, xcursor);
 }
 
-GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
-                                                           GHOST_TUns8 *mask,
+GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(uint8_t *bitmap,
+                                                           uint8_t *mask,
                                                            int sizex,
                                                            int sizey,
                                                            int hotX,
@@ -1679,7 +1673,7 @@ GHOST_TSuccess GHOST_WindowX11::endFullScreen() const
   return GHOST_kSuccess;
 }
 
-GHOST_TUns16 GHOST_WindowX11::getDPIHint()
+uint16_t GHOST_WindowX11::getDPIHint()
 {
   /* Try to read DPI setting set using xrdb */
   char *resMan = XResourceManagerString(m_display);

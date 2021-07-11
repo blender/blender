@@ -36,7 +36,7 @@ void OutputFileNode::add_input_sockets(OutputOpenExrMultiLayerOperation &operati
   for (NodeInput *input : inputs) {
     NodeImageMultiFileSocket *sockdata =
         (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
-    /* note: layer becomes an empty placeholder if the input is not linked */
+    /* NOTE: layer becomes an empty placeholder if the input is not linked. */
     operation.add_layer(sockdata->layer, input->getDataType(), input->isLinked());
   }
 }

@@ -126,8 +126,8 @@ void WM_operator_py_idname(char *to, const char *from)
   if (sep) {
     int ofs = (sep - from);
 
-    /* note, we use ascii tolower instead of system tolower, because the
-     * latter depends on the locale, and can lead to idname mismatch */
+    /* NOTE: we use ascii `tolower` instead of system `tolower`, because the
+     * latter depends on the locale, and can lead to `idname` mismatch. */
     memcpy(to, from, sizeof(char) * ofs);
     BLI_str_tolower_ascii(to, ofs);
 
@@ -745,7 +745,7 @@ static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_
         if (idp_src) {
           IDProperty *idp_dst = IDP_CopyProperty(idp_src);
 
-          /* note - in the future this may need to be done recursively,
+          /* NOTE: in the future this may need to be done recursively,
            * but for now RNA doesn't access nested operators */
           idp_dst->flag |= IDP_FLAG_GHOST;
 
@@ -1156,7 +1156,7 @@ bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFor
   RNA_property_string_get(op->ptr, prop, filepath);
   if (BKE_image_path_ensure_ext_from_imformat(filepath, im_format)) {
     RNA_property_string_set(op->ptr, prop, filepath);
-    /* note, we could check for and update 'filename' here,
+    /* NOTE: we could check for and update 'filename' here,
      * but so far nothing needs this. */
     return true;
   }
@@ -2361,7 +2361,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
       strdrawlen = BLI_strlen_utf8(str);
       break;
     default:
-      tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE; /* note, this is a dummy value */
+      tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE; /* NOTE: this is a dummy value. */
       alpha = 0.75;
       break;
   }
@@ -3202,7 +3202,7 @@ static void redraw_timer_step(bContext *C,
     int tot = (scene->r.efra - scene->r.sfra) + 1;
 
     while (tot--) {
-      /* todo, ability to escape! */
+      /* TODO: ability to escape! */
       scene->r.cfra++;
       if (scene->r.cfra > scene->r.efra) {
         scene->r.cfra = scene->r.sfra;

@@ -1102,7 +1102,7 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
     return NULL;
   }
 
-  /* note, this could be refactored into plain C easy - py bits are noted */
+  /* NOTE: this could be refactored into plain C easy - py bits are noted. */
 
   struct PointsInPlanes_UserData user_data = {
       .py_verts = PyList_New(0),

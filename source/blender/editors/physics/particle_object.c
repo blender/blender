@@ -848,7 +848,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
         copy_m4_m4(imat, target_ob->obmat);
       }
       else {
-        /* note: using target_dm here, which is in target_ob object space and has full modifiers */
+        /* NOTE: using target_dm here, which is in target_ob object space and has full modifiers.
+         */
         psys_mat_hair_to_object(target_ob, target_mesh, target_psys->part->from, tpa, hairmat);
         invert_m4_m4(imat, hairmat);
       }
@@ -1160,7 +1161,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
   }
   MEM_freeN(tmp_psys);
 
-  /* note: do this after creating DM copies for all the particle system modifiers,
+  /* NOTE: do this after creating DM copies for all the particle system modifiers,
    * the remapping otherwise makes final_dm invalid!
    */
   for (psys = psys_start, psys_from = PSYS_FROM_FIRST, i = 0; psys;

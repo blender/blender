@@ -1954,7 +1954,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
   /* Make the path absolute because its needed for relative linked blends to be found */
   char filename[FILE_MAX];
 
-  /* note, we could skip these, but so far we always tried to load these files */
+  /* NOTE: we could skip these, but so far we always tried to load these files. */
   if (argv[0][0] == '-') {
     fprintf(stderr, "unknown argument, loading as file: %s\n", argv[0]);
   }

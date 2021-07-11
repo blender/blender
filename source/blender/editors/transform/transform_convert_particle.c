@@ -91,7 +91,7 @@ void createTransParticleVerts(TransInfo *t)
       }
     }
 
-    /* note: in prop mode we need at least 1 selected */
+    /* NOTE: in prop mode we need at least 1 selected. */
     if (hasselected == 0) {
       return;
     }

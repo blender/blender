@@ -353,7 +353,7 @@ int textview_draw(TextViewContext *tvc,
   tds.lheight = tvc->lheight;
   tds.row_vpadding = tvc->row_vpadding;
   tds.lofs = -BLF_descender(font_id);
-  /* Note, scroll bar must be already subtracted. */
+  /* NOTE: scroll bar must be already subtracted. */
   tds.columns = (tvc->draw_rect.xmax - tvc->draw_rect.xmin) / tds.cwidth;
   /* Avoid divide by zero on small windows. */
   if (tds.columns < 1) {

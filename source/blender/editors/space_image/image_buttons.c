@@ -511,7 +511,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
     return false;
   }
 
-  /* note, this looks reversed, but matches menu direction */
+  /* NOTE: this looks reversed, but matches menu direction. */
   if (direction == -1) {
     RenderPass *rp;
     int rp_index = iuser->pass + 1;

@@ -267,7 +267,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
 {
   const float eps = FLT_EPSILON * 10.0f;
   const uint numEdges = (uint)mesh->totedge;
-  /* note: the way this smoothing method works, its approx half as strong as the simple-smooth,
+  /* NOTE: the way this smoothing method works, its approx half as strong as the simple-smooth,
    * and 2.0 rarely spikes, double the value for consistent behavior. */
   const float lambda = csmd->lambda * 2.0f;
   const MEdge *edges = mesh->medge;

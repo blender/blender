@@ -65,7 +65,10 @@ void *BLI_mempool_as_arrayN(BLI_mempool *pool,
 void BLI_mempool_set_memory_debug(void);
 #endif
 
-/** iteration stuff.  note: this may easy to produce bugs with */
+/**
+ * Iteration stuff.
+ * NOTE: this may easy to produce bugs with.
+ */
 /* private structure */
 typedef struct BLI_mempool_iter {
   BLI_mempool *pool;

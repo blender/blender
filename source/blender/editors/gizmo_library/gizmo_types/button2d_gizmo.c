@@ -82,7 +82,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  /* TODO, other draw styles */
+  /* TODO: other draw styles. */
   if (color[3] == 1.0 && fill_alpha == 1.0 && select == false) {
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4fv(color);

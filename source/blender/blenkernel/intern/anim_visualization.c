@@ -50,8 +50,8 @@ void animviz_settings_init(bAnimVizSettings *avs)
   /* path settings */
   avs->path_bc = avs->path_ac = 10;
 
-  avs->path_sf = 1;   /* xxx - take from scene instead? */
-  avs->path_ef = 250; /* xxx - take from scene instead? */
+  avs->path_sf = 1;   /* XXX: Take from scene instead? */
+  avs->path_ef = 250; /* XXX: Take from scene instead? */
 
   avs->path_viewflag = (MOTIONPATH_VIEW_KFRAS | MOTIONPATH_VIEW_KFNOS);
 

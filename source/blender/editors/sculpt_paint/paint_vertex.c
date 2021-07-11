@@ -179,7 +179,7 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev,
  * (without evaluating modifiers) */
 static bool vertex_paint_use_fast_update_check(Object *ob)
 {
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
 
   if (me_eval != NULL) {
     Mesh *me = BKE_mesh_from_object(ob);
@@ -996,7 +996,7 @@ static void do_weight_paint_vertex_multi(
       dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
 
   if (curw == 0.0f) {
-    /* note: no weight to assign to this vertex, could add all groups? */
+    /* NOTE: no weight to assign to this vertex, could add all groups? */
     return;
   }
 
@@ -2025,7 +2025,7 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
 
   const Brush *brush = data->brush;
   const StrokeCache *cache = ss->cache;
-  /* note: normally `BKE_brush_weight_get(scene, brush)` is used,
+  /* NOTE: normally `BKE_brush_weight_get(scene, brush)` is used,
    * however in this case we calculate a new weight each time. */
   const float paintweight = data->strength;
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
@@ -2046,7 +2046,7 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      /* Note: grids are 1:1 with corners (aka loops).
+      /* NOTE: grids are 1:1 with corners (aka loops).
        * For multires, take the vert whose loop corresponds to the current grid.
        * Otherwise, take the current vert. */
       const int v_index = has_grids ? data->me->mloop[vd.grid_indices[vd.g]].v :
@@ -2885,7 +2885,7 @@ static void do_vpaint_brush_draw_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      /* Note: Grids are 1:1 with corners (aka loops).
+      /* NOTE: Grids are 1:1 with corners (aka loops).
        * For grid based pbvh, take the vert whose loop corresponds to the current grid.
        * Otherwise, take the current vert. */
       const int v_index = has_grids ? data->me->mloop[vd.grid_indices[vd.g]].v :
@@ -2912,7 +2912,7 @@ static void do_vpaint_brush_draw_task_cb_ex(void *__restrict userdata,
           /* If we're painting with a texture, sample the texture color and alpha. */
           float tex_alpha = 1.0;
           if (data->vpd->is_texbrush) {
-            /* Note: we may want to paint alpha as vertex color alpha. */
+            /* NOTE: we may want to paint alpha as vertex color alpha. */
             tex_alpha = tex_color_alpha_ubyte(
                 data, data->vpd->vertexcosnos[v_index].co, &color_final);
           }

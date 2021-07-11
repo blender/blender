@@ -240,7 +240,7 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
   PyObject *pyoptions = NULL;
   const char *path;
 
-  /* note, parse_str MUST start with 's|ifsO!' */
+  /* NOTE: `parse_str` MUST start with `s|ifsO!`. */
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    parse_str,

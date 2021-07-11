@@ -703,7 +703,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 
     ok = true;
 
-    /* note, notifier might evolve */
+    /* NOTE: notifier might evolve. */
     WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob_old);
   }
   MEM_freeN(bases);
@@ -893,7 +893,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* note, notifier might evolve */
+  /* NOTE: notifier might evolve. */
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
   DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
 
@@ -1004,7 +1004,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 
     ED_armature_edit_sync_selection(arm->edbo);
 
-    /* Note, notifier might evolve. */
+    /* NOTE: notifier might evolve. */
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
   }
   MEM_freeN(objects);

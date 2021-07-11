@@ -289,7 +289,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
   if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
     dm->dirty |= DM_DIRTY_NORMALS;
   }
-  /* TODO DM_DIRTY_TESS_CDLAYERS ? Maybe not though,
+  /* TODO: DM_DIRTY_TESS_CDLAYERS ? Maybe not though,
    * since we probably want to switch to looptris? */
 
   CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);

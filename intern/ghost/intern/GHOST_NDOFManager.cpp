@@ -279,14 +279,14 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
   return m_deviceType != NDOF_UnknownDevice;
 }
 
-void GHOST_NDOFManager::updateTranslation(const int t[3], GHOST_TUns64 time)
+void GHOST_NDOFManager::updateTranslation(const int t[3], uint64_t time)
 {
   memcpy(m_translation, t, sizeof(m_translation));
   m_motionTime = time;
   m_motionEventPending = true;
 }
 
-void GHOST_NDOFManager::updateRotation(const int r[3], GHOST_TUns64 time)
+void GHOST_NDOFManager::updateRotation(const int r[3], uint64_t time)
 {
   memcpy(m_rotation, r, sizeof(m_rotation));
   m_motionTime = time;
@@ -295,7 +295,7 @@ void GHOST_NDOFManager::updateRotation(const int r[3], GHOST_TUns64 time)
 
 void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button,
                                         bool press,
-                                        GHOST_TUns64 time,
+                                        uint64_t time,
                                         GHOST_IWindow *window)
 {
   GHOST_ASSERT(button > NDOF_BUTTON_NONE && button < NDOF_BUTTON_LAST,
@@ -316,7 +316,7 @@ void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button,
 
 void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key,
                                      bool press,
-                                     GHOST_TUns64 time,
+                                     uint64_t time,
                                      GHOST_IWindow *window)
 {
   GHOST_TEventType type = press ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
@@ -329,7 +329,7 @@ void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key,
   m_system.pushEvent(event);
 }
 
-void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64 time)
+void GHOST_NDOFManager::updateButton(int button_number, bool press, uint64_t time)
 {
   GHOST_IWindow *window = m_system.getWindowManager()->getActiveWindow();
 
@@ -371,7 +371,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
   }
 }
 
-void GHOST_NDOFManager::updateButtons(int button_bits, GHOST_TUns64 time)
+void GHOST_NDOFManager::updateButtons(int button_bits, uint64_t time)
 {
   button_bits &= m_buttonMask;  // discard any "garbage" bits
 

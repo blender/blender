@@ -130,7 +130,7 @@ static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_d
 }
 
 PyDoc_STRVAR(bpy_user_map_doc,
-             ".. method:: user_map([subset=(id1, id2, ...)], key_types={..}, value_types={..})\n"
+             ".. method:: user_map(subset, key_types, value_types)\n"
              "\n"
              "   Returns a mapping of all ID data-blocks in current ``bpy.data`` to a set of all "
              "datablocks using them.\n"
@@ -277,7 +277,7 @@ error:
 }
 
 PyDoc_STRVAR(bpy_batch_remove_doc,
-             ".. method:: batch_remove(ids=(id1, id2, ...))\n"
+             ".. method:: batch_remove(ids)\n"
              "\n"
              "   Remove (delete) several IDs at once.\n"
              "\n"

@@ -40,8 +40,8 @@ BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d)
   BL::View3DShading shading = b_v3d.shading();
   PointerRNA cshading = RNA_pointer_get(&shading.ptr, "cycles");
 
-  /* We only copy the shading parameters if we are in look dev mode. otherwise
-   * defaults are being used. These defaults mimic normal render settings */
+  /* We only copy the shading parameters if we are in look-dev mode.
+   * Otherwise defaults are being used. These defaults mimic normal render settings. */
   if (shading.type() == BL::View3DShading::type_RENDERED) {
     use_scene_world = shading.use_scene_world_render();
     use_scene_lights = shading.use_scene_lights_render();

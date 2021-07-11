@@ -16,6 +16,7 @@ try:
 except ImportError:
     inside_blender = False
 
+
 def get_arguments(filepath, output_filepath):
     return [
         "--background",

@@ -32,7 +32,7 @@ extern "C" {
  * the moment of saving, and the file-specific settings.
  */
 typedef struct FileGlobal {
-  /** Needs to be here, for human fileformat recognition (keep first!). */
+  /** Needs to be here, for human file-format recognition (keep first!). */
   char subvstr[4];
 
   short subversion;

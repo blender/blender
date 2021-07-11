@@ -2746,7 +2746,7 @@ static void animsys_evaluate_nla_for_keyframing(PointerRNA *ptr,
     }
   }
 
-  /** Note: Although we early out, we can still keyframe to the non-pushed action since the
+  /** NOTE: Although we early out, we can still keyframe to the non-pushed action since the
    * keyframe remap function detects (r_context->strip.act == NULL) and will keyframe without
    * remapping.
    */
@@ -3126,7 +3126,7 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
  *
  * 3) Drivers/expressions are evaluated on top of this, in an order where dependencies are
  *    resolved nicely.
- *    Note: it may be necessary to have some tools to handle the cases where some higher-level
+ *    NOTE: it may be necessary to have some tools to handle the cases where some higher-level
  *          drivers are added and cause some problematic dependencies that
  *          didn't exist in the local levels...
  *

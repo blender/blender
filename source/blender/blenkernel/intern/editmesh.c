@@ -330,7 +330,7 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em, Mesh *me)
    * otherwise there is no way to edit them.
    * Similar code to #MESH_OT_customdata_custom_splitnormals_add operator,
    * we want to keep same shading in case we were using auto-smooth so far.
-   * Note: there is a problem here, which is that if someone starts a normal editing operation on
+   * NOTE: there is a problem here, which is that if someone starts a normal editing operation on
    * previously auto-smooth-ed mesh, and cancel that operation, generated CLNORS data remain,
    * with related sharp edges (and hence auto-smooth is 'lost').
    * Not sure how critical this is, and how to fix that issue? */

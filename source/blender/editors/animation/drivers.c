@@ -80,7 +80,7 @@ FCurve *verify_driver_fcurve(ID *id,
   /* init animdata if none available yet */
   adt = BKE_animdata_from_id(id);
   if (adt == NULL && creation_mode != DRIVER_FCURVE_LOOKUP_ONLY) {
-    adt = BKE_animdata_add_id(id);
+    adt = BKE_animdata_ensure_id(id);
   }
   if (adt == NULL) {
     /* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
@@ -581,7 +581,7 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports),
     }
     else {
       /* find the matching driver and remove it only
-       * Note: here is one of the places where we don't want new F-Curve + Driver added!
+       * NOTE: here is one of the places where we don't want new F-Curve + Driver added!
        *      so 'add' var must be 0
        */
       fcu = verify_driver_fcurve(id, rna_path, array_index, DRIVER_FCURVE_LOOKUP_ONLY);

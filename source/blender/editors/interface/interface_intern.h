@@ -262,7 +262,7 @@ struct uiBut {
 
   ListBase extra_op_icons; /** #uiButExtraOpIcon */
 
-  /* Draggable data, type is WM_DRAG_... */
+  /* Drag-able data, type is WM_DRAG_... */
   char dragtype;
   short dragflag;
   void *dragpoin;

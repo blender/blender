@@ -140,7 +140,7 @@ static void undosys_id_ref_store(void *UNUSED(user_data), UndoRefID *id_ref)
 
 static void undosys_id_ref_resolve(void *user_data, UndoRefID *id_ref)
 {
-  /* Note: we could optimize this,
+  /* NOTE: we could optimize this,
    * for now it's not too bad since it only runs when we access undo! */
   Main *bmain = user_data;
   ListBase *lb = which_libbase(bmain, GS(id_ref->name));

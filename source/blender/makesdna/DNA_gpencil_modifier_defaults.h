@@ -184,8 +184,6 @@
     .layer_pass = 0, \
     .hardeness = 1.0f, \
     .curve_intensity = NULL, \
-    .fading_end = 10.0f, \
-    .fading_end_factor = 0.2f, \
   }
 
 #define _DNA_DEFAULT_SimplifyGpencilModifierData \
@@ -253,8 +251,6 @@
     .thickness_fac = 1.0f, \
     .thickness = 30, \
     .layer_pass = 0, \
-    .fading_end = 10.0f, \
-    .fading_end_factor = 0.2f, \
   }
 
 #define _DNA_DEFAULT_TimeGpencilModifierData \
@@ -285,6 +281,20 @@
     .type = 0, \
     .curve_intensity = NULL, \
     .colorband = NULL, \
+  }
+
+#define _DNA_DEFAULT_WeightGpencilModifierData \
+  { \
+    .target_vgname = "", \
+    .material = NULL, \
+    .layername = "", \
+    .vgname = "", \
+    .pass_index = 0, \
+    .flag = 0, \
+    .axis = 1, \
+    .layer_pass = 0, \
+    .dist_start = 0.0f, \
+    .dist_end = 20.0f, \
   }
 
 #define _DNA_DEFAULT_LineartGpencilModifierData \

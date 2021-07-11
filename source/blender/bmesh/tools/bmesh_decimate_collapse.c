@@ -285,7 +285,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
     cost = (BLI_quadric_evaluate(q1, optimize_co) + BLI_quadric_evaluate(q2, optimize_co));
   }
 
-  /* note, 'cost' shouldn't be negative but happens sometimes with small values.
+  /* NOTE: 'cost' shouldn't be negative but happens sometimes with small values.
    * this can cause faces that make up a flat surface to over-collapse, see T37121. */
   cost = fabsf(cost);
 
@@ -303,7 +303,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
       const float e_weight = (vweights[BM_elem_index_get(e->v1)] +
                               vweights[BM_elem_index_get(e->v2)]);
       cost = bm_decim_build_edge_cost_single__topology(e) - cost;
-      /* note, this is rather arbitrary max weight is 2 here,
+      /* NOTE: this is rather arbitrary max weight is 2 here,
        * allow for skipping edges 4x the length, based on weights */
       if (e_weight) {
         cost *= 1.0f + (e_weight * vweight_factor);

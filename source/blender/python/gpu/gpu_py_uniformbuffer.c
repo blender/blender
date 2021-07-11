@@ -104,7 +104,7 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject *UNUSED(self),
 }
 
 PyDoc_STRVAR(pygpu_uniformbuffer_update_doc,
-             ".. method::update(data)\n"
+             ".. method:: update(data)\n"
              "\n"
              "   Update the data of the uniform buffer object.\n");
 static PyObject *pygpu_uniformbuffer_update(BPyGPUUniformBuf *self, PyObject *obj)

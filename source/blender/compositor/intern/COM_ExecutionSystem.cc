@@ -63,8 +63,11 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
   this->m_context.setViewSettings(viewSettings);
   this->m_context.setDisplaySettings(displaySettings);
 
+  BLI_mutex_init(&work_mutex_);
+  BLI_condition_init(&work_finished_cond_);
+
   {
-    NodeOperationBuilder builder(&m_context, editingtree);
+    NodeOperationBuilder builder(&m_context, editingtree, this);
     builder.convertToOperations(this);
   }
 
@@ -83,6 +86,9 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
 
 ExecutionSystem::~ExecutionSystem()
 {
+  BLI_condition_end(&work_finished_cond_);
+  BLI_mutex_end(&work_mutex_);
+
   delete execution_model_;
 
   for (NodeOperation *operation : m_operations) {
@@ -109,10 +115,74 @@ void ExecutionSystem::execute()
   execution_model_->execute(*this);
 }
 
+/**
+ * Multi-threadedly execute given work function passing work_rect splits as argument.
+ */
 void ExecutionSystem::execute_work(const rcti &work_rect,
                                    std::function<void(const rcti &split_rect)> work_func)
 {
-  execution_model_->execute_work(work_rect, work_func);
+  if (is_breaked()) {
+    return;
+  }
+
+  /* Split work vertically to maximize continuous memory. */
+  const int work_height = BLI_rcti_size_y(&work_rect);
+  const int num_sub_works = MIN2(WorkScheduler::get_num_cpu_threads(), work_height);
+  const int split_height = num_sub_works == 0 ? 0 : work_height / num_sub_works;
+  int remaining_height = work_height - split_height * num_sub_works;
+
+  Vector<WorkPackage> sub_works(num_sub_works);
+  int sub_work_y = work_rect.ymin;
+  int num_sub_works_finished = 0;
+  for (int i = 0; i < num_sub_works; i++) {
+    int sub_work_height = split_height;
+
+    /* Distribute remaining height between sub-works. */
+    if (remaining_height > 0) {
+      sub_work_height++;
+      remaining_height--;
+    }
+
+    WorkPackage &sub_work = sub_works[i];
+    sub_work.type = eWorkPackageType::CustomFunction;
+    sub_work.execute_fn = [=, &work_func, &work_rect]() {
+      if (is_breaked()) {
+        return;
+      }
+      rcti split_rect;
+      BLI_rcti_init(
+          &split_rect, work_rect.xmin, work_rect.xmax, sub_work_y, sub_work_y + sub_work_height);
+      work_func(split_rect);
+    };
+    sub_work.executed_fn = [&]() {
+      BLI_mutex_lock(&work_mutex_);
+      num_sub_works_finished++;
+      if (num_sub_works_finished == num_sub_works) {
+        BLI_condition_notify_one(&work_finished_cond_);
+      }
+      BLI_mutex_unlock(&work_mutex_);
+    };
+    WorkScheduler::schedule(&sub_work);
+    sub_work_y += sub_work_height;
+  }
+  BLI_assert(sub_work_y == work_rect.ymax);
+
+  WorkScheduler::finish();
+
+  /* Ensure all sub-works finished.
+   * TODO: This a workaround for WorkScheduler::finish() not waiting all works on queue threading
+   * model. Sync code should be removed once it's fixed. */
+  BLI_mutex_lock(&work_mutex_);
+  if (num_sub_works_finished < num_sub_works) {
+    BLI_condition_wait(&work_finished_cond_, &work_mutex_);
+  }
+  BLI_mutex_unlock(&work_mutex_);
+}
+
+bool ExecutionSystem::is_breaked() const
+{
+  const bNodeTree *btree = m_context.getbNodeTree();
+  return btree->test_break(btree->tbh);
 }
 
 }  // namespace blender::compositor

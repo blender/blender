@@ -211,7 +211,7 @@ static void draw_spline_points(const bContext *C,
     undistort = sc->clip && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT);
   }
 
-  /* TODO, add this to sequence editor */
+  /* TODO: add this to sequence editor. */
   float handle_size = 2.0f * UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) * U.pixelsize;
 
   mask_spline_color_get(mask_layer, spline, is_spline_sel, rgb_spline);

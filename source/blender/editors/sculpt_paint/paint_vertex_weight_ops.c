@@ -408,7 +408,7 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* TODO, we could make this a menu into OBJECT_OT_vertex_group_set_active
+/* TODO: we could make this a menu into OBJECT_OT_vertex_group_set_active
  * rather than its own operator */
 void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 {
@@ -540,7 +540,7 @@ static int weight_paint_set_exec(bContext *C, wmOperator *op)
   }
 
   if (weight_paint_set(obact, vgroup_weight)) {
-    ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
+    ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -891,7 +891,7 @@ static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEve
   if (ret & OPERATOR_RUNNING_MODAL) {
     struct ARegion *region = CTX_wm_region(C);
     if (region->regiontype == RGN_TYPE_WINDOW) {
-      /* TODO, hardcoded, extend WM_gesture_straightline_ */
+      /* TODO: hard-coded, extend `WM_gesture_straightline_*`. */
       if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
         wmGesture *gesture = op->customdata;
         gesture->is_active = true;

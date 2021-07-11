@@ -76,7 +76,7 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     const int divisor = (effects->reflection_trace_full) ? 1 : 2;
     int tracing_res[2] = {(int)viewport_size[0] / divisor, (int)viewport_size[1] / divisor};
     const int size_fs[2] = {(int)viewport_size[0], (int)viewport_size[1]};
-    const bool high_qual_input = true; /* TODO dither low quality input */
+    const bool high_qual_input = true; /* TODO: dither low quality input. */
     const eGPUTextureFormat format = (high_qual_input) ? GPU_RGBA16F : GPU_RGBA8;
 
     tracing_res[0] = max_ii(1, tracing_res[0]);

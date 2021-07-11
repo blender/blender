@@ -44,7 +44,7 @@ class OBJECT_OT_object_to_curve(bpy.types.Operator):
         # Remove temporary curve.
         obj.to_curve_clear()
         # Invoke to_curve() with applying modifiers.
-        curve_with_modifiers = obj.to_curve(depsgraph, apply_modifiers = True)
+        curve_with_modifiers = obj.to_curve(depsgraph, apply_modifiers=True)
         self.report({'INFO'}, f"{len(curve_with_modifiers.splines)} splines in new curve with modifiers.")
         # Remove temporary curve.
         obj.to_curve_clear()

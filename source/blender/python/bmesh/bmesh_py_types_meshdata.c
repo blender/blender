@@ -500,7 +500,7 @@ static PySequenceMethods bpy_bmdeformvert_as_sequence = {
     NULL,                          /* sq_concat */
     NULL,                          /* sq_repeat */
 
-    /* Note: if this is set #PySequence_Check() returns True,
+    /* NOTE: if this is set #PySequence_Check() returns True,
      * but in this case we don't want to be treated as a seq. */
     NULL, /* sq_item */
 

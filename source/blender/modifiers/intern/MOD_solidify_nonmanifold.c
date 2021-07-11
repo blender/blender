@@ -913,7 +913,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           uint unassigned_edges_len = 0;
           for (uint j = 0; j < tot_adj_edges; j++) {
             NewEdgeRef **new_edges = orig_edge_data_arr[adj_edges[j]];
-            /* TODO check where the null pointer come from,
+            /* TODO: check where the null pointer come from,
              * because there should not be any... */
             if (new_edges) {
               /* count the number of new edges around the original vert */
@@ -1107,7 +1107,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
           MEM_freeN(unassigned_edges);
 
-          /* TODO reshape the edge_groups array to its actual size
+          /* TODO: reshape the edge_groups array to its actual size
            * after writing is finished to save on memory. */
         }
 
@@ -1374,7 +1374,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     MEM_freeN(vert_adj_edges);
   }
 
-  /* TODO create_regions if fix_intersections. */
+  /* TODO: create_regions if fix_intersections. */
 
   /* General use pointer for #EdgeGroup iteration. */
   EdgeGroup **gs_ptr;
@@ -1854,7 +1854,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     MEM_freeN(null_faces);
   }
 
-  /* TODO create vertdata for intersection fixes (intersection fixing per topology region). */
+  /* TODO: create vertdata for intersection fixes (intersection fixing per topology region). */
 
   /* Correction for adjacent one sided groups around a vert to
    * prevent edge duplicates and null polys. */
@@ -2018,7 +2018,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
      * - new_edge value should have no duplicates
      * - every old_edge value should appear twice
      * - every group should have at least two members (edges)
-     * Note: that there can be vertices that only have one group. They are called singularities.
+     * NOTE: that there can be vertices that only have one group. They are called singularities.
      * These vertices will only have one side (there is no way of telling apart front
      * from back like on a mobius strip)
      */

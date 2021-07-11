@@ -100,11 +100,9 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
     invert_m4_m4(viewmat, cam_ob->obmat);
 
     mul_m4_m4m4(persmat_, params.winmat, viewmat);
-    is_ortho_ = params.is_ortho;
   }
   else {
     unit_m4(persmat_);
-    is_ortho_ = false;
   }
 
   winx_ = params_.region->winx;
@@ -129,7 +127,6 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
   }
   else {
     is_camera_ = false;
-    is_ortho_ = false;
     /* Calc selected object boundbox. Need set initial value to some variables. */
     camera_ratio_ = 1.0f;
     offset_.x = 0.0f;
@@ -248,19 +245,14 @@ bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
 }
 
 /** Convert to render space. */
-float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co, const bool is_ortho)
+float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co)
 {
   float3 parent_co = diff_mat_ * co;
-  mul_m4_v3(persmat_, parent_co);
-
-  if (!is_ortho) {
-    parent_co.x = parent_co.x / max_ff(FLT_MIN, parent_co.z);
-    parent_co.y = parent_co.y / max_ff(FLT_MIN, parent_co.z);
-  }
 
   float2 r_co;
-  r_co.x = (parent_co.x + 1.0f) / 2.0f * (float)render_x_;
-  r_co.y = (parent_co.y + 1.0f) / 2.0f * (float)render_y_;
+  mul_v2_project_m4_v3(&r_co.x, persmat_, &parent_co.x);
+  r_co.x = (r_co.x + 1.0f) / 2.0f * (float)render_x_;
+  r_co.y = (r_co.y + 1.0f) / 2.0f * (float)render_y_;
 
   /* Invert X axis. */
   if (invert_axis_[0]) {
@@ -279,7 +271,7 @@ float2 GpencilIO::gpencil_3D_point_to_2D(const float3 co)
 {
   const bool is_camera = (bool)(rv3d_->persp == RV3D_CAMOB);
   if (is_camera) {
-    return gpencil_3D_point_to_render_space(co, is_orthographic());
+    return gpencil_3D_point_to_render_space(co);
   }
   float2 result;
   gpencil_3D_point_to_screen_space(co, result);
@@ -344,11 +336,6 @@ float GpencilIO::stroke_average_opacity_get()
 bool GpencilIO::is_camera_mode()
 {
   return is_camera_;
-}
-
-bool GpencilIO::is_orthographic()
-{
-  return is_ortho_;
 }
 
 /* Calculate selected strokes boundbox. */

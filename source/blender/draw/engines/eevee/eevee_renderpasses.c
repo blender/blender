@@ -23,7 +23,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "draw_color_management.h" /* TODO remove dependency. */
+#include "draw_color_management.h" /* TODO: remove dependency. */
 
 #include "BKE_global.h" /* for G.debug_value */
 

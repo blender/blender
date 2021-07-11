@@ -23,6 +23,7 @@ __all__ = (
     "decompose_data_path",
 )
 
+
 class _TokenizeDataPath:
     """
     Class to split up tokens of a data-path.

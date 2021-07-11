@@ -209,7 +209,7 @@ class SceneParams {
 
   int curve_subdivisions()
   {
-    /* Matching the tesselation rate limit in Embree. */
+    /* Matching the tessellation rate limit in Embree. */
     return clamp(1 << hair_subdivisions, 1, 16);
   }
 };

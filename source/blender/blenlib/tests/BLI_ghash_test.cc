@@ -31,7 +31,7 @@
   } \
   void(0)
 
-/* Note: for pure-ghash testing, nature of the keys and data have absolutely no importance! So here
+/* NOTE: for pure-ghash testing, nature of the keys and data have absolutely no importance! So here
  * we just use mere random integers stored in pointers. */
 
 static void init_keys(unsigned int keys[TESTCASE_SIZE], const int seed)

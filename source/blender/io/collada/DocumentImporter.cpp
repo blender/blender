@@ -145,7 +145,7 @@ bool DocumentImporter::import()
     return false;
   }
 
-  /** TODO set up scene graph and such here */
+  /** TODO: set up scene graph and such here. */
   mImportStage = Fetching_Controller_data;
   COLLADASaxFWL::Loader loader2;
   COLLADAFW::Root root2(&loader2, this);
@@ -189,7 +189,7 @@ void DocumentImporter::finish()
 
   std::vector<Object *> *objects_to_scale = new std::vector<Object *>();
 
-  /** TODO Break up and put into 2-pass parsing of DAE */
+  /** TODO: Break up and put into 2-pass parsing of DAE. */
   std::vector<const COLLADAFW::VisualScene *>::iterator sit;
   for (sit = vscenes.begin(); sit != vscenes.end(); sit++) {
     PointerRNA sceneptr, unit_settings;
@@ -1122,7 +1122,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 
     switch (light->getLightType()) {
       case COLLADAFW::Light::AMBIENT_LIGHT: {
-        lamp->type = LA_SUN; /* TODO needs more thoughts */
+        lamp->type = LA_SUN; /* TODO: needs more thoughts. */
       } break;
       case COLLADAFW::Light::SPOT_LIGHT: {
         lamp->type = LA_SPOT;

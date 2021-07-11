@@ -514,7 +514,7 @@ class Stroke : public Interface1D {
     return _id;
   }
 
-  /** The different blending modes available to similate the interaction media-medium. */
+  /** The different blending modes available to simulate the interaction media-medium. */
   typedef enum {
     DRY_MEDIUM,    /**< To simulate a dry medium such as Pencil or Charcoal. */
     HUMID_MEDIUM,  /**< To simulate ink painting (color subtraction blending). */

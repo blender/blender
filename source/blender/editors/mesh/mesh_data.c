@@ -252,7 +252,7 @@ void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 }
 
-/* note: keep in sync with ED_mesh_color_add */
+/* NOTE: keep in sync with #ED_mesh_color_add. */
 int ED_mesh_uv_texture_add(Mesh *me, const char *name, const bool active_set, const bool do_init)
 {
   BMEditMesh *em;
@@ -377,7 +377,7 @@ bool ED_mesh_uv_texture_remove_named(Mesh *me, const char *name)
   return false;
 }
 
-/* note: keep in sync with ED_mesh_uv_texture_add */
+/* NOTE: keep in sync with #ED_mesh_uv_texture_add. */
 int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set, const bool do_init)
 {
   BMEditMesh *em;
@@ -483,7 +483,7 @@ bool ED_mesh_color_remove_named(Mesh *me, const char *name)
 
 /*********************** Sculpt Vertex colors operators ************************/
 
-/* note: keep in sync with ED_mesh_uv_texture_add */
+/* NOTE: keep in sync with #ED_mesh_uv_texture_add. */
 int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool active_set, const bool do_init)
 {
   BMEditMesh *em;

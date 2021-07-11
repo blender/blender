@@ -27,6 +27,8 @@
 extern "C" {
 #endif
 
+#include "BLI_compiler_attrs.h"
+
 struct ARegion;
 struct BMBVHTree;
 struct BMEdge;
@@ -455,12 +457,14 @@ typedef struct BMBackup {
   struct BMesh *bmcopy;
 } BMBackup;
 
-/* save a copy of the bmesh for restoring later */
 struct BMBackup EDBM_redo_state_store(struct BMEditMesh *em);
 /* restore a bmesh from backup */
-void EDBM_redo_state_restore(struct BMBackup, struct BMEditMesh *em, int recalctess);
-/* delete the backup, optionally flushing it to an editmesh */
-void EDBM_redo_state_free(struct BMBackup *, struct BMEditMesh *em, int recalctess);
+void EDBM_redo_state_restore(struct BMBackup *backup, struct BMEditMesh *em, bool recalc_looptri)
+    ATTR_NONNULL(1, 2);
+void EDBM_redo_state_restore_and_free(struct BMBackup *backup,
+                                      struct BMEditMesh *em,
+                                      bool recalc_looptri) ATTR_NONNULL(1, 2);
+void EDBM_redo_state_free(struct BMBackup *backup) ATTR_NONNULL(1);
 
 /* *** meshtools.c *** */
 int ED_mesh_join_objects_exec(struct bContext *C, struct wmOperator *op);

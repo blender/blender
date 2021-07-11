@@ -64,8 +64,7 @@ class MultiThreadedOperation : public NodeOperation {
  private:
   void update_memory_buffer(MemoryBuffer *output,
                             const rcti &area,
-                            Span<MemoryBuffer *> inputs,
-                            ExecutionSystem &exec_system) override;
+                            Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

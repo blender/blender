@@ -966,7 +966,7 @@ void OUTLINER_OT_lib_relocate(wmOperatorType *ot)
 
 /* XXX This does not work with several items
  * (it is only called once in the end, due to the 'deferred'
- * filebrowser invocation through event system...). */
+ * file-browser invocation through event system...). */
 void lib_relocate_fn(bContext *C,
                      ReportList *UNUSED(reports),
                      Scene *UNUSED(scene),

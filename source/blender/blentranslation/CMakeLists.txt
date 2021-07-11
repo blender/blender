@@ -59,7 +59,7 @@ if(WITH_PYTHON)
   )
 endif()
 
-if(WIN32)
+if(WIN32 OR APPLE)
   if(WITH_INPUT_IME)
     add_definitions(-DWITH_INPUT_IME)
   endif()

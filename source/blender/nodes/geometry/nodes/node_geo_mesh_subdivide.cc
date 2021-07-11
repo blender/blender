@@ -14,8 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-// #include "MEM_guardedalloc.h"
-
 #include "BKE_mesh.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
@@ -25,20 +23,20 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_subdivide_in[] = {
+static bNodeSocketTemplate geo_node_mesh_subdivide_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_INT, N_("Level"), 1, 0, 0, 0, 0, 6},
     {-1, ""},
 };
 
-static bNodeSocketTemplate geo_node_subdivide_out[] = {
+static bNodeSocketTemplate geo_node_mesh_subdivide_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
 
 namespace blender::nodes {
 
-static void geo_node_subdivide_exec(GeoNodeExecParams params)
+static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   geometry_set = geometry_set_realize_instances(geometry_set);
@@ -102,12 +100,12 @@ static void geo_node_subdivide_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_subdivide()
+void register_node_type_geo_mesh_subdivide()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE, "Subdivide", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_subdivide_in, geo_node_subdivide_out);
-  ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_exec;
+  geo_node_type_base(&ntype, GEO_NODE_MESH_SUBDIVIDE, "Mesh Subdivide", NODE_CLASS_GEOMETRY, 0);
+  node_type_socket_templates(&ntype, geo_node_mesh_subdivide_in, geo_node_mesh_subdivide_out);
+  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_subdivide_exec;
   nodeRegisterType(&ntype);
 }

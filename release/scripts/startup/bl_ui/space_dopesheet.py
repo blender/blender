@@ -609,9 +609,9 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
 
         if st.mode != 'GPENCIL':
-           layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
-           layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
-           layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
+            layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
+            layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
+            layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
 
         layout.separator()
 
@@ -625,8 +625,8 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.operator("action.delete")
 
         if st.mode == 'GPENCIL':
-           layout.operator("gpencil.interpolate_reverse")
-           layout.operator("gpencil.frame_clean_duplicate", text="Delete Duplicate Frames")
+            layout.operator("gpencil.interpolate_reverse")
+            layout.operator("gpencil.frame_clean_duplicate", text="Delete Duplicate Frames")
 
         layout.separator()
 

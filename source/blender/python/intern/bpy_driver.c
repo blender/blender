@@ -175,7 +175,7 @@ int bpy_pydriver_create_dict(void)
   return 0;
 }
 
-/* note, this function should do nothing most runs, only when changing frame */
+/* NOTE: this function should do nothing most runs, only when changing frame. */
 /* not thread safe but neither is python */
 static struct {
   float evaltime;
@@ -266,7 +266,7 @@ static void pydriver_error(ChannelDriver *driver)
           "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n",
           driver->expression);
 
-  // BPy_errors_to_report(NULL); /* TODO - reports */
+  // BPy_errors_to_report(NULL); /* TODO: reports. */
   PyErr_Print();
   PyErr_Clear();
 }
@@ -433,12 +433,12 @@ static void bpy_pydriver_namespace_add_depsgraph(PyObject *driver_vars,
  * This evaluates Python driver expressions, `driver_orig->expression`
  * is a Python expression that should evaluate to a float number, which is returned.
  *
- * (old)note: PyGILState_Ensure() isn't always called because python can call
+ * (old) NOTE: PyGILState_Ensure() isn't always called because python can call
  * the bake operator which intern starts a thread which calls scene update
  * which does a driver update. to avoid a deadlock check #PyC_IsInterpreterActive()
  * if #PyGILState_Ensure() is needed, see T27683.
  *
- * (new)note: checking if python is running is not thread-safe T28114
+ * (new) NOTE: checking if python is running is not thread-safe T28114
  * now release the GIL on python operator execution instead, using
  * #PyEval_SaveThread() / #PyEval_RestoreThread() so we don't lock up blender.
  *
@@ -613,7 +613,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 
       fprintf(
           stderr, "\tBPY_driver_eval() - couldn't add variable '%s' to namespace\n", dvar->name);
-      // BPy_errors_to_report(NULL); /* TODO - reports */
+      // BPy_errors_to_report(NULL); /* TODO: reports. */
       PyErr_Print();
       PyErr_Clear();
     }

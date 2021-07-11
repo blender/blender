@@ -347,7 +347,7 @@ void bpy_app_generic_callback(struct Main *UNUSED(main),
     }
 
     /* Iterate the list and run the callbacks
-     * note: don't store the list size since the scripts may remove themselves */
+     * NOTE: don't store the list size since the scripts may remove themselves. */
     for (pos = 0; pos < PyList_GET_SIZE(cb_list); pos++) {
       func = PyList_GET_ITEM(cb_list, pos);
       PyObject *args = choose_arguments(func, args_all, args_single);

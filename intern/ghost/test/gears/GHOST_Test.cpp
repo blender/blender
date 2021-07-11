@@ -54,7 +54,7 @@
 
 static bool nVidiaWindows;  // very dirty but hey, it's for testing only
 
-static void gearsTimerProc(GHOST_ITimerTask *task, GHOST_TUns64 time);
+static void gearsTimerProc(GHOST_ITimerTask *task, uint64_t time);
 
 static class Application *fApp;
 static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
@@ -71,7 +71,7 @@ void StereoProjection(float left,
                       float dist,
                       float eye);
 
-static void testTimerProc(GHOST_ITimerTask * /*task*/, GHOST_TUns64 time)
+static void testTimerProc(GHOST_ITimerTask * /*task*/, uint64_t time)
 {
   std::cout << "timer1, time=" << (int)time << "\n";
 }
@@ -345,7 +345,7 @@ void StereoProjection(float left,
                       float zero_plane,
                       float dist,
                       float eye)
-/* Perform the perspective projection for one eye's subfield.
+/* Perform the perspective projection for one eye's sub-field.
  * The projection is in the direction of the negative z axis.
  *
  * -6.0, 6.0, -4.8, 4.8,
@@ -365,8 +365,8 @@ void StereoProjection(float left,
  * of zero parallax.
  *
  * -0.31
- * eye = half the eye separation; positive for the right eye subfield,
- * negative for the left eye subfield.
+ * eye = half the eye separation; positive for the right eye sub-field,
+ * negative for the left eye sub-field.
  */
 {
   float xmid, ymid, clip_near, clip_far, topw, bottomw, leftw, rightw, dx, dy, n_over_d;
@@ -392,8 +392,7 @@ void StereoProjection(float left,
   glFrustum(leftw, rightw, bottomw, topw, clip_near, clip_far);
 
   glTranslatef(-xmid - eye, -ymid, -zero_plane - dist);
-  return;
-} /* stereoproj */
+}
 
 class Application : public GHOST_IEventConsumer {
  public:
@@ -731,7 +730,7 @@ int main(int /*argc*/, char ** /*argv*/)
   return 0;
 }
 
-static void gearsTimerProc(GHOST_ITimerTask *task, GHOST_TUns64 /*time*/)
+static void gearsTimerProc(GHOST_ITimerTask *task, uint64_t /*time*/)
 {
   fAngle += 2.0;
   view_roty += 1.0;

@@ -36,7 +36,7 @@
 /* Returns the normal plane in NDC space. */
 static void gpencil_depth_plane(Object *ob, float r_plane[4])
 {
-  /* TODO put that into private data. */
+  /* TODO: put that into private data. */
   float viewinv[4][4];
   DRW_view_viewmat_get(NULL, viewinv, true);
   float *camera_z_axis = viewinv[2];
@@ -92,7 +92,7 @@ void OVERLAY_outline_init(OVERLAY_Data *vedata)
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   if (DRW_state_is_fbo()) {
-    /* TODO only alloc if needed. */
+    /* TODO: only alloc if needed. */
     DRW_texture_ensure_fullscreen_2d(&txl->temp_depth_tx, GPU_DEPTH24_STENCIL8, 0);
     DRW_texture_ensure_fullscreen_2d(&txl->outlines_id_tx, GPU_R16UI, 0);
 
@@ -263,13 +263,13 @@ static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
     gpencil_depth_plane(ob, iter.plane);
   }
 
-  BKE_gpencil_visible_stroke_iter(NULL,
-                                  ob,
-                                  gpencil_layer_cache_populate,
-                                  gpencil_stroke_cache_populate,
-                                  &iter,
-                                  false,
-                                  pd->cfra);
+  BKE_gpencil_visible_stroke_advanced_iter(NULL,
+                                           ob,
+                                           gpencil_layer_cache_populate,
+                                           gpencil_stroke_cache_populate,
+                                           &iter,
+                                           false,
+                                           pd->cfra);
 }
 
 static void OVERLAY_outline_volume(OVERLAY_PrivateData *pd, Object *ob)

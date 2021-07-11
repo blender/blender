@@ -363,7 +363,7 @@ static void curve_cd_calc_used_gpu_layers(CustomDataMask *cd_layers,
       int type = gpu_attr->type;
 
       /* Curves cannot have named layers.
-       * Note: We could relax this assumption later. */
+       * NOTE: We could relax this assumption later. */
       if (name[0] != '\0') {
         continue;
       }

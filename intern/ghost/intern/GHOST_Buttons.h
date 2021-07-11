@@ -57,7 +57,7 @@ struct GHOST_Buttons {
    */
   void clear();
 
-  GHOST_TUns8 m_ButtonLeft : 1;
-  GHOST_TUns8 m_ButtonMiddle : 1;
-  GHOST_TUns8 m_ButtonRight : 1;
+  uint8_t m_ButtonLeft : 1;
+  uint8_t m_ButtonMiddle : 1;
+  uint8_t m_ButtonRight : 1;
 };

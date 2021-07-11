@@ -42,7 +42,7 @@ static PyObject *Quaternion_deepcopy(QuaternionObject *self, PyObject *args);
 
 /* -----------------------------METHODS------------------------------ */
 
-/* note: BaseMath_ReadCallback must be called beforehand */
+/* NOTE: BaseMath_ReadCallback must be called beforehand. */
 static PyObject *Quaternion_to_tuple_ext(QuaternionObject *self, int ndigits)
 {
   PyObject *ret;

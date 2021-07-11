@@ -37,21 +37,19 @@ class GHOST_DisplayManagerSDL : public GHOST_DisplayManager {
  public:
   GHOST_DisplayManagerSDL(GHOST_SystemSDL *system);
 
-  GHOST_TSuccess getNumDisplays(GHOST_TUns8 &numDisplays) const;
+  GHOST_TSuccess getNumDisplays(uint8_t &numDisplays) const;
 
-  GHOST_TSuccess getNumDisplaySettings(GHOST_TUns8 display, GHOST_TInt32 &numSettings) const;
+  GHOST_TSuccess getNumDisplaySettings(uint8_t display, int32_t &numSettings) const;
 
-  GHOST_TSuccess getDisplaySetting(GHOST_TUns8 display,
-                                   GHOST_TInt32 index,
+  GHOST_TSuccess getDisplaySetting(uint8_t display,
+                                   int32_t index,
                                    GHOST_DisplaySetting &setting) const;
 
-  GHOST_TSuccess getCurrentDisplaySetting(GHOST_TUns8 display,
-                                          GHOST_DisplaySetting &setting) const;
+  GHOST_TSuccess getCurrentDisplaySetting(uint8_t display, GHOST_DisplaySetting &setting) const;
 
   GHOST_TSuccess getCurrentDisplayModeSDL(SDL_DisplayMode &mode) const;
 
-  GHOST_TSuccess setCurrentDisplaySetting(GHOST_TUns8 display,
-                                          const GHOST_DisplaySetting &setting);
+  GHOST_TSuccess setCurrentDisplaySetting(uint8_t display, const GHOST_DisplaySetting &setting);
 
  private:
   GHOST_SystemSDL *m_system;

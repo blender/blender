@@ -81,7 +81,7 @@ class Camera : public Node {
   /* ** Rolling shutter effect. ** */
   /* Defines rolling shutter effect type. */
   NODE_SOCKET_API(RollingShutterType, rolling_shutter_type)
-  /* Specifies exposure time of scanlines when using
+  /* Specifies exposure time of scan-lines when using
    * rolling shutter effect.
    */
   NODE_SOCKET_API(float, rolling_shutter_duration)

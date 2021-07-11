@@ -297,7 +297,7 @@ static int rna_NlaStrip_action_editable(PointerRNA *ptr, const char **UNUSED(r_i
 {
   NlaStrip *strip = (NlaStrip *)ptr->data;
 
-  /* strip actions shouldn't be editable if NLA tweakmode is on */
+  /* Strip actions shouldn't be editable if NLA tweak-mode is on. */
   if (ptr->owner_id) {
     AnimData *adt = BKE_animdata_from_id(ptr->owner_id);
 

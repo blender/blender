@@ -4,7 +4,7 @@
 
 #include "BLI_hash_mm2a.h"
 
-/* Note: Reference results are taken from reference implementation
+/* NOTE: Reference results are taken from reference implementation
  * (cpp code, CMurmurHash2A variant):
  * https://smhasher.googlecode.com/svn-history/r130/trunk/MurmurHash2.cpp
  */

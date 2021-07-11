@@ -281,7 +281,7 @@ static bool seq_transform_check_overlap(SeqCollection *transformed_strips)
 
 static SeqCollection *extract_standalone_strips(SeqCollection *transformed_strips)
 {
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
     if ((seq->type & SEQ_TYPE_EFFECT) == 0 || seq->seq1 == NULL) {
@@ -302,7 +302,7 @@ static SeqCollection *query_right_side_strips(ListBase *seqbase, SeqCollection *
     }
   }
 
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->flag & SELECT) == 0 && seq->startdisp >= minframe) {
       SEQ_collection_append_strip(seq, collection);
@@ -407,7 +407,7 @@ static void seq_transform_handle_overlap(TransInfo *t, SeqCollection *transforme
 
 static SeqCollection *seq_transform_collection_from_transdata(TransDataContainer *tc)
 {
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   TransData *td = tc->data;
   for (int a = 0; a < tc->data_len; a++, td++) {
     Sequence *seq = ((TransDataSeq *)td->extra)->seq;
@@ -428,6 +428,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   if (t->state == TRANS_CANCEL) {
     seq_transform_cancel(t, transformed_strips);
+    SEQ_collection_free(transformed_strips);
     free_transform_custom_data(custom_data);
     return;
   }

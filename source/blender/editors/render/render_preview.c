@@ -794,7 +794,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
       NULL,
       NULL,
       err_out);
-  /* TODO color-management? */
+  /* TODO: color-management? */
 
   U.pixelsize = pixelsize_old;
 

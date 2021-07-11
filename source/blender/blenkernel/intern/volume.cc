@@ -197,7 +197,7 @@ static struct VolumeFileCache {
     Entry &entry = (Entry &)*it;
     entry.num_metadata_users++;
 
-    /* Note: pointers to unordered_set values are not invalidated when adding
+    /* NOTE: pointers to unordered_set values are not invalidated when adding
      * or removing other values. */
     return &entry;
   }

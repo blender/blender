@@ -895,7 +895,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 /**
  * Calculates the center position of the active object in global space.
  *
- * Note: this could be exported to be a generic function.
+ * NOTE: this could be exported to be a generic function.
  * see: #calculateCenterActive
  */
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3])

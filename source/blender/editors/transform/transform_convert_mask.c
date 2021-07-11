@@ -330,7 +330,7 @@ void createTransMaskingData(bContext *C, TransInfo *t)
     }
   }
 
-  /* note: in prop mode we need at least 1 selected */
+  /* NOTE: in prop mode we need at least 1 selected. */
   if (countsel == 0) {
     return;
   }

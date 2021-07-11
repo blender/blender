@@ -158,7 +158,7 @@ static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 
 /**
  * for exec() when there is no render job
- * note: this won't check for the escape key being pressed, but doing so isn't thread-safe.
+ * NOTE: this won't check for the escape key being pressed, but doing so isn't thread-safe.
  */
 static int bake_break(void *UNUSED(rjv))
 {
@@ -1939,7 +1939,7 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
                        WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                        WM_JOB_TYPE_OBJECT_BAKE);
   WM_jobs_customdata_set(wm_job, bkr, bake_freejob);
-  /* TODO - only draw bake image, can we enforce this */
+  /* TODO: only draw bake image, can we enforce this. */
   WM_jobs_timer(
       wm_job, 0.5, (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) ? NC_GEOM | ND_DATA : NC_IMAGE, 0);
   WM_jobs_callbacks(wm_job, bake_startjob, NULL, NULL, NULL);

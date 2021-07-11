@@ -530,7 +530,7 @@ void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph,
 }
 /**
  * Action to take when rotating the view,
- * handle auto-persp and logic for switching out of views.
+ * handle auto-perspective and logic for switching out of views.
  *
  * shared with NDOF.
  */
@@ -1699,7 +1699,7 @@ bool ED_view3d_depth_read_cached_normal(const ARegion *region,
                                         const int mval[2],
                                         float r_normal[3])
 {
-  /* Note: we could support passing in a radius.
+  /* NOTE: we could support passing in a radius.
    * For now just read 9 pixels. */
 
   /* pixels surrounding */

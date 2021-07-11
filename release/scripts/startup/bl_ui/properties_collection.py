@@ -35,7 +35,7 @@ def lineart_make_line_type_entry(col, line_type, text_disp, expand, search_from)
     if line_type.use and expand:
         col.prop_search(line_type, "layer", search_from,
                         "layers", icon='GREASEPENCIL')
-        col.prop_search(line_type, "material",  search_from,
+        col.prop_search(line_type, "material", search_from,
                         "materials", icon='SHADING_TEXTURE')
 
 
@@ -90,7 +90,7 @@ class COLLECTION_PT_lineart_collection(CollectionButtonsPanel, Panel):
 
         row = layout.row(align=True, heading="Masks")
         row.active = collection.lineart_use_intersection_mask
-        for i in range(0,8):
+        for i in range(8):
             row.prop(collection, "lineart_intersection_mask", index=i, text=str(i), toggle=True)
 
 

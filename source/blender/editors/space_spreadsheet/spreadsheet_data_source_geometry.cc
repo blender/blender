@@ -31,10 +31,14 @@
 
 #include "ED_spreadsheet.h"
 
+#include "NOD_geometry_nodes_eval_log.hh"
+
 #include "bmesh.h"
 
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
+
+namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
 namespace blender::ed::spreadsheet {
 
@@ -419,7 +423,7 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
       pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
     }
   }
-  else if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED) {
+  else {
     if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
       Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
       if (mesh == nullptr) {
@@ -438,13 +442,18 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
         }
       }
       else {
-        if (object_eval->runtime.geometry_set_previews != nullptr) {
-          GHash *ghash = (GHash *)object_eval->runtime.geometry_set_previews;
-          const uint64_t key = ED_spreadsheet_context_path_hash(sspreadsheet);
-          GeometrySet *geometry_set_preview = (GeometrySet *)BLI_ghash_lookup_default(
-              ghash, POINTER_FROM_UINT(key), nullptr);
-          if (geometry_set_preview != nullptr) {
-            geometry_set = *geometry_set_preview;
+        const geo_log::NodeLog *node_log =
+            geo_log::ModifierLog::find_node_by_spreadsheet_editor_context(*sspreadsheet);
+        if (node_log != nullptr) {
+          for (const geo_log::SocketLog &input_log : node_log->input_logs()) {
+            if (const geo_log::GeometryValueLog *geo_value_log =
+                    dynamic_cast<const geo_log::GeometryValueLog *>(input_log.value())) {
+              const GeometrySet *full_geometry = geo_value_log->full_geometry();
+              if (full_geometry != nullptr) {
+                geometry_set = *full_geometry;
+                break;
+              }
+            }
           }
         }
       }

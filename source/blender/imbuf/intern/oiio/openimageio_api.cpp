@@ -156,7 +156,7 @@ static ImBuf *imb_oiio_load_image_float(
   /* ImBuf always needs 4 channels */
   fill_all_channels((float *)ibuf->rect_float, width, height, components, 1.0f);
 
-  /* Note: Photoshop 16 bit files never has alpha with it,
+  /* NOTE: Photoshop 16 bit files never has alpha with it,
    * so no need to handle associated/unassociated alpha. */
   return ibuf;
 }

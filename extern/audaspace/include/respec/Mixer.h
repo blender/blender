@@ -88,6 +88,12 @@ public:
 	void setSpecs(Specs specs);
 
 	/**
+	 * Sets the target specification for superposing.
+	 * \param specs The target specification.
+	 */
+	void setSpecs(DeviceSpecs specs);
+
+	/**
 	 * Mixes a buffer.
 	 * \param buffer The buffer to superpose.
 	 * \param start The start sample of the buffer.

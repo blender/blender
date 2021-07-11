@@ -341,7 +341,7 @@ static Object *editfont_object_from_context(bContext *C)
 
 typedef struct FontUndoStep {
   UndoStep step;
-  /* note: will split out into list for multi-object-editmode. */
+  /* NOTE: will split out into list for multi-object-editmode. */
   UndoRefID_Object obedit_ref;
   UndoFont data;
 } FontUndoStep;

@@ -96,7 +96,7 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
     return NULL;
   }
 
-  /* create quadtree with k=26 */
+  /* Create quad-tree with k=26. */
   BVHTree *bvhtree = BLI_bvhtree_new(cloth->primitive_num, epsilon, 4, 26);
 
   /* fill tree */
@@ -597,7 +597,7 @@ static void cloth_to_object(Object *ob, ClothModifierData *clmd, float (*vertexC
   Cloth *cloth = clmd->clothObject;
 
   if (clmd->clothObject) {
-    /* inverse matrix is not uptodate... */
+    /* Inverse matrix is not up to date. */
     invert_m4_m4(ob->imat, ob->obmat);
 
     for (i = 0; i < cloth->mvert_num; i++) {
@@ -991,7 +991,7 @@ static void cloth_hair_update_bending_targets(ClothModifierData *clmd)
     return;
   }
 
-  /* XXX Note: we need to propagate frames from the root up,
+  /* XXX NOTE: we need to propagate frames from the root up,
    * but structural hair springs are stored in reverse order.
    * The bending springs however are then inserted in the same
    * order as vertices again ...
@@ -1049,7 +1049,7 @@ static void cloth_hair_update_bending_rest_targets(ClothModifierData *clmd)
     return;
   }
 
-  /* XXX Note: we need to propagate frames from the root up,
+  /* XXX NOTE: we need to propagate frames from the root up,
    * but structural hair springs are stored in reverse order.
    * The bending springs however are then inserted in the same
    * order as vertices again ...
@@ -1883,7 +1883,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     cloth_hair_update_bending_rest_targets(clmd);
   }
 
-  /* note: the edges may already exist so run reinsert */
+  /* NOTE: the edges may already exist so run reinsert. */
 
   /* insert other near springs in edgeset AFTER bending springs are calculated (for selfcolls) */
   for (int i = 0; i < numedges; i++) { /* struct springs */

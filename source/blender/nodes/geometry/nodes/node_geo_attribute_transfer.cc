@@ -162,7 +162,7 @@ static void get_closest_mesh_points(const Mesh &mesh,
 {
   BLI_assert(mesh.totvert > 0);
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, const_cast<Mesh *>(&mesh), BVHTREE_FROM_VERTS, 2);
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_VERTS, 2);
   get_closest_in_bvhtree(tree_data, positions, r_point_indices, r_distances_sq, r_positions);
   free_bvhtree_from_mesh(&tree_data);
 }
@@ -175,7 +175,7 @@ static void get_closest_mesh_edges(const Mesh &mesh,
 {
   BLI_assert(mesh.totedge > 0);
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, const_cast<Mesh *>(&mesh), BVHTREE_FROM_EDGES, 2);
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_EDGES, 2);
   get_closest_in_bvhtree(tree_data, positions, r_edge_indices, r_distances_sq, r_positions);
   free_bvhtree_from_mesh(&tree_data);
 }
@@ -188,7 +188,7 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
 {
   BLI_assert(mesh.totpoly > 0);
   BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, const_cast<Mesh *>(&mesh), BVHTREE_FROM_LOOPTRI, 2);
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
   get_closest_in_bvhtree(tree_data, positions, r_looptri_indices, r_distances_sq, r_positions);
   free_bvhtree_from_mesh(&tree_data);
 }

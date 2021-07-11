@@ -46,7 +46,7 @@
 #  include <GL/gl.h>
 #endif /* defined(WIN32) || defined(__APPLE__) */
 
-static void gearsTimerProc(GHOST_TimerTaskHandle task, GHOST_TUns64 time);
+static void gearsTimerProc(GHOST_TimerTaskHandle task, uint64_t time);
 int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData);
 
 static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
@@ -60,7 +60,7 @@ static GHOST_WindowHandle sFullScreenWindow = NULL;
 static GHOST_TimerTaskHandle sTestTimer;
 static GHOST_TimerTaskHandle sGearsTimer;
 
-static void testTimerProc(GHOST_TimerTaskHandle task, GHOST_TUns64 time)
+static void testTimerProc(GHOST_TimerTaskHandle task, uint64_t time)
 {
   printf("timer1, time=%d\n", (int)time);
 }
@@ -274,7 +274,7 @@ static void setViewPortGL(GHOST_WindowHandle hWindow)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(-w, w, -h, h, 5.0, 60.0);
-  /* glOrtho(0, bnds.getWidth(), 0, bnds.getHeight(), -10, 10); */
+  // glOrtho(0, bnds.getWidth(), 0, bnds.getHeight(), -10, 10);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glTranslatef(0.0, 0.0, -40.0);
@@ -501,7 +501,7 @@ int main(int argc, char **argv)
   return 0;
 }
 
-static void gearsTimerProc(GHOST_TimerTaskHandle hTask, GHOST_TUns64 time)
+static void gearsTimerProc(GHOST_TimerTaskHandle hTask, uint64_t time)
 {
   GHOST_WindowHandle hWindow = NULL;
   fAngle += 2.0;

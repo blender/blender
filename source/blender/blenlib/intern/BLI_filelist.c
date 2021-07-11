@@ -432,7 +432,7 @@ void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *s
 }
 
 /**
- * Deep-duplicate of an array of direntries, including the array itself.
+ * Deep-duplicate of a #direntry array including the array itself.
  */
 void BLI_filelist_duplicate(struct direntry **dest_filelist,
                             struct direntry *const src_filelist,
@@ -462,7 +462,7 @@ void BLI_filelist_entry_free(struct direntry *entry)
 }
 
 /**
- * frees storage for an array of direntries, including the array itself.
+ * Frees storage for an array of #direntry, including the array itself.
  */
 void BLI_filelist_free(struct direntry *filelist, const unsigned int nrentries)
 {

@@ -21,7 +21,7 @@
 
 static uint gen_pseudo_random_number(uint num)
 {
-  /* Note: this is taken from BLI_ghashutil_uinthash(), don't want to depend on external code that
+  /* NOTE: this is taken from BLI_ghashutil_uinthash(), don't want to depend on external code that
    * might change here... */
   num += ~(num << 16);
   num ^= (num >> 5);

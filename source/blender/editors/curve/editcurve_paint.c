@@ -698,7 +698,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
   }
 
   if ((cps->radius_taper_start != 0.0f) || (cps->radius_taper_end != 0.0f)) {
-    /* note, we could try to de-duplicate the length calculations above */
+    /* NOTE: we could try to de-duplicate the length calculations above. */
     const int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 
     BLI_mempool_iter iter;

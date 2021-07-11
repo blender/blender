@@ -1052,7 +1052,7 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(Mesh *me)
   return cache->batch.surface;
 }
 
-int DRW_mesh_material_count_get(Mesh *me)
+int DRW_mesh_material_count_get(const Mesh *me)
 {
   return mesh_render_mat_len_get(me);
 }
@@ -1278,7 +1278,7 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_edges(Mesh *me)
  * \{ */
 
 /* Thread safety need to be assured by caller. Don't call this during drawing.
- * Note: For now this only free the shading batches / vbo if any cd layers is
+ * NOTE: For now this only free the shading batches / vbo if any cd layers is
  * not needed anymore. */
 void DRW_mesh_batch_cache_free_old(Mesh *me, int ctime)
 {
@@ -1305,7 +1305,7 @@ static void drw_mesh_batch_cache_check_available(struct TaskGraph *task_graph, M
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);
   /* Make sure all requested batches have been setup. */
-  /* Note: The next line creates a different scheduling than during release builds what can lead to
+  /* NOTE: The next line creates a different scheduling than during release builds what can lead to
    * some issues (See T77867 where we needed to disable this function in order to debug what was
    * happening in release builds). */
   BLI_task_graph_work_and_wait(task_graph);

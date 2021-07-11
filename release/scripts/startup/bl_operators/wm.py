@@ -135,7 +135,7 @@ def context_path_decompose(data_path):
 
         if base_path:
             assert(base_path.startswith("."))
-            base_path= base_path[1:]
+            base_path = base_path[1:]
         if prop_attr:
             assert(prop_attr.startswith("."))
             prop_attr = prop_attr[1:]

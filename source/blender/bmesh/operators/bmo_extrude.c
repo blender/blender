@@ -459,7 +459,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
     }
 
     /* Allocate array to store possible vertices that will be dissolved. */
-    int boundary_edges_len = BMO_slot_map_count(dupeop.slots_out, "boundary_map.out");
+    int boundary_edges_len = BMO_slot_map_len(dupeop.slots_out, "boundary_map.out");
     /* We do not know the real number of boundary vertices. */
     int boundary_verts_len_maybe = 2 * boundary_edges_len;
     dissolve_verts = MEM_mallocN(boundary_verts_len_maybe * sizeof(*dissolve_verts), __func__);

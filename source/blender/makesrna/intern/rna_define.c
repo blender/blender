@@ -781,7 +781,7 @@ void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *rna_ext)
 {
 #ifdef RNA_RUNTIME
   rna_ext->free(rna_ext->data);            /* decref's the PyObject that the srna owns */
-  RNA_struct_blender_type_set(srna, NULL); /* this gets accessed again - XXX fixme */
+  RNA_struct_blender_type_set(srna, NULL); /* FIXME: this gets accessed again. */
 
   /* NULL the srna's value so RNA_struct_free won't complain of a leak */
   RNA_struct_py_type_set(srna, NULL);
@@ -4759,7 +4759,7 @@ static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
   }
 }
 
-/* note: only intended for removing dynamic props */
+/* NOTE: only intended for removing dynamic props. */
 int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *identifier)
 {
   ContainerRNA *cont = cont_;

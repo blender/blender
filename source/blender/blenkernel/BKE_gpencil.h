@@ -282,20 +282,25 @@ bool BKE_gpencil_from_image(struct SpaceImage *sima,
                             const float size,
                             const bool mask);
 
-/* Iterator */
+/* Iterators */
 /* frame & stroke are NULL if it is a layer callback. */
 typedef void (*gpIterCb)(struct bGPDlayer *layer,
                          struct bGPDframe *frame,
                          struct bGPDstroke *stroke,
                          void *thunk);
 
-void BKE_gpencil_visible_stroke_iter(struct ViewLayer *view_layer,
-                                     struct Object *ob,
+void BKE_gpencil_visible_stroke_iter(struct bGPdata *gpd,
                                      gpIterCb layer_cb,
                                      gpIterCb stroke_cb,
-                                     void *thunk,
-                                     bool do_onion,
-                                     int cfra);
+                                     void *thunk);
+
+void BKE_gpencil_visible_stroke_advanced_iter(struct ViewLayer *view_layer,
+                                              struct Object *ob,
+                                              gpIterCb layer_cb,
+                                              gpIterCb stroke_cb,
+                                              void *thunk,
+                                              bool do_onion,
+                                              int cfra);
 
 extern void (*BKE_gpencil_batch_cache_dirty_tag_cb)(struct bGPdata *gpd);
 extern void (*BKE_gpencil_batch_cache_free_cb)(struct bGPdata *gpd);

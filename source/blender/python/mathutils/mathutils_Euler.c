@@ -110,7 +110,7 @@ short euler_order_from_string(const char *str, const char *error_prefix)
   return -1;
 }
 
-/* note: BaseMath_ReadCallback must be called beforehand */
+/* NOTE: BaseMath_ReadCallback must be called beforehand. */
 static PyObject *Euler_ToTupleExt(EulerObject *self, int ndigits)
 {
   PyObject *ret;

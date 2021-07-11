@@ -329,7 +329,7 @@ void GHOST_XrAction::updateState(XrSession session,
 
 void GHOST_XrAction::applyHapticFeedback(XrSession session,
                                          const char *action_name,
-                                         const GHOST_TInt64 &duration,
+                                         const int64_t &duration,
                                          const float &frequency,
                                          const float &amplitude)
 {

@@ -227,66 +227,25 @@ void Session::run_gpu()
   progress.set_render_start_time();
 
   while (!progress.get_cancel()) {
-    /* advance to next tile */
-    bool no_tiles = !tile_manager.next();
+    const bool no_tiles = !run_update_for_next_iteration();
 
-    DeviceKernelStatus kernel_state = DEVICE_KERNEL_UNKNOWN;
     if (no_tiles) {
-      kernel_state = device->get_active_kernel_switch_state();
-    }
-
-    if (params.background) {
-      /* if no work left and in background mode, we can stop immediately */
-      if (no_tiles) {
+      if (params.background) {
+        /* if no work left and in background mode, we can stop immediately */
         progress.set_status("Finished");
         break;
       }
     }
 
-    else if (no_tiles && kernel_state == DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE) {
-      reset_gpu(tile_manager.params, params.samples);
+    if (run_wait_for_work(no_tiles)) {
+      continue;
     }
 
-    else {
-      /* if in interactive mode, and we are either paused or done for now,
-       * wait for pause condition notify to wake up again */
-      thread_scoped_lock pause_lock(pause_mutex);
-
-      if (!pause && !tile_manager.done()) {
-        /* reset could have happened after no_tiles was set, before this lock.
-         * in this case we shall not wait for pause condition
-         */
-      }
-      else if (pause || no_tiles) {
-        update_status_time(pause, no_tiles);
-
-        while (1) {
-          scoped_timer pause_timer;
-          pause_cond.wait(pause_lock);
-          if (pause) {
-            progress.add_skip_time(pause_timer, params.background);
-          }
-
-          update_status_time(pause, no_tiles);
-          progress.set_update();
-
-          if (!pause)
-            break;
-        }
-      }
-
-      if (progress.get_cancel())
-        break;
+    if (progress.get_cancel()) {
+      break;
     }
 
     if (!no_tiles) {
-      /* update scene */
-      scoped_timer update_timer;
-      if (update_scene()) {
-        profiler.reset(scene->shaders.size(), scene->objects.size());
-      }
-      progress.add_skip_time(update_timer, params.background);
-
       if (!device->error_message().empty())
         progress.set_error(device->error_message());
 
@@ -729,82 +688,27 @@ void Session::run_cpu()
   last_update_time = time_dt();
   last_display_time = last_update_time;
 
-  {
-    /* reset once to start */
-    thread_scoped_lock reset_lock(delayed_reset.mutex);
-    thread_scoped_lock buffers_lock(buffers_mutex);
-    thread_scoped_lock display_lock(display_mutex);
-
-    reset_(delayed_reset.params, delayed_reset.samples);
-    delayed_reset.do_reset = false;
-  }
-
   while (!progress.get_cancel()) {
-    /* advance to next tile */
-    bool no_tiles = !tile_manager.next();
+    const bool no_tiles = !run_update_for_next_iteration();
     bool need_copy_to_display_buffer = false;
 
-    DeviceKernelStatus kernel_state = DEVICE_KERNEL_UNKNOWN;
     if (no_tiles) {
-      kernel_state = device->get_active_kernel_switch_state();
-    }
-
-    if (params.background) {
-      /* if no work left and in background mode, we can stop immediately */
-      if (no_tiles) {
+      if (params.background) {
+        /* if no work left and in background mode, we can stop immediately */
         progress.set_status("Finished");
         break;
       }
     }
 
-    else if (no_tiles && kernel_state == DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE) {
-      reset_cpu(tile_manager.params, params.samples);
+    if (run_wait_for_work(no_tiles)) {
+      continue;
     }
 
-    else {
-      /* if in interactive mode, and we are either paused or done for now,
-       * wait for pause condition notify to wake up again */
-      thread_scoped_lock pause_lock(pause_mutex);
-
-      if (!pause && delayed_reset.do_reset) {
-        /* reset once to start */
-        thread_scoped_lock reset_lock(delayed_reset.mutex);
-        thread_scoped_lock buffers_lock(buffers_mutex);
-        thread_scoped_lock display_lock(display_mutex);
-
-        reset_(delayed_reset.params, delayed_reset.samples);
-        delayed_reset.do_reset = false;
-      }
-      else if (pause || no_tiles) {
-        update_status_time(pause, no_tiles);
-
-        while (1) {
-          scoped_timer pause_timer;
-          pause_cond.wait(pause_lock);
-          if (pause) {
-            progress.add_skip_time(pause_timer, params.background);
-          }
-
-          update_status_time(pause, no_tiles);
-          progress.set_update();
-
-          if (!pause)
-            break;
-        }
-      }
-
-      if (progress.get_cancel())
-        break;
+    if (progress.get_cancel()) {
+      break;
     }
 
     if (!no_tiles) {
-      /* update scene */
-      scoped_timer update_timer;
-      if (update_scene()) {
-        profiler.reset(scene->shaders.size(), scene->objects.size());
-      }
-      progress.add_skip_time(update_timer, params.background);
-
       if (!device->error_message().empty())
         progress.set_error(device->error_message());
 
@@ -892,6 +796,63 @@ void Session::run()
     progress.set_status(progress.get_cancel_message());
   else
     progress.set_update();
+}
+
+bool Session::run_update_for_next_iteration()
+{
+  thread_scoped_lock scene_lock(scene->mutex);
+  thread_scoped_lock reset_lock(delayed_reset.mutex);
+
+  if (delayed_reset.do_reset) {
+    thread_scoped_lock buffers_lock(buffers_mutex);
+    reset_(delayed_reset.params, delayed_reset.samples);
+    delayed_reset.do_reset = false;
+  }
+
+  const bool have_tiles = tile_manager.next();
+
+  if (have_tiles) {
+    scoped_timer update_timer;
+    if (update_scene()) {
+      profiler.reset(scene->shaders.size(), scene->objects.size());
+    }
+    progress.add_skip_time(update_timer, params.background);
+  }
+
+  return have_tiles;
+}
+
+bool Session::run_wait_for_work(bool no_tiles)
+{
+  /* In an offline rendering there is no pause, and no tiles will mean the job is fully done. */
+  if (params.background) {
+    return false;
+  }
+
+  thread_scoped_lock pause_lock(pause_mutex);
+
+  if (!pause && !no_tiles) {
+    return false;
+  }
+
+  update_status_time(pause, no_tiles);
+
+  while (true) {
+    scoped_timer pause_timer;
+    pause_cond.wait(pause_lock);
+    if (pause) {
+      progress.add_skip_time(pause_timer, params.background);
+    }
+
+    update_status_time(pause, no_tiles);
+    progress.set_update();
+
+    if (!pause) {
+      break;
+    }
+  }
+
+  return no_tiles;
 }
 
 bool Session::draw(BufferParams &buffer_params, DeviceDrawParams &draw_params)
@@ -1012,8 +973,6 @@ void Session::wait()
 
 bool Session::update_scene()
 {
-  thread_scoped_lock scene_lock(scene->mutex);
-
   /* update camera if dimensions changed for progressive render. the camera
    * knows nothing about progressive or cropped rendering, it just gets the
    * image dimensions passed in */

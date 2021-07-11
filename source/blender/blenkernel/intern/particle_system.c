@@ -447,9 +447,9 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
     MEM_freeN(nodedmelem);
   }
   else {
-    /* TODO PARTICLE, make the following line unnecessary, each function
+    /* TODO_PARTICLE: make the following line unnecessary, each function
      * should know to use the num or num_dmcache, set the num_dmcache to
-     * an invalid value, just in case */
+     * an invalid value, just in case. */
 
     LOOP_PARTICLES
     {
@@ -992,9 +992,9 @@ void psys_get_birth_coords(
           /* (part->rotmode == PART_ROT_NOR_TAN) */
           float tmat[3][3];
 
-          /* note: utan_local is not taken from 'utan', we calculate from rot_vec/vtan */
-          /* note: it looks like rotation phase may be applied twice (once with vtan, again below)
-           * however this isn't the case - campbell */
+          /* NOTE: utan_local is not taken from 'utan', we calculate from rot_vec/vtan. */
+          /* NOTE(campbell): it looks like rotation phase may be applied twice
+           * (once with vtan, again below) however this isn't the case. */
           float *rot_vec_local = tmat[0];
           float *vtan_local = tmat[1];
           float *utan_local = tmat[2];
@@ -1014,7 +1014,7 @@ void psys_get_birth_coords(
           cross_v3_v3v3(utan_local, vtan_local, rot_vec_local);
           cross_v3_v3v3(vtan_local, utan_local, rot_vec_local);
 
-          /* note: no need to normalize */
+          /* NOTE: no need to normalize. */
           mat3_to_quat(q2, tmat);
         }
 
@@ -2617,7 +2617,7 @@ static float collision_newton_rhapson(ParticleCollision *col,
      * here. */
     if (d1 == d0) {
       /* If first iteration, try from other end where the gradient may be
-       * greater. Note: code duplicated below. */
+       * greater. NOTE: code duplicated below. */
       if (iter == 0) {
         t0 = 1.0f;
         collision_interpolate_element(pce, t0, col->f, col);
@@ -2638,7 +2638,7 @@ static float collision_newton_rhapson(ParticleCollision *col,
     t1 -= d1 * dd;
 
     /* Particle moving away from plane could also mean a strangely rotating
-     * face, so check from end. Note: code duplicated above. */
+     * face, so check from end. NOTE: code duplicated above. */
     if (iter == 0 && t1 < 0.0f) {
       t0 = 1.0f;
       collision_interpolate_element(pce, t0, col->f, col);

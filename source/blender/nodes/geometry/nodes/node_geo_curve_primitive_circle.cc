@@ -126,7 +126,7 @@ static std::unique_ptr<CurveEval> create_point_circle_curve(
   const float theta_step = ((2 * M_PI) / (float)resolution);
   for (const int i : IndexRange(resolution)) {
 
-    /* Formula for a circle around a point and 2 unit vectors perpendicular.
+    /* Formula for a circle around a point and 2 unit vectors perpendicular
      * to each other and the axis of the circle from:
      * https://math.stackexchange.com/questions/73237/parametric-equation-of-a-circle-in-3d-space
      */
@@ -210,7 +210,8 @@ static void geo_node_curve_primitive_circle_exec(GeoNodeExecParams params)
 void register_node_type_geo_curve_primitive_circle()
 {
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_CIRCLE, "Circle", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(
+      &ntype, GEO_NODE_CURVE_PRIMITIVE_CIRCLE, "Curve Circle", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(
       &ntype, geo_node_curve_primitive_circle_in, geo_node_curve_primitive_circle_out);
 

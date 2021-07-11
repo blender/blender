@@ -36,7 +36,7 @@ struct window_t {
   wl_surface *surface;
   // outputs on which the window is currently shown on
   std::unordered_set<const output_t *> outputs;
-  GHOST_TUns16 dpi = 0;
+  uint16_t dpi = 0;
   int scale = 1;
   struct xdg_surface *xdg_surface;
   struct xdg_toplevel *xdg_toplevel;
@@ -205,10 +205,10 @@ GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursorS
 
 GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          const char *title,
-                                         GHOST_TInt32 /*left*/,
-                                         GHOST_TInt32 /*top*/,
-                                         GHOST_TUns32 width,
-                                         GHOST_TUns32 height,
+                                         int32_t /*left*/,
+                                         int32_t /*top*/,
+                                         uint32_t width,
+                                         uint32_t height,
                                          GHOST_TWindowState state,
                                          const GHOST_IWindow *parentWindow,
                                          GHOST_TDrawingContextType type,
@@ -344,13 +344,8 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor s
   return ok;
 }
 
-GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(GHOST_TUns8 *bitmap,
-                                                               GHOST_TUns8 *mask,
-                                                               int sizex,
-                                                               int sizey,
-                                                               int hotX,
-                                                               int hotY,
-                                                               bool canInvertColor)
+GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
+    uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
 {
   return m_system->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
 }
@@ -377,35 +372,35 @@ void GHOST_WindowWayland::getClientBounds(GHOST_Rect &bounds) const
   bounds.set(0, 0, w->width, w->height);
 }
 
-GHOST_TSuccess GHOST_WindowWayland::setClientWidth(GHOST_TUns32 width)
+GHOST_TSuccess GHOST_WindowWayland::setClientWidth(uint32_t width)
 {
-  return setClientSize(width, GHOST_TUns32(w->height));
+  return setClientSize(width, uint32_t(w->height));
 }
 
-GHOST_TSuccess GHOST_WindowWayland::setClientHeight(GHOST_TUns32 height)
+GHOST_TSuccess GHOST_WindowWayland::setClientHeight(uint32_t height)
 {
-  return setClientSize(GHOST_TUns32(w->width), height);
+  return setClientSize(uint32_t(w->width), height);
 }
 
-GHOST_TSuccess GHOST_WindowWayland::setClientSize(GHOST_TUns32 width, GHOST_TUns32 height)
+GHOST_TSuccess GHOST_WindowWayland::setClientSize(uint32_t width, uint32_t height)
 {
   wl_egl_window_resize(w->egl_window, int(width), int(height), 0, 0);
   return GHOST_kSuccess;
 }
 
-void GHOST_WindowWayland::screenToClient(GHOST_TInt32 inX,
-                                         GHOST_TInt32 inY,
-                                         GHOST_TInt32 &outX,
-                                         GHOST_TInt32 &outY) const
+void GHOST_WindowWayland::screenToClient(int32_t inX,
+                                         int32_t inY,
+                                         int32_t &outX,
+                                         int32_t &outY) const
 {
   outX = inX;
   outY = inY;
 }
 
-void GHOST_WindowWayland::clientToScreen(GHOST_TInt32 inX,
-                                         GHOST_TInt32 inY,
-                                         GHOST_TInt32 &outX,
-                                         GHOST_TInt32 &outY) const
+void GHOST_WindowWayland::clientToScreen(int32_t inX,
+                                         int32_t inY,
+                                         int32_t &outX,
+                                         int32_t &outY) const
 {
   outX = inX;
   outY = inY;
@@ -426,7 +421,7 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
   delete w;
 }
 
-GHOST_TUns16 GHOST_WindowWayland::getDPIHint()
+uint16_t GHOST_WindowWayland::getDPIHint()
 {
   return w->dpi;
 }

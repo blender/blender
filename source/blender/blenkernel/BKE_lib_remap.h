@@ -91,7 +91,7 @@ enum {
   ID_REMAP_FORCE_USER_REFCOUNT = 1 << 8,
 };
 
-/* Note: Requiring new_id to be non-null, this *may* not be the case ultimately,
+/* NOTE: Requiring new_id to be non-null, this *may* not be the case ultimately,
  * but makes things simpler for now. */
 void BKE_libblock_remap_locked(struct Main *bmain,
                                void *old_idv,

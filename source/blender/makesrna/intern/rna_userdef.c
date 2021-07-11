@@ -3460,7 +3460,7 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(
       prop, "Keyframe Scale Factor", "Scale factor for adjusting the height of keyframes");
-  /* Note: These limits prevent buttons overlapping (min), and excessive size... (max) */
+  /* NOTE: These limits prevent buttons overlapping (min), and excessive size... (max). */
   RNA_def_property_range(prop, 0.8f, 5.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, "rna_userdef_theme_update");
 
@@ -6161,7 +6161,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
       "Python Scripts Directory",
       "Alternate script path, matching the default layout with subdirectories: "
       "startup, addons, modules, and presets (requires restart)");
-  /* TODO, editing should reset sys.path! */
+  /* TODO: editing should reset sys.path! */
 
   prop = RNA_def_property(srna, "i18n_branches_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, NULL, "i18ndir");

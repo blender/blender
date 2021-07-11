@@ -206,12 +206,12 @@ typedef enum eRigidBody_Shape {
   RB_SHAPE_SPHERE = 1,
   /** Rounded "pill" shape (i.e. calcium tablets). */
   RB_SHAPE_CAPSULE = 2,
-  /** Cylinder (i.e. pringles can). */
+  /** Cylinder (i.e. tin of beans). */
   RB_SHAPE_CYLINDER = 3,
   /** Cone (i.e. party hat). */
   RB_SHAPE_CONE = 4,
 
-  /** Convex hull (minimal shrinkwrap encompassing all verts). */
+  /** Convex hull (minimal shrink-wrap encompassing all verts). */
   RB_SHAPE_CONVEXH = 5,
   /** Triangulated mesh. */
   RB_SHAPE_TRIMESH = 6,

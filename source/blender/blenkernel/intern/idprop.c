@@ -186,7 +186,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
     }
   }
 
-  /* - Note: This code comes from python, here's the corresponding comment. - */
+  /* NOTE: This code comes from python, here's the corresponding comment. */
   /* This over-allocates proportional to the list size, making room
    * for additional growth.  The over-allocation is mild, but is
    * enough to give linear-time amortized behavior over a long
@@ -240,7 +240,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
     return;
   }
 
-  /* - Note: This code comes from python, here's the corresponding comment. - */
+  /* NOTE: This code comes from python, here's the corresponding comment. */
   /* This over-allocates proportional to the list size, making room
    * for additional growth.  The over-allocation is mild, but is
    * enough to give linear-time amortized behavior over a long
@@ -942,7 +942,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
 
       prop = MEM_callocN(sizeof(IDProperty), "IDProperty string");
       if (val->string.subtype == IDP_STRING_SUB_BYTE) {
-        /* note, intentionally not null terminated */
+        /* NOTE: Intentionally not null terminated. */
         if (st == NULL) {
           prop->data.pointer = MEM_mallocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
           *IDP_String(prop) = '\0';
@@ -1183,7 +1183,7 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
 
   IDProperty *array = (IDProperty *)prop->data.pointer;
 
-  /* note!, idp-arrays didn't exist in 2.4x, so the pointer will be cleared
+  /* NOTE:, idp-arrays didn't exist in 2.4x, so the pointer will be cleared
    * there's not really anything we can do to correct this, at least don't crash */
   if (array == NULL) {
     prop->len = 0;
@@ -1274,7 +1274,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
        * IDP are way too polymorphic to do it safely. */
       printf(
           "%s: found unknown IDProperty type %d, reset to Integer one !\n", __func__, prop->type);
-      /* Note: we do not attempt to free unknown prop, we have no way to know how to do that! */
+      /* NOTE: we do not attempt to free unknown prop, we have no way to know how to do that! */
       prop->type = IDP_INT;
       prop->subtype = 0;
       IDP_Int(prop) = 0;

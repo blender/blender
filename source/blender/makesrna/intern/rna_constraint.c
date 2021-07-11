@@ -206,6 +206,7 @@ static const EnumPropertyItem target_space_pchan_items[] = {
      "Custom Space",
      "The transformation of the target is evaluated relative to a custom object/bone/vertex "
      "group"},
+    {0, "", 0, NULL, NULL},
     {CONSTRAINT_SPACE_POSE,
      "POSE",
      0,
@@ -224,6 +225,14 @@ static const EnumPropertyItem target_space_pchan_items[] = {
      "Local Space",
      "The transformation of the target is evaluated relative to its local "
      "coordinate system"},
+    {CONSTRAINT_SPACE_OWNLOCAL,
+     "LOCAL_OWNER_ORIENT",
+     0,
+     "Local Space (Owner Orientation)",
+     "The transformation of the target bone is evaluated relative to its local coordinate "
+     "system, followed by a correction for the difference in target and owner rest pose "
+     "orientations. When applied as local transform to the owner produces the same global "
+     "motion as the target if the parents are still in rest pose"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -238,6 +247,7 @@ static const EnumPropertyItem owner_space_pchan_items[] = {
      0,
      "Custom Space",
      "The constraint is applied in local space of a custom object/bone/vertex group"},
+    {0, "", 0, NULL, NULL},
     {CONSTRAINT_SPACE_POSE,
      "POSE",
      0,
@@ -1624,18 +1634,48 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
        0,
        "Replace",
        "Replace the original transformation with copied"},
+      {0, "", 0, NULL, NULL},
+      {TRANSLIKE_MIX_BEFORE_FULL,
+       "BEFORE_FULL",
+       0,
+       "Before Original (Full)",
+       "Apply copied transformation before original, using simple matrix multiplication as if "
+       "the constraint target is a parent in Full Inherit Scale mode. "
+       "Will create shear when combining rotation and non-uniform scale"},
       {TRANSLIKE_MIX_BEFORE,
        "BEFORE",
        0,
-       "Before Original",
-       "Apply copied transformation before original, as if the constraint target is a parent. "
-       "Scale is handled specially to avoid creating shear"},
+       "Before Original (Aligned)",
+       "Apply copied transformation before original, as if the constraint target is a parent in "
+       "Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels "
+       "for rotation and scale"},
+      {TRANSLIKE_MIX_BEFORE_SPLIT,
+       "BEFORE_SPLIT",
+       0,
+       "Before Original (Split Channels)",
+       "Apply copied transformation before original, handling location, rotation and scale "
+       "separately, similar to a sequence of three Copy constraints"},
+      {0, "", 0, NULL, NULL},
+      {TRANSLIKE_MIX_AFTER_FULL,
+       "AFTER_FULL",
+       0,
+       "After Original (Full)",
+       "Apply copied transformation after original, using simple matrix multiplication as if "
+       "the constraint target is a child in Full Inherit Scale mode. "
+       "Will create shear when combining rotation and non-uniform scale"},
       {TRANSLIKE_MIX_AFTER,
        "AFTER",
        0,
-       "After Original",
-       "Apply copied transformation after original, as if the constraint target is a child. "
-       "Scale is handled specially to avoid creating shear"},
+       "After Original (Aligned)",
+       "Apply copied transformation after original, as if the constraint target is a child in "
+       "Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels "
+       "for rotation and scale"},
+      {TRANSLIKE_MIX_AFTER_SPLIT,
+       "AFTER_SPLIT",
+       0,
+       "After Original (Split Channels)",
+       "Apply copied transformation after original, handling location, rotation and scale "
+       "separately, similar to a sequence of three Copy constraints"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1652,6 +1692,12 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
   rna_def_constraint_target_common(srna);
 
   RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "remove_target_shear", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", TRANSLIKE_REMOVE_TARGET_SHEAR);
+  RNA_def_property_ui_text(
+      prop, "Remove Target Shear", "Remove shear from the target transformation before combining");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "mix_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "mix_mode");
@@ -2795,7 +2841,7 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
   RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "target"); /* TODO, mesh type */
+  RNA_def_property_pointer_sdna(prop, NULL, "target"); /* TODO: mesh type. */
   RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Mesh_object_poll");
   RNA_def_property_ui_text(prop, "Target", "Target Mesh object");
   RNA_def_property_flag(prop, PROP_EDITABLE);

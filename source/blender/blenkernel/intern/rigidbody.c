@@ -1787,7 +1787,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
 
   rigidbody_update_sim_world(scene, rbw);
 
-  /* XXX TODO For rebuild: remove all constraints first.
+  /* XXX TODO: For rebuild: remove all constraints first.
    * Otherwise we can end up deleting objects that are still
    * referenced by constraints, corrupting bullet's internal list.
    *
@@ -1811,7 +1811,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
       /* validate that we've got valid object set up here... */
       RigidBodyOb *rbo = ob->rigidbody_object;
 
-      /* TODO remove this whole block once we are sure we never get NULL rbo here anymore. */
+      /* TODO: remove this whole block once we are sure we never get NULL rbo here anymore. */
       /* This cannot be done in CoW evaluation context anymore... */
       if (rbo == NULL) {
         BLI_assert(!"CoW object part of RBW object collection without RB object data, "
@@ -1868,7 +1868,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
     /* validate that we've got valid object set up here... */
     RigidBodyCon *rbc = ob->rigidbody_constraint;
 
-    /* TODO remove this whole block once we are sure we never get NULL rbo here anymore. */
+    /* TODO: remove this whole block once we are sure we never get NULL rbo here anymore. */
     /* This cannot be done in CoW evaluation context anymore... */
     if (rbc == NULL) {
       BLI_assert(!"CoW object part of RBW constraints collection without RB constraint data, "

@@ -1311,7 +1311,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      /* Note: #BKE_pose_rebuild is further only called on leave edit-mode. */
+      /* NOTE: #BKE_pose_rebuild is further only called on leave edit-mode. */
       if (ob->type == OB_ARMATURE) {
         if (ob->pose) {
           BKE_pose_tag_recalc(bmain, ob->pose);
@@ -1436,7 +1436,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         bPoseChannel *pchan;
         bConstraint *con;
         for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-          /* note, pchan->bone is also lib-link stuff */
+          /* NOTE: pchan->bone is also lib-link stuff. */
           if (pchan->limitmin[0] == 0.0f && pchan->limitmax[0] == 0.0f) {
             pchan->limitmin[0] = pchan->limitmin[1] = pchan->limitmin[2] = -180.0f;
             pchan->limitmax[0] = pchan->limitmax[1] = pchan->limitmax[2] = 180.0f;
@@ -2501,7 +2501,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 248, 2)) {
     Scene *sce;
 
-    /* Note, these will need to be added for painting */
+    /* NOTE: these will need to be added for painting. */
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       sce->toolsettings->imapaint.seam_bleed = 2;
       sce->toolsettings->imapaint.normal_angle = 80;

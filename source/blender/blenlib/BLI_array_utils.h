@@ -28,52 +28,53 @@
 extern "C" {
 #endif
 
-void _bli_array_reverse(void *arr, unsigned int arr_len, size_t arr_stride);
+void _bli_array_reverse(void *arr, uint arr_len, size_t arr_stride);
 #define BLI_array_reverse(arr, arr_len) _bli_array_reverse(arr, arr_len, sizeof(*(arr)))
 
-void _bli_array_wrap(void *arr, unsigned int arr_len, size_t arr_stride, int dir);
+void _bli_array_wrap(void *arr, uint arr_len, size_t arr_stride, int dir);
 #define BLI_array_wrap(arr, arr_len, dir) _bli_array_wrap(arr, arr_len, sizeof(*(arr)), dir)
 
-void _bli_array_permute(void *arr,
-                        const unsigned int arr_len,
-                        const size_t arr_stride,
-                        const unsigned int *order,
-                        void *arr_temp);
+void _bli_array_permute(
+    void *arr, const uint arr_len, const size_t arr_stride, const uint *order, void *arr_temp);
 #define BLI_array_permute(arr, arr_len, order) \
   _bli_array_permute(arr, arr_len, sizeof(*(arr)), order, NULL)
 #define BLI_array_permute_ex(arr, arr_len, order, arr_temp) \
   _bli_array_permute(arr, arr_len, sizeof(*(arr)), order, arr_temp)
 
-int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p);
+uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride);
+#define BLI_array_deduplicate_ordered(arr, arr_len) \
+  _bli_array_deduplicate_ordered(arr, arr_len, sizeof(*(arr)))
+
+int _bli_array_findindex(const void *arr, uint arr_len, size_t arr_stride, const void *p);
 #define BLI_array_findindex(arr, arr_len, p) _bli_array_findindex(arr, arr_len, sizeof(*(arr)), p)
 
-int _bli_array_rfindindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p);
+int _bli_array_rfindindex(const void *arr, uint arr_len, size_t arr_stride, const void *p);
 #define BLI_array_rfindindex(arr, arr_len, p) \
   _bli_array_rfindindex(arr, arr_len, sizeof(*(arr)), p)
 
 void _bli_array_binary_and(
-    void *arr, const void *arr_a, const void *arr_b, unsigned int arr_len, size_t arr_stride);
+    void *arr, const void *arr_a, const void *arr_b, uint arr_len, size_t arr_stride);
 #define BLI_array_binary_and(arr, arr_a, arr_b, arr_len) \
   (CHECK_TYPE_PAIR_INLINE(*(arr), *(arr_a)), \
    CHECK_TYPE_PAIR_INLINE(*(arr), *(arr_b)), \
    _bli_array_binary_and(arr, arr_a, arr_b, arr_len, sizeof(*(arr))))
 
 void _bli_array_binary_or(
-    void *arr, const void *arr_a, const void *arr_b, unsigned int arr_len, size_t arr_stride);
+    void *arr, const void *arr_a, const void *arr_b, uint arr_len, size_t arr_stride);
 #define BLI_array_binary_or(arr, arr_a, arr_b, arr_len) \
   (CHECK_TYPE_PAIR_INLINE(*(arr), *(arr_a)), \
    CHECK_TYPE_PAIR_INLINE(*(arr), *(arr_b)), \
    _bli_array_binary_or(arr, arr_a, arr_b, arr_len, sizeof(*(arr))))
 
 bool _bli_array_iter_span(const void *arr,
-                          unsigned int arr_len,
+                          uint arr_len,
                           size_t arr_stride,
                           bool use_wrap,
                           bool use_delimit_bounds,
                           bool (*test_fn)(const void *arr_item, void *user_data),
                           void *user_data,
-                          unsigned int span_step[2],
-                          unsigned int *r_span_len);
+                          uint span_step[2],
+                          uint *r_span_len);
 #define BLI_array_iter_span( \
     arr, arr_len, use_wrap, use_delimit_bounds, test_fn, user_data, span_step, r_span_len) \
   _bli_array_iter_span(arr, \
@@ -86,7 +87,7 @@ bool _bli_array_iter_span(const void *arr,
                        span_step, \
                        r_span_len)
 
-bool _bli_array_is_zeroed(const void *arr, unsigned int arr_len, size_t arr_stride);
+bool _bli_array_is_zeroed(const void *arr, uint arr_len, size_t arr_stride);
 #define BLI_array_is_zeroed(arr, arr_len) _bli_array_is_zeroed(arr, arr_len, sizeof(*(arr)))
 
 bool _bli_array_iter_spiral_square(const void *arr_v,

@@ -126,6 +126,8 @@ if(UNIX AND NOT APPLE)
 
   harvest(xml2/include xml2/include "*.h")
   harvest(xml2/lib xml2/lib "*.a")
+
+  harvest(wayland-protocols/share/wayland-protocols wayland-protocols/share/wayland-protocols/ "*.xml")
 else()
   harvest(blosc/lib openvdb/lib "*.a")
   harvest(xml2/lib opencollada/lib "*.a")

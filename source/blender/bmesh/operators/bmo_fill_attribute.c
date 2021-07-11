@@ -161,7 +161,7 @@ void bmo_face_attribute_fill_exec(BMesh *bm, BMOperator *op)
   /* now we can copy adjacent data */
   face_tot = bmesh_face_attribute_fill(bm, use_normals, use_data);
 
-  if (face_tot != BMO_slot_buffer_count(op->slots_in, "faces")) {
+  if (face_tot != BMO_slot_buffer_len(op->slots_in, "faces")) {
     /* any remaining tags will be skipped */
     BMO_slot_buffer_from_enabled_hflag(
         bm, op, op->slots_out, "faces_fail.out", BM_FACE, BM_ELEM_TAG);

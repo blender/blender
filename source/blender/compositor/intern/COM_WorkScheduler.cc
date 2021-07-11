@@ -126,7 +126,7 @@ static void *thread_execute_gpu(void *data)
   return nullptr;
 }
 
-static void opencl_start(CompositorContext &context)
+static void opencl_start(const CompositorContext &context)
 {
   if (context.getHasActiveOpenCLDevices()) {
     g_work_scheduler.opencl.queue = BLI_thread_queue_init();
@@ -458,7 +458,7 @@ void WorkScheduler::schedule(WorkPackage *package)
   }
 }
 
-void WorkScheduler::start(CompositorContext &context)
+void WorkScheduler::start(const CompositorContext &context)
 {
   if (COM_is_opencl_enabled()) {
     opencl_start(context);

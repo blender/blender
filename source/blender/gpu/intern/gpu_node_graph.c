@@ -259,7 +259,7 @@ static void gpu_node_output(GPUNode *node, const eGPUType type, GPUNodeLink **li
     output->link->link_type = GPU_NODE_LINK_OUTPUT;
     output->link->output = output;
 
-    /* note: the caller owns the reference to the link, GPUOutput
+    /* NOTE: the caller owns the reference to the link, GPUOutput
      * merely points to it, and if the node is destroyed it will
      * set that pointer to NULL */
   }

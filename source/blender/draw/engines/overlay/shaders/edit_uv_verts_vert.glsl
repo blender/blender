@@ -11,7 +11,7 @@ out vec4 fillColor;
 out vec4 outlineColor;
 out vec4 radii;
 
-/* TODO Theme? */
+/* TODO: Theme? */
 const vec4 pinned_col = vec4(1.0, 0.0, 0.0, 1.0);
 
 void main()

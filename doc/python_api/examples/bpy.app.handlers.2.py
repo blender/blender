@@ -12,6 +12,7 @@ such cases, lock the interface (Render → Lock Interface or
 Below is an example of a mesh that is altered from a handler:
 """
 
+
 def frame_change_pre(scene):
     # A triangle that shifts in the z direction
     zshift = scene.frame_current * 0.1

@@ -39,7 +39,7 @@
 #include "gl_state.hh"
 #include "gl_uniform_buffer.hh"
 
-#include "gl_backend.hh" /* TODO remove */
+#include "gl_backend.hh" /* TODO: remove. */
 #include "gl_context.hh"
 
 using namespace blender;

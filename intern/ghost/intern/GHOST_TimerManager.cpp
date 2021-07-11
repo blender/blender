@@ -40,9 +40,9 @@ GHOST_TimerManager::~GHOST_TimerManager()
   disposeTimers();
 }
 
-GHOST_TUns32 GHOST_TimerManager::getNumTimers()
+uint32_t GHOST_TimerManager::getNumTimers()
 {
-  return (GHOST_TUns32)m_timers.size();
+  return (uint32_t)m_timers.size();
 }
 
 bool GHOST_TimerManager::getTimerFound(GHOST_TimerTask *timer)
@@ -81,13 +81,13 @@ GHOST_TSuccess GHOST_TimerManager::removeTimer(GHOST_TimerTask *timer)
   return success;
 }
 
-GHOST_TUns64 GHOST_TimerManager::nextFireTime()
+uint64_t GHOST_TimerManager::nextFireTime()
 {
-  GHOST_TUns64 smallest = GHOST_kFireTimeNever;
+  uint64_t smallest = GHOST_kFireTimeNever;
   TTimerVector::iterator iter;
 
   for (iter = m_timers.begin(); iter != m_timers.end(); ++iter) {
-    GHOST_TUns64 next = (*iter)->getNext();
+    uint64_t next = (*iter)->getNext();
 
     if (next < smallest)
       smallest = next;
@@ -96,7 +96,7 @@ GHOST_TUns64 GHOST_TimerManager::nextFireTime()
   return smallest;
 }
 
-bool GHOST_TimerManager::fireTimers(GHOST_TUns64 time)
+bool GHOST_TimerManager::fireTimers(uint64_t time)
 {
   TTimerVector::iterator iter;
   bool anyProcessed = false;
@@ -109,20 +109,20 @@ bool GHOST_TimerManager::fireTimers(GHOST_TUns64 time)
   return anyProcessed;
 }
 
-bool GHOST_TimerManager::fireTimer(GHOST_TUns64 time, GHOST_TimerTask *task)
+bool GHOST_TimerManager::fireTimer(uint64_t time, GHOST_TimerTask *task)
 {
-  GHOST_TUns64 next = task->getNext();
+  uint64_t next = task->getNext();
 
   // Check if the timer should be fired
   if (time > next) {
     // Fire the timer
     GHOST_TimerProcPtr timerProc = task->getTimerProc();
-    GHOST_TUns64 start = task->getStart();
+    uint64_t start = task->getStart();
     timerProc(task, time - start);
 
     // Update the time at which we will fire it again
-    GHOST_TUns64 interval = task->getInterval();
-    GHOST_TUns64 numCalls = (next - start) / interval;
+    uint64_t interval = task->getInterval();
+    uint64_t numCalls = (next - start) / interval;
     numCalls++;
     next = start + numCalls * interval;
     task->setNext(next);

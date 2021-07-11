@@ -810,7 +810,7 @@ static char *code_generate_geometry(GPUNodeGraph *graph,
   }
 
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
-    /* TODO let shader choose what to do depending on what the attribute is. */
+    /* TODO: let shader choose what to do depending on what the attribute is. */
     BLI_dynstr_appendf(ds, "dataAttrOut.var%d = dataAttrIn[vert].var%d;\\\n", attr->id, attr->id);
   }
   BLI_dynstr_append(ds, "}\n\n");
@@ -938,9 +938,9 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   return pass;
 }
 
-static int count_active_texture_sampler(GPUShader *shader, char *source)
+static int count_active_texture_sampler(GPUShader *shader, const char *source)
 {
-  char *code = source;
+  const char *code = source;
 
   /* Remember this is per stage. */
   GSet *sampler_ids = BLI_gset_int_new(__func__);

@@ -2712,10 +2712,10 @@ static int image_flip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool flip_horizontal = RNA_boolean_get(op->ptr, "use_flip_horizontal");
-  const bool flip_vertical = RNA_boolean_get(op->ptr, "use_flip_vertical");
+  const bool use_flip_x = RNA_boolean_get(op->ptr, "use_flip_x");
+  const bool use_flip_y = RNA_boolean_get(op->ptr, "use_flip_y");
 
-  if (!flip_horizontal && !flip_vertical) {
+  if (!use_flip_x && !use_flip_y) {
     BKE_image_release_ibuf(ima, ibuf, NULL);
     return OPERATOR_FINISHED;
   }
@@ -2734,11 +2734,12 @@ static int image_flip_exec(bContext *C, wmOperator *op)
 
     float *orig_float_pixels = MEM_dupallocN(float_pixels);
     for (int x = 0; x < size_x; x++) {
+      const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
       for (int y = 0; y < size_y; y++) {
-        const int source_pixel_x = flip_horizontal ? size_x - x - 1 : x;
-        const int source_pixel_y = flip_vertical ? size_y - y - 1 : y;
+        const int source_pixel_y = use_flip_y ? size_y - y - 1 : y;
 
-        float *source_pixel = &orig_float_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
+        const float *source_pixel =
+            &orig_float_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
         float *target_pixel = &float_pixels[4 * (x + y * size_x)];
 
         copy_v4_v4(target_pixel, source_pixel);
@@ -2754,11 +2755,12 @@ static int image_flip_exec(bContext *C, wmOperator *op)
     char *char_pixels = (char *)ibuf->rect;
     char *orig_char_pixels = MEM_dupallocN(char_pixels);
     for (int x = 0; x < size_x; x++) {
+      const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
       for (int y = 0; y < size_y; y++) {
-        const int source_pixel_x = flip_horizontal ? size_x - x - 1 : x;
-        const int source_pixel_y = flip_vertical ? size_y - y - 1 : y;
+        const int source_pixel_y = use_flip_y ? size_y - y - 1 : y;
 
-        char *source_pixel = &orig_char_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
+        const char *source_pixel =
+            &orig_char_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
         char *target_pixel = &char_pixels[4 * (x + y * size_x)];
 
         copy_v4_v4_char(target_pixel, source_pixel);
@@ -2804,10 +2806,9 @@ void IMAGE_OT_flip(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_boolean(
-      ot->srna, "use_flip_horizontal", false, "Horizontal", "Flip the image horizontally");
+      ot->srna, "use_flip_x", false, "Horizontal", "Flip the image horizontally");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(
-      ot->srna, "use_flip_vertical", false, "Vertical", "Flip the image vertically");
+  prop = RNA_def_boolean(ot->srna, "use_flip_y", false, "Vertical", "Flip the image vertically");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* flags */

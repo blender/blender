@@ -43,7 +43,7 @@
 // #define DEBUG_STRSIZE
 
 /* array copied from glib's gutf8.c, */
-/* Note: last two values (0xfe and 0xff) are forbidden in utf-8,
+/* NOTE: last two values (0xfe and 0xff) are forbidden in utf-8,
  * so they are considered 1 byte length too. */
 static const size_t utf8_skip_data[256] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -265,7 +265,7 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
   memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-  /* note: currently we don't attempt to deal with invalid utf8 chars */
+  /* NOTE: currently we don't attempt to deal with invalid utf8 chars. */
   BLI_STR_UTF8_CPY(dst, src, maxncpy);
 
   return r_dst;
@@ -281,7 +281,7 @@ size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, s
   memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
 
-  /* note: currently we don't attempt to deal with invalid utf8 chars */
+  /* NOTE: currently we don't attempt to deal with invalid utf8 chars. */
   BLI_STR_UTF8_CPY(dst, src, maxncpy);
 
   return (size_t)(dst - r_dst);
@@ -444,8 +444,8 @@ int BLI_str_utf8_char_width_safe(const char *p)
 
 /* copied from glib's gutf8.c, added 'Err' arg */
 
-/* note, glib uses uint for unicode, best we do the same,
- * though we don't typedef it - campbell */
+/* NOTE(campbell): glib uses uint for unicode, best we do the same,
+ * though we don't typedef it. */
 
 #define UTF8_COMPUTE(Char, Mask, Len, Err) \
   if (Char < 128) { \
@@ -580,8 +580,10 @@ uint BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, size_t *__r
   return result;
 }
 
-/* another variant that steps over the index,
- * note, currently this also falls back to latin1 for text drawing. */
+/**
+ * Another variant that steps over the index.
+ * \note currently this also falls back to latin1 for text drawing.
+ */
 uint BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict index)
 {
   int i, len;

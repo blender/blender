@@ -67,15 +67,6 @@ class ExecutionModel {
 
   virtual void execute(ExecutionSystem &exec_system) = 0;
 
-  virtual void execute_work(const rcti &UNUSED(work_rect),
-                            std::function<void(const rcti &split_rect)> UNUSED(work_func))
-  {
-    BLI_assert(!"Method not supported by current execution model");
-  }
-
- protected:
-  bool is_breaked() const;
-
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:BaseExecutionModel")
 #endif

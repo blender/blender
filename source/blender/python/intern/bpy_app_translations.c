@@ -101,7 +101,7 @@ static bool _ghashutil_keycmp(const void *a, const void *b)
   const GHashKey *A = a;
   const GHashKey *B = b;
 
-  /* Note: comparing msgid first, most of the time it will be enough! */
+  /* NOTE: comparing msgid first, most of the time it will be enough! */
   if (BLI_ghashutil_strcmp(A->msgid, B->msgid) == false) {
     return BLI_ghashutil_strcmp(A->msgctxt, B->msgctxt);
   }
@@ -497,7 +497,7 @@ static PyObject *app_translations_locale_get(PyObject *UNUSED(self), void *UNUSE
   return PyUnicode_FromString(BLT_lang_get());
 }
 
-/* Note: defining as getter, as (even if quite unlikely), this *may* change during runtime... */
+/* NOTE: defining as getter, as (even if quite unlikely), this *may* change during runtime... */
 PyDoc_STRVAR(app_translations_locales_doc,
              "All locales currently known by Blender (i.e. available as translations).");
 static PyObject *app_translations_locales_get(PyObject *UNUSED(self), void *UNUSED(userdata))

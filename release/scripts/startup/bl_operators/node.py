@@ -306,67 +306,6 @@ class NODE_OT_tree_path_parent(Operator):
         return {'FINISHED'}
 
 
-class NODE_OT_active_preview_toggle(Operator):
-    '''Toggle active preview state of node'''
-    bl_idname = "node.active_preview_toggle"
-    bl_label = "Toggle Active Preview"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        if space is None:
-            return False
-        if space.type != 'NODE_EDITOR':
-            return False
-        if space.edit_tree is None:
-            return False
-        if space.edit_tree.nodes.active is None:
-            return False
-        return True
-
-    def execute(self, context):
-        node_editor = context.space_data
-        ntree = node_editor.edit_tree
-        active_node = ntree.nodes.active
-
-        if active_node.active_preview:
-            self._disable_preview(context, active_node)
-        else:
-            self._enable_preview(context, node_editor, ntree, active_node)
-
-        return {'FINISHED'}
-
-    @classmethod
-    def _enable_preview(cls, context, node_editor, ntree, active_node):
-        spreadsheets = cls._find_unpinned_spreadsheets(context)
-
-        for spreadsheet in spreadsheets:
-            spreadsheet.set_geometry_node_context(node_editor, active_node)
-
-        for node in ntree.nodes:
-            node.active_preview = False
-        active_node.active_preview = True
-
-    @classmethod
-    def _disable_preview(cls, context, active_node):
-        spreadsheets = cls._find_unpinned_spreadsheets(context)
-        for spreadsheet in spreadsheets:
-            spreadsheet.context_path.clear()
-
-        active_node.active_preview = False
-
-    @staticmethod
-    def _find_unpinned_spreadsheets(context):
-        spreadsheets = []
-        for window in context.window_manager.windows:
-            for area in window.screen.areas:
-                space = area.spaces.active
-                if space.type == 'SPREADSHEET' and not space.is_pinned:
-                    spreadsheets.append(space)
-        return spreadsheets
-
-
 classes = (
     NodeSetting,
 
@@ -375,5 +314,4 @@ classes = (
     NODE_OT_add_search,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_tree_path_parent,
-    NODE_OT_active_preview_toggle,
 )

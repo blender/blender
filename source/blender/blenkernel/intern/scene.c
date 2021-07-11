@@ -192,7 +192,7 @@ static void scene_init_data(ID *id)
 
   BLI_strncpy(scene->r.pic, U.renderdir, sizeof(scene->r.pic));
 
-  /* Note; in header_info.c the scene copy happens...,
+  /* NOTE: in header_info.c the scene copy happens...,
    * if you add more to renderdata it has to be checked there. */
 
   /* multiview - stereo */
@@ -1045,7 +1045,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene, Paint **paint)
 {
-  /* TODO. is this needed */
+  /* TODO: is this needed. */
   BLO_read_data_address(reader, paint);
 
   if (*paint) {
@@ -1899,14 +1899,14 @@ void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
   sce_dst->eevee = sce_src->eevee;
   sce_dst->eevee.light_cache_data = NULL;
   sce_dst->eevee.light_cache_info[0] = '\0';
-  /* TODO Copy the cache. */
+  /* TODO: Copy the cache. */
 }
 
 Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 {
   Scene *sce_copy;
 
-  /* TODO this should/could most likely be replaced by call to more generic code at some point...
+  /* TODO: this should/could most likely be replaced by call to more generic code at some point...
    * But for now, let's keep it well isolated here. */
   if (type == SCE_COPY_EMPTY) {
     ListBase rv;

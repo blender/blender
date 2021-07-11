@@ -716,7 +716,7 @@ MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
   return dw_new;
 }
 
-/* TODO. merge with code above! */
+/* TODO: merge with code above! */
 
 /**
  * Adds the given vertex to the specified vertex group, with given weight.
@@ -1334,7 +1334,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
 
   const size_t elem_size = sizeof(*((MDeformVert *)NULL));
 
-  /* Note:
+  /* NOTE:
    * VGroups are a bit hairy, since their layout is defined on object level (ob->defbase),
    * while their actual data is a (mesh) CD layer.
    * This implies we may have to handle data layout itself while having NULL data itself,
@@ -1357,7 +1357,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
   }
 
   if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
-    /* Note: use_delete has not much meaning in this case, ignored. */
+    /* NOTE: use_delete has not much meaning in this case, ignored. */
 
     if (fromlayers >= 0) {
       idx_src = fromlayers;
@@ -1373,7 +1373,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
     }
 
     if (tolayers >= 0) {
-      /* Note: in this case we assume layer exists! */
+      /* NOTE: in this case we assume layer exists! */
       idx_dst = tolayers;
       BLI_assert(idx_dst < BLI_listbase_count(&ob_dst->defbase));
     }

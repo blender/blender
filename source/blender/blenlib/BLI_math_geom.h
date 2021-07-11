@@ -255,7 +255,7 @@ void limit_dist_v3(float v1[3], float v2[3], const float dist);
 
 /******************************* Intersection ********************************/
 
-/* TODO int return value consistency */
+/* TODO: int return value consistency. */
 
 /* line-line */
 #define ISECT_LINE_LINE_COLINEAR -1

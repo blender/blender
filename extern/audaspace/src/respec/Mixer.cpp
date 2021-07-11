@@ -21,9 +21,25 @@
 
 AUD_NAMESPACE_BEGIN
 
-Mixer::Mixer(DeviceSpecs specs) :
-	m_specs(specs)
+Mixer::Mixer(DeviceSpecs specs)
 {
+	setSpecs(specs);
+}
+
+DeviceSpecs Mixer::getSpecs() const
+{
+	return m_specs;
+}
+
+void Mixer::setSpecs(Specs specs)
+{
+	m_specs.specs = specs;
+}
+
+void Mixer::setSpecs(DeviceSpecs specs)
+{
+	m_specs = specs;
+
 	switch(m_specs.format)
 	{
 	case FORMAT_U8:
@@ -52,16 +68,6 @@ Mixer::Mixer(DeviceSpecs specs) :
 	default:
 		break;
 	}
-}
-
-DeviceSpecs Mixer::getSpecs() const
-{
-	return m_specs;
-}
-
-void Mixer::setSpecs(Specs specs)
-{
-	m_specs.specs = specs;
 }
 
 void Mixer::clear(int length)

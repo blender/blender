@@ -242,7 +242,7 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
 
       strArray = (GHOST_TStringArray *)::malloc(sizeof(GHOST_TStringArray));
       strArray->count = 0;
-      strArray->strings = (GHOST_TUns8 **)::malloc(totfiles * sizeof(GHOST_TUns8 *));
+      strArray->strings = (uint8_t **)::malloc(totfiles * sizeof(uint8_t *));
 
       for (UINT nfile = 0; nfile < totfiles; nfile++) {
         if (::DragQueryFileW(hdrop, nfile, fpath, MAX_PATH) > 0) {
@@ -251,7 +251,7 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
           }
           // Just ignore paths that could not be converted verbatim.
 
-          strArray->strings[nvalid] = (GHOST_TUns8 *)temp_path;
+          strArray->strings[nvalid] = (uint8_t *)temp_path;
           strArray->count = nvalid + 1;
           nvalid++;
         }

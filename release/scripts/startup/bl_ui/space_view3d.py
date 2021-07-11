@@ -2765,23 +2765,27 @@ class VIEW3D_MT_make_single_user(Menu):
 
         props = layout.operator("object.make_single_user", text="Object")
         props.object = True
-        props.obdata = props.material = props.animation = False
+        props.obdata = props.material = props.animation = props.obdata_animation = False
 
         props = layout.operator("object.make_single_user", text="Object & Data")
         props.object = props.obdata = True
-        props.material = props.animation = False
+        props.material = props.animation = props.obdata_animation = False
 
         props = layout.operator("object.make_single_user", text="Object & Data & Materials")
         props.object = props.obdata = props.material = True
-        props.animation = False
+        props.animation = props.obdata_animation = False
 
         props = layout.operator("object.make_single_user", text="Materials")
         props.material = True
-        props.object = props.obdata = props.animation = False
+        props.object = props.obdata = props.animation = props.obdata_animation = False
 
         props = layout.operator("object.make_single_user", text="Object Animation")
         props.animation = True
-        props.object = props.obdata = props.material = False
+        props.object = props.obdata = props.material = props.obdata_animation = False
+
+        props = layout.operator("object.make_single_user", text="Object Data Animation")
+        props.obdata_animation = props.obdata = True
+        props.object = props.material = props.animation = False
 
 
 class VIEW3D_MT_object_convert(Menu):
@@ -3129,7 +3133,6 @@ class VIEW3D_MT_mask(Menu):
         layout.menu("VIEW3D_MT_random_mask", text="Random Mask")
 
 
-
 class VIEW3D_MT_face_sets(Menu):
     bl_label = "Face Sets"
 
@@ -3258,6 +3261,7 @@ class VIEW3D_MT_random_mask(Menu):
 
         op = layout.operator("sculpt.mask_init", text='Per Loose Part')
         op.mode = 'RANDOM_PER_LOOSE_PART'
+
 
 class VIEW3D_MT_particle(Menu):
     bl_label = "Particle"

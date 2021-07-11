@@ -140,7 +140,7 @@ static void metaball_batch_cache_clear(MetaBall *mb)
   GPU_BATCH_DISCARD_SAFE(cache->edge_detection);
   GPU_VERTBUF_DISCARD_SAFE(cache->pos_nor_in_order);
   GPU_INDEXBUF_DISCARD_SAFE(cache->edges_adj_lines);
-  /* Note: shaded_triangles[0] is already freed by cache->batch */
+  /* NOTE: shaded_triangles[0] is already freed by `cache->batch`. */
   MEM_SAFE_FREE(cache->shaded_triangles);
   cache->mat_len = 0;
   cache->is_manifold = false;

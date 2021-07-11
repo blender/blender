@@ -101,7 +101,7 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
 {
   BKE_LIB_FOREACHID_PROCESS(data, area->full, IDWALK_CB_NOP);
 
-  /* TODO this should be moved to a callback in `SpaceType`, defined in each editor's own code.
+  /* TODO: this should be moved to a callback in `SpaceType`, defined in each editor's own code.
    * Will be for a later round of cleanup though... */
   LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
     switch (sl->spacetype) {
@@ -289,7 +289,7 @@ bool BKE_screen_blend_read_data(BlendDataReader *reader, bScreen *screen)
   return success;
 }
 
-/* note: file read without screens option G_FILE_NO_UI;
+/* NOTE: file read without screens option G_FILE_NO_UI;
  * check lib pointers in call below */
 static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
 {
@@ -1734,6 +1734,12 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       sfile->runtime = NULL;
       BLO_read_data_address(reader, &sfile->params);
       BLO_read_data_address(reader, &sfile->asset_params);
+      if (sfile->params) {
+        sfile->params->rename_id = NULL;
+      }
+      if (sfile->asset_params) {
+        sfile->asset_params->base_params.rename_id = NULL;
+      }
     }
     else if (sl->spacetype == SPACE_ACTION) {
       SpaceAction *saction = (SpaceAction *)sl;

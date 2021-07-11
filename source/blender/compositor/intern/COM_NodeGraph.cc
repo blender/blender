@@ -174,7 +174,7 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
     return;
   }
 
-  /* Note: a DNA input socket can have multiple NodeInput in the compositor tree! (proxies)
+  /* NOTE: a DNA input socket can have multiple NodeInput in the compositor tree! (proxies)
    * The output then gets linked to each one of them.
    */
 

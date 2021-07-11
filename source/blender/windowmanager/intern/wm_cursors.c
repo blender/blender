@@ -124,14 +124,14 @@ static void window_set_custom_cursor(
     wmWindow *win, const uchar mask[16][2], const uchar bitmap[16][2], int hotx, int hoty)
 {
   GHOST_SetCustomCursorShape(
-      win->ghostwin, (GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotx, hoty, true);
+      win->ghostwin, (uint8_t *)bitmap, (uint8_t *)mask, 16, 16, hotx, hoty, true);
 }
 
 static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor)
 {
   GHOST_SetCustomCursorShape(win->ghostwin,
-                             (GHOST_TUns8 *)cursor->bitmap,
-                             (GHOST_TUns8 *)cursor->mask,
+                             (uint8_t *)cursor->bitmap,
+                             (uint8_t *)cursor->mask,
                              16,
                              16,
                              cursor->hotx,
@@ -301,7 +301,7 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
 
 static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
 {
-  /* note: don't use wmEvent coords because of continuous grab T36409. */
+  /* NOTE: don't use wmEvent coords because of continuous grab T36409. */
   int cx, cy;
   wm_cursor_position_get(win, &cx, &cy);
   WM_cursor_warp(win, cx + x, cy + y);

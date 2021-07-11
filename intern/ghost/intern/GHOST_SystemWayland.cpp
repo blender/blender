@@ -47,11 +47,21 @@
 #include <xkbcommon/xkbcommon.h>
 
 #include <fcntl.h>
-#include <linux/input-event-codes.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
 #include <cstring>
+
+#include <linux/input-event-codes.h>
+
+/* selected input event code defines from 'linux/input-event-codes.h'
+ * We include some of the button input event codes here, since the header is
+ * only available in more recent kernel versions. The event codes are used to
+ * to differentiate from which mouse button an event comes from.
+ */
+#define BTN_LEFT 0x110
+#define BTN_RIGHT 0x111
+#define BTN_MIDDLE 0x112
 
 struct buffer_t {
   void *data;
@@ -468,7 +478,7 @@ static const zwp_relative_pointer_v1_listener relative_pointer_listener = {
 
 static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
-  const GHOST_TUns64 time = input->system->getMilliSeconds();
+  const uint64_t time = input->system->getMilliSeconds();
   GHOST_IWindow *const window = static_cast<GHOST_WindowWayland *>(
       wl_surface_get_user_data(input->focus_pointer));
   for (const std::string &type : mime_preference_order) {
@@ -718,10 +728,9 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
       GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
           malloc(sizeof(GHOST_TStringArray)));
       flist->count = int(uris.size());
-      flist->strings = static_cast<GHOST_TUns8 **>(malloc(uris.size() * sizeof(GHOST_TUns8 *)));
+      flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
       for (size_t i = 0; i < uris.size(); i++) {
-        flist->strings[i] = static_cast<GHOST_TUns8 *>(
-            malloc((uris[i].size() + 1) * sizeof(GHOST_TUns8)));
+        flist->strings[i] = static_cast<uint8_t *>(malloc((uris[i].size() + 1) * sizeof(uint8_t)));
         memcpy(flist->strings[i], uris[i].data(), uris[i].size() + 1);
       }
       GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
@@ -1171,7 +1180,7 @@ static void keyboard_key(void *data,
         .key_data = key_data,
     });
 
-    auto cb = [](GHOST_ITimerTask *task, GHOST_TUns64 /*time*/) {
+    auto cb = [](GHOST_ITimerTask *task, uint64_t /*time*/) {
       struct key_repeat_payload_t *payload = static_cast<key_repeat_payload_t *>(
           task->getUserData());
       payload->system->pushEvent(new GHOST_EventKey(payload->system->getMilliSeconds(),
@@ -1511,14 +1520,14 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kFailure;
 }
 
-GHOST_TUns8 *GHOST_SystemWayland::getClipboard(bool /*selection*/) const
+char *GHOST_SystemWayland::getClipboard(bool /*selection*/) const
 {
-  GHOST_TUns8 *clipboard = static_cast<GHOST_TUns8 *>(malloc((selection.size() + 1)));
+  char *clipboard = static_cast<char *>(malloc((selection.size() + 1)));
   memcpy(clipboard, selection.data(), selection.size() + 1);
   return clipboard;
 }
 
-void GHOST_SystemWayland::putClipboard(GHOST_TInt8 *buffer, bool /*selection*/) const
+void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) const
 {
   if (!d->data_device_manager || d->inputs.empty()) {
     return;
@@ -1545,12 +1554,12 @@ void GHOST_SystemWayland::putClipboard(GHOST_TInt8 *buffer, bool /*selection*/) 
   }
 }
 
-GHOST_TUns8 GHOST_SystemWayland::getNumDisplays() const
+uint8_t GHOST_SystemWayland::getNumDisplays() const
 {
-  return d ? GHOST_TUns8(d->outputs.size()) : 0;
+  return d ? uint8_t(d->outputs.size()) : 0;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
 {
   if (!d->inputs.empty() && (d->inputs[0]->focus_pointer != nullptr)) {
     x = d->inputs[0]->x;
@@ -1562,12 +1571,12 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(GHOST_TInt32 &x, GHOST_TIn
   }
 }
 
-GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(GHOST_TInt32 /*x*/, GHOST_TInt32 /*y*/)
+GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(int32_t /*x*/, int32_t /*y*/)
 {
   return GHOST_kFailure;
 }
 
-void GHOST_SystemWayland::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
+void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   if (getNumDisplays() > 0) {
     /* We assume first output as main. */
@@ -1576,7 +1585,7 @@ void GHOST_SystemWayland::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TU
   }
 }
 
-void GHOST_SystemWayland::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
+void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   getMainDisplayDimensions(width, height);
 }
@@ -1640,10 +1649,10 @@ GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 }
 
 GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
-                                                 GHOST_TInt32 left,
-                                                 GHOST_TInt32 top,
-                                                 GHOST_TUns32 width,
-                                                 GHOST_TUns32 height,
+                                                 int32_t left,
+                                                 int32_t top,
+                                                 uint32_t width,
+                                                 uint32_t height,
                                                  GHOST_TWindowState state,
                                                  GHOST_TDrawingContextType type,
                                                  GHOST_GLSettings glSettings,
@@ -1780,8 +1789,8 @@ GHOST_TSuccess GHOST_SystemWayland::hasCursorShape(GHOST_TStandardCursor cursorS
   return GHOST_TSuccess(cursors.count(cursorShape) && !cursors.at(cursorShape).empty());
 }
 
-GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(GHOST_TUns8 *bitmap,
-                                                         GHOST_TUns8 *mask,
+GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
+                                                         uint8_t *mask,
                                                          int sizex,
                                                          int sizey,
                                                          int hotX,

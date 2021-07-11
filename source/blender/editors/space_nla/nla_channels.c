@@ -288,14 +288,14 @@ static int mouse_nla_channels(
       /* button region... */
       if (x >= (v2d->cur.xmax - NLACHANNEL_BUTTON_WIDTH)) {
         if (nlaedit_is_tweakmode_on(ac) == 0) {
-          /* 'push-down' action - only usable when not in TweakMode */
+          /* 'push-down' action - only usable when not in tweak-mode */
           /* TODO: make this use the operator instead of calling the function directly
            * however, calling the operator requires that we supply the args,
            * and that works with proper buttons only */
           BKE_nla_action_pushdown(adt, ID_IS_OVERRIDE_LIBRARY(ale->id));
         }
         else {
-          /* when in tweakmode, this button becomes the toggle for mapped editing */
+          /* When in tweak-mode, this button becomes the toggle for mapped editing. */
           adt->flag ^= ADT_NLA_EDIT_NOMAP;
         }
 
@@ -308,13 +308,13 @@ static int mouse_nla_channels(
         /* NOTE: rest of NLA-Action name doubles for operating on the AnimData block
          * - this is useful when there's no clear divider, and makes more sense in
          *   the case of users trying to use this to change actions
-         * - in tweakmode, clicking here gets us out of tweakmode, as changing selection
-         *   while in tweakmode is really evil!
+         * - in tweak-mode, clicking here gets us out of tweak-mode, as changing selection
+         *   while in tweak-mode is really evil!
          * - we disable "solo" flags too, to make it easier to work with stashed actions
          *   with less trouble
          */
         if (nlaedit_is_tweakmode_on(ac)) {
-          /* exit tweakmode immediately */
+          /* Exit tweak-mode immediately. */
           nlaedit_disable_tweakmode(ac, true);
 
           /* changes to NLA-Action occurred */
@@ -515,7 +515,7 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* 'push-down' action - only usable when not in TweakMode */
+  /* 'push-down' action - only usable when not in Tweak-mode. */
   BKE_nla_action_pushdown(adt, ID_IS_OVERRIDE_LIBRARY(id));
 
   struct Main *bmain = CTX_data_main(C);
@@ -874,7 +874,7 @@ static int nlaedit_objects_add_exec(bContext *C, wmOperator *UNUSED(op))
   /* operate on selected objects... */
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     /* ensure that object has AnimData... that's all */
-    BKE_animdata_add_id(&ob->id);
+    BKE_animdata_ensure_id(&ob->id);
   }
   CTX_DATA_END;
 

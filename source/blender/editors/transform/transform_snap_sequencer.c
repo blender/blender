@@ -108,7 +108,7 @@ static SeqCollection *query_snap_targets(const TransInfo *t)
 {
   const ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene, false));
   const short snap_flag = SEQ_tool_settings_snap_flag_get(t->scene);
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->flag & SELECT)) {
       continue; /* Selected are being transformed. */

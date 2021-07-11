@@ -221,6 +221,7 @@ struct NodeOperationFlags {
 
   /**
    * Is this a set operation (value, color, vector).
+   * TODO: To be replaced by is_constant_operation flag once tiled implementation is removed.
    */
   bool is_set_operation : 1;
   bool is_write_buffer_operation : 1;
@@ -242,6 +243,17 @@ struct NodeOperationFlags {
    */
   bool is_fullframe_operation : 1;
 
+  /**
+   * Whether operation is a primitive constant operation (Color/Vector/Value).
+   */
+  bool is_constant_operation : 1;
+
+  /**
+   * Whether operation have constant elements/pixels values when all its inputs are constant
+   * operations.
+   */
+  bool can_be_constant : 1;
+
   NodeOperationFlags()
   {
     complex = false;
@@ -258,6 +270,8 @@ struct NodeOperationFlags {
     is_preview_operation = false;
     use_datatype_conversion = true;
     is_fullframe_operation = false;
+    is_constant_operation = false;
+    can_be_constant = false;
   }
 };
 
@@ -315,6 +329,8 @@ class NodeOperation {
    * Flags how to evaluate this operation.
    */
   NodeOperationFlags flags;
+
+  ExecutionSystem *exec_system_;
 
  public:
   virtual ~NodeOperation()
@@ -402,6 +418,12 @@ class NodeOperation {
   {
     this->m_btree = tree;
   }
+
+  void set_execution_system(ExecutionSystem *system)
+  {
+    exec_system_ = system;
+  }
+
   virtual void initExecution();
 
   /**
@@ -569,18 +591,14 @@ class NodeOperation {
   /** \name Full Frame Methods
    * \{ */
 
-  void render(MemoryBuffer *output_buf,
-              Span<rcti> areas,
-              Span<MemoryBuffer *> inputs_bufs,
-              ExecutionSystem &exec_system);
+  void render(MemoryBuffer *output_buf, Span<rcti> areas, Span<MemoryBuffer *> inputs_bufs);
 
   /**
    * Executes operation updating output memory buffer. Single-threaded calls.
    */
   virtual void update_memory_buffer(MemoryBuffer *UNUSED(output),
                                     const rcti &UNUSED(area),
-                                    Span<MemoryBuffer *> UNUSED(inputs),
-                                    ExecutionSystem &UNUSED(exec_system))
+                                    Span<MemoryBuffer *> UNUSED(inputs))
   {
   }
 
@@ -678,13 +696,11 @@ class NodeOperation {
 
   void render_full_frame(MemoryBuffer *output_buf,
                          Span<rcti> areas,
-                         Span<MemoryBuffer *> inputs_bufs,
-                         ExecutionSystem &exec_system);
+                         Span<MemoryBuffer *> inputs_bufs);
 
   void render_full_frame_fallback(MemoryBuffer *output_buf,
                                   Span<rcti> areas,
-                                  Span<MemoryBuffer *> inputs,
-                                  ExecutionSystem &exec_system);
+                                  Span<MemoryBuffer *> inputs);
   void render_tile(MemoryBuffer *output_buf, rcti *tile_rect);
   Vector<NodeOperationOutput *> replace_inputs_with_buffers(Span<MemoryBuffer *> inputs_bufs);
   void remove_buffers_and_restore_original_inputs(

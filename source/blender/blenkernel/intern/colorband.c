@@ -295,7 +295,7 @@ void BKE_colorband_init_from_table_rgba(ColorBand *coba,
                                         const int array_len,
                                         bool filter_samples)
 {
-  /* Note, we could use MAXCOLORBAND here, but results of re-sampling are nicer,
+  /* NOTE: we could use MAXCOLORBAND here, but results of re-sampling are nicer,
    * avoid different behavior when limit is hit. */
   if (array_len < 2) {
     /* No Re-sample, just de-duplicate. */
@@ -420,7 +420,7 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
 
   cbd1 = coba->data;
 
-  /* Note: when ipotype >= COLBAND_INTERP_B_SPLINE,
+  /* NOTE: when ipotype >= COLBAND_INTERP_B_SPLINE,
    * we cannot do early-out with a constant color before first color stop and after last one,
    * because interpolation starts before and ends after those... */
   ipotype = (coba->color_mode == COLBAND_BLEND_RGB) ? coba->ipotype : COLBAND_INTERP_LINEAR;

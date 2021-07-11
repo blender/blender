@@ -125,9 +125,9 @@ ScrArea *area_split(const wmWindow *win,
     return NULL;
   }
 
-  /* note regarding (fac > 0.5f) checks below.
+  /* NOTE(campbell): regarding (fac > 0.5f) checks below.
    * normally it shouldn't matter which is used since the copy should match the original
-   * however with viewport rendering and python console this isn't the case. - campbell */
+   * however with viewport rendering and python console this isn't the case. */
 
   if (dir_axis == SCREEN_AXIS_H) {
     /* new vertices */
@@ -1683,7 +1683,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 
     sad->region = CTX_wm_region(C);
     /* If start-frame is larger than current frame, we put current-frame on start-frame.
-     * note: first frame then is not drawn! (ton) */
+     * NOTE(ton): first frame then is not drawn! */
     if (PRVRANGEON) {
       if (scene->r.psfra > scene->r.cfra) {
         sad->sfra = scene->r.cfra;

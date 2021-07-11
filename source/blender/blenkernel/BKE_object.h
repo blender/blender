@@ -72,10 +72,6 @@ void BKE_object_free_curve_cache(struct Object *ob);
 void BKE_object_free_derived_caches(struct Object *ob);
 void BKE_object_free_caches(struct Object *object);
 
-void BKE_object_preview_geometry_set_add(struct Object *ob,
-                                         const uint64_t key,
-                                         struct GeometrySet *geometry_set);
-
 void BKE_object_modifier_hook_reset(struct Object *ob, struct HookModifierData *hmd);
 void BKE_object_modifier_gpencil_hook_reset(struct Object *ob,
                                             struct HookGpencilModifierData *hmd);
@@ -245,7 +241,7 @@ void BKE_object_dimensions_set(struct Object *ob, const float value[3], int axis
 
 void BKE_object_empty_draw_type_set(struct Object *ob, const int value);
 void BKE_object_boundbox_flag(struct Object *ob, int flag, const bool set);
-void BKE_object_boundbox_calc_from_mesh(struct Object *ob, struct Mesh *me_eval);
+void BKE_object_boundbox_calc_from_mesh(struct Object *ob, const struct Mesh *me_eval);
 void BKE_object_minmax(struct Object *ob, float r_min[3], float r_max[3], const bool use_hidden);
 bool BKE_object_minmax_dupli(struct Depsgraph *depsgraph,
                              struct Scene *scene,

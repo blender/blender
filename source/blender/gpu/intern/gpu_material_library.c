@@ -684,7 +684,7 @@ static GPUMaterialLibrary *gpu_material_libraries[] = {
 
 static GHash *FUNCTION_HASH = NULL;
 
-char *gpu_str_skip_token(char *str, char *token, int max)
+const char *gpu_str_skip_token(const char *str, char *token, int max)
 {
   int len = 0;
 
@@ -752,7 +752,7 @@ static void gpu_parse_material_library(GHash *hash, GPUMaterialLibrary *library)
   eGPUType type;
   GPUFunctionQual qual;
   int i;
-  char *code = library->code;
+  const char *code = library->code;
 
   while ((code = strstr(code, "void "))) {
     function = MEM_callocN(sizeof(GPUFunction), "GPUFunction");

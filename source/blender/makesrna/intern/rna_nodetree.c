@@ -337,6 +337,31 @@ const EnumPropertyItem rna_enum_node_float_compare_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_node_float_to_int_items[] = {
+    {FN_NODE_FLOAT_TO_INT_ROUND,
+     "ROUND",
+     0,
+     "Round",
+     "Round the float up or down to the nearest integer"},
+    {FN_NODE_FLOAT_TO_INT_FLOOR,
+     "FLOOR",
+     0,
+     "Floor",
+     "Round the float down to the next smallest integer"},
+    {FN_NODE_FLOAT_TO_INT_CEIL,
+     "CEILING",
+     0,
+     "Ceiling",
+     "Round the float up to the next largest integer"},
+    {FN_NODE_FLOAT_TO_INT_TRUNCATE,
+     "TRUNCATE",
+     0,
+     "Truncate",
+     "Round the float to the closest integer in the direction of zero (floor if positive; ceiling "
+     "if negative)"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 const EnumPropertyItem rna_enum_node_map_range_items[] = {
     {NODE_MAP_RANGE_LINEAR,
      "LINEAR",
@@ -774,7 +799,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(void *data,
     tmp.value = i;
     tmp.identifier = stype->idname;
     tmp.icon = RNA_struct_ui_icon(srna);
-    tmp.name = RNA_struct_ui_name(srna);
+    tmp.name = nodeSocketTypeLabel(stype);
     tmp.description = RNA_struct_ui_description(srna);
 
     RNA_enum_item_add(&item, &totitem, &tmp);
@@ -1000,8 +1025,7 @@ static void rna_NodeTree_get_from_context(
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_NodeTree_valid_socket_type(eNodeSocketDatatype socket_type,
-                                           bNodeTreeType *ntreetype)
+static bool rna_NodeTree_valid_socket_type(bNodeTreeType *ntreetype, bNodeSocketType *socket_type)
 {
   extern FunctionRNA rna_NodeTree_valid_socket_type_func;
 
@@ -1015,7 +1039,7 @@ static bool rna_NodeTree_valid_socket_type(eNodeSocketDatatype socket_type,
   func = &rna_NodeTree_valid_socket_type_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
-  RNA_parameter_set_lookup(&list, "type", &socket_type);
+  RNA_parameter_set_lookup(&list, "idname", &socket_type->idname);
   ntreetype->rna_ext.call(NULL, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "valid", &ret);
@@ -2841,7 +2865,7 @@ static void rna_NodeSocket_type_set(PointerRNA *ptr, int value)
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
   bNode *node;
   nodeFindNode(ntree, sock, &node, NULL);
-  nodeModifySocketType(ntree, node, sock, value, 0);
+  nodeModifySocketTypeStatic(ntree, node, sock, value, 0);
 }
 
 static void rna_NodeSocket_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -3181,7 +3205,7 @@ static void rna_NodeSocketInterfaceStandard_draw(ID *id,
                                                  struct uiLayout *layout)
 {
   PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);
+  RNA_pointer_create(id, &RNA_NodeSocketInterface, sock, &ptr);
   sock->typeinfo->interface_draw(C, layout, &ptr);
 }
 
@@ -3191,7 +3215,7 @@ static void rna_NodeSocketInterfaceStandard_draw_color(ID *id,
                                                        float r_color[4])
 {
   PointerRNA ptr;
-  RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);
+  RNA_pointer_create(id, &RNA_NodeSocketInterface, sock, &ptr);
   sock->typeinfo->interface_draw_color(C, &ptr, r_color);
 }
 
@@ -4794,6 +4818,18 @@ static void def_float_compare(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_float_to_int(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "rounding_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_node_float_to_int_items);
+  RNA_def_property_ui_text(
+      prop, "Rounding Mode", "Method used to convert the float to an integer");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_vector_math(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -5754,7 +5790,7 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
   func = RNA_def_function(srna, "calc_point_density", "rna_ShaderNodePointDensity_density_calc");
   RNA_def_function_ui_description(func, "Calculate point density");
   RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
-  /* TODO, See how array size of 0 works, this shouldn't be used. */
+  /* TODO: See how array size of 0 works, this shouldn't be used. */
   parm = RNA_def_float_array(func, "rgba_values", 1, NULL, 0, 0, "", "RGBA Values", 0, 0);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, 0);
   RNA_def_function_output(func, parm);
@@ -6205,7 +6241,7 @@ static void def_sh_script(StructRNA *srna)
 
   /* API functions */
 
-#  if 0 /* XXX TODO use general node api for this */
+#  if 0 /* XXX TODO: use general node api for this. */
   func = RNA_def_function(srna, "find_socket", "rna_ShaderNodeScript_find_socket");
   RNA_def_function_ui_description(func, "Find a socket by name");
   parm = RNA_def_string(func, "name", NULL, 0, "Socket name", "");
@@ -9451,6 +9487,32 @@ static void def_geo_curve_primitive_circle(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_curve_primitive_line(StructRNA *srna)
+{
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS,
+       "POINTS",
+       ICON_NONE,
+       "Points",
+       "Define the start and end points of the line"},
+      {GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION,
+       "DIRECTION",
+       ICON_NONE,
+       "Direction",
+       "Define a line with a start point, direction and length"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCurvePrimitiveLine", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "Method used to determine radius and placement");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 static void def_geo_point_rotate(StructRNA *srna)
 {
   static const EnumPropertyItem type_items[] = {
@@ -10113,7 +10175,7 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Node Socket", "Input or output socket of a node");
   RNA_def_struct_sdna(srna, "bNodeSocket");
   RNA_def_struct_refine_func(srna, "rna_NodeSocket_refine");
-  RNA_def_struct_ui_icon(srna, ICON_PLUGIN);
+  RNA_def_struct_ui_icon(srna, ICON_NONE);
   RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
   RNA_def_struct_register_funcs(
       srna, "rna_NodeSocket_register", "rna_NodeSocket_unregister", NULL);
@@ -10218,6 +10280,11 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(prop, "ID Name", "");
 
+  prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "typeinfo->label");
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop, "Type Label", "Label to display for the socket type in the UI");
+
   /* draw socket */
   func = RNA_def_function(srna, "draw", NULL);
   RNA_def_function_ui_description(func, "Draw socket");
@@ -10305,6 +10372,11 @@ static void rna_def_node_socket_interface(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "typeinfo->idname");
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(prop, "ID Name", "");
+
+  prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "typeinfo->label");
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop, "Type Label", "Label to display for the socket type in the UI");
 
   func = RNA_def_function(srna, "draw", NULL);
   RNA_def_function_ui_description(func, "Draw template settings");
@@ -11320,12 +11392,6 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Texture", "Display node in viewport textured shading mode");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "active_preview", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_ACTIVE_PREVIEW);
-  RNA_def_property_ui_text(prop, "Active Preview", "Node is previewed in other editor");
-  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-  RNA_def_property_update(prop, NC_NODE, NULL);
-
   /* generic property update function */
   func = RNA_def_function(srna, "socket_value_update", "rna_Node_socket_value_update");
   RNA_def_function_ui_description(func, "Update after property changes");
@@ -11822,11 +11888,12 @@ static void rna_def_nodetree(BlenderRNA *brna)
       func, "result_3", "ID", "From ID", "Original ID data-block selected from the context");
   RNA_def_function_output(func, parm);
 
-  /* Check for support of a socket type. */
+  /* Check for support of a socket type with a type identifier. */
   func = RNA_def_function(srna, "valid_socket_type", NULL);
   RNA_def_function_ui_description(func, "Check if the socket type is valid for the node tree");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-  parm = RNA_def_enum(func, "type", node_socket_type_items, 0, "", "");
+  parm = RNA_def_string(
+      func, "idname", "NodeSocket", MAX_NAME, "Socket Type", "Identifier of the socket type");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   RNA_def_function_return(func, RNA_def_boolean(func, "valid", false, "", ""));
 }

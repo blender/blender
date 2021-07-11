@@ -314,7 +314,7 @@ static DrawEngineType draw_engine_external_type = {
     NULL,
 };
 
-/* Note: currently unused,
+/* NOTE: currently unused,
  * we should not register unless we want to see this when debugging the view. */
 
 RenderEngineType DRW_engine_viewport_external_type = {

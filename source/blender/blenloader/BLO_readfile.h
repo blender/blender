@@ -74,7 +74,7 @@ typedef struct BlendFileData {
   int globalf;
   char filename[1024]; /* 1024 = FILE_MAX */
 
-  struct bScreen *curscreen; /* TODO think this isn't needed anymore? */
+  struct bScreen *curscreen; /* TODO: think this isn't needed anymore? */
   struct Scene *curscene;
   struct ViewLayer *cur_view_layer; /* layer to activate in workspaces when reading without UI */
 

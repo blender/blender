@@ -33,14 +33,14 @@ GHOST_DisplayManagerSDL::GHOST_DisplayManagerSDL(GHOST_SystemSDL *system)
   memset(&m_mode, 0, sizeof(m_mode));
 }
 
-GHOST_TSuccess GHOST_DisplayManagerSDL::getNumDisplays(GHOST_TUns8 &numDisplays) const
+GHOST_TSuccess GHOST_DisplayManagerSDL::getNumDisplays(uint8_t &numDisplays) const
 {
   numDisplays = SDL_GetNumVideoDisplays();
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_DisplayManagerSDL::getNumDisplaySettings(GHOST_TUns8 display,
-                                                              GHOST_TInt32 &numSettings) const
+GHOST_TSuccess GHOST_DisplayManagerSDL::getNumDisplaySettings(uint8_t display,
+                                                              int32_t &numSettings) const
 {
   GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 
@@ -66,8 +66,8 @@ static void ghost_mode_to_sdl(const GHOST_DisplaySetting &setting, SDL_DisplayMo
   mode->refresh_rate = setting.frequency;
 }
 
-GHOST_TSuccess GHOST_DisplayManagerSDL::getDisplaySetting(GHOST_TUns8 display,
-                                                          GHOST_TInt32 index,
+GHOST_TSuccess GHOST_DisplayManagerSDL::getDisplaySetting(uint8_t display,
+                                                          int32_t index,
                                                           GHOST_DisplaySetting &setting) const
 {
   GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
@@ -81,7 +81,7 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::getDisplaySetting(GHOST_TUns8 display,
 }
 
 GHOST_TSuccess GHOST_DisplayManagerSDL::getCurrentDisplaySetting(
-    GHOST_TUns8 display, GHOST_DisplaySetting &setting) const
+    uint8_t display, GHOST_DisplaySetting &setting) const
 {
   SDL_DisplayMode mode;
   SDL_GetCurrentDisplayMode(display, &mode);
@@ -98,7 +98,7 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::getCurrentDisplayModeSDL(SDL_DisplayMode
 }
 
 GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
-    GHOST_TUns8 display, const GHOST_DisplaySetting &setting)
+    uint8_t display, const GHOST_DisplaySetting &setting)
 {
   /*
    * Mode switching code ported from Quake 2 version 3.21 and bzflag version

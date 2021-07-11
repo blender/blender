@@ -67,7 +67,7 @@ class NormalCycle {
   void begin();
   void end();
   /**
-   * Note: the specified edge vector needs to be pre-clipped by the neighborhood.
+   * NOTE: the specified edge vector needs to be pre-clipped by the neighborhood.
    */
   void accumulate_dihedral_angle(const Vec3r &edge, real angle, real neigh_area = 1.0);
 

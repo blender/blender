@@ -324,7 +324,7 @@ float dof_coc_max_slight_focus(float coc1, float coc2)
 struct DofGatherData {
   vec4 color;
   float weight;
-  float dist; /* TODO remove */
+  float dist; /* TODO: remove. */
   /* For scatter occlusion. */
   float coc;
   float coc_sqr;

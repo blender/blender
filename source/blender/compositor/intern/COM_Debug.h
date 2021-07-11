@@ -28,6 +28,8 @@
 namespace blender::compositor {
 
 static constexpr bool COM_EXPORT_GRAPHVIZ = false;
+static constexpr bool COM_GRAPHVIZ_SHOW_NODE_NAME = false;
+
 class Node;
 class ExecutionSystem;
 class ExecutionGroup;
@@ -116,7 +118,7 @@ class DebugInfo {
     }
   };
 
-  static void graphviz(const ExecutionSystem *system);
+  static void graphviz(const ExecutionSystem *system, StringRefNull name = "");
 
  protected:
   static int graphviz_operation(const ExecutionSystem *system,

@@ -680,7 +680,7 @@ class RunTest:
             test_name = each_test.test_name
             if self.verbose:
                 print()
-                print("Running test {}/{}: {}...".format(test_number+1, len(self.tests), test_name))
+                print("Running test {}/{}: {}...".format(test_number + 1, len(self.tests), test_name))
             success = self.run_test(test_name)
 
             if not success:

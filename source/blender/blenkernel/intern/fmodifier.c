@@ -604,7 +604,7 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[],
  * NOTE: this needs to be at the start of the stack to be of use,
  * as it needs to know the extents of the keyframes/sample-data.
  *
- * Possible TODO - store length of cycle information that can be initialized from the extents of
+ * Possible TODO: store length of cycle information that can be initialized from the extents of
  * the keyframes/sample-data, and adjusted as appropriate.
  */
 

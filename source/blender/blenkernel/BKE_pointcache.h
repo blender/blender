@@ -45,7 +45,7 @@ extern "C" {
 #define PTCACHE_RESET_OUTDATED 2
 /* #define PTCACHE_RESET_FREE           3 */ /*UNUSED*/
 
-/* Add the blendfile name after blendcache_ */
+/* Add the blend-file name after `blendcache_`. */
 #define PTCACHE_EXT ".bphys"
 #define PTCACHE_PATH "blendcache_"
 

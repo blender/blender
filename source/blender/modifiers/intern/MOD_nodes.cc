@@ -48,6 +48,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_customdata.h"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
@@ -56,7 +57,6 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_node_ui_storage.hh"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
@@ -83,8 +83,10 @@
 
 #include "NOD_derived_node_tree.hh"
 #include "NOD_geometry.h"
+#include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_tree_multi_function.hh"
 
+using blender::destruct_ptr;
 using blender::float3;
 using blender::FunctionRef;
 using blender::IndexRange;
@@ -97,6 +99,7 @@ using blender::Vector;
 using blender::fn::GMutablePointer;
 using blender::fn::GPointer;
 using blender::nodes::GeoNodeExecParams;
+using blender::threading::EnumerableThreadSpecific;
 using namespace blender::fn::multi_function_types;
 using namespace blender::nodes::derived_node_tree_types;
 
@@ -734,19 +737,6 @@ static void initialize_group_input(NodesModifierData &nmd,
   property_type->init_cpp_value(*property, r_value);
 }
 
-static void reset_tree_ui_storage(Span<const blender::nodes::NodeTreeRef *> trees,
-                                  const Object &object,
-                                  const ModifierData &modifier)
-{
-  const NodeTreeEvaluationContext context = {object, modifier};
-
-  for (const blender::nodes::NodeTreeRef *tree : trees) {
-    bNodeTree *btree_cow = tree->btree();
-    bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
-    BKE_nodetree_ui_storage_free_for_context(*btree_original, context);
-  }
-}
-
 static Vector<SpaceSpreadsheet *> find_spreadsheet_editors(Main *bmain)
 {
   wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
@@ -764,24 +754,6 @@ static Vector<SpaceSpreadsheet *> find_spreadsheet_editors(Main *bmain)
     }
   }
   return spreadsheets;
-}
-
-using PreviewSocketMap = blender::MultiValueMap<DSocket, uint64_t>;
-
-static DSocket try_find_preview_socket_in_node(const DNode node)
-{
-  for (const SocketRef *socket : node->outputs()) {
-    if (socket->bsocket()->type == SOCK_GEOMETRY) {
-      return {node.context(), socket};
-    }
-  }
-  for (const SocketRef *socket : node->inputs()) {
-    if (socket->bsocket()->type == SOCK_GEOMETRY &&
-        (socket->bsocket()->flag & SOCK_MULTI_INPUT) == 0) {
-      return {node.context(), socket};
-    }
-  }
-  return {};
 }
 
 static DSocket try_get_socket_to_preview_for_spreadsheet(SpaceSpreadsheet *sspreadsheet,
@@ -837,9 +809,10 @@ static DSocket try_get_socket_to_preview_for_spreadsheet(SpaceSpreadsheet *sspre
   }
 
   const NodeTreeRef &tree_ref = context->tree();
-  for (const NodeRef *node_ref : tree_ref.nodes()) {
+  for (const NodeRef *node_ref : tree_ref.nodes_by_type("GeometryNodeViewer")) {
     if (node_ref->name() == last_context->node_name) {
-      return try_find_preview_socket_in_node({context, node_ref});
+      const DNode viewer_node{context, node_ref};
+      return viewer_node.input(0);
     }
   }
   return {};
@@ -848,7 +821,7 @@ static DSocket try_get_socket_to_preview_for_spreadsheet(SpaceSpreadsheet *sspre
 static void find_sockets_to_preview(NodesModifierData *nmd,
                                     const ModifierEvalContext *ctx,
                                     const DerivedNodeTree &tree,
-                                    PreviewSocketMap &r_sockets_to_preview)
+                                    Set<DSocket> &r_sockets_to_preview)
 {
   Main *bmain = DEG_get_bmain(ctx->depsgraph);
 
@@ -858,51 +831,16 @@ static void find_sockets_to_preview(NodesModifierData *nmd,
   for (SpaceSpreadsheet *sspreadsheet : spreadsheets) {
     const DSocket socket = try_get_socket_to_preview_for_spreadsheet(sspreadsheet, nmd, ctx, tree);
     if (socket) {
-      const uint64_t key = ED_spreadsheet_context_path_hash(sspreadsheet);
-      r_sockets_to_preview.add_non_duplicates(socket, key);
+      r_sockets_to_preview.add(socket);
     }
   }
 }
 
-static void log_preview_socket_value(const Span<GPointer> values,
-                                     Object *object,
-                                     Span<uint64_t> keys)
+static void clear_runtime_data(NodesModifierData *nmd)
 {
-  GeometrySet geometry_set = *(const GeometrySet *)values[0].get();
-  geometry_set.ensure_owns_direct_data();
-  for (uint64_t key : keys) {
-    BKE_object_preview_geometry_set_add(object, key, new GeometrySet(geometry_set));
-  }
-}
-
-static void log_ui_hints(const DSocket socket,
-                         const Span<GPointer> values,
-                         Object *self_object,
-                         NodesModifierData *nmd)
-{
-  const DNode node = socket.node();
-  if (node->is_reroute_node() || socket->typeinfo()->type != SOCK_GEOMETRY) {
-    return;
-  }
-  bNodeTree *btree_cow = node->btree();
-  bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
-  const NodeTreeEvaluationContext context{*self_object, nmd->modifier};
-  for (const GPointer &data : values) {
-    if (data.type() == &CPPType::get<GeometrySet>()) {
-      const GeometrySet &geometry_set = *(const GeometrySet *)data.get();
-      blender::bke::geometry_set_instances_attribute_foreach(
-          geometry_set,
-          [&](StringRefNull attribute_name, const AttributeMetaData &meta_data) {
-            BKE_nodetree_attribute_hint_add(*btree_original,
-                                            context,
-                                            *node->bnode(),
-                                            attribute_name,
-                                            meta_data.domain,
-                                            meta_data.data_type);
-            return true;
-          },
-          8);
-    }
+  if (nmd->runtime_eval_log != nullptr) {
+    delete (geo_log::ModifierLog *)nmd->runtime_eval_log;
+    nmd->runtime_eval_log = nullptr;
   }
 }
 
@@ -958,29 +896,31 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   Vector<DInputSocket> group_outputs;
   group_outputs.append({root_context, &socket_to_compute});
 
-  PreviewSocketMap preview_sockets;
-  find_sockets_to_preview(nmd, ctx, tree, preview_sockets);
-
-  auto log_socket_value = [&](const DSocket socket, const Span<GPointer> values) {
-    if (!logging_enabled(ctx)) {
-      return;
-    }
-    Span<uint64_t> keys = preview_sockets.lookup(socket);
-    if (!keys.is_empty()) {
-      log_preview_socket_value(values, ctx->object, keys);
-    }
-    log_ui_hints(socket, values, ctx->object, nmd);
-  };
+  std::optional<geo_log::GeoLogger> geo_logger;
 
   blender::modifiers::geometry_nodes::GeometryNodesEvaluationParams eval_params;
+
+  if (logging_enabled(ctx)) {
+    Set<DSocket> preview_sockets;
+    find_sockets_to_preview(nmd, ctx, tree, preview_sockets);
+    eval_params.force_compute_sockets.extend(preview_sockets.begin(), preview_sockets.end());
+    geo_logger.emplace(std::move(preview_sockets));
+  }
+
   eval_params.input_values = group_inputs;
   eval_params.output_sockets = group_outputs;
   eval_params.mf_by_node = &mf_by_node;
   eval_params.modifier_ = nmd;
   eval_params.depsgraph = ctx->depsgraph;
   eval_params.self_object = ctx->object;
-  eval_params.log_socket_value_fn = log_socket_value;
+  eval_params.geo_logger = geo_logger.has_value() ? &*geo_logger : nullptr;
   blender::modifiers::geometry_nodes::evaluate_geometry_nodes(eval_params);
+
+  if (geo_logger.has_value()) {
+    NodesModifierData *nmd_orig = (NodesModifierData *)BKE_modifier_get_original(&nmd->modifier);
+    clear_runtime_data(nmd_orig);
+    nmd_orig->runtime_eval_log = new geo_log::ModifierLog(*geo_logger);
+  }
 
   BLI_assert(eval_params.r_output_values.size() == 1);
   GMutablePointer result = eval_params.r_output_values[0];
@@ -1071,10 +1011,6 @@ static void modifyGeometry(ModifierData *md,
     return;
   }
 
-  if (logging_enabled(ctx)) {
-    reset_tree_ui_storage(tree.used_node_tree_refs(), *ctx->object, *md);
-  }
-
   geometry_set = compute_geometry(
       tree, input_nodes, *group_outputs[0], std::move(geometry_set), nmd, ctx);
 }
@@ -1086,9 +1022,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       *ctx->object);
   modifyGeometry(md, ctx, geometry_set);
 
-  /* This function is only called when applying modifiers. In this case it makes sense to realize
-   * instances, otherwise in some cases there might be no results when applying the modifier. */
-  geometry_set = blender::bke::geometry_set_realize_mesh_for_modifier(geometry_set);
+  if (ctx->flag & MOD_APPLY_TO_BASE_MESH) {
+    /* In this case it makes sense to realize instances, otherwise in some cases there might be no
+     * results when applying the modifier. */
+    geometry_set = blender::bke::geometry_set_realize_mesh_for_modifier(geometry_set);
+  }
 
   Mesh *new_mesh = geometry_set.get_component_for_write<MeshComponent>().release();
   if (new_mesh == nullptr) {
@@ -1219,6 +1157,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   BLO_read_data_address(reader, &nmd->settings.properties);
   IDP_BlendDataRead(reader, &nmd->settings.properties);
+  nmd->runtime_eval_log = nullptr;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -1227,6 +1166,8 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   NodesModifierData *tnmd = reinterpret_cast<NodesModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
+
+  tnmd->runtime_eval_log = nullptr;
 
   if (nmd->settings.properties != nullptr) {
     tnmd->settings.properties = IDP_CopyProperty_ex(nmd->settings.properties, flag);
@@ -1240,6 +1181,8 @@ static void freeData(ModifierData *md)
     IDP_FreeProperty_ex(nmd->settings.properties, false);
     nmd->settings.properties = nullptr;
   }
+
+  clear_runtime_data(nmd);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

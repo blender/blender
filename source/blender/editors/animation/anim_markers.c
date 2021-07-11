@@ -687,7 +687,7 @@ static int ed_marker_add_exec(bContext *C, wmOperator *UNUSED(op))
   marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
-  BLI_snprintf(marker->name, sizeof(marker->name), "F_%02d", frame); /* XXX - temp code only */
+  BLI_snprintf(marker->name, sizeof(marker->name), "F_%02d", frame); /* XXX: temp code only. */
   BLI_addtail(markers, marker);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
@@ -897,7 +897,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   return OPERATOR_CANCELLED;
 }
 
-/* note, init has to be called successfully */
+/* NOTE: init has to be called successfully. */
 static void ed_marker_move_apply(bContext *C, wmOperator *op)
 {
 #ifdef DURIAN_CAMERA_SWITCH

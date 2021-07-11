@@ -58,7 +58,7 @@
  * its task, without having to worry about memory allocation. Alternatively, a function could
  * return an Array or Vector.
  *
- * Note: When a function has a MutableSpan<T> output parameter and T is not a trivial type,
+ * NOTE: When a function has a MutableSpan<T> output parameter and T is not a trivial type,
  * then the function has to specify whether the referenced array is expected to be initialized or
  * not.
  *

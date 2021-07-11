@@ -164,6 +164,7 @@ endif()
 if(UNIX AND NOT APPLE)
   include(cmake/libglu.cmake)
   include(cmake/mesa.cmake)
+  include(cmake/wayland_protocols.cmake)
 endif()
 
 include(cmake/harvest.cmake)

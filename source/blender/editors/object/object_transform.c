@@ -1431,7 +1431,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         float obmat[4][4];
 
         /* was the object data modified
-         * note: the functions above must set 'cent' */
+         * NOTE: the functions above must set 'cent'. */
 
         /* convert the offset to parent space */
         BKE_object_to_mat4(ob, obmat);

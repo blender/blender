@@ -31,6 +31,7 @@ __all__ = (
     "SpaceAssetInfo",
 )
 
+
 class SpaceAssetInfo:
     @classmethod
     def is_asset_browser(cls, space_data: bpy.types.Space):
@@ -46,12 +47,14 @@ class SpaceAssetInfo:
             active_file = context.active_file
             return active_file.asset_data if active_file else None
 
+
 class AssetBrowserPanel:
     bl_space_type = 'FILE_BROWSER'
 
     @classmethod
     def poll(cls, context):
         return SpaceAssetInfo.is_asset_browser_poll(context)
+
 
 class AssetMetaDataPanel:
     bl_space_type = 'FILE_BROWSER'

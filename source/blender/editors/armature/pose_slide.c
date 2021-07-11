@@ -1005,14 +1005,14 @@ static void pose_slide_rest_pose_apply(bContext *C, tPoseSlideOp *pso)
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_BBONE_SHAPE) && (pchan->flag & POSE_BBONE_SHAPE)) {
       /* Bbone properties - they all start a "bbone_" prefix. */
-      /* TODO Not implemented */
+      /* TODO: Not implemented. */
       // pose_slide_apply_props(pso, pfl, "bbone_");
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (pfl->oldprops)) {
       /* Not strictly a transform, but custom properties contribute
        * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
-      /* TODO Not implemented */
+      /* TODO: Not implemented. */
       // pose_slide_apply_props(pso, pfl, "[\"");
     }
   }

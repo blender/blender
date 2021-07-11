@@ -230,7 +230,7 @@ typedef struct tGpTimingData {
   float tot_dist;
 
   /* Times */
-  float *times; /* Note: Gap times will be negative! */
+  float *times; /* NOTE: Gap times will be negative! */
   float tot_time, gap_tot_time;
   double inittime;
 
@@ -1806,7 +1806,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
               0,
               100);
 
-  /* Note: Internal use, this one will always be hidden by UI code... */
+  /* NOTE: Internal use, this one will always be hidden by UI code... */
   prop = RNA_def_boolean(
       ot->srna,
       "use_timing_data",

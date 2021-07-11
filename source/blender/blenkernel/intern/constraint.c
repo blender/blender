@@ -299,7 +299,10 @@ void BKE_constraint_mat_convertspace(Object *ob,
           mul_m4_m4m4(mat, imat, mat);
 
           /* Use pose-space as stepping stone for other spaces. */
-          if (ELEM(to, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_PARLOCAL)) {
+          if (ELEM(to,
+                   CONSTRAINT_SPACE_LOCAL,
+                   CONSTRAINT_SPACE_PARLOCAL,
+                   CONSTRAINT_SPACE_OWNLOCAL)) {
             /* Call self with slightly different values. */
             BKE_constraint_mat_convertspace(
                 ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
@@ -314,6 +317,17 @@ void BKE_constraint_mat_convertspace(Object *ob,
           if (pchan->bone) {
             BKE_armature_mat_pose_to_bone(pchan, mat, mat);
           }
+        }
+        /* pose to owner local */
+        else if (to == CONSTRAINT_SPACE_OWNLOCAL) {
+          /* pose to local */
+          if (pchan->bone) {
+            BKE_armature_mat_pose_to_bone(pchan, mat, mat);
+          }
+
+          /* local to owner local (recursive) */
+          BKE_constraint_mat_convertspace(
+              ob, pchan, cob, mat, CONSTRAINT_SPACE_LOCAL, to, keep_scale);
         }
         /* pose to local with parent */
         else if (to == CONSTRAINT_SPACE_PARLOCAL) {
@@ -336,17 +350,59 @@ void BKE_constraint_mat_convertspace(Object *ob,
       }
       case CONSTRAINT_SPACE_LOCAL: /* ------------ FROM LOCALSPACE --------- */
       {
+        /* local to owner local */
+        if (to == CONSTRAINT_SPACE_OWNLOCAL) {
+          if (pchan->bone) {
+            copy_m4_m4(diff_mat, pchan->bone->arm_mat);
+
+            if (cob && cob->pchan && cob->pchan->bone) {
+              invert_m4_m4(imat, cob->pchan->bone->arm_mat);
+              mul_m4_m4m4(diff_mat, imat, diff_mat);
+            }
+
+            zero_v3(diff_mat[3]);
+            invert_m4_m4(imat, diff_mat);
+            mul_m4_series(mat, diff_mat, mat, imat);
+          }
+        }
         /* local to pose - do inverse procedure that was done for pose to local */
+        else {
+          if (pchan->bone) {
+            /* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
+            BKE_armature_mat_bone_to_pose(pchan, mat, mat);
+          }
+
+          /* use pose-space as stepping stone for other spaces */
+          if (ELEM(to,
+                   CONSTRAINT_SPACE_WORLD,
+                   CONSTRAINT_SPACE_PARLOCAL,
+                   CONSTRAINT_SPACE_CUSTOM)) {
+            /* call self with slightly different values */
+            BKE_constraint_mat_convertspace(
+                ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
+          }
+        }
+        break;
+      }
+      case CONSTRAINT_SPACE_OWNLOCAL: { /* -------------- FROM OWNER LOCAL ---------- */
+        /* owner local to local */
         if (pchan->bone) {
-          /* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
-          BKE_armature_mat_bone_to_pose(pchan, mat, mat);
+          copy_m4_m4(diff_mat, pchan->bone->arm_mat);
+
+          if (cob && cob->pchan && cob->pchan->bone) {
+            invert_m4_m4(imat, cob->pchan->bone->arm_mat);
+            mul_m4_m4m4(diff_mat, imat, diff_mat);
+          }
+
+          zero_v3(diff_mat[3]);
+          invert_m4_m4(imat, diff_mat);
+          mul_m4_series(mat, imat, mat, diff_mat);
         }
 
-        /* use pose-space as stepping stone for other spaces */
-        if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL, CONSTRAINT_SPACE_CUSTOM)) {
+        if (to != CONSTRAINT_SPACE_LOCAL) {
           /* call self with slightly different values */
           BKE_constraint_mat_convertspace(
-              ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
+              ob, pchan, cob, mat, CONSTRAINT_SPACE_LOCAL, to, keep_scale);
         }
         break;
       }
@@ -358,7 +414,11 @@ void BKE_constraint_mat_convertspace(Object *ob,
         }
 
         /* use pose-space as stepping stone for other spaces */
-        if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_CUSTOM)) {
+        if (ELEM(to,
+                 CONSTRAINT_SPACE_WORLD,
+                 CONSTRAINT_SPACE_LOCAL,
+                 CONSTRAINT_SPACE_OWNLOCAL,
+                 CONSTRAINT_SPACE_CUSTOM)) {
           /* call self with slightly different values */
           BKE_constraint_mat_convertspace(
               ob, pchan, cob, mat, CONSTRAINT_SPACE_POSE, to, keep_scale);
@@ -470,7 +530,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   /* when not in EditMode, use the 'final' evaluated mesh, depsgraph
    * ensures we build with CD_MDEFORMVERT layer
    */
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   float plane[3];
   float imat[3][3], tmat[3][3];
@@ -488,17 +548,17 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   float normal[3] = {0.0f, 0.0f, 0.0f};
   float weightsum = 0.0f;
   if (me_eval) {
-    MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
+    const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
     int numVerts = me_eval->totvert;
 
     /* check that dvert is a valid pointers (just in case) */
     if (dvert) {
-      MDeformVert *dv = dvert;
-      MVert *mv = me_eval->mvert;
 
       /* get the average of all verts with that are in the vertex-group */
-      for (int i = 0; i < numVerts; i++, dv++, mv++) {
-        MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
+      for (int i = 0; i < numVerts; i++) {
+        const MDeformVert *dv = &dvert[i];
+        const MVert *mv = &me_eval->mvert[i];
+        const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {
           float nor[3];
@@ -867,7 +927,7 @@ static void default_get_tarmat_full_bbone(struct Depsgraph *UNUSED(depsgraph),
 
 /* This following macro should be used for all standard single-target *_flush_tars functions
  * to save typing and reduce maintenance woes.
- * Note: the pointer to ct will be changed to point to the next in the list (as it gets removed)
+ * NOTE: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
@@ -889,7 +949,7 @@ static void default_get_tarmat_full_bbone(struct Depsgraph *UNUSED(depsgraph),
 
 /* This following macro should be used for all standard single-target *_flush_tars functions
  * to save typing and reduce maintenance woes. It does not do the subtarget related operations.
- * Note: the pointer to ct will be changed to point to the next in the list (as it gets removed)
+ * NOTE: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
@@ -1088,7 +1148,7 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   }
 }
 
-/* XXX note, con->flag should be CONSTRAINT_SPACEONCE for bone-childof, patched in readfile.c */
+/* XXX NOTE: con->flag should be CONSTRAINT_SPACEONCE for bone-childof, patched in `readfile.c`. */
 static bConstraintTypeInfo CTI_CHILDOF = {
     CONSTRAINT_TYPE_CHILDOF,    /* type */
     sizeof(bChildOfConstraint), /* size */
@@ -1205,7 +1265,7 @@ static void vectomat(const float vec[3],
     u[2] = 1;
   }
 
-  /* note: even though 'n' is normalized, don't use 'project_v3_v3v3_normalized' below
+  /* NOTE: even though 'n' is normalized, don't use 'project_v3_v3v3_normalized' below
    * because precision issues cause a problem in near degenerate states, see: T53455. */
 
   /* project the up vector onto the plane specified by n */
@@ -1459,7 +1519,7 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 
     unit_m4(ct->matrix);
 
-    /* note: when creating constraints that follow path, the curve gets the CU_PATH set now,
+    /* NOTE: when creating constraints that follow path, the curve gets the CU_PATH set now,
      * currently for paths to work it needs to go through the bevlist/displist system (ton)
      */
 
@@ -1543,8 +1603,8 @@ static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 
     /* un-apply scaling caused by path */
     if ((data->followflag & FOLLOWPATH_RADIUS) == 0) {
-      /* XXX: Assume that scale correction means that radius
-       * will have some scale error in it - Campbell. */
+      /* XXX(campbell): Assume that scale correction means that radius
+       * will have some scale error in it. */
       float obsize[3];
 
       mat4_to_size(obsize, cob->matrix);
@@ -2235,17 +2295,47 @@ static void translike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
   bConstraintTarget *ct = targets->first;
 
   if (VALID_CONS_TARGET(ct)) {
+    float target_mat[4][4];
+
+    copy_m4_m4(target_mat, ct->matrix);
+
+    /* Remove the shear of the target matrix if enabled.
+     * Use Y as the axis since it's the natural default for bones. */
+    if (data->flag & TRANSLIKE_REMOVE_TARGET_SHEAR) {
+      orthogonalize_m4_stable(target_mat, 1, false);
+    }
+
+    /* Finally, combine the matrices. */
     switch (data->mix_mode) {
       case TRANSLIKE_MIX_REPLACE:
-        copy_m4_m4(cob->matrix, ct->matrix);
+        copy_m4_m4(cob->matrix, target_mat);
         break;
 
+      /* Simple matrix multiplication. */
+      case TRANSLIKE_MIX_BEFORE_FULL:
+        mul_m4_m4m4(cob->matrix, target_mat, cob->matrix);
+        break;
+
+      case TRANSLIKE_MIX_AFTER_FULL:
+        mul_m4_m4m4(cob->matrix, cob->matrix, target_mat);
+        break;
+
+      /* Aligned Inherit Scale emulation. */
       case TRANSLIKE_MIX_BEFORE:
-        mul_m4_m4m4_aligned_scale(cob->matrix, ct->matrix, cob->matrix);
+        mul_m4_m4m4_aligned_scale(cob->matrix, target_mat, cob->matrix);
         break;
 
       case TRANSLIKE_MIX_AFTER:
-        mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, ct->matrix);
+        mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, target_mat);
+        break;
+
+      /* Fully separate handling of channels. */
+      case TRANSLIKE_MIX_BEFORE_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, target_mat, cob->matrix);
+        break;
+
+      case TRANSLIKE_MIX_AFTER_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, cob->matrix, target_mat);
         break;
 
       default:
@@ -3791,7 +3881,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 
     unit_m4(targetMatrix);
     INIT_MINMAX(curveMin, curveMax);
-    /* XXX - don't think this is good calling this here - campbell */
+    /* XXX(campbell): don't think this is good calling this here. */
     BKE_object_minmax(ct->tar, curveMin, curveMax, true);
 
     /* get targetmatrix */
@@ -4242,7 +4332,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
           float mat[4][4];
           float no[3] = {0.0f, 0.0f, 0.0f};
 
-          /* TODO should use FLT_MAX.. but normal projection doenst yet supports it */
+          /* TODO: should use FLT_MAX.. but normal projection doesn't yet supports it. */
           hit.index = -1;
           hit.dist = (scon->projLimit == 0.0f) ? BVH_RAYCAST_DIST_MAX : scon->projLimit;
 
@@ -5009,7 +5099,7 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
   }
 
   Object *depth_object = context->depth_object;
-  Mesh *depth_mesh = BKE_object_get_evaluated_mesh(depth_object);
+  const Mesh *depth_mesh = BKE_object_get_evaluated_mesh(depth_object);
   if (depth_mesh == NULL) {
     return;
   }
@@ -6269,7 +6359,7 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
      *   (T26014 and T25725), since some constraints may not convert the solution back to the input
      *   space before blending but all are guaranteed to end up in good "world-space" result.
      */
-    /* Note: all kind of stuff here before (caused trouble), much easier to just interpolate,
+    /* NOTE: all kind of stuff here before (caused trouble), much easier to just interpolate,
      * or did I miss something? -jahka (r.32105) */
     if (enf < 1.0f) {
       float solution[4][4];

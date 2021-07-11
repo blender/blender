@@ -68,7 +68,7 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 /* -----------------------------METHODS---------------------------- */
 
-/* note: BaseMath_ReadCallback must be called beforehand */
+/* NOTE: BaseMath_ReadCallback must be called beforehand. */
 static PyObject *Color_ToTupleExt(ColorObject *self, int ndigits)
 {
   PyObject *ret;

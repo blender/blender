@@ -873,7 +873,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
 
   /* Finally sort menu items.
    *
-   * Note: we might want to keep the in-menu order, for now sort all. */
+   * NOTE: we might want to keep the in-menu order, for now sort all. */
   BLI_listbase_sort(&data->items, menu_item_sort_by_drawstr_full);
 
   BLI_ghash_free(menu_parent_map, NULL, NULL);

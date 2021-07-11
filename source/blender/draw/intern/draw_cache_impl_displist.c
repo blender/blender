@@ -365,7 +365,7 @@ static void surf_uv_quad(const DispList *dl, const uint quad[4], float r_uv[4][2
   }
 
   for (int i = 0; i < 4; i++) {
-    /* Note: For some reason the shading U and V are swapped compared to the
+    /* NOTE: For some reason the shading U and V are swapped compared to the
      * one described in the surface format. */
     /* find uv based on vertex index into grid array */
     r_uv[i][0] = (quad[i] / dl->nr) / (float)orco_sizev;

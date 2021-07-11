@@ -655,7 +655,7 @@ void BLI_ewa_filter(const int width,
   v2 = (int)(ceilf(V0 + ve));
 
   /* sane clamping to avoid unnecessarily huge loops */
-  /* note: if eccentricity gets clamped (see above),
+  /* NOTE: if eccentricity gets clamped (see above),
    * the ue/ve limits can also be lowered accordingly
    */
   if (U0 - (float)u1 > EWA_MAXIDX) {

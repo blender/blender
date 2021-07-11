@@ -96,7 +96,7 @@ static void idp_str_append_escape(struct ReprState *state,
 
 static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *prop)
 {
-  /* Note: 'strlen' will be calculated at compile time for literals. */
+  /* NOTE: 'strlen' will be calculated at compile time for literals. */
 #define STR_APPEND_STR(str) state->str_append_fn(state->user_data, str, (uint)strlen(str))
 
 #define STR_APPEND_STR_QUOTE(str) idp_str_append_escape(state, str, (uint)strlen(str), true)

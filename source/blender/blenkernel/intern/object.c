@@ -251,7 +251,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
 
   BLI_listbase_clear(&ob_dst->modifiers);
   BLI_listbase_clear(&ob_dst->greasepencil_modifiers);
-  /* Note: Also takes care of softbody and particle systems copying. */
+  /* NOTE: Also takes care of softbody and particle systems copying. */
   BKE_object_modifier_stack_copy(ob_dst, ob_src, true, flag_subdata);
 
   BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
@@ -262,7 +262,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
 
   /* Do not copy object's preview
    * (mostly due to the fact renderers create temp copy of objects). */
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO temp hack */
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) { /* XXX TODO: temp hack. */
     BKE_previewimg_id_copy(&ob_dst->id, &ob_src->id);
   }
   else {
@@ -1041,6 +1041,8 @@ static void object_blend_read_expand(BlendExpander *expander, ID *id)
 
   BLO_expand(expander, ob->data);
 
+  BLO_expand(expander, ob->parent);
+
   /* expand_object_expandModifier() */
   if (ob->modifiers.first) {
     BKE_modifiers_foreach_ID_link(ob, expand_object_expandModifiers, expander);
@@ -1758,10 +1760,6 @@ void BKE_object_free_derived_caches(Object *ob)
     BKE_geometry_set_free(ob->runtime.geometry_set_eval);
     ob->runtime.geometry_set_eval = NULL;
   }
-  if (ob->runtime.geometry_set_previews != NULL) {
-    BLI_ghash_free(ob->runtime.geometry_set_previews, NULL, (GHashValFreeFP)BKE_geometry_set_free);
-    ob->runtime.geometry_set_previews = NULL;
-  }
 }
 
 void BKE_object_free_caches(Object *object)
@@ -1810,24 +1808,6 @@ void BKE_object_free_caches(Object *object)
   if (update_flag != 0) {
     DEG_id_tag_update(&object->id, update_flag);
   }
-}
-
-/* Can be called from multiple threads. */
-void BKE_object_preview_geometry_set_add(Object *ob,
-                                         const uint64_t key,
-                                         struct GeometrySet *geometry_set)
-{
-  static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
-  BLI_mutex_lock(&mutex);
-  if (ob->runtime.geometry_set_previews == NULL) {
-    ob->runtime.geometry_set_previews = BLI_ghash_int_new(__func__);
-  }
-  BLI_ghash_reinsert(ob->runtime.geometry_set_previews,
-                     POINTER_FROM_UINT(key),
-                     geometry_set,
-                     NULL,
-                     (GHashValFreeFP)BKE_geometry_set_free);
-  BLI_mutex_unlock(&mutex);
 }
 
 /**
@@ -2380,8 +2360,8 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
     psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, flag);
   }
 
-  /* XXX - from reading existing code this seems correct but intended usage of
-   * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
+  /* XXX(campbell): from reading existing code this seems correct but intended usage of
+   * pointcache should /w cloth should be added in 'ParticleSystem'. */
   if (psysn->clmd) {
     psysn->clmd->point_cache = psysn->pointcache;
   }
@@ -2439,7 +2419,7 @@ void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src, const
 
 static void copy_object_pose(Object *obn, const Object *ob, const int flag)
 {
-  /* note: need to clear obn->pose pointer first,
+  /* NOTE: need to clear obn->pose pointer first,
    * so that BKE_pose_copy_data works (otherwise there's a crash) */
   obn->pose = NULL;
   BKE_pose_copy_data_ex(&obn->pose, ob->pose, flag, true); /* true = copy constraints */
@@ -2833,7 +2813,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 
     /* add new animdata block */
     if (!ob->adt) {
-      ob->adt = BKE_animdata_add_id(&ob->id);
+      ob->adt = BKE_animdata_ensure_id(&ob->id);
     }
 
     /* make a copy of all the drivers (for now), then correct any links that need fixing */
@@ -3860,7 +3840,7 @@ void BKE_object_boundbox_flag(Object *ob, int flag, const bool set)
   }
 }
 
-void BKE_object_boundbox_calc_from_mesh(struct Object *ob, struct Mesh *me_eval)
+void BKE_object_boundbox_calc_from_mesh(struct Object *ob, const struct Mesh *me_eval)
 {
   float min[3], max[3];
 
@@ -4089,7 +4069,7 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
   if ((visibility_flag & (OB_EMPTY_IMAGE_HIDE_BACK | OB_EMPTY_IMAGE_HIDE_FRONT)) != 0) {
     float eps, dot;
     if (rv3d->is_persp) {
-      /* Note, we could normalize the 'view_dir' then use 'eps'
+      /* NOTE: we could normalize the 'view_dir' then use 'eps'
        * however the issue with empty objects being visible when viewed from the side
        * is only noticeable in orthographic views. */
       float view_dir[3];
@@ -4163,13 +4143,37 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
   return ok;
 }
 
+struct GPencilStrokePointIterData {
+  const float (*obmat)[4];
+
+  void (*point_func_cb)(const float co[3], void *user_data);
+  void *user_data;
+};
+
+static void foreach_display_point_gpencil_stroke_fn(bGPDlayer *UNUSED(layer),
+                                                    bGPDframe *UNUSED(frame),
+                                                    bGPDstroke *stroke,
+                                                    void *thunk)
+{
+  struct GPencilStrokePointIterData *iter_data = thunk;
+  {
+    bGPDspoint *pt;
+    int i;
+    for (i = 0, pt = stroke->points; i < stroke->totpoints; i++, pt++) {
+      float co[3];
+      mul_v3_m4v3(co, iter_data->obmat, &pt->x);
+      iter_data->point_func_cb(co, iter_data->user_data);
+    }
+  }
+}
+
 void BKE_object_foreach_display_point(Object *ob,
                                       const float obmat[4][4],
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
   /* TODO: pointcloud and hair objects support */
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   float co[3];
 
   if (mesh_eval != NULL) {
@@ -4179,6 +4183,13 @@ void BKE_object_foreach_display_point(Object *ob,
       mul_v3_m4v3(co, obmat, mv->co);
       func_cb(co, user_data);
     }
+  }
+  else if (ob->type == OB_GPENCIL) {
+    struct GPencilStrokePointIterData iter_data = {
+        .obmat = obmat, .point_func_cb = func_cb, .user_data = user_data};
+
+    BKE_gpencil_visible_stroke_iter(
+        ob->data, NULL, foreach_display_point_gpencil_stroke_fn, &iter_data);
   }
   else if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
     DispList *dl;
@@ -5616,7 +5627,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
     }
   }
 
-  /* was originally ID_RECALC_ALL - TODO - which flags are really needed??? */
+  /* was originally ID_RECALC_ALL - TODO: which flags are really needed??? */
   /* TODO(sergey): What about animation? */
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     frame);

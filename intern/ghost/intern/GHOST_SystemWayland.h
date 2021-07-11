@@ -59,29 +59,29 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess getButtons(GHOST_Buttons &buttons) const override;
 
-  GHOST_TUns8 *getClipboard(bool selection) const override;
+  char *getClipboard(bool selection) const override;
 
-  void putClipboard(GHOST_TInt8 *buffer, bool selection) const override;
+  void putClipboard(const char *buffer, bool selection) const override;
 
-  GHOST_TUns8 getNumDisplays() const override;
+  uint8_t getNumDisplays() const override;
 
-  GHOST_TSuccess getCursorPosition(GHOST_TInt32 &x, GHOST_TInt32 &y) const override;
+  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
 
-  GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) override;
+  GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) override;
 
-  void getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const override;
+  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
-  void getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const override;
+  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
   GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) override;
 
   GHOST_TSuccess disposeContext(GHOST_IContext *context) override;
 
   GHOST_IWindow *createWindow(const char *title,
-                              GHOST_TInt32 left,
-                              GHOST_TInt32 top,
-                              GHOST_TUns32 width,
-                              GHOST_TUns32 height,
+                              int32_t left,
+                              int32_t top,
+                              uint32_t width,
+                              uint32_t height,
                               GHOST_TWindowState state,
                               GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
@@ -107,8 +107,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor cursorShape);
 
-  GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 *bitmap,
-                                      GHOST_TUns8 *mask,
+  GHOST_TSuccess setCustomCursorShape(uint8_t *bitmap,
+                                      uint8_t *mask,
                                       int sizex,
                                       int sizey,
                                       int hotX,

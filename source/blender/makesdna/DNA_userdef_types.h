@@ -261,7 +261,7 @@ typedef struct ThemeSpace {
   /** Region background. */
   unsigned char execution_buts[4];
 
-  /* note, cannot use name 'panel' because of DNA mapping old files */
+  /* NOTE: cannot use name 'panel' because of DNA mapping old files. */
   uiPanelColors panelcolors;
 
   unsigned char shade1[4];

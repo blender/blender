@@ -1731,7 +1731,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
   /* force depsgraph to get recalculated since relationships removed */
   DEG_relations_tag_update(bmain);
 
-  /* note, calling BIK_clear_data() isn't needed here */
+  /* NOTE: calling BIK_clear_data() isn't needed here. */
 
   return OPERATOR_FINISHED;
 }
@@ -1745,7 +1745,7 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = pose_constraints_clear_exec;
-  /* XXX - do we want to ensure there are selected bones too? */
+  /* XXX: do we want to ensure there are selected bones too? */
   ot->poll = ED_operator_object_active_local_editable_posemode_exclusive;
 }
 
@@ -2461,7 +2461,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
       /* Refresh depsgraph. */
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
-      /* Note, notifier might evolve. */
+      /* NOTE: notifier might evolve. */
       WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
     }
   }

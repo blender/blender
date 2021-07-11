@@ -559,7 +559,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
  * \{ */
 
 /**
- * Note: This is not normal, but the edge direction itself and always in
+ * NOTE: This is not normal, but the edge direction itself and always in
  * a positive quadrant (tries z, y then x).
  * Therefore we need to use the entire object transformation matrix.
  */

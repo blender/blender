@@ -351,8 +351,7 @@ static void blf_font_ensure_ascii_kerning(FontBLF *font,
  * characters.
  */
 
-/* Note,
- * blf_font_ensure_ascii_table(font, gc); must be called before this macro */
+/* NOTE: `blf_font_ensure_ascii_table(font, gc);` must be called before this macro. */
 
 #define BLF_UTF8_NEXT_FAST(_font, _gc, _g, _str, _i, _c, _glyph_ascii_table) \
   if (((_c) = (_str)[_i]) < 0x80) { \
@@ -376,8 +375,7 @@ static void blf_font_ensure_ascii_kerning(FontBLF *font,
                                                         ft_kerning_default : \
                                                         (FT_UInt)FT_KERNING_UNFITTED)
 
-/* Note,
- * blf_font_ensure_ascii_kerning(font, gc, kern_mode); must be called before this macro */
+/* NOTE: `blf_font_ensure_ascii_kerning(font, gc, kern_mode);` must be called before this macro. */
 
 #define BLF_KERNING_STEP_FAST(_font, _kern_mode, _g_prev, _g, _c_prev, _c, _pen_x) \
   { \

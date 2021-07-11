@@ -81,9 +81,11 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
     return;
   }
 
-  if (TRIM_NVIDIA_BUFFER_INFO &&
-      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
-      STRPREFIX(message, "Buffer detailed info")) {
+  /* NOTE: callback function can be triggered during before the platform is initialized.
+   *       In this case invoking `GPU_type_matches` would fail and
+   *       therefore the message is checked before the platform matching. */
+  if (TRIM_NVIDIA_BUFFER_INFO && STRPREFIX(message, "Buffer detailed info") &&
+      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     /** Suppress buffer infos flooding the output. */
     return;
   }

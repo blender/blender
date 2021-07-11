@@ -37,6 +37,7 @@ extern "C" {
 #include "COM_Node.h"
 
 #include "COM_ReadBufferOperation.h"
+#include "COM_SetValueOperation.h"
 #include "COM_ViewerOperation.h"
 #include "COM_WriteBufferOperation.h"
 
@@ -48,6 +49,15 @@ DebugInfo::OpNameMap DebugInfo::m_op_names;
 std::string DebugInfo::m_current_node_name;
 std::string DebugInfo::m_current_op_name;
 DebugInfo::GroupStateMap DebugInfo::m_group_states;
+
+static std::string operation_class_name(NodeOperation *op)
+{
+  std::string full_name = typeid(*op).name();
+  /* Remove name-spaces. */
+  size_t pos = full_name.find_last_of(':');
+  BLI_assert(pos != std::string::npos);
+  return full_name.substr(pos + 1);
+}
 
 std::string DebugInfo::node_name(const Node *node)
 {
@@ -135,15 +145,23 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "|");
   }
 
-  len += snprintf(str + len,
-                  maxlen > len ? maxlen - len : 0,
-                  "%s\\n(%s)",
-                  m_op_names[operation].c_str(),
-                  typeid(*operation).name());
+  if (COM_GRAPHVIZ_SHOW_NODE_NAME) {
+    std::string op_node_name = operation->get_name();
+    if (!op_node_name.empty()) {
+      len += snprintf(
+          str + len, maxlen > len ? maxlen - len : 0, "%s\\n", (op_node_name + " Node").c_str());
+    }
+  }
 
   len += snprintf(str + len,
                   maxlen > len ? maxlen - len : 0,
-                  " (%u,%u)",
+                  "%s\\n",
+                  operation_class_name(operation).c_str());
+
+  len += snprintf(str + len,
+                  maxlen > len ? maxlen - len : 0,
+                  "#%d (%u,%u)",
+                  operation->get_id(),
                   operation->getWidth(),
                   operation->getHeight());
 
@@ -159,7 +177,13 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<OUT_%p>", socket);
       switch (socket->getDataType()) {
         case DataType::Value:
-          len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value");
+          if (typeid(*operation) == typeid(SetValueOperation)) {
+            const float value = ((SetValueOperation *)operation)->getValue();
+            len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value\\n%12.4g", value);
+          }
+          else {
+            len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value");
+          }
           break;
         case DataType::Vector:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Vector");
@@ -401,7 +425,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   return (len < maxlen);
 }
 
-void DebugInfo::graphviz(const ExecutionSystem *system)
+void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
 {
   if (!COM_EXPORT_GRAPHVIZ) {
     return;
@@ -411,7 +435,12 @@ void DebugInfo::graphviz(const ExecutionSystem *system)
     char basename[FILE_MAX];
     char filename[FILE_MAX];
 
-    BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", m_file_index);
+    if (name.is_empty()) {
+      BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", m_file_index);
+    }
+    else {
+      BLI_strncpy(basename, (name + ".dot").c_str(), sizeof(basename));
+    }
     BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), basename);
     m_file_index++;
 

@@ -534,7 +534,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
   seq = find_nearest_seq(scene, v2d, &hand, mval);
 
-  /* XXX - not nice, Ctrl+RMB needs to do side_of_frame only when not over a strip */
+  /* XXX: not nice, Ctrl+RMB needs to do side_of_frame only when not over a strip. */
   if (seq && linked_time) {
     side_of_frame = false;
   }

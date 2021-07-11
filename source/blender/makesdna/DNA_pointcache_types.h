@@ -144,7 +144,7 @@ typedef struct PointCache {
 #define PTCACHE_FRAMES_SKIPPED (1 << 8)
 #define PTCACHE_EXTERNAL (1 << 9)
 #define PTCACHE_READ_INFO (1 << 10)
-/** don't use the filename of the blendfile the data is linked from (write a local cache) */
+/** Don't use the filename of the blend-file the data is linked from (write a local cache). */
 #define PTCACHE_IGNORE_LIBPATH (1 << 11)
 /**
  * High resolution cache is saved for smoke for backwards compatibility,

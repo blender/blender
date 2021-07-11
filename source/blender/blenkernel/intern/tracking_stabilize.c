@@ -376,7 +376,7 @@ static MovieTrackingMarker *get_tracking_data_point(StabContext *ctx,
  * always guesswork.
  *
  * As a simple default, we use the weighted average of the location markers
- * of the current frame as pivot point. TODO It is planned to add further
+ * of the current frame as pivot point. TODO: It is planned to add further
  * options,  like e.g. anchoring the pivot point at the canvas. Moreover,
  * it is planned to allow for a user controllable offset.
  */
@@ -661,7 +661,7 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
     int next_higher = MAXFRAME;
     use_values_from_fcurves(ctx, true);
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking->tracks) {
-      /* Note: we deliberately do not care if this track
+      /* NOTE: we deliberately do not care if this track
        *       is already initialized for stabilization. */
       if (track->flag & TRACK_USE_2D_STAB) {
         int startpoint = search_closest_marker_index(track, framenr);

@@ -216,9 +216,9 @@ set(OPENVDB_HASH 01b490be16cc0e15c690f9a153c21461)
 set(OPENVDB_HASH_TYPE MD5)
 set(OPENVDB_FILE openvdb-${OPENVDB_VERSION}.tar.gz)
 
-set(NANOVDB_GIT_UID e62f7a0bf1e27397223c61ddeaaf57edf111b77f)
+set(NANOVDB_GIT_UID dc37d8a631922e7bef46712947dc19b755f3e841)
 set(NANOVDB_URI https://github.com/AcademySoftwareFoundation/openvdb/archive/${NANOVDB_GIT_UID}.tar.gz)
-set(NANOVDB_HASH 90919510bc6ccd630fedc56f748cb199)
+set(NANOVDB_HASH e7b9e863ec2f3b04ead171dec2322807)
 set(NANOVDB_HASH_TYPE MD5)
 set(NANOVDB_FILE nano-vdb-${NANOVDB_GIT_UID}.tar.gz)
 
@@ -456,11 +456,17 @@ set(NASM_HASH aded8b796c996a486a56e0515c83e414116decc3b184d88043480b32eb0a8589)
 set(NASM_HASH_TYPE SHA256)
 set(NASM_FILE nasm-${NASM_VERSION}.tar.gz)
 
-set(XR_OPENXR_SDK_VERSION 1.0.14)
+set(XR_OPENXR_SDK_VERSION 1.0.17)
 set(XR_OPENXR_SDK_URI https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_SDK_VERSION}.tar.gz)
-set(XR_OPENXR_SDK_HASH 0df6b2fd6045423451a77ff6bc3e1a75)
+set(XR_OPENXR_SDK_HASH bf0fd8828837edff01047474e90013e1)
 set(XR_OPENXR_SDK_HASH_TYPE MD5)
 set(XR_OPENXR_SDK_FILE OpenXR-SDK-${XR_OPENXR_SDK_VERSION}.tar.gz)
+
+set(WL_PROTOCOLS_VERSION 1.21)
+set(WL_PROTOCOLS_FILE wayland-protocols-${WL_PROTOCOLS_VERSION}.tar.gz)
+set(WL_PROTOCOLS_URI https://gitlab.freedesktop.org/wayland/wayland-protocols/-/archive/${WL_PROTOCOLS_VERSION}/${WL_PROTOCOLS_FILE})
+set(WL_PROTOCOLS_HASH af5ca07e13517cdbab33504492cef54a)
+set(WL_PROTOCOLS_HASH_TYPE MD5)
 
 if(BLENDER_PLATFORM_ARM)
   # Unreleased version with macOS arm support.

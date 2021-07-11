@@ -747,7 +747,7 @@ static bool animedit_poll_channels_active(bContext *C)
   return 1;
 }
 
-/* poll callback for Animation Editor channels list region + not in NLA-tweakmode for NLA */
+/* Poll callback for Animation Editor channels list region + not in NLA-tweak-mode for NLA. */
 static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -763,7 +763,7 @@ static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
     return 0;
   }
 
-  /* NLA TweakMode test */
+  /* NLA tweak-mode test. */
   if (area->spacetype == SPACE_NLA) {
     if ((scene == NULL) || (scene->flag & SCE_NLA_EDIT_ON)) {
       return 0;
@@ -1283,6 +1283,9 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
     else {
       group_fcurves_last->next->prev = group_fcurves_first->prev;
     }
+
+    /* Clear links pointing outside the per-group list. */
+    group_fcurves_first->prev = group_fcurves_last->next = NULL;
   }
 
   /* Initialize memory for temp-group */
@@ -1337,23 +1340,11 @@ static void join_groups_action_temp(bAction *act)
     if (agrp->flag & AGRP_TEMP) {
       LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
         fcu->grp = NULL;
-        if (fcu == agrp->channels.last) {
-          break;
-        }
       }
 
       BLI_remlink(&act->groups, agrp);
       break;
     }
-  }
-
-  /* BLI_movelisttolist() doesn't touch first->prev and last->next pointers in its "dst" list.
-   * Ensure that after the reshuffling the list is properly terminated. */
-  if (!BLI_listbase_is_empty(&act->curves)) {
-    FCurve *act_fcurves_first = act->curves.first;
-    act_fcurves_first->prev = NULL;
-    FCurve *act_fcurves_last = act->curves.last;
-    act_fcurves_last->next = NULL;
   }
 }
 

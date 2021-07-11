@@ -84,7 +84,7 @@ GHOST_TSuccess GHOST_DisposeEventConsumer(GHOST_EventConsumerHandle consumerhand
   return GHOST_kSuccess;
 }
 
-GHOST_TUns64 GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle)
+uint64_t GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -92,8 +92,8 @@ GHOST_TUns64 GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle)
 }
 
 GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
-                                         GHOST_TUns64 delay,
-                                         GHOST_TUns64 interval,
+                                         uint64_t delay,
+                                         uint64_t interval,
                                          GHOST_TimerProcPtr timerproc,
                                          GHOST_TUserDataPtr userdata)
 {
@@ -111,7 +111,7 @@ GHOST_TSuccess GHOST_RemoveTimer(GHOST_SystemHandle systemhandle,
   return system->removeTimer(timertask);
 }
 
-GHOST_TUns8 GHOST_GetNumDisplays(GHOST_SystemHandle systemhandle)
+uint8_t GHOST_GetNumDisplays(GHOST_SystemHandle systemhandle)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -119,8 +119,8 @@ GHOST_TUns8 GHOST_GetNumDisplays(GHOST_SystemHandle systemhandle)
 }
 
 void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
-                                    GHOST_TUns32 *width,
-                                    GHOST_TUns32 *height)
+                                    uint32_t *width,
+                                    uint32_t *height)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -128,8 +128,8 @@ void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
 }
 
 void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
-                                   GHOST_TUns32 *width,
-                                   GHOST_TUns32 *height)
+                                   uint32_t *width,
+                                   uint32_t *height)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -156,10 +156,10 @@ GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
 GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       GHOST_WindowHandle parent_windowhandle,
                                       const char *title,
-                                      GHOST_TInt32 left,
-                                      GHOST_TInt32 top,
-                                      GHOST_TUns32 width,
-                                      GHOST_TUns32 height,
+                                      int32_t left,
+                                      int32_t top,
+                                      uint32_t width,
+                                      uint32_t height,
                                       GHOST_TWindowState state,
                                       bool is_dialog,
                                       GHOST_TDrawingContextType type,
@@ -317,13 +317,13 @@ GHOST_TSuccess GHOST_HasCursorShape(GHOST_WindowHandle windowhandle,
 }
 
 GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
-                                          GHOST_TUns8 *bitmap,
-                                          GHOST_TUns8 *mask,
+                                          uint8_t *bitmap,
+                                          uint8_t *mask,
                                           int sizex,
                                           int sizey,
                                           int hotX,
                                           int hotY,
-                                          GHOST_TUns8 canInvertColor)
+                                          bool canInvertColor)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
@@ -344,18 +344,14 @@ GHOST_TSuccess GHOST_SetCursorVisibility(GHOST_WindowHandle windowhandle, int vi
   return window->setCursorVisibility(visible ? true : false);
 }
 
-GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle,
-                                       GHOST_TInt32 *x,
-                                       GHOST_TInt32 *y)
+GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle, int32_t *x, int32_t *y)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
   return system->getCursorPosition(*x, *y);
 }
 
-GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
-                                       GHOST_TInt32 x,
-                                       GHOST_TInt32 y)
+GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle, int32_t x, int32_t y)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -370,7 +366,7 @@ GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
   GHOST_Rect bounds_rect;
-  GHOST_TInt32 mouse_xy[2];
+  int32_t mouse_xy[2];
 
   if (bounds) {
     bounds_rect = GHOST_Rect(bounds[0], bounds[1], bounds[2], bounds[3]);
@@ -420,7 +416,7 @@ void GHOST_setNDOFDeadZone(float deadzone)
 }
 #endif
 
-void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, GHOST_TInt8 canAccept)
+void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, bool canAccept)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
@@ -434,7 +430,7 @@ GHOST_TEventType GHOST_GetEventType(GHOST_EventHandle eventhandle)
   return event->getType();
 }
 
-GHOST_TUns64 GHOST_GetEventTime(GHOST_EventHandle eventhandle)
+uint64_t GHOST_GetEventTime(GHOST_EventHandle eventhandle)
 {
   GHOST_IEvent *event = (GHOST_IEvent *)eventhandle;
 
@@ -555,14 +551,14 @@ void GHOST_DisposeRectangle(GHOST_RectangleHandle rectanglehandle)
   delete (GHOST_Rect *)rectanglehandle;
 }
 
-GHOST_TSuccess GHOST_SetClientWidth(GHOST_WindowHandle windowhandle, GHOST_TUns32 width)
+GHOST_TSuccess GHOST_SetClientWidth(GHOST_WindowHandle windowhandle, uint32_t width)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
   return window->setClientWidth(width);
 }
 
-GHOST_TSuccess GHOST_SetClientHeight(GHOST_WindowHandle windowhandle, GHOST_TUns32 height)
+GHOST_TSuccess GHOST_SetClientHeight(GHOST_WindowHandle windowhandle, uint32_t height)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
@@ -570,30 +566,24 @@ GHOST_TSuccess GHOST_SetClientHeight(GHOST_WindowHandle windowhandle, GHOST_TUns
 }
 
 GHOST_TSuccess GHOST_SetClientSize(GHOST_WindowHandle windowhandle,
-                                   GHOST_TUns32 width,
-                                   GHOST_TUns32 height)
+                                   uint32_t width,
+                                   uint32_t height)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
   return window->setClientSize(width, height);
 }
 
-void GHOST_ScreenToClient(GHOST_WindowHandle windowhandle,
-                          GHOST_TInt32 inX,
-                          GHOST_TInt32 inY,
-                          GHOST_TInt32 *outX,
-                          GHOST_TInt32 *outY)
+void GHOST_ScreenToClient(
+    GHOST_WindowHandle windowhandle, int32_t inX, int32_t inY, int32_t *outX, int32_t *outY)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
   window->screenToClient(inX, inY, *outX, *outY);
 }
 
-void GHOST_ClientToScreen(GHOST_WindowHandle windowhandle,
-                          GHOST_TInt32 inX,
-                          GHOST_TInt32 inY,
-                          GHOST_TInt32 *outX,
-                          GHOST_TInt32 *outY)
+void GHOST_ClientToScreen(
+    GHOST_WindowHandle windowhandle, int32_t inX, int32_t inY, int32_t *outX, int32_t *outY)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
@@ -614,8 +604,7 @@ GHOST_TSuccess GHOST_SetWindowState(GHOST_WindowHandle windowhandle, GHOST_TWind
   return window->setState(state);
 }
 
-GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle,
-                                            GHOST_TUns8 isUnsavedChanges)
+GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle, bool isUnsavedChanges)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
@@ -703,21 +692,18 @@ void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api)
   system->setTabletAPI(api);
 }
 
-GHOST_TInt32 GHOST_GetWidthRectangle(GHOST_RectangleHandle rectanglehandle)
+int32_t GHOST_GetWidthRectangle(GHOST_RectangleHandle rectanglehandle)
 {
   return ((GHOST_Rect *)rectanglehandle)->getWidth();
 }
 
-GHOST_TInt32 GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehandle)
+int32_t GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehandle)
 {
   return ((GHOST_Rect *)rectanglehandle)->getHeight();
 }
 
-void GHOST_GetRectangle(GHOST_RectangleHandle rectanglehandle,
-                        GHOST_TInt32 *l,
-                        GHOST_TInt32 *t,
-                        GHOST_TInt32 *r,
-                        GHOST_TInt32 *b)
+void GHOST_GetRectangle(
+    GHOST_RectangleHandle rectanglehandle, int32_t *l, int32_t *t, int32_t *r, int32_t *b)
 {
   GHOST_Rect *rect = (GHOST_Rect *)rectanglehandle;
 
@@ -727,11 +713,8 @@ void GHOST_GetRectangle(GHOST_RectangleHandle rectanglehandle,
   *b = rect->m_b;
 }
 
-void GHOST_SetRectangle(GHOST_RectangleHandle rectanglehandle,
-                        GHOST_TInt32 l,
-                        GHOST_TInt32 t,
-                        GHOST_TInt32 r,
-                        GHOST_TInt32 b)
+void GHOST_SetRectangle(
+    GHOST_RectangleHandle rectanglehandle, int32_t l, int32_t t, int32_t r, int32_t b)
 {
   ((GHOST_Rect *)rectanglehandle)->set(l, t, r, b);
 }
@@ -756,7 +739,7 @@ GHOST_TSuccess GHOST_IsValidRectangle(GHOST_RectangleHandle rectanglehandle)
   return result;
 }
 
-void GHOST_InsetRectangle(GHOST_RectangleHandle rectanglehandle, GHOST_TInt32 i)
+void GHOST_InsetRectangle(GHOST_RectangleHandle rectanglehandle, int32_t i)
 {
   ((GHOST_Rect *)rectanglehandle)->inset(i);
 }
@@ -767,16 +750,12 @@ void GHOST_UnionRectangle(GHOST_RectangleHandle rectanglehandle,
   ((GHOST_Rect *)rectanglehandle)->unionRect(*(GHOST_Rect *)anotherrectanglehandle);
 }
 
-void GHOST_UnionPointRectangle(GHOST_RectangleHandle rectanglehandle,
-                               GHOST_TInt32 x,
-                               GHOST_TInt32 y)
+void GHOST_UnionPointRectangle(GHOST_RectangleHandle rectanglehandle, int32_t x, int32_t y)
 {
   ((GHOST_Rect *)rectanglehandle)->unionPoint(x, y);
 }
 
-GHOST_TSuccess GHOST_IsInsideRectangle(GHOST_RectangleHandle rectanglehandle,
-                                       GHOST_TInt32 x,
-                                       GHOST_TInt32 y)
+GHOST_TSuccess GHOST_IsInsideRectangle(GHOST_RectangleHandle rectanglehandle, int32_t x, int32_t y)
 {
   GHOST_TSuccess result = GHOST_kFailure;
 
@@ -796,18 +775,13 @@ GHOST_TVisibility GHOST_GetRectangleVisibility(GHOST_RectangleHandle rectangleha
   return visible;
 }
 
-void GHOST_SetCenterRectangle(GHOST_RectangleHandle rectanglehandle,
-                              GHOST_TInt32 cx,
-                              GHOST_TInt32 cy)
+void GHOST_SetCenterRectangle(GHOST_RectangleHandle rectanglehandle, int32_t cx, int32_t cy)
 {
   ((GHOST_Rect *)rectanglehandle)->setCenter(cx, cy);
 }
 
-void GHOST_SetRectangleCenter(GHOST_RectangleHandle rectanglehandle,
-                              GHOST_TInt32 cx,
-                              GHOST_TInt32 cy,
-                              GHOST_TInt32 w,
-                              GHOST_TInt32 h)
+void GHOST_SetRectangleCenter(
+    GHOST_RectangleHandle rectanglehandle, int32_t cx, int32_t cy, int32_t w, int32_t h)
 {
   ((GHOST_Rect *)rectanglehandle)->setCenter(cx, cy, w, h);
 }
@@ -823,13 +797,13 @@ GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
   return result;
 }
 
-GHOST_TUns8 *GHOST_getClipboard(int selection)
+char *GHOST_getClipboard(bool selection)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->getClipboard(selection);
 }
 
-void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection)
+void GHOST_putClipboard(const char *buffer, bool selection)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   system->putClipboard(buffer, selection);
@@ -861,7 +835,7 @@ float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle)
   return 1.0f;
 }
 
-GHOST_TUns16 GHOST_GetDPIHint(GHOST_WindowHandle windowhandle)
+uint16_t GHOST_GetDPIHint(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
   return window->getDPIHint();
@@ -869,12 +843,8 @@ GHOST_TUns16 GHOST_GetDPIHint(GHOST_WindowHandle windowhandle)
 
 #ifdef WITH_INPUT_IME
 
-void GHOST_BeginIME(GHOST_WindowHandle windowhandle,
-                    GHOST_TInt32 x,
-                    GHOST_TInt32 y,
-                    GHOST_TInt32 w,
-                    GHOST_TInt32 h,
-                    int complete)
+void GHOST_BeginIME(
+    GHOST_WindowHandle windowhandle, int32_t x, int32_t y, int32_t w, int32_t h, bool complete)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
   window->beginIME(x, y, w, h, complete);
@@ -972,7 +942,7 @@ void GHOST_XrDestroyActionSet(GHOST_XrContextHandle xr_contexthandle, const char
 
 int GHOST_XrCreateActions(GHOST_XrContextHandle xr_contexthandle,
                           const char *action_set_name,
-                          GHOST_TUns32 count,
+                          uint32_t count,
                           const GHOST_XrActionInfo *infos)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
@@ -983,7 +953,7 @@ int GHOST_XrCreateActions(GHOST_XrContextHandle xr_contexthandle,
 
 void GHOST_XrDestroyActions(GHOST_XrContextHandle xr_contexthandle,
                             const char *action_set_name,
-                            GHOST_TUns32 count,
+                            uint32_t count,
                             const char *const *action_names)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
@@ -993,7 +963,7 @@ void GHOST_XrDestroyActions(GHOST_XrContextHandle xr_contexthandle,
 
 int GHOST_XrCreateActionSpaces(GHOST_XrContextHandle xr_contexthandle,
                                const char *action_set_name,
-                               GHOST_TUns32 count,
+                               uint32_t count,
                                const GHOST_XrActionSpaceInfo *infos)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
@@ -1005,7 +975,7 @@ int GHOST_XrCreateActionSpaces(GHOST_XrContextHandle xr_contexthandle,
 
 void GHOST_XrDestroyActionSpaces(GHOST_XrContextHandle xr_contexthandle,
                                  const char *action_set_name,
-                                 GHOST_TUns32 count,
+                                 uint32_t count,
                                  const GHOST_XrActionSpaceInfo *infos)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
@@ -1015,7 +985,7 @@ void GHOST_XrDestroyActionSpaces(GHOST_XrContextHandle xr_contexthandle,
 
 int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_contexthandle,
                                  const char *action_set_name,
-                                 GHOST_TUns32 count,
+                                 uint32_t count,
                                  const GHOST_XrActionProfileInfo *infos)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
@@ -1027,7 +997,7 @@ int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_contexthandle,
 
 void GHOST_XrDestroyActionBindings(GHOST_XrContextHandle xr_contexthandle,
                                    const char *action_set_name,
-                                   GHOST_TUns32 count,
+                                   uint32_t count,
                                    const GHOST_XrActionProfileInfo *infos)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
@@ -1054,7 +1024,7 @@ int GHOST_XrSyncActions(GHOST_XrContextHandle xr_contexthandle, const char *acti
 int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_contexthandle,
                               const char *action_set_name,
                               const char *action_name,
-                              const GHOST_TInt64 *duration,
+                              const int64_t *duration,
                               const float *frequency,
                               const float *amplitude)
 {

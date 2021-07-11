@@ -114,7 +114,7 @@ typedef struct BPy_BMElemSeq {
 
   /* we hold a reference to this.
    * check in case the owner becomes invalid on access */
-  /* TODO - make this a GC'd object!, will function OK without this though */
+  /* TODO: make this a GC'd object!, will function OK without this though. */
   BPy_BMElem *py_ele;
 
   /* iterator type */

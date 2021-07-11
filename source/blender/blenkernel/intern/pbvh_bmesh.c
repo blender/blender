@@ -2560,7 +2560,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   /* For all remaining faces of v_del, create a new face that is the
    * same except it uses v_conn instead of v_del */
-  /* Note: this could be done with BM_vert_splice(), but that
+  /* NOTE: this could be done with BM_vert_splice(), but that
    * requires handling other issues like duplicate edges, so doesn't
    * really buy anything. */
   BLI_buffer_clear(deleted_faces);
@@ -4161,7 +4161,7 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
   return true;
 }
 
-ATTR_NO_OPT BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
+BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
 {
   tribuf->tottri++;
 
@@ -4181,7 +4181,7 @@ ATTR_NO_OPT BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
   return tribuf->tris + tribuf->tottri - 1;
 }
 
-ATTR_NO_OPT BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, SculptVertRef vertex)
+BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, SculptVertRef vertex)
 {
   tribuf->totvert++;
 
@@ -4206,7 +4206,7 @@ ATTR_NO_OPT BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, SculptVertR
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->bm;
 

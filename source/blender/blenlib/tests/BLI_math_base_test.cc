@@ -72,7 +72,7 @@ TEST(math_base, CompareFFRelativeZero)
   EXPECT_TRUE(compare_ff_relative(f0, fn1, max_diff, 1));
   EXPECT_TRUE(compare_ff_relative(fn1, f0, max_diff, 1));
 
-  /* Note: in theory, this should return false, since 0.0f  and -0.0f have 0x80000000 diff,
+  /* NOTE: in theory, this should return false, since 0.0f  and -0.0f have 0x80000000 diff,
    *       but overflow in subtraction seems to break something here
    *       (abs(*(int *)&fn0 - *(int *)&f0) == 0x80000000 == fn0), probably because int32 cannot
    * hold this abs value. this is yet another illustration of why one shall never use (near-)zero

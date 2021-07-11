@@ -86,7 +86,7 @@ class TreeDisplayViewLayer final : public AbstractTreeDisplay {
   ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
-  void add_view_layer(ListBase &, TreeElement &);
+  void add_view_layer(Scene &, ListBase &, TreeElement *);
   void add_layer_collections_recursive(ListBase &, ListBase &, TreeElement &);
   void add_layer_collection_objects(ListBase &, LayerCollection &, TreeElement &);
   void add_layer_collection_objects_children(TreeElement &);

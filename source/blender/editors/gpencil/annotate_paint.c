@@ -708,7 +708,7 @@ static void annotation_stroke_arrow_init_conv_point(bGPDspoint *pt, const float 
 static void annotation_stroke_arrow_init_point(
     tGPsdata *p, tGPspoint *ptc, bGPDspoint *pt, const float co[8], const int co_idx)
 {
-  /* Note: provided co_idx should be always pair number as it's [x1, y1, x2, y2, x3, y3]. */
+  /* NOTE: provided co_idx should be always pair number as it's [x1, y1, x2, y2, x3, y3]. */
   const float real_co[2] = {co[co_idx], co[co_idx + 1]};
   copy_v2_v2(&ptc->x, real_co);
   annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
@@ -1141,7 +1141,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
 
     /* Clear Tags
      *
-     * Note: It's better this way, as we are sure that
+     * NOTE: It's better this way, as we are sure that
      * we don't miss anything, though things will be
      * slightly slower as a result
      */
@@ -1172,7 +1172,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
           ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
         /* Check if point segment of stroke had anything to do with
          * eraser region  (either within stroke painted, or on its lines)
-         *  - this assumes that linewidth is irrelevant
+         *  - this assumes that line-width is irrelevant.
          */
         if (gpencil_stroke_inside_circle(mval, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
           if ((annotation_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
@@ -2478,18 +2478,15 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
   /* default exit state - pass through to support MMB view nav, etc. */
   int estate = OPERATOR_PASS_THROUGH;
 
-  /* if (event->type == NDOF_MOTION)
-   *    return OPERATOR_PASS_THROUGH;
-   * -------------------------------
-   * [mce] Not quite what I was looking
-   * for, but a good start! GP continues to
-   * draw on the screen while the 3D mouse
-   * moves the viewpoint. Problem is that
-   * the stroke is converted to 3D only after
-   * it is finished. This approach should work
-   * better in tools that immediately apply
-   * in 3D space.
-   */
+  /* NOTE(mike erwin): Not quite what I was looking for, but a good start!
+   * grease-pencil continues to draw on the screen while the 3D mouse moves the viewpoint.
+   * Problem is that the stroke is converted to 3D only after it is finished.
+   * This approach should work better in tools that immediately apply in 3D space. */
+#if 0
+  if (event->type == NDOF_MOTION) {
+    return OPERATOR_PASS_THROUGH;
+  }
+#endif
 
   if (p->status == GP_STATUS_IDLING) {
     ARegion *region = CTX_wm_region(C);

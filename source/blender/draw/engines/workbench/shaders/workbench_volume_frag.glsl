@@ -198,7 +198,7 @@ void volume_properties(vec3 ls_pos, out vec3 scattering, out float extinction)
   scattering *= exp(clamp(log(shadows) * densityScale * 0.1, -2.5, 0.0)) * M_PI;
 
 #  ifdef VOLUME_SMOKE
-  /* 800 is arbitrary and here to mimic old viewport. TODO make it a parameter */
+  /* 800 is arbitrary and here to mimic old viewport. TODO: make it a parameter. */
   scattering += emission.rgb * emission.a * 800.0;
 #  endif
 #endif
@@ -247,7 +247,7 @@ vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max
 void main()
 {
 #ifdef VOLUME_SLICE
-  /* Manual depth test. TODO remove. */
+  /* Manual depth test. TODO: remove. */
   float depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
   if (gl_FragCoord.z >= depth) {
     discard;

@@ -91,7 +91,7 @@ class GHOST_XrAction {
                    const XrTime &predicted_display_time);
   void applyHapticFeedback(XrSession session,
                            const char *action_name,
-                           const GHOST_TInt64 &duration,
+                           const int64_t &duration,
                            const float &frequency,
                            const float &amplitude);
   void stopHapticFeedback(XrSession session, const char *action_name);

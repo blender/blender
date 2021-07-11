@@ -1,0 +1,86 @@
+<html>
+<head>
+	<title>Benchmarks</title>
+  <meta charset="UTF-8">
+	<style type="text/css">
+		body               { margin: 40px auto;
+		                     font-family: Arial;
+		                     font-size: 14px;
+		                     color: #333;
+                         max-width: 900px; }
+		a                  { text-decoration: none; color: #06b; }
+	</style>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    google.charts.load('current', {'packages':['line', 'bar']});
+    google.charts.setOnLoadCallback(draw_charts);
+
+    function transposeDataTable(dt)
+    {
+      /* Swap rows and columns. Bar and line charts expect different layouts,
+       * with this function we can use the same data source for both. */
+      var ndt = new google.visualization.DataTable;
+      ndt.addColumn('string',dt.getColumnLabel(0));
+      for(var x=1; x<dt.getNumberOfColumns(); x++) {
+          ndt.addRow([dt.getColumnLabel(x)]);
+      }
+      for(var x=0; x<dt.getNumberOfRows(); x++) {
+          ndt.addColumn('number', dt.getValue(x,0));
+          for(var y=1; y<dt.getNumberOfColumns(); y++) {
+              ndt.setValue(y-1, x+1, dt.getValue(x,y));
+          }
+      }
+      return ndt;
+    }
+
+    function draw_charts()
+    {
+      /* Load JSON data. */
+      var json_data = %JSON_DATA%;
+
+      /* Clear contents. */
+      charts_elem = document.getElementById("charts");
+      while(charts_elem.firstChild)
+      {
+        charts_elem.removeChild(charts_elem.firstChild);
+      }
+
+      /* Draw charts for each device. */
+      for (var i = 0; i < json_data.length; i++)
+      {
+        device = json_data[i];
+
+        /* Chart drawing options. */
+        var options = {
+          chart: {title: device["category"], subtitle: device['device']},
+          pointsVisible: true,
+          pointSize: 2.5,
+          height: 500,
+        };
+
+        /* Create chart div. */
+        elem = document.createElement('div');
+        elem.id = device["id"];
+        charts_elem.appendChild(elem)
+
+        /* Create chart. */
+        var data = new google.visualization.DataTable(device["data"]);
+        if (device['chart_type'] == 'line') {
+          var chart = new google.charts.Line(elem);
+          chart.draw(data, options);
+        }
+        else {
+          var chart = new google.charts.Bar(elem);
+          chart.draw(transposeDataTable(data), options);
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Benchmarks</h1>
+  <div id="charts">
+    ...
+  </div>
+</body>
+</html>

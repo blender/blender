@@ -32,8 +32,8 @@
 
 #include "sequencer_intern.h"
 
-/* XXX, why is this function better than BLI_math version?
- * only difference is it does some normalize after, need to double check on this - campbell */
+/* XXX(campbell): why is this function better than BLI_math version?
+ * only difference is it does some normalize after, need to double check on this. */
 static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
 {
   yuv[0] = 0.299f * rgb[0] + 0.587f * rgb[1] + 0.114f * rgb[2];

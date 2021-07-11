@@ -36,7 +36,7 @@ typedef struct DRW_MeshWeightState {
   short flags;
   char alert_mode;
 
-  /* Set of all selected bones for Multipaint. */
+  /* Set of all selected bones for Multi-paint. */
   bool *defgroup_sel; /* [defgroup_len] */
   int defgroup_sel_count;
 

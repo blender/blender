@@ -788,7 +788,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 }
 
 /**
- * Fills first available UVmap with grid-like UVs for all faces OpFlag-ged by given flag.
+ * Fills first available UV-map with grid-like UV's for all faces with `oflag` set.
  *
  * \param bm: The BMesh to operate on
  * \param x_segments: The x-resolution of the grid
@@ -1131,7 +1131,7 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
 }
 
 /**
- * Fills first available UVmap with spherical projected UVs for all faces OpFlag-ged by given flag.
+ * Fills first available UV-map with spherical projected UVs for all faces with `oflag` set.
  *
  * \param bm: The BMesh to operate on
  * \param oflag: The flag to check faces with.
@@ -1344,7 +1344,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 }
 
 /**
- * Fills first available UVmap with 2D projected UVs for all faces OpFlag-ged by given flag.
+ * Fills first available UV-map with 2D projected UVs for all faces with `oflag` set.
  *
  * \param bm: The BMesh to operate on.
  * \param mat: The transform matrix applied to the created circle.
@@ -1536,7 +1536,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 }
 
 /**
- * Fills first available UVmap with cylinder/cone-like UVs for all faces OpFlag-ged by given flag.
+ * Fills first available UV-map with cylinder/cone-like UVs for all faces with `oflag` set.
  *
  * \param bm: The BMesh to operate on.
  * \param mat: The transform matrix applied to the created cone/cylinder.
@@ -1712,7 +1712,7 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 }
 
 /**
- * Fills first available UVmap with cube-like UVs for all faces OpFlag-ged by given flag.
+ * Fills first available UV-map with cube-like UVs for all faces with `oflag` set.
  *
  * \note Expects tagged faces to be six quads.
  * \note Caller must order faces for correct alignment.

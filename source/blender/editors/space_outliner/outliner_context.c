@@ -64,7 +64,7 @@ int /*eContextResult*/ outliner_context(const bContext *C,
     outliner_context_selected_ids(space_outliner, result);
     return CTX_RESULT_OK;
   }
-  /* Note: Querying non-ID selection could also work if tree elements stored their matching RNA
+  /* NOTE: Querying non-ID selection could also work if tree elements stored their matching RNA
    * struct type. */
 
   return CTX_RESULT_MEMBER_NOT_FOUND;

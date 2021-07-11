@@ -100,8 +100,8 @@ void BLI_system_backtrace(FILE *fp)
 #    undef SIZE
 
 #  else
-  /* ------------------ */
-  /* non msvc/osx/linux */
+  /* --------------------- */
+  /* Non MSVC/Apple/Linux. */
   (void)fp;
 #  endif
 }

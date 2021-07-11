@@ -258,7 +258,7 @@ static Panel *panel_add_instanced(ARegion *region,
   /* Make sure the panel is added to the end of the display-order as well. This is needed for
    * loading existing files.
    *
-   * Note: We could use special behavior to place it after the panel that starts the list of
+   * NOTE: We could use special behavior to place it after the panel that starts the list of
    * instanced panels, but that would add complexity that isn't needed for now. */
   int max_sortorder = 0;
   LISTBASE_FOREACH (Panel *, existing_panel, panels) {
@@ -1892,7 +1892,7 @@ static void ui_do_animate(bContext *C, Panel *panel)
   }
   else {
     if (UI_panel_is_dragging(panel)) {
-      /* Note: doing this in #panel_activate_state would require
+      /* NOTE: doing this in #panel_activate_state would require
        * removing `const` for context in many other places. */
       reorder_instanced_panel_list(C, region, panel);
     }
@@ -2563,7 +2563,7 @@ PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wm
 /** \name Window Level Modal Panel Interaction
  * \{ */
 
-/* Note, this is modal handler and should not swallow events for animation. */
+/* NOTE: this is modal handler and should not swallow events for animation. */
 static int ui_handler_panel(bContext *C, const wmEvent *event, void *userdata)
 {
   Panel *panel = userdata;

@@ -435,7 +435,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   transpose_m4(nmat);
 
   // We count the number of triangles after the clipping by the near and far view
-  // planes is applied (Note: mesh vertices are in the camera coordinate system).
+  // planes is applied (NOTE: mesh vertices are in the camera coordinate system).
   unsigned numFaces = 0;
   float v1[3], v2[3], v3[3];
   float n1[3], n2[3], n3[3], facenormal[3];

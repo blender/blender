@@ -939,8 +939,8 @@ static void remake_graph_transdata(TransInfo *t, ListBase *anim_data)
     if (fcu->bezt) {
       BeztMap *bezm;
 
-      /* adjust transform-data pointers */
-      /* note, none of these functions use 'use_handle', it could be removed */
+      /* Adjust transform-data pointers. */
+      /* NOTE: none of these functions use 'use_handle', it could be removed. */
       bezm = bezt_to_beztmaps(fcu->bezt, fcu->totvert);
       sort_time_beztmaps(bezm, fcu->totvert);
       beztmap_to_data(t, fcu, bezm, fcu->totvert);
@@ -1082,7 +1082,7 @@ void special_aftertrans_update__graph(bContext *C, TransInfo *t)
 
   /* Make sure all F-Curves are set correctly, but not if transform was
    * canceled, since then curves were already restored to initial state.
-   * Note: if the refresh is really needed after cancel then some way
+   * NOTE: if the refresh is really needed after cancel then some way
    *       has to be added to not update handle types (see bug 22289).
    */
   if (!canceled) {

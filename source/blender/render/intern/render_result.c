@@ -473,15 +473,15 @@ RenderResult *render_result_new(
       render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, view, "RGBA");
     }
 
-    /* note, this has to be in sync with scene.c */
+    /* NOTE: this has to be in sync with `scene.c`. */
     rl->layflag = 0x7FFF; /* solid ztra halo strand */
     rl->passflag = SCE_PASS_COMBINED;
 
     re->active_view_layer = 0;
   }
 
-  /* border render; calculate offset for use in compositor. compo is centralized coords */
-  /* XXX obsolete? I now use it for drawing border render offset (ton) */
+  /* Border render; calculate offset for use in compositor. compo is centralized coords. */
+  /* XXX(ton): obsolete? I now use it for drawing border render offset. */
   rr->xof = re->disprect.xmin + BLI_rcti_cent_x(&re->disprect) - (re->winx / 2);
   rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
 
@@ -1016,7 +1016,7 @@ bool RE_WriteRenderResult(ReportList *reports,
     IMB_exr_write_channels(exrhandle);
   }
   else {
-    /* TODO, get the error from openexr's exception */
+    /* TODO: get the error from openexr's exception. */
     BKE_reportf(
         reports, RPT_ERROR, "Error writing render result, %s (see console)", strerror(errno));
   }

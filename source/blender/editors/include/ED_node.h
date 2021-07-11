@@ -40,6 +40,7 @@ struct bNodeSocketType;
 struct bNodeTree;
 struct bNodeTreeType;
 struct bNodeType;
+struct SpaceNode;
 
 typedef enum {
   NODE_TOP = 1,
@@ -114,6 +115,7 @@ bool ED_node_select_check(const ListBase *lb);
 void ED_node_select_all(ListBase *lb, int action);
 void ED_node_post_apply_transform(struct bContext *C, struct bNodeTree *ntree);
 void ED_node_set_active(struct Main *bmain,
+                        struct SpaceNode *snode,
                         struct bNodeTree *ntree,
                         struct bNode *node,
                         bool *r_active_texture_changed);

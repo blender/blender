@@ -88,7 +88,7 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
   /* Make illumination power constant */
   if (la->type == LA_AREA) {
     power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) * /* 1/(w*h*Pi) */
-            0.8f; /* XXX : Empirical, Fit cycles power */
+            0.8f; /* XXX: Empirical, Fit cycles power. */
     if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
       /* Scale power to account for the lower area of the ellipse compared to the surrounding
        * rectangle. */
@@ -99,7 +99,7 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
     power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI); /* `1/(4*(r^2)*(Pi^2))` */
 
     /* for point lights (a.k.a radius == 0.0) */
-    // power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */
+    // power = M_PI * M_PI * 0.78; /* XXX: Empirical, Fit cycles power. */
   }
   else { /* LA_SUN */
     power = 1.0f / (evli->radius * evli->radius * M_PI);

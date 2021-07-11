@@ -48,7 +48,6 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_node_ui_storage.hh"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
@@ -76,6 +75,8 @@
 
 #include "RNA_access.h"
 
+#include "NOD_geometry_nodes_eval_log.hh"
+
 #include "node_intern.h" /* own include */
 
 #ifdef WITH_COMPOSITOR
@@ -86,6 +87,9 @@ using blender::Map;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
+using blender::fn::CPPType;
+using blender::fn::GPointer;
+namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
 extern "C" {
 /* XXX interface.h */
@@ -1185,14 +1189,14 @@ void node_draw_sockets(const View2D *v2d,
   }
 }
 
-static int node_error_type_to_icon(const NodeWarningType type)
+static int node_error_type_to_icon(const geo_log::NodeWarningType type)
 {
   switch (type) {
-    case NodeWarningType::Error:
+    case geo_log::NodeWarningType::Error:
       return ICON_ERROR;
-    case NodeWarningType::Warning:
+    case geo_log::NodeWarningType::Warning:
       return ICON_ERROR;
-    case NodeWarningType::Info:
+    case geo_log::NodeWarningType::Info:
       return ICON_INFO;
   }
 
@@ -1200,14 +1204,14 @@ static int node_error_type_to_icon(const NodeWarningType type)
   return ICON_ERROR;
 }
 
-static uint8_t node_error_type_priority(const NodeWarningType type)
+static uint8_t node_error_type_priority(const geo_log::NodeWarningType type)
 {
   switch (type) {
-    case NodeWarningType::Error:
+    case geo_log::NodeWarningType::Error:
       return 3;
-    case NodeWarningType::Warning:
+    case geo_log::NodeWarningType::Warning:
       return 2;
-    case NodeWarningType::Info:
+    case geo_log::NodeWarningType::Info:
       return 1;
   }
 
@@ -1215,11 +1219,11 @@ static uint8_t node_error_type_priority(const NodeWarningType type)
   return 0;
 }
 
-static NodeWarningType node_error_highest_priority(Span<NodeWarning> warnings)
+static geo_log::NodeWarningType node_error_highest_priority(Span<geo_log::NodeWarning> warnings)
 {
   uint8_t highest_priority = 0;
-  NodeWarningType highest_priority_type = NodeWarningType::Info;
-  for (const NodeWarning &warning : warnings) {
+  geo_log::NodeWarningType highest_priority_type = geo_log::NodeWarningType::Info;
+  for (const geo_log::NodeWarning &warning : warnings) {
     const uint8_t priority = node_error_type_priority(warning.type);
     if (priority > highest_priority) {
       highest_priority = priority;
@@ -1229,15 +1233,17 @@ static NodeWarningType node_error_highest_priority(Span<NodeWarning> warnings)
   return highest_priority_type;
 }
 
+struct NodeErrorsTooltipData {
+  Span<geo_log::NodeWarning> warnings;
+};
+
 static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
 {
-  const NodeUIStorage **storage_pointer_alloc = static_cast<const NodeUIStorage **>(argN);
-  const NodeUIStorage *node_ui_storage = *storage_pointer_alloc;
-  Span<NodeWarning> warnings = node_ui_storage->warnings;
+  NodeErrorsTooltipData &data = *(NodeErrorsTooltipData *)argN;
 
   std::string complete_string;
 
-  for (const NodeWarning &warning : warnings.drop_back(1)) {
+  for (const geo_log::NodeWarning &warning : data.warnings.drop_back(1)) {
     complete_string += warning.message;
     /* Adding the period is not ideal for multi-line messages, but it is consistent
      * with other tooltip implementations in Blender, so it is added here. */
@@ -1246,7 +1252,7 @@ static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char 
   }
 
   /* Let the tooltip system automatically add the last period. */
-  complete_string += warnings.last().message;
+  complete_string += data.warnings.last().message;
 
   return BLI_strdupn(complete_string.c_str(), complete_string.size());
 }
@@ -1254,20 +1260,26 @@ static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
 
 static void node_add_error_message_button(
-    const bContext *C, bNodeTree &ntree, bNode &node, const rctf &rect, float &icon_offset)
+    const bContext *C, bNodeTree &UNUSED(ntree), bNode &node, const rctf &rect, float &icon_offset)
 {
-  const NodeUIStorage *node_ui_storage = BKE_node_tree_ui_storage_get_from_context(C, ntree, node);
-  if (node_ui_storage == nullptr || node_ui_storage->warnings.is_empty()) {
+  SpaceNode *snode = CTX_wm_space_node(C);
+  const geo_log::NodeLog *node_log = geo_log::ModifierLog::find_node_by_node_editor_context(*snode,
+                                                                                            node);
+  if (node_log == nullptr) {
     return;
   }
 
-  /* The UI API forces us to allocate memory for each error button, because the
-   * ownership of #UI_but_func_tooltip_set's argument is transferred to the button. */
-  const NodeUIStorage **storage_pointer_alloc = (const NodeUIStorage **)MEM_mallocN(
-      sizeof(NodeUIStorage *), __func__);
-  *storage_pointer_alloc = node_ui_storage;
+  Span<geo_log::NodeWarning> warnings = node_log->warnings();
 
-  const NodeWarningType display_type = node_error_highest_priority(node_ui_storage->warnings);
+  if (warnings.is_empty()) {
+    return;
+  }
+
+  NodeErrorsTooltipData *tooltip_data = (NodeErrorsTooltipData *)MEM_mallocN(
+      sizeof(NodeErrorsTooltipData), __func__);
+  tooltip_data->warnings = warnings;
+
+  const geo_log::NodeWarningType display_type = node_error_highest_priority(warnings);
 
   icon_offset -= NODE_HEADER_ICON_SIZE;
   UI_block_emboss_set(node.block, UI_EMBOSS_NONE);
@@ -1285,7 +1297,7 @@ static void node_add_error_message_button(
                             0,
                             0,
                             nullptr);
-  UI_but_func_tooltip_set(but, node_errors_tooltip_fn, storage_pointer_alloc, MEM_freeN);
+  UI_but_func_tooltip_set(but, node_errors_tooltip_fn, tooltip_data, MEM_freeN);
   UI_block_emboss_set(node.block, UI_EMBOSS);
 }
 
@@ -1403,28 +1415,6 @@ static void node_draw_basis(const bContext *C,
                  0,
                  0,
                  "");
-    UI_block_emboss_set(node->block, UI_EMBOSS);
-  }
-  if (ntree->type == NTREE_GEOMETRY) {
-    /* Active preview toggle. */
-    iconofs -= iconbutw;
-    UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    int icon = (node->flag & NODE_ACTIVE_PREVIEW) ? ICON_RESTRICT_VIEW_OFF : ICON_RESTRICT_VIEW_ON;
-    uiBut *but = uiDefIconBut(node->block,
-                              UI_BTYPE_BUT_TOGGLE,
-                              0,
-                              icon,
-                              iconofs,
-                              rct->ymax - NODE_DY,
-                              iconbutw,
-                              UI_UNIT_Y,
-                              nullptr,
-                              0,
-                              0,
-                              0,
-                              0,
-                              "Show this node's geometry output in the spreadsheet");
-    UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_active_preview_toggle");
     UI_block_emboss_set(node->block, UI_EMBOSS);
   }
 

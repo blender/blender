@@ -1464,7 +1464,7 @@ static void do_render_full_pipeline(Render *re)
     /* in this case external render overrides all */
   }
   else if (RE_seq_render_active(re->scene, &re->r)) {
-    /* note: do_render_sequencer() frees rect32 when sequencer returns float images */
+    /* NOTE: do_render_sequencer() frees rect32 when sequencer returns float images. */
     if (!re->test_break(re->tbh)) {
       do_render_sequencer(re);
       render_seq = true;
@@ -2419,7 +2419,7 @@ void RE_RenderAnim(Render *re,
 
       render_update_depsgraph(re);
 
-      /* only border now, todo: camera lens. (ton) */
+      /* Only border now, TODO(ton): camera lens. */
       render_init_from_main(re, &rd, bmain, scene, single_layer, camera_override, 1, 0);
 
       if (nfra != scene->r.cfra) {
@@ -2612,7 +2612,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
   }
 }
 
-/* note; repeated win/disprect calc... solve that nicer, also in compo */
+/* NOTE: repeated win/disprect calc... solve that nicer, also in compo. */
 
 /* only the temp file! */
 bool RE_ReadRenderResult(Scene *scene, Scene *scenode)

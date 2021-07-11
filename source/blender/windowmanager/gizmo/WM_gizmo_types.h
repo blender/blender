@@ -107,7 +107,7 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
   /** Mark gizmo-group as being 3D */
   WM_GIZMOGROUPTYPE_3D = (1 << 0),
   /** Scale gizmos as 3D object that respects zoom (otherwise zoom independent draw size).
-   * note: currently only for 3D views, 2D support needs adding. */
+   * NOTE: currently only for 3D views, 2D support needs adding. */
   WM_GIZMOGROUPTYPE_SCALE = (1 << 1),
   /** Gizmos can be depth culled with scene objects (covered by other geometry - TODO) */
   WM_GIZMOGROUPTYPE_DEPTH_3D = (1 << 2),
@@ -445,7 +445,7 @@ typedef struct wmGizmoGroupType {
   /** Only for convenient removal. */
   struct wmKeyConfig *keyconf;
 
-  /* Note: currently gizmo-group instances don't store properties,
+  /* NOTE: currently gizmo-group instances don't store properties,
    * they're kept in the tool properties. */
 
   /** RNA for properties. */

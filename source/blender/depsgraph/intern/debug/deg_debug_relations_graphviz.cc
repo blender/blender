@@ -461,7 +461,7 @@ static void deg_debug_graphviz_node_relations(DotExportContext &ctx, const Node 
 
     dot::DirectedEdge &edge = ctx.digraph.new_edge(dot_tail, dot_head);
 
-    /* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
+    /* NOTE: without label an id seem necessary to avoid bugs in graphviz/dot. */
     edge.attributes.set("id", rel->name);
     deg_debug_graphviz_relation_color(rel, edge);
     deg_debug_graphviz_relation_style(rel, edge);

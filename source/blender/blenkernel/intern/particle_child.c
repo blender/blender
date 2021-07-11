@@ -331,7 +331,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx,
   int totkeys, k;
   float max_length;
 
-  /* TODO for the future: use true particle modifiers that work on the whole curve */
+  /* TODO: for the future: use true particle modifiers that work on the whole curve. */
 
   (void)modifiers;
   (void)mod;

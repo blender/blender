@@ -681,7 +681,10 @@ class ShaderImageTextureWrapper():
             tree = self.owner_shader.material.node_tree
 
             node_image = tree.nodes.new(type='ShaderNodeTexImage')
-            self.owner_shader._grid_to_location(-1, 0 + self.grid_row_diff, dst_node=node_image, ref_node=self.node_dst)
+            self.owner_shader._grid_to_location(
+                -1, 0 + self.grid_row_diff,
+                dst_node=node_image, ref_node=self.node_dst,
+            )
 
             tree.links.new(node_image.outputs["Alpha" if self.use_alpha else "Color"], self.socket_dst)
             if self.use_alpha:
@@ -778,7 +781,7 @@ class ShaderImageTextureWrapper():
             socket_dst = self.node_image.inputs["Vector"]
             # If not already existing, we need to create texcoords -> mapping link (from UV).
             socket_src = (socket_dst.links[0].from_socket if socket_dst.is_linked
-                                                          else self.owner_shader.node_texcoords.outputs['UV'])
+                          else self.owner_shader.node_texcoords.outputs['UV'])
 
             tree = self.owner_shader.material.node_tree
             node_mapping = tree.nodes.new(type='ShaderNodeMapping')

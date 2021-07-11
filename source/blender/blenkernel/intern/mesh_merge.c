@@ -259,7 +259,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   STACK_DECLARE(mvert);
   STACK_DECLARE(oldv);
 
-  /* Note: create (totedge + totloop) elements because partially invalid polys due to merge may
+  /* NOTE: create (totedge + totloop) elements because partially invalid polys due to merge may
    * require generating new edges, and while in 99% cases we'll still end with less final edges
    * than totedge, cases can be forged that would end requiring more. */
   MEdge *med, *medge = MEM_malloc_arrayN((totedge + totloop), sizeof(*medge), __func__);

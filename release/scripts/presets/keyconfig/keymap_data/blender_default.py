@@ -4113,7 +4113,7 @@ def km_pose(params):
         ("pose.bone_layers", {"type": 'M', "value": 'PRESS'}, None),
         ("transform.bbone_resize", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ("anim.keyframe_insert_menu", {"type": 'I', "value": 'PRESS'}, None),
-        ("anim.keyframe_delete", {"type": 'I', "value": 'PRESS', "alt": True}, None),
+        ("anim.keyframe_delete_v3d", {"type": 'I', "value": 'PRESS', "alt": True}, None),
         ("anim.keying_set_active_set", {"type": 'I', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ("poselib.browse_interactive", {"type": 'L', "value": 'PRESS', "alt": True}, None),
         ("poselib.pose_add", {"type": 'L', "value": 'PRESS', "shift": True}, None),
@@ -4185,7 +4185,7 @@ def km_object_mode(params):
         ("wm.context_toggle", {"type": 'PERIOD', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'tool_settings.use_transform_data_origin')]}),
         ("anim.keyframe_insert_menu", {"type": 'I', "value": 'PRESS'}, None),
-        ("anim.keyframe_delete", {"type": 'I', "value": 'PRESS', "alt": True}, None),
+        ("anim.keyframe_delete_v3d", {"type": 'I', "value": 'PRESS', "alt": True}, None),
         ("anim.keying_set_active_set", {"type": 'I', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ("collection.create", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("collection.objects_remove", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),
@@ -5551,6 +5551,7 @@ def km_view3d_walk_modal(_params):
         ("DECELERATE", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "any": True, "repeat": True}, None),
         ("ACCELERATE", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "any": True}, None),
         ("DECELERATE", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "any": True}, None),
+        ("AXIS_LOCK_Z", {"type": 'Z', "value": 'PRESS'}, None),
     ])
 
     return keymap

@@ -2258,7 +2258,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
         break;
     }
 
-    /* XXX - Should be a generic function. */
+    /* XXX: Should be a generic function. */
     for (iseq = scene->ed->seqbasep->first; iseq; iseq = iseq->next) {
       if ((iseq->type & SEQ_TYPE_EFFECT) &&
           (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
@@ -2804,9 +2804,9 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
     RNA_string_get(op->ptr, "directory", directory);
     if (is_relative_path) {
-      /* TODO, shouldn't this already be relative from the filesel?
+      /* TODO(campbell): shouldn't this already be relative from the filesel?
        * (as the 'filepath' is) for now just make relative here,
-       * but look into changing after 2.60 - campbell */
+       * but look into changing after 2.60. */
       BLI_path_rel(directory, BKE_main_blendfile_path(bmain));
     }
     BLI_strncpy(seq->strip->dir, directory, sizeof(seq->strip->dir));
@@ -2984,8 +2984,10 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Only text strips that are not muted and don't end with negative frame. */
   SEQ_ALL_BEGIN (ed, seq) {
-    if (seq->type == SEQ_TYPE_TEXT) {
+    if ((seq->type == SEQ_TYPE_TEXT) && ((seq->flag & SEQ_MUTE) == 0) &&
+        (seq->enddisp > scene->r.sfra)) {
       BLI_addtail(&text_seq, MEM_dupallocN(seq));
     }
   }
@@ -3006,16 +3008,17 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     char timecode_str_start[32];
     char timecode_str_end[32];
 
+    /* Write time-code relative to start frame of scene. Don't allow negative time-codes. */
     BLI_timecode_string_from_time(timecode_str_start,
                                   sizeof(timecode_str_start),
                                   -2,
-                                  FRA2TIME(seq->startdisp),
+                                  FRA2TIME(max_ii(seq->startdisp - scene->r.sfra, 0)),
                                   FPS,
                                   USER_TIMECODE_SUBRIP);
     BLI_timecode_string_from_time(timecode_str_end,
                                   sizeof(timecode_str_end),
                                   -2,
-                                  FRA2TIME(seq->enddisp),
+                                  FRA2TIME(seq->enddisp - scene->r.sfra),
                                   FPS,
                                   USER_TIMECODE_SUBRIP);
 

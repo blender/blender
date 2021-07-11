@@ -1706,6 +1706,8 @@ static void rna_Object_active_modifier_set(PointerRNA *ptr, PointerRNA value, Re
   Object *ob = (Object *)ptr->owner_id;
   ModifierData *md = value.data;
 
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
+
   if (RNA_pointer_is_null(&value)) {
     BKE_object_modifier_set_active(ob, NULL);
     return;
@@ -2268,7 +2270,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
   func = RNA_def_function(srna, "add", "rna_VertexGroup_vertex_add");
   RNA_def_function_ui_description(func, "Add vertices to the group");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
-  /* TODO, see how array size of 0 works, this shouldn't be used */
+  /* TODO: see how array size of 0 works, this shouldn't be used. */
   parm = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "List of indices", 0, 0);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
   parm = RNA_def_float(func, "weight", 0, 0.0f, 1.0f, "", "Vertex weight", 0.0f, 1.0f);
@@ -2279,7 +2281,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
   func = RNA_def_function(srna, "remove", "rna_VertexGroup_vertex_remove");
   RNA_def_function_ui_description(func, "Remove vertices from the group");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
-  /* TODO, see how array size of 0 works, this shouldn't be used */
+  /* TODO: see how array size of 0 works, this shouldn't be used. */
   parm = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "List of indices", 0, 0);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
@@ -2326,14 +2328,14 @@ static void rna_def_face_map(BlenderRNA *brna)
   func = RNA_def_function(srna, "add", "rna_FaceMap_face_add");
   RNA_def_function_ui_description(func, "Add faces to the face-map");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
-  /* TODO, see how array size of 0 works, this shouldn't be used */
+  /* TODO: see how array size of 0 works, this shouldn't be used. */
   parm = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "List of indices", 0, 0);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "remove", "rna_FaceMap_face_remove");
   RNA_def_function_ui_description(func, "Remove faces from the face-map");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
-  /* TODO, see how array size of 0 works, this shouldn't be used */
+  /* TODO: see how array size of 0 works, this shouldn't be used. */
   parm = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "List of indices", 0, 0);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 }
@@ -2488,7 +2490,7 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   /*RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update"); */
   RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_edit_bone_set", NULL, NULL);
 
-  /* todo, redraw */
+  /* TODO: redraw. */
 /*      RNA_def_property_collection_active(prop, prop_act); */
 #  endif
 

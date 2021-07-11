@@ -69,7 +69,7 @@
 /** \name Unique Bone Name Utility (Edit Mode)
  * \{ */
 
-/* note: there's a ed_armature_bone_unique_name() too! */
+/* NOTE: there's a ed_armature_bone_unique_name() too! */
 static bool editbone_unique_check(void *arg, const char *name)
 {
   struct {
@@ -589,7 +589,7 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
     /* Since we renamed stuff... */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
-    /* Note, notifier might evolve. */
+    /* NOTE: notifier might evolve. */
     WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
   }
   MEM_freeN(objects);

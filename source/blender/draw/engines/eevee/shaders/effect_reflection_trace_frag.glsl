@@ -89,7 +89,7 @@ void main()
 
     if (fade > 0.5) {
       /* Find view vector / reflection plane intersection. */
-      /* TODO optimize, use view space for all. */
+      /* TODO: optimize, use view space for all. */
       vec3 P_plane = line_plane_intersect(P, V, pd.pl_plane_eq);
       vP = transform_point(ViewMatrix, P_plane);
 

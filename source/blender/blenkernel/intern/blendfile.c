@@ -128,7 +128,7 @@ static void setup_app_userdef(BlendFileData *bfd)
 }
 
 /**
- * Context matching, handle no-ui case
+ * Context matching, handle no-UI case.
  *
  * \note this is called on Undo so any slow conversion functions here
  * should be avoided or check (mode != LOAD_UNDO).

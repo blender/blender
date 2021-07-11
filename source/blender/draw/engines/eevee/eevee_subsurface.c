@@ -144,7 +144,7 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata),
   /* Clear texture.
    * Due to the late initialization of the SSS it can happen that the `taa_current_sample` is
    * already higher than one. This is noticeable when loading a file that has the diffuse light
-   * pass in look dev mode active. `texture_created` will make sure that newly created textures
+   * pass in look-dev mode active. `texture_created` will make sure that newly created textures
    * are cleared. */
   if (effects->taa_current_sample == 1 || texture_created) {
     const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -198,7 +198,7 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
 
   /* Limit of 8 bit stencil buffer. ID 255 is refraction. */
   if (effects->sss_surface_count >= 254) {
-    /* TODO : display message. */
+    /* TODO: display message. */
     printf("Error: Too many different Subsurface shader in the scene.\n");
     return;
   }
