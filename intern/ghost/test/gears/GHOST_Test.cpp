@@ -365,8 +365,8 @@ void StereoProjection(float left,
  * of zero parallax.
  *
  * -0.31
- * eye = half the eye separation; positive for the right eye subfield,
- * negative for the left eye subfield.
+ * eye = half the eye separation; positive for the right eye sub-field,
+ * negative for the left eye sub-field.
  */
 {
   float xmid, ymid, clip_near, clip_far, topw, bottomw, leftw, rightw, dx, dy, n_over_d;

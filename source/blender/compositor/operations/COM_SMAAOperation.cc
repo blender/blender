@@ -36,12 +36,12 @@ namespace blender::compositor {
  *
  *   http://www.iryoku.com/smaa/
  *
- * This file is based on smaa-cpp:
+ * This file is based on SMAA-CPP:
  *
  *   https://github.com/iRi-E/smaa-cpp
  *
  * Currently only SMAA 1x mode is provided, so the operation will be done
- * with no spatial multisampling nor temporal supersampling.
+ * with no spatial multi-sampling nor temporal super-sampling.
  *
  * NOTE: This program assumes the screen coordinates are DirectX style, so
  * the vertical direction is upside-down. "top" and "bottom" actually mean

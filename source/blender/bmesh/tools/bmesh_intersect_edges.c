@@ -938,7 +938,7 @@ bool BM_mesh_intersect_edges(
             }
 
             if (va_dest == v_other_dest) {
-              /* Edge/Edgenet to vertex - we can't split the face. */
+              /* Edge/Edge-net to vertex - we can't split the face. */
               break;
             }
             if (edgenet_len == 0 && BM_edge_exists(va_dest, v_other_dest)) {

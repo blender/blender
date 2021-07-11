@@ -205,7 +205,7 @@ static void bakeModifier(Main *UNUSED(bmain),
   }
 
   if (!gpd->runtime.lineart_cache) {
-    /* Only calculate for this modifer, thus no need to get maximum values from all line art
+    /* Only calculate for this modifier, thus no need to get maximum values from all line art
      * modifiers in the stack. */
     lmd->edge_types_override = lmd->edge_types;
     lmd->level_end_override = lmd->level_end;

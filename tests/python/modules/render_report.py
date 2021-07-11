@@ -287,7 +287,7 @@ class Report:
 
             -moz-background-size:50px 50px;
             background-size:50px 50px;
-            -webkit-background-size:50px 51px; /* override value for shitty webkit */
+            -webkit-background-size:50px 51px; /* Override value for silly webkit. */
 
             background-position:0 0, 25px 0, 25px -25px, 0px 25px;
         }}
