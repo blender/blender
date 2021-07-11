@@ -519,6 +519,7 @@ typedef enum eBrushUVSculptTool {
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \
         SCULPT_TOOL_VCOL_BOUNDARY, \
+        SCULPT_TOOL_UV_SMOOTH, \
         SCULPT_TOOL_MASK) == 0)
 
 #define SCULPT_TOOL_HAS_TOPOLOGY_RAKE(t) \

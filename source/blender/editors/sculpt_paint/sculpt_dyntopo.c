@@ -948,6 +948,8 @@ typedef struct UVSolver {
   double strength;
 } UVSolver;
 
+/*that that currently this tool is *not* threaded*/
+
 typedef struct SculptUVThreadData {
   SculptThreadedTaskData data;
   UVSolver *solver;
@@ -1500,7 +1502,9 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
       continue;
     }
 
+    BM_log_face_modified(ss->bm_log, f);
     uvsolver_ensure_face(data1->solver, f);
+
 #if 0
     do {
       if (!sculpt_brush_test_sq_fn(&test, l->v->co)) {
@@ -1540,18 +1544,12 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   const int cd_uv = CustomData_get_offset(&ss->bm->ldata, CD_MLOOPUV);
   if (cd_uv < 0) {
-    return;  // no uv layer
+    return;  // no uv layer?
   }
 
-  /* Offset with as much as possible factored in already. */
-  float effective_normal[3];
-  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
-  mul_v3_v3fl(offset, effective_normal, ss->cache->radius);
-  mul_v3_v3(offset, ss->cache->scale);
-  mul_v3_fl(offset, bstrength);
+  // add undo log subentry
+  BM_log_entry_add_ex(ss->bm, ss->bm_log, true);
 
-  /* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
-   * initialize before threads so they can do curve mapping. */
   BKE_curvemapping_init(brush->curve);
 
   UVSolver *solver = uvsolver_new(cd_uv);

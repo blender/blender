@@ -1287,7 +1287,7 @@ class _defs_sculpt:
         if not prefs.experimental.use_sculpt_vertex_colors:
             exclude_filter = {'PAINT', 'SMEAR'}
         if not prefs.experimental.use_sculpt_uvsmooth:
-            exclude_filter.add('UV_SMOOTH')
+            exclude_filter['UV_SMOOTH'] = True
 
         return generate_from_enum_ex(
             context,
