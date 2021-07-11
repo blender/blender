@@ -1439,7 +1439,7 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[n];
   TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
   BMFace *f;
-  const cd_uv = CustomData_get_offset(&ss->bm->ldata, CD_MLOOPUV);
+  const int cd_uv = CustomData_get_offset(&ss->bm->ldata, CD_MLOOPUV);
 
   if (cd_uv < 0) {
     return;  // no uv layers
