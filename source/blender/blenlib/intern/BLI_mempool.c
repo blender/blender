@@ -827,6 +827,8 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
   do {
     ret = curnode;
 
+    BLI_asan_unpoison(ret, esize);
+
     if (++iter->curindex != iter->pool->pchunk) {
       curnode = POINTER_OFFSET(curnode, esize);
     }
@@ -842,29 +844,37 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
         /* pass. */
       }
       if (UNLIKELY(iter->curchunk == NULL)) {
-        return (ret->freeword == FREEWORD) ? NULL : ret;
+        if (ret->freeword == FREEWORD) {
+          BLI_asan_poison(ret, esize);
+          return NULL;
+        }
+        else {
+          return ret;
+        }
       }
       /* End `threadsafe` exception. */
 
       iter->curchunk = iter->curchunk->next;
       if (UNLIKELY(iter->curchunk == NULL)) {
-        BLI_asan_unpoison(ret, iter->pool->esize);
-
-        void *ret2 = (ret->freeword == FREEWORD) ? NULL : ret;
-
         if (ret->freeword == FREEWORD) {
           BLI_asan_poison(ret, iter->pool->esize);
+          return NULL;
         }
-
-        return ret2;
+        else {
+          return ret;
+        }
       }
+
       curnode = CHUNK_DATA(iter->curchunk);
     }
 
     if (ret->freeword == FREEWORD) {
       BLI_asan_poison(ret, iter->pool->esize);
     }
-  } while (ret->freeword == FREEWORD);
+    else {
+      break;
+    }
+  } while (true);
 
   return ret;
 }

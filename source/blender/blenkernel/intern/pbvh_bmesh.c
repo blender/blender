@@ -122,6 +122,46 @@ static void check_heap()
 /* Support for only operating on front-faces */
 #define USE_EDGEQUEUE_FRONTFACE
 
+static void check_nodes(PBVH *pbvh)
+{
+#if 0
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+    BMVert *v;
+    BMFace *f;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    TGSET_ITER (v, node->bm_unique_verts) {
+      if (v->head.htype > 8) {
+        printf("corruption in pbvh! bm_unique_verts\n");
+      }
+    }
+    TGSET_ITER_END;
+
+    TGSET_ITER (v, node->bm_other_verts) {
+      if (v->head.htype > 8) {
+        printf("corruption in pbvh! bm_other_verts\n");
+      }
+    }
+    TGSET_ITER_END;
+
+    TGSET_ITER (f, node->bm_faces) {
+      if (f->head.htype > 8) {
+        printf("corruption in pbvh! bm_faces\n");
+      }
+    }
+    TGSET_ITER_END;
+  }
+#endif
+}
+
+void pbvh_bmesh_check_nodes(PBVH *pbvh)
+{
+  check_nodes(pbvh);
+}
 /**
  * Ensure we don't have dirty tags for the edge queue, and that they are left cleared.
  * (slow, even for debug mode, so leave disabled for now).
@@ -538,6 +578,8 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   TableGSet *bm_faces = pbvh->nodes[node_index].bm_faces;
   const int bm_faces_size = BLI_table_gset_len(bm_faces);
 
+  check_nodes(pbvh);
+
   if (bm_faces_size <= pbvh->leaf_limit) {
     /* Node limit not exceeded */
     return false;
@@ -581,6 +623,8 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   pbvh_bmesh_node_split(pbvh, bbc_array, node_index, false, 0);
 
   MEM_freeN(bbc_array);
+
+  check_nodes(pbvh);
 
   return true;
 }
@@ -2790,6 +2834,66 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BLI_array_free(ls);
 }
 
+static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
+{
+  int usize = BLI_table_gset_len(node->bm_other_verts);
+  int osize = BLI_table_gset_len(node->bm_other_verts);
+
+  BLI_table_gset_free(node->bm_other_verts, NULL);
+  BLI_table_gset_free(node->bm_unique_verts, NULL);
+
+  node->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
+  node->bm_other_verts = BLI_table_gset_new("bm_other_verts");
+
+  const int cd_vert_node = pbvh->cd_vert_node_offset;
+  const int ni = (int)(node - pbvh->nodes);
+
+  BMFace *f;
+  TGSET_ITER (f, node->bm_faces) {
+    BMLoop *l = f->l_first;
+    do {
+      int ni2 = BM_ELEM_CD_GET_INT(l->v, cd_vert_node);
+      if (ni2 == ni) {
+        BLI_table_gset_add(node->bm_unique_verts, l->v);
+      }
+      else {
+        BLI_table_gset_add(node->bm_other_verts, l->v);
+      }
+    } while ((l = l->next) != f->l_first);
+  }
+  TGSET_ITER_END;
+
+  if (usize != BLI_table_gset_len(node->bm_unique_verts)) {
+    printf("possible pbvh error: bm_unique_verts might have had bad data. old: %d, new: %d\n",
+           usize,
+           BLI_table_gset_len(node->bm_unique_verts));
+  }
+
+  if (osize != BLI_table_gset_len(node->bm_other_verts)) {
+    printf("possible pbvh error: bm_other_verts might have had bad data. old: %d, new: %d\n",
+           osize,
+           BLI_table_gset_len(node->bm_other_verts));
+  }
+}
+
+void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node)
+{
+  node->flag |= PBVH_RebuildNodeVerts;
+}
+
+void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
+{
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf) || !(node->flag & PBVH_RebuildNodeVerts)) {
+      continue;
+    }
+
+    pbvh_bmesh_regen_node_verts(pbvh, node);
+  }
+}
+
 void BKE_pbvh_bmesh_update_origvert(
     PBVH *pbvh, BMVert *v, float **r_co, float **r_no, float **r_color, bool log_undo)
 {
@@ -3723,6 +3827,13 @@ CLANG_OPT_BUG static bool cleanup_valence_3_4(PBVH *pbvh,
         continue;
       }
 
+      int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
+
+      if (ni >= 0 && BLI_table_gset_haskey(pbvh->nodes[ni].bm_other_verts, v)) {
+        printf("error!\n");
+        BLI_table_gset_remove(pbvh->nodes[ni].bm_other_verts, v, NULL);
+      }
+
       BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
       pbvh_bmesh_vert_remove(pbvh, v);
 
@@ -3891,7 +4002,9 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
     int max_steps = (int)((float)DYNTOPO_MAX_ITER * ratio);
 
+    check_nodes(pbvh);
     modified |= pbvh_bmesh_collapse_short_edges(&eq_ctx, pbvh, &deleted_faces, max_steps);
+    check_nodes(pbvh);
 
     BLI_heapsimple_free(q.heap, NULL);
     if (q.elems) {
@@ -3931,7 +4044,9 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
     int max_steps = (int)((float)DYNTOPO_MAX_ITER * ratio);
 
+    check_nodes(pbvh);
     modified |= pbvh_bmesh_subdivide_long_edges(&eq_ctx, pbvh, &edge_loops, max_steps);
+    check_nodes(pbvh);
 
     if (q.elems) {
       MEM_freeN(q.elems);
@@ -3942,8 +4057,10 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
 #endif
   if (mode & PBVH_Cleanup) {
+    check_nodes(pbvh);
     modified |= cleanup_valence_3_4(
         pbvh, center, view_normal, radius, use_frontface, use_projected);
+    check_nodes(pbvh);
   }
 
   if (modified) {
@@ -4686,7 +4803,9 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh)
   check_heap();
   int totnode = pbvh->totnode;
 
+  check_nodes(pbvh);
   pbvh_bmesh_join_nodes(pbvh);
+  check_nodes(pbvh);
 
   check_heap();
 

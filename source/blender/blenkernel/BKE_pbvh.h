@@ -199,7 +199,8 @@ typedef enum {
   PBVH_UpdateColor = 1 << 14,
   PBVH_Delete = 1 << 15,
   PBVH_UpdateCurvatureDir = 1 << 16,
-  PBVH_UpdateTris = 1 << 17
+  PBVH_UpdateTris = 1 << 17,
+  PBVH_RebuildNodeVerts = 1 << 18
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -221,6 +222,7 @@ typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *
 typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float *tmin);
 
 void BKE_pbvh_get_nodes(PBVH *pbvh, int flag, PBVHNode ***r_array, int *r_totnode);
+PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node);
 
 /* Building */
 
@@ -464,6 +466,9 @@ bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
 struct TableGSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
 struct TableGSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
 struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
+
+void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh);
+void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node);
 
 // now generated PBVHTris
 void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);

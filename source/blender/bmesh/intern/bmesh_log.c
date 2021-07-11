@@ -409,6 +409,22 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
 
 /************************ Helpers for undo/redo ***********************/
 
+// exec vert kill callbacks before killing faces
+static void bm_log_verts_unmake_pre(
+    BMesh *bm, BMLog *log, GHash *verts, BMLogEntry *entry, BMLogCallbacks *callbacks)
+{
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, verts) {
+    void *key = BLI_ghashIterator_getKey(&gh_iter);
+    uint id = POINTER_AS_UINT(key);
+    BMVert *v = bm_log_vert_from_id(log, id);
+
+    if (callbacks) {
+      callbacks->on_vert_kill(v, callbacks->userdata);
+    }
+  }
+}
+
 static void bm_log_verts_unmake(
     BMesh *bm, BMLog *log, GHash *verts, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
@@ -424,10 +440,6 @@ static void bm_log_verts_unmake(
     /* Ensure the log has the final values of the vertex before
      * deleting it */
     bm_log_vert_bmvert_copy(log, entry, lv, v, cd_vert_mask_offset, true);
-
-    if (callbacks) {
-      callbacks->on_vert_kill(v, callbacks->userdata);
-    }
 
     BM_vert_kill(bm, v);
   }
@@ -1258,6 +1270,7 @@ static void bm_log_undo_intern(
   }
 
   /* Delete added faces and verts */
+  bm_log_verts_unmake_pre(bm, log, entry->added_verts, entry, callbacks);
   bm_log_faces_unmake(bm, log, entry->added_faces, entry, callbacks);
   bm_log_verts_unmake(bm, log, entry->added_verts, entry, callbacks);
 
@@ -1309,6 +1322,7 @@ static void bm_log_redo_intern(
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
 
   /* Re-delete previously deleted faces and verts */
+  bm_log_verts_unmake_pre(bm, log, entry->deleted_verts, entry, callbacks);
   bm_log_faces_unmake(bm, log, entry->deleted_faces, entry, callbacks);
   bm_log_verts_unmake(bm, log, entry->deleted_verts, entry, callbacks);
 

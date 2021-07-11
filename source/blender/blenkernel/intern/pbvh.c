@@ -3826,3 +3826,8 @@ void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene)
     BKE_pbvh_set_flat_vcol_shading(ob->sculpt->pbvh, flat_vcol_shading);
   }
 }
+
+PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node)
+{
+  return pbvh->nodes + node;
+}

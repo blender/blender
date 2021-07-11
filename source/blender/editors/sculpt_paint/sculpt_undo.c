@@ -174,6 +174,8 @@ static bool test_swap_v3_v3(float a[3], float b[3])
   return false;
 }
 
+void pbvh_bmesh_check_nodes(PBVH *pbvh);
+
 static bool sculpt_undo_restore_deformed(
     const SculptSession *ss, SculptUndoNode *unode, int uindex, int oindex, float coord[3])
 {
@@ -429,8 +431,28 @@ static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
   BmeshUndoData *data = (BmeshUndoData *)userdata;
   // data->do_full_recalc = true;
 
-  BKE_pbvh_bmesh_remove_vertex(data->pbvh, v, false);
+  if (BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset) < 0) {
+    // something went wrong
+    printf("pbvh bmesh undo error\n");
+    data->do_full_recalc = true;
+    return;
+  }
+  else {
+    int ni = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
 
+    /*
+    regenerate bm_unique_verts, which can end up with
+    freed verts for some reason.  I've run this through
+    ASAN and fixed one likely cause, but it still happens.
+    - joeedh
+    */
+    if (ni >= 0) {
+      PBVHNode *node = BKE_pbvh_get_node(data->pbvh, ni);
+      BKE_pbvh_bmesh_mark_node_regen(data->pbvh, node);
+    }
+  }
+
+  BKE_pbvh_bmesh_remove_vertex(data->pbvh, v, false);
   data->balance_pbvh = true;
 }
 static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
@@ -444,6 +466,18 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
+  int ni = BM_ELEM_CD_GET_INT(f, data->cd_face_node_offset);
+
+  /*
+  regenerate bm_unique_verts, which can end up with
+  freed verts for some reason.  I've run this through
+  ASAN and fixed one likely cause, but it still happens.
+  - joeedh
+  */
+  if (ni >= 0) {
+    PBVHNode *node = BKE_pbvh_get_node(data->pbvh, ni);
+    BKE_pbvh_bmesh_mark_node_regen(data->pbvh, node);
+  }
 
   BKE_pbvh_bmesh_remove_face(data->pbvh, f, false);
 
@@ -545,6 +579,9 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     BM_log_redo(ss->bm, ss->bm_log, &callbacks, dyntopop_node_idx_layer_id);
     unode->applied = true;
   }
+
+  BKE_pbvh_bmesh_regen_node_verts(ss->pbvh);
+  pbvh_bmesh_check_nodes(ss->pbvh);
 
   if (!data.do_full_recalc || unode->type == SCULPT_UNDO_MASK ||
       unode->type == SCULPT_UNDO_COLOR) {
