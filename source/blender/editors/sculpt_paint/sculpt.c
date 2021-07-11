@@ -3138,7 +3138,8 @@ static float brush_strength(const Sculpt *sd,
       return flip * alpha * pressure * feather;
     case SCULPT_TOOL_VCOL_BOUNDARY:
       return flip * alpha * pressure * feather;
-
+    case SCULPT_TOOL_UV_SMOOTH:
+      return flip * alpha * pressure * feather;
     case SCULPT_TOOL_PINCH:
       if (flip > 0.0f) {
         return alpha * flip * pressure * overlap * feather;
@@ -7109,6 +7110,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     case SCULPT_TOOL_VCOL_BOUNDARY:
       SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode, ss->cache->bstrength);
       break;
+    case SCULPT_TOOL_UV_SMOOTH:
+      SCULPT_uv_brush(sd, ob, nodes, totnode);
+      break;
   }
 
   bool apply_autosmooth = !ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
@@ -7758,6 +7762,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Smear Brush";
     case SCULPT_TOOL_VCOL_BOUNDARY:
       return "Color Boundary";
+    case SCULPT_TOOL_UV_SMOOTH:
+      return "UV Smooth";
   }
 
   return "Sculpting";
@@ -8376,6 +8382,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
           ((brush->sculpt_tool == SCULPT_TOOL_MASK) && (brush->mask_tool == BRUSH_MASK_SMOOTH)) ||
           (brush->sculpt_tool == SCULPT_TOOL_POSE) ||
           (brush->sculpt_tool == SCULPT_TOOL_VCOL_BOUNDARY) ||
+          (brush->sculpt_tool == SCULPT_TOOL_UV_SMOOTH) ||
           (brush->sculpt_tool == SCULPT_TOOL_PAINT && brush->vcol_boundary_factor > 0.0f) ||
           (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||

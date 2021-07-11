@@ -1572,3 +1572,4 @@ bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      DyntopoMaskCB *r_mask_cb,
                                      void **r_mask_cb_data);
 void SCULPT_dyntopo_automasking_end(void *mask_data);
+void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);

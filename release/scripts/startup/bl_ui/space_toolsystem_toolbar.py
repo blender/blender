@@ -1286,6 +1286,8 @@ class _defs_sculpt:
         prefs = bpy.context.preferences
         if not prefs.experimental.use_sculpt_vertex_colors:
             exclude_filter = {'PAINT', 'SMEAR'}
+        if not prefs.experimental.use_sculpt_uvsmooth:
+            exclude_filter.add('UV_SMOOTH')
 
         return generate_from_enum_ex(
             context,

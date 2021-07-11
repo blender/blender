@@ -139,6 +139,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SCULPT_SMEAR, "Smear", ""},
     {SCULPT_TOOL_DRAW_FACE_SETS, "DRAW_FACE_SETS", ICON_BRUSH_MASK, "Draw Face Sets", ""},
     {SCULPT_TOOL_VCOL_BOUNDARY, "VCOL_BOUNDARY", ICON_BRUSH_VCOL_BOUNDARY, "Sharpen Color Boundary", ""},
+    {SCULPT_TOOL_UV_SMOOTH, "UV_SMOOTH", ICON_BRUSH_GRAB, "UV Smooth", ""},
         {0, NULL, 0, NULL, NULL},
 };
 /* clang-format on */
@@ -3283,13 +3284,10 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Curvature Rake", "Topology rake follows curvature instead of brush direction");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  
   prop = RNA_def_property(srna, "ignore_falloff_for_topology_rake", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF);
   RNA_def_property_ui_text(
-      prop,
-      "Ignore Brush Falloff",
-      "Ignore brush falloff settings for topology rake");
+      prop, "Ignore Brush Falloff", "Ignore brush falloff settings for topology rake");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_custom_auto_smooth_spacing", PROP_BOOLEAN, PROP_NONE);

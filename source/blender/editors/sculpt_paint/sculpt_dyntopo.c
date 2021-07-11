@@ -41,6 +41,7 @@
 #include "DNA_modifier_types.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -896,4 +897,688 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot)
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+#define MAXUVLOOPS 32
+#define MAXUVNEIGHBORS 32
+
+typedef struct UVSmoothVert {
+  double uv[2];
+  float co[3];  // world co
+  BMVert *v;
+  double w;
+  int totw;
+  bool pinned;
+  BMLoop *ls[MAXUVLOOPS];
+  struct UVSmoothVert *neighbors[MAXUVNEIGHBORS];
+  int totloop, totneighbor;
+} UVSmoothVert;
+
+typedef struct UVSmoothTri {
+  UVSmoothVert *vs[3];
+  float area2d, area3d;
+} UVSmoothTri;
+
+#define CON_MAX_VERTS 16
+typedef struct UVSmoothConstraint {
+  int type;
+  double k;
+  UVSmoothVert *vs[CON_MAX_VERTS];
+  UVSmoothTri *tri;
+  double gs[CON_MAX_VERTS][2];
+  int totvert;
+  double params[8];
+} UVSmoothConstraint;
+
+enum { CON_ANGLES = 0, CON_AREA = 1 };
+
+typedef struct UVSolver {
+  BLI_mempool *verts;
+  BLI_mempool *tris;
+  int totvert, tottri;
+  float snap_limit;
+  BLI_mempool *constraints;
+  GHash *vhash;
+  GHash *fhash;
+  int cd_uv;
+
+  double totarea3d;
+  double totarea2d;
+
+  double strength;
+} UVSolver;
+
+typedef struct SculptUVThreadData {
+  SculptThreadedTaskData data;
+  UVSolver *solver;
+} SculptUVThreadData;
+
+static UVSolver *uvsolver_new(int cd_uv)
+{
+  UVSolver *solver = MEM_callocN(sizeof(*solver), "solver");
+
+  solver->strength = 1.0;
+  solver->cd_uv = cd_uv;
+  solver->snap_limit = 0.01;
+
+  solver->verts = BLI_mempool_create(sizeof(UVSmoothVert), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
+  solver->tris = BLI_mempool_create(sizeof(UVSmoothTri), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
+  solver->constraints = BLI_mempool_create(
+      sizeof(UVSmoothConstraint), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
+
+  solver->vhash = BLI_ghash_ptr_new("uvsolver");
+  solver->fhash = BLI_ghash_ptr_new("uvsolver");
+
+  return solver;
+}
+
+static void uvsolver_free(UVSolver *solver)
+{
+  BLI_mempool_destroy(solver->verts);
+  BLI_mempool_destroy(solver->tris);
+  BLI_mempool_destroy(solver->constraints);
+
+  BLI_ghash_free(solver->vhash, NULL, NULL);
+  BLI_ghash_free(solver->fhash, NULL, NULL);
+
+  MEM_freeN(solver);
+}
+
+void *uvsolver_calc_loop_key(UVSolver *solver, BMLoop *l)
+{
+  // return (void *)l->v;
+  MLoopUV *uv = BM_ELEM_CD_GET_VOID_P(l, solver->cd_uv);
+
+  float u = floorf(uv->uv[0] / solver->snap_limit) * solver->snap_limit;
+  float v = floorf(uv->uv[1] / solver->snap_limit) * solver->snap_limit;
+
+  intptr_t x = (intptr_t)(uv->uv[0] * 16384.0);
+  intptr_t y = (intptr_t)(uv->uv[1] * 16384.0);
+  intptr_t key = y * 16384LL + x;
+
+  return POINTER_FROM_INT(key);
+}
+
+static UVSmoothVert *uvsolver_get_vert(UVSolver *solver, BMLoop *l)
+{
+  MLoopUV *uv = BM_ELEM_CD_GET_VOID_P(l, solver->cd_uv);
+
+  void *pkey = uvsolver_calc_loop_key(solver, l);
+  void **entry = NULL;
+  UVSmoothVert *v;
+
+  if (!BLI_ghash_ensure_p(solver->vhash, pkey, &entry)) {
+    v = BLI_mempool_alloc(solver->verts);
+    memset(v, 0, sizeof(*v));
+
+    // copy_v2_v2(v->uv, uv->uv);
+    v->uv[0] = (double)uv->uv[0];
+    v->uv[1] = (double)uv->uv[1];
+
+    copy_v3_v3(v->co, l->v->co);
+    v->v = l->v;
+
+    *entry = (void *)v;
+  }
+
+  v = (UVSmoothVert *)*entry;
+
+  if (v->totloop < MAXUVLOOPS) {
+    v->ls[v->totloop++] = l;
+  }
+
+  return v;
+}
+
+MINLINE double area_tri_signed_v2_db(const double v1[2], const double v2[2], const double v3[2])
+{
+  return 0.5f * ((v1[0] - v2[0]) * (v2[1] - v3[1]) + (v1[1] - v2[1]) * (v3[0] - v2[0]));
+}
+
+MINLINE double area_tri_v2_db(const double v1[2], const double v2[2], const double v3[2])
+{
+  return fabsf(area_tri_signed_v2_db(v1, v2, v3));
+}
+
+void cross_tri_v3_db(double n[3], const double v1[3], const double v2[3], const double v3[3])
+{
+  double n1[3], n2[3];
+
+  n1[0] = v1[0] - v2[0];
+  n2[0] = v2[0] - v3[0];
+  n1[1] = v1[1] - v2[1];
+  n2[1] = v2[1] - v3[1];
+  n1[2] = v1[2] - v2[2];
+  n2[2] = v2[2] - v3[2];
+  n[0] = n1[1] * n2[2] - n1[2] * n2[1];
+  n[1] = n1[2] * n2[0] - n1[0] * n2[2];
+  n[2] = n1[0] * n2[1] - n1[1] * n2[0];
+}
+
+double area_tri_v3_db(const double v1[3], const double v2[3], const double v3[3])
+{
+  double n[3];
+  cross_tri_v3_db(n, v1, v2, v3);
+  return len_v3_db(n) * 0.5;
+}
+
+static UVSmoothTri *uvsolver_ensure_face(UVSolver *solver, BMFace *f)
+{
+  void **entry = NULL;
+
+  if (BLI_ghash_ensure_p(solver->fhash, (void *)f, &entry)) {
+    return (UVSmoothTri *)*entry;
+  }
+
+  UVSmoothTri *tri = BLI_mempool_alloc(solver->tris);
+  memset((void *)tri, 0, sizeof(*tri));
+  *entry = (void *)tri;
+
+  BMLoop *l = f->l_first;
+
+  bool nocon = false;
+  int i = 0;
+  do {
+    UVSmoothVert *sv = uvsolver_get_vert(solver, l);
+
+    if (BM_elem_flag_test(l->e, BM_ELEM_SEAM)) {
+      nocon = true;
+    }
+
+    tri->vs[i] = sv;
+
+    if (i > 3) {
+      // bad!
+      break;
+    }
+
+    i++;
+  } while ((l = l->next) != f->l_first);
+
+  double area3d = (double)area_tri_v3(tri->vs[0]->co, tri->vs[1]->co, tri->vs[2]->co);
+  double area2d = area_tri_v2_db(tri->vs[0]->uv, tri->vs[1]->uv, tri->vs[2]->uv);
+
+  if (area2d < 0.000001) {
+    tri->vs[0]->uv[0] -= 0.0001;
+    tri->vs[0]->uv[1] -= 0.0001;
+    tri->vs[1]->uv[0] += 0.0001;
+    tri->vs[2]->uv[1] += 0.0001;
+  }
+
+  solver->totarea2d += area2d;
+  solver->totarea3d += area3d;
+
+  tri->area2d = area2d;
+  tri->area3d = area3d;
+
+  for (int i = 0; !nocon && i < 3; i++) {
+
+    UVSmoothConstraint *con = BLI_mempool_alloc(solver->constraints);
+    memset((void *)con, 0, sizeof(*con));
+    con->type = CON_ANGLES;
+    con->k = 0.5;
+
+    UVSmoothVert *v0 = tri->vs[(i + 2) % 3];
+    UVSmoothVert *v1 = tri->vs[i];
+    UVSmoothVert *v2 = tri->vs[(i + 1) % 3];
+
+    con->vs[0] = v0;
+    con->vs[1] = v1;
+    con->vs[2] = v2;
+    con->totvert = 3;
+
+    float t1[3], t2[3];
+
+    sub_v3_v3v3(t1, v0->co, v1->co);
+    sub_v3_v3v3(t2, v2->co, v1->co);
+
+    normalize_v3(t1);
+    normalize_v3(t2);
+
+    float th3d = saacosf(dot_v3v3(t1, t2));
+
+    con->params[0] = (double)th3d;
+
+    // area constraint
+    con = BLI_mempool_alloc(solver->constraints);
+    memset((void *)con, 0, sizeof(*con));
+
+    con->vs[0] = v0;
+    con->vs[1] = v1;
+    con->vs[2] = v2;
+    con->totvert = 3;
+    con->tri = tri;
+    con->type = CON_AREA;
+    con->k = 1.0;
+  }
+
+#if 1
+  for (int i = 0; i < 3; i++) {
+    UVSmoothVert *v1 = tri->vs[i];
+    UVSmoothVert *v2 = tri->vs[(i + 1) % 3];
+
+    bool ok = true;
+
+    for (int j = 0; j < v1->totneighbor; j++) {
+      if (v1->neighbors[j] == v2) {
+        ok = false;
+        break;
+      }
+    }
+
+    ok = ok && v1->totneighbor < MAXUVNEIGHBORS && v2->totneighbor < MAXUVNEIGHBORS;
+
+    if (!ok) {
+      continue;
+    }
+
+    v1->neighbors[v1->totneighbor++] = v2;
+    v2->neighbors[v2->totneighbor++] = v1;
+  }
+#endif
+
+  return tri;
+}
+
+static double normalize_v2_db(double v[2])
+{
+  double len = v[0] * v[0] + v[1] * v[1];
+
+  if (len < 0.0000001) {
+    v[0] = v[1] = 0.0;
+    return 0.0;
+  }
+
+  len = sqrt(len);
+
+  double mul = 1.0 / len;
+
+  v[0] *= mul;
+  v[1] *= mul;
+
+  return len;
+}
+
+static double uvsolver_eval_constraint(UVSolver *solver, UVSmoothConstraint *con)
+{
+  switch (con->type) {
+    case CON_ANGLES: {
+      // return 0.0;
+
+      UVSmoothVert *v0 = con->vs[0];
+      UVSmoothVert *v1 = con->vs[1];
+      UVSmoothVert *v2 = con->vs[2];
+      double t1[2], t2[2];
+
+      sub_v2_v2v2_db(t1, v0->uv, v1->uv);
+      sub_v2_v2v2_db(t2, v2->uv, v1->uv);
+
+      normalize_v2_db(t1);
+      normalize_v2_db(t2);
+
+      double th = saacos(dot_v2v2_db(t1, t2));
+
+      double wind = t1[0] * t2[1] - t1[1] * t2[0];
+
+      if (wind >= 0.0) {
+        th = M_PI - th;
+      }
+
+      return th - con->params[0];
+    }
+    case CON_AREA: {
+      UVSmoothVert *v0 = con->vs[0];
+      UVSmoothVert *v1 = con->vs[1];
+      UVSmoothVert *v2 = con->vs[2];
+
+      if (con->tri->area3d == 0.0 || solver->totarea3d == 0.0) {
+        return 0.0;
+      }
+
+      double area2d = area_tri_signed_v2_db(v0->uv, v1->uv, v2->uv);
+      double goal = con->tri->area3d * solver->totarea2d / solver->totarea3d;
+
+      con->tri->area2d = area2d;
+      return (area2d - goal) * 1024.0;
+    }
+    default:
+      return 0.0f;
+  }
+}
+
+BLI_INLINE float uvsolver_vert_weight(UVSmoothVert *sv)
+{
+  double w = 1.0;
+
+  if (sv->pinned) {
+    w = 100000.0;
+  }
+
+  return w;
+}
+
+static void uvsolver_solve_begin(UVSolver *solver)
+{
+  UVSmoothVert *sv;
+  BLI_mempool_iter iter;
+
+  BLI_mempool_iternew(solver->verts, &iter);
+  sv = BLI_mempool_iterstep(&iter);
+  BMIter liter;
+
+  for (; sv; sv = BLI_mempool_iterstep(&iter)) {
+    BMLoop *l;
+    sv->pinned = false;
+
+    BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
+      if (!BLI_ghash_haskey(solver->fhash, (void *)l->f)) {
+        sv->pinned = true;
+      }
+    }
+  }
+}
+
+static void uvsolver_simple_relax(UVSolver *solver, float strength)
+{
+  BLI_mempool_iter iter;
+
+  UVSmoothVert *sv1;
+  BLI_mempool_iternew(solver->verts, &iter);
+
+  sv1 = BLI_mempool_iterstep(&iter);
+  for (; sv1; sv1 = BLI_mempool_iterstep(&iter)) {
+    double uv[2] = {0.0f, 0.0f};
+
+    if (!sv1->totneighbor || sv1->pinned) {
+      continue;
+    }
+
+    for (int i = 0; i < sv1->totneighbor; i++) {
+      UVSmoothVert *sv2 = sv1->neighbors[i];
+
+      if (!sv2) {
+        continue;
+      }
+
+      uv[0] += sv2->uv[0];
+      uv[1] += sv2->uv[1];
+    }
+
+    uv[0] /= (double)sv1->totneighbor;
+    uv[1] /= (double)sv1->totneighbor;
+
+    sv1->uv[0] += (uv[0] - sv1->uv[0]) * strength;
+    sv1->uv[1] += (uv[1] - sv1->uv[1]) * strength;
+  }
+
+  // update real uvs
+
+  const int cd_uv = solver->cd_uv;
+
+  BLI_mempool_iternew(solver->verts, &iter);
+  UVSmoothVert *sv = BLI_mempool_iterstep(&iter);
+  for (; sv; sv = BLI_mempool_iterstep(&iter)) {
+    for (int i = 0; i < sv->totloop; i++) {
+      BMLoop *l = sv->ls[i];
+      MLoopUV *uv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+
+      uv->uv[0] = (float)sv->uv[0];
+      uv->uv[1] = (float)sv->uv[1];
+    }
+  }
+}
+
+static float uvsolver_solve_step(UVSolver *solver)
+{
+  BLI_mempool_iter iter;
+
+  if (solver->strength < 0) {
+    uvsolver_simple_relax(solver, fabs(solver->strength));
+    return 0.0f;
+  }
+  else {
+    uvsolver_simple_relax(solver, solver->strength * 0.1f);
+  }
+
+  double error = 0.0;
+
+  const double eval_limit = 0.00001;
+  const double df = 0.0001;
+  int totcon = 0;
+
+  BLI_mempool_iternew(solver->constraints, &iter);
+  UVSmoothConstraint *con = BLI_mempool_iterstep(&iter);
+  for (; con; con = BLI_mempool_iterstep(&iter)) {
+    double r1 = uvsolver_eval_constraint(solver, con);
+
+    if (fabs(r1) < eval_limit) {
+      totcon++;
+      continue;
+    }
+
+    error += fabs(r1);
+    totcon++;
+
+    double totg = 0.0;
+    double totw = 0.0;
+
+    for (int i = 0; i < con->totvert; i++) {
+      UVSmoothVert *sv = con->vs[i];
+
+      for (int j = 0; j < 2; j++) {
+        double orig = sv->uv[j];
+        sv->uv[j] += df;
+
+        double r2 = uvsolver_eval_constraint(solver, con);
+        double g = (r2 - r1) / df;
+
+        con->gs[i][j] = g;
+        totg += g * g;
+
+        sv->uv[j] = orig;
+
+        totw += 1.0 / uvsolver_vert_weight(sv);
+      }
+    }
+
+    if (totg < eval_limit) {
+      continue;
+    }
+
+    r1 *= -solver->strength * 0.75 * con->k / totg;
+    // totw = 1.0 / totw;
+
+    for (int i = 0; i < con->totvert; i++) {
+      UVSmoothVert *sv = con->vs[i];
+      double w = 1.0 / (uvsolver_vert_weight(sv) * totw);
+
+      for (int j = 0; j < 2; j++) {
+        sv->uv[j] += r1 * con->gs[i][j] * w;
+      }
+    }
+  }
+
+  // update real uvs
+
+  const int cd_uv = solver->cd_uv;
+
+  BLI_mempool_iternew(solver->verts, &iter);
+  UVSmoothVert *sv = BLI_mempool_iterstep(&iter);
+  for (; sv; sv = BLI_mempool_iterstep(&iter)) {
+    for (int i = 0; i < sv->totloop; i++) {
+      BMLoop *l = sv->ls[i];
+      MLoopUV *uv = BM_ELEM_CD_GET_VOID_P(l, cd_uv);
+
+      uv->uv[0] = (float)sv->uv[0];
+      uv->uv[1] = (float)sv->uv[1];
+    }
+  }
+
+  return (float)error / (float)totcon;
+}
+
+static void sculpt_uv_brush_cb(void *__restrict userdata,
+                               const int n,
+                               const TaskParallelTLS *__restrict tls)
+{
+  SculptUVThreadData *data1 = userdata;
+  SculptThreadedTaskData *data = &data1->data;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float *offset = data->offset;
+
+  PBVHVertexIter vd;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  PBVHNode *node = data->nodes[n];
+  TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
+  BMFace *f;
+  const cd_uv = CustomData_get_offset(&ss->bm->ldata, CD_MLOOPUV);
+
+  if (cd_uv < 0) {
+    return;  // no uv layers
+  }
+
+  float bstrength = ss->cache->bstrength;
+  const int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+
+  BKE_pbvh_node_mark_update_color(node);
+
+  TGSET_ITER (f, faces) {
+    BMLoop *l = f->l_first;
+    // float mask = 0.0f;
+    float cent[3] = {0};
+    int tot = 0;
+
+    do {
+      add_v3_v3(cent, l->v->co);
+      tot++;
+
+      BMIter iter;
+      BMLoop *l2;
+      int tot2 = 0;
+      float uv[2] = {0};
+      bool ok = true;
+
+      BM_ITER_ELEM (l2, &iter, l->v, BM_LOOPS_OF_VERT) {
+        if (l2->v != l->v) {
+          l2 = l2->next;
+        }
+
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
+
+        add_v2_v2(uv, luv->uv);
+        tot2++;
+
+        if (BM_elem_flag_test(l2->e, BM_ELEM_SEAM)) {
+          ok = false;
+        }
+      }
+
+      ok = ok && tot2;
+
+      if (ok) {
+        mul_v2_fl(uv, 1.0f / (float)tot2);
+        BM_ITER_ELEM (l2, &iter, l->v, BM_LOOPS_OF_VERT) {
+          if (l2->v != l->v) {
+            l2 = l2->next;
+          }
+
+          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
+          copy_v2_v2(luv->uv, uv);
+        }
+      }
+    } while ((l = l->next) != f->l_first);
+
+    mul_v3_fl(cent, 1.0f / (float)tot);
+
+    if (!sculpt_brush_test_sq_fn(&test, cent)) {
+      continue;
+    }
+
+    uvsolver_ensure_face(data1->solver, f);
+#if 0
+    do {
+      if (!sculpt_brush_test_sq_fn(&test, l->v->co)) {
+        continue;
+      }
+
+      if (cd_mask >= 0) {
+        mask = BM_ELEM_CD_GET_FLOAT(l->v, cd_mask);
+      }
+
+      SculptVertRef vertex = {(intptr_t)l->v};
+
+      float direction2[3];
+      const float fade =
+          bstrength *
+          SCULPT_brush_strength_factor(
+              ss, brush, vd.co, sqrtf(test.dist), NULL, l->v->no, mask, vertex, thread_id) *
+          ss->cache->pressure;
+
+    } while ((l = l->next) != f->l_first);
+#endif
+  }
+  TGSET_ITER_END;
+}
+
+void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  float offset[3];
+  const float bstrength = ss->cache->bstrength;
+
+  if (!ss->bm || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    // dyntopo only
+    return;
+  }
+
+  const int cd_uv = CustomData_get_offset(&ss->bm->ldata, CD_MLOOPUV);
+  if (cd_uv < 0) {
+    return;  // no uv layer
+  }
+
+  /* Offset with as much as possible factored in already. */
+  float effective_normal[3];
+  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
+  mul_v3_v3fl(offset, effective_normal, ss->cache->radius);
+  mul_v3_v3(offset, ss->cache->scale);
+  mul_v3_fl(offset, bstrength);
+
+  /* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
+   * initialize before threads so they can do curve mapping. */
+  BKE_curvemapping_init(brush->curve);
+
+  UVSolver *solver = uvsolver_new(cd_uv);
+  solver->strength = ss->cache->bstrength;
+
+  /* Threaded loop over nodes. */
+  SculptUVThreadData data = {.solver = solver,
+                             .data = {
+                                 .sd = sd,
+                                 .ob = ob,
+                                 .brush = brush,
+                                 .nodes = nodes,
+                                 .offset = offset,
+                             }};
+
+  TaskParallelSettings settings;
+
+  // for now, be single-threaded
+  BKE_pbvh_parallel_range_settings(&settings, false, totnode);
+  BLI_task_parallel_range(0, totnode, &data, sculpt_uv_brush_cb, &settings);
+
+  uvsolver_solve_begin(solver);
+
+  for (int i = 0; i < 5; i++) {
+    uvsolver_solve_step(solver);
+  }
+
+  // tear down solver
+  uvsolver_free(solver);
 }
