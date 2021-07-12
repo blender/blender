@@ -79,7 +79,7 @@ BLI_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b)
 
 BLI_INLINE void _bm_elem_flag_merge_ex(BMHeader *head_a, BMHeader *head_b, const char hflag_and)
 {
-  if (((head_a->hflag & head_b->hflag) & hflag_and) == 0) {
+  if (((head_a->hflag & head_b->hflag) & hflag_and) == 0LL) {
     head_a->hflag &= ~hflag_and;
     head_b->hflag &= ~hflag_and;
   }
