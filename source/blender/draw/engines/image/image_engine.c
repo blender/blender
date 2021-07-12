@@ -230,7 +230,7 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
         copy_v4_fl4(shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
       }
       else if ((sima_flag & SI_SHOW_G) != 0) {
-        draw_flags |=  IMAGE_DRAW_FLAG_SHUFFLING;
+        draw_flags |= IMAGE_DRAW_FLAG_SHUFFLING;
         if (IMB_alpha_affects_rgb(ibuf)) {
           draw_flags |= IMAGE_DRAW_FLAG_APPLY_ALPHA;
         }
