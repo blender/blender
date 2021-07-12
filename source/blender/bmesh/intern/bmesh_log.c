@@ -458,12 +458,9 @@ static void bm_log_verts_unmake_pre(
 static void bm_log_verts_unmake(
     BMesh *bm, BMLog *log, GHash *verts, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, verts) {
     void *key = BLI_ghashIterator_getKey(&gh_iter);
-    BMLogVert *lv = BLI_ghashIterator_getValue(&gh_iter);
     uint id = POINTER_AS_UINT(key);
     BMVert *v = bm_log_vert_from_id(log, id);
 
