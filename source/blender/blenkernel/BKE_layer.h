@@ -98,6 +98,9 @@ struct LayerCollection *BKE_layer_collection_from_index(struct ViewLayer *view_l
                                                         const int index);
 int BKE_layer_collection_findindex(struct ViewLayer *view_layer, const struct LayerCollection *lc);
 
+void BKE_layer_collection_resync_forbid(void);
+void BKE_layer_collection_resync_allow(void);
+
 void BKE_main_collection_sync(const struct Main *bmain);
 void BKE_scene_collection_sync(const struct Scene *scene);
 void BKE_layer_collection_sync(const struct Scene *scene, struct ViewLayer *view_layer);

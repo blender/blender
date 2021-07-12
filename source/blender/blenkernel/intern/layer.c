@@ -737,6 +737,35 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  * in at least one layer collection. That list is also synchronized here, and
  * stores state like selection. */
 
+/* This API allows to temporarily forbid resync of LayerCollections.
+ *
+ * This can greatly improve performances in cases where those functions get
+ * called a lot (e.g. during massive remappings of IDs).
+ *
+ * Usage of these should be done very carefully though. In particular, calling
+ * code must ensures it resync LayerCollections before any UI/Eevnt loop
+ * handling can happen.
+ *
+ * WARNING: This is not threadsafe at all, only use from main thread.
+ *
+ * NOTE: This is a quick and safe band-aid around the long-known issue
+ *       regarding this resync process.
+ *       Proper fix would be to make resync itself lazy, i.e. only happen
+ *       when actually needed.
+ *       See also T73411.
+ */
+static bool no_resync = false;
+
+void BKE_layer_collection_resync_forbid(void)
+{
+  no_resync = true;
+}
+
+void BKE_layer_collection_resync_allow(void)
+{
+  no_resync = false;
+}
+
 static void layer_collection_objects_sync(ViewLayer *view_layer,
                                           LayerCollection *layer,
                                           ListBase *r_lb_new_object_bases,
@@ -933,6 +962,10 @@ static void layer_collection_sync(ViewLayer *view_layer,
  */
 void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 {
+  if (no_resync) {
+    return;
+  }
+
   if (!scene->master_collection) {
     /* Happens for old files that don't have versioning applied yet. */
     return;
@@ -997,6 +1030,10 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
 void BKE_scene_collection_sync(const Scene *scene)
 {
+  if (no_resync) {
+    return;
+  }
+
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     BKE_layer_collection_sync(scene, view_layer);
   }
@@ -1004,6 +1041,10 @@ void BKE_scene_collection_sync(const Scene *scene)
 
 void BKE_main_collection_sync(const Main *bmain)
 {
+  if (no_resync) {
+    return;
+  }
+
   /* TODO: if a single collection changed, figure out which
    * scenes it belongs to and only update those. */
 
@@ -1018,6 +1059,10 @@ void BKE_main_collection_sync(const Main *bmain)
 
 void BKE_main_collection_sync_remap(const Main *bmain)
 {
+  if (no_resync) {
+    return;
+  }
+
   /* On remapping of object or collection pointers free caches. */
   /* TODO: try to make this faster */
 
@@ -1320,6 +1365,10 @@ static void layer_collection_local_sync(ViewLayer *view_layer,
 
 void BKE_layer_collection_local_sync(ViewLayer *view_layer, const View3D *v3d)
 {
+  if (no_resync) {
+    return;
+  }
+
   const unsigned short local_collections_uuid = v3d->local_collections_uuid;
 
   /* Reset flags and set the bases visible by default. */
@@ -1337,6 +1386,10 @@ void BKE_layer_collection_local_sync(ViewLayer *view_layer, const View3D *v3d)
  */
 void BKE_layer_collection_local_sync_all(const Main *bmain)
 {
+  if (no_resync) {
+    return;
+  }
+
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {

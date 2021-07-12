@@ -1722,6 +1722,11 @@ void BKE_lib_override_library_main_resync(Main *bmain,
                                               COLLECTION_RESTRICT_RENDER;
   }
 
+  /* Necessary to improve performances, and prevent layers matching override sub-collections to be
+   * lost when re-syncing the parent override collection.
+   * Ref. T73411. */
+  BKE_layer_collection_resync_forbid();
+
   int library_indirect_level = lib_override_libraries_index_define(bmain);
   while (library_indirect_level >= 0) {
     /* Update overrides from each indirect level separately. */
@@ -1733,6 +1738,8 @@ void BKE_lib_override_library_main_resync(Main *bmain,
                                                                reports);
     library_indirect_level--;
   }
+
+  BKE_layer_collection_resync_allow();
 
   /* Essentially ensures that potentially new overrides of new objects will be instantiated. */
   lib_override_library_create_post_process(
