@@ -9469,6 +9469,27 @@ static void ui_list_activate_row_from_index(
   ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
 }
 
+static int ui_list_get_increment(const uiList *ui_list, const int type, const int columns)
+{
+  int increment = 0;
+
+  /* Handle column offsets for grid layouts. */
+  if (ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY) &&
+      ELEM(ui_list->layout_type, UILST_LAYOUT_GRID, UILST_LAYOUT_BIG_PREVIEW_GRID)) {
+    increment = (type == EVT_UPARROWKEY) ? -columns : columns;
+  }
+  else {
+    /* Left or right in grid layouts or any direction in single column layouts increments by 1.  */
+    increment = ELEM(type, EVT_UPARROWKEY, EVT_LEFTARROWKEY, WHEELUPMOUSE) ? -1 : 1;
+  }
+
+  if ((ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0) {
+    increment *= -1;
+  }
+
+  return increment;
+}
+
 static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *region, uiBut *listbox)
 {
   int retval = WM_UI_HANDLER_CONTINUE;
@@ -9506,21 +9527,15 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     retval = ui_list_handle_click_drag(C, ui_list, region, event);
   }
   else if (val == KM_PRESS) {
-    if ((ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY) &&
+    if ((ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY, EVT_LEFTARROWKEY, EVT_RIGHTARROWKEY) &&
          !IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) ||
         ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->ctrl &&
           !IS_EVENT_MOD(event, shift, alt, oskey)))) {
       const int value_orig = RNA_property_int_get(&listbox->rnapoin, listbox->rnaprop);
-      int value, min, max, inc;
+      int value, min, max;
 
-      /* activate up/down the list */
       value = value_orig;
-      if ((ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0) {
-        inc = ELEM(type, EVT_UPARROWKEY, WHEELUPMOUSE) ? 1 : -1;
-      }
-      else {
-        inc = ELEM(type, EVT_UPARROWKEY, WHEELUPMOUSE) ? -1 : 1;
-      }
+      const int inc = ui_list_get_increment(ui_list, type, dyn_data->columns);
 
       if (dyn_data->items_filter_neworder || dyn_data->items_filter_flags) {
         /* If we have a display order different from
