@@ -329,11 +329,21 @@ static void sculpt_array_position_in_path_search(float *r_position, float *r_dir
   ScultpArrayPathPoint *last_path_point = &array->path.points[array->path.tot_points - 1];
   copy_v3_v3(r_position, last_path_point->co);
   if (r_direction) {
-  copy_v3_v3(r_direction, last_path_point->direction);
+    ScultpArrayPathPoint *prev_path_point = &array->path.points[array->path.tot_points - 2];
+    copy_v3_v3(r_direction, prev_path_point->direction);
   }
   if (r_scale) {
-    *r_scale = last_path_point->strength;
+    ScultpArrayPathPoint *prev_path_point = &array->path.points[array->path.tot_points - 2];
+    *r_scale = prev_path_point->strength;
   }
+}
+
+static void scultp_array_basis_from_direction(float r_mat[4][4], StrokeCache *cache, const float direction[3]) {
+  float direction_normalized[3];
+  normalize_v3_v3(direction_normalized, direction);
+  copy_v3_v3(r_mat[0], direction_normalized);
+  copy_v3_v3(r_mat[2], cache->view_normal);
+  cross_v3_v3v3(r_mat[1], r_mat[0], r_mat[2]);
 }
 
 static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, SculptArrayCopy *copy, eBrushArrayDeformType array_type) {
@@ -342,42 +352,51 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
   unit_m4(copy->mat);
 
   float scale = 1.0f;
+  float direction[3];
 
   switch (array_type)
   {
   case BRUSH_ARRAY_DEFORM_LINEAR: {
-  const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
-  float delta[3];
-  flip_v3_v3(delta, cache->grab_delta, copy->symm_pass);
-  mul_v3_v3fl(copy->mat[3], delta, fade);
-  }
+    const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
+    float delta[3];
+    flip_v3_v3(delta, cache->grab_delta, copy->symm_pass);
+    mul_v3_v3fl(copy->mat[3], delta, fade);
+    normalize_v3_v3(direction, cache->grab_delta);
+    }
     break;
 
   case BRUSH_ARRAY_DEFORM_RADIAL: {
-  float pos[3];
-  const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
-  copy_v3_v3(pos, cache->grab_delta);
-  rotate_v3_v3v3fl(copy->mat[3], pos, cache->view_normal,  fade * M_PI * 2.0f);
-  }
+    float pos[3];
+    const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
+    copy_v3_v3(pos, cache->grab_delta);
+    rotate_v3_v3v3fl(copy->mat[3], pos, cache->view_normal,  fade * M_PI * 2.0f);
+    copy_v3_v3(direction, copy->mat[3]);
+    }
     break;
-
   case BRUSH_ARRAY_DEFORM_PATH:
-    sculpt_array_position_in_path_search(copy->mat[3], NULL, &scale, array, copy->index);
+    sculpt_array_position_in_path_search(copy->mat[3], direction, &scale, array, copy->index);
     break;
-  
   }
+
+
+  //scultp_array_basis_from_direction(copy->mat, cache, direction);
 
  
- /*
+  /*
   copy->mat[3][0] += (BLI_hash_int_01(copy->index) * 2.0f - 0.5f) * cache->radius;
   copy->mat[3][1] += (BLI_hash_int_01(copy->index + 1) * 2.0f - 0.5f) * cache->radius;
   copy->mat[3][2] += (BLI_hash_int_01(copy->index + 2) * 2.0f - 0.5f) * cache->radius;
   */
-  
 
+  mul_v3_fl(copy->mat[0], scale);
+  mul_v3_fl(copy->mat[1], scale);
+  mul_v3_fl(copy->mat[2], scale);
+
+  /*
   copy->mat[0][0] = scale;
   copy->mat[1][1] = scale;
   copy->mat[2][2] = scale;
+  */
 
 }
 
@@ -399,7 +418,7 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
        SculptArrayCopy *copy = &array->copies[symm_pass][copy_index];
        SculptArrayCopy *main_copy = &array->copies[0][copy_index];
        unit_m4(copy->mat);
-      flip_v3_v3(copy->mat[3],main_copy->mat[3], symm_pass);
+       flip_v3_v3(copy->mat[3],main_copy->mat[3], symm_pass);
       /*
        for (int m = 0; m < 3; m++) {
         flip_v3_v3(copy->mat[m],main_copy->mat[m], symm_pass);
@@ -437,8 +456,11 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
    	const int array_symm_pass = cd_array_symm_pass[vd.index];
     SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
     float co[3];
+    //mul_v3_m4v3(co, array->source_imat, array->orco[vd.index]);
     sub_v3_v3v3(co, array->orco[vd.index], array->source_origin);
     mul_v3_m4v3(co, copy->mat, co);
+
+    //mul_v3_m4v3(vd.co,array->source_mat, co);
     add_v3_v3v3(vd.co, co, array->source_origin);
 
     any_modified = true;
@@ -456,8 +478,8 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
 }
 
 static void sculpt_array_deform(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode) {
-    SculptSession *ss = ob->sculpt;
   /* Threaded loop over nodes. */
+  SculptSession *ss = ob->sculpt;
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
@@ -483,6 +505,36 @@ static void sculpt_array_ensure_original_coordinates(Object *ob, SculptArray *ar
   for (int i = 0; i < totvert; i++) {
 	  copy_v3_v3(array->orco[i], SCULPT_vertex_co_get(ss, i));
   }
+}
+
+static void sculpt_array_ensure_base_transform(Object *ob, SculptArray *array){
+  SculptSession *ss = ob->sculpt;
+  Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
+  const int totvert = SCULPT_vertex_count_get(ss);
+
+  if (array->source_mat_valid) {
+    return;
+  }
+
+  if (true) {
+    unit_m4(array->source_mat);
+    copy_v3_v3(array->source_mat[3], array->source_origin);
+    invert_m4_m4(array->source_imat, array->source_mat);
+    array->source_mat_valid = true;
+    return;
+  }
+
+  if (is_zero_v3(ss->cache->grab_delta)) {
+    return;
+  }
+
+  scultp_array_basis_from_direction(array->source_mat, ss->cache, ss->cache->grab_delta);
+  copy_v3_v3(array->source_mat[3], array->source_origin);
+  invert_m4_m4(array->source_imat, array->source_mat);
+  //print_m4("source_mat", array->source_mat);
+
+  array->source_mat_valid = true;
+  return;
 }
 
 
@@ -539,6 +591,7 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	  return;
   }
    
+   sculpt_array_ensure_base_transform(ob, ss->cache->array);
    sculpt_array_ensure_original_coordinates(ob, ss->cache->array);
    sculpt_array_stroke_sample_add(ob, ss->cache->array);
    sculpt_array_update(ob, brush, ss->cache->array);

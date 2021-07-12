@@ -476,7 +476,10 @@ typedef struct SculptArray {
   } path;
   
 
+  bool source_mat_valid;
   float source_origin[3];
+  float source_mat[4][4];
+  float source_imat[4][4];
   float (*orco)[3];
 
 } SculptArray;
