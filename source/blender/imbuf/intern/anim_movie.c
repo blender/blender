@@ -616,10 +616,50 @@ static int startffmpeg(struct anim *anim)
       }
     }
   }
-  /* Fall back to the container. */
+  /* Fall back to manually estimating the video stream duration.
+   * This is because the video stream duration can be shorter than the pFormatCtx->duration.
+   */
   if (anim->duration_in_frames == 0) {
-    anim->duration_in_frames = (int)(pFormatCtx->duration * av_q2d(frame_rate) / AV_TIME_BASE +
-                                     0.5f);
+    double pts_time_base = av_q2d(video_stream->time_base);
+    double stream_dur;
+
+    if (video_stream->duration != AV_NOPTS_VALUE) {
+      stream_dur = video_stream->duration * pts_time_base;
+    }
+    else {
+      double video_start = 0;
+      double audio_start = 0;
+
+      if (video_stream->start_time != AV_NOPTS_VALUE) {
+        video_start = video_stream->start_time * pts_time_base;
+      }
+
+      /* Find audio stream to guess the duration of the video.
+       * Sometimes the audio AND the video stream have a start offset.
+       * The difference between these is the offset we want to use to
+       * calculate the video duration.
+       */
+      for (i = 0; i < pFormatCtx->nb_streams; i++) {
+        if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+          AVStream *audio_stream = pFormatCtx->streams[i];
+          if (audio_stream->start_time != AV_NOPTS_VALUE) {
+            audio_start = audio_stream->start_time * av_q2d(audio_stream->time_base);
+          }
+          break;
+        }
+      }
+
+      if (video_start > audio_start) {
+        stream_dur = (double)pFormatCtx->duration / AV_TIME_BASE - (video_start - audio_start);
+      }
+      else {
+        /* The video stream starts before or at the same time as the audio stream!
+         * We have to assume that the video stream is as long as the full pFormatCtx->duration.
+         */
+        stream_dur = (double)pFormatCtx->duration / AV_TIME_BASE;
+      }
+    }
+    anim->duration_in_frames = (int)(stream_dur * av_q2d(frame_rate) + 0.5f);
   }
 
   frs_num = frame_rate.num;
