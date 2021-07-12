@@ -68,6 +68,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       scene(scene),
       view_layer(view_layer),
       mode(mode),
+      frame(BKE_scene_frame_get(scene)),
       ctime(BKE_scene_ctime_get(scene)),
       scene_cow(nullptr),
       is_active(false),

@@ -2739,8 +2739,8 @@ void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool cle
      * edits from callback are properly taken into account. Doing a time update on those would
      * lose any possible unkeyed changes made by the handler. */
     if (pass == 0) {
-      const float ctime = BKE_scene_ctime_get(scene);
-      DEG_evaluate_on_framechange(depsgraph, ctime);
+      const float frame = BKE_scene_frame_get(scene);
+      DEG_evaluate_on_framechange(depsgraph, frame);
     }
     else {
       DEG_evaluate_on_refresh(depsgraph);
