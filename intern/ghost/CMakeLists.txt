@@ -288,6 +288,13 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${dbus_INCLUDE_DIRS}
     )
 
+    include(CheckSymbolExists)
+    set(CMAKE_REQUIRED_DEFINITIONS "-D_GNU_SOURCE")
+    check_symbol_exists(memfd_create "sys/mman.h" HAVE_MEMFD_CREATE)
+    if (HAVE_MEMFD_CREATE)
+      add_definitions(-DHAVE_MEMFD_CREATE)
+    endif()
+
     list(APPEND SRC
       intern/GHOST_SystemWayland.cpp
       intern/GHOST_WindowWayland.cpp
