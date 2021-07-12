@@ -248,8 +248,7 @@ enum {
   CD_FLAG_EXTERNAL = (1 << 3),
   /* Indicates external data is read into memory */
   CD_FLAG_IN_MEMORY = (1 << 4),
-  CD_FLAG_ELEM_NOCOPY =
-      (1 << 5),  // disables CustomData_bmesh_copy_data and CustomData_bmesh_set_default_n.
+  CD_FLAG_ELEM_NOCOPY = (1 << 5),  // disables CustomData_bmesh_copy_data.
 };
 
 /* Limits */

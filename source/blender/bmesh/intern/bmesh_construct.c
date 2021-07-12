@@ -40,10 +40,14 @@
 
 #define SELECT 1
 
+static const int _typemap[] = {0, 0, 1, 0, 2, 0, 0, 0, 3};
+
 static void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 {
-  BM_ELEM_CD_SET_INT(elem, bm->idmap.cd_id_off[elem->head.htype], id);
+  // CustomData *cdata = &bm->vdata + _typemap[elem->head.htype];
+  // int cd_id_off = cdata->layers[cdata->typemap[CD_MESH_ID]].offset;
 
+  BM_ELEM_CD_SET_INT(elem, bm->idmap.cd_id_off[elem->head.htype], id);
   bm->idmap.maxid = MAX2(bm->idmap.maxid, id);
 
   if (bm->idmap.flag & BM_HAS_ID_MAP) {
@@ -88,7 +92,9 @@ void bm_free_id(BMesh *bm, BMElem *elem)
   }
 
   uint id = BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[elem->head.htype]);
-  range_tree_uint_retake(bm->idmap.idtree, id);
+  if (range_tree_uint_has(bm->idmap.idtree, id)) {
+    range_tree_uint_release(bm->idmap.idtree, id);
+  }
 
   if ((bm->idmap.flag & BM_HAS_ID_MAP) && bm->idmap.map && id >= 0 && id < bm->idmap.map_size) {
     bm->idmap.map[id] = NULL;

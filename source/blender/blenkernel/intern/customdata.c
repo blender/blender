@@ -3866,10 +3866,11 @@ static void CustomData_bmesh_set_default_n(CustomData *data, void **block, int n
   int offset = data->layers[n].offset;
   const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[n].type);
 
-  /*
-  if (data->layers[n].flag & CD_FLAG_ELEM_NOCOPY) {
+  /* can't allow this to be called on CD_MESH_ID */
+
+  if (data->layers[n].type == CD_MESH_ID) {
     return;
-  }*/
+  }
 
   if (typeInfo->set_default) {
     typeInfo->set_default(POINTER_OFFSET(*block, offset), 1);

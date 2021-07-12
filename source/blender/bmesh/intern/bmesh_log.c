@@ -303,7 +303,7 @@ static void bm_log_vert_customdata(
   CustomData_bmesh_copy_data(&bm->vdata, &entry->vdata, v->head.data, &lv->customdata);
 
   // forcibly copy id
-  bm_log_copy_id(&bm->vdata, (BMElem *)v, lv->customdata);
+  // bm_log_copy_id(&bm->vdata, (BMElem *)v, lv->customdata);
 
 #endif
 }
@@ -326,7 +326,7 @@ static void bm_log_face_customdata(BMesh *bm, BMLog *log, BMFace *f, BMLogFace *
   CustomData_bmesh_copy_data(&bm->pdata, &entry->pdata, f->head.data, &lf->customdata_f);
 
   // forcibly copy id
-  bm_log_copy_id(&bm->pdata, (BMElem *)f, lf->customdata_f);
+  // bm_log_copy_id(&bm->pdata, (BMElem *)f, lf->customdata_f);
 
   BMLoop *l1 = f->l_first;
   BMLoop *l2 = f->l_first->next;
@@ -436,11 +436,18 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
 static void bm_log_verts_unmake_pre(
     BMesh *bm, BMLog *log, GHash *verts, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
+  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, verts) {
     void *key = BLI_ghashIterator_getKey(&gh_iter);
+    BMLogVert *lv = BLI_ghashIterator_getValue(&gh_iter);
     uint id = POINTER_AS_UINT(key);
     BMVert *v = bm_log_vert_from_id(log, id);
+
+    /* Ensure the log has the final values of the vertex before
+     * deleting it */
+    bm_log_vert_bmvert_copy(log, entry, lv, v, cd_vert_mask_offset, true);
 
     if (callbacks) {
       callbacks->on_vert_kill(v, callbacks->userdata);
@@ -460,15 +467,11 @@ static void bm_log_verts_unmake(
     uint id = POINTER_AS_UINT(key);
     BMVert *v = bm_log_vert_from_id(log, id);
 
-    /* Ensure the log has the final values of the vertex before
-     * deleting it */
-    bm_log_vert_bmvert_copy(log, entry, lv, v, cd_vert_mask_offset, true);
-
     BM_vert_kill(bm, v);
   }
 }
 
-static void bm_log_faces_unmake(
+ATTR_NO_OPT static void bm_log_faces_unmake(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -498,7 +501,7 @@ static void bm_log_faces_unmake(
       CustomData_bmesh_copy_data(&bm->pdata, &entry->pdata, f->head.data, &lf->customdata_f);
 
       // forcibly copy id
-      bm_log_copy_id(&bm->pdata, (BMElem *)f, lf->customdata_f);
+      // bm_log_copy_id(&bm->pdata, (BMElem *)f, lf->customdata_f);
     }
 
     BMLoop *ls[3] = {f->l_first, f->l_first->next, f->l_first->prev};
@@ -554,7 +557,7 @@ static void bm_log_verts_restore(
   }
 }
 
-static void bm_log_faces_restore(
+ATTR_NO_OPT static void bm_log_faces_restore(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -567,6 +570,24 @@ static void bm_log_faces_restore(
         bm_log_vert_from_id(log, lf->v_ids[2]),
     };
     BMFace *f;
+
+    if (!v[0] || !v[1] || !v[2]) {
+      BMIter iter;
+      BMVert *v2;
+      const int cd_id = bm->idmap.cd_id_off[BM_VERT];
+
+      BM_ITER_MESH (v2, &iter, bm, BM_VERTS_OF_MESH) {
+        int id = BM_ELEM_CD_GET_INT(v2, cd_id);
+
+        for (int i = 0; i < 3; i++) {
+          if (!v[i] && lf->v_ids[i] == (uint)id) {
+            printf("found vertex\n");
+          }
+        }
+      }
+      printf("Undo error! %p %p %p\n", v[0], v[1], v[2]);
+      continue;
+    }
 
     f = BM_face_create_verts(bm, v, 3, NULL, BM_CREATE_SKIP_ID, true);
     f->head.hflag = lf->hflag;
