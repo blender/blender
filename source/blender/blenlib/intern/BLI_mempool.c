@@ -288,17 +288,17 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
                                           int *r_esize,
                                           int flag)
 {
-  BLI_mempool *pool = BLI_mempool_create(esize, 0, pchunk, flag);
+  BLI_mempool *pool = BLI_mempool_create(esize, 0, (uint)pchunk, (uint)flag);
 
   // override pchunk, may not be a power of 2
-  pool->pchunk = pchunk;
-  pool->csize = pchunk * pool->esize;
+  pool->pchunk = (uint)pchunk;
+  pool->csize = (uint)pchunk * pool->esize;
 
   if (totelem % pchunk == 0) {
-    pool->maxchunks = totelem / pchunk;
+    pool->maxchunks = (uint)totelem / (uint)pchunk;
   }
   else {
-    pool->maxchunks = totelem / pchunk + 1;
+    pool->maxchunks = (uint)totelem / (uint)pchunk + 1;
   }
 
   if (totelem) {
@@ -330,7 +330,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
 
   int i = (int)pool->pchunk - 1;
 
-  while (lastchunk && totalloc > totelem) {
+  while (lastchunk && totalloc > (uint)totelem) {
     if (i < 0) {
       BLI_mempool_chunk *lastchunk2 = NULL;
 
@@ -356,7 +356,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
     i--;
   }
 
-  unsigned int ci = 0;
+  int ci = 0;
 
   chunk = pool->chunks;
   while (chunk && chunk != lastchunk) {
@@ -370,7 +370,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
 
   *r_totchunk = ci;
   *r_chunks = (void **)chunks;
-  *r_esize = pool->esize;
+  *r_esize = (int)pool->esize;
 
   return pool;
 }
