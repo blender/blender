@@ -1059,33 +1059,21 @@ static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
   return false;
 }
 
-static int64_t ffmpeg_get_seek_pos(struct anim *anim, int position)
+static int64_t ffmpeg_get_seek_pts(struct anim *anim, int64_t pts_to_search)
 {
   AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-  double frame_rate = av_q2d(av_guess_frame_rate(anim->pFormatCtx, v_st, NULL));
-  int64_t st_time = anim->pFormatCtx->start_time;
-  int64_t pos = (int64_t)(position)*AV_TIME_BASE;
-  /* Step back half a time base position to make sure that we get the requested
-   * frame and not the one after it.
+  AVRational frame_rate = v_st->r_frame_rate;
+  AVRational time_base = v_st->time_base;
+  double steps_per_frame = (double)(frame_rate.den * time_base.den) /
+                           (double)(frame_rate.num * time_base.num);
+  /* Step back half a frame position to make sure that we get the requested
+   * frame and not the one after it. This is a workaround as ffmpeg will
+   * sometimes not seek to a frame after the requested pts even if
+   * AVSEEK_FLAG_BACKWARD is specified.
    */
-  pos -= (AV_TIME_BASE / 2);
-  pos /= frame_rate;
+  int64_t pts = pts_to_search - (steps_per_frame / 2);
 
-  av_log(anim->pFormatCtx,
-         AV_LOG_DEBUG,
-         "NO INDEX seek pos = %" PRId64 ", st_time = %" PRId64 "\n",
-         pos,
-         (st_time != AV_NOPTS_VALUE) ? st_time : 0);
-
-  if (pos < 0) {
-    pos = 0;
-  }
-
-  if (st_time != AV_NOPTS_VALUE) {
-    pos += st_time;
-  }
-
-  return pos;
+  return pts;
 }
 
 /* This gives us an estimate of which pts our requested frame will have.
@@ -1102,17 +1090,18 @@ static int64_t ffmpeg_get_pts_to_search(struct anim *anim,
     pts_to_search = IMB_indexer_get_pts(tc_index, new_frame_index);
   }
   else {
-    int64_t st_time = anim->pFormatCtx->start_time;
     AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-    AVRational frame_rate = av_guess_frame_rate(anim->pFormatCtx, v_st, NULL);
+    int64_t start_pts = v_st->start_time;
+    AVRational frame_rate = v_st->r_frame_rate;
     AVRational time_base = v_st->time_base;
 
-    int64_t steps_per_frame = (frame_rate.den * time_base.den) / (frame_rate.num * time_base.num);
-    pts_to_search = position * steps_per_frame;
+    double steps_per_frame = (double)(frame_rate.den * time_base.den) /
+                             (double)(frame_rate.num * time_base.num);
 
-    if (st_time != AV_NOPTS_VALUE && st_time != 0) {
-      int64_t start_frame = (double)st_time / AV_TIME_BASE * av_q2d(frame_rate);
-      pts_to_search += start_frame * steps_per_frame;
+    pts_to_search = round(position * steps_per_frame);
+
+    if (start_pts != AV_NOPTS_VALUE) {
+      pts_to_search += start_pts;
     }
   }
   return pts_to_search;
@@ -1196,23 +1185,29 @@ static void ffmpeg_decode_video_frame_scan(struct anim *anim, int64_t pts_to_sea
  * decoded will be read. See https://trac.ffmpeg.org/ticket/1607 and
  * https://developer.blender.org/T86944. */
 static int ffmpeg_generic_seek_workaround(struct anim *anim,
-                                          int64_t *requested_pos,
+                                          int64_t *requested_pts,
                                           int64_t pts_to_search)
 {
   AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-  double frame_rate = av_q2d(av_guess_frame_rate(anim->pFormatCtx, v_st, NULL));
-  int64_t current_pos = *requested_pos;
+  AVRational frame_rate = v_st->r_frame_rate;
+  AVRational time_base = v_st->time_base;
+
+  double steps_per_frame = (double)(frame_rate.den * time_base.den) /
+                           (double)(frame_rate.num * time_base.num);
+
+  int64_t current_pts = *requested_pts;
   int64_t offset = 0;
 
   int64_t cur_pts, prev_pts = -1;
 
   /* Step backward frame by frame until we find the key frame we are looking for. */
-  while (current_pos != 0) {
-    current_pos = *requested_pos - ((int64_t)(offset)*AV_TIME_BASE / frame_rate);
-    current_pos = max_ii(current_pos, 0);
+  while (current_pts != 0) {
+    current_pts = *requested_pts - (int64_t)round(offset * steps_per_frame);
+    current_pts = max_ii(current_pts, 0);
 
     /* Seek to timestamp. */
-    if (av_seek_frame(anim->pFormatCtx, -1, current_pos, AVSEEK_FLAG_BACKWARD) < 0) {
+    if (av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD) <
+        0) {
       break;
     }
 
@@ -1249,10 +1244,10 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim,
     offset++;
   }
 
-  *requested_pos = current_pos;
+  *requested_pts = current_pts;
 
   /* Re-seek to timestamp that gave I-frame, so it can be read by decode function. */
-  return av_seek_frame(anim->pFormatCtx, -1, current_pos, AVSEEK_FLAG_BACKWARD);
+  return av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD);
 }
 
 /* Seek to last necessary key frame. */
@@ -1300,13 +1295,13 @@ static int ffmpeg_seek_to_key_frame(struct anim *anim,
   else {
     /* We have to manually seek with ffmpeg to get to the key frame we want to start decoding from.
      */
-    pos = ffmpeg_get_seek_pos(anim, position);
+    pos = ffmpeg_get_seek_pts(anim, pts_to_search);
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "NO INDEX final seek pos = %" PRId64 "\n", pos);
 
     AVFormatContext *format_ctx = anim->pFormatCtx;
 
     if (format_ctx->iformat->read_seek2 || format_ctx->iformat->read_seek) {
-      ret = av_seek_frame(anim->pFormatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
+      ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, pos, AVSEEK_FLAG_BACKWARD);
     }
     else {
       ret = ffmpeg_generic_seek_workaround(anim, &pos, pts_to_search);
@@ -1351,7 +1346,7 @@ static int ffmpeg_seek_to_key_frame(struct anim *anim,
 
       anim->cur_key_frame_pts = gop_pts;
       /* Seek back so we are at the correct position after we decoded a frame. */
-      av_seek_frame(anim->pFormatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
+      av_seek_frame(anim->pFormatCtx, anim->videoStream, pos, AVSEEK_FLAG_BACKWARD);
     }
   }
 
@@ -1391,18 +1386,18 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   struct anim_index *tc_index = IMB_anim_open_index(anim, tc);
   int64_t pts_to_search = ffmpeg_get_pts_to_search(anim, tc_index, position);
   AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-  double frame_rate = av_q2d(av_guess_frame_rate(anim->pFormatCtx, v_st, NULL));
+  double frame_rate = av_q2d(v_st->r_frame_rate);
   double pts_time_base = av_q2d(v_st->time_base);
-  int64_t st_time = anim->pFormatCtx->start_time;
+  int64_t start_pts = v_st->start_time;
 
   av_log(anim->pFormatCtx,
          AV_LOG_DEBUG,
-         "FETCH: looking for PTS=%" PRId64 " (pts_timebase=%g, frame_rate=%g, st_time=%" PRId64
+         "FETCH: looking for PTS=%" PRId64 " (pts_timebase=%g, frame_rate=%g, start_pts=%" PRId64
          ")\n",
          (int64_t)pts_to_search,
          pts_time_base,
          frame_rate,
-         st_time);
+         start_pts);
 
   if (ffmpeg_pts_matches_last_frame(anim, pts_to_search)) {
     av_log(anim->pFormatCtx,
