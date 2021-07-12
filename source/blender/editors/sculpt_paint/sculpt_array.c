@@ -344,6 +344,9 @@ static void scultp_array_basis_from_direction(float r_mat[4][4], StrokeCache *ca
   copy_v3_v3(r_mat[0], direction_normalized);
   copy_v3_v3(r_mat[2], cache->view_normal);
   cross_v3_v3v3(r_mat[1], r_mat[0], r_mat[2]);
+  normalize_v3(r_mat[0]);
+  normalize_v3(r_mat[1]);
+  normalize_v3(r_mat[2]);
 }
 
 static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, SculptArrayCopy *copy, eBrushArrayDeformType array_type) {
@@ -379,7 +382,7 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
   }
 
 
-  //scultp_array_basis_from_direction(copy->mat, cache, direction);
+  scultp_array_basis_from_direction(copy->mat, cache, direction);
 
  
   /*
@@ -455,13 +458,14 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
 
    	const int array_symm_pass = cd_array_symm_pass[vd.index];
     SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
+
     float co[3];
-    //mul_v3_m4v3(co, array->source_imat, array->orco[vd.index]);
-    sub_v3_v3v3(co, array->orco[vd.index], array->source_origin);
+    mul_v3_m4v3(co, array->source_imat, array->orco[vd.index]);
+    //sub_v3_v3v3(co, array->orco[vd.index], array->source_origin);
     mul_v3_m4v3(co, copy->mat, co);
 
-    //mul_v3_m4v3(vd.co,array->source_mat, co);
-    add_v3_v3v3(vd.co, co, array->source_origin);
+    mul_v3_m4v3(vd.co,array->source_mat, co);
+    //add_v3_v3v3(vd.co, co, array->source_origin);
 
     any_modified = true;
 
@@ -516,7 +520,9 @@ static void sculpt_array_ensure_base_transform(Object *ob, SculptArray *array){
     return;
   }
 
-  if (true) {
+  unit_m4(array->source_mat);
+
+  if (false) {
     unit_m4(array->source_mat);
     copy_v3_v3(array->source_mat[3], array->source_origin);
     invert_m4_m4(array->source_imat, array->source_mat);
@@ -531,7 +537,8 @@ static void sculpt_array_ensure_base_transform(Object *ob, SculptArray *array){
   scultp_array_basis_from_direction(array->source_mat, ss->cache, ss->cache->grab_delta);
   copy_v3_v3(array->source_mat[3], array->source_origin);
   invert_m4_m4(array->source_imat, array->source_mat);
-  //print_m4("source_mat", array->source_mat);
+  print_m4("source_mat", array->source_mat);
+  print_m4("source_imat", array->source_imat);
 
   array->source_mat_valid = true;
   return;
