@@ -461,11 +461,8 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
 
     float co[3];
     mul_v3_m4v3(co, array->source_imat, array->orco[vd.index]);
-    //sub_v3_v3v3(co, array->orco[vd.index], array->source_origin);
     mul_v3_m4v3(co, copy->mat, co);
-
-    mul_v3_m4v3(vd.co,array->source_mat, co);
-    //add_v3_v3v3(vd.co, co, array->source_origin);
+    add_v3_v3v3(vd.co, co, array->source_origin);
 
     any_modified = true;
 
@@ -477,7 +474,7 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 
   if (any_modified) {
-  BKE_pbvh_node_mark_update(data->nodes[n]);
+    BKE_pbvh_node_mark_update(data->nodes[n]);
   }
 }
 
