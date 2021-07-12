@@ -203,6 +203,10 @@ void POSELIB_OT_pose_move(struct wmOperatorType *ot);
 void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
 void POSELIB_OT_apply_pose(struct wmOperatorType *ot);
 
+/* pose_lib_2.c */
+void POSELIB_OT_apply_pose_asset(struct wmOperatorType *ot);
+void POSELIB_OT_blend_pose_asset(struct wmOperatorType *ot);
+
 /* ******************************************************* */
 /* Pose Sliding Tools */
 /* pose_slide.c */
