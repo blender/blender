@@ -281,12 +281,12 @@ to tasks.
 */
 
 BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
-                                          unsigned int totelem,
-                                          const unsigned int pchunk,
+                                          int totelem,
+                                          const int pchunk,
                                           void ***r_chunks,
-                                          unsigned int *r_totchunk,
-                                          unsigned int *r_esize,
-                                          unsigned int flag)
+                                          int *r_totchunk,
+                                          int *r_esize,
+                                          int flag)
 {
   BLI_mempool *pool = BLI_mempool_create(esize, 0, pchunk, flag);
 

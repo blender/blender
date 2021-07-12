@@ -341,33 +341,33 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
   int vsize, esize, lsize, fsize;
 
   bm->vpool = BLI_mempool_create_for_tasks(sizeof(BMVert),
-                                           (uint)bm->totvert,
-                                           (uint)VCHUNK,
+                                           bm->totvert,
+                                           VCHUNK,
                                            (void ***)&verts,
-                                           (uint)&totcv,
-                                           (uint)&vsize,
-                                           (uint)BLI_MEMPOOL_ALLOW_ITER);
+                                           &totcv,
+                                           &vsize,
+                                           BLI_MEMPOOL_ALLOW_ITER);
   bm->epool = BLI_mempool_create_for_tasks(sizeof(BMEdge),
-                                           (uint)bm->totedge,
-                                           (uint)ECHUNK,
+                                           bm->totedge,
+                                           ECHUNK,
                                            (void ***)&edges,
-                                           (uint)&totce,
-                                           (uint)&esize,
-                                           (uint)BLI_MEMPOOL_ALLOW_ITER);
+                                           &totce,
+                                           &esize,
+                                           BLI_MEMPOOL_ALLOW_ITER);
   bm->lpool = BLI_mempool_create_for_tasks(sizeof(BMLoop),
-                                           (uint)bm->totloop,
-                                           (uint)LCHUNK,
+                                           bm->totloop,
+                                           LCHUNK,
                                            (void ***)&loops,
-                                           (uint)&totcl,
-                                           (uint)&lsize,
-                                           (uint)BLI_MEMPOOL_ALLOW_ITER);
+                                           &totcl,
+                                           &lsize,
+                                           BLI_MEMPOOL_ALLOW_ITER);
   bm->fpool = BLI_mempool_create_for_tasks(sizeof(BMFace),
-                                           (uint)bm->totface,
-                                           (uint)FCHUNK,
+                                           bm->totface,
+                                           FCHUNK,
                                            (void ***)&faces,
-                                           (uint)&totcf,
-                                           (uint)&fsize,
-                                           (uint)BLI_MEMPOOL_ALLOW_ITER);
+                                           &totcf,
+                                           &fsize,
+                                           BLI_MEMPOOL_ALLOW_ITER);
 
   data.verts = verts;
   data.edges = edges;
