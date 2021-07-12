@@ -184,6 +184,23 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   CustomData_reset(&bm->ldata);
   CustomData_reset(&bm->pdata);
 
+  if (params->use_unique_ids) {
+    bm_init_idmap_cdlayers(bm);
+
+    if (bm->vdata.totlayer) {
+      CustomData_bmesh_init_pool(&bm->vdata, 0, BM_VERT);
+    }
+    if (bm->edata.totlayer) {
+      CustomData_bmesh_init_pool(&bm->edata, 0, BM_EDGE);
+    }
+    if (bm->ldata.totlayer) {
+      CustomData_bmesh_init_pool(&bm->ldata, 0, BM_LOOP);
+    }
+    if (bm->pdata.totlayer) {
+      CustomData_bmesh_init_pool(&bm->pdata, 0, BM_FACE);
+    }
+  }
+
   return bm;
 }
 

@@ -12,6 +12,8 @@ TEST(bmesh_core, BMVertCreate)
 
   BMeshCreateParams bm_params;
   bm_params.use_toolflags = true;
+  bm_params.use_unique_ids = false;
+
   bm = BM_mesh_create(&bm_mesh_allocsize_default, &bm_params);
   EXPECT_EQ(bm->totvert, 0);
   /* make a custom layer so we can see if it is copied properly */

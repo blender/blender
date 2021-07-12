@@ -468,6 +468,11 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
                                    const Mesh *me,
                                    const struct BMeshFromMeshParams *params);
 
+#define EXPECT_EQ(a, b) \
+  if ((a) != (b)) { \
+    printf("error\n"); \
+  }
+
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
