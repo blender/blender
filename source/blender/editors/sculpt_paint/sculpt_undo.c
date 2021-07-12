@@ -505,14 +505,12 @@ static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_custo
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
   if (!old_customdata) {
-    return;
-  }
-
-  if (!old_customdata) {
     BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
     return;
   }
 
+  BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
+  return;
   // preserve pbvh node references
 
   BMVert h;
@@ -532,29 +530,8 @@ static void bmesh_undo_on_face_change(BMFace *f, void *userdata, void *old_custo
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  if (old_customdata) {
-    return;
-  }
-
-  if (!old_customdata) {
-    BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, -1);
-    return;
-  }
-
-  // preserve pbvh node references
-
-  BMFace h;
-  h.head.data = old_customdata;
-
-  int oldnode_i = BM_ELEM_CD_GET_INT(&h, data->cd_face_node_offset);
-
-  BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, oldnode_i);
-
-  if (oldnode_i > 0) {
-    PBVHNode *node = BKE_pbvh_node_from_index(data->pbvh, oldnode_i);
-
-    BKE_pbvh_node_mark_update(node);
-  }
+  // vert will be added back to pbvh when its owning faces are
+  BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, -1);
 }
 
 static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)

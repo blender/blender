@@ -207,6 +207,22 @@ static bool log_ghash_reinsert(
   return ret;
 }
 
+static void bm_log_copy_id(CustomData *cdata, BMElem *elem, void *data)
+{
+  int cd_id = cdata->typemap[CD_MESH_ID];
+
+  if (cd_id >= 0) {
+    cd_id = cdata->layers[cd_id].offset;
+
+    int id = BM_ELEM_CD_GET_INT(elem, cd_id);
+
+    BMElem elem2;
+    elem2.head.data = data;
+
+    BM_ELEM_CD_SET_INT(&elem2, cd_id, id);
+  }
+}
+
 static bool log_ghash_haskey(BMLog *log, GHash *gh, const void *key)
 {
   BLI_rw_mutex_lock(&log->lock, THREAD_LOCK_READ);
@@ -285,6 +301,10 @@ static void bm_log_vert_customdata(
   }
 
   CustomData_bmesh_copy_data(&bm->vdata, &entry->vdata, v->head.data, &lv->customdata);
+
+  // forcibly copy id
+  bm_log_copy_id(&bm->vdata, (BMElem *)v, lv->customdata);
+
 #endif
 }
 
@@ -304,6 +324,9 @@ static void bm_log_face_customdata(BMesh *bm, BMLog *log, BMFace *f, BMLogFace *
   }
 
   CustomData_bmesh_copy_data(&bm->pdata, &entry->pdata, f->head.data, &lf->customdata_f);
+
+  // forcibly copy id
+  bm_log_copy_id(&bm->pdata, (BMElem *)f, lf->customdata_f);
 
   BMLoop *l1 = f->l_first;
   BMLoop *l2 = f->l_first->next;
@@ -473,6 +496,9 @@ static void bm_log_faces_unmake(
 #ifdef CUSTOMDATA
     if (lf->customdata_f) {
       CustomData_bmesh_copy_data(&bm->pdata, &entry->pdata, f->head.data, &lf->customdata_f);
+
+      // forcibly copy id
+      bm_log_copy_id(&bm->pdata, (BMElem *)f, lf->customdata_f);
     }
 
     BMLoop *ls[3] = {f->l_first, f->l_first->next, f->l_first->prev};
@@ -546,12 +572,12 @@ static void bm_log_faces_restore(
     f->head.hflag = lf->hflag;
 
     copy_v3_v3(f->no, lf->no);
-    bm_assign_id(bm, (BMElem *)f, POINTER_AS_UINT(key));
 
-#ifdef CUSTOMDATA
     if (lf->customdata_f) {
       CustomData_bmesh_copy_data(&entry->pdata, &bm->pdata, lf->customdata_f, &f->head.data);
     }
+
+    bm_assign_id(bm, (BMElem *)f, POINTER_AS_UINT(key));
 
     BMLoop *ls[3] = {f->l_first, f->l_first->next, f->l_first->prev};
 
@@ -565,7 +591,6 @@ static void bm_log_faces_restore(
             &entry->ldata, &bm->ldata, lf->customdata[i], &ls[i]->head.data);
       }
     }
-#endif
 
     if (callbacks) {
       callbacks->on_face_add(f, callbacks->userdata);
@@ -598,7 +623,6 @@ static void bm_log_vert_values_swap(
     lv->mask = vert_mask_get(v, cd_vert_mask_offset);
     vert_mask_set(v, mask, cd_vert_mask_offset);
 
-#ifdef CUSTOMDATA
     void *old_cdata = NULL;
 
     if (lv->customdata) {
@@ -606,13 +630,13 @@ static void bm_log_vert_values_swap(
         old_cdata = scratch;
         memcpy(old_cdata, v->head.data, (size_t)bm->vdata.totsize);
       }
+
       CustomData_bmesh_swap_data(&entry->vdata, &bm->vdata, lv->customdata, &v->head.data);
     }
 
     if (callbacks) {
       callbacks->on_vert_change(v, callbacks->userdata, old_cdata);
     }
-#endif
   }
 
   if (scratch) {
