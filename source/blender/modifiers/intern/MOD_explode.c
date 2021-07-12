@@ -919,7 +919,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   EdgeHashIterator *ehi;
   float *vertco = NULL, imat[4][4];
   float rot[4];
-  float cfra;
+  float ctime;
   /* float timestep; */
   const int *facepa = emd->facepa;
   int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
@@ -940,7 +940,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
   /* timestep = psys_get_timestep(&sim); */
 
-  cfra = BKE_scene_frame_get(scene);
+  ctime = BKE_scene_ctime_get(scene);
 
   /* hash table for vertice <-> particle relations */
   vertpahash = BLI_edgehash_new(__func__);
@@ -962,7 +962,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     /* do mindex + totvert to ensure the vertex index to be the first
      * with BLI_edgehashIterator_getKey */
-    if (pa == NULL || cfra < pa->time) {
+    if (pa == NULL || ctime < pa->time) {
       mindex = totvert + totpart;
     }
     else {
@@ -1022,7 +1022,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
       psys_get_birth_coords(&sim, pa, &birth, 0, 0);
 
-      state.time = cfra;
+      state.time = ctime;
       psys_get_particle_state(&sim, ed_v2, &state, 1);
 
       vertco = explode->mvert[v].co;
@@ -1076,7 +1076,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
     orig_v4 = source.v4;
 
     /* Same as above in the first loop over mesh's faces. */
-    if (pa == NULL || cfra < pa->time) {
+    if (pa == NULL || ctime < pa->time) {
       mindex = totvert + totpart;
     }
     else {
@@ -1096,7 +1096,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     /* override uv channel for particle age */
     if (mtface) {
-      float age = (pa != NULL) ? (cfra - pa->time) / pa->lifetime : 0.0f;
+      float age = (pa != NULL) ? (ctime - pa->time) / pa->lifetime : 0.0f;
       /* Clamp to this range to avoid flipping to the other side of the coordinates. */
       CLAMP(age, 0.001f, 0.999f);
 

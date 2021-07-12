@@ -2299,10 +2299,7 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
     return NULL;
   }
 
-  const int cfra = ((scene->r.images == scene->r.framapto) ?
-                        scene->r.cfra :
-                        (int)(scene->r.cfra *
-                              ((float)scene->r.framapto / (float)scene->r.images)));
+  const int ctime = (int)BKE_scene_ctime_get(scene);
   int frame = -(MAXFRAME + 1);
   int min_frame = MAXFRAME + 1;
   Object *camera = NULL;
@@ -2310,11 +2307,11 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
 
   LISTBASE_FOREACH (TimeMarker *, m, &scene->markers) {
     if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0) {
-      if ((m->frame <= cfra) && (m->frame > frame)) {
+      if ((m->frame <= ctime) && (m->frame > frame)) {
         camera = m->camera;
         frame = m->frame;
 
-        if (frame == cfra) {
+        if (frame == ctime) {
           break;
         }
       }
@@ -2396,13 +2393,13 @@ const char *BKE_scene_find_last_marker_name(const Scene *scene, int frame)
   return best_marker ? best_marker->name : NULL;
 }
 
-int BKE_scene_frame_snap_by_seconds(Scene *scene, double interval_in_seconds, int cfra)
+int BKE_scene_frame_snap_by_seconds(Scene *scene, double interval_in_seconds, int frame)
 {
   const int fps = round_db_to_int(FPS * interval_in_seconds);
-  const int second_prev = cfra - mod_i(cfra, fps);
+  const int second_prev = frame - mod_i(frame, fps);
   const int second_next = second_prev + fps;
-  const int delta_prev = cfra - second_prev;
-  const int delta_next = second_next - cfra;
+  const int delta_prev = frame - second_prev;
+  const int delta_next = second_next - frame;
   return (delta_prev < delta_next) ? second_prev : second_next;
 }
 
@@ -2444,16 +2441,17 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
   return true;
 }
 
-/**
- * This function is needed to cope with fractional frames, needed for motion blur & physics.
- */
-float BKE_scene_frame_get(const Scene *scene)
+/* Return fractional frame number taking into account subframes and time
+ * remapping. This the time value used by animation, modifiers and physics
+ * evaluation. */
+float BKE_scene_ctime_get(const Scene *scene)
 {
   return BKE_scene_frame_to_ctime(scene, scene->r.cfra);
 }
 
-/* This function is used to obtain arbitrary fractional frames */
-float BKE_scene_frame_to_ctime(const Scene *scene, const float frame)
+/* Convert integer frame number to fractional frame number taking into account
+ * subframes and time remapping. */
+float BKE_scene_frame_to_ctime(const Scene *scene, const int frame)
 {
   float ctime = frame;
   ctime += scene->r.subframe;
@@ -2461,13 +2459,18 @@ float BKE_scene_frame_to_ctime(const Scene *scene, const float frame)
 
   return ctime;
 }
-/**
- * Sets the frame int/float components.
- */
-void BKE_scene_frame_set(struct Scene *scene, double cfra)
+
+/* Get current fractional frame based on frame and subframe. */
+float BKE_scene_frame_get(const Scene *scene)
+{
+  return scene->r.cfra + scene->r.subframe;
+}
+
+/* Set current frame and subframe based on a fractional frame. */
+void BKE_scene_frame_set(Scene *scene, float frame)
 {
   double intpart;
-  scene->r.subframe = modf(cfra, &intpart);
+  scene->r.subframe = modf((double)frame, &intpart);
   scene->r.cfra = (int)intpart;
 }
 
@@ -2736,7 +2739,7 @@ void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool cle
      * edits from callback are properly taken into account. Doing a time update on those would
      * lose any possible unkeyed changes made by the handler. */
     if (pass == 0) {
-      const float ctime = BKE_scene_frame_get(scene);
+      const float ctime = BKE_scene_ctime_get(scene);
       DEG_evaluate_on_framechange(depsgraph, ctime);
     }
     else {

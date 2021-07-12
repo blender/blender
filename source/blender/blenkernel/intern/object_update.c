@@ -123,7 +123,7 @@ void BKE_object_eval_parent(Depsgraph *depsgraph, Object *ob)
 void BKE_object_eval_constraints(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   bConstraintOb *cob;
-  float ctime = BKE_scene_frame_get(scene);
+  float ctime = BKE_scene_ctime_get(scene);
 
   DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 

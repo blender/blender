@@ -120,7 +120,6 @@ static void deformVerts(ModifierData *md,
   Mesh *mesh_src = mesh;
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
   ParticleSystem *psys = NULL;
-  /* float cfra = BKE_scene_frame_get(md->scene); */ /* UNUSED */
 
   if (ctx->object->particlesystem.first) {
     psys = psmd->psys;

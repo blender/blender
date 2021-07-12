@@ -813,7 +813,7 @@ static int action_layer_next_exec(bContext *C, wmOperator *op)
   NlaTrack *act_track;
 
   Scene *scene = CTX_data_scene(C);
-  float ctime = BKE_scene_frame_get(scene);
+  float ctime = BKE_scene_ctime_get(scene);
 
   /* Get active track */
   act_track = BKE_nlatrack_find_tweaked(adt);
@@ -925,7 +925,7 @@ static int action_layer_prev_exec(bContext *C, wmOperator *op)
   NlaTrack *nlt;
 
   Scene *scene = CTX_data_scene(C);
-  float ctime = BKE_scene_frame_get(scene);
+  float ctime = BKE_scene_ctime_get(scene);
 
   /* Sanity Check */
   if (adt == NULL) {

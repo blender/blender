@@ -314,7 +314,7 @@ bool BKE_cachefile_filepath_get(const Main *bmain,
 
   if (cache_file->is_sequence && BLI_path_frame_get(r_filepath, &fframe, &frame_len)) {
     Scene *scene = DEG_get_evaluated_scene(depsgraph);
-    const float ctime = BKE_scene_frame_get(scene);
+    const float ctime = BKE_scene_ctime_get(scene);
     const float fps = (((double)scene->r.frs_sec) / (double)scene->r.frs_sec_base);
     const float frame = BKE_cachefile_time_offset(cache_file, ctime, fps);
 

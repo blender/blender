@@ -101,7 +101,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   range_vn_i(faceMap, numPoly_src, 0);
 
   struct Scene *scene = DEG_get_input_scene(ctx->depsgraph);
-  frac = (BKE_scene_frame_get(scene) - bmd->start) / bmd->length;
+  frac = (BKE_scene_ctime_get(scene) - bmd->start) / bmd->length;
   CLAMP(frac, 0.0f, 1.0f);
   if (bmd->flag & MOD_BUILD_FLAG_REVERSE) {
     frac = 1.0f - frac;

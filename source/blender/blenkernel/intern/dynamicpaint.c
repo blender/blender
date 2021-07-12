@@ -3818,7 +3818,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
                                       ob,
                                       true,
                                       SUBFRAME_RECURSION,
-                                      BKE_scene_frame_get(scene),
+                                      BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
   mesh_p = BKE_mesh_copy_for_eval(dynamicPaint_brush_mesh_get(brush), false);
   numOfVerts_p = mesh_p->totvert;
@@ -3834,7 +3834,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
                                       ob,
                                       true,
                                       SUBFRAME_RECURSION,
-                                      BKE_scene_frame_get(scene),
+                                      BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
   mesh_c = dynamicPaint_brush_mesh_get(brush);
   numOfVerts_c = mesh_c->totvert;
@@ -3894,7 +3894,7 @@ static void dynamicPaint_brushObjectCalculateVelocity(
                                       ob,
                                       false,
                                       SUBFRAME_RECURSION,
-                                      BKE_scene_frame_get(scene),
+                                      BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
   copy_m4_m4(prev_obmat, ob->obmat);
 
@@ -3906,7 +3906,7 @@ static void dynamicPaint_brushObjectCalculateVelocity(
                                       ob,
                                       false,
                                       SUBFRAME_RECURSION,
-                                      BKE_scene_frame_get(scene),
+                                      BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
 
   /* calculate speed */
@@ -6271,7 +6271,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
                                                 brushObj,
                                                 true,
                                                 SUBFRAME_RECURSION,
-                                                BKE_scene_frame_get(scene),
+                                                BKE_scene_ctime_get(scene),
                                                 eModifierType_DynamicPaint);
           }
 
@@ -6312,7 +6312,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
                                                 brushObj,
                                                 true,
                                                 SUBFRAME_RECURSION,
-                                                BKE_scene_frame_get(scene),
+                                                BKE_scene_ctime_get(scene),
                                                 eModifierType_DynamicPaint);
           }
 

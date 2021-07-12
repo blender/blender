@@ -124,14 +124,16 @@ bool BKE_scene_camera_switch_update(struct Scene *scene);
 const char *BKE_scene_find_marker_name(const struct Scene *scene, int frame);
 const char *BKE_scene_find_last_marker_name(const struct Scene *scene, int frame);
 
-int BKE_scene_frame_snap_by_seconds(struct Scene *scene, double interval_in_seconds, int cfra);
+int BKE_scene_frame_snap_by_seconds(struct Scene *scene, double interval_in_seconds, int frame);
 
 /* checks for cycle, returns 1 if it's all OK */
 bool BKE_scene_validate_setscene(struct Main *bmain, struct Scene *sce);
 
+float BKE_scene_ctime_get(const struct Scene *scene);
+float BKE_scene_frame_to_ctime(const struct Scene *scene, const int frame);
+
 float BKE_scene_frame_get(const struct Scene *scene);
-float BKE_scene_frame_to_ctime(const struct Scene *scene, const float frame);
-void BKE_scene_frame_set(struct Scene *scene, double cfra);
+void BKE_scene_frame_set(struct Scene *scene, float frame);
 
 struct TransformOrientationSlot *BKE_scene_orientation_slot_get_from_flag(struct Scene *scene,
                                                                           int flag);

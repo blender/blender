@@ -828,7 +828,7 @@ void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph, Scene *scene, Object *ob
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   BLI_assert(object->type == OB_ARMATURE);
-  const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+  const float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
   bArmature *armature = (bArmature *)object->data;
   if (armature->flag & ARM_RESTPOS) {
     return;
@@ -869,7 +869,7 @@ void BKE_pose_eval_bone(struct Depsgraph *depsgraph, Scene *scene, Object *objec
       else {
         if ((pchan->flag & POSE_DONE) == 0) {
           /* TODO(sergey): Use time source node for time. */
-          float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+          float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
           BKE_pose_where_is_bone(depsgraph, scene, object, pchan, ctime, 1);
         }
       }
@@ -897,7 +897,7 @@ void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
   }
   else {
     if ((pchan->flag & POSE_DONE) == 0) {
-      float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+      float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
       BKE_pose_where_is_bone(depsgraph, scene, object, pchan, ctime, 1);
     }
   }
@@ -981,7 +981,7 @@ void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
   DEG_debug_print_eval_subdata(
       depsgraph, __func__, object->id.name, object, "rootchan", rootchan->name, rootchan);
   BLI_assert(object->type == OB_ARMATURE);
-  const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+  const float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
   if (armature->flag & ARM_RESTPOS) {
     return;
   }
@@ -1002,7 +1002,7 @@ void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
   DEG_debug_print_eval_subdata(
       depsgraph, __func__, object->id.name, object, "rootchan", rootchan->name, rootchan);
   BLI_assert(object->type == OB_ARMATURE);
-  const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+  const float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
   if (armature->flag & ARM_RESTPOS) {
     return;
   }
@@ -1031,7 +1031,7 @@ void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph, Scene *scene, Object *ob
   bPose *pose = object->pose;
   BLI_assert(pose != NULL);
   UNUSED_VARS_NDEBUG(pose);
-  const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+  const float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   BLI_assert(object->type == OB_ARMATURE);
   /* Release the IK tree. */

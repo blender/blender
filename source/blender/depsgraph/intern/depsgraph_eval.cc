@@ -63,7 +63,7 @@ void DEG_evaluate_on_refresh(Depsgraph *graph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
   const Scene *scene = DEG_get_input_scene(graph);
-  const float ctime = BKE_scene_frame_get(scene);
+  const float ctime = BKE_scene_ctime_get(scene);
 
   if (ctime != deg_graph->ctime) {
     deg_graph->tag_time_source();

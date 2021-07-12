@@ -3961,7 +3961,7 @@ static ModifierData *object_add_or_copy_particle_system(
   psys->totpart = 0;
   psys->flag = PSYS_CURRENT;
   if (scene != NULL) {
-    psys->cfra = BKE_scene_frame_to_ctime(scene, CFRA + 1);
+    psys->cfra = BKE_scene_frame_to_ctime(scene, scene->r.cfra + 1);
   }
 
   DEG_relations_tag_update(bmain);
