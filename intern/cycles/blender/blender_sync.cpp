@@ -404,8 +404,6 @@ void BlenderSync::sync_film(BL::SpaceView3D &b_v3d)
 
   Film *film = scene->film;
 
-  vector<Pass> prevpasses = scene->passes;
-
   if (b_v3d) {
     film->set_display_pass(update_viewport_display_passes(b_v3d, scene->passes));
   }
@@ -434,11 +432,6 @@ void BlenderSync::sync_film(BL::SpaceView3D &b_v3d)
         film->set_mist_falloff(0.5f);
         break;
     }
-  }
-
-  if (!Pass::equals(prevpasses, scene->passes)) {
-    film->tag_passes_update(scene, prevpasses, false);
-    film->tag_modified();
   }
 }
 
@@ -749,10 +742,13 @@ vector<Pass> BlenderSync::sync_render_passes(BL::Scene &b_scene,
                                         DENOISING_CLEAN_ALL_PASSES);
   scene->film->set_denoising_prefiltered_pass(denoising.store_passes &&
                                               denoising.type == DENOISER_NLM);
-
   scene->film->set_pass_alpha_threshold(b_view_layer.pass_alpha_threshold());
-  scene->film->tag_passes_update(scene, passes);
-  scene->integrator->tag_update(scene, Integrator::UPDATE_ALL);
+
+  if (!Pass::equals(passes, scene->passes)) {
+    scene->film->tag_passes_update(scene, passes);
+    scene->film->tag_modified();
+    scene->integrator->tag_update(scene, Integrator::UPDATE_ALL);
+  }
 
   return passes;
 }
