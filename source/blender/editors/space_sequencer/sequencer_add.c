@@ -707,13 +707,13 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
   }
   else {
     if (!sequencer_add_movie_single_strip(C, op, &load_data)) {
+      sequencer_add_cancel(C, op);
       return OPERATOR_CANCELLED;
     }
   }
 
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
+  /* Free custom data. */
+  sequencer_add_cancel(C, op);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -1040,6 +1040,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
   load_data.image.len = sequencer_add_image_strip_calculate_length(
       op, load_data.start_frame, &minframe, &numdigits);
   if (load_data.image.len == 0) {
+    sequencer_add_cancel(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -1062,9 +1063,8 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
+  /* Free custom data. */
+  sequencer_add_cancel(C, op);
 
   return OPERATOR_FINISHED;
 }
