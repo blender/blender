@@ -55,6 +55,7 @@ class ScaleOperation : public BaseScaleOperation {
 
  public:
   ScaleOperation();
+  ScaleOperation(DataType data_type);
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;

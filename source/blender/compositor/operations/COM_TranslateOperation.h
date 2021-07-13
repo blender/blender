@@ -35,6 +35,7 @@ class TranslateOperation : public NodeOperation {
 
  public:
   TranslateOperation();
+  TranslateOperation(DataType data_type);
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;

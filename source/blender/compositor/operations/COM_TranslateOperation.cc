@@ -20,12 +20,15 @@
 
 namespace blender::compositor {
 
-TranslateOperation::TranslateOperation()
+TranslateOperation::TranslateOperation() : TranslateOperation(DataType::Color)
 {
-  this->addInputSocket(DataType::Color);
+}
+TranslateOperation::TranslateOperation(DataType data_type)
+{
+  this->addInputSocket(data_type);
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->addOutputSocket(data_type);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
   this->m_inputXOperation = nullptr;
