@@ -206,7 +206,7 @@ static void armature_undosys_step_decode(struct bContext *C,
     }
     undoarm_to_editarm(&elem->data, arm);
     arm->needs_flush_to_id = 1;
-    DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&arm->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */

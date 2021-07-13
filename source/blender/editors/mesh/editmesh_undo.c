@@ -681,14 +681,20 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *
   BM_mesh_bm_from_me(bm,
                      &um->me,
                      (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
+                         /* Handled with tessellation. */
+                         .calc_face_normal = false,
                          .active_shapekey = um->shapenr,
                      }));
 
   em_tmp = BKE_editmesh_create(bm);
   *em = *em_tmp;
 
-  BKE_editmesh_looptri_calc(em);
+  /* Calculate face normals and tessellation at once since it's multi-threaded.
+   * The vertex normals are stored in the undo-mesh, so this doesn't need to be updated. */
+  BKE_editmesh_looptri_calc_ex(em,
+                               &(const struct BMeshCalcTessellation_Params){
+                                   .face_normals = true,
+                               });
 
   em->selectmode = um->selectmode;
   bm->selectmode = um->selectmode;
@@ -867,7 +873,7 @@ static void mesh_undosys_step_decode(struct bContext *C,
     BMEditMesh *em = me->edit_mesh;
     undomesh_to_editmesh(&elem->data, obedit, em, me->key);
     em->needs_flush_to_id = 1;
-    DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
   }
 
   /* The first element is always active */
