@@ -531,7 +531,6 @@ struct uiBlockInteraction_Params {
    * (user clicking on a number button arrows or pasting a value for example).
    */
   bool is_click;
-
   /**
    * Array of unique event ID's (values from #uiBut.retval).
    * There may be more than one for multi-button editing (see #UI_BUT_DRAG_MULTI).

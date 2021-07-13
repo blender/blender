@@ -44,34 +44,39 @@ struct Scene;
 /**
  * This structure is used for mesh edit-mode.
  *
- * through this, you get access to both the edit #BMesh,
- * its tessellation, and various stuff that doesn't belong in the BMesh
- * struct itself.
+ * Through this, you get access to both the edit #BMesh, its tessellation,
+ * and various data that doesn't belong in the #BMesh struct itself
+ * (mostly related to mesh evaluation).
  *
- * the entire derivedmesh and modifier system works with this structure,
- * and not BMesh.  Mesh->edit_bmesh stores a pointer to this structure. */
+ * The entire modifier system works with this structure, and not #BMesh.
+ * #Mesh.edit_bmesh stores a pointer to this structure. */
 typedef struct BMEditMesh {
   struct BMesh *bm;
 
-  /* we store tessellations as triplets of three loops,
-   * which each define a triangle. */
+  /**
+   * Face triangulation (tessellation) is stored as triplets of three loops,
+   * which each define a triangle.
+   *
+   * \see #MLoopTri as the documentation gives useful hints that apply to this data too.
+   */
   struct BMLoop *(*looptris)[3];
   int tottri;
 
   struct Mesh *mesh_eval_final, *mesh_eval_cage;
 
-  /** Cached cage bounding box for selection. */
+  /** Cached cage bounding box of `mesh_eval_cage` for selection. */
   struct BoundBox *bb_cage;
 
   /** Evaluated mesh data-mask. */
   CustomData_MeshMasks lastDataMask;
 
-  /* Selection mode. */
+  /** Selection mode (#SCE_SELECT_VERTEX, #SCE_SELECT_EDGE & #SCE_SELECT_FACE). */
   short selectmode;
+  /** The active material (assigned to newly created faces). */
   short mat_nr;
 
-  /* Temp variables for x-mirror editing. */
-  int mirror_cdlayer; /* -1 is invalid */
+  /** Temp variables for x-mirror editing (-1 when the layer does not exist). */
+  int mirror_cdlayer;
 
   /**
    * ID data is older than edit-mode data.
