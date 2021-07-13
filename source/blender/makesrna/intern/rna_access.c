@@ -2026,11 +2026,9 @@ bool RNA_property_enum_item_from_value(
 bool RNA_property_enum_item_from_value_gettexted(
     bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, EnumPropertyItem *r_item)
 {
-  bool result;
+  const bool result = RNA_property_enum_item_from_value(C, ptr, prop, value, r_item);
 
-  result = RNA_property_enum_item_from_value(C, ptr, prop, value, r_item);
-
-  if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
+  if (result && !(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
     if (BLT_translate_iface()) {
       r_item->name = BLT_pgettext(prop->translation_context, r_item->name);
     }
