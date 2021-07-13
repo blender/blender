@@ -2094,7 +2094,12 @@ void recalcData_mesh(TransInfo *t)
   tc_mesh_partial_types_calc(t, &partial_state);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY_DEFORM);
+    const bool use_cd_layer_correct =
+        tc->custom.type.data &&
+        ((struct TransCustomDataMesh *)tc->custom.type.data)->cd_layer_correct;
+
+    DEG_id_tag_update(tc->obedit->data,
+                      use_cd_layer_correct ? ID_RECALC_GEOMETRY : ID_RECALC_GEOMETRY_DEFORM);
 
     tc_mesh_partial_update(t, tc, &partial_state);
   }
