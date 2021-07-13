@@ -395,9 +395,8 @@ bool imb_savebmp(ImBuf *ibuf, const char *filepath, int UNUSED(flags))
       }
     }
   }
-  if (ofile) {
-    fflush(ofile);
-    fclose(ofile);
-  }
+
+  fflush(ofile);
+  fclose(ofile);
   return 1;
 }
