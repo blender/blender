@@ -148,7 +148,8 @@ static BMesh *sculpt_array_source_build(Object *ob, Brush *brush, SculptArray *a
   /* TODO(pablodp606): Handle individual Face Sets for Face Set automasking. */
   BM_mesh_delete_hflag_context(srcbm, BM_ELEM_TAG, DEL_VERTS);
 
-  const bool fill_holes = true;
+ const bool fill_holes = false;
+ if (fill_holes) {
     BM_mesh_elem_hflag_disable_all(srcbm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
     BM_mesh_elem_hflag_enable_all(srcbm, BM_EDGE, BM_ELEM_TAG, false);
     BM_mesh_edgenet(srcbm, false, true);
@@ -166,6 +167,7 @@ static BMesh *sculpt_array_source_build(Object *ob, Brush *brush, SculptArray *a
                  "recalc_face_normals faces=%hf",
                  BM_ELEM_TAG);
     BM_mesh_elem_hflag_disable_all(srcbm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+ }
 
   return srcbm;
 }
@@ -282,7 +284,7 @@ static void sculpt_array_init(Object *ob, SculptArray *array) {
         copy->index = copy_index;
         float symm_location[3];
         flip_v3_v3(symm_location, ss->cache->location, symm_pass);
-        copy_v3_v3(copy->origin, symm_location);
+        copy_v3_v3(copy->origin, ss->cache->location);
       }
   }
 }
@@ -317,7 +319,12 @@ static void sculpt_array_position_in_path_search(float *r_position, float *r_dir
     const float interp_factor = remaining_dist / segment_length;
     interp_v3_v3v3(r_position, prev_path_point->co, path_point->co, interp_factor);
     if (r_direction) {
-      copy_v3_v3(r_direction, path_point->direction);
+      if (i == array->path.tot_points - 1) {
+        copy_v3_v3(r_direction, prev_path_point->direction);
+      }
+      else {
+        copy_v3_v3(r_direction, path_point->direction);
+      }
     }
     if (r_scale) {
       const float s = 1.0f - interp_factor;
@@ -361,10 +368,9 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
   {
   case BRUSH_ARRAY_DEFORM_LINEAR: {
     const float fade = ((float)copy->index + 1.0f) / (float)(array->num_copies);
-    float delta[3];
-    flip_v3_v3(delta, cache->grab_delta, copy->symm_pass);
-    mul_v3_v3fl(copy->mat[3], delta, fade);
+    mul_v3_v3fl(copy->mat[3], cache->grab_delta, fade);
     normalize_v3_v3(direction, cache->grab_delta);
+    scale = cache->bstrength;
     }
     break;
 
@@ -374,6 +380,7 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
     copy_v3_v3(pos, cache->grab_delta);
     rotate_v3_v3v3fl(copy->mat[3], pos, cache->view_normal,  fade * M_PI * 2.0f);
     copy_v3_v3(direction, copy->mat[3]);
+    scale = cache->bstrength;
     }
     break;
   case BRUSH_ARRAY_DEFORM_PATH:
@@ -417,16 +424,19 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
         continue;
       }
 
+       float symm_orig[3];
+       flip_v3_v3(symm_orig, array->source_origin, symm_pass);
+
       for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
        SculptArrayCopy *copy = &array->copies[symm_pass][copy_index];
        SculptArrayCopy *main_copy = &array->copies[0][copy_index];
        unit_m4(copy->mat);
-       flip_v3_v3(copy->mat[3],main_copy->mat[3], symm_pass);
-      /*
-       for (int m = 0; m < 3; m++) {
+       //copy_m4_m4(copy->mat, main_copy->mat);
+       //flip_v3_v3(copy->mat[3],main_copy->mat[3], symm_pass);
+       //add_v3_v3(copy->mat[3], symm_orig);
+       for (int m = 0; m < 4; m++) {
         flip_v3_v3(copy->mat[m],main_copy->mat[m], symm_pass);
        }
-       */
       }
   }
 }
@@ -462,7 +472,9 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
     float co[3];
     mul_v3_m4v3(co, array->source_imat, array->orco[vd.index]);
     mul_v3_m4v3(co, copy->mat, co);
-    add_v3_v3v3(vd.co, co, array->source_origin);
+    float source_origin_symm[3];
+    flip_v3_v3(source_origin_symm, array->source_origin, array_symm_pass);
+    add_v3_v3v3(vd.co, co, source_origin_symm);
 
     any_modified = true;
 
@@ -564,6 +576,9 @@ static void sculpt_array_stroke_sample_add(Object *ob, SculptArray *array) {
   }
   else {
     ScultpArrayPathPoint *prev_path_point = &array->path.points[prev_point_index];
+    if (len_v3v3(prev_path_point->co, path_point->co) <= 0.0001f) {
+      return;
+    }
     sub_v3_v3v3(prev_path_point->direction, path_point->co, prev_path_point->co);
     path_point->length = prev_path_point->length + normalize_v3(prev_path_point->direction);
   }

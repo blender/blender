@@ -223,13 +223,21 @@ static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *au
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
   const float radius = ss->cache ? ss->cache->radius : FLT_MAX;
-  SCULPT_floodfill_add_active(sd, ob, ss, &flood, radius);
+
+  char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+    symm = 0;
+    SCULPT_floodfill_add_initial(&flood, SCULPT_active_vertex_get(ss));
+  }
+  else {
+    SCULPT_floodfill_add_active(sd, ob, ss, &flood, radius);
+  }
 
   AutomaskFloodFillData fdata = {
       .automask_factor = automask_factor,
       .radius = radius,
       .use_radius = ss->cache && sculpt_automasking_is_constrained_by_radius(brush),
-      .symm = SCULPT_mesh_symmetry_xyz_get(ob),
+      .symm = symm,
   };
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
   SCULPT_floodfill_execute(ss, &flood, automask_floodfill_cb, &fdata);
