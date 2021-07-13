@@ -59,7 +59,7 @@
 
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
-char seq_clipboard_active_seq_name[SEQ_NAME_MAXSTR];
+static char seq_clipboard_active_seq_name[SEQ_NAME_MAXSTR];
 
 void seq_clipboard_pointers_free(struct ListBase *seqbase);
 
@@ -187,11 +187,10 @@ void SEQ_clipboard_active_seq_name_store(Scene *scene)
 {
   Sequence *active_seq = SEQ_select_active_get(scene);
   if (active_seq != NULL) {
-    BLI_strncpy(
-        seq_clipboard_active_seq_name, active_seq->name, sizeof(seq_clipboard_active_seq_name));
+    STRNCPY(seq_clipboard_active_seq_name, active_seq->name);
   }
   else {
-    memset(seq_clipboard_active_seq_name, 0, sizeof(seq_clipboard_active_seq_name));
+    seq_clipboard_active_seq_name[0] = '\0';
   }
 }
 
