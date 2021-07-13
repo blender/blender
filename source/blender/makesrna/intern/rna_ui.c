@@ -654,7 +654,7 @@ static void uilist_filter_items(uiList *ui_list,
   RNA_parameter_list_free(&list);
 }
 
-static void rna_UIList_unregister(Main *UNUSED(bmain), StructRNA *type)
+static void rna_UIList_unregister(Main *bmain, StructRNA *type)
 {
   uiListType *ult = RNA_struct_blender_type_get(type);
 
@@ -665,7 +665,7 @@ static void rna_UIList_unregister(Main *UNUSED(bmain), StructRNA *type)
   RNA_struct_free_extension(type, &ult->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  WM_uilisttype_freelink(ult);
+  WM_uilisttype_remove_ptr(bmain, ult);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
