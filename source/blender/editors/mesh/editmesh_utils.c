@@ -305,17 +305,13 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 
   if (me->edit_mesh) {
     /* this happens when switching shape keys */
-    EDBM_mesh_free(me->edit_mesh);
+    EDBM_mesh_free_data(me->edit_mesh);
     MEM_freeN(me->edit_mesh);
   }
 
-  /* currently executing operators re-tessellates, so we can avoid doing here
-   * but at some point it may need to be added back. */
-#if 0
-  me->edit_mesh = BKE_editmesh_create(bm, true);
-#else
-  me->edit_mesh = BKE_editmesh_create(bm, false);
-#endif
+  /* Executing operators re-tessellates,
+   * so we can avoid doing here but at some point it may need to be added back. */
+  me->edit_mesh = BKE_editmesh_create(bm);
 
   me->edit_mesh->selectmode = me->edit_mesh->bm->selectmode = select_mode;
   me->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
@@ -372,8 +368,8 @@ void EDBM_mesh_clear(BMEditMesh *em)
   /* clear bmesh */
   BM_mesh_clear(em->bm);
 
-  /* free derived meshes */
-  BKE_editmesh_free_derivedmesh(em);
+  /* Free evaluated meshes & cache. */
+  BKE_editmesh_free_derived_caches(em);
 
   /* free tessellation data */
   em->tottri = 0;
@@ -389,9 +385,9 @@ void EDBM_mesh_load(Main *bmain, Object *ob)
 }
 
 /**
- * Should only be called on the active editmesh, otherwise call #BKE_editmesh_free
+ * Should only be called on the active edit-mesh, otherwise call #BKE_editmesh_free_data.
  */
-void EDBM_mesh_free(BMEditMesh *em)
+void EDBM_mesh_free_data(BMEditMesh *em)
 {
   /* These tables aren't used yet, so it's not strictly necessary
    * to 'end' them but if someone tries to start using them,
@@ -399,7 +395,7 @@ void EDBM_mesh_free(BMEditMesh *em)
   ED_mesh_mirror_spatial_table_end(NULL);
   ED_mesh_mirror_topo_table_end(NULL);
 
-  BKE_editmesh_free(em);
+  BKE_editmesh_free_data(em);
 }
 
 /** \} */
@@ -1471,8 +1467,8 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
     BM_lnorspace_invalidate(em->bm, false);
     em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
   }
-  /* don't keep stale derivedMesh data around, see: T38872. */
-  BKE_editmesh_free_derivedmesh(em);
+  /* Don't keep stale evaluated mesh data around, see: T38872. */
+  BKE_editmesh_free_derived_caches(em);
 
 #ifdef DEBUG
   {

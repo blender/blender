@@ -1990,7 +1990,7 @@ static void editbmesh_build_data(struct Depsgraph *depsgraph,
     BKE_sculpt_update_object_before_eval(obedit);
   }
 
-  BKE_editmesh_free_derivedmesh(em);
+  BKE_editmesh_free_derived_caches(em);
 
   Mesh *me_cage;
   Mesh *me_final;

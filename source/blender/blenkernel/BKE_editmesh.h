@@ -94,11 +94,11 @@ void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em,
 
 void BKE_editmesh_looptri_and_normals_calc(BMEditMesh *em);
 
-BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate);
+BMEditMesh *BKE_editmesh_create(BMesh *bm);
 BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);
 BMEditMesh *BKE_editmesh_from_object(struct Object *ob);
-void BKE_editmesh_free_derivedmesh(BMEditMesh *em);
-void BKE_editmesh_free(BMEditMesh *em);
+void BKE_editmesh_free_derived_caches(BMEditMesh *em);
+void BKE_editmesh_free_data(BMEditMesh *em);
 
 float (*BKE_editmesh_vert_coords_alloc(struct Depsgraph *depsgraph,
                                        struct BMEditMesh *em,

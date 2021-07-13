@@ -1696,7 +1696,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   }
 
   if (rb->remove_doubles) {
-    BMEditMesh *em = BKE_editmesh_create(bm, false);
+    BMEditMesh *em = BKE_editmesh_create(bm);
     BMOperator findop, weldop;
 
     /* See bmesh_opdefines.c and bmesh_operators.c for op names and argument formatting. */

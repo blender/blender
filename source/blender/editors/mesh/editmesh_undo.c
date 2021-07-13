@@ -671,7 +671,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *
 
   em->bm->shapenr = um->shapenr;
 
-  EDBM_mesh_free(em);
+  EDBM_mesh_free_data(em);
 
   bm = BM_mesh_create(&allocsize,
                       &((struct BMeshCreateParams){
@@ -685,8 +685,10 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *
                          .active_shapekey = um->shapenr,
                      }));
 
-  em_tmp = BKE_editmesh_create(bm, true);
+  em_tmp = BKE_editmesh_create(bm);
   *em = *em_tmp;
+
+  BKE_editmesh_looptri_calc(em);
 
   em->selectmode = um->selectmode;
   bm->selectmode = um->selectmode;

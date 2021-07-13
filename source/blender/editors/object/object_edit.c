@@ -557,7 +557,7 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     }
 
     if (free_data) {
-      EDBM_mesh_free(me->edit_mesh);
+      EDBM_mesh_free_data(me->edit_mesh);
       MEM_freeN(me->edit_mesh);
       me->edit_mesh = NULL;
     }
