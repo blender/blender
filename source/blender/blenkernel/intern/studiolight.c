@@ -1352,7 +1352,7 @@ static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
   ITER_PIXELS_END;
 }
 
-void BKE_studiolight_default(SolidLight lights[4], float light_ambient[4])
+void BKE_studiolight_default(SolidLight lights[4], float light_ambient[3])
 {
   copy_v3_fl3(light_ambient, 0.0, 0.0, 0.0);
 
