@@ -1267,6 +1267,7 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
               SCULPT_TOOL_FAIRING,
               SCULPT_TOOL_SCENE_PROJECT,
               SCULPT_TOOL_POSE,
+              SCULPT_TOOL_ARRAY,
               SCULPT_TOOL_TWIST,
               SCULPT_TOOL_DISPLACEMENT_SMEAR,
               SCULPT_TOOL_BOUNDARY,
@@ -6689,6 +6690,9 @@ static void do_brush_action_task_cb(void *__restrict userdata,
       BKE_pbvh_node_mark_update(data->nodes[n]);
     }
   }
+  else if (data->brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+    /* Do nothing, array brush does a single geometry undo push. */
+  }
   else if (data->brush->sculpt_tool == SCULPT_TOOL_MASK) {
     SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_MASK);
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
@@ -8679,6 +8683,12 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
     /* Slow update with full dependency graph update and all that comes with it.
      * Needed when there are modifiers or full shading in the 3D viewport. */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+    Brush *brush = BKE_paint_brush(&sd->paint);
+    if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
+      BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
+      SCULPT_update_object_bounding_box(ob);
+    }
     ED_region_tag_redraw(region);
   }
   else {
@@ -8862,6 +8872,11 @@ static void sculpt_stroke_update_step(bContext *C,
 
    if (ss->needs_pbvh_rebuild) {
     /* The mesh was modified, rebuild the PBVH. */
+    BKE_particlesystem_reset_all(ob);
+    BKE_ptcache_object_reset(CTX_data_scene(C), ob, PTCACHE_RESET_OUTDATED);
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    BKE_scene_graph_update_tagged(CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C));
     SCULPT_pbvh_clear(ob);
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
