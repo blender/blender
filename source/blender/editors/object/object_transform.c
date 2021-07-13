@@ -1195,32 +1195,33 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       else if (ID_IS_LINKED(ob->data)) {
         tot_lib_error++;
       }
+      else if (ob->type == OB_MESH) {
+        if (obedit == NULL) {
+          Mesh *me = ob->data;
 
-      if (obedit == NULL && ob->type == OB_MESH) {
-        Mesh *me = ob->data;
+          if (centermode == ORIGIN_TO_CURSOR) {
+            /* done */
+          }
+          else if (centermode == ORIGIN_TO_CENTER_OF_MASS_SURFACE) {
+            BKE_mesh_center_of_surface(me, cent);
+          }
+          else if (centermode == ORIGIN_TO_CENTER_OF_MASS_VOLUME) {
+            BKE_mesh_center_of_volume(me, cent);
+          }
+          else if (around == V3D_AROUND_CENTER_BOUNDS) {
+            BKE_mesh_center_bounds(me, cent);
+          }
+          else { /* #V3D_AROUND_CENTER_MEDIAN. */
+            BKE_mesh_center_median(me, cent);
+          }
 
-        if (centermode == ORIGIN_TO_CURSOR) {
-          /* done */
-        }
-        else if (centermode == ORIGIN_TO_CENTER_OF_MASS_SURFACE) {
-          BKE_mesh_center_of_surface(me, cent);
-        }
-        else if (centermode == ORIGIN_TO_CENTER_OF_MASS_VOLUME) {
-          BKE_mesh_center_of_volume(me, cent);
-        }
-        else if (around == V3D_AROUND_CENTER_BOUNDS) {
-          BKE_mesh_center_bounds(me, cent);
-        }
-        else { /* #V3D_AROUND_CENTER_MEDIAN. */
-          BKE_mesh_center_median(me, cent);
-        }
+          negate_v3_v3(cent_neg, cent);
+          BKE_mesh_translate(me, cent_neg, 1);
 
-        negate_v3_v3(cent_neg, cent);
-        BKE_mesh_translate(me, cent_neg, 1);
-
-        tot_change++;
-        me->id.tag |= LIB_TAG_DOIT;
-        do_inverse_offset = true;
+          tot_change++;
+          me->id.tag |= LIB_TAG_DOIT;
+          do_inverse_offset = true;
+        }
       }
       else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
         Curve *cu = ob->data;
