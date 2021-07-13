@@ -1608,7 +1608,7 @@ void ED_sculpt_undosys_type(UndoType *ut)
   ut->step_decode = sculpt_undosys_step_decode;
   ut->step_free = sculpt_undosys_step_free;
 
-  ut->flags = 0;
+  ut->flags = UNDOTYPE_FLAG_DECODE_ACTIVE_STEP;
 
   ut->step_size = sizeof(SculptUndoStep);
 }
