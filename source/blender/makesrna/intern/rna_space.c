@@ -3217,6 +3217,45 @@ static const EnumPropertyItem dt_uv_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static struct IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[] = {
+    /* Categories */
+    {FILTER_ID_SCE, "category_scene", ICON_SCENE_DATA, "Scenes", "Show scenes"},
+    {FILTER_ID_AC, "category_animation", ICON_ANIM_DATA, "Animations", "Show animation data"},
+    {FILTER_ID_OB | FILTER_ID_GR,
+     "category_object",
+     ICON_OUTLINER_COLLECTION,
+     "Objects & Collections",
+     "Show objects and collections"},
+    {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME | FILTER_ID_HA |
+         FILTER_ID_PT | FILTER_ID_VO,
+     "category_geometry",
+     ICON_NODETREE,
+     "Geometry",
+     "Show meshes, curves, lattice, armatures and metaballs data"},
+    {FILTER_ID_LS | FILTER_ID_MA | FILTER_ID_NT | FILTER_ID_TE,
+     "category_shading",
+     ICON_MATERIAL_DATA,
+     "Shading",
+     "Show materials, nodetrees, textures and Freestyle's linestyles"},
+    {FILTER_ID_IM | FILTER_ID_MC | FILTER_ID_MSK | FILTER_ID_SO,
+     "category_image",
+     ICON_IMAGE_DATA,
+     "Images & Sounds",
+     "Show images, movie clips, sounds and masks"},
+    {FILTER_ID_CA | FILTER_ID_LA | FILTER_ID_LP | FILTER_ID_SPK | FILTER_ID_WO,
+     "category_environment",
+     ICON_WORLD_DATA,
+     "Environment",
+     "Show worlds, lights, cameras and speakers"},
+    {FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT |
+         FILTER_ID_VF | FILTER_ID_CF | FILTER_ID_WS,
+     "category_misc",
+     ICON_GREASEPENCIL,
+     "Miscellaneous",
+     "Show other data types"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static void rna_def_space_generic_show_region_toggles(StructRNA *srna, int region_type_mask)
 {
   PropertyRNA *prop;
@@ -6164,142 +6203,6 @@ static void rna_def_space_console(BlenderRNA *brna)
 /* Filter for datablock types in link/append. */
 static void rna_def_fileselect_idfilter(BlenderRNA *brna)
 {
-  struct IDFilterBoolean {
-    /* 64 bit, so we can't use bitflag enum. */
-    const uint64_t flag;
-    const char *identifier;
-    const int icon;
-    const char *name;
-    const char *description;
-  };
-
-  static const struct IDFilterBoolean booleans[] = {
-      /* Datablocks */
-      {FILTER_ID_AC, "filter_action", ICON_ANIM_DATA, "Actions", "Show Action data-blocks"},
-      {FILTER_ID_AR,
-       "filter_armature",
-       ICON_ARMATURE_DATA,
-       "Armatures",
-       "Show Armature data-blocks"},
-      {FILTER_ID_BR, "filter_brush", ICON_BRUSH_DATA, "Brushes", "Show Brushes data-blocks"},
-      {FILTER_ID_CA, "filter_camera", ICON_CAMERA_DATA, "Cameras", "Show Camera data-blocks"},
-      {FILTER_ID_CF, "filter_cachefile", ICON_FILE, "Cache Files", "Show Cache File data-blocks"},
-      {FILTER_ID_CU, "filter_curve", ICON_CURVE_DATA, "Curves", "Show Curve data-blocks"},
-      {FILTER_ID_GD,
-       "filter_grease_pencil",
-       ICON_GREASEPENCIL,
-       "Grease Pencil",
-       "Show Grease pencil data-blocks"},
-      {FILTER_ID_GR,
-       "filter_group",
-       ICON_OUTLINER_COLLECTION,
-       "Collections",
-       "Show Collection data-blocks"},
-      {FILTER_ID_HA, "filter_hair", ICON_HAIR_DATA, "Hairs", "Show/hide Hair data-blocks"},
-      {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
-      {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
-      {FILTER_ID_LP,
-       "filter_light_probe",
-       ICON_OUTLINER_DATA_LIGHTPROBE,
-       "Light Probes",
-       "Show Light Probe data-blocks"},
-      {FILTER_ID_LS,
-       "filter_linestyle",
-       ICON_LINE_DATA,
-       "Freestyle Linestyles",
-       "Show Freestyle's Line Style data-blocks"},
-      {FILTER_ID_LT, "filter_lattice", ICON_LATTICE_DATA, "Lattices", "Show Lattice data-blocks"},
-      {FILTER_ID_MA,
-       "filter_material",
-       ICON_MATERIAL_DATA,
-       "Materials",
-       "Show Material data-blocks"},
-      {FILTER_ID_MB, "filter_metaball", ICON_META_DATA, "Metaballs", "Show Metaball data-blocks"},
-      {FILTER_ID_MC,
-       "filter_movie_clip",
-       ICON_TRACKER_DATA,
-       "Movie Clips",
-       "Show Movie Clip data-blocks"},
-      {FILTER_ID_ME, "filter_mesh", ICON_MESH_DATA, "Meshes", "Show Mesh data-blocks"},
-      {FILTER_ID_MSK, "filter_mask", ICON_MOD_MASK, "Masks", "Show Mask data-blocks"},
-      {FILTER_ID_NT,
-       "filter_node_tree",
-       ICON_NODETREE,
-       "Node Trees",
-       "Show Node Tree data-blocks"},
-      {FILTER_ID_OB, "filter_object", ICON_OBJECT_DATA, "Objects", "Show Object data-blocks"},
-      {FILTER_ID_PA,
-       "filter_particle_settings",
-       ICON_PARTICLE_DATA,
-       "Particles Settings",
-       "Show Particle Settings data-blocks"},
-      {FILTER_ID_PAL, "filter_palette", ICON_COLOR, "Palettes", "Show Palette data-blocks"},
-      {FILTER_ID_PC,
-       "filter_paint_curve",
-       ICON_CURVE_BEZCURVE,
-       "Paint Curves",
-       "Show Paint Curve data-blocks"},
-      {FILTER_ID_PT,
-       "filter_pointcloud",
-       ICON_POINTCLOUD_DATA,
-       "Point Clouds",
-       "Show/hide Point Cloud data-blocks"},
-      {FILTER_ID_SCE, "filter_scene", ICON_SCENE_DATA, "Scenes", "Show Scene data-blocks"},
-      {FILTER_ID_SIM,
-       "filter_simulation",
-       ICON_PHYSICS,
-       "Simulations",
-       "Show Simulation data-blocks"}, /* TODO: Use correct icon. */
-      {FILTER_ID_SPK, "filter_speaker", ICON_SPEAKER, "Speakers", "Show Speaker data-blocks"},
-      {FILTER_ID_SO, "filter_sound", ICON_SOUND, "Sounds", "Show Sound data-blocks"},
-      {FILTER_ID_TE, "filter_texture", ICON_TEXTURE_DATA, "Textures", "Show Texture data-blocks"},
-      {FILTER_ID_TXT, "filter_text", ICON_TEXT, "Texts", "Show Text data-blocks"},
-      {FILTER_ID_VF, "filter_font", ICON_FONT_DATA, "Fonts", "Show Font data-blocks"},
-      {FILTER_ID_VO, "filter_volume", ICON_VOLUME_DATA, "Volumes", "Show/hide Volume data-blocks"},
-      {FILTER_ID_WO, "filter_world", ICON_WORLD_DATA, "Worlds", "Show World data-blocks"},
-      {FILTER_ID_WS,
-       "filter_work_space",
-       ICON_WORKSPACE,
-       "Workspaces",
-       "Show workspace data-blocks"},
-
-      /* Categories */
-      {FILTER_ID_SCE, "category_scene", ICON_SCENE_DATA, "Scenes", "Show scenes"},
-      {FILTER_ID_AC, "category_animation", ICON_ANIM_DATA, "Animations", "Show animation data"},
-      {FILTER_ID_OB | FILTER_ID_GR,
-       "category_object",
-       ICON_OUTLINER_COLLECTION,
-       "Objects & Collections",
-       "Show objects and collections"},
-      {FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME | FILTER_ID_HA |
-           FILTER_ID_PT | FILTER_ID_VO,
-       "category_geometry",
-       ICON_NODETREE,
-       "Geometry",
-       "Show meshes, curves, lattice, armatures and metaballs data"},
-      {FILTER_ID_LS | FILTER_ID_MA | FILTER_ID_NT | FILTER_ID_TE,
-       "category_shading",
-       ICON_MATERIAL_DATA,
-       "Shading",
-       "Show materials, nodetrees, textures and Freestyle's linestyles"},
-      {FILTER_ID_IM | FILTER_ID_MC | FILTER_ID_MSK | FILTER_ID_SO,
-       "category_image",
-       ICON_IMAGE_DATA,
-       "Images & Sounds",
-       "Show images, movie clips, sounds and masks"},
-      {FILTER_ID_CA | FILTER_ID_LA | FILTER_ID_LP | FILTER_ID_SPK | FILTER_ID_WO,
-       "category_environment",
-       ICON_WORLD_DATA,
-       "Environment",
-       "Show worlds, lights, cameras and speakers"},
-      {FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT |
-           FILTER_ID_VF | FILTER_ID_CF | FILTER_ID_WS,
-       "category_misc",
-       ICON_GREASEPENCIL,
-       "Miscellaneous",
-       "Show other data types"},
-
-      {0, NULL, 0, NULL, NULL}};
 
   StructRNA *srna = RNA_def_struct(brna, "FileSelectIDFilter", NULL);
   RNA_def_struct_sdna(srna, "FileSelectParams");
@@ -6307,12 +6210,23 @@ static void rna_def_fileselect_idfilter(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "File Select ID Filter", "Which ID types to show/hide, when browsing a library");
 
-  for (int i = 0; booleans[i].identifier; i++) {
-    PropertyRNA *prop = RNA_def_property(srna, booleans[i].identifier, PROP_BOOLEAN, PROP_NONE);
-    RNA_def_property_boolean_sdna(prop, NULL, "filter_id", booleans[i].flag);
-    RNA_def_property_ui_text(prop, booleans[i].name, booleans[i].description);
-    RNA_def_property_ui_icon(prop, booleans[i].icon, 0);
-    RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+  const struct IDFilterEnumPropertyItem *individual_ids_and_categories[] = {
+      rna_enum_id_type_filter_items,
+      rna_enum_space_file_id_filter_categories,
+      NULL,
+  };
+  for (uint i = 0; individual_ids_and_categories[i]; i++) {
+    for (int j = 0; individual_ids_and_categories[i][j].identifier; j++) {
+      PropertyRNA *prop = RNA_def_property(
+          srna, individual_ids_and_categories[i][j].identifier, PROP_BOOLEAN, PROP_NONE);
+      RNA_def_property_boolean_sdna(
+          prop, NULL, "filter_id", individual_ids_and_categories[i][j].flag);
+      RNA_def_property_ui_text(prop,
+                               individual_ids_and_categories[i][j].name,
+                               individual_ids_and_categories[i][j].description);
+      RNA_def_property_ui_icon(prop, individual_ids_and_categories[i][j].icon, 0);
+      RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+    }
   }
 }
 
@@ -6590,7 +6504,7 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  /* XXX copied from rna_def_fileselect_idfilter. */
+  /* XXX copied from rna_enum_id_type_filter_items. */
   static const EnumPropertyItem asset_category_items[] = {
       {FILTER_ID_SCE, "SCENES", ICON_SCENE_DATA, "Scenes", "Show scenes"},
       {FILTER_ID_AC, "ANIMATIONS", ICON_ANIM_DATA, "Animations", "Show animation data"},

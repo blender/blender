@@ -35,6 +35,7 @@ extern "C" {
 /* Struct Declarations */
 
 struct ARegion;
+struct AssetFilterSettings;
 struct AutoComplete;
 struct EnumPropertyItem;
 struct FileSelectParams;
@@ -2287,6 +2288,20 @@ int uiTemplateRecentFiles(struct uiLayout *layout, int rows);
 void uiTemplateFileSelectPath(uiLayout *layout,
                               struct bContext *C,
                               struct FileSelectParams *params);
+void uiTemplateAssetView(struct uiLayout *layout,
+                         struct bContext *C,
+                         const char *list_id,
+                         struct PointerRNA *asset_library_dataptr,
+                         const char *asset_library_propname,
+                         struct PointerRNA *assets_dataptr,
+                         const char *assets_propname,
+                         struct PointerRNA *active_dataptr,
+                         const char *active_propname,
+                         const struct AssetFilterSettings *filter_settings,
+                         const char *activate_opname,
+                         struct PointerRNA *r_activate_op_properties,
+                         const char *drag_opname,
+                         struct PointerRNA *r_drag_op_properties);
 
 struct PointerRNA *UI_list_custom_activate_operator_set(struct uiList *ui_list,
                                                         const char *opname,

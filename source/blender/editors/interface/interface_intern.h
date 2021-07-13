@@ -1241,6 +1241,9 @@ void UI_OT_eyedropper_driver(struct wmOperatorType *ot);
 /* interface_eyedropper_gpencil_color.c */
 void UI_OT_eyedropper_gpencil_color(struct wmOperatorType *ot);
 
+/* interface_template_asset_view.cc */
+struct uiListType *UI_UL_asset_view(void);
+
 /**
  * For use with #ui_rna_collection_search_update_fn.
  */

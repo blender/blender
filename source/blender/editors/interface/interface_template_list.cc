@@ -20,8 +20,13 @@
  * TODO: The UI list template implementation should be moved here.
  */
 
+#include "WM_api.h"
+
 #include "UI_interface.h"
+
+#include "interface_intern.h"
 
 void ED_uilisttypes_ui(void)
 {
+  WM_uilisttype_add(UI_UL_asset_view());
 }
