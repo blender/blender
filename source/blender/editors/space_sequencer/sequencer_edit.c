@@ -2414,6 +2414,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
                                     (LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_FREE_NO_MAIN));
 
   seqbase_clipboard_frame = scene->r.cfra;
+  SEQ_clipboard_active_seq_name_store(scene);
 
   /* Remove anything that references the current scene. */
   LISTBASE_FOREACH (Sequence *, seq, &seqbase_clipboard) {
@@ -2504,6 +2505,10 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
   BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
   for (iseq = iseq_first; iseq; iseq = iseq->next) {
+    if (SEQ_clipboard_pasted_seq_was_active(iseq)) {
+      SEQ_select_active_set(scene, iseq);
+    }
+
     /* Make sure, that pasted strips have unique names. */
     SEQ_ensure_unique_name(iseq, scene);
     /* Translate after name has been changed, otherwise this will affect animdata of original
