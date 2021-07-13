@@ -29,6 +29,8 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "ED_screen.h"
+
 #include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -38,6 +40,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_report.h"
 
@@ -48,6 +51,7 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -771,6 +775,98 @@ bool UI_but_online_manual_id_from_active(const struct bContext *C, char *r_str, 
 
   *r_str = '\0';
   return false;
+}
+
+/* -------------------------------------------------------------------- */
+
+static rctf ui_but_rect_to_view(const uiBut *but, const ARegion *region, const View2D *v2d)
+{
+  rctf region_rect;
+  ui_block_to_region_rctf(region, but->block, &region_rect, &but->rect);
+
+  rctf view_rect;
+  UI_view2d_region_to_view_rctf(v2d, &region_rect, &view_rect);
+
+  return view_rect;
+}
+
+/**
+ * To get a margin (typically wanted), add the margin to \a rect directly.
+ *
+ * Based on #file_ensure_inside_viewbounds(), could probably share code.
+ *
+ * \return true if anything changed.
+ */
+static bool ui_view2d_cur_ensure_rect_in_view(View2D *v2d, const rctf *rect)
+{
+  const float rect_width = BLI_rctf_size_x(rect);
+  const float rect_height = BLI_rctf_size_y(rect);
+
+  rctf *cur = &v2d->cur;
+  const float cur_width = BLI_rctf_size_x(cur);
+  const float cur_height = BLI_rctf_size_y(cur);
+
+  bool changed = false;
+
+  /* Snap to bottom edge. Also use if rect is higher than view bounds (could be a parameter). */
+  if ((cur->ymin > rect->ymin) || (rect_height > cur_height)) {
+    cur->ymin = rect->ymin;
+    cur->ymax = cur->ymin + cur_height;
+    changed = true;
+  }
+  /* Snap to upper edge. */
+  else if (cur->ymax < rect->ymax) {
+    cur->ymax = rect->ymax;
+    cur->ymin = cur->ymax - cur_height;
+    changed = true;
+  }
+  /* Snap to left edge. Also use if rect is wider than view bounds. */
+  else if ((cur->xmin > rect->xmin) || (rect_width > cur_width)) {
+    cur->xmin = rect->xmin;
+    cur->xmax = cur->xmin + cur_width;
+    changed = true;
+  }
+  /* Snap to right edge. */
+  else if (cur->xmax < rect->xmax) {
+    cur->xmax = rect->xmax;
+    cur->xmin = cur->xmax - cur_width;
+    changed = true;
+  }
+  else {
+    BLI_assert(BLI_rctf_inside_rctf(cur, rect));
+  }
+
+  return changed;
+}
+
+/**
+ * Adjust the view so the rectangle of \a but is in view, with some extra margin.
+ *
+ * It's important that this is only executed after buttons received their final #uiBut.rect. E.g.
+ * #UI_panels_end() modifies them, so if that is executed, this function must not be called before
+ * it.
+ *
+ * \param region: The region the button is placed in. Make sure this is actually the one the button
+ *                is placed in, not just the context region.
+ */
+void UI_but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
+{
+  View2D *v2d = &region->v2d;
+  /* Unitialized view or region that doesn't use View2D. */
+  if ((v2d->flag & V2D_IS_INIT) == 0) {
+    return;
+  }
+
+  rctf rect = ui_but_rect_to_view(but, region, v2d);
+
+  const int margin = UI_UNIT_X * 0.5f;
+  BLI_rctf_pad(&rect, margin, margin);
+
+  const bool changed = ui_view2d_cur_ensure_rect_in_view(v2d, &rect);
+  if (changed) {
+    UI_view2d_curRect_changed(C, v2d);
+    ED_region_tag_redraw_no_rebuild(region);
+  }
 }
 
 /* -------------------------------------------------------------------- */

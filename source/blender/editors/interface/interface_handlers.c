@@ -3519,6 +3519,11 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
   ui_but_update(but);
 
+  /* Popup blocks don't support moving after creation, so don't change the view for them. */
+  if (!data->searchbox) {
+    UI_but_ensure_in_view(C, data->region, but);
+  }
+
   WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
 
 #ifdef WITH_INPUT_IME
@@ -8881,6 +8886,26 @@ void UI_context_update_anim_flag(const bContext *C)
       return;
     }
   }
+}
+
+/**
+ * In some cases we may want to update the view (#View2D) in-between layout definition and drawing.
+ * E.g. to make sure a button is visible while editing.
+ */
+void ui_but_update_view_for_active(const bContext *C, const uiBlock *block)
+{
+  uiBut *active_but = ui_block_active_but_get(block);
+  if (!active_but || !active_but->active || !active_but->changed || active_but->block != block) {
+    return;
+  }
+  /* If there is a search popup attached to the button, don't change the view. The popups don't
+   * support updating the position to the button position nicely. */
+  uiHandleButtonData *data = active_but->active;
+  if (data->searchbox) {
+    return;
+  }
+
+  UI_but_ensure_in_view(C, active_but->active->region, active_but);
 }
 
 /** \} */

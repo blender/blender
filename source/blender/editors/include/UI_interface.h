@@ -707,6 +707,7 @@ void UI_block_end_ex(const struct bContext *C, uiBlock *block, const int xy[2], 
 void UI_block_end(const struct bContext *C, uiBlock *block);
 void UI_block_draw(const struct bContext *C, struct uiBlock *block);
 void UI_blocklist_update_window_matrix(const struct bContext *C, const struct ListBase *lb);
+void UI_blocklist_update_view_for_buttons(const struct bContext *C, const struct ListBase *lb);
 void UI_blocklist_draw(const struct bContext *C, const struct ListBase *lb);
 void UI_block_update_from_old(const struct bContext *C, struct uiBlock *block);
 
@@ -2653,6 +2654,8 @@ void UI_template_fix_linking(void);
 bool UI_editsource_enable_check(void);
 void UI_editsource_active_but_test(uiBut *but);
 void UI_editsource_but_replace(const uiBut *old_but, uiBut *new_but);
+
+void UI_but_ensure_in_view(const struct bContext *C, struct ARegion *region, const uiBut *but);
 
 /* UI_butstore_ helpers */
 typedef struct uiButStore uiButStore;

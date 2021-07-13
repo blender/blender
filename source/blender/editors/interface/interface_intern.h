@@ -597,11 +597,19 @@ typedef struct uiSafetyRct {
 
 void ui_fontscale(short *points, float aspect);
 
+extern void ui_block_to_region_fl(const struct ARegion *region,
+                                  uiBlock *block,
+                                  float *r_x,
+                                  float *r_y);
 extern void ui_block_to_window_fl(const struct ARegion *region,
                                   uiBlock *block,
                                   float *x,
                                   float *y);
 extern void ui_block_to_window(const struct ARegion *region, uiBlock *block, int *x, int *y);
+extern void ui_block_to_region_rctf(const struct ARegion *region,
+                                    uiBlock *block,
+                                    rctf *rct_dst,
+                                    const rctf *rct_src);
 extern void ui_block_to_window_rctf(const struct ARegion *region,
                                     uiBlock *block,
                                     rctf *rct_dst,
@@ -620,6 +628,9 @@ extern void ui_window_to_region(const struct ARegion *region, int *x, int *y);
 extern void ui_window_to_region_rcti(const struct ARegion *region,
                                      rcti *rect_dst,
                                      const rcti *rct_src);
+extern void ui_window_to_region_rctf(const struct ARegion *region,
+                                     rctf *rect_dst,
+                                     const rctf *rct_src);
 extern void ui_region_to_window(const struct ARegion *region, int *x, int *y);
 extern void ui_region_winrct_get_no_margin(const struct ARegion *region, struct rcti *r_rect);
 
@@ -944,6 +955,7 @@ extern void ui_but_execute_end(struct bContext *C,
                                uiBut *but,
                                void *active_back);
 extern void ui_but_active_free(const struct bContext *C, uiBut *but);
+extern void ui_but_update_view_for_active(const struct bContext *C, const uiBlock *block);
 extern int ui_but_menu_direction(uiBut *but);
 extern void ui_but_text_password_hide(char password_str[128], uiBut *but, const bool restore);
 extern uiBut *ui_but_find_select_in_enum(uiBut *but, int direction);

@@ -572,6 +572,17 @@ size_t ui_but_tip_len_only_first_line(const uiBut *but)
 /** \name Block (#uiBlock) State
  * \{ */
 
+uiBut *ui_block_active_but_get(const uiBlock *block)
+{
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+    if (but->active) {
+      return but;
+    }
+  }
+
+  return NULL;
+}
+
 bool ui_block_is_menu(const uiBlock *block)
 {
   return (((block->flag & UI_BLOCK_LOOP) != 0) &&
@@ -675,10 +686,9 @@ uiBlock *ui_block_find_mouse_over(const ARegion *region, const wmEvent *event, b
 uiBut *ui_region_find_active_but(ARegion *region)
 {
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-      if (but->active) {
-        return but;
-      }
+    uiBut *but = ui_block_active_but_get(block);
+    if (but) {
+      return but;
     }
   }
 
