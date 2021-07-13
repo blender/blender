@@ -105,7 +105,10 @@ int UI_iconfile_get_index(const char *filename);
 
 struct PreviewImage *UI_icon_to_preview(int icon_id);
 
-int UI_icon_from_rnaptr(struct bContext *C, struct PointerRNA *ptr, int rnaicon, const bool big);
+int UI_icon_from_rnaptr(const struct bContext *C,
+                        struct PointerRNA *ptr,
+                        int rnaicon,
+                        const bool big);
 int UI_icon_from_idcode(const int idcode);
 int UI_icon_from_library(const struct ID *id);
 int UI_icon_from_object_mode(const int mode);

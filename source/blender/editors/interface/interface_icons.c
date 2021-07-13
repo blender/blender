@@ -2201,7 +2201,7 @@ int UI_icon_from_library(const ID *id)
   return ICON_NONE;
 }
 
-int UI_icon_from_rnaptr(bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
+int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
 {
   ID *id = NULL;
 
