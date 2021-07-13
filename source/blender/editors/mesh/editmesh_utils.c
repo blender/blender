@@ -322,7 +322,8 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 
 /**
  * \warning This can invalidate the #Mesh runtime cache of other objects (for linked duplicates).
- * Most callers should run #DEG_id_tag_update on \a ob->data, see: T46738, T46913
+ * Most callers should run #DEG_id_tag_update on `ob->data`, see: T46738, T46913.
+ * This ensures #BKE_object_free_derived_caches runs on all objects that use this mesh.
  */
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
@@ -342,25 +343,6 @@ void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
                        .calc_object_remap = true,
                        .update_shapekey_indices = !free_data,
                    }));
-
-  /* Free derived mesh. usually this would happen through depsgraph but there
-   * are exceptions like file save that will not cause this, and we want to
-   * avoid ending up with an invalid derived mesh then.
-   *
-   * Do it for all objects which shares the same mesh datablock, since their
-   * derived meshes might also be referencing data which was just freed,
-   *
-   * Annoying enough, but currently seems most efficient way to avoid access
-   * of freed data on scene update, especially in cases when there are dependency
-   * cycles.
-   */
-#if 0
-  for (Object *other_object = bmain->objects.first; other_object != NULL; other_object = other_object->id.next) {
-    if (other_object->data == ob->data) {
-      BKE_object_free_derived_caches(other_object);
-    }
-  }
-#endif
 }
 
 void EDBM_mesh_clear(BMEditMesh *em)
