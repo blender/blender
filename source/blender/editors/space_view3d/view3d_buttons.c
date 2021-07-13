@@ -1310,7 +1310,9 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 
     vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
         ob, subset_type, &vgroup_tot, &subset_count);
-    for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
+    const ListBase *defbase = BKE_object_defgroup_list(ob);
+
+    for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
       bool locked = (dg->flag & DG_LOCK_WEIGHT) != 0;
       if (vgroup_validmap[i]) {
         MDeformWeight *dw = BKE_defvert_find_index(dv, i);
@@ -1336,7 +1338,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           but_ptr = UI_but_operator_ptr_get(but);
           RNA_int_set(but_ptr, "weight_group", i);
           UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
-          if (ob->actdef != i + 1) {
+          if (BKE_object_defgroup_active_index_get(ob) != i + 1) {
             UI_but_flag_enable(but, UI_BUT_INACTIVE);
           }
           xco += x;

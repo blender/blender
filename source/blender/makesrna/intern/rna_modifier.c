@@ -602,6 +602,7 @@ const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
 
 #  include "BKE_cachefile.h"
 #  include "BKE_context.h"
+#  include "BKE_deform.h"
 #  include "BKE_mesh_runtime.h"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
@@ -1250,12 +1251,13 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 #  endif
 
     if (ob_src) {
-      bDeformGroup *dg;
+      const bDeformGroup *dg;
       int i;
 
       RNA_enum_item_add_separator(&item, &totitem);
 
-      for (i = 0, dg = ob_src->defbase.first; dg; i++, dg = dg->next) {
+      const ListBase *defbase = BKE_object_defgroup_list(ob_src);
+      for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
         tmp_item.value = i;
         tmp_item.identifier = tmp_item.name = dg->name;
         RNA_enum_item_add(&item, &totitem, &tmp_item);
@@ -1349,12 +1351,13 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
       if (ob_dst) {
-        bDeformGroup *dg;
+        const bDeformGroup *dg;
         int i;
 
         RNA_enum_item_add_separator(&item, &totitem);
 
-        for (i = 0, dg = ob_dst->defbase.first; dg; i++, dg = dg->next) {
+        const ListBase *defbase = BKE_object_defgroup_list(ob_dst);
+        for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
           tmp_item.value = i;
           tmp_item.identifier = tmp_item.name = dg->name;
           RNA_enum_item_add(&item, &totitem, &tmp_item);

@@ -234,7 +234,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
       BKE_pose_rebuild(bmain, ob_dst, ob_dst->data, do_pose_id_user);
     }
   }
-  BKE_defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
+
   BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
   BKE_constraints_copy_ex(&ob_dst->constraints, &ob_src->constraints, flag_subdata, true);
 
@@ -285,7 +285,6 @@ static void object_free_data(ID *id)
   MEM_SAFE_FREE(ob->iuser);
   MEM_SAFE_FREE(ob->runtime.bb);
 
-  BLI_freelistN(&ob->defbase);
   BLI_freelistN(&ob->fmaps);
   if (ob->pose) {
     BKE_pose_free_ex(ob->pose, false);
@@ -510,13 +509,6 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static void write_defgroups(BlendWriter *writer, ListBase *defbase)
-{
-  LISTBASE_FOREACH (bDeformGroup *, defgroup, defbase) {
-    BLO_write_struct(writer, bDeformGroup, defgroup);
-  }
-}
-
 static void write_fmaps(BlendWriter *writer, ListBase *fbase)
 {
   LISTBASE_FOREACH (bFaceMap *, fmap, fbase) {
@@ -561,7 +553,6 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     }
 
     BKE_pose_blend_write(writer, ob->pose, arm);
-    write_defgroups(writer, &ob->defbase);
     write_fmaps(writer, &ob->fmaps);
     BKE_constraint_blend_write(writer, &ob->constraints);
     animviz_motionpath_blend_write(writer, ob->mpath);
@@ -644,7 +635,9 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     animviz_motionpath_blend_read_data(reader, ob->mpath);
   }
 
+  /* Only for versioning, vertex group names are now stored on object data. */
   BLO_read_list(reader, &ob->defbase);
+
   BLO_read_list(reader, &ob->fmaps);
   /* XXX deprecated - old animation system <<< */
   direct_link_nlastrips(reader, &ob->nlastrips);
@@ -2900,9 +2893,6 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
   ob->type = target->type;
   ob->data = target->data;
   id_us_plus((ID *)ob->data); /* ensures lib data becomes LIB_TAG_EXTERN */
-
-  /* copy vertex groups */
-  BKE_defgroup_copy_list(&ob->defbase, &target->defbase);
 
   /* copy material and index information */
   ob->actcol = ob->totcol = 0;

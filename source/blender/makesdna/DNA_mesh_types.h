@@ -166,6 +166,8 @@ typedef struct Mesh {
   struct MEdge *medge;
   /** Deform-group vertices. */
   struct MDeformVert *dvert;
+  /** List of bDeformGroup names and flag only. */
+  ListBase vertex_group_names;
 
   /* array of colors for the tessellated faces, must be number of tessellated
    * faces * 4 in length */
@@ -189,7 +191,7 @@ typedef struct Mesh {
   /* END BMESH ONLY */
 
   int attributes_active_index;
-  int _pad3;
+  int vertex_group_active_index;
 
   /* the last selected vertex/edge/face are used for the active face however
    * this means the active face must always be selected, this is to keep track
@@ -279,9 +281,9 @@ enum {
 /* We can't have both flags enabled at once,
  * flags defined in DNA_scene_types.h */
 #define ME_EDIT_PAINT_SEL_MODE(_me) \
-  (((_me)->editflag & ME_EDIT_PAINT_FACE_SEL) ? \
-       SCE_SELECT_FACE : \
-       ((_me)->editflag & ME_EDIT_PAINT_VERT_SEL) ? SCE_SELECT_VERTEX : 0)
+  (((_me)->editflag & ME_EDIT_PAINT_FACE_SEL) ? SCE_SELECT_FACE : \
+   ((_me)->editflag & ME_EDIT_PAINT_VERT_SEL) ? SCE_SELECT_VERTEX : \
+                                                0)
 
 /* me->flag */
 enum {

@@ -1573,11 +1573,12 @@ struct WeldVertexCluster {
   uint merged_verts;
 };
 
-static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
+                                 const ModifierEvalContext *UNUSED(ctx),
+                                 Mesh *mesh)
 {
   Mesh *result = mesh;
 
-  Object *ob = ctx->object;
   BLI_bitmap *v_mask = NULL;
   int v_mask_act = 0;
 
@@ -1590,7 +1591,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   totvert = mesh->totvert;
 
   /* Vertex Group. */
-  const int defgrp_index = BKE_object_defgroup_name_index(ob, wmd->defgrp_name);
+  const int defgrp_index = BKE_id_defgroup_name_index(&mesh->id, wmd->defgrp_name);
   if (defgrp_index != -1) {
     MDeformVert *dvert, *dv;
     dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);

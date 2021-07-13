@@ -468,7 +468,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* Check if we can just return the original mesh.
    * Must have verts and therefore verts assigned to vgroups to do anything useful!
    */
-  if ((numVerts == 0) || BLI_listbase_is_empty(&ctx->object->defbase)) {
+  if ((numVerts == 0) || BLI_listbase_is_empty(&mesh->vertex_group_names)) {
     return mesh;
   }
 
@@ -479,11 +479,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   /* Get vgroup idx from its name. */
-  defgrp_index = BKE_object_defgroup_name_index(ob, wmd->defgrp_name);
+  defgrp_index = BKE_id_defgroup_name_index(&mesh->id, wmd->defgrp_name);
   if (defgrp_index == -1) {
     return mesh;
   }
-
   const bool has_mdef = CustomData_has_layer(&mesh->vdata, CD_MDEFORMVERT);
   /* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
   /* As this modifier never add vertices to vgroup, just return. */

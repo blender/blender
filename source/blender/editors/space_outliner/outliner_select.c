@@ -42,6 +42,7 @@
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
+#include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_layer.h"
@@ -450,7 +451,7 @@ static void tree_element_defgroup_activate(bContext *C, TreeElement *te, TreeSto
   /* id in tselem is object */
   Object *ob = (Object *)tselem->id;
   BLI_assert(te->index + 1 >= 0);
-  ob->actdef = te->index + 1;
+  BKE_object_defgroup_active_index_set(ob, te->index + 1);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
@@ -830,7 +831,7 @@ static eOLDrawState tree_element_defgroup_state_get(const ViewLayer *view_layer,
 {
   const Object *ob = (const Object *)tselem->id;
   if (ob == OBACT(view_layer)) {
-    if (ob->actdef == te->index + 1) {
+    if (BKE_object_defgroup_active_index_get(ob) == te->index + 1) {
       return OL_DRAWSEL_NORMAL;
     }
   }

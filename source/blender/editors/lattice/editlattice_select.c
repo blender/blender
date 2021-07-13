@@ -514,7 +514,7 @@ static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
     BPoint *bp;
     int a, tot;
 
-    if (BLI_listbase_is_empty(&obedit->defbase) || lt->dvert == NULL) {
+    if (BLI_listbase_is_empty(&lt->vertex_group_names) || lt->dvert == NULL) {
       continue;
     }
 

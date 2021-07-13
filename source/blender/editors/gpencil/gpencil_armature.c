@@ -384,7 +384,7 @@ static void gpencil_add_verts_to_dgroups(
 
           /* loop groups and assign weight */
           for (j = 0; j < numbones; j++) {
-            int def_nr = BLI_findindex(&ob->defbase, dgrouplist[j]);
+            int def_nr = BLI_findindex(&gpd->vertex_group_names, dgrouplist[j]);
             if (def_nr < 0) {
               continue;
             }
@@ -454,7 +454,7 @@ static void gpencil_object_vgroup_calc_from_armature(const bContext *C,
   bArmature *arm = ob_arm->data;
 
   /* always create groups */
-  const int defbase_tot = BLI_listbase_count(&ob->defbase);
+  const int defbase_tot = BKE_object_defgroup_count(ob);
   int defbase_add;
   /* Traverse the bone list, trying to create empty vertex
    * groups corresponding to the bone.

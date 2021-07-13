@@ -5740,7 +5740,7 @@ static int edbm_decimate_exec(bContext *C, wmOperator *op)
     float *vweights = MEM_mallocN(sizeof(*vweights) * bm->totvert, __func__);
     {
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
-      const int defbase_act = obedit->actdef - 1;
+      const int defbase_act = BKE_object_defgroup_active_index_get(obedit) - 1;
 
       if (use_vertex_group && (cd_dvert_offset == -1)) {
         BKE_report(op->reports, RPT_WARNING, "No active vertex group");

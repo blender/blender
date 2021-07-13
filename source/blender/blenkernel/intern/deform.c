@@ -29,6 +29,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_gpencil_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -64,7 +66,9 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const char *name)
 
   BLI_strncpy(defgroup->name, name, sizeof(defgroup->name));
 
-  BLI_addtail(&ob->defbase, defgroup);
+  ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
+
+  BLI_addtail(defbase, defgroup);
   BKE_object_defgroup_unique_name(defgroup, ob);
 
   BKE_object_batch_cache_dirty_tag(ob);
@@ -484,18 +488,120 @@ void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int 
   }
 }
 
+bool BKE_object_supports_vertex_groups(const Object *ob)
+{
+  const ID *id = (const ID *)ob->data;
+  if (id == NULL) {
+    return false;
+  }
+
+  return ELEM(GS(id->name), ID_ME, ID_LT, ID_GD);
+}
+
+const ListBase *BKE_id_defgroup_list_get(const ID *id)
+{
+  switch (GS(id->name)) {
+    case ID_ME: {
+      const Mesh *me = (const Mesh *)id;
+      return &me->vertex_group_names;
+    }
+    case ID_LT: {
+      const Lattice *lt = (const Lattice *)id;
+      return &lt->vertex_group_names;
+    }
+    case ID_GD: {
+      const bGPdata *gpd = (const bGPdata *)id;
+      return &gpd->vertex_group_names;
+    }
+    default: {
+      BLI_assert_unreachable();
+    }
+  }
+  return NULL;
+}
+
+static const int *object_defgroup_active_index_get_p(const Object *ob)
+{
+  BLI_assert(BKE_object_supports_vertex_groups(ob));
+  switch (ob->type) {
+    case OB_MESH: {
+      const Mesh *mesh = (const Mesh *)ob->data;
+      return &mesh->vertex_group_active_index;
+    }
+    case OB_LATTICE: {
+      const Lattice *lattice = (const Lattice *)ob->data;
+      return &lattice->vertex_group_active_index;
+    }
+    case OB_GPENCIL: {
+      const bGPdata *gpd = (const bGPdata *)ob->data;
+      return &gpd->vertex_group_active_index;
+    }
+  }
+  return NULL;
+}
+
+ListBase *BKE_id_defgroup_list_get_mutable(ID *id)
+{
+  /* Cast away const just for the accessor. */
+  return (ListBase *)BKE_id_defgroup_list_get(id);
+}
+
 bDeformGroup *BKE_object_defgroup_find_name(const Object *ob, const char *name)
 {
-  return (name && name[0] != '\0') ?
-             BLI_findstring(&ob->defbase, name, offsetof(bDeformGroup, name)) :
-             NULL;
+  if (name == NULL || name[0] == '\0') {
+    return NULL;
+  }
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  return BLI_findstring(defbase, name, offsetof(bDeformGroup, name));
+}
+
+int BKE_id_defgroup_name_index(const ID *id, const char *name)
+{
+  if (name == NULL || name[0] == '\0') {
+    return -1;
+  }
+  const ListBase *defbase = BKE_id_defgroup_list_get(id);
+  return BLI_findstringindex(defbase, name, offsetof(bDeformGroup, name));
+}
+
+const ListBase *BKE_object_defgroup_list(const Object *ob)
+{
+  BLI_assert(BKE_object_supports_vertex_groups(ob));
+  return BKE_id_defgroup_list_get((const ID *)ob->data);
 }
 
 int BKE_object_defgroup_name_index(const Object *ob, const char *name)
 {
-  return (name && name[0] != '\0') ?
-             BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name)) :
-             -1;
+  return BKE_id_defgroup_name_index((ID *)ob->data, name);
+}
+
+ListBase *BKE_object_defgroup_list_mutable(Object *ob)
+{
+  BLI_assert(BKE_object_supports_vertex_groups(ob));
+  return BKE_id_defgroup_list_get_mutable((ID *)ob->data);
+}
+
+int BKE_object_defgroup_count(const Object *ob)
+{
+  return BLI_listbase_count(BKE_object_defgroup_list(ob));
+}
+
+/**
+ * \note For historical reasons, the index starts at 1 rather than 0.
+ */
+int BKE_object_defgroup_active_index_get(const Object *ob)
+{
+  return *object_defgroup_active_index_get_p(ob);
+}
+
+/**
+ * \note For historical reasons, the index starts at 1 rather than 0.
+ */
+void BKE_object_defgroup_active_index_set(Object *ob, const int new_index)
+{
+  /* Cast away const just for the accessor. */
+  int *index = (int *)object_defgroup_active_index_get_p(ob);
+  *index = new_index;
 }
 
 /**
@@ -503,7 +609,8 @@ int BKE_object_defgroup_name_index(const Object *ob, const char *name)
  */
 int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const bool use_default)
 {
-  int defbase_tot = *flip_map_len = BLI_listbase_count(&ob->defbase);
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  int defbase_tot = *flip_map_len = BLI_listbase_count(defbase);
 
   if (defbase_tot == 0) {
     return NULL;
@@ -517,7 +624,7 @@ int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const boo
     map[i] = -1;
   }
 
-  for (dg = ob->defbase.first, i = 0; dg; dg = dg->next, i++) {
+  for (dg = defbase->first, i = 0; dg; dg = dg->next, i++) {
     if (map[i] == -1) { /* may be calculated previously */
 
       /* in case no valid value is found, use this */
@@ -547,7 +654,8 @@ int *BKE_object_defgroup_flip_map_single(const Object *ob,
                                          const bool use_default,
                                          int defgroup)
 {
-  int defbase_tot = *flip_map_len = BLI_listbase_count(&ob->defbase);
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  int defbase_tot = *flip_map_len = BLI_listbase_count(defbase);
 
   if (defbase_tot == 0) {
     return NULL;
@@ -561,7 +669,7 @@ int *BKE_object_defgroup_flip_map_single(const Object *ob,
     map[i] = use_default ? i : -1;
   }
 
-  dg = BLI_findlink(&ob->defbase, defgroup);
+  dg = BLI_findlink(defbase, defgroup);
 
   BLI_string_flip_side_name(name_flip, dg->name, false, sizeof(name_flip));
   if (!STREQ(name_flip, dg->name)) {
@@ -578,7 +686,8 @@ int *BKE_object_defgroup_flip_map_single(const Object *ob,
 
 int BKE_object_defgroup_flip_index(const Object *ob, int index, const bool use_default)
 {
-  bDeformGroup *dg = BLI_findlink(&ob->defbase, index);
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  bDeformGroup *dg = BLI_findlink(defbase, index);
   int flip_index = -1;
 
   if (dg) {
@@ -595,9 +704,10 @@ int BKE_object_defgroup_flip_index(const Object *ob, int index, const bool use_d
 
 static bool defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *ob)
 {
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
   bDeformGroup *curdef;
 
-  for (curdef = ob->defbase.first; curdef; curdef = curdef->next) {
+  for (curdef = defbase->first; curdef; curdef = curdef->next) {
     if (dg != curdef) {
       if (STREQ(curdef->name, name)) {
         return true;
@@ -1189,7 +1299,10 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
 {
   int idx_src;
   int idx_dst;
-  int tot_dst = BLI_listbase_count(&ob_dst->defbase);
+  const ListBase *src_list = BKE_object_defgroup_list(ob_src);
+  ListBase *dst_defbase = BKE_object_defgroup_list_mutable(ob_dst);
+
+  int tot_dst = BLI_listbase_count(dst_defbase);
 
   const size_t elem_size = sizeof(*((MDeformVert *)NULL));
 
@@ -1218,7 +1331,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
       }
       else if (use_delete && idx_dst > idx_src) {
         while (idx_dst-- > idx_src) {
-          BKE_object_defgroup_remove(ob_dst, ob_dst->defbase.last);
+          BKE_object_defgroup_remove(ob_dst, dst_defbase->last);
         }
       }
       if (r_map) {
@@ -1255,7 +1368,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
 
       if (use_delete) {
         /* Remove all unused dst vgroups first, simpler in this case. */
-        for (dg_dst = ob_dst->defbase.first; dg_dst;) {
+        for (dg_dst = dst_defbase->first; dg_dst;) {
           bDeformGroup *dg_dst_next = dg_dst->next;
 
           if (BKE_object_defgroup_name_index(ob_src, dg_dst->name) == -1) {
@@ -1265,7 +1378,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
         }
       }
 
-      for (idx_src = 0, dg_src = ob_src->defbase.first; idx_src < num_layers_src;
+      for (idx_src = 0, dg_src = src_list->first; idx_src < num_layers_src;
            idx_src++, dg_src = dg_src->next) {
         if (!use_layers_src[idx_src]) {
           continue;
@@ -1274,7 +1387,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
         if ((idx_dst = BKE_object_defgroup_name_index(ob_dst, dg_src->name)) == -1) {
           if (use_create) {
             BKE_object_defgroup_add_name(ob_dst, dg_src->name);
-            idx_dst = ob_dst->actdef - 1;
+            idx_dst = BKE_object_defgroup_active_index_get(ob_dst) - 1;
           }
           else {
             /* If we are not allowed to create missing dst vgroups, just skip matching src one. */
@@ -1340,8 +1453,12 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
    * This implies we may have to handle data layout itself while having NULL data itself,
    * and even have to support NULL data_src in transfer data code
    * (we always create a data_dst, though).
+   *
+   * Note: Above comment is outdated, but this function was written when that was true.
    */
-  if (BLI_listbase_is_empty(&ob_src->defbase)) {
+
+  const ListBase *src_defbase = BKE_object_defgroup_list(ob_src);
+  if (BLI_listbase_is_empty(src_defbase)) {
     if (use_delete) {
       BKE_object_defgroup_remove_all(ob_dst);
     }
@@ -1361,35 +1478,37 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
 
     if (fromlayers >= 0) {
       idx_src = fromlayers;
-      if (idx_src >= BLI_listbase_count(&ob_src->defbase)) {
+      if (idx_src >= BLI_listbase_count(src_defbase)) {
         /* This can happen when vgroups are removed from source object...
          * Remapping would be really tricky here, we'd need to go over all objects in
          * Main every time we delete a vgroup... for now, simpler and safer to abort. */
         return false;
       }
     }
-    else if ((idx_src = ob_src->actdef - 1) == -1) {
+    else if ((idx_src = BKE_object_defgroup_active_index_get(ob_src) - 1) == -1) {
       return false;
     }
 
     if (tolayers >= 0) {
       /* NOTE: in this case we assume layer exists! */
       idx_dst = tolayers;
-      BLI_assert(idx_dst < BLI_listbase_count(&ob_dst->defbase));
+      const ListBase *dst_defbase = BKE_object_defgroup_list(ob_dst);
+      BLI_assert(idx_dst < BLI_listbase_count(dst_defbase));
+      UNUSED_VARS_NDEBUG(dst_defbase);
     }
     else if (tolayers == DT_LAYERS_ACTIVE_DST) {
-      if ((idx_dst = ob_dst->actdef - 1) == -1) {
+      if ((idx_dst = BKE_object_defgroup_active_index_get(ob_dst) - 1) == -1) {
         bDeformGroup *dg_src;
         if (!use_create) {
           return true;
         }
-        dg_src = BLI_findlink(&ob_src->defbase, idx_src);
+        dg_src = BLI_findlink(src_defbase, idx_src);
         BKE_object_defgroup_add_name(ob_dst, dg_src->name);
-        idx_dst = ob_dst->actdef - 1;
+        idx_dst = BKE_object_defgroup_active_index_get(ob_dst) - 1;
       }
     }
     else if (tolayers == DT_LAYERS_INDEX_DST) {
-      int num = BLI_listbase_count(&ob_src->defbase);
+      int num = BLI_listbase_count(src_defbase);
       idx_dst = idx_src;
       if (num <= idx_dst) {
         if (!use_create) {
@@ -1402,13 +1521,13 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
       }
     }
     else if (tolayers == DT_LAYERS_NAME_DST) {
-      bDeformGroup *dg_src = BLI_findlink(&ob_src->defbase, idx_src);
+      bDeformGroup *dg_src = BLI_findlink(src_defbase, idx_src);
       if ((idx_dst = BKE_object_defgroup_name_index(ob_dst, dg_src->name)) == -1) {
         if (!use_create) {
           return true;
         }
         BKE_object_defgroup_add_name(ob_dst, dg_src->name);
-        idx_dst = ob_dst->actdef - 1;
+        idx_dst = BKE_object_defgroup_active_index_get(ob_dst) - 1;
       }
     }
     else {
@@ -1530,6 +1649,13 @@ void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight)
 /* -------------------------------------------------------------------- */
 /** \name .blend file I/O
  * \{ */
+
+void BKE_defbase_blend_write(BlendWriter *writer, const ListBase *defbase)
+{
+  LISTBASE_FOREACH (bDeformGroup *, defgroup, defbase) {
+    BLO_write_struct(writer, bDeformGroup, defgroup);
+  }
+}
 
 void BKE_defvert_blend_write(BlendWriter *writer, int count, MDeformVert *dvlist)
 {

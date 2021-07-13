@@ -37,6 +37,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_deform.h"
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph_query.h"
@@ -1293,10 +1294,9 @@ static void draw_axes(ArmatureDrawContext *ctx,
                       const bArmature *arm)
 {
   float final_col[4];
-  const float *col = (ctx->const_color) ?
-                         ctx->const_color :
-                         (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? G_draw.block.colorTextHi :
-                                                                     G_draw.block.colorText;
+  const float *col = (ctx->const_color)                        ? ctx->const_color :
+                     (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? G_draw.block.colorTextHi :
+                                                                 G_draw.block.colorText;
   copy_v4_v4(final_col, col);
   /* Mix with axes color. */
   final_col[3] = (ctx->const_color) ? 1.0 : (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? 0.1 : 0.65;
@@ -2040,7 +2040,8 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
     const Object *obact_orig = DEG_get_original_object(draw_ctx->obact);
 
-    LISTBASE_FOREACH (bDeformGroup *, dg, &obact_orig->defbase) {
+    const ListBase *defbase = BKE_object_defgroup_list(obact_orig);
+    LISTBASE_FOREACH (const bDeformGroup *, dg, defbase) {
       if (dg->flag & DG_LOCK_WEIGHT) {
         pchan = BKE_pose_channel_find_name(ob->pose, dg->name);
 

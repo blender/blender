@@ -167,7 +167,7 @@ static void deformVertsEM(ModifierData *md,
   int defgrp_index = -1;
 
   if (ctx->object->type == OB_MESH && cmd->name[0] != '\0') {
-    defgrp_index = BKE_object_defgroup_name_index(ctx->object, cmd->name);
+    defgrp_index = BKE_id_defgroup_name_index(&mesh->id, cmd->name);
     if (defgrp_index != -1) {
       use_dverts = true;
     }

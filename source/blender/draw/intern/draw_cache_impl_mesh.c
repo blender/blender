@@ -544,8 +544,8 @@ static void drw_mesh_weight_state_extract(Object *ob,
   /* Extract complete vertex weight group selection state and mode flags. */
   memset(wstate, 0, sizeof(*wstate));
 
-  wstate->defgroup_active = ob->actdef - 1;
-  wstate->defgroup_len = BLI_listbase_count(&ob->defbase);
+  wstate->defgroup_active = me->vertex_group_active_index - 1;
+  wstate->defgroup_len = BLI_listbase_count(&me->vertex_group_names);
 
   wstate->alert_mode = ts->weightuser;
 

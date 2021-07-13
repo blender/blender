@@ -112,7 +112,7 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
   int defgrp_index = -1;
   const MDeformVert *dvert = BKE_lattice_deform_verts_get(oblatt);
   if (lt->vgroup[0] && dvert) {
-    defgrp_index = BKE_object_defgroup_name_index(oblatt, lt->vgroup);
+    defgrp_index = BKE_id_defgroup_name_index(&lt->id, lt->vgroup);
 
     if (defgrp_index != -1) {
       lattice_weights = MEM_malloc_arrayN(sizeof(float), num_points, "lattice_weights");
@@ -364,7 +364,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
    * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
    */
   if (defgrp_name && defgrp_name[0] && ob_target && ELEM(ob_target->type, OB_MESH, OB_LATTICE)) {
-    defgrp_index = BKE_object_defgroup_name_index(ob_target, defgrp_name);
+    defgrp_index = BKE_id_defgroup_name_index((ID *)ob_target->data, defgrp_name);
 
     if (defgrp_index != -1) {
       /* if there's derived data without deformverts, don't use vgroups */
