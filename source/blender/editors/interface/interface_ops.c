@@ -75,6 +75,32 @@
 #include "ED_text.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Immediate redraw helper
+ *
+ * Generally handlers shouldn't do any redrawing, that includes the layout/button definitions. That
+ * violates the Model-View-Controller pattern.
+ *
+ * But there are some operators which really need to re-run the layout definitions for various
+ * reasons. For example, "Edit Source" does it to find out which exact Python code added a button.
+ * Other operators may need to access buttons that aren't currently visible. In Blender's UI code
+ * design that typically means just not adding the button in the first place, for a particular
+ * redraw. So the operator needs to change context and re-create the layout, so the button becomes
+ * available to act on.
+ *
+ * \{ */
+
+static void ui_region_redraw_immediately(bContext *C, ARegion *region)
+{
+  ED_region_do_layout(C, region);
+  WM_draw_region_viewport_bind(region);
+  ED_region_do_draw(C, region);
+  WM_draw_region_viewport_unbind(region);
+  region->do_draw = false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Copy Data Path Operator
  * \{ */
 
@@ -1379,11 +1405,7 @@ static int editsource_exec(bContext *C, wmOperator *op)
     ui_editsource_active_but_set(but);
 
     /* redraw and get active button python info */
-    ED_region_do_layout(C, region);
-    WM_draw_region_viewport_bind(region);
-    ED_region_do_draw(C, region);
-    WM_draw_region_viewport_unbind(region);
-    region->do_draw = false;
+    ui_region_redraw_immediately(C, region);
 
     for (BLI_ghashIterator_init(&ghi, ui_editsource_info->hash);
          BLI_ghashIterator_done(&ghi) == false;
@@ -1836,6 +1858,64 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name UI List Search Operator
+ * \{ */
+
+static bool ui_list_focused_poll(bContext *C)
+{
+  const ARegion *region = CTX_wm_region(C);
+  const wmWindow *win = CTX_wm_window(C);
+  const uiList *list = UI_list_find_mouse_over(region, win->eventstate);
+
+  return list != NULL;
+}
+
+/**
+ * Ensure the filter options are set to be visible in the UI list.
+ * \return if the visibility changed, requiring a redraw.
+ */
+static bool ui_list_unhide_filter_options(uiList *list)
+{
+  if (list->filter_flag & UILST_FLT_SHOW) {
+    /* Nothing to be done. */
+    return false;
+  }
+
+  list->filter_flag |= UILST_FLT_SHOW;
+  return true;
+}
+
+static int ui_list_start_filter_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  uiList *list = UI_list_find_mouse_over(region, event);
+  /* Poll should check. */
+  BLI_assert(list != NULL);
+
+  if (ui_list_unhide_filter_options(list)) {
+    ui_region_redraw_immediately(C, region);
+  }
+
+  if (!UI_textbutton_activate_rna(C, region, list, "filter_name")) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_list_start_filter(wmOperatorType *ot)
+{
+  ot->name = "List Filter";
+  ot->idname = "UI_OT_list_start_filter";
+  ot->description = "Start entering filter text for the list in focus";
+
+  ot->invoke = ui_list_start_filter_invoke;
+  ot->poll = ui_list_focused_poll;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Operator & Keymap Registration
  * \{ */
 
@@ -1859,6 +1939,8 @@ void ED_operatortypes_ui(void)
   WM_operatortype_append(UI_OT_reloadtranslation);
   WM_operatortype_append(UI_OT_button_execute);
   WM_operatortype_append(UI_OT_button_string_clear);
+
+  WM_operatortype_append(UI_OT_list_start_filter);
 
   /* external */
   WM_operatortype_append(UI_OT_eyedropper_color);

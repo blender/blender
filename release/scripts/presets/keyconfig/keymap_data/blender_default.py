@@ -730,6 +730,8 @@ def km_user_interface(_params):
         ("anim.keyingset_button_add", {"type": 'K', "value": 'PRESS'}, None),
         ("anim.keyingset_button_remove", {"type": 'K', "value": 'PRESS', "alt": True}, None),
         ("ui.reset_default_button", {"type": 'BACK_SPACE', "value": 'PRESS'}, {"properties": [("all", True)]}),
+        # UI lists (polls check if there's a UI list under the cursor).
+        ("ui.list_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap
