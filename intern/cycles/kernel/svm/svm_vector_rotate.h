@@ -50,24 +50,29 @@ ccl_device void svm_node_vector_rotate(ShaderData *sd,
     }
     else {
       float3 axis;
+      float axis_length;
       switch (type) {
         case NODE_VECTOR_ROTATE_TYPE_AXIS_X:
           axis = make_float3(1.0f, 0.0f, 0.0f);
+          axis_length = 1.0f;
           break;
         case NODE_VECTOR_ROTATE_TYPE_AXIS_Y:
           axis = make_float3(0.0f, 1.0f, 0.0f);
+          axis_length = 1.0f;
           break;
         case NODE_VECTOR_ROTATE_TYPE_AXIS_Z:
           axis = make_float3(0.0f, 0.0f, 1.0f);
+          axis_length = 1.0f;
           break;
         default:
-          axis = normalize(stack_load_float3(stack, axis_stack_offset));
+          axis = stack_load_float3(stack, axis_stack_offset);
+          axis_length = len(axis);
           break;
       }
       float angle = stack_load_float(stack, angle_stack_offset);
       angle = invert ? -angle : angle;
-      result = (len_squared(axis) != 0.0f) ?
-                   rotate_around_axis(vector - center, axis, angle) + center :
+      result = (axis_length != 0.0f) ?
+                   rotate_around_axis(vector - center, axis / axis_length, angle) + center :
                    vector;
     }
 
