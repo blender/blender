@@ -7994,6 +7994,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     case UI_BTYPE_IMAGE:
     case UI_BTYPE_PROGRESS_BAR:
     case UI_BTYPE_NODE_SOCKET:
+    case UI_BTYPE_PREVIEW_TILE:
       retval = ui_do_but_EXIT(C, but, data, event);
       break;
     case UI_BTYPE_HISTOGRAM:

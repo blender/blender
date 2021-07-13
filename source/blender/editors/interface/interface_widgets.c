@@ -105,6 +105,7 @@ typedef enum {
   /* specials */
   UI_WTYPE_ICON,
   UI_WTYPE_ICON_LABEL,
+  UI_WTYPE_PREVIEW_TILE,
   UI_WTYPE_SWATCH,
   UI_WTYPE_RGB_PICKER,
   UI_WTYPE_UNITVEC,
@@ -4018,6 +4019,14 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
   widgetbase_draw(&wtb, wcol);
 }
 
+static void widget_preview_tile(
+    uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
+{
+  const uiStyle *style = UI_style_get();
+  ui_draw_preview_item_stateless(
+      &style->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
+}
+
 static void widget_menuiconbut(uiWidgetColors *wcol,
                                rcti *rect,
                                int UNUSED(state),
@@ -4483,6 +4492,13 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_icon_has_anim;
       break;
 
+    case UI_WTYPE_PREVIEW_TILE:
+      wt.draw = NULL;
+      /* Drawn via the `custom` callback. */
+      wt.text = NULL;
+      wt.custom = widget_preview_tile;
+      break;
+
     case UI_WTYPE_SWATCH:
       wt.custom = widget_swatch;
       break;
@@ -4778,6 +4794,10 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         wt = widget_type(UI_WTYPE_BOX);
         break;
 
+      case UI_BTYPE_PREVIEW_TILE:
+        wt = widget_type(UI_WTYPE_PREVIEW_TILE);
+        break;
+
       case UI_BTYPE_EXTRA:
         widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
         break;
@@ -4931,13 +4951,15 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     wt->draw(&wt->wcol, rect, state, roundboxalign);
   }
 
-  if (use_alpha_blend) {
-    GPU_blend(GPU_BLEND_ALPHA);
-  }
+  if (wt->text) {
+    if (use_alpha_blend) {
+      GPU_blend(GPU_BLEND_ALPHA);
+    }
 
-  wt->text(fstyle, &wt->wcol, but, rect);
-  if (use_alpha_blend) {
-    GPU_blend(GPU_BLEND_NONE);
+    wt->text(fstyle, &wt->wcol, but, rect);
+    if (use_alpha_blend) {
+      GPU_blend(GPU_BLEND_NONE);
+    }
   }
 }
 
@@ -5459,17 +5481,20 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   }
 }
 
-void ui_draw_preview_item(
-    const uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
+/**
+ * Version of #ui_draw_preview_item() that does not draw the menu background and item text based on
+ * state. It just draws the preview and text directly.
+ */
+void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
+                                    rcti *rect,
+                                    const char *name,
+                                    int iconid,
+                                    const uchar text_col[4],
+                                    eFontStyle_Align text_align)
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
   float font_dims[2] = {0.0f, 0.0f};
-  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
-
-  /* drawing button background */
-  wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
-  wt->draw(&wt->wcol, rect, 0, 0);
 
   /* draw icon in rect above the space reserved for the label */
   rect->ymin += text_size;
@@ -5481,8 +5506,6 @@ void ui_draw_preview_item(
       fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
 
   /* text rect */
-  trect.xmin += 0;
-  trect.xmax = trect.xmin + font_dims[0] + U.widget_unit / 2;
   trect.ymin += U.widget_unit / 2;
   trect.ymax = trect.ymin + font_dims[1];
   if (trect.xmax > rect->xmax - PREVIEW_PAD) {
@@ -5501,11 +5524,27 @@ void ui_draw_preview_item(
     UI_fontstyle_draw(fstyle,
                       &trect,
                       drawstr,
-                      wt->wcol.text,
+                      text_col,
                       &(struct uiFontStyleDraw_Params){
-                          .align = UI_STYLE_TEXT_CENTER,
+                          .align = text_align,
                       });
   }
+}
+
+void ui_draw_preview_item(const uiFontStyle *fstyle,
+                          rcti *rect,
+                          const char *name,
+                          int iconid,
+                          int state,
+                          eFontStyle_Align text_align)
+{
+  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
+
+  /* drawing button background */
+  wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
+  wt->draw(&wt->wcol, rect, 0, 0);
+
+  ui_draw_preview_item_stateless(fstyle, rect, name, iconid, wt->wcol.text, text_align);
 }
 
 /** \} */

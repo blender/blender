@@ -599,8 +599,12 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
         ui_searchbox_butrect(&rect, data, a);
 
         /* widget itself */
-        ui_draw_preview_item(
-            &data->fstyle, &rect, data->items.names[a], data->items.icons[a], state);
+        ui_draw_preview_item(&data->fstyle,
+                             &rect,
+                             data->items.names[a],
+                             data->items.icons[a],
+                             state,
+                             UI_STYLE_TEXT_LEFT);
       }
 
       /* indicate more */
