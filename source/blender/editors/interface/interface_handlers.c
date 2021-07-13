@@ -803,93 +803,95 @@ static bool ui_afterfunc_check(const uiBlock *block, const uiBut *but)
           (block->handle && block->handle->popup_op));
 }
 
+/**
+ * These functions are postponed and only executed after all other
+ * handling is done, i.e. menus are closed, in order to avoid conflicts
+ * with these functions removing the buttons we are working with.
+ */
 static void ui_apply_but_func(bContext *C, uiBut *but)
 {
   uiBlock *block = but->block;
+  if (!ui_afterfunc_check(block, but)) {
+    return;
+  }
 
-  /* these functions are postponed and only executed after all other
-   * handling is done, i.e. menus are closed, in order to avoid conflicts
-   * with these functions removing the buttons we are working with */
+  uiAfterFunc *after = ui_afterfunc_new();
 
-  if (ui_afterfunc_check(block, but)) {
-    uiAfterFunc *after = ui_afterfunc_new();
+  if (but->func && ELEM(but, but->func_arg1, but->func_arg2)) {
+    /* exception, this will crash due to removed button otherwise */
+    but->func(C, but->func_arg1, but->func_arg2);
+  }
+  else {
+    after->func = but->func;
+  }
 
-    if (but->func && ELEM(but, but->func_arg1, but->func_arg2)) {
-      /* exception, this will crash due to removed button otherwise */
-      but->func(C, but->func_arg1, but->func_arg2);
-    }
-    else {
-      after->func = but->func;
-    }
+  after->func_arg1 = but->func_arg1;
+  after->func_arg2 = but->func_arg2;
 
-    after->func_arg1 = but->func_arg1;
-    after->func_arg2 = but->func_arg2;
+  after->funcN = but->funcN;
+  after->func_argN = (but->func_argN) ? MEM_dupallocN(but->func_argN) : NULL;
 
-    after->funcN = but->funcN;
-    after->func_argN = (but->func_argN) ? MEM_dupallocN(but->func_argN) : NULL;
+  after->rename_func = but->rename_func;
+  after->rename_arg1 = but->rename_arg1;
+  after->rename_orig = but->rename_orig; /* needs free! */
 
-    after->rename_func = but->rename_func;
-    after->rename_arg1 = but->rename_arg1;
-    after->rename_orig = but->rename_orig; /* needs free! */
+  after->handle_func = block->handle_func;
+  after->handle_func_arg = block->handle_func_arg;
+  after->retval = but->retval;
 
-    after->handle_func = block->handle_func;
-    after->handle_func_arg = block->handle_func_arg;
-    after->retval = but->retval;
+  if (but->type == UI_BTYPE_BUT_MENU) {
+    after->butm_func = block->butm_func;
+    after->butm_func_arg = block->butm_func_arg;
+    after->a2 = but->a2;
+  }
 
-    if (but->type == UI_BTYPE_BUT_MENU) {
-      after->butm_func = block->butm_func;
-      after->butm_func_arg = block->butm_func_arg;
-      after->a2 = but->a2;
-    }
+  if (block->handle) {
+    after->popup_op = block->handle->popup_op;
+  }
 
-    if (block->handle) {
-      after->popup_op = block->handle->popup_op;
-    }
+  after->optype = but->optype;
+  after->opcontext = but->opcontext;
+  after->opptr = but->opptr;
 
-    after->optype = but->optype;
-    after->opcontext = but->opcontext;
-    after->opptr = but->opptr;
+  after->rnapoin = but->rnapoin;
+  after->rnaprop = but->rnaprop;
 
-    after->rnapoin = but->rnapoin;
-    after->rnaprop = but->rnaprop;
+  if (but->type == UI_BTYPE_SEARCH_MENU) {
+    uiButSearch *search_but = (uiButSearch *)but;
+    after->search_arg_free_fn = search_but->arg_free_fn;
+    after->search_arg = search_but->arg;
+    search_but->arg_free_fn = NULL;
+    search_but->arg = NULL;
+  }
 
-    if (but->type == UI_BTYPE_SEARCH_MENU) {
-      uiButSearch *search_but = (uiButSearch *)but;
-      after->search_arg_free_fn = search_but->arg_free_fn;
-      after->search_arg = search_but->arg;
-      search_but->arg_free_fn = NULL;
-      search_but->arg = NULL;
-    }
+  if (but->active != NULL) {
+    uiHandleButtonData *data = but->active;
+    if (data->custom_interaction_handle != NULL) {
+      after->custom_interaction_callbacks = block->custom_interaction_callbacks;
+      after->custom_interaction_handle = data->custom_interaction_handle;
 
-    if (but->active != NULL) {
-      uiHandleButtonData *data = but->active;
-      if (data->custom_interaction_handle != NULL) {
-        after->custom_interaction_callbacks = block->custom_interaction_callbacks;
-        after->custom_interaction_handle = data->custom_interaction_handle;
-
-        /* Ensure this callback runs once and last. */
-        uiAfterFunc *after_prev = after->prev;
-        if (after_prev &&
-            (after_prev->custom_interaction_handle == data->custom_interaction_handle)) {
-          after_prev->custom_interaction_handle = NULL;
-          memset(&after_prev->custom_interaction_callbacks,
-                 0x0,
-                 sizeof(after_prev->custom_interaction_callbacks));
-        }
-        else {
-          after->custom_interaction_handle->user_count++;
-        }
+      /* Ensure this callback runs once and last. */
+      uiAfterFunc *after_prev = after->prev;
+      if (after_prev &&
+          (after_prev->custom_interaction_handle == data->custom_interaction_handle)) {
+        after_prev->custom_interaction_handle = NULL;
+        memset(&after_prev->custom_interaction_callbacks,
+               0x0,
+               sizeof(after_prev->custom_interaction_callbacks));
+      }
+      else {
+        after->custom_interaction_handle->user_count++;
       }
     }
-
-    if (but->context) {
-      after->context = CTX_store_copy(but->context);
-    }
-
-    but->optype = NULL;
-    but->opcontext = 0;
-    but->opptr = NULL;
   }
+
+  if (but->context) {
+    after->context = CTX_store_copy(but->context);
+  }
+
+  but->optype = NULL;
+  but->opcontext = 0;
+  but->opptr = NULL;
 }
 
 /* typically call ui_apply_but_undo(), ui_apply_but_autokey() */
