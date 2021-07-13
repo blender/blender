@@ -33,6 +33,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"

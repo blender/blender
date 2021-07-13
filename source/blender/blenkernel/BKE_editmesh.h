@@ -24,7 +24,7 @@
  * only concerned with low level operations on the #BMEditMesh structure.
  */
 
-#include "BKE_customdata.h"
+#include "DNA_customdata_types.h"
 #include "bmesh.h"
 
 #ifdef __cplusplus

@@ -23,6 +23,8 @@
  * that benefit from accessing connectivity information.
  */
 
+#include "BLI_assert.h"
+
 /* disable holes for now,
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */
 // #define USE_BMESH_HOLES

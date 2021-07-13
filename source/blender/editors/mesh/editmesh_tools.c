@@ -44,6 +44,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_key.h"

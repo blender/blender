@@ -30,6 +30,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
