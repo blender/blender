@@ -7909,7 +7909,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     if ((event->type == RIGHTMOUSE) && !IS_EVENT_MOD(event, shift, ctrl, alt, oskey) &&
         (event->val == KM_PRESS)) {
       /* RMB has two options now */
-      if (ui_popup_context_menu_for_button(C, but)) {
+      if (ui_popup_context_menu_for_button(C, but, event)) {
         return WM_UI_HANDLER_BREAK;
       }
     }

@@ -112,6 +112,7 @@ const char *screen_context_dir[] = {
     "selected_editable_fcurves",
     "active_editable_fcurve",
     "selected_editable_keyframes",
+    "ui_list",
     "asset_library",
     NULL,
 };
@@ -1034,6 +1035,15 @@ static eContextResult screen_ctx_asset_library(const bContext *C, bContextDataRe
   return CTX_RESULT_OK;
 }
 
+static eContextResult screen_ctx_ui_list(const bContext *C, bContextDataResult *result)
+{
+  wmWindow *win = CTX_wm_window(C);
+  ARegion *region = CTX_wm_region(C);
+  uiList *list = UI_list_find_mouse_over(region, win->eventstate);
+  CTX_data_pointer_set(result, NULL, &RNA_UIList, list);
+  return CTX_RESULT_OK;
+}
+
 /* Registry of context callback functions. */
 
 typedef eContextResult (*context_callback)(const bContext *C, bContextDataResult *result);
@@ -1109,6 +1119,7 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("active_editable_fcurve", screen_ctx_active_editable_fcurve);
   register_context_function("selected_editable_keyframes", screen_ctx_selected_editable_keyframes);
   register_context_function("asset_library", screen_ctx_asset_library);
+  register_context_function("ui_list", screen_ctx_ui_list);
 }
 
 /* Entry point for the screen context. */

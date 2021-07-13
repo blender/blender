@@ -624,6 +624,7 @@ void WM_uilisttype_free(void);
 void WM_uilisttype_to_full_list_id(const struct uiListType *ult,
                                    const char *list_id,
                                    char *r_ui_list_id);
+const char *WM_uilisttype_list_id_get(const struct uiListType *ult, struct uiList *list);
 
 /* wm_menu_type.c */
 void WM_menutype_init(void);

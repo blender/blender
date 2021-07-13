@@ -458,6 +458,27 @@ static IDProperty **rna_UIList_idprops(PointerRNA *ptr)
   return &ui_list->properties;
 }
 
+static void rna_UIList_list_id_get(PointerRNA *ptr, char *value)
+{
+  uiList *ui_list = (uiList *)ptr->data;
+  if (!ui_list->type) {
+    value[0] = '\0';
+    return;
+  }
+
+  strcpy(value, WM_uilisttype_list_id_get(ui_list->type, ui_list));
+}
+
+static int rna_UIList_list_id_length(PointerRNA *ptr)
+{
+  uiList *ui_list = (uiList *)ptr->data;
+  if (!ui_list->type) {
+    return 0;
+  }
+
+  return strlen(WM_uilisttype_list_id_get(ui_list->type, ui_list));
+}
+
 static void uilist_draw_item(uiList *ui_list,
                              bContext *C,
                              uiLayout *layout,
@@ -1535,6 +1556,16 @@ static void rna_def_uilist(BlenderRNA *brna)
                            "script, then bl_idname = \"OBJECT_UL_vgroups\")");
 
   /* Data */
+  /* Note that this is the "non-full" list-ID as obtained through #WM_uilisttype_list_id_get(),
+   * which differs from the (internal) `uiList.list_id`. */
+  prop = RNA_def_property(srna, "list_id", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(prop, "rna_UIList_list_id_get", "rna_UIList_list_id_length", NULL);
+  RNA_def_property_ui_text(prop,
+                           "List Name",
+                           "Identifier of the list, if any was passed to the \"list_id\" "
+                           "parameter of \"template_list()\"");
+
   prop = RNA_def_property(srna, "layout_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_uilist_layout_type_items);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -1191,7 +1191,7 @@ struct ARegion *ui_screen_region_find_mouse_over(struct bScreen *screen,
                                                  const struct wmEvent *event);
 
 /* interface_context_menu.c */
-bool ui_popup_context_menu_for_button(struct bContext *C, uiBut *but);
+bool ui_popup_context_menu_for_button(struct bContext *C, uiBut *but, const struct wmEvent *event);
 void ui_popup_context_menu_for_panel(struct bContext *C,
                                      struct ARegion *region,
                                      struct Panel *panel);
