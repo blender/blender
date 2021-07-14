@@ -530,6 +530,36 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
   lnors_spacearr->data_type = data_type;
 }
 
+/**
+ * Utility for multi-threaded calculation that ensures
+ * `lnors_spacearr_tls` doesn't share memory with `lnors_spacearr`
+ * that would cause it not to be thread safe.
+ *
+ * \note This works as long as threads never operate on the same loops at once.
+ */
+void BKE_lnor_spacearr_tls_init(MLoopNorSpaceArray *lnors_spacearr,
+                                MLoopNorSpaceArray *lnors_spacearr_tls)
+{
+  *lnors_spacearr_tls = *lnors_spacearr;
+  lnors_spacearr_tls->mem = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+}
+
+/**
+ * Utility for multi-threaded calculation
+ * that merges `lnors_spacearr_tls` into `lnors_spacearr`.
+ */
+void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
+                                MLoopNorSpaceArray *lnors_spacearr_tls)
+{
+  BLI_assert(lnors_spacearr->data_type == lnors_spacearr_tls->data_type);
+  BLI_assert(lnors_spacearr->mem != lnors_spacearr_tls->mem);
+  lnors_spacearr->num_spaces += lnors_spacearr_tls->num_spaces;
+  BLI_memarena_merge(lnors_spacearr->mem, lnors_spacearr_tls->mem);
+  BLI_memarena_free(lnors_spacearr_tls->mem);
+  lnors_spacearr_tls->mem = nullptr;
+  BKE_lnor_spacearr_clear(lnors_spacearr_tls);
+}
+
 void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
 {
   lnors_spacearr->num_spaces = 0;

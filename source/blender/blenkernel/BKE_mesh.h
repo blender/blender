@@ -399,6 +399,12 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
                             const char data_type);
 void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr);
 void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr);
+
+void BKE_lnor_spacearr_tls_init(MLoopNorSpaceArray *lnors_spacearr,
+                                MLoopNorSpaceArray *lnors_spacearr_tls);
+void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
+                                MLoopNorSpaceArray *lnors_spacearr_tls);
+
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
 void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const float lnor[3],
