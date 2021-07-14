@@ -551,5 +551,24 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Convert Surface Deform to sparse-capable bind structure. */
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "SurfaceDeformModifierData", "int", "num_mesh_verts")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+          if (md->type == eModifierType_SurfaceDeform) {
+            SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+            if (smd->num_bind_verts && smd->verts) {
+              smd->num_mesh_verts = smd->num_bind_verts;
+
+              for (unsigned int i = 0; i < smd->num_bind_verts; i++) {
+                smd->verts[i].vertex_idx = i;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -2180,7 +2180,7 @@ typedef struct SDefBind {
 typedef struct SDefVert {
   SDefBind *binds;
   unsigned int numbinds;
-  char _pad[4];
+  unsigned int vertex_idx;
 } SDefVert;
 
 typedef struct SurfaceDeformModifierData {
@@ -2192,11 +2192,10 @@ typedef struct SurfaceDeformModifierData {
   /** Vertex bind data. */
   SDefVert *verts;
   float falloff;
-  unsigned int numverts, numpoly;
+  unsigned int num_mesh_verts, num_bind_verts, numpoly;
   int flags;
   float mat[4][4];
   float strength;
-  char _pad[4];
   char defgrp_name[64];
 } SurfaceDeformModifierData;
 
@@ -2204,10 +2203,9 @@ typedef struct SurfaceDeformModifierData {
 enum {
   /* This indicates "do bind on next modifier evaluation" as well as "is bound". */
   MOD_SDEF_BIND = (1 << 0),
-  MOD_SDEF_INVERT_VGROUP = (1 << 1)
-
-  /* MOD_SDEF_USES_LOOPTRI = (1 << 1), */ /* UNUSED */
-  /* MOD_SDEF_HAS_CONCAVE = (1 << 2), */  /* UNUSED */
+  MOD_SDEF_INVERT_VGROUP = (1 << 1),
+  /* Only store bind data for nonzero vgroup weights at the time of bind. */
+  MOD_SDEF_SPARSE_BIND = (1 << 2),
 };
 
 /* Surface Deform vertex bind modes */
