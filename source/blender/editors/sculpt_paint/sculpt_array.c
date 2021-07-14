@@ -69,7 +69,7 @@ static const char array_instance_cd_name[] = "v_array_instance";
 
 static void sculpt_vertex_array_data_get(SculptArray *array, const int vertex, int *r_copy, int *r_symmetry_pass) {
   *r_copy = array->copy_index[vertex];
-  *r_symmetry_pass = array->copy_index[vertex];
+  *r_symmetry_pass = array->symmetry_pass[vertex];
 }
 
 
@@ -214,8 +214,17 @@ static void sculpt_array_final_mesh_write(Object *ob, BMesh *final_mesh) {
   ss->needs_pbvh_rebuild = true;
 }
 
-static void sculpt_array_write_geometry_indices(Object *ob, SculptArray *array) {
+static void sculpt_array_ensure_geometry_indices(Object *ob, SculptArray *array) {
   Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  if (array->copy_index) {
+    
+    return;
+  }
+
+
+printf("ALLOCATION COPY INDEX\n");
+
   array->copy_index = MEM_malloc_arrayN(mesh->totvert, sizeof(int), "array copy index");
   array->symmetry_pass = MEM_malloc_arrayN(mesh->totvert, sizeof(int), "array symmetry pass index");
 
@@ -225,11 +234,16 @@ static void sculpt_array_write_geometry_indices(Object *ob, SculptArray *array) 
   int *cd_array_symm_pass = CustomData_get_layer_named(
   &mesh->vdata, CD_PROP_INT32, array_symmetry_pass_cd_name);
 
+  if (!cd_array_instance) {
+    printf("ERROR 1");
+  }
+
   for (int i = 0; i < mesh->totvert; i++) {
     array->copy_index[i] = cd_array_instance[i];
     array->symmetry_pass[i] = cd_array_symm_pass[i];
   }
 
+  SCULPT_array_datalayers_free(ob);
 }
 
 static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array) {
@@ -273,8 +287,6 @@ static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array) 
   BM_mesh_free(destbm);
 
 
-  sculpt_array_write_geometry_indices(ob, array);
-  SCULPT_array_datalayers_free(ob);
 }
 
 static SculptArray *sculpt_array_cache_create(Object *ob, const int num_copies) {
@@ -482,15 +494,16 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    int array_index;
-    int array_symm_pass;
+    int array_index = ARRAY_INSTANCE_ORIGINAL;
+    int array_symm_pass = 0;
     sculpt_vertex_array_data_get(array, vd.index, &array_index, &array_symm_pass);
 
-    if (array_index == -1) {
+    if (array_index == ARRAY_INSTANCE_ORIGINAL) {
       continue;
     }
 
     SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
+    //printf("ARRAY COPY %d %d\n", array_index, array_symm_pass);
 
     float co[3];
     mul_v3_m4v3(co, array->source_imat, array->orco[vd.index]);
@@ -633,10 +646,14 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
    
    sculpt_array_ensure_base_transform(ob, ss->cache->array);
    sculpt_array_ensure_original_coordinates(ob, ss->cache->array);
-   sculpt_array_stroke_sample_add(ob, ss->cache->array);
-   sculpt_array_update(ob, brush, ss->cache->array);
-   sculpt_array_deform(sd, ob, nodes, totnode);
+   sculpt_array_ensure_geometry_indices(ob, ss->cache->array);
 
+
+   sculpt_array_stroke_sample_add(ob, ss->cache->array);
+
+   sculpt_array_update(ob, brush, ss->cache->array);
+
+   sculpt_array_deform(sd, ob, nodes, totnode);
 }
 
 void SCULPT_array_path_draw(const uint gpuattr,
@@ -649,6 +666,10 @@ void SCULPT_array_path_draw(const uint gpuattr,
     }
 
     if (!array->path.points) {
+      return;
+    }
+
+    if (array->path.tot_points < 2) {
       return;
     }
 
