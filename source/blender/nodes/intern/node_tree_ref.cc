@@ -461,7 +461,7 @@ bool NodeTreeRef::has_undefined_nodes_or_sockets() const
       return true;
     }
   }
-  return true;
+  return false;
 }
 
 std::string NodeTreeRef::to_dot() const
