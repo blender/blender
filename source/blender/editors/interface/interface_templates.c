@@ -6527,6 +6527,100 @@ static void ui_template_list_layout_draw(bContext *C,
       }
       break;
     }
+    case UILST_LAYOUT_BIG_PREVIEW_GRID:
+      box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
+      /* For grip button. */
+      glob = uiLayoutColumn(box, true);
+      /* For scrollbar. */
+      row = uiLayoutRow(glob, false);
+
+      /* TODO ED_fileselect_init_layout(). Share somehow? */
+      float size_x = (96.0f / 20.0f) * UI_UNIT_X;
+      float size_y = (96.0f / 20.0f) * UI_UNIT_Y;
+
+      const int cols_per_row = MAX2((uiLayoutGetWidth(box) - V2D_SCROLL_WIDTH) / size_x, 1);
+      uiLayout *grid = uiLayoutGridFlow(row, true, cols_per_row, true, true, true);
+
+      TemplateListLayoutDrawData adjusted_layout_data = *layout_data;
+      adjusted_layout_data.columns = cols_per_row;
+      uilist_prepare(ui_list, items, &adjusted_layout_data, &visual_info);
+
+      if (input_data->dataptr.data && input_data->prop) {
+        /* create list items */
+        for (int i = visual_info.start_idx; i < visual_info.end_idx; i++) {
+          PointerRNA *itemptr = &items->item_vec[i].item;
+          const int org_i = items->item_vec[i].org_idx;
+          const int flt_flag = items->item_vec[i].flt_flag;
+
+          overlap = uiLayoutOverlap(grid);
+          col = uiLayoutColumn(overlap, false);
+
+          uiBlock *subblock = uiLayoutGetBlock(col);
+          UI_block_flag_enable(subblock, UI_BLOCK_LIST_ITEM);
+
+          but = uiDefButR_prop(subblock,
+                               UI_BTYPE_LISTROW,
+                               0,
+                               "",
+                               0,
+                               0,
+                               size_x,
+                               size_y,
+                               &input_data->active_dataptr,
+                               input_data->activeprop,
+                               0,
+                               0,
+                               org_i,
+                               0,
+                               0,
+                               NULL);
+          UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
+
+          col = uiLayoutColumn(overlap, false);
+
+          icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
+          layout_data->draw_item(ui_list,
+                                 C,
+                                 col,
+                                 &input_data->dataptr,
+                                 itemptr,
+                                 icon,
+                                 &input_data->active_dataptr,
+                                 active_propname,
+                                 org_i,
+                                 flt_flag);
+
+          /* Items should be able to set context pointers for the layout. But the list-row button
+           * swallows events, so it needs the context storage too for handlers to see it. */
+          but->context = uiLayoutGetContextStore(col);
+
+          /* If we are "drawing" active item, set all labels as active. */
+          if (i == items->active_item_idx) {
+            ui_layout_list_set_labels_active(col);
+          }
+
+          UI_block_flag_disable(subblock, UI_BLOCK_LIST_ITEM);
+        }
+      }
+
+      if (items->tot_items > visual_info.visual_items) {
+        /* col = */ uiLayoutColumn(row, false);
+        uiDefButI(block,
+                  UI_BTYPE_SCROLL,
+                  0,
+                  "",
+                  0,
+                  0,
+                  V2D_SCROLL_WIDTH,
+                  size_y * dyn_data->visual_height,
+                  &ui_list->list_scroll,
+                  0,
+                  dyn_data->height - dyn_data->visual_height,
+                  dyn_data->visual_height,
+                  0,
+                  "");
+      }
+      break;
   }
 
   if (glob) {
