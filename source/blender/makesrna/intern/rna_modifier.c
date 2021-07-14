@@ -1621,15 +1621,11 @@ static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, Point
   MOD_nodes_update_interface(object, nmd);
 }
 
-static IDProperty *rna_NodesModifier_properties(PointerRNA *ptr, bool create)
+static IDProperty **rna_NodesModifier_properties(PointerRNA *ptr)
 {
   NodesModifierData *nmd = ptr->data;
   NodesModifierSettings *settings = &nmd->settings;
-  if (create && settings->properties == NULL) {
-    IDPropertyTemplate val = {0};
-    settings->properties = IDP_New(IDP_GROUP, &val, "Nodes Modifier Settings");
-  }
-  return settings->properties;
+  return &settings->properties;
 }
 #else
 

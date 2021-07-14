@@ -4253,6 +4253,56 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
   return ret;
 }
 
+PyDoc_STRVAR(pyrna_struct_id_properties_ensure_doc,
+             ".. method:: id_properties_ensure()\n"
+             "   :return: the parent group for an RNA struct's custom IDProperties.\n"
+             "   :rtype: :class:`bpy.types.IDPropertyGroup`\n");
+static PyObject *pyrna_struct_id_properties_ensure(BPy_StructRNA *self)
+{
+  PYRNA_STRUCT_CHECK_OBJ(self);
+
+  if (RNA_struct_idprops_check(self->ptr.type) == 0) {
+    PyErr_SetString(PyExc_TypeError, "This type doesn't support IDProperties");
+    return NULL;
+  }
+
+  IDProperty *idprops = RNA_struct_idprops(&self->ptr, true);
+
+  /* This is a paranoid check that theoretically might not be necessary.
+   * It allows the possibility that some structs can't ensure IDProperties. */
+  if (idprops == NULL) {
+    return Py_None;
+  }
+
+  BPy_IDProperty *group = PyObject_New(BPy_IDProperty, &BPy_IDGroup_Type);
+  group->owner_id = self->ptr.owner_id;
+  group->prop = idprops;
+  group->parent = NULL;
+  return (PyObject *)group;
+}
+
+PyDoc_STRVAR(pyrna_struct_id_properties_clear_doc,
+             ".. method:: id_properties_clear()\n"
+             "   :return: Remove the parent group for an RNA struct's custom IDProperties.\n");
+static PyObject *pyrna_struct_id_properties_clear(BPy_StructRNA *self)
+{
+  PYRNA_STRUCT_CHECK_OBJ(self);
+
+  if (RNA_struct_idprops_check(self->ptr.type) == 0) {
+    PyErr_SetString(PyExc_TypeError, "This type doesn't support IDProperties");
+    return NULL;
+  }
+
+  IDProperty **idprops = RNA_struct_idprops_p(&self->ptr);
+
+  if (*idprops) {
+    IDP_FreeProperty(*idprops);
+    *idprops = NULL;
+  }
+
+  Py_RETURN_NONE;
+}
+
 /* ---------------getattr-------------------------------------------- */
 static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 {
@@ -5743,6 +5793,14 @@ static struct PyMethodDef pyrna_struct_methods[] = {
      METH_VARARGS | METH_CLASS,
      pyrna_struct_bl_rna_get_subclass_doc},
     {"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
+    {"id_properties_ensure",
+     (PyCFunction)pyrna_struct_id_properties_ensure,
+     METH_NOARGS,
+     pyrna_struct_id_properties_ensure_doc},
+    {"id_properties_clear",
+     (PyCFunction)pyrna_struct_id_properties_clear,
+     METH_NOARGS,
+     pyrna_struct_id_properties_clear_doc},
 
 /* experimental */
 /* unused for now */

@@ -493,9 +493,10 @@ StructRNA *rna_ID_refine(PointerRNA *ptr)
   return ID_code_to_RNA_type(GS(id->name));
 }
 
-IDProperty *rna_ID_idprops(PointerRNA *ptr, bool create)
+IDProperty **rna_ID_idprops(PointerRNA *ptr)
 {
-  return IDP_GetProperties(ptr->data, create);
+  ID *id = (ID *)ptr->data;
+  return &id->properties;
 }
 
 void rna_ID_fake_user_set(PointerRNA *ptr, bool value)
@@ -510,9 +511,9 @@ void rna_ID_fake_user_set(PointerRNA *ptr, bool value)
   }
 }
 
-IDProperty *rna_PropertyGroup_idprops(PointerRNA *ptr, bool UNUSED(create))
+IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
 {
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 void rna_PropertyGroup_unregister(Main *UNUSED(bmain), StructRNA *type)
@@ -1162,12 +1163,12 @@ static PointerRNA rna_IDPreview_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ImagePreview, prv_img);
 }
 
-static IDProperty *rna_IDPropertyWrapPtr_idprops(PointerRNA *ptr, bool UNUSED(create))
+static IDProperty **rna_IDPropertyWrapPtr_idprops(PointerRNA *ptr)
 {
   if (ptr == NULL) {
     return NULL;
   }
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 static void rna_Library_version_get(PointerRNA *ptr, int *value)

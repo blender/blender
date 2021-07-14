@@ -75,16 +75,10 @@ static void rna_AssetMetaData_tag_remove(AssetMetaData *asset_data,
   RNA_POINTER_INVALIDATE(tag_ptr);
 }
 
-static IDProperty *rna_AssetMetaData_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_AssetMetaData_idprops(PointerRNA *ptr)
 {
   AssetMetaData *asset_data = ptr->data;
-
-  if (create && !asset_data->properties) {
-    IDPropertyTemplate val = {0};
-    asset_data->properties = IDP_New(IDP_GROUP, &val, "RNA_AssetMetaData group");
-  }
-
-  return asset_data->properties;
+  return &asset_data->properties;
 }
 
 static void rna_AssetMetaData_description_get(PointerRNA *ptr, char *value)

@@ -568,14 +568,9 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
   }
 }
 
-static IDProperty *rna_OperatorProperties_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_OperatorProperties_idprops(PointerRNA *ptr)
 {
-  if (create && !ptr->data) {
-    IDPropertyTemplate val = {0};
-    ptr->data = IDP_New(IDP_GROUP, &val, "RNA_OperatorProperties group");
-  }
-
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 static void rna_Operator_name_get(PointerRNA *ptr, char *value)
@@ -1120,13 +1115,9 @@ static PointerRNA rna_wmKeyConfig_preferences_get(PointerRNA *ptr)
   }
 }
 
-static IDProperty *rna_wmKeyConfigPref_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_wmKeyConfigPref_idprops(PointerRNA *ptr)
 {
-  if (create && !ptr->data) {
-    IDPropertyTemplate val = {0};
-    ptr->data = IDP_New(IDP_GROUP, &val, "RNA_KeyConfigPreferences group");
-  }
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 static void rna_wmKeyConfigPref_unregister(Main *UNUSED(bmain), StructRNA *type)

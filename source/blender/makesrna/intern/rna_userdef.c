@@ -809,14 +809,9 @@ static const EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C
 }
 #  endif
 
-static IDProperty *rna_AddonPref_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_AddonPref_idprops(PointerRNA *ptr)
 {
-  if (create && !ptr->data) {
-    IDPropertyTemplate val = {0};
-    ptr->data = IDP_New(IDP_GROUP, &val, "RNA_AddonPreferences group");
-  }
-
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)

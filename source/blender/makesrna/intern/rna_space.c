@@ -1041,16 +1041,10 @@ static bool rna_RegionView3D_is_orthographic_side_view_get(PointerRNA *ptr)
   return RV3D_VIEW_IS_AXIS(rv3d->view);
 }
 
-static IDProperty *rna_View3DShading_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_View3DShading_idprops(PointerRNA *ptr)
 {
   View3DShading *shading = ptr->data;
-
-  if (create && !shading->prop) {
-    IDPropertyTemplate val = {0};
-    shading->prop = IDP_New(IDP_GROUP, &val, "View3DShading ID properties");
-  }
-
-  return shading->prop;
+  return &shading->prop;
 }
 
 static void rna_3DViewShading_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)

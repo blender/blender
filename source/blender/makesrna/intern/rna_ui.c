@@ -452,15 +452,10 @@ static unsigned int rna_UIList_filter_const_FILTER_ITEM_get(PointerRNA *UNUSED(p
   return UILST_FLT_ITEM;
 }
 
-static IDProperty *rna_UIList_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_UIList_idprops(PointerRNA *ptr)
 {
   uiList *ui_list = (uiList *)ptr->data;
-  if (create && !ui_list->properties) {
-    IDPropertyTemplate val = {0};
-    ui_list->properties = IDP_New(IDP_GROUP, &val, "RNA_UIList IDproperties group");
-  }
-
-  return ui_list->properties;
+  return &ui_list->properties;
 }
 
 static void uilist_draw_item(uiList *ui_list,

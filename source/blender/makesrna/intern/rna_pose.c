@@ -224,16 +224,10 @@ static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
                  sizeof(agrp->name));
 }
 
-static IDProperty *rna_PoseBone_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_PoseBone_idprops(PointerRNA *ptr)
 {
   bPoseChannel *pchan = ptr->data;
-
-  if (create && !pchan->prop) {
-    IDPropertyTemplate val = {0};
-    pchan->prop = IDP_New(IDP_GROUP, &val, "RNA_PoseBone group");
-  }
-
-  return pchan->prop;
+  return &pchan->prop;
 }
 
 static void rna_Pose_ik_solver_set(struct PointerRNA *ptr, int value)

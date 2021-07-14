@@ -293,14 +293,9 @@ static StructRNA *rna_GizmoProperties_refine(PointerRNA *ptr)
   }
 }
 
-static IDProperty *rna_GizmoProperties_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_GizmoProperties_idprops(PointerRNA *ptr)
 {
-  if (create && !ptr->data) {
-    IDPropertyTemplate val = {0};
-    ptr->data = IDP_New(IDP_GROUP, &val, "RNA_GizmoProperties group");
-  }
-
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 static PointerRNA rna_Gizmo_properties_get(PointerRNA *ptr)
@@ -585,14 +580,9 @@ static StructRNA *rna_GizmoGroupProperties_refine(PointerRNA *ptr)
   }
 }
 
-static IDProperty *rna_GizmoGroupProperties_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_GizmoGroupProperties_idprops(PointerRNA *ptr)
 {
-  if (create && !ptr->data) {
-    IDPropertyTemplate val = {0};
-    ptr->data = IDP_New(IDP_GROUP, &val, "RNA_GizmoGroupProperties group");
-  }
-
-  return ptr->data;
+  return (IDProperty **)&ptr->data;
 }
 
 static wmGizmo *rna_GizmoGroup_gizmo_new(wmGizmoGroup *gzgroup,

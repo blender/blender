@@ -811,6 +811,7 @@ void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
 void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
+struct IDProperty **RNA_struct_idprops_p(PointerRNA *ptr);
 struct IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create);
 bool RNA_struct_idprops_check(StructRNA *srna);
 bool RNA_struct_idprops_register_check(const StructRNA *type);

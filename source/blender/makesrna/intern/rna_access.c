@@ -369,15 +369,32 @@ static bool rna_idproperty_ui_set_default(PointerRNA *ptr,
   return true;
 }
 
-IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create)
+IDProperty **RNA_struct_idprops_p(PointerRNA *ptr)
 {
   StructRNA *type = ptr->type;
-
-  if (type && type->idproperties) {
-    return type->idproperties(ptr, create);
+  if (type == NULL) {
+    return NULL;
+  }
+  if (type->idproperties == NULL) {
+    return NULL;
   }
 
-  return NULL;
+  return type->idproperties(ptr);
+}
+
+IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create)
+{
+  IDProperty **property_ptr = RNA_struct_idprops_p(ptr);
+  if (property_ptr == NULL) {
+    return NULL;
+  }
+
+  if (create && *property_ptr == NULL) {
+    IDPropertyTemplate val = {0};
+    *property_ptr = IDP_New(IDP_GROUP, &val, __func__);
+  }
+
+  return *property_ptr;
 }
 
 bool RNA_struct_idprops_check(StructRNA *srna)

@@ -260,28 +260,16 @@ static char *rna_Bone_path(PointerRNA *ptr)
   return BLI_sprintfN("bones[\"%s\"]", name_esc);
 }
 
-static IDProperty *rna_Bone_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_Bone_idprops(PointerRNA *ptr)
 {
   Bone *bone = ptr->data;
-
-  if (create && !bone->prop) {
-    IDPropertyTemplate val = {0};
-    bone->prop = IDP_New(IDP_GROUP, &val, "RNA_Bone ID properties");
-  }
-
-  return bone->prop;
+  return &bone->prop;
 }
 
-static IDProperty *rna_EditBone_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_EditBone_idprops(PointerRNA *ptr)
 {
   EditBone *ebone = ptr->data;
-
-  if (create && !ebone->prop) {
-    IDPropertyTemplate val = {0};
-    ebone->prop = IDP_New(IDP_GROUP, &val, "RNA_EditBone ID properties");
-  }
-
-  return ebone->prop;
+  return &ebone->prop;
 }
 
 static void rna_bone_layer_set(int *layer, const bool *values)
