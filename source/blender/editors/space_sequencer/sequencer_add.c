@@ -260,7 +260,7 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
         char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
         BLI_strncpy(load_data->name, filename, sizeof(load_data->name));
-        BLI_snprintf(load_data->path, sizeof(load_data->path), "%s%s", directory, filename);
+        BLI_join_dirfile(load_data->path, sizeof(load_data->path), directory, filename);
         MEM_freeN(filename);
         break;
       }
