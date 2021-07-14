@@ -129,7 +129,7 @@ static void applySeqSlide(TransInfo *t, const int UNUSED(mval[2]))
     transform_convert_sequencer_channel_clamp(t, values_final);
 
     if (t->con.mode & CON_APPLY) {
-      t->con.applyVec(t, NULL, NULL, t->values, values_final);
+      t->con.applyVec(t, NULL, NULL, values_final, values_final);
     }
   }
 
