@@ -457,6 +457,7 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
       GPUOffScreen *offscreen = GPU_offscreen_create(
           region->winx, region->winy, false, false, NULL);
       if (!offscreen) {
+        WM_report(RPT_ERROR, "Region could not be drawn!");
         return;
       }
 

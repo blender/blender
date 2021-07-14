@@ -609,7 +609,13 @@ GPUOffScreen *GPU_offscreen_create(
   }
 
   if ((depth && !ofs->depth) || !ofs->color) {
-    BLI_snprintf(err_out, 256, "GPUTexture: Texture allocation failed.");
+    const char error[] = "GPUTexture: Texture allocation failed.";
+    if (err_out) {
+      BLI_snprintf(err_out, 256, error);
+    }
+    else {
+      fprintf(stderr, error);
+    }
     GPU_offscreen_free(ofs);
     return nullptr;
   }
