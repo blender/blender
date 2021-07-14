@@ -154,17 +154,6 @@ bool BKE_gpencil_merge_materials(struct Object *ob,
 /* statistics functions */
 void BKE_gpencil_stats_update(struct bGPdata *gpd);
 
-/* Utilities for creating and populating GP strokes */
-/* - Number of values defining each point in the built-in data
- *   buffers for primitives (e.g. 2D Monkey)
- */
-#define GP_PRIM_DATABUF_SIZE 5
-
-void BKE_gpencil_stroke_add_points(struct bGPDstroke *gps,
-                                   const float *array,
-                                   const int totpoints,
-                                   const float mat[4][4]);
-
 struct bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness);
 struct bGPDstroke *BKE_gpencil_stroke_add(
     struct bGPDframe *gpf, int mat_idx, int totpoints, short thickness, const bool insert_at_head);

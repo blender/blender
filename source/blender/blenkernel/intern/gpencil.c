@@ -806,32 +806,6 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 /* Utilities for easier bulk-creation of geometry */
 
 /**
- * Populate stroke with point data from data buffers.
- * \param gps: Grease pencil stroke
- * \param array: Flat array of point data values. Each entry has #GP_PRIM_DATABUF_SIZE values.
- * \param totpoints: Total of points
- * \param mat: 4x4 transform matrix to transform points into the right coordinate space.
- */
-void BKE_gpencil_stroke_add_points(bGPDstroke *gps,
-                                   const float *array,
-                                   const int totpoints,
-                                   const float mat[4][4])
-{
-  for (int i = 0; i < totpoints; i++) {
-    bGPDspoint *pt = &gps->points[i];
-    const int x = GP_PRIM_DATABUF_SIZE * i;
-
-    pt->x = array[x];
-    pt->y = array[x + 1];
-    pt->z = array[x + 2];
-    mul_m4_v3(mat, &pt->x);
-
-    pt->pressure = array[x + 3];
-    pt->strength = array[x + 4];
-  }
-}
-
-/**
  * Create a new stroke, with pre-allocated data buffers.
  * \param mat_idx: Index of the material
  * \param totpoints: Total points
