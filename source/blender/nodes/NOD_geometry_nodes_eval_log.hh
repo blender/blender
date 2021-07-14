@@ -90,6 +90,24 @@ class GeometryValueLog : public ValueLog {
   std::unique_ptr<GeometrySet> full_geometry_;
 
  public:
+  struct MeshInfo {
+    int tot_verts, tot_edges, tot_faces;
+  };
+  struct CurveInfo {
+    int tot_splines;
+  };
+  struct PointCloudInfo {
+    int tot_points;
+  };
+  struct InstancesInfo {
+    int tot_instances;
+  };
+
+  std::optional<MeshInfo> mesh_info;
+  std::optional<CurveInfo> curve_info;
+  std::optional<PointCloudInfo> pointcloud_info;
+  std::optional<InstancesInfo> instances_info;
+
   GeometryValueLog(const GeometrySet &geometry_set, bool log_full_geometry);
 
   Span<GeometryAttributeInfo> attributes() const
