@@ -39,15 +39,24 @@ class TestGraph:
                 else:
                     categories[category] = [entry]
 
-            # Generate one graph for every device x category combination.
+            # Generate one graph for every device x category x result key combination.
             for category, category_entries in categories.items():
                 entries = sorted(category_entries, key=lambda entry: (entry.revision, entry.test))
+
+                outputs = set()
+                for entry in entries:
+                    for output in entry.output.keys():
+                        outputs.add(output)
+
                 chart_type = 'line' if entries[0].benchmark_type == 'time_series' else 'comparison'
-                data.append(self.chart(device_name, category, entries, chart_type))
+
+                for output in outputs:
+                    chart_name = f"{category} ({output})"
+                    data.append(self.chart(device_name, chart_name, entries, chart_type, output))
 
         self.json = json.dumps(data, indent=2)
 
-    def chart(self, device_name: str, category: str, entries: List, chart_type: str) -> Dict:
+    def chart(self, device_name: str, chart_name: str, entries: List, chart_type: str, output: str) -> Dict:
         # Gather used tests.
         tests = {}
         for entry in entries:
@@ -71,7 +80,7 @@ class TestGraph:
         if chart_type == 'line':
             cols.append({'id': '', 'label': 'Date', 'type': 'date'})
         else:
-            cols.append({'id': '', 'label': 'Revision', 'type': 'string'})
+            cols.append({'id': '', 'label': ' ', 'type': 'string'})
         for test, test_index in tests.items():
             cols.append({'id': '', 'label': test, 'type': 'number'})
 
@@ -88,11 +97,11 @@ class TestGraph:
         for entry in entries:
             test_index = tests[entry.test]
             revision_index = revisions[entry.revision]
-            time = entry.output['time']
+            time = entry.output[output] if output in entry.output else -1.0
             rows[revision_index]['c'][test_index + 1] = {'f': None, 'v': time}
 
         data = {'cols': cols, 'rows': rows}
-        return {'device': device_name, 'category': category, 'data': data, 'chart_type': chart_type}
+        return {'device': device_name, 'name': chart_name, 'data': data, 'chart_type': chart_type}
 
     def write(self, filepath: pathlib.Path) -> None:
         # Write HTML page with JSON graph data embedded.
