@@ -114,6 +114,7 @@
 #include "SEQ_iterator.h"
 
 #include "intern/builder/deg_builder.h"
+#include "intern/builder/deg_builder_rna.h"
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
@@ -1199,7 +1200,7 @@ void DepsgraphNodeBuilder::build_driver_id_property(ID *id, const char *rna_path
   if (prop == nullptr) {
     return;
   }
-  if (!RNA_property_is_idprop(prop)) {
+  if (!rna_prop_affects_parameters_node(&ptr, prop)) {
     return;
   }
   const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);

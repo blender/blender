@@ -1611,7 +1611,7 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
         }
       }
     }
-    if (property_entry_key.prop != nullptr && RNA_property_is_idprop(property_entry_key.prop)) {
+    if (rna_prop_affects_parameters_node(&property_entry_key.ptr, property_entry_key.prop)) {
       RNAPathKey property_exit_key(property_entry_key.id,
                                    property_entry_key.ptr,
                                    property_entry_key.prop,
@@ -1714,7 +1714,7 @@ void DepsgraphRelationBuilder::build_driver_id_property(ID *id, const char *rna_
   if (prop == nullptr) {
     return;
   }
-  if (!RNA_property_is_idprop(prop)) {
+  if (!rna_prop_affects_parameters_node(&ptr, prop)) {
     return;
   }
   const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);

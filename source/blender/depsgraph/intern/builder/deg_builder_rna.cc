@@ -180,8 +180,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   node_identifier.operation_name = "";
   node_identifier.operation_name_tag = -1;
   /* Handling of commonly known scenarios. */
-  if (prop != nullptr && RNA_property_is_idprop(prop) &&
-      !RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
+  if (rna_prop_affects_parameters_node(ptr, prop)) {
     node_identifier.type = NodeType::PARAMETERS;
     node_identifier.operation_code = OperationCode::ID_PROPERTY;
     node_identifier.operation_name = RNA_property_identifier(
@@ -396,6 +395,14 @@ RNANodeQueryIDData *RNANodeQuery::ensure_id_data(const ID *id)
   unique_ptr<RNANodeQueryIDData> &id_data = id_data_map_.lookup_or_add_cb(
       id, [&]() { return std::make_unique<RNANodeQueryIDData>(id); });
   return id_data.get();
+}
+
+bool rna_prop_affects_parameters_node(const PointerRNA *ptr, const PropertyRNA *prop)
+{
+  return prop != nullptr && RNA_property_is_idprop(prop) &&
+         /* ID properties in the geometry nodes modifier don't affect that parameters node. Instead
+            they affect the modifier and therefore the geometry node directly. */
+         !RNA_struct_is_a(ptr->type, &RNA_NodesModifier);
 }
 
 }  // namespace blender::deg
