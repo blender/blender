@@ -67,6 +67,11 @@ static const char array_instance_cd_name[] = "v_array_instance";
 
 #define ARRAY_INSTANCE_ORIGINAL -1 
 
+static void sculpt_vertex_array_data_get(SculptArray *array, const int vertex, int *r_copy, int *r_symmetry_pass) {
+  *r_copy = array->copy_index[vertex];
+  *r_symmetry_pass = array->copy_index[vertex];
+}
+
 
 static void sculpt_array_datalayers_add(Mesh *mesh) {
   int *v_array_instance = CustomData_add_layer_named(&mesh->vdata,
@@ -209,6 +214,24 @@ static void sculpt_array_final_mesh_write(Object *ob, BMesh *final_mesh) {
   ss->needs_pbvh_rebuild = true;
 }
 
+static void sculpt_array_write_geometry_indices(Object *ob, SculptArray *array) {
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  array->copy_index = MEM_malloc_arrayN(mesh->totvert, sizeof(int), "array copy index");
+  array->symmetry_pass = MEM_malloc_arrayN(mesh->totvert, sizeof(int), "array symmetry pass index");
+
+  int *cd_array_instance = CustomData_get_layer_named(
+  &mesh->vdata, CD_PROP_INT32, array_instance_cd_name);
+
+  int *cd_array_symm_pass = CustomData_get_layer_named(
+  &mesh->vdata, CD_PROP_INT32, array_symmetry_pass_cd_name);
+
+  for (int i = 0; i < mesh->totvert; i++) {
+    array->copy_index[i] = cd_array_instance[i];
+    array->symmetry_pass[i] = cd_array_symm_pass[i];
+  }
+
+}
+
 static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array) {
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
   sculpt_array_datalayers_add(sculpt_mesh);
@@ -245,8 +268,13 @@ static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array) 
   }
 
   sculpt_array_final_mesh_write(ob, destbm);
+
   BM_mesh_free(srcbm);
   BM_mesh_free(destbm);
+
+
+  sculpt_array_write_geometry_indices(ob, array);
+  SCULPT_array_datalayers_free(ob);
 }
 
 static SculptArray *sculpt_array_cache_create(Object *ob, const int num_copies) {
@@ -268,6 +296,8 @@ static void sculpt_array_cache_free(SculptArray *array) {
   for (int symm_pass = 0; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
       MEM_SAFE_FREE(array->copies[symm_pass]);
   }
+  MEM_freeN(array->copy_index);
+  MEM_freeN(array->symmetry_pass);
   MEM_freeN(array);
 }
 
@@ -431,9 +461,6 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
        SculptArrayCopy *copy = &array->copies[symm_pass][copy_index];
        SculptArrayCopy *main_copy = &array->copies[0][copy_index];
        unit_m4(copy->mat);
-       //copy_m4_m4(copy->mat, main_copy->mat);
-       //flip_v3_v3(copy->mat[3],main_copy->mat[3], symm_pass);
-       //add_v3_v3(copy->mat[3], symm_orig);
        for (int m = 0; m < 4; m++) {
         flip_v3_v3(copy->mat[m],main_copy->mat[m], symm_pass);
        }
@@ -451,22 +478,18 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
 
     Mesh *mesh = BKE_object_get_original_mesh(data->ob);
 
-    int *cd_array_instance = CustomData_get_layer_named(
-    &mesh->vdata, CD_PROP_INT32, array_instance_cd_name);
-
-    int *cd_array_symm_pass = CustomData_get_layer_named(
-    &mesh->vdata, CD_PROP_INT32, array_symmetry_pass_cd_name);
-
     bool any_modified = false;
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-   	const int array_index = cd_array_instance[vd.index];
+    int array_index;
+    int array_symm_pass;
+    sculpt_vertex_array_data_get(array, vd.index, &array_index, &array_symm_pass);
+
     if (array_index == -1) {
       continue;
     }
 
-   	const int array_symm_pass = cd_array_symm_pass[vd.index];
     SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
 
     float co[3];
@@ -546,8 +569,6 @@ static void sculpt_array_ensure_base_transform(Object *ob, SculptArray *array){
   scultp_array_basis_from_direction(array->source_mat, ss->cache, ss->cache->grab_delta);
   copy_v3_v3(array->source_mat[3], array->source_origin);
   invert_m4_m4(array->source_imat, array->source_mat);
-  print_m4("source_mat", array->source_mat);
-  print_m4("source_imat", array->source_imat);
 
   array->source_mat_valid = true;
   return;

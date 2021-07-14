@@ -482,6 +482,9 @@ typedef struct SculptArray {
   float source_imat[4][4];
   float (*orco)[3];
 
+  int *copy_index;
+  int *symmetry_pass;
+
 } SculptArray;
 
 typedef struct SculptFakeNeighbors {
