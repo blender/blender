@@ -525,6 +525,46 @@ static void rna_uiTemplateAnyID(uiLayout *layout,
   uiTemplateAnyID(layout, ptr, propname, proptypename, name);
 }
 
+void rna_uiTemplateList(uiLayout *layout,
+                        struct bContext *C,
+                        const char *listtype_name,
+                        const char *list_id,
+                        struct PointerRNA *dataptr,
+                        const char *propname,
+                        struct PointerRNA *active_dataptr,
+                        const char *active_propname,
+                        const char *item_dyntip_propname,
+                        const int rows,
+                        const int maxrows,
+                        const int layout_type,
+                        const int columns,
+                        const bool sort_reverse,
+                        const bool sort_lock)
+{
+  int flags = UI_TEMPLATE_LIST_FLAG_NONE;
+  if (sort_reverse) {
+    flags |= UI_TEMPLATE_LIST_SORT_REVERSE;
+  }
+  if (sort_lock) {
+    flags |= UI_TEMPLATE_LIST_SORT_LOCK;
+  }
+
+  uiTemplateList(layout,
+                 C,
+                 listtype_name,
+                 list_id,
+                 dataptr,
+                 propname,
+                 active_dataptr,
+                 active_propname,
+                 item_dyntip_propname,
+                 rows,
+                 maxrows,
+                 layout_type,
+                 columns,
+                 flags);
+}
+
 static void rna_uiTemplateCacheFile(uiLayout *layout,
                                     bContext *C,
                                     PointerRNA *ptr,
@@ -1508,7 +1548,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   parm = RNA_def_pointer(func, "clip_user", "MovieClipUser", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 
-  func = RNA_def_function(srna, "template_list", "uiTemplateList");
+  func = RNA_def_function(srna, "template_list", "rna_uiTemplateList");
   RNA_def_function_ui_description(func, "Item. A list widget to display data, e.g. vertexgroups.");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_string(func, "listtype_name", NULL, 0, "", "Identifier of the list type to use");

@@ -25,6 +25,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h" /* size_t */
+#include "BLI_utildefines.h"
 #include "UI_interface_icons.h"
 
 #ifdef __cplusplus
@@ -2194,6 +2195,17 @@ void uiTemplateCacheFile(uiLayout *layout,
 
 /* Default UIList class name, keep in sync with its declaration in bl_ui/__init__.py */
 #define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"
+enum uiTemplateListFlags {
+  UI_TEMPLATE_LIST_FLAG_NONE = 0,
+  UI_TEMPLATE_LIST_SORT_REVERSE = (1 << 0),
+  UI_TEMPLATE_LIST_SORT_LOCK = (1 << 1),
+  /* Don't allow resizing the list, i.e. don't add the grip button. */
+  UI_TEMPLATE_LIST_NO_GRIP = (1 << 2),
+
+  UI_TEMPLATE_LIST_FLAGS_LAST
+};
+ENUM_OPERATORS(enum uiTemplateListFlags, UI_TEMPLATE_LIST_FLAGS_LAST);
+
 void uiTemplateList(uiLayout *layout,
                     struct bContext *C,
                     const char *listtype_name,
@@ -2207,8 +2219,23 @@ void uiTemplateList(uiLayout *layout,
                     int maxrows,
                     int layout_type,
                     int columns,
-                    bool sort_reverse,
-                    bool sort_lock);
+                    enum uiTemplateListFlags flags);
+struct uiList *uiTemplateList_ex(uiLayout *layout,
+                                 struct bContext *C,
+                                 const char *listtype_name,
+                                 const char *list_id,
+                                 struct PointerRNA *dataptr,
+                                 const char *propname,
+                                 struct PointerRNA *active_dataptr,
+                                 const char *active_propname,
+                                 const char *item_dyntip_propname,
+                                 int rows,
+                                 int maxrows,
+                                 int layout_type,
+                                 int columns,
+                                 enum uiTemplateListFlags flags,
+                                 void *customdata);
+
 void uiTemplateNodeLink(uiLayout *layout,
                         struct bContext *C,
                         struct bNodeTree *ntree,

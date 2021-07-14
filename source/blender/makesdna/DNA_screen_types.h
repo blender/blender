@@ -43,6 +43,7 @@ struct SpaceLink;
 struct SpaceType;
 struct uiBlock;
 struct uiLayout;
+struct uiList;
 struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
@@ -246,17 +247,25 @@ typedef struct PanelCategoryStack {
   char idname[64];
 } PanelCategoryStack;
 
+typedef void (*uiListFreeRuntimeDataFunc)(struct uiList *ui_list);
+
 /* uiList dynamic data... */
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
 typedef struct uiListDyn {
+  /** Callback to free UI data when freeing UI-Lists in BKE. */
+  uiListFreeRuntimeDataFunc free_runtime_data_fn;
+
   /** Number of rows needed to draw all elements. */
   int height;
   /** Actual visual height of the list (in rows). */
   int visual_height;
   /** Minimal visual height of the list (in rows). */
   int visual_height_min;
+
+  /** Number of columns drawn for grid layouts. */
+  int columns;
 
   /** Number of items in collection. */
   int items_len;
@@ -269,6 +278,9 @@ typedef struct uiListDyn {
    */
   int resize;
   int resize_prev;
+
+  /* Allocated custom data. Free'ed together with the uiList (and when re-assigning). */
+  void *customdata;
 
   /* Filtering data. */
   /** Items_len length. */

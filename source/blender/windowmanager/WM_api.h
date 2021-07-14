@@ -621,6 +621,10 @@ bool WM_uilisttype_add(struct uiListType *ult);
 void WM_uilisttype_freelink(struct uiListType *ult);
 void WM_uilisttype_free(void);
 
+void WM_uilisttype_to_full_list_id(const struct uiListType *ult,
+                                   const char *list_id,
+                                   char *r_ui_list_id);
+
 /* wm_menu_type.c */
 void WM_menutype_init(void);
 struct MenuType *WM_menutype_find(const char *idname, bool quiet);

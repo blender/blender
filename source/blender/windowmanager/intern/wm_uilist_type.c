@@ -28,7 +28,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "UI_interface.h"
+
 #include "BLI_ghash.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_screen.h"
@@ -87,4 +90,22 @@ void WM_uilisttype_free(void)
 
   BLI_ghash_free(uilisttypes_hash, NULL, MEM_freeN);
   uilisttypes_hash = NULL;
+}
+
+/**
+ * The "full" list-ID is an internal name used for storing and identifying a list. It is built like
+ * this:
+ * "{uiListType.idname}_{list_id}", wherby "list_id" is an optional parameter passed to
+ * `UILayout.template_list()`. If it is not set, the full list-ID is just "{uiListType.idname}_".
+ *
+ * Note that whenever the Python API refers to the list-ID, it's the short, "non-full" one it
+ * passed to `UILayout.template_list()`. C code can query that through
+ * #WM_uilisttype_list_id_get().
+ */
+void WM_uilisttype_to_full_list_id(const uiListType *ult,
+                                   const char *list_id,
+                                   char r_full_list_id[UI_MAX_NAME_STR])
+{
+  /* We tag the list id with the list type... */
+  BLI_snprintf(r_full_list_id, UI_MAX_NAME_STR, "%s_%s", ult->idname, list_id ? list_id : "");
 }

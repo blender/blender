@@ -1953,8 +1953,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                    0,
                    0,
                    0,
-                   false,
-                   false);
+                   UI_TEMPLATE_LIST_FLAG_NONE);
     RNA_property_collection_lookup_int(
         ptr, RNA_struct_find_property(ptr, "layer_slots"), active_index, &active_input_ptr);
   }
@@ -1972,8 +1971,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                    0,
                    0,
                    0,
-                   false,
-                   false);
+                   UI_TEMPLATE_LIST_FLAG_NONE);
     RNA_property_collection_lookup_int(
         ptr, RNA_struct_find_property(ptr, "file_slots"), active_index, &active_input_ptr);
   }
