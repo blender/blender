@@ -422,7 +422,9 @@ static int rna_property_override_diff(Main *bmain,
 
   bool override_changed = false;
   eRNAOverrideMatch diff_flags = flags;
-  if (!RNA_property_overridable_get(&prop_a->ptr, prop_a->rawprop)) {
+  if (!RNA_property_overridable_get(&prop_a->ptr, prop_a->rawprop) ||
+      (!ELEM(RNA_property_type(prop_a->rawprop), PROP_POINTER, PROP_COLLECTION) &&
+       !RNA_property_editable_flag(&prop_a->ptr, prop_a->rawprop))) {
     diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
   }
   const int diff = override_diff(bmain,
