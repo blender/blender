@@ -260,7 +260,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     BLI_listbase_clear(&input_links);
 
     for (link = (bNodeLink *)ntree->links.first; link; link = link->next) {
-      if (nodeLinkIsHidden(link)) {
+      if (node_link_is_hidden_or_dimmed(&region->v2d, link)) {
         continue;
       }
       if (add_reroute_intersect_check(link, mcoords, i, insert_point)) {
