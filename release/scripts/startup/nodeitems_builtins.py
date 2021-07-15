@@ -560,7 +560,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeMeshLine"),
         NodeItem("GeometryNodeMeshUVSphere"),
     ]),
-    
+
     GeometryNodeCategory("GEO_POINT", "Point", items=[
         NodeItem("GeometryNodePointDistribute"),
         NodeItem("GeometryNodePointInstance"),
