@@ -1232,6 +1232,10 @@ int node_find_indicated_socket(
 
 float node_link_dim_factor(const View2D *v2d, const bNodeLink *link)
 {
+  if (link->fromsock == nullptr || link->tosock == nullptr) {
+    return 1.0f;
+  }
+
   const float min_endpoint_distance = std::min(
       std::max(BLI_rctf_length_x(&v2d->cur, link->fromsock->locx),
                BLI_rctf_length_y(&v2d->cur, link->fromsock->locy)),
