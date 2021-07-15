@@ -185,6 +185,9 @@ void *BLI_memarena_calloc(MemArena *ma, size_t size)
  *
  * \note Useful for multi-threaded tasks that need a thread-local #MemArena
  * that is kept after the multi-threaded operation is completed.
+ *
+ * \note Avoid accumulating memory pools where possible
+ * as any unused memory in `ma_src` is wasted every merge.
  */
 void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
 {

@@ -5053,7 +5053,6 @@ def km_object_non_modal(params):
         ])
     else:
         items.extend([
-            # Transfer Sculpt Mode (release to avoid conflict with grease pencil drawing).
             # NOTE: this shortcut (while not temporary) is not ideal, see: T89757.
             ("object.transfer_mode", {"type": 'Q', "value": 'PRESS', "alt": True}, None),
         ])

@@ -982,7 +982,6 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
   view_layer->object_bases = new_object_bases;
 
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-    printf("%s\n", base->object->id.name);
     BKE_base_eval_flags(base);
   }
 
