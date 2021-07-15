@@ -186,6 +186,9 @@ static void task_parallel_iterator_no_threads(const TaskParallelSettings *settin
   if (use_userdata_chunk) {
     userdata_chunk_local = MALLOCA(userdata_chunk_size);
     memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+    if (settings->func_init != NULL) {
+      settings->func_init(state->userdata, userdata_chunk_local);
+    }
   }
 
   /* Also marking it as non-threaded for the iterator callback. */
@@ -247,6 +250,9 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
     if (use_userdata_chunk) {
       userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
       memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+      if (settings->func_init != NULL) {
+        settings->func_init(state->userdata, userdata_chunk_local);
+      }
     }
     /* Use this pool's pre-allocated tasks. */
     BLI_task_pool_push(task_pool, parallel_iterator_func, userdata_chunk_local, false, NULL);
@@ -422,6 +428,9 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
     if (use_userdata_chunk) {
       userdata_chunk_local = MALLOCA(userdata_chunk_size);
       memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+      if (settings->func_init != NULL) {
+        settings->func_init(state.userdata, userdata_chunk_local);
+      }
       tls.userdata_chunk = userdata_chunk_local;
     }
 
@@ -465,6 +474,9 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
     if (use_userdata_chunk) {
       userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
       memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+      if (settings->func_init != NULL) {
+        settings->func_init(userdata, userdata_chunk_local);
+      }
     }
     mempool_iterator_data[i].tls.userdata_chunk = userdata_chunk_local;
 
