@@ -192,6 +192,8 @@ harvest(potrace/include potrace/include "*.h")
 harvest(potrace/lib potrace/lib "*.a")
 harvest(haru/include haru/include "*.h")
 harvest(haru/lib haru/lib "*.a")
+harvest(zstd/include zstd/include "*.h")
+harvest(zstd/lib zstd/lib "*.a")
 
 if(UNIX AND NOT APPLE)
   harvest(libglu/lib mesa/lib "*.so*")

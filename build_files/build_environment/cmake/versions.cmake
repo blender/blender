@@ -500,5 +500,11 @@ set(HARU_HASH 4f916aa49c3069b3a10850013c507460)
 set(HARU_HASH_TYPE MD5)
 set(HARU_FILE libharu-${HARU_VERSION}.tar.gz)
 
+set(ZSTD_VERSION 1.5.0)
+set(ZSTD_URI https://github.com/facebook/zstd/releases/download/v${ZSTD_VERSION}/zstd-${ZSTD_VERSION}.tar.gz)
+set(ZSTD_HASH 5194fbfa781fcf45b98c5e849651aa7b3b0a008c6b72d4a0db760f3002291e94)
+set(ZSTD_HASH_TYPE SHA256)
+set(ZSTD_FILE zstd-${ZSTD_VERSION}.tar.gz)
+
 set(SSE2NEON_GIT https://github.com/DLTcollab/sse2neon.git)
 set(SSE2NEON_GIT_HASH fe5ff00bb8d19b327714a3c290f3e2ce81ba3525)
