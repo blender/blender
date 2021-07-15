@@ -739,7 +739,7 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
 
 static void layer_collection_objects_sync(ViewLayer *view_layer,
                                           LayerCollection *layer,
-                                          ListBase *lb_new_object_bases,
+                                          ListBase *r_lb_new_object_bases,
                                           const short collection_restrict,
                                           const short layer_restrict,
                                           const ushort local_collections_bits)
@@ -765,9 +765,9 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
        * been moved to the new base list and the first/last test ensure that
        * case also works. */
       base = *base_p;
-      if (!ELEM(base, lb_new_object_bases->first, lb_new_object_bases->last)) {
+      if (!ELEM(base, r_lb_new_object_bases->first, r_lb_new_object_bases->last)) {
         BLI_remlink(&view_layer->object_bases, base);
-        BLI_addtail(lb_new_object_bases, base);
+        BLI_addtail(r_lb_new_object_bases, base);
       }
     }
     else {
@@ -775,7 +775,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
       base = object_base_new(cob->ob);
       base->local_collections_bits = local_collections_bits;
       *base_p = base;
-      BLI_addtail(lb_new_object_bases, base);
+      BLI_addtail(r_lb_new_object_bases, base);
     }
 
     if ((collection_restrict & COLLECTION_RESTRICT_VIEWPORT) == 0) {
