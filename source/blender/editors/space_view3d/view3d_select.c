@@ -1378,7 +1378,7 @@ static bool view3d_lasso_select(bContext *C,
           changed = do_lasso_select_meta(vc, mcoords, mcoords_len, sel_op);
           break;
         default:
-          BLI_assert(!"lasso select on incorrect object type");
+          BLI_assert_msg(0, "lasso select on incorrect object type");
           break;
       }
 
@@ -3604,7 +3604,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
           }
           break;
         default:
-          BLI_assert(!"box select on incorrect object type");
+          BLI_assert_msg(0, "box select on incorrect object type");
           break;
       }
       changed_multi |= changed;

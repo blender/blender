@@ -1014,7 +1014,7 @@ static void rna_Panel_bl_description_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
   }
   else {
-    BLI_assert(!"setting the bl_description on a non-builtin panel");
+    BLI_assert_msg(0, "setting the bl_description on a non-builtin panel");
   }
 }
 
@@ -1026,7 +1026,7 @@ static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
   }
   else {
-    BLI_assert(!"setting the bl_description on a non-builtin menu");
+    BLI_assert_msg(0, "setting the bl_description on a non-builtin menu");
   }
 }
 

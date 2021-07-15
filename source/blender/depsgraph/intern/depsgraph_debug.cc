@@ -96,7 +96,7 @@ bool DEG_debug_graph_relations_validate(Depsgraph *graph,
   DEG_graph_build_from_view_layer(temp_depsgraph);
   if (!DEG_debug_compare(temp_depsgraph, graph)) {
     fprintf(stderr, "ERROR! Depsgraph wasn't tagged for update when it should have!\n");
-    BLI_assert(!"This should not happen!");
+    BLI_assert_msg(0, "This should not happen!");
     valid = false;
   }
   DEG_graph_free(temp_depsgraph);

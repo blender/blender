@@ -779,7 +779,7 @@ const char *BKE_appdir_folder_id_version(const int folder_id,
     default:
       path[0] = '\0'; /* in case check_is_dir is false */
       ok = false;
-      BLI_assert(!"incorrect ID");
+      BLI_assert_msg(0, "incorrect ID");
       break;
   }
   return ok ? path : NULL;

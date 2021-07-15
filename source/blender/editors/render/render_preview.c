@@ -253,7 +253,7 @@ static const char *preview_collection_name(const char pr_type)
     case MA_ATMOS:
       return "Atmosphere";
     default:
-      BLI_assert(!"Unknown preview type");
+      BLI_assert_msg(0, "Unknown preview type");
       return "";
   }
 }
@@ -335,7 +335,7 @@ static ID *duplicate_ids(ID *id, const bool allow_failure)
       return NULL;
     default:
       if (!allow_failure) {
-        BLI_assert(!"ID type preview not supported.");
+        BLI_assert_msg(0, "ID type preview not supported.");
       }
       return NULL;
   }
@@ -1469,7 +1469,7 @@ static int icon_previewimg_size_index_get(const IconPreviewSize *icon_size,
     }
   }
 
-  BLI_assert(!"The searched icon size does not match any in the preview image");
+  BLI_assert_msg(0, "The searched icon size does not match any in the preview image");
   return -1;
 }
 

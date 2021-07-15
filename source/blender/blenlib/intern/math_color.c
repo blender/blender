@@ -153,7 +153,7 @@ void rgb_to_ycc(float r, float g, float b, float *r_y, float *r_cb, float *r_cr,
       cr = (0.5f * sr) - (0.41869f * sg) - (0.08131f * sb) + 128.0f;
       break;
     default:
-      BLI_assert(!"invalid colorspace");
+      BLI_assert_msg(0, "invalid colorspace");
       break;
   }
 

@@ -387,7 +387,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
       }
     }
     if (!found) {
-      BLI_assert(!"Attempt to free data which is not in pool.\n");
+      BLI_assert_msg(0, "Attempt to free data which is not in pool.\n");
     }
   }
 

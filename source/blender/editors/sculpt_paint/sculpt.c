@@ -2394,7 +2394,7 @@ static float brush_strength(const Sculpt *sd,
         case BRUSH_MASK_SMOOTH:
           return alpha * pressure * feather;
       }
-      BLI_assert(!"Not supposed to happen");
+      BLI_assert_msg(0, "Not supposed to happen");
       return 0.0f;
 
     case SCULPT_TOOL_CREASE:

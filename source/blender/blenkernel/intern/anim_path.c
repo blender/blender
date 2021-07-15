@@ -216,7 +216,7 @@ static bool binary_search_anim_path(const float *accum_len_arr,
     if (UNLIKELY(cur_step == 0)) {
       /* This should never happen unless there is something horribly wrong. */
       CLOG_ERROR(&LOG, "Couldn't find any valid point on the animation path!");
-      BLI_assert(!"Couldn't find any valid point on the animation path!");
+      BLI_assert_msg(0, "Couldn't find any valid point on the animation path!");
       return false;
     }
 

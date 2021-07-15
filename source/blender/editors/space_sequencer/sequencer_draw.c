@@ -1556,7 +1556,7 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
       *r_format = GPU_RGB16F;
     }
     else {
-      BLI_assert(!"Incompatible number of channels for float buffer in sequencer");
+      BLI_assert_msg(0, "Incompatible number of channels for float buffer in sequencer");
       *r_format = GPU_RGBA16F;
       display_buffer = NULL;
     }

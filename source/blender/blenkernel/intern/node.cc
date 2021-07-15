@@ -399,7 +399,7 @@ static ID *node_owner_get(Main *bmain, ID *id)
     }
   }
 
-  BLI_assert(!"Embedded node tree with no owner. Critical Main inconsistency.");
+  BLI_assert_msg(0, "Embedded node tree with no owner. Critical Main inconsistency.");
   return nullptr;
 }
 

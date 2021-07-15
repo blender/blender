@@ -390,7 +390,7 @@ static void select_sliding_point(Mask *mask,
       point->bezt.f3 |= SELECT;
       break;
     default:
-      BLI_assert(!"Unexpected situation in select_sliding_point()");
+      BLI_assert_msg(0, "Unexpected situation in select_sliding_point()");
   }
 
   mask_layer->act_spline = spline;

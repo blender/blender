@@ -79,7 +79,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
       execution_model_ = new FullFrameExecutionModel(m_context, active_buffers_, m_operations);
       break;
     default:
-      BLI_assert(!"Non implemented execution model");
+      BLI_assert_msg(0, "Non implemented execution model");
       break;
   }
 }

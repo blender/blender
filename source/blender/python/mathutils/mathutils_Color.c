@@ -570,7 +570,7 @@ static PyObject *Color_mul(PyObject *v1, PyObject *v2)
     }
   }
   else {
-    BLI_assert(!"internal error");
+    BLI_assert_msg(0, "internal error");
   }
 
   PyErr_Format(PyExc_TypeError,

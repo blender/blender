@@ -53,7 +53,7 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3]
     mul_v3_fl(tangent_matrix[0], -1.0f);
   }
   else {
-    BLI_assert(!"Unhandled corner index");
+    BLI_assert_msg(0, "Unhandled corner index");
   }
   cross_v3_v3v3(tangent_matrix[2], dPdu, dPdv);
   normalize_v3(tangent_matrix[0]);

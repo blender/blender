@@ -833,7 +833,7 @@ static char *find_next_op(const char *str, char *remaining_str, int len_max)
       return remaining_str + i;
     }
   }
-  BLI_assert(!"String should be NULL terminated");
+  BLI_assert_msg(0, "String should be NULL terminated");
   return remaining_str + i;
 }
 

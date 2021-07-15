@@ -824,7 +824,7 @@ void BKE_sound_set_scene_sound_pan(void *handle, float pan, char animated)
 
 void BKE_sound_update_sequencer(Main *main, bSound *sound)
 {
-  BLI_assert(!"is not supposed to be used, is weird function.");
+  BLI_assert_msg(0, "is not supposed to be used, is weird function.");
 
   Scene *scene;
 

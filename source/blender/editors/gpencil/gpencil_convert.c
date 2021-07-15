@@ -1409,7 +1409,7 @@ static void gpencil_layer_to_curve(bContext *C,
                                  gtd);
         break;
       default:
-        BLI_assert(!"invalid mode");
+        BLI_assert_msg(0, "invalid mode");
         break;
     }
     prev_gps = gps;

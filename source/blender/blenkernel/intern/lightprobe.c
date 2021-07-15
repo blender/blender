@@ -131,7 +131,7 @@ void BKE_lightprobe_type_set(LightProbe *probe, const short lightprobe_type)
       probe->attenuation_type = LIGHTPROBE_SHAPE_ELIPSOID;
       break;
     default:
-      BLI_assert(!"LightProbe type not configured.");
+      BLI_assert_msg(0, "LightProbe type not configured.");
       break;
   }
 }

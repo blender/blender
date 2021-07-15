@@ -694,7 +694,7 @@ static bool key_pointer_size(const Key *key, const int mode, int *poinsize, int 
       *poinsize = sizeof(float[KEYELEM_ELEM_SIZE_CURVE]);
       break;
     default:
-      BLI_assert(!"invalid 'key->from' ID type");
+      BLI_assert_msg(0, "invalid 'key->from' ID type");
       return false;
   }
 
@@ -806,7 +806,7 @@ static void cp_key(const int start,
           if (freekref) {
             MEM_freeN(freekref);
           }
-          BLI_assert(!"invalid 'cp[1]'");
+          BLI_assert_msg(0, "invalid 'cp[1]'");
           return;
       }
 
@@ -984,7 +984,7 @@ static void key_evaluate_relative(const int start,
                 if (freefrom) {
                   MEM_freeN(freefrom);
                 }
-                BLI_assert(!"invalid 'cp[1]'");
+                BLI_assert_msg(0, "invalid 'cp[1]'");
                 return;
             }
 
@@ -1204,7 +1204,7 @@ static void do_key(const int start,
           if (freek4) {
             MEM_freeN(freek4);
           }
-          BLI_assert(!"invalid 'cp[1]'");
+          BLI_assert_msg(0, "invalid 'cp[1]'");
           return;
       }
 
@@ -1695,7 +1695,7 @@ void BKE_keyblock_data_set_with_mat4(Key *key,
                                      const float mat[4][4])
 {
   if (key->elemsize != sizeof(float[3])) {
-    BLI_assert(!"Invalid elemsize");
+    BLI_assert_msg(0, "Invalid elemsize");
     return;
   }
 

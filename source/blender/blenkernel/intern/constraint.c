@@ -2339,7 +2339,7 @@ static void translike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         break;
 
       default:
-        BLI_assert(!"Unknown Copy Transforms mix mode");
+        BLI_assert_msg(0, "Unknown Copy Transforms mix mode");
     }
   }
 }
@@ -2991,7 +2991,7 @@ static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
         break;
 
       default:
-        BLI_assert(!"Unknown Action mix mode");
+        BLI_assert_msg(0, "Unknown Action mix mode");
     }
   }
 }

@@ -3672,7 +3672,7 @@ static void region_visible_rect_calc(ARegion *region, rcti *rect)
           /* Skip floating. */
         }
         else {
-          BLI_assert(!"Region overlap with unknown alignment");
+          BLI_assert_msg(0, "Region overlap with unknown alignment");
         }
       }
     }

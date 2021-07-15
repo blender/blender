@@ -225,7 +225,7 @@ PyObject *BPY_app_handlers_struct(void)
 #endif
 
   if (PyType_Ready(&BPyPersistent_Type) < 0) {
-    BLI_assert(!"error initializing 'bpy.app.handlers.persistent'");
+    BLI_assert_msg(0, "error initializing 'bpy.app.handlers.persistent'");
   }
 
   PyStructSequence_InitType(&BlenderAppCbType, &app_cb_info_desc);

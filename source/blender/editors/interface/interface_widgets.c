@@ -3115,7 +3115,7 @@ void ui_draw_gradient(const rcti *rect,
       copy_v3_v3(col1[3], col1[2]);
       break;
     default:
-      BLI_assert(!"invalid 'type' argument");
+      BLI_assert_msg(0, "invalid 'type' argument");
       hsv_to_rgb(1.0, 1.0, 1.0, &col1[2][0], &col1[2][1], &col1[2][2]);
       copy_v3_v3(col1[0], col1[2]);
       copy_v3_v3(col1[1], col1[2]);
@@ -5374,7 +5374,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         }
       }
       else {
-        BLI_assert(!"Unknwon menu item separator type");
+        BLI_assert_msg(0, "Unknwon menu item separator type");
       }
 
       if (fstyle->kerning == 1) {

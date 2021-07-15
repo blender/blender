@@ -244,7 +244,7 @@ static void rna_Gizmo_bl_idname_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
   }
   else {
-    BLI_assert(!"setting the bl_idname on a non-builtin operator");
+    BLI_assert_msg(0, "setting the bl_idname on a non-builtin operator");
   }
 }
 
@@ -643,7 +643,7 @@ static void rna_GizmoGroup_bl_idname_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
   }
   else {
-    BLI_assert(!"setting the bl_idname on a non-builtin operator");
+    BLI_assert_msg(0, "setting the bl_idname on a non-builtin operator");
   }
 }
 
@@ -655,7 +655,7 @@ static void rna_GizmoGroup_bl_label_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, MAX_NAME); /* utf8 already ensured */
   }
   else {
-    BLI_assert(!"setting the bl_label on a non-builtin operator");
+    BLI_assert_msg(0, "setting the bl_label on a non-builtin operator");
   }
 }
 

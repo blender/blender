@@ -481,7 +481,7 @@ static void eevee_render_to_image(void *vedata,
       time -= shuttertime;
       break;
     default:
-      BLI_assert(!"Invalid motion blur position enum!");
+      BLI_assert_msg(0, "Invalid motion blur position enum!");
       break;
   }
 

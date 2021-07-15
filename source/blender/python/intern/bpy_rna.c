@@ -2728,7 +2728,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self,
         break;
       }
       default:
-        BLI_assert(!"Invalid array type");
+        BLI_assert_msg(0, "Invalid array type");
 
         PyErr_SetString(PyExc_TypeError, "not an array type");
         Py_DECREF(tuple);
@@ -4375,7 +4375,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
           }
           default:
             /* Should never happen. */
-            BLI_assert(!"Invalid context type");
+            BLI_assert_msg(0, "Invalid context type");
 
             PyErr_Format(PyExc_AttributeError,
                          "bpy_struct: Context type invalid %d, can't get \"%.200s\" from context",
@@ -5389,7 +5389,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
             break;
           case PROP_RAW_UNSET:
             /* Should never happen. */
-            BLI_assert(!"Invalid array type - set");
+            BLI_assert_msg(0, "Invalid array type - set");
             break;
         }
 
@@ -5453,7 +5453,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
             break;
           default: /* PROP_RAW_UNSET */
             /* Should never happen. */
-            BLI_assert(!"Invalid array type - get");
+            BLI_assert_msg(0, "Invalid array type - get");
             item = Py_None;
             Py_INCREF(item);
             break;

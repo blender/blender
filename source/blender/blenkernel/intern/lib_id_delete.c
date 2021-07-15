@@ -83,7 +83,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
     return;
   }
 
-  BLI_assert(!"IDType Missing IDTypeInfo");
+  BLI_assert_msg(0, "IDType Missing IDTypeInfo");
 }
 
 /**

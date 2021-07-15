@@ -3557,7 +3557,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
       totelem = bm->totface;
       break;
     default: /* should never happen */
-      BLI_assert(!"invalid type given");
+      BLI_assert_msg(0, "invalid type given");
       iter_type = BM_VERTS_OF_MESH;
       totelem = bm->totvert;
       break;

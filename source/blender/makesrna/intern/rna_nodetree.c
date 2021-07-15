@@ -4388,7 +4388,7 @@ static int point_density_particle_color_source_from_shader(
     case SHD_POINTDENSITY_COLOR_PARTVEL:
       return TEX_PD_COLOR_PARTVEL;
     default:
-      BLI_assert(!"Unknown color source");
+      BLI_assert_msg(0, "Unknown color source");
       return TEX_PD_COLOR_CONSTANT;
   }
 }
@@ -4404,7 +4404,7 @@ static int point_density_vertex_color_source_from_shader(
     case SHD_POINTDENSITY_COLOR_VERTNOR:
       return TEX_PD_COLOR_VERTNOR;
     default:
-      BLI_assert(!"Unknown color source");
+      BLI_assert_msg(0, "Unknown color source");
       return TEX_PD_COLOR_CONSTANT;
   }
 }

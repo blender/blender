@@ -114,11 +114,11 @@ static void buffer_from_list_inputs_sort(ListBase *inputs)
 
     if (input->type == GPU_MAT3) {
       /* Alignment for mat3 is not handled currently, so not supported */
-      BLI_assert(!"mat3 not supported in UBO");
+      BLI_assert_msg(0, "mat3 not supported in UBO");
       continue;
     }
     if (input->type > MAX_UBO_GPU_TYPE) {
-      BLI_assert(!"GPU type not supported in UBO");
+      BLI_assert_msg(0, "GPU type not supported in UBO");
       continue;
     }
 

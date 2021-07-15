@@ -867,7 +867,7 @@ bool RNA_struct_override_matches(Main *bmain,
           else {
             /* Too noisy for now, this triggers on runtime props like transform matrices etc. */
 #if 0
-            BLI_assert(!"We have differences between reference and "
+            BLI_assert_msg(0, "We have differences between reference and "
                        "overriding data on non-editable property.");
 #endif
             matching = false;

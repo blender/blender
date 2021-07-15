@@ -142,7 +142,7 @@ OperationNode *ComponentNode::get_operation(OperationIDKey key) const
             "%s: find_operation(%s) failed\n",
             this->identifier().c_str(),
             key.identifier().c_str());
-    BLI_assert(!"Request for non-existing operation, should not happen");
+    BLI_assert_msg(0, "Request for non-existing operation, should not happen");
     return nullptr;
   }
   return node;
@@ -190,7 +190,7 @@ OperationNode *ComponentNode::add_operation(const DepsEvalOperationCb &op,
             this->identifier().c_str(),
             op_node->identifier().c_str(),
             op_node);
-    BLI_assert(!"Should not happen!");
+    BLI_assert_msg(0, "Should not happen!");
   }
 
   /* attach extra data */

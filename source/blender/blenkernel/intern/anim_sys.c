@@ -1457,7 +1457,7 @@ static float nla_blend_value(const int blendmode,
       return influence * (lower_value * strip_value) + (1 - influence) * lower_value;
 
     case NLASTRIP_MODE_COMBINE:
-      BLI_assert(!"combine mode");
+      BLI_assert_msg(0, "combine mode");
       ATTR_FALLTHROUGH;
 
     default:
@@ -1495,7 +1495,7 @@ static float nla_combine_value(const int mix_mode,
       return lower_value * powf(strip_value / base_value, influence);
 
     default:
-      BLI_assert(!"invalid mix mode");
+      BLI_assert_msg(0, "invalid mix mode");
       return lower_value;
   }
 }
@@ -1546,7 +1546,7 @@ static bool nla_blend_get_inverted_strip_value(const int blendmode,
       return true;
 
     case NLASTRIP_MODE_COMBINE:
-      BLI_assert(!"combine mode");
+      BLI_assert_msg(0, "combine mode");
       ATTR_FALLTHROUGH;
 
     default:
@@ -1602,7 +1602,7 @@ static bool nla_combine_get_inverted_strip_value(const int mix_mode,
       return true;
 
     default:
-      BLI_assert(!"invalid mix mode");
+      BLI_assert_msg(0, "invalid mix mode");
       return false;
   }
 }
@@ -3033,7 +3033,7 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
   NlaEvalChannel *nec = nlaevalchan_verify_key(eval_data, NULL, &key);
   BLI_assert(nec);
   if (nec->base_snapshot.length != count) {
-    BLI_assert(!"invalid value count");
+    BLI_assert_msg(0, "invalid value count");
     nlaeval_snapshot_free_data(&blended_snapshot);
     return false;
   }

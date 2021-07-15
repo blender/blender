@@ -107,7 +107,7 @@ static TransDataContainer *edge_slide_container_first_ok(TransInfo *t)
       return tc;
     }
   }
-  BLI_assert(!"Should never happen, at least one EdgeSlideData should be valid");
+  BLI_assert_msg(0, "Should never happen, at least one EdgeSlideData should be valid");
   return NULL;
 }
 

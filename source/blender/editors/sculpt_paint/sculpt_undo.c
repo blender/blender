@@ -766,7 +766,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_DYNTOPO_BEGIN:
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-        BLI_assert(!"Dynamic topology should've already been handled");
+        BLI_assert_msg(0, "Dynamic topology should've already been handled");
         break;
     }
   }
@@ -1065,7 +1065,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-      BLI_assert(!"Dynamic topology should've already been handled");
+      BLI_assert_msg(0, "Dynamic topology should've already been handled");
     case SCULPT_UNDO_GEOMETRY:
     case SCULPT_UNDO_FACE_SETS:
       break;
@@ -1355,7 +1355,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-      BLI_assert(!"Dynamic topology should've already been handled");
+      BLI_assert_msg(0, "Dynamic topology should've already been handled");
     case SCULPT_UNDO_GEOMETRY:
     case SCULPT_UNDO_FACE_SETS:
       break;

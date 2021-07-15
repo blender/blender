@@ -174,7 +174,7 @@ static const char *gpu_uniform_set_function_from_type(eNodeSocketDatatype type)
     case SOCK_RGBA:
       return "set_rgba";
     default:
-      BLI_assert(!"No gpu function for non-supported eNodeSocketDatatype");
+      BLI_assert_msg(0, "No gpu function for non-supported eNodeSocketDatatype");
       return NULL;
   }
 }

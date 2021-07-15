@@ -717,7 +717,9 @@ eUndoStepDir BKE_undosys_step_calc_direction(const UndoStack *ustack,
     }
   }
 
-  BLI_assert(!"Target undo step not found, this should not happen and may indicate an undo stack corruption");
+  BLI_assert_msg(0,
+                 "Target undo step not found, this should not happen and may indicate an undo "
+                 "stack corruption");
   return STEP_INVALID;
 }
 

@@ -229,7 +229,7 @@ ABCAbstractWriter *ABCHierarchyIterator::create_data_writer_for_object_type(
     case OB_GPENCIL:
       return nullptr;
     case OB_TYPE_MAX:
-      BLI_assert(!"OB_TYPE_MAX should not be used");
+      BLI_assert_msg(0, "OB_TYPE_MAX should not be used");
       return nullptr;
   }
 

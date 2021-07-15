@@ -592,7 +592,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
   switch (GS(id->name)) {
     case ID_LI:
     case ID_SCE:
-      BLI_assert(!"ID type expected to be expanded through new tree-element design");
+      BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
       break;
     case ID_OB: {
       outliner_add_object_contents(space_outliner, te, tselem, (Object *)id);
@@ -905,12 +905,13 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   }
   else if (type == TSE_SOME_ID) {
     if (!te->type) {
-      BLI_assert(!"Expected this ID type to be ported to new Outliner tree-element design");
+      BLI_assert_msg(0, "Expected this ID type to be ported to new Outliner tree-element design");
     }
   }
   else if (ELEM(type, TSE_LIBRARY_OVERRIDE_BASE, TSE_LIBRARY_OVERRIDE)) {
     if (!te->type) {
-      BLI_assert(!"Expected override types to be ported to new Outliner tree-element design");
+      BLI_assert_msg(0,
+                     "Expected override types to be ported to new Outliner tree-element design");
     }
   }
   else {

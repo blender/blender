@@ -378,7 +378,7 @@ FileSelectParams *ED_fileselect_ensure_active_params(SpaceFile *sfile)
       return &sfile->asset_params->base_params;
   }
 
-  BLI_assert(!"Invalid browse mode set in file space.");
+  BLI_assert_msg(0, "Invalid browse mode set in file space.");
   return NULL;
 }
 
@@ -399,7 +399,7 @@ FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
       return (FileSelectParams *)sfile->asset_params;
   }
 
-  BLI_assert(!"Invalid browse mode set in file space.");
+  BLI_assert_msg(0, "Invalid browse mode set in file space.");
   return NULL;
 }
 

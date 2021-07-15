@@ -154,7 +154,7 @@ void Texture::attach_to(FrameBuffer *fb, GPUAttachmentType type)
       return;
     }
   }
-  BLI_assert(!"GPU: Error: Texture: Not enough attachment");
+  BLI_assert_msg(0, "GPU: Error: Texture: Not enough attachment");
 }
 
 void Texture::detach_from(FrameBuffer *fb)
@@ -166,7 +166,7 @@ void Texture::detach_from(FrameBuffer *fb)
       return;
     }
   }
-  BLI_assert(!"GPU: Error: Texture: Framebuffer is not attached");
+  BLI_assert_msg(0, "GPU: Error: Texture: Framebuffer is not attached");
 }
 
 void Texture::update(eGPUDataFormat format, const void *data)

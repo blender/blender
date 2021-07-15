@@ -833,7 +833,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
   float prevFrameF, nextFrameF;
 
   if (!pose_frame_range_from_object_get(pso, pfl->ob, &prevFrameF, &nextFrameF)) {
-    BLI_assert(!"Invalid pfl data");
+    BLI_assert_msg(0, "Invalid pfl data");
     return;
   }
 

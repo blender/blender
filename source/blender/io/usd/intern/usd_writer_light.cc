@@ -87,7 +87,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
       usd_light = pxr::UsdLuxDistantLight::Define(stage, usd_path);
       break;
     default:
-      BLI_assert(!"is_supported() returned true for unsupported light type");
+      BLI_assert_msg(0, "is_supported() returned true for unsupported light type");
   }
 
   /* Scale factor to get to somewhat-similar illumination. Since the USDViewer had similar

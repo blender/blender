@@ -304,7 +304,7 @@ static void writedata_do_write(WriteData *wd, const void *mem, size_t memlen)
   }
 
   if (memlen > INT_MAX) {
-    BLI_assert(!"Cannot write chunks bigger than INT_MAX.");
+    BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
   }
 
@@ -538,7 +538,7 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
   }
 
   if (len > INT_MAX) {
-    BLI_assert(!"Cannot write chunks bigger than INT_MAX.");
+    BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
   }
 

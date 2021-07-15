@@ -110,7 +110,7 @@ const cl_image_format *OpenCLDevice::determineImageFormat(MemoryBuffer *memoryBu
       return &IMAGE_FORMAT_COLOR;
       break;
     default:
-      BLI_assert(!"Unsupported num_channels.");
+      BLI_assert_msg(0, "Unsupported num_channels.");
   }
 
   return &IMAGE_FORMAT_COLOR;

@@ -2715,7 +2715,7 @@ static StructRNA *rna_FileBrowser_params_typef(PointerRNA *ptr)
     return &RNA_FileAssetSelectParams;
   }
 
-  BLI_assert(!"Could not identify file select parameters");
+  BLI_assert_msg(0, "Could not identify file select parameters");
   return NULL;
 }
 

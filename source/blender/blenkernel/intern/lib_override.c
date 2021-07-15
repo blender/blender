@@ -94,7 +94,7 @@ BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id)
     if (id_type->owner_get != NULL) {
       return id_type->owner_get(bmain, id)->override_library;
     }
-    BLI_assert(!"IDTypeInfo of liboverride-embedded ID with no owner getter");
+    BLI_assert_msg(0, "IDTypeInfo of liboverride-embedded ID with no owner getter");
   }
   return id->override_library;
 }
@@ -2126,7 +2126,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
       ATTR_FALLTHROUGH;
     case IDOVERRIDE_LIBRARY_OP_MULTIPLY:
       if (ptr_storage == NULL || ptr_storage->data == NULL || prop_storage == NULL) {
-        BLI_assert(!"Missing data to apply differential override operation.");
+        BLI_assert_msg(0, "Missing data to apply differential override operation.");
         return false;
       }
       ATTR_FALLTHROUGH;
@@ -2137,7 +2137,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
     case IDOVERRIDE_LIBRARY_OP_REPLACE:
       if ((ptr_dst == NULL || ptr_dst->data == NULL || prop_dst == NULL) ||
           (ptr_src == NULL || ptr_src->data == NULL || prop_src == NULL)) {
-        BLI_assert(!"Missing data to apply override operation.");
+        BLI_assert_msg(0, "Missing data to apply override operation.");
         return false;
       }
   }

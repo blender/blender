@@ -227,7 +227,7 @@ OperationNode *DepsgraphNodeBuilder::add_operation_node(ComponentNode *comp_node
             comp_node->identifier().c_str(),
             op_node->identifier().c_str(),
             op_node);
-    BLI_assert(!"Should not happen!");
+    BLI_assert_msg(0, "Should not happen!");
   }
   return op_node;
 }
@@ -1601,7 +1601,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata, bool
       break;
     }
     default:
-      BLI_assert(!"Should not happen");
+      BLI_assert_msg(0, "Should not happen");
       break;
   }
   op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE);
@@ -1780,7 +1780,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
       build_nodetree(group_ntree);
     }
     else {
-      BLI_assert(!"Unknown ID type used for node");
+      BLI_assert_msg(0, "Unknown ID type used for node");
     }
   }
 

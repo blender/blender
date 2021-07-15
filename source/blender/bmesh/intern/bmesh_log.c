@@ -740,7 +740,7 @@ void BM_log_entry_drop(BMLogEntry *entry)
     bm_log_id_ghash_release(log, entry->added_verts);
   }
   else {
-    BLI_assert(!"Cannot drop BMLogEntry from middle");
+    BLI_assert_msg(0, "Cannot drop BMLogEntry from middle");
   }
 
   if (log->current_entry == entry) {

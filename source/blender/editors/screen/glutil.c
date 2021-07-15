@@ -126,7 +126,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
     components = 1;
   }
   else {
-    BLI_assert(!"Incompatible format passed to immDrawPixels");
+    BLI_assert_msg(0, "Incompatible format passed to immDrawPixels");
     return;
   }
 
@@ -426,7 +426,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
           format = GPU_RGBA16F;
         }
         else {
-          BLI_assert(!"Incompatible number of channels for GLSL display");
+          BLI_assert_msg(0, "Incompatible number of channels for GLSL display");
         }
 
         if (format != 0) {

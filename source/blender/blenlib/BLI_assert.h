@@ -106,7 +106,7 @@ void _BLI_assert_unreachable_print(const char *file, const int line, const char 
 #define BLI_assert_unreachable() \
   { \
     _BLI_assert_unreachable_print(__FILE__, __LINE__, __func__); \
-    BLI_assert(!"This line of code is marked to be unreachable."); \
+    BLI_assert_msg(0, "This line of code is marked to be unreachable."); \
   } \
   ((void)0)
 

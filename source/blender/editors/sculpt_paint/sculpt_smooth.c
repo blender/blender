@@ -367,7 +367,7 @@ void SCULPT_smooth(Sculpt *sd,
   last = max_iterations * (bstrength - count * fract);
 
   if (type == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"sculpt smooth: pmap missing");
+    BLI_assert_msg(0, "sculpt smooth: pmap missing");
     return;
   }
 

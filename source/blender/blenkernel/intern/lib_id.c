@@ -499,7 +499,7 @@ bool BKE_lib_id_make_local(Main *bmain, ID *id, const bool test, const int flags
     return false;
   }
 
-  BLI_assert(!"IDType Missing IDTypeInfo");
+  BLI_assert_msg(0, "IDType Missing IDTypeInfo");
   return false;
 }
 
@@ -603,7 +603,7 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
     }
   }
   else {
-    BLI_assert(!"IDType Missing IDTypeInfo");
+    BLI_assert_msg(0, "IDType Missing IDTypeInfo");
   }
 
   /* Update ID refcount, remap pointers to self in new ID. */
@@ -1053,7 +1053,7 @@ void *BKE_libblock_alloc_notest(short type)
   if (size != 0) {
     return MEM_callocN(size, name);
   }
-  BLI_assert(!"Request to allocate unknown data type");
+  BLI_assert_msg(0, "Request to allocate unknown data type");
   return NULL;
 }
 
@@ -1134,7 +1134,7 @@ void BKE_libblock_init_empty(ID *id)
     return;
   }
 
-  BLI_assert(!"IDType Missing IDTypeInfo");
+  BLI_assert_msg(0, "IDType Missing IDTypeInfo");
 }
 
 /* ********** ID session-wise UUID management. ********** */

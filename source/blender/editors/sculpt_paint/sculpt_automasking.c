@@ -209,7 +209,7 @@ static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *au
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"Topology masking: pmap missing");
+    BLI_assert_msg(0, "Topology masking: pmap missing");
     return NULL;
   }
 
@@ -248,7 +248,7 @@ static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *a
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"Face Sets automasking: pmap missing");
+    BLI_assert_msg(0, "Face Sets automasking: pmap missing");
     return NULL;
   }
 
@@ -273,7 +273,7 @@ float *SCULPT_boundary_automasking_init(Object *ob,
   SculptSession *ss = ob->sculpt;
 
   if (!ss->pmap) {
-    BLI_assert(!"Boundary Edges masking: pmap missing");
+    BLI_assert_msg(0, "Boundary Edges masking: pmap missing");
     return NULL;
   }
 

@@ -910,7 +910,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
         BKE_mask_coord_from_movieclip(space_clip->clip, &space_clip->user, co, cursor);
       }
       else {
-        BLI_assert(!"Shall not happen");
+        BLI_assert_msg(0, "Shall not happen");
       }
 
       r_center[0] = co[0] * t->aspect[0];

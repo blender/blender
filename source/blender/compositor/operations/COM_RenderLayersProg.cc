@@ -163,7 +163,7 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
     }
     else {
       expected_element_size = 0;
-      BLI_assert(!"Something horribly wrong just happened");
+      BLI_assert_msg(0, "Something horribly wrong just happened");
     }
     BLI_assert(expected_element_size == actual_element_size);
   }
