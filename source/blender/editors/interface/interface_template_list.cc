@@ -1211,13 +1211,12 @@ uiList *uiTemplateList_ex(uiLayout *layout,
   TemplateListItems items;
   ui_template_list_collect_display_items(C, ui_list, &input_data, filter_items, &items);
 
-  TemplateListLayoutDrawData layout_data = {
-      .draw_item = draw_item,
-      .draw_filter = draw_filter,
-      .rows = rows,
-      .maxrows = maxrows,
-      .columns = columns,
-  };
+  TemplateListLayoutDrawData layout_data;
+  layout_data.draw_item = draw_item;
+  layout_data.draw_filter = draw_filter;
+  layout_data.rows = rows;
+  layout_data.maxrows = maxrows;
+  layout_data.columns = columns;
 
   ui_template_list_layout_draw(C, ui_list, layout, &input_data, &items, &layout_data, flags);
 
