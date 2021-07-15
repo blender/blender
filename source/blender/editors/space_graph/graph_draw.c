@@ -1259,14 +1259,15 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
       immUniformColor3f(0.9f, 0.9f, 0.9f);
       immUniform1f("dash_width", 10.0f);
       immUniform1f("dash_factor", 0.5f);
+      GPU_line_width(1.0f);
 
-      immBegin(GPU_PRIM_LINES, (y >= v2d->cur.ymin) ? 4 : 2);
+      immBegin(GPU_PRIM_LINES, (y <= v2d->cur.ymax) ? 4 : 2);
 
       /* x-axis lookup */
       co[0] = x;
 
-      if (y >= v2d->cur.ymin) {
-        co[1] = v2d->cur.ymin - 1.0f;
+      if (y <= v2d->cur.ymax) {
+        co[1] = v2d->cur.ymax + 1.0f;
         immVertex2fv(shdr_pos, co);
 
         co[1] = y;
