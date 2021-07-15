@@ -103,8 +103,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
     v3d_tilde_action: EnumProperty(
         name="Tilde Action",
         items=(
-            ('OBJECT_SWITCH', "Object Switch",
-             "Switch the active object under the cursor (when not in object mode)",
+            ('VIEW', "Navigate",
+             "View operations (useful for keyboards without a numpad)",
              0),
             ('GIZMO', "Gizmos",
              "Control transform gizmos",
@@ -113,7 +113,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         description=(
             "Action when 'Tilde' is pressed"
         ),
-        default='OBJECT_SWITCH',
+        default='VIEW',
         update=update_fn,
     )
 
