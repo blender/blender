@@ -667,6 +667,11 @@ void SCULPT_array_path_draw(const uint gpuattr,
                                            SculptSession *ss) {
     
     SculptArray *array = ss->cache->array;
+
+
+    /* Disable debug drawing. */
+    return;
+
     if (!array) {
       return;
     }
