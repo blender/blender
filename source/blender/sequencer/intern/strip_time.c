@@ -257,15 +257,6 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
   }
 }
 
-/** Comparison function suitable to be used with BLI_listbase_sort()... */
-int SEQ_time_cmp_time_startdisp(const void *a, const void *b)
-{
-  const Sequence *seq_a = a;
-  const Sequence *seq_b = b;
-
-  return (seq_a->startdisp > seq_b->startdisp);
-}
-
 int SEQ_time_find_next_prev_edit(Scene *scene,
                                  int timeline_frame,
                                  const short side,

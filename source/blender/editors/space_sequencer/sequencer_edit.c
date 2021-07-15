@@ -2934,6 +2934,23 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
 /** \name Export Subtitles Operator
  * \{ */
 
+/** Comparison function suitable to be used with BLI_listbase_sort(). */
+static int seq_cmp_time_startdisp_channel(const void *a, const void *b)
+{
+  Sequence *seq_a = (Sequence *)a;
+  Sequence *seq_b = (Sequence *)b;
+
+  int seq_a_start = SEQ_transform_get_left_handle_frame(seq_a);
+  int seq_b_start = SEQ_transform_get_left_handle_frame(seq_b);
+
+  /** If strips have the same start frame favor the one with a higher channel. **/
+  if (seq_a_start == seq_b_start) {
+    return seq_a->machine > seq_b->machine;
+  }
+
+  return (seq_a_start > seq_b_start);
+}
+
 static int sequencer_export_subtitles_invoke(bContext *C,
                                              wmOperator *op,
                                              const wmEvent *UNUSED(event))
@@ -3003,7 +3020,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BLI_listbase_sort(&text_seq, SEQ_time_cmp_time_startdisp);
+  BLI_listbase_sort(&text_seq, seq_cmp_time_startdisp_channel);
 
   /* Open and write file. */
   file = BLI_fopen(filepath, "w");
