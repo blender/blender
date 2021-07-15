@@ -3114,6 +3114,18 @@ static void rna_def_brush(BlenderRNA *brna)
                            "Propagate the falloff of the brush trough the surface of the mesh");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_array_lock_orientation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_ARRAY_LOCK_ORIENTATION);
+  RNA_def_property_ui_text(
+      prop, "Lock Orientation", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_array_fill_holes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_ARRAY_FILL_HOLES);
+  RNA_def_property_ui_text(
+      prop, "Fill Holes", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "use_paint_antialiasing", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "sampling_flag", BRUSH_PAINT_ANTIALIASING);
   RNA_def_property_ui_text(prop, "Anti-Aliasing", "Smooths the edges of the strokes");

@@ -153,7 +153,7 @@ static BMesh *sculpt_array_source_build(Object *ob, Brush *brush, SculptArray *a
   /* TODO(pablodp606): Handle individual Face Sets for Face Set automasking. */
   BM_mesh_delete_hflag_context(srcbm, BM_ELEM_TAG, DEL_VERTS);
 
- const bool fill_holes = false;
+ const bool fill_holes = brush->flag2 & BRUSH_ARRAY_FILL_HOLES;
  if (fill_holes) {
     BM_mesh_elem_hflag_disable_all(srcbm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
     BM_mesh_elem_hflag_enable_all(srcbm, BM_EDGE, BM_ELEM_TAG, false);
@@ -248,9 +248,10 @@ printf("ALLOCATION COPY INDEX\n");
 
 static void sculpt_array_mesh_build(Sculpt *sd, Object *ob, SculptArray *array) {
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
+  Brush *brush = BKE_paint_brush(&sd->paint);
   sculpt_array_datalayers_add(sculpt_mesh);
 
-  BMesh *srcbm = sculpt_array_source_build(ob, NULL, array);
+  BMesh *srcbm = sculpt_array_source_build(ob, brush, array);
   
   BMesh *destbm;
   const BMAllocTemplate allocsizeb = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh);
@@ -398,13 +399,15 @@ static void scultp_array_basis_from_direction(float r_mat[4][4], StrokeCache *ca
   normalize_v3(r_mat[2]);
 }
 
-static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, SculptArrayCopy *copy, eBrushArrayDeformType array_type) {
+static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, SculptArrayCopy *copy, Brush *brush) {
 
   float copy_position[3];
   unit_m4(copy->mat);
 
   float scale = 1.0f;
   float direction[3];
+
+  eBrushArrayDeformType array_type = brush->array_deform_type;
 
   switch (array_type)
   {
@@ -431,7 +434,9 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
   }
 
 
+  if (!(brush->flag2 & BRUSH_ARRAY_LOCK_ORIENTATION)) {
   scultp_array_basis_from_direction(copy->mat, cache, direction);
+  }
 
  
   /*
@@ -458,7 +463,7 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
   /* Main symmetry pass. */
   for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
     SculptArrayCopy *copy = &array->copies[0][copy_index];
-    sculpt_array_update_copy(ss->cache, array, copy, brush->array_deform_type);
+    sculpt_array_update_copy(ss->cache, array, copy, brush);
   }
 
   for (int symm_pass = 1; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
@@ -556,8 +561,9 @@ static void sculpt_array_ensure_original_coordinates(Object *ob, SculptArray *ar
   }
 }
 
-static void sculpt_array_ensure_base_transform(Object *ob, SculptArray *array){
+static void sculpt_array_ensure_base_transform(Sculpt *sd, Object *ob, SculptArray *array){
   SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
   Mesh *sculpt_mesh = BKE_object_get_original_mesh(ob);
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -567,7 +573,7 @@ static void sculpt_array_ensure_base_transform(Object *ob, SculptArray *array){
 
   unit_m4(array->source_mat);
 
-  if (false) {
+  if (brush->flag2 & BRUSH_ARRAY_LOCK_ORIENTATION) {
     unit_m4(array->source_mat);
     copy_v3_v3(array->source_mat[3], array->source_origin);
     invert_m4_m4(array->source_imat, array->source_mat);
@@ -644,7 +650,7 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	  return;
   }
    
-   sculpt_array_ensure_base_transform(ob, ss->cache->array);
+   sculpt_array_ensure_base_transform(sd, ob, ss->cache->array);
    sculpt_array_ensure_original_coordinates(ob, ss->cache->array);
    sculpt_array_ensure_geometry_indices(ob, ss->cache->array);
 

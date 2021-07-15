@@ -764,6 +764,8 @@ def brush_settings(layout, context, brush, popover=False):
             col = layout.column()
             col.prop(brush, "array_deform_type")
             col.prop(brush, "array_count")
+            col.prop(brush, "use_array_lock_orientation")
+            col.prop(brush, "use_array_fill_holes")
 
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
