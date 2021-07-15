@@ -932,10 +932,6 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   copy_v3_v3(me_dst->loc, me_src->loc);
   copy_v3_v3(me_dst->size, me_src->size);
 
-  /* Some callers call this on existing meshes, so free the existing vertex groups first. */
-  BLI_freelistN(&me_dst->vertex_group_names);
-  BKE_defgroup_copy_list(&me_dst->vertex_group_names, &me_src->vertex_group_names);
-
   me_dst->vertex_group_active_index = me_src->vertex_group_active_index;
 }
 
@@ -951,6 +947,10 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   BLI_assert(me_dst->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE));
 
   BKE_mesh_copy_parameters(me_dst, me_src);
+
+  /* Copy vertex group names. */
+  BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
+  BKE_defgroup_copy_list(&me_dst->vertex_group_names, &me_src->vertex_group_names);
 
   /* Copy materials. */
   if (me_dst->mat != NULL) {
