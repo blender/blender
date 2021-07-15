@@ -823,12 +823,15 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
     const Mesh *mesh = mesh_component.get_for_read();
+    if (mesh == nullptr) {
+      return {};
+    }
     const int vertex_group_index = BLI_findstringindex(
         &mesh->vertex_group_names, attribute_name.data(), offsetof(bDeformGroup, name));
     if (vertex_group_index < 0) {
       return {};
     }
-    if (mesh == nullptr || mesh->dvert == nullptr) {
+    if (mesh->dvert == nullptr) {
       static const float default_value = 0.0f;
       return {std::make_unique<fn::GVArray_For_SingleValueRef>(
                   CPPType::get<float>(), mesh->totvert, &default_value),
@@ -874,14 +877,14 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     MeshComponent &mesh_component = static_cast<MeshComponent &>(component);
     Mesh *mesh = mesh_component.get_for_write();
+    if (mesh == nullptr) {
+      return true;
+    }
 
     const int vertex_group_index = BLI_findstringindex(
         &mesh->vertex_group_names, attribute_name.data(), offsetof(bDeformGroup, name));
     if (vertex_group_index < 0) {
       return false;
-    }
-    if (mesh == nullptr) {
-      return true;
     }
     if (mesh->dvert == nullptr) {
       return true;
