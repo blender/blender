@@ -4508,8 +4508,6 @@ def km_sculpt(params):
     )
 
     items.extend([
-        # Transfer Sculpt Mode (release to avoid conflict with grease pencil drawing).
-        ("object.transfer_mode", {"type": 'D', "value": 'RELEASE'}, None),
         # Brush strokes
         ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("mode", 'NORMAL')]}),
@@ -5053,6 +5051,12 @@ def km_object_non_modal(params):
             ("object.origin_set", {"type": 'C', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ])
     else:
+        items.extend([
+            # Transfer Sculpt Mode (release to avoid conflict with grease pencil drawing).
+            # NOTE: this shortcut (while not temporary) is not ideal, see: T89757.
+            ("object.transfer_mode", {"type": 'Q', "value": 'PRESS', "alt": True}, None),
+        ])
+
         if params.use_pie_click_drag:
             items.extend([
                 ("object.mode_set", {"type": 'TAB', "value": 'CLICK'},
