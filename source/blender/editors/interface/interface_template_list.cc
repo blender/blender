@@ -48,7 +48,7 @@
  * The validated data that was passed to #uiTemplateList (typically through Python).
  * Populated through #ui_template_list_data_retrieve().
  */
-typedef struct {
+struct TemplateListInputData {
   PointerRNA dataptr;
   PropertyRNA *prop;
   PointerRNA active_dataptr;
@@ -57,42 +57,42 @@ typedef struct {
 
   /* Index as stored in the input property. I.e. the index before sorting. */
   int active_item_idx;
-} TemplateListInputData;
+};
 
 /**
  * Internal wrapper for a single item in the list (well, actually stored as a vector).
  */
-typedef struct {
+struct _uilist_item {
   PointerRNA item;
   int org_idx;
   int flt_flag;
-} _uilist_item;
+};
 
 /**
  * Container for the item vector and additional info.
  */
-typedef struct {
+struct TemplateListItems {
   _uilist_item *item_vec;
   /* Index of the active item following visual order. I.e. unlike
    * TemplateListInputData.active_item_idx, this is the index after sorting. */
   int active_item_idx;
   int tot_items;
-} TemplateListItems;
+};
 
-typedef struct {
+struct TemplateListLayoutDrawData {
   uiListDrawItemFunc draw_item;
   uiListDrawFilterFunc draw_filter;
 
   int rows;
   int maxrows;
   int columns;
-} TemplateListLayoutDrawData;
+};
 
-typedef struct {
+struct TemplateListVisualInfo {
   int visual_items; /* Visual number of items (i.e. number of items we have room to display). */
   int start_idx;    /* Index of first item to display. */
   int end_idx;      /* Index of last item to display + 1. */
-} TemplateListVisualInfo;
+};
 
 static void uilist_draw_item_default(struct uiList *ui_list,
                                      struct bContext *UNUSED(C),
@@ -130,7 +130,7 @@ static void uilist_draw_filter_default(struct uiList *ui_list,
                                        struct uiLayout *layout)
 {
   PointerRNA listptr;
-  RNA_pointer_create(NULL, &RNA_UIList, ui_list, &listptr);
+  RNA_pointer_create(nullptr, &RNA_UIList, ui_list, &listptr);
 
   uiLayout *row = uiLayoutRow(layout, false);
 
@@ -160,10 +160,10 @@ static void uilist_draw_filter_default(struct uiList *ui_list,
   }
 }
 
-typedef struct {
+struct StringCmp {
   char name[MAX_IDPROP_NAME];
   int org_idx;
-} StringCmp;
+};
 
 static int cmpstringp(const void *p1, const void *p2)
 {
@@ -180,7 +180,7 @@ static void uilist_filter_items_default(struct uiList *ui_list,
   PropertyRNA *prop = RNA_struct_find_property(dataptr, propname);
 
   const char *filter_raw = ui_list->filter_byname;
-  char *filter = (char *)filter_raw, filter_buff[32], *filter_dyn = NULL;
+  char *filter = (char *)filter_raw, filter_buff[32], *filter_dyn = nullptr;
   const bool filter_exclude = (ui_list->filter_flag & UILST_FLT_EXCLUDE) != 0;
   const bool order_by_name = (ui_list->filter_sort_flag & UILST_FLT_SORT_MASK) ==
                              UILST_FLT_SORT_ALPHA;
@@ -189,7 +189,7 @@ static void uilist_filter_items_default(struct uiList *ui_list,
   dyn_data->items_shown = dyn_data->items_len = len;
 
   if (len && (order_by_name || filter_raw[0])) {
-    StringCmp *names = NULL;
+    StringCmp *names = nullptr;
     int order_idx = 0, i = 0;
 
     if (order_by_name) {
@@ -216,7 +216,7 @@ static void uilist_filter_items_default(struct uiList *ui_list,
     RNA_PROP_BEGIN (dataptr, itemptr, prop) {
       bool do_order = false;
 
-      char *namebuf = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL);
+      char *namebuf = RNA_struct_name_get_alloc(&itemptr, nullptr, 0, nullptr);
       const char *name = namebuf ? namebuf : "";
 
       if (filter[0]) {
@@ -587,10 +587,10 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
     PropertyRNA *prop = RNA_struct_find_property(itemptr, propname);
 
     if (prop && (RNA_property_type(prop) == PROP_STRING)) {
-      return RNA_property_string_get_alloc(itemptr, prop, NULL, 0, NULL);
+      return RNA_property_string_get_alloc(itemptr, prop, nullptr, 0, nullptr);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static char *uilist_item_tooltip_func(bContext *UNUSED(C), void *argN, const char *tip)
@@ -600,7 +600,7 @@ static char *uilist_item_tooltip_func(bContext *UNUSED(C), void *argN, const cha
 }
 
 /**
- * \note Note that \a layout_type may be NULL.
+ * \note Note that \a layout_type may be null.
  */
 static uiList *ui_list_ensure(bContext *C,
                               uiListType *ui_list_type,
@@ -611,7 +611,7 @@ static uiList *ui_list_ensure(bContext *C,
 {
   /* Allows to work in popups. */
   ARegion *region = CTX_wm_menu(C);
-  if (region == NULL) {
+  if (region == nullptr) {
     region = CTX_wm_region(C);
   }
 
@@ -668,7 +668,7 @@ static void ui_template_list_layout_draw(bContext *C,
   uiListDyn *dyn_data = ui_list->dyn_data;
   const char *active_propname = RNA_property_identifier(input_data->activeprop);
 
-  uiLayout *glob = NULL, *box, *row, *col, *subrow, *sub, *overlap;
+  uiLayout *glob = nullptr, *box, *row, *col, *subrow, *sub, *overlap;
   char numstr[32];
   int rnaicon = ICON_NONE, icon = ICON_NONE;
   uiBut *but;
@@ -843,7 +843,7 @@ static void ui_template_list_layout_draw(bContext *C,
       glob = uiLayoutColumn(box, true);
       row = uiLayoutRow(glob, false);
       col = uiLayoutColumn(row, true);
-      subrow = NULL; /* Quite gcc warning! */
+      subrow = nullptr; /* Quite gcc warning! */
 
       uilist_prepare(ui_list, items, layout_data, &visual_info);
 
@@ -883,7 +883,7 @@ static void ui_template_list_layout_draw(bContext *C,
                                org_i,
                                0,
                                0,
-                               NULL);
+                               nullptr);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 
           sub = uiLayoutRow(overlap, false);
@@ -983,7 +983,7 @@ static void ui_template_list_layout_draw(bContext *C,
                                org_i,
                                0,
                                0,
-                               NULL);
+                               nullptr);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 
           col = uiLayoutColumn(overlap, false);
@@ -1089,7 +1089,7 @@ static void ui_template_list_layout_draw(bContext *C,
                             0,
                             0,
                             "");
-        UI_but_func_set(but, uilist_resize_update_cb, ui_list, NULL);
+        UI_but_func_set(but, uilist_resize_update_cb, ui_list, nullptr);
       }
 
       UI_block_emboss_set(subblock, UI_EMBOSS);
@@ -1104,7 +1104,7 @@ static void ui_template_list_layout_draw(bContext *C,
                0,
                UI_UNIT_X,
                UI_UNIT_Y * 0.05f,
-               NULL,
+               nullptr,
                0.0,
                0.0,
                0,
@@ -1146,7 +1146,7 @@ static void ui_template_list_layout_draw(bContext *C,
                             0,
                             0,
                             "");
-        UI_but_func_set(but, uilist_resize_update_cb, ui_list, NULL);
+        UI_but_func_set(but, uilist_resize_update_cb, ui_list, nullptr);
       }
 
       UI_block_emboss_set(subblock, UI_EMBOSS);
@@ -1170,7 +1170,7 @@ uiList *uiTemplateList_ex(uiLayout *layout,
                           enum uiTemplateListFlags flags,
                           void *customdata)
 {
-  TemplateListInputData input_data = {0};
+  TemplateListInputData input_data = {nullptr};
   uiListType *ui_list_type;
   if (!ui_template_list_data_retrieve(listtype_name,
                                       list_id,
@@ -1181,7 +1181,7 @@ uiList *uiTemplateList_ex(uiLayout *layout,
                                       item_dyntip_propname,
                                       &input_data,
                                       &ui_list_type)) {
-    return NULL;
+    return nullptr;
   }
 
   uiListDrawItemFunc draw_item = ui_list_type->draw_item ? ui_list_type->draw_item :
@@ -1254,7 +1254,7 @@ void uiTemplateList(uiLayout *layout,
                     layout_type,
                     columns,
                     flags,
-                    NULL);
+                    nullptr);
 }
 
 /**
@@ -1267,11 +1267,11 @@ PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
   uiListDyn *dyn_data = ui_list->dyn_data;
   dyn_data->custom_activate_optype = WM_operatortype_find(opname, false);
   if (!dyn_data->custom_activate_optype) {
-    return NULL;
+    return nullptr;
   }
 
   if (create_properties) {
-    WM_operator_properties_alloc(&dyn_data->custom_activate_opptr, NULL, opname);
+    WM_operator_properties_alloc(&dyn_data->custom_activate_opptr, nullptr, opname);
   }
 
   return dyn_data->custom_activate_opptr;
@@ -1287,11 +1287,11 @@ PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
   uiListDyn *dyn_data = ui_list->dyn_data;
   dyn_data->custom_drag_optype = WM_operatortype_find(opname, false);
   if (!dyn_data->custom_drag_optype) {
-    return NULL;
+    return nullptr;
   }
 
   if (create_properties) {
-    WM_operator_properties_alloc(&dyn_data->custom_drag_opptr, NULL, opname);
+    WM_operator_properties_alloc(&dyn_data->custom_drag_opptr, nullptr, opname);
   }
 
   return dyn_data->custom_drag_opptr;
