@@ -45,6 +45,8 @@ void SIM_mass_spring_solver_free(struct Implicit_Data *id);
 int SIM_mass_spring_solver_numvert(struct Implicit_Data *id);
 
 int SIM_cloth_solver_init(struct Object *ob, struct ClothModifierData *clmd);
+void SIM_mass_spring_set_implicit_vertex_mass(struct Implicit_Data *data, int index, float mass);
+
 void SIM_cloth_solver_free(struct ClothModifierData *clmd);
 int SIM_cloth_solve(struct Depsgraph *depsgraph,
                     struct Object *ob,

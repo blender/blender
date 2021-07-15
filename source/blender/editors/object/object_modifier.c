@@ -2598,7 +2598,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 
   BLI_bitmap *edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");
 
-  /* note: we use EditBones here, easier to set them up and use
+  /* NOTE: we use EditBones here, easier to set them up and use
    * edit-armature functions to convert back to regular bones */
   for (int v = 0; v < me->totvert; v++) {
     if (mvert_skin[v].flag & MVERT_SKIN_ROOT) {

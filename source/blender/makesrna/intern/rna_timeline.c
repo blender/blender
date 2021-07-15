@@ -33,16 +33,10 @@
 #  include "BKE_idprop.h"
 #  include "WM_api.h"
 
-static IDProperty *rna_TimelineMarker_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_TimelineMarker_idprops(PointerRNA *ptr)
 {
   TimeMarker *marker = ptr->data;
-
-  if (create && marker->prop == NULL) {
-    IDPropertyTemplate val = {0};
-    marker->prop = IDP_New(IDP_GROUP, &val, "Marker ID properties");
-  }
-
-  return marker->prop;
+  return &marker->prop;
 }
 
 static void rna_TimelineMarker_update(Main *UNUSED(bmain),

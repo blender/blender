@@ -133,8 +133,9 @@ static bool rna_Cache_get_valid_owner_ID(PointerRNA *ptr, Object **ob, Scene **s
       *scene = (Scene *)ptr->owner_id;
       break;
     default:
-      BLI_assert(!"Trying to get PTCacheID from an invalid ID type "
-                  "(Only scenes and objects are supported).");
+      BLI_assert_msg(0,
+                     "Trying to get PTCacheID from an invalid ID type "
+                     "(Only scenes and objects are supported).");
       break;
   }
 
@@ -1095,7 +1096,7 @@ static void rna_def_pointcache_active(BlenderRNA *brna)
    * Those caches items have exact same content as 'active' one, except for that collection,
    * to prevent ugly recursive layout pattern.
    *
-   * Note: This shall probably be redone from scratch in a proper way at some point,
+   * NOTE: This shall probably be redone from scratch in a proper way at some point,
    *       but for now that will do, and shall not break anything in the API. */
   prop = RNA_def_property(srna, "point_caches", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_funcs(prop,

@@ -162,7 +162,7 @@ void WM_gizmo_group_type_free_ptr(wmGizmoGroupType *gzgt)
 
   gizmogrouptype_free(gzgt);
 
-  /* XXX, TODO, update the world! */
+  /* XXX, TODO: update the world! */
 }
 
 bool WM_gizmo_group_type_free(const char *idname)

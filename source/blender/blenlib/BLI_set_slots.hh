@@ -249,7 +249,7 @@ template<typename Key> class HashedSetSlot {
   template<typename ForwardKey, typename IsEqual>
   bool contains(const ForwardKey &key, const IsEqual &is_equal, const uint64_t hash) const
   {
-    /* hash_ might be uninitialized here, but that is ok. */
+    /* `hash_` might be uninitialized here, but that is ok. */
     if (hash_ == hash) {
       if (state_ == Occupied) {
         return is_equal(key, *key_buffer_);

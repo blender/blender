@@ -79,7 +79,7 @@ void RE_point_density_fix_linking(void);
 /* texture_procedural.c */
 
 /* Texture evaluation result.
- * Note; tr tg tb ta has to remain in this order for array access. */
+ * NOTE: tr tg tb ta has to remain in this order for array access. */
 typedef struct TexResult {
   float tin, tr, tg, tb, ta;
   int talpha;

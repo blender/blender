@@ -772,7 +772,7 @@ bool GHOST_XrSession::syncActions(const char *action_set_name)
 
 bool GHOST_XrSession::applyHapticAction(const char *action_set_name,
                                         const char *action_name,
-                                        const GHOST_TInt64 &duration,
+                                        const int64_t &duration,
                                         const float &frequency,
                                         const float &amplitude)
 {

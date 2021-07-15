@@ -638,7 +638,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   cuma->mintable = clipr->xmin;
   cuma->maxtable = clipr->xmax;
 
-  /* hrmf... we now rely on blender ipo beziers, these are more advanced */
+  /* Rely on Blender interpolation for bezier curves, support extra functionality here as well. */
   bezt = MEM_callocN(cuma->totpoint * sizeof(BezTriple), "beztarr");
 
   for (int a = 0; a < cuma->totpoint; a++) {
@@ -873,7 +873,7 @@ static int sort_curvepoints(const void *a1, const void *a2)
 
 /* ************************ more CurveMapping calls *************** */
 
-/* note; only does current curvemap! */
+/* NOTE: only does current curvemap! */
 void BKE_curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
 {
   CurveMap *cuma = cumap->cm + cumap->cur;
@@ -1267,9 +1267,9 @@ void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap)
 
 BLI_INLINE int get_bin_float(float f)
 {
-  int bin = (int)((f * 255.0f) + 0.5f); /* 0.5 to prevent quantisation differences */
+  int bin = (int)((f * 255.0f) + 0.5f); /* 0.5 to prevent quantization differences */
 
-  /* note: clamp integer instead of float to avoid problems with NaN */
+  /* NOTE: clamp integer instead of float to avoid problems with NaN. */
   CLAMP(bin, 0, 255);
 
   return bin;
@@ -1497,7 +1497,7 @@ static void scopes_update_cb(void *__restrict userdata,
       mul_v3_fl(ycc, INV_255);
       minmax_v3v3_v3(min, max, ycc);
     }
-    /* Increment count for histo. */
+    /* Increment count for histogram. */
     bin_lum[get_bin_float(luma)]++;
     bin_r[get_bin_float(rgba[0])]++;
     bin_g[get_bin_float(rgba[1])]++;

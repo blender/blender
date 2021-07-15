@@ -82,7 +82,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
       copy_v3_v3(result->mvert[i].co, co);
     }
     else {
-      BLI_assert(!"Unexpected new vertex in hull output");
+      BLI_assert_msg(0, "Unexpected new vertex in hull output");
     }
   }
 

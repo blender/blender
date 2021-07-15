@@ -357,7 +357,7 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
     case IMB_PROXY_100:
       return 3;
     default:
-      BLI_assert(!"Unhandled proxy size enum!");
+      BLI_assert_msg(0, "Unhandled proxy size enum!");
       return -1;
   }
 }
@@ -376,7 +376,7 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
     case IMB_TC_RECORD_RUN_NO_GAPS:
       return 3;
     default:
-      BLI_assert(!"Unhandled timecode type enum!");
+      BLI_assert_msg(0, "Unhandled timecode type enum!");
       return -1;
   }
 }

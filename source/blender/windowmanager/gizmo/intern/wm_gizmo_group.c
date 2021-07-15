@@ -981,10 +981,10 @@ void WM_gizmomaptype_group_unlink(bContext *C,
     WM_gizmomaptype_group_free(gzgt_ref);
   }
 
-  /* TODO(campbell): Gizmos may share keymaps, for now don't
+  /* TODO(campbell): Gizmos may share key-maps, for now don't
    * remove however we could flag them as temporary/owned by the gizmo. */
 #if 0
-  /* Note, we may want to keep this keymap for editing */
+  /* NOTE: we may want to keep this key-map for editing. */
   WM_keymap_remove(gzgt->keyconf, gzgt->keymap);
 #endif
 

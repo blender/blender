@@ -1274,7 +1274,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
        */
       if (ob->pose && ob->data) {
         bArmature *arm = blo_do_versions_newlibadr(fd, lib, ob->data);
-        if (arm) { /* XXX - why does this fail in some cases? */
+        if (arm) { /* XXX: why does this fail in some cases? */
           bAnimVizSettings *avs = &ob->pose->avs;
 
           /* path settings --------------------- */

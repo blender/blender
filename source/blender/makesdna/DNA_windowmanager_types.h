@@ -217,8 +217,8 @@ enum {
 
 #define WM_KEYCONFIG_STR_DEFAULT "Blender"
 
-/* IME is win32 only! */
-#if !defined(WIN32) && !defined(DNA_DEPRECATED)
+/* IME is win32 and apple only! */
+#if !(defined(WIN32) || defined(__APPLE__)) && !defined(DNA_DEPRECATED)
 #  ifdef __GNUC__
 #    define ime_data ime_data __attribute__((deprecated))
 #  endif
@@ -302,7 +302,7 @@ typedef struct wmWindow {
   struct wmGesture *tweak;
 
   /* Input Method Editor data - complex character input (especially for Asian character input)
-   * Currently WIN32, runtime-only data. */
+   * Currently WIN32 and APPLE, runtime-only data. */
   struct wmIMEData *ime_data;
 
   /** All events #wmEvent (ghost level events were handled). */
@@ -366,7 +366,7 @@ typedef struct wmKeyMapItem {
   short type;
   /** KM_ANY, KM_PRESS, KM_NOTHING etc. */
   short val;
-  /** Oskey is apple or windowskey, value denotes order of pressed. */
+  /** `oskey` also known as apple, windows-key or super, value denotes order of pressed. */
   short shift, ctrl, alt, oskey;
   /** Raw-key modifier. */
   short keymodifier;
@@ -553,7 +553,7 @@ enum {
   /* in case operator got executed outside WM code... like via fileselect */
   OPERATOR_HANDLED = (1 << 4),
   /* used for operators that act indirectly (eg. popup menu)
-   * note: this isn't great design (using operators to trigger UI) avoid where possible. */
+   * NOTE: this isn't great design (using operators to trigger UI) avoid where possible. */
   OPERATOR_INTERFACE = (1 << 5),
 };
 #define OPERATOR_FLAGS_ALL \

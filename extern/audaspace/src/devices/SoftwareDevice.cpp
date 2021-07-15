@@ -756,6 +756,7 @@ void SoftwareDevice::mix(data_t* buffer, int length)
 			// get the buffer from the source
 			pos = 0;
 			len = length;
+			eos = false;
 
 			// update 3D Info
 			sound->update();
@@ -841,6 +842,27 @@ void SoftwareDevice::setSpecs(Specs specs)
 	for(auto& sound : m_playingSounds)
 	{
 		sound->setSpecs(specs);
+	}
+
+	for(auto& sound : m_pausedSounds)
+	{
+		sound->setSpecs(specs);
+	}
+}
+
+void SoftwareDevice::setSpecs(DeviceSpecs specs)
+{
+	m_specs = specs;
+	m_mixer->setSpecs(specs);
+
+	for(auto& sound : m_playingSounds)
+	{
+		sound->setSpecs(specs.specs);
+	}
+
+	for(auto& sound : m_pausedSounds)
+	{
+		sound->setSpecs(specs.specs);
 	}
 }
 

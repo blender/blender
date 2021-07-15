@@ -554,7 +554,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
   }
 
   part = particlesystem->part;
-  /* Note: only hair, keyed and baked particles may have cached items... */
+  /* NOTE: only hair, keyed and baked particles may have cached items... */
   totpart = particlesystem->totcached != 0 ? particlesystem->totcached : particlesystem->totpart;
   totchild = particlesystem->totchildcache != 0 ? particlesystem->totchildcache :
                                                   particlesystem->totchild;
@@ -1430,9 +1430,10 @@ static void psys_vg_name_get__internal(PointerRNA *ptr, char *value, int index)
 {
   Object *ob = (Object *)ptr->owner_id;
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
 
   if (psys->vgroup[index] > 0) {
-    bDeformGroup *defGroup = BLI_findlink(&ob->defbase, psys->vgroup[index] - 1);
+    bDeformGroup *defGroup = BLI_findlink(defbase, psys->vgroup[index] - 1);
 
     if (defGroup) {
       strcpy(value, defGroup->name);
@@ -1448,7 +1449,8 @@ static int psys_vg_name_len__internal(PointerRNA *ptr, int index)
   ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
   if (psys->vgroup[index] > 0) {
-    bDeformGroup *defGroup = BLI_findlink(&ob->defbase, psys->vgroup[index] - 1);
+    const ListBase *defbase = BKE_object_defgroup_list(ob);
+    bDeformGroup *defGroup = BLI_findlink(defbase, psys->vgroup[index] - 1);
 
     if (defGroup) {
       return strlen(defGroup->name);
@@ -3752,7 +3754,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
   /* vertex groups */
 
-  /* note, internally store as ints, access as strings */
+  /* NOTE: internally store as ints, access as strings. */
 #  if 0 /* int access. works ok but isn't useful for the UI */
   prop = RNA_def_property(srna, "vertex_group_density", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "vgroup[0]");

@@ -184,10 +184,11 @@ static bool shader_validate_link(bNodeTree *UNUSED(ntree), bNodeLink *link)
   return true;
 }
 
-static bool shader_node_tree_socket_type_valid(eNodeSocketDatatype socket_type,
-                                               bNodeTreeType *UNUSED(ntreetype))
+static bool shader_node_tree_socket_type_valid(bNodeTreeType *UNUSED(ntreetype),
+                                               bNodeSocketType *socket_type)
 {
-  return ELEM(socket_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
+  return nodeIsStaticSocketType(socket_type) &&
+         ELEM(socket_type->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
 }
 
 bNodeTreeType *ntreeType_Shader;
@@ -790,7 +791,7 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
    */
   nodeAddLink(ntree, displacement_node, displacement_socket, bump_node, bump_input_socket);
 
-  /* Tag as part of the new displacmeent tree. */
+  /* Tag as part of the new displacement tree. */
   dot_node->tmp_flag = -2;
   geo_node->tmp_flag = -2;
   bump_node->tmp_flag = -2;

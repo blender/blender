@@ -213,8 +213,7 @@ bool ABC_export(Scene *scene,
   job->export_ok = false;
   BLI_strncpy(job->filename, filepath, sizeof(job->filename));
 
-  job->depsgraph = DEG_graph_new(
-      job->bmain, scene, view_layer, DAG_EVAL_RENDER /* TODO(Sybren): params->evaluation_mode */);
+  job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;
 
   bool export_ok = false;

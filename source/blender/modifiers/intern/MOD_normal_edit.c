@@ -335,7 +335,7 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
 
   if (do_polynors_fix &&
       polygons_check_flip(mloop, nos, &mesh->ldata, mpoly, polynors, num_polys)) {
-    /* XXX TODO is this still needed? */
+    /* XXX TODO: is this still needed? */
     // mesh->dirty |= DM_DIRTY_TESS_CDLAYERS;
     /* We need to recompute vertex normals! */
     BKE_mesh_calc_normals(mesh);

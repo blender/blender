@@ -105,6 +105,7 @@ typedef enum {
   /* specials */
   UI_WTYPE_ICON,
   UI_WTYPE_ICON_LABEL,
+  UI_WTYPE_PREVIEW_TILE,
   UI_WTYPE_SWATCH,
   UI_WTYPE_RGB_PICKER,
   UI_WTYPE_UNITVEC,
@@ -237,7 +238,7 @@ typedef struct uiWidgetTrias {
 #define WIDGET_SIZE_MAX (WIDGET_CURVE_RESOLU * 4)
 
 typedef struct uiWidgetBase {
-  /* TODO remove these completely */
+  /* TODO: remove these completely. */
   int totvert, halfwayvert;
   float outer_v[WIDGET_SIZE_MAX][2];
   float inner_v[WIDGET_SIZE_MAX][2];
@@ -399,7 +400,7 @@ static struct {
   GPUBatch *roundbox_widget;
   GPUBatch *roundbox_shadow;
 
-  /* TODO remove */
+  /* TODO: remove. */
   GPUVertFormat format;
   uint vflag_id;
 } g_ui_batch_cache = {0};
@@ -523,7 +524,7 @@ void UI_draw_anti_tria(
 
   float draw_color[4];
   copy_v4_v4(draw_color, color);
-  /* Note: This won't give back the original color. */
+  /* NOTE: This won't give back the original color. */
   draw_color[3] *= 1.0f / WIDGET_AA_JITTER;
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -768,7 +769,7 @@ static void round_box__edges(
   BLI_rctf_rcti_copy(&wt->uniform_params.rect, rect);
   BLI_rctf_init(&wt->uniform_params.recti, minxi, maxxi, minyi, maxyi);
 
-  /* mult */
+  /* Multiply by radius. */
   for (int a = 0; a < WIDGET_CURVE_RESOLU; a++) {
     veci[a][0] = radi * cornervec[a][0];
     veci[a][1] = radi * cornervec[a][1];
@@ -1377,8 +1378,6 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 static void widget_draw_icon(
     const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const uchar mono_color[4])
 {
-  float xs = 0.0f, ys = 0.0f;
-
   if (but->flag & UI_BUT_ICON_PREVIEW) {
     GPU_blend(GPU_BLEND_ALPHA);
     widget_draw_preview(icon, alpha, rect);
@@ -1420,6 +1419,7 @@ static void widget_draw_icon(
 
   if (icon && icon != ICON_BLANK1) {
     const float ofs = 1.0f / aspect;
+    float xs, ys;
 
     if (but->drawflag & UI_BUT_ICON_LEFT) {
       /* special case - icon_only pie buttons */
@@ -1641,7 +1641,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
         /* Corner case, the str already takes all available mem,
          * and the ellipsis chars would actually add more chars.
          * Better to just trim one or two letters to the right in this case...
-         * Note: with a single-char ellipsis, this should never happen! But better be safe
+         * NOTE: with a single-char ellipsis, this should never happen! But better be safe
          * here...
          */
         ui_text_clip_right_ex(
@@ -2006,14 +2006,15 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       drawstr_left_len = INT_MAX;
 
 #ifdef WITH_INPUT_IME
-      /* FIXME, IME is modifying 'const char *drawstr! */
+      /* FIXME: IME is modifying `const char *drawstr`! */
       ime_data = ui_but_ime_data_get(but);
 
       if (ime_data && ime_data->composite_len) {
         /* insert composite string into cursor pos */
         BLI_snprintf((char *)drawstr,
                      UI_MAX_DRAW_STR,
-                     "%s%s%s",
+                     "%.*s%s%s",
+                     but->pos,
                      but->editstr,
                      ime_data->str_composite,
                      but->editstr + but->pos);
@@ -2029,8 +2030,11 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   /* text button selection, cursor, composite underline */
   if (but->editstr && but->pos != -1) {
     int but_pos_ofs;
-    /* Shape of the cursor for drawing. */
-    rcti but_cursor_shape;
+
+#ifdef WITH_INPUT_IME
+    bool ime_reposition_window = false;
+    int ime_win_x, ime_win_y;
+#endif
 
     /* text button selection */
     if ((but->selend - but->selsta) > 0) {
@@ -2055,14 +2059,28 @@ static void widget_draw_text(const uiFontStyle *fstyle,
             immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
         immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
+        rcti selection_shape;
+        selection_shape.xmin = rect->xmin + selsta_draw;
+        selection_shape.xmax = min_ii(rect->xmin + selwidth_draw, rect->xmax - 2);
+        selection_shape.ymin = rect->ymin + U.pixelsize;
+        selection_shape.ymax = rect->ymax - U.pixelsize;
         immUniformColor4ubv(wcol->item);
         immRecti(pos,
-                 rect->xmin + selsta_draw,
-                 rect->ymin + U.pixelsize,
-                 min_ii(rect->xmin + selwidth_draw, rect->xmax - 2),
-                 rect->ymax - U.pixelsize);
+                 selection_shape.xmin,
+                 selection_shape.ymin,
+                 selection_shape.xmax,
+                 selection_shape.ymax);
 
         immUnbindProgram();
+
+#ifdef WITH_INPUT_IME
+        /* IME candidate window uses selection position. */
+        if (!ime_reposition_window) {
+          ime_reposition_window = true;
+          ime_win_x = selection_shape.xmin;
+          ime_win_y = selection_shape.ymin;
+        }
+#endif
       }
     }
 
@@ -2070,7 +2088,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     but_pos_ofs = but->pos;
 
 #ifdef WITH_INPUT_IME
-    /* if is ime compositing, move the cursor */
+    /* If is IME compositing, move the cursor. */
     if (ime_data && ime_data->composite_len && ime_data->cursor_pos != -1) {
       but_pos_ofs += ime_data->cursor_pos;
     }
@@ -2095,6 +2113,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
       immUniformThemeColor(TH_WIDGET_TEXT_CURSOR);
 
+      /* Shape of the cursor for drawing. */
+      rcti but_cursor_shape;
       but_cursor_shape.xmin = (rect->xmin + t) - U.pixelsize;
       but_cursor_shape.ymin = rect->ymin + U.pixelsize;
       but_cursor_shape.xmax = (rect->xmin + t) + U.pixelsize;
@@ -2108,16 +2128,24 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                but_cursor_shape.ymax);
 
       immUnbindProgram();
+
+#ifdef WITH_INPUT_IME
+      /* IME candidate window uses cursor position. */
+      if (!ime_reposition_window) {
+        ime_reposition_window = true;
+        ime_win_x = but_cursor_shape.xmax + 5;
+        ime_win_y = but_cursor_shape.ymin + 3;
+      }
+#endif
     }
 
 #ifdef WITH_INPUT_IME
+    /* IME cursor following. */
+    if (ime_reposition_window) {
+      ui_but_ime_reposition(but, ime_win_x, ime_win_y, false);
+    }
     if (ime_data && ime_data->composite_len) {
-      /* ime cursor following */
-      if (but->pos >= but->ofs) {
-        ui_but_ime_reposition(but, but_cursor_shape.xmax + 5, but_cursor_shape.ymin + 3, false);
-      }
-
-      /* composite underline */
+      /* Composite underline. */
       widget_draw_text_ime_underline(fstyle, wcol, but, rect, ime_data, drawstr);
     }
 #endif
@@ -2493,7 +2521,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     ui_text_clip_middle(fstyle, but, rect);
   }
 
-  /* always draw text for textbutton cursor */
+  /* Always draw text for text-button cursor. */
   widget_draw_text(fstyle, wcol, but, rect);
 
   ui_but_text_password_hide(password_str, but, true);
@@ -3088,7 +3116,7 @@ void ui_draw_gradient(const rcti *rect,
       copy_v3_v3(col1[3], col1[2]);
       break;
     default:
-      BLI_assert(!"invalid 'type' argument");
+      BLI_assert_msg(0, "invalid 'type' argument");
       hsv_to_rgb(1.0, 1.0, 1.0, &col1[2][0], &col1[2][1], &col1[2][2]);
       copy_v3_v3(col1[0], col1[2]);
       copy_v3_v3(col1[1], col1[2]);
@@ -3692,10 +3720,6 @@ static void widget_progressbar(
   /* "slider" bar color */
   copy_v3_v3_uchar(wcol->inner, wcol->item);
   widgetbase_draw(&wtb_bar, wcol);
-
-  /* raise text a bit */
-  rect->xmin += (BLI_rcti_size_x(&rect_prog) / 2);
-  rect->xmax += (BLI_rcti_size_x(&rect_prog) / 2);
 }
 
 static void widget_datasetrow(
@@ -3993,6 +4017,14 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
   round_box_edges(&wtb, roundboxalign, rect, rad);
 
   widgetbase_draw(&wtb, wcol);
+}
+
+static void widget_preview_tile(
+    uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
+{
+  const uiStyle *style = UI_style_get();
+  ui_draw_preview_item_stateless(
+      &style->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
 }
 
 static void widget_menuiconbut(uiWidgetColors *wcol,
@@ -4306,7 +4338,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
   widget_init(&wtb);
 
   if (but->block->drawextra) {
-    /* note: drawextra can change rect +1 or -1, to match round errors of existing previews */
+    /* NOTE: drawextra can change rect +1 or -1, to match round errors of existing previews. */
     but->block->drawextra(
         C, but->poin, but->block->drawextra_arg1, but->block->drawextra_arg2, rect);
 
@@ -4458,6 +4490,13 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       /* behave like regular labels (this is simply a label with an icon) */
       wt.state = widget_state_label;
       wt.custom = widget_icon_has_anim;
+      break;
+
+    case UI_WTYPE_PREVIEW_TILE:
+      wt.draw = NULL;
+      /* Drawn via the `custom` callback. */
+      wt.text = NULL;
+      wt.custom = widget_preview_tile;
       break;
 
     case UI_WTYPE_SWATCH:
@@ -4755,6 +4794,10 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         wt = widget_type(UI_WTYPE_BOX);
         break;
 
+      case UI_BTYPE_PREVIEW_TILE:
+        wt = widget_type(UI_WTYPE_PREVIEW_TILE);
+        break;
+
       case UI_BTYPE_EXTRA:
         widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
         break;
@@ -4908,13 +4951,15 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     wt->draw(&wt->wcol, rect, state, roundboxalign);
   }
 
-  if (use_alpha_blend) {
-    GPU_blend(GPU_BLEND_ALPHA);
-  }
+  if (wt->text) {
+    if (use_alpha_blend) {
+      GPU_blend(GPU_BLEND_ALPHA);
+    }
 
-  wt->text(fstyle, &wt->wcol, but, rect);
-  if (use_alpha_blend) {
-    GPU_blend(GPU_BLEND_NONE);
+    wt->text(fstyle, &wt->wcol, but, rect);
+    if (use_alpha_blend) {
+      GPU_blend(GPU_BLEND_NONE);
+    }
   }
 }
 
@@ -5351,7 +5396,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         }
       }
       else {
-        BLI_assert(!"Unknwon menu item separator type");
+        BLI_assert_msg(0, "Unknwon menu item separator type");
       }
 
       if (fstyle->kerning == 1) {
@@ -5436,17 +5481,20 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   }
 }
 
-void ui_draw_preview_item(
-    const uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
+/**
+ * Version of #ui_draw_preview_item() that does not draw the menu background and item text based on
+ * state. It just draws the preview and text directly.
+ */
+void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
+                                    rcti *rect,
+                                    const char *name,
+                                    int iconid,
+                                    const uchar text_col[4],
+                                    eFontStyle_Align text_align)
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
   float font_dims[2] = {0.0f, 0.0f};
-  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
-
-  /* drawing button background */
-  wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
-  wt->draw(&wt->wcol, rect, 0, 0);
 
   /* draw icon in rect above the space reserved for the label */
   rect->ymin += text_size;
@@ -5458,8 +5506,6 @@ void ui_draw_preview_item(
       fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
 
   /* text rect */
-  trect.xmin += 0;
-  trect.xmax = trect.xmin + font_dims[0] + U.widget_unit / 2;
   trect.ymin += U.widget_unit / 2;
   trect.ymax = trect.ymin + font_dims[1];
   if (trect.xmax > rect->xmax - PREVIEW_PAD) {
@@ -5478,11 +5524,27 @@ void ui_draw_preview_item(
     UI_fontstyle_draw(fstyle,
                       &trect,
                       drawstr,
-                      wt->wcol.text,
+                      text_col,
                       &(struct uiFontStyleDraw_Params){
-                          .align = UI_STYLE_TEXT_CENTER,
+                          .align = text_align,
                       });
   }
+}
+
+void ui_draw_preview_item(const uiFontStyle *fstyle,
+                          rcti *rect,
+                          const char *name,
+                          int iconid,
+                          int state,
+                          eFontStyle_Align text_align)
+{
+  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
+
+  /* drawing button background */
+  wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
+  wt->draw(&wt->wcol, rect, 0, 0);
+
+  ui_draw_preview_item_stateless(fstyle, rect, name, iconid, wt->wcol.text, text_align);
 }
 
 /** \} */

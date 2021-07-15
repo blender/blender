@@ -938,8 +938,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   Depsgraph *depsgraph = p->depsgraph;
   Object *obact = (Object *)p->ownerPtr.data;
   RegionView3D *rv3d = p->region->regiondata;
-  const int def_nr = obact->actdef - 1;
-  const bool have_weight = (bool)BLI_findlink(&obact->defbase, def_nr);
+  const int def_nr = gpd->vertex_group_active_index - 1;
+  const bool have_weight = (bool)BLI_findlink(&gpd->vertex_group_names, def_nr);
   const char align_flag = ts->gpencil_v3d_align;
   const bool is_depth = (bool)(align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
   const bool is_lock_axis_view = (bool)(ts->gp_sculpt.lock_axis == 0);
@@ -1526,7 +1526,7 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
 
     /* Clear Tags
      *
-     * Note: It's better this way, as we are sure that
+     * NOTE: It's better this way, as we are sure that
      * we don't miss anything, though things will be
      * slightly slower as a result
      */
@@ -1579,7 +1579,7 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
           ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1]))) {
         /* Check if point segment of stroke had anything to do with
          * eraser region  (either within stroke painted, or on its lines)
-         * - this assumes that linewidth is irrelevant
+         * - this assumes that line-width is irrelevant.
          */
         if (gpencil_stroke_inside_circle(mval, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
 
@@ -2174,7 +2174,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
       /* Add a new frame if needed (and based off the active frame,
        * as we need some existing strokes to erase)
        *
-       * Note: We don't add a new frame if there's nothing there now, so
+       * NOTE: We don't add a new frame if there's nothing there now, so
        *       -> If there are no frames at all, don't add one
        *       -> If there are no strokes in that frame, don't add a new empty frame
        */
@@ -3602,18 +3602,15 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* default exit state - pass through to support MMB view nav, etc. */
   int estate = OPERATOR_PASS_THROUGH;
 
-  /* if (event->type == NDOF_MOTION)
-   *    return OPERATOR_PASS_THROUGH;
-   * -------------------------------
-   * [mce] Not quite what I was looking
-   * for, but a good start! GP continues to
-   * draw on the screen while the 3D mouse
-   * moves the viewpoint. Problem is that
-   * the stroke is converted to 3D only after
-   * it is finished. This approach should work
-   * better in tools that immediately apply
-   * in 3D space.
-   */
+  /* NOTE(mike erwin): Not quite what I was looking for, but a good start!
+   * grease-pencil continues to draw on the screen while the 3D mouse moves the viewpoint.
+   * Problem is that the stroke is converted to 3D only after it is finished.
+   * This approach should work better in tools that immediately apply in 3D space. */
+#if 0
+  if (event->type == NDOF_MOTION) {
+    return OPERATOR_PASS_THROUGH;
+  }
+#endif
 
   if (p->status == GP_STATUS_IDLING) {
     ARegion *region = CTX_wm_region(C);

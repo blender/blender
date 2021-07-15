@@ -21,6 +21,8 @@
  * \ingroup spnode
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_light_types.h"
@@ -54,6 +56,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
+#include "ED_spreadsheet.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -662,7 +665,8 @@ void snode_update(SpaceNode *snode, bNode *node)
   }
 }
 
-void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed)
+void ED_node_set_active(
+    Main *bmain, SpaceNode *snode, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed)
 {
   const bool was_active_texture = (node->flag & NODE_ACTIVE_TEXTURE) != 0;
   if (r_active_texture_changed) {
@@ -781,6 +785,19 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node, bool *r_acti
         allqueue(REDRAWIPO, 0);
       }
 #endif
+    }
+    else if (ntree->type == NTREE_GEOMETRY) {
+      if (node->type == GEO_NODE_VIEWER) {
+        if ((node->flag & NODE_DO_OUTPUT) == 0) {
+          LISTBASE_FOREACH (bNode *, node_iter, &ntree->nodes) {
+            if (node_iter->type == GEO_NODE_VIEWER) {
+              node_iter->flag &= ~NODE_DO_OUTPUT;
+            }
+          }
+          node->flag |= NODE_DO_OUTPUT;
+          ED_spreadsheet_context_paths_set_geometry_node(bmain, snode, node);
+        }
+      }
     }
   }
 }
@@ -1211,6 +1228,32 @@ int node_find_indicated_socket(
   return 0;
 }
 
+/* ****************** Link Dimming *********************** */
+
+float node_link_dim_factor(const View2D *v2d, const bNodeLink *link)
+{
+  if (link->fromsock == nullptr || link->tosock == nullptr) {
+    return 1.0f;
+  }
+
+  const float min_endpoint_distance = std::min(
+      std::max(BLI_rctf_length_x(&v2d->cur, link->fromsock->locx),
+               BLI_rctf_length_y(&v2d->cur, link->fromsock->locy)),
+      std::max(BLI_rctf_length_x(&v2d->cur, link->tosock->locx),
+               BLI_rctf_length_y(&v2d->cur, link->tosock->locy)));
+
+  if (min_endpoint_distance == 0.0f) {
+    return 1.0f;
+  }
+  const float viewport_width = BLI_rctf_size_x(&v2d->cur);
+  return std::clamp(1.0f - min_endpoint_distance / viewport_width * 10.0f, 0.05f, 1.0f);
+}
+
+bool node_link_is_hidden_or_dimmed(const View2D *v2d, const bNodeLink *link)
+{
+  return nodeLinkIsHidden(link) || node_link_dim_factor(v2d, link) < 0.5f;
+}
+
 /* ****************** Duplicate *********************** */
 
 static void node_duplicate_reparent_recursive(bNode *node)
@@ -1318,7 +1361,6 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       nodeSetSelected(node, false);
       node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_TEXTURE);
       nodeSetSelected(newnode, true);
-      newnode->flag &= ~NODE_ACTIVE_PREVIEW;
 
       do_tag_update |= (do_tag_update || node_connected_to_output(bmain, ntree, newnode));
     }
@@ -2313,7 +2355,7 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
     // nodeSocketCopyValue(sock, &ntree_ptr, active_sock, &ntree_ptr);
   }
   else {
-    /* XXX TODO define default socket type for a tree! */
+    /* XXX TODO: define default socket type for a tree! */
     sock = ntreeAddSocketInterface(ntree, in_out, "NodeSocketFloat", default_name);
   }
 
@@ -2398,6 +2440,109 @@ void NODE_OT_tree_socket_remove(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
   RNA_def_enum(ot->srna, "in_out", rna_enum_node_socket_in_out_items, SOCK_IN, "Socket Type", "");
+}
+
+/********************** Change interface socket type operator *********************/
+
+static int ntree_socket_change_type_exec(bContext *C, wmOperator *op)
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeTree *ntree = snode->edittree;
+  const eNodeSocketInOut in_out = (eNodeSocketInOut)RNA_enum_get(op->ptr, "in_out");
+  const bNodeSocketType *socket_type = rna_node_socket_type_from_enum(
+      RNA_enum_get(op->ptr, "socket_type"));
+  ListBase *sockets = (in_out == SOCK_IN) ? &ntree->inputs : &ntree->outputs;
+
+  Main *main = CTX_data_main(C);
+
+  bNodeSocket *iosock = ntree_get_active_interface_socket(sockets);
+  if (iosock == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* The type remains the same, so we don't need to change anything. */
+  if (iosock->typeinfo == socket_type) {
+    return OPERATOR_FINISHED;
+  }
+
+  /* Don't handle subtypes for now. */
+  nodeModifySocketType(ntree, nullptr, iosock, socket_type->idname);
+
+  /* Need the extra update here because the loop above does not check for valid links in the node
+   * group we're currently editing. */
+  ntree->update |= NTREE_UPDATE_GROUP | NTREE_UPDATE_LINKS;
+
+  /* Deactivate sockets. */
+  LISTBASE_FOREACH (bNodeSocket *, socket_iter, sockets) {
+    socket_iter->flag &= ~SELECT;
+  }
+  /* Make the new socket active. */
+  iosock->flag |= SELECT;
+
+  ntreeUpdateTree(main, ntree);
+
+  snode_notify(C, snode);
+  snode_dag_update(C, snode);
+
+  WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool socket_change_poll_type(void *userdata, bNodeSocketType *socket_type)
+{
+  /* Check if the node tree supports the socket type. */
+  bNodeTreeType *ntreetype = (bNodeTreeType *)userdata;
+  if (ntreetype->valid_socket_type && !ntreetype->valid_socket_type(ntreetype, socket_type)) {
+    return false;
+  }
+
+  /* Only use basic socket types for this enum. */
+  if (socket_type->subtype != PROP_NONE) {
+    return false;
+  }
+
+  return true;
+}
+
+static const EnumPropertyItem *socket_change_type_itemf(bContext *C,
+                                                        PointerRNA *UNUSED(ptr),
+                                                        PropertyRNA *UNUSED(prop),
+                                                        bool *r_free)
+{
+  if (!C) {
+    return DummyRNA_NULL_items;
+  }
+
+  SpaceNode *snode = CTX_wm_space_node(C);
+  if (!snode || !snode->edittree) {
+    return DummyRNA_NULL_items;
+  }
+
+  return rna_node_socket_type_itemf(snode->edittree->typeinfo, socket_change_poll_type, r_free);
+}
+
+void NODE_OT_tree_socket_change_type(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Change Node Tree Interface Socket Type";
+  ot->description = "Change the type of a socket of the current node tree";
+  ot->idname = "NODE_OT_tree_socket_change_type";
+
+  /* api callbacks */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = ntree_socket_change_type_exec;
+  ot->poll = ED_operator_node_editable;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(ot->srna, "in_out", rna_enum_node_socket_in_out_items, SOCK_IN, "Socket Type", "");
+  prop = RNA_def_enum(ot->srna, "socket_type", DummyRNA_DEFAULT_items, 0, "Socket Type", "");
+  RNA_def_enum_funcs(prop, socket_change_type_itemf);
+  ot->prop = prop;
 }
 
 /********************** Move interface socket operator *********************/

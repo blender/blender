@@ -670,7 +670,7 @@ static ARegion *do_versions_find_region(ListBase *regionbase, int regiontype)
 {
   ARegion *region = do_versions_find_region_or_null(regionbase, regiontype);
   if (region == NULL) {
-    BLI_assert(!"Did not find expected region in versioning");
+    BLI_assert_msg(0, "Did not find expected region in versioning");
   }
   return region;
 }
@@ -1268,7 +1268,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 
     /* We need to assign lib pointer to generated hidden collections *after* all have been
      * created, otherwise we'll end up with several data-blocks sharing same name/library,
-     * which is FORBIDDEN! Note: we need this to be recursive, since a child collection may be
+     * which is FORBIDDEN! NOTE: we need this to be recursive, since a child collection may be
      * sorted before its parent in bmain. */
     for (Collection *collection = bmain->collections.first; collection != NULL;
          collection = collection->id.next) {
@@ -2459,7 +2459,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             scene->toolsettings->snap_node_mode = (1 << 6); /* SCE_SNAP_MODE_NODE_Y */
             break;
           case 7:
-            scene->toolsettings->snap_node_mode = (1 << 5) | (1 << 6); /* SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y */
+            scene->toolsettings->snap_node_mode =
+                (1 << 5) | (1 << 6); /* SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y */
             break;
           case 8:
             scene->toolsettings->snap_node_mode = (1 << 7); /* SCE_SNAP_MODE_GRID */

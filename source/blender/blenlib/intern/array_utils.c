@@ -40,11 +40,11 @@
  *
  * Access via #BLI_array_reverse
  */
-void _bli_array_reverse(void *arr_v, unsigned int arr_len, size_t arr_stride)
+void _bli_array_reverse(void *arr_v, uint arr_len, size_t arr_stride)
 {
-  const unsigned int arr_stride_uint = (unsigned int)arr_stride;
-  const unsigned int arr_half_stride = (arr_len / 2) * arr_stride_uint;
-  unsigned int i, i_end;
+  const uint arr_stride_uint = (uint)arr_stride;
+  const uint arr_half_stride = (arr_len / 2) * arr_stride_uint;
+  uint i, i_end;
   char *arr = arr_v;
   char *buf = BLI_array_alloca(buf, arr_stride);
 
@@ -62,7 +62,7 @@ void _bli_array_reverse(void *arr_v, unsigned int arr_len, size_t arr_stride)
  *
  * Access via #BLI_array_wrap
  */
-void _bli_array_wrap(void *arr_v, unsigned int arr_len, size_t arr_stride, int dir)
+void _bli_array_wrap(void *arr_v, uint arr_len, size_t arr_stride, int dir)
 {
   char *arr = arr_v;
   char *buf = BLI_array_alloca(buf, arr_stride);
@@ -88,16 +88,13 @@ void _bli_array_wrap(void *arr_v, unsigned int arr_len, size_t arr_stride, int d
  *
  * Access via #BLI_array_wrap
  */
-void _bli_array_permute(void *arr,
-                        const unsigned int arr_len,
-                        const size_t arr_stride,
-                        const unsigned int *order,
-                        void *arr_temp)
+void _bli_array_permute(
+    void *arr, const uint arr_len, const size_t arr_stride, const uint *order, void *arr_temp)
 {
   const size_t len = arr_len * arr_stride;
-  const unsigned int arr_stride_uint = (unsigned int)arr_stride;
+  const uint arr_stride_uint = (uint)arr_stride;
   void *arr_orig;
-  unsigned int i;
+  uint i;
 
   if (arr_temp == NULL) {
     arr_orig = MEM_mallocN(len, __func__);
@@ -121,16 +118,45 @@ void _bli_array_permute(void *arr,
 }
 
 /**
+ * In-place array de-duplication of an ordered array.
+ *
+ * \return The new length of the array.
+ *
+ * Access via #BLI_array_deduplicate_ordered
+ */
+uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride)
+{
+  if (UNLIKELY(arr_len <= 1)) {
+    return arr_len;
+  }
+
+  const uint arr_stride_uint = (uint)arr_stride;
+  uint j = 0;
+  for (uint i = 0; i < arr_len; i++) {
+    if ((i == j) || (memcmp(POINTER_OFFSET(arr, arr_stride_uint * i),
+                            POINTER_OFFSET(arr, arr_stride_uint * j),
+                            arr_stride) == 0)) {
+      continue;
+    }
+    j += 1;
+    memcpy(POINTER_OFFSET(arr, arr_stride_uint * j),
+           POINTER_OFFSET(arr, arr_stride_uint * i),
+           arr_stride);
+  }
+  return j + 1;
+}
+
+/**
  * Find the first index of an item in an array.
  *
  * Access via #BLI_array_findindex
  *
  * \note Not efficient, use for error checks/asserts.
  */
-int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p)
+int _bli_array_findindex(const void *arr, uint arr_len, size_t arr_stride, const void *p)
 {
   const char *arr_step = (const char *)arr;
-  for (unsigned int i = 0; i < arr_len; i++, arr_step += arr_stride) {
+  for (uint i = 0; i < arr_len; i++, arr_step += arr_stride) {
     if (memcmp(arr_step, p, arr_stride) == 0) {
       return (int)i;
     }
@@ -141,10 +167,10 @@ int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_strid
 /**
  * A version of #BLI_array_findindex that searches from the end of the list.
  */
-int _bli_array_rfindindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p)
+int _bli_array_rfindindex(const void *arr, uint arr_len, size_t arr_stride, const void *p)
 {
   const char *arr_step = (const char *)arr + (arr_stride * arr_len);
-  for (unsigned int i = arr_len; i-- != 0;) {
+  for (uint i = arr_len; i-- != 0;) {
     arr_step -= arr_stride;
     if (memcmp(arr_step, p, arr_stride) == 0) {
       return (int)i;
@@ -154,7 +180,7 @@ int _bli_array_rfindindex(const void *arr, unsigned int arr_len, size_t arr_stri
 }
 
 void _bli_array_binary_and(
-    void *arr, const void *arr_a, const void *arr_b, unsigned int arr_len, size_t arr_stride)
+    void *arr, const void *arr_a, const void *arr_b, uint arr_len, size_t arr_stride)
 {
   char *dst = arr;
   const char *src_a = arr_a;
@@ -167,7 +193,7 @@ void _bli_array_binary_and(
 }
 
 void _bli_array_binary_or(
-    void *arr, const void *arr_a, const void *arr_b, unsigned int arr_len, size_t arr_stride)
+    void *arr, const void *arr_a, const void *arr_b, uint arr_len, size_t arr_stride)
 {
   char *dst = arr;
   const char *src_a = arr_a;
@@ -196,14 +222,14 @@ void _bli_array_binary_or(
  * where calculating the length isn't a simple subtraction.
  */
 bool _bli_array_iter_span(const void *arr,
-                          unsigned int arr_len,
+                          uint arr_len,
                           size_t arr_stride,
                           bool use_wrap,
                           bool use_delimit_bounds,
                           bool (*test_fn)(const void *arr_item, void *user_data),
                           void *user_data,
-                          unsigned int span_step[2],
-                          unsigned int *r_span_len)
+                          uint span_step[2],
+                          uint *r_span_len)
 {
   if (arr_len == 0) {
     return false;
@@ -212,11 +238,11 @@ bool _bli_array_iter_span(const void *arr,
     return false;
   }
 
-  const unsigned int arr_stride_uint = (unsigned int)arr_stride;
+  const uint arr_stride_uint = (uint)arr_stride;
   const void *item_prev;
   bool test_prev;
 
-  unsigned int i_curr;
+  uint i_curr;
 
   if ((span_step[0] == arr_len) && (span_step[1] == arr_len)) {
     if (use_wrap) {
@@ -249,11 +275,11 @@ bool _bli_array_iter_span(const void *arr,
   while (i_curr < arr_len) {
     bool test_curr = test_fn(item_curr, user_data);
     if ((test_prev == false) && (test_curr == true)) {
-      unsigned int span_len;
-      unsigned int i_step_prev = i_curr;
+      uint span_len;
+      uint i_step_prev = i_curr;
 
       if (use_wrap) {
-        unsigned int i_step = i_curr + 1;
+        uint i_step = i_curr + 1;
         if (UNLIKELY(i_step == arr_len)) {
           i_step = 0;
         }
@@ -273,7 +299,7 @@ bool _bli_array_iter_span(const void *arr,
         }
       }
       else {
-        unsigned int i_step = i_curr + 1;
+        uint i_step = i_curr + 1;
         while ((i_step != arr_len) &&
                test_fn(POINTER_OFFSET(arr, i_step * arr_stride_uint), user_data)) {
           i_step_prev = i_step;
@@ -307,7 +333,7 @@ bool _bli_array_iter_span(const void *arr,
 /**
  * Simple utility to check memory is zeroed.
  */
-bool _bli_array_is_zeroed(const void *arr_v, unsigned int arr_len, size_t arr_stride)
+bool _bli_array_is_zeroed(const void *arr_v, uint arr_len, size_t arr_stride)
 {
   const char *arr_step = (const char *)arr_v;
   size_t i = arr_stride * arr_len;

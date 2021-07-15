@@ -44,7 +44,7 @@ int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(const SubdivSe
     case SUBDIV_VTX_BOUNDARY_EDGE_AND_CORNER:
       return OSD_VTX_BOUNDARY_EDGE_AND_CORNER;
   }
-  BLI_assert(!"Unknown vtx boundary interpolation");
+  BLI_assert_msg(0, "Unknown vtx boundary interpolation");
   return OSD_VTX_BOUNDARY_EDGE_ONLY;
 }
 
@@ -65,6 +65,6 @@ int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(const SubdivSe
     case SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL:
       return OSD_FVAR_LINEAR_INTERPOLATION_ALL;
   }
-  BLI_assert(!"Unknown fvar linear interpolation");
+  BLI_assert_msg(0, "Unknown fvar linear interpolation");
   return OSD_FVAR_LINEAR_INTERPOLATION_NONE;
 }

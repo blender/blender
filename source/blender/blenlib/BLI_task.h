@@ -129,6 +129,9 @@ typedef struct TaskParallelTLS {
 typedef void (*TaskParallelRangeFunc)(void *__restrict userdata,
                                       const int iter,
                                       const TaskParallelTLS *__restrict tls);
+
+typedef void (*TaskParallelInitFunc)(const void *__restrict userdata, void *__restrict chunk);
+
 typedef void (*TaskParallelReduceFunc)(const void *__restrict userdata,
                                        void *__restrict chunk_join,
                                        void *__restrict chunk);
@@ -151,6 +154,10 @@ typedef struct TaskParallelSettings {
   /* Function called from calling thread once whole range have been
    * processed.
    */
+  /* Function called to initialize user data chunk,
+   * typically to allocate data, freed by `func_free`.
+   */
+  TaskParallelInitFunc func_init;
   /* Function called to join user data chunk into another, to reduce
    * the result to the original userdata_chunk memory.
    * The reduce functions should have no side effects, so that they

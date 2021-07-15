@@ -149,7 +149,7 @@ void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
         SEQ_transform_set_left_handle_frame(seq, seq_tx_get_end(seq) - 1);
       }
 
-      /* doesn't work now - TODO */
+      /* TODO: This doesn't work at the moment. */
 #if 0
       if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq, 0)) {
         int ofs;
@@ -271,7 +271,7 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
     test->machine += channel_delta;
     SEQ_time_update_sequence(
         evil_scene,
-        test);  // XXX - I don't think this is needed since were only moving vertically, Campbell.
+        test);  // XXX: I don't think this is needed since were only moving vertically, Campbell.
   }
 
   if ((test->machine < 1) || (test->machine > MAXSEQ)) {

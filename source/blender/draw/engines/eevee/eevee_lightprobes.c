@@ -59,7 +59,7 @@ static struct {
 
 /* *********** FUNCTIONS *********** */
 
-/* TODO find a better way than this. This does not support dupli objects if
+/* TODO: find a better way than this. This does not support dupli objects if
  * the original object is hidden. */
 bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data)
 {
@@ -94,11 +94,11 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *fx = stl->effects;
 
-  /* XXX TODO OPTIMIZATION: This is a complete waist of texture memory.
+  /* XXX TODO: OPTIMIZATION: This is a complete waist of texture memory.
    * Instead of allocating each planar probe for each viewport,
    * only alloc them once using the biggest viewport resolution. */
 
-  /* TODO get screen percentage from layer setting */
+  /* TODO: get screen percentage from layer setting. */
   // const DRWContextState *draw_ctx = DRW_context_state_get();
   // ViewLayer *view_layer = draw_ctx->view_layer;
   int screen_divider = 1;
@@ -1133,7 +1133,7 @@ void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
   LightCache *light_cache = vedata->stl->g_data->light_cache;
 
-  pinfo->samples_len = 512.0f; /* TODO refine */
+  pinfo->samples_len = 512.0f; /* TODO: refine. */
   pinfo->shres = vis_size;
   pinfo->visibility_range = vis_range;
   pinfo->visibility_blur = vis_blur;

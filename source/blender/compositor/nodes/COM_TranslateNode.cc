@@ -42,6 +42,7 @@ void TranslateNode::convertToOperations(NodeConverter &converter,
   NodeOutput *outputSocket = this->getOutputSocket(0);
 
   TranslateOperation *operation = new TranslateOperation();
+  operation->set_wrapping(data->wrap_axis);
   if (data->relative) {
     const RenderData *rd = context.getRenderData();
     const float render_size_factor = context.getRenderPercentageAsFactor();
@@ -55,11 +56,8 @@ void TranslateNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputXSocket, operation->getInputSocket(1));
   converter.mapInputSocket(inputYSocket, operation->getInputSocket(2));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
-
-  /* FullFrame does not support using WriteBufferOperation.
-   * TODO: Implement TranslateOperation with wrap support in FullFrame.
-   */
   if (data->wrap_axis && context.get_execution_model() != eExecutionModel::FullFrame) {
+    /* TODO: To be removed with tiled implementation. */
     WriteBufferOperation *writeOperation = new WriteBufferOperation(DataType::Color);
     WrapOperation *wrapOperation = new WrapOperation(DataType::Color);
     wrapOperation->setMemoryProxy(writeOperation->getMemoryProxy());

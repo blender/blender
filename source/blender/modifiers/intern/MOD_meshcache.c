@@ -104,20 +104,20 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   /* -------------------------------------------------------------------- */
   /* Interpret Time (the reading functions also do some of this ) */
   if (mcmd->play_mode == MOD_MESHCACHE_PLAY_CFEA) {
-    const float cfra = BKE_scene_frame_get(scene);
+    const float ctime = BKE_scene_ctime_get(scene);
 
     switch (mcmd->time_mode) {
       case MOD_MESHCACHE_TIME_FRAME: {
-        time = cfra;
+        time = ctime;
         break;
       }
       case MOD_MESHCACHE_TIME_SECONDS: {
-        time = cfra / fps;
+        time = ctime / fps;
         break;
       }
       case MOD_MESHCACHE_TIME_FACTOR:
       default: {
-        time = cfra / fps;
+        time = ctime / fps;
         break;
       }
     }

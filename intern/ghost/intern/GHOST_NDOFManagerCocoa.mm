@@ -195,7 +195,7 @@ static void DeviceEvent(uint32_t unused, uint32_t msg_type, void *msg_arg)
     // device state is broadcast to all clients; only react if sent to us
     if (s->client == clientID) {
       // TODO: is s->time compatible with GHOST timestamps? if so use that instead.
-      GHOST_TUns64 now = ghost_system->getMilliSeconds();
+      uint64_t now = ghost_system->getMilliSeconds();
 
       switch (s->command) {
         case kConnexionCmdHandleAxis: {

@@ -278,7 +278,7 @@ static void hull_remove_overlapping(BMesh *bm,
         }
       }
 
-      /* Note: can't change ghash while iterating, so mark
+      /* NOTE: can't change ghash while iterating, so mark
        * with 'skip' flag rather than deleting triangles */
       if (BM_vert_in_face(t->v[1], f) && BM_vert_in_face(t->v[2], f) && f_on_hull) {
         t->skip = true;
@@ -465,7 +465,7 @@ static BMVert **hull_verts_from_bullet(plConvexHull hull,
       hull_verts[i] = input_verts[original_index];
     }
     else {
-      BLI_assert(!"Unexpected new vertex in hull output");
+      BLI_assert_msg(0, "Unexpected new vertex in hull output");
     }
   }
 
@@ -505,7 +505,7 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op, BLI_mempool *hull_triang
       BLI_array_grow_items(fvi, len);
       plConvexHullGetFaceVertices(hull, i, fvi);
 
-      /* Note: here we throw away any NGons from Bullet and turn
+      /* NOTE: here we throw away any NGons from Bullet and turn
        * them into triangle fans. Would be nice to use these
        * directly, but will have to wait until HullTriangle goes
        * away (TODO) */
@@ -554,7 +554,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 
   /* Verify that at least three verts in the input */
   if (!hull_num_input_verts_is_ok(op)) {
-    BMO_error_raise(bm, op, BMERR_CONVEX_HULL_FAILED, "Requires at least three vertices");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Requires at least three vertices");
     return;
   }
 

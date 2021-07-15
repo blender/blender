@@ -85,7 +85,7 @@ void main()
   color_history.rgb = clip_to_aabb(color_history.rgb, min_col.rgb, max_col.rgb, avg_col.rgb);
 
   /* Luminance weighting. */
-  /* TODO correct luminance */
+  /* TODO: correct luminance. */
   float lum0 = dot(color.rgb, vec3(0.333));
   float lum1 = dot(color_history.rgb, vec3(0.333));
   float diff = abs(lum0 - lum1) / max(lum0, max(lum1, 0.2));

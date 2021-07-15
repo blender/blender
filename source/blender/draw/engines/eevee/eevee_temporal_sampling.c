@@ -197,7 +197,7 @@ void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects, const dou
 }
 
 /* Update the matrices based on the current sample.
- * Note: `DRW_MAT_PERS` and `DRW_MAT_VIEW` needs to read the original matrices. */
+ * NOTE: `DRW_MAT_PERS` and `DRW_MAT_VIEW` needs to read the original matrices. */
 void EEVEE_temporal_sampling_update_matrices(EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
@@ -407,7 +407,7 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
       GPU_framebuffer_blit(fbl->main_fb, 0, fbl->double_buffer_depth_fb, 0, GPU_DEPTH_BIT);
 
       /* Do reprojection for noise reduction */
-      /* TODO : do AA jitter if in only render view. */
+      /* TODO: do AA jitter if in only render view. */
       if (!DRW_state_is_image_render() && (effects->enabled_effects & EFFECT_TAA_REPROJECT) != 0 &&
           stl->g_data->valid_taa_history) {
         GPU_framebuffer_bind(effects->target_buffer);

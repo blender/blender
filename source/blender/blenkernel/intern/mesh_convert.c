@@ -1117,7 +1117,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   BKE_displist_make_curveTypes_forRender(
       NULL, NULL, &remapped_object, &remapped_object.runtime.curve_cache->disp, &mesh_eval);
 
-  /* Note: this is to be consistent with `BKE_displist_make_curveTypes()`, however that is not a
+  /* NOTE: this is to be consistent with `BKE_displist_make_curveTypes()`, however that is not a
    * real issue currently, code here is broken in more than one way, fix(es) will be done
    * separately. */
   if (mesh_eval != NULL) {
@@ -1327,7 +1327,7 @@ static int foreach_libblock_make_usercounts_callback(LibraryIDLinkCallbackData *
     id_us_plus(*id_p);
   }
   else if (cb_flag & IDWALK_CB_USER_ONE) {
-    /* Note: in that context, that one should not be needed (since there should be at least already
+    /* NOTE: in that context, that one should not be needed (since there should be at least already
      * one USER_ONE user of that ID), but better be consistent. */
     id_us_ensure_real(*id_p);
   }
@@ -1668,7 +1668,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
   }
 
   /* object had got displacement layer, should copy this layer to save sculpted data */
-  /* NOTE: maybe some other layers should be copied? nazgul */
+  /* NOTE(nazgul): maybe some other layers should be copied? */
   if (CustomData_has_layer(&mesh_dst->ldata, CD_MDISPS)) {
     if (totloop == mesh_dst->totloop) {
       MDisps *mdisps = CustomData_get_layer(&mesh_dst->ldata, CD_MDISPS);

@@ -62,7 +62,7 @@ typedef struct DrawDataList {
 typedef struct IDPropertyData {
   void *pointer;
   ListBase group;
-  /** Note, we actually fit a double into these two ints. */
+  /** NOTE: we actually fit a double into these two 32bit integers. */
   int val, val2;
 } IDPropertyData;
 
@@ -76,7 +76,7 @@ typedef struct IDProperty {
   /* saved is used to indicate if this struct has been saved yet.
    * seemed like a good idea as a '_pad' var was needed anyway :) */
   int saved;
-  /** Note, alignment for 64 bits. */
+  /** NOTE: alignment for 64 bits. */
   IDPropertyData data;
 
   /* Array length, also (this is important!) string length + 1.
@@ -554,7 +554,7 @@ enum {
    * Also used internally in readfile.c to mark data-blocks needing do_versions. */
   LIB_TAG_NEW = 1 << 8,
   /* RESET_BEFORE_USE free test flag.
-   * TODO make it a RESET_AFTER_USE too. */
+   * TODO: make it a RESET_AFTER_USE too. */
   LIB_TAG_DOIT = 1 << 10,
   /* RESET_AFTER_USE tag existing data before linking so we know what is new. */
   LIB_TAG_PRE_EXISTING = 1 << 11,
@@ -621,9 +621,9 @@ typedef enum IDRecalcFlag {
    * When a collection gets tagged with this flag, all objects depending on the geometry and
    * transforms on any of the objects in the collection are updated. */
   ID_RECALC_GEOMETRY = (1 << 1),
-
-  /* ** Animation or time changed and animation is to be re-evaluated. ** */
-  ID_RECALC_ANIMATION = (1 << 2),
+  /* Same as #ID_RECALC_GEOMETRY, but instead of tagging the batch cache as `dirty_all`, just tags
+     what matches the deform cache. */
+  ID_RECALC_GEOMETRY_DEFORM = (1 << 2),
 
   /* ** Particle system changed. ** */
   /* Only do pathcache etc. */
@@ -682,6 +682,9 @@ typedef enum IDRecalcFlag {
    * this has the advantage that large arrays stored in the idea data don't
    * have to be copied on every update. */
   ID_RECALC_PARAMETERS = (1 << 21),
+
+  /* ** Animation or time changed and animation is to be re-evaluated. ** */
+  ID_RECALC_ANIMATION = (1 << 22),
 
   /* Input has changed and datablock is to be reload from disk.
    * Applies to movie clips to inform that copy-on-written version is to be refreshed for the new

@@ -36,6 +36,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
+#include "BKE_deform.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 
@@ -289,7 +290,8 @@ void SkinInfo::link_armature(bContext *C,
 
       /* -1 means "weight towards the bind shape", we just don't assign it to any group */
       if (joint != -1) {
-        bDeformGroup *def = (bDeformGroup *)BLI_findlink(&ob->defbase, joint);
+        const ListBase *defbase = BKE_object_defgroup_list(ob);
+        bDeformGroup *def = (bDeformGroup *)BLI_findlink(defbase, joint);
 
         ED_vgroup_vert_add(ob, def, vertex, weights[joint_weight], WEIGHT_REPLACE);
       }

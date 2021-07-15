@@ -482,7 +482,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     transparent_max_bounces: IntProperty(
         name="Transparent Max Bounces",
-        description="Maximum number of transparent bounces",
+        description="Maximum number of transparent bounces. This is independent of maximum number of other bounces ",
         min=0, max=1024,
         default=8,
     )

@@ -884,7 +884,7 @@ static float dist_Real(float x, float y, float z, float e)
   (void)e;
   return sqrtf(x * x + y * y + z * z);
 }
-/* manhattan/taxicab/cityblock distance */
+/* Manhattan/Taxi-Cab/City-Block distance. */
 static float dist_Manhattan(float x, float y, float z, float e)
 {
   (void)e;

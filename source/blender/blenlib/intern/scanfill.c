@@ -397,7 +397,7 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
   for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
     if (eve->edge_tot == 1) {
       /* find the edge which has vertex eve,
-       * note: we _know_ this will crash if 'ed1' becomes NULL
+       * NOTE: we _know_ this will crash if 'ed1' becomes NULL
        * but this will never happen. */
       for (ed1 = sf_ctx->filledgebase.first; !(ed1->v1 == eve || ed1->v2 == eve);
            ed1 = ed1->next) {
@@ -529,7 +529,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
         eve->f = SF_VERT_NEW; /* Flag for connect edges later on. */
         sc->vert = eve;
         sc->edge_first = sc->edge_last = NULL;
-        /* Note, debug print only will work for curve poly-fill, union is in use for mesh. */
+        /* NOTE: debug print only will work for curve poly-fill, union is in use for mesh. */
         /* if (even->tmp.v == NULL) eve->tmp.u = verts; */
         sc++;
       }

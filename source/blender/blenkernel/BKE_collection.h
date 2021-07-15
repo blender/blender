@@ -76,6 +76,7 @@ struct Collection *BKE_collection_duplicate(struct Main *bmain,
 
 /* Master Collection for Scene */
 
+#define BKE_SCENE_COLLECTION_NAME "Scene Collection"
 struct Collection *BKE_collection_master_add(void);
 
 /* Collection Objects */

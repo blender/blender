@@ -112,7 +112,7 @@ enum {
 };
 
 /* How to map a source layer to a destination layer, for types supporting multi-layers.
- * Note: if no matching layer can be found, it will be created. */
+ * NOTE: if no matching layer can be found, it will be created. */
 enum {
   DT_LAYERS_ACTIVE_DST = -1, /* Only for DT_LAYERS_FROMSEL_ACTIVE. */
   DT_LAYERS_NAME_DST = -2,

@@ -154,17 +154,6 @@ bool BKE_gpencil_merge_materials(struct Object *ob,
 /* statistics functions */
 void BKE_gpencil_stats_update(struct bGPdata *gpd);
 
-/* Utilities for creating and populating GP strokes */
-/* - Number of values defining each point in the built-in data
- *   buffers for primitives (e.g. 2D Monkey)
- */
-#define GP_PRIM_DATABUF_SIZE 5
-
-void BKE_gpencil_stroke_add_points(struct bGPDstroke *gps,
-                                   const float *array,
-                                   const int totpoints,
-                                   const float mat[4][4]);
-
 struct bGPDstroke *BKE_gpencil_stroke_new(int mat_idx, int totpoints, short thickness);
 struct bGPDstroke *BKE_gpencil_stroke_add(
     struct bGPDframe *gpf, int mat_idx, int totpoints, short thickness, const bool insert_at_head);
@@ -282,20 +271,25 @@ bool BKE_gpencil_from_image(struct SpaceImage *sima,
                             const float size,
                             const bool mask);
 
-/* Iterator */
+/* Iterators */
 /* frame & stroke are NULL if it is a layer callback. */
 typedef void (*gpIterCb)(struct bGPDlayer *layer,
                          struct bGPDframe *frame,
                          struct bGPDstroke *stroke,
                          void *thunk);
 
-void BKE_gpencil_visible_stroke_iter(struct ViewLayer *view_layer,
-                                     struct Object *ob,
+void BKE_gpencil_visible_stroke_iter(struct bGPdata *gpd,
                                      gpIterCb layer_cb,
                                      gpIterCb stroke_cb,
-                                     void *thunk,
-                                     bool do_onion,
-                                     int cfra);
+                                     void *thunk);
+
+void BKE_gpencil_visible_stroke_advanced_iter(struct ViewLayer *view_layer,
+                                              struct Object *ob,
+                                              gpIterCb layer_cb,
+                                              gpIterCb stroke_cb,
+                                              void *thunk,
+                                              bool do_onion,
+                                              int cfra);
 
 extern void (*BKE_gpencil_batch_cache_dirty_tag_cb)(struct bGPdata *gpd);
 extern void (*BKE_gpencil_batch_cache_free_cb)(struct bGPdata *gpd);

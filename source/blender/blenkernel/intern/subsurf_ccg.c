@@ -2352,7 +2352,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(struct DerivedMesh *dm,
   const bool ignore_simplify = (flags & SUBSURF_IGNORE_SIMPLIFY);
   CCGDerivedMesh *result;
 
-  /* note: editmode calculation can only run once per
+  /* NOTE: editmode calculation can only run once per
    * modifier stack evaluation (uses freed cache) T36299. */
   if (flags & SUBSURF_FOR_EDIT_MODE) {
     int levels = (scene != NULL && !ignore_simplify) ?

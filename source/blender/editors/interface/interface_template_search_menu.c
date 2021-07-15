@@ -873,7 +873,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
 
   /* Finally sort menu items.
    *
-   * Note: we might want to keep the in-menu order, for now sort all. */
+   * NOTE: we might want to keep the in-menu order, for now sort all. */
   BLI_listbase_sort(&data->items, menu_item_sort_by_drawstr_full);
 
   BLI_ghash_free(menu_parent_map, NULL, NULL);
@@ -1037,7 +1037,7 @@ static void menu_search_update_fn(const bContext *UNUSED(C),
 static bool ui_search_menu_create_context_menu(struct bContext *C,
                                                void *arg,
                                                void *active,
-                                               const struct wmEvent *UNUSED(event))
+                                               const struct wmEvent *event)
 {
   struct MenuSearch_Data *data = arg;
   struct MenuSearch_Item *item = active;
@@ -1058,7 +1058,7 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
       CTX_wm_region_set(C, item->wm_context->region);
     }
 
-    if (ui_popup_context_menu_for_button(C, but)) {
+    if (ui_popup_context_menu_for_button(C, but, event)) {
       has_menu = true;
     }
 

@@ -28,12 +28,18 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_genfile.h"
 #include "DNA_listBase.h"
 #include "DNA_modifier_types.h"
 #include "DNA_text_types.h"
+#include "DNA_workspace_types.h"
 
+#include "BKE_action.h"
 #include "BKE_animsys.h"
+#include "BKE_asset.h"
+#include "BKE_collection.h"
+#include "BKE_deform.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -87,6 +93,19 @@ static void assert_sorted_ids(Main *bmain)
 #endif
 }
 
+static void move_vertex_group_names_to_object_data(Main *bmain)
+{
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+      ListBase *new_defbase = BKE_object_defgroup_list_mutable(object);
+
+      /* Clear the list in case the it was already assigned from another object. */
+      BLI_freelistN(new_defbase);
+      *new_defbase = object->defbase;
+    }
+  }
+}
+
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
 {
   if (MAIN_VERSION_ATLEAST(bmain, 300, 0) && !MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
@@ -129,6 +148,10 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
 
   if (MAIN_VERSION_ATLEAST(bmain, 300, 3)) {
     assert_sorted_ids(bmain);
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 11)) {
+    move_vertex_group_names_to_object_data(bmain);
   }
 
   /**
@@ -462,9 +485,58 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
 
       SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
-      sequencer_tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_PLAYHEAD |
+      sequencer_tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
                                            SEQ_SNAP_TO_STRIP_HOLD;
       sequencer_tool_settings->snap_distance = 15;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 8)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->master_collection != NULL) {
+        BLI_strncpy(scene->master_collection->id.name + 2,
+                    BKE_SCENE_COLLECTION_NAME,
+                    sizeof(scene->master_collection->id.name) - 2);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 9)) {
+    /* Fix a bug where reordering FCurves and bActionGroups could cause some corruption. Just
+     * reconstruct all the action groups & ensure that the FCurves of a group are continuously
+     * stored (i.e. not mixed with other groups) to be sure. See T89435. */
+    LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
+      BKE_action_groups_reconstruct(act);
+    }
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_MESH_SUBDIVIDE) {
+            strcpy(node->idname, "GeometryNodeMeshSubdivide");
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    {
+      if (!DNA_struct_elem_find(
+              fd->filesdna, "WorkSpace", "AssetLibraryReference", "active_asset_library")) {
+        LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+          BKE_asset_library_reference_init_default(&workspace->active_asset_library);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 10)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      if (tool_settings->snap_uv_mode & (1 << 4)) {
+        tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
+        tool_settings->snap_uv_mode &= ~(1 << 4);
+      }
     }
   }
 

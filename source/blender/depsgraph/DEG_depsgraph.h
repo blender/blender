@@ -159,7 +159,7 @@ void DEG_ids_restore_recalc(Depsgraph *depsgraph);
 /* Graph Evaluation  ----------------------------- */
 
 /* Frame changed recalculation entry point. */
-void DEG_evaluate_on_framechange(Depsgraph *graph, float ctime);
+void DEG_evaluate_on_framechange(Depsgraph *graph, float frame);
 
 /* Data changed recalculation entry point. */
 void DEG_evaluate_on_refresh(Depsgraph *graph);

@@ -266,7 +266,7 @@ void DRW_draw_gizmo_3d(void)
   ARegion *region = draw_ctx->region;
 
   /* draw depth culled gizmos - gizmos need to be updated *after* view matrix was set up */
-  /* TODO depth culling gizmos is not yet supported, just drawing _3D here, should
+  /* TODO: depth culling gizmos is not yet supported, just drawing _3D here, should
    * later become _IN_SCENE (and draw _3D separate) */
   WM_gizmomap_draw(region->gizmo_map, draw_ctx->evil_C, WM_GIZMOMAP_DRAWSTEP_3D);
 }

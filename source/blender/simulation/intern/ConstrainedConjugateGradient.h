@@ -68,7 +68,7 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
 
   RealScalar rhsNorm2 = (filter * rhs).squaredNorm();
   if (rhsNorm2 == 0) {
-    /* XXX TODO set constrained result here */
+    /* XXX TODO: set constrained result here. */
     x.setZero();
     iters = 0;
     tol_error = 0;

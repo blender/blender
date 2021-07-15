@@ -314,7 +314,7 @@ typedef struct OVERLAY_PrivateData {
   DRWView *view_edit_text;
   DRWView *view_reference_images;
 
-  /** TODO get rid of this. */
+  /** TODO: get rid of this. */
   ListBase smoke_domains;
   ListBase bg_movie_clips;
 
@@ -333,8 +333,8 @@ typedef struct OVERLAY_PrivateData {
   bool xray_enabled;
   bool xray_enabled_and_not_wire;
   float xray_opacity;
-  short v3d_flag;     /* TODO move to View3DOverlay */
-  short v3d_gridflag; /* TODO move to View3DOverlay */
+  short v3d_flag;     /* TODO: move to #View3DOverlay. */
+  short v3d_gridflag; /* TODO: move to #View3DOverlay. */
   int cfra;
   DRWState clipping_state;
   OVERLAY_ShadingData shdata;

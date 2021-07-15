@@ -41,7 +41,6 @@ class MESH_MT_vertex_group_context_menu(Menu):
         ).sort_type = 'BONE_HIERARCHY'
         layout.separator()
         layout.operator("object.vertex_group_copy", icon='DUPLICATE')
-        layout.operator("object.vertex_group_copy_to_linked")
         layout.operator("object.vertex_group_copy_to_selected")
         layout.separator()
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT').use_topology = False

@@ -2311,7 +2311,7 @@ static void lib_link_id_embedded_id(BlendLibReader *reader, ID *id)
 
 static void lib_link_id(BlendLibReader *reader, ID *id)
 {
-  /* Note: WM IDProperties are never written to file, hence they should always be NULL here. */
+  /* NOTE: WM IDProperties are never written to file, hence they should always be NULL here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == NULL);
   IDP_BlendReadLib(reader, id->properties);
 
@@ -2728,7 +2728,7 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
 
   struct IDNameLib_Map *id_map = cb_data->user_data;
 
-  /* Note: Handling of usercount here is really bad, defining its own system...
+  /* NOTE: Handling of usercount here is really bad, defining its own system...
    * Will have to be refactored at some point, but that is not top priority task for now.
    * And all user-counts are properly recomputed at the end of the undo management code anyway. */
   *id_pointer = restore_pointer_by_name(
@@ -3067,7 +3067,7 @@ void blo_lib_link_restore(Main *oldmain,
     /* keep cursor location through undo */
     memcpy(&win->scene->cursor, &oldscene->cursor, sizeof(win->scene->cursor));
 
-    /* Note: even though that function seems to redo part of what is done by
+    /* NOTE: even though that function seems to redo part of what is done by
      * `lib_link_workspace_layout_restore()` above, it seems to have a slightly different scope:
      * while the former updates the whole UI pointers from Main db (going over all layouts of
      * all workspaces), that one only focuses one current active screen, takes care of
@@ -3780,7 +3780,7 @@ BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_a
 /** \name Read Global Data
  * \{ */
 
-/* note, this has to be kept for reading older files... */
+/* NOTE: this has to be kept for reading older files... */
 /* also version info is written here */
 static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
@@ -3828,7 +3828,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   return blo_bhead_next(fd, bhead);
 }
 
-/* note, this has to be kept for reading older files... */
+/* NOTE: this has to be kept for reading older files... */
 static void link_global(FileData *fd, BlendFileData *bfd)
 {
   bfd->cur_view_layer = blo_read_get_new_globaldata_address(fd, bfd->cur_view_layer);
@@ -5611,7 +5611,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
       lib_link_all(mainptr->curlib->filedata, mainptr);
     }
 
-    /* Note: No need to call #do_versions_after_linking() or #BKE_main_id_refcount_recompute()
+    /* NOTE: No need to call #do_versions_after_linking() or #BKE_main_id_refcount_recompute()
      * here, as this function is only called for library 'subset' data handling, as part of
      * either full blendfile reading (#blo_read_file_internal()), or library-data linking
      * (#library_link_end()). */

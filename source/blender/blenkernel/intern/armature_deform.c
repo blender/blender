@@ -47,6 +47,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
@@ -485,7 +486,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
   int defbase_len = 0;   /* safety for vertexgroup index overflow */
   int i, dverts_len = 0; /* safety for vertexgroup overflow */
   bool use_dverts = false;
-  int armature_def_nr;
+  int armature_def_nr = -1;
   int cd_dvert_offset = -1;
 
   /* in editmode, or not an armature */
@@ -500,11 +501,11 @@ static void armature_deform_coords_impl(const Object *ob_arm,
     BLI_assert(0);
   }
 
-  /* get the def_nr for the overall armature vertex group if present */
-  armature_def_nr = BKE_object_defgroup_name_index(ob_target, defgrp_name);
-
   if (ELEM(ob_target->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
-    defbase_len = BLI_listbase_count(&ob_target->defbase);
+    /* get the def_nr for the overall armature vertex group if present */
+    armature_def_nr = BKE_object_defgroup_name_index(ob_target, defgrp_name);
+
+    defbase_len = BKE_object_defgroup_count(ob_target);
 
     if (ob_target->type == OB_MESH) {
       if (em_target == NULL) {
@@ -551,7 +552,8 @@ static void armature_deform_coords_impl(const Object *ob_arm,
          *
          * - Check whether keeping this consistent across frames gives speedup.
          */
-        for (i = 0, dg = ob_target->defbase.first; dg; i++, dg = dg->next) {
+        const ListBase *defbase = BKE_object_defgroup_list(ob_target);
+        for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
           pchan_from_defbase[i] = BKE_pose_channel_find_name(ob_arm->pose, dg->name);
           /* exclude non-deforming bones */
           if (pchan_from_defbase[i]) {

@@ -367,7 +367,7 @@ static Mesh *rigidbody_get_mesh(Object *ob)
   }
 
   /* Just return something sensible so that at least Blender won't crash. */
-  BLI_assert(!"Unknown mesh source");
+  BLI_assert_msg(0, "Unknown mesh source");
   return BKE_object_get_evaluated_mesh(ob);
 }
 
@@ -1787,7 +1787,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
 
   rigidbody_update_sim_world(scene, rbw);
 
-  /* XXX TODO For rebuild: remove all constraints first.
+  /* XXX TODO: For rebuild: remove all constraints first.
    * Otherwise we can end up deleting objects that are still
    * referenced by constraints, corrupting bullet's internal list.
    *
@@ -1811,11 +1811,12 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
       /* validate that we've got valid object set up here... */
       RigidBodyOb *rbo = ob->rigidbody_object;
 
-      /* TODO remove this whole block once we are sure we never get NULL rbo here anymore. */
+      /* TODO: remove this whole block once we are sure we never get NULL rbo here anymore. */
       /* This cannot be done in CoW evaluation context anymore... */
       if (rbo == NULL) {
-        BLI_assert(!"CoW object part of RBW object collection without RB object data, "
-                   "should not happen.\n");
+        BLI_assert_msg(0,
+                       "CoW object part of RBW object collection without RB object data, "
+                       "should not happen.\n");
         /* Since this object is included in the sim group but doesn't have
          * rigid body settings (perhaps it was added manually), add!
          * - assume object to be active? That is the default for newly added settings...
@@ -1868,11 +1869,12 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
     /* validate that we've got valid object set up here... */
     RigidBodyCon *rbc = ob->rigidbody_constraint;
 
-    /* TODO remove this whole block once we are sure we never get NULL rbo here anymore. */
+    /* TODO: remove this whole block once we are sure we never get NULL rbo here anymore. */
     /* This cannot be done in CoW evaluation context anymore... */
     if (rbc == NULL) {
-      BLI_assert(!"CoW object part of RBW constraints collection without RB constraint data, "
-                 "should not happen.\n");
+      BLI_assert_msg(0,
+                     "CoW object part of RBW constraints collection without RB constraint data, "
+                     "should not happen.\n");
       /* Since this object is included in the group but doesn't have
        * constraint settings (perhaps it was added manually), add!
        */

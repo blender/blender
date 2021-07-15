@@ -41,7 +41,7 @@
 #include "ED_gizmo_library.h"     /* own include */
 #include "gizmo_library_intern.h" /* own include */
 
-/* TODO, this is to be used by RNA. might move to ED_gizmo_library */
+/* TODO: this is to be used by RNA. might move to ED_gizmo_library. */
 
 /**
  * Given a single axis, orient the matrix to a different direction.

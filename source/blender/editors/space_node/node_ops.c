@@ -119,6 +119,7 @@ void node_operatortypes(void)
 
   WM_operatortype_append(NODE_OT_tree_socket_add);
   WM_operatortype_append(NODE_OT_tree_socket_remove);
+  WM_operatortype_append(NODE_OT_tree_socket_change_type);
   WM_operatortype_append(NODE_OT_tree_socket_move);
 
   WM_operatortype_append(NODE_OT_cryptomatte_layer_add);
@@ -157,7 +158,7 @@ void ED_operatormacros_node(void)
   WM_operatortype_macro_define(ot, "NODE_OT_attach");
   WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
-  /* Note: Currently not in a default keymap or menu due to messy keymaps
+  /* NOTE: Currently not in a default keymap or menu due to messy keymaps
    * and tricky invoke functionality.
    * Kept around in case users want to make own shortcuts.
    */

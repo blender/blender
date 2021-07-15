@@ -44,7 +44,7 @@ extern "C" {
 
 bool imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
 {
-  return false; /* todo: finish this function */
+  return false; /* TODO: finish this function. */
 
   /* check image buffer */
   if (ibuf == nullptr) {

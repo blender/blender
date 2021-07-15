@@ -143,8 +143,7 @@ static bool bvh_from_mesh(const Mesh *target_mesh,
       break;
   }
 
-  /* This only updates a cache and can be considered to be logically const. */
-  BKE_bvhtree_from_mesh_get(&r_tree_data_mesh, const_cast<Mesh *>(target_mesh), bvh_type, 2);
+  BKE_bvhtree_from_mesh_get(&r_tree_data_mesh, target_mesh, bvh_type, 2);
   if (r_tree_data_mesh.tree == nullptr) {
     return false;
   }

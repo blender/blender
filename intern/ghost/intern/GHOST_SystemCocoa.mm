@@ -520,7 +520,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
   sysctl(mib, 2, &boottime, &len, NULL, 0);
   m_start_time = ((boottime.tv_sec * 1000) + (boottime.tv_usec / 1000));
 
-  // Detect multitouch trackpad
+  /* Detect multi-touch track-pad. */
   mib[0] = CTL_HW;
   mib[1] = HW_MODEL;
   sysctl(mib, 2, NULL, &len, NULL, 0);
@@ -655,7 +655,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 
 #pragma mark window management
 
-GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
+uint64_t GHOST_SystemCocoa::getMilliSeconds() const
 {
   // Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
   struct timeval currentTime;
@@ -667,7 +667,7 @@ GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
   return ((currentTime.tv_sec * 1000) + (currentTime.tv_usec / 1000) - m_start_time);
 }
 
-GHOST_TUns8 GHOST_SystemCocoa::getNumDisplays() const
+uint8_t GHOST_SystemCocoa::getNumDisplays() const
 {
   // Note that OS X supports monitor hot plug
   // We do not support multiple monitors at the moment
@@ -676,7 +676,7 @@ GHOST_TUns8 GHOST_SystemCocoa::getNumDisplays() const
   }
 }
 
-void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
+void GHOST_SystemCocoa::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   @autoreleasepool {
     // Get visible frame, that is frame excluding dock and top menu bar
@@ -693,17 +693,17 @@ void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns
   }
 }
 
-void GHOST_SystemCocoa::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
+void GHOST_SystemCocoa::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   /* TODO! */
   getMainDisplayDimensions(width, height);
 }
 
 GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
-                                               GHOST_TInt32 left,
-                                               GHOST_TInt32 top,
-                                               GHOST_TUns32 width,
-                                               GHOST_TUns32 height,
+                                               int32_t left,
+                                               int32_t top,
+                                               uint32_t width,
+                                               uint32_t height,
                                                GHOST_TWindowState state,
                                                GHOST_TDrawingContextType type,
                                                GHOST_GLSettings glSettings,
@@ -721,7 +721,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                       styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
                                  NSWindowStyleMaskMiniaturizable)];
 
-    GHOST_TInt32 bottom = (contentRect.size.height - 1) - height - top;
+    int32_t bottom = (contentRect.size.height - 1) - height - top;
 
     // Ensures window top left is inside this available rect
     left = left > contentRect.origin.x ? left : contentRect.origin.x;
@@ -791,20 +791,20 @@ GHOST_TSuccess GHOST_SystemCocoa::disposeContext(GHOST_IContext *context)
 /**
  * \note : returns coordinates in Cocoa screen coordinates
  */
-GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(int32_t &x, int32_t &y) const
 {
   NSPoint mouseLoc = [NSEvent mouseLocation];
 
   // Returns the mouse location in screen coordinates
-  x = (GHOST_TInt32)mouseLoc.x;
-  y = (GHOST_TInt32)mouseLoc.y;
+  x = (int32_t)mouseLoc.x;
+  y = (int32_t)mouseLoc.y;
   return GHOST_kSuccess;
 }
 
 /**
  * \note : expect Cocoa screen coordinates
  */
-GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
+GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(int32_t x, int32_t y)
 {
   GHOST_WindowCocoa *window = (GHOST_WindowCocoa *)m_windowManager->getActiveWindow();
   if (!window)
@@ -824,7 +824,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
+GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(int32_t x, int32_t y)
 {
   float xf = (float)x, yf = (float)y;
   GHOST_WindowCocoa *window = (GHOST_WindowCocoa *)m_windowManager->getActiveWindow();
@@ -897,7 +897,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
     GHOST_TimerManager* timerMgr = getTimerManager();
 
     if (waitForEvent) {
-      GHOST_TUns64 next = timerMgr->nextFireTime();
+      uint64_t next = timerMgr->nextFireTime();
       double timeOut;
 
       if (next == GHOST_kFireTimeNever) {
@@ -1132,7 +1132,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
       break;
 
     case GHOST_kEventDraggingDropDone: {
-      GHOST_TUns8 *temp_buff;
+      uint8_t *temp_buff;
       GHOST_TStringArray *strArray;
       NSArray *droppedArray;
       size_t pastedTextSize;
@@ -1157,13 +1157,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             return GHOST_kFailure;
           }
 
-          strArray->strings = (GHOST_TUns8 **)malloc(strArray->count * sizeof(GHOST_TUns8 *));
+          strArray->strings = (uint8_t **)malloc(strArray->count * sizeof(uint8_t *));
 
           for (i = 0; i < strArray->count; i++) {
             droppedStr = [droppedArray objectAtIndex:i];
 
             pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-            temp_buff = (GHOST_TUns8 *)malloc(pastedTextSize + 1);
+            temp_buff = (uint8_t *)malloc(pastedTextSize + 1);
 
             if (!temp_buff) {
               strArray->count = i;
@@ -1185,7 +1185,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
           droppedStr = (NSString *)data;
           pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
-          temp_buff = (GHOST_TUns8 *)malloc(pastedTextSize + 1);
+          temp_buff = (uint8_t *)malloc(pastedTextSize + 1);
 
           if (temp_buff == NULL) {
             return GHOST_kFailure;
@@ -1204,9 +1204,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
           NSImage *droppedImg = (NSImage *)data;
           NSSize imgSize = [droppedImg size];
           ImBuf *ibuf = NULL;
-          GHOST_TUns8 *rasterRGB = NULL;
-          GHOST_TUns8 *rasterRGBA = NULL;
-          GHOST_TUns8 *toIBuf = NULL;
+          uint8_t *rasterRGB = NULL;
+          uint8_t *rasterRGBA = NULL;
+          uint8_t *toIBuf = NULL;
           int x, y, to_i, from_i;
           NSBitmapImageRep *blBitmapFormatImageRGB, *blBitmapFormatImageRGBA, *bitmapImage = nil;
           NSEnumerator *enumerator;
@@ -1232,8 +1232,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
           if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0) &&
               ![bitmapImage isPlanar]) {
             /* Try a fast copy if the image is a meshed RGBA 32bit bitmap. */
-            toIBuf = (GHOST_TUns8 *)ibuf->rect;
-            rasterRGB = (GHOST_TUns8 *)[bitmapImage bitmapData];
+            toIBuf = (uint8_t *)ibuf->rect;
+            rasterRGB = (uint8_t *)[bitmapImage bitmapData];
             for (y = 0; y < imgSize.height; y++) {
               to_i = (imgSize.height - y - 1) * imgSize.width;
               from_i = y * imgSize.width;
@@ -1270,7 +1270,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             [bitmapImage draw];
             [NSGraphicsContext restoreGraphicsState];
 
-            rasterRGB = (GHOST_TUns8 *)[blBitmapFormatImageRGB bitmapData];
+            rasterRGB = (uint8_t *)[blBitmapFormatImageRGB bitmapData];
             if (rasterRGB == NULL) {
               [bitmapImage release];
               [blBitmapFormatImageRGB release];
@@ -1299,7 +1299,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             [bitmapImage draw];
             [NSGraphicsContext restoreGraphicsState];
 
-            rasterRGBA = (GHOST_TUns8 *)[blBitmapFormatImageRGBA bitmapData];
+            rasterRGBA = (uint8_t *)[blBitmapFormatImageRGBA bitmapData];
             if (rasterRGBA == NULL) {
               [bitmapImage release];
               [blBitmapFormatImageRGB release];
@@ -1309,7 +1309,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             }
 
             /* Copy the image to ibuf, flipping it vertically. */
-            toIBuf = (GHOST_TUns8 *)ibuf->rect;
+            toIBuf = (uint8_t *)ibuf->rect;
             for (y = 0; y < imgSize.height; y++) {
               for (x = 0; x < imgSize.width; x++) {
                 to_i = (imgSize.height - y - 1) * imgSize.width + x;
@@ -1563,7 +1563,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       switch (grab_mode) {
         case GHOST_kGrabHide:  // Cursor hidden grab operation : no cursor move
         {
-          GHOST_TInt32 x_warp, y_warp, x_accum, y_accum, x, y;
+          int32_t x_warp, y_warp, x_accum, y_accum, x, y;
 
           window->getCursorGrabInitPos(x_warp, y_warp);
           window->screenToClientIntern(x_warp, y_warp, x_warp, y_warp);
@@ -1593,8 +1593,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
           }
 
           NSPoint mousePos = [event locationInWindow];
-          GHOST_TInt32 x_mouse = mousePos.x;
-          GHOST_TInt32 y_mouse = mousePos.y;
+          int32_t x_mouse = mousePos.x;
+          int32_t y_mouse = mousePos.y;
           GHOST_Rect bounds, windowBounds, correctedBounds;
 
           /* fallback to window bounds */
@@ -1610,19 +1610,19 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
           correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
 
           // Get accumulation from previous mouse warps
-          GHOST_TInt32 x_accum, y_accum;
+          int32_t x_accum, y_accum;
           window->getCursorGrabAccum(x_accum, y_accum);
 
           // Warp mouse cursor if needed
-          GHOST_TInt32 warped_x_mouse = x_mouse;
-          GHOST_TInt32 warped_y_mouse = y_mouse;
+          int32_t warped_x_mouse = x_mouse;
+          int32_t warped_y_mouse = y_mouse;
 
           correctedBounds.wrapPoint(
               warped_x_mouse, warped_y_mouse, 4, window->getCursorGrabAxis());
 
           // Set new cursor position
           if (x_mouse != warped_x_mouse || y_mouse != warped_y_mouse) {
-            GHOST_TInt32 warped_x, warped_y;
+            int32_t warped_x, warped_y;
             window->clientToScreenIntern(warped_x_mouse, warped_y_mouse, warped_x, warped_y);
             setMouseCursorPosition(warped_x, warped_y); /* wrap */
             window->setCursorGrabAccum(x_accum + (x_mouse - warped_x_mouse),
@@ -1633,7 +1633,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
           }
 
           // Generate event
-          GHOST_TInt32 x, y;
+          int32_t x, y;
           window->clientToScreenIntern(x_mouse + x_accum, y_mouse + y_accum, x, y);
           pushEvent(new GHOST_EventCursor([event timestamp] * 1000,
                                           GHOST_kEventCursorMove,
@@ -1646,7 +1646,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         default: {
           // Normal cursor operation: send mouse position in window
           NSPoint mousePos = [event locationInWindow];
-          GHOST_TInt32 x, y;
+          int32_t x, y;
 
           window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
           pushEvent(new GHOST_EventCursor([event timestamp] * 1000,
@@ -1690,7 +1690,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       /* Standard scroll-wheel case, if no swiping happened,
        * and no momentum (kinetic scroll) works. */
       if (!m_multiTouchScroll && momentumPhase == NSEventPhaseNone) {
-        GHOST_TInt32 delta;
+        int32_t delta;
 
         double deltaF = [event deltaY];
 
@@ -1704,7 +1704,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       }
       else {
         NSPoint mousePos = [event locationInWindow];
-        GHOST_TInt32 x, y;
+        int32_t x, y;
         double dx;
         double dy;
 
@@ -1734,7 +1734,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
     case NSEventTypeMagnify: {
       NSPoint mousePos = [event locationInWindow];
-      GHOST_TInt32 x, y;
+      int32_t x, y;
       window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
       pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000,
                                         window,
@@ -1748,7 +1748,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
     case NSEventTypeSmartMagnify: {
       NSPoint mousePos = [event locationInWindow];
-      GHOST_TInt32 x, y;
+      int32_t x, y;
       window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
       pushEvent(new GHOST_EventTrackpad(
           [event timestamp] * 1000, window, GHOST_kTrackpadEventSmartMagnify, x, y, 0, 0, false));
@@ -1756,7 +1756,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
     case NSEventTypeRotate: {
       NSPoint mousePos = [event locationInWindow];
-      GHOST_TInt32 x, y;
+      int32_t x, y;
       window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
       pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000,
                                         window,
@@ -1933,9 +1933,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 
 #pragma mark Clipboard get/set
 
-GHOST_TUns8 *GHOST_SystemCocoa::getClipboard(bool selection) const
+char *GHOST_SystemCocoa::getClipboard(bool selection) const
 {
-  GHOST_TUns8 *temp_buff;
+  char *temp_buff;
   size_t pastedTextSize;
 
   @autoreleasepool {
@@ -1950,14 +1950,13 @@ GHOST_TUns8 *GHOST_SystemCocoa::getClipboard(bool selection) const
 
     pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
-    temp_buff = (GHOST_TUns8 *)malloc(pastedTextSize + 1);
+    temp_buff = (char *)malloc(pastedTextSize + 1);
 
     if (temp_buff == NULL) {
       return NULL;
     }
 
-    strncpy(
-        (char *)temp_buff, [textPasted cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
+    strncpy(temp_buff, [textPasted cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
 
     temp_buff[pastedTextSize] = '\0';
 
@@ -1970,7 +1969,7 @@ GHOST_TUns8 *GHOST_SystemCocoa::getClipboard(bool selection) const
   }
 }
 
-void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
+void GHOST_SystemCocoa::putClipboard(const char *buffer, bool selection) const
 {
   if (selection)
     return;  // for copying the selection, used on X11

@@ -514,7 +514,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
               BLI_assert(bucket_index < bucket_tot);
 
               /* Check if the bucket intersects with the face. */
-              /* Note: there is a trade off here since checking box/tri intersections isn't as
+              /* NOTE: there is a trade off here since checking box/tri intersections isn't as
                * optimal as it could be, but checking pixels against faces they will never
                * intersect with is likely the greater slowdown here -
                * so check if the cell intersects the face. */
@@ -729,7 +729,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
 
           sf_vert_tot++;
 
-          /* TODO, an alternate functions so we can avoid double vector copy! */
+          /* TODO: an alternate functions so we can avoid double vector copy! */
           for (j = 1; j < tot_diff_point; j++) {
             copy_v2_v2(co, diff_points[j]);
             sf_vert = BLI_scanfill_vert_add(&sf_ctx, co);
@@ -762,7 +762,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
 
             BLI_assert(tot_diff_feather_points == tot_diff_point);
 
-            /* Note: only added for convenience, we don't in fact use these to scan-fill,
+            /* NOTE: only added for convenience, we don't in fact use these to scan-fill,
              * only to create feather faces after scan-fill. */
             for (j = 0; j < tot_diff_feather_points; j++) {
               copy_v2_v2(co_feather, diff_feather_points[j]);
@@ -804,7 +804,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
             open_spline_ranges[open_spline_index].vertex_offset = sf_vert_tot;
             open_spline_ranges[open_spline_index].vertex_total = tot_diff_point;
 
-            /* TODO, an alternate functions so we can avoid double vector copy! */
+            /* TODO: an alternate functions so we can avoid double vector copy! */
             for (j = 0; j < tot_diff_point; j++) {
 
               /* center vert */

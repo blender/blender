@@ -449,6 +449,5 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         )
         kmi.properties.skip_depressed = True
 
-
     wm.keyconfigs.update()
     return keymap

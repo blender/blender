@@ -216,7 +216,7 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
 
   strArray = (GHOST_TStringArray *)malloc(sizeof(GHOST_TStringArray));
   strArray->count = 0;
-  strArray->strings = (GHOST_TUns8 **)malloc(totPaths * sizeof(GHOST_TUns8 *));
+  strArray->strings = (uint8_t **)malloc(totPaths * sizeof(uint8_t *));
 
   curLength = 0;
   for (int i = 0; i <= dropBufferSize; i++) {
@@ -230,7 +230,7 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
 
         decodedPath = FileUrlDecode(curPath);
         if (decodedPath) {
-          strArray->strings[strArray->count] = (GHOST_TUns8 *)decodedPath;
+          strArray->strings[strArray->count] = (uint8_t *)decodedPath;
           strArray->count++;
         }
 

@@ -126,7 +126,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     const bool is_reference = (cb_flag & IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE) != 0;
     const bool is_indirect = (cb_flag & IDWALK_CB_INDIRECT_USAGE) != 0;
     const bool skip_indirect = (id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
-    /* Note: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
+    /* NOTE: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
      * on the other hand since they get reset to lib data on file open/reload it is indirect too.
      * Edit Mode is also a 'skip direct' case. */
     const bool is_obj = (GS(id_owner->name) == ID_OB);
@@ -312,7 +312,7 @@ static void libblock_remap_data_postprocess_collection_update(Main *bmain,
     /* XXX Complex cases can lead to NULL pointers in other collections than old_collection,
      * and BKE_main_collection_sync_remap() does not tolerate any of those, so for now always check
      * whole existing collections for NULL pointers.
-     * I'd consider optimizing that whole collection remapping process a TODO for later. */
+     * I'd consider optimizing that whole collection remapping process a TODO: for later. */
     BKE_collections_child_remove_nulls(bmain, owner_collection, NULL /*old_collection*/);
   }
   else {
@@ -630,7 +630,7 @@ void BKE_libblock_relink_ex(
   switch (GS(id->name)) {
     case ID_SCE:
     case ID_GR: {
-      /* Note: here we know which collection we have affected, so at lest for NULL children
+      /* NOTE: here we know which collection we have affected, so at lest for NULL children
        * detection we can only process that one.
        * This is also a required fix in case `id` would not be in Main anymore, which can happen
        * e.g. when called from `id_delete`. */

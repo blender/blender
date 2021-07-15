@@ -177,9 +177,9 @@ typedef struct bAnimListElem {
    * action's ID. But if this is a f-curve which is a driver, then the owner
    * is set to, for example, object.
    *
-   * Note, that this is different from id above. The id above will be set to
-   * an object if the f-curve is coming from action associated with that
-   * object. */
+   * NOTE: this is different from id above. The id above will be set to
+   * an object if the f-curve is coming from action associated with that object.
+   */
   struct ID *fcurve_owner_id;
 
   /**

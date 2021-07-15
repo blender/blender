@@ -339,7 +339,7 @@ typedef struct wmNotifier {
 #define ND_RENDER_OPTIONS (4 << 16)
 #define ND_NODES (5 << 16)
 #define ND_SEQUENCER (6 << 16)
-/* Note: If an object was added, removed, merged/joined, ..., it is not enough to notify with
+/* NOTE: If an object was added, removed, merged/joined, ..., it is not enough to notify with
  * this. This affects the layer so also send a layer change notifier (e.g. ND_LAYER_CONTENT)! */
 #define ND_OB_ACTIVE (7 << 16)
 /* See comment on ND_OB_ACTIVE. */
@@ -438,6 +438,13 @@ typedef struct wmNotifier {
 #define ND_SPACE_CLIP (20 << 16)
 #define ND_SPACE_FILE_PREVIEW (21 << 16)
 #define ND_SPACE_SPREADSHEET (22 << 16)
+
+/* NC_ASSET */
+/* Denotes that the AssetList is done reading some previews. NOT that the preview generation of
+ * assets is done. */
+#define ND_ASSET_LIST (1 << 16)
+#define ND_ASSET_LIST_PREVIEW (2 << 16)
+#define ND_ASSET_LIST_READING (3 << 16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE 0x0000FF00
@@ -908,7 +915,7 @@ typedef enum wmDragFlags {
   WM_DRAG_FREE_DATA = 1,
 } wmDragFlags;
 
-/* note: structs need not exported? */
+/* NOTE: structs need not exported? */
 
 typedef struct wmDragID {
   struct wmDragID *next, *prev;

@@ -197,7 +197,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
         madd_v4_v4fl(output, border, border[3] * weight);
       }
 
-      /* TODO implement proper filtering here, see
+      /* TODO: implement proper filtering here, see
        * https://en.wikipedia.org/wiki/Lanczos_resampling
        * https://en.wikipedia.org/wiki/Sinc_function
        *

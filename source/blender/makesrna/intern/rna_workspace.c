@@ -107,6 +107,18 @@ static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, workspace);
 }
 
+static int rna_WorkSpace_active_asset_library_get(PointerRNA *ptr)
+{
+  const WorkSpace *workspace = ptr->data;
+  return rna_asset_library_reference_get(&workspace->active_asset_library);
+}
+
+static void rna_WorkSpace_active_asset_library_set(PointerRNA *ptr, int value)
+{
+  WorkSpace *workspace = ptr->data;
+  rna_asset_library_reference_set(&workspace->active_asset_library, value);
+}
+
 static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace,
                                                const bToolKey *tkey,
                                                bool create)
@@ -406,6 +418,14 @@ static void rna_def_workspace(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flags", WORKSPACE_USE_FILTER_BY_ORIGIN);
   RNA_def_property_ui_text(prop, "Use UI Tags", "Filter the UI by tags");
   RNA_def_property_update(prop, 0, "rna_window_update_all");
+
+  prop = rna_def_asset_library_reference_common(
+      srna, "rna_WorkSpace_active_asset_library_get", "rna_WorkSpace_active_asset_library_set");
+  RNA_def_property_ui_text(prop,
+                           "Asset Library",
+                           "Active asset library to show in the UI, not used by the Asset Browser "
+                           "(which has its own active asset library)");
+  RNA_def_property_update(prop, NC_ASSET | ND_ASSET_LIST_READING, NULL);
 
   RNA_api_workspace(srna);
 }

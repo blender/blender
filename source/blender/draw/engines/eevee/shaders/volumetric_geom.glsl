@@ -2,7 +2,7 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 #ifdef MESH_SHADER
-/* TODO tight slices */
+/* TODO: tight slices. */
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 #else /* World */
@@ -17,7 +17,7 @@ flat out int slice;
 RESOURCE_ID_VARYING
 
 #ifdef MESH_SHADER
-/* TODO tight slices */
+/* TODO: tight slices. */
 void main()
 {
   gl_Layer = slice = int(vPos[0].z);

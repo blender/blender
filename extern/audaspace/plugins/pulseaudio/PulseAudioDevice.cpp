@@ -78,6 +78,7 @@ void PulseAudioDevice::runMixingThread()
 			if(shouldStop())
 			{
 				AUD_pa_stream_cork(m_stream, 1, nullptr, nullptr);
+				AUD_pa_stream_flush(m_stream, nullptr, nullptr);
 				doStop();
 				return;
 			}
@@ -86,7 +87,10 @@ void PulseAudioDevice::runMixingThread()
 		if(AUD_pa_stream_is_corked(m_stream))
 			AUD_pa_stream_cork(m_stream, 0, nullptr, nullptr);
 
-		AUD_pa_mainloop_iterate(m_mainloop, true, nullptr);
+		// similar to AUD_pa_mainloop_iterate(m_mainloop, false, nullptr); except with a longer timeout
+		AUD_pa_mainloop_prepare(m_mainloop, 1 << 14);
+		AUD_pa_mainloop_poll(m_mainloop);
+		AUD_pa_mainloop_dispatch(m_mainloop);
 	}
 }
 

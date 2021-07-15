@@ -119,7 +119,7 @@ bool BKE_id_attribute_rename(ID *id,
                              ReportList *reports)
 {
   if (BKE_id_attribute_required(id, layer)) {
-    BLI_assert(!"Required attribute name is not editable");
+    BLI_assert_msg(0, "Required attribute name is not editable");
     return false;
   }
 
@@ -202,7 +202,7 @@ AttributeDomain BKE_id_attribute_domain(ID *id, CustomDataLayer *layer)
     }
   }
 
-  BLI_assert(!"Custom data layer not found in geometry");
+  BLI_assert_msg(0, "Custom data layer not found in geometry");
   return ATTR_DOMAIN_NUM;
 }
 
@@ -218,7 +218,7 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
     }
   }
 
-  BLI_assert(!"Custom data layer not found in geometry");
+  BLI_assert_msg(0, "Custom data layer not found in geometry");
   return 0;
 }
 

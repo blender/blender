@@ -63,7 +63,7 @@ BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v) ATTR_WAR
 void bmesh_radial_loop_append(BMEdge *e, BMLoop *l) ATTR_NONNULL();
 void bmesh_radial_loop_remove(BMEdge *e, BMLoop *l) ATTR_NONNULL();
 void bmesh_radial_loop_unlink(BMLoop *l) ATTR_NONNULL();
-/* note:
+/* NOTE:
  *      bmesh_radial_loop_next(BMLoop *l) / prev.
  * just use member access l->radial_next, l->radial_prev now */
 

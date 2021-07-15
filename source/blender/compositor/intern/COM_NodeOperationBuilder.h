@@ -41,6 +41,7 @@ class NodeOperationOutput;
 class PreviewOperation;
 class WriteBufferOperation;
 class ViewerOperation;
+class ConstantOperation;
 
 class NodeOperationBuilder {
  public:
@@ -67,6 +68,7 @@ class NodeOperationBuilder {
  private:
   const CompositorContext *m_context;
   NodeGraph m_graph;
+  ExecutionSystem *exec_system_;
 
   Vector<NodeOperation *> m_operations;
   Vector<Link> m_links;
@@ -86,7 +88,9 @@ class NodeOperationBuilder {
   ViewerOperation *m_active_viewer;
 
  public:
-  NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree);
+  NodeOperationBuilder(const CompositorContext *context,
+                       bNodeTree *b_nodetree,
+                       ExecutionSystem *system);
 
   const CompositorContext &context() const
   {
@@ -96,6 +100,8 @@ class NodeOperationBuilder {
   void convertToOperations(ExecutionSystem *system);
 
   void addOperation(NodeOperation *operation);
+  void replace_operation_with_constant(NodeOperation *operation,
+                                       ConstantOperation *constant_operation);
 
   /** Map input socket of the current node to an operation socket */
   void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);

@@ -177,7 +177,7 @@ class GHOST_ISystem {
    * Based on ANSI clock() routine.
    * \return The number of milliseconds.
    */
-  virtual GHOST_TUns64 getMilliSeconds() const = 0;
+  virtual uint64_t getMilliSeconds() const = 0;
 
   /**
    * Installs a timer.
@@ -189,8 +189,8 @@ class GHOST_ISystem {
    * \param userData: Placeholder for user data.
    * \return A timer task (0 if timer task installation failed).
    */
-  virtual GHOST_ITimerTask *installTimer(GHOST_TUns64 delay,
-                                         GHOST_TUns64 interval,
+  virtual GHOST_ITimerTask *installTimer(uint64_t delay,
+                                         uint64_t interval,
                                          GHOST_TimerProcPtr timerProc,
                                          GHOST_TUserDataPtr userData = NULL) = 0;
 
@@ -209,19 +209,19 @@ class GHOST_ISystem {
    * Returns the number of displays on this system.
    * \return The number of displays.
    */
-  virtual GHOST_TUns8 getNumDisplays() const = 0;
+  virtual uint8_t getNumDisplays() const = 0;
 
   /**
    * Returns the dimensions of the main display on this system.
    * \return The dimension of the main display.
    */
-  virtual void getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const = 0;
+  virtual void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const = 0;
 
   /**
    * Returns the combine dimensions of all monitors.
    * \return The dimension of the workspace.
    */
-  virtual void getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const = 0;
+  virtual void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const = 0;
 
   /**
    * Create a new window.
@@ -242,10 +242,10 @@ class GHOST_ISystem {
    * \return The new window (or 0 if creation failed).
    */
   virtual GHOST_IWindow *createWindow(const char *title,
-                                      GHOST_TInt32 left,
-                                      GHOST_TInt32 top,
-                                      GHOST_TUns32 width,
-                                      GHOST_TUns32 height,
+                                      int32_t left,
+                                      int32_t top,
+                                      uint32_t width,
+                                      uint32_t height,
                                       GHOST_TWindowState state,
                                       GHOST_TDrawingContextType type,
                                       GHOST_GLSettings glSettings,
@@ -365,7 +365,7 @@ class GHOST_ISystem {
    * \param y: The y-coordinate of the cursor.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess getCursorPosition(GHOST_TInt32 &x, GHOST_TInt32 &y) const = 0;
+  virtual GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const = 0;
 
   /**
    * Updates the location of the cursor (location in screen coordinates).
@@ -374,7 +374,7 @@ class GHOST_ISystem {
    * \param y: The y-coordinate of the cursor.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) = 0;
+  virtual GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) = 0;
 
   /***************************************************************************************
    * Access to mouse button and keyboard states.
@@ -431,12 +431,12 @@ class GHOST_ISystem {
    * \return "unsigned char" from X11 XA_CUT_BUFFER0 buffer
    *
    */
-  virtual GHOST_TUns8 *getClipboard(bool selection) const = 0;
+  virtual char *getClipboard(bool selection) const = 0;
 
   /**
    * Put data to the Clipboard
    */
-  virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
+  virtual void putClipboard(const char *buffer, bool selection) const = 0;
 
   /***************************************************************************************
    * System Message Box.

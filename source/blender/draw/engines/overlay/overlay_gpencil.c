@@ -431,7 +431,7 @@ static void OVERLAY_gpencil_color_names(Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   int cfra = DEG_get_ctime(draw_ctx->depsgraph);
 
-  BKE_gpencil_visible_stroke_iter(
+  BKE_gpencil_visible_stroke_advanced_iter(
       NULL, ob, NULL, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
 }
 

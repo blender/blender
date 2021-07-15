@@ -211,6 +211,7 @@ void mul_transposed_mat3_m4_v3(const float M[4][4], float r[3]);
 void mul_m3_v3_double(const float M[3][3], double r[3]);
 
 void mul_m4_m4m4_aligned_scale(float R[4][4], const float A[4][4], const float B[4][4]);
+void mul_m4_m4m4_split_channels(float R[4][4], const float A[4][4], const float B[4][4]);
 
 void mul_m3_fl(float R[3][3], float f);
 void mul_m4_fl(float R[4][4], float f);
@@ -277,7 +278,7 @@ bool is_orthonormal_m4(const float mat[4][4]);
 bool is_uniform_scaled_m3(const float mat[3][3]);
 bool is_uniform_scaled_m4(const float m[4][4]);
 
-/* Note: 'adjoint' here means the adjugate (adjunct, "classical adjoint") matrix!
+/* NOTE: 'adjoint' here means the adjugate (adjunct, "classical adjoint") matrix!
  * Nowadays 'adjoint' usually refers to the conjugate transpose,
  * which for real-valued matrices is simply the transpose.
  */

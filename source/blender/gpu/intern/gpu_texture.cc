@@ -154,7 +154,7 @@ void Texture::attach_to(FrameBuffer *fb, GPUAttachmentType type)
       return;
     }
   }
-  BLI_assert(!"GPU: Error: Texture: Not enough attachment");
+  BLI_assert_msg(0, "GPU: Error: Texture: Not enough attachment");
 }
 
 void Texture::detach_from(FrameBuffer *fb)
@@ -166,7 +166,7 @@ void Texture::detach_from(FrameBuffer *fb)
       return;
     }
   }
-  BLI_assert(!"GPU: Error: Texture: Framebuffer is not attached");
+  BLI_assert_msg(0, "GPU: Error: Texture: Framebuffer is not attached");
 }
 
 void Texture::update(eGPUDataFormat format, const void *data)
@@ -600,7 +600,7 @@ void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref)
 }
 #endif
 
-/* TODO remove */
+/* TODO: remove. */
 int GPU_texture_opengl_bindcode(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->gl_bindcode_get();

@@ -23,7 +23,7 @@ layout(location = 0) out vec4 sssRadiance;
 
 void main(void)
 {
-  vec2 pixel_size = 1.0 / vec2(textureSize(depthBuffer, 0).xy); /* TODO precompute */
+  vec2 pixel_size = 1.0 / vec2(textureSize(depthBuffer, 0).xy); /* TODO: precompute. */
   vec2 uvs = gl_FragCoord.xy * pixel_size;
   vec3 sss_irradiance = texture(sssIrradiance, uvs).rgb;
   float sss_radius = texture(sssRadius, uvs).r * radii_max_radius.w;

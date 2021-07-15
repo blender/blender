@@ -117,7 +117,7 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
     BLI_strncpy(filename, image->filepath, sizeof(filename));
     BLI_path_abs(filename, ID_BLEND_PATH(bmain, &image->id));
 
-    /* note, we purposefully ignore packed files here,
+    /* NOTE: we purposefully ignore packed files here,
      * developers need to explicitly write them via 'packed_files' */
 
     if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
@@ -374,7 +374,7 @@ void RNA_api_image(StructRNA *srna)
   func = RNA_def_function(srna, "buffers_free", "rna_Image_buffers_free");
   RNA_def_function_ui_description(func, "Free the image buffers from memory");
 
-  /* TODO, pack/unpack, maybe should be generic functions? */
+  /* TODO: pack/unpack, maybe should be generic functions? */
 }
 
 #endif

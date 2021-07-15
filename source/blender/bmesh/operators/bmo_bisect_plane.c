@@ -50,7 +50,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
   BMO_slot_vec_get(op->slots_in, "plane_no", plane_no);
 
   if (is_zero_v3(plane_no)) {
-    BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Zero normal given");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Zero normal given");
     return;
   }
 
@@ -68,7 +68,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
     /* Use an array of vertices because 'geom' contains both verts and edges that may use them.
      * Removing a vert may remove and edge which is later checked by #BMO_ITER.
      * over-allocate the total possible vert count. */
-    const int vert_arr_max = min_ii(bm->totvert, BMO_slot_buffer_count(op->slots_in, "geom"));
+    const int vert_arr_max = min_ii(bm->totvert, BMO_slot_buffer_len(op->slots_in, "geom"));
     BMVert **vert_arr = MEM_mallocN(sizeof(*vert_arr) * (size_t)vert_arr_max, __func__);
     BMOIter siter;
     BMVert *v;

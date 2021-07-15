@@ -493,7 +493,7 @@ bool BKE_shrinkwrap_project_normal(char options,
     }
 
     if (options & MOD_SHRINKWRAP_CULL_TARGET_MASK) {
-      /* apply backface */
+      /* Apply back-face. */
       const float dot = dot_v3v3(dir, hit_tmp.no);
       if (((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f) ||
           ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f)) {
@@ -502,7 +502,7 @@ bool BKE_shrinkwrap_project_normal(char options,
     }
 
     if (transf) {
-      /* Inverting space transform (TODO make coeherent with the initial dist readjust) */
+      /* Inverting space transform (TODO: make coherent with the initial dist readjust). */
       BLI_space_transform_invert(transf, hit_tmp.co);
 #ifdef USE_DIST_CORRECT
       hit_tmp.dist = len_v3v3(vert, hit_tmp.co);
@@ -1440,7 +1440,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
     Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, smd->target);
     calc.target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
 
-    /* TODO there might be several "bugs" with non-uniform scales matrices
+    /* TODO: there might be several "bugs" with non-uniform scales matrices
      * because it will no longer be nearest surface, not sphere projection
      * because space has been deformed */
     BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob, ob_target);
@@ -1460,7 +1460,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
       ssmd.subdivType = ME_CC_SUBSURF;  /* catmull clark */
       ssmd.levels = smd->subsurfLevels; /* levels */
 
-      /* TODO to be moved to Mesh once we are done with changes in subsurf code. */
+      /* TODO: to be moved to Mesh once we are done with changes in subsurf code. */
       DerivedMesh *dm = CDDM_from_mesh(mesh);
 
       ss_mesh = subsurf_make_derived_from_derived(

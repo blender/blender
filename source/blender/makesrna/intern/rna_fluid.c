@@ -2623,7 +2623,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
                            "colors of a ramp or using a predefined color code");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
-  /* Coba field items - generated dynamically based on domain type */
+  /* Color ramp field items are generated dynamically based on domain type. */
   static const EnumPropertyItem coba_field_items[] = {
       {0, "NONE", 0, "", ""},
       {0, NULL, 0, NULL, NULL},

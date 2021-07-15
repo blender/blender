@@ -131,6 +131,8 @@ void ED_operatortypes_armature(void)
   /* POSELIB */
   WM_operatortype_append(POSELIB_OT_browse_interactive);
   WM_operatortype_append(POSELIB_OT_apply_pose);
+  WM_operatortype_append(POSELIB_OT_apply_pose_asset);
+  WM_operatortype_append(POSELIB_OT_blend_pose_asset);
 
   WM_operatortype_append(POSELIB_OT_pose_add);
   WM_operatortype_append(POSELIB_OT_pose_remove);

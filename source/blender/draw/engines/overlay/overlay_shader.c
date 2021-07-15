@@ -1726,7 +1726,7 @@ OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void)
                               {
                                   {"boneStart", DRW_ATTR_FLOAT, 3},
                                   {"boneEnd", DRW_ATTR_FLOAT, 3},
-                                  {"wireColor", DRW_ATTR_FLOAT, 4}, /* TODO uchar color */
+                                  {"wireColor", DRW_ATTR_FLOAT, 4}, /* TODO: uchar color. */
                                   {"boneColor", DRW_ATTR_FLOAT, 4},
                                   {"headColor", DRW_ATTR_FLOAT, 4},
                                   {"tailColor", DRW_ATTR_FLOAT, 4},

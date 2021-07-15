@@ -36,7 +36,7 @@ class NormalizeOperation : public NodeOperation {
 
   /**
    * \brief temporarily cache of the execution storage
-   * it stores x->min and y->mult
+   * it stores `x->min` and `y->multiply`.
    */
   NodeTwoFloats *m_cachedInstance;
 

@@ -1496,7 +1496,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
       }
 
       if (hide) {
-        /* note, a special case for edges could be used,
+        /* NOTE: a special case for edges could be used,
          * for now edges act like verts and get flushed */
         if (use_face_center) {
           if (em->selectmode == SCE_SELECT_FACE) {

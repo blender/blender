@@ -1544,12 +1544,12 @@ float BM_loop_calc_face_angle(const BMLoop *l)
  */
 float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, float r_normal[3])
 {
-  /* Note: we cannot use result of normal_tri_v3 here to detect colinear vectors
+  /* NOTE: we cannot use result of normal_tri_v3 here to detect colinear vectors
    * (vertex on a straight line) from zero value,
    * because it does not normalize both vectors before making cross-product.
    * Instead of adding two costly normalize computations,
    * just check ourselves for colinear case. */
-  /* Note: FEPSILON might need some finer tweaking at some point?
+  /* NOTE: FEPSILON might need some finer tweaking at some point?
    * Seems to be working OK for now though. */
   float v1[3], v2[3], v_tmp[3];
   sub_v3_v3v3(v1, l->prev->v->co, l->v->co);
@@ -1807,7 +1807,7 @@ void BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_ta
   BM_edge_ordered_verts_ex(e, &v1, &v2, e_loop);
 
   sub_v3_v3v3(tvec, v1->co, v2->co); /* use for temp storage */
-  /* note, we could average the tangents of both loops,
+  /* NOTE: we could average the tangents of both loops,
    * for non flat ngons it will give a better direction */
   cross_v3_v3v3(r_tangent, tvec, e_loop->f->no);
   normalize_v3(r_tangent);
@@ -2591,7 +2591,7 @@ double BM_mesh_calc_volume(BMesh *bm, bool is_signed)
   return vol;
 }
 
-/* note, almost duplicate of BM_mesh_calc_edge_groups, keep in sync */
+/* NOTE: almost duplicate of #BM_mesh_calc_edge_groups, keep in sync. */
 /**
  * Calculate isolated groups of faces with optional filtering.
  *
@@ -2753,7 +2753,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
   return group_curr;
 }
 
-/* note, almost duplicate of BM_mesh_calc_face_groups, keep in sync */
+/* NOTE: almost duplicate of #BM_mesh_calc_face_groups, keep in sync. */
 /**
  * Calculate isolated groups of edges with optional filtering.
  *

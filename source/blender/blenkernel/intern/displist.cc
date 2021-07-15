@@ -1694,7 +1694,7 @@ static void boundbox_displist_object(Object *ob)
       ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
     }
 
-    Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
     if (mesh_eval) {
       BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
     }

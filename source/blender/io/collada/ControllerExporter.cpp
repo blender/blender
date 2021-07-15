@@ -29,6 +29,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
@@ -194,9 +195,9 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 
   add_bind_shape_mat(ob);
 
-  std::string joints_source_id = add_joints_source(ob_arm, &ob->defbase, controller_id);
-  std::string inv_bind_mat_source_id = add_inv_bind_mats_source(
-      ob_arm, &ob->defbase, controller_id);
+  const ListBase *defbase = BKE_object_defgroup_list(ob);
+  std::string joints_source_id = add_joints_source(ob_arm, defbase, controller_id);
+  std::string inv_bind_mat_source_id = add_inv_bind_mats_source(ob_arm, defbase, controller_id);
 
   std::list<int> vcounts;
   std::list<int> joints;
@@ -207,9 +208,9 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 
     /* def group index -> joint index */
     std::vector<int> joint_index_by_def_index;
-    bDeformGroup *def;
+    const bDeformGroup *def;
 
-    for (def = (bDeformGroup *)ob->defbase.first, i = 0, j = 0; def; def = def->next, i++) {
+    for (def = (const bDeformGroup *)defbase->first, i = 0, j = 0; def; def = def->next, i++) {
       if (is_bone_defgroup(ob_arm, def)) {
         joint_index_by_def_index.push_back(j++);
       }
@@ -269,7 +270,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
   }
 
   std::string weights_source_id = add_weights_source(me, controller_id, weights);
-  add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
+  add_joints_element(defbase, joints_source_id, inv_bind_mat_source_id);
   add_vertex_weights_element(weights_source_id, joints_source_id, vcounts, joints);
 
   BKE_id_free(nullptr, me);
@@ -392,7 +393,7 @@ void ControllerExporter::add_weight_extras(Key *key)
   }
 }
 
-void ControllerExporter::add_joints_element(ListBase *defbase,
+void ControllerExporter::add_joints_element(const ListBase *defbase,
                                             const std::string &joints_source_id,
                                             const std::string &inv_bind_mat_source_id)
 {
@@ -431,7 +432,7 @@ void ControllerExporter::add_bind_shape_mat(Object *ob)
 }
 
 std::string ControllerExporter::add_joints_source(Object *ob_arm,
-                                                  ListBase *defbase,
+                                                  const ListBase *defbase,
                                                   const std::string &controller_id)
 {
   std::string source_id = controller_id + JOINTS_SOURCE_ID_SUFFIX;
@@ -468,7 +469,7 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm,
 }
 
 std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
-                                                         ListBase *defbase,
+                                                         const ListBase *defbase,
                                                          const std::string &controller_id)
 {
   std::string source_id = controller_id + BIND_POSES_SOURCE_ID_SUFFIX;
@@ -568,13 +569,13 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
   return source_id;
 }
 
-Bone *ControllerExporter::get_bone_from_defgroup(Object *ob_arm, bDeformGroup *def)
+Bone *ControllerExporter::get_bone_from_defgroup(Object *ob_arm, const bDeformGroup *def)
 {
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, def->name);
   return pchan ? pchan->bone : nullptr;
 }
 
-bool ControllerExporter::is_bone_defgroup(Object *ob_arm, bDeformGroup *def)
+bool ControllerExporter::is_bone_defgroup(Object *ob_arm, const bDeformGroup *def)
 {
   return get_bone_from_defgroup(ob_arm, def) != nullptr;
 }

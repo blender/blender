@@ -20,6 +20,7 @@ set(INC
   ../../blenfont
   ../../blenkernel
   ../../blenlib
+  ../../blenloader
   ../../blentranslation
   ../../depsgraph
   ../../gpu
@@ -43,9 +44,11 @@ set(SRC
   armature_utils.c
   editarmature_undo.c
   meshlaplacian.c
+  pose_backup.c
   pose_edit.c
   pose_group.c
   pose_lib.c
+  pose_lib_2.c
   pose_select.c
   pose_slide.c
   pose_transform.c

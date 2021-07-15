@@ -774,7 +774,7 @@ static int gizmo_cage2d_get_cursor(wmGizmo *gz)
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y:
       return WM_CURSOR_Y_MOVE;
 
-      /* TODO diagonal cursor */
+      /* TODO: diagonal cursor. */
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y:
       return WM_CURSOR_NSEW_SCROLL;

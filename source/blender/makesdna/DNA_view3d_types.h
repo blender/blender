@@ -69,7 +69,7 @@ typedef struct RegionView3D {
   float clip_local[6][4];
   struct BoundBox *clipbb;
 
-  /** Allocated backup of its self while in localview. */
+  /** Allocated backup of its self while in local-view. */
   struct RegionView3D *localvd;
   struct RenderEngine *render_engine;
 
@@ -257,7 +257,7 @@ typedef struct View3D_Runtime {
   int flag;
 
   char _pad1[4];
-  /* Only used for overlay stats while in localview. */
+  /* Only used for overlay stats while in local-view. */
   struct SceneStats *local_stats;
 } View3D_Runtime;
 
@@ -295,7 +295,7 @@ typedef struct View3D {
   struct Object *camera, *ob_center;
   rctf render_border;
 
-  /** Allocated backup of its self while in localview. */
+  /** Allocated backup of its self while in local-view. */
   struct View3D *localvd;
 
   /** Optional string for armature bone to define center, MAXBONENAME. */

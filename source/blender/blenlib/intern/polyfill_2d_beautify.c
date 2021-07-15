@@ -175,7 +175,7 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
       len_13 = len_v2v2(v1, v3);
       len_24 = len_v2v2(v2, v4);
 
-      /* note, area is in fact (area * 2),
+      /* NOTE: area is in fact (area * 2),
        * but in this case its OK, since we're comparing ratios */
 
       /* edge (2-4), current state */

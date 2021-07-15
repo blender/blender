@@ -1929,7 +1929,7 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
     }
 
     /* Never allow the order to exceed the number of points
-     * - note, this is ok but changes unselected nurbs, disable for now */
+     * NOTE: this is ok but changes unselected nurbs, disable for now. */
 #if 0
     if ((nu != NULL) && (nu->type == CU_NURBS)) {
       clamp_nurb_order_u(nu);
@@ -1988,7 +1988,7 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
         nu->bp = bp1;
 
         /* Never allow the order to exceed the number of points
-         * - note, this is ok but changes unselected nurbs, disable for now */
+         * NOTE: this is ok but changes unselected nurbs, disable for now. */
 #if 0
         if (nu->type == CU_NURBS) {
           clamp_nurb_order_u(nu);
@@ -6877,7 +6877,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 
           LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
             Nurb *newnu = BKE_nurb_duplicate(nu);
-            if (ob_active->totcol) { /* TODO, merge material lists */
+            if (ob_active->totcol) { /* TODO: merge material lists. */
               CLAMP(newnu->mat_nr, 0, ob_active->totcol - 1);
             }
             else {

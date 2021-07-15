@@ -38,7 +38,7 @@ class GHOST_EventString : public GHOST_Event {
    * \param window: The generating window (or NULL if system event).
    * \param data_ptr: Pointer to the (un-formatted) data associated with the event.
    */
-  GHOST_EventString(GHOST_TUns64 msec,
+  GHOST_EventString(uint64_t msec,
                     GHOST_TEventType type,
                     GHOST_IWindow *window,
                     GHOST_TEventDataPtr data_ptr)

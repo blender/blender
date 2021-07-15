@@ -25,6 +25,7 @@
 #include "DNA_defs.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_tangent.h"
 #include "BKE_mesh.h"
@@ -381,7 +382,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         mesh2tangent->num_face_as_quad_map = num_face_as_quad_map;
 #endif
         mesh2tangent->precomputedFaceNormals = poly_normals;
-        /* Note, we assume we do have tessellated loop normals at this point
+        /* NOTE: we assume we do have tessellated loop normals at this point
          * (in case it is object-enabled), have to check this is valid. */
         mesh2tangent->precomputedLoopNormals = loop_normals;
         mesh2tangent->cd_loop_uv_offset = CustomData_get_n_offset(&bm->ldata, CD_MLOOPUV, n);

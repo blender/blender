@@ -109,10 +109,22 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 float file_string_width(const char *str);
 
 float file_font_pointsize(void);
+void file_select_deselect_all(SpaceFile *sfile, uint flag);
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file);
 int autocomplete_directory(struct bContext *C, char *str, void *arg_v);
 int autocomplete_file(struct bContext *C, char *str, void *arg_v);
 
+void file_params_smoothscroll_timer_clear(struct wmWindowManager *wm,
+                                          struct wmWindow *win,
+                                          SpaceFile *sfile);
+void file_params_renamefile_clear(struct FileSelectParams *params);
+void file_params_invoke_rename_postscroll(struct wmWindowManager *wm,
+                                          struct wmWindow *win,
+                                          SpaceFile *sfile);
+void file_params_rename_end(struct wmWindowManager *wm,
+                            struct wmWindow *win,
+                            SpaceFile *sfile,
+                            struct FileDirEntry *rename_file);
 void file_params_renamefile_activate(struct SpaceFile *sfile, struct FileSelectParams *params);
 
 typedef void *onReloadFnData;

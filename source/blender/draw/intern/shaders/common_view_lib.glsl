@@ -18,7 +18,7 @@ layout(std140) uniform viewBlock
    * Fourth components are near and far values. */
   vec4 ViewVecs[2];
 
-  /* TODO move it elsewhere. */
+  /* TODO: move it elsewhere. */
   vec4 CameraTexCoFactors;
 };
 
@@ -45,7 +45,7 @@ float mul_project_m4_v3_zfac(in vec3 co)
 #endif
 
 /* Not the right place but need to be common to all overlay's.
- * TODO Split to an overlay lib. */
+ * TODO: Split to an overlay lib. */
 mat4 extract_matrix_packed_data(mat4 mat, out vec4 dataA, out vec4 dataB)
 {
   const float div = 1.0 / 255.0;
@@ -61,7 +61,7 @@ mat4 extract_matrix_packed_data(mat4 mat, out vec4 dataA, out vec4 dataB)
 }
 
 /* Same here, Not the right place but need to be common to all overlay's.
- * TODO Split to an overlay lib. */
+ * TODO: Split to an overlay lib. */
 /* edge_start and edge_pos needs to be in the range [0..sizeViewport]. */
 vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
 {

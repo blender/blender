@@ -2454,7 +2454,7 @@ static float brush_strength(const Sculpt *sd,
         case BRUSH_MASK_SMOOTH:
           return alpha * pressure * feather;
       }
-      BLI_assert(!"Not supposed to happen");
+      BLI_assert_msg(0, "Not supposed to happen");
       return 0.0f;
 
     case SCULPT_TOOL_CREASE:
@@ -3550,8 +3550,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
-
-  /* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
+  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
    * initialize before threads so they can do curve mapping. */
   BKE_curvemapping_init(brush->curve);
 
@@ -3630,7 +3629,7 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
-  /* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
+  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
    * initialize before threads so they can do curve mapping. */
   BKE_curvemapping_init(brush->curve);
 
@@ -6602,7 +6601,7 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
   BKE_keyblock_update_from_vertcos(ob, kb, vertCos);
 }
 
-/* Note: we do the topology update before any brush actions to avoid
+/* NOTE: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
 static void sculpt_topology_update(Sculpt *sd,
@@ -7232,7 +7231,7 @@ void SCULPT_flush_stroke_deform(Sculpt *sd, Object *ob, bool is_proxy_used)
     MEM_SAFE_FREE(nodes);
 
     /* Modifiers could depend on mesh normals, so we should update them.
-     * Note, then if sculpting happens on locked key, normals should be re-calculate after applying
+     * NOTE: then if sculpting happens on locked key, normals should be re-calculate after applying
      * coords from key-block on base mesh. */
     BKE_mesh_calc_normals(me);
   }
@@ -8808,7 +8807,7 @@ static bool over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float
 static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
 {
   /* Don't start the stroke until mouse goes over the mesh.
-   * note: mouse will only be null when re-executing the saved stroke.
+   * NOTE: mouse will only be null when re-executing the saved stroke.
    * We have exception for 'exec' strokes since they may not set 'mouse',
    * only 'location', see: T52195. */
   if (((op->flag & OP_IS_INVOKE) == 0) || (mouse == NULL) ||

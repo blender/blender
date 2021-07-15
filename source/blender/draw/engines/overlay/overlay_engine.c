@@ -200,7 +200,7 @@ static void OVERLAY_cache_init(void *vedata)
     case CTX_MODE_OBJECT:
       break;
     default:
-      BLI_assert(!"Draw mode invalid");
+      BLI_assert_msg(0, "Draw mode invalid");
       break;
   }
   OVERLAY_antialiasing_cache_init(vedata);

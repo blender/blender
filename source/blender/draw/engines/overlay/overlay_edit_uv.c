@@ -24,6 +24,7 @@
 #include "draw_cache_impl.h"
 #include "draw_manager_text.h"
 
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"

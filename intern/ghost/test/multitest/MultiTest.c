@@ -302,12 +302,12 @@ static void mainwindow_handle(void *priv, GHOST_EventHandle evt)
 
 /**/
 
-static void mainwindow_timer_proc(GHOST_TimerTaskHandle task, GHOST_TUns64 time)
+static void mainwindow_timer_proc(GHOST_TimerTaskHandle task, uint64_t time)
 {
   MainWindow *mw = GHOST_GetTimerTaskUserData(task);
   char buf[64];
 
-  sprintf(buf, "timer: %6.2f", (double)((GHOST_TInt64)time) / 1000);
+  sprintf(buf, "timer: %6.2f", (double)((int64_t)time) / 1000);
   mainwindow_log(mw, buf);
 }
 
@@ -570,7 +570,7 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app)
 {
   GHOST_GLSettings glSettings = {0};
   GHOST_SystemHandle sys = multitestapp_get_system(app);
-  GHOST_TUns32 screensize[2];
+  uint32_t screensize[2];
   GHOST_WindowHandle win;
 
   GHOST_GetMainDisplayDimensions(sys, &screensize[0], &screensize[1]);
@@ -701,11 +701,11 @@ static void extrawindow_do_key(ExtraWindow *ew, GHOST_TKey key, int press)
   }
 }
 
-static void extrawindow_spin_cursor(ExtraWindow *ew, GHOST_TUns64 time)
+static void extrawindow_spin_cursor(ExtraWindow *ew, uint64_t time)
 {
-  GHOST_TUns8 bitmap[16][2];
-  GHOST_TUns8 mask[16][2];
-  double ftime = (double)((GHOST_TInt64)time) / 1000;
+  uint8_t bitmap[16][2];
+  uint8_t mask[16][2];
+  double ftime = (double)((int64_t)time) / 1000;
   float angle = fmod(ftime, 1.0) * 3.1415 * 2;
   int i;
 

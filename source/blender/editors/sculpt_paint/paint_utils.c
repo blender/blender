@@ -752,7 +752,7 @@ static int vert_select_ungrouped_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Mesh *me = ob->data;
 
-  if (BLI_listbase_is_empty(&ob->defbase) || (me->dvert == NULL)) {
+  if (BLI_listbase_is_empty(&me->vertex_group_names) || (me->dvert == NULL)) {
     BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
     return OPERATOR_CANCELLED;
   }

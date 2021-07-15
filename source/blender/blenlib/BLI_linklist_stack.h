@@ -119,7 +119,7 @@
       _##var##_free = _##var##_free->next; \
     } \
     else { \
-      _##var##_temp = alloca(sizeof(LinkNode)); \
+      _##var##_temp = (LinkNode *)alloca(sizeof(LinkNode)); \
     } \
     _##var##_temp->next = _##var##_stack; \
     _##var##_temp->link = data; \

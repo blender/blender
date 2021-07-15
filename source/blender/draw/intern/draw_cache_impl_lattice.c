@@ -84,7 +84,7 @@ static int lattice_render_verts_len_get(Lattice *lt)
     return vert_len_calc(u, v, w);
   }
 
-  /* TODO remove internal coords */
+  /* TODO: remove internal coords. */
   return vert_len_calc(u, v, w);
 }
 
@@ -102,7 +102,7 @@ static int lattice_render_edges_len_get(Lattice *lt)
     return edge_len_calc(u, v, w);
   }
 
-  /* TODO remove internal coords */
+  /* TODO: remove internal coords. */
   return edge_len_calc(u, v, w);
 }
 
@@ -305,7 +305,7 @@ void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode)
       cache->is_dirty = true;
       break;
     case BKE_LATTICE_BATCH_DIRTY_SELECT:
-      /* TODO Separate Flag vbo */
+      /* TODO: Separate Flag VBO. */
       GPU_BATCH_DISCARD_SAFE(cache->overlay_verts);
       break;
     default:

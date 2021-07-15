@@ -279,7 +279,7 @@ void main()
   vec2 line_start, line_end;
   vec2 line_ofs;
   bvec4 extra_edges, extra_edges2;
-  /* TODO simplify this branching hell. */
+  /* TODO: simplify this branching hell. */
   switch (edge_case) {
       /* Straight lines. */
     case YPOS:

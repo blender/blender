@@ -109,6 +109,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
+#include "ED_asset.h"
 #include "ED_gpencil.h"
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
@@ -226,7 +227,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 {
 
   if (!G.background) {
-    wm_ghost_init(C); /* note: it assigns C to ghost! */
+    wm_ghost_init(C); /* NOTE: it assigns C to ghost! */
     wm_init_cursor_data();
     BKE_sound_jack_sync_callback_set(sound_jack_sync_callback);
   }
@@ -327,13 +328,13 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   ED_spacemacros_init();
 
-  /* note: there is a bug where python needs initializing before loading the
+  /* NOTE(campbell): there is a bug where python needs initializing before loading the
    * startup.blend because it may contain PyDrivers. It also needs to be after
    * initializing space types and other internal data.
    *
    * However can't redo this at the moment. Solution is to load python
    * before wm_homefile_read() or make py-drivers check if python is running.
-   * Will try fix when the crash can be repeated. - campbell. */
+   * Will try fix when the crash can be repeated. */
 
 #ifdef WITH_PYTHON
   BPY_python_start(C, argc, argv);
@@ -376,7 +377,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   {
     Main *bmain = CTX_data_main(C);
-    /* note, logic here is from wm_file_read_post,
+    /* NOTE: logic here is from wm_file_read_post,
      * call functions that depend on Python being initialized. */
 
     /* normally 'wm_homefile_read' will do this,
@@ -481,7 +482,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
   /* first wrap up running stuff, we assume only the active WM is running */
   /* modal handlers are on window level freed, others too? */
-  /* note; same code copied in wm_files.c */
+  /* NOTE: same code copied in `wm_files.c`. */
   if (C && wm) {
     if (!G.background) {
       struct MemFile *undo_memfile = wm->undo_stack ?
@@ -552,7 +553,6 @@ void WM_exit_ex(bContext *C, const bool do_python)
   wm_surfaces_free();
   wm_dropbox_free();
   WM_menutype_free();
-  WM_uilisttype_free();
 
   /* all non-screen and non-space stuff editors did, like editmode */
   if (C) {
@@ -571,6 +571,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   RE_engines_exit();
 
   ED_preview_free_dbase(); /* frees a Main dbase, before BKE_blender_free! */
+  ED_assetlist_storage_exit();
 
   if (wm) {
     /* Before BKE_blender_free! - since the ListBases get freed there. */
@@ -607,6 +608,8 @@ void WM_exit_ex(bContext *C, const bool do_python)
   wm_gizmomaptypes_free();
   wm_gizmogrouptype_free();
   wm_gizmotype_free();
+  /* Same for UI-list types. */
+  WM_uilisttype_free();
 
   BLF_exit();
 

@@ -38,6 +38,7 @@
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
 #include "BLI_span.hh"
+#include "BLI_task.hh"
 
 namespace blender::meshintersect {
 
@@ -309,22 +310,38 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
                                                         clean_obmat(*obmats[mi]);
     r_info->to_target_transform[mi] = inv_target_mat * objn_mat;
 
-    /* Skip the matrix multiplication for each point when there is no transform for a mesh,
-     * for example when the first mesh is already in the target space. (Note the logic directly
-     * above, which uses an identity matrix with a null input transform). */
+    Vector<Vert *> verts(me->totvert);
+    Span<MVert> mverts = Span(me->mvert, me->totvert);
+
+    /* Allocate verts
+     * Skip the matrix multiplication for each point when there is no transform for a mesh,
+     * for example when the first mesh is already in the target space. (Note the logic
+     * directly above, which uses an identity matrix with a null input transform). */
     if (obmats[mi] == nullptr) {
-      for (const MVert &vert : Span(me->mvert, me->totvert)) {
-        const float3 co = float3(vert.co);
-        r_info->mesh_to_imesh_vert[v] = arena.add_or_find_vert(mpq3(co.x, co.y, co.z), v);
-        ++v;
-      }
+      threading::parallel_for(mverts.index_range(), 2048, [&](IndexRange range) {
+        float3 co;
+        for (int i : range) {
+          co = float3(mverts[i].co);
+          mpq3 mco = mpq3(co.x, co.y, co.z);
+          double3 dco(mco[0].get_d(), mco[1].get_d(), mco[2].get_d());
+          verts[i] = new Vert(mco, dco, NO_INDEX, i);
+        }
+      });
     }
     else {
-      for (const MVert &vert : Span(me->mvert, me->totvert)) {
-        const float3 co = r_info->to_target_transform[mi] * float3(vert.co);
-        r_info->mesh_to_imesh_vert[v] = arena.add_or_find_vert(mpq3(co.x, co.y, co.z), v);
-        ++v;
-      }
+      threading::parallel_for(mverts.index_range(), 2048, [&](IndexRange range) {
+        float3 co;
+        for (int i : range) {
+          co = r_info->to_target_transform[mi] * float3(mverts[i].co);
+          mpq3 mco = mpq3(co.x, co.y, co.z);
+          double3 dco(mco[0].get_d(), mco[1].get_d(), mco[2].get_d());
+          verts[i] = new Vert(mco, dco, NO_INDEX, i);
+        }
+      });
+    }
+    for (int i : mverts.index_range()) {
+      r_info->mesh_to_imesh_vert[v] = arena.add_or_find_vert(verts[i]);
+      ++v;
     }
 
     for (const MPoly &poly : Span(me->mpoly, me->totpoly)) {
@@ -611,7 +628,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
             source_cd, target_cd, source_layer_i, target_layer_i, orig_loop_index, loop_index, 1);
       }
       else {
-        /* Note: although CustomData_bmesh_interp_n function has bmesh in its name, nothing about
+        /* NOTE: although CustomData_bmesh_interp_n function has bmesh in its name, nothing about
          * it is BMesh-specific. We can't use CustomData_interp because it assumes that
          * all source layers exist in the dest.
          * A non bmesh version could have the benefit of not copying data into src_blocks_ofs -

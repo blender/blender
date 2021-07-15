@@ -303,10 +303,15 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-      immBegin(GPU_PRIM_LINES, 2);
-      immVertex2f(pos, t->tsnap.snapPoint[0], region->v2d.cur.ymin);
-      immVertex2f(pos, t->tsnap.snapPoint[0], region->v2d.cur.ymax);
-      immEnd();
+      UI_GetThemeColor3ubv(TH_SEQ_ACTIVE, col);
+      col[3] = 128;
+      immUniformColor4ubv(col);
+      float pixelx = BLI_rctf_size_x(&region->v2d.cur) / BLI_rcti_size_x(&region->v2d.mask);
+      immRectf(pos,
+               t->tsnap.snapPoint[0] - pixelx,
+               region->v2d.cur.ymax,
+               t->tsnap.snapPoint[0] + pixelx,
+               region->v2d.cur.ymin);
       immUnbindProgram();
       GPU_blend(GPU_BLEND_NONE);
     }
@@ -405,7 +410,7 @@ void applyProject(TransInfo *t)
 
             transform_data_ext_rotate(td, mat, true);
 
-            /* TODO support constraints for rotation too? see ElementRotation */
+            /* TODO: support constraints for rotation too? see #ElementRotation. */
           }
         }
       }

@@ -108,20 +108,20 @@ class GHOST_IWindow {
    * Resizes client rectangle width.
    * \param width: The new width of the client area of the window.
    */
-  virtual GHOST_TSuccess setClientWidth(GHOST_TUns32 width) = 0;
+  virtual GHOST_TSuccess setClientWidth(uint32_t width) = 0;
 
   /**
    * Resizes client rectangle height.
    * \param height: The new height of the client area of the window.
    */
-  virtual GHOST_TSuccess setClientHeight(GHOST_TUns32 height) = 0;
+  virtual GHOST_TSuccess setClientHeight(uint32_t height) = 0;
 
   /**
    * Resizes client rectangle.
    * \param width: The new width of the client area of the window.
    * \param height: The new height of the client area of the window.
    */
-  virtual GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height) = 0;
+  virtual GHOST_TSuccess setClientSize(uint32_t width, uint32_t height) = 0;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
@@ -130,10 +130,7 @@ class GHOST_IWindow {
    * \param outX: The x-coordinate in the client rectangle.
    * \param outY: The y-coordinate in the client rectangle.
    */
-  virtual void screenToClient(GHOST_TInt32 inX,
-                              GHOST_TInt32 inY,
-                              GHOST_TInt32 &outX,
-                              GHOST_TInt32 &outY) const = 0;
+  virtual void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const = 0;
 
   /**
    * Converts a point in screen coordinates to client rectangle coordinates
@@ -142,10 +139,7 @@ class GHOST_IWindow {
    * \param outX: The x-coordinate on the screen.
    * \param outY: The y-coordinate on the screen.
    */
-  virtual void clientToScreen(GHOST_TInt32 inX,
-                              GHOST_TInt32 inY,
-                              GHOST_TInt32 &outX,
-                              GHOST_TInt32 &outY) const = 0;
+  virtual void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const = 0;
 
   /**
    * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
@@ -290,8 +284,8 @@ class GHOST_IWindow {
    * \param hotY: The Y coordinate of the cursor hot-spot.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 *bitmap,
-                                              GHOST_TUns8 *mask,
+  virtual GHOST_TSuccess setCustomCursorShape(uint8_t *bitmap,
+                                              uint8_t *mask,
                                               int sizex,
                                               int sizey,
                                               int hotX,
@@ -319,7 +313,7 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode /*mode*/,
                                        GHOST_TAxisFlag /*wrap_axis*/,
                                        GHOST_Rect * /*bounds*/,
-                                       GHOST_TInt32 /*mouse_ungrab_xy*/[2])
+                                       int32_t /*mouse_ungrab_xy*/[2])
   {
     return GHOST_kSuccess;
   }
@@ -334,7 +328,7 @@ class GHOST_IWindow {
    * Returns the recommended DPI for this window.
    * \return The recommended DPI for this window.
    */
-  virtual GHOST_TUns16 getDPIHint() = 0;
+  virtual uint16_t getDPIHint() = 0;
 
 #ifdef WITH_INPUT_IME
   /**
@@ -348,8 +342,7 @@ class GHOST_IWindow {
    * - true:  Start a new composition
    * - false: Move the IME windows to the given position without finishing it.
    */
-  virtual void beginIME(
-      GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 w, GHOST_TInt32 h, int completed) = 0;
+  virtual void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) = 0;
 
   /**
    * Disable the IME attached to the given window, i.e. prohibits any user-input

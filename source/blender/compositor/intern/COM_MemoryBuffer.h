@@ -247,6 +247,8 @@ class MemoryBuffer {
     return this->m_buffer;
   }
 
+  MemoryBuffer *inflate() const;
+
   inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
   {
     const int w = getWidth();
@@ -262,11 +264,14 @@ class MemoryBuffer {
           x = 0;
         }
         if (x >= w) {
-          x = w;
+          x = w - 1;
         }
         break;
       case MemoryBufferExtend::Repeat:
-        x = (x >= 0.0f ? (x % w) : (x % w) + w);
+        x %= w;
+        if (x < 0) {
+          x += w;
+        }
         break;
     }
 
@@ -278,13 +283,19 @@ class MemoryBuffer {
           y = 0;
         }
         if (y >= h) {
-          y = h;
+          y = h - 1;
         }
         break;
       case MemoryBufferExtend::Repeat:
-        y = (y >= 0.0f ? (y % h) : (y % h) + h);
+        y %= h;
+        if (y < 0) {
+          y += h;
+        }
         break;
     }
+
+    x = x + m_rect.xmin;
+    y = y + m_rect.ymin;
   }
 
   inline void wrap_pixel(float &x,
@@ -305,11 +316,14 @@ class MemoryBuffer {
           x = 0.0f;
         }
         if (x >= w) {
-          x = w;
+          x = w - 1;
         }
         break;
       case MemoryBufferExtend::Repeat:
         x = fmodf(x, w);
+        if (x < 0.0f) {
+          x += w;
+        }
         break;
     }
 
@@ -321,13 +335,19 @@ class MemoryBuffer {
           y = 0.0f;
         }
         if (y >= h) {
-          y = h;
+          y = h - 1;
         }
         break;
       case MemoryBufferExtend::Repeat:
         y = fmodf(y, h);
+        if (y < 0.0f) {
+          y += h;
+        }
         break;
     }
+
+    x = x + m_rect.xmin;
+    y = y + m_rect.ymin;
   }
 
   inline void read(float *result,

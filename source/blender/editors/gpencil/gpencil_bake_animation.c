@@ -38,6 +38,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -303,8 +304,12 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
         float matrix[4][4];
         BKE_gpencil_layer_transform_matrix_get(depsgraph, elem->ob, gpl_src, matrix);
 
+        /* Apply time modifier. */
+        int remap_cfra = BKE_gpencil_time_modifier_cfra(
+            depsgraph, scene, elem->ob, gpl_src, CFRA, false);
         /* Duplicate frame. */
-        bGPDframe *gpf_src = BKE_gpencil_layer_frame_get(gpl_src, CFRA, GP_GETFRAME_USE_PREV);
+        bGPDframe *gpf_src = BKE_gpencil_layer_frame_get(
+            gpl_src, remap_cfra, GP_GETFRAME_USE_PREV);
         if (gpf_src == NULL) {
           continue;
         }

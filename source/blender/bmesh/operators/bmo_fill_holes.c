@@ -35,7 +35,7 @@ void bmo_holes_fill_exec(BMesh *bm, BMOperator *op)
   BM_mesh_elem_hflag_disable_all(bm, BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
   BMO_slot_buffer_hflag_enable(bm, op->slots_in, "edges", BM_EDGE, BM_ELEM_TAG, false);
 
-  BM_mesh_edgenet(bm, true, true);  // TODO, sides
+  BM_mesh_edgenet(bm, true, true);  // TODO: sides
 
   /* bad - remove faces after as a workaround */
   if (sides != 0) {
@@ -66,7 +66,7 @@ void bmo_holes_fill_exec(BMesh *bm, BMOperator *op)
   BMO_op_exec(bm, &op_attr);
 
   /* check if some faces couldn't be touched */
-  if (BMO_slot_buffer_count(op_attr.slots_out, "faces_fail.out")) {
+  if (BMO_slot_buffer_len(op_attr.slots_out, "faces_fail.out")) {
     BMOIter siter;
     BMFace *f;
 

@@ -50,6 +50,7 @@
 
 #include "BLO_blend_validate.h"
 
+#include "ED_asset.h"
 #include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
@@ -202,7 +203,7 @@ static void ed_undo_step_pre(bContext *C,
 
   /* App-Handlers (pre). */
   {
-    /* Note: ignore grease pencil for now. */
+    /* NOTE: ignore grease pencil for now. */
     wm->op_undo_depth++;
     BKE_callback_exec_id(
         bmain, &scene->id, (undo_dir == STEP_UNDO) ? BKE_CB_EVT_UNDO_PRE : BKE_CB_EVT_REDO_PRE);
@@ -268,6 +269,8 @@ static void ed_undo_step_post(bContext *C,
   WM_toolsystem_refresh_active(C);
   WM_toolsystem_refresh_screen_all(bmain);
 
+  ED_assetlist_storage_tag_main_data_dirty();
+
   if (CLOG_CHECK(&LOG, 1)) {
     BKE_undosys_print(wm->undo_stack);
   }
@@ -321,7 +324,7 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
 
   /* FIXME: See comments in `ed_undo_step_direction`. */
   if (ED_gpencil_session_active()) {
-    BLI_assert(!"Not implemented currently.");
+    BLI_assert_msg(0, "Not implemented currently.");
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -369,7 +372,7 @@ static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *
 
   /* FIXME: See comments in `ed_undo_step_direction`. */
   if (ED_gpencil_session_active()) {
-    BLI_assert(!"Not implemented currently.");
+    BLI_assert_msg(0, "Not implemented currently.");
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -528,7 +531,7 @@ static int ed_undo_push_exec(bContext *C, wmOperator *op)
 {
   if (G.background) {
     /* Exception for background mode, see: T60934.
-     * Note: since the undo stack isn't initialized on startup, background mode behavior
+     * NOTE: since the undo stack isn't initialized on startup, background mode behavior
      * won't match regular usage, this is just for scripts to do explicit undo pushes. */
     wmWindowManager *wm = CTX_wm_manager(C);
     if (wm->undo_stack == NULL) {
@@ -693,11 +696,11 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
     }
 
     if ((WM_operator_repeat_check(C, op)) && (WM_operator_poll(C, op->type)) &&
-        /* note, undo/redo can't run if there are jobs active,
+        /* NOTE: undo/redo can't run if there are jobs active,
          * check for screen jobs only so jobs like material/texture/world preview
          * (which copy their data), won't stop redo, see T29579],
          *
-         * note, - WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this */
+         * NOTE: WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this. */
         (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY) == 0)) {
       int retval;
 
@@ -829,7 +832,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
   return OPERATOR_CANCELLED;
 }
 
-/* note: also check ed_undo_step() in top if you change notifiers */
+/* NOTE: also check #ed_undo_step() in top if you change notifiers. */
 static int undo_history_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "item");

@@ -189,3 +189,53 @@ TEST(array_utils, BinaryOrInt4Mix)
   BINARY_OR_TEST(data_cmp, data_a, data_b, data_combine, ARRAY_SIZE(data_cmp));
 }
 #undef BINARY_OR_TEST
+
+/* BLI_array_deduplicate_ordered */
+#define DEDUPLICATE_ORDERED_TEST(data, data_cmp) \
+  { \
+    const uint data_len_new = BLI_array_deduplicate_ordered(data, ARRAY_SIZE(data)); \
+    EXPECT_EQ(data_len_new, ARRAY_SIZE(data_cmp)); \
+    EXPECT_EQ_ARRAY(data, data_cmp, data_len_new); \
+    /* Ensure running a second time does nothing. */ \
+    const uint data_len_test = BLI_array_deduplicate_ordered(data, data_len_new); \
+    EXPECT_EQ(data_len_test, ARRAY_SIZE(data_cmp)); \
+    EXPECT_EQ_ARRAY(data, data_cmp, data_len_new); \
+  } \
+  ((void)0)
+
+TEST(array_utils, DeduplicateOrdered1)
+{
+  int data[] = {0};
+  const int data_cmp[] = {0};
+  DEDUPLICATE_ORDERED_TEST(data, data_cmp);
+}
+
+TEST(array_utils, DeduplicateOrdered2)
+{
+  int data[] = {1, 2};
+  const int data_cmp[] = {1, 2};
+  DEDUPLICATE_ORDERED_TEST(data, data_cmp);
+}
+
+TEST(array_utils, DeduplicateOrdered2Same)
+{
+  int data[] = {1, 1};
+  const int data_cmp[] = {1};
+  DEDUPLICATE_ORDERED_TEST(data, data_cmp);
+}
+
+TEST(array_utils, DeduplicateOrdered3Same)
+{
+  int data[] = {1, 1, 1};
+  const int data_cmp[] = {1};
+  DEDUPLICATE_ORDERED_TEST(data, data_cmp);
+}
+
+TEST(array_utils, DeduplicateOrdered3)
+{
+  int data[] = {3, 3, 2, 2, 1, 1};
+  const int data_cmp[] = {3, 2, 1};
+  DEDUPLICATE_ORDERED_TEST(data, data_cmp);
+}
+
+#undef DEDUPLICATE_ORDERED_TEST

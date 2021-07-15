@@ -719,7 +719,7 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
        * the area sign will be positive if the point is strictly inside.
        * It will be 0 on the edge, which we want to include as well. */
 
-      /* note: check (v3, v1) first since it fails _far_ more often than the other 2 checks
+      /* NOTE: check (v3, v1) first since it fails _far_ more often than the other 2 checks
        * (those fail equally).
        * It's logical - the chance is low that points exist on the
        * same side as the ear we're clipping off. */

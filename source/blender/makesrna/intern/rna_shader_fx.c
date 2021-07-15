@@ -649,12 +649,12 @@ static void rna_def_shader_fx_flip(BlenderRNA *brna)
 
   RNA_define_lib_overridable(true);
 
-  prop = RNA_def_property(srna, "flip_horizontal", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_flip_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_FLIP_HORIZONTAL);
   RNA_def_property_ui_text(prop, "Horizontal", "Flip image horizontally");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
 
-  prop = RNA_def_property(srna, "flip_vertical", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_flip_y", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_FLIP_VERTICAL);
   RNA_def_property_ui_text(prop, "Vertical", "Flip image vertically");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");

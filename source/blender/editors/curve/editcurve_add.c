@@ -485,7 +485,7 @@ Nurb *ED_curve_add_nurbs_primitive(
       break;
 
     default: /* should never happen */
-      BLI_assert(!"invalid nurbs type");
+      BLI_assert_msg(0, "invalid nurbs type");
       return NULL;
   }
 

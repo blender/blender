@@ -68,3 +68,32 @@
 +
      return ret;
  }
+--- a/libavcodec/rl.c
++++ b/libavcodec/rl.c
+@@ -71,7 +71,7 @@ av_cold void ff_rl_init(RLTable *rl,
+ av_cold void ff_rl_init_vlc(RLTable *rl, unsigned static_size)
+ {
+     int i, q;
+-    VLC_TYPE table[1500][2] = {{0}};
++    VLC_TYPE (*table)[2] = av_calloc(sizeof(VLC_TYPE), 1500 * 2);
+     VLC vlc = { .table = table, .table_allocated = static_size };
+     av_assert0(static_size <= FF_ARRAY_ELEMS(table));
+     init_vlc(&vlc, 9, rl->n + 1, &rl->table_vlc[0][1], 4, 2, &rl->table_vlc[0][0], 4, 2, INIT_VLC_USE_NEW_STATIC);
+@@ -80,8 +80,10 @@ av_cold void ff_rl_init_vlc(RLTable *rl, unsigned static_size)
+         int qmul = q * 2;
+         int qadd = (q - 1) | 1;
+ 
+-        if (!rl->rl_vlc[q])
++        if (!rl->rl_vlc[q]){
++            av_free(table);
+             return;
++        }
+ 
+         if (q == 0) {
+             qmul = 1;
+@@ -113,4 +115,5 @@ av_cold void ff_rl_init_vlc(RLTable *rl, unsigned static_size)
+             rl->rl_vlc[q][i].run   = run;
+         }
+     }
++    av_free(table);
+ }

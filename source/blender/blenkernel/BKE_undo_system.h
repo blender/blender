@@ -162,6 +162,13 @@ typedef enum UndoTypeFlags {
    * \note Callback is still supposed to properly deal with a NULL context pointer.
    */
   UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE = 1 << 0,
+
+  /**
+   * When the active undo step is of this type, it must be read before loading other undo steps.
+   *
+   * This is typically used for undo systems that store both before/after states.
+   */
+  UNDOTYPE_FLAG_DECODE_ACTIVE_STEP = 1 << 1,
 } UndoTypeFlags;
 
 /* Expose since we need to perform operations on specific undo types (rarely). */

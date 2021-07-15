@@ -26,6 +26,7 @@
 
 #include "DNA_mesh_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 
 #include "draw_cache_impl.h"

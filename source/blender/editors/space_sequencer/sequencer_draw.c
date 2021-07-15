@@ -101,7 +101,7 @@
 #define SEQ_SCROLLER_TEXT_OFFSET 8
 #define MUTE_ALPHA 120
 
-/* Note, Don't use SEQ_ALL_BEGIN/SEQ_ALL_END while drawing!
+/* NOTE: Don't use SEQ_ALL_BEGIN/SEQ_ALL_END while drawing!
  * it messes up transform. */
 #undef SEQ_ALL_BEGIN
 #undef SEQ_ALL_END
@@ -453,13 +453,13 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* Get handle width in pixels. */
+/* Get handle width in 2d-View space. */
 float sequence_handle_size_get_clamped(Sequence *seq, const float pixelx)
 {
   const float maxhandle = (pixelx * SEQ_HANDLE_SIZE) * U.pixelsize;
 
-  /* Ensure that handle is not wider, than half of strip. */
-  return min_ff(maxhandle, ((float)(seq->enddisp - seq->startdisp) / 2.0f) / pixelx);
+  /* Ensure that handle is not wider, than quarter of strip. */
+  return min_ff(maxhandle, ((float)(seq->enddisp - seq->startdisp) / 4.0f));
 }
 
 /* Draw a handle, on left or right side of strip. */
@@ -1556,7 +1556,7 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
       *r_format = GPU_RGB16F;
     }
     else {
-      BLI_assert(!"Incompatible number of channels for float buffer in sequencer");
+      BLI_assert_msg(0, "Incompatible number of channels for float buffer in sequencer");
       *r_format = GPU_RGBA16F;
       display_buffer = NULL;
     }
@@ -2479,10 +2479,12 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
 
-  if (scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
+  if (scene->ed != NULL) {
     UI_view2d_view_ortho(v2d);
     draw_cache_view(C);
-    draw_overlap_frame_indicator(scene, v2d);
+    if (scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
+      draw_overlap_frame_indicator(scene, v2d);
+    }
     UI_view2d_view_restore(C);
   }
 

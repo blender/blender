@@ -51,7 +51,7 @@ static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph)
 {
   /* Update the time on the cow scene. */
   if (deg_graph->scene_cow) {
-    BKE_scene_frame_set(deg_graph->scene_cow, deg_graph->ctime);
+    BKE_scene_frame_set(deg_graph->scene_cow, deg_graph->frame);
   }
 
   deg::deg_graph_flush_updates(deg_graph);
@@ -63,10 +63,12 @@ void DEG_evaluate_on_refresh(Depsgraph *graph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
   const Scene *scene = DEG_get_input_scene(graph);
-  const float ctime = BKE_scene_frame_get(scene);
+  const float frame = BKE_scene_frame_get(scene);
+  const float ctime = BKE_scene_ctime_get(scene);
 
-  if (ctime != deg_graph->ctime) {
+  if (deg_graph->frame != frame || ctime != deg_graph->ctime) {
     deg_graph->tag_time_source();
+    deg_graph->frame = frame;
     deg_graph->ctime = ctime;
   }
 
@@ -74,10 +76,13 @@ void DEG_evaluate_on_refresh(Depsgraph *graph)
 }
 
 /* Frame-change happened for root scene that graph belongs to. */
-void DEG_evaluate_on_framechange(Depsgraph *graph, float ctime)
+void DEG_evaluate_on_framechange(Depsgraph *graph, float frame)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
+  const Scene *scene = DEG_get_input_scene(graph);
+
   deg_graph->tag_time_source();
-  deg_graph->ctime = ctime;
+  deg_graph->frame = frame;
+  deg_graph->ctime = BKE_scene_frame_to_ctime(scene, frame);
   deg_flush_updates_and_refresh(deg_graph);
 }

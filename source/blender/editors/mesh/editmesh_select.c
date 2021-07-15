@@ -35,6 +35,8 @@
 #include "BLI_utildefines_stack.h"
 
 #include "BKE_context.h"
+#include "BKE_customdata.h"
+#include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
@@ -434,7 +436,7 @@ struct NearestEdgeUserData {
   struct NearestEdgeUserData_Hit hit_cycle;
 };
 
-/* note; uses v3d, so needs active 3d window */
+/* NOTE: uses v3d, so needs active 3d window. */
 static void find_nearest_edge__doClosest(
     void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index)
 {
@@ -964,7 +966,7 @@ static bool unified_findnearest(ViewContext *vc,
     }
   }
 
-  /* return only one of 3 pointers, for frontbuffer redraws */
+  /* Return only one of 3 pointers, for front-buffer redraws. */
   if (hit.v.ele) {
     hit.f.ele = NULL;
     hit.e.ele = NULL;
@@ -3446,7 +3448,7 @@ static void edbm_select_linked_pick_ex(BMEditMesh *em, BMElem *ele, bool sel, in
     select_linked_delimit_begin(bm, delimit);
   }
 
-  /* Note: logic closely matches 'edbm_select_linked_exec', keep in sync */
+  /* NOTE: logic closely matches #edbm_select_linked_exec, keep in sync. */
 
   if (ele->head.htype == BM_VERT) {
     BMVert *eve = (BMVert *)ele;
@@ -4739,10 +4741,11 @@ static bool edbm_select_ungrouped_poll(bContext *C)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
+    const ListBase *defbase = BKE_object_defgroup_list(obedit);
     if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
       CTX_wm_operator_poll_msg_set(C, "Must be in vertex selection mode");
     }
-    else if (BLI_listbase_is_empty(&obedit->defbase) || cd_dvert_offset == -1) {
+    else if (BLI_listbase_is_empty(defbase) || cd_dvert_offset == -1) {
       CTX_wm_operator_poll_msg_set(C, "No weights/vertex groups on object");
     }
     else {

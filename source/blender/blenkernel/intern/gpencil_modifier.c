@@ -257,9 +257,13 @@ bool BKE_gpencil_is_first_lineart_in_stack(const Object *ob, const GpencilModifi
   return false;
 }
 
-/* apply time modifiers */
-static int gpencil_time_modifier(
-    Depsgraph *depsgraph, Scene *scene, Object *ob, bGPDlayer *gpl, int cfra, bool is_render)
+/* Get Time modifier frame number. */
+int BKE_gpencil_time_modifier_cfra(Depsgraph *depsgraph,
+                                   Scene *scene,
+                                   Object *ob,
+                                   bGPDlayer *gpl,
+                                   const int cfra,
+                                   const bool is_render)
 {
   bGPdata *gpd = ob->data;
   const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
@@ -350,7 +354,7 @@ GpencilModifierData *BKE_gpencil_modifier_new(int type)
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(type);
   GpencilModifierData *md = MEM_callocN(mti->struct_size, mti->struct_name);
 
-  /* note, this name must be made unique later */
+  /* NOTE: this name must be made unique later. */
   BLI_strncpy(md->name, DATA_(mti->name), sizeof(md->name));
 
   md->type = type;
@@ -665,7 +669,7 @@ static int gpencil_remap_time_get(Depsgraph *depsgraph, Scene *scene, Object *ob
 
   int remap_cfra = cfra_eval;
   if (time_remap) {
-    remap_cfra = gpencil_time_modifier(depsgraph, scene, ob, gpl, cfra_eval, is_render);
+    remap_cfra = BKE_gpencil_time_modifier_cfra(depsgraph, scene, ob, gpl, cfra_eval, is_render);
   }
 
   return remap_cfra;

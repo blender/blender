@@ -98,9 +98,10 @@ enum {
   WALK_MODAL_JUMP,
   WALK_MODAL_JUMP_STOP,
   WALK_MODAL_TELEPORT,
-  WALK_MODAL_TOGGLE,
+  WALK_MODAL_GRAVITY_TOGGLE,
   WALK_MODAL_ACCELERATE,
   WALK_MODAL_DECELERATE,
+  WALK_MODAL_AXIS_LOCK_Z,
 };
 
 enum {
@@ -128,6 +129,18 @@ typedef enum eWalkGravityState {
   WALK_GRAVITY_STATE_START,
   WALK_GRAVITY_STATE_ON,
 } eWalkGravityState;
+
+/* Relative view axis z axis locking. */
+typedef enum eWalkLockState {
+  /* Disabled. */
+  WALK_AXISLOCK_STATE_OFF = 0,
+
+  /* Moving. */
+  WALK_AXISLOCK_STATE_ACTIVE = 2,
+
+  /* Done moving, it cannot be activated again. */
+  WALK_AXISLOCK_STATE_DONE = 3,
+} eWalkLockState;
 
 /* Called in transform_ops.c, on each regeneration of key-maps. */
 void walk_modal_keymap(wmKeyConfig *keyconf)
@@ -164,7 +177,9 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
       {WALK_MODAL_JUMP, "JUMP", 0, "Jump", "Jump when in walk mode"},
       {WALK_MODAL_JUMP_STOP, "JUMP_STOP", 0, "Jump (Off)", "Stop pushing jump"},
 
-      {WALK_MODAL_TOGGLE, "GRAVITY_TOGGLE", 0, "Toggle Gravity", "Toggle gravity effect"},
+      {WALK_MODAL_GRAVITY_TOGGLE, "GRAVITY_TOGGLE", 0, "Toggle Gravity", "Toggle gravity effect"},
+
+      {WALK_MODAL_AXIS_LOCK_Z, "AXIS_LOCK_Z", 0, "Z Axis Correction", "Z axis correction"},
 
       {0, NULL, 0, NULL, NULL},
   };
@@ -291,6 +306,10 @@ typedef struct WalkInfo {
   float jump_height;
   /** To use for fast/slow speeds. */
   float speed_factor;
+
+  eWalkLockState zlock;
+  /** Nicer dynamics. */
+  float zlock_momentum;
 
   struct SnapObjectContext *snap_context;
 
@@ -540,6 +559,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->jump_height = U.walk_navigation.jump_height;
   walk->speed = U.walk_navigation.walk_speed;
   walk->speed_factor = U.walk_navigation.walk_speed_factor;
+  walk->zlock = WALK_AXISLOCK_STATE_OFF;
 
   walk->gravity_state = WALK_GRAVITY_STATE_OFF;
 
@@ -694,7 +714,7 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
         walk->is_cursor_first = false;
       }
       else {
-        /* note, its possible the system isn't giving us the warp event
+        /* NOTE: its possible the system isn't giving us the warp event
          * ideally we shouldn't have to worry about this, see: T45361 */
         wmWindow *win = CTX_wm_window(C);
         WM_cursor_warp(win,
@@ -708,8 +728,6 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
       walk->is_cursor_absolute = true;
       copy_v2_v2_int(walk->prev_mval, event->mval);
       copy_v2_v2_int(walk->center_mval, event->mval);
-      /* Without this we can't turn 180d with the default speed of 1.0. */
-      walk->mouse_speed *= 4.0f;
     }
 #endif /* USE_TABLET_SUPPORT */
 
@@ -941,12 +959,19 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
 #undef JUMP_TIME_MAX
 #undef JUMP_SPEED_MIN
 
-      case WALK_MODAL_TOGGLE:
+      case WALK_MODAL_GRAVITY_TOGGLE:
         if (walk->navigation_mode == WALK_MODE_GRAVITY) {
           walk_navigation_mode_set(walk, WALK_MODE_FREE);
         }
         else { /* WALK_MODE_FREE */
           walk_navigation_mode_set(walk, WALK_MODE_GRAVITY);
+        }
+        break;
+
+      case WALK_MODAL_AXIS_LOCK_Z:
+        if (walk->zlock != WALK_AXISLOCK_STATE_DONE) {
+          walk->zlock = WALK_AXISLOCK_STATE_ACTIVE;
+          walk->zlock_momentum = 0.0f;
         }
         break;
     }
@@ -982,12 +1007,14 @@ static float getVelocityZeroTime(const float gravity, const float velocity)
 
 static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 {
-#define WALK_ROTATE_RELATIVE_FAC 2.2f           /* More is faster, relative to region size. */
-#define WALK_ROTATE_CONSTANT_FAC DEG2RAD(0.15f) /* More is faster, radians per-pixel. */
+#define WALK_ROTATE_TABLET_FAC 8.8f             /* Higher is faster, relative to region size. */
+#define WALK_ROTATE_CONSTANT_FAC DEG2RAD(0.15f) /* Higher is faster, radians per-pixel. */
 #define WALK_TOP_LIMIT DEG2RADF(85.0f)
 #define WALK_BOTTOM_LIMIT DEG2RADF(-80.0f)
 #define WALK_MOVE_SPEED base_speed
 #define WALK_BOOST_FACTOR ((void)0, walk->speed_factor)
+#define WALK_ZUP_CORRECT_FAC 0.1f    /* Amount to correct per step. */
+#define WALK_ZUP_CORRECT_ACCEL 0.05f /* Increase upright momentum each step. */
 
   RegionView3D *rv3d = walk->rv3d;
   ARegion *region = walk->region;
@@ -1022,19 +1049,24 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
     /* Should we redraw? */
     if ((walk->active_directions) || moffset[0] || moffset[1] ||
-        walk->teleport.state == WALK_TELEPORT_STATE_ON ||
-        walk->gravity_state != WALK_GRAVITY_STATE_OFF || is_confirm) {
+        walk->zlock == WALK_AXISLOCK_STATE_ACTIVE ||
+        walk->gravity_state != WALK_GRAVITY_STATE_OFF ||
+        walk->teleport.state == WALK_TELEPORT_STATE_ON || is_confirm) {
       float dvec_tmp[3];
 
       /* time how fast it takes for us to redraw,
        * this is so simple scenes don't walk too fast */
       double time_current;
       float time_redraw;
+      float time_redraw_clamped;
 #ifdef NDOF_WALK_DRAW_TOOMUCH
       walk->redraw = 1;
 #endif
       time_current = PIL_check_seconds_timer();
       time_redraw = (float)(time_current - walk->time_lastdraw);
+
+      /* Clamp redraw time to avoid jitter in roll correction. */
+      time_redraw_clamped = min_ff(0.05f, time_redraw);
 
       walk->time_lastdraw = time_current;
 
@@ -1064,7 +1096,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 #ifdef USE_TABLET_SUPPORT
           if (walk->is_cursor_absolute) {
             y /= region->winy;
-            y *= WALK_ROTATE_RELATIVE_FAC;
+            y *= WALK_ROTATE_TABLET_FAC;
           }
           else
 #endif
@@ -1113,7 +1145,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 #ifdef USE_TABLET_SUPPORT
           if (walk->is_cursor_absolute) {
             x /= region->winx;
-            x *= WALK_ROTATE_RELATIVE_FAC;
+            x *= WALK_ROTATE_TABLET_FAC;
           }
           else
 #endif
@@ -1127,6 +1159,32 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           /* Rotate about the relative up vec */
           axis_angle_to_quat_single(tmp_quat, 'Z', x);
           mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+        }
+
+        if (walk->zlock == WALK_AXISLOCK_STATE_ACTIVE) {
+          float upvec[3];
+          copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
+          mul_m3_v3(mat, upvec);
+
+          /* Make sure we have some z rolling. */
+          if (fabsf(upvec[2]) > 0.00001f) {
+            float roll = upvec[2] * 5.0f;
+            /* Rotate the view about this axis. */
+            copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);
+            mul_m3_v3(mat, upvec);
+            /* Rotate about the relative up vec. */
+            axis_angle_to_quat(tmp_quat,
+                               upvec,
+                               roll * time_redraw_clamped * walk->zlock_momentum *
+                                   WALK_ZUP_CORRECT_FAC);
+            mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
+
+            walk->zlock_momentum += WALK_ZUP_CORRECT_ACCEL;
+          }
+          else {
+            /* Lock fixed, don't need to check it ever again. */
+            walk->zlock = WALK_AXISLOCK_STATE_DONE;
+          }
         }
       }
 
@@ -1318,7 +1376,8 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       add_v3_v3(rv3d->ofs, dvec_tmp);
 
       if (rv3d->persp == RV3D_CAMOB) {
-        walk->need_rotation_keyframe |= (moffset[0] || moffset[1]);
+        walk->need_rotation_keyframe |= (moffset[0] || moffset[1] ||
+                                         walk->zlock == WALK_AXISLOCK_STATE_ACTIVE);
         walk->need_translation_keyframe |= (len_squared_v3(dvec_tmp) > FLT_EPSILON);
         walkMoveCamera(
             C, walk, walk->need_rotation_keyframe, walk->need_translation_keyframe, is_confirm);
@@ -1333,7 +1392,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
   }
 
   return OPERATOR_FINISHED;
-#undef WALK_ROTATE_RELATIVE_FAC
+#undef WALK_ROTATE_TABLET_FAC
 #undef WALK_TOP_LIMIT
 #undef WALK_BOTTOM_LIMIT
 #undef WALK_MOVE_SPEED

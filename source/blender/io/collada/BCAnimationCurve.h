@@ -116,7 +116,7 @@ class BCAnimationCurve {
   bool is_keyframe(int frame);
   void adjust_range(int frame);
 
-  std::string get_animation_name(Object *ob) const; /* xxx: this is collada specific */
+  std::string get_animation_name(Object *ob) const; /* XXX: this is COLLADA specific. */
   std::string get_channel_target() const;
   std::string get_channel_type() const;
   std::string get_channel_posebone() const; /* returns "" if channel is not a bone channel */

@@ -199,7 +199,7 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
     mul_m4_m4m4(mat, ob->obmat, (i == 0) ? pchan->disp_mat : pchan->disp_tail_mat);
     copy_m4_m4(gz->matrix_space, mat);
 
-    /* need to set property here for undo. TODO would prefer to do this in _init */
+    /* need to set property here for undo. TODO: would prefer to do this in _init. */
     WM_gizmo_target_property_def_func(gz,
                                       "offset",
                                       &(const struct wmGizmoPropertyFnParams){

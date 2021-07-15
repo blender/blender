@@ -257,15 +257,6 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
   }
 }
 
-/** Comparison function suitable to be used with BLI_listbase_sort()... */
-int SEQ_time_cmp_time_startdisp(const void *a, const void *b)
-{
-  const Sequence *seq_a = a;
-  const Sequence *seq_b = b;
-
-  return (seq_a->startdisp > seq_b->startdisp);
-}
-
 int SEQ_time_find_next_prev_edit(Scene *scene,
                                  int timeline_frame,
                                  const short side,
@@ -471,7 +462,7 @@ void seq_time_gap_info_get(const Scene *scene,
 
 /**
  * Test if strip intersects with timeline frame.
- * Note: This checks if strip would be rendered at this frame. For rendering it is assumed, that
+ * NOTE: This checks if strip would be rendered at this frame. For rendering it is assumed, that
  * timeline frame has width of 1 frame and therefore ends at timeline_frame + 1
  *
  * \param seq: Sequence to be checked

@@ -19,6 +19,7 @@ set(INC
     ../include
     ../../blenkernel
     ../../blenlib
+    ../../blenloader
     ../../makesdna
     ../../makesrna
     ../../windowmanager
@@ -30,10 +31,14 @@ set(INC_SYS
 
 set(SRC
   asset_edit.cc
+  asset_list.cc
   asset_ops.cc
+  asset_temp_id_consumer.cc
 )
 
 set(LIB
+  bf_blenloader
+  bf_blenkernel
 )
 
 blender_add_lib(bf_editor_asset "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

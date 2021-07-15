@@ -349,7 +349,7 @@ mark_as_advanced(WITH_SYSTEM_GLOG)
 option(WITH_FREESTYLE     "Enable Freestyle (advanced edges rendering)" ON)
 
 # Misc
-if(WIN32)
+if(WIN32 OR APPLE)
   option(WITH_INPUT_IME "Enable Input Method Editor (IME) for complex Asian character input" ON)
 endif()
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
@@ -1705,22 +1705,18 @@ if(WITH_PYTHON)
   endif()
 endif()
 
-if(MSVC)
-  string(APPEND CMAKE_CXX_FLAGS " /std:c++17")
-  # Make MSVC properly report the value of the __cplusplus preprocessor macro
-  # Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
-  # of the C++ standard chosen above
-  if(MSVC_VERSION GREATER 1913)
-    string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
-  endif()
-elseif(
-  CMAKE_COMPILER_IS_GNUCC OR
-  CMAKE_C_COMPILER_ID MATCHES "Clang" OR
-  CMAKE_C_COMPILER_ID MATCHES "Intel"
-)
-  string(APPEND CMAKE_CXX_FLAGS " -std=c++17")
-else()
-  message(FATAL_ERROR "Unknown compiler ${CMAKE_C_COMPILER_ID}, can't enable C++17 build")
+# Select C++17 as the standard for C++ projects.
+set(CMAKE_CXX_STANDARD 17)
+# If C++17 is not available, downgrading to an earlier standard is NOT OK.
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Do not enable compiler specific language extentions.
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Make MSVC properly report the value of the __cplusplus preprocessor macro
+# Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
+# of the C++ standard chosen above.
+if(MSVC AND MSVC_VERSION GREATER 1913)
+  string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
 endif()
 
 # Visual Studio has all standards it supports available by default
@@ -1915,6 +1911,7 @@ if(FIRST_RUN)
   info_cfg_option(WITH_IK_ITASC)
   info_cfg_option(WITH_IK_SOLVER)
   info_cfg_option(WITH_INPUT_NDOF)
+  info_cfg_option(WITH_INPUT_IME)
   info_cfg_option(WITH_INTERNATIONAL)
   info_cfg_option(WITH_OPENCOLLADA)
   info_cfg_option(WITH_OPENCOLORIO)

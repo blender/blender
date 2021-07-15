@@ -69,7 +69,7 @@
 
 /* ***************** Pose Select Utilities ********************* */
 
-/* Note: SEL_TOGGLE is assumed to have already been handled! */
+/* NOTE: SEL_TOGGLE is assumed to have already been handled! */
 static void pose_do_bone_select(bPoseChannel *pchan, const int select_mode)
 {
   /* select pchan only if selectable, but deselect works always */
@@ -161,9 +161,9 @@ void ED_armature_pose_select_pick_bone(ViewLayer *view_layer,
 
   /* Since we do unified select, we don't shift+select a bone if the
    * armature object was not active yet.
-   * Note, special exception for armature mode so we can do multi-select
+   * NOTE(campbell): special exception for armature mode so we can do multi-select
    * we could check for multi-select explicitly but think its fine to
-   * always give predictable behavior in weight paint mode - campbell */
+   * always give predictable behavior in weight paint mode. */
   if ((ob_act == NULL) || ((ob_act != ob) && (ob_act->mode & OB_MODE_ALL_WEIGHT_PAINT) == 0)) {
     /* When we are entering into posemode via toggle-select,
      * from another active object - always select the bone. */

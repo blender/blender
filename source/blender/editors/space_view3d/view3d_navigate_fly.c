@@ -122,7 +122,7 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
       {FLY_MODAL_DECELERATE, "DECELERATE", 0, "Decelerate", ""},
 
       {FLY_MODAL_AXIS_LOCK_X, "AXIS_LOCK_X", 0, "X Axis Correction", "X axis correction (toggle)"},
-      {FLY_MODAL_AXIS_LOCK_Z, "AXIS_LOCK_Z", 0, "X Axis Correction", "Z axis correction (toggle)"},
+      {FLY_MODAL_AXIS_LOCK_Z, "AXIS_LOCK_Z", 0, "Z Axis Correction", "Z axis correction (toggle)"},
 
       {FLY_MODAL_PRECISION_ENABLE, "PRECISION_ENABLE", 0, "Precision", ""},
       {FLY_MODAL_PRECISION_DISABLE, "PRECISION_DISABLE", 0, "Precision (Off)", ""},
@@ -808,10 +808,10 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
       moffset[1] = 0;
     }
 
-    /* scale the mouse movement by this value - scales mouse movement to the view size
-     * moffset[0] / (region->winx-xmargin * 2) - window size minus margin (same for y)
+    /* Scale the mouse movement by this value - scales mouse movement to the view size
+     * `moffset[0] / (region->winx-xmargin * 2)` - window size minus margin (same for y)
      *
-     * the mouse moves isn't linear */
+     * the mouse moves isn't linear. */
 
     if (moffset[0]) {
       moffset[0] /= fly->width - (xmargin * 2);

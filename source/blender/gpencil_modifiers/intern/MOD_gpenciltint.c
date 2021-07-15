@@ -127,6 +127,8 @@ static void deformStroke(GpencilModifierData *md,
 
   const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
   const bool use_curve = (mmd->flag & GP_TINT_CUSTOM_CURVE) != 0 && mmd->curve_intensity;
+  bool is_inverted = ((mmd->flag & GP_TINT_WEIGHT_FACTOR) == 0) &&
+                     ((mmd->flag & GP_TINT_INVERT_VGROUP) != 0);
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
@@ -169,6 +171,17 @@ static void deformStroke(GpencilModifierData *md,
     if (!fill_done) {
       /* Apply to fill. */
       if (mmd->mode != GPPAINT_MODE_STROKE) {
+        float fill_factor = mmd->factor;
+
+        /* Use weighted factor. */
+        if (mmd->flag & GP_TINT_WEIGHT_FACTOR) {
+          /* Use first point for weight. */
+          MDeformVert *dvert_fill = (gps->dvert != NULL) ? &gps->dvert[0] : NULL;
+          float weight = get_modifier_point_weight(dvert_fill, is_inverted, def_nr);
+          if (weight >= 0.0f) {
+            fill_factor = ((mmd->flag & GP_TINT_INVERT_VGROUP) ? 1.0f - weight : weight);
+          }
+        }
 
         /* If not using Vertex Color, use the material color. */
         if ((gp_style != NULL) && (gps->vert_color_fill[3] == 0.0f) &&
@@ -188,13 +201,13 @@ static void deformStroke(GpencilModifierData *md,
 
           BKE_colorband_evaluate(mmd->colorband, mix_factor, coba_res);
           interp_v3_v3v3(gps->vert_color_fill, gps->vert_color_fill, coba_res, mmd->factor);
-          gps->vert_color_fill[3] = clamp_f(mmd->factor, 0.0f, 1.0f);
+          gps->vert_color_fill[3] = clamp_f(fill_factor, 0.0f, 1.0f);
         }
         else {
           interp_v3_v3v3(gps->vert_color_fill,
                          gps->vert_color_fill,
                          mmd->rgb,
-                         clamp_f(mmd->factor, 0.0f, 1.0f));
+                         clamp_f(fill_factor, 0.0f, 1.0f));
         }
         /* If no stroke, cancel loop. */
         if (mmd->mode != GPPAINT_MODE_BOTH) {
@@ -207,11 +220,13 @@ static void deformStroke(GpencilModifierData *md,
 
     /* Verify vertex group. */
     if (mmd->mode != GPPAINT_MODE_FILL) {
-      float weight = get_modifier_point_weight(
-          dvert, (mmd->flag & GP_TINT_INVERT_VGROUP) != 0, def_nr);
+      float weight = get_modifier_point_weight(dvert, is_inverted, def_nr);
       if (weight < 0.0f) {
         continue;
       }
+
+      float factor = mmd->factor;
+
       /* Custom curve to modulate value. */
       if (use_curve) {
         float value = (float)i / (gps->totpoints - 1);
@@ -222,6 +237,12 @@ static void deformStroke(GpencilModifierData *md,
       if ((gp_style != NULL) && (pt->vert_color[3] == 0.0f) && (gp_style->stroke_rgba[3] > 0.0f)) {
         copy_v4_v4(pt->vert_color, gp_style->stroke_rgba);
         pt->vert_color[3] = 1.0f;
+      }
+
+      /* Apply weight directly. */
+      if (mmd->flag & GP_TINT_WEIGHT_FACTOR) {
+        factor = ((mmd->flag & GP_TINT_INVERT_VGROUP) ? 1.0f - weight : weight);
+        weight = 1.0f;
       }
 
       if (is_gradient) {
@@ -237,11 +258,11 @@ static void deformStroke(GpencilModifierData *md,
         interp_v3_v3v3(pt->vert_color,
                        pt->vert_color,
                        coba_res,
-                       clamp_f(mmd->factor, 0.0f, 1.0f) * weight * coba_res[3]);
+                       clamp_f(factor, 0.0f, 1.0f) * weight * coba_res[3]);
       }
       else {
         interp_v3_v3v3(
-            pt->vert_color, pt->vert_color, mmd->rgb, clamp_f(mmd->factor * weight, 0.0, 1.0f));
+            pt->vert_color, pt->vert_color, mmd->rgb, clamp_f(factor * weight, 0.0, 1.0f));
       }
     }
   }
@@ -338,7 +359,15 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, ptr, "vertex_mode", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "factor", 0, NULL, ICON_NONE);
+
+  const bool is_weighted = !RNA_boolean_get(ptr, "use_weight_factor");
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayoutSetActive(row, is_weighted);
+  uiItemR(row, ptr, "factor", 0, NULL, ICON_NONE);
+  uiLayout *sub = uiLayoutRow(row, true);
+  uiLayoutSetActive(sub, true);
+  uiItemR(row, ptr, "use_weight_factor", 0, "", ICON_MOD_VERTEX_WEIGHT);
+
   uiItemR(layout, ptr, "tint_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   if (tint_type == GP_TINT_UNIFORM) {

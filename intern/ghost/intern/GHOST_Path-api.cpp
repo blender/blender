@@ -38,25 +38,25 @@ GHOST_TSuccess GHOST_DisposeSystemPaths(void)
   return GHOST_ISystemPaths::dispose();
 }
 
-const GHOST_TUns8 *GHOST_getSystemDir(int version, const char *versionstr)
+const char *GHOST_getSystemDir(int version, const char *versionstr)
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
   return systemPaths ? systemPaths->getSystemDir(version, versionstr) : NULL;
 }
 
-const GHOST_TUns8 *GHOST_getUserDir(int version, const char *versionstr)
+const char *GHOST_getUserDir(int version, const char *versionstr)
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
   return systemPaths ? systemPaths->getUserDir(version, versionstr) : NULL; /* shouldn't be NULL */
 }
 
-const GHOST_TUns8 *GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type)
+const char *GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type)
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
   return systemPaths ? systemPaths->getUserSpecialDir(type) : NULL; /* shouldn't be NULL */
 }
 
-const GHOST_TUns8 *GHOST_getBinaryDir()
+const char *GHOST_getBinaryDir()
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
   return systemPaths ? systemPaths->getBinaryDir() : NULL; /* shouldn't be NULL */

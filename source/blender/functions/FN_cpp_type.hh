@@ -545,6 +545,13 @@ class CPPType : NonCopyable, NonMovable {
     m_.print(value, ss);
   }
 
+  std::string to_string(const void *value) const
+  {
+    std::stringstream ss;
+    this->print(value, ss);
+    return ss.str();
+  }
+
   void print_or_default(const void *value, std::stringstream &ss, StringRef default_value) const
   {
     if (this->is_printable()) {

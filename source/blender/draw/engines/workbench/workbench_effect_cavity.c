@@ -31,7 +31,7 @@
 
 #include "BLI_rand.h"
 
-#include "../eevee/eevee_lut.h" /* TODO find somewhere to share blue noise Table */
+#include "../eevee/eevee_lut.h" /* TODO: find somewhere to share blue noise Table. */
 
 #include "workbench_engine.h"
 #include "workbench_private.h"

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedRowOperation.h"
 
 namespace blender::compositor {
 
@@ -26,7 +26,7 @@ namespace blender::compositor {
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-class ColorBalanceASCCDLOperation : public NodeOperation {
+class ColorBalanceASCCDLOperation : public MultiThreadedRowOperation {
  protected:
   /**
    * Prefetched reference to the inputProgram
@@ -71,6 +71,8 @@ class ColorBalanceASCCDLOperation : public NodeOperation {
   {
     copy_v3_v3(this->m_slope, slope);
   }
+
+  void update_memory_buffer_row(PixelCursor &p) override;
 };
 
 }  // namespace blender::compositor

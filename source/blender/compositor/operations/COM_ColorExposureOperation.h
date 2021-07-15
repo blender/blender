@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedRowOperation.h"
 
 namespace blender::compositor {
 
-class ExposureOperation : public NodeOperation {
+class ExposureOperation : public MultiThreadedRowOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -47,6 +47,8 @@ class ExposureOperation : public NodeOperation {
    * Deinitialize the execution
    */
   void deinitExecution() override;
+
+  void update_memory_buffer_row(PixelCursor &p) override;
 };
 
 }  // namespace blender::compositor

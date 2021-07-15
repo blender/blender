@@ -93,7 +93,7 @@ set(SRC
   intern/boids.c
   intern/bpath.c
   intern/brush.c
-  intern/bvhutils.c
+  intern/bvhutils.cc
   intern/cachefile.c
   intern/callbacks.c
   intern/camera.c
@@ -184,12 +184,13 @@ set(SRC
   intern/mesh.c
   intern/mesh_boolean_convert.cc
   intern/mesh_convert.c
-  intern/mesh_evaluate.c
+  intern/mesh_evaluate.cc
   intern/mesh_fair.cc
   intern/mesh_iterators.c
   intern/mesh_mapping.c
   intern/mesh_merge.c
   intern/mesh_mirror.c
+  intern/mesh_normals.cc
   intern/mesh_remap.c
   intern/mesh_remesh_voxel.c
   intern/mesh_runtime.c
@@ -214,7 +215,6 @@ set(SRC
   intern/multires_versioning.c
   intern/nla.c
   intern/node.cc
-  intern/node_ui_storage.cc
   intern/object.c
   intern/object_deform.c
   intern/object_dupli.cc
@@ -330,7 +330,6 @@ set(SRC
   BKE_customdata_file.h
   BKE_data_transfer.h
   BKE_deform.h
-  BKE_spline.hh
   BKE_displist.h
   BKE_displist_tangent.h
   BKE_duplilist.h
@@ -398,7 +397,6 @@ set(SRC
   BKE_multires.h
   BKE_nla.h
   BKE_node.h
-  BKE_node_ui_storage.hh
   BKE_object.h
   BKE_object_deform.h
   BKE_object_facemap.h
@@ -422,6 +420,7 @@ set(SRC
   BKE_softbody.h
   BKE_sound.h
   BKE_speaker.h
+  BKE_spline.hh
   BKE_studiolight.h
   BKE_subdiv.h
   BKE_subdiv_ccg.h
@@ -766,6 +765,7 @@ add_dependencies(bf_blenkernel bf_dna)
 
 if(WITH_GTESTS)
   set(TEST_SRC
+    intern/action_test.cc
     intern/armature_test.cc
     intern/cryptomatte_test.cc
     intern/fcurve_test.cc

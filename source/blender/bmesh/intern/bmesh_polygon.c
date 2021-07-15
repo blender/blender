@@ -1296,7 +1296,7 @@ void BM_face_triangulate(BMesh *bm,
               r_edges_new[ne_i++] = e;
             }
           }
-          /* note, never disable tag's */
+          /* NOTE: never disable tag's. */
         } while ((l_iter = l_iter->next) != l_first);
       }
 

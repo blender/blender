@@ -108,15 +108,14 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          StringRef result_name)
 {
   /* Use the domain of the result attribute if it already exists. */
-  ReadAttributeLookup result_attribute = component.attribute_try_get_for_read(result_name);
-  if (result_attribute) {
-    return result_attribute.domain;
+  std::optional<AttributeMetaData> result_info = component.attribute_get_meta_data(result_name);
+  if (result_info) {
+    return result_info->domain;
   }
-
   /* Otherwise use the input attribute's domain if it exists. */
-  ReadAttributeLookup input_attribute = component.attribute_try_get_for_read(input_name);
-  if (input_attribute) {
-    return input_attribute.domain;
+  std::optional<AttributeMetaData> input_info = component.attribute_get_meta_data(input_name);
+  if (input_info) {
+    return input_info->domain;
   }
 
   return ATTR_DOMAIN_POINT;

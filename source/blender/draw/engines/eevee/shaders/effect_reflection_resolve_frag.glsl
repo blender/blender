@@ -40,9 +40,9 @@ vec4 ssr_get_scene_color_and_mask(vec3 hit_vP, int planar_index, float mip)
   }
   else {
     /* Find hit position in previous frame. */
-    /* TODO Combine matrices. */
+    /* TODO: Combine matrices. */
     vec3 hit_P = transform_point(ViewMatrixInverse, hit_vP);
-    /* TODO real reprojection with motion vectors, etc... */
+    /* TODO: real reprojection with motion vectors, etc... */
     uv = project_point(pastViewProjectionMatrix, hit_P).xy * 0.5 + 0.5;
   }
 

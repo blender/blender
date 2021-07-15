@@ -1426,7 +1426,7 @@ static void armature_select_more_less(Object *ob, bool more)
   bArmature *arm = (bArmature *)ob->data;
   EditBone *ebone;
 
-  /* XXX, eventually we shouldn't need this - campbell */
+  /* XXX(campbell): eventually we shouldn't need this. */
   ED_armature_edit_sync_selection(arm->edbo);
 
   /* count bones & store selection state */

@@ -104,15 +104,6 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile,
   return sel;
 }
 
-static void file_deselect_all(SpaceFile *sfile, uint flag)
-{
-  FileSelection sel;
-  sel.first = 0;
-  sel.last = filelist_files_ensure(sfile->files) - 1;
-
-  filelist_entries_select_index_range_set(sfile->files, &sel, FILE_SEL_REMOVE, flag, CHECK_ALL);
-}
-
 typedef enum FileSelect {
   FILE_SELECT_NOTHING = 0,
   FILE_SELECT_DIR = 1,
@@ -239,7 +230,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 }
 
 /**
- * \warning: loops over all files so better use cautiously
+ * \warning Loops over all files so better use cautiously.
  */
 static bool file_is_any_selected(struct FileList *files)
 {
@@ -444,7 +435,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
     if ((sel.first != params->sel_first) || (sel.last != params->sel_last)) {
       int idx;
 
-      file_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
+      file_select_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
       filelist_entries_select_index_range_set(
           sfile->files, &sel, FILE_SEL_ADD, FILE_SEL_HIGHLIGHTED, CHECK_ALL);
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
@@ -472,7 +463,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
     params->highlight_file = -1;
     params->sel_first = params->sel_last = -1;
     fileselect_file_set(sfile, params->active_file);
-    file_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
+    file_select_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
   }
 
@@ -491,7 +482,7 @@ static int file_box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    file_deselect_all(sfile, FILE_SEL_SELECTED);
+    file_select_deselect_all(sfile, FILE_SEL_SELECTED);
   }
 
   ED_fileselect_layout_isect_rect(sfile->layout, &region->v2d, &rect, &rect);
@@ -573,7 +564,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if ((idx >= 0) && (idx < numfiles)) {
       /* single select, deselect all selected first */
       if (!extend) {
-        file_deselect_all(sfile, FILE_SEL_SELECTED);
+        file_select_deselect_all(sfile, FILE_SEL_SELECTED);
       }
     }
   }
@@ -588,7 +579,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (ret == FILE_SELECT_NOTHING) {
     if (deselect_all) {
-      file_deselect_all(sfile, FILE_SEL_SELECTED);
+      file_select_deselect_all(sfile, FILE_SEL_SELECTED);
     }
   }
   else if (ret == FILE_SELECT_DIR) {
@@ -721,7 +712,7 @@ static bool file_walk_select_selection_set(wmWindow *win,
   }
   else {
     /* deselect all first */
-    file_deselect_all(sfile, FILE_SEL_SELECTED);
+    file_select_deselect_all(sfile, FILE_SEL_SELECTED);
 
     /* highlight file under mouse pos */
     params->highlight_file = -1;
@@ -1023,7 +1014,7 @@ void FILE_OT_view_selected(wmOperatorType *ot)
 
 /* Note we could get rid of this one, but it's used by some addon so...
  * Does not hurt keeping it around for now. */
-/* TODO disallow bookmark editing in assets mode? */
+/* TODO: disallow bookmark editing in assets mode? */
 static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1882,7 +1873,7 @@ static int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
   SpaceFile *sfile = CTX_wm_space_file(C);
   struct FSMenu *fsmenu = ED_fsmenu_get();
 
-  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+  ED_fileselect_clear(wm, sfile);
 
   /* refresh system directory menu */
   fsmenu_refresh_system_category(fsmenu);
@@ -2059,13 +2050,15 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
     }
   }
 
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = CTX_wm_window(C);
+
   /* if we are not editing, we are done */
   if (edit_idx == -1) {
     /* Do not invalidate timer if filerename is still pending,
      * we might still be building the filelist and yet have to find edited entry. */
     if (params->rename_flag == 0) {
-      WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
-      sfile->smoothscroll_timer = NULL;
+      file_params_smoothscroll_timer_clear(wm, win, sfile);
     }
     return OPERATOR_PASS_THROUGH;
   }
@@ -2073,8 +2066,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
   /* we need the correct area for scrolling */
   region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   if (!region || region->regiontype != RGN_TYPE_WINDOW) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
-    sfile->smoothscroll_timer = NULL;
+    file_params_smoothscroll_timer_clear(wm, win, sfile);
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -2093,7 +2085,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
       sfile->layout, (int)region->v2d.cur.xmin, (int)-region->v2d.cur.ymax);
   const int last_visible_item = first_visible_item + numfiles_layout + 1;
 
-  /* Note: the special case for vertical layout is because filename is at the bottom of items then,
+  /* NOTE: the special case for vertical layout is because filename is at the bottom of items then,
    * so we artificially move current row back one step, to ensure we show bottom of
    * active item rather than its top (important in case visible height is low). */
   const int middle_offset = max_ii(
@@ -2131,13 +2123,11 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), const w
                             (max_middle_offset - middle_offset < items_block_size));
 
   if (is_ready && (is_centered || is_full_start || is_full_end)) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
-    sfile->smoothscroll_timer = NULL;
+    file_params_smoothscroll_timer_clear(wm, win, sfile);
     /* Post-scroll (after rename has been validated by user) is done,
      * rename process is totally finished, cleanup. */
     if ((params->rename_flag & FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE) != 0) {
-      params->renamefile[0] = '\0';
-      params->rename_flag = 0;
+      file_params_renamefile_clear(params);
     }
     return OPERATOR_FINISHED;
   }
@@ -2346,21 +2336,20 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  eFileSel_Params_RenameFlag rename_flag = params->rename_flag;
+
   /* If we don't enter the directory directly, remember file to jump into editing. */
   if (do_diropen == false) {
+    BLI_assert(params->rename_id == NULL || !"File rename handling should immediately clear rename_id when done, because otherwise it will keep taking precedence over renamefile.");
     BLI_strncpy(params->renamefile, name, FILE_MAXFILE);
-    params->rename_flag = FILE_PARAMS_RENAME_PENDING;
+    rename_flag = FILE_PARAMS_RENAME_PENDING;
   }
 
-  /* Set timer to smoothly view newly generated file. */
-  if (sfile->smoothscroll_timer != NULL) {
-    WM_event_remove_timer(wm, CTX_wm_window(C), sfile->smoothscroll_timer);
-  }
-  sfile->smoothscroll_timer = WM_event_add_timer(wm, CTX_wm_window(C), TIMER1, 1.0 / 1000.0);
-  sfile->scroll_offset = 0;
+  file_params_invoke_rename_postscroll(wm, CTX_wm_window(C), sfile);
+  params->rename_flag = rename_flag;
 
   /* reload dir to make sure we're seeing what's in the directory */
-  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+  ED_fileselect_clear(wm, sfile);
 
   if (do_diropen) {
     BLI_strncpy(params->dir, path, sizeof(params->dir));
@@ -2400,7 +2389,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 /** \name Refresh File List Operator
  * \{ */
 
-/* TODO This should go to BLI_path_utils. */
+/* TODO: This should go to BLI_path_utils. */
 static void file_expand_directory(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
@@ -2441,7 +2430,7 @@ static void file_expand_directory(bContext *C)
   }
 }
 
-/* TODO check we still need this, it's annoying to have OS-specific code here... :/ */
+/* TODO: check we still need this, it's annoying to have OS-specific code here... :/. */
 #if defined(WIN32)
 static bool can_create_dir(const char *dir)
 {
@@ -2611,7 +2600,7 @@ static int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
 
   if (params) {
     params->flag ^= FILE_HIDE_DOT;
-    ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+    ED_fileselect_clear(wm, sfile);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
   }
 
@@ -2804,6 +2793,11 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
+static bool file_rename_poll(bContext *C)
+{
+  return ED_operator_file_active(C) && !ED_fileselect_is_asset_browser(CTX_wm_space_file(C));
+}
+
 void FILE_OT_rename(struct wmOperatorType *ot)
 {
   /* identifiers */
@@ -2814,7 +2808,7 @@ void FILE_OT_rename(struct wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = file_rename_invoke;
   ot->exec = file_rename_exec;
-  ot->poll = ED_operator_file_active;
+  ot->poll = file_rename_poll;
 }
 
 /** \} */
@@ -2908,7 +2902,7 @@ static int file_delete_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+  ED_fileselect_clear(wm, sfile);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
   return OPERATOR_FINISHED;

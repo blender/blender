@@ -43,15 +43,20 @@ AUD_NAMESPACE_BEGIN
 class AUD_PLUGIN_API WASAPIDevice : public ThreadedDevice
 {
 private:
+	int m_buffersize;
 	IMMDeviceEnumerator* m_imm_device_enumerator;
 	IMMDevice* m_imm_device;
 	IAudioClient* m_audio_client;
 	WAVEFORMATEXTENSIBLE m_wave_format_extensible;
 
+	AUD_LOCAL HRESULT setupRenderClient(IAudioRenderClient*& render_client, UINT32& buffer_size);
+
 	/**
 	 * Streaming thread main function.
 	 */
 	AUD_LOCAL void runMixingThread();
+
+	AUD_LOCAL bool setupDevice(DeviceSpecs& specs);
 
 	// delete copy constructor and operator=
 	WASAPIDevice(const WASAPIDevice&) = delete;

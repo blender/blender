@@ -1547,7 +1547,7 @@ static PySequenceMethods BPy_IDGroup_Seq = {
     NULL,                         /* binaryfunc sq_concat */
     NULL,                         /* ssizeargfunc sq_repeat */
     NULL,
-    /* ssizeargfunc sq_item */ /* TODO - setting this will allow PySequence_Check to return True */
+    /* ssizeargfunc sq_item */ /* TODO: setting this will allow PySequence_Check to return True. */
     NULL,                      /* intintargfunc ***was_sq_slice*** */
     NULL,                      /* intobjargproc sq_ass_item */
     NULL,                      /* ssizeobjargproc ***was_sq_ass_slice*** */

@@ -154,7 +154,7 @@ static int search_face_cmp(const void *v1, const void *v2)
   return 0;
 }
 
-/* TODO check there is not some standard define of this somewhere! */
+/* TODO: check there is not some standard define of this somewhere! */
 static int int_cmp(const void *v1, const void *v2)
 {
   return *(int *)v1 > *(int *)v2 ? 1 : *(int *)v1 < *(int *)v2 ? -1 : 0;
@@ -819,7 +819,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       MDeformWeight *dw;
 
       for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
-        /* note, greater than max defgroups is accounted for in our code, but not < 0 */
+        /* NOTE: greater than max defgroups is accounted for in our code, but not < 0. */
         if (!isfinite(dw->weight)) {
           PRINT_ERR("\tVertex deform %u, group %u has weight: %f", i, dw->def_nr, dw->weight);
           if (do_fixes) {
@@ -1287,7 +1287,7 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
   }
 
   /* And now, update polys' start loop index. */
-  /* Note: At this point, there should never be any poly using a striped loop! */
+  /* NOTE: At this point, there should never be any poly using a striped loop! */
   for (a = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
     p->loopstart = new_idx[p->loopstart];
   }

@@ -68,6 +68,9 @@
  * just as the undo stack would.
  * So leaving this as an interface for further work */
 
+/**
+ * Save a copy of the #BMesh for restoring later.
+ */
 BMBackup EDBM_redo_state_store(BMEditMesh *em)
 {
   BMBackup backup;
@@ -75,41 +78,40 @@ BMBackup EDBM_redo_state_store(BMEditMesh *em)
   return backup;
 }
 
-void EDBM_redo_state_restore(BMBackup backup, BMEditMesh *em, int recalctess)
+void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
 {
   BMesh *tmpbm;
-  if (!em || !backup.bmcopy) {
-    return;
-  }
 
   BM_mesh_data_free(em->bm);
-  tmpbm = BM_mesh_copy(backup.bmcopy);
+  tmpbm = BM_mesh_copy(backup->bmcopy);
   *em->bm = *tmpbm;
   MEM_freeN(tmpbm);
   tmpbm = NULL;
 
-  if (recalctess) {
+  if (recalc_looptri) {
     BKE_editmesh_looptri_calc(em);
   }
 }
 
-void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
+/**
+ * Delete the backup, flushing it to an edit-mesh.
+ */
+void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
 {
-  if (em && backup->bmcopy) {
-    BM_mesh_data_free(em->bm);
-    *em->bm = *backup->bmcopy;
-  }
-  else if (backup->bmcopy) {
-    BM_mesh_data_free(backup->bmcopy);
-  }
-
-  if (backup->bmcopy) {
-    MEM_freeN(backup->bmcopy);
-  }
+  BM_mesh_data_free(em->bm);
+  *em->bm = *backup->bmcopy;
+  MEM_freeN(backup->bmcopy);
   backup->bmcopy = NULL;
-
-  if (recalctess && em) {
+  if (recalc_looptri) {
     BKE_editmesh_looptri_calc(em);
+  }
+}
+
+void EDBM_redo_state_free(BMBackup *backup)
+{
+  if (backup->bmcopy) {
+    BM_mesh_data_free(backup->bmcopy);
+    MEM_freeN(backup->bmcopy);
   }
 }
 
@@ -132,75 +134,76 @@ bool EDBM_op_init(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *
     return false;
   }
 
-  if (!em->emcopy) {
-    em->emcopy = BKE_editmesh_copy(em);
-  }
-  em->emcopyusers++;
-
   va_end(list);
 
   return true;
 }
 
-/* returns 0 on error, 1 on success.  executes and finishes a bmesh operator */
+/**
+ * The return value:
+ * - False on error (the mesh must not be changed).
+ * - True on success, executes and finishes a #BMesh operator.
+ */
 bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool do_report)
 {
   const char *errmsg;
 
+#ifndef NDEBUG
+  struct {
+    int verts_len, edges_len, loops_len, faces_len;
+  } em_state_prev = {
+      .verts_len = em->bm->totvert,
+      .edges_len = em->bm->totedge,
+      .loops_len = em->bm->totloop,
+      .faces_len = em->bm->totface,
+  };
+#endif
+
   BMO_op_finish(em->bm, bmop);
 
-  if (BMO_error_get(em->bm, &errmsg, NULL)) {
-    BMEditMesh *emcopy = em->emcopy;
+  bool changed = false;
+  bool changed_was_set = false;
 
-    if (do_report) {
-      BKE_report(op->reports, RPT_ERROR, errmsg);
-    }
-
-    EDBM_mesh_free(em);
-    *em = *emcopy;
-
-    MEM_freeN(emcopy);
-    em->emcopyusers = 0;
-    em->emcopy = NULL;
-
-    /**
-     * Note, we could pass in the mesh, however this is an exceptional case, allow a slow lookup.
-     *
-     * This is needed because the COW mesh makes a full copy of the #BMEditMesh
-     * instead of sharing the pointer, tagging since this has been freed above,
-     * the #BMEditMesh.emcopy needs to be flushed to the COW edit-mesh, see T55457.
-     */
-    {
-      Main *bmain = G_MAIN;
-      for (Mesh *mesh = bmain->meshes.first; mesh; mesh = mesh->id.next) {
-        if (mesh->edit_mesh == em) {
-          DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
-          break;
-        }
+  eBMOpErrorLevel level;
+  while (BMO_error_pop(em->bm, &errmsg, NULL, &level)) {
+    ReportType type = RPT_INFO;
+    switch (level) {
+      case BMO_ERROR_CANCEL: {
+        changed_was_set = true;
+        break;
+      }
+      case BMO_ERROR_WARN: {
+        type = RPT_WARNING;
+        changed_was_set = true;
+        changed = true;
+        break;
+      }
+      case BMO_ERROR_FATAL: {
+        type = RPT_ERROR;
+        changed_was_set = true;
+        changed = true;
+        break;
       }
     }
 
-    /* when copying, tessellation isn't to for faster copying,
-     * but means we need to re-tessellate here */
-    if (em->looptris == NULL) {
-      BKE_editmesh_looptri_calc(em);
+    if (do_report) {
+      BKE_report(op->reports, type, errmsg);
     }
-
-    return false;
+  }
+  if (changed_was_set == false) {
+    changed = true;
   }
 
-  em->emcopyusers--;
-  if (em->emcopyusers < 0) {
-    printf("warning: em->emcopyusers was less than zero.\n");
+#ifndef NDEBUG
+  if (changed == false) {
+    BLI_assert((em_state_prev.verts_len == em->bm->totvert) &&
+               (em_state_prev.edges_len == em->bm->totedge) &&
+               (em_state_prev.loops_len == em->bm->totloop) &&
+               (em_state_prev.faces_len == em->bm->totface));
   }
+#endif
 
-  if (em->emcopyusers <= 0) {
-    BKE_editmesh_free(em->emcopy);
-    MEM_freeN(em->emcopy);
-    em->emcopy = NULL;
-  }
-
-  return true;
+  return changed;
 }
 
 bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
@@ -216,11 +219,6 @@ bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
     va_end(list);
     return false;
   }
-
-  if (!em->emcopy) {
-    em->emcopy = BKE_editmesh_copy(em);
-  }
-  em->emcopyusers++;
 
   BMO_op_exec(bm, &bmop);
 
@@ -248,11 +246,6 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em,
     va_end(list);
     return false;
   }
-
-  if (!em->emcopy) {
-    em->emcopy = BKE_editmesh_copy(em);
-  }
-  em->emcopyusers++;
 
   BMO_op_exec(bm, &bmop);
 
@@ -284,11 +277,6 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
     return false;
   }
 
-  if (!em->emcopy) {
-    em->emcopy = BKE_editmesh_copy(em);
-  }
-  em->emcopyusers++;
-
   BMO_op_exec(bm, &bmop);
 
   va_end(list);
@@ -317,17 +305,13 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 
   if (me->edit_mesh) {
     /* this happens when switching shape keys */
-    EDBM_mesh_free(me->edit_mesh);
+    EDBM_mesh_free_data(me->edit_mesh);
     MEM_freeN(me->edit_mesh);
   }
 
-  /* currently executing operators re-tessellates, so we can avoid doing here
-   * but at some point it may need to be added back. */
-#if 0
-  me->edit_mesh = BKE_editmesh_create(bm, true);
-#else
-  me->edit_mesh = BKE_editmesh_create(bm, false);
-#endif
+  /* Executing operators re-tessellates,
+   * so we can avoid doing here but at some point it may need to be added back. */
+  me->edit_mesh = BKE_editmesh_create(bm);
 
   me->edit_mesh->selectmode = me->edit_mesh->bm->selectmode = select_mode;
   me->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
@@ -338,7 +322,8 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 
 /**
  * \warning This can invalidate the #Mesh runtime cache of other objects (for linked duplicates).
- * Most callers should run #DEG_id_tag_update on \a ob->data, see: T46738, T46913
+ * Most callers should run #DEG_id_tag_update on `ob->data`, see: T46738, T46913.
+ * This ensures #BKE_object_free_derived_caches runs on all objects that use this mesh.
  */
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
@@ -358,25 +343,6 @@ void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
                        .calc_object_remap = true,
                        .update_shapekey_indices = !free_data,
                    }));
-
-  /* Free derived mesh. usually this would happen through depsgraph but there
-   * are exceptions like file save that will not cause this, and we want to
-   * avoid ending up with an invalid derived mesh then.
-   *
-   * Do it for all objects which shares the same mesh datablock, since their
-   * derived meshes might also be referencing data which was just freed,
-   *
-   * Annoying enough, but currently seems most efficient way to avoid access
-   * of freed data on scene update, especially in cases when there are dependency
-   * cycles.
-   */
-#if 0
-  for (Object *other_object = bmain->objects.first; other_object != NULL; other_object = other_object->id.next) {
-    if (other_object->data == ob->data) {
-      BKE_object_free_derived_caches(other_object);
-    }
-  }
-#endif
 }
 
 void EDBM_mesh_clear(BMEditMesh *em)
@@ -384,8 +350,8 @@ void EDBM_mesh_clear(BMEditMesh *em)
   /* clear bmesh */
   BM_mesh_clear(em->bm);
 
-  /* free derived meshes */
-  BKE_editmesh_free_derivedmesh(em);
+  /* Free evaluated meshes & cache. */
+  BKE_editmesh_free_derived_caches(em);
 
   /* free tessellation data */
   em->tottri = 0;
@@ -401,9 +367,9 @@ void EDBM_mesh_load(Main *bmain, Object *ob)
 }
 
 /**
- * Should only be called on the active editmesh, otherwise call #BKE_editmesh_free
+ * Should only be called on the active edit-mesh, otherwise call #BKE_editmesh_free_data.
  */
-void EDBM_mesh_free(BMEditMesh *em)
+void EDBM_mesh_free_data(BMEditMesh *em)
 {
   /* These tables aren't used yet, so it's not strictly necessary
    * to 'end' them but if someone tries to start using them,
@@ -411,7 +377,7 @@ void EDBM_mesh_free(BMEditMesh *em)
   ED_mesh_mirror_spatial_table_end(NULL);
   ED_mesh_mirror_topo_table_end(NULL);
 
-  BKE_editmesh_free(em);
+  BKE_editmesh_free_data(em);
 }
 
 /** \} */
@@ -1472,7 +1438,7 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
   }
 
   if (params->is_destructive) {
-    /* TODO. we may be able to remove this now! - Campbell */
+    /* TODO(campbell): we may be able to remove this now! */
     // BM_mesh_elem_table_free(em->bm, BM_ALL_NOLOOP);
   }
   else {
@@ -1483,8 +1449,8 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
     BM_lnorspace_invalidate(em->bm, false);
     em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
   }
-  /* don't keep stale derivedMesh data around, see: T38872. */
-  BKE_editmesh_free_derivedmesh(em);
+  /* Don't keep stale evaluated mesh data around, see: T38872. */
+  BKE_editmesh_free_derived_caches(em);
 
 #ifdef DEBUG
   {

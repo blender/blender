@@ -23,7 +23,7 @@
 
 #include "GHOST_Rect.h"
 
-void GHOST_Rect::inset(GHOST_TInt32 i)
+void GHOST_Rect::inset(int32_t i)
 {
   if (i > 0) {
     // Grow the rectangle
@@ -34,7 +34,7 @@ void GHOST_Rect::inset(GHOST_TInt32 i)
   }
   else if (i < 0) {
     // Shrink the rectangle, check for insets larger than half the size
-    GHOST_TInt32 i2 = i * 2;
+    int32_t i2 = i * 2;
     if (getWidth() > i2) {
       m_l += i;
       m_r -= i;
@@ -82,9 +82,9 @@ GHOST_TVisibility GHOST_Rect::getVisibility(GHOST_Rect &r) const
   return v;
 }
 
-void GHOST_Rect::setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy)
+void GHOST_Rect::setCenter(int32_t cx, int32_t cy)
 {
-  GHOST_TInt32 offset = cx - (m_l + (m_r - m_l) / 2);
+  int32_t offset = cx - (m_l + (m_r - m_l) / 2);
   m_l += offset;
   m_r += offset;
   offset = cy - (m_t + (m_b - m_t) / 2);
@@ -92,7 +92,7 @@ void GHOST_Rect::setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy)
   m_b += offset;
 }
 
-void GHOST_Rect::setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy, GHOST_TInt32 w, GHOST_TInt32 h)
+void GHOST_Rect::setCenter(int32_t cx, int32_t cy, int32_t w, int32_t h)
 {
   long w_2, h_2;
 

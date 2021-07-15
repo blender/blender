@@ -373,7 +373,7 @@ DrawEngineType draw_engine_select_type = {
     NULL,
 };
 
-/* Note: currently unused, we may want to register so we can see this when debugging the view. */
+/* NOTE: currently unused, we may want to register so we can see this when debugging the view. */
 
 RenderEngineType DRW_engine_viewport_select_type = {
     NULL,

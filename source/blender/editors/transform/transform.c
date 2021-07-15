@@ -536,7 +536,7 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
     }
 
-    /* XXX temp, first hack to get auto-render in compositor work (ton) */
+    /* XXX(ton): temp, first hack to get auto-render in compositor work. */
     WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM_DONE, CTX_data_scene(C));
   }
 
@@ -1937,7 +1937,7 @@ int transformEnd(bContext *C, TransInfo *t)
   return exit_code;
 }
 
-/* TODO, move to: transform_query.c */
+/* TODO: move to: `transform_query.c`. */
 bool checkUseAxisMatrix(TransInfo *t)
 {
   /* currently only checks for editmode */

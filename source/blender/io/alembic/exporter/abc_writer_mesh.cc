@@ -162,7 +162,7 @@ ModifierData *ABCGenericMeshWriter::get_liquid_sim_modifier(Scene *scene, Object
 bool ABCGenericMeshWriter::is_supported(const HierarchyContext *context) const
 {
   if (args_.export_params->visible_objects_only) {
-    return context->is_object_visible(DAG_EVAL_RENDER);
+    return context->is_object_visible(args_.export_params->evaluation_mode);
   }
   return true;
 }

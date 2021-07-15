@@ -158,7 +158,7 @@ typedef void (*BMIter__begin_cb)(void *);
 typedef void *(*BMIter__step_cb)(void *);
 
 /* Iterator Structure */
-/* note: some of these vars are not used,
+/* NOTE: some of these vars are not used,
  * so they have been commented to save stack space since this struct is used all over */
 typedef struct BMIter {
   /* keep union first */
@@ -180,7 +180,7 @@ typedef struct BMIter {
   BMIter__begin_cb begin;
   BMIter__step_cb step;
 
-  int count; /* note, only some iterators set this, don't rely on it */
+  int count; /* NOTE: only some iterators set this, don't rely on it. */
   char itype;
 } BMIter;
 

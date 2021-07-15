@@ -70,74 +70,69 @@ TreeDisplayViewLayer::TreeDisplayViewLayer(SpaceOutliner &space_outliner)
 ListBase TreeDisplayViewLayer::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
-
   Scene *scene = source_data.scene;
   show_objects_ = !(space_outliner_.filter & SO_FILTER_NO_OBJECT);
 
-  const bool show_children = (space_outliner_.filter & SO_FILTER_NO_CHILDREN) == 0;
-
   for (auto *view_layer : ListBaseWrapper<ViewLayer>(scene->view_layers)) {
+    view_layer_ = view_layer;
+
     if (space_outliner_.filter & SO_FILTER_NO_VIEW_LAYERS) {
       if (view_layer != source_data.view_layer) {
         continue;
       }
-    }
 
-    TreeElement &te_view_layer = *outliner_add_element(
-        &space_outliner_, &tree, scene, nullptr, TSE_R_LAYER, 0);
-    TREESTORE(&te_view_layer)->flag &= ~TSE_CLOSED;
-    te_view_layer.name = view_layer->name;
-    te_view_layer.directdata = view_layer;
-    view_layer_ = view_layer;
-
-    if (space_outliner_.filter & SO_FILTER_NO_COLLECTION) {
-      /* Show objects in the view layer. */
-      for (Base *base : List<Base>(view_layer_->object_bases)) {
-        TreeElement *te_object = outliner_add_element(&space_outliner_,
-                                                      &te_view_layer.subtree,
-                                                      base->object,
-                                                      &te_view_layer,
-                                                      TSE_SOME_ID,
-                                                      0);
-        te_object->directdata = base;
-      }
-
-      if (show_children) {
-        outliner_make_object_parent_hierarchy(&tree);
-      }
+      add_view_layer(*scene, tree, (TreeElement *)nullptr);
     }
     else {
-      /* Show collections in the view layer. */
-      TreeElement &ten = *outliner_add_element(&space_outliner_,
-                                               &te_view_layer.subtree,
-                                               source_data.scene,
-                                               &te_view_layer,
-                                               TSE_VIEW_COLLECTION_BASE,
-                                               0);
-      ten.name = IFACE_("Scene Collection");
-      TREESTORE(&ten)->flag &= ~TSE_CLOSED;
+      TreeElement &te_view_layer = *outliner_add_element(
+          &space_outliner_, &tree, scene, nullptr, TSE_R_LAYER, 0);
+      TREESTORE(&te_view_layer)->flag &= ~TSE_CLOSED;
+      te_view_layer.name = view_layer->name;
+      te_view_layer.directdata = view_layer;
 
-      add_view_layer(ten.subtree, ten);
-      if (show_children) {
-        add_layer_collection_objects_children(ten);
-      }
+      add_view_layer(*scene, te_view_layer.subtree, &te_view_layer);
     }
   }
 
   return tree;
 }
 
-void TreeDisplayViewLayer::add_view_layer(ListBase &tree, TreeElement &parent)
+void TreeDisplayViewLayer::add_view_layer(Scene &scene, ListBase &tree, TreeElement *parent)
 {
-  /* First layer collection is for master collection, don't show it. */
-  LayerCollection *lc = static_cast<LayerCollection *>(view_layer_->layer_collections.first);
-  if (lc == nullptr) {
-    return;
-  }
+  const bool show_children = (space_outliner_.filter & SO_FILTER_NO_CHILDREN) == 0;
 
-  add_layer_collections_recursive(tree, lc->layer_collections, parent);
-  if (show_objects_) {
-    add_layer_collection_objects(tree, *lc, parent);
+  if (space_outliner_.filter & SO_FILTER_NO_COLLECTION) {
+    /* Show objects in the view layer. */
+    for (Base *base : List<Base>(view_layer_->object_bases)) {
+      TreeElement *te_object = outliner_add_element(
+          &space_outliner_, &tree, base->object, parent, TSE_SOME_ID, 0);
+      te_object->directdata = base;
+    }
+
+    if (show_children) {
+      outliner_make_object_parent_hierarchy(&tree);
+    }
+  }
+  else {
+    /* Show collections in the view layer. */
+    TreeElement &ten = *outliner_add_element(
+        &space_outliner_, &tree, &scene, parent, TSE_VIEW_COLLECTION_BASE, 0);
+    ten.name = IFACE_("Scene Collection");
+    TREESTORE(&ten)->flag &= ~TSE_CLOSED;
+
+    /* First layer collection is for master collection, don't show it. */
+    LayerCollection *lc = static_cast<LayerCollection *>(view_layer_->layer_collections.first);
+    if (lc == nullptr) {
+      return;
+    }
+
+    add_layer_collections_recursive(ten.subtree, lc->layer_collections, ten);
+    if (show_objects_) {
+      add_layer_collection_objects(ten.subtree, *lc, ten);
+    }
+    if (show_children) {
+      add_layer_collection_objects_children(ten);
+    }
   }
 }
 

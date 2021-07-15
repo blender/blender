@@ -127,8 +127,8 @@ static void nla_action_draw_keyframes(
   immRectf(pos_id, f1, ymin + 2, f2, ymax - 2);
   immUnbindProgram();
 
-  /* count keys before drawing */
-  /* Note: It's safe to cast DLRBT_Tree, as it's designed to degrade down to a ListBase */
+  /* Count keys before drawing. */
+  /* NOTE: It's safe to cast #DLRBT_Tree, as it's designed to degrade down to a #ListBase. */
   uint key_len = BLI_listbase_count((ListBase *)&keys);
 
   if (key_len > 0) {

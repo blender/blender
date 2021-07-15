@@ -98,25 +98,25 @@ class GHOST_SystemX11 : public GHOST_System {
    * Returns the number of milliseconds since the start of the system process.
    * \return The number of milliseconds.
    */
-  GHOST_TUns64 getMilliSeconds() const;
+  uint64_t getMilliSeconds() const;
 
   /**
    * Returns the number of displays on this system.
    * \return The number of displays.
    */
-  GHOST_TUns8 getNumDisplays() const;
+  uint8_t getNumDisplays() const;
 
   /**
    * Returns the dimensions of the main display on this system.
    * \return The dimension of the main display.
    */
-  void getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const;
+  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const;
 
   /**
    * Returns the dimensions of all displays on this system.
    * \return The dimension of the main display.
    */
-  void getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const;
+  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const;
 
   /**
    * Create a new window.
@@ -136,10 +136,10 @@ class GHOST_SystemX11 : public GHOST_System {
    * \return The new window (or 0 if creation failed).
    */
   GHOST_IWindow *createWindow(const char *title,
-                              GHOST_TInt32 left,
-                              GHOST_TInt32 top,
-                              GHOST_TUns32 width,
-                              GHOST_TUns32 height,
+                              int32_t left,
+                              int32_t top,
+                              uint32_t width,
+                              uint32_t height,
                               GHOST_TWindowState state,
                               GHOST_TDrawingContextType type,
                               GHOST_GLSettings glSettings,
@@ -168,9 +168,9 @@ class GHOST_SystemX11 : public GHOST_System {
    */
   bool processEvents(bool waitForEvent);
 
-  GHOST_TSuccess getCursorPosition(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
+  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const;
 
-  GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
+  GHOST_TSuccess setCursorPosition(int32_t x, int32_t y);
 
   /**
    * Returns the state of all modifier keys.
@@ -222,14 +222,14 @@ class GHOST_SystemX11 : public GHOST_System {
    * \param selection: Get selection, X11 only feature.
    * \return Returns the Clipboard indicated by Flag.
    */
-  GHOST_TUns8 *getClipboard(bool selection) const;
+  char *getClipboard(bool selection) const;
 
   /**
    * Puts buffer to system clipboard
    * \param buffer: The buffer to copy to the clipboard.
    * \param selection: Set the selection into the clipboard, X11 only feature.
    */
-  void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
+  void putClipboard(const char *buffer, bool selection) const;
 
   /**
    * Show a system message box
@@ -351,7 +351,7 @@ class GHOST_SystemX11 : public GHOST_System {
   std::vector<GHOST_WindowX11 *> m_dirty_windows;
 
   /** Start time at initialization. */
-  GHOST_TUns64 m_start_time;
+  uint64_t m_start_time;
 
   /** A vector of keyboard key masks. */
   char m_keyboard_vector[32];

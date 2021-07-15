@@ -561,7 +561,7 @@ void ED_view3d_win_to_3d(const View3D *v3d,
     copy_v3_v3(ray_origin, rv3d->viewinv[3]);
     ED_view3d_win_to_vector(region, mval, ray_direction);
 
-    /* Note: we could use #isect_line_plane_v3()
+    /* NOTE: we could use #isect_line_plane_v3()
      * however we want the intersection to be in front of the view no matter what,
      * so apply the unsigned factor instead. */
     plane_from_point_normal_v3(plane, depth_pt, rv3d->viewinv[2]);

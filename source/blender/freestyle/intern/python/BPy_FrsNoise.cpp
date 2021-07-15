@@ -122,7 +122,7 @@ static PyObject *FrsNoise_turbulence_smooth(BPy_FrsNoise *self, PyObject *args, 
 {
   static const char *kwlist[] = {"v", "oct", nullptr};
 
-  double x;  // note: this has to be a double (not float)
+  double x;  // NOTE: this has to be a double (not float)
   unsigned nbOctaves = 8;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|I", (char **)kwlist, &x, &nbOctaves)) {

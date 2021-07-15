@@ -137,7 +137,7 @@ void ABCAbstractWriter::update_bounding_box(Object *object)
 
 void ABCAbstractWriter::write_visibility(const HierarchyContext &context)
 {
-  const bool is_visible = context.is_object_visible(DAG_EVAL_RENDER);
+  const bool is_visible = context.is_object_visible(args_.export_params->evaluation_mode);
   Alembic::Abc::OObject abc_object = get_alembic_object();
 
   if (!abc_visibility_.valid()) {

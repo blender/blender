@@ -129,7 +129,7 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   common_data->vol_coord_scale[2] = 1.0f / viewport_size[0];
   common_data->vol_coord_scale[3] = 1.0f / viewport_size[1];
 
-  /* TODO compute snap to maxZBuffer for clustered rendering */
+  /* TODO: compute snap to maxZBuffer for clustered rendering. */
   if ((common_data->vol_tex_size[0] != tex_size[0]) ||
       (common_data->vol_tex_size[1] != tex_size[1]) ||
       (common_data->vol_tex_size[2] != tex_size[2])) {
@@ -554,8 +554,8 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
     }
   }
 
-  /* TODO Reduce to number of slices intersecting. */
-  /* TODO Preemptive culling. */
+  /* TODO: Reduce to number of slices intersecting. */
+  /* TODO: Preemptive culling. */
   DRW_shgroup_call_procedural_triangles(grp, ob, sldata->common_data.vol_tex_size[2]);
 
   vedata->stl->effects->enabled_effects |= (EFFECT_VOLUMETRIC | EFFECT_POST_BUFFER);

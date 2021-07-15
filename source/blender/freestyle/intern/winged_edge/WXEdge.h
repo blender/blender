@@ -465,7 +465,7 @@ class WXFaceLayer {
     if (iDotP > 0.0f) {
       ++_nPosDotP;
     }
-    if (iDotP == 0.0f) {  // TODO this comparison is weak, check if it actually works
+    if (iDotP == 0.0f) {  // TODO: this comparison is weak, check if it actually works
       ++_nNullDotP;
     }
   }
@@ -484,7 +484,7 @@ class WXFaceLayer {
       if ((*d) > 0.0f) {
         ++_nPosDotP;
       }
-      if ((*d) == 0.0f) {  // TODO ditto
+      if ((*d) == 0.0f) {  // TODO: ditto
         ++_nNullDotP;
       }
     }

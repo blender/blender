@@ -140,6 +140,7 @@ class TestIdPropertyCreation(TestHelper, unittest.TestCase):
         with self.assertRaises(TypeError):
             self.id["a"] = self
 
+
 class TestIdPropertyGroupView(TestHelper, unittest.TestCase):
 
     def test_type(self):

@@ -32,8 +32,8 @@
 
 #include "sequencer_intern.h"
 
-/* XXX, why is this function better than BLI_math version?
- * only difference is it does some normalize after, need to double check on this - campbell */
+/* XXX(campbell): why is this function better than BLI_math version?
+ * only difference is it does some normalize after, need to double check on this. */
 static void rgb_to_yuv_normalized(const float rgb[3], float yuv[3])
 {
   yuv[0] = 0.299f * rgb[0] + 0.587f * rgb[1] + 0.114f * rgb[2];
@@ -624,8 +624,6 @@ static void vectorscope_put_cross(uchar r, uchar g, uchar b, char *tgt, int w, i
 {
   float rgb[3], yuv[3];
   char *p;
-  int x = 0;
-  int y = 0;
 
   rgb[0] = (float)r / 255.0f;
   rgb[1] = (float)g / 255.0f;
@@ -638,8 +636,8 @@ static void vectorscope_put_cross(uchar r, uchar g, uchar b, char *tgt, int w, i
     r = 255;
   }
 
-  for (y = -size; y <= size; y++) {
-    for (x = -size; x <= size; x++) {
+  for (int y = -size; y <= size; y++) {
+    for (int x = -size; x <= size; x++) {
       char *q = p + 4 * (y * w + x);
       q[0] = r;
       q[1] = g;

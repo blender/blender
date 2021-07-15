@@ -168,7 +168,7 @@ static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
 #  undef SHAPEKEY_SLIDER_TOL
 
 /* ***** Normals accessors for shapekeys. ***** */
-/* Note: with this we may recompute several times the same data, should we want to access verts,
+/* NOTE: with this we may recompute several times the same data, should we want to access verts,
  *       then polys, then loops normals... However,
  *       such case looks rather unlikely - and not worth adding some kind of caching in KeyBlocks.
  */

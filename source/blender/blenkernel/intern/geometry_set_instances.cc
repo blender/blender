@@ -48,7 +48,6 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
 
     MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
     mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
-    mesh_component.copy_vertex_group_names_from_object(object);
   }
 }
 

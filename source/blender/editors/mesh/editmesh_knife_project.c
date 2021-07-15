@@ -30,6 +30,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
@@ -59,7 +60,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ARegion *region = CTX_wm_region(C);
-  struct Mesh *me_eval;
+  const struct Mesh *me_eval;
   bool me_eval_needs_free;
 
   if (ob->type == OB_MESH || ob->runtime.data_eval) {
@@ -113,7 +114,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
     BKE_nurbList_free(&nurbslist);
 
     if (me_eval_needs_free) {
-      BKE_mesh_free(me_eval);
+      BKE_mesh_free((struct Mesh *)me_eval);
     }
   }
 

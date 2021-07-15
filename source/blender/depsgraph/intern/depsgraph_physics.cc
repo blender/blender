@@ -59,7 +59,7 @@ static ePhysicsRelationType modifier_to_relation_type(unsigned int modifier_type
       return DEG_PHYSICS_DYNAMIC_BRUSH;
   }
 
-  BLI_assert(!"Unknown collision modifier type");
+  BLI_assert_msg(0, "Unknown collision modifier type");
   return DEG_PHYSICS_RELATIONS_NUM;
 }
 /* Get ID from an ID type object, in a safe manner. This means that object can be nullptr,
@@ -80,7 +80,7 @@ ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collect
   if (hash == nullptr) {
     return nullptr;
   }
-  /* Note: nullptr is a valid lookup key here as it means that the relation is not bound to a
+  /* NOTE: nullptr is a valid lookup key here as it means that the relation is not bound to a
    * specific collection. */
   ID *collection_orig = DEG_get_original_id(object_id_safe(collection));
   return hash->lookup_default(collection_orig, nullptr);
@@ -96,7 +96,7 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
   if (hash == nullptr) {
     return nullptr;
   }
-  /* Note: nullptr is a valid lookup key here as it means that the relation is not bound to a
+  /* NOTE: nullptr is a valid lookup key here as it means that the relation is not bound to a
    * specific collection. */
   ID *collection_orig = DEG_get_original_id(object_id_safe(collection));
   return hash->lookup_default(collection_orig, nullptr);

@@ -289,7 +289,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
    * setting the current state. */
   Collection *collection_;
   /* Accumulated flag over the hierarchy of currently building collections.
-   * Denotes whether all the hierarchy from parent of collection_ to the
+   * Denotes whether all the hierarchy from parent of `collection_` to the
    * very root is visible (aka not restricted.). */
   bool is_parent_collection_visible_;
 

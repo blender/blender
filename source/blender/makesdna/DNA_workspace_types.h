@@ -23,6 +23,7 @@
 #pragma once
 
 #include "DNA_ID.h"
+#include "DNA_asset_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -135,6 +136,10 @@ typedef struct WorkSpace {
 
   /** Info text from modal operators (runtime). */
   char *status_text;
+
+  /** Workspace-wide active asset library, for asset UIs to use (e.g. asset view UI template). The
+   * Asset Browser has its own and doesn't use this. */
+  AssetLibraryReference active_asset_library;
 } WorkSpace;
 
 /**
@@ -165,7 +170,7 @@ typedef struct WorkSpaceDataRelation {
 
   /** The data used to identify the relation
    * (e.g. to find screen-layout (= value) from/for a hook).
-   * Note: Now runtime only. */
+   * NOTE: Now runtime only. */
   void *parent;
   /** The value for this parent-data/workspace relation. */
   void *value;

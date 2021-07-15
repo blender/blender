@@ -369,15 +369,32 @@ static bool rna_idproperty_ui_set_default(PointerRNA *ptr,
   return true;
 }
 
-IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create)
+IDProperty **RNA_struct_idprops_p(PointerRNA *ptr)
 {
   StructRNA *type = ptr->type;
-
-  if (type && type->idproperties) {
-    return type->idproperties(ptr, create);
+  if (type == NULL) {
+    return NULL;
+  }
+  if (type->idproperties == NULL) {
+    return NULL;
   }
 
-  return NULL;
+  return type->idproperties(ptr);
+}
+
+IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create)
+{
+  IDProperty **property_ptr = RNA_struct_idprops_p(ptr);
+  if (property_ptr == NULL) {
+    return NULL;
+  }
+
+  if (create && *property_ptr == NULL) {
+    IDPropertyTemplate val = {0};
+    *property_ptr = IDP_New(IDP_GROUP, &val, __func__);
+  }
+
+  return *property_ptr;
 }
 
 bool RNA_struct_idprops_check(StructRNA *srna)
@@ -692,7 +709,7 @@ static const char *rna_ensure_property_description(const PropertyRNA *prop)
     }
 
     if (description == NULL) {
-      description = ((IDProperty *)prop)->name; /* XXX - not correct */
+      description = ((IDProperty *)prop)->name; /* XXX: not correct. */
     }
   }
 
@@ -907,7 +924,7 @@ static PropertyRNA *RNA_struct_find_nested(PointerRNA *ptr, StructRNA *srna)
 
 bool RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
 {
-  /* note, prop_test could be freed memory, only use for comparison */
+  /* NOTE: prop_test could be freed memory, only use for comparison. */
 
   /* validate the RNA is ok */
   PropertyRNA *iterprop;
@@ -1691,7 +1708,7 @@ static void property_enum_translate(PropertyRNA *prop,
   if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
     int i;
 
-    /* Note: Only do those tests once, and then use BLT_pgettext. */
+    /* NOTE: Only do those tests once, and then use BLT_pgettext. */
     bool do_iface = BLT_translate_iface();
     bool do_tooltip = BLT_translate_tooltips();
     EnumPropertyItem *nitem;
@@ -2026,11 +2043,9 @@ bool RNA_property_enum_item_from_value(
 bool RNA_property_enum_item_from_value_gettexted(
     bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, EnumPropertyItem *r_item)
 {
-  bool result;
+  const bool result = RNA_property_enum_item_from_value(C, ptr, prop, value, r_item);
 
-  result = RNA_property_enum_item_from_value(C, ptr, prop, value, r_item);
-
-  if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
+  if (result && !(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
     if (BLT_translate_iface()) {
       r_item->name = BLT_pgettext(prop->translation_context, r_item->name);
     }
@@ -2325,7 +2340,7 @@ static void rna_property_update(
 }
 
 /* must keep in sync with 'rna_property_update'
- * note, its possible this returns a false positive in the case of PROP_CONTEXT_UPDATE
+ * NOTE: its possible this returns a false positive in the case of #PROP_CONTEXT_UPDATE
  * but this isn't likely to be a performance problem. */
 bool RNA_property_update_check(PropertyRNA *prop)
 {
@@ -5812,7 +5827,7 @@ static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
 
   BLI_assert(ptr->owner_id != NULL);
 
-  /* TODO, Support Bones/PoseBones. no pointers stored to the bones from here, only the ID.
+  /* TODO: Support Bones/PoseBones. no pointers stored to the bones from here, only the ID.
    *       See example in T25746.
    *       Unless this is added only way to find this is to also search
    *       all bones and pose bones of an armature or object.
@@ -5849,12 +5864,12 @@ ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)
         *r_path = "collection";
         break;
       default:
-        BLI_assert(!"Missing handling of embedded id type.");
+        BLI_assert_msg(0, "Missing handling of embedded id type.");
     }
   }
 
   if (id_type->owner_get == NULL) {
-    BLI_assert(!"Missing handling of embedded id type.");
+    BLI_assert_msg(0, "Missing handling of embedded id type.");
     return id;
   }
   return id_type->owner_get(bmain, id);
@@ -6244,8 +6259,8 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
   data_path = RNA_path_from_ID_to_property(ptr, prop);
 
   if (data_path == NULL) {
-    /* this may not be an ID at all, check for simple when pointer owns property.
-     * TODO, more complex nested case */
+    /* This may not be an ID at all, check for simple when pointer owns property.
+     * TODO: more complex nested case. */
     if (!RNA_struct_is_ID(ptr->type)) {
       const char *prop_identifier = RNA_property_identifier(prop);
       if (RNA_struct_find_property(ptr, prop_identifier) == prop) {
@@ -6559,7 +6574,7 @@ char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, in
   PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
   if (prop) {
-    /* TODO, pass length */
+    /* TODO: pass length. */
     return RNA_property_string_get_alloc(ptr, prop, fixedbuf, fixedlen, NULL);
   }
   printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);

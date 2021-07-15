@@ -40,14 +40,14 @@ GHOST_DisplayManagerX11::GHOST_DisplayManagerX11(GHOST_SystemX11 *system)
   /* nothing to do. */
 }
 
-GHOST_TSuccess GHOST_DisplayManagerX11::getNumDisplays(GHOST_TUns8 &numDisplays) const
+GHOST_TSuccess GHOST_DisplayManagerX11::getNumDisplays(uint8_t &numDisplays) const
 {
   numDisplays = m_system->getNumDisplays();
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_DisplayManagerX11::getNumDisplaySettings(GHOST_TUns8 display,
-                                                              GHOST_TInt32 &numSettings) const
+GHOST_TSuccess GHOST_DisplayManagerX11::getNumDisplaySettings(uint8_t display,
+                                                              int32_t &numSettings) const
 {
 #ifdef WITH_X11_XF86VMODE
   int majorVersion, minorVersion;
@@ -88,8 +88,8 @@ static int calculate_rate(XF86VidModeModeInfo *info)
 }
 #endif
 
-GHOST_TSuccess GHOST_DisplayManagerX11::getDisplaySetting(GHOST_TUns8 display,
-                                                          GHOST_TInt32 index,
+GHOST_TSuccess GHOST_DisplayManagerX11::getDisplaySetting(uint8_t display,
+                                                          int32_t index,
                                                           GHOST_DisplaySetting &setting) const
 {
   Display *dpy = m_system->getXDisplay();
@@ -140,7 +140,7 @@ GHOST_TSuccess GHOST_DisplayManagerX11::getDisplaySetting(GHOST_TUns8 display,
 }
 
 GHOST_TSuccess GHOST_DisplayManagerX11::getCurrentDisplaySetting(
-    GHOST_TUns8 display, GHOST_DisplaySetting &setting) const
+    uint8_t display, GHOST_DisplaySetting &setting) const
 {
   /* According to the xf86vidmodegetallmodelines man page,
    * "The first element of the array corresponds to the current video mode."
@@ -149,7 +149,7 @@ GHOST_TSuccess GHOST_DisplayManagerX11::getCurrentDisplaySetting(
 }
 
 GHOST_TSuccess GHOST_DisplayManagerX11::setCurrentDisplaySetting(
-    GHOST_TUns8 /*display*/, const GHOST_DisplaySetting &setting)
+    uint8_t /*display*/, const GHOST_DisplaySetting &setting)
 {
 #ifdef WITH_X11_XF86VMODE
   /* Mode switching code ported from SDL:

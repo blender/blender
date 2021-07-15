@@ -21,10 +21,10 @@
 namespace blender::compositor {
 
 #define USE_FORCE_BILINEAR
-/* XXX - ignore input and use default from old compositor,
- * could become an option like the transform node - campbell
+/* XXX(campbell): ignore input and use default from old compositor,
+ * could become an option like the transform node.
  *
- * note: use bilinear because bicubic makes fuzzy even when not scaling at all (1:1)
+ * NOTE: use bilinear because bicubic makes fuzzy even when not scaling at all (1:1)
  */
 
 BaseScaleOperation::BaseScaleOperation()
@@ -37,12 +37,16 @@ BaseScaleOperation::BaseScaleOperation()
   m_variable_size = false;
 }
 
-ScaleOperation::ScaleOperation() : BaseScaleOperation()
+ScaleOperation::ScaleOperation() : ScaleOperation(DataType::Color)
 {
-  this->addInputSocket(DataType::Color);
+}
+
+ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
+{
+  this->addInputSocket(data_type);
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->addOutputSocket(data_type);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
   this->m_inputXOperation = nullptr;

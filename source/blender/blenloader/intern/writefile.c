@@ -304,7 +304,7 @@ static void writedata_do_write(WriteData *wd, const void *mem, size_t memlen)
   }
 
   if (memlen > INT_MAX) {
-    BLI_assert(!"Cannot write chunks bigger than INT_MAX.");
+    BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
   }
 
@@ -538,7 +538,7 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
   }
 
   if (len > INT_MAX) {
-    BLI_assert(!"Cannot write chunks bigger than INT_MAX.");
+    BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
   }
 
@@ -896,9 +896,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   writestruct(wd, GLOB, FileGlobal, 1, &fg);
 }
 
-/* preview image, first 2 values are width and height
- * second are an RGBA image (uchar)
- * note, this uses 'TEST' since new types will segfault on file load for older blender versions.
+/**
+ * Preview image, first 2 values are width and height
+ * second are an RGBA image (uchar).
+ * \note this uses 'TEST' since new types will segfault on file load for older blender versions.
  */
 static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 {

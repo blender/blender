@@ -856,8 +856,8 @@ void calculateCenter2D(TransInfo *t)
 
 void calculateCenterLocal(TransInfo *t, const float center_global[3])
 {
-  /* setting constraint center */
-  /* note, init functions may over-ride t->center */
+  /* Setting constraint center. */
+  /* NOTE: init functions may over-ride `t->center`. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->use_local_mat) {
       mul_v3_m4v3(tc->center_local, tc->imat, center_global);
@@ -910,7 +910,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
         BKE_mask_coord_from_movieclip(space_clip->clip, &space_clip->user, co, cursor);
       }
       else {
-        BLI_assert(!"Shall not happen");
+        BLI_assert_msg(0, "Shall not happen");
       }
 
       r_center[0] = co[0] * t->aspect[0];

@@ -287,7 +287,7 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
   clip->tracking_context = NULL;
   clip->tracking.stats = NULL;
 
-  /* TODO we could store those in undo cache storage as well, and preserve them instead of
+  /* TODO: we could store those in undo cache storage as well, and preserve them instead of
    * re-creating them... */
   BLI_listbase_clear(&clip->runtime.gputextures);
 
@@ -1849,7 +1849,7 @@ static void movieclip_build_proxy_ibuf(
   IMB_freeImBuf(scaleibuf);
 }
 
-/* note: currently used by proxy job for movies, threading happens within single frame
+/* NOTE: currently used by proxy job for movies, threading happens within single frame
  * (meaning scaling shall be threaded)
  */
 void BKE_movieclip_build_proxy_frame(MovieClip *clip,
@@ -1893,7 +1893,7 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip,
   }
 }
 
-/* note: currently used by proxy job for sequences, threading happens within sequence
+/* NOTE: currently used by proxy job for sequences, threading happens within sequence
  * (different threads handles different frames, no threading within frame is needed)
  */
 void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip,

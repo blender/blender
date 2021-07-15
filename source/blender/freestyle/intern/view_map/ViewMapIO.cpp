@@ -813,7 +813,7 @@ static int save(ostream &out, SVertex *sv)
   WRITE_IF_NON_NULL(sv->viewvertex());
 
   // Normals (List)
-  // Note: the 'size()' method of a set doesn't seem to return the actual size of the given set, so
+  // NOTE: the 'size()' method of a set doesn't seem to return the actual size of the given set, so
   // we have to hack it...
   set<Vec3r>::const_iterator i;
   for (i = sv->normals().begin(), tmp = 0; i != sv->normals().end(); i++, tmp++) {

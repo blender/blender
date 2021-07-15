@@ -246,7 +246,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject *UNUSED(self), PyObject *
       .py_fn_slots = {NULL},
   };
 
-  /* Note: this is a counter-part to functions:
+  /* NOTE: this is a counter-part to functions:
    * 'Gizmo.target_set_prop & target_set_operator'
    * (see: rna_wm_gizmo_api.c). conventions should match. */
   static const char *const _keywords[] = {"self", "target", "get", "set", "range", NULL};
@@ -537,7 +537,7 @@ bool BPY_rna_gizmo_module(PyObject *mod_par)
     PyObject *func_inst = PyInstanceMethod_New(func);
     char name_prefix[128];
     PyOS_snprintf(name_prefix, sizeof(name_prefix), "_rna_gizmo_%s", m->ml_name);
-    /* TODO, return a type that binds nearly to a method. */
+    /* TODO: return a type that binds nearly to a method. */
     PyModule_AddObject(mod_par, name_prefix, func_inst);
   }
 

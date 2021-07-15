@@ -156,10 +156,10 @@ enum eNlaTime_ConvertModes {
   /* convert from global time to strip time - for evaluation */
   NLATIME_CONVERT_EVAL = 0,
   /* convert from global time to strip time - for editing corrections */
-  // XXX old 0 invert
+  /* XXX: old 0 invert. */
   NLATIME_CONVERT_UNMAP,
   /* convert from strip time to global time */
-  // xxx old 1 invert
+  /* XXX: old 1 invert. */
   NLATIME_CONVERT_MAP,
 };
 

@@ -1180,7 +1180,7 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
   return di;
 }
 
-/* note!, returns unscaled by DPI */
+/* NOTE:, returns unscaled by DPI. */
 int UI_icon_get_width(int icon_id)
 {
   Icon *icon = BKE_icon_get(icon_id);
@@ -1500,7 +1500,7 @@ static void icon_draw_rect(float x,
   /* sanity check */
   if (w <= 0 || h <= 0 || w > 2000 || h > 2000) {
     printf("%s: icons are %i x %i pixels?\n", __func__, w, h);
-    BLI_assert(!"invalid icon size");
+    BLI_assert_msg(0, "invalid icon size");
     return;
   }
   /* modulate color */
@@ -1519,7 +1519,7 @@ static void icon_draw_rect(float x,
       draw_h = h;
       draw_x += (w - draw_w) / 2;
     }
-    /* if the image is squared, the draw_ initialization values are good */
+    /* If the image is squared, the `draw_*` initialization values are good. */
 
     /* first allocate imbuf for scaling and copy preview into it */
     ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
@@ -2201,7 +2201,7 @@ int UI_icon_from_library(const ID *id)
   return ICON_NONE;
 }
 
-int UI_icon_from_rnaptr(bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
+int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
 {
   ID *id = NULL;
 
@@ -2294,7 +2294,7 @@ int UI_icon_from_idcode(const int idcode)
     case ID_ME:
       return ICON_MESH_DATA;
     case ID_MSK:
-      return ICON_MOD_MASK; /* TODO! this would need its own icon! */
+      return ICON_MOD_MASK; /* TODO: this would need its own icon! */
     case ID_NT:
       return ICON_NODETREE;
     case ID_OB:
@@ -2302,9 +2302,9 @@ int UI_icon_from_idcode(const int idcode)
     case ID_PA:
       return ICON_PARTICLE_DATA;
     case ID_PAL:
-      return ICON_COLOR; /* TODO! this would need its own icon! */
+      return ICON_COLOR; /* TODO: this would need its own icon! */
     case ID_PC:
-      return ICON_CURVE_BEZCURVE; /* TODO! this would need its own icon! */
+      return ICON_CURVE_BEZCURVE; /* TODO: this would need its own icon! */
     case ID_LP:
       return ICON_OUTLINER_DATA_LIGHTPROBE;
     case ID_SCE:

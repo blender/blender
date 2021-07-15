@@ -105,14 +105,13 @@ static int return_editmesh_indexar(BMEditMesh *em, int *r_tot, int **r_indexar, 
 
 static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name, float r_cent[3])
 {
-  const int cd_dvert_offset = obedit->actdef ?
+  const int active_index = BKE_object_defgroup_active_index_get(obedit);
+  const int cd_dvert_offset = active_index ?
                                   CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT) :
                                   -1;
 
-  zero_v3(r_cent);
-
   if (cd_dvert_offset != -1) {
-    const int defgrp_index = obedit->actdef - 1;
+    const int defgrp_index = active_index - 1;
     int totvert = 0;
 
     MDeformVert *dvert;
@@ -129,7 +128,8 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
       }
     }
     if (totvert) {
-      bDeformGroup *dg = BLI_findlink(&obedit->defbase, defgrp_index);
+      const ListBase *defbase = BKE_object_defgroup_list(obedit);
+      bDeformGroup *dg = BLI_findlink(defbase, defgrp_index);
       BLI_strncpy(r_name, dg->name, sizeof(dg->name));
       mul_v3_fl(r_cent, 1.0f / (float)totvert);
       return true;

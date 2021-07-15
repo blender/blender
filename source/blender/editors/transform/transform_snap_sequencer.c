@@ -108,7 +108,7 @@ static SeqCollection *query_snap_targets(const TransInfo *t)
 {
   const ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene, false));
   const short snap_flag = SEQ_tool_settings_snap_flag_get(t->scene);
-  SeqCollection *collection = SEQ_collection_create();
+  SeqCollection *collection = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->flag & SELECT)) {
       continue; /* Selected are being transformed. */
@@ -138,7 +138,7 @@ static int seq_get_snap_target_points_count(const TransInfo *t,
 
   count *= SEQ_collection_len(snap_targets);
 
-  if (snap_mode & SEQ_SNAP_TO_PLAYHEAD) {
+  if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
     count++;
   }
 
@@ -164,7 +164,7 @@ static void seq_snap_target_points_build(const TransInfo *t,
 
   int i = 0;
 
-  if (snap_mode & SEQ_SNAP_TO_PLAYHEAD) {
+  if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
     snap_data->target_snap_points[i] = CFRA;
     i++;
   }
@@ -236,6 +236,11 @@ void transform_snap_sequencer_data_free(TransSeqSnapData *data)
 
 bool transform_snap_sequencer_calc(TransInfo *t)
 {
+  /* Prevent snapping when constrained to Y axis. */
+  if (t->con.mode & CON_APPLY && t->con.mode & CON_AXIS1) {
+    return false;
+  }
+
   const TransSeqSnapData *snap_data = t->tsnap.seq_context;
   int best_dist = MAXFRAME, best_target_frame = 0, best_source_frame = 0;
 

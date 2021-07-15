@@ -53,14 +53,8 @@ size_t malloc_usable_size(void *ptr);
 #  undef USE_MALLOC_USABLE_SIZE
 #endif
 
-/* Blame Microsoft for LLP64 and no inttypes.h, quick workaround needed: */
-#if defined(WIN64)
-#  define SIZET_FORMAT "%I64u"
-#  define SIZET_ARG(a) ((unsigned long long)(a))
-#else
-#  define SIZET_FORMAT "%lu"
-#  define SIZET_ARG(a) ((unsigned long)(a))
-#endif
+#define SIZET_FORMAT "%zu"
+#define SIZET_ARG(a) ((size_t)(a))
 
 #define SIZET_ALIGN_4(len) ((len + 3) & ~(size_t)3)
 

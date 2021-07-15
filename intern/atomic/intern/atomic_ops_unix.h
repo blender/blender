@@ -49,9 +49,9 @@
 
 #include "atomic_ops_utils.h"
 
-#if defined(__arm__)
-/* Attempt to fix compilation error on Debian armel kernel.
- * arm7 architecture does have both 32 and 64bit atomics, however
+#if defined(__arm__) || defined(__riscv)
+/* Attempt to fix compilation error on Debian armel and RISC-V kernels.
+ * Both architectures do have both 32 and 64bit atomics, however
  * its gcc doesn't have __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n defined.
  */
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_1

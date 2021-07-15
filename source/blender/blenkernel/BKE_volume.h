@@ -214,7 +214,7 @@ auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)
   }
 
   /* Should never be called. */
-  BLI_assert(!"should never be reached");
+  BLI_assert_msg(0, "should never be reached");
   return op.template operator()<openvdb::FloatGrid>();
 }
 

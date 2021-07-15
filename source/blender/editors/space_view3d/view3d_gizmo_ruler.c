@@ -580,7 +580,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   UI_GetThemeColor3ubv(TH_TEXT, color_text);
   UI_GetThemeColor3ubv(TH_WIRE, color_wire);
 
-  /* Avoid white on white text. (TODO Fix by using theme) */
+  /* Avoid white on white text. (TODO: Fix by using theme). */
   if ((int)color_text[0] + (int)color_text[1] + (int)color_text[2] > 127 * 3 * 0.6f) {
     copy_v3_fl(color_back, 0.0f);
   }

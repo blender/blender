@@ -1053,7 +1053,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
         const int v = vtri[j];
 
         if (pbvh->verts[v].flag & ME_VERT_PBVH_UPDATE) {
-          /* Note: This avoids `lock, add_v3_v3, unlock`
+          /* NOTE: This avoids `lock, add_v3_v3, unlock`
            * and is five to ten times quicker than a spin-lock.
            * Not exact equivalent though, since atomicity is only ensured for one component
            * of the vector at a time, but here it shall not make any sensible difference. */
@@ -2212,7 +2212,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
 
     const float *co[3];
     if (origco) {
-      /* intersect with backuped original coordinates */
+      /* Intersect with backed up original coordinates. */
       co[0] = origco[face_verts[0]];
       co[1] = origco[face_verts[1]];
       co[2] = origco[face_verts[2]];
@@ -2872,7 +2872,7 @@ float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3]
 void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int totvert)
 {
   if (totvert != pbvh->totvert) {
-    BLI_assert(!"PBVH: Given deforming vcos number does not natch PBVH vertex number!");
+    BLI_assert_msg(0, "PBVH: Given deforming vcos number does not natch PBVH vertex number!");
     return;
   }
 

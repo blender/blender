@@ -51,7 +51,7 @@
 /* *************************** Calculate Range ************************** */
 
 /* Get the min/max keyframes. */
-/* Note: it should return total boundbox, filter for selection only can be argument... */
+/* NOTE: it should return total boundbox, filter for selection only can be argument... */
 void get_graph_keyframe_extents(bAnimContext *ac,
                                 float *xmin,
                                 float *xmax,

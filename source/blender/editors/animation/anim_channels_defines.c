@@ -4025,7 +4025,7 @@ static bool acf_nlaaction_setting_valid(bAnimContext *UNUSED(ac),
     /* conditionally supported */
     case ACHANNEL_SETTING_PINNED: /* pinned - map/unmap */
       if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
-        /* this should only appear in tweakmode */
+        /* This should only appear in tweak-mode. */
         return true;
       }
       else {
@@ -5176,7 +5176,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
   }
 
   /* step 3) draw special toggles  .................................
-   * - in Graph Editor, checkboxes for visibility in curves area
+   * - in Graph Editor, check-boxes for visibility in curves area
    * - in NLA Editor, glowing dots for solo/not solo...
    * - in Grease Pencil mode, color swatches for layer color
    */

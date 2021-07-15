@@ -46,6 +46,7 @@ ColorBalanceLGGOperation::ColorBalanceLGGOperation()
   this->m_inputValueOperation = nullptr;
   this->m_inputColorOperation = nullptr;
   this->setResolutionInputSocketIndex(1);
+  flags.can_be_constant = true;
 }
 
 void ColorBalanceLGGOperation::initExecution()
@@ -79,6 +80,23 @@ void ColorBalanceLGGOperation::executePixelSampled(float output[4],
               fac * colorbalance_lgg(
                         inputColor[2], this->m_lift[2], this->m_gamma_inv[2], this->m_gain[2]);
   output[3] = inputColor[3];
+}
+
+void ColorBalanceLGGOperation::update_memory_buffer_row(PixelCursor &p)
+{
+  for (; p.out < p.row_end; p.next()) {
+    const float *in_factor = p.ins[0];
+    const float *in_color = p.ins[1];
+    const float fac = MIN2(1.0f, in_factor[0]);
+    const float fac_m = 1.0f - fac;
+    p.out[0] = fac_m * in_color[0] +
+               fac * colorbalance_lgg(in_color[0], m_lift[0], m_gamma_inv[0], m_gain[0]);
+    p.out[1] = fac_m * in_color[1] +
+               fac * colorbalance_lgg(in_color[1], m_lift[1], m_gamma_inv[1], m_gain[1]);
+    p.out[2] = fac_m * in_color[2] +
+               fac * colorbalance_lgg(in_color[2], m_lift[2], m_gamma_inv[2], m_gain[2]);
+    p.out[3] = in_color[3];
+  }
 }
 
 void ColorBalanceLGGOperation::deinitExecution()

@@ -32,7 +32,7 @@
 #include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_state.hh"
-#include "gpu_vertex_buffer_private.hh" /* TODO should be `gl_vertex_buffer.hh` */
+#include "gpu_vertex_buffer_private.hh" /* TODO: should be `gl_vertex_buffer.hh`. */
 
 #include "gl_texture.hh"
 
@@ -347,7 +347,7 @@ void GLTexture::copy_to(Texture *dst_)
   BLI_assert((dst->w_ == src->w_) && (dst->h_ == src->h_) && (dst->d_ == src->d_));
   BLI_assert(dst->format_ == src->format_);
   BLI_assert(dst->type_ == src->type_);
-  /* TODO support array / 3D textures. */
+  /* TODO: support array / 3D textures. */
   BLI_assert(dst->d_ == 0);
 
   if (GLContext::copy_image_support) {

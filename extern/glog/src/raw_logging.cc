@@ -59,7 +59,7 @@
 # include <unistd.h>
 #endif
 
-#if defined(HAVE_SYSCALL_H) || defined(HAVE_SYS_SYSCALL_H)
+#if (defined(HAVE_SYSCALL_H) || defined(HAVE_SYS_SYSCALL_H)) && (!(defined OS_MACOSX))
 # define safe_write(fd, s, len)  syscall(SYS_write, fd, s, len)
 #else
   // Not so safe, but what can you do?

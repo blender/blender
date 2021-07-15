@@ -435,7 +435,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       }
     }
     else {
-      /* Note, this is an exceptional case, we could even remove it
+      /* NOTE: this is an exceptional case, we could even remove it
        * however there have been reports of tooltips failing, so keep it for now. */
       expr_result = BLI_strdup(IFACE_("Internal error!"));
       is_error = true;
@@ -492,7 +492,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       }
     }
     else {
-      /* Note, this is an exceptional case, we could even remove it
+      /* NOTE: this is an exceptional case, we could even remove it
        * however there have been reports of tooltips failing, so keep it for now. */
       expr_result = BLI_strdup(TIP_("Internal error!"));
       is_error = true;
@@ -574,7 +574,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                        shortcut_toolbar,
                                        ARRAY_SIZE(shortcut_toolbar))) {
         /* Generate keymap in order to inspect it.
-         * Note, we could make a utility to avoid the keymap generation part of this. */
+         * NOTE: we could make a utility to avoid the keymap generation part of this. */
         const char *expr_imports[] = {
             "bpy", "bl_keymap_utils", "bl_keymap_utils.keymap_from_toolbar", NULL};
         const char *expr =

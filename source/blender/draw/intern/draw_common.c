@@ -192,7 +192,7 @@ void DRW_globals_update(void)
                    (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
   gb->sizeVertexGpencil = U.pixelsize * UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
   gb->sizeFaceDot = U.pixelsize * UI_GetThemeValuef(TH_FACEDOT_SIZE);
-  gb->sizeEdge = U.pixelsize * (1.0f / 2.0f); /* TODO Theme */
+  gb->sizeEdge = U.pixelsize * (1.0f / 2.0f); /* TODO: Theme. */
   gb->sizeEdgeFix = U.pixelsize * (0.5f + 2.0f * (2.0f * (gb->sizeEdge * (float)M_SQRT1_2)));
 
   const float(*screen_vecs)[3] = (float(*)[3])DRW_viewport_screenvecs_get();
@@ -210,7 +210,7 @@ void DRW_globals_update(void)
   {
     float *color = gb->UBO_FIRST_COLOR;
     do {
-      /* TODO more accurate transform. */
+      /* TODO: more accurate transform. */
       srgb_to_linearrgb_v4(color, color);
       color += 4;
     } while (color <= gb->UBO_LAST_COLOR);
@@ -291,7 +291,7 @@ DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
 
 /* ******************************************** COLOR UTILS ************************************ */
 
-/* TODO FINISH */
+/* TODO: FINISH. */
 /**
  * Get the wire color theme_id of an object based on its state
  * \a r_color is a way to get a pointer to the static color var associated
@@ -304,7 +304,7 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
   /* confusing logic here, there are 2 methods of setting the color
    * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.
    *
-   * note: no theme yet for 'colindex' */
+   * NOTE: no theme yet for 'colindex'. */
   int theme_id = is_edit ? TH_WIRE_EDIT : TH_WIRE;
 
   if (is_edit) {

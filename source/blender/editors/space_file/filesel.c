@@ -118,7 +118,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
     asset_params = sfile->asset_params = MEM_callocN(sizeof(*asset_params),
                                                      "FileAssetSelectParams");
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
-    asset_params->asset_library.type = FILE_ASSET_LIBRARY_LOCAL;
+    asset_params->asset_library.type = ASSET_LIBRARY_LOCAL;
     asset_params->asset_library.custom_library_index = -1;
     asset_params->import_type = FILE_ASSET_IMPORT_APPEND;
   }
@@ -126,7 +126,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
   FileSelectParams *base_params = &asset_params->base_params;
   base_params->file[0] = '\0';
   base_params->filter_glob[0] = '\0';
-  /* TODO this way of using filters to form categories is notably slower than specifying a
+  /* TODO: this way of using filters to form categories is notably slower than specifying a
    * "group" to read. That's because all types are read and filtering is applied afterwards. Would
    * be nice if we could lazy-read individual groups. */
   base_params->flag |= U_default.file_space_data.flag | FILE_ASSETS_ONLY | FILE_FILTER;
@@ -378,7 +378,7 @@ FileSelectParams *ED_fileselect_ensure_active_params(SpaceFile *sfile)
       return &sfile->asset_params->base_params;
   }
 
-  BLI_assert(!"Invalid browse mode set in file space.");
+  BLI_assert_msg(0, "Invalid browse mode set in file space.");
   return NULL;
 }
 
@@ -399,7 +399,7 @@ FileSelectParams *ED_fileselect_get_active_params(const SpaceFile *sfile)
       return (FileSelectParams *)sfile->asset_params;
   }
 
-  BLI_assert(!"Invalid browse mode set in file space.");
+  BLI_assert_msg(0, "Invalid browse mode set in file space.");
   return NULL;
 }
 
@@ -420,26 +420,26 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   bUserAssetLibrary *user_library = NULL;
 
   /* Ensure valid repository, or fall-back to local one. */
-  if (library->type == FILE_ASSET_LIBRARY_CUSTOM) {
+  if (library->type == ASSET_LIBRARY_CUSTOM) {
     BLI_assert(library->custom_library_index >= 0);
 
     user_library = BKE_preferences_asset_library_find_from_index(&U,
                                                                  library->custom_library_index);
     if (!user_library) {
-      library->type = FILE_ASSET_LIBRARY_LOCAL;
+      library->type = ASSET_LIBRARY_LOCAL;
     }
   }
 
   switch (library->type) {
-    case FILE_ASSET_LIBRARY_LOCAL:
+    case ASSET_LIBRARY_LOCAL:
       base_params->dir[0] = '\0';
       break;
-    case FILE_ASSET_LIBRARY_CUSTOM:
+    case ASSET_LIBRARY_CUSTOM:
       BLI_assert(user_library);
       BLI_strncpy(base_params->dir, user_library->path, sizeof(base_params->dir));
       break;
   }
-  base_params->type = (library->type == FILE_ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET : FILE_LOADLIB;
+  base_params->type = (library->type == ASSET_LIBRARY_LOCAL) ? FILE_MAIN_ASSET : FILE_LOADLIB;
 }
 
 void fileselect_refresh_params(SpaceFile *sfile)
@@ -1047,7 +1047,7 @@ FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *region)
  * Support updating the directory even when this isn't the active space
  * needed so RNA properties update function isn't context sensitive, see T70255.
  */
-void ED_file_change_dir_ex(bContext *C, bScreen *screen, ScrArea *area)
+void ED_file_change_dir_ex(bContext *C, ScrArea *area)
 {
   /* May happen when manipulating non-active spaces. */
   if (UNLIKELY(area->spacetype != SPACE_FILE)) {
@@ -1057,10 +1057,7 @@ void ED_file_change_dir_ex(bContext *C, bScreen *screen, ScrArea *area)
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   if (params) {
     wmWindowManager *wm = CTX_wm_manager(C);
-    Scene *scene = WM_windows_scene_get_from_screen(wm, screen);
-    if (LIKELY(scene != NULL)) {
-      ED_fileselect_clear(wm, scene, sfile);
-    }
+    ED_fileselect_clear(wm, sfile);
 
     /* Clear search string, it is very rare to want to keep that filter while changing dir,
      * and usually very annoying to keep it actually! */
@@ -1085,9 +1082,17 @@ void ED_file_change_dir_ex(bContext *C, bScreen *screen, ScrArea *area)
 
 void ED_file_change_dir(bContext *C)
 {
-  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
-  ED_file_change_dir_ex(C, screen, area);
+  ED_file_change_dir_ex(C, area);
+}
+
+void file_select_deselect_all(SpaceFile *sfile, uint flag)
+{
+  FileSelection sel;
+  sel.first = 0;
+  sel.last = filelist_files_ensure(sfile->files) - 1;
+
+  filelist_entries_select_index_range_set(sfile->files, &sel, FILE_SEL_REMOVE, flag, CHECK_ALL);
 }
 
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file)
@@ -1183,11 +1188,11 @@ int autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
   return match;
 }
 
-void ED_fileselect_clear(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfile)
+void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
 {
   /* only NULL in rare cases - T29734. */
   if (sfile->files) {
-    filelist_readjob_stop(wm, owner_scene);
+    filelist_readjob_stop(sfile->files, wm);
     filelist_freelib(sfile->files);
     filelist_clear(sfile->files);
   }
@@ -1197,7 +1202,7 @@ void ED_fileselect_clear(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfi
   WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 
-void ED_fileselect_exit(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfile)
+void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
 {
   if (!sfile) {
     return;
@@ -1224,11 +1229,70 @@ void ED_fileselect_exit(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfil
   folder_history_list_free(sfile);
 
   if (sfile->files) {
-    ED_fileselect_clear(wm, owner_scene, sfile);
+    ED_fileselect_clear(wm, sfile);
     filelist_free(sfile->files);
     MEM_freeN(sfile->files);
     sfile->files = NULL;
   }
+}
+
+void file_params_smoothscroll_timer_clear(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
+{
+  WM_event_remove_timer(wm, win, sfile->smoothscroll_timer);
+  sfile->smoothscroll_timer = NULL;
+}
+
+/**
+ * Set the renaming-state to #FILE_PARAMS_RENAME_POSTSCROLL_PENDING and trigger the smooth-scroll
+ * timer. To be used right after a file was renamed.
+ * Note that the caller is responsible for setting the correct rename-file info
+ * (#FileSelectParams.renamefile or #FileSelectParams.rename_id).
+ */
+void file_params_invoke_rename_postscroll(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
+{
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_PENDING;
+
+  if (sfile->smoothscroll_timer != NULL) {
+    file_params_smoothscroll_timer_clear(wm, win, sfile);
+  }
+  sfile->smoothscroll_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 1000.0);
+  sfile->scroll_offset = 0;
+}
+
+/**
+ * To be executed whenever renaming ends (successfully or not).
+ */
+void file_params_rename_end(wmWindowManager *wm,
+                            wmWindow *win,
+                            SpaceFile *sfile,
+                            FileDirEntry *rename_file)
+{
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  filelist_entry_select_set(
+      sfile->files, rename_file, FILE_SEL_REMOVE, FILE_SEL_EDITING, CHECK_ALL);
+
+  /* Ensure smooth-scroll timer is active, even if not needed, because that way rename state is
+   * handled properly. */
+  file_params_invoke_rename_postscroll(wm, win, sfile);
+  /* Also always activate the rename file, even if renaming was cancelled. */
+  file_params_renamefile_activate(sfile, params);
+}
+
+void file_params_renamefile_clear(FileSelectParams *params)
+{
+  params->renamefile[0] = '\0';
+  params->rename_id = NULL;
+  params->rename_flag = 0;
+}
+
+static int file_params_find_renamed(const FileSelectParams *params, struct FileList *filelist)
+{
+  /* Find the file either through the local ID/asset it represents or its relative path. */
+  return (params->rename_id != NULL) ? filelist_file_find_id(filelist, params->rename_id) :
+                                       filelist_file_find_path(filelist, params->renamefile);
 }
 
 /**
@@ -1244,28 +1308,33 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
     return;
   }
 
-  BLI_assert(params->renamefile[0] != '\0');
+  BLI_assert(params->renamefile[0] != '\0' || params->rename_id != NULL);
 
-  const int idx = filelist_file_findpath(sfile->files, params->renamefile);
+  const int idx = file_params_find_renamed(params, sfile->files);
   if (idx >= 0) {
     FileDirEntry *file = filelist_file(sfile->files, idx);
     BLI_assert(file != NULL);
+
+    params->active_file = idx;
+    filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 
     if ((params->rename_flag & FILE_PARAMS_RENAME_PENDING) != 0) {
       filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_EDITING, CHECK_ALL);
       params->rename_flag = FILE_PARAMS_RENAME_ACTIVE;
     }
     else if ((params->rename_flag & FILE_PARAMS_RENAME_POSTSCROLL_PENDING) != 0) {
-      filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_HIGHLIGHTED, CHECK_ALL);
-      params->renamefile[0] = '\0';
+      file_select_deselect_all(sfile, FILE_SEL_SELECTED);
+      filelist_entry_select_set(
+          sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED | FILE_SEL_HIGHLIGHTED, CHECK_ALL);
+      params->active_file = idx;
+      file_params_renamefile_clear(params);
       params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE;
     }
   }
   /* File listing is now async, only reset renaming if matching entry is not found
    * when file listing is not done. */
   else if (filelist_is_ready(sfile->files)) {
-    params->renamefile[0] = '\0';
-    params->rename_flag = 0;
+    file_params_renamefile_clear(params);
   }
 }
 

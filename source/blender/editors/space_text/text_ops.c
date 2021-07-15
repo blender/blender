@@ -745,7 +745,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT); /* XXX TODO, relative_path. */
+                                 FILE_SORT_DEFAULT); /* XXX TODO: relative_path. */
 }
 
 /** \} */
@@ -3468,7 +3468,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int ret;
 
-  /* Note, the "text" property is always set from key-map,
+  /* NOTE: the "text" property is always set from key-map,
    * so we can't use #RNA_struct_property_is_set, check the length instead. */
   if (!RNA_string_length(op->ptr, "text")) {
     /* if alt/ctrl/super are pressed pass through except for utf8 character event

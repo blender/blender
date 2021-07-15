@@ -102,7 +102,7 @@ int info_report_mask(const SpaceInfo *UNUSED(sinfo))
 
 static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  /* TODO, get this working again! */
+  /* TODO: get this working again! */
 #if 0
   SpaceInfo *sc = CTX_wm_space_info(C);
   ReportList *reports = CTX_wm_reports(C);

@@ -64,7 +64,7 @@
 #if 0 /* UNUSED */
 /* gzip the file in from and write it to "to".
  * return -1 if zlib fails, -2 if the originating file does not exist
- * note: will remove the "from" file
+ * NOTE: will remove the "from" file
  */
 int BLI_file_gzip(const char *from, const char *to)
 {
@@ -355,7 +355,7 @@ void *BLI_gzopen(const char *filename, const char *mode)
 
   BLI_assert(!BLI_path_is_rel(filename));
 
-  /* xxx Creates file before transcribing the path */
+  /* XXX: Creates file before transcribing the path. */
   if (mode[0] == 'w') {
     FILE *file = ufopen(filename, "a");
     if (file == NULL) {

@@ -12,12 +12,11 @@ MultiThreadedOperation::MultiThreadedOperation()
 
 void MultiThreadedOperation::update_memory_buffer(MemoryBuffer *output,
                                                   const rcti &area,
-                                                  Span<MemoryBuffer *> inputs,
-                                                  ExecutionSystem &exec_system)
+                                                  Span<MemoryBuffer *> inputs)
 {
   for (current_pass_ = 0; current_pass_ < num_passes_; current_pass_++) {
     update_memory_buffer_started(output, area, inputs);
-    exec_system.execute_work(area, [=](const rcti &split_rect) {
+    exec_system_->execute_work(area, [=](const rcti &split_rect) {
       update_memory_buffer_partial(output, split_rect, inputs);
     });
     update_memory_buffer_finished(output, area, inputs);

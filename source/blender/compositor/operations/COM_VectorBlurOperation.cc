@@ -432,7 +432,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
     }
   }
 
-  /* 2: evaluate horizontal scanlines and calculate alphas */
+  /* 2: evaluate horizontal scan-lines and calculate alphas. */
   row1 = rectmove;
   for (y = 0; y < ysize; y++) {
     row1++;
@@ -449,7 +449,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
           /* now we can blend values */
           next = row1[step];
 
-          /* note, prev value can be next value, but we do this loop to clear 128 then */
+          /* NOTE: prev value can be next value, but we do this loop to clear 128 then. */
           for (a = 0; a < step; a++) {
             int fac, mfac;
 
@@ -463,7 +463,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
     }
   }
 
-  /* 3: evaluate vertical scanlines and calculate alphas */
+  /* 3: evaluate vertical scan-lines and calculate alphas */
   /*    use for reading a copy of the original tagged buffer */
   for (x = 0; x < xsize; x++) {
     row1 = rectmove + x + xsize;
@@ -480,7 +480,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
         if (y + step != ysize) {
           /* now we can blend values */
           next = row1[step * xsize];
-          /* note, prev value can be next value, but we do this loop to clear 128 then */
+          /* NOTE: prev value can be next value, but we do this loop to clear 128 then. */
           for (a = 0; a < step; a++) {
             int fac, mfac;
 

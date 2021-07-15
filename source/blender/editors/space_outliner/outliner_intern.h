@@ -191,7 +191,7 @@ typedef enum {
 #define OL_RNA_COL_SPACEX (UI_UNIT_X * 2.5f)
 
 /* The outliner display modes that support the filter system.
- * Note: keep it synced with space_outliner.py */
+ * NOTE: keep it synced with `space_outliner.py`. */
 #define SUPPORT_FILTER_OUTLINER(space_outliner_) \
   (ELEM((space_outliner_)->outlinevis, SO_VIEW_LAYER, SO_OVERRIDES_LIBRARY))
 

@@ -71,7 +71,7 @@ void UnitConverter::convertVector3(COLLADABU::Math::Vector3 &vec, float *v)
   v[2] = vec.z;
 }
 
-/* TODO need also for angle conversion, time conversion... */
+/* TODO: need also for angle conversion, time conversion... */
 
 void UnitConverter::dae_matrix_to_mat4_(float out[4][4], const COLLADABU::Math::Matrix4 &in)
 {

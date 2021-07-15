@@ -442,7 +442,6 @@ class OUTLINER_PT_filter(Panel):
             row.prop(space, "use_filter_lib_override_system", text="System Overrides")
 
 
-
 classes = (
     OUTLINER_HT_header,
     OUTLINER_MT_editor_menus,

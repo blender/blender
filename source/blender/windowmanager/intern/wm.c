@@ -168,7 +168,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->eventstate = NULL;
     win->cursor_keymap_status = NULL;
     win->tweak = NULL;
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__)
     win->ime_data = NULL;
 #endif
 
@@ -516,7 +516,7 @@ void WM_check(bContext *C)
   }
 
   /* Case: fileread. */
-  /* Note: this runs in background mode to set the screen context cb. */
+  /* NOTE: this runs in background mode to set the screen context cb. */
   if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
     ED_screens_init(bmain, wm);
     wm->initialized |= WM_WINDOW_IS_INIT;

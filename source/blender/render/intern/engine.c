@@ -124,7 +124,7 @@ bool RE_engine_is_external(const Render *re)
 
 bool RE_engine_is_opengl(RenderEngineType *render_type)
 {
-  /* TODO refine? Can we have ogl render engine without ogl render pipeline? */
+  /* TODO: refine? Can we have ogl render engine without ogl render pipeline? */
   return (render_type->draw_engine != NULL) && DRW_engine_render_support(render_type->draw_engine);
 }
 
@@ -310,7 +310,7 @@ RenderResult *RE_engine_begin_result(
 
   result = render_result_new(re, &disprect, RR_USE_MEM, layername, viewname);
 
-  /* todo: make this thread safe */
+  /* TODO: make this thread safe. */
 
   /* can be NULL if we CLAMP the width or height to 0 */
   if (result) {
@@ -679,7 +679,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
       DRW_render_context_enable(engine->re);
     }
 
-    DEG_evaluate_on_framechange(depsgraph, CFRA);
+    DEG_evaluate_on_framechange(depsgraph, BKE_scene_frame_get(scene));
 
     if (use_gpu_context) {
       DRW_render_context_disable(engine->re);

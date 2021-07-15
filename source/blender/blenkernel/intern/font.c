@@ -984,7 +984,7 @@ static bool vfont_to_curve(Object *ob,
         }
         if (dobreak) {
           if (tb_scale.h == 0.0f) {
-            /* Note: If underlined text is truncated away, the extra space is also truncated. */
+            /* NOTE: If underlined text is truncated away, the extra space is also truncated. */
             custrinfo[i + 1].flag |= CU_CHINFO_OVERFLOW;
           }
           goto makebreak;
@@ -1032,7 +1032,7 @@ static bool vfont_to_curve(Object *ob,
         current_line_length = 0.0f;
       }
 
-      /* XXX, has been unused for years, need to check if this is useful, r4613 r5282 - campbell */
+      /* XXX(campbell): has been unused for years, need to check if this is useful, r4613 r5282. */
 #if 0
       if (ascii == '\n') {
         xof = xof_scale;

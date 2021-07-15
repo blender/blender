@@ -128,7 +128,11 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter oiter;
   BMFace *f;
-  BMFace ***regions = NULL;
+  /* List of face arrays, the first element in each array in the length. */
+  struct {
+    BMFace **faces;
+    int faces_len;
+  } *regions = NULL, *region;
   BMFace **faces = NULL;
   BLI_array_declare(regions);
   BLI_array_declare(faces);
@@ -158,9 +162,6 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
       continue;
     }
 
-    BLI_array_clear(faces);
-    faces = NULL; /* Forces different allocation. */
-
     BMW_init(&regwalker,
              bm,
              BMW_ISLAND_MANIFOLD,
@@ -171,63 +172,71 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
              BMW_FLAG_NOP,
              BMW_NIL_LAY);
 
-    for (f_iter = BMW_begin(&regwalker, f); f_iter; f_iter = BMW_step(&regwalker)) {
-      BLI_array_append(faces, f_iter);
+    /* Check there are at least two faces before creating the array. */
+    BMFace *faces_init[2];
+    if ((faces_init[0] = BMW_begin(&regwalker, f)) && (faces_init[1] = BMW_step(&regwalker))) {
+
+      BLI_assert(BLI_array_len(faces) == 0);
+
+      BLI_array_append(faces, faces_init[0]);
+      BLI_array_append(faces, faces_init[1]);
+
+      while ((f_iter = BMW_step(&regwalker))) {
+        BLI_array_append(faces, f_iter);
+      }
+
+      for (i = 0; i < BLI_array_len(faces); i++) {
+        f_iter = faces[i];
+        BMO_face_flag_disable(bm, f_iter, FACE_TAG);
+        BMO_face_flag_enable(bm, f_iter, FACE_ORIG);
+      }
+
+      region = BLI_array_append_ret(regions);
+      region->faces = faces;
+      region->faces_len = BLI_array_len(faces);
+
+      BLI_array_clear(faces);
+      /* Forces a new allocation. */
+      faces = NULL;
     }
+
     BMW_end(&regwalker);
-
-    for (i = 0; i < BLI_array_len(faces); i++) {
-      f_iter = faces[i];
-      BMO_face_flag_disable(bm, f_iter, FACE_TAG);
-      BMO_face_flag_enable(bm, f_iter, FACE_ORIG);
-    }
-
-    if (BMO_error_occurred(bm)) {
-      BMO_error_clear(bm);
-      BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED, NULL);
-      goto cleanup;
-    }
-
-    BLI_array_append(faces, NULL);
-    BLI_array_append(regions, faces);
   }
 
   /* track how many faces we should end up with */
   int totface_target = bm->totface;
 
   for (i = 0; i < BLI_array_len(regions); i++) {
-    BMFace *f_new;
-    int tot = 0;
+    region = &regions[i];
 
-    faces = regions[i];
-    if (!faces[0]) {
-      BMO_error_raise(
-          bm, op, BMERR_DISSOLVEFACES_FAILED, "Could not find boundary of dissolve region");
-      goto cleanup;
-    }
+    const int faces_len = region->faces_len;
+    faces = region->faces;
 
-    while (faces[tot]) {
-      tot++;
-    }
-
-    f_new = BM_faces_join(bm, faces, tot, true);
-
-    if (f_new) {
-      /* maintain active face */
+    BMFace *f_new = BM_faces_join(bm, faces, faces_len, true);
+    if (f_new != NULL) {
+      /* Maintain the active face. */
       if (act_face && bm->act_face == NULL) {
         bm->act_face = f_new;
       }
-      totface_target -= tot - 1;
+      totface_target -= faces_len - 1;
+
+      /* If making the new face failed (e.g. overlapping test)
+       * un-mark the original faces for deletion. */
+      BMO_face_flag_disable(bm, f_new, FACE_ORIG);
+      BMO_face_flag_enable(bm, f_new, FACE_NEW);
     }
     else {
-      BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED, "Could not create merged face");
-      goto cleanup;
-    }
+      /* NOTE: prior to 3.0 this raised an error: "Could not create merged face".
+       * Change behavior since it's not useful to fail entirely when a single face-group
+       * can't be merged into one face. Continue with other face groups instead.
+       *
+       * This could optionally do a partial merge, where some faces are joined. */
 
-    /* if making the new face failed (e.g. overlapping test)
-     * unmark the original faces for deletion */
-    BMO_face_flag_disable(bm, f_new, FACE_ORIG);
-    BMO_face_flag_enable(bm, f_new, FACE_NEW);
+      /* Prevent these faces from being removed. */
+      for (i = 0; i < faces_len; i++) {
+        BMO_face_flag_disable(bm, faces[i], FACE_ORIG);
+      }
+    }
   }
 
   /* Typically no faces need to be deleted */
@@ -248,18 +257,13 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  if (BMO_error_occurred(bm)) {
-    goto cleanup;
-  }
+  BLI_assert(!BMO_error_occurred_at_level(bm, BMO_ERROR_FATAL));
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
 
-cleanup:
   /* free/cleanup */
   for (i = 0; i < BLI_array_len(regions); i++) {
-    if (regions[i]) {
-      MEM_freeN(regions[i]);
-    }
+    MEM_freeN(regions[i].faces);
   }
 
   BLI_array_free(regions);

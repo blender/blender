@@ -236,7 +236,7 @@ static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
       }
     }
 
-    /* TODO, only notify changes */
+    /* TODO: only notify changes. */
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
@@ -514,7 +514,7 @@ static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
     BPoint *bp;
     int a, tot;
 
-    if (BLI_listbase_is_empty(&obedit->defbase) || lt->dvert == NULL) {
+    if (BLI_listbase_is_empty(&lt->vertex_group_names) || lt->dvert == NULL) {
       continue;
     }
 

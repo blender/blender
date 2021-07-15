@@ -119,7 +119,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
 /* A vertex will be in the mask if a selected bone influences it more than a certain threshold. */
 static void compute_vertex_mask__armature_mode(MDeformVert *dvert,
-                                               Object *ob,
+                                               Mesh *mesh,
                                                Object *armature_ob,
                                                float threshold,
                                                MutableSpan<bool> r_vertex_mask)
@@ -127,7 +127,7 @@ static void compute_vertex_mask__armature_mode(MDeformVert *dvert,
   /* Element i is true if there is a selected bone that uses vertex group i. */
   Vector<bool> selected_bone_uses_group;
 
-  for (bDeformGroup *def : ListBaseWrapper<bDeformGroup>(ob->defbase)) {
+  LISTBASE_FOREACH (bDeformGroup *, def, &mesh->vertex_group_names) {
     bPoseChannel *pchan = BKE_pose_channel_find_name(armature_ob->pose, def->name);
     bool bone_for_group_exists = pchan && pchan->bone && (pchan->bone->flag & BONE_SELECTED);
     selected_bone_uses_group.append(bone_for_group_exists);
@@ -325,10 +325,9 @@ void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
  * 2. Find edges and polygons only using those vertices.
  * 3. Create a new mesh that only uses the found vertices, edges and polygons.
  */
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
 {
   MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
-  Object *ob = ctx->object;
   const bool invert_mask = mmd->flag & MOD_MASK_INV;
 
   /* Return empty or input mesh when there are no vertex groups. */
@@ -339,7 +338,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* Quick test to see if we can return early. */
   if (!(ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP)) || (mesh->totvert == 0) ||
-      BLI_listbase_is_empty(&ob->defbase)) {
+      BLI_listbase_is_empty(&mesh->vertex_group_names)) {
     return mesh;
   }
 
@@ -348,15 +347,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     Object *armature_ob = mmd->ob_arm;
 
     /* Return input mesh if there is no armature with bones. */
-    if (ELEM(NULL, armature_ob, armature_ob->pose, ob->defbase.first)) {
+    if (ELEM(NULL, armature_ob, armature_ob->pose)) {
       return mesh;
     }
 
     vertex_mask = Array<bool>(mesh->totvert);
-    compute_vertex_mask__armature_mode(dvert, ob, armature_ob, mmd->threshold, vertex_mask);
+    compute_vertex_mask__armature_mode(dvert, mesh, armature_ob, mmd->threshold, vertex_mask);
   }
   else {
-    int defgrp_index = BKE_object_defgroup_name_index(ob, mmd->vgroup);
+    int defgrp_index = BKE_id_defgroup_name_index(&mesh->id, mmd->vgroup);
 
     /* Return input mesh if the vertex group does not exist. */
     if (defgrp_index == -1) {

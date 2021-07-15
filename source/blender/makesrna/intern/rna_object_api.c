@@ -303,6 +303,9 @@ static void rna_Object_mat_convert_space(Object *ob,
 {
   copy_m4_m4((float(*)[4])mat_ret, (float(*)[4])mat);
 
+  BLI_assert(!ELEM(from, CONSTRAINT_SPACE_OWNLOCAL));
+  BLI_assert(!ELEM(to, CONSTRAINT_SPACE_OWNLOCAL));
+
   /* Error in case of invalid from/to values when pchan is NULL */
   if (pchan == NULL) {
     if (ELEM(from, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_PARLOCAL)) {

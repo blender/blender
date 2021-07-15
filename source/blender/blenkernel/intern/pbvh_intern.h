@@ -30,7 +30,7 @@ typedef struct {
   float bmin[3], bmax[3], bcentroid[3];
 } BBC;
 
-/* Note: this structure is getting large, might want to split it into
+/* NOTE: this structure is getting large, might want to split it into
  * union'd structs */
 struct PBVHNode {
   /* Opaque handle for drawing code */

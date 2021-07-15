@@ -311,7 +311,8 @@ SequencerToolSettings *SEQ_tool_settings_init(void)
   SequencerToolSettings *tool_settings = MEM_callocN(sizeof(SequencerToolSettings),
                                                      "Sequencer tool settings");
   tool_settings->fit_method = SEQ_SCALE_TO_FIT;
-  tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_PLAYHEAD | SEQ_SNAP_TO_STRIP_HOLD;
+  tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
+                             SEQ_SNAP_TO_STRIP_HOLD;
   tool_settings->snap_distance = 15;
   return tool_settings;
 }
@@ -624,7 +625,7 @@ static size_t sequencer_rna_path_prefix(char str[SEQ_RNAPATH_MAXSTR], const char
       str, SEQ_RNAPATH_MAXSTR, "sequence_editor.sequences_all[\"%s\"]", name_esc);
 }
 
-/* XXX - hackish function needed for transforming strips! TODO - have some better solution */
+/* XXX: hackish function needed for transforming strips! TODO: have some better solution. */
 void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 {
   char str[SEQ_RNAPATH_MAXSTR];
@@ -692,7 +693,7 @@ void SEQ_dupe_animdata(Scene *scene, const char *name_src, const char *name_dst)
   BLI_movelisttolist(&scene->adt->action->curves, &lb);
 }
 
-/* XXX - hackish function needed to remove all fcurves belonging to a sequencer strip */
+/* XXX: hackish function needed to remove all fcurves belonging to a sequencer strip. */
 static void seq_free_animdata(Scene *scene, Sequence *seq)
 {
   char str[SEQ_RNAPATH_MAXSTR];

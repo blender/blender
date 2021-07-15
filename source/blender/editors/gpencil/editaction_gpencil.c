@@ -513,7 +513,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 
 static bool gpencil_frame_snap_nearest(bGPDframe *UNUSED(gpf), Scene *UNUSED(scene))
 {
-#if 0 /* note: gpf->framenum is already an int! */
+#if 0 /* NOTE: gpf->framenum is already an int! */
   if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)(floor(gpf->framenum + 0.5));
   }

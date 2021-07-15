@@ -191,7 +191,7 @@ static void bm_rotate_edges_shared(
 
           edges_len_rotate += 1;
 
-          /* Note: we could validate all edges which have not been rotated
+          /* NOTE: we could validate all edges which have not been rotated
            * (not just previously degenerate edges).
            * However there is no real need -
            * they can be left until they're popped off the queue. */
@@ -234,7 +234,7 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter siter;
   BMEdge *e;
-  const int edges_len = BMO_slot_buffer_count(op->slots_in, "edges");
+  const int edges_len = BMO_slot_buffer_len(op->slots_in, "edges");
   const bool use_ccw = BMO_slot_bool_get(op->slots_in, "use_ccw");
   const bool is_single = (edges_len == 1);
   short check_flag = is_single ? BM_EDGEROT_CHECK_EXISTS :

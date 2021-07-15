@@ -367,7 +367,7 @@ void PyC_LineSpit(void)
   const char *filename;
   int lineno;
 
-  /* Note, allow calling from outside python (RNA) */
+  /* NOTE: allow calling from outside python (RNA). */
   if (!PyC_IsInterpreterActive()) {
     fprintf(stderr, "python line lookup failed, interpreter inactive\n");
     return;
@@ -381,7 +381,7 @@ void PyC_LineSpit(void)
 
 void PyC_StackSpit(void)
 {
-  /* Note, allow calling from outside python (RNA) */
+  /* NOTE: allow calling from outside python (RNA). */
   if (!PyC_IsInterpreterActive()) {
     fprintf(stderr, "python line lookup failed, interpreter inactive\n");
     return;
@@ -826,13 +826,13 @@ PyObject *PyC_UnicodeFromByte(const char *str)
 
 /*****************************************************************************
  * Description: This function creates a new Python dictionary object.
- * note: dict is owned by sys.modules["__main__"] module, reference is borrowed
- * note: important we use the dict from __main__, this is what python expects
+ * NOTE: dict is owned by sys.modules["__main__"] module, reference is borrowed
+ * NOTE: important we use the dict from __main__, this is what python expects
  * for 'pickle' to work as well as strings like this...
  * >> foo = 10
  * >> print(__import__("__main__").foo)
  *
- * note: this overwrites __main__ which gives problems with nested calls.
+ * NOTE: this overwrites __main__ which gives problems with nested calls.
  * be sure to run PyC_MainModule_Backup & PyC_MainModule_Restore if there is
  * any chance that python is in the call stack.
  ****************************************************************************/
@@ -846,7 +846,7 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
   PyModule_AddStringConstant(mod_main, "__name__", "__main__");
   if (filename) {
     /* __file__ mainly for nice UI'ness
-     * note: this won't map to a real file when executing text-blocks and buttons. */
+     * NOTE: this won't map to a real file when executing text-blocks and buttons. */
     PyModule_AddObject(mod_main, "__file__", PyC_UnicodeFromByte(filename));
   }
   PyModule_AddObject(mod_main, "__builtins__", builtins);

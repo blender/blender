@@ -593,7 +593,7 @@ void ED_object_parent_clear(Object *ob, const int type)
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 }
 
-/* note, poll should check for editable scene */
+/* NOTE: poll should check for editable scene. */
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -791,8 +791,8 @@ bool ED_object_parent_set(ReportList *reports,
        * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL,
        * creating the virtual modifiers.
        */
-      ob->partype = PAROBJECT;     /* Note: DNA define, not operator property. */
-      /* ob->partype = PARSKEL; */ /* Note: DNA define, not operator property. */
+      ob->partype = PAROBJECT;     /* NOTE: DNA define, not operator property. */
+      /* ob->partype = PARSKEL; */ /* NOTE: DNA define, not operator property. */
 
       /* BUT, to keep the deforms, we need a modifier,
        * and then we need to set the object that it uses
@@ -837,14 +837,14 @@ bool ED_object_parent_set(ReportList *reports,
       }
       break;
     case PAR_BONE:
-      ob->partype = PARBONE; /* Note: DNA define, not operator property. */
+      ob->partype = PARBONE; /* NOTE: DNA define, not operator property. */
       if (pchan->bone) {
         pchan->bone->flag &= ~BONE_RELATIVE_PARENTING;
         pchan_eval->bone->flag &= ~BONE_RELATIVE_PARENTING;
       }
       break;
     case PAR_BONE_RELATIVE:
-      ob->partype = PARBONE; /* Note: DNA define, not operator property. */
+      ob->partype = PARBONE; /* NOTE: DNA define, not operator property. */
       if (pchan->bone) {
         pchan->bone->flag |= BONE_RELATIVE_PARENTING;
         pchan_eval->bone->flag |= BONE_RELATIVE_PARENTING;
@@ -860,7 +860,7 @@ bool ED_object_parent_set(ReportList *reports,
       break;
     case PAR_OBJECT:
     case PAR_FOLLOW:
-      ob->partype = PAROBJECT; /* Note: DNA define, not operator property. */
+      ob->partype = PAROBJECT; /* NOTE: DNA define, not operator property. */
       break;
   }
 
@@ -1248,7 +1248,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 
         /* set parenting type for object - object only... */
         ob->parent = par;
-        ob->partype = PAROBJECT; /* note, dna define, not operator property */
+        ob->partype = PAROBJECT; /* NOTE: DNA define, not operator property. */
       }
     }
   }
@@ -1298,7 +1298,7 @@ static const EnumPropertyItem prop_clear_track_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* note, poll should check for editable scene */
+/* NOTE: poll should check for editable scene. */
 static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2022,7 +2022,7 @@ static void single_obdata_users(
             break;
           default:
             printf("ERROR %s: can't copy %s\n", __func__, id->name);
-            BLI_assert(!"This should never happen.");
+            BLI_assert_msg(0, "This should never happen.");
 
             /* We need to end the FOREACH_OBJECT_FLAG_BEGIN iterator to prevent memory leak. */
             BKE_scene_objects_iterator_end(&iter_macro);
@@ -2056,6 +2056,23 @@ static void single_object_action_users(
     if (!ID_IS_LINKED(ob)) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       BKE_animdata_copy_id_action(bmain, &ob->id);
+    }
+  }
+  FOREACH_OBJECT_FLAG_END;
+}
+
+static void single_objectdata_action_users(
+    Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d, const int flag)
+{
+  FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
+    if (!ID_IS_LINKED(ob) && ob->data != NULL) {
+      ID *id_obdata = (ID *)ob->data;
+      AnimData *adt = BKE_animdata_from_id(id_obdata);
+      ID *id_act = (ID *)adt->action;
+      if (id_act && id_act->us > 1) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+        BKE_animdata_copy_id_action(bmain, id_obdata);
+      }
     }
   }
   FOREACH_OBJECT_FLAG_END;
@@ -2236,7 +2253,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "type");
   int a;
 
-  /* Note: we (ab)use LIB_TAG_PRE_EXISTING to cherry pick which ID to make local... */
+  /* NOTE: we (ab)use LIB_TAG_PRE_EXISTING to cherry pick which ID to make local... */
   if (mode == MAKE_LOCAL_ALL) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Collection *collection = CTX_data_collection(C);
@@ -2643,6 +2660,10 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
     single_object_action_users(bmain, scene, view_layer, v3d, flag);
   }
 
+  if (RNA_boolean_get(op->ptr, "obdata_animation")) {
+    single_objectdata_action_users(bmain, scene, view_layer, v3d, flag);
+  }
+
   BKE_main_id_newptr_and_tag_clear(bmain);
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -2684,8 +2705,16 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "object", 0, "Object", "Make single user objects");
   RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");
   RNA_def_boolean(ot->srna, "material", 0, "Materials", "Make materials local to each data-block");
-  RNA_def_boolean(
-      ot->srna, "animation", 0, "Object Animation", "Make animation data local to each object");
+  RNA_def_boolean(ot->srna,
+                  "animation",
+                  0,
+                  "Object Animation",
+                  "Make object animation data local to each object");
+  RNA_def_boolean(ot->srna,
+                  "obdata_animation",
+                  0,
+                  "Object Data Animation",
+                  "Make object data (mesh, curve etc.) animation data local to each object");
 }
 
 /** \} */

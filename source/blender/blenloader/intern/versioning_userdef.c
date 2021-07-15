@@ -894,6 +894,7 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
+    BKE_addon_ensure(&userdef->addons, "pose_library");
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {

@@ -144,7 +144,7 @@ wmDrag *WM_event_start_drag(
   wmWindowManager *wm = CTX_wm_manager(C);
   wmDrag *drag = MEM_callocN(sizeof(struct wmDrag), "new drag");
 
-  /* keep track of future multitouch drag too, add a mousepointer id or so */
+  /* Keep track of future multi-touch drag too, add a mouse-pointer id or so. */
   /* if multiple drags are added, they're drawn as list */
 
   BLI_addtail(&wm->drags, drag);
@@ -321,7 +321,7 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
       return;
     }
     if (GS(drag_id->id->name) != GS(id->name)) {
-      BLI_assert(!"All dragged IDs must have the same type");
+      BLI_assert_msg(0, "All dragged IDs must have the same type");
       return;
     }
   }

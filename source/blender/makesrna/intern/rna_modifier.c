@@ -602,6 +602,7 @@ const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
 
 #  include "BKE_cachefile.h"
 #  include "BKE_context.h"
+#  include "BKE_deform.h"
 #  include "BKE_mesh_runtime.h"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
@@ -690,6 +691,7 @@ static void rna_Modifier_is_active_set(PointerRNA *ptr, bool value)
     }
 
     md->flag |= eModifierFlag_Active;
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
   }
 }
 
@@ -1249,12 +1251,13 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 #  endif
 
     if (ob_src) {
-      bDeformGroup *dg;
+      const bDeformGroup *dg;
       int i;
 
       RNA_enum_item_add_separator(&item, &totitem);
 
-      for (i = 0, dg = ob_src->defbase.first; dg; i++, dg = dg->next) {
+      const ListBase *defbase = BKE_object_defgroup_list(ob_src);
+      for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
         tmp_item.value = i;
         tmp_item.identifier = tmp_item.name = dg->name;
         RNA_enum_item_add(&item, &totitem, &tmp_item);
@@ -1348,12 +1351,13 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
       if (ob_dst) {
-        bDeformGroup *dg;
+        const bDeformGroup *dg;
         int i;
 
         RNA_enum_item_add_separator(&item, &totitem);
 
-        for (i = 0, dg = ob_dst->defbase.first; dg; i++, dg = dg->next) {
+        const ListBase *defbase = BKE_object_defgroup_list(ob_dst);
+        for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
           tmp_item.value = i;
           tmp_item.identifier = tmp_item.name = dg->name;
           RNA_enum_item_add(&item, &totitem, &tmp_item);
@@ -1617,15 +1621,11 @@ static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, Point
   MOD_nodes_update_interface(object, nmd);
 }
 
-static IDProperty *rna_NodesModifier_properties(PointerRNA *ptr, bool create)
+static IDProperty **rna_NodesModifier_properties(PointerRNA *ptr)
 {
   NodesModifierData *nmd = ptr->data;
   NodesModifierSettings *settings = &nmd->settings;
-  if (create && settings->properties == NULL) {
-    IDPropertyTemplate val = {0};
-    settings->properties = IDP_New(IDP_GROUP, &val, "Nodes Modifier Settings");
-  }
-  return settings->properties;
+  return &settings->properties;
 }
 #else
 
@@ -2256,7 +2256,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  /* Note, keep in sync with operator 'MESH_OT_decimate' */
+  /* NOTE: keep in sync with operator 'MESH_OT_decimate'. */
 
   StructRNA *srna;
   PropertyRNA *prop;

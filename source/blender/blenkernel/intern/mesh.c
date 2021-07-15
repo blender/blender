@@ -39,6 +39,7 @@
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
@@ -125,6 +126,8 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   mesh_dst->mat = MEM_dupallocN(mesh_src->mat);
 
+  BKE_defgroup_copy_list(&mesh_dst->vertex_group_names, &mesh_src->vertex_group_names);
+
   const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
   CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, alloc_type, mesh_dst->totvert);
   CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, alloc_type, mesh_dst->totedge);
@@ -143,7 +146,7 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   mesh_dst->mselect = MEM_dupallocN(mesh_dst->mselect);
 
-  /* TODO Do we want to add flag to prevent this? */
+  /* TODO: Do we want to add flag to prevent this? */
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &mesh_src->key->id, (ID **)&mesh_dst->key, flag);
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
@@ -154,6 +157,8 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 static void mesh_free_data(ID *id)
 {
   Mesh *mesh = (Mesh *)id;
+
+  BLI_freelistN(&mesh->vertex_group_names);
 
   BKE_mesh_runtime_clear_cache(mesh);
   mesh_clear_geometry(mesh);
@@ -229,6 +234,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_animdata_blend_write(writer, mesh->adt);
     }
 
+    BKE_defbase_blend_write(writer, &mesh->vertex_group_names);
+
     BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
     BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
@@ -288,6 +295,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   /* Normally BKE_defvert_blend_read should be called in CustomData_blend_read,
    * but for backwards compatibility in do_versions to work we do it here. */
   BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
+  BLO_read_list(reader, &mesh->vertex_group_names);
 
   CustomData_blend_read(reader, &mesh->vdata, mesh->totvert);
   CustomData_blend_read(reader, &mesh->edata, mesh->totedge);
@@ -657,12 +665,12 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 
       CustomData_from_bmeshpoly(&me->fdata, &me->ldata, me->totface);
 
-      /* TODO - add some --debug-mesh option */
+      /* TODO: add some `--debug-mesh` option. */
       if (G.debug & G_DEBUG) {
-        /* note: this warning may be un-called for if we are initializing the mesh for the
-         * first time from bmesh, rather than giving a warning about this we could be smarter
+        /* NOTE(campbell): this warning may be un-called for if we are initializing the mesh for
+         * the first time from #BMesh, rather than giving a warning about this we could be smarter
          * and check if there was any data to begin with, for now just print the warning with
-         * some info to help troubleshoot what's going on - campbell */
+         * some info to help troubleshoot what's going on. */
         printf(
             "%s: warning! Tessellation uvs or vcol data got out of sync, "
             "had to reset!\n    CD_MTFACE: %d != CD_MLOOPUV: %d || CD_MCOL: %d != CD_MLOOPCOL: "
@@ -923,6 +931,8 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   me_dst->texflag = me_src->texflag;
   copy_v3_v3(me_dst->loc, me_src->loc);
   copy_v3_v3(me_dst->size, me_src->size);
+
+  me_dst->vertex_group_active_index = me_src->vertex_group_active_index;
 }
 
 /**
@@ -937,6 +947,10 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   BLI_assert(me_dst->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE));
 
   BKE_mesh_copy_parameters(me_dst, me_src);
+
+  /* Copy vertex group names. */
+  BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
+  BKE_defgroup_copy_list(&me_dst->vertex_group_names, &me_src->vertex_group_names);
 
   /* Copy materials. */
   if (me_dst->mat != NULL) {
@@ -2126,7 +2140,7 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
     }
   }
 
-  /* Note: after this point mesh is expected to be valid again. */
+  /* NOTE: after this point mesh is expected to be valid again. */
 
   /* CD_NORMAL is expected to be temporary only. */
   if (free_loop_normals) {

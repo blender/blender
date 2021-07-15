@@ -766,7 +766,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_DYNTOPO_BEGIN:
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-        BLI_assert(!"Dynamic topology should've already been handled");
+        BLI_assert_msg(0, "Dynamic topology should've already been handled");
         break;
     }
   }
@@ -1065,7 +1065,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-      BLI_assert(!"Dynamic topology should've already been handled");
+      BLI_assert_msg(0, "Dynamic topology should've already been handled");
     case SCULPT_UNDO_GEOMETRY:
     case SCULPT_UNDO_FACE_SETS:
       break;
@@ -1355,7 +1355,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-      BLI_assert(!"Dynamic topology should've already been handled");
+      BLI_assert_msg(0, "Dynamic topology should've already been handled");
     case SCULPT_UNDO_GEOMETRY:
     case SCULPT_UNDO_FACE_SETS:
       break;
@@ -1432,7 +1432,7 @@ void SCULPT_undo_push_end_ex(const bool use_nested_undo)
 
 typedef struct SculptUndoStep {
   UndoStep step;
-  /* Note: will split out into list for multi-object-sculpt-mode. */
+  /* NOTE: will split out into list for multi-object-sculpt-mode. */
   UndoSculpt data;
 } SculptUndoStep;
 
@@ -1549,7 +1549,7 @@ static void sculpt_undosys_step_decode(
         ED_object_mode_generic_exit(bmain, depsgraph, scene, ob);
 
         /* Sculpt needs evaluated state.
-         * Note: needs to be done here, as #ED_object_mode_generic_exit will usually invalidate
+         * NOTE: needs to be done here, as #ED_object_mode_generic_exit will usually invalidate
          * (some) evaluated data. */
         BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
@@ -1608,7 +1608,7 @@ void ED_sculpt_undosys_type(UndoType *ut)
   ut->step_decode = sculpt_undosys_step_decode;
   ut->step_free = sculpt_undosys_step_free;
 
-  ut->flags = 0;
+  ut->flags = UNDOTYPE_FLAG_DECODE_ACTIVE_STEP;
 
   ut->step_size = sizeof(SculptUndoStep);
 }

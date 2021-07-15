@@ -68,7 +68,7 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 /* -----------------------------METHODS---------------------------- */
 
-/* note: BaseMath_ReadCallback must be called beforehand */
+/* NOTE: BaseMath_ReadCallback must be called beforehand. */
 static PyObject *Color_ToTupleExt(ColorObject *self, int ndigits)
 {
   PyObject *ret;
@@ -570,7 +570,7 @@ static PyObject *Color_mul(PyObject *v1, PyObject *v2)
     }
   }
   else {
-    BLI_assert(!"internal error");
+    BLI_assert_msg(0, "internal error");
   }
 
   PyErr_Format(PyExc_TypeError,

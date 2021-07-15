@@ -113,7 +113,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
       /* This image is already located on the file system.
        * But we want to create copies here.
        * To move images into the same export directory.
-       * Note: If an image is already located in the export folder,
+       * NOTE: If an image is already located in the export folder,
        * then skip the copy (as it would result in a file copy error). */
 
       if (BLI_path_cmp(source_path, export_path) != 0) {

@@ -38,8 +38,8 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * \param timerProc: The callback invoked when the interval expires.
    * \param userData: The timer user data.
    */
-  GHOST_TimerTask(GHOST_TUns64 start,
-                  GHOST_TUns64 interval,
+  GHOST_TimerTask(uint64_t start,
+                  uint64_t interval,
                   GHOST_TimerProcPtr timerProc,
                   GHOST_TUserDataPtr userData = NULL)
       : m_start(start),
@@ -55,7 +55,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * Returns the timer start time.
    * \return The timer start time.
    */
-  inline GHOST_TUns64 getStart() const
+  inline uint64_t getStart() const
   {
     return m_start;
   }
@@ -64,7 +64,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * Changes the timer start time.
    * \param start: The timer start time.
    */
-  void setStart(GHOST_TUns64 start)
+  void setStart(uint64_t start)
   {
     m_start = start;
   }
@@ -73,7 +73,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * Returns the timer interval.
    * \return The timer interval.
    */
-  inline GHOST_TUns64 getInterval() const
+  inline uint64_t getInterval() const
   {
     return m_interval;
   }
@@ -82,7 +82,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * Changes the timer interval.
    * \param interval: The timer interval.
    */
-  void setInterval(GHOST_TUns64 interval)
+  void setInterval(uint64_t interval)
   {
     m_interval = interval;
   }
@@ -91,7 +91,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * Returns the time the timerProc will be called.
    * \return The time the timerProc will be called.
    */
-  inline GHOST_TUns64 getNext() const
+  inline uint64_t getNext() const
   {
     return m_next;
   }
@@ -100,7 +100,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * Changes the time the timerProc will be called.
    * \param next: The time the timerProc will be called.
    */
-  void setNext(GHOST_TUns64 next)
+  void setNext(uint64_t next)
   {
     m_next = next;
   }
@@ -145,7 +145,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * Returns the auxiliary storage room.
    * \return The auxiliary storage room.
    */
-  inline GHOST_TUns32 getAuxData() const
+  inline uint32_t getAuxData() const
   {
     return m_auxData;
   }
@@ -154,20 +154,20 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
    * Changes the auxiliary storage room.
    * \param auxData: The auxiliary storage room.
    */
-  void setAuxData(GHOST_TUns32 auxData)
+  void setAuxData(uint32_t auxData)
   {
     m_auxData = auxData;
   }
 
  protected:
   /** The time the timer task was started. */
-  GHOST_TUns64 m_start;
+  uint64_t m_start;
 
   /** The interval between calls. */
-  GHOST_TUns64 m_interval;
+  uint64_t m_interval;
 
   /** The time the timerProc will be called. */
-  GHOST_TUns64 m_next;
+  uint64_t m_next;
 
   /** The callback invoked when the timer expires. */
   GHOST_TimerProcPtr m_timerProc;
@@ -176,5 +176,5 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
   GHOST_TUserDataPtr m_userData;
 
   /** Auxiliary storage room. */
-  GHOST_TUns32 m_auxData;
+  uint32_t m_auxData;
 };

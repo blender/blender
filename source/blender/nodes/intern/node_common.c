@@ -127,7 +127,7 @@ static bNodeSocket *group_verify_socket(
   bNodeSocket *sock;
 
   for (sock = verify_lb->first; sock; sock = sock->next) {
-    if (sock->typeinfo == iosock->typeinfo && STREQ(sock->identifier, iosock->identifier)) {
+    if (STREQ(sock->identifier, iosock->identifier)) {
       break;
     }
   }
@@ -136,6 +136,13 @@ static bNodeSocket *group_verify_socket(
 
     const int mask = SOCK_HIDE_VALUE;
     sock->flag = (sock->flag & ~mask) | (iosock->flag & mask);
+
+    /* Update socket type if necessary */
+    if (sock->typeinfo != iosock->typeinfo) {
+      nodeModifySocketType(ntree, gnode, sock, iosock->idname);
+      /* Flag the tree to make sure link validity is updated after type changes. */
+      ntree->update |= NTREE_UPDATE_LINKS;
+    }
 
     if (iosock->typeinfo->interface_verify_socket) {
       iosock->typeinfo->interface_verify_socket(ntree, iosock, gnode, sock, "interface");
@@ -259,7 +266,7 @@ static void node_reroute_update_internal_links(bNodeTree *ntree, bNode *node)
 
 static void node_reroute_init(bNodeTree *ntree, bNode *node)
 {
-  /* Note: Cannot use socket templates for this, since it would reset the socket type
+  /* NOTE: Cannot use socket templates for this, since it would reset the socket type
    * on each file read via the template verification procedure.
    */
   nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "Input", "Input");

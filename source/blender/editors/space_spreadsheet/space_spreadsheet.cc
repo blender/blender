@@ -222,24 +222,11 @@ ID *ED_spreadsheet_get_current_id(const struct SpaceSpreadsheet *sspreadsheet)
 static void update_pinned_context_path_if_outdated(const bContext *C)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-
-  /* Currently, this only checks if the object has been deleted. In the future we can have a more
-   * sophisticated check for the entire context (including modifier and nodes). */
-  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-    if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
-      SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
-      if (object_context->object == nullptr) {
-        ED_spreadsheet_context_path_clear(sspreadsheet);
-        break;
-      }
-    }
-  }
-  if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
-    Object *active_object = CTX_data_active_object(C);
-    if (active_object != nullptr) {
-      SpreadsheetContext *new_context = spreadsheet_context_new(SPREADSHEET_CONTEXT_OBJECT);
-      ((SpreadsheetContextObject *)new_context)->object = active_object;
-      BLI_addtail(&sspreadsheet->context_path, new_context);
+  Main *bmain = CTX_data_main(C);
+  if (!ED_spreadsheet_context_path_exists(bmain, sspreadsheet)) {
+    ED_spreadsheet_context_path_guess(C, sspreadsheet);
+    if (ED_spreadsheet_context_path_update_tag(sspreadsheet)) {
+      ED_area_tag_redraw(CTX_wm_area(C));
     }
   }
 
@@ -252,24 +239,11 @@ static void update_pinned_context_path_if_outdated(const bContext *C)
 static void update_context_path_from_context(const bContext *C)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  Object *active_object = CTX_data_active_object(C);
-  if (active_object == nullptr) {
-    ED_spreadsheet_context_path_clear(sspreadsheet);
-    return;
-  }
-  if (!BLI_listbase_is_empty(&sspreadsheet->context_path)) {
-    SpreadsheetContext *root_context = (SpreadsheetContext *)sspreadsheet->context_path.first;
-    if (root_context->type == SPREADSHEET_CONTEXT_OBJECT) {
-      SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)root_context;
-      if (object_context->object != active_object) {
-        ED_spreadsheet_context_path_clear(sspreadsheet);
-      }
+  if (!ED_spreadsheet_context_path_is_active(C, sspreadsheet)) {
+    ED_spreadsheet_context_path_guess(C, sspreadsheet);
+    if (ED_spreadsheet_context_path_update_tag(sspreadsheet)) {
+      ED_area_tag_redraw(CTX_wm_area(C));
     }
-  }
-  if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
-    SpreadsheetContext *new_context = spreadsheet_context_new(SPREADSHEET_CONTEXT_OBJECT);
-    ((SpreadsheetContextObject *)new_context)->object = active_object;
-    BLI_addtail(&sspreadsheet->context_path, new_context);
   }
 }
 

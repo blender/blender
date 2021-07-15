@@ -83,7 +83,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
     return;
   }
 
-  BLI_assert(!"IDType Missing IDTypeInfo");
+  BLI_assert_msg(0, "IDType Missing IDTypeInfo");
 }
 
 /**
@@ -277,7 +277,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
 
         for (id = lb->first; id; id = id_next) {
           id_next = id->next;
-          /* Note: in case we delete a library, we also delete all its datablocks! */
+          /* NOTE: in case we delete a library, we also delete all its datablocks! */
           if ((id->tag & tag) || (id->lib != NULL && (id->lib->id.tag & tag))) {
             BLI_remlink(lb, id);
             BLI_addtail(&tagged_deleted_ids, id);
@@ -331,7 +331,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
 
       for (id = lb->first; id; id = id_next) {
         id_next = id->next;
-        /* Note: in case we delete a library, we also delete all its datablocks! */
+        /* NOTE: in case we delete a library, we also delete all its datablocks! */
         if ((id->tag & tag) || (id->lib != NULL && (id->lib->id.tag & tag))) {
           id->tag |= tag;
 

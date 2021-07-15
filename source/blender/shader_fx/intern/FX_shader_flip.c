@@ -65,8 +65,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
-  uiItemR(row, ptr, "flip_horizontal", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "flip_vertical", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_flip_x", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_flip_y", toggles_flag, NULL, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }

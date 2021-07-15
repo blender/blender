@@ -427,7 +427,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     }
   }
 
-  /* Build up offset array, cumulating all settings options */
+  /* Build up offset array, accumulating all settings options. */
 
   unit_m4(offset);
   src_mvert = mesh->mvert;

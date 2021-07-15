@@ -87,12 +87,14 @@ static void greasepencil_copy_data(Main *UNUSED(bmain),
     gpd_dst->mat = MEM_dupallocN(gpd_src->mat);
   }
 
+  BKE_defgroup_copy_list(&gpd_dst->vertex_group_names, &gpd_src->vertex_group_names);
+
   /* copy layers */
   BLI_listbase_clear(&gpd_dst->layers);
   LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
     /* make a copy of source layer and its data */
 
-    /* TODO here too could add unused flags... */
+    /* TODO: here too could add unused flags... */
     bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src, true, true);
 
     /* Apply local layer transform to all frames. Calc the active frame is not enough
@@ -165,6 +167,8 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
       BKE_animdata_blend_write(writer, gpd->adt);
     }
 
+    BKE_defbase_blend_write(writer, &gpd->vertex_group_names);
+
     BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
 
     /* write grease-pencil layers to file */
@@ -226,6 +230,8 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
       BLO_read_list(reader, &palette->colors);
     }
   }
+
+  BLO_read_list(reader, &gpd->vertex_group_names);
 
   /* Materials. */
   BLO_read_pointer_array(reader, (void **)&gpd->mat);
@@ -497,6 +503,8 @@ void BKE_gpencil_free(bGPdata *gpd, bool free_all)
 
   /* materials */
   MEM_SAFE_FREE(gpd->mat);
+
+  BLI_freelistN(&gpd->vertex_group_names);
 
   /* free all data */
   if (free_all) {
@@ -796,32 +804,6 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 /* ************************************************** */
 /* Primitive Creation */
 /* Utilities for easier bulk-creation of geometry */
-
-/**
- * Populate stroke with point data from data buffers.
- * \param gps: Grease pencil stroke
- * \param array: Flat array of point data values. Each entry has #GP_PRIM_DATABUF_SIZE values.
- * \param totpoints: Total of points
- * \param mat: 4x4 transform matrix to transform points into the right coordinate space.
- */
-void BKE_gpencil_stroke_add_points(bGPDstroke *gps,
-                                   const float *array,
-                                   const int totpoints,
-                                   const float mat[4][4])
-{
-  for (int i = 0; i < totpoints; i++) {
-    bGPDspoint *pt = &gps->points[i];
-    const int x = GP_PRIM_DATABUF_SIZE * i;
-
-    pt->x = array[x];
-    pt->y = array[x + 1];
-    pt->z = array[x + 2];
-    mul_m4_v3(mat, &pt->x);
-
-    pt->pressure = array[x + 3];
-    pt->strength = array[x + 4];
-  }
-}
 
 /**
  * Create a new stroke, with pre-allocated data buffers.
@@ -2087,8 +2069,9 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
   bGPdata *gpd = ob->data;
   MDeformVert *dvert = NULL;
-  const int def_nr = BLI_findindex(&ob->defbase, defgroup);
-  const int totgrp = BLI_listbase_count(&ob->defbase);
+
+  const int def_nr = BLI_findindex(&gpd->vertex_group_names, defgroup);
+  const int totgrp = BLI_listbase_count(&gpd->vertex_group_names);
 
   /* Remove points data */
   if (gpd) {
@@ -2117,7 +2100,7 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
   }
 
   /* Remove the group */
-  BLI_freelinkN(&ob->defbase, defgroup);
+  BLI_freelinkN(&gpd->vertex_group_names, defgroup);
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 }
 
@@ -2694,19 +2677,57 @@ static bool gpencil_is_layer_mask(ViewLayer *view_layer, bGPdata *gpd, bGPDlayer
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Iterators
+/** \name Iterator
+ *
+ * Iterate over all visible stroke of all visible layers inside a grease pencil datablock.
+ * \{ */
+
+void BKE_gpencil_visible_stroke_iter(bGPdata *gpd,
+                                     gpIterCb layer_cb,
+                                     gpIterCb stroke_cb,
+                                     void *thunk)
+{
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+
+    if (gpl->flag & GP_LAYER_HIDE) {
+      continue;
+    }
+
+    /* If scale to 0 the layer must be invisible. */
+    if (is_zero_v3(gpl->scale)) {
+      continue;
+    }
+
+    bGPDframe *act_gpf = gpl->actframe;
+    if (layer_cb) {
+      layer_cb(gpl, act_gpf, NULL, thunk);
+    }
+
+    if (act_gpf) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &act_gpf->strokes) {
+        if (gps->totpoints == 0) {
+          continue;
+        }
+        stroke_cb(gpl, act_gpf, gps, thunk);
+      }
+    }
+  }
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Advanced Iterator
  *
  * Iterate over all visible stroke of all visible layers inside a gpObject.
  * Also take into account onion-skinning.
  * \{ */
 
-void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
-                                     Object *ob,
-                                     gpIterCb layer_cb,
-                                     gpIterCb stroke_cb,
-                                     void *thunk,
-                                     bool do_onion,
-                                     int cfra)
+void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
+                                              Object *ob,
+                                              gpIterCb layer_cb,
+                                              gpIterCb stroke_cb,
+                                              void *thunk,
+                                              bool do_onion,
+                                              int cfra)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = ((GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) && (!GPENCIL_PLAY_ON(gpd)));

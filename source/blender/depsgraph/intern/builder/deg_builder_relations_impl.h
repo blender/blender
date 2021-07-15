@@ -54,7 +54,7 @@ Relation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
   }
   else {
     if (!op_from) {
-      /* XXX TODO handle as error or report if needed */
+      /* XXX TODO: handle as error or report if needed. */
       fprintf(stderr,
               "add_relation(%s) - Could not find op_from (%s)\n",
               description,
@@ -67,7 +67,7 @@ Relation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
               key_from.identifier().c_str());
     }
     if (!op_to) {
-      /* XXX TODO handle as error or report if needed */
+      /* XXX TODO: handle as error or report if needed. */
       fprintf(stderr,
               "add_relation(%s) - Could not find op_to (%s)\n",
               description,

@@ -25,6 +25,7 @@ IDMaskOperation::IDMaskOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
   this->flags.complex = true;
+  flags.can_be_constant = true;
 }
 
 void *IDMaskOperation::initializeTileData(rcti *rect)

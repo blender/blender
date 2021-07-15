@@ -205,11 +205,18 @@ static void bakeModifier(Main *UNUSED(bmain),
   }
 
   if (!gpd->runtime.lineart_cache) {
+    /* Only calculate for this modifier, thus no need to get maximum values from all line art
+     * modifiers in the stack. */
+    lmd->edge_types_override = lmd->edge_types;
+    lmd->level_end_override = lmd->level_end;
+
     MOD_lineart_compute_feature_lines(depsgraph, lmd, &gpd->runtime.lineart_cache);
     MOD_lineart_destroy_render_data(lmd);
   }
 
   generate_strokes_actual(md, depsgraph, ob, gpl, gpf);
+
+  MOD_lineart_clear_cache(&gpd->runtime.lineart_cache);
 }
 
 static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
@@ -331,7 +338,7 @@ static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
-  const bool use_cache = RNA_boolean_get(ptr, "use_cached_result");
+  const bool use_cache = RNA_boolean_get(ptr, "use_cache");
   const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
 
   uiLayoutSetEnabled(layout, !is_baked);

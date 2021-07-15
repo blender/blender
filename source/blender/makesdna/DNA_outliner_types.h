@@ -106,7 +106,7 @@ typedef enum eTreeStoreElemType {
   TSE_R_LAYER = 20,
   /* TSE_R_PASS          = 21, */ /* UNUSED */
   /* TSE_LINKED_MAT = 22, */
-  /* NOTE, is used for light group */
+  /* NOTE: is used for light group. */
   /* TSE_LINKED_LAMP = 23, */
   TSE_POSEGRP_BASE = 24,
   TSE_POSEGRP = 25,

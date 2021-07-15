@@ -55,7 +55,7 @@ static float bm_vert_edge_face_angle(BMVert *v,
 #define ANGLE_TO_UNIT (1.0f / UNIT_TO_ANGLE)
 
   const float angle = BM_vert_calc_edge_angle(v);
-  /* note: could be either edge, it doesn't matter */
+  /* NOTE: could be either edge, it doesn't matter. */
   if (v->e && BM_edge_is_manifold(v->e)) {
     /* Checking delimited is important here,
      * otherwise the boundary between two materials for e.g.
@@ -375,9 +375,6 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
               BLI_heap_node_value_update(eheap, eheap_table[j], cost);
             }
           } while ((l_iter = l_iter->next) != l_first);
-        }
-        else {
-          BMO_error_clear(bm);
         }
       }
 

@@ -150,7 +150,9 @@ class ExecutionSystem {
    */
   ExecutionModel *execution_model_;
 
- private:  // methods
+  ThreadMutex work_mutex_;
+  ThreadCondition work_finished_cond_;
+
  public:
   /**
    * \brief Create a new ExecutionSystem and initialize it with the
@@ -198,6 +200,8 @@ class ExecutionSystem {
   }
 
   void execute_work(const rcti &work_rect, std::function<void(const rcti &split_rect)> work_func);
+
+  bool is_breaked() const;
 
  private:
   /* allow the DebugInfo class to look at internals */

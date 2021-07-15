@@ -1522,8 +1522,8 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   pt = gps->points;
   point2D = (tGPspoint *)tgpf->sbuffer;
 
-  const int def_nr = tgpf->ob->actdef - 1;
-  const bool have_weight = (bool)BLI_findlink(&tgpf->ob->defbase, def_nr);
+  const int def_nr = tgpf->gpd->vertex_group_active_index - 1;
+  const bool have_weight = (bool)BLI_findlink(&tgpf->gpd->vertex_group_names, def_nr);
 
   if ((ts->gpencil_flags & GP_TOOL_FLAG_CREATE_WEIGHTS) && (have_weight)) {
     BKE_gpencil_dvert_ensure(gps);
@@ -1625,7 +1625,7 @@ static void gpencil_draw_boundary_lines(const bContext *UNUSED(C), tGPDfill *tgp
 static void gpencil_fill_draw_3d(const bContext *C, ARegion *UNUSED(region), void *arg)
 {
   tGPDfill *tgpf = (tGPDfill *)arg;
-  /* draw only in the region that originated operator. This is required for multiwindow */
+  /* Draw only in the region that originated operator. This is required for multi-window. */
   ARegion *region = CTX_wm_region(C);
   if (region != tgpf->region) {
     return;

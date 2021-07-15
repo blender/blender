@@ -26,6 +26,7 @@ ExposureOperation::ExposureOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
   this->m_inputProgram = nullptr;
+  flags.can_be_constant = true;
 }
 
 void ExposureOperation::initExecution()
@@ -50,6 +51,19 @@ void ExposureOperation::executePixelSampled(float output[4],
   output[2] = inputValue[2] * exposure;
 
   output[3] = inputValue[3];
+}
+
+void ExposureOperation::update_memory_buffer_row(PixelCursor &p)
+{
+  for (; p.out < p.row_end; p.next()) {
+    const float *in_value = p.ins[0];
+    const float *in_exposure = p.ins[1];
+    const float exposure = pow(2, in_exposure[0]);
+    p.out[0] = in_value[0] * exposure;
+    p.out[1] = in_value[1] * exposure;
+    p.out[2] = in_value[2] * exposure;
+    p.out[3] = in_value[3];
+  }
 }
 
 void ExposureOperation::deinitExecution()

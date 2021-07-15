@@ -17,7 +17,7 @@
 /** \file
  * \ingroup bmesh
  *
- * Edgenet Fill.
+ * Edge-net Fill.
  */
 
 #include <limits.h>

@@ -204,6 +204,7 @@ extern const EnumPropertyItem rna_enum_node_vec_math_items[];
 extern const EnumPropertyItem rna_enum_node_boolean_math_items[];
 extern const EnumPropertyItem rna_enum_node_float_compare_items[];
 extern const EnumPropertyItem rna_enum_node_filter_items[];
+extern const EnumPropertyItem rna_enum_node_float_to_int_items[];
 extern const EnumPropertyItem rna_enum_node_map_range_items[];
 extern const EnumPropertyItem rna_enum_node_clamp_items[];
 
@@ -243,6 +244,22 @@ extern const EnumPropertyItem rna_enum_attribute_domain_with_auto_items[];
 extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(struct ID *id, bool *r_free);
 
 extern const EnumPropertyItem rna_enum_collection_color_items[];
+
+/**
+ * For ID filters (#FILTER_ID_AC, #FILTER_ID_AR, ...) an int isn't enough. This version allows 64
+ * bit integers. So can't use the regular #EnumPropertyItem. Would be nice if RNA supported this
+ * itself.
+ *
+ * Meant to be used with #RNA_def_property_boolean_sdna() which supports 64 bit flags as well.
+ */
+struct IDFilterEnumPropertyItem {
+  const uint64_t flag;
+  const char *identifier;
+  const int icon;
+  const char *name;
+  const char *description;
+};
+extern const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[];
 
 /* API calls */
 int rna_node_tree_type_to_enum(struct bNodeTreeType *typeinfo);

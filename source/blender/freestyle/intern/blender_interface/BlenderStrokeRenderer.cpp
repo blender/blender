@@ -671,7 +671,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 
       visible = false;
 
-      // Note: Mesh generation in the following loop assumes stroke strips
+      // NOTE: Mesh generation in the following loop assumes stroke strips
       // to be triangle strips.
       for (int n = 2; n < strip_vertex_count; n++, v[0]++, v[1]++, v[2]++) {
         svRep[0] = *(v[0]);

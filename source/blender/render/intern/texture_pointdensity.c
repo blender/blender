@@ -169,7 +169,7 @@ static void pointdensity_cache_psys(
   ParticleCacheKey *cache;
   ParticleSimulationData sim = {NULL};
   ParticleData *pa = NULL;
-  float cfra = BKE_scene_frame_get(scene);
+  float cfra = BKE_scene_ctime_get(scene);
   int i /*, Childexists*/ /* UNUSED */;
   int total_particles;
   int data_used;
@@ -347,9 +347,9 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
   if (!mdef) {
     return;
   }
-  mdef_index = BKE_object_defgroup_name_index(ob, pd->vertex_attribute_name);
+  mdef_index = BKE_id_defgroup_name_index(&mesh->id, pd->vertex_attribute_name);
   if (mdef_index < 0) {
-    mdef_index = ob->actdef - 1;
+    mdef_index = BKE_object_defgroup_active_index_get(ob) - 1;
   }
   if (mdef_index < 0) {
     return;
@@ -782,7 +782,7 @@ static void particle_system_minmax(Depsgraph *depsgraph,
                                    float max[3])
 {
   const float size[3] = {radius, radius, radius};
-  const float cfra = BKE_scene_frame_get(scene);
+  const float cfra = BKE_scene_ctime_get(scene);
   ParticleSettings *part = psys->part;
   ParticleSimulationData sim = {NULL};
   ParticleData *pa = NULL;

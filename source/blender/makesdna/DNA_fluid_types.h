@@ -544,7 +544,7 @@ typedef struct FluidDomainSettings {
   int boundary_width;     /* Usually this is just 1. */
   float gravity_final[3]; /* Scene or domain gravity multiplied with gravity weight. */
 
-  /* -- User-accesible fields (from here on). -- */
+  /* -- User-accessible fields (from here on). -- */
 
   /* Adaptive domain options. */
   int adapt_margin;
@@ -640,7 +640,7 @@ typedef struct FluidDomainSettings {
 
   /* Fluid guiding options. */
   float guide_alpha;      /* Guiding weight scalar (determines strength). */
-  int guide_beta;         /* Guiding blur radius (affects size of vortices). */
+  int guide_beta;         /* Guiding blur radius (affects size of vortices vortices). */
   float guide_vel_factor; /* Multiply guiding velocity by this factor. */
   int guide_res[3];       /* Res for velocity guide grids - independent from base res. */
   short guide_source;
@@ -790,7 +790,7 @@ typedef struct FluidFlowSettings {
   float vel_coord[3];
   char _pad1[4];
 
-  /* -- User-accesible fields (from here on). -- */
+  /* -- User-accessible fields (from here on). -- */
 
   /* Emission. */
   float density;
@@ -856,7 +856,7 @@ typedef struct FluidEffectorSettings {
   float *verts_old;
   int numverts;
 
-  /* -- User-accesible fields (from here on). -- */
+  /* -- User-accessible fields (from here on). -- */
 
   float surface_distance; /* Thickness of mesh surface, used in obstacle sdf. */
   int flags;

@@ -96,7 +96,7 @@ extern GHOST_TSuccess GHOST_DisposeEventConsumer(GHOST_EventConsumerHandle consu
  * \param systemhandle: The handle to the system.
  * \return The number of milliseconds.
  */
-extern GHOST_TUns64 GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle);
+extern uint64_t GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle);
 
 /**
  * Installs a timer.
@@ -110,8 +110,8 @@ extern GHOST_TUns64 GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle);
  * \return A timer task (0 if timer task installation failed).
  */
 extern GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
-                                                GHOST_TUns64 delay,
-                                                GHOST_TUns64 interval,
+                                                uint64_t delay,
+                                                uint64_t interval,
                                                 GHOST_TimerProcPtr timerProc,
                                                 GHOST_TUserDataPtr userData);
 
@@ -133,7 +133,7 @@ extern GHOST_TSuccess GHOST_RemoveTimer(GHOST_SystemHandle systemhandle,
  * \param systemhandle: The handle to the system.
  * \return The number of displays.
  */
-extern GHOST_TUns8 GHOST_GetNumDisplays(GHOST_SystemHandle systemhandle);
+extern uint8_t GHOST_GetNumDisplays(GHOST_SystemHandle systemhandle);
 
 /**
  * Returns the dimensions of the main display on this system.
@@ -142,8 +142,8 @@ extern GHOST_TUns8 GHOST_GetNumDisplays(GHOST_SystemHandle systemhandle);
  * \param height: A pointer the height gets put in.
  */
 extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
-                                           GHOST_TUns32 *width,
-                                           GHOST_TUns32 *height);
+                                           uint32_t *width,
+                                           uint32_t *height);
 
 /**
  * Returns the dimensions of all displays combine
@@ -154,8 +154,8 @@ extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param height: A pointer the height gets put in.
  */
 extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
-                                          GHOST_TUns32 *width,
-                                          GHOST_TUns32 *height);
+                                          uint32_t *width,
+                                          uint32_t *height);
 
 /**
  * Create a new window.
@@ -178,10 +178,10 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              GHOST_WindowHandle parent_windowhandle,
                                              const char *title,
-                                             GHOST_TInt32 left,
-                                             GHOST_TInt32 top,
-                                             GHOST_TUns32 width,
-                                             GHOST_TUns32 height,
+                                             int32_t left,
+                                             int32_t top,
+                                             uint32_t width,
+                                             uint32_t height,
                                              GHOST_TWindowState state,
                                              bool is_dialog,
                                              GHOST_TDrawingContextType type,
@@ -360,13 +360,13 @@ extern GHOST_TSuccess GHOST_HasCursorShape(GHOST_WindowHandle windowhandle,
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
-                                                 GHOST_TUns8 *bitmap,
-                                                 GHOST_TUns8 *mask,
+                                                 uint8_t *bitmap,
+                                                 uint8_t *mask,
                                                  int sizex,
                                                  int sizey,
                                                  int hotX,
                                                  int hotY,
-                                                 GHOST_TUns8 canInvertColor);
+                                                 bool canInvertColor);
 
 /**
  * Returns the visibility state of the cursor.
@@ -391,8 +391,8 @@ extern GHOST_TSuccess GHOST_SetCursorVisibility(GHOST_WindowHandle windowhandle,
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle,
-                                              GHOST_TInt32 *x,
-                                              GHOST_TInt32 *y);
+                                              int32_t *x,
+                                              int32_t *y);
 
 /**
  * Updates the location of the cursor (location in screen coordinates).
@@ -403,8 +403,8 @@ extern GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle,
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
-                                              GHOST_TInt32 x,
-                                              GHOST_TInt32 y);
+                                              int32_t x,
+                                              int32_t y);
 
 /**
  * Grabs the cursor for a modal operation, to keep receiving
@@ -467,7 +467,7 @@ extern void GHOST_setNDOFDeadZone(float deadzone);
 /**
  * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
  */
-extern void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, GHOST_TInt8 canAccept);
+extern void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, bool canAccept);
 
 /**
  * Returns the event type.
@@ -481,7 +481,7 @@ extern GHOST_TEventType GHOST_GetEventType(GHOST_EventHandle eventhandle);
  * \param eventhandle: The handle to the event.
  * \return The event generation time.
  */
-extern GHOST_TUns64 GHOST_GetEventTime(GHOST_EventHandle eventhandle);
+extern uint64_t GHOST_GetEventTime(GHOST_EventHandle eventhandle);
 
 /**
  * Returns the window this event was generated on,
@@ -507,7 +507,7 @@ extern GHOST_TimerProcPtr GHOST_GetTimerProc(GHOST_TimerTaskHandle timertaskhand
 
 /**
  * Changes the timer callback.
- * \param timertaskhandle: The handle to the timertask.
+ * \param timertaskhandle: The handle to the timer-task.
  * \param timerProc: The timer callback.
  */
 extern void GHOST_SetTimerProc(GHOST_TimerTaskHandle timertaskhandle,
@@ -515,14 +515,14 @@ extern void GHOST_SetTimerProc(GHOST_TimerTaskHandle timertaskhandle,
 
 /**
  * Returns the timer user data.
- * \param timertaskhandle: The handle to the timertask.
+ * \param timertaskhandle: The handle to the timer-task.
  * \return The timer user data.
  */
 extern GHOST_TUserDataPtr GHOST_GetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle);
 
 /**
  * Changes the time user data.
- * \param timertaskhandle: The handle to the timertask.
+ * \param timertaskhandle: The handle to the timer-task.
  * \param userdata: The timer user data.
  */
 extern void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle,
@@ -595,7 +595,7 @@ void GHOST_DisposeRectangle(GHOST_RectangleHandle rectanglehandle);
  * \param width: The new width of the client area of the window.
  * \return Indication of success.
  */
-extern GHOST_TSuccess GHOST_SetClientWidth(GHOST_WindowHandle windowhandle, GHOST_TUns32 width);
+extern GHOST_TSuccess GHOST_SetClientWidth(GHOST_WindowHandle windowhandle, uint32_t width);
 
 /**
  * Resizes client rectangle height.
@@ -603,7 +603,7 @@ extern GHOST_TSuccess GHOST_SetClientWidth(GHOST_WindowHandle windowhandle, GHOS
  * \param height: The new height of the client area of the window.
  * \return Indication of success.
  */
-extern GHOST_TSuccess GHOST_SetClientHeight(GHOST_WindowHandle windowhandle, GHOST_TUns32 height);
+extern GHOST_TSuccess GHOST_SetClientHeight(GHOST_WindowHandle windowhandle, uint32_t height);
 
 /**
  * Resizes client rectangle.
@@ -613,8 +613,8 @@ extern GHOST_TSuccess GHOST_SetClientHeight(GHOST_WindowHandle windowhandle, GHO
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetClientSize(GHOST_WindowHandle windowhandle,
-                                          GHOST_TUns32 width,
-                                          GHOST_TUns32 height);
+                                          uint32_t width,
+                                          uint32_t height);
 
 /**
  * Converts a point in screen coordinates to client rectangle coordinates
@@ -624,11 +624,8 @@ extern GHOST_TSuccess GHOST_SetClientSize(GHOST_WindowHandle windowhandle,
  * \param outX: The x-coordinate in the client rectangle.
  * \param outY: The y-coordinate in the client rectangle.
  */
-extern void GHOST_ScreenToClient(GHOST_WindowHandle windowhandle,
-                                 GHOST_TInt32 inX,
-                                 GHOST_TInt32 inY,
-                                 GHOST_TInt32 *outX,
-                                 GHOST_TInt32 *outY);
+extern void GHOST_ScreenToClient(
+    GHOST_WindowHandle windowhandle, int32_t inX, int32_t inY, int32_t *outX, int32_t *outY);
 
 /**
  * Converts a point in screen coordinates to client rectangle coordinates
@@ -638,11 +635,8 @@ extern void GHOST_ScreenToClient(GHOST_WindowHandle windowhandle,
  * \param outX: The x-coordinate on the screen.
  * \param outY: The y-coordinate on the screen.
  */
-extern void GHOST_ClientToScreen(GHOST_WindowHandle windowhandle,
-                                 GHOST_TInt32 inX,
-                                 GHOST_TInt32 inY,
-                                 GHOST_TInt32 *outX,
-                                 GHOST_TInt32 *outY);
+extern void GHOST_ClientToScreen(
+    GHOST_WindowHandle windowhandle, int32_t inX, int32_t inY, int32_t *outX, int32_t *outY);
 
 /**
  * Returns the state of the window (normal, minimized, maximized).
@@ -667,7 +661,7 @@ extern GHOST_TSuccess GHOST_SetWindowState(GHOST_WindowHandle windowhandle,
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle,
-                                                   GHOST_TUns8 isUnsavedChanges);
+                                                   bool isUnsavedChanges);
 
 /**
  * Sets the order of the window (bottom, top).
@@ -758,14 +752,14 @@ extern void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI
  * \param rectanglehandle: The handle to the rectangle.
  * \return width of the rectangle
  */
-extern GHOST_TInt32 GHOST_GetWidthRectangle(GHOST_RectangleHandle rectanglehandle);
+extern int32_t GHOST_GetWidthRectangle(GHOST_RectangleHandle rectanglehandle);
 
 /**
  * Access to rectangle height.
  * \param rectanglehandle: The handle to the rectangle.
  * \return height of the rectangle
  */
-extern GHOST_TInt32 GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehandle);
+extern int32_t GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehandle);
 
 /**
  * Gets all members of the rectangle.
@@ -775,11 +769,8 @@ extern GHOST_TInt32 GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehand
  * \param r: Pointer to return right coordinate in.
  * \param b: Pointer to return bottom coordinate in.
  */
-extern void GHOST_GetRectangle(GHOST_RectangleHandle rectanglehandle,
-                               GHOST_TInt32 *l,
-                               GHOST_TInt32 *t,
-                               GHOST_TInt32 *r,
-                               GHOST_TInt32 *b);
+extern void GHOST_GetRectangle(
+    GHOST_RectangleHandle rectanglehandle, int32_t *l, int32_t *t, int32_t *r, int32_t *b);
 
 /**
  * Sets all members of the rectangle.
@@ -789,11 +780,8 @@ extern void GHOST_GetRectangle(GHOST_RectangleHandle rectanglehandle,
  * \param r: requested right coordinate of the rectangle.
  * \param b: requested bottom coordinate of the rectangle.
  */
-extern void GHOST_SetRectangle(GHOST_RectangleHandle rectanglehandle,
-                               GHOST_TInt32 l,
-                               GHOST_TInt32 t,
-                               GHOST_TInt32 r,
-                               GHOST_TInt32 b);
+extern void GHOST_SetRectangle(
+    GHOST_RectangleHandle rectanglehandle, int32_t l, int32_t t, int32_t r, int32_t b);
 
 /**
  * Returns whether this rectangle is empty.
@@ -818,7 +806,7 @@ extern GHOST_TSuccess GHOST_IsValidRectangle(GHOST_RectangleHandle rectanglehand
  * \param rectanglehandle: The handle to the rectangle.
  * \param i: The amount of offset given to each extreme (negative values shrink the rectangle).
  */
-extern void GHOST_InsetRectangle(GHOST_RectangleHandle rectanglehandle, GHOST_TInt32 i);
+extern void GHOST_InsetRectangle(GHOST_RectangleHandle rectanglehandle, int32_t i);
 
 /**
  * Does a union of the rectangle given and this rectangle.
@@ -835,9 +823,7 @@ extern void GHOST_UnionRectangle(GHOST_RectangleHandle rectanglehandle,
  * \param x: The x-coordinate of the point.
  * \param y: The y-coordinate of the point.
  */
-extern void GHOST_UnionPointRectangle(GHOST_RectangleHandle rectanglehandle,
-                                      GHOST_TInt32 x,
-                                      GHOST_TInt32 y);
+extern void GHOST_UnionPointRectangle(GHOST_RectangleHandle rectanglehandle, int32_t x, int32_t y);
 
 /**
  * Returns whether the point is inside this rectangle.
@@ -848,8 +834,8 @@ extern void GHOST_UnionPointRectangle(GHOST_RectangleHandle rectanglehandle,
  * \return Success value (true if point is inside).
  */
 extern GHOST_TSuccess GHOST_IsInsideRectangle(GHOST_RectangleHandle rectanglehandle,
-                                              GHOST_TInt32 x,
-                                              GHOST_TInt32 y);
+                                              int32_t x,
+                                              int32_t y);
 
 /**
  * Returns whether the rectangle is inside this rectangle.
@@ -868,8 +854,8 @@ extern GHOST_TVisibility GHOST_GetRectangleVisibility(
  * \param cy: Requested center y-coordinate of the rectangle.
  */
 extern void GHOST_SetCenterRectangle(GHOST_RectangleHandle rectanglehandle,
-                                     GHOST_TInt32 cx,
-                                     GHOST_TInt32 cy);
+                                     int32_t cx,
+                                     int32_t cy);
 
 /**
  * Sets rectangle members.
@@ -881,11 +867,8 @@ extern void GHOST_SetCenterRectangle(GHOST_RectangleHandle rectanglehandle,
  * \param w: requested width of the rectangle.
  * \param h: requested height of the rectangle.
  */
-extern void GHOST_SetRectangleCenter(GHOST_RectangleHandle rectanglehandle,
-                                     GHOST_TInt32 cx,
-                                     GHOST_TInt32 cy,
-                                     GHOST_TInt32 w,
-                                     GHOST_TInt32 h);
+extern void GHOST_SetRectangleCenter(
+    GHOST_RectangleHandle rectanglehandle, int32_t cx, int32_t cy, int32_t w, int32_t h);
 
 /**
  * Clips a rectangle.
@@ -903,14 +886,14 @@ extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
  * \param selection: Boolean to return the selection instead, X11 only feature.
  * \return clipboard data
  */
-extern GHOST_TUns8 *GHOST_getClipboard(int selection);
+extern char *GHOST_getClipboard(bool selection);
 
 /**
  * Put data to the Clipboard
  * \param buffer: the string buffer to set.
  * \param selection: Set the selection instead, X11 only feature.
  */
-extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
+extern void GHOST_putClipboard(const char *buffer, bool selection);
 
 /**
  * Toggles console
@@ -942,7 +925,7 @@ extern float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle);
 /**
  * Returns the suggested DPI for this window.
  */
-extern GHOST_TUns16 GHOST_GetDPIHint(GHOST_WindowHandle windowhandle);
+extern uint16_t GHOST_GetDPIHint(GHOST_WindowHandle windowhandle);
 
 /**
  * Enable IME attached to the given window, i.e. allows user-input
@@ -956,12 +939,8 @@ extern GHOST_TUns16 GHOST_GetDPIHint(GHOST_WindowHandle windowhandle);
  * - true:  Start a new composition.
  * - false: Move the IME windows to the given position without finishing it.
  */
-extern void GHOST_BeginIME(GHOST_WindowHandle windowhandle,
-                           GHOST_TInt32 x,
-                           GHOST_TInt32 y,
-                           GHOST_TInt32 w,
-                           GHOST_TInt32 h,
-                           int complete);
+extern void GHOST_BeginIME(
+    GHOST_WindowHandle windowhandle, int32_t x, int32_t y, int32_t w, int32_t h, bool complete);
 /**
  * Disable the IME attached to the given window, i.e. prohibits any user-input
  * events from being dispatched to the IME.
@@ -1076,7 +1055,7 @@ void GHOST_XrDestroyActionSet(GHOST_XrContextHandle xr_context, const char *acti
  */
 int GHOST_XrCreateActions(GHOST_XrContextHandle xr_context,
                           const char *action_set_name,
-                          GHOST_TUns32 count,
+                          uint32_t count,
                           const GHOST_XrActionInfo *infos);
 
 /**
@@ -1084,7 +1063,7 @@ int GHOST_XrCreateActions(GHOST_XrContextHandle xr_context,
  */
 void GHOST_XrDestroyActions(GHOST_XrContextHandle xr_context,
                             const char *action_set_name,
-                            GHOST_TUns32 count,
+                            uint32_t count,
                             const char *const *action_names);
 
 /**
@@ -1092,7 +1071,7 @@ void GHOST_XrDestroyActions(GHOST_XrContextHandle xr_context,
  */
 int GHOST_XrCreateActionSpaces(GHOST_XrContextHandle xr_context,
                                const char *action_set_name,
-                               GHOST_TUns32 count,
+                               uint32_t count,
                                const GHOST_XrActionSpaceInfo *infos);
 
 /**
@@ -1100,7 +1079,7 @@ int GHOST_XrCreateActionSpaces(GHOST_XrContextHandle xr_context,
  */
 void GHOST_XrDestroyActionSpaces(GHOST_XrContextHandle xr_context,
                                  const char *action_set_name,
-                                 GHOST_TUns32 count,
+                                 uint32_t count,
                                  const GHOST_XrActionSpaceInfo *infos);
 
 /**
@@ -1108,7 +1087,7 @@ void GHOST_XrDestroyActionSpaces(GHOST_XrContextHandle xr_context,
  */
 int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_context,
                                  const char *action_set_name,
-                                 GHOST_TUns32 count,
+                                 uint32_t count,
                                  const GHOST_XrActionProfileInfo *infos);
 
 /**
@@ -1116,7 +1095,7 @@ int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_context,
  */
 void GHOST_XrDestroyActionBindings(GHOST_XrContextHandle xr_context,
                                    const char *action_set_name,
-                                   GHOST_TUns32 count,
+                                   uint32_t count,
                                    const GHOST_XrActionProfileInfo *infos);
 
 /**
@@ -1138,7 +1117,7 @@ int GHOST_XrSyncActions(GHOST_XrContextHandle xr_context, const char *action_set
 int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_context,
                               const char *action_set_name,
                               const char *action_name,
-                              const GHOST_TInt64 *duration,
+                              const int64_t *duration,
                               const float *frequency,
                               const float *amplitude);
 

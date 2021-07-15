@@ -83,8 +83,8 @@ static float bezier_handle_calc_length_v3(const float co_a[3],
   float fac = 1.333333f;
   float len;
   if (dot < 0.0f) {
-    /* scale down to 0.666 if we point directly at each other rough but ok */
-    /* TODO, current blend from dot may not be optimal but its also a detail */
+    /* Scale down to 0.666 if we point directly at each other rough but ok. */
+    /* TODO: current blend from dot may not be optimal but its also a detail. */
     const float t = 1.0f + dot;
     fac = (fac * t) + (0.75f * (1.0f - t));
   }
@@ -821,7 +821,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
  */
 static void bm_face_slice(BMesh *bm, BMLoop *l, const int cuts)
 {
-  /* TODO, interpolate edge data */
+  /* TODO: interpolate edge data. */
   BMLoop *l_new = l;
   int i;
 
@@ -1143,7 +1143,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
   count = BM_mesh_edgeloops_find(bm, &eloops_rim, bm_edge_rim_test_cb, (void *)bm);
 
   if (count < 2) {
-    BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "No edge rings found");
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "No edge rings found");
     goto cleanup;
   }
   else if (count == 2) {
@@ -1167,7 +1167,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
       changed = true;
     }
     else {
-      BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Edge-ring pair isn't connected");
+      BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Edge-ring pair isn't connected");
       goto cleanup;
     }
   }
@@ -1179,7 +1179,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
     LoopPairStore **lpair_arr;
 
     if (eloop_pairs_gs == NULL) {
-      BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Edge-rings are not connected");
+      BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Edge-rings are not connected");
       goto cleanup;
     }
 

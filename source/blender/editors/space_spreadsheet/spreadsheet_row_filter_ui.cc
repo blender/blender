@@ -267,20 +267,20 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
   }
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
-    Panel *panel = (Panel *)region->panels.first;
+    Panel *panel_iter = (Panel *)region->panels.first;
     LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, row_filters) {
 
       /* Move to the next instanced panel corresponding to the next filter. */
-      while ((panel->type == nullptr) || !(panel->type->flag & PANEL_TYPE_INSTANCED)) {
-        panel = panel->next;
-        BLI_assert(panel != nullptr); /* There shouldn't be fewer panels than filters. */
+      while ((panel_iter->type == nullptr) || !(panel_iter->type->flag & PANEL_TYPE_INSTANCED)) {
+        panel_iter = panel_iter->next;
+        BLI_assert(panel_iter != nullptr); /* There shouldn't be fewer panels than filters. */
       }
 
       PointerRNA *filter_ptr = (PointerRNA *)MEM_mallocN(sizeof(PointerRNA), "panel customdata");
       RNA_pointer_create(&screen->id, &RNA_SpreadsheetRowFilter, row_filter, filter_ptr);
-      UI_panel_custom_data_set(panel, filter_ptr);
+      UI_panel_custom_data_set(panel_iter, filter_ptr);
 
-      panel = panel->next;
+      panel_iter = panel_iter->next;
     }
   }
 }

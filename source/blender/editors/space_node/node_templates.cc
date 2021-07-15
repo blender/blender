@@ -364,7 +364,7 @@ static void ui_node_link_items(NodeLinkArg *arg,
           NodeLinkItem *item = &items[i];
 
           item->socket_index = index;
-          /* note: int stemp->type is not fully reliable, not used for node group
+          /* NOTE: int stemp->type is not fully reliable, not used for node group
            * interface sockets. use the typeinfo->type instead.
            */
           item->socket_type = stemp->typeinfo->type;

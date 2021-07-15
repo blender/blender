@@ -523,7 +523,7 @@ static void distortion_model_parameters_from_options(
 
   /* Libmv returned distortion model which is not known to Blender. This is a logical error in code
    * and Blender side is to be updated to match Libmv. */
-  BLI_assert(!"Unknown distortion model");
+  BLI_assert_msg(0, "Unknown distortion model");
 }
 
 /* Fill in Libmv C-API camera intrinsics options from tracking structure. */

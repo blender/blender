@@ -65,7 +65,7 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
     return;
   }
 
-  /* note, call #BKE_mesh_flush_hidden_from_verts_ex first when changing hidden flags */
+  /* NOTE: call #BKE_mesh_flush_hidden_from_verts_ex first when changing hidden flags. */
 
   /* we could call this directly in all areas that change selection,
    * since this could become slow for realtime updates (circle-select for eg) */
@@ -433,7 +433,7 @@ bool paintface_mouse_select(
   /* image window redraw */
 
   paintface_flush_flags(C, ob, SELECT);
-  ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
+  ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
   return true;
 }
 

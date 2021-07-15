@@ -41,7 +41,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 {
   const float fac = BMO_slot_float_get(op->slots_in, "factor");
   const int iterations = BMO_slot_int_get(op->slots_in, "iterations");
-  const int faces_num = BMO_slot_buffer_count(op->slots_in, "faces");
+  const int faces_num = BMO_slot_buffer_len(op->slots_in, "faces");
 
   const float eps = 0.00001f;
   const float eps_sq = square_f(eps);

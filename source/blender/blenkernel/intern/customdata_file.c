@@ -361,9 +361,9 @@ bool cdf_write_open(CDataFile *cdf, const char *filename)
 
   cdf->writef = f;
 
-  /* fill header */
+  /* Fill header. */
   header = &cdf->header;
-  /* strcpy(, "BCDF"); // terminator out of range */
+  /* Copy "BCDF" (string terminator out of range). */
   header->ID[0] = 'B';
   header->ID[1] = 'C';
   header->ID[2] = 'D';

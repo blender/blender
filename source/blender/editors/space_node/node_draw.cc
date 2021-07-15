@@ -45,10 +45,10 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_node_ui_storage.hh"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
@@ -76,6 +76,8 @@
 
 #include "RNA_access.h"
 
+#include "NOD_geometry_nodes_eval_log.hh"
+
 #include "node_intern.h" /* own include */
 
 #ifdef WITH_COMPOSITOR
@@ -86,6 +88,9 @@ using blender::Map;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
+using blender::fn::CPPType;
+using blender::fn::GPointer;
+namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
 extern "C" {
 /* XXX interface.h */
@@ -822,6 +827,149 @@ void node_socket_color_get(
   }
 }
 
+struct SocketTooltipData {
+  bNodeTree *ntree;
+  bNode *node;
+  bNodeSocket *socket;
+};
+
+static void create_inspection_string_for_generic_value(const geo_log::GenericValueLog &value_log,
+                                                       std::stringstream &ss)
+{
+  auto id_to_inspection_string = [&](ID *id) {
+    ss << (id ? id->name + 2 : TIP_("None")) << " (" << BKE_idtype_idcode_to_name(GS(id->name))
+       << ")";
+  };
+
+  const GPointer value = value_log.value();
+  if (value.is_type<int>()) {
+    ss << *value.get<int>() << TIP_(" (Integer)");
+  }
+  else if (value.is_type<float>()) {
+    ss << *value.get<float>() << TIP_(" (Float)");
+  }
+  else if (value.is_type<blender::float3>()) {
+    ss << *value.get<blender::float3>() << TIP_(" (Vector)");
+  }
+  else if (value.is_type<bool>()) {
+    ss << (*value.get<bool>() ? TIP_("True") : TIP_("False")) << TIP_(" (Boolean)");
+  }
+  else if (value.is_type<std::string>()) {
+    ss << *value.get<std::string>() << TIP_(" (String)");
+  }
+  else if (value.is_type<Object *>()) {
+    id_to_inspection_string((ID *)*value.get<Object *>());
+  }
+  else if (value.is_type<Material *>()) {
+    id_to_inspection_string((ID *)*value.get<Material *>());
+  }
+  else if (value.is_type<Tex *>()) {
+    id_to_inspection_string((ID *)*value.get<Tex *>());
+  }
+  else if (value.is_type<Collection *>()) {
+    id_to_inspection_string((ID *)*value.get<Collection *>());
+  }
+}
+
+static void create_inspection_string_for_geometry(const geo_log::GeometryValueLog &value_log,
+                                                  std::stringstream &ss)
+{
+  Span<GeometryComponentType> component_types = value_log.component_types();
+  if (component_types.is_empty()) {
+    ss << TIP_("Empty Geometry");
+    return;
+  }
+
+  auto to_string = [](int value) {
+    char str[16];
+    BLI_str_format_int_grouped(str, value);
+    return std::string(str);
+  };
+
+  ss << TIP_("Geometry:\n");
+  for (GeometryComponentType type : component_types) {
+    const char *line_end = (type == component_types.last()) ? "" : ".\n";
+    switch (type) {
+      case GEO_COMPONENT_TYPE_MESH: {
+        const geo_log::GeometryValueLog::MeshInfo &mesh_info = *value_log.mesh_info;
+        char line[256];
+        BLI_snprintf(line,
+                     sizeof(line),
+                     TIP_("\u2022 Mesh: %s vertices, %s edges, %s faces"),
+                     to_string(mesh_info.tot_verts).c_str(),
+                     to_string(mesh_info.tot_edges).c_str(),
+                     to_string(mesh_info.tot_faces).c_str());
+        ss << line << line_end;
+        break;
+      }
+      case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+        const geo_log::GeometryValueLog::PointCloudInfo &pointcloud_info =
+            *value_log.pointcloud_info;
+        char line[256];
+        BLI_snprintf(line,
+                     sizeof(line),
+                     TIP_("\u2022 Point Cloud: %s points"),
+                     to_string(pointcloud_info.tot_points).c_str());
+        ss << line << line_end;
+        break;
+      }
+      case GEO_COMPONENT_TYPE_CURVE: {
+        const geo_log::GeometryValueLog::CurveInfo &curve_info = *value_log.curve_info;
+        char line[256];
+        BLI_snprintf(line,
+                     sizeof(line),
+                     TIP_("\u2022 Curve: %s splines"),
+                     to_string(curve_info.tot_splines).c_str());
+        ss << line << line_end;
+        break;
+      }
+      case GEO_COMPONENT_TYPE_INSTANCES: {
+        const geo_log::GeometryValueLog::InstancesInfo &instances_info = *value_log.instances_info;
+        char line[256];
+        BLI_snprintf(line,
+                     sizeof(line),
+                     TIP_("\u2022 Instances: %s"),
+                     to_string(instances_info.tot_instances).c_str());
+        ss << line << line_end;
+        break;
+      }
+      case GEO_COMPONENT_TYPE_VOLUME: {
+        ss << TIP_("\u2022 Volume") << line_end;
+        break;
+      }
+    }
+  }
+}
+
+static std::optional<std::string> create_socket_inspection_string(bContext *C,
+                                                                  bNodeTree &UNUSED(ntree),
+                                                                  bNode &node,
+                                                                  bNodeSocket &socket)
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+  const geo_log::SocketLog *socket_log = geo_log::ModifierLog::find_socket_by_node_editor_context(
+      *snode, node, socket);
+  if (socket_log == nullptr) {
+    return {};
+  }
+  const geo_log::ValueLog *value_log = socket_log->value();
+  if (value_log == nullptr) {
+    return {};
+  }
+
+  std::stringstream ss;
+  if (const geo_log::GenericValueLog *generic_value_log =
+          dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
+    create_inspection_string_for_generic_value(*generic_value_log, ss);
+  }
+  else if (const geo_log::GeometryValueLog *geo_value_log =
+               dynamic_cast<const geo_log::GeometryValueLog *>(value_log)) {
+    create_inspection_string_for_geometry(*geo_value_log, ss);
+  }
+
+  return ss.str();
+}
+
 static void node_socket_draw_nested(const bContext *C,
                                     bNodeTree *ntree,
                                     PointerRNA *node_ptr,
@@ -851,6 +999,55 @@ static void node_socket_draw_nested(const bContext *C,
                    shape_id,
                    size_id,
                    outline_col_id);
+
+  if (ntree->type != NTREE_GEOMETRY) {
+    /* Only geometry nodes has socket value tooltips currently. */
+    return;
+  }
+
+  bNode *node = (bNode *)node_ptr->data;
+  uiBlock *block = node->block;
+
+  /* Ideally sockets themselves should be buttons, but they aren't currently. So add an invisible
+   * button on top of them for the tooltip. */
+  const eUIEmbossType old_emboss = UI_block_emboss_get(block);
+  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  uiBut *but = uiDefIconBut(block,
+                            UI_BTYPE_BUT,
+                            0,
+                            ICON_NONE,
+                            sock->locx - size / 2,
+                            sock->locy - size / 2,
+                            size,
+                            size,
+                            nullptr,
+                            0,
+                            0,
+                            0,
+                            0,
+                            nullptr);
+
+  SocketTooltipData *data = (SocketTooltipData *)MEM_mallocN(sizeof(SocketTooltipData), __func__);
+  data->ntree = ntree;
+  data->node = (bNode *)node_ptr->data;
+  data->socket = sock;
+
+  UI_but_func_tooltip_set(
+      but,
+      [](bContext *C, void *argN, const char *UNUSED(tip)) {
+        SocketTooltipData *data = (SocketTooltipData *)argN;
+        std::optional<std::string> str = create_socket_inspection_string(
+            C, *data->ntree, *data->node, *data->socket);
+        if (str.has_value()) {
+          return BLI_strdup(str->c_str());
+        }
+        return BLI_strdup(TIP_("The socket value has not been computed yet"));
+      },
+      data,
+      MEM_freeN);
+  /* Disable the button so that clicks on it are ignored the the link operator still works. */
+  UI_but_flag_enable(but, UI_BUT_DISABLED);
+  UI_block_emboss_set(block, old_emboss);
 }
 
 /**
@@ -1185,14 +1382,14 @@ void node_draw_sockets(const View2D *v2d,
   }
 }
 
-static int node_error_type_to_icon(const NodeWarningType type)
+static int node_error_type_to_icon(const geo_log::NodeWarningType type)
 {
   switch (type) {
-    case NodeWarningType::Error:
+    case geo_log::NodeWarningType::Error:
       return ICON_ERROR;
-    case NodeWarningType::Warning:
+    case geo_log::NodeWarningType::Warning:
       return ICON_ERROR;
-    case NodeWarningType::Info:
+    case geo_log::NodeWarningType::Info:
       return ICON_INFO;
   }
 
@@ -1200,14 +1397,14 @@ static int node_error_type_to_icon(const NodeWarningType type)
   return ICON_ERROR;
 }
 
-static uint8_t node_error_type_priority(const NodeWarningType type)
+static uint8_t node_error_type_priority(const geo_log::NodeWarningType type)
 {
   switch (type) {
-    case NodeWarningType::Error:
+    case geo_log::NodeWarningType::Error:
       return 3;
-    case NodeWarningType::Warning:
+    case geo_log::NodeWarningType::Warning:
       return 2;
-    case NodeWarningType::Info:
+    case geo_log::NodeWarningType::Info:
       return 1;
   }
 
@@ -1215,11 +1412,11 @@ static uint8_t node_error_type_priority(const NodeWarningType type)
   return 0;
 }
 
-static NodeWarningType node_error_highest_priority(Span<NodeWarning> warnings)
+static geo_log::NodeWarningType node_error_highest_priority(Span<geo_log::NodeWarning> warnings)
 {
   uint8_t highest_priority = 0;
-  NodeWarningType highest_priority_type = NodeWarningType::Info;
-  for (const NodeWarning &warning : warnings) {
+  geo_log::NodeWarningType highest_priority_type = geo_log::NodeWarningType::Info;
+  for (const geo_log::NodeWarning &warning : warnings) {
     const uint8_t priority = node_error_type_priority(warning.type);
     if (priority > highest_priority) {
       highest_priority = priority;
@@ -1229,15 +1426,17 @@ static NodeWarningType node_error_highest_priority(Span<NodeWarning> warnings)
   return highest_priority_type;
 }
 
+struct NodeErrorsTooltipData {
+  Span<geo_log::NodeWarning> warnings;
+};
+
 static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
 {
-  const NodeUIStorage **storage_pointer_alloc = static_cast<const NodeUIStorage **>(argN);
-  const NodeUIStorage *node_ui_storage = *storage_pointer_alloc;
-  Span<NodeWarning> warnings = node_ui_storage->warnings;
+  NodeErrorsTooltipData &data = *(NodeErrorsTooltipData *)argN;
 
   std::string complete_string;
 
-  for (const NodeWarning &warning : warnings.drop_back(1)) {
+  for (const geo_log::NodeWarning &warning : data.warnings.drop_back(1)) {
     complete_string += warning.message;
     /* Adding the period is not ideal for multi-line messages, but it is consistent
      * with other tooltip implementations in Blender, so it is added here. */
@@ -1246,7 +1445,7 @@ static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char 
   }
 
   /* Let the tooltip system automatically add the last period. */
-  complete_string += warnings.last().message;
+  complete_string += data.warnings.last().message;
 
   return BLI_strdupn(complete_string.c_str(), complete_string.size());
 }
@@ -1254,20 +1453,26 @@ static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
 
 static void node_add_error_message_button(
-    const bContext *C, bNodeTree &ntree, bNode &node, const rctf &rect, float &icon_offset)
+    const bContext *C, bNodeTree &UNUSED(ntree), bNode &node, const rctf &rect, float &icon_offset)
 {
-  const NodeUIStorage *node_ui_storage = BKE_node_tree_ui_storage_get_from_context(C, ntree, node);
-  if (node_ui_storage == nullptr || node_ui_storage->warnings.is_empty()) {
+  SpaceNode *snode = CTX_wm_space_node(C);
+  const geo_log::NodeLog *node_log = geo_log::ModifierLog::find_node_by_node_editor_context(*snode,
+                                                                                            node);
+  if (node_log == nullptr) {
     return;
   }
 
-  /* The UI API forces us to allocate memory for each error button, because the
-   * ownership of #UI_but_func_tooltip_set's argument is transferred to the button. */
-  const NodeUIStorage **storage_pointer_alloc = (const NodeUIStorage **)MEM_mallocN(
-      sizeof(NodeUIStorage *), __func__);
-  *storage_pointer_alloc = node_ui_storage;
+  Span<geo_log::NodeWarning> warnings = node_log->warnings();
 
-  const NodeWarningType display_type = node_error_highest_priority(node_ui_storage->warnings);
+  if (warnings.is_empty()) {
+    return;
+  }
+
+  NodeErrorsTooltipData *tooltip_data = (NodeErrorsTooltipData *)MEM_mallocN(
+      sizeof(NodeErrorsTooltipData), __func__);
+  tooltip_data->warnings = warnings;
+
+  const geo_log::NodeWarningType display_type = node_error_highest_priority(warnings);
 
   icon_offset -= NODE_HEADER_ICON_SIZE;
   UI_block_emboss_set(node.block, UI_EMBOSS_NONE);
@@ -1285,7 +1490,7 @@ static void node_add_error_message_button(
                             0,
                             0,
                             nullptr);
-  UI_but_func_tooltip_set(but, node_errors_tooltip_fn, storage_pointer_alloc, MEM_freeN);
+  UI_but_func_tooltip_set(but, node_errors_tooltip_fn, tooltip_data, MEM_freeN);
   UI_block_emboss_set(node.block, UI_EMBOSS);
 }
 
@@ -1403,28 +1608,6 @@ static void node_draw_basis(const bContext *C,
                  0,
                  0,
                  "");
-    UI_block_emboss_set(node->block, UI_EMBOSS);
-  }
-  if (ntree->type == NTREE_GEOMETRY) {
-    /* Active preview toggle. */
-    iconofs -= iconbutw;
-    UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
-    int icon = (node->flag & NODE_ACTIVE_PREVIEW) ? ICON_RESTRICT_VIEW_OFF : ICON_RESTRICT_VIEW_ON;
-    uiBut *but = uiDefIconBut(node->block,
-                              UI_BTYPE_BUT_TOGGLE,
-                              0,
-                              icon,
-                              iconofs,
-                              rct->ymax - NODE_DY,
-                              iconbutw,
-                              UI_UNIT_Y,
-                              nullptr,
-                              0,
-                              0,
-                              0,
-                              0,
-                              "Show this node's geometry output in the spreadsheet");
-    UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_active_preview_toggle");
     UI_block_emboss_set(node->block, UI_EMBOSS);
   }
 

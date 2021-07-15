@@ -24,7 +24,7 @@
 #include "node_composite_util.h"
 
 /* **************** Z COMBINE ******************** */
-/* lazy coder note: node->custom2 is abused to send signal */
+/* lazy coder NOTE: node->custom2 is abused to send signal. */
 static bNodeSocketTemplate cmp_node_zcombine_in[] = {
     {SOCK_RGBA, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
     {SOCK_FLOAT, N_("Z"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 10000.0f, PROP_NONE},

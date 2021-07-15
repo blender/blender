@@ -68,7 +68,7 @@ eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int 
     case SUBSURF_UV_SMOOTH_ALL:
       return SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE;
   }
-  BLI_assert(!"Unknown uv smooth flag");
+  BLI_assert_msg(0, "Unknown uv smooth flag");
   return SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
 }
 
@@ -81,7 +81,7 @@ eSubdivVtxBoundaryInterpolation BKE_subdiv_vtx_boundary_interpolation_from_subsu
     case SUBSURF_BOUNDARY_SMOOTH_ALL:
       return SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
   }
-  BLI_assert(!"Unknown boundary smooth flag");
+  BLI_assert_msg(0, "Unknown boundary smooth flag");
   return SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
 }
 

@@ -248,7 +248,7 @@ typedef struct PaintAdjData {
   int *n_target;
   /** Index to start reading n_target for each point. */
   int *n_index;
-  /** Num of neighs for each point. */
+  /** Number of neighbors for each point. */
   int *n_num;
   /** Vertex adjacency flags. */
   int *flags;
@@ -2288,7 +2288,8 @@ static void dynamic_paint_create_uv_surface_direct_cb(
     /* Loop through samples, starting from middle point */
     for (int sample = 0; sample < 5; sample++) {
       /* Loop through every face in the mesh */
-      /* XXX TODO This is *horrible* with big meshes, should use a 2D BVHTree over UV tris here! */
+      /* XXX TODO: This is *horrible* with big meshes, should use a 2D BVHTree over UV tris here!
+       */
       for (int i = 0; i < tottri; i++) {
         /* Check uv bb */
         if ((faceBB[i].min[0] > point[sample][0]) || (faceBB[i].min[1] > point[sample][1]) ||
@@ -2476,7 +2477,7 @@ static int dynamic_paint_find_neighbor_pixel(const DynamicPaintCreateUVSurfaceDa
                                              const int py,
                                              const int n_index)
 {
-  /* Note: Current method only uses polygon edges to detect neighboring pixels.
+  /* NOTE: Current method only uses polygon edges to detect neighboring pixels.
    *       -> It doesn't always lead to the optimum pixel but is accurate enough
    *          and faster/simpler than including possible face tip point links)
    */
@@ -3817,7 +3818,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
                                       ob,
                                       true,
                                       SUBFRAME_RECURSION,
-                                      BKE_scene_frame_get(scene),
+                                      BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
   mesh_p = BKE_mesh_copy_for_eval(dynamicPaint_brush_mesh_get(brush), false);
   numOfVerts_p = mesh_p->totvert;
@@ -3833,7 +3834,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
                                       ob,
                                       true,
                                       SUBFRAME_RECURSION,
-                                      BKE_scene_frame_get(scene),
+                                      BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
   mesh_c = dynamicPaint_brush_mesh_get(brush);
   numOfVerts_c = mesh_c->totvert;
@@ -3893,7 +3894,7 @@ static void dynamicPaint_brushObjectCalculateVelocity(
                                       ob,
                                       false,
                                       SUBFRAME_RECURSION,
-                                      BKE_scene_frame_get(scene),
+                                      BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
   copy_m4_m4(prev_obmat, ob->obmat);
 
@@ -3905,7 +3906,7 @@ static void dynamicPaint_brushObjectCalculateVelocity(
                                       ob,
                                       false,
                                       SUBFRAME_RECURSION,
-                                      BKE_scene_frame_get(scene),
+                                      BKE_scene_ctime_get(scene),
                                       eModifierType_DynamicPaint);
 
   /* calculate speed */
@@ -4190,8 +4191,8 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
       /* calculate barycentric weights for hit point */
       interp_weights_tri_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, hitCoord);
 
-      /* simple check based on brush surface velocity,
-       * todo: perhaps implement something that handles volume movement as well. */
+      /* Simple check based on brush surface velocity,
+       * TODO: perhaps implement something that handles volume movement as well. */
 
       /* interpolate vertex speed vectors to get hit point velocity */
       interp_v3_v3v3v3(brushPointVelocity,
@@ -4881,7 +4882,7 @@ static void dynamicPaint_prepareAdjacencyData(DynamicPaintSurface *surface, cons
       0, sData->total_points, sData, dynamic_paint_prepare_adjacency_cb, &settings);
 
   /* calculate average values (single thread).
-   * Note: tried to put this in threaded callback (using _reduce feature),
+   * NOTE: tried to put this in threaded callback (using _reduce feature),
    * but gave ~30% slower result! */
   bData->average_dist = 0.0;
   for (index = 0; index < sData->total_points; index++) {
@@ -5521,7 +5522,7 @@ static void dynamicPaint_doEffectStep(
   if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP && force) {
     const float eff_scale = distance_scale * EFF_MOVEMENT_PER_FRAME * timescale / 2.0f;
 
-    /* Same as BLI_bitmask, but handled atomicaly as 'ePoint' locks. */
+    /* Same as #BLI_bitmask, but handled atomically as 'ePoint' locks. */
     const size_t point_locks_size = (sData->total_points / 8) + 1;
     uint8_t *point_locks = MEM_callocN(sizeof(*point_locks) * point_locks_size, __func__);
 
@@ -6069,7 +6070,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   if (bData) {
     const bool surface_moved = dynamicPaint_surfaceHasMoved(surface, ob);
 
-    /* get previous speed for accelertaion */
+    /* Get previous speed for acceleration. */
     if (do_accel_data && bData->prev_velocity && bData->velocity) {
       memcpy(bData->prev_velocity, bData->velocity, sData->total_points * sizeof(Vec3f));
     }
@@ -6270,7 +6271,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
                                                 brushObj,
                                                 true,
                                                 SUBFRAME_RECURSION,
-                                                BKE_scene_frame_get(scene),
+                                                BKE_scene_ctime_get(scene),
                                                 eModifierType_DynamicPaint);
           }
 
@@ -6311,7 +6312,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
                                                 brushObj,
                                                 true,
                                                 SUBFRAME_RECURSION,
-                                                BKE_scene_frame_get(scene),
+                                                BKE_scene_ctime_get(scene),
                                                 eModifierType_DynamicPaint);
           }
 

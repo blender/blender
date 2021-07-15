@@ -87,6 +87,23 @@ static SplinePtr resample_spline(const Spline &input_spline, const int count)
                              input_spline.tilts().first(),
                              input_spline.radii().first());
     output_spline->attributes.reallocate(1);
+    input_spline.attributes.foreach_attribute(
+        [&](StringRefNull name, const AttributeMetaData &meta_data) {
+          std::optional<GSpan> src = input_spline.attributes.get_for_read(name);
+          BLI_assert(src);
+          if (!output_spline->attributes.create(name, meta_data.data_type)) {
+            BLI_assert_unreachable();
+            return false;
+          }
+          std::optional<GMutableSpan> dst = output_spline->attributes.get_for_write(name);
+          if (!dst) {
+            BLI_assert_unreachable();
+            return false;
+          }
+          src->type().copy_assign(src->data(), dst->data());
+          return true;
+        },
+        ATTR_DOMAIN_POINT);
     return output_spline;
   }
 

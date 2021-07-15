@@ -1354,7 +1354,7 @@ static void evaluate_higher_grid_positions_with_details_callback(
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
-  /* Position of the original veretx at top level. */
+  /* Position of the original vertex at top level. */
   float orig_final_P[3];
   evaluate_final_original_point(reshape_smooth_context, grid_coord, orig_final_P);
 

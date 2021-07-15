@@ -443,7 +443,7 @@ static PyObject *M_imbuf_new(PyObject *UNUSED(self), PyObject *args, PyObject *k
     return NULL;
   }
 
-  /* TODO, make options */
+  /* TODO: make options. */
   const uchar planes = 4;
   const uint flags = IB_rect;
 

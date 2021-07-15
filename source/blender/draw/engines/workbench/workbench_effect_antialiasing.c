@@ -247,7 +247,7 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
                                       GPU_ATTACHMENT_TEXTURE(wpd->smaa_weight_tx),
                                   });
 
-    /* TODO could be shared for all viewports. */
+    /* TODO: could be shared for all viewports. */
     if (txl->smaa_search_tx == NULL) {
       txl->smaa_search_tx = GPU_texture_create_2d(
           "smaa_search", SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 1, GPU_R8, NULL);

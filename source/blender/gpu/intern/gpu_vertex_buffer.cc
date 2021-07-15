@@ -28,8 +28,8 @@
 #include "gpu_backend.hh"
 #include "gpu_vertex_format_private.h"
 
-#include "gl_vertex_buffer.hh"    /* TODO remove */
-#include "gpu_context_private.hh" /* TODO remove */
+#include "gl_vertex_buffer.hh"    /* TODO: remove. */
+#include "gpu_context_private.hh" /* TODO: remove. */
 
 #include "gpu_vertex_buffer_private.hh"
 
@@ -287,7 +287,7 @@ void GPU_vertbuf_attr_get_raw_data(GPUVertBuf *verts_, uint a_idx, GPUVertBufRaw
 /* NOTE: Be careful when using this. The data needs to match the expected format. */
 void *GPU_vertbuf_get_data(const GPUVertBuf *verts)
 {
-  /* TODO Assert that the format has no padding. */
+  /* TODO: Assert that the format has no padding. */
   return unwrap(verts)->data;
 }
 
@@ -296,7 +296,7 @@ void *GPU_vertbuf_get_data(const GPUVertBuf *verts)
 void *GPU_vertbuf_steal_data(GPUVertBuf *verts_)
 {
   VertBuf *verts = unwrap(verts_);
-  /* TODO Assert that the format has no padding. */
+  /* TODO: Assert that the format has no padding. */
   BLI_assert(verts->data);
   void *data = verts->data;
   verts->data = nullptr;

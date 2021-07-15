@@ -737,172 +737,193 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  * in at least one layer collection. That list is also synchronized here, and
  * stores state like selection. */
 
+static void layer_collection_objects_sync(ViewLayer *view_layer,
+                                          LayerCollection *layer,
+                                          ListBase *r_lb_new_object_bases,
+                                          const short collection_restrict,
+                                          const short layer_restrict,
+                                          const ushort local_collections_bits)
+{
+  /* No need to sync objects if the collection is excluded. */
+  if ((layer->flag & LAYER_COLLECTION_EXCLUDE) != 0) {
+    return;
+  }
+
+  LISTBASE_FOREACH (CollectionObject *, cob, &layer->collection->gobject) {
+    if (cob->ob == NULL) {
+      continue;
+    }
+
+    /* Tag linked object as a weak reference so we keep the object
+     * base pointer on file load and remember hidden state. */
+    id_lib_indirect_weak_link(&cob->ob->id);
+
+    void **base_p;
+    Base *base;
+    if (BLI_ghash_ensure_p(view_layer->object_bases_hash, cob->ob, &base_p)) {
+      /* Move from old base list to new base list. Base might have already
+       * been moved to the new base list and the first/last test ensure that
+       * case also works. */
+      base = *base_p;
+      if (!ELEM(base, r_lb_new_object_bases->first, r_lb_new_object_bases->last)) {
+        BLI_remlink(&view_layer->object_bases, base);
+        BLI_addtail(r_lb_new_object_bases, base);
+      }
+    }
+    else {
+      /* Create new base. */
+      base = object_base_new(cob->ob);
+      base->local_collections_bits = local_collections_bits;
+      *base_p = base;
+      BLI_addtail(r_lb_new_object_bases, base);
+    }
+
+    if ((collection_restrict & COLLECTION_RESTRICT_VIEWPORT) == 0) {
+      base->flag_from_collection |= (BASE_ENABLED_VIEWPORT | BASE_VISIBLE_DEPSGRAPH);
+      if ((layer_restrict & LAYER_COLLECTION_HIDE) == 0) {
+        base->flag_from_collection |= BASE_VISIBLE_VIEWLAYER;
+      }
+      if (((collection_restrict & COLLECTION_RESTRICT_SELECT) == 0)) {
+        base->flag_from_collection |= BASE_SELECTABLE;
+      }
+    }
+
+    if ((collection_restrict & COLLECTION_RESTRICT_RENDER) == 0) {
+      base->flag_from_collection |= BASE_ENABLED_RENDER;
+    }
+
+    /* Holdout and indirect only */
+    if (layer->flag & LAYER_COLLECTION_HOLDOUT) {
+      base->flag_from_collection |= BASE_HOLDOUT;
+    }
+    if (layer->flag & LAYER_COLLECTION_INDIRECT_ONLY) {
+      base->flag_from_collection |= BASE_INDIRECT_ONLY;
+    }
+
+    layer->runtime_flag |= LAYER_COLLECTION_HAS_OBJECTS;
+  }
+}
+
 static void layer_collection_sync(ViewLayer *view_layer,
-                                  const ListBase *lb_collections,
-                                  ListBase *lb_layer_collections,
-                                  ListBase *new_object_bases,
-                                  short parent_exclude,
-                                  short parent_restrict,
-                                  short parent_layer_restrict,
-                                  unsigned short parent_local_collections_bits)
+                                  const ListBase *lb_children_collections,
+                                  ListBase *r_lb_children_layers,
+                                  ListBase *r_lb_new_object_bases,
+                                  const short parent_layer_flag,
+                                  const short parent_collection_restrict,
+                                  const short parent_layer_restrict,
+                                  const ushort parent_local_collections_bits)
 {
   /* TODO: support recovery after removal of intermediate collections, reordering, ..
    * For local edits we can make editing operating do the appropriate thing, but for
    * linking we can only sync after the fact. */
 
   /* Remove layer collections that no longer have a corresponding scene collection. */
-  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, lb_layer_collections) {
-    /* Note that ID remap can set lc->collection to NULL when deleting collections. */
-    Collection *collection = (lc->collection) ?
-                                 BLI_findptr(lb_collections,
-                                             lc->collection,
-                                             offsetof(CollectionChild, collection)) :
-                                 NULL;
+  LISTBASE_FOREACH_MUTABLE (LayerCollection *, child_layer, r_lb_children_layers) {
+    /* Note that ID remap can set child_layer->collection to NULL when deleting collections. */
+    Collection *child_collection = (child_layer->collection != NULL) ?
+                                       BLI_findptr(lb_children_collections,
+                                                   child_layer->collection,
+                                                   offsetof(CollectionChild, collection)) :
+                                       NULL;
 
-    if (!collection) {
-      if (lc == view_layer->active_collection) {
+    if (child_collection == NULL) {
+      if (child_layer == view_layer->active_collection) {
         view_layer->active_collection = NULL;
       }
 
       /* Free recursively. */
-      layer_collection_free(view_layer, lc);
-      BLI_freelinkN(lb_layer_collections, lc);
+      layer_collection_free(view_layer, child_layer);
+      BLI_freelinkN(r_lb_children_layers, child_layer);
     }
   }
 
   /* Add layer collections for any new scene collections, and ensure order is the same. */
-  ListBase new_lb_layer = {NULL, NULL};
+  ListBase lb_new_children_layers = {NULL, NULL};
 
-  LISTBASE_FOREACH (const CollectionChild *, child, lb_collections) {
-    Collection *collection = child->collection;
-    LayerCollection *lc = BLI_findptr(
-        lb_layer_collections, collection, offsetof(LayerCollection, collection));
+  LISTBASE_FOREACH (const CollectionChild *, child, lb_children_collections) {
+    Collection *child_collection = child->collection;
+    LayerCollection *child_layer = BLI_findptr(
+        r_lb_children_layers, child_collection, offsetof(LayerCollection, collection));
 
-    if (lc) {
-      BLI_remlink(lb_layer_collections, lc);
-      BLI_addtail(&new_lb_layer, lc);
+    if (child_layer) {
+      BLI_remlink(r_lb_children_layers, child_layer);
+      BLI_addtail(&lb_new_children_layers, child_layer);
     }
     else {
-      lc = layer_collection_add(&new_lb_layer, collection);
-      lc->flag = parent_exclude;
+      child_layer = layer_collection_add(&lb_new_children_layers, child_collection);
+      child_layer->flag = parent_layer_flag;
     }
 
-    unsigned short local_collections_bits = parent_local_collections_bits &
-                                            lc->local_collections_bits;
+    const ushort child_local_collections_bits = parent_local_collections_bits &
+                                                child_layer->local_collections_bits;
 
     /* Tag linked collection as a weak reference so we keep the layer
      * collection pointer on file load and remember exclude state. */
-    id_lib_indirect_weak_link(&collection->id);
+    id_lib_indirect_weak_link(&child_collection->id);
 
     /* Collection restrict is inherited. */
-    short child_restrict = parent_restrict;
+    short child_collection_restrict = parent_collection_restrict;
     short child_layer_restrict = parent_layer_restrict;
-    if (!(collection->flag & COLLECTION_IS_MASTER)) {
-      child_restrict |= collection->flag;
-      child_layer_restrict |= lc->flag;
+    if (!(child_collection->flag & COLLECTION_IS_MASTER)) {
+      child_collection_restrict |= child_collection->flag;
+      child_layer_restrict |= child_layer->flag;
     }
 
     /* Sync child collections. */
     layer_collection_sync(view_layer,
-                          &collection->children,
-                          &lc->layer_collections,
-                          new_object_bases,
-                          lc->flag,
-                          child_restrict,
+                          &child_collection->children,
+                          &child_layer->layer_collections,
+                          r_lb_new_object_bases,
+                          child_layer->flag,
+                          child_collection_restrict,
                           child_layer_restrict,
-                          local_collections_bits);
+                          child_local_collections_bits);
 
-    /* Layer collection exclude is not inherited. */
-    lc->runtime_flag = 0;
-    if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
+    /* Layer collection exclude is not inherited, we can skip the remaining process, including
+     * object bases synchronization. */
+    child_layer->runtime_flag = 0;
+    if (child_layer->flag & LAYER_COLLECTION_EXCLUDE) {
       continue;
     }
 
     /* We separate restrict viewport and visible view layer because a layer collection can be
      * hidden in the view layer yet (locally) visible in a viewport (if it is not restricted). */
-    if (child_restrict & COLLECTION_RESTRICT_VIEWPORT) {
-      lc->runtime_flag |= LAYER_COLLECTION_RESTRICT_VIEWPORT;
+    if (child_collection_restrict & COLLECTION_RESTRICT_VIEWPORT) {
+      child_layer->runtime_flag |= LAYER_COLLECTION_RESTRICT_VIEWPORT;
     }
 
-    if (((lc->runtime_flag & LAYER_COLLECTION_RESTRICT_VIEWPORT) == 0) &&
+    if (((child_layer->runtime_flag & LAYER_COLLECTION_RESTRICT_VIEWPORT) == 0) &&
         ((child_layer_restrict & LAYER_COLLECTION_HIDE) == 0)) {
-      lc->runtime_flag |= LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
+      child_layer->runtime_flag |= LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
     }
 
-    /* Sync objects, except if collection was excluded. */
-    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-      if (cob->ob == NULL) {
-        continue;
-      }
-
-      /* Tag linked object as a weak reference so we keep the object
-       * base pointer on file load and remember hidden state. */
-      id_lib_indirect_weak_link(&cob->ob->id);
-
-      void **base_p;
-      Base *base;
-      if (BLI_ghash_ensure_p(view_layer->object_bases_hash, cob->ob, &base_p)) {
-        /* Move from old base list to new base list. Base might have already
-         * been moved to the new base list and the first/last test ensure that
-         * case also works. */
-        base = *base_p;
-        if (!ELEM(base, new_object_bases->first, new_object_bases->last)) {
-          BLI_remlink(&view_layer->object_bases, base);
-          BLI_addtail(new_object_bases, base);
-        }
-      }
-      else {
-        /* Create new base. */
-        base = object_base_new(cob->ob);
-        base->local_collections_bits = local_collections_bits;
-        *base_p = base;
-        BLI_addtail(new_object_bases, base);
-      }
-
-      if ((child_restrict & COLLECTION_RESTRICT_VIEWPORT) == 0) {
-        base->flag_from_collection |= (BASE_ENABLED_VIEWPORT | BASE_VISIBLE_DEPSGRAPH);
-        if ((child_layer_restrict & LAYER_COLLECTION_HIDE) == 0) {
-          base->flag_from_collection |= BASE_VISIBLE_VIEWLAYER;
-        }
-        if (((child_restrict & COLLECTION_RESTRICT_SELECT) == 0)) {
-          base->flag_from_collection |= BASE_SELECTABLE;
-        }
-      }
-
-      if ((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) {
-        base->flag_from_collection |= BASE_ENABLED_RENDER;
-      }
-
-      /* Holdout and indirect only */
-      if (lc->flag & LAYER_COLLECTION_HOLDOUT) {
-        base->flag_from_collection |= BASE_HOLDOUT;
-      }
-      if (lc->flag & LAYER_COLLECTION_INDIRECT_ONLY) {
-        base->flag_from_collection |= BASE_INDIRECT_ONLY;
-      }
-
-      lc->runtime_flag |= LAYER_COLLECTION_HAS_OBJECTS;
-    }
+    layer_collection_objects_sync(view_layer,
+                                  child_layer,
+                                  r_lb_new_object_bases,
+                                  child_collection_restrict,
+                                  child_layer_restrict,
+                                  child_local_collections_bits);
   }
 
   /* Free potentially remaining unused layer collections in old list.
    * NOTE: While this does not happen in typical situations, some corner cases (like remapping
    * several different collections to a single one) can lead to this list having extra unused
    * items. */
-  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, lb_layer_collections) {
+  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, r_lb_children_layers) {
     if (lc == view_layer->active_collection) {
       view_layer->active_collection = NULL;
     }
 
     /* Free recursively. */
     layer_collection_free(view_layer, lc);
-    BLI_freelinkN(lb_layer_collections, lc);
+    BLI_freelinkN(r_lb_children_layers, lc);
   }
-  BLI_assert(BLI_listbase_is_empty(lb_layer_collections));
+  BLI_assert(BLI_listbase_is_empty(r_lb_children_layers));
 
   /* Replace layer collection list with new one. */
-  *lb_layer_collections = new_lb_layer;
-  BLI_assert(BLI_listbase_count(lb_collections) == BLI_listbase_count(lb_layer_collections));
+  *r_lb_children_layers = lb_new_children_layers;
+  BLI_assert(BLI_listbase_count(lb_children_collections) ==
+             BLI_listbase_count(r_lb_children_layers));
 }
 
 /**

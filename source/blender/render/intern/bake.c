@@ -340,10 +340,10 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
     float co_high[3], dir_high[3];
 
     hits[i].index = -1;
-    /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
+    /* TODO: we should use FLT_MAX here, but sweep-sphere code isn't prepared for that. */
     hits[i].dist = BVH_RAYCAST_DIST_MAX;
 
-    /* transform the ray from the world space to the highpoly space */
+    /* Transform the ray from the world space to the `highpoly` space. */
     mul_v3_m4v3(co_high, highpoly[i].imat, co);
 
     /* rotates */
@@ -550,15 +550,15 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
   Mesh **me_highpoly;
   BVHTreeFromMesh *treeData;
 
-  /* Note: all coordinates are in local space */
+  /* NOTE: all coordinates are in local space. */
   TriTessFace *tris_low = NULL;
   TriTessFace *tris_cage = NULL;
   TriTessFace **tris_high;
 
-  /* assume all lowpoly tessfaces can be quads */
+  /* Assume all low-poly tessfaces can be quads. */
   tris_high = MEM_callocN(sizeof(TriTessFace *) * tot_highpoly, "MVerts Highpoly Mesh Array");
 
-  /* assume all highpoly tessfaces are triangles */
+  /* Assume all high-poly tessfaces are triangles. */
   me_highpoly = MEM_mallocN(sizeof(Mesh *) * tot_highpoly, "Highpoly Derived Meshes");
   treeData = MEM_callocN(sizeof(BVHTreeFromMesh) * tot_highpoly, "Highpoly BVH Trees");
 
@@ -583,7 +583,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
     BKE_mesh_runtime_looptri_ensure(me_highpoly[i]);
 
     if (me_highpoly[i]->runtime.looptris.len != 0) {
-      /* Create a bvh-tree for each highpoly object */
+      /* Create a BVH-tree for each `highpoly` object. */
       BKE_bvhtree_from_mesh_get(&treeData[i], me_highpoly[i], BVHTREE_FROM_LOOPTRI, 2);
 
       if (treeData[i].tree == NULL) {
@@ -752,10 +752,10 @@ void RE_bake_pixels_populate(Mesh *me,
     for (int a = 0; a < 3; a++) {
       const float *uv = mloopuv[lt->tri[a]].uv;
 
-      /* Note, workaround for pixel aligned UVs which are common and can screw up our
+      /* NOTE(campbell): workaround for pixel aligned UVs which are common and can screw up our
        * intersection tests where a pixel gets in between 2 faces or the middle of a quad,
        * camera aligned quads also have this problem but they are less common.
-       * Add a small offset to the UVs, fixes bug T18685 - Campbell */
+       * Add a small offset to the UVs, fixes bug T18685. */
       vec[a][0] = uv[0] * (float)bd.bk_image->width - (0.5f + 0.001f);
       vec[a][1] = uv[1] * (float)bd.bk_image->height - (0.5f + 0.002f);
     }

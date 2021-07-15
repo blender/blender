@@ -273,7 +273,7 @@ static void library_foreach_ID_link(Main *bmain,
       continue;
     }
 
-    /* Note: ID.lib pointer is purposefully fully ignored here...
+    /* NOTE: ID.lib pointer is purposefully fully ignored here...
      * We may want to add it at some point? */
 
     if (flag & IDWALK_DO_INTERNAL_RUNTIME_POINTERS) {

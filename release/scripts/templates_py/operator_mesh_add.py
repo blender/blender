@@ -6,6 +6,7 @@ from bpy.props import (
     FloatProperty,
 )
 
+
 def add_box(width, height, depth):
     """
     This function takes inputs and returns vertex and face arrays.

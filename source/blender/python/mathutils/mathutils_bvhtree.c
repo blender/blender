@@ -1109,7 +1109,7 @@ PyDoc_STRVAR(C_BVHTree_FromObject_doc,
              "   :type cage: bool\n" PYBVH_FROM_GENERIC_EPSILON_DOC);
 static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyObject *kwargs)
 {
-  /* note, options here match 'bpy_bmesh_from_object' */
+  /* NOTE: options here match #bpy_bmesh_from_object. */
   const char *keywords[] = {"object", "depsgraph", "deform", "cage", "epsilon", NULL};
 
   PyObject *py_ob, *py_depsgraph;
