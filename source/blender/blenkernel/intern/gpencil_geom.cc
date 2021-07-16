@@ -32,11 +32,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_float3.hh"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_heap.h"
 #include "BLI_math_vector.h"
 #include "BLI_polyfill_2d.h"
+#include "BLI_span.hh"
 
 #include "BLT_translation.h"
 
@@ -61,6 +63,9 @@
 
 #include "DEG_depsgraph_query.h"
 
+using blender::float3;
+using blender::Span;
+
 /* GP Object - Boundbox Support */
 /**
  *Get min/max coordinate bounds for single stroke.
@@ -75,20 +80,26 @@ bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
                                float r_min[3],
                                float r_max[3])
 {
-  const bGPDspoint *pt;
-  int i;
-  bool changed = false;
-
-  if (ELEM(nullptr, gps, r_min, r_max)) {
+  if (gps == nullptr) {
     return false;
   }
 
-  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-    if ((use_select == false) || (pt->flag & GP_SPOINT_SELECT)) {
-      minmax_v3v3_v3(r_min, r_max, &pt->x);
+  bool changed = false;
+  if (use_select) {
+    for (const bGPDspoint &pt : Span(gps->points, gps->totpoints)) {
+      if (pt.flag & GP_SPOINT_SELECT) {
+        minmax_v3v3_v3(r_min, r_max, &pt.x);
+        changed = true;
+      }
+    }
+  }
+  else {
+    for (const bGPDspoint &pt : Span(gps->points, gps->totpoints)) {
+      minmax_v3v3_v3(r_min, r_max, &pt.x);
       changed = true;
     }
   }
+
   return changed;
 }
 
@@ -129,11 +140,11 @@ bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
  */
 void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
-  float min[3], max[3], tot[3];
-
+  float3 min;
+  float3 max;
   BKE_gpencil_data_minmax(gpd, min, max);
 
-  add_v3_v3v3(tot, min, max);
+  const float3 tot = min + max;
   mul_v3_v3fl(r_centroid, tot, 0.5f);
 }
 
@@ -153,20 +164,18 @@ void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
  */
 static void boundbox_gpencil(Object *ob)
 {
-  BoundBox *bb;
-  bGPdata *gpd;
-  float min[3], max[3];
-
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
   }
 
-  bb = ob->runtime.bb;
-  gpd = (bGPdata *)ob->data;
+  BoundBox *bb = ob->runtime.bb;
+  bGPdata *gpd = (bGPdata *)ob->data;
 
+  float3 min;
+  float3 max;
   if (!BKE_gpencil_data_minmax(gpd, min, max)) {
-    min[0] = min[1] = min[2] = -1.0f;
-    max[0] = max[1] = max[2] = 1.0f;
+    min = float3(-1);
+    max = float3(1);
   }
 
   BKE_boundbox_init_from_minmax(bb, min, max);
