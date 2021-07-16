@@ -575,9 +575,9 @@ BLI_INLINE int lineart_LineIntersectTest2d(
 }
 
 struct Depsgraph;
-struct Scene;
-struct LineartRenderBuffer;
 struct LineartGpencilModifierData;
+struct LineartRenderBuffer;
+struct Scene;
 
 void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd);
 
@@ -602,8 +602,8 @@ LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartRenderBuffer *r
 
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, double x, double y);
 
-struct bGPDlayer;
 struct bGPDframe;
+struct bGPDlayer;
 
 void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   struct Depsgraph *depsgraph,

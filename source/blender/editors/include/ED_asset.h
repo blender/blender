@@ -28,9 +28,9 @@ extern "C" {
 
 struct AssetFilterSettings;
 struct AssetLibraryReference;
-struct bContext;
 struct Main;
 struct ReportList;
+struct bContext;
 struct wmNotifier;
 
 typedef struct AssetTempIDConsumer AssetTempIDConsumer;

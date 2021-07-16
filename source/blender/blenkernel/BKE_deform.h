@@ -30,6 +30,7 @@ extern "C" {
 
 struct BlendDataReader;
 struct BlendWriter;
+struct ID;
 struct ListBase;
 struct MDeformVert;
 struct MEdge;
@@ -37,7 +38,6 @@ struct MLoop;
 struct MPoly;
 struct Object;
 struct bDeformGroup;
-struct ID;
 
 bool BKE_object_supports_vertex_groups(const struct Object *ob);
 const struct ListBase *BKE_object_defgroup_list(const struct Object *ob);

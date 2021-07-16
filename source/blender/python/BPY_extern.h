@@ -20,8 +20,8 @@
 
 #pragma once
 
-struct AnimationEvalContext;
 struct ARegionType;
+struct AnimationEvalContext;
 struct ChannelDriver; /* DNA_anim_types.h */
 struct ID;            /* DNA_ID.h */
 struct ListBase;      /* DNA_listBase.h */

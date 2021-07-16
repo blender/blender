@@ -35,6 +35,7 @@ extern "C" {
 #define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
 
 struct AnimData;
+struct CurveEval;
 struct CurveProfile;
 struct EditFont;
 struct GHash;
@@ -43,7 +44,6 @@ struct Key;
 struct Material;
 struct Object;
 struct VFont;
-struct CurveEval;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #

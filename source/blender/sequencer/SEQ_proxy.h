@@ -34,8 +34,8 @@ struct ListBase;
 struct Main;
 struct Scene;
 struct SeqIndexBuildContext;
-struct Sequence;
 struct SeqRenderData;
+struct Sequence;
 
 bool SEQ_proxy_rebuild_context(struct Main *bmain,
                                struct Depsgraph *depsgraph,

@@ -28,7 +28,6 @@ extern "C" {
 #endif
 
 struct AnimationEvalContext;
-struct bAction;
 struct BMEditMesh;
 struct Bone;
 struct Depsgraph;
@@ -39,6 +38,7 @@ struct Mesh;
 struct Object;
 struct PoseTree;
 struct Scene;
+struct bAction;
 struct bArmature;
 struct bConstraint;
 struct bGPDstroke;

@@ -18,9 +18,9 @@
 
 #include "BLI_vector.hh"
 
-struct uiBlock;
-struct bContext;
 struct ARegion;
+struct bContext;
+struct uiBlock;
 
 namespace blender::ed::spreadsheet {
 

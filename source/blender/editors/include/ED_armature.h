@@ -31,7 +31,6 @@
 extern "C" {
 #endif
 
-struct bAction;
 struct Base;
 struct Bone;
 struct Depsgraph;
@@ -46,6 +45,7 @@ struct Scene;
 struct UndoType;
 struct View3D;
 struct ViewLayer;
+struct bAction;
 struct bArmature;
 struct bContext;
 struct bPoseChannel;

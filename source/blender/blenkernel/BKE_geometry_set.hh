@@ -35,12 +35,12 @@
 #include "BKE_geometry_set.h"
 
 struct Collection;
+struct Curve;
+struct CurveEval;
 struct Mesh;
 struct Object;
 struct PointCloud;
 struct Volume;
-struct Curve;
-struct CurveEval;
 
 enum class GeometryOwnershipType {
   /* The geometry is owned. This implies that it can be changed. */

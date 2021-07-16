@@ -23,9 +23,9 @@
 #include "spreadsheet_dataset_layout.hh"
 
 struct ARegion;
-struct uiBlock;
 struct View2D;
 struct bContext;
+struct uiBlock;
 
 namespace blender::ed::spreadsheet {
 

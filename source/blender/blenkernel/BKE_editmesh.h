@@ -32,8 +32,8 @@ extern "C" {
 #endif
 
 struct BMLoop;
-struct BMesh;
 struct BMPartialUpdate;
+struct BMesh;
 struct BMeshCalcTessellation_Params;
 struct BoundBox;
 struct Depsgraph;

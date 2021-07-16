@@ -37,6 +37,8 @@ struct Collection;
 struct ID;
 struct Image;
 struct ListBase;
+struct Material;
+struct Tex;
 struct bGPdata;
 struct bNodeInstanceHash;
 struct bNodeLink;
@@ -44,8 +46,6 @@ struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
-struct Tex;
-struct Material;
 
 #define NODE_MAXSTR 64
 
