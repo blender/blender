@@ -143,7 +143,7 @@ set(SRC
   intern/geometry_set_instances.cc
   intern/gpencil.c
   intern/gpencil_curve.c
-  intern/gpencil_geom.c
+  intern/gpencil_geom.cc
   intern/gpencil_modifier.c
   intern/hair.c
   intern/icons.cc
