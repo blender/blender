@@ -409,11 +409,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
                                TaskParallelMempoolFunc func,
                                const TaskParallelSettings *settings)
 {
-  TaskPool *task_pool;
-  ParallelMempoolState state;
-  int i, num_threads, num_tasks;
-
-  if (BLI_mempool_len(mempool) == 0) {
+  if (UNLIKELY(BLI_mempool_len(mempool) == 0)) {
     return;
   }
 
@@ -451,14 +447,15 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
     return;
   }
 
-  task_pool = BLI_task_pool_create(&state, TASK_PRIORITY_HIGH);
-  num_threads = BLI_task_scheduler_num_threads();
+  ParallelMempoolState state;
+  TaskPool *task_pool = BLI_task_pool_create(&state, TASK_PRIORITY_HIGH);
+  const int num_threads = BLI_task_scheduler_num_threads();
 
   /* The idea here is to prevent creating task for each of the loop iterations
    * and instead have tasks which are evenly distributed across CPU cores and
    * pull next item to be crunched using the threaded-aware BLI_mempool_iter.
    */
-  num_tasks = num_threads + 2;
+  const int num_tasks = num_threads + 2;
 
   state.userdata = userdata;
   state.func = func;
@@ -470,7 +467,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
   ParallelMempoolTaskData *mempool_iterator_data = mempool_iter_threadsafe_create(
       mempool, (size_t)num_tasks);
 
-  for (i = 0; i < num_tasks; i++) {
+  for (int i = 0; i < num_tasks; i++) {
     if (use_userdata_chunk) {
       userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
       memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
@@ -489,7 +486,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
 
   if (use_userdata_chunk) {
     if ((settings->func_free != NULL) || (settings->func_reduce != NULL)) {
-      for (i = 0; i < num_tasks; i++) {
+      for (int i = 0; i < num_tasks; i++) {
         if (settings->func_reduce) {
           settings->func_reduce(
               userdata, userdata_chunk, mempool_iterator_data[i].tls.userdata_chunk);
