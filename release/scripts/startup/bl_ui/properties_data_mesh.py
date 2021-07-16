@@ -646,7 +646,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         if len(colliding_names) == 0:
             return
 
-        layout.label(text="Name Collisions: {}".format(", ".join(colliding_names)), icon='INFO')
+        layout.label(text="Name collisions: {}".format(", ".join(colliding_names)), icon='ERROR')
 
 
 classes = (
