@@ -429,7 +429,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
       userdata_chunk_local = MALLOCA(userdata_chunk_size);
       memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
       if (settings->func_init != NULL) {
-        settings->func_init(state.userdata, userdata_chunk_local);
+        settings->func_init(userdata, userdata_chunk_local);
       }
       tls.userdata_chunk = userdata_chunk_local;
     }
