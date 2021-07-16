@@ -1098,9 +1098,15 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
     }
     else {
       flag = FLAG_GEOMETRY;
-      OperationKey geometry_key(
-          &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_INIT);
-      add_relation(point_cache_key, geometry_key, "Point Cache -> Geometry");
+      OperationKey geometry_key(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
+      add_relation(point_cache_key, geometry_key, "Point Cache -> Geometry Eval");
+      if (object->data) {
+        /* Geometry may change, so rebuild the Drawing Cache. */
+        OperationKey object_data_batch_all_key(
+            (ID *)object->data, NodeType::BATCH_CACHE, OperationCode::BATCH_UPDATE_ALL);
+        add_relation(
+            point_cache_key, object_data_batch_all_key, "Point Cache -> Batch Update All");
+      }
     }
     BLI_assert(flag != -1);
     /* Tag that we did handle that component. */
