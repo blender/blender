@@ -82,13 +82,13 @@ bool ED_asset_can_make_single_from_context(const bContext *C)
 }
 
 /* TODO better place? */
-/* TODO What about the setter and the itemf? */
+/* TODO What about the setter and the `itemf` callback? */
 #include "BKE_preferences.h"
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *library)
 {
-  /* Simple case: Predefined repo, just set the value. */
+  /* Simple case: Predefined repository, just set the value. */
   if (library->type < ASSET_LIBRARY_CUSTOM) {
     return library->type;
   }
@@ -109,7 +109,7 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
 {
   AssetLibraryReference library;
 
-  /* Simple case: Predefined repo, just set the value. */
+  /* Simple case: Predefined repository, just set the value. */
   if (value < ASSET_LIBRARY_CUSTOM) {
     library.type = value;
     library.custom_library_index = -1;

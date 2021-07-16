@@ -770,7 +770,7 @@ static uiAfterFunc *ui_afterfunc_new(void)
  * \param context_but: A button from which to get the context from (`uiBut.context`) for the
  *                     operator execution.
  *
- * \note Ownership over \a properties is moved here. The after-func owns it now.
+ * \note Ownership over \a properties is moved here. The #uiAfterFunc owns it now.
  * \note Can only call while handling buttons.
  */
 static void ui_handle_afterfunc_add_operator_ex(wmOperatorType *ot,
@@ -1157,7 +1157,7 @@ static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 }
 
 /**
- * \note Ownership of \a properties is moved here. The after-func owns it now.
+ * \note Ownership of \a properties is moved here. The #uiAfterFunc owns it now.
  *
  * \param context_but: The button to use context from when calling or polling the operator.
  *
@@ -9458,10 +9458,10 @@ static int ui_list_handle_click_drag(bContext *C,
       activate = true;
     }
   }
-  /* KM_CLICK is only sent after an uncaught release event, so the forground button gets all
+  /* #KM_CLICK is only sent after an uncaught release event, so the foreground button gets all
    * regular events (including mouse presses to start dragging) and this part only kicks in if it
    * hasn't handled the release event. Note that if there's no overlaid button, the row selects
-   * on the press event already via regular UI_BTYPE_LISTROW handling. */
+   * on the press event already via regular #UI_BTYPE_LISTROW handling. */
   else if ((event->type == LEFTMOUSE) && (event->val == KM_CLICK)) {
     activate = true;
   }

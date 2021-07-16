@@ -60,7 +60,7 @@ class AssetLibraryReferenceWrapper {
   const AssetLibraryReference reference_;
 
  public:
-  /* Intentionally not `explicit`, allow implicit conversion for convienience. Might have to be
+  /* Intentionally not `explicit`, allow implicit conversion for convenience. Might have to be
    * NOLINT */
   AssetLibraryReferenceWrapper(const AssetLibraryReference &reference);
   ~AssetLibraryReferenceWrapper() = default;
@@ -348,7 +348,7 @@ void AssetList::tagMainDataDirty() const
 
 void AssetList::remapID(ID * /*id_old*/, ID * /*id_new*/) const
 {
-  /* Trigger full refetch  of the file list if main data was changed, don't even attempt remap
+  /* Trigger full re-fetch of the file list if main data was changed, don't even attempt remap
    * pointers. We could give file list types a id-remap callback, but it's probably not worth it.
    * Refreshing local file lists is relatively cheap. */
   tagMainDataDirty();
@@ -605,7 +605,7 @@ int ED_assetlist_size(const AssetLibraryReference *library_reference)
 }
 
 /**
- * Tag all asset lists in the storage that show main data as needing an update (refetch).
+ * Tag all asset lists in the storage that show main data as needing an update (re-fetch).
  *
  * This only tags the data. If the asset list is visible on screen, the space is still responsible
  * for ensuring the necessary redraw. It can use #ED_assetlist_listen() to check if the asset-list
