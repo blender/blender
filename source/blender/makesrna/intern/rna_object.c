@@ -1997,16 +1997,25 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
   }
 }
 
+static bool check_object_vgroup_support_and_warn(const Object *ob,
+                                                 const char *op_name,
+                                                 ReportList *reports)
+{
+  if (!BKE_object_supports_vertex_groups(ob)) {
+    const char *ob_type_name = "Unknown";
+    RNA_enum_name_from_value(rna_enum_object_type_items, ob->type, &ob_type_name);
+    BKE_reportf(reports, RPT_ERROR, "%s is not supported for '%s' objects", op_name, ob_type_name);
+    return false;
+  }
+  return true;
+}
+
 static bDeformGroup *rna_Object_vgroup_new(Object *ob,
                                            Main *bmain,
                                            ReportList *reports,
                                            const char *name)
 {
-  if (!OB_TYPE_SUPPORT_VGROUP(ob->type)) {
-    const char *ob_type_name = "Unknown";
-    RNA_enum_name_from_value(rna_enum_object_type_items, ob->type, &ob_type_name);
-    BKE_reportf(
-        reports, RPT_ERROR, "VertexGroups.new(): is not supported for '%s' objects", ob_type_name);
+  if (!check_object_vgroup_support_and_warn(ob, "VertexGroups.new()", reports)) {
     return NULL;
   }
 
@@ -2023,6 +2032,10 @@ static void rna_Object_vgroup_remove(Object *ob,
                                      ReportList *reports,
                                      PointerRNA *defgroup_ptr)
 {
+  if (!check_object_vgroup_support_and_warn(ob, "VertexGroups.remove()", reports)) {
+    return;
+  }
+
   bDeformGroup *defgroup = defgroup_ptr->data;
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
 
@@ -2042,8 +2055,12 @@ static void rna_Object_vgroup_remove(Object *ob,
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
-static void rna_Object_vgroup_clear(Object *ob, Main *bmain)
+static void rna_Object_vgroup_clear(Object *ob, Main *bmain, ReportList *reports)
 {
+  if (!check_object_vgroup_support_and_warn(ob, "VertexGroups.clear()", reports)) {
+    return;
+  }
+
   BKE_object_defgroup_remove_all(ob);
 
   DEG_relations_tag_update(bmain);
@@ -2777,7 +2794,7 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
   func = RNA_def_function(srna, "clear", "rna_Object_vgroup_clear");
-  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Delete all vertex groups from object");
 }
 

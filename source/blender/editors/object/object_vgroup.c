@@ -3892,7 +3892,7 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
   int fail = 0;
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    if (obact != ob) {
+    if (obact != ob && BKE_object_supports_vertex_groups(ob)) {
       if (ED_vgroup_array_copy(ob, obact)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
         DEG_relations_tag_update(CTX_data_main(C));
@@ -3909,8 +3909,8 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
   if ((changed_tot == 0 && fail == 0) || fail) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
-                "Copy vertex groups to selected: %d done, %d failed (object data must have "
-                "matching indices)",
+                "Copy vertex groups to selected: %d done, %d failed (object data must support "
+                "vertex groups and have matching indices)",
                 changed_tot,
                 fail);
   }
