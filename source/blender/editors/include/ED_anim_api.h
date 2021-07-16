@@ -577,6 +577,9 @@ const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
 /* Print debugging info about a given channel */
 void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level);
 
+/* Retrieves the Action associated with this animation channel. */
+bAction *ANIM_channel_action_get(const bAnimListElem *ale);
+
 /* Draw the given channel */
 void ANIM_channel_draw(
     bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc, size_t channel_index);

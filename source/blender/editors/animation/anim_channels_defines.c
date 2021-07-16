@@ -4212,6 +4212,24 @@ void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
   }
 }
 
+/* Retrieves the Action associated with this animation channel. */
+bAction *ANIM_channel_action_get(const bAnimListElem *ale)
+{
+  if (ale->datatype == ALE_ACT) {
+    return (bAction *)ale->key_data;
+  }
+
+  if (ELEM(ale->type, ANIMTYPE_GROUP, ANIMTYPE_FCURVE)) {
+    ID *owner = ale->fcurve_owner_id;
+
+    if (owner && GS(owner->name) == ID_AC) {
+      return (bAction *)owner;
+    }
+  }
+
+  return NULL;
+}
+
 /* --------------------------- */
 
 /* Check if some setting for a channel is enabled
