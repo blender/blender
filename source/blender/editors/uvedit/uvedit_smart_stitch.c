@@ -1928,6 +1928,11 @@ static StitchState *stitch_init(bContext *C,
   state->obedit = obedit;
   state->em = em;
 
+  /* Workaround for sync-select & face-select mode which implies all selected faces are detached,
+   * for stitch this isn't useful behavior, see T86924. */
+  const int selectmode_orig = scene->toolsettings->selectmode;
+  scene->toolsettings->selectmode = SCE_SELECT_VERTEX;
+
   /* in uv synch selection, all uv's are visible */
   if (ts->uv_flag & UV_SYNC_SELECTION) {
     state->element_map = BM_uv_element_map_create(state->em->bm, scene, false, false, true, true);
@@ -1935,6 +1940,9 @@ static StitchState *stitch_init(bContext *C,
   else {
     state->element_map = BM_uv_element_map_create(state->em->bm, scene, true, false, true, true);
   }
+
+  scene->toolsettings->selectmode = selectmode_orig;
+
   if (!state->element_map) {
     state_delete(state);
     return NULL;
