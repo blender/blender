@@ -165,9 +165,9 @@ static char txtfmt_lua_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if        ((txtfmt_lua_find_specialvar(str))  != -1) { fmt = FMT_TYPE_SPECIAL;
-  } else if ((txtfmt_lua_find_keyword(str))     != -1) { fmt = FMT_TYPE_KEYWORD;
-  } else                                               { fmt = FMT_TYPE_DEFAULT;
+  if        (txtfmt_lua_find_specialvar(str)  != -1) { fmt = FMT_TYPE_SPECIAL;
+  } else if (txtfmt_lua_find_keyword(str)     != -1) { fmt = FMT_TYPE_KEYWORD;
+  } else                                             { fmt = FMT_TYPE_DEFAULT;
   }
 
   /* clang-format on */

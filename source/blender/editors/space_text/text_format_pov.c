@@ -762,11 +762,11 @@ static char txtfmt_pov_format_identifier(const char *str)
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if        ((txtfmt_pov_find_specialvar(str))        != -1) { fmt = FMT_TYPE_SPECIAL;
-  } else if ((txtfmt_pov_find_keyword(str))           != -1) { fmt = FMT_TYPE_KEYWORD;
-  } else if ((txtfmt_pov_find_reserved_keywords(str)) != -1) { fmt = FMT_TYPE_RESERVED;
-  } else if ((txtfmt_pov_find_reserved_builtins(str)) != -1) { fmt = FMT_TYPE_DIRECTIVE;
-  } else                                                     { fmt = FMT_TYPE_DEFAULT;
+  if        (txtfmt_pov_find_specialvar(str)        != -1) { fmt = FMT_TYPE_SPECIAL;
+  } else if (txtfmt_pov_find_keyword(str)           != -1) { fmt = FMT_TYPE_KEYWORD;
+  } else if (txtfmt_pov_find_reserved_keywords(str) != -1) { fmt = FMT_TYPE_RESERVED;
+  } else if (txtfmt_pov_find_reserved_builtins(str) != -1) { fmt = FMT_TYPE_DIRECTIVE;
+  } else                                                   { fmt = FMT_TYPE_DEFAULT;
   }
 
   /* clang-format on */

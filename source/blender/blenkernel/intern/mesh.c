@@ -312,7 +312,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
     mesh->totselect = 0;
   }
 
-  if ((BLO_read_requires_endian_switch(reader)) && mesh->tface) {
+  if (BLO_read_requires_endian_switch(reader) && mesh->tface) {
     TFace *tf = mesh->tface;
     for (int i = 0; i < mesh->totface; i++, tf++) {
       BLI_endian_switch_uint32_array(tf->col, 4);

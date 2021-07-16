@@ -51,10 +51,10 @@ static int bm_edge_length_cmp(const void *a_, const void *b_)
   const BMEdge *e_a = *(const void **)a_;
   const BMEdge *e_b = *(const void **)b_;
 
-  int e_a_concave = ((BM_elem_flag_test(e_a->v1, BM_ELEM_TAG)) &&
-                     (BM_elem_flag_test(e_a->v2, BM_ELEM_TAG)));
-  int e_b_concave = ((BM_elem_flag_test(e_b->v1, BM_ELEM_TAG)) &&
-                     (BM_elem_flag_test(e_b->v2, BM_ELEM_TAG)));
+  int e_a_concave = (BM_elem_flag_test(e_a->v1, BM_ELEM_TAG) &&
+                     BM_elem_flag_test(e_a->v2, BM_ELEM_TAG));
+  int e_b_concave = (BM_elem_flag_test(e_b->v1, BM_ELEM_TAG) &&
+                     BM_elem_flag_test(e_b->v2, BM_ELEM_TAG));
 
   /* merge edges between concave edges last since these
    * are most likely to remain and be the main dividers */

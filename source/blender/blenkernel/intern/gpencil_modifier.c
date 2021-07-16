@@ -273,7 +273,7 @@ int BKE_gpencil_time_modifier_cfra(Depsgraph *depsgraph,
     if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
 
-      if ((GPENCIL_MODIFIER_EDIT(md, is_edit)) && (!is_render)) {
+      if (GPENCIL_MODIFIER_EDIT(md, is_edit) && (!is_render)) {
         continue;
       }
 
@@ -838,7 +838,7 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
     if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
 
-      if ((GPENCIL_MODIFIER_EDIT(md, is_edit)) && (!is_render)) {
+      if (GPENCIL_MODIFIER_EDIT(md, is_edit) && (!is_render)) {
         continue;
       }
 

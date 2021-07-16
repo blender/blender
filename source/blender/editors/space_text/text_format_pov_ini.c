@@ -347,10 +347,10 @@ static int txtfmt_ini_find_bool(const char *string)
 static char txtfmt_pov_ini_format_identifier(const char *str)
 {
   char fmt;
-  if ((txtfmt_ini_find_keyword(str)) != -1) {
+  if (txtfmt_ini_find_keyword(str) != -1) {
     fmt = FMT_TYPE_KEYWORD;
   }
-  else if ((txtfmt_ini_find_reserved(str)) != -1) {
+  else if (txtfmt_ini_find_reserved(str) != -1) {
     fmt = FMT_TYPE_RESERVED;
   }
   else {

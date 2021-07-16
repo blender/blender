@@ -919,7 +919,7 @@ static bool gpencil_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
           pt_active = pt->runtime.pt_orig;
           if (pt_active != NULL) {
             /* If masked and the point is not selected, skip it. */
-            if ((GPENCIL_ANY_VERTEX_MASK(gso->mask)) &&
+            if (GPENCIL_ANY_VERTEX_MASK(gso->mask) &&
                 ((pt_active->flag & GP_SPOINT_SELECT) == 0)) {
               continue;
             }

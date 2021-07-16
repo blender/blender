@@ -695,7 +695,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
       CTX_wm_region_set(C, region_win);
     }
 
-    if ((WM_operator_repeat_check(C, op)) && (WM_operator_poll(C, op->type)) &&
+    if (WM_operator_repeat_check(C, op) && WM_operator_poll(C, op->type) &&
         /* NOTE: undo/redo can't run if there are jobs active,
          * check for screen jobs only so jobs like material/texture/world preview
          * (which copy their data), won't stop redo, see T29579],

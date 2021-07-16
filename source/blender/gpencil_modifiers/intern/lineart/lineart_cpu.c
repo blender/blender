@@ -3442,9 +3442,9 @@ static bool lineart_bounding_area_triangle_intersect(LineartRenderBuffer *fb,
     return true;
   }
 
-  if ((lineart_bounding_area_edge_intersect(fb, FBC1, FBC2, ba)) ||
-      (lineart_bounding_area_edge_intersect(fb, FBC2, FBC3, ba)) ||
-      (lineart_bounding_area_edge_intersect(fb, FBC3, FBC1, ba))) {
+  if (lineart_bounding_area_edge_intersect(fb, FBC1, FBC2, ba) ||
+      lineart_bounding_area_edge_intersect(fb, FBC2, FBC3, ba) ||
+      lineart_bounding_area_edge_intersect(fb, FBC3, FBC1, ba)) {
     return true;
   }
 

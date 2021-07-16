@@ -278,7 +278,7 @@ static void gpencil_stroke_pair_table(bContext *C,
                                       tGPDinterpolate_layer *tgpil)
 {
   bGPdata *gpd = tgpi->gpd;
-  const bool only_selected = ((GPENCIL_EDIT_MODE(gpd)) &&
+  const bool only_selected = (GPENCIL_EDIT_MODE(gpd) &&
                               ((tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) != 0));
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
@@ -291,8 +291,7 @@ static void gpencil_stroke_pair_table(bContext *C,
   LISTBASE_FOREACH (bGPDstroke *, gps_from, &tgpil->prevFrame->strokes) {
     bGPDstroke *gps_to = NULL;
     /* only selected */
-    if ((GPENCIL_EDIT_MODE(gpd)) && (only_selected) &&
-        ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
+    if (GPENCIL_EDIT_MODE(gpd) && (only_selected) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
       continue;
     }
     /* skip strokes that are invalid for current view */
@@ -712,7 +711,7 @@ static bool gpencil_interpolate_set_init_values(bContext *C, wmOperator *op, tGP
       tgpi->flag, (RNA_enum_get(op->ptr, "layers") == 1), GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS);
   SET_FLAG_FROM_TEST(
       tgpi->flag,
-      ((GPENCIL_EDIT_MODE(tgpi->gpd)) && (RNA_boolean_get(op->ptr, "interpolate_selected_only"))),
+      (GPENCIL_EDIT_MODE(tgpi->gpd) && (RNA_boolean_get(op->ptr, "interpolate_selected_only"))),
       GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED);
 
   tgpi->flipmode = RNA_enum_get(op->ptr, "flip");
@@ -1249,7 +1248,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
   const int step = RNA_int_get(op->ptr, "step");
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const bool all_layers = (bool)(RNA_enum_get(op->ptr, "layers") == 1);
-  const bool only_selected = ((GPENCIL_EDIT_MODE(gpd)) &&
+  const bool only_selected = (GPENCIL_EDIT_MODE(gpd) &&
                               (RNA_boolean_get(op->ptr, "interpolate_selected_only") != 0));
 
   eGP_InterpolateFlipMode flipmode = RNA_enum_get(op->ptr, "flip");
@@ -1309,7 +1308,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     LISTBASE_FOREACH (bGPDstroke *, gps_from, &prevFrame->strokes) {
       bGPDstroke *gps_to = NULL;
       /* Only selected. */
-      if ((GPENCIL_EDIT_MODE(gpd)) && (only_selected) &&
+      if (GPENCIL_EDIT_MODE(gpd) && (only_selected) &&
           ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
         continue;
       }

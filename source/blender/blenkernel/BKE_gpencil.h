@@ -49,22 +49,22 @@ struct bGPDlayer_Mask;
 struct bGPDstroke;
 struct bGPdata;
 
-#define GPENCIL_SIMPLIFY(scene) ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))
+#define GPENCIL_SIMPLIFY(scene) (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE)
 #define GPENCIL_SIMPLIFY_ONPLAY(playing) \
   (((playing == true) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ON_PLAY)) || \
    ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ON_PLAY) == 0))
 #define GPENCIL_SIMPLIFY_FILL(scene, playing) \
-  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && (GPENCIL_SIMPLIFY(scene)) && \
+  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && GPENCIL_SIMPLIFY(scene) && \
     (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_FILL)))
 #define GPENCIL_SIMPLIFY_MODIF(scene) \
   ((GPENCIL_SIMPLIFY(scene) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_MODIFIER)))
 #define GPENCIL_SIMPLIFY_FX(scene, playing) \
-  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && (GPENCIL_SIMPLIFY(scene)) && \
+  ((GPENCIL_SIMPLIFY_ONPLAY(playing) && GPENCIL_SIMPLIFY(scene) && \
     (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_FX)))
 #define GPENCIL_SIMPLIFY_TINT(scene) \
-  ((GPENCIL_SIMPLIFY(scene)) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_TINT))
+  (GPENCIL_SIMPLIFY(scene) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_TINT))
 #define GPENCIL_SIMPLIFY_AA(scene) \
-  ((GPENCIL_SIMPLIFY(scene)) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_AA))
+  (GPENCIL_SIMPLIFY(scene) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_AA))
 
 /* Vertex Color macros. */
 #define GPENCIL_USE_VERTEX_COLOR(toolsettings) \

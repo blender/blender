@@ -842,7 +842,7 @@ static void *bmw_IslandManifoldWalker_step(BMWalker *walker)
 /* utility function to see if an edge is a part of an ngon boundary */
 static bool bm_edge_is_single(BMEdge *e)
 {
-  return ((BM_edge_is_boundary(e)) && (e->l->f->len > 4) &&
+  return (BM_edge_is_boundary(e) && (e->l->f->len > 4) &&
           (BM_edge_is_boundary(e->l->next->e) || BM_edge_is_boundary(e->l->prev->e)));
 }
 

@@ -283,7 +283,7 @@ void BPY_app_handlers_reset(const short do_all)
 
       for (i = PyList_GET_SIZE(ls) - 1; i >= 0; i--) {
 
-        if ((PyFunction_Check((item = PyList_GET_ITEM(ls, i)))) &&
+        if (PyFunction_Check((item = PyList_GET_ITEM(ls, i))) &&
             (dict_ptr = _PyObject_GetDictPtr(item)) && (*dict_ptr) &&
             (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL)) {
           /* keep */

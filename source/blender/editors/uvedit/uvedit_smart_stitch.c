@@ -1989,7 +1989,7 @@ static StitchState *stitch_init(bContext *C,
   /* Now, on to generate our uv connectivity data */
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     if (!(ts->uv_flag & UV_SYNC_SELECTION) &&
-        ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+        (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
       continue;
     }
 
@@ -2172,8 +2172,8 @@ static StitchState *stitch_init(bContext *C,
                                            "uv_stitch_selection_stack");
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        if (!(ts->uv_flag & UV_SYNC_SELECTION) && ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) ||
-                                                   !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+        if (!(ts->uv_flag & UV_SYNC_SELECTION) &&
+            (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) || !BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
           continue;
         }
 

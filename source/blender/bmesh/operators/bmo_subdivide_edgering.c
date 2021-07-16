@@ -860,12 +860,12 @@ static bool bm_edgering_pair_order_is_flipped(BMesh *UNUSED(bm),
   /* step around any fan-faces on both sides */
   do {
     v_iter_a_step = v_iter_a_step->next;
-  } while (v_iter_a_step && ((BM_edge_exists(v_iter_a_step->data, v_iter_b_first->data)) ||
-                             (BM_edge_exists(v_iter_a_step->data, v_iter_b_first->next->data))));
+  } while (v_iter_a_step && (BM_edge_exists(v_iter_a_step->data, v_iter_b_first->data) ||
+                             BM_edge_exists(v_iter_a_step->data, v_iter_b_first->next->data)));
   do {
     v_iter_b_step = v_iter_b_step->next;
-  } while (v_iter_b_step && ((BM_edge_exists(v_iter_b_step->data, v_iter_a_first->data)) ||
-                             (BM_edge_exists(v_iter_b_step->data, v_iter_a_first->next->data))));
+  } while (v_iter_b_step && (BM_edge_exists(v_iter_b_step->data, v_iter_a_first->data) ||
+                             BM_edge_exists(v_iter_b_step->data, v_iter_a_first->next->data)));
 
   v_iter_a_step = v_iter_a_step ? v_iter_a_step->prev : lb_a->last;
   v_iter_b_step = v_iter_b_step ? v_iter_b_step->prev : lb_b->last;
