@@ -407,6 +407,8 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     BLI_addtail(&left_strips, seq);
   }
 
+  SEQ_collection_free(collection);
+
   /* Sort list, so that no strip can depend on next strip in list.
    * This is important for SEQ_time_update_sequence functionality. */
   SEQ_sort(&left_strips);
