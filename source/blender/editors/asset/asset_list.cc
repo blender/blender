@@ -301,7 +301,7 @@ void AssetList::clear(bContext *C)
   filelist_freelib(files);
   filelist_clear(files);
 
-  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, NULL);
+  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
 }
 
 /**

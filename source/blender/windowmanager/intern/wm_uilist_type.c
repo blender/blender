@@ -163,7 +163,7 @@ void WM_uilisttype_free(void)
  */
 void WM_uilisttype_to_full_list_id(const uiListType *ult,
                                    const char *list_id,
-                                   char r_full_list_id[UI_MAX_NAME_STR])
+                                   char r_full_list_id[/*UI_MAX_NAME_STR*/])
 {
   /* We tag the list id with the list type... */
   BLI_snprintf(r_full_list_id, UI_MAX_NAME_STR, "%s_%s", ult->idname, list_id ? list_id : "");
