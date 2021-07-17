@@ -66,6 +66,8 @@ typedef struct {
   char relpath[FILE_MAX];
   char abspath[FILE_MAX]; /* absolute path */
   BlendHandle *blo_handle;
+  /* Referenced by `blo_handle`, so stored here to keep alive for long enough. */
+  BlendFileReadReport bf_reports;
   int flag;
   PyObject *dict;
   /* Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries.
@@ -259,7 +261,8 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   BKE_reports_init(&reports, RPT_STORE);
   BlendFileReadReport bf_reports = {.reports = &reports};
 
-  self->blo_handle = BLO_blendhandle_from_file(self->abspath, &bf_reports);
+  self->bf_reports = bf_reports;
+  self->blo_handle = BLO_blendhandle_from_file(self->abspath, &self->bf_reports);
 
   if (self->blo_handle == NULL) {
     if (BPy_reports_to_error(&reports, PyExc_IOError, true) != -1) {

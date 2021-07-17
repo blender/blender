@@ -88,7 +88,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
     name = outnode->name;
     input = outnode->inputs.first;
 
-    if ((STR_ELEM(name, "set_value", "set_rgb", "set_rgba")) && (input->type == type)) {
+    if (STR_ELEM(name, "set_value", "set_rgb", "set_rgba") && (input->type == type)) {
       input = MEM_dupallocN(outnode->inputs.first);
       if (input->link) {
         input->link->users++;
@@ -174,7 +174,7 @@ static const char *gpu_uniform_set_function_from_type(eNodeSocketDatatype type)
     case SOCK_RGBA:
       return "set_rgba";
     default:
-      BLI_assert(!"No gpu function for non-supported eNodeSocketDatatype");
+      BLI_assert_msg(0, "No gpu function for non-supported eNodeSocketDatatype");
       return NULL;
   }
 }

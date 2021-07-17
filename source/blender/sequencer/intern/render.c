@@ -370,7 +370,7 @@ int seq_get_shown_sequences(ListBase *seqbase,
   const int strip_count = BLI_gset_len(collection->set);
 
   if (strip_count > MAXSEQ) {
-    BLI_assert(!"Too many strips, this shouldn't happen");
+    BLI_assert_msg(0, "Too many strips, this shouldn't happen");
     return 0;
   }
 

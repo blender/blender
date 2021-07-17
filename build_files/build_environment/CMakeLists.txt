@@ -56,6 +56,7 @@ else()
 endif()
 
 include(cmake/zlib.cmake)
+include(cmake/zstd.cmake)
 include(cmake/openal.cmake)
 include(cmake/png.cmake)
 include(cmake/jpeg.cmake)

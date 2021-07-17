@@ -971,7 +971,7 @@ static const wmKeyMapItem *wm_modalkeymap_find_propvalue_iter(const wmKeyMap *km
     }
   }
   else {
-    BLI_assert(!"called with non modal keymap");
+    BLI_assert_msg(0, "called with non modal keymap");
   }
 
   return NULL;

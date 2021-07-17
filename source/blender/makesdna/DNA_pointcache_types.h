@@ -131,32 +131,34 @@ typedef struct PointCache {
   void (*free_edit)(struct PTCacheEdit *edit);
 } PointCache;
 
-/* pointcache->flag */
-#define PTCACHE_BAKED (1 << 0)
-#define PTCACHE_OUTDATED (1 << 1)
-#define PTCACHE_SIMULATION_VALID (1 << 2)
-#define PTCACHE_BAKING (1 << 3)
-//#define PTCACHE_BAKE_EDIT         (1 << 4)
-//#define PTCACHE_BAKE_EDIT_ACTIVE  (1 << 5)
-#define PTCACHE_DISK_CACHE (1 << 6)
-///* removed since 2.64 - T30974, could be added back in a more useful way */
-//#define PTCACHE_QUICK_CACHE       (1 << 7)
-#define PTCACHE_FRAMES_SKIPPED (1 << 8)
-#define PTCACHE_EXTERNAL (1 << 9)
-#define PTCACHE_READ_INFO (1 << 10)
-/** Don't use the filename of the blend-file the data is linked from (write a local cache). */
-#define PTCACHE_IGNORE_LIBPATH (1 << 11)
-/**
- * High resolution cache is saved for smoke for backwards compatibility,
- * so set this flag to know it's a "fake" cache.
- */
-#define PTCACHE_FAKE_SMOKE (1 << 12)
-#define PTCACHE_IGNORE_CLEAR (1 << 13)
+enum {
+  /* pointcache->flag */
+  PTCACHE_BAKED = 1 << 0,
+  PTCACHE_OUTDATED = 1 << 1,
+  PTCACHE_SIMULATION_VALID = 1 << 2,
+  PTCACHE_BAKING = 1 << 3,
+  //  PTCACHE_BAKE_EDIT = 1 << 4,
+  //  PTCACHE_BAKE_EDIT_ACTIVE = 1 << 5,
+  PTCACHE_DISK_CACHE = 1 << 6,
+  /* removed since 2.64 - T30974, could be added back in a more useful way */
+  //  PTCACHE_QUICK_CACHE = 1 << 7,
+  PTCACHE_FRAMES_SKIPPED = 1 << 8,
+  PTCACHE_EXTERNAL = 1 << 9,
+  PTCACHE_READ_INFO = 1 << 10,
+  /** Don't use the filename of the blend-file the data is linked from (write a local cache). */
+  PTCACHE_IGNORE_LIBPATH = 1 << 11,
+  /**
+   * High resolution cache is saved for smoke for backwards compatibility,
+   * so set this flag to know it's a "fake" cache.
+   */
+  PTCACHE_FAKE_SMOKE = 1 << 12,
+  PTCACHE_IGNORE_CLEAR = 1 << 13,
 
-#define PTCACHE_FLAG_INFO_DIRTY (1 << 14)
+  PTCACHE_FLAG_INFO_DIRTY = 1 << 14,
 
-/* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
-#define PTCACHE_REDO_NEEDED 258
+  PTCACHE_REDO_NEEDED = PTCACHE_OUTDATED | PTCACHE_FRAMES_SKIPPED,
+  PTCACHE_FLAGS_COPY = PTCACHE_DISK_CACHE | PTCACHE_EXTERNAL | PTCACHE_IGNORE_LIBPATH,
+};
 
 #define PTCACHE_COMPRESS_NO 0
 #define PTCACHE_COMPRESS_LZO 1

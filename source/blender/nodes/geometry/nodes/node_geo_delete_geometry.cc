@@ -627,7 +627,7 @@ static void delete_mesh_selection(MeshComponent &component,
       mesh_out = nullptr;
       break;
   }
-  component.replace_mesh_but_keep_vertex_group_names(mesh_out);
+  component.replace(mesh_out);
 }
 
 static void geo_node_delete_geometry_exec(GeoNodeExecParams params)

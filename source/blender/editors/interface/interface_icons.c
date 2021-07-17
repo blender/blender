@@ -1500,7 +1500,7 @@ static void icon_draw_rect(float x,
   /* sanity check */
   if (w <= 0 || h <= 0 || w > 2000 || h > 2000) {
     printf("%s: icons are %i x %i pixels?\n", __func__, w, h);
-    BLI_assert(!"invalid icon size");
+    BLI_assert_msg(0, "invalid icon size");
     return;
   }
   /* modulate color */
@@ -2201,7 +2201,7 @@ int UI_icon_from_library(const ID *id)
   return ICON_NONE;
 }
 
-int UI_icon_from_rnaptr(bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
+int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
 {
   ID *id = NULL;
 

@@ -140,7 +140,9 @@ struct Depsgraph {
   ViewLayer *view_layer;
   eEvaluationMode mode;
 
-  /* Time at which dependency graph is being or was last evaluated. */
+  /* Time at which dependency graph is being or was last evaluated.
+   * frame is the value before, and ctime the value after time remapping. */
+  float frame;
   float ctime;
 
   /* Evaluated version of datablocks we access a lot.

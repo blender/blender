@@ -37,6 +37,8 @@ struct Collection;
 struct ID;
 struct Image;
 struct ListBase;
+struct Material;
+struct Tex;
 struct bGPdata;
 struct bNodeInstanceHash;
 struct bNodeLink;
@@ -44,8 +46,6 @@ struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
-struct Tex;
-struct Material;
 
 #define NODE_MAXSTR 64
 
@@ -1370,6 +1370,11 @@ typedef struct NodeGeometryCurvePrimitiveCircle {
   uint8_t mode;
 } NodeGeometryCurvePrimitiveCircle;
 
+typedef struct NodeGeometryCurvePrimitiveQuad {
+  /* GeometryNodeCurvePrimitiveQuadMode. */
+  uint8_t mode;
+} NodeGeometryCurvePrimitiveQuad;
+
 typedef struct NodeGeometryCurveResample {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
@@ -1919,6 +1924,14 @@ typedef enum GeometryNodeCurvePrimitiveLineMode {
   GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS = 0,
   GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION = 1
 } GeometryNodeCurvePrimitiveLineMode;
+
+typedef enum GeometryNodeCurvePrimitiveQuadMode {
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE = 0,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM = 1,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID = 2,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE = 3,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS = 4,
+} GeometryNodeCurvePrimitiveQuadMode;
 
 typedef enum GeometryNodeCurvePrimitiveBezierSegmentMode {
   GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION = 0,

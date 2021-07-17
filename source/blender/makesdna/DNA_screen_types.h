@@ -43,6 +43,7 @@ struct SpaceLink;
 struct SpaceType;
 struct uiBlock;
 struct uiLayout;
+struct uiList;
 struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
@@ -246,17 +247,25 @@ typedef struct PanelCategoryStack {
   char idname[64];
 } PanelCategoryStack;
 
+typedef void (*uiListFreeRuntimeDataFunc)(struct uiList *ui_list);
+
 /* uiList dynamic data... */
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
 typedef struct uiListDyn {
+  /** Callback to free UI data when freeing UI-Lists in BKE. */
+  uiListFreeRuntimeDataFunc free_runtime_data_fn;
+
   /** Number of rows needed to draw all elements. */
   int height;
   /** Actual visual height of the list (in rows). */
   int visual_height;
   /** Minimal visual height of the list (in rows). */
   int visual_height_min;
+
+  /** Number of columns drawn for grid layouts. */
+  int columns;
 
   /** Number of items in collection. */
   int items_len;
@@ -270,11 +279,19 @@ typedef struct uiListDyn {
   int resize;
   int resize_prev;
 
+  /** Allocated custom data. Freed together with the #uiList (and when re-assigning). */
+  void *customdata;
+
   /* Filtering data. */
   /** Items_len length. */
   int *items_filter_flags;
   /** Org_idx -> new_idx, items_len length. */
   int *items_filter_neworder;
+
+  struct wmOperatorType *custom_drag_optype;
+  struct PointerRNA *custom_drag_opptr;
+  struct wmOperatorType *custom_activate_optype;
+  struct PointerRNA *custom_activate_opptr;
 } uiListDyn;
 
 typedef struct uiList { /* some list UI data need to be saved in file */
@@ -300,6 +317,12 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   char filter_byname[64];
   int filter_flag;
   int filter_sort_flag;
+
+  /** Operator executed when activating an item. */
+  const char *custom_activate_opname;
+  /** Operator executed when dragging an item (item gets activated too, without running
+   * custom_activate_opname above). */
+  const char *custom_drag_opname;
 
   /* Custom sub-classes properties. */
   IDProperty *properties;
@@ -584,6 +607,7 @@ enum {
   UILST_LAYOUT_DEFAULT = 0,
   UILST_LAYOUT_COMPACT = 1,
   UILST_LAYOUT_GRID = 2,
+  UILST_LAYOUT_BIG_PREVIEW_GRID = 3,
 };
 
 /** #uiList.flag */

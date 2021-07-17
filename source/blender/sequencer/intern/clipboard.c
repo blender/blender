@@ -24,6 +24,8 @@
  * \ingroup bke
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -31,6 +33,7 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
@@ -38,6 +41,7 @@
 #include "BKE_sound.h"
 
 #include "SEQ_clipboard.h"
+#include "SEQ_select.h"
 
 #include "sequencer.h"
 
@@ -55,6 +59,7 @@
 
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
+static char seq_clipboard_active_seq_name[SEQ_NAME_MAXSTR];
 
 void seq_clipboard_pointers_free(struct ListBase *seqbase);
 
@@ -176,4 +181,27 @@ void SEQ_clipboard_pointers_restore(ListBase *seqbase, Main *bmain)
     sequence_clipboard_pointers(bmain, seq, seqclipboard_ptr_restore);
     SEQ_clipboard_pointers_restore(&seq->seqbase, bmain);
   }
+}
+
+void SEQ_clipboard_active_seq_name_store(Scene *scene)
+{
+  Sequence *active_seq = SEQ_select_active_get(scene);
+  if (active_seq != NULL) {
+    STRNCPY(seq_clipboard_active_seq_name, active_seq->name);
+  }
+  else {
+    seq_clipboard_active_seq_name[0] = '\0';
+  }
+}
+
+/**
+ * Check if strip was active when it was copied. User should restrict this check to pasted strips
+ * before ensuring original name, because strip name comparison is used to check.
+ *
+ * \param pasted_seq: Strip that is pasted(duplicated) from clipboard
+ * \return true if strip was active, false otherwise
+ */
+bool SEQ_clipboard_pasted_seq_was_active(Sequence *pasted_seq)
+{
+  return STREQ(pasted_seq->name, seq_clipboard_active_seq_name);
 }

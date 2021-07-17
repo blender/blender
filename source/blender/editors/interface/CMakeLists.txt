@@ -66,6 +66,8 @@ set(SRC
   interface_region_tooltip.c
   interface_regions.c
   interface_style.c
+  interface_template_asset_view.cc
+  interface_template_list.cc
   interface_template_search_menu.c
   interface_template_search_operator.c
   interface_templates.c

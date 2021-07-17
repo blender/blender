@@ -1221,7 +1221,7 @@ void BM_log_entry_drop(BMLogEntry *entry)
      * can go back into the pool. */
   }
   else {
-    BLI_assert(!"Cannot drop BMLogEntry from middle");
+    BLI_assert_msg(0, "Cannot drop BMLogEntry from middle");
   }
 
   if (log->current_entry == entry) {

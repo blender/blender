@@ -511,47 +511,47 @@ static int snap_selected_to_location(bContext *C,
 
     for (int ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob = objects[ob_index];
-
-      if ((ob->parent && BKE_object_flag_test_recursive(ob->parent, OB_DONE)) == 0) {
-
-        float cursor_parent[3]; /* parent-relative */
-
-        if (use_offset) {
-          add_v3_v3v3(cursor_parent, ob->obmat[3], offset_global);
-        }
-        else {
-          copy_v3_v3(cursor_parent, snap_target_global);
-        }
-
-        sub_v3_v3(cursor_parent, ob->obmat[3]);
-
-        if (ob->parent) {
-          float originmat[3][3], parentmat[4][4];
-          /* Use the evaluated object here because sometimes
-           * `ob->parent->runtime.curve_cache` is required. */
-          BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
-          Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-          BKE_object_get_parent_matrix(ob_eval, ob_eval->parent, parentmat);
-          mul_m3_m4m4(originmat, parentmat, ob->parentinv);
-          invert_m3_m3(imat, originmat);
-          mul_m3_v3(imat, cursor_parent);
-        }
-        if ((ob->protectflag & OB_LOCK_LOCX) == 0) {
-          ob->loc[0] += cursor_parent[0];
-        }
-        if ((ob->protectflag & OB_LOCK_LOCY) == 0) {
-          ob->loc[1] += cursor_parent[1];
-        }
-        if ((ob->protectflag & OB_LOCK_LOCZ) == 0) {
-          ob->loc[2] += cursor_parent[2];
-        }
-
-        /* auto-keyframing */
-        ED_autokeyframe_object(C, scene, ob, ks);
-
-        DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+      if (ob->parent && BKE_object_flag_test_recursive(ob->parent, OB_DONE)) {
+        continue;
       }
+
+      float cursor_parent[3]; /* parent-relative */
+
+      if (use_offset) {
+        add_v3_v3v3(cursor_parent, ob->obmat[3], offset_global);
+      }
+      else {
+        copy_v3_v3(cursor_parent, snap_target_global);
+      }
+
+      sub_v3_v3(cursor_parent, ob->obmat[3]);
+
+      if (ob->parent) {
+        float originmat[3][3], parentmat[4][4];
+        /* Use the evaluated object here because sometimes
+         * `ob->parent->runtime.curve_cache` is required. */
+        BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+        Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+
+        BKE_object_get_parent_matrix(ob_eval, ob_eval->parent, parentmat);
+        mul_m3_m4m4(originmat, parentmat, ob->parentinv);
+        invert_m3_m3(imat, originmat);
+        mul_m3_v3(imat, cursor_parent);
+      }
+      if ((ob->protectflag & OB_LOCK_LOCX) == 0) {
+        ob->loc[0] += cursor_parent[0];
+      }
+      if ((ob->protectflag & OB_LOCK_LOCY) == 0) {
+        ob->loc[1] += cursor_parent[1];
+      }
+      if ((ob->protectflag & OB_LOCK_LOCZ) == 0) {
+        ob->loc[2] += cursor_parent[2];
+      }
+
+      /* auto-keyframing */
+      ED_autokeyframe_object(C, scene, ob, ks);
+
+      DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
     }
 
     if (objects) {

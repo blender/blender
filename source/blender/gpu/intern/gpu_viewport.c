@@ -248,7 +248,7 @@ void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type)
     }
   }
 
-  BLI_assert(!"Too many draw engines enabled at the same time");
+  BLI_assert_msg(0, "Too many draw engines enabled at the same time");
   return NULL;
 }
 

@@ -163,7 +163,7 @@ void WM_cursor_set(wmWindow *win, int curs)
   win->cursor = curs;
 
   if (curs < 0 || curs >= WM_CURSOR_NUM) {
-    BLI_assert(!"Invalid cursor number");
+    BLI_assert_msg(0, "Invalid cursor number");
     return;
   }
 

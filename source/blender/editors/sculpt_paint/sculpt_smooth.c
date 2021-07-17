@@ -676,7 +676,7 @@ void SCULPT_smooth(Sculpt *sd,
 #endif
 
   if (type == PBVH_FACES && !ss->pmap) {
-    BLI_assert(!"sculpt smooth: pmap missing");
+    BLI_assert_msg(0, "sculpt smooth: pmap missing");
     return;
   }
 

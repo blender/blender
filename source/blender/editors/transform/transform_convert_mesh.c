@@ -2067,6 +2067,27 @@ static void tc_mesh_transdata_mirror_apply(TransDataContainer *tc)
   }
 }
 
+static bool tc_mesh_is_deform_only_update(TransInfo *t, TransDataContainer *tc)
+{
+  if (tc->custom.type.data &&
+      ((struct TransCustomDataMesh *)tc->custom.type.data)->cd_layer_correct) {
+    return false;
+  }
+
+  Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(t->depsgraph, (ID *)tc->obedit->data);
+  Mesh *mesh_eval_cage = me_eval->edit_mesh->mesh_eval_cage;
+  Mesh *mesh_eval_final = me_eval->edit_mesh->mesh_eval_final;
+  if (mesh_eval_cage && !mesh_eval_cage->runtime.is_original) {
+    return false;
+  }
+  if (mesh_eval_final && mesh_eval_final != mesh_eval_cage &&
+      !mesh_eval_final->runtime.is_original) {
+    return false;
+  }
+
+  return me_eval->runtime.deformed_only;
+}
+
 void recalcData_mesh(TransInfo *t)
 {
   bool is_canceling = t->state == TRANS_CANCEL;
@@ -2094,7 +2115,10 @@ void recalcData_mesh(TransInfo *t)
   tc_mesh_partial_types_calc(t, &partial_state);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
+    const bool is_deform_only = tc_mesh_is_deform_only_update(t, tc);
+
+    DEG_id_tag_update(tc->obedit->data,
+                      is_deform_only ? ID_RECALC_GEOMETRY_DEFORM : ID_RECALC_GEOMETRY);
 
     tc_mesh_partial_update(t, tc, &partial_state);
   }

@@ -91,7 +91,7 @@ typedef struct BoundSphere {
 typedef char DRWViewportEmptyList;
 
 #define DRW_VIEWPORT_LIST_SIZE(list) \
-  (sizeof(list) == sizeof(DRWViewportEmptyList) ? 0 : ((sizeof(list)) / sizeof(void *)))
+  (sizeof(list) == sizeof(DRWViewportEmptyList) ? 0 : (sizeof(list) / sizeof(void *)))
 
 /* Unused members must be either pass list or 'char *' when not used. */
 #define DRW_VIEWPORT_DATA_SIZE(ty) \

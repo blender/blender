@@ -104,7 +104,7 @@ GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
         sh = hair_refine_shader_transform_feedback_workaround_create(refinement);
         break;
       default:
-        BLI_assert(!"Incorrect shader type");
+        BLI_assert_msg(0, "Incorrect shader type");
     }
     e_data.hair_refine_sh[refinement] = sh;
   }

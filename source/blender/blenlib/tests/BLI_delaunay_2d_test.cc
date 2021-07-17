@@ -353,27 +353,27 @@ void graph_draw(const std::string &label,
     const vec2<T> &uco = verts[e.first];
     const vec2<T> &vco = verts[e.second];
     int strokew = thin_line;
-    f << "<line fill=\"none\" stroke=\"black\" stroke-width=\"" << strokew << "\" x1=\""
+    f << R"(<line fill="none" stroke="black" stroke-width=")" << strokew << "\" x1=\""
       << SX(uco[0]) << "\" y1=\"" << SY(uco[1]) << "\" x2=\"" << SX(vco[0]) << "\" y2=\""
       << SY(vco[1]) << "\">\n";
     f << "  <title>[" << e.first << "][" << e.second << "]</title>\n";
     f << "</line>\n";
     if (draw_edge_labels) {
       f << "<text x=\"" << SX(0.5 * (uco[0] + vco[0])) << "\" y=\"" << SY(0.5 * (uco[1] + vco[1]))
-        << "\" font-size=\"small\">";
+        << R"(" font-size="small">)";
       f << "[" << e.first << "][" << e.second << "]</text>\n";
     }
   }
 
   int i = 0;
   for (const vec2<T> &vco : verts) {
-    f << "<circle fill=\"black\" cx=\"" << SX(vco[0]) << "\" cy=\"" << SY(vco[1]) << "\" r=\""
+    f << R"(<circle fill="black" cx=")" << SX(vco[0]) << "\" cy=\"" << SY(vco[1]) << "\" r=\""
       << vert_radius << "\">\n";
     f << "  <title>[" << i << "]" << vco << "</title>\n";
     f << "</circle>\n";
     if (draw_vert_labels) {
       f << "<text x=\"" << SX(vco[0]) + vert_radius << "\" y=\"" << SY(vco[1]) - vert_radius
-        << "\" font-size=\"small\">[" << i << "]</text>\n";
+        << R"(" font-size="small">[)" << i << "]</text>\n";
     }
     ++i;
   }

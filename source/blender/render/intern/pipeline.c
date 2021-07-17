@@ -1828,7 +1828,7 @@ void RE_SetReports(Render *re, ReportList *reports)
 static void render_update_depsgraph(Render *re)
 {
   Scene *scene = re->scene;
-  DEG_evaluate_on_framechange(re->pipeline_depsgraph, CFRA);
+  DEG_evaluate_on_framechange(re->pipeline_depsgraph, BKE_scene_frame_get(scene));
   BKE_scene_update_sound(re->pipeline_depsgraph, re->main);
 }
 
@@ -2410,7 +2410,7 @@ void RE_RenderAnim(Render *re,
        *                                                              -sergey-
        */
       {
-        float ctime = BKE_scene_frame_get(scene);
+        float ctime = BKE_scene_ctime_get(scene);
         AnimData *adt = BKE_animdata_from_id(&scene->id);
         const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
             re->pipeline_depsgraph, ctime);

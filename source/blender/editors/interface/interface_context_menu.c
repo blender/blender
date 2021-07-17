@@ -494,7 +494,7 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
   RNA_string_set(&props_ptr, "filepath", dir);
 }
 
-bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
+bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *event)
 {
   /* ui_but_is_interactive() may let some buttons through that should not get a context menu - it
    * doesn't make sense for them. */
@@ -1223,6 +1223,20 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     }
     else if (region->regiontype == RGN_TYPE_FOOTER) {
       uiItemMenuF(layout, IFACE_("Footer"), ICON_NONE, ED_screens_footer_tools_menu_create, NULL);
+    }
+  }
+
+  /* UI List item context menu. Scripts can add items to it, by default there's nothing shown. */
+  ARegion *region = CTX_wm_region(C);
+  const bool is_inside_listbox = ui_list_find_mouse_over(region, event) != NULL;
+  const bool is_inside_listrow = is_inside_listbox ?
+                                     ui_list_row_find_mouse_over(region, event->x, event->y) !=
+                                         NULL :
+                                     false;
+  if (is_inside_listrow) {
+    MenuType *mt = WM_menutype_find("UI_MT_list_item_context_menu", true);
+    if (mt) {
+      UI_menutype_draw(C, mt, uiLayoutColumn(layout, false));
     }
   }
 

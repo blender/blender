@@ -166,6 +166,8 @@ typedef struct Mesh {
   struct MEdge *medge;
   /** Deform-group vertices. */
   struct MDeformVert *dvert;
+  /** List of bDeformGroup names and flag only. */
+  ListBase vertex_group_names;
 
   /* array of colors for the tessellated faces, must be number of tessellated
    * faces * 4 in length */
@@ -189,7 +191,7 @@ typedef struct Mesh {
   /* END BMESH ONLY */
 
   int attributes_active_index;
-  int _pad3;
+  int vertex_group_active_index;
 
   /* the last selected vertex/edge/face are used for the active face however
    * this means the active face must always be selected, this is to keep track

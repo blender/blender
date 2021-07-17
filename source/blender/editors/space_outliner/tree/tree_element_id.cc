@@ -85,7 +85,7 @@ TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
       return new TreeElementID(legacy_te, id);
       /* Deprecated */
     case ID_IP:
-      BLI_assert(!"Outliner trying to build tree-element for deprecated ID type");
+      BLI_assert_msg(0, "Outliner trying to build tree-element for deprecated ID type");
       return nullptr;
   }
 

@@ -20,8 +20,8 @@
  * \ingroup bmesh
  */
 
-struct Heap;
 struct BMPartialUpdate;
+struct Heap;
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"

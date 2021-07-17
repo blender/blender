@@ -2998,7 +2998,7 @@ static int Matrix_translation_set(MatrixObject *self, PyObject *value, void *UNU
     return -1;
   }
 
-  if ((mathutils_array_parse(tvec, 3, 3, value, "Matrix.translation")) == -1) {
+  if (mathutils_array_parse(tvec, 3, 3, value, "Matrix.translation") == -1) {
     return -1;
   }
 

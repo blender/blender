@@ -203,7 +203,7 @@ int SIM_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
   cloth->implicit = id = SIM_mass_spring_solver_create(cloth->mvert_num, nondiag);
 
   for (i = 0; i < cloth->mvert_num; i++) {
-    SIM_mass_spring_set_vertex_mass(id, i, verts[i].mass);
+    SIM_mass_spring_set_implicit_vertex_mass(id, i, verts[i].mass);
   }
 
   for (i = 0; i < cloth->mvert_num; i++) {
@@ -211,6 +211,10 @@ int SIM_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
   }
 
   return 1;
+}
+
+void SIM_mass_spring_set_implicit_vertex_mass(Implicit_Data *data, int index, float mass){
+  SIM_mass_spring_set_vertex_mass(data, index, mass);
 }
 
 void SIM_cloth_solver_free(ClothModifierData *clmd)

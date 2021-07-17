@@ -1274,6 +1274,11 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 #define CMP_CRYPTOMATTE_SRC_RENDER 0
 #define CMP_CRYPTOMATTE_SRC_IMAGE 1
 
+/* Default SMAA configuration values. */
+#define CMP_DEFAULT_SMAA_THRESHOLD 1.0f
+#define CMP_DEFAULT_SMAA_CONTRAST_LIMIT 0.2f
+#define CMP_DEFAULT_SMAA_CORNER_ROUNDING 0.25f
+
 /* API */
 void ntreeCompositExecTree(struct Scene *scene,
                            struct bNodeTree *ntree,
@@ -1458,6 +1463,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_VIEWER 1067
 #define GEO_NODE_CURVE_PRIMITIVE_LINE 1068
 #define GEO_NODE_CURVE_ENDPOINTS 1069
+#define GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL 1070
 
 /** \} */
 

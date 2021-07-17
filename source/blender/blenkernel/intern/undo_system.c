@@ -717,8 +717,28 @@ eUndoStepDir BKE_undosys_step_calc_direction(const UndoStack *ustack,
     }
   }
 
-  BLI_assert(!"Target undo step not found, this should not happen and may indicate an undo stack corruption");
+  BLI_assert_msg(0,
+                 "Target undo step not found, this should not happen and may indicate an undo "
+                 "stack corruption");
   return STEP_INVALID;
+}
+
+/**
+ * When reading undo steps for undo/redo,
+ * some extra checks are needed when so the correct undo step is decoded.
+ */
+static UndoStep *undosys_step_iter_first(UndoStep *us_reference, const eUndoStepDir undo_dir)
+{
+  if (us_reference->type->flags & UNDOTYPE_FLAG_DECODE_ACTIVE_STEP) {
+    /* Reading this step means an undo action reads undo twice.
+     * This should be avoided where possible, however some undo systems require it.
+     *
+     * Redo skips the current state as this represents the currently loaded state. */
+    return (undo_dir == -1) ? us_reference : us_reference->next;
+  }
+
+  /* Typical case, skip reading the current undo step. */
+  return (undo_dir == -1) ? us_reference->prev : us_reference->next;
 }
 
 /**
@@ -786,15 +806,10 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
             us_target->type->name,
             undo_dir);
 
-  /* Undo/Redo steps until we reach given target step (or beyond if it has to be skipped), from
-   * given reference step.
-   *
-   * NOTE: Unlike with redo case, where we can expect current active step to fully reflect current
-   * data status, in undo case we also do reload the active step.
-   * FIXME: this feels weak, and should probably not be actually needed? Or should also be done in
-   * redo case? */
+  /* Undo/Redo steps until we reach given target step (or beyond if it has to be skipped),
+   * from given reference step. */
   bool is_processing_extra_skipped_steps = false;
-  for (UndoStep *us_iter = (undo_dir == -1) ? us_reference : us_reference->next; us_iter != NULL;
+  for (UndoStep *us_iter = undosys_step_iter_first(us_reference, undo_dir); us_iter != NULL;
        us_iter = (undo_dir == -1) ? us_iter->prev : us_iter->next) {
     BLI_assert(us_iter != NULL);
 

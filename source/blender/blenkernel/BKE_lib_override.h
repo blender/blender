@@ -42,8 +42,8 @@
 extern "C" {
 #endif
 
-struct Collection;
 struct BlendFileReadReport;
+struct Collection;
 struct ID;
 struct IDOverrideLibrary;
 struct IDOverrideLibraryProperty;

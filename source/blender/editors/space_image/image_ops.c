@@ -1995,7 +1995,7 @@ static bool image_save_as_draw_check_prop(PointerRNA *ptr,
   return !(STREQ(prop_id, "filepath") || STREQ(prop_id, "directory") ||
            STREQ(prop_id, "filename") ||
            /* when saving a copy, relative path has no effect */
-           ((STREQ(prop_id, "relative_path")) && RNA_boolean_get(ptr, "copy")));
+           (STREQ(prop_id, "relative_path") && RNA_boolean_get(ptr, "copy")));
 }
 
 static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)

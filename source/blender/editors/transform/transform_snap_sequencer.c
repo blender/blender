@@ -236,6 +236,11 @@ void transform_snap_sequencer_data_free(TransSeqSnapData *data)
 
 bool transform_snap_sequencer_calc(TransInfo *t)
 {
+  /* Prevent snapping when constrained to Y axis. */
+  if (t->con.mode & CON_APPLY && t->con.mode & CON_AXIS1) {
+    return false;
+  }
+
   const TransSeqSnapData *snap_data = t->tsnap.seq_context;
   int best_dist = MAXFRAME, best_target_frame = 0, best_source_frame = 0;
 

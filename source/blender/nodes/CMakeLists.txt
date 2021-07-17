@@ -170,6 +170,7 @@ set(SRC
   geometry/nodes/node_geo_curve_primitive_circle.cc
   geometry/nodes/node_geo_curve_primitive_line.cc
   geometry/nodes/node_geo_curve_primitive_quadratic_bezier.cc
+  geometry/nodes/node_geo_curve_primitive_quadrilateral.cc
   geometry/nodes/node_geo_curve_primitive_spiral.cc
   geometry/nodes/node_geo_curve_primitive_star.cc
   geometry/nodes/node_geo_curve_resample.cc

@@ -23,6 +23,7 @@
 #include "BLI_array.h"
 
 #include "BKE_collection.h"
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 

@@ -8,6 +8,9 @@ IGNORE_SOURCE = (
     # specific source files
     "extern/audaspace/",
 
+    # Use for `WIN32` only.
+    "source/creator/blender_launcher_win32.c",
+
     # specific source files
     "extern/bullet2/src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp",
     "extern/bullet2/src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp",

@@ -688,7 +688,7 @@ static float fcm_cycles_time(
       ofs = lastkey[0];
     }
   }
-  if ((ELEM(0, side, mode))) {
+  if (ELEM(0, side, mode)) {
     return evaltime;
   }
 

@@ -41,7 +41,7 @@ int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool
     case SEL_OP_XOR:
       return (is_select && is_inside) ? 0 : ((!is_select && is_inside) ? 1 : -1);
   }
-  BLI_assert(!"invalid sel_op");
+  BLI_assert_msg(0, "invalid sel_op");
   return -1;
 }
 /**
@@ -67,7 +67,7 @@ int ED_select_op_action_deselected(const eSelectOp sel_op,
     case SEL_OP_XOR:
       return (is_select && is_inside) ? 0 : ((!is_select && is_inside) ? 1 : -1);
   }
-  BLI_assert(!"invalid sel_op");
+  BLI_assert_msg(0, "invalid sel_op");
   return -1;
 }
 

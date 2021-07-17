@@ -337,6 +337,18 @@ class BezierSpline final : public Spline {
                         blender::MutableSpan<blender::float3> positions) const;
   bool segment_is_vector(const int start_index) const;
 
+  /** See comment and diagram for #calculate_segment_insertion. */
+  struct InsertResult {
+    blender::float3 handle_prev;
+    blender::float3 left_handle;
+    blender::float3 position;
+    blender::float3 right_handle;
+    blender::float3 handle_next;
+  };
+  InsertResult calculate_segment_insertion(const int index,
+                                           const int next_index,
+                                           const float parameter);
+
  private:
   void correct_end_tangents() const final;
   void copy_settings(Spline &dst) const final;

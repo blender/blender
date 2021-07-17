@@ -30,6 +30,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 
 #include "draw_cache_extract.h"

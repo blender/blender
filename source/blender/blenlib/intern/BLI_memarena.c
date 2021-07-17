@@ -45,6 +45,7 @@
 #  define VALGRIND_CREATE_MEMPOOL(pool, rzB, is_zeroed) UNUSED_VARS(pool, rzB, is_zeroed)
 #  define VALGRIND_DESTROY_MEMPOOL(pool) UNUSED_VARS(pool)
 #  define VALGRIND_MEMPOOL_ALLOC(pool, addr, size) UNUSED_VARS(pool, addr, size)
+#  define VALGRIND_MOVE_MEMPOOL(pool_a, pool_b) UNUSED_VARS(pool_a, pool_b)
 #endif
 
 struct MemBuf {
@@ -176,6 +177,58 @@ void *BLI_memarena_calloc(MemArena *ma, size_t size)
   memset(ptr, 0, size);
 
   return ptr;
+}
+
+/**
+ * Transfer ownership of allocated blocks from `ma_src` into `ma_dst`,
+ * cleaning the contents of `ma_src`.
+ *
+ * \note Useful for multi-threaded tasks that need a thread-local #MemArena
+ * that is kept after the multi-threaded operation is completed.
+ *
+ * \note Avoid accumulating memory pools where possible
+ * as any unused memory in `ma_src` is wasted every merge.
+ */
+void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
+{
+  /* Memory arenas must be compatible. */
+  BLI_assert(ma_dst != ma_src);
+  BLI_assert(ma_dst->align == ma_src->align);
+  BLI_assert(ma_dst->use_calloc == ma_src->use_calloc);
+  BLI_assert(ma_dst->bufsize == ma_src->bufsize);
+
+  if (ma_src->bufs == NULL) {
+    return;
+  }
+
+  if (UNLIKELY(ma_dst->bufs == NULL)) {
+    BLI_assert(ma_dst->curbuf == NULL);
+    ma_dst->bufs = ma_src->bufs;
+    ma_dst->curbuf = ma_src->curbuf;
+    ma_dst->cursize = ma_src->cursize;
+  }
+  else {
+    /* Keep the 'ma_dst->curbuf' for simplicity.
+     * Insert buffers after the first. */
+    if (ma_dst->bufs->next != NULL) {
+      /* Loop over `ma_src` instead of `ma_dst` since it's likely the destination is larger
+       * when used for accumulating from multiple sources. */
+      struct MemBuf *mb_src = ma_src->bufs;
+      mb_src = ma_src->bufs;
+      while (mb_src && mb_src->next) {
+        mb_src = mb_src->next;
+      }
+      mb_src->next = ma_dst->bufs->next;
+    }
+    ma_dst->bufs->next = ma_src->bufs;
+  }
+
+  ma_src->bufs = NULL;
+  ma_src->curbuf = NULL;
+  ma_src->cursize = 0;
+
+  VALGRIND_MOVE_MEMPOOL(ma_src, ma_dst);
+  VALGRIND_CREATE_MEMPOOL(ma_src, 0, false);
 }
 
 /**

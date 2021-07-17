@@ -1177,7 +1177,7 @@ class GeometryNodesEvaluator {
         to_sockets.append(to_socket);
       }
     };
-    auto handle_skipped_socket_fn = [&, this](const DSocket socket) {
+    auto handle_skipped_socket_fn = [&](const DSocket socket) {
       sockets_to_log_to.append(socket);
     };
     from_socket.foreach_target_socket(handle_target_socket_fn, handle_skipped_socket_fn);

@@ -30,6 +30,9 @@ namespace blender::nodes {
 
 void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::string message) const
 {
+  if (provider_->logger == nullptr) {
+    return;
+  }
   LocalGeoLogger &local_logger = provider_->logger->local();
   local_logger.log_node_warning(provider_->dnode, type, std::move(message));
 }

@@ -1398,7 +1398,7 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
         r_step->data.cast_pointer.array_len = shared_array_length;
       }
       else {
-        BLI_assert(!"invalid pointer size");
+        BLI_assert_msg(0, "invalid pointer size");
         r_step->type = RECONSTRUCT_STEP_INIT_ZERO;
       }
       break;

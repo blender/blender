@@ -33,6 +33,7 @@ struct Depsgraph;
 /* ------------------------------------------------ */
 
 struct CacheFile;
+struct Collection;
 struct CustomData_MeshMasks;
 struct ID;
 struct Main;
@@ -40,7 +41,6 @@ struct Object;
 struct Scene;
 struct Simulation;
 struct bNodeTree;
-struct Collection;
 
 #include "BLI_sys_types.h"
 

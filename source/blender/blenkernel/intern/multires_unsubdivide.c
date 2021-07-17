@@ -603,7 +603,7 @@ static void write_loop_in_face_grid(
       step_y[1] = 0;
       break;
     default:
-      BLI_assert(!"Should never happen");
+      BLI_assert_msg(0, "Should never happen");
       break;
   }
 

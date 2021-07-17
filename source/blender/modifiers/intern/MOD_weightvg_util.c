@@ -230,7 +230,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
 
     MEM_freeN(tex_co);
   }
-  else if ((ref_didx = BKE_object_defgroup_name_index(ob, defgrp_name)) != -1) {
+  else if ((ref_didx = BKE_id_defgroup_name_index(&mesh->id, defgrp_name)) != -1) {
     MDeformVert *dvert = NULL;
 
     /* Check whether we want to set vgroup weights from a constant weight factor or a vertex

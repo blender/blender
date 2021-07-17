@@ -689,7 +689,7 @@ static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
       break;
 
     default:
-      BLI_assert(!"unhandled select grouped gpencil mode");
+      BLI_assert_msg(0, "unhandled select grouped gpencil mode");
       break;
   }
 

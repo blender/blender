@@ -71,6 +71,8 @@ extern StructRNA RNA_ArrayGpencilModifier;
 extern StructRNA RNA_ArrayModifier;
 extern StructRNA RNA_Attribute;
 extern StructRNA RNA_AttributeGroup;
+extern StructRNA RNA_AssetHandle;
+extern StructRNA RNA_AssetLibraryReference;
 extern StructRNA RNA_AssetMetaData;
 extern StructRNA RNA_AssetTag;
 extern StructRNA RNA_BackgroundImage;
@@ -811,6 +813,7 @@ void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
 void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
+struct IDProperty **RNA_struct_idprops_p(PointerRNA *ptr);
 struct IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create);
 bool RNA_struct_idprops_check(StructRNA *srna);
 bool RNA_struct_idprops_register_check(const StructRNA *type);

@@ -33,6 +33,7 @@
 
 #include "BKE_context.h"
 #include "BKE_data_transfer.h"
+#include "BKE_deform.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_mesh_runtime.h"
@@ -122,9 +123,14 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   RNA_enum_items_add_value(
       &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);
 
-  if (data_type == DT_TYPE_MDEFORMVERT) {
-    Object *ob_src = CTX_data_active_object(C);
+  Object *ob_src = CTX_data_active_object(C);
+  if (ob_src == NULL) {
+    RNA_enum_item_end(&item, &totitem);
+    *r_free = true;
+    return item;
+  }
 
+  if (data_type == DT_TYPE_MDEFORMVERT && BKE_object_supports_vertex_groups(ob_src)) {
     if (BKE_object_pose_armature_get(ob_src)) {
       RNA_enum_items_add_value(
           &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_SELECT);
@@ -132,66 +138,57 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
           &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_DEFORM);
     }
 
-    if (ob_src) {
-      bDeformGroup *dg;
-      int i;
+    const bDeformGroup *dg;
+    int i;
 
-      RNA_enum_item_add_separator(&item, &totitem);
+    RNA_enum_item_add_separator(&item, &totitem);
 
-      for (i = 0, dg = ob_src->defbase.first; dg; i++, dg = dg->next) {
-        tmp_item.value = i;
-        tmp_item.identifier = tmp_item.name = dg->name;
-        RNA_enum_item_add(&item, &totitem, &tmp_item);
-      }
+    const ListBase *defbase = BKE_object_defgroup_list(ob_src);
+    for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
+      tmp_item.value = i;
+      tmp_item.identifier = tmp_item.name = dg->name;
+      RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }
   else if (data_type == DT_TYPE_SHAPEKEY) {
     /* TODO */
   }
   else if (data_type == DT_TYPE_UV) {
-    Object *ob_src = CTX_data_active_object(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+    Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
-    if (ob_src) {
-      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-      Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+    CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
+    cddata_masks.lmask |= CD_MASK_MLOOPUV;
+    Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
+    int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
 
-      CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-      cddata_masks.lmask |= CD_MASK_MLOOPUV;
-      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-      int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
+    RNA_enum_item_add_separator(&item, &totitem);
 
-      RNA_enum_item_add_separator(&item, &totitem);
-
-      for (int i = 0; i < num_data; i++) {
-        tmp_item.value = i;
-        tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-            &me_eval->ldata, CD_MLOOPUV, i);
-        RNA_enum_item_add(&item, &totitem, &tmp_item);
-      }
+    for (int i = 0; i < num_data; i++) {
+      tmp_item.value = i;
+      tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
+          &me_eval->ldata, CD_MLOOPUV, i);
+      RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }
   else if (data_type == DT_TYPE_VCOL) {
-    Object *ob_src = CTX_data_active_object(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+    Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
-    if (ob_src) {
-      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-      Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+    CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
+    cddata_masks.lmask |= CD_MASK_MLOOPCOL;
+    Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
+    int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
 
-      CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-      cddata_masks.lmask |= CD_MASK_MLOOPCOL;
-      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-      int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
+    RNA_enum_item_add_separator(&item, &totitem);
 
-      RNA_enum_item_add_separator(&item, &totitem);
-
-      for (int i = 0; i < num_data; i++) {
-        tmp_item.value = i;
-        tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-            &me_eval->ldata, CD_MLOOPCOL, i);
-        RNA_enum_item_add(&item, &totitem, &tmp_item);
-      }
+    for (int i = 0; i < num_data; i++) {
+      tmp_item.value = i;
+      tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
+          &me_eval->ldata, CD_MLOOPCOL, i);
+      RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }
 

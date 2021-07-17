@@ -108,14 +108,13 @@ class SequencerSplitMulticam(Operator):
         if s.multicam_source == camera or camera >= s.channel:
             return {'FINISHED'}
 
-        if not s.select:
-            s.select = True
-
         cfra = context.scene.frame_current
-        bpy.ops.sequencer.split(frame=cfra, type='SOFT', side='RIGHT')
-        for s in context.scene.sequence_editor.sequences_all:
-            if s.select and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
-                context.scene.sequence_editor.active_strip = s
+        right_strip = s.split(frame=cfra, split_method='SOFT')
+
+        if right_strip:
+            s.select = False
+            right_strip.select = True
+            context.scene.sequence_editor.active_strip = right_strip
 
         context.scene.sequence_editor.active_strip.multicam_source = camera
         return {'FINISHED'}

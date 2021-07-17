@@ -91,7 +91,7 @@ static void geo_node_mesh_subdivide_exec(GeoNodeExecParams params)
   BKE_mesh_calc_normals(mesh_out);
 
   MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-  mesh_component.replace_mesh_but_keep_vertex_group_names(mesh_out);
+  mesh_component.replace(mesh_out);
 
   BKE_subdiv_free(subdiv);
 

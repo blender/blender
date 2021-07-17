@@ -32,8 +32,8 @@ extern "C" {
 struct Editing;
 struct Scene;
 struct Sequence;
-struct SequencerToolSettings;
 struct SequenceLookup;
+struct SequencerToolSettings;
 
 /* RNA enums, just to be more readable */
 enum {

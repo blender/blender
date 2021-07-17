@@ -108,5 +108,7 @@ class RNANodeQuery {
   static bool contains(const char *prop_identifier, const char *rna_path_component);
 };
 
+bool rna_prop_affects_parameters_node(const PointerRNA *ptr, const PropertyRNA *prop);
+
 }  // namespace deg
 }  // namespace blender

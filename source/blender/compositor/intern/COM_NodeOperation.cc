@@ -218,7 +218,7 @@ void NodeOperation::get_area_of_interest(NodeOperation *input_op,
       return;
     }
   }
-  BLI_assert(!"input_op is not an input operation.");
+  BLI_assert_msg(0, "input_op is not an input operation.");
 }
 
 /**

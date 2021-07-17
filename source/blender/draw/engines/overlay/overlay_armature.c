@@ -37,6 +37,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_deform.h"
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph_query.h"
@@ -2040,7 +2041,8 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
     const Object *obact_orig = DEG_get_original_object(draw_ctx->obact);
 
-    LISTBASE_FOREACH (bDeformGroup *, dg, &obact_orig->defbase) {
+    const ListBase *defbase = BKE_object_defgroup_list(obact_orig);
+    LISTBASE_FOREACH (const bDeformGroup *, dg, defbase) {
       if (dg->flag & DG_LOCK_WEIGHT) {
         pchan = BKE_pose_channel_find_name(ob->pose, dg->name);
 

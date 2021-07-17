@@ -39,6 +39,8 @@
 
 #include "BLT_translation.h"
 
+#include "BLI_array_utils.h"
+#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -112,9 +114,93 @@ typedef struct {
   float ob_dims[3];
   /* Floats only (treated as an array). */
   TransformMedian ve_median, median;
+  bool tag_for_update;
 } TransformProperties;
 
 #define TRANSFORM_MEDIAN_ARRAY_LEN (sizeof(TransformMedian) / sizeof(float))
+
+static TransformProperties *v3d_transform_props_ensure(View3D *v3d);
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Mesh Partial Updates
+ * \{ */
+
+static void *editmesh_partial_update_begin_fn(struct bContext *UNUSED(C),
+                                              const struct uiBlockInteraction_Params *params,
+                                              void *arg1)
+{
+  const int retval_test = B_TRANSFORM_PANEL_MEDIAN;
+  if (BLI_array_findindex(
+          params->unique_retval_ids, params->unique_retval_ids_len, &retval_test) == -1) {
+    return NULL;
+  }
+
+  BMEditMesh *em = arg1;
+
+  int verts_mask_count = 0;
+  BMIter iter;
+  BMVert *eve;
+  int i;
+
+  BLI_bitmap *verts_mask = BLI_BITMAP_NEW(em->bm->totvert, __func__);
+  BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+    if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+      continue;
+    }
+    BLI_BITMAP_ENABLE(verts_mask, i);
+    verts_mask_count += 1;
+  }
+
+  BMPartialUpdate *bmpinfo = BM_mesh_partial_create_from_verts_group_single(
+      em->bm,
+      &(BMPartialUpdate_Params){
+          .do_tessellate = true,
+          .do_normals = true,
+      },
+      verts_mask,
+      verts_mask_count);
+
+  MEM_freeN(verts_mask);
+
+  return bmpinfo;
+}
+
+static void editmesh_partial_update_end_fn(struct bContext *UNUSED(C),
+                                           const struct uiBlockInteraction_Params *UNUSED(params),
+                                           void *UNUSED(arg1),
+                                           void *user_data)
+{
+  BMPartialUpdate *bmpinfo = user_data;
+  if (bmpinfo == NULL) {
+    return;
+  }
+  BM_mesh_partial_destroy(bmpinfo);
+}
+
+static void editmesh_partial_update_update_fn(
+    struct bContext *C,
+    const struct uiBlockInteraction_Params *UNUSED(params),
+    void *arg1,
+    void *user_data)
+{
+  BMPartialUpdate *bmpinfo = user_data;
+  if (bmpinfo == NULL) {
+    return;
+  }
+
+  View3D *v3d = CTX_wm_view3d(C);
+  TransformProperties *tfp = v3d_transform_props_ensure(v3d);
+  if (tfp->tag_for_update == false) {
+    return;
+  }
+  tfp->tag_for_update = false;
+
+  BMEditMesh *em = arg1;
+
+  BKE_editmesh_looptri_and_normals_calc_with_partial(em, bmpinfo);
+}
+
+/** \} */
 
 /* Helper function to compute a median changed value,
  * when the value should be clamped in [0.0, 1.0].
@@ -840,6 +926,20 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     }
 
     UI_block_align_end(block);
+
+    if (ob->type == OB_MESH) {
+      Mesh *me = ob->data;
+      BMEditMesh *em = me->edit_mesh;
+      if (em != NULL) {
+        UI_block_interaction_set(block,
+                                 &(uiBlockInteraction_CallbackData){
+                                     .begin_fn = editmesh_partial_update_begin_fn,
+                                     .end_fn = editmesh_partial_update_end_fn,
+                                     .update_fn = editmesh_partial_update_update_fn,
+                                     .arg1 = em,
+                                 });
+      }
+    }
   }
   else { /* apply */
     memcpy(&ve_median_basis, &tfp->ve_median, sizeof(tfp->ve_median));
@@ -927,9 +1027,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
       }
 
       if (apply_vcos) {
-        /* TODO: use the #BKE_editmesh_looptri_and_normals_calc_with_partial
-         * This requires begin/end states for UI interaction (which currently aren't supported). */
-        BKE_editmesh_looptri_and_normals_calc(em);
+        /* Tell the update callback to run. */
+        tfp->tag_for_update = true;
       }
 
       /* Edges */
@@ -1211,7 +1310,9 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 
     vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
         ob, subset_type, &vgroup_tot, &subset_count);
-    for (i = 0, dg = ob->defbase.first; dg; i++, dg = dg->next) {
+    const ListBase *defbase = BKE_object_defgroup_list(ob);
+
+    for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
       bool locked = (dg->flag & DG_LOCK_WEIGHT) != 0;
       if (vgroup_validmap[i]) {
         MDeformWeight *dw = BKE_defvert_find_index(dv, i);
@@ -1237,7 +1338,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           but_ptr = UI_but_operator_ptr_get(but);
           RNA_int_set(but_ptr, "weight_group", i);
           UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
-          if (ob->actdef != i + 1) {
+          if (BKE_object_defgroup_active_index_get(ob) != i + 1) {
             UI_but_flag_enable(but, UI_BUT_INACTIVE);
           }
           xco += x;

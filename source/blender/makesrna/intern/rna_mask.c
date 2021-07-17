@@ -505,7 +505,7 @@ static void rna_MaskSpline_points_add(ID *id, MaskSpline *spline, int count)
 
   if (!layer) {
     /* Shall not happen actually */
-    BLI_assert(!"No layer found for the spline");
+    BLI_assert_msg(0, "No layer found for the spline");
     return;
   }
 

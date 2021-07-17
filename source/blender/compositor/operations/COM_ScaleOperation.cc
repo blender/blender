@@ -37,12 +37,16 @@ BaseScaleOperation::BaseScaleOperation()
   m_variable_size = false;
 }
 
-ScaleOperation::ScaleOperation() : BaseScaleOperation()
+ScaleOperation::ScaleOperation() : ScaleOperation(DataType::Color)
 {
-  this->addInputSocket(DataType::Color);
+}
+
+ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
+{
+  this->addInputSocket(data_type);
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
+  this->addOutputSocket(data_type);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
   this->m_inputXOperation = nullptr;

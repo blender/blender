@@ -93,7 +93,7 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 
   for (i = 0; i < 2; i++) {
     BM_ITER_ELEM (e2, &iter, i ? e->v2 : e->v1, BM_EDGES_OF_VERT) {
-      if ((BMO_edge_flag_test(bm, e2, EDGE_MARK)) &&
+      if (BMO_edge_flag_test(bm, e2, EDGE_MARK) &&
           (BMO_edge_flag_test(bm, e2, EDGE_VIS) == false) && (e2 != e)) {
         return e2;
       }

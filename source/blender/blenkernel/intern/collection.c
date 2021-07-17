@@ -191,7 +191,7 @@ static ID *collection_owner_get(Main *bmain, ID *id)
     }
   }
 
-  BLI_assert(!"Embedded collection with no owner. Critical Main inconsistency.");
+  BLI_assert_msg(0, "Embedded collection with no owner. Critical Main inconsistency.");
   return NULL;
 }
 
@@ -522,7 +522,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
 {
   /* Master collection is not real datablock, can't be removed. */
   if (collection->flag & COLLECTION_IS_MASTER) {
-    BLI_assert(!"Scene master collection can't be deleted");
+    BLI_assert_msg(0, "Scene master collection can't be deleted");
     return false;
   }
 

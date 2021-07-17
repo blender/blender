@@ -18,11 +18,12 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_ConstantOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class TranslateOperation : public NodeOperation {
+class TranslateOperation : public MultiThreadedOperation {
  private:
   SocketReader *m_inputOperation;
   SocketReader *m_inputXOperation;
@@ -32,9 +33,12 @@ class TranslateOperation : public NodeOperation {
   bool m_isDeltaSet;
   float m_factorX;
   float m_factorY;
+  MemoryBufferExtend x_extend_mode_;
+  MemoryBufferExtend y_extend_mode_;
 
  public:
   TranslateOperation();
+  TranslateOperation(DataType data_type);
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
@@ -55,16 +59,38 @@ class TranslateOperation : public NodeOperation {
   inline void ensureDelta()
   {
     if (!this->m_isDeltaSet) {
-      float tempDelta[4];
-      this->m_inputXOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
-      this->m_deltaX = tempDelta[0];
-      this->m_inputYOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
-      this->m_deltaY = tempDelta[0];
+      if (execution_model_ == eExecutionModel::Tiled) {
+        float tempDelta[4];
+        this->m_inputXOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
+        this->m_deltaX = tempDelta[0];
+        this->m_inputYOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
+        this->m_deltaY = tempDelta[0];
+      }
+      else {
+        this->m_deltaX = 0;
+        NodeOperation *x_op = getInputOperation(1);
+        if (x_op->get_flags().is_constant_operation) {
+          this->m_deltaX = ((ConstantOperation *)x_op)->get_constant_elem()[0];
+        }
+        this->m_deltaY = 0;
+        NodeOperation *y_op = getInputOperation(2);
+        if (y_op->get_flags().is_constant_operation) {
+          this->m_deltaY = ((ConstantOperation *)y_op)->get_constant_elem()[0];
+        }
+      }
+
       this->m_isDeltaSet = true;
     }
   }
 
   void setFactorXY(float factorX, float factorY);
+  void set_wrapping(int wrapping_type);
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

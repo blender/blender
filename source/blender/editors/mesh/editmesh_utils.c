@@ -305,17 +305,13 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 
   if (me->edit_mesh) {
     /* this happens when switching shape keys */
-    EDBM_mesh_free(me->edit_mesh);
+    EDBM_mesh_free_data(me->edit_mesh);
     MEM_freeN(me->edit_mesh);
   }
 
-  /* currently executing operators re-tessellates, so we can avoid doing here
-   * but at some point it may need to be added back. */
-#if 0
-  me->edit_mesh = BKE_editmesh_create(bm, true);
-#else
-  me->edit_mesh = BKE_editmesh_create(bm, false);
-#endif
+  /* Executing operators re-tessellates,
+   * so we can avoid doing here but at some point it may need to be added back. */
+  me->edit_mesh = BKE_editmesh_create(bm);
 
   me->edit_mesh->selectmode = me->edit_mesh->bm->selectmode = select_mode;
   me->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
@@ -326,7 +322,8 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 
 /**
  * \warning This can invalidate the #Mesh runtime cache of other objects (for linked duplicates).
- * Most callers should run #DEG_id_tag_update on \a ob->data, see: T46738, T46913
+ * Most callers should run #DEG_id_tag_update on `ob->data`, see: T46738, T46913.
+ * This ensures #BKE_object_free_derived_caches runs on all objects that use this mesh.
  */
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
@@ -347,25 +344,6 @@ void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
                        .calc_object_remap = true,
                        .update_shapekey_indices = !free_data,
                    }));
-
-  /* Free derived mesh. usually this would happen through depsgraph but there
-   * are exceptions like file save that will not cause this, and we want to
-   * avoid ending up with an invalid derived mesh then.
-   *
-   * Do it for all objects which shares the same mesh datablock, since their
-   * derived meshes might also be referencing data which was just freed,
-   *
-   * Annoying enough, but currently seems most efficient way to avoid access
-   * of freed data on scene update, especially in cases when there are dependency
-   * cycles.
-   */
-#if 0
-  for (Object *other_object = bmain->objects.first; other_object != NULL; other_object = other_object->id.next) {
-    if (other_object->data == ob->data) {
-      BKE_object_free_derived_caches(other_object);
-    }
-  }
-#endif
 }
 
 void EDBM_mesh_clear(BMEditMesh *em)
@@ -373,8 +351,8 @@ void EDBM_mesh_clear(BMEditMesh *em)
   /* clear bmesh */
   BM_mesh_clear(em->bm);
 
-  /* free derived meshes */
-  BKE_editmesh_free_derivedmesh(em);
+  /* Free evaluated meshes & cache. */
+  BKE_editmesh_free_derived_caches(em);
 
   /* free tessellation data */
   em->tottri = 0;
@@ -390,9 +368,9 @@ void EDBM_mesh_load(Main *bmain, Object *ob)
 }
 
 /**
- * Should only be called on the active editmesh, otherwise call #BKE_editmesh_free
+ * Should only be called on the active edit-mesh, otherwise call #BKE_editmesh_free_data.
  */
-void EDBM_mesh_free(BMEditMesh *em)
+void EDBM_mesh_free_data(BMEditMesh *em)
 {
   /* These tables aren't used yet, so it's not strictly necessary
    * to 'end' them but if someone tries to start using them,
@@ -400,7 +378,7 @@ void EDBM_mesh_free(BMEditMesh *em)
   ED_mesh_mirror_spatial_table_end(NULL);
   ED_mesh_mirror_topo_table_end(NULL);
 
-  BKE_editmesh_free(em);
+  BKE_editmesh_free_data(em);
 }
 
 /** \} */
@@ -1472,8 +1450,8 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
     BM_lnorspace_invalidate(em->bm, false);
     em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
   }
-  /* don't keep stale derivedMesh data around, see: T38872. */
-  BKE_editmesh_free_derivedmesh(em);
+  /* Don't keep stale evaluated mesh data around, see: T38872. */
+  BKE_editmesh_free_derived_caches(em);
 
 #ifdef DEBUG
   {

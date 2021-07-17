@@ -128,7 +128,7 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
 
   if (context.export_path == context.original_export_path) {
     printf("USD ref error: export path is reference path: %s\n", context.export_path.c_str());
-    BLI_assert(!"USD reference error");
+    BLI_assert_msg(0, "USD reference error");
     return false;
   }
 

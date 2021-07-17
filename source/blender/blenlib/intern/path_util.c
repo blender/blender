@@ -1275,7 +1275,7 @@ void BLI_setenv(const char *env, const char *val)
 {
   /* free windows */
 
-#if (defined(WIN32) || defined(WIN64))
+#if (defined(_WIN32) || defined(_WIN64))
   uputenv(env, val);
 
 #else

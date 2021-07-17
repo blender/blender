@@ -39,15 +39,14 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_object.h"
 
-BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate)
+/**
+ * \note The caller is responsible for ensuring triangulation data,
+ * typically by calling #BKE_editmesh_looptri_calc.
+ */
+BMEditMesh *BKE_editmesh_create(BMesh *bm)
 {
   BMEditMesh *em = MEM_callocN(sizeof(BMEditMesh), __func__);
-
   em->bm = bm;
-  if (do_tessellate) {
-    BKE_editmesh_looptri_calc(em);
-  }
-
   return em;
 }
 
@@ -209,7 +208,7 @@ void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em,
                                          });
 }
 
-void BKE_editmesh_free_derivedmesh(BMEditMesh *em)
+void BKE_editmesh_free_derived_caches(BMEditMesh *em)
 {
   if (em->mesh_eval_cage) {
     BKE_id_free(NULL, em->mesh_eval_cage);
@@ -223,9 +222,9 @@ void BKE_editmesh_free_derivedmesh(BMEditMesh *em)
 }
 
 /* Does not free the #BMEditMesh struct itself. */
-void BKE_editmesh_free(BMEditMesh *em)
+void BKE_editmesh_free_data(BMEditMesh *em)
 {
-  BKE_editmesh_free_derivedmesh(em);
+  BKE_editmesh_free_derived_caches(em);
 
   if (em->looptris) {
     MEM_freeN(em->looptris);

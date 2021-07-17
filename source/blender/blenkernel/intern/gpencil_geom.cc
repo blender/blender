@@ -21,22 +21,24 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_float3.hh"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_heap.h"
 #include "BLI_math_vector.h"
 #include "BLI_polyfill_2d.h"
+#include "BLI_span.hh"
 
 #include "BLT_translation.h"
 
@@ -61,6 +63,9 @@
 
 #include "DEG_depsgraph_query.h"
 
+using blender::float3;
+using blender::Span;
+
 /* GP Object - Boundbox Support */
 /**
  *Get min/max coordinate bounds for single stroke.
@@ -75,20 +80,26 @@ bool BKE_gpencil_stroke_minmax(const bGPDstroke *gps,
                                float r_min[3],
                                float r_max[3])
 {
-  const bGPDspoint *pt;
-  int i;
-  bool changed = false;
-
-  if (ELEM(NULL, gps, r_min, r_max)) {
+  if (gps == nullptr) {
     return false;
   }
 
-  for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-    if ((use_select == false) || (pt->flag & GP_SPOINT_SELECT)) {
-      minmax_v3v3_v3(r_min, r_max, &pt->x);
+  bool changed = false;
+  if (use_select) {
+    for (const bGPDspoint &pt : Span(gps->points, gps->totpoints)) {
+      if (pt.flag & GP_SPOINT_SELECT) {
+        minmax_v3v3_v3(r_min, r_max, &pt.x);
+        changed = true;
+      }
+    }
+  }
+  else {
+    for (const bGPDspoint &pt : Span(gps->points, gps->totpoints)) {
+      minmax_v3v3_v3(r_min, r_max, &pt.x);
       changed = true;
     }
   }
+
   return changed;
 }
 
@@ -105,14 +116,14 @@ bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
 
   INIT_MINMAX(r_min, r_max);
 
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return changed;
   }
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf = gpl->actframe;
 
-    if (gpf != NULL) {
+    if (gpf != nullptr) {
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         changed |= BKE_gpencil_stroke_minmax(gps, false, r_min, r_max);
       }
@@ -129,11 +140,11 @@ bool BKE_gpencil_data_minmax(const bGPdata *gpd, float r_min[3], float r_max[3])
  */
 void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
-  float min[3], max[3], tot[3];
-
+  float3 min;
+  float3 max;
   BKE_gpencil_data_minmax(gpd, min, max);
 
-  add_v3_v3v3(tot, min, max);
+  const float3 tot = min + max;
   mul_v3_v3fl(r_centroid, tot, 0.5f);
 }
 
@@ -153,20 +164,18 @@ void BKE_gpencil_stroke_boundingbox_calc(bGPDstroke *gps)
  */
 static void boundbox_gpencil(Object *ob)
 {
-  BoundBox *bb;
-  bGPdata *gpd;
-  float min[3], max[3];
-
-  if (ob->runtime.bb == NULL) {
-    ob->runtime.bb = MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
+  if (ob->runtime.bb == nullptr) {
+    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
   }
 
-  bb = ob->runtime.bb;
-  gpd = ob->data;
+  BoundBox *bb = ob->runtime.bb;
+  bGPdata *gpd = (bGPdata *)ob->data;
 
+  float3 min;
+  float3 max;
   if (!BKE_gpencil_data_minmax(gpd, min, max)) {
-    min[0] = min[1] = min[2] = -1.0f;
-    max[0] = max[1] = max[2] = 1.0f;
+    min = float3(-1);
+    max = float3(1);
   }
 
   BKE_boundbox_init_from_minmax(bb, min, max);
@@ -181,8 +190,8 @@ static void boundbox_gpencil(Object *ob)
  */
 BoundBox *BKE_gpencil_boundbox_get(Object *ob)
 {
-  if (ELEM(NULL, ob, ob->data)) {
-    return NULL;
+  if (ELEM(nullptr, ob, ob->data)) {
+    return nullptr;
   }
 
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -196,9 +205,9 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
   /* Update orig object's boundbox with re-computed evaluated values. This function can be
    * called with the evaluated object and need update the original object bound box data
    * to keep both values synchronized. */
-  if (!ELEM(ob_orig, NULL, ob)) {
-    if (ob_orig->runtime.bb == NULL) {
-      ob_orig->runtime.bb = MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
+  if (!ELEM(ob_orig, nullptr, ob)) {
+    if (ob_orig->runtime.bb == nullptr) {
+      ob_orig->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
     }
     for (int i = 0; i < 8; i++) {
       copy_v3_v3(ob_orig->runtime.bb->vec[i], ob->runtime.bb->vec[i]);
@@ -227,7 +236,7 @@ static int stroke_march_next_point(const bGPDstroke *gps,
   float step_start[3];
   float point[3];
   int next_point_index = index_next_pt;
-  bGPDspoint *pt = NULL;
+  bGPDspoint *pt = nullptr;
 
   if (!(next_point_index < gps->totpoints)) {
     return -1;
@@ -295,7 +304,7 @@ static int stroke_march_next_point_no_interp(const bGPDstroke *gps,
   float step_start[3];
   float point[3];
   int next_point_index = index_next_pt;
-  bGPDspoint *pt = NULL;
+  bGPDspoint *pt = nullptr;
 
   if (!(next_point_index < gps->totpoints)) {
     return -1;
@@ -336,7 +345,7 @@ static int stroke_march_count(const bGPDstroke *gps, const float dist)
   int point_count = 0;
   float point[3];
   int next_point_index = 1;
-  bGPDspoint *pt = NULL;
+  bGPDspoint *pt = nullptr;
 
   pt = &gps->points[0];
   copy_v3_v3(point, &pt->x);
@@ -369,14 +378,14 @@ static void stroke_defvert_create_nr_list(MDeformVert *dv_list,
     for (j = 0; j < dv->totweight; j++) {
       bool found = false;
       dw = &dv->dw[j];
-      for (ld = result->first; ld; ld = ld->next) {
+      for (ld = (LinkData *)result->first; ld; ld = ld->next) {
         if (ld->data == POINTER_FROM_INT(dw->def_nr)) {
           found = true;
           break;
         }
       }
       if (!found) {
-        ld = MEM_callocN(sizeof(LinkData), "def_nr_item");
+        ld = (LinkData *)MEM_callocN(sizeof(LinkData), "def_nr_item");
         ld->data = POINTER_FROM_INT(dw->def_nr);
         BLI_addtail(result, ld);
         tw++;
@@ -391,14 +400,15 @@ static MDeformVert *stroke_defvert_new_count(int count, int totweight, ListBase 
 {
   int i, j;
   LinkData *ld;
-  MDeformVert *dst = MEM_mallocN(count * sizeof(MDeformVert), "new_deformVert");
+  MDeformVert *dst = (MDeformVert *)MEM_mallocN(count * sizeof(MDeformVert), "new_deformVert");
 
   for (i = 0; i < count; i++) {
-    dst[i].dw = MEM_mallocN(sizeof(MDeformWeight) * totweight, "new_deformWeight");
+    dst[i].dw = (MDeformWeight *)MEM_mallocN(sizeof(MDeformWeight) * totweight,
+                                             "new_deformWeight");
     dst[i].totweight = totweight;
     j = 0;
     /* re-assign deform groups */
-    for (ld = def_nr_list->first; ld; ld = ld->next) {
+    for (ld = (LinkData *)def_nr_list->first; ld; ld = ld->next) {
       dst[i].dw[j].def_nr = POINTER_AS_INT(ld->data);
       j++;
     }
@@ -429,10 +439,10 @@ static void stroke_interpolate_deform_weights(
 bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, const bool select)
 {
   bGPDspoint *pt = gps->points;
-  bGPDspoint *pt1 = NULL;
-  bGPDspoint *pt2 = NULL;
+  bGPDspoint *pt1 = nullptr;
+  bGPDspoint *pt2 = nullptr;
   LinkData *ld;
-  ListBase def_nr_list = {0};
+  ListBase def_nr_list = {nullptr};
 
   if (gps->totpoints < 2 || dist < FLT_EPSILON) {
     return false;
@@ -440,12 +450,13 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, 
   /* TODO: Implement feature point preservation. */
   int count = stroke_march_count(gps, dist);
 
-  bGPDspoint *new_pt = MEM_callocN(sizeof(bGPDspoint) * count, "gp_stroke_points_sampled");
-  MDeformVert *new_dv = NULL;
+  bGPDspoint *new_pt = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * count,
+                                                 "gp_stroke_points_sampled");
+  MDeformVert *new_dv = nullptr;
 
   int result_totweight;
 
-  if (gps->dvert != NULL) {
+  if (gps->dvert != nullptr) {
     stroke_defvert_create_nr_list(gps->dvert, gps->totpoints, &def_nr_list, &result_totweight);
     new_dv = stroke_defvert_new_count(count, result_totweight, &def_nr_list);
   }
@@ -513,7 +524,7 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, 
     /* Free original weight data. */
     BKE_gpencil_free_stroke_weights(gps);
     MEM_freeN(gps->dvert);
-    while ((ld = BLI_pophead(&def_nr_list))) {
+    while ((ld = (LinkData *)BLI_pophead(&def_nr_list))) {
       MEM_freeN(ld);
     }
 
@@ -610,26 +621,27 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
   if (new_count == 1) {
     BKE_gpencil_free_stroke_weights(gps);
     MEM_freeN(gps->points);
-    gps->points = NULL;
-    gps->dvert = NULL;
+    gps->points = nullptr;
+    gps->dvert = nullptr;
     gps->totpoints = 0;
     return false;
   }
 
-  new_pt = MEM_callocN(sizeof(bGPDspoint) * new_count, "gp_stroke_points_trimmed");
+  new_pt = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * new_count, "gp_stroke_points_trimmed");
 
   for (int i = 0; i < new_count; i++) {
     memcpy(&new_pt[i], &pt[i + index_from], sizeof(bGPDspoint));
   }
 
   if (gps->dvert) {
-    new_dv = MEM_callocN(sizeof(MDeformVert) * new_count, "gp_stroke_dverts_trimmed");
+    new_dv = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * new_count,
+                                        "gp_stroke_dverts_trimmed");
     for (int i = 0; i < new_count; i++) {
       dv = &gps->dvert[i + index_from];
       new_dv[i].flag = dv->flag;
       new_dv[i].totweight = dv->totweight;
-      new_dv[i].dw = MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
-                                 "gp_stroke_dverts_dw_trimmed");
+      new_dv[i].dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+                                                  "gp_stroke_dverts_dw_trimmed");
       for (int j = 0; j < dv->totweight; j++) {
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
@@ -685,14 +697,14 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
   }
 
   if (gps->dvert) {
-    new_dv = MEM_callocN(sizeof(MDeformVert) * new_count,
-                         "gp_stroke_dverts_remaining(MDeformVert)");
+    new_dv = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * new_count,
+                                        "gp_stroke_dverts_remaining(MDeformVert)");
     for (int i = 0; i < new_count; i++) {
       dv = &gps->dvert[i + before_index];
       new_dv[i].flag = dv->flag;
       new_dv[i].totweight = dv->totweight;
-      new_dv[i].dw = MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
-                                 "gp_stroke_dverts_dw_remaining(MDeformWeight)");
+      new_dv[i].dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+                                                  "gp_stroke_dverts_dw_remaining(MDeformWeight)");
       for (int j = 0; j < dv->totweight; j++) {
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
@@ -1301,11 +1313,12 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
 
   /* allocate memory for temporary areas */
   gps->tot_triangles = gps->totpoints - 2;
-  uint(*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->tot_triangles,
-                                        "GP Stroke temp triangulation");
-  float(*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints,
-                                    "GP Stroke temp 2d points");
-  float(*uv)[2] = MEM_mallocN(sizeof(*uv) * gps->totpoints, "GP Stroke temp 2d uv data");
+  uint(*tmp_triangles)[3] = (uint(*)[3])MEM_mallocN(sizeof(*tmp_triangles) * gps->tot_triangles,
+                                                    "GP Stroke temp triangulation");
+  float(*points2d)[2] = (float(*)[2])MEM_mallocN(sizeof(*points2d) * gps->totpoints,
+                                                 "GP Stroke temp 2d points");
+  float(*uv)[2] = (float(*)[2])MEM_mallocN(sizeof(*uv) * gps->totpoints,
+                                           "GP Stroke temp 2d uv data");
 
   int direction = 0;
 
@@ -1326,8 +1339,8 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
   /* Save triangulation data. */
   if (gps->tot_triangles > 0) {
     MEM_SAFE_FREE(gps->triangles);
-    gps->triangles = MEM_callocN(sizeof(*gps->triangles) * gps->tot_triangles,
-                                 "GP Stroke triangulation");
+    gps->triangles = (bGPDtriangle *)MEM_callocN(sizeof(*gps->triangles) * gps->tot_triangles,
+                                                 "GP Stroke triangulation");
 
     for (int i = 0; i < gps->tot_triangles; i++) {
       memcpy(gps->triangles[i].verts, tmp_triangles[i], sizeof(uint[3]));
@@ -1344,7 +1357,7 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
       MEM_freeN(gps->triangles);
     }
 
-    gps->triangles = NULL;
+    gps->triangles = nullptr;
   }
 
   /* clear memory */
@@ -1359,7 +1372,7 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
  */
 void BKE_gpencil_stroke_uv_update(bGPDstroke *gps)
 {
-  if (gps == NULL || gps->totpoints == 0) {
+  if (gps == nullptr || gps->totpoints == 0) {
     return;
   }
 
@@ -1379,11 +1392,11 @@ void BKE_gpencil_stroke_uv_update(bGPDstroke *gps)
  */
 void BKE_gpencil_stroke_geometry_update(bGPdata *gpd, bGPDstroke *gps)
 {
-  if (gps == NULL) {
+  if (gps == nullptr) {
     return;
   }
 
-  if (gps->editcurve != NULL) {
+  if (gps->editcurve != nullptr) {
     if (GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd)) {
       /* curve geometry was updated: stroke needs recalculation */
       if (gps->flag & GP_STROKE_NEEDS_CURVE_UPDATE) {
@@ -1519,20 +1532,20 @@ bool BKE_gpencil_stroke_trim(bGPdata *gpd, bGPDstroke *gps)
   if (intersect) {
 
     /* save points */
-    bGPDspoint *old_points = MEM_dupallocN(gps->points);
-    MDeformVert *old_dvert = NULL;
-    MDeformVert *dvert_src = NULL;
+    bGPDspoint *old_points = (bGPDspoint *)MEM_dupallocN(gps->points);
+    MDeformVert *old_dvert = nullptr;
+    MDeformVert *dvert_src = nullptr;
 
-    if (gps->dvert != NULL) {
-      old_dvert = MEM_dupallocN(gps->dvert);
+    if (gps->dvert != nullptr) {
+      old_dvert = (MDeformVert *)MEM_dupallocN(gps->dvert);
     }
 
     /* resize gps */
     int newtot = end - start + 1;
 
-    gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * newtot);
-    if (gps->dvert != NULL) {
-      gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * newtot);
+    gps->points = (bGPDspoint *)MEM_recallocN(gps->points, sizeof(*gps->points) * newtot);
+    if (gps->dvert != nullptr) {
+      gps->dvert = (MDeformVert *)MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * newtot);
     }
 
     for (int i = 0; i < newtot; i++) {
@@ -1540,7 +1553,7 @@ bool BKE_gpencil_stroke_trim(bGPdata *gpd, bGPDstroke *gps)
       bGPDspoint *pt_src = &old_points[idx];
       bGPDspoint *pt_new = &gps->points[i];
       memcpy(pt_new, pt_src, sizeof(bGPDspoint));
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         dvert_src = &old_dvert[idx];
         MDeformVert *dvert = &gps->dvert[i];
         memcpy(dvert, dvert_src, sizeof(MDeformVert));
@@ -1570,8 +1583,8 @@ bool BKE_gpencil_stroke_trim(bGPdata *gpd, bGPDstroke *gps)
  */
 bool BKE_gpencil_stroke_close(bGPDstroke *gps)
 {
-  bGPDspoint *pt1 = NULL;
-  bGPDspoint *pt2 = NULL;
+  bGPDspoint *pt1 = nullptr;
+  bGPDspoint *pt2 = nullptr;
 
   /* Only can close a stroke with 3 points or more. */
   if (gps->totpoints < 3) {
@@ -1605,9 +1618,9 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
   /* Resize stroke array. */
   int old_tot = gps->totpoints;
   gps->totpoints += tot_newpoints;
-  gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
-  if (gps->dvert != NULL) {
-    gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
+  gps->points = (bGPDspoint *)MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
+  if (gps->dvert != nullptr) {
+    gps->dvert = (MDeformVert *)MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
   }
 
   /* Generate new points */
@@ -1629,7 +1642,7 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
     interp_v4_v4v4(pt->vert_color, pt1->vert_color, pt2->vert_color, step);
 
     /* Set weights. */
-    if (gps->dvert != NULL) {
+    if (gps->dvert != nullptr) {
       MDeformVert *dvert1 = &gps->dvert[old_tot - 1];
       MDeformWeight *dw1 = BKE_defvert_ensure_index(dvert1, 0);
       float weight_1 = dw1 ? dw1->weight : 0.0f;
@@ -1663,7 +1676,7 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
 void BKE_gpencil_dissolve_points(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps, const short tag)
 {
   bGPDspoint *pt;
-  MDeformVert *dvert = NULL;
+  MDeformVert *dvert = nullptr;
   int i;
 
   int tot = gps->totpoints; /* number of points in new buffer */
@@ -1693,30 +1706,32 @@ void BKE_gpencil_dissolve_points(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps, 
   }
   else {
     /* just copy all points to keep into a smaller buffer */
-    bGPDspoint *new_points = MEM_callocN(sizeof(bGPDspoint) * tot, "new gp stroke points copy");
+    bGPDspoint *new_points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * tot,
+                                                       "new gp stroke points copy");
     bGPDspoint *npt = new_points;
 
-    MDeformVert *new_dvert = NULL;
-    MDeformVert *ndvert = NULL;
+    MDeformVert *new_dvert = nullptr;
+    MDeformVert *ndvert = nullptr;
 
-    if (gps->dvert != NULL) {
-      new_dvert = MEM_callocN(sizeof(MDeformVert) * tot, "new gp stroke weights copy");
+    if (gps->dvert != nullptr) {
+      new_dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * tot,
+                                             "new gp stroke weights copy");
       ndvert = new_dvert;
     }
 
-    (gps->dvert != NULL) ? dvert = gps->dvert : NULL;
+    (gps->dvert != nullptr) ? dvert = gps->dvert : nullptr;
     for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
       if ((pt->flag & tag) == 0) {
         *npt = *pt;
         npt++;
 
-        if (gps->dvert != NULL) {
+        if (gps->dvert != nullptr) {
           *ndvert = *dvert;
-          ndvert->dw = MEM_dupallocN(dvert->dw);
+          ndvert->dw = (MDeformWeight *)MEM_dupallocN(dvert->dw);
           ndvert++;
         }
       }
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         dvert++;
       }
     }
@@ -1789,15 +1804,15 @@ void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
  */
 void BKE_gpencil_stroke_simplify_adaptive(bGPdata *gpd, bGPDstroke *gps, float epsilon)
 {
-  bGPDspoint *old_points = MEM_dupallocN(gps->points);
+  bGPDspoint *old_points = (bGPDspoint *)MEM_dupallocN(gps->points);
   int totpoints = gps->totpoints;
-  char *marked = NULL;
+  char *marked = nullptr;
   char work;
 
   int start = 0;
   int end = gps->totpoints - 1;
 
-  marked = MEM_callocN(totpoints, "GP marked array");
+  marked = (char *)MEM_callocN(totpoints, "GP marked array");
   marked[start] = 1;
   marked[end] = 1;
 
@@ -1849,11 +1864,11 @@ void BKE_gpencil_stroke_simplify_adaptive(bGPdata *gpd, bGPDstroke *gps, float e
   }
 
   /* adding points marked */
-  MDeformVert *old_dvert = NULL;
-  MDeformVert *dvert_src = NULL;
+  MDeformVert *old_dvert = nullptr;
+  MDeformVert *dvert_src = nullptr;
 
-  if (gps->dvert != NULL) {
-    old_dvert = MEM_dupallocN(gps->dvert);
+  if (gps->dvert != nullptr) {
+    old_dvert = (MDeformVert *)MEM_dupallocN(gps->dvert);
   }
   /* resize gps */
   int j = 0;
@@ -1863,7 +1878,7 @@ void BKE_gpencil_stroke_simplify_adaptive(bGPdata *gpd, bGPDstroke *gps, float e
 
     if ((marked[i]) || (i == 0) || (i == totpoints - 1)) {
       memcpy(pt, pt_src, sizeof(bGPDspoint));
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         dvert_src = &old_dvert[i];
         MDeformVert *dvert = &gps->dvert[j];
         memcpy(dvert, dvert_src, sizeof(MDeformVert));
@@ -1874,7 +1889,7 @@ void BKE_gpencil_stroke_simplify_adaptive(bGPdata *gpd, bGPDstroke *gps, float e
       j++;
     }
     else {
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         dvert_src = &old_dvert[i];
         BKE_gpencil_free_point_weights(dvert_src);
       }
@@ -1903,12 +1918,12 @@ void BKE_gpencil_stroke_simplify_fixed(bGPdata *gpd, bGPDstroke *gps)
   }
 
   /* save points */
-  bGPDspoint *old_points = MEM_dupallocN(gps->points);
-  MDeformVert *old_dvert = NULL;
-  MDeformVert *dvert_src = NULL;
+  bGPDspoint *old_points = (bGPDspoint *)MEM_dupallocN(gps->points);
+  MDeformVert *old_dvert = nullptr;
+  MDeformVert *dvert_src = nullptr;
 
-  if (gps->dvert != NULL) {
-    old_dvert = MEM_dupallocN(gps->dvert);
+  if (gps->dvert != nullptr) {
+    old_dvert = (MDeformVert *)MEM_dupallocN(gps->dvert);
   }
 
   /* resize gps */
@@ -1918,9 +1933,9 @@ void BKE_gpencil_stroke_simplify_fixed(bGPdata *gpd, bGPDstroke *gps)
   }
   newtot += 2;
 
-  gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * newtot);
-  if (gps->dvert != NULL) {
-    gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * newtot);
+  gps->points = (bGPDspoint *)MEM_recallocN(gps->points, sizeof(*gps->points) * newtot);
+  if (gps->dvert != nullptr) {
+    gps->dvert = (MDeformVert *)MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * newtot);
   }
 
   int j = 0;
@@ -1930,7 +1945,7 @@ void BKE_gpencil_stroke_simplify_fixed(bGPdata *gpd, bGPDstroke *gps)
 
     if ((i == 0) || (i == gps->totpoints - 1) || ((i % 2) > 0.0)) {
       memcpy(pt, pt_src, sizeof(bGPDspoint));
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         dvert_src = &old_dvert[i];
         MDeformVert *dvert = &gps->dvert[j];
         memcpy(dvert, dvert_src, sizeof(MDeformVert));
@@ -1941,7 +1956,7 @@ void BKE_gpencil_stroke_simplify_fixed(bGPdata *gpd, bGPDstroke *gps)
       j++;
     }
     else {
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         dvert_src = &old_dvert[i];
         BKE_gpencil_free_point_weights(dvert_src);
       }
@@ -1966,25 +1981,25 @@ void BKE_gpencil_stroke_simplify_fixed(bGPdata *gpd, bGPDstroke *gps)
 void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int type)
 {
   bGPDspoint *temp_points;
-  MDeformVert *temp_dverts = NULL;
-  MDeformVert *dvert = NULL;
-  MDeformVert *dvert_final = NULL;
-  MDeformVert *dvert_next = NULL;
+  MDeformVert *temp_dverts = nullptr;
+  MDeformVert *dvert = nullptr;
+  MDeformVert *dvert_final = nullptr;
+  MDeformVert *dvert_next = nullptr;
   int totnewpoints, oldtotpoints;
   int i2;
 
   for (int s = 0; s < level; s++) {
     totnewpoints = gps->totpoints - 1;
     /* duplicate points in a temp area */
-    temp_points = MEM_dupallocN(gps->points);
+    temp_points = (bGPDspoint *)MEM_dupallocN(gps->points);
     oldtotpoints = gps->totpoints;
 
     /* resize the points arrays */
     gps->totpoints += totnewpoints;
-    gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
-    if (gps->dvert != NULL) {
-      temp_dverts = MEM_dupallocN(gps->dvert);
-      gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
+    gps->points = (bGPDspoint *)MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
+    if (gps->dvert != nullptr) {
+      temp_dverts = (MDeformVert *)MEM_dupallocN(gps->dvert);
+      gps->dvert = (MDeformVert *)MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
     }
 
     /* move points from last to first to new place */
@@ -2002,7 +2017,7 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       pt_final->runtime.idx_orig = pt->runtime.idx_orig;
       copy_v4_v4(pt_final->vert_color, pt->vert_color);
 
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         dvert = &temp_dverts[i];
         dvert_final = &gps->dvert[i2];
         dvert_final->totweight = dvert->totweight;
@@ -2023,17 +2038,17 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       pt_final->strength = interpf(pt->strength, next->strength, 0.5f);
       CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
       pt_final->time = interpf(pt->time, next->time, 0.5f);
-      pt_final->runtime.pt_orig = NULL;
+      pt_final->runtime.pt_orig = nullptr;
       pt_final->flag = 0;
       interp_v4_v4v4(pt_final->vert_color, pt->vert_color, next->vert_color, 0.5f);
 
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         dvert = &temp_dverts[i];
         dvert_next = &temp_dverts[i + 1];
         dvert_final = &gps->dvert[i2];
 
         dvert_final->totweight = dvert->totweight;
-        dvert_final->dw = MEM_dupallocN(dvert->dw);
+        dvert_final->dw = (MDeformWeight *)MEM_dupallocN(dvert->dw);
 
         /* interpolate weight values */
         for (int d = 0; d < dvert->totweight; d++) {
@@ -2055,7 +2070,7 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
     /* Move points to smooth stroke (not simple type). */
     if (type != GP_SUBDIV_SIMPLE) {
       /* duplicate points in a temp area with the new subdivide data */
-      temp_points = MEM_dupallocN(gps->points);
+      temp_points = (bGPDspoint *)MEM_dupallocN(gps->points);
 
       /* extreme points are not changed */
       for (int i = 0; i < gps->totpoints - 2; i++) {
@@ -2093,8 +2108,8 @@ void BKE_gpencil_stroke_merge_distance(bGPdata *gpd,
                                        const float threshold,
                                        const bool use_unselected)
 {
-  bGPDspoint *pt = NULL;
-  bGPDspoint *pt_next = NULL;
+  bGPDspoint *pt = nullptr;
+  bGPDspoint *pt_next = nullptr;
   float tagged = false;
   /* Use square distance to speed up loop */
   const float th_square = threshold * threshold;
@@ -2160,7 +2175,7 @@ void BKE_gpencil_stroke_merge_distance(bGPdata *gpd,
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
-typedef struct GpEdge {
+struct GpEdge {
   uint v1, v2;
   /* Coordinates. */
   float v1_co[3], v2_co[3];
@@ -2169,7 +2184,7 @@ typedef struct GpEdge {
   /* Direction of the segment. */
   float vec[3];
   int flag;
-} GpEdge;
+};
 
 static int gpencil_next_edge(
     GpEdge *gp_edges, int totedges, GpEdge *gped_init, const float threshold, const bool reverse)
@@ -2262,13 +2277,13 @@ static void gpencil_generate_edgeloops(Object *ob,
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
    * This is reused for each edgeloop to create gpencil stroke. */
-  uint *stroke = MEM_callocN(sizeof(uint) * me->totedge * 2, __func__);
-  uint *stroke_fw = MEM_callocN(sizeof(uint) * me->totedge, __func__);
-  uint *stroke_bw = MEM_callocN(sizeof(uint) * me->totedge, __func__);
+  uint *stroke = (uint *)MEM_callocN(sizeof(uint) * me->totedge * 2, __func__);
+  uint *stroke_fw = (uint *)MEM_callocN(sizeof(uint) * me->totedge, __func__);
+  uint *stroke_bw = (uint *)MEM_callocN(sizeof(uint) * me->totedge, __func__);
 
   /* Create array with all edges. */
-  GpEdge *gp_edges = MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
-  GpEdge *gped = NULL;
+  GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
+  GpEdge *gped = nullptr;
   for (int i = 0; i < me->totedge; i++) {
     MEdge *ed = &me->medge[i];
     gped = &gp_edges[i];
@@ -2321,7 +2336,7 @@ static void gpencil_generate_edgeloops(Object *ob,
     /* Look backward edges. */
     int totbw = gpencil_walk_edge(v_table, gp_edges, me->totedge, stroke_bw, e, angle, true);
 
-    BLI_ghash_free(v_table, NULL, NULL);
+    BLI_ghash_free(v_table, nullptr, nullptr);
 
     /* Join both arrays. */
     int array_len = 0;
@@ -2423,7 +2438,7 @@ static int gpencil_material_find_index_by_name(Object *ob, const char *name)
 {
   for (int i = 0; i < ob->totcol; i++) {
     Material *ma = BKE_object_material_get(ob, i + 1);
-    if ((ma != NULL) && (ma->gp_style != NULL) && (STREQ(ma->id.name + 2, name))) {
+    if ((ma != nullptr) && (ma->gp_style != nullptr) && (STREQ(ma->id.name + 2, name))) {
       return i;
     }
   }
@@ -2474,7 +2489,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
                               const bool use_seams,
                               const bool use_faces)
 {
-  if (ELEM(NULL, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == NULL)) {
+  if (ELEM(nullptr, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == nullptr)) {
     return false;
   }
 
@@ -2511,7 +2526,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       make_element_name(ob_mesh->id.name + 2, "Fills", 128, element_name);
       /* Create Layer and Frame. */
       bGPDlayer *gpl_fill = BKE_gpencil_layer_named_get(gpd, element_name);
-      if (gpl_fill == NULL) {
+      if (gpl_fill == nullptr) {
         gpl_fill = BKE_gpencil_layer_addnew(gpd, element_name, true, false);
       }
       bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
@@ -2524,11 +2539,11 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         int mat_idx = 0;
         Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
         make_element_name(
-            ob_mesh->id.name + 2, (ma != NULL) ? ma->id.name + 2 : "Fill", 64, element_name);
+            ob_mesh->id.name + 2, (ma != nullptr) ? ma->id.name + 2 : "Fill", 64, element_name);
         mat_idx = BKE_gpencil_material_find_index_by_name_prefix(ob_gp, element_name);
         if (mat_idx == -1) {
           float color[4];
-          if (ma != NULL) {
+          if (ma != nullptr) {
             copy_v3_v3(color, &ma->r);
             color[3] = 1.0f;
           }
@@ -2567,7 +2582,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
 
   /* Create Layer and Frame. */
   bGPDlayer *gpl_stroke = BKE_gpencil_layer_named_get(gpd, element_name);
-  if (gpl_stroke == NULL) {
+  if (gpl_stroke == nullptr) {
     gpl_stroke = BKE_gpencil_layer_addnew(gpd, element_name, true, false);
   }
   bGPDframe *gpf_stroke = BKE_gpencil_layer_frame_get(
@@ -2589,7 +2604,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
  */
 void BKE_gpencil_transform(bGPdata *gpd, const float mat[4][4])
 {
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return;
   }
 
@@ -2625,7 +2640,7 @@ int BKE_gpencil_stroke_point_count(const bGPdata *gpd)
 {
   int total_points = 0;
 
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return 0;
   }
 
@@ -2650,7 +2665,7 @@ int BKE_gpencil_stroke_point_count(const bGPdata *gpd)
 /* Used for "move only origins" in object_data_transform.c */
 void BKE_gpencil_point_coords_get(bGPdata *gpd, GPencilPointCoordinates *elem_data)
 {
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return;
   }
 
@@ -2681,7 +2696,7 @@ void BKE_gpencil_point_coords_get(bGPdata *gpd, GPencilPointCoordinates *elem_da
 /* Used for "move only origins" in object_data_transform.c */
 void BKE_gpencil_point_coords_apply(bGPdata *gpd, const GPencilPointCoordinates *elem_data)
 {
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return;
   }
 
@@ -2717,7 +2732,7 @@ void BKE_gpencil_point_coords_apply_with_mat4(bGPdata *gpd,
                                               const GPencilPointCoordinates *elem_data,
                                               const float mat[4][4])
 {
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return;
   }
 
@@ -2818,24 +2833,24 @@ void BKE_gpencil_stroke_flip(bGPDstroke *gps)
  * that should be kept when splitting up a stroke. Used in:
  * gpencil_stroke_delete_tagged_points()
  */
-typedef struct tGPDeleteIsland {
+struct tGPDeleteIsland {
   int start_idx;
   int end_idx;
-} tGPDeleteIsland;
+};
 
 static void gpencil_stroke_join_islands(bGPdata *gpd,
                                         bGPDframe *gpf,
                                         bGPDstroke *gps_first,
                                         bGPDstroke *gps_last)
 {
-  bGPDspoint *pt = NULL;
-  bGPDspoint *pt_final = NULL;
+  bGPDspoint *pt = nullptr;
+  bGPDspoint *pt_final = nullptr;
   const int totpoints = gps_first->totpoints + gps_last->totpoints;
 
   /* create new stroke */
   bGPDstroke *join_stroke = BKE_gpencil_stroke_duplicate(gps_first, false, true);
 
-  join_stroke->points = MEM_callocN(sizeof(bGPDspoint) * totpoints, __func__);
+  join_stroke->points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * totpoints, __func__);
   join_stroke->totpoints = totpoints;
   join_stroke->flag &= ~GP_STROKE_CYCLIC;
 
@@ -2868,17 +2883,17 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
   }
 
   /* Copy over vertex weight data (if available) */
-  if ((gps_first->dvert != NULL) || (gps_last->dvert != NULL)) {
-    join_stroke->dvert = MEM_callocN(sizeof(MDeformVert) * totpoints, __func__);
-    MDeformVert *dvert_src = NULL;
-    MDeformVert *dvert_dst = NULL;
+  if ((gps_first->dvert != nullptr) || (gps_last->dvert != nullptr)) {
+    join_stroke->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * totpoints, __func__);
+    MDeformVert *dvert_src = nullptr;
+    MDeformVert *dvert_dst = nullptr;
 
     /* Copy weights (last before). */
     e1 = 0;
     e2 = 0;
     for (int i = 0; i < totpoints; i++) {
       dvert_dst = &join_stroke->dvert[i];
-      dvert_src = NULL;
+      dvert_src = nullptr;
       if (i < gps_last->totpoints) {
         if (gps_last->dvert) {
           dvert_src = &gps_last->dvert[e1];
@@ -2893,7 +2908,7 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
       }
 
       if ((dvert_src) && (dvert_src->dw)) {
-        dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
+        dvert_dst->dw = (MDeformWeight *)MEM_dupallocN(dvert_src->dw);
       }
     }
   }
@@ -2934,13 +2949,13 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
                                                     bool select,
                                                     int limit)
 {
-  tGPDeleteIsland *islands = MEM_callocN(sizeof(tGPDeleteIsland) * (gps->totpoints + 1) / 2,
-                                         "gp_point_islands");
+  tGPDeleteIsland *islands = (tGPDeleteIsland *)MEM_callocN(
+      sizeof(tGPDeleteIsland) * (gps->totpoints + 1) / 2, "gp_point_islands");
   bool in_island = false;
   int num_islands = 0;
 
-  bGPDstroke *new_stroke = NULL;
-  bGPDstroke *gps_first = NULL;
+  bGPDstroke *new_stroke = nullptr;
+  bGPDstroke *gps_first = nullptr;
   const bool is_cyclic = (bool)(gps->flag & GP_STROKE_CYCLIC);
 
   /* First Pass: Identify start/end of islands */
@@ -2982,7 +2997,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       new_stroke = BKE_gpencil_stroke_duplicate(gps, false, true);
 
       /* if cyclic and first stroke, save to join later */
-      if ((is_cyclic) && (gps_first == NULL)) {
+      if ((is_cyclic) && (gps_first == nullptr)) {
         gps_first = new_stroke;
       }
 
@@ -2992,17 +3007,17 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       new_stroke->totpoints = island->end_idx - island->start_idx + 1;
 
       /* Copy over the relevant point data */
-      new_stroke->points = MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints,
-                                       "gp delete stroke fragment");
+      new_stroke->points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints,
+                                                     "gp delete stroke fragment");
       memcpy(new_stroke->points,
              gps->points + island->start_idx,
              sizeof(bGPDspoint) * new_stroke->totpoints);
 
       /* Copy over vertex weight data (if available) */
-      if (gps->dvert != NULL) {
+      if (gps->dvert != nullptr) {
         /* Copy over the relevant vertex-weight points */
-        new_stroke->dvert = MEM_callocN(sizeof(MDeformVert) * new_stroke->totpoints,
-                                        "gp delete stroke fragment weight");
+        new_stroke->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * new_stroke->totpoints,
+                                                       "gp delete stroke fragment weight");
         memcpy(new_stroke->dvert,
                gps->dvert + island->start_idx,
                sizeof(MDeformVert) * new_stroke->totpoints);
@@ -3013,7 +3028,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
           MDeformVert *dvert_src = &gps->dvert[e];
           MDeformVert *dvert_dst = &new_stroke->dvert[i];
           if (dvert_src->dw) {
-            dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
+            dvert_dst->dw = (MDeformWeight *)MEM_dupallocN(dvert_src->dw);
           }
           e++;
         }
@@ -3047,7 +3062,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       /* Add new stroke to the frame or delete if below limit */
       if ((limit > 0) && (new_stroke->totpoints <= limit)) {
         if (gps_first == new_stroke) {
-          gps_first = NULL;
+          gps_first = nullptr;
         }
         BKE_gpencil_free_stroke(new_stroke);
       }
@@ -3064,7 +3079,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       }
     }
     /* if cyclic, need to join last stroke with first stroke */
-    if ((is_cyclic) && (gps_first != NULL) && (gps_first != new_stroke)) {
+    if ((is_cyclic) && (gps_first != nullptr) && (gps_first != new_stroke)) {
       gpencil_stroke_join_islands(gpd, gpf, gps_first, new_stroke);
     }
   }
@@ -3086,13 +3101,13 @@ void BKE_gpencil_curve_delete_tagged_points(bGPdata *gpd,
                                             bGPDcurve *gpc,
                                             int tag_flags)
 {
-  if (gpc == NULL) {
+  if (gpc == nullptr) {
     return;
   }
   const bool is_cyclic = gps->flag & GP_STROKE_CYCLIC;
   const int idx_last = gpc->tot_curve_points - 1;
-  bGPDstroke *gps_first = NULL;
-  bGPDstroke *gps_last = NULL;
+  bGPDstroke *gps_first = nullptr;
+  bGPDstroke *gps_last = nullptr;
 
   int idx_start = 0;
   int idx_end = 0;
@@ -3123,11 +3138,11 @@ void BKE_gpencil_curve_delete_tagged_points(bGPdata *gpd,
       }
 
       bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps, false, false);
-      new_stroke->points = NULL;
+      new_stroke->points = nullptr;
       new_stroke->flag &= ~GP_STROKE_CYCLIC;
       new_stroke->editcurve = BKE_gpencil_stroke_editcurve_new(island_length);
 
-      if (gps_first == NULL) {
+      if (gps_first == nullptr) {
         gps_first = new_stroke;
       }
 
@@ -3155,15 +3170,15 @@ void BKE_gpencil_curve_delete_tagged_points(bGPdata *gpd,
   }
 
   /* join first and last stroke if cyclic */
-  if (is_cyclic && gps_first != NULL && gps_last != NULL && gps_first != gps_last) {
+  if (is_cyclic && gps_first != nullptr && gps_last != nullptr && gps_first != gps_last) {
     bGPDcurve *gpc_first = gps_first->editcurve;
     bGPDcurve *gpc_last = gps_last->editcurve;
     int first_tot_points = gpc_first->tot_curve_points;
     int old_tot_points = gpc_last->tot_curve_points;
 
     gpc_last->tot_curve_points = first_tot_points + old_tot_points;
-    gpc_last->curve_points = MEM_recallocN(gpc_last->curve_points,
-                                           sizeof(bGPDcurve_point) * gpc_last->tot_curve_points);
+    gpc_last->curve_points = (bGPDcurve_point *)MEM_recallocN(
+        gpc_last->curve_points, sizeof(bGPDcurve_point) * gpc_last->tot_curve_points);
     /* copy data from first to last */
     memcpy(gpc_last->curve_points + old_tot_points,
            gpc_first->curve_points,
@@ -3196,14 +3211,16 @@ static void gpencil_stroke_copy_point(bGPDstroke *gps,
 {
   bGPDspoint *newpoint;
 
-  gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
-  if (gps->dvert != NULL) {
-    gps->dvert = MEM_reallocN(gps->dvert, sizeof(MDeformVert) * (gps->totpoints + 1));
+  gps->points = (bGPDspoint *)MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
+  if (gps->dvert != nullptr) {
+    gps->dvert = (MDeformVert *)MEM_reallocN(gps->dvert,
+                                             sizeof(MDeformVert) * (gps->totpoints + 1));
   }
   else {
     /* If destination has weight add weight to origin. */
-    if (dvert != NULL) {
-      gps->dvert = MEM_callocN(sizeof(MDeformVert) * (gps->totpoints + 1), __func__);
+    if (dvert != nullptr) {
+      gps->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * (gps->totpoints + 1),
+                                              __func__);
     }
   }
 
@@ -3219,16 +3236,16 @@ static void gpencil_stroke_copy_point(bGPDstroke *gps,
   newpoint->time = point->time + deltatime;
   copy_v4_v4(newpoint->vert_color, point->vert_color);
 
-  if (gps->dvert != NULL) {
+  if (gps->dvert != nullptr) {
     MDeformVert *newdvert = &gps->dvert[gps->totpoints - 1];
 
-    if (dvert != NULL) {
+    if (dvert != nullptr) {
       newdvert->totweight = dvert->totweight;
-      newdvert->dw = MEM_dupallocN(dvert->dw);
+      newdvert->dw = (MDeformWeight *)MEM_dupallocN(dvert->dw);
     }
     else {
       newdvert->totweight = 0;
-      newdvert->dw = NULL;
+      newdvert->dw = nullptr;
     }
   }
 }
@@ -3246,7 +3263,7 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
   float deltatime = 0.0f;
 
   /* sanity checks */
-  if (ELEM(NULL, gps_a, gps_b)) {
+  if (ELEM(nullptr, gps_a, gps_b)) {
     return;
   }
 
@@ -3308,11 +3325,11 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
     point = gps_a->points[gps_a->totpoints - 1];
     deltatime = point.time;
 
-    gpencil_stroke_copy_point(gps_a, NULL, &point, delta, 0.0f, 0.0f, 0.0f);
+    gpencil_stroke_copy_point(gps_a, nullptr, &point, delta, 0.0f, 0.0f, 0.0f);
 
     /* 2nd: add one head point to finish invisible area */
     point = gps_b->points[0];
-    gpencil_stroke_copy_point(gps_a, NULL, &point, delta, 0.0f, 0.0f, deltatime);
+    gpencil_stroke_copy_point(gps_a, nullptr, &point, delta, 0.0f, 0.0f, deltatime);
   }
 
   const float ratio = (fit_thickness && gps_a->thickness > 0.0f) ?
@@ -3321,7 +3338,7 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
 
   /* 3rd: add all points */
   for (i = 0, pt = gps_b->points; i < gps_b->totpoints && pt; i++, pt++) {
-    MDeformVert *dvert = (gps_b->dvert) ? &gps_b->dvert[i] : NULL;
+    MDeformVert *dvert = (gps_b->dvert) ? &gps_b->dvert[i] : nullptr;
     gpencil_stroke_copy_point(
         gps_a, dvert, pt, delta, pt->pressure * ratio, pt->strength, deltatime);
   }
@@ -3340,16 +3357,16 @@ void BKE_gpencil_stroke_copy_to_keyframes(
 
     if (gpf->framenum != cfra) {
       bGPDframe *gpf_new = BKE_gpencil_layer_frame_find(gpl, cfra);
-      if (gpf_new == NULL) {
+      if (gpf_new == nullptr) {
         gpf_new = BKE_gpencil_frame_addnew(gpl, cfra);
       }
 
-      if (gpf_new == NULL) {
+      if (gpf_new == nullptr) {
         continue;
       }
 
       bGPDstroke *gps_new = BKE_gpencil_stroke_duplicate(gps, true, true);
-      if (gps_new == NULL) {
+      if (gps_new == nullptr) {
         continue;
       }
 
@@ -3363,38 +3380,38 @@ void BKE_gpencil_stroke_copy_to_keyframes(
   }
 
   /* Free hash table. */
-  BLI_ghash_free(frame_list, NULL, NULL);
+  BLI_ghash_free(frame_list, nullptr, nullptr);
 }
 
 /* Stroke Uniform Subdivide  ------------------------------------- */
 
-typedef struct tSamplePoint {
+struct tSamplePoint {
   struct tSamplePoint *next, *prev;
   float x, y, z;
   float pressure, strength, time;
   float vertex_color[4];
   struct MDeformWeight *dw;
   int totweight;
-} tSamplePoint;
+};
 
-typedef struct tSampleEdge {
+struct tSampleEdge {
   float length_sq;
   tSamplePoint *from;
   tSamplePoint *to;
-} tSampleEdge;
+};
 
 /* Helper: creates a tSamplePoint from a bGPDspoint and (optionally) a MDeformVert. */
 static tSamplePoint *new_sample_point_from_gp_point(const bGPDspoint *pt, const MDeformVert *dvert)
 {
-  tSamplePoint *new_pt = MEM_callocN(sizeof(tSamplePoint), __func__);
+  tSamplePoint *new_pt = (tSamplePoint *)MEM_callocN(sizeof(tSamplePoint), __func__);
   copy_v3_v3(&new_pt->x, &pt->x);
   new_pt->pressure = pt->pressure;
   new_pt->strength = pt->strength;
   new_pt->time = pt->time;
   copy_v4_v4((float *)&new_pt->vertex_color, (float *)&pt->vert_color);
-  if (dvert != NULL) {
+  if (dvert != nullptr) {
     new_pt->totweight = dvert->totweight;
-    new_pt->dw = MEM_callocN(sizeof(MDeformWeight) * new_pt->totweight, __func__);
+    new_pt->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * new_pt->totweight, __func__);
     for (uint i = 0; i < new_pt->totweight; ++i) {
       MDeformWeight *dw = &new_pt->dw[i];
       MDeformWeight *dw_from = &dvert->dw[i];
@@ -3409,7 +3426,7 @@ static tSamplePoint *new_sample_point_from_gp_point(const bGPDspoint *pt, const 
  * the edge. */
 static tSampleEdge *new_sample_edge_from_sample_points(tSamplePoint *from, tSamplePoint *to)
 {
-  tSampleEdge *new_edge = MEM_callocN(sizeof(tSampleEdge), __func__);
+  tSampleEdge *new_edge = (tSampleEdge *)MEM_callocN(sizeof(tSampleEdge), __func__);
   new_edge->from = from;
   new_edge->to = to;
   new_edge->length_sq = len_squared_v3v3(&from->x, &to->x);
@@ -3431,27 +3448,27 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
                                           const bool select)
 {
   /* Stroke needs at least two points and strictly less points than the target number. */
-  if (gps == NULL || gps->totpoints < 2 || gps->totpoints >= target_number) {
+  if (gps == nullptr || gps->totpoints < 2 || gps->totpoints >= target_number) {
     return;
   }
 
   const int totpoints = gps->totpoints;
-  const bool has_dverts = (gps->dvert != NULL);
+  const bool has_dverts = (gps->dvert != nullptr);
   const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC);
 
-  ListBase points = {NULL, NULL};
+  ListBase points = {nullptr, nullptr};
   Heap *edges = BLI_heap_new();
 
   /* Add all points into list. */
   for (uint32_t i = 0; i < totpoints; ++i) {
     bGPDspoint *pt = &gps->points[i];
-    MDeformVert *dvert = has_dverts ? &gps->dvert[i] : NULL;
+    MDeformVert *dvert = has_dverts ? &gps->dvert[i] : nullptr;
     tSamplePoint *sp = new_sample_point_from_gp_point(pt, dvert);
     BLI_addtail(&points, sp);
   }
 
   /* Iterate over edges and insert them into the heap. */
-  for (tSamplePoint *pt = ((tSamplePoint *)points.first)->next; pt != NULL; pt = pt->next) {
+  for (tSamplePoint *pt = ((tSamplePoint *)points.first)->next; pt != nullptr; pt = pt->next) {
     tSampleEdge *se = new_sample_edge_from_sample_points(pt->prev, pt);
     /* BLI_heap is a min-heap, but we need the largest key to be at the top, so we take the
      * negative of the squared length. */
@@ -3459,8 +3476,8 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
   }
 
   if (is_cyclic) {
-    tSamplePoint *sp_first = points.first;
-    tSamplePoint *sp_last = points.last;
+    tSamplePoint *sp_first = (tSamplePoint *)points.first;
+    tSamplePoint *sp_last = (tSamplePoint *)points.last;
     tSampleEdge *se = new_sample_edge_from_sample_points(sp_last, sp_first);
     BLI_heap_insert(edges, -(se->length_sq), se);
   }
@@ -3469,12 +3486,12 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
   BLI_assert(num_points_needed > 0);
 
   while (num_points_needed > 0) {
-    tSampleEdge *se = BLI_heap_pop_min(edges);
+    tSampleEdge *se = (tSampleEdge *)BLI_heap_pop_min(edges);
     tSamplePoint *sp = se->from;
     tSamplePoint *sp_next = se->to;
 
     /* Subdivide the edge. */
-    tSamplePoint *new_sp = MEM_callocN(sizeof(tSamplePoint), __func__);
+    tSamplePoint *new_sp = (tSamplePoint *)MEM_callocN(sizeof(tSamplePoint), __func__);
     interp_v3_v3v3(&new_sp->x, &sp->x, &sp_next->x, 0.5f);
     new_sp->pressure = interpf(sp->pressure, sp_next->pressure, 0.5f);
     new_sp->strength = interpf(sp->strength, sp_next->strength, 0.5f);
@@ -3485,7 +3502,8 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
                    0.5f);
     if (sp->dw && sp_next->dw) {
       new_sp->totweight = MIN2(sp->totweight, sp_next->totweight);
-      new_sp->dw = MEM_callocN(sizeof(MDeformWeight) * new_sp->totweight, __func__);
+      new_sp->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * new_sp->totweight,
+                                                __func__);
       for (uint32_t i = 0; i < new_sp->totweight; ++i) {
         MDeformWeight *dw = &new_sp->dw[i];
         MDeformWeight *dw_from = &sp->dw[i];
@@ -3509,13 +3527,13 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
   BLI_heap_free(edges, (HeapFreeFP)MEM_freeN);
 
   gps->totpoints = target_number;
-  gps->points = MEM_recallocN(gps->points, sizeof(bGPDspoint) * gps->totpoints);
+  gps->points = (bGPDspoint *)MEM_recallocN(gps->points, sizeof(bGPDspoint) * gps->totpoints);
   if (has_dverts) {
-    gps->dvert = MEM_recallocN(gps->dvert, sizeof(MDeformVert) * gps->totpoints);
+    gps->dvert = (MDeformVert *)MEM_recallocN(gps->dvert, sizeof(MDeformVert) * gps->totpoints);
   }
 
   /* Convert list back to stroke point array. */
-  tSamplePoint *sp = points.first;
+  tSamplePoint *sp = (tSamplePoint *)points.first;
   for (uint32_t i = 0; i < gps->totpoints && sp; ++i, sp = sp->next) {
     bGPDspoint *pt = &gps->points[i];
     MDeformVert *dvert = &gps->dvert[i];
@@ -3528,7 +3546,7 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
 
     if (sp->dw) {
       dvert->totweight = sp->totweight;
-      dvert->dw = MEM_callocN(sizeof(MDeformWeight) * dvert->totweight, __func__);
+      dvert->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dvert->totweight, __func__);
       for (uint32_t j = 0; j < dvert->totweight; ++j) {
         MDeformWeight *dw = &dvert->dw[j];
         MDeformWeight *dw_from = &sp->dw[j];
@@ -3549,7 +3567,7 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
   /* Free the sample points. Important to use the mutable loop here because we are erasing the list
    * elements. */
   LISTBASE_FOREACH_MUTABLE (tSamplePoint *, temp, &points) {
-    if (temp->dw != NULL) {
+    if (temp->dw != nullptr) {
       MEM_freeN(temp->dw);
     }
     MEM_SAFE_FREE(temp);
@@ -3601,14 +3619,14 @@ void BKE_gpencil_stroke_from_view_space(RegionView3D *rv3d,
 /* ----------------------------------------------------------------------------- */
 /* Stroke to perimeter */
 
-typedef struct tPerimeterPoint {
+struct tPerimeterPoint {
   struct tPerimeterPoint *next, *prev;
   float x, y, z;
-} tPerimeterPoint;
+};
 
 static tPerimeterPoint *new_perimeter_point(const float pt[3])
 {
-  tPerimeterPoint *new_pt = MEM_callocN(sizeof(tPerimeterPoint), __func__);
+  tPerimeterPoint *new_pt = (tPerimeterPoint *)MEM_callocN(sizeof(tPerimeterPoint), __func__);
   copy_v3_v3(&new_pt->x, pt);
   return new_pt;
 }
@@ -3771,14 +3789,14 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
 {
   /* sanity check */
   if (gps->totpoints < 1) {
-    return NULL;
+    return nullptr;
   }
 
   float defaultpixsize = 1000.0f / gpd->pixfactor;
   float stroke_radius = ((gps->thickness + gpl->line_change) / defaultpixsize) / 2.0f;
 
-  ListBase *perimeter_right_side = MEM_callocN(sizeof(ListBase), __func__);
-  ListBase *perimeter_left_side = MEM_callocN(sizeof(ListBase), __func__);
+  ListBase *perimeter_right_side = (ListBase *)MEM_callocN(sizeof(ListBase), __func__);
+  ListBase *perimeter_left_side = (ListBase *)MEM_callocN(sizeof(ListBase), __func__);
   int num_perimeter_points = 0;
 
   bGPDspoint *first = &gps->points[0];
@@ -4018,7 +4036,7 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
                                                    const float diff_mat[4][4])
 {
   if (gps->totpoints == 0) {
-    return NULL;
+    return nullptr;
   }
   bGPDstroke *gps_temp = BKE_gpencil_stroke_duplicate(gps, true, false);
   const bool cyclic = ((gps_temp->flag & GP_STROKE_CYCLIC) != 0);
@@ -4026,8 +4044,8 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
   /* If Cyclic, add a new point. */
   if (cyclic && (gps_temp->totpoints > 1)) {
     gps_temp->totpoints++;
-    gps_temp->points = MEM_recallocN(gps_temp->points,
-                                     sizeof(*gps_temp->points) * gps_temp->totpoints);
+    gps_temp->points = (bGPDspoint *)MEM_recallocN(
+        gps_temp->points, sizeof(*gps_temp->points) * gps_temp->totpoints);
     bGPDspoint *pt_src = &gps_temp->points[0];
     bGPDspoint *pt_dst = &gps_temp->points[gps_temp->totpoints - 1];
     copy_v3_v3(&pt_dst->x, &pt_src->x);
@@ -4043,7 +4061,7 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
       gpd, gpl, gps_temp, subdivisions, &num_perimeter_points);
 
   if (num_perimeter_points == 0) {
-    return NULL;
+    return nullptr;
   }
 
   /* Create new stroke. */

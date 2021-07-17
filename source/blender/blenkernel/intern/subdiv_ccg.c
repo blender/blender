@@ -1509,7 +1509,7 @@ static SubdivCCGCoord coord_step_inside_from_boundary(const SubdivCCG *subdiv_cc
     ++result.y;
   }
   else {
-    BLI_assert(!"non-boundary element given");
+    BLI_assert_msg(0, "non-boundary element given");
   }
   return result;
 }

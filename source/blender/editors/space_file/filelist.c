@@ -334,6 +334,7 @@ typedef struct FileListEntryCache {
   /* Previews handling. */
   TaskPool *previews_pool;
   ThreadQueue *previews_done;
+  size_t previews_todo_count;
 } FileListEntryCache;
 
 /* FileListCache.flags */
@@ -1050,7 +1051,7 @@ static bool filelist_compare_asset_libraries(const FileSelectAssetLibraryUID *li
   if (library_a->type != library_b->type) {
     return false;
   }
-  if (library_a->type == FILE_ASSET_LIBRARY_CUSTOM) {
+  if (library_a->type == ASSET_LIBRARY_CUSTOM) {
     /* Don't only check the index, also check that it's valid. */
     bUserAssetLibrary *library_ptr_a = BKE_preferences_asset_library_find_from_index(
         &U, library_a->custom_library_index);
@@ -1153,7 +1154,7 @@ ImBuf *filelist_file_getimage(const FileDirEntry *file)
   return file->preview_icon_id ? BKE_icon_imbuf_get_buffer(file->preview_icon_id) : NULL;
 }
 
-static ImBuf *filelist_geticon_image_ex(FileDirEntry *file)
+ImBuf *filelist_geticon_image_ex(const FileDirEntry *file)
 {
   ImBuf *ibuf = NULL;
 
@@ -1494,6 +1495,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
     /* That way task freeing function won't free th preview, since it does not own it anymore. */
     atomic_cas_ptr((void **)&preview_taskdata->preview, preview, NULL);
     BLI_thread_queue_push(cache->previews_done, preview);
+    atomic_fetch_and_sub_z(&cache->previews_todo_count, 1);
   }
 
   //  printf("%s: End (%d)...\n", __func__, threadid);
@@ -1520,6 +1522,7 @@ static void filelist_cache_preview_ensure_running(FileListEntryCache *cache)
   if (!cache->previews_pool) {
     cache->previews_pool = BLI_task_pool_create_background(cache, TASK_PRIORITY_LOW);
     cache->previews_done = BLI_thread_queue_init();
+    cache->previews_todo_count = 0;
 
     IMB_thumb_locks_acquire();
   }
@@ -1553,6 +1556,7 @@ static void filelist_cache_previews_free(FileListEntryCache *cache)
     BLI_task_pool_free(cache->previews_pool);
     cache->previews_pool = NULL;
     cache->previews_done = NULL;
+    cache->previews_todo_count = 0;
 
     IMB_thumb_locks_release();
   }
@@ -1632,6 +1636,8 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
 
   cache->size = cache_size;
   cache->flags = FLC_IS_INIT;
+
+  cache->previews_todo_count = 0;
 
   /* We cannot translate from non-main thread, so init translated strings once from here. */
   IMB_thumb_ensure_translations();
@@ -2384,7 +2390,8 @@ void filelist_cache_previews_set(FileList *filelist, const bool use_previews)
   if (use_previews && (filelist->flags & FL_IS_READY)) {
     cache->flags |= FLC_PREVIEWS_ACTIVE;
 
-    BLI_assert((cache->previews_pool == NULL) && (cache->previews_done == NULL));
+    BLI_assert((cache->previews_pool == NULL) && (cache->previews_done == NULL) &&
+               (cache->previews_todo_count == 0));
 
     //      printf("%s: Init Previews...\n", __func__);
 
@@ -2455,6 +2462,18 @@ bool filelist_cache_previews_running(FileList *filelist)
   FileListEntryCache *cache = &filelist->filelist_cache;
 
   return (cache->previews_pool != NULL);
+}
+
+bool filelist_cache_previews_done(FileList *filelist)
+{
+  FileListEntryCache *cache = &filelist->filelist_cache;
+  if ((cache->flags & FLC_PREVIEWS_ACTIVE) == 0) {
+    /* There are no previews. */
+    return false;
+  }
+
+  return (cache->previews_pool == NULL) || (cache->previews_done == NULL) ||
+         (cache->previews_todo_count == (size_t)BLI_thread_queue_len(cache->previews_done));
 }
 
 /* would recognize .blend as well */
@@ -3432,7 +3451,7 @@ static void filelist_readjob_free(void *flrjv)
   MEM_freeN(flrj);
 }
 
-void filelist_readjob_start(FileList *filelist, const bContext *C)
+void filelist_readjob_start(FileList *filelist, const int space_notifier, const bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   wmJob *wm_job;
@@ -3464,7 +3483,7 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
     filelist_readjob_endjob(flrj);
     filelist_readjob_free(flrj);
 
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST | NA_JOB_FINISHED, NULL);
+    WM_event_add_notifier(C, space_notifier | NA_JOB_FINISHED, NULL);
     return;
   }
 
@@ -3476,10 +3495,7 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_FILESEL_READDIR);
   WM_jobs_customdata_set(wm_job, flrj, filelist_readjob_free);
-  WM_jobs_timer(wm_job,
-                0.01,
-                NC_SPACE | ND_SPACE_FILE_LIST,
-                NC_SPACE | ND_SPACE_FILE_LIST | NA_JOB_FINISHED);
+  WM_jobs_timer(wm_job, 0.01, space_notifier, space_notifier | NA_JOB_FINISHED);
   WM_jobs_callbacks(
       wm_job, filelist_readjob_startjob, NULL, filelist_readjob_update, filelist_readjob_endjob);
 

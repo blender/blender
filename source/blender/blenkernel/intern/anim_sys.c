@@ -621,6 +621,115 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
   }
 }
 
+/* This function assumes that the quaternion is fully keyed, and is stored in array index order. */
+static void animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
+                                                FCurve *first_fcurve,
+                                                const AnimationEvalContext *anim_eval_context,
+                                                float r_quaternion[4])
+{
+  FCurve *quat_curve_fcu = first_fcurve;
+  for (int prop_index = 0; prop_index < 4; ++prop_index, quat_curve_fcu = quat_curve_fcu->next) {
+    /* Big fat assumption that the quaternion is fully keyed, and stored in order. */
+    BLI_assert(STREQ(quat_curve_fcu->rna_path, first_fcurve->rna_path) &&
+               quat_curve_fcu->array_index == prop_index);
+
+    quat_rna.prop_index = prop_index;
+    r_quaternion[prop_index] = calculate_fcurve(&quat_rna, quat_curve_fcu, anim_eval_context);
+  }
+}
+
+/* This function assumes that the quaternion is fully keyed, and is stored in array index order. */
+static void animsys_blend_fcurves_quaternion(PathResolvedRNA *anim_rna,
+                                             FCurve *first_fcurve,
+                                             const AnimationEvalContext *anim_eval_context,
+                                             const float blend_factor)
+{
+  float current_quat[4];
+  RNA_property_float_get_array(&anim_rna->ptr, anim_rna->prop, current_quat);
+
+  float target_quat[4];
+  animsys_quaternion_evaluate_fcurves(*anim_rna, first_fcurve, anim_eval_context, target_quat);
+
+  float blended_quat[4];
+  interp_qt_qtqt(blended_quat, current_quat, target_quat, blend_factor);
+
+  RNA_property_float_set_array(&anim_rna->ptr, anim_rna->prop, blended_quat);
+}
+
+/* LERP between current value (blend_factor=0.0) and the value from the FCurve (blend_factor=1.0)
+ */
+static void animsys_blend_in_fcurves(PointerRNA *ptr,
+                                     ListBase *fcurves,
+                                     const AnimationEvalContext *anim_eval_context,
+                                     const float blend_factor)
+{
+  char *channel_to_skip = NULL;
+  int num_channels_to_skip = 0;
+  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
+
+    if (num_channels_to_skip) {
+      /* For skipping already-handled rotation channels. Rotation channels are handled per group,
+       * and not per individual channel. */
+      BLI_assert(channel_to_skip != NULL);
+      if (STREQ(channel_to_skip, fcu->rna_path)) {
+        /* This is indeed the channel we want to skip. */
+        num_channels_to_skip--;
+        continue;
+      }
+    }
+
+    if (!is_fcurve_evaluatable(fcu)) {
+      continue;
+    }
+
+    PathResolvedRNA anim_rna;
+    if (!BKE_animsys_rna_path_resolve(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+      continue;
+    }
+
+    if (STREQ(RNA_property_identifier(anim_rna.prop), "rotation_quaternion")) {
+      animsys_blend_fcurves_quaternion(&anim_rna, fcu, anim_eval_context, blend_factor);
+
+      /* Skip the next three channels, because those have already been handled here. */
+      MEM_SAFE_FREE(channel_to_skip);
+      channel_to_skip = BLI_strdup(fcu->rna_path);
+      num_channels_to_skip = 3;
+      continue;
+    }
+    /* TODO(Sybren): do something similar as above for Euler and Axis/Angle representations. */
+
+    const float fcurve_value = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
+
+    float current_value;
+    float value_to_write;
+    if (BKE_animsys_read_from_rna_path(&anim_rna, &current_value)) {
+      value_to_write = (1 - blend_factor) * current_value + blend_factor * fcurve_value;
+
+      switch (RNA_property_type(anim_rna.prop)) {
+        case PROP_BOOLEAN:
+          /* Without this, anything less than 1.0 is converted to 'False' by
+           * ANIMSYS_FLOAT_AS_BOOL(). This is probably not desirable for blends, where anything
+           * above a 50% blend should act more like the FCurve than like the current value. */
+        case PROP_INT:
+        case PROP_ENUM:
+          value_to_write = roundf(value_to_write);
+          break;
+        default:
+          /* All other types are just handled as float, and value_to_write is already correct. */
+          break;
+      }
+    }
+    else {
+      /* Unable to read the current value for blending, so just apply the FCurve value instead. */
+      value_to_write = fcurve_value;
+    }
+
+    BKE_animsys_write_to_rna_path(&anim_rna, value_to_write);
+  }
+
+  MEM_SAFE_FREE(channel_to_skip);
+}
+
 /* ***************************************** */
 /* Driver Evaluation */
 
@@ -767,6 +876,16 @@ void animsys_evaluate_action(PointerRNA *ptr,
 
   /* calculate then execute each curve */
   animsys_evaluate_fcurves(ptr, &act->curves, anim_eval_context, flush_to_original);
+}
+
+/* Evaluate Action and blend it into the current values of the animated properties. */
+void animsys_blend_in_action(PointerRNA *ptr,
+                             bAction *act,
+                             const AnimationEvalContext *anim_eval_context,
+                             const float blend_factor)
+{
+  action_idcode_patch_check(ptr->owner_id, act);
+  animsys_blend_in_fcurves(ptr, &act->curves, anim_eval_context, blend_factor);
 }
 
 /* ***************************************** */
@@ -1457,7 +1576,7 @@ static float nla_blend_value(const int blendmode,
       return influence * (lower_value * strip_value) + (1 - influence) * lower_value;
 
     case NLASTRIP_MODE_COMBINE:
-      BLI_assert(!"combine mode");
+      BLI_assert_msg(0, "combine mode");
       ATTR_FALLTHROUGH;
 
     default:
@@ -1495,7 +1614,7 @@ static float nla_combine_value(const int mix_mode,
       return lower_value * powf(strip_value / base_value, influence);
 
     default:
-      BLI_assert(!"invalid mix mode");
+      BLI_assert_msg(0, "invalid mix mode");
       return lower_value;
   }
 }
@@ -1546,7 +1665,7 @@ static bool nla_blend_get_inverted_strip_value(const int blendmode,
       return true;
 
     case NLASTRIP_MODE_COMBINE:
-      BLI_assert(!"combine mode");
+      BLI_assert_msg(0, "combine mode");
       ATTR_FALLTHROUGH;
 
     default:
@@ -1602,7 +1721,7 @@ static bool nla_combine_get_inverted_strip_value(const int mix_mode,
       return true;
 
     default:
-      BLI_assert(!"invalid mix mode");
+      BLI_assert_msg(0, "invalid mix mode");
       return false;
   }
 }
@@ -3033,7 +3152,7 @@ bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
   NlaEvalChannel *nec = nlaevalchan_verify_key(eval_data, NULL, &key);
   BLI_assert(nec);
   if (nec->base_snapshot.length != count) {
-    BLI_assert(!"invalid value count");
+    BLI_assert_msg(0, "invalid value count");
     nlaeval_snapshot_free_data(&blended_snapshot);
     return false;
   }

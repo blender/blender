@@ -61,7 +61,7 @@ static void camera_sensor_size_for_render(const Camera *camera,
       *r_sensor_y = camera->sensor_y;
       break;
     case CAMERA_SENSOR_FIT_AUTO:
-      BLI_assert(!"Camera fit should be either horizontal or vertical");
+      BLI_assert_msg(0, "Camera fit should be either horizontal or vertical");
       break;
   }
 }

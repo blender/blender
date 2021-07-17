@@ -1177,8 +1177,8 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->object = ob;
   if (ob) {
     invert_m4_m4(gso->inv_mat, ob->obmat);
-    gso->vrgroup = ob->actdef - 1;
-    if (!BLI_findlink(&ob->defbase, gso->vrgroup)) {
+    gso->vrgroup = gso->gpd->vertex_group_active_index - 1;
+    if (!BLI_findlink(&gso->gpd->vertex_group_names, gso->vrgroup)) {
       gso->vrgroup = -1;
     }
     /* Check if some modifier can transform the stroke. */
@@ -1352,7 +1352,7 @@ static void gpencil_sculpt_brush_init_stroke(bContext *C, tGP_BrushEditData *gso
        * - This is useful when animating as it saves that "uh-oh" moment when you realize you've
        *   spent too much time editing the wrong frame.
        */
-      if ((IS_AUTOKEY_ON(scene)) && (gpf->framenum != cfra)) {
+      if (IS_AUTOKEY_ON(scene) && (gpf->framenum != cfra)) {
         BKE_gpencil_frame_addcopy(gpl, cfra);
         /* Need tag to recalculate evaluated data to avoid crashes. */
         DEG_id_tag_update(&gso->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
@@ -1377,7 +1377,7 @@ static float gpencil_sculpt_rotation_eval_get(tGP_BrushEditData *gso,
                                               int idx_eval)
 {
   /* If multiframe or no modifiers, return 0. */
-  if ((GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd)) || (!gso->is_transformed)) {
+  if (GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd) || (!gso->is_transformed)) {
     return 0.0f;
   }
 
@@ -1513,8 +1513,7 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
           }
           pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
           /* If masked and the point is not selected, skip it. */
-          if ((GPENCIL_ANY_SCULPT_MASK(gso->mask)) &&
-              ((pt_active->flag & GP_SPOINT_SELECT) == 0)) {
+          if (GPENCIL_ANY_SCULPT_MASK(gso->mask) && ((pt_active->flag & GP_SPOINT_SELECT) == 0)) {
             continue;
           }
           index = (pt->runtime.pt_orig) ? pt->runtime.idx_orig : i;

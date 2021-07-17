@@ -332,6 +332,9 @@ typedef void (*uiListFilterItemsFunc)(struct uiList *ui_list,
                                       struct PointerRNA *,
                                       const char *propname);
 
+/* Listen to notifiers. Only for lists defined in C. */
+typedef void (*uiListListener)(struct uiList *ui_list, wmRegionListenerParams *params);
+
 typedef struct uiListType {
   struct uiListType *next, *prev;
 
@@ -340,6 +343,9 @@ typedef struct uiListType {
   uiListDrawItemFunc draw_item;
   uiListDrawFilterFunc draw_filter;
   uiListFilterItemsFunc filter_items;
+
+  /* For lists defined in C only. */
+  uiListListener listener;
 
   /* RNA integration */
   ExtensionRNA rna_ext;

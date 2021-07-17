@@ -52,7 +52,7 @@ static CLG_LogRef LOG = {"rna.define"};
 #  define ASSERT_SOFT_HARD_LIMITS \
     if (softmin < hardmin || softmax > hardmax) { \
       CLOG_ERROR(&LOG, "error with soft/hard limits: %s.%s", CONTAINER_RNA_ID(cont), identifier); \
-      BLI_assert(!"invalid soft/hard limits"); \
+      BLI_assert_msg(0, "invalid soft/hard limits"); \
     } \
     (void)0
 #else

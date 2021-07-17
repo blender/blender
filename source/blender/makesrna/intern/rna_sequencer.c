@@ -734,16 +734,10 @@ static char *rna_Sequence_path(PointerRNA *ptr)
   }
 }
 
-static IDProperty *rna_Sequence_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_Sequence_idprops(PointerRNA *ptr)
 {
   Sequence *seq = ptr->data;
-
-  if (create && !seq->prop) {
-    IDPropertyTemplate val = {0};
-    seq->prop = IDP_New(IDP_GROUP, &val, "Sequence ID properties");
-  }
-
-  return seq->prop;
+  return &seq->prop;
 }
 
 static bool rna_MovieSequence_reload_if_needed(ID *scene_id, Sequence *seq, Main *bmain)

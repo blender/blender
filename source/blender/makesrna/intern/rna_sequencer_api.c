@@ -30,6 +30,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "SEQ_edit.h"
+
 #include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
@@ -97,6 +99,24 @@ static void rna_Sequences_move_strip_to_meta(
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+}
+
+static Sequence *rna_Sequence_split(
+    ID *id, Sequence *seq, Main *bmain, int frame, int split_method)
+{
+  Scene *scene = (Scene *)id;
+  Editing *ed = SEQ_editing_get(scene, false);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+
+  Sequence *r_seq = SEQ_edit_strip_split(bmain, scene, seqbase, seq, frame, split_method);
+
+  /* Update depsgraph. */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+
+  return r_seq;
 }
 
 static Sequence *rna_Sequences_new_clip(ID *id,
@@ -635,6 +655,12 @@ void RNA_api_sequence_strip(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem seq_split_method_items[] = {
+      {SEQ_SPLIT_SOFT, "SOFT", 0, "Soft", ""},
+      {SEQ_SPLIT_HARD, "HARD", 0, "Hard", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   func = RNA_def_function(srna, "update", "rna_Sequence_update_rnafunc");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   RNA_def_function_ui_description(func, "Update the strip dimensions");
@@ -676,6 +702,18 @@ void RNA_api_sequence_strip(StructRNA *srna)
                                   "Invalidate cached images for strip and all dependent strips");
   parm = RNA_def_enum(func, "type", seq_cahce_type_items, 0, "Type", "Cache Type");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "split", "rna_Sequence_split");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_ui_description(func, "Split Sequence");
+  parm = RNA_def_int(
+      func, "frame", 0, INT_MIN, INT_MAX, "", "Frame where to split the strip", INT_MIN, INT_MAX);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_enum(func, "split_method", seq_split_method_items, 0, "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  /* Retirn type. */
+  parm = RNA_def_pointer(func, "sequence", "Sequence", "", "Right side Sequence");
+  RNA_def_function_return(func, parm);
 }
 
 void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)

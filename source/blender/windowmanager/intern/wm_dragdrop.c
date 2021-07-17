@@ -321,7 +321,7 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
       return;
     }
     if (GS(drag_id->id->name) != GS(id->name)) {
-      BLI_assert(!"All dragged IDs must have the same type");
+      BLI_assert_msg(0, "All dragged IDs must have the same type");
       return;
     }
   }

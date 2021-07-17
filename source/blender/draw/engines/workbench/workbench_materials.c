@@ -126,7 +126,7 @@ BLI_INLINE void workbench_material_get_image(
         break;
       }
       default:
-        BLI_assert(!"Node type not supported by workbench");
+        BLI_assert_msg(0, "Node type not supported by workbench");
     }
   }
 }

@@ -929,7 +929,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   }
   else {
     BKE_reportf(reports, RPT_ERROR, "Unknown error loading '%s'", filepath);
-    BLI_assert(!"invalid 'retval'");
+    BLI_assert_msg(0, "invalid 'retval'");
   }
 
   if (success == false) {

@@ -59,7 +59,7 @@ Alembic::Abc::OCompoundProperty ABCInstanceWriter::abc_prop_for_custom_props()
 OObject ABCInstanceWriter::get_alembic_object() const
 {
   /* There is no OObject for an instance. */
-  BLI_assert(!"ABCInstanceWriter cannot return its Alembic OObject");
+  BLI_assert_msg(0, "ABCInstanceWriter cannot return its Alembic OObject");
   return OObject();
 }
 

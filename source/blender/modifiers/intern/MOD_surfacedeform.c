@@ -94,6 +94,11 @@ typedef struct SDefBindCalcData {
   float imat[4][4];
   const float falloff;
   int success;
+  /** Vertex group lookup data. */
+  const MDeformVert *const dvert;
+  int const defgrp_index;
+  bool const invert_vgroup;
+  bool const sparse_bind;
 } SDefBindCalcData;
 
 /**
@@ -218,7 +223,7 @@ static void freeData(ModifierData *md)
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
   if (smd->verts) {
-    for (int i = 0; i < smd->numverts; i++) {
+    for (int i = 0; i < smd->num_bind_verts; i++) {
       if (smd->verts[i].binds) {
         for (int j = 0; j < smd->verts[i].numbinds; j++) {
           MEM_SAFE_FREE(smd->verts[i].binds[j].vert_inds);
@@ -243,7 +248,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   if (smd->verts) {
     tsmd->verts = MEM_dupallocN(smd->verts);
 
-    for (int i = 0; i < smd->numverts; i++) {
+    for (int i = 0; i < smd->num_bind_verts; i++) {
       if (smd->verts[i].binds) {
         tsmd->verts[i].binds = MEM_dupallocN(smd->verts[i].binds);
 
@@ -963,10 +968,30 @@ static void bindVert(void *__restrict userdata,
   SDefBindPoly *bpoly;
   SDefBind *sdbind;
 
+  sdvert->vertex_idx = index;
+
   if (data->success != MOD_SDEF_BIND_RESULT_SUCCESS) {
     sdvert->binds = NULL;
     sdvert->numbinds = 0;
     return;
+  }
+
+  if (data->sparse_bind) {
+    float weight = 0.0f;
+
+    if (data->dvert && data->defgrp_index != -1) {
+      weight = BKE_defvert_find_weight(&data->dvert[index], data->defgrp_index);
+    }
+
+    if (data->invert_vgroup) {
+      weight = 1.0f - weight;
+    }
+
+    if (weight <= 0) {
+      sdvert->binds = NULL;
+      sdvert->numbinds = 0;
+      return;
+    }
   }
 
   copy_v3_v3(point_co, data->vertexCos[index]);
@@ -1135,6 +1160,21 @@ static void bindVert(void *__restrict userdata,
   freeBindData(bwdata);
 }
 
+/* Remove vertices without bind data from the bind array. */
+static void compactSparseBinds(SurfaceDeformModifierData *smd)
+{
+  smd->num_bind_verts = 0;
+
+  for (uint i = 0; i < smd->num_mesh_verts; i++) {
+    if (smd->verts[i].numbinds > 0) {
+      smd->verts[smd->num_bind_verts++] = smd->verts[i];
+    }
+  }
+
+  smd->verts = MEM_reallocN_id(
+      smd->verts, sizeof(*smd->verts) * smd->num_bind_verts, "SDefBindVerts (sparse)");
+}
+
 static bool surfacedeformBind(Object *ob,
                               SurfaceDeformModifierData *smd_orig,
                               SurfaceDeformModifierData *smd_eval,
@@ -1142,7 +1182,8 @@ static bool surfacedeformBind(Object *ob,
                               uint numverts,
                               uint tnumpoly,
                               uint tnumverts,
-                              Mesh *target)
+                              Mesh *target,
+                              Mesh *mesh)
 {
   BVHTreeFromMesh treeData = {NULL};
   const MVert *mvert = target->mvert;
@@ -1205,8 +1246,14 @@ static bool surfacedeformBind(Object *ob,
     return false;
   }
 
-  smd_orig->numverts = numverts;
+  smd_orig->num_mesh_verts = numverts;
   smd_orig->numpoly = tnumpoly;
+
+  int defgrp_index;
+  MDeformVert *dvert;
+  MOD_get_vgroup(ob, mesh, smd_orig->defgrp_name, &dvert, &defgrp_index);
+  const bool invert_vgroup = (smd_orig->flags & MOD_SDEF_INVERT_VGROUP) != 0;
+  const bool sparse_bind = (smd_orig->flags & MOD_SDEF_SPARSE_BIND) != 0;
 
   SDefBindCalcData data = {
       .treeData = &treeData,
@@ -1221,6 +1268,10 @@ static bool surfacedeformBind(Object *ob,
       .vertexCos = vertexCos,
       .falloff = smd_orig->falloff,
       .success = MOD_SDEF_BIND_RESULT_SUCCESS,
+      .dvert = dvert,
+      .defgrp_index = defgrp_index,
+      .invert_vgroup = invert_vgroup,
+      .sparse_bind = sparse_bind,
   };
 
   if (data.targetCos == NULL) {
@@ -1241,6 +1292,13 @@ static bool surfacedeformBind(Object *ob,
   BLI_task_parallel_range(0, numverts, &data, bindVert, &settings);
 
   MEM_freeN(data.targetCos);
+
+  if (sparse_bind) {
+    compactSparseBinds(smd_orig);
+  }
+  else {
+    smd_orig->num_bind_verts = numverts;
+  }
 
   if (data.success == MOD_SDEF_BIND_RESULT_MEM_ERR) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
@@ -1267,6 +1325,11 @@ static bool surfacedeformBind(Object *ob,
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Target contains invalid polygons");
     freeData((ModifierData *)smd_orig);
   }
+  else if (smd_orig->num_bind_verts == 0 || !smd_orig->verts) {
+    data.success = MOD_SDEF_BIND_RESULT_GENERIC_ERR;
+    BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "No vertices were bound");
+    freeData((ModifierData *)smd_orig);
+  }
 
   freeAdjacencyMap(vert_edges, adj_array, edge_polys);
   free_bvhtree_from_mesh(&treeData);
@@ -1281,14 +1344,15 @@ static void deformVert(void *__restrict userdata,
   const SDefDeformData *const data = (SDefDeformData *)userdata;
   const SDefBind *sdbind = data->bind_verts[index].binds;
   const int num_binds = data->bind_verts[index].numbinds;
-  float *const vertexCos = data->vertexCos[index];
+  const unsigned int vertex_idx = data->bind_verts[index].vertex_idx;
+  float *const vertexCos = data->vertexCos[vertex_idx];
   float norm[3], temp[3], offset[3];
 
   /* Retrieve the value of the weight vertex group if specified. */
   float weight = 1.0f;
 
   if (data->dvert && data->defgrp_index != -1) {
-    weight = BKE_defvert_find_weight(&data->dvert[index], data->defgrp_index);
+    weight = BKE_defvert_find_weight(&data->dvert[vertex_idx], data->defgrp_index);
 
     if (data->invert_vgroup) {
       weight = 1.0f - weight;
@@ -1423,7 +1487,8 @@ static void surfacedeformModifier_do(ModifierData *md,
     /* Avoid converting edit-mesh data, binding is an exception. */
     BKE_mesh_wrapper_ensure_mdata(target);
 
-    if (!surfacedeformBind(ob, smd_orig, smd, vertexCos, numverts, tnumpoly, tnumverts, target)) {
+    if (!surfacedeformBind(
+            ob, smd_orig, smd, vertexCos, numverts, tnumpoly, tnumverts, target, mesh)) {
       smd->flags &= ~MOD_SDEF_BIND;
     }
     /* Early abort, this is binding 'call', no need to perform whole evaluation. */
@@ -1431,8 +1496,9 @@ static void surfacedeformModifier_do(ModifierData *md,
   }
 
   /* Poly count checks */
-  if (smd->numverts != numverts) {
-    BKE_modifier_set_error(ob, md, "Vertices changed from %u to %u", smd->numverts, numverts);
+  if (smd->num_mesh_verts != numverts) {
+    BKE_modifier_set_error(
+        ob, md, "Vertices changed from %u to %u", smd->num_mesh_verts, numverts);
     return;
   }
   if (smd->numpoly != tnumpoly) {
@@ -1468,8 +1534,8 @@ static void surfacedeformModifier_do(ModifierData *md,
 
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);
-    settings.use_threading = (numverts > 10000);
-    BLI_task_parallel_range(0, numverts, &data, deformVert, &settings);
+    settings.use_threading = (smd->num_bind_verts > 10000);
+    BLI_task_parallel_range(0, smd->num_bind_verts, &data, deformVert, &settings);
 
     MEM_freeN(data.targetCos);
   }
@@ -1554,6 +1620,11 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetEnabled(col, !is_bound);
+  uiLayoutSetActive(col, !is_bound && RNA_string_length(ptr, "vertex_group") != 0);
+  uiItemR(col, ptr, "use_sparse_bind", 0, NULL, ICON_NONE);
+
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
@@ -1576,10 +1647,10 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
 {
   const SurfaceDeformModifierData *smd = (const SurfaceDeformModifierData *)md;
 
-  BLO_write_struct_array(writer, SDefVert, smd->numverts, smd->verts);
+  BLO_write_struct_array(writer, SDefVert, smd->num_bind_verts, smd->verts);
 
   if (smd->verts) {
-    for (int i = 0; i < smd->numverts; i++) {
+    for (int i = 0; i < smd->num_bind_verts; i++) {
       BLO_write_struct_array(writer, SDefBind, smd->verts[i].numbinds, smd->verts[i].binds);
 
       if (smd->verts[i].binds) {
@@ -1607,7 +1678,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
   BLO_read_data_address(reader, &smd->verts);
 
   if (smd->verts) {
-    for (int i = 0; i < smd->numverts; i++) {
+    for (int i = 0; i < smd->num_bind_verts; i++) {
       BLO_read_data_address(reader, &smd->verts[i].binds);
 
       if (smd->verts[i].binds) {

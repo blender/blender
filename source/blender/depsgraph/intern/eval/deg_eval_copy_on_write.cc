@@ -899,7 +899,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
     done = id_copy_inplace_no_main(id_orig, id_cow);
   }
   if (!done) {
-    BLI_assert(!"No idea how to perform CoW on datablock");
+    BLI_assert_msg(0, "No idea how to perform CoW on datablock");
   }
   /* Update pointers to nested ID datablocks. */
   DEG_COW_PRINT(

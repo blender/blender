@@ -87,6 +87,8 @@ static void lattice_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
     lattice_dst->key->from = &lattice_dst->id;
   }
 
+  BKE_defgroup_copy_list(&lattice_dst->vertex_group_names, &lattice_src->vertex_group_names);
+
   if (lattice_src->dvert) {
     int tot = lattice_src->pntsu * lattice_src->pntsv * lattice_src->pntsw;
     lattice_dst->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
@@ -102,6 +104,8 @@ static void lattice_free_data(ID *id)
   Lattice *lattice = (Lattice *)id;
 
   BKE_lattice_batch_cache_free(lattice);
+
+  BLI_freelistN(&lattice->vertex_group_names);
 
   MEM_SAFE_FREE(lattice->def);
   if (lattice->dvert) {
@@ -150,6 +154,7 @@ static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_addr
     /* direct data */
     BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
 
+    BKE_defbase_blend_write(writer, &lt->vertex_group_names);
     BKE_defvert_blend_write(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
   }
 }
@@ -161,6 +166,7 @@ static void lattice_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_data_address(reader, &lt->dvert);
   BKE_defvert_blend_read(reader, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
+  BLO_read_list(reader, &lt->vertex_group_names);
 
   lt->editlatt = NULL;
   lt->batch_cache = NULL;

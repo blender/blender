@@ -160,7 +160,7 @@ static float edge_pan_speed(View2DEdgePanData *vpd,
     distance = min - event_loc;
   }
   else {
-    BLI_assert(!"Calculating speed outside of pan zones");
+    BLI_assert_msg(0, "Calculating speed outside of pan zones");
     return 0.0f;
   }
   float distance_factor = distance / (vpd->speed_ramp * U.widget_unit);

@@ -27,9 +27,9 @@ extern "C" {
 #endif
 
 struct ARegion;
-struct bContext;
 struct Object;
 struct View3D;
+struct bContext;
 
 typedef struct GpencilIOParams {
   bContext *C;

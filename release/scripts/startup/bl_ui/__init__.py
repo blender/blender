@@ -117,13 +117,15 @@ def register():
         for cls in mod.classes:
             register_class(cls)
 
-    # space_userprefs.py
     from bpy.props import (
         EnumProperty,
         StringProperty,
     )
-    from bpy.types import WindowManager
+    from bpy.types import (
+        WindowManager,
+    )
 
+    # space_userprefs.py
     def addon_filter_items(_self, _context):
         import addon_utils
 
@@ -234,3 +236,21 @@ class UI_UL_list(bpy.types.UIList):
 
 
 bpy.utils.register_class(UI_UL_list)
+
+
+class UI_MT_list_item_context_menu(bpy.types.Menu):
+    """
+    UI List item context menu definition. Scripts can append/prepend this to
+    add own operators to the context menu. They must check context though, so
+    their items only draw in a valid context and for the correct UI list.
+    """
+
+    bl_label = "List Item"
+    bl_idname = "UI_MT_list_item_context_menu"
+
+    def draw(self, context):
+        # Dummy function. This type is just for scripts to append their own
+        # context menu items.
+        pass
+
+bpy.utils.register_class(UI_MT_list_item_context_menu)

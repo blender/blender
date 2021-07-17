@@ -2807,8 +2807,8 @@ void BKE_ptcache_id_time(
   cache = pid->cache;
 
   if (timescale) {
-    time = BKE_scene_frame_get(scene);
-    nexttime = BKE_scene_frame_to_ctime(scene, CFRA + 1.0f);
+    time = BKE_scene_ctime_get(scene);
+    nexttime = BKE_scene_frame_to_ctime(scene, scene->r.cfra + 1);
 
     *timescale = MAX2(nexttime - time, 0.0f);
   }

@@ -272,8 +272,7 @@ typedef struct Object {
 
   ListBase constraintChannels DNA_DEPRECATED; /* XXX deprecated... old animation system */
   ListBase effect DNA_DEPRECATED;             /* XXX deprecated... keep for readfile */
-  /** List of bDeformGroup (vertex groups) names and flag only. */
-  ListBase defbase;
+  ListBase defbase DNA_DEPRECATED;            /* Only for versioning, moved to object data. */
   /** List of ModifierData structures. */
   ListBase modifiers;
   /** List of GpencilModifierData structures. */
@@ -375,7 +374,7 @@ typedef struct Object {
   /** Custom index, for renderpasses. */
   short index;
   /** Current deformation group, NOTE: index starts at 1. */
-  unsigned short actdef;
+  unsigned short actdef DNA_DEPRECATED;
   /** Current face map, NOTE: index starts at 1. */
   unsigned short actfmap;
   char _pad2[2];

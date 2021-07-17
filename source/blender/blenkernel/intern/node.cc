@@ -399,7 +399,7 @@ static ID *node_owner_get(Main *bmain, ID *id)
     }
   }
 
-  BLI_assert(!"Embedded node tree with no owner. Critical Main inconsistency.");
+  BLI_assert_msg(0, "Embedded node tree with no owner. Critical Main inconsistency.");
   return nullptr;
 }
 
@@ -506,7 +506,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
 
     if (node->storage) {
       /* could be handlerized at some point, now only 1 exception still */
-      if ((ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY)) &&
+      if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY) &&
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB)) {
         BKE_curvemapping_blend_write(writer, (const CurveMapping *)node->storage);
       }
@@ -3143,7 +3143,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
   }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id) {
+    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
       bNodeTree *ngroup = (bNodeTree *)node->id;
       ntreeFreeTree(ngroup);
       MEM_freeN(ngroup);
@@ -3335,7 +3335,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
     ltree->id.tag |= LIB_TAG_LOCALIZED;
 
     LISTBASE_FOREACH (bNode *, node, &ltree->nodes) {
-      if ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id) {
+      if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
         node->id = (ID *)ntreeLocalize((bNodeTree *)node->id);
       }
     }
@@ -5112,6 +5112,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_primitive_circle();
   register_node_type_geo_curve_primitive_line();
   register_node_type_geo_curve_primitive_quadratic_bezier();
+  register_node_type_geo_curve_primitive_quadrilateral();
   register_node_type_geo_curve_primitive_spiral();
   register_node_type_geo_curve_primitive_star();
   register_node_type_geo_curve_resample();

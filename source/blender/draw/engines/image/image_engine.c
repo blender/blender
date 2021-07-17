@@ -117,7 +117,7 @@ static void space_image_gpu_texture_get(Image *image,
     const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
     if (sima_flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1))) {
       if (ibuf->zbuf) {
-        BLI_assert(!"Integer based depth buffers not supported");
+        BLI_assert_msg(0, "Integer based depth buffers not supported");
       }
       else if (ibuf->zbuf_float) {
         *r_gpu_texture = GPU_texture_create_2d(

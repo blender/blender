@@ -315,7 +315,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
 
-    if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) ||
+    if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) ||
         (options->only_selected_faces && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
       continue;
     }
@@ -404,7 +404,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
 
     BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
 
-      if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) ||
+      if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) ||
           (options->only_selected_faces && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
         continue;
       }

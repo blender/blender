@@ -29,8 +29,8 @@ extern "C" {
 
 struct ListBase;
 struct Scene;
-struct Sequence;
 struct SeqCollection;
+struct Sequence;
 
 int SEQ_transform_get_left_handle_frame(struct Sequence *seq);
 int SEQ_transform_get_right_handle_frame(struct Sequence *seq);

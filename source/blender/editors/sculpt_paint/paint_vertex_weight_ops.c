@@ -183,7 +183,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   me = BKE_mesh_from_object(vc.obact);
 
-  if (me && me->dvert && vc.v3d && vc.rv3d && (vc.obact->actdef != 0)) {
+  if (me && me->dvert && vc.v3d && vc.rv3d && (me->vertex_group_active_index != 0)) {
     const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
     int v_idx_best = -1;
     uint index;
@@ -213,9 +213,9 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
     if (v_idx_best != -1) { /* should always be valid */
       ToolSettings *ts = vc.scene->toolsettings;
       Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
-      const int vgroup_active = vc.obact->actdef - 1;
+      const int vgroup_active = me->vertex_group_active_index - 1;
       float vgroup_weight = BKE_defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
-      const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
+      const int defbase_tot = BLI_listbase_count(&me->vertex_group_names);
       bool use_lock_relative = ts->wpaint_lock_relative;
       bool *defbase_locked = NULL, *defbase_unlocked = NULL;
 
@@ -331,8 +331,8 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
       ED_view3d_viewcontext_init(C, &vc, depsgraph);
       me = BKE_mesh_from_object(vc.obact);
 
-      if (me && me->dvert && vc.v3d && vc.rv3d && vc.obact->defbase.first) {
-        const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
+      if (me && me->dvert && vc.v3d && vc.rv3d && me->vertex_group_names.first) {
+        const int defbase_tot = BLI_listbase_count(&me->vertex_group_names);
         const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
         int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
         bool found = false;
@@ -372,7 +372,7 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
           int totitem = 0;
           int i = 0;
           bDeformGroup *dg;
-          for (dg = vc.obact->defbase.first; dg && i < defbase_tot; i++, dg = dg->next) {
+          for (dg = me->vertex_group_names.first; dg && i < defbase_tot; i++, dg = dg->next) {
             if (groups[i]) {
               item_tmp.identifier = item_tmp.name = dg->name;
               item_tmp.value = i;
@@ -401,7 +401,7 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   BLI_assert(type + 1 >= 0);
-  vc.obact->actdef = type + 1;
+  BKE_object_defgroup_active_index_set(vc.obact, type + 1);
 
   DEG_id_tag_update(&vc.obact->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, vc.obact);
@@ -458,7 +458,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
     return false;
   }
 
-  vgroup_active = ob->actdef - 1;
+  vgroup_active = BKE_object_defgroup_active_index_get(ob) - 1;
 
   /* if mirror painting, find the other group */
   if (ME_USING_MIRROR_X_VERTEX_GROUPS(me)) {
@@ -815,7 +815,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.sco_start = sco_start;
   data.sco_end = sco_end;
   data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
-  data.def_nr = ob->actdef - 1;
+  data.def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
   data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
   data.vert_cache = vert_cache;
   data.vert_visit = NULL;
@@ -863,7 +863,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   }
 
   if (scene->toolsettings->auto_normalize) {
-    const int vgroup_num = BLI_listbase_count(&ob->defbase);
+    const int vgroup_num = BLI_listbase_count(&me->vertex_group_names);
     bool *vgroup_validmap = BKE_object_defgroup_validmap_get(ob, vgroup_num);
     if (vgroup_validmap != NULL) {
       MDeformVert *dvert = me->dvert;

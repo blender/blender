@@ -65,16 +65,26 @@ class CyclesTest(api.Test):
         _, lines = env.run_in_blender(_run, args, ['--debug-cycles', '--verbose', '1', self.filepath])
 
         # Parse render time from output
-        prefix = "Render time (without synchronization): "
-        time = 0.0
+        prefix_time = "Render time (without synchronization): "
+        prefix_memory = "Peak: "
+        time = None
+        memory = None
         for line in lines:
             line = line.strip()
-            offset = line.find(prefix)
+            offset = line.find(prefix_time)
             if offset != -1:
-                time = line[offset + len(prefix):]
-                return {'time': float(time)}
+                time = line[offset + len(prefix_time):]
+                time = float(time)
+            offset = line.find(prefix_memory)
+            if offset != -1:
+                memory = line[offset + len(prefix_memory):]
+                memory = memory.split()[0].replace(',', '')
+                memory = float(memory)
 
-        raise Exception("Error parsing render time output")
+        if not (time and memory):
+            raise Exception("Error parsing render time output")
+
+        return {'time': time, 'peak_memory': memory}
 
 
 def generate(env):

@@ -7,3 +7,4 @@ Local modifications:
   checks for functions and so are needed.
 * Added special definitions of HAVE_SNPRINTF and HAVE_LIB_GFLAGS
   in Windows' specific config.h.
+* Silenced syscall deprecation warnings on macOS >= 10.12.

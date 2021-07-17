@@ -460,6 +460,9 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
                             NodeOperationOutput *fromSocket,
                             NodeOperationInput *toSocket)
 {
+  /* Data type conversions are executed before resolutions to ensure convert operations have
+   * resolution. This method have to ensure same datatypes are linked for new operations. */
+  BLI_assert(fromSocket->getDataType() == toSocket->getDataType());
   ResizeMode mode = toSocket->getResizeMode();
 
   NodeOperation *toOperation = &toSocket->getOperation();
@@ -515,7 +518,7 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     NodeOperation *first = nullptr;
     ScaleOperation *scaleOperation = nullptr;
     if (doScale) {
-      scaleOperation = new ScaleOperation();
+      scaleOperation = new ScaleOperation(fromSocket->getDataType());
       scaleOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
       scaleOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
       first = scaleOperation;
@@ -535,7 +538,7 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
       builder.addOperation(scaleOperation);
     }
 
-    TranslateOperation *translateOperation = new TranslateOperation();
+    TranslateOperation *translateOperation = new TranslateOperation(toSocket->getDataType());
     translateOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
     translateOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
     if (!first) {

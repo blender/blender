@@ -30,6 +30,7 @@
 
 #define RNA_MAGIC ((int)~0)
 
+struct AssetLibraryReference;
 struct FreestyleSettings;
 struct ID;
 struct IDOverrideLibrary;
@@ -266,6 +267,16 @@ void rna_def_mtex_common(struct BlenderRNA *brna,
 void rna_def_texpaint_slots(struct BlenderRNA *brna, struct StructRNA *srna);
 void rna_def_view_layer_common(struct BlenderRNA *brna, struct StructRNA *srna, const bool scene);
 
+PropertyRNA *rna_def_asset_library_reference_common(struct StructRNA *srna,
+                                                    const char *get,
+                                                    const char *set);
+int rna_asset_library_reference_get(const struct AssetLibraryReference *library);
+void rna_asset_library_reference_set(struct AssetLibraryReference *library, int value);
+const EnumPropertyItem *rna_asset_library_reference_itemf(struct bContext *C,
+                                                          struct PointerRNA *ptr,
+                                                          struct PropertyRNA *prop,
+                                                          bool *r_free);
+
 void rna_def_actionbone_group_common(struct StructRNA *srna,
                                      int update_flag,
                                      const char *update_cb);
@@ -276,10 +287,10 @@ void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);
 void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
 struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
-struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, bool create);
+struct IDProperty **rna_ID_idprops(struct PointerRNA *ptr);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, bool value);
 void **rna_ID_instance(PointerRNA *ptr);
-struct IDProperty *rna_PropertyGroup_idprops(struct PointerRNA *ptr, bool create);
+struct IDProperty **rna_PropertyGroup_idprops(struct PointerRNA *ptr);
 void rna_PropertyGroup_unregister(struct Main *bmain, struct StructRNA *type);
 struct StructRNA *rna_PropertyGroup_register(struct Main *bmain,
                                              struct ReportList *reports,

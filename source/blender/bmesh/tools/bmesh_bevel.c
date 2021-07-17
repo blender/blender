@@ -1676,7 +1676,7 @@ static void project_to_edge(const BMEdge *e,
   float otherco[3];
   if (!isect_line_line_v3(e->v1->co, e->v2->co, co_a, co_b, projco, otherco)) {
 #ifdef BEVEL_ASSERT_PROJECT
-    BLI_assert(!"project meet failure");
+    BLI_assert_msg(0, "project meet failure");
 #endif
     copy_v3_v3(projco, e->v1->co);
   }
@@ -6262,7 +6262,7 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
           break;
         }
         default: {
-          BLI_assert(!"bad bevel offset kind");
+          BLI_assert_msg(0, "bad bevel offset kind");
           e->offset_l_spec = bp->offset;
           break;
         }

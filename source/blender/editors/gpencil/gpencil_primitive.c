@@ -1315,8 +1315,8 @@ static void gpencil_primitive_interaction_end(bContext *C,
   Brush *brush = tgpi->brush;
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
 
-  const int def_nr = tgpi->ob->actdef - 1;
-  const bool have_weight = (bool)BLI_findlink(&tgpi->ob->defbase, def_nr);
+  const int def_nr = tgpi->gpd->vertex_group_active_index - 1;
+  const bool have_weight = BLI_findlink(&tgpi->gpd->vertex_group_names, def_nr) != NULL;
 
   /* return to normal cursor and header status */
   ED_workspace_status_text(C, NULL);

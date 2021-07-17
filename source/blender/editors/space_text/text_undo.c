@@ -265,7 +265,7 @@ void ED_text_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = text_undosys_foreach_ID_ref;
 
-  ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE;
+  ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE | UNDOTYPE_FLAG_DECODE_ACTIVE_STEP;
 
   ut->step_size = sizeof(TextUndoStep);
 }

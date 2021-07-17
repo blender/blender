@@ -206,6 +206,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
       tclmd->point_cache->step = clmd->point_cache->step;
       tclmd->point_cache->startframe = clmd->point_cache->startframe;
       tclmd->point_cache->endframe = clmd->point_cache->endframe;
+      tclmd->point_cache->flag |= (clmd->point_cache->flag & PTCACHE_FLAGS_COPY);
     }
   }
 

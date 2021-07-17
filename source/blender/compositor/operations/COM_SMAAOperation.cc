@@ -21,6 +21,7 @@
 #include "COM_SMAAOperation.h"
 #include "BLI_math.h"
 #include "COM_SMAAAreaTexture.h"
+#include "BKE_node.h"
 
 extern "C" {
 #include "IMB_colormanagement.h"
@@ -166,8 +167,8 @@ SMAAEdgeDetectionOperation::SMAAEdgeDetectionOperation()
   this->flags.complex = true;
   this->m_imageReader = nullptr;
   this->m_valueReader = nullptr;
-  this->m_threshold = 0.1f;
-  this->m_contrast_limit = 2.0f;
+  this->setThreshold(CMP_DEFAULT_SMAA_THRESHOLD);
+  this->setLocalContrastAdaptationFactor(CMP_DEFAULT_SMAA_CONTRAST_LIMIT);
 }
 
 void SMAAEdgeDetectionOperation::initExecution()
@@ -297,7 +298,7 @@ SMAABlendingWeightCalculationOperation::SMAABlendingWeightCalculationOperation()
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
   this->m_imageReader = nullptr;
-  this->m_corner_rounding = 25;
+  this->setCornerRounding(CMP_DEFAULT_SMAA_CORNER_ROUNDING);
 }
 
 void *SMAABlendingWeightCalculationOperation::initializeTileData(rcti *rect)

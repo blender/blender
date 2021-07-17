@@ -29,6 +29,8 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_customdata.h"
+#include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_material.h"
@@ -1041,7 +1043,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       if (cd_dvert_offset == -1) {
         continue;
       }
-      defbase_len = BLI_listbase_count(&ob->defbase);
+      defbase_len = BKE_object_defgroup_count(ob);
       if (defbase_len == 0) {
         continue;
       }
@@ -1090,8 +1092,10 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       /* We store the names of the vertex groups, so we can select
        * vertex groups with the same name in different objects. */
 
+      const ListBase *defbase = BKE_object_defgroup_list(ob);
+
       int i = 0;
-      LISTBASE_FOREACH (bDeformGroup *, dg, &ob->defbase) {
+      LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
         if (BLI_BITMAP_TEST(defbase_selected, i)) {
           BLI_gset_add(gset, dg->name);
         }
@@ -1128,7 +1132,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       if (cd_dvert_offset == -1) {
         continue;
       }
-      defbase_len = BLI_listbase_count(&ob->defbase);
+      const ListBase *defbase = BKE_object_defgroup_list(ob);
+      defbase_len = BLI_listbase_count(defbase);
       if (defbase_len == 0) {
         continue;
       }
@@ -1141,7 +1146,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       GSetIterator gs_iter;
       GSET_ITER (gs_iter, gset) {
         const char *name = BLI_gsetIterator_getKey(&gs_iter);
-        int vgroup_id = BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name));
+        int vgroup_id = BLI_findstringindex(defbase, name, offsetof(bDeformGroup, name));
         if (vgroup_id != -1) {
           BLI_BITMAP_ENABLE(defbase_selected, vgroup_id);
           found_any = true;

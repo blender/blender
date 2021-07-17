@@ -121,7 +121,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
     case OB_GPENCIL:
       return nullptr;
     case OB_TYPE_MAX:
-      BLI_assert(!"OB_TYPE_MAX should not be used");
+      BLI_assert_msg(0, "OB_TYPE_MAX should not be used");
       return nullptr;
   }
 

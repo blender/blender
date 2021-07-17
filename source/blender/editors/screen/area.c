@@ -161,6 +161,12 @@ void ED_region_do_listen(wmRegionListenerParams *params)
   if (region->type && region->type->listener) {
     region->type->listener(params);
   }
+
+  LISTBASE_FOREACH (uiList *, list, &region->ui_lists) {
+    if (list->type && list->type->listener) {
+      list->type->listener(list, params);
+    }
+  }
 }
 
 /* only exported for WM */
@@ -3018,6 +3024,8 @@ void ED_region_panels_layout_ex(const bContext *C,
     y = -y;
   }
 
+  UI_blocklist_update_view_for_buttons(C, &region->uiblocks);
+
   if (update_tot_size) {
     /* this also changes the 'cur' */
     UI_view2d_totRect_set(v2d, x, y);
@@ -3672,7 +3680,7 @@ static void region_visible_rect_calc(ARegion *region, rcti *rect)
           /* Skip floating. */
         }
         else {
-          BLI_assert(!"Region overlap with unknown alignment");
+          BLI_assert_msg(0, "Region overlap with unknown alignment");
         }
       }
     }

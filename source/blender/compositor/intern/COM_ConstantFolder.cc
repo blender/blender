@@ -83,7 +83,7 @@ static ConstantOperation *create_constant_operation(DataType data_type, const fl
       return value_op;
     }
     default: {
-      BLI_assert(!"Non implemented data type");
+      BLI_assert_msg(0, "Non implemented data type");
       return nullptr;
     }
   }

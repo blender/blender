@@ -2843,7 +2843,7 @@ void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
    * hopefully this is OK. */
   BKE_pose_ensure(NULL, ob, arm, true);
 
-  ctime = BKE_scene_frame_get(scene); /* not accurate... */
+  ctime = BKE_scene_ctime_get(scene); /* not accurate... */
 
   /* In edit-mode or rest-position we read the data from the bones. */
   if (arm->edbo || (arm->flag & ARM_RESTPOS)) {

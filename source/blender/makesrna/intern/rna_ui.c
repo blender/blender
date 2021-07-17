@@ -452,15 +452,31 @@ static unsigned int rna_UIList_filter_const_FILTER_ITEM_get(PointerRNA *UNUSED(p
   return UILST_FLT_ITEM;
 }
 
-static IDProperty *rna_UIList_idprops(PointerRNA *ptr, bool create)
+static IDProperty **rna_UIList_idprops(PointerRNA *ptr)
 {
   uiList *ui_list = (uiList *)ptr->data;
-  if (create && !ui_list->properties) {
-    IDPropertyTemplate val = {0};
-    ui_list->properties = IDP_New(IDP_GROUP, &val, "RNA_UIList IDproperties group");
+  return &ui_list->properties;
+}
+
+static void rna_UIList_list_id_get(PointerRNA *ptr, char *value)
+{
+  uiList *ui_list = (uiList *)ptr->data;
+  if (!ui_list->type) {
+    value[0] = '\0';
+    return;
   }
 
-  return ui_list->properties;
+  strcpy(value, WM_uilisttype_list_id_get(ui_list->type, ui_list));
+}
+
+static int rna_UIList_list_id_length(PointerRNA *ptr)
+{
+  uiList *ui_list = (uiList *)ptr->data;
+  if (!ui_list->type) {
+    return 0;
+  }
+
+  return strlen(WM_uilisttype_list_id_get(ui_list->type, ui_list));
 }
 
 static void uilist_draw_item(uiList *ui_list,
@@ -638,7 +654,7 @@ static void uilist_filter_items(uiList *ui_list,
   RNA_parameter_list_free(&list);
 }
 
-static void rna_UIList_unregister(Main *UNUSED(bmain), StructRNA *type)
+static void rna_UIList_unregister(Main *bmain, StructRNA *type)
 {
   uiListType *ult = RNA_struct_blender_type_get(type);
 
@@ -649,7 +665,7 @@ static void rna_UIList_unregister(Main *UNUSED(bmain), StructRNA *type)
   RNA_struct_free_extension(type, &ult->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  WM_uilisttype_freelink(ult);
+  WM_uilisttype_remove_ptr(bmain, ult);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, NULL);
@@ -1019,7 +1035,7 @@ static void rna_Panel_bl_description_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
   }
   else {
-    BLI_assert(!"setting the bl_description on a non-builtin panel");
+    BLI_assert_msg(0, "setting the bl_description on a non-builtin panel");
   }
 }
 
@@ -1031,7 +1047,7 @@ static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
   }
   else {
-    BLI_assert(!"setting the bl_description on a non-builtin menu");
+    BLI_assert_msg(0, "setting the bl_description on a non-builtin menu");
   }
 }
 
@@ -1540,6 +1556,16 @@ static void rna_def_uilist(BlenderRNA *brna)
                            "script, then bl_idname = \"OBJECT_UL_vgroups\")");
 
   /* Data */
+  /* Note that this is the "non-full" list-ID as obtained through #WM_uilisttype_list_id_get(),
+   * which differs from the (internal) `uiList.list_id`. */
+  prop = RNA_def_property(srna, "list_id", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(prop, "rna_UIList_list_id_get", "rna_UIList_list_id_length", NULL);
+  RNA_def_property_ui_text(prop,
+                           "List Name",
+                           "Identifier of the list, if any was passed to the \"list_id\" "
+                           "parameter of \"template_list()\"");
+
   prop = RNA_def_property(srna, "layout_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_uilist_layout_type_items);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

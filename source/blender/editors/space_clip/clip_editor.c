@@ -1025,7 +1025,7 @@ static void prefetch_startjob(void *pjv, short *stop, short *do_update, float *p
                       progress);
   }
   else {
-    BLI_assert(!"Unknown movie clip source when prefetching frames");
+    BLI_assert_msg(0, "Unknown movie clip source when prefetching frames");
   }
 }
 

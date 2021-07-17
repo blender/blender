@@ -223,7 +223,7 @@ bool need_evaluate_operation_at_stage(DepsgraphEvalState *state,
     case EvaluationStage::SINGLE_THREADED_WORKAROUND:
       return true;
   }
-  BLI_assert(!"Unhandled evaluation stage, should never happen.");
+  BLI_assert_msg(0, "Unhandled evaluation stage, should never happen.");
   return false;
 }
 

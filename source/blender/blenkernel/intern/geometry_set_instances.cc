@@ -48,7 +48,6 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
 
     MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
     mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
-    mesh_component.copy_vertex_group_names_from_object(object);
   }
 }
 
@@ -566,6 +565,7 @@ static PointCloud *join_pointcloud_position_attribute(Span<GeometryInstanceGroup
   }
 
   PointCloud *new_pointcloud = BKE_pointcloud_new_nomain(totpoint);
+  MutableSpan new_positions{(float3 *)new_pointcloud->co, new_pointcloud->totpoint};
 
   /* Transform each instance's point locations into the new point cloud. */
   int offset = 0;
@@ -577,9 +577,7 @@ static PointCloud *join_pointcloud_position_attribute(Span<GeometryInstanceGroup
     }
     for (const float4x4 &transform : set_group.transforms) {
       for (const int i : IndexRange(pointcloud->totpoint)) {
-        const float3 old_position = pointcloud->co[i];
-        const float3 new_position = transform * old_position;
-        copy_v3_v3(new_pointcloud->co[offset + i], new_position);
+        new_positions[offset + i] = transform * float3(pointcloud->co[i]);
       }
       offset += pointcloud->totpoint;
     }

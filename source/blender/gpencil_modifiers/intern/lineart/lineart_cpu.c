@@ -1697,7 +1697,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   }
 
   if (rb->remove_doubles) {
-    BMEditMesh *em = BKE_editmesh_create(bm, false);
+    BMEditMesh *em = BKE_editmesh_create(bm);
     BMOperator findop, weldop;
 
     /* See bmesh_opdefines.c and bmesh_operators.c for op names and argument formatting. */
@@ -3443,9 +3443,9 @@ static bool lineart_bounding_area_triangle_intersect(LineartRenderBuffer *fb,
     return true;
   }
 
-  if ((lineart_bounding_area_edge_intersect(fb, FBC1, FBC2, ba)) ||
-      (lineart_bounding_area_edge_intersect(fb, FBC2, FBC3, ba)) ||
-      (lineart_bounding_area_edge_intersect(fb, FBC3, FBC1, ba))) {
+  if (lineart_bounding_area_edge_intersect(fb, FBC1, FBC2, ba) ||
+      lineart_bounding_area_edge_intersect(fb, FBC2, FBC3, ba) ||
+      lineart_bounding_area_edge_intersect(fb, FBC3, FBC1, ba)) {
     return true;
   }
 
@@ -4218,9 +4218,6 @@ static void lineart_gpencil_generate(LineartCache *cache,
 
   /* (!orig_col && !orig_ob) means the whole scene is selected. */
 
-  float mat[4][4];
-  unit_m4(mat);
-
   int enabled_types = cache->rb_edge_types;
   bool invert_input = modifier_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
   bool match_output = modifier_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
@@ -4272,28 +4269,19 @@ static void lineart_gpencil_generate(LineartCache *cache,
     /* Preserved: If we ever do asynchronous generation, this picked flag should be set here. */
     // ec->picked = 1;
 
-    int array_idx = 0;
-    int count = MOD_lineart_chain_count(ec);
+    const int count = MOD_lineart_chain_count(ec);
     bGPDstroke *gps = BKE_gpencil_stroke_add(gpf, color_idx, count, thickness, false);
 
-    float *stroke_data = MEM_callocN(sizeof(float) * count * GP_PRIM_DATABUF_SIZE,
-                                     "line art add stroke");
-
-    LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
-      stroke_data[array_idx] = eci->gpos[0];
-      stroke_data[array_idx + 1] = eci->gpos[1];
-      stroke_data[array_idx + 2] = eci->gpos[2];
-      mul_m4_v3(gp_obmat_inverse, &stroke_data[array_idx]);
-      stroke_data[array_idx + 3] = 1;       /* thickness. */
-      stroke_data[array_idx + 4] = opacity; /* hardness?. */
-      array_idx += 5;
+    int i;
+    LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &ec->chain, i) {
+      bGPDspoint *point = &gps->points[i];
+      mul_v3_m4v3(&point->x, gp_obmat_inverse, eci->gpos);
+      point->pressure = 1.0f;
+      point->strength = opacity;
     }
 
-    BKE_gpencil_stroke_add_points(gps, stroke_data, count, mat);
     BKE_gpencil_dvert_ensure(gps);
     gps->mat_nr = max_ii(material_nr, 0);
-
-    MEM_freeN(stroke_data);
 
     if (source_vgname && vgname) {
       Object *eval_ob = DEG_get_evaluated_object(depsgraph, ec->object_ref);
@@ -4303,7 +4291,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
           int dindex = 0;
           Mesh *me = (Mesh *)eval_ob->data;
           if (me->dvert) {
-            LISTBASE_FOREACH (bDeformGroup *, db, &eval_ob->defbase) {
+            LISTBASE_FOREACH (bDeformGroup *, db, &me->vertex_group_names) {
               if ((!source_vgname) || strstr(db->name, source_vgname) == db->name) {
                 if (match_output) {
                   gpdg = BKE_object_defgroup_name_index(gpencil_object, db->name);

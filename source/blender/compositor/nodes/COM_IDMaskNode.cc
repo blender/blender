@@ -17,9 +17,9 @@
  */
 
 #include "COM_IDMaskNode.h"
-#include "COM_AntiAliasOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_IDMaskOperation.h"
+#include "COM_SMAAOperation.h"
 
 namespace blender::compositor {
 
@@ -42,11 +42,27 @@ void IDMaskNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
   }
   else {
-    AntiAliasOperation *antiAliasOperation = new AntiAliasOperation();
-    converter.addOperation(antiAliasOperation);
+    SMAAEdgeDetectionOperation *operation1 = nullptr;
 
-    converter.addLink(operation->getOutputSocket(), antiAliasOperation->getInputSocket(0));
-    converter.mapOutputSocket(getOutputSocket(0), antiAliasOperation->getOutputSocket(0));
+    operation1 = new SMAAEdgeDetectionOperation();
+    converter.addOperation(operation1);
+
+    converter.addLink(operation->getOutputSocket(0), operation1->getInputSocket(0));
+
+    /* Blending Weight Calculation Pixel Shader (Second Pass). */
+    SMAABlendingWeightCalculationOperation *operation2 =
+        new SMAABlendingWeightCalculationOperation();
+    converter.addOperation(operation2);
+
+    converter.addLink(operation1->getOutputSocket(), operation2->getInputSocket(0));
+
+    /* Neighborhood Blending Pixel Shader (Third Pass). */
+    SMAANeighborhoodBlendingOperation *operation3 = new SMAANeighborhoodBlendingOperation();
+    converter.addOperation(operation3);
+
+    converter.addLink(operation->getOutputSocket(0), operation3->getInputSocket(0));
+    converter.addLink(operation2->getOutputSocket(), operation3->getInputSocket(1));
+    converter.mapOutputSocket(getOutputSocket(0), operation3->getOutputSocket());
   }
 }
 

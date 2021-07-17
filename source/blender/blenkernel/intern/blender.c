@@ -127,7 +127,7 @@ static void blender_version_init(void)
     version_cycle = "";
   }
   else {
-    BLI_assert(!"Invalid Blender version cycle");
+    BLI_assert_msg(0, "Invalid Blender version cycle");
   }
 
   BLI_snprintf(blender_version_string,

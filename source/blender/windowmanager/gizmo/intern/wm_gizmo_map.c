@@ -264,7 +264,7 @@ bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
   }
 
   bool ok = false;
-  BLI_assert(!"TODO");
+  BLI_assert_msg(0, "TODO");
   return ok;
 }
 

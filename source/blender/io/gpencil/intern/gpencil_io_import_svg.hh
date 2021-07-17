@@ -24,10 +24,10 @@
 #include "gpencil_io_import_base.hh"
 
 struct GpencilIOParams;
-struct NSVGshape;
 struct NSVGpath;
-struct bGPdata;
+struct NSVGshape;
 struct bGPDframe;
+struct bGPdata;
 
 #define SVG_IMPORTER_NAME "SVG Import for Grease Pencil"
 #define SVG_IMPORTER_VERSION "v1.0"

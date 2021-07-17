@@ -137,7 +137,7 @@ bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
 {
   if (subdiv->evaluator == NULL) {
     /* NOTE: This situation is supposed to be handled by begin(). */
-    BLI_assert(!"Is not supposed to happen");
+    BLI_assert_msg(0, "Is not supposed to happen");
     return false;
   }
   /* Set coordinates of base mesh vertices. */

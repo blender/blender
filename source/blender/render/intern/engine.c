@@ -679,7 +679,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
       DRW_render_context_enable(engine->re);
     }
 
-    DEG_evaluate_on_framechange(depsgraph, CFRA);
+    DEG_evaluate_on_framechange(depsgraph, BKE_scene_frame_get(scene));
 
     if (use_gpu_context) {
       DRW_render_context_disable(engine->re);
