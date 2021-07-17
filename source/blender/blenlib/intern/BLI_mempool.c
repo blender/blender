@@ -48,6 +48,12 @@
 #  include "valgrind/memcheck.h"
 #endif
 
+#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer))
+#  define POISON_REDZONE_SIZE 32
+#else
+#  define POISON_REDZONE_SIZE 0
+#endif
+
 /* NOTE: copied from BLO_blend_defs.h, don't use here because we're in BLI. */
 #ifdef __BIG_ENDIAN__
 /* Big Endian */
@@ -409,6 +415,8 @@ BLI_mempool *BLI_mempool_create(uint esize, uint totelem, uint pchunk, uint flag
     esize = MAX2(esize, (uint)sizeof(BLI_freenode));
   }
 
+  esize += POISON_REDZONE_SIZE;
+
   maxchunks = mempool_maxchunks(totelem, pchunk);
 
   pool->chunks = NULL;
@@ -469,7 +477,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 
   free_pop = pool->free;
 
-  BLI_asan_unpoison(free_pop, pool->esize);
+  BLI_asan_unpoison(free_pop, pool->esize - POISON_REDZONE_SIZE);
 
   BLI_assert(pool->chunk_tail->next == NULL);
 
@@ -490,7 +498,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 void *BLI_mempool_calloc(BLI_mempool *pool)
 {
   void *retval = BLI_mempool_alloc(pool);
-  memset(retval, 0, (size_t)pool->esize);
+  memset(retval, 0, (size_t)pool->esize - POISON_REDZONE_SIZE);
   return retval;
 }
 
@@ -520,7 +528,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 
   /* Enable for debugging. */
   if (UNLIKELY(mempool_debug_memset)) {
-    memset(addr, 255, pool->esize);
+    memset(addr, 255, pool->esize - POISON_REDZONE_SIZE);
   }
 #endif
 
@@ -649,7 +657,7 @@ void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
  */
 void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 {
-  const uint esize = pool->esize;
+  const uint esize = pool->esize - (uint)POISON_REDZONE_SIZE;
   BLI_mempool_iter iter;
   char *elem, *p = data;
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
@@ -785,7 +793,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
   do {
     ret = curnode;
 
-    BLI_asan_unpoison(ret, iter->pool->esize);
+    BLI_asan_unpoison(ret, iter->pool->esize - POISON_REDZONE_SIZE);
 
     if (++iter->curindex != iter->pool->pchunk) {
       curnode = POINTER_OFFSET(curnode, esize);
@@ -794,7 +802,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
       iter->curindex = 0;
       iter->curchunk = iter->curchunk->next;
       if (UNLIKELY(iter->curchunk == NULL)) {
-        BLI_asan_unpoison(ret, iter->pool->esize);
+        BLI_asan_unpoison(ret, iter->pool->esize - POISON_REDZONE_SIZE);
         void *ret2 = (ret->freeword == FREEWORD) ? NULL : ret;
 
         if (ret->freeword == FREEWORD) {
@@ -827,7 +835,7 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
   do {
     ret = curnode;
 
-    BLI_asan_unpoison(ret, esize);
+    BLI_asan_unpoison(ret, esize - POISON_REDZONE_SIZE);
 
     if (++iter->curindex != iter->pool->pchunk) {
       curnode = POINTER_OFFSET(curnode, esize);

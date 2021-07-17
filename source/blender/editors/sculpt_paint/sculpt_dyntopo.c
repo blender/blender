@@ -468,11 +468,6 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
                                    const Mesh *me,
                                    const struct BMeshFromMeshParams *params);
 
-#define EXPECT_EQ(a, b) \
-  if ((a) != (b)) { \
-    printf("error\n"); \
-  }
-
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -913,7 +908,7 @@ typedef struct UVSmoothVert {
   BMVert *v;
   double w;
   int totw;
-  bool pinned;
+  bool pinned, boundary;
   BMLoop *ls[MAXUVLOOPS];
   struct UVSmoothVert *neighbors[MAXUVNEIGHBORS];
   int totloop, totneighbor;
@@ -966,7 +961,7 @@ static UVSolver *uvsolver_new(int cd_uv)
 
   solver->strength = 1.0;
   solver->cd_uv = cd_uv;
-  solver->snap_limit = 0.01;
+  solver->snap_limit = 0.0025;
 
   solver->verts = BLI_mempool_create(sizeof(UVSmoothVert), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
   solver->tris = BLI_mempool_create(sizeof(UVSmoothTri), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
@@ -1210,8 +1205,6 @@ static double uvsolver_eval_constraint(UVSolver *solver, UVSmoothConstraint *con
 {
   switch (con->type) {
     case CON_ANGLES: {
-      // return 0.0;
-
       UVSmoothVert *v0 = con->vs[0];
       UVSmoothVert *v1 = con->vs[1];
       UVSmoothVert *v2 = con->vs[2];
@@ -1257,7 +1250,7 @@ BLI_INLINE float uvsolver_vert_weight(UVSmoothVert *sv)
 {
   double w = 1.0;
 
-  if (sv->pinned) {
+  if (sv->pinned || sv->boundary) {
     w = 100000.0;
   }
 
@@ -1294,7 +1287,8 @@ static void uvsolver_simple_relax(UVSolver *solver, float strength)
 
   sv1 = BLI_mempool_iterstep(&iter);
   for (; sv1; sv1 = BLI_mempool_iterstep(&iter)) {
-    double uv[2] = {0.0f, 0.0f};
+    double uv[2] = {0.0, 0.0};
+    double tot = 0.0;
 
     if (!sv1->totneighbor || sv1->pinned) {
       continue;
@@ -1303,16 +1297,21 @@ static void uvsolver_simple_relax(UVSolver *solver, float strength)
     for (int i = 0; i < sv1->totneighbor; i++) {
       UVSmoothVert *sv2 = sv1->neighbors[i];
 
-      if (!sv2) {
+      if (!sv2 || (sv1->boundary && !sv2->boundary)) {
         continue;
       }
 
       uv[0] += sv2->uv[0];
       uv[1] += sv2->uv[1];
+      tot += 1.0;
     }
 
-    uv[0] /= (double)sv1->totneighbor;
-    uv[1] /= (double)sv1->totneighbor;
+    if (tot < 2.0) {
+      continue;
+    }
+
+    uv[0] /= tot;
+    uv[1] /= tot;
 
     sv1->uv[0] += (uv[0] - sv1->uv[0]) * strength;
     sv1->uv[1] += (uv[1] - sv1->uv[1]) * strength;
@@ -1461,44 +1460,10 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
     float cent[3] = {0};
     int tot = 0;
 
+    // uvsolver_get_vert
     do {
       add_v3_v3(cent, l->v->co);
       tot++;
-
-      BMIter iter;
-      BMLoop *l2;
-      int tot2 = 0;
-      float uv[2] = {0};
-      bool ok = true;
-
-      BM_ITER_ELEM (l2, &iter, l->v, BM_LOOPS_OF_VERT) {
-        if (l2->v != l->v) {
-          l2 = l2->next;
-        }
-
-        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
-
-        add_v2_v2(uv, luv->uv);
-        tot2++;
-
-        if (BM_elem_flag_test(l2->e, BM_ELEM_SEAM)) {
-          ok = false;
-        }
-      }
-
-      ok = ok && tot2;
-
-      if (ok) {
-        mul_v2_fl(uv, 1.0f / (float)tot2);
-        BM_ITER_ELEM (l2, &iter, l->v, BM_LOOPS_OF_VERT) {
-          if (l2->v != l->v) {
-            l2 = l2->next;
-          }
-
-          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
-          copy_v2_v2(luv->uv, uv);
-        }
-      }
     } while ((l = l->next) != f->l_first);
 
     mul_v3_fl(cent, 1.0f / (float)tot);
@@ -1509,6 +1474,59 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
 
     BM_log_face_modified(ss->bm_log, f);
     uvsolver_ensure_face(data1->solver, f);
+
+    do {
+      BMIter iter;
+      BMLoop *l2;
+      int tot2 = 0;
+      float uv[2] = {0};
+      bool ok = true;
+      UVSmoothVert *lastv = NULL;
+
+      BM_ITER_ELEM (l2, &iter, l->v, BM_LOOPS_OF_VERT) {
+        if (l2->v != l->v) {
+          l2 = l2->prev->v == l->v ? l2->prev : l2->next;
+        }
+
+        UVSmoothVert *sv = uvsolver_get_vert(data1->solver, l2);
+
+        if (lastv && lastv != sv) {
+          ok = false;
+          lastv->boundary = true;
+          sv->boundary = true;
+        }
+
+        lastv = sv;
+
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
+
+        add_v2_v2(uv, luv->uv);
+        tot2++;
+
+        if (BM_elem_flag_test(l2->e, BM_ELEM_SEAM)) {
+          ok = false;
+          sv->boundary = true;
+        }
+      }
+
+      ok = ok && tot2;
+
+      if (ok) {
+        mul_v2_fl(uv, 1.0f / (float)tot2);
+
+        BM_ITER_ELEM (l2, &iter, l->v, BM_LOOPS_OF_VERT) {
+          if (l2->v != l->v) {
+            l2 = l2->next;
+          }
+
+          MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l2, cd_uv);
+
+          if (len_v2v2(luv->uv, uv) < 0.02) {
+            copy_v2_v2(luv->uv, uv);
+          }
+        }
+      }
+    } while ((l = l->next) != f->l_first);
 
 #if 0
     do {
