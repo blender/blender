@@ -128,3 +128,5 @@ uint BM_log_vert_id_get(BMLog *log, BMVert *v);
 BMVert *BM_log_id_vert_get(BMLog *log, uint id);
 uint BM_log_face_id_get(BMLog *log, BMFace *f);
 BMFace *BM_log_id_face_get(BMLog *log, uint id);
+
+void BM_log_print_entry(BMLog *log, BMLogEntry *entry);

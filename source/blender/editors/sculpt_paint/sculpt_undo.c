@@ -557,13 +557,13 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     unode->applied = true;
   }
 
-  BKE_pbvh_bmesh_regen_node_verts(ss->pbvh);
-  pbvh_bmesh_check_nodes(ss->pbvh);
-
   if (!data.do_full_recalc || unode->type == SCULPT_UNDO_MASK ||
       unode->type == SCULPT_UNDO_COLOR) {
     int totnode;
     PBVHNode **nodes;
+
+    BKE_pbvh_bmesh_regen_node_verts(ss->pbvh);
+    pbvh_bmesh_check_nodes(ss->pbvh);
 
     BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
@@ -2180,6 +2180,9 @@ static void print_sculpt_node(SculptUndoNode *node)
          node->applied,
          0,  // node->gen,
          hash /*- node->lasthash*/);
+  if (node->bm_entry) {
+    BM_log_print_entry(NULL, node->bm_entry);
+  }
 }
 
 static void print_sculpt_undo_step(UndoStep *us, UndoStep *active, int i)
@@ -2231,13 +2234,18 @@ void sculpt_undo_print_nodes(void *active)
     printf("===============\n");
   }
 
-  int i = 0;
+  int i = 0, act_i = -1;
   for (; us; us = us->next, i++) {
+    if (active == us) {
+      act_i = i;
+    }
+
     print_sculpt_undo_step(us, active, i);
   }
 
   if (ustack->step_active) {
-    print_sculpt_undo_step(ustack->step_active, active, i);
+    printf("\n\n==active step:==\n");
+    print_sculpt_undo_step(ustack->step_active, active, act_i);
   }
 
 #endif

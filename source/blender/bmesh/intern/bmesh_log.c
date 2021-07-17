@@ -445,6 +445,11 @@ static void bm_log_verts_unmake_pre(
     uint id = POINTER_AS_UINT(key);
     BMVert *v = bm_log_vert_from_id(log, id);
 
+    if (!v) {
+      printf("bm_log error; vertex id: %p\n", key);
+      continue;
+    }
+
     /* Ensure the log has the final values of the vertex before
      * deleting it */
     bm_log_vert_bmvert_copy(log, entry, lv, v, cd_vert_mask_offset, true);
@@ -464,11 +469,16 @@ static void bm_log_verts_unmake(
     uint id = POINTER_AS_UINT(key);
     BMVert *v = bm_log_vert_from_id(log, id);
 
+    if (!v) {
+      printf("bmlog error.  vertex id: %p\n", key);
+      continue;
+    }
+
     BM_vert_kill(bm, v);
   }
 }
 
-ATTR_NO_OPT static void bm_log_faces_unmake(
+static void bm_log_faces_unmake(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -554,7 +564,7 @@ static void bm_log_verts_restore(
   }
 }
 
-ATTR_NO_OPT static void bm_log_faces_restore(
+static void bm_log_faces_restore(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -1004,9 +1014,46 @@ int BM_log_length(const BMLog *log)
   return BLI_listbase_count(&log->entries);
 }
 
+void BM_log_print_entry(BMLog *log, BMLogEntry *entry)
+{
+  BMLogEntry *first = entry;
+
+  if (!log) {
+    log = entry->log;
+  }
+
+  while (first->combined_prev) {
+    first = first->combined_prev;
+  }
+
+  printf("==bmlog step==\n");
+
+  while (first) {
+    if (first->fully_copy) {
+      printf(" ==full mesh copy==\n");
+    }
+    else {
+      printf(" ==entry==\n");
+      printf("   modified:\n");
+      printf("     verts: %d\n", BLI_ghash_len(entry->modified_verts));
+      printf("     faces: %d\n", BLI_ghash_len(entry->modified_faces));
+      printf("   new:\n");
+      printf("     verts: %d\n", BLI_ghash_len(entry->added_verts));
+      printf("     faces: %d\n", BLI_ghash_len(entry->added_faces));
+      printf("   deleted:\n");
+      printf("     verts: %d\n", BLI_ghash_len(entry->deleted_verts));
+      printf("     faces: %d\n", BLI_ghash_len(entry->deleted_faces));
+      printf("\n");
+    }
+    printf("\n");
+    first = first->combined_next;
+  }
+}
+
 /* Apply a consistent ordering to BMesh vertices */
 void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 {
+#if 0  // TODO: make sure no edge cases relying on this function still exist
   uint *varr;
   uint *farr;
 
@@ -1054,6 +1101,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 
   MEM_freeN(varr);
   MEM_freeN(farr);
+#endif
 }
 
 BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)

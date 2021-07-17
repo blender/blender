@@ -261,7 +261,7 @@ static void SCULPT_topology_automasking_init(Sculpt *sd,
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
     BLI_assert_msg(0, "Topology masking: pmap missing");
-    return NULL;
+    return;
   }
 
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -303,7 +303,7 @@ static void sculpt_face_sets_automasking_init(Sculpt *sd,
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
     BLI_assert_msg(0, "Face Sets automasking: pmap missing");
-    return NULL;
+    return;
   }
 
   int tot_vert = SCULPT_vertex_count_get(ss);
@@ -330,7 +330,7 @@ void SCULPT_boundary_automasking_init(Object *ob,
 
   if (!ss->pmap) {
     BLI_assert_msg(0, "Boundary Edges masking: pmap missing");
-    return NULL;
+    return;
   }
 
   const int totvert = SCULPT_vertex_count_get(ss);

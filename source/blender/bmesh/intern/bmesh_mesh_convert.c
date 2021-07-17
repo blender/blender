@@ -79,6 +79,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
@@ -659,7 +660,7 @@ void BM_mesh_bm_from_me(Object *ob,
 /**
  * \brief BMesh -> Mesh
  */
-static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
+BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 {
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
   BMVert **vertMap = NULL;
@@ -701,7 +702,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
  * Returns custom-data shapekey index from a keyblock or -1
  * \note could split this out into a more generic function.
  */
-static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
+int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
 {
   int i;
   int j = 0;
@@ -738,6 +739,7 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
  *
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
+
 void BM_mesh_bm_to_me(
     Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
@@ -796,18 +798,21 @@ void BM_mesh_bm_to_me(
   me->totface = 0;
   me->act_face = -1;
 
+  CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  int id_flags[4] = {-1, -1, -1, -1};
+
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
     CustomDataMask extra2 = params->copy_mesh_id_layers ? CD_MASK_MESH_ID : 0;
 
-    // clear mesh id layer flags
+    // copy id layers? temporarily clear cd_temporary and cd_flag_elem_nocopy flags
     if (params->copy_mesh_id_layers) {
-      CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-
       for (int i = 0; i < 4; i++) {
         int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
+
         if (idx >= 0) {
+          id_flags[i] = srcdatas[i]->layers[idx].flag;
           srcdatas[i]->layers[idx].flag &= ~(CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY);
         }
       }
@@ -1180,15 +1185,12 @@ void BM_mesh_bm_to_me(
   /* To be removed as soon as COW is enabled by default. */
   BKE_mesh_runtime_clear_geometry(me);
 
+  // restore original cd layer flags to bmesh id layers
   if (params->copy_mesh_id_layers) {
-    // restore mesh id layer flags in bm
-    CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-
     for (int i = 0; i < 4; i++) {
       int idx = CustomData_get_layer_index(srcdatas[i], CD_MESH_ID);
-
       if (idx >= 0) {
-        srcdatas[i]->layers[idx].flag |= CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOCOPY;
+        srcdatas[i]->layers[idx].flag = id_flags[i];
       }
     }
   }
