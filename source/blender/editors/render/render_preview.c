@@ -1308,8 +1308,9 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
     scaledy = (float)h;
   }
 
-  ex = (short)scaledx;
-  ey = (short)scaledy;
+  /* Scaling down must never assign zero width/height, see: T89868. */
+  ex = MAX2(1, (short)scaledx);
+  ey = MAX2(1, (short)scaledy);
 
   dx = (w - ex) / 2;
   dy = (h - ey) / 2;
