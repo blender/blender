@@ -22,6 +22,8 @@
 
 #include "node_geometry_util.hh"
 
+using blender::attribute_math::mix2;
+
 static bNodeSocketTemplate geo_node_curve_trim_in[] = {
     {SOCK_GEOMETRY, N_("Curve")},
     {SOCK_FLOAT, N_("Start"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -69,6 +71,15 @@ static void geo_node_curve_trim_update(bNodeTree *UNUSED(ntree), bNode *node)
 
 namespace blender::nodes {
 
+struct TrimLocation {
+  /* Control point index at the start side of the trim location. */
+  int left_index;
+  /* Control point intex at the end of the trim location's segment. */
+  int right_index;
+  /* The factor between the left and right indices. */
+  float factor;
+};
+
 template<typename T>
 static void shift_slice_to_start(MutableSpan<T> data, const int start_index, const int size)
 {
@@ -78,51 +89,44 @@ static void shift_slice_to_start(MutableSpan<T> data, const int start_index, con
 
 /* Shift slice to start of span and modifies start and end data. */
 template<typename T>
-static void linear_trim_data(const Spline::LookupResult &start_lookup,
-                             const Spline::LookupResult &end_lookup,
-                             MutableSpan<T> input_data)
+static void linear_trim_data(const TrimLocation &start,
+                             const TrimLocation &end,
+                             MutableSpan<T> data)
 {
-  const int size = end_lookup.next_evaluated_index - start_lookup.evaluated_index + 1;
+  const int size = end.right_index - start.left_index + 1;
 
-  if (start_lookup.evaluated_index > 0) {
-    shift_slice_to_start<T>(input_data, start_lookup.evaluated_index, size);
+  if (start.left_index > 0) {
+    shift_slice_to_start<T>(data, start.left_index, size);
   }
 
-  const T start_data = blender::attribute_math::mix2<T>(
-      start_lookup.factor, input_data.first(), input_data[1]);
-  const T end_data = blender::attribute_math::mix2<T>(
-      end_lookup.factor, input_data[size - 2], input_data[size - 1]);
+  const T start_data = mix2<T>(start.factor, data.first(), data[1]);
+  const T end_data = mix2<T>(end.factor, data[size - 2], data[size - 1]);
 
-  input_data.first() = start_data;
-  input_data[size - 1] = end_data;
+  data.first() = start_data;
+  data[size - 1] = end_data;
 }
 
 /* Identical operation as #linear_trim_data, but opy data to a new MutableSpan rather than
  * modifying the original data. */
 template<typename T>
-static void linear_trim_to_output_data(const Spline::LookupResult &start_lookup,
-                                       const Spline::LookupResult &end_lookup,
-                                       Span<T> input_data,
-                                       MutableSpan<T> output_data)
+static void linear_trim_to_output_data(const TrimLocation &start,
+                                       const TrimLocation &end,
+                                       Span<T> src,
+                                       MutableSpan<T> dst)
 {
-  const int size = end_lookup.next_evaluated_index - start_lookup.evaluated_index + 1;
+  const int size = end.right_index - start.left_index + 1;
 
-  const T start_data = blender::attribute_math::mix2<T>(
-      start_lookup.factor,
-      input_data[start_lookup.evaluated_index],
-      input_data[start_lookup.next_evaluated_index]);
-  const T end_data = blender::attribute_math::mix2<T>(end_lookup.factor,
-                                                      input_data[end_lookup.evaluated_index],
-                                                      input_data[end_lookup.next_evaluated_index]);
+  const T start_data = mix2<T>(start.factor, src[start.left_index], src[start.right_index]);
+  const T end_data = mix2<T>(end.factor, src[end.left_index], src[end.right_index]);
 
-  output_data.copy_from(input_data.slice(start_lookup.evaluated_index, size));
-  output_data.first() = start_data;
-  output_data.last() = end_data;
+  dst.copy_from(src.slice(start.left_index, size));
+  dst.first() = start_data;
+  dst.last() = end_data;
 }
 
 /* Look up the control points to the left and right of factor, and get the factor between them. */
-static Spline::LookupResult lookup_control_point_position(Spline::LookupResult lookup,
-                                                          Span<int> control_point_offsets)
+static TrimLocation lookup_control_point_position(const Spline::LookupResult &lookup,
+                                                  Span<int> control_point_offsets)
 {
   const int *left_offset = std::lower_bound(
       control_point_offsets.begin(), control_point_offsets.end(), lookup.evaluated_index);
@@ -136,18 +140,24 @@ static Spline::LookupResult lookup_control_point_position(Spline::LookupResult l
       0.0f,
       1.0f);
 
-  return Spline::LookupResult{left, right, factor};
+  return {left, right, factor};
 }
 
 static void trim_poly_spline(Spline &spline,
                              const Spline::LookupResult &start_lookup,
                              const Spline::LookupResult &end_lookup)
 {
-  const int size = end_lookup.next_evaluated_index - start_lookup.evaluated_index + 1;
+  /* Poly splines have a 1 to 1 mapping between control points and evaluated points. */
+  const TrimLocation start = {
+      start_lookup.evaluated_index, start_lookup.next_evaluated_index, start_lookup.factor};
+  const TrimLocation end = {
+      end_lookup.evaluated_index, end_lookup.next_evaluated_index, end_lookup.factor};
 
-  linear_trim_data<float3>(start_lookup, end_lookup, spline.positions());
-  linear_trim_data<float>(start_lookup, end_lookup, spline.radii());
-  linear_trim_data<float>(start_lookup, end_lookup, spline.tilts());
+  const int size = end.right_index - start.left_index + 1;
+
+  linear_trim_data<float3>(start, end, spline.positions());
+  linear_trim_data<float>(start, end, spline.radii());
+  linear_trim_data<float>(start, end, spline.tilts());
 
   spline.attributes.foreach_attribute(
       [&](StringRefNull name, const AttributeMetaData &UNUSED(meta_data)) {
@@ -155,7 +165,7 @@ static void trim_poly_spline(Spline &spline,
         BLI_assert(src);
         attribute_math::convert_to_static_type(src->type(), [&](auto dummy) {
           using T = decltype(dummy);
-          linear_trim_data<T>(start_lookup, end_lookup, src->typed<T>());
+          linear_trim_data<T>(start, end, src->typed<T>());
         });
         return true;
       },
@@ -171,7 +181,13 @@ static PolySpline trim_nurbs_spline(const Spline &spline,
                                     const Spline::LookupResult &start_lookup,
                                     const Spline::LookupResult &end_lookup)
 {
-  const int size = end_lookup.next_evaluated_index - start_lookup.evaluated_index + 1;
+  /* Since this outputs a poly spline, the evaluated indices are the control point indices. */
+  const TrimLocation start = {
+      start_lookup.evaluated_index, start_lookup.next_evaluated_index, start_lookup.factor};
+  const TrimLocation end = {
+      end_lookup.evaluated_index, end_lookup.next_evaluated_index, end_lookup.factor};
+
+  const int size = end.right_index - start.left_index + 1;
 
   /* Create poly spline and copy trimmed data to it. */
   PolySpline new_spline;
@@ -193,22 +209,22 @@ static PolySpline trim_nurbs_spline(const Spline &spline,
           using T = decltype(dummy);
           GVArray_Typed<T> eval_data = spline.interpolate_to_evaluated<T>(src->typed<T>());
           linear_trim_to_output_data<T>(
-              start_lookup, end_lookup, eval_data->get_internal_span(), dst->typed<T>());
+              start, end, eval_data->get_internal_span(), dst->typed<T>());
         });
         return true;
       },
       ATTR_DOMAIN_POINT);
 
   linear_trim_to_output_data<float3>(
-      start_lookup, end_lookup, spline.evaluated_positions(), new_spline.positions());
+      start, end, spline.evaluated_positions(), new_spline.positions());
 
   GVArray_Typed<float> evaluated_radii = spline.interpolate_to_evaluated(spline.radii());
   linear_trim_to_output_data<float>(
-      start_lookup, end_lookup, evaluated_radii->get_internal_span(), new_spline.radii());
+      start, end, evaluated_radii->get_internal_span(), new_spline.radii());
 
   GVArray_Typed<float> evaluated_tilts = spline.interpolate_to_evaluated(spline.tilts());
   linear_trim_to_output_data<float>(
-      start_lookup, end_lookup, evaluated_tilts->get_internal_span(), new_spline.tilts());
+      start, end, evaluated_tilts->get_internal_span(), new_spline.tilts());
 
   return new_spline;
 }
@@ -224,65 +240,54 @@ static void trim_bezier_spline(Spline &spline,
   BezierSpline &bezier_spline = static_cast<BezierSpline &>(spline);
   Span<int> control_offsets = bezier_spline.control_point_offsets();
 
-  const Spline::LookupResult start_control_lookup = lookup_control_point_position(start_lookup,
-                                                                                  control_offsets);
-  Spline::LookupResult end_control_lookup = lookup_control_point_position(end_lookup,
-                                                                          control_offsets);
+  const TrimLocation start = lookup_control_point_position(start_lookup, control_offsets);
+  TrimLocation end = lookup_control_point_position(end_lookup, control_offsets);
 
   /* The number of control points in the resulting spline. */
-  const int size = end_control_lookup.next_evaluated_index - start_control_lookup.evaluated_index +
-                   1;
+  const int size = end.right_index - start.left_index + 1;
 
-  /* Trim the spline attributes. Done before end_control_lookup.factor recalculation as it needs
-   * the original end_control_lookup.factor value. */
-  linear_trim_data<float>(start_control_lookup, end_control_lookup, bezier_spline.radii());
-  linear_trim_data<float>(start_control_lookup, end_control_lookup, bezier_spline.tilts());
-
+  /* Trim the spline attributes. Done before end.factor recalculation as it needs
+   * the original end.factor value. */
+  linear_trim_data<float>(start, end, bezier_spline.radii());
+  linear_trim_data<float>(start, end, bezier_spline.tilts());
   spline.attributes.foreach_attribute(
       [&](StringRefNull name, const AttributeMetaData &UNUSED(meta_data)) {
         std::optional<GMutableSpan> src = spline.attributes.get_for_write(name);
         BLI_assert(src);
         attribute_math::convert_to_static_type(src->type(), [&](auto dummy) {
           using T = decltype(dummy);
-          linear_trim_data<T>(start_control_lookup, end_control_lookup, src->typed<T>());
+          linear_trim_data<T>(start, end, src->typed<T>());
         });
         return true;
       },
       ATTR_DOMAIN_POINT);
 
-  /* Recalculate end_control_lookup.factor if the size is two, because the adjustment in the
+  /* Recalculate end.factor if the size is two, because the adjustment in the
    * position of the control point of the spline to the left of the new end point will change the
    * factor between them. */
   if (size == 2) {
     if (start_lookup.factor == 1.0f) {
-      end_control_lookup.factor = 0.0f;
+      end.factor = 0.0f;
     }
     else {
-      end_control_lookup.factor = (end_lookup.evaluated_index + end_lookup.factor -
-                                   (start_lookup.evaluated_index + start_lookup.factor)) /
-                                  (control_offsets[end_control_lookup.next_evaluated_index] -
-                                   (start_lookup.evaluated_index + start_lookup.factor));
-      end_control_lookup.factor = std::clamp(end_control_lookup.factor, 0.0f, 1.0f);
+      end.factor = (end_lookup.evaluated_index + end_lookup.factor -
+                    (start_lookup.evaluated_index + start_lookup.factor)) /
+                   (control_offsets[end.right_index] -
+                    (start_lookup.evaluated_index + start_lookup.factor));
+      end.factor = std::clamp(end.factor, 0.0f, 1.0f);
     }
   }
 
   BezierSpline::InsertResult start_point = bezier_spline.calculate_segment_insertion(
-      start_control_lookup.evaluated_index,
-      start_control_lookup.next_evaluated_index,
-      start_control_lookup.factor);
+      start.left_index, start.right_index, start.factor);
 
-  /* Update the start control point parameters so that they are used in calculating the new end
-   * point. */
-  bezier_spline.positions()[start_control_lookup.evaluated_index] = start_point.position;
-  bezier_spline.handle_positions_right()[start_control_lookup.evaluated_index] =
-      start_point.right_handle;
-  bezier_spline.handle_positions_left()[start_control_lookup.next_evaluated_index] =
-      start_point.handle_next;
+  /* Update the start control point parameters so they are used calculating the new end point. */
+  bezier_spline.positions()[start.left_index] = start_point.position;
+  bezier_spline.handle_positions_right()[start.left_index] = start_point.right_handle;
+  bezier_spline.handle_positions_left()[start.right_index] = start_point.handle_next;
 
   const BezierSpline::InsertResult end_point = bezier_spline.calculate_segment_insertion(
-      end_control_lookup.evaluated_index,
-      end_control_lookup.next_evaluated_index,
-      end_control_lookup.factor);
+      end.left_index, end.right_index, end.factor);
 
   /* If size is two, then the start point right handle needs to change to reflect the end point
    * previous handle update. */
@@ -291,12 +296,10 @@ static void trim_bezier_spline(Spline &spline,
   }
 
   /* Shift control point position data to start at beginning of array. */
-  if (start_control_lookup.evaluated_index > 0) {
-    shift_slice_to_start(bezier_spline.positions(), start_control_lookup.evaluated_index, size);
-    shift_slice_to_start(
-        bezier_spline.handle_positions_left(), start_control_lookup.evaluated_index, size);
-    shift_slice_to_start(
-        bezier_spline.handle_positions_right(), start_control_lookup.evaluated_index, size);
+  if (start.left_index > 0) {
+    shift_slice_to_start(bezier_spline.positions(), start.left_index, size);
+    shift_slice_to_start(bezier_spline.handle_positions_left(), start.left_index, size);
+    shift_slice_to_start(bezier_spline.handle_positions_right(), start.left_index, size);
   }
 
   bezier_spline.positions().first() = start_point.position;
@@ -311,11 +314,9 @@ static void trim_bezier_spline(Spline &spline,
   /* If there is at least one control point between the endpoints, update the control
    * point handle to the right of the start point and to the left of the end point. */
   if (size > 2) {
-    bezier_spline.handle_positions_left()[start_control_lookup.next_evaluated_index -
-                                          start_control_lookup.evaluated_index] =
+    bezier_spline.handle_positions_left()[start.right_index - start.left_index] =
         start_point.handle_next;
-    bezier_spline.handle_positions_right()[end_control_lookup.evaluated_index -
-                                           start_control_lookup.evaluated_index] =
+    bezier_spline.handle_positions_right()[end.left_index - start.left_index] =
         end_point.handle_prev;
   }
 
