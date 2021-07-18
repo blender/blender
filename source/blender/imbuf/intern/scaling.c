@@ -1620,6 +1620,8 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
  */
 bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
+  BLI_assert(newx > 0 && newy > 0);
+
   if (ibuf == NULL) {
     return false;
   }
@@ -1666,6 +1668,8 @@ struct imbufRGBA {
  */
 bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
+  BLI_assert(newx > 0 && newy > 0);
+
   unsigned int *rect, *_newrect, *newrect;
   struct imbufRGBA *rectf, *_newrectf, *newrectf;
   int x, y;
@@ -1838,6 +1842,8 @@ static void *do_scale_thread(void *data_v)
 
 void IMB_scaleImBuf_threaded(ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
+  BLI_assert(newx > 0 && newy > 0);
+
   ScaleTreadInitData init_data = {NULL};
 
   /* prepare initialization data */
