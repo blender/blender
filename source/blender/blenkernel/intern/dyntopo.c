@@ -2342,7 +2342,8 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
   return any_collapsed;
 }
 
-static bool cleanup_valence_3_4(PBVH *pbvh,
+//need to file a CLANG bug
+ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
                                 const float center[3],
                                 const float view_normal[3],
                                 float radius,
