@@ -1524,7 +1524,7 @@ static PyObject *list_of_lists_from_arrays(const int *array,
 
 PyDoc_STRVAR(
     M_Geometry_delaunay_2d_cdt_doc,
-    ".. function:: delaunay_2d_cdt(vert_coords, edges, faces, output_type, epsilon)\n"
+    ".. function:: delaunay_2d_cdt(vert_coords, edges, faces, output_type, epsilon [,need_ids])\n"
     "\n"
     "   Computes the Constrained Delaunay Triangulation of a set of vertices,\n"
     "   with edges and faces that must appear in the triangulation.\n"
@@ -1536,6 +1536,8 @@ PyDoc_STRVAR(
     "   input element indices corresponding to the positionally same output element.\n"
     "   For edges, the orig indices start with the input edges and then continue\n"
     "   with the edges implied by each of the faces (n of them for an n-gon).\n"
+    "   If the need_ids argument is supplied, and False, then the code skips the preparation\n"
+    "   of the orig arrays, which may save some time."
     "\n"
     "   :arg vert_coords: Vertex coordinates (2d)\n"
     "   :type vert_coords: list of :class:`mathutils.Vector`\n"
@@ -1546,10 +1548,14 @@ PyDoc_STRVAR(
     "   :arg output_type: What output looks like. 0 => triangles with convex hull. "
     "1 => triangles inside constraints. "
     "2 => the input constraints, intersected. "
-    "3 => like 2 but with extra edges to make valid BMesh faces.\n"
+    "3 => like 2 but detect holes and omit them from output. "
+    "4 => like 2 but with extra edges to make valid BMesh faces. "
+    "5 => like 4 but detect holes and omit them from output.\n"
     "   :type output_type: int\\n"
     "   :arg epsilon: For nearness tests; should not be zero\n"
     "   :type epsilon: float\n"
+    "   :arg need_ids: are the orig output arrays needed? (optional, default True)\n"
+    "   :type need_args: bool\n"
     "   :return: Output tuple, (vert_coords, edges, faces, orig_verts, orig_edges, orig_faces)\n"
     "   :rtype: (list of `mathutils.Vector`, "
     "list of (int, int), "
