@@ -19,6 +19,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -30,6 +31,7 @@
 #include "BLI_math_mpq.hh"
 #include "BLI_mpq2.hh"
 #include "BLI_set.hh"
+#include "BLI_task.hh"
 #include "BLI_vector.hh"
 
 #include "BLI_delaunay_2d.h"
@@ -2535,30 +2537,33 @@ template<typename T> void detect_holes(CDT_state<T> *cdt_state)
     mid.exact[1] = (f->symedge->vert->co.exact[1] + f->symedge->next->vert->co.exact[1] +
                     f->symedge->next->next->vert->co.exact[1]) /
                    3;
-    int hits = 0;
+    std::atomic<int> hits = 0;
     /* TODO: Use CDT data structure here to greatly reduce search for intersections! */
-    for (const CDTEdge<T> *e : cdt->edges) {
-      if (!is_deleted_edge(e) && is_constrained_edge(e)) {
-        if (e->symedges[0].face->visit_index == e->symedges[1].face->visit_index) {
-          continue; /* Don't count hits on edges between faces in same region. */
-        }
-        auto isect = vec2<T>::isect_seg_seg(ray_end.exact,
-                                            mid.exact,
-                                            e->symedges[0].vert->co.exact,
-                                            e->symedges[1].vert->co.exact);
-        switch (isect.kind) {
-          case vec2<T>::isect_result::LINE_LINE_CROSS: {
-            hits++;
-            break;
+    threading::parallel_for(cdt->edges.index_range(), 256, [&](IndexRange range) {
+      for (const int i : range) {
+        const CDTEdge<T> *e = cdt->edges[i];
+        if (!is_deleted_edge(e) && is_constrained_edge(e)) {
+          if (e->symedges[0].face->visit_index == e->symedges[1].face->visit_index) {
+            continue; /* Don't count hits on edges between faces in same region. */
           }
-          case vec2<T>::isect_result::LINE_LINE_EXACT:
-          case vec2<T>::isect_result::LINE_LINE_NONE:
-          case vec2<T>::isect_result::LINE_LINE_COLINEAR:
-            break;
+          auto isect = vec2<T>::isect_seg_seg(ray_end.exact,
+                                              mid.exact,
+                                              e->symedges[0].vert->co.exact,
+                                              e->symedges[1].vert->co.exact);
+          switch (isect.kind) {
+            case vec2<T>::isect_result::LINE_LINE_CROSS: {
+              hits++;
+              break;
+            }
+            case vec2<T>::isect_result::LINE_LINE_EXACT:
+            case vec2<T>::isect_result::LINE_LINE_NONE:
+            case vec2<T>::isect_result::LINE_LINE_COLINEAR:
+              break;
+          }
         }
       }
-    }
-    f->hole = (hits % 2) == 0;
+    });
+    f->hole = (hits.load() % 2) == 0;
   }
 
   /* Finally, propagate hole status to all holes of a region. */
