@@ -1505,6 +1505,9 @@ static PyObject *list_of_lists_from_arrays(const int *array,
   PyObject *ret, *sublist;
   int i, j, sublist_len, sublist_start, val;
 
+  if (array == NULL) {
+    return PyList_New(0);
+  }
   ret = PyList_New(toplevel_len);
   for (i = 0; i < toplevel_len; i++) {
     sublist_len = len_table[i];
@@ -1561,6 +1564,7 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject *UNUSED(self), PyObject *ar
   PyObject *vert_coords, *edges, *faces, *item;
   int output_type;
   float epsilon;
+  bool need_ids = true;
   float(*in_coords)[2] = NULL;
   int(*in_edges)[2] = NULL;
   int *in_faces = NULL;
@@ -1578,8 +1582,14 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject *UNUSED(self), PyObject *ar
   PyObject *ret_value = NULL;
   int i;
 
-  if (!PyArg_ParseTuple(
-          args, "OOOif:delaunay_2d_cdt", &vert_coords, &edges, &faces, &output_type, &epsilon)) {
+  if (!PyArg_ParseTuple(args,
+                        "OOOif|p:delaunay_2d_cdt",
+                        &vert_coords,
+                        &edges,
+                        &faces,
+                        &output_type,
+                        &epsilon,
+                        &need_ids)) {
     return NULL;
   }
 
@@ -1609,6 +1619,7 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject *UNUSED(self), PyObject *ar
   in.faces_start_table = in_faces_start_table;
   in.faces_len_table = in_faces_len_table;
   in.epsilon = epsilon;
+  in.need_ids = need_ids;
 
   res = BLI_delaunay_2d_cdt_calc(&in, output_type);
 

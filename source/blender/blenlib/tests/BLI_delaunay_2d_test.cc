@@ -1763,7 +1763,8 @@ TEST(delaunay_d, CintTwoFace)
 
 #if DO_TEXT_TESTS
 template<typename T>
-void text_test(int num_arc_points, int num_lets_per_line, int num_lines, CDT_output_type otype)
+void text_test(
+    int num_arc_points, int num_lets_per_line, int num_lines, CDT_output_type otype, bool need_ids)
 {
   constexpr bool print_timing = true;
   /*
@@ -1902,11 +1903,17 @@ void text_test(int num_arc_points, int num_lets_per_line, int num_lines, CDT_out
     }
   }
   in.epsilon = b_before_arcs_in.epsilon;
+  in.need_ids = need_ids;
   double tstart = PIL_check_seconds_timer();
   CDT_result<T> out = delaunay_2d_calc(in, otype);
   double tend = PIL_check_seconds_timer();
   if (print_timing) {
     std::cout << "time = " << tend - tstart << "\n";
+  }
+  if (!need_ids) {
+    EXPECT_EQ(out.vert_orig.size(), 0);
+    EXPECT_EQ(out.edge_orig.size(), 0);
+    EXPECT_EQ(out.face_orig.size(), 0);
   }
   if (DO_DRAW) {
     std::string label = "Text arcpts=" + std::to_string(num_arc_points);
@@ -1922,33 +1929,43 @@ void text_test(int num_arc_points, int num_lets_per_line, int num_lines, CDT_out
 
 TEST(delaunay_d, TextB10)
 {
-  text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES);
+  text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES, true);
 }
 
 TEST(delaunay_d, TextB200)
 {
-  text_test<double>(200, 1, 1, CDT_INSIDE_WITH_HOLES);
+  text_test<double>(200, 1, 1, CDT_INSIDE_WITH_HOLES, true);
 }
 
 TEST(delaunay_d, TextB10_10_10)
 {
-  text_test<double>(10, 10, 10, CDT_INSIDE_WITH_HOLES);
+  text_test<double>(10, 10, 10, CDT_INSIDE_WITH_HOLES, true);
+}
+
+TEST(delaunay_d, TextB10_10_10_noids)
+{
+  text_test<double>(10, 10, 10, CDT_INSIDE_WITH_HOLES, false);
 }
 
 #  ifdef WITH_GMP
 TEST(delaunay_m, TextB10)
 {
-  text_test<mpq_class>(10, 1, 1, CDT_INSIDE_WITH_HOLES);
+  text_test<mpq_class>(10, 1, 1, CDT_INSIDE_WITH_HOLES, true);
 }
 
 TEST(delaunay_m, TextB200)
 {
-  text_test<mpq_class>(200, 1, 1, CDT_INSIDE_WITH_HOLES);
+  text_test<mpq_class>(200, 1, 1, CDT_INSIDE_WITH_HOLES, true);
 }
 
 TEST(delaunay_m, TextB10_10_10)
 {
-  text_test<mpq_class>(10, 10, 10, CDT_INSIDE_WITH_HOLES);
+  text_test<mpq_class>(10, 10, 10, CDT_INSIDE_WITH_HOLES, true);
+}
+
+TEST(delaunay_m, TextB10_10_10_noids)
+{
+  text_test<mpq_class>(10, 10, 10, CDT_INSIDE_WITH_HOLES, false);
 }
 #  endif
 

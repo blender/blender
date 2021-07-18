@@ -198,7 +198,7 @@ template<typename T> struct CDTVert {
   FatCo<T> co;
   /** Some edge attached to it. */
   SymEdge<T> *symedge{nullptr};
-  /** Set of corresponding vertex input ids. */
+  /** Set of corresponding vertex input ids. Not used if don't need_ids. */
   blender::Set<int> input_ids;
   /** Index into array that #CDTArrangement keeps. */
   int index{-1};
@@ -212,7 +212,9 @@ template<typename T> struct CDTVert {
 };
 
 template<typename Arith_t> struct CDTEdge {
-  /** Set of input edge ids that this is part of. */
+  /** Set of input edge ids that this is part of.
+   * If don't need_ids, then should contain 0 if it is a constrained edge,
+   * else empty. */
   blender::Set<int> input_ids;
   /** The directed edges for this edge. */
   SymEdge<Arith_t> symedges[2]{SymEdge<Arith_t>(), SymEdge<Arith_t>()};
@@ -223,7 +225,9 @@ template<typename Arith_t> struct CDTEdge {
 template<typename Arith_t> struct CDTFace {
   /** A symedge in face; only used during output, so only valid then. */
   SymEdge<Arith_t> *symedge{nullptr};
-  /** Set of input face ids that this is part of. */
+  /** Set of input face ids that this is part of.
+   * If don't need_ids, then should contain 0 if it is part of a constrained face,
+   * else empty. */
   blender::Set<int> input_ids;
   /** Used by algorithms operating on CDT structures. */
   int visit_index{0};
@@ -337,8 +341,11 @@ template<typename T> class CDT_state {
   int face_edge_offset;
   /** How close before coords considered equal. */
   T epsilon;
+  /** Do we need to track ids? */
+  bool need_ids;
 
-  explicit CDT_state(int num_input_verts, int num_input_edges, int num_input_faces, T epsilon);
+  explicit CDT_state(
+      int num_input_verts, int num_input_edges, int num_input_faces, T epsilon, bool need_ids);
 };
 
 template<typename T> CDTArrangement<T>::~CDTArrangement()
@@ -874,12 +881,14 @@ template<typename T> void CDTArrangement<T>::reserve(int num_verts, int num_edge
 }
 
 template<typename T>
-CDT_state<T>::CDT_state(int num_input_verts, int num_input_edges, int num_input_faces, T epsilon)
+CDT_state<T>::CDT_state(
+    int num_input_verts, int num_input_edges, int num_input_faces, T epsilon, bool need_ids)
 {
   this->input_vert_tot = num_input_verts;
   this->cdt.reserve(num_input_verts, num_input_edges, num_input_faces);
   this->cdt.outer_face = this->cdt.add_face();
   this->epsilon = epsilon;
+  this->need_ids = need_ids;
   this->visit_count = 0;
 }
 
@@ -2123,7 +2132,8 @@ template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CD
     }
     CDTVert<T> *v1 = cdt_state->cdt.get_vert_resolve_merge(iv1);
     CDTVert<T> *v2 = cdt_state->cdt.get_vert_resolve_merge(iv2);
-    add_edge_constraint(cdt_state, v1, v2, i, nullptr);
+    int id = cdt_state->need_ids ? i : 0;
+    add_edge_constraint(cdt_state, v1, v2, id, nullptr);
   }
   cdt_state->face_edge_offset = ne;
 }
@@ -2236,7 +2246,8 @@ template<typename T> void add_face_constraints(CDT_state<T> *cdt_state, const CD
       CDTVert<T> *v1 = cdt->get_vert_resolve_merge(iv1);
       CDTVert<T> *v2 = cdt->get_vert_resolve_merge(iv2);
       LinkNode *edge_list;
-      add_edge_constraint(cdt_state, v1, v2, face_edge_id, &edge_list);
+      int id = cdt_state->need_ids ? face_edge_id : 0;
+      add_edge_constraint(cdt_state, v1, v2, id, &edge_list);
       /* Set a new face_symedge0 each time since earlier ones may not
        * survive later symedge splits. Really, just want the one when
        * i == flen -1, but this code guards against that one somehow
@@ -2254,7 +2265,8 @@ template<typename T> void add_face_constraints(CDT_state<T> *cdt_state, const CD
     }
     int fedge_end = fedge_start + flen - 1;
     if (face_symedge0 != nullptr) {
-      add_face_ids(cdt_state, face_symedge0, f, fedge_start, fedge_end);
+      int id = cdt_state->need_ids ? f : 0;
+      add_face_ids(cdt_state, face_symedge0, id, fedge_start, fedge_end);
     }
     fstart += flen;
   }
@@ -2664,25 +2676,31 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
     for (int i = 0; i < verts_size; ++i) {
       CDTVert<T> *v = cdt->verts[i];
       if (v->merge_to_index != -1) {
-        if (i < cdt_state->input_vert_tot) {
-          add_to_input_ids(cdt->verts[v->merge_to_index]->input_ids, i);
+        if (cdt_state->need_ids) {
+          if (i < cdt_state->input_vert_tot) {
+            add_to_input_ids(cdt->verts[v->merge_to_index]->input_ids, i);
+          }
         }
         vert_to_output_map[i] = vert_to_output_map[v->merge_to_index];
       }
     }
   }
   result.vert = Array<vec2<T>>(nv);
-  result.vert_orig = Array<Vector<int>>(nv);
+  if (cdt_state->need_ids) {
+    result.vert_orig = Array<Vector<int>>(nv);
+  }
   int i_out = 0;
   for (int i = 0; i < verts_size; ++i) {
     CDTVert<T> *v = cdt->verts[i];
     if (v->merge_to_index == -1) {
       result.vert[i_out] = v->co.exact;
-      if (i < cdt_state->input_vert_tot) {
-        result.vert_orig[i_out].append(i);
-      }
-      for (int vert : v->input_ids) {
-        result.vert_orig[i_out].append(vert);
+      if (cdt_state->need_ids) {
+        if (i < cdt_state->input_vert_tot) {
+          result.vert_orig[i_out].append(i);
+        }
+        for (int vert : v->input_ids) {
+          result.vert_orig[i_out].append(vert);
+        }
       }
       ++i_out;
     }
@@ -2693,15 +2711,19 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
     return !is_deleted_edge(e);
   });
   result.edge = Array<std::pair<int, int>>(ne);
-  result.edge_orig = Array<Vector<int>>(ne);
+  if (cdt_state->need_ids) {
+    result.edge_orig = Array<Vector<int>>(ne);
+  }
   int e_out = 0;
   for (const CDTEdge<T> *e : cdt->edges) {
     if (!is_deleted_edge(e)) {
       int vo1 = vert_to_output_map[e->symedges[0].vert->index];
       int vo2 = vert_to_output_map[e->symedges[1].vert->index];
       result.edge[e_out] = std::pair<int, int>(vo1, vo2);
-      for (int edge : e->input_ids) {
-        result.edge_orig[e_out].append(edge);
+      if (cdt_state->need_ids) {
+        for (int edge : e->input_ids) {
+          result.edge_orig[e_out].append(edge);
+        }
       }
       ++e_out;
     }
@@ -2712,7 +2734,9 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
     return !f->deleted && f != cdt->outer_face;
   });
   result.face = Array<Vector<int>>(nf);
-  result.face_orig = Array<Vector<int>>(nf);
+  if (cdt_state->need_ids) {
+    result.face_orig = Array<Vector<int>>(nf);
+  }
   int f_out = 0;
   for (const CDTFace<T> *f : cdt->faces) {
     if (!f->deleted && f != cdt->outer_face) {
@@ -2723,8 +2747,10 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
         result.face[f_out].append(vert_to_output_map[se->vert->index]);
         se = se->next;
       } while (se != se_start);
-      for (int face : f->input_ids) {
-        result.face_orig[f_out].append(face);
+      if (cdt_state->need_ids) {
+        for (int face : f->input_ids) {
+          result.face_orig[f_out].append(face);
+        }
       }
       ++f_out;
     }
@@ -2749,7 +2775,7 @@ CDT_result<T> delaunay_calc(const CDT_input<T> &input, CDT_output_type output_ty
   int nv = input.vert.size();
   int ne = input.edge.size();
   int nf = input.face.size();
-  CDT_state<T> cdt_state(nv, ne, nf, input.epsilon);
+  CDT_state<T> cdt_state(nv, ne, nf, input.epsilon, input.need_ids);
   add_input_verts(&cdt_state, input);
   initial_triangulation(&cdt_state.cdt);
   add_edge_constraints(&cdt_state, input);
@@ -2805,6 +2831,7 @@ extern "C" ::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input,
     }
   }
   in.epsilon = static_cast<double>(input->epsilon);
+  in.need_ids = input->need_ids;
 
   blender::meshintersect::CDT_result<double> res = blender::meshintersect::delaunay_2d_calc(
       in, output_type);
@@ -2817,74 +2844,99 @@ extern "C" ::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input,
   int tot_e_orig = 0;
   int tot_f_orig = 0;
   int tot_f_lens = 0;
-  for (int v = 0; v < nv; ++v) {
-    tot_v_orig += res.vert_orig[v].size();
-  }
-  for (int e = 0; e < ne; ++e) {
-    tot_e_orig += res.edge_orig[e].size();
-  }
-  for (int f = 0; f < nf; ++f) {
-    tot_f_orig += res.face_orig[f].size();
-    tot_f_lens += res.face[f].size();
+  if (input->need_ids) {
+    for (int v = 0; v < nv; ++v) {
+      tot_v_orig += res.vert_orig[v].size();
+    }
+    for (int e = 0; e < ne; ++e) {
+      tot_e_orig += res.edge_orig[e].size();
+    }
+    for (int f = 0; f < nf; ++f) {
+      tot_f_orig += res.face_orig[f].size();
+      tot_f_lens += res.face[f].size();
+    }
   }
 
   output->vert_coords = static_cast<decltype(output->vert_coords)>(
       MEM_malloc_arrayN(nv, sizeof(output->vert_coords[0]), __func__));
-  output->verts_orig = static_cast<int *>(MEM_malloc_arrayN(tot_v_orig, sizeof(int), __func__));
-  output->verts_orig_start_table = static_cast<int *>(
-      MEM_malloc_arrayN(nv, sizeof(int), __func__));
-  output->verts_orig_len_table = static_cast<int *>(MEM_malloc_arrayN(nv, sizeof(int), __func__));
   output->edges = static_cast<decltype(output->edges)>(
       MEM_malloc_arrayN(ne, sizeof(output->edges[0]), __func__));
-  output->edges_orig = static_cast<int *>(MEM_malloc_arrayN(tot_e_orig, sizeof(int), __func__));
-  output->edges_orig_start_table = static_cast<int *>(
-      MEM_malloc_arrayN(ne, sizeof(int), __func__));
-  output->edges_orig_len_table = static_cast<int *>(MEM_malloc_arrayN(ne, sizeof(int), __func__));
   output->faces = static_cast<int *>(MEM_malloc_arrayN(tot_f_lens, sizeof(int), __func__));
   output->faces_start_table = static_cast<int *>(MEM_malloc_arrayN(nf, sizeof(int), __func__));
   output->faces_len_table = static_cast<int *>(MEM_malloc_arrayN(nf, sizeof(int), __func__));
-  output->faces_orig = static_cast<int *>(MEM_malloc_arrayN(tot_f_orig, sizeof(int), __func__));
-  output->faces_orig_start_table = static_cast<int *>(
-      MEM_malloc_arrayN(nf, sizeof(int), __func__));
-  output->faces_orig_len_table = static_cast<int *>(MEM_malloc_arrayN(nf, sizeof(int), __func__));
+  if (input->need_ids) {
+    output->verts_orig = static_cast<int *>(MEM_malloc_arrayN(tot_v_orig, sizeof(int), __func__));
+    output->verts_orig_start_table = static_cast<int *>(
+        MEM_malloc_arrayN(nv, sizeof(int), __func__));
+    output->verts_orig_len_table = static_cast<int *>(
+        MEM_malloc_arrayN(nv, sizeof(int), __func__));
+    output->edges_orig = static_cast<int *>(MEM_malloc_arrayN(tot_e_orig, sizeof(int), __func__));
+    output->edges_orig_start_table = static_cast<int *>(
+        MEM_malloc_arrayN(ne, sizeof(int), __func__));
+    output->edges_orig_len_table = static_cast<int *>(
+        MEM_malloc_arrayN(ne, sizeof(int), __func__));
+    output->faces_orig = static_cast<int *>(MEM_malloc_arrayN(tot_f_orig, sizeof(int), __func__));
+    output->faces_orig_start_table = static_cast<int *>(
+        MEM_malloc_arrayN(nf, sizeof(int), __func__));
+    output->faces_orig_len_table = static_cast<int *>(
+        MEM_malloc_arrayN(nf, sizeof(int), __func__));
+  }
+  else {
+    output->verts_orig = NULL;
+    output->verts_orig_start_table = NULL;
+    output->verts_orig_len_table = NULL;
+    output->edges_orig = NULL;
+    output->edges_orig_start_table = NULL;
+    output->edges_orig_len_table = NULL;
+    output->faces_orig = NULL;
+    output->faces_orig_start_table = NULL;
+    output->faces_orig_len_table = NULL;
+  }
 
   int v_orig_index = 0;
   for (int v = 0; v < nv; ++v) {
     output->vert_coords[v][0] = static_cast<float>(res.vert[v][0]);
     output->vert_coords[v][1] = static_cast<float>(res.vert[v][1]);
-    int this_start = v_orig_index;
-    output->verts_orig_start_table[v] = this_start;
-    for (int j : res.vert_orig[v].index_range()) {
-      output->verts_orig[v_orig_index++] = res.vert_orig[v][j];
+    if (input->need_ids) {
+      int this_start = v_orig_index;
+      output->verts_orig_start_table[v] = this_start;
+      for (int j : res.vert_orig[v].index_range()) {
+        output->verts_orig[v_orig_index++] = res.vert_orig[v][j];
+      }
+      output->verts_orig_len_table[v] = v_orig_index - this_start;
     }
-    output->verts_orig_len_table[v] = v_orig_index - this_start;
   }
   int e_orig_index = 0;
   for (int e = 0; e < ne; ++e) {
     output->edges[e][0] = res.edge[e].first;
     output->edges[e][1] = res.edge[e].second;
-    int this_start = e_orig_index;
-    output->edges_orig_start_table[e] = this_start;
-    for (int j : res.edge_orig[e].index_range()) {
-      output->edges_orig[e_orig_index++] = res.edge_orig[e][j];
+    if (input->need_ids) {
+      int this_start = e_orig_index;
+      output->edges_orig_start_table[e] = this_start;
+      for (int j : res.edge_orig[e].index_range()) {
+        output->edges_orig[e_orig_index++] = res.edge_orig[e][j];
+      }
+      output->edges_orig_len_table[e] = e_orig_index - this_start;
     }
-    output->edges_orig_len_table[e] = e_orig_index - this_start;
   }
   int f_orig_index = 0;
   int f_index = 0;
   for (int f = 0; f < nf; ++f) {
+
     output->faces_start_table[f] = f_index;
     int flen = res.face[f].size();
     output->faces_len_table[f] = flen;
     for (int j = 0; j < flen; ++j) {
       output->faces[f_index++] = res.face[f][j];
     }
-    int this_start = f_orig_index;
-    output->faces_orig_start_table[f] = this_start;
-    for (int k : res.face_orig[f].index_range()) {
-      output->faces_orig[f_orig_index++] = res.face_orig[f][k];
+    if (input->need_ids) {
+      int this_start = f_orig_index;
+      output->faces_orig_start_table[f] = this_start;
+      for (int k : res.face_orig[f].index_range()) {
+        output->faces_orig[f_orig_index++] = res.face_orig[f][k];
+      }
+      output->faces_orig_len_table[f] = f_orig_index - this_start;
     }
-    output->faces_orig_len_table[f] = f_orig_index - this_start;
   }
   return output;
 }
@@ -2896,14 +2948,16 @@ extern "C" void BLI_delaunay_2d_cdt_free(::CDT_result *result)
   MEM_freeN(result->faces);
   MEM_freeN(result->faces_start_table);
   MEM_freeN(result->faces_len_table);
-  MEM_freeN(result->verts_orig);
-  MEM_freeN(result->verts_orig_start_table);
-  MEM_freeN(result->verts_orig_len_table);
-  MEM_freeN(result->edges_orig);
-  MEM_freeN(result->edges_orig_start_table);
-  MEM_freeN(result->edges_orig_len_table);
-  MEM_freeN(result->faces_orig);
-  MEM_freeN(result->faces_orig_start_table);
-  MEM_freeN(result->faces_orig_len_table);
+  if (result->verts_orig) {
+    MEM_freeN(result->verts_orig);
+    MEM_freeN(result->verts_orig_start_table);
+    MEM_freeN(result->verts_orig_len_table);
+    MEM_freeN(result->edges_orig);
+    MEM_freeN(result->edges_orig_start_table);
+    MEM_freeN(result->edges_orig_len_table);
+    MEM_freeN(result->faces_orig);
+    MEM_freeN(result->faces_orig_start_table);
+    MEM_freeN(result->faces_orig_len_table);
+  }
   MEM_freeN(result);
 }
