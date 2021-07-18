@@ -17,6 +17,7 @@
 #pragma once
 
 #include "BLI_ghash.h"
+#include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
 
 /** \file
@@ -128,6 +129,7 @@ typedef enum {
 } PBVHFlags;
 
 typedef struct PBVHBMeshLog PBVHBMeshLog;
+struct DMFlagMat;
 
 struct PBVH {
   PBVHType type;
@@ -163,7 +165,7 @@ struct PBVH {
   CCGKey gridkey;
   CCGElem **grids;
   void **gridfaces;
-  const DMFlagMat *grid_flag_mats;
+  const struct DMFlagMat *grid_flag_mats;
   int totgrid;
   BLI_bitmap **grid_hidden;
 
@@ -267,3 +269,39 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
 
 void pbvh_free_all_draw_buffers(PBVHNode *node);
 void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node);
+
+BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *pbvh, const BMVert *key)
+{
+  const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, pbvh->cd_vert_node_offset);
+  BLI_assert(node_index != DYNTOPO_NODE_NONE);
+  BLI_assert(node_index < pbvh->totnode);
+  return node_index;
+}
+
+BLI_INLINE int pbvh_bmesh_node_index_from_face(PBVH *pbvh, const BMFace *key)
+{
+  const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, pbvh->cd_face_node_offset);
+  BLI_assert(node_index != DYNTOPO_NODE_NONE);
+  BLI_assert(node_index < pbvh->totnode);
+  return node_index;
+}
+
+BLI_INLINE PBVHNode *pbvh_bmesh_node_from_vert(PBVH *pbvh, const BMVert *key)
+{
+  int ni = pbvh_bmesh_node_index_from_vert(pbvh, key);
+
+  return ni >= 0 ? pbvh->nodes + ni : NULL;
+  // return &pbvh->nodes[pbvh_bmesh_node_index_from_vert(pbvh, key)];
+}
+
+BLI_INLINE PBVHNode *pbvh_bmesh_node_from_face(PBVH *pbvh, const BMFace *key)
+{
+  int ni = pbvh_bmesh_node_index_from_face(pbvh, key);
+
+  return ni >= 0 ? pbvh->nodes + ni : NULL;
+  // return &pbvh->nodes[pbvh_bmesh_node_index_from_face(pbvh, key)];
+}
+bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);
+void pbvh_bmesh_check_nodes(PBVH *pbvh);
+void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
+void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);

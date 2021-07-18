@@ -2238,8 +2238,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     pbvh = build_pbvh_for_dynamic_topology(ob);
 
     ob->sculpt->pbvh = pbvh;
-    // reorder mesh elements to improve memory cache performance
-    SCULPT_reorder_bmesh(ob->sculpt);
   }
   else {
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
@@ -2279,6 +2277,12 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
   if (ss == NULL || ss->pbvh == NULL || ss->mode_type != OB_MODE_SCULPT) {
     return false;
   }
+
+#if 0
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return !(v3d && (v3d->shading.type > OB_SOLID));
+  }
+#endif
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     /* Regular mesh only draws from PBVH without modifiers and shape keys. */

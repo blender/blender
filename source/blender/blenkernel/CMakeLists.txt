@@ -121,6 +121,7 @@ set(SRC
   intern/displist.cc
   intern/displist_tangent.c
   intern/dynamicpaint.c
+  intern/dyntopo.c
   intern/editlattice.c
   intern/editmesh.c
   intern/editmesh_bvh.c
