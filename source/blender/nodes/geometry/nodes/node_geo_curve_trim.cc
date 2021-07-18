@@ -84,7 +84,7 @@ template<typename T>
 static void shift_slice_to_start(MutableSpan<T> data, const int start_index, const int size)
 {
   BLI_assert(start_index + size - 1 <= data.size());
-  memcpy(data.data(), &data[start_index], sizeof(T) * size);
+  memmove(data.data(), &data[start_index], sizeof(T) * size);
 }
 
 /* Shift slice to start of span and modifies start and end data. */
