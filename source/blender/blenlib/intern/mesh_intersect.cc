@@ -1875,6 +1875,16 @@ static void do_cdt(CDT_data &cd)
   }
 }
 
+/* Find an original edge index that goes with the edge that the CDT output edge
+ * that goes between verts i0 and i1 (in the CDT output vert indexing scheme).
+ * There may be more than one: if so, prefer one that was originally a face edge.
+ * The input to CDT for a triangle with some intersecting segments from other triangles
+ * will have both edges and a face constraint for the main triangle (this is redundant
+ * but allows us to discover which face edge goes with which output edges).
+ * If there is any face edge, return one of those as the original.
+ * If there is no face edge but there is another edge in the input problem, then that
+ * edge must have come from intersection with another triangle, so set *r_is_intersect
+ * to true in that case. */
 static int get_cdt_edge_orig(
     int i0, int i1, const CDT_data &cd, const IMesh &in_tm, bool *r_is_intersect)
 {
@@ -1900,34 +1910,49 @@ static int get_cdt_edge_orig(
   }
 
   /* Pick an arbitrary orig, but not one equal to NO_INDEX, if we can help it. */
-  /* TODO: if edge has origs from more than on part of the nary input,
+  /* TODO: if edge has origs from more than one part of the nary input,
    * then want to set *r_is_intersect to true. */
+  int face_eorig = NO_INDEX;
+  bool have_non_face_eorig = false;
   for (int orig_index : cd.cdt_out.edge_orig[e]) {
     /* orig_index encodes the triangle and pos within the triangle of the input edge. */
     if (orig_index >= foff) {
-      int in_face_index = (orig_index / foff) - 1;
-      int pos = orig_index % foff;
-      /* We need to retrieve the edge orig field from the Face used to populate the
-       * in_face_index'th face of the CDT, at the pos'th position of the face. */
-      int in_tm_face_index = cd.input_face[in_face_index];
-      BLI_assert(in_tm_face_index < in_tm.face_size());
-      const Face *facep = in_tm.face(in_tm_face_index);
-      BLI_assert(pos < facep->size());
-      bool is_rev = cd.is_reversed[in_face_index];
-      int eorig = is_rev ? facep->edge_orig[2 - pos] : facep->edge_orig[pos];
-      if (eorig != NO_INDEX) {
-        return eorig;
+      if (face_eorig == NO_INDEX) {
+        int in_face_index = (orig_index / foff) - 1;
+        int pos = orig_index % foff;
+        /* We need to retrieve the edge orig field from the Face used to populate the
+         * in_face_index'th face of the CDT, at the pos'th position of the face. */
+        int in_tm_face_index = cd.input_face[in_face_index];
+        BLI_assert(in_tm_face_index < in_tm.face_size());
+        const Face *facep = in_tm.face(in_tm_face_index);
+        BLI_assert(pos < facep->size());
+        bool is_rev = cd.is_reversed[in_face_index];
+        int eorig = is_rev ? facep->edge_orig[2 - pos] : facep->edge_orig[pos];
+        if (eorig != NO_INDEX) {
+          face_eorig = eorig;
+        }
       }
     }
     else {
-      /* This edge came from an edge input to the CDT problem,
-       * so it is an intersect edge. */
-      *r_is_intersect = true;
-      /* TODO: maybe there is an orig index:
-       * This happens if an input edge was formed by an input face having
-       * an edge that is co-planar with the cluster, while the face as a whole is not. */
-      return NO_INDEX;
+      if (!have_non_face_eorig) {
+        have_non_face_eorig = true;
+      }
+      if (face_eorig != NO_INDEX && have_non_face_eorig) {
+        /* Only need at most one orig for each type. */
+        break;
+      }
     }
+  }
+  if (face_eorig != NO_INDEX) {
+    return face_eorig;
+  }
+  else if (have_non_face_eorig) {
+    /* This must have been an input to the CDT problem that was an intersection edge. */
+    /* TODO: maybe there is an orig index:
+     * This happens if an input edge was formed by an input face having
+     * an edge that is co-planar with the cluster, while the face as a whole is not. */
+    *r_is_intersect = true;
+    return NO_INDEX;
   }
   return NO_INDEX;
 }
