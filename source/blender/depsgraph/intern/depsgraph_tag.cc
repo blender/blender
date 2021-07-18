@@ -168,7 +168,6 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       break;
     case ID_RECALC_GEOMETRY:
       depsgraph_geometry_tag_to_component(id, component_type);
-      *operation_code = OperationCode::GEOMETRY_EVAL_INIT;
       break;
     case ID_RECALC_GEOMETRY_DEFORM:
       depsgraph_geometry_tag_to_component(id, component_type);
