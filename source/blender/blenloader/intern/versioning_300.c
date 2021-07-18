@@ -99,9 +99,15 @@ static void move_vertex_group_names_to_object_data(Main *bmain)
     if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
       ListBase *new_defbase = BKE_object_defgroup_list_mutable(object);
 
-      /* Clear the list in case the it was already assigned from another object. */
-      BLI_freelistN(new_defbase);
-      *new_defbase = object->defbase;
+      /* Choose the longest vertex group name list among all linked duplicates. */
+      if (BLI_listbase_count(&object->defbase) < BLI_listbase_count(new_defbase)) {
+        BLI_freelistN(&object->defbase);
+      }
+      else {
+        /* Clear the list in case the it was already assigned from another object. */
+        BLI_freelistN(new_defbase);
+        *new_defbase = object->defbase;
+      }
     }
   }
 }
