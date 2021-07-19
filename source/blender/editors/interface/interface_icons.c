@@ -66,6 +66,7 @@
 
 #include "ED_datafiles.h"
 #include "ED_keyframes_draw.h"
+#include "ED_keyframes_keylist.h"
 #include "ED_render.h"
 
 #include "UI_interface.h"

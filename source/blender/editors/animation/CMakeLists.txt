@@ -47,6 +47,7 @@ set(SRC
   keyframes_draw.c
   keyframes_edit.c
   keyframes_general.c
+  keyframes_keylist.c
   keyframing.c
   keyingsets.c
   time_scrub_ui.c

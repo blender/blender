@@ -71,7 +71,7 @@
 #include "ED_armature.h"
 #include "ED_clip.h"
 #include "ED_image.h"
-#include "ED_keyframes_draw.h"
+#include "ED_keyframes_keylist.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
