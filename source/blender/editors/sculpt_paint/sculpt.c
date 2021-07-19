@@ -9492,7 +9492,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
   RNA_def_float(ot->srna,
                 "merge_tolerance",
-                0.001f,
+                0.0002f,
                 0.0f,
                 FLT_MAX,
                 "Merge Distance",

@@ -138,7 +138,7 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
   } \
   ((void)0)
 
-BLI_INLINE void surface_smooth_v_safe(BMVert *v)
+BLI_INLINE void surface_smooth_v_safe(BMVert *v, int cd_dyn_vert)
 {
   float co[3];
   float tan[3];
@@ -153,8 +153,19 @@ BLI_INLINE void surface_smooth_v_safe(BMVert *v)
     return;
   }
 
+  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
+  const bool bound1 = mv1->flag & DYNVERT_BOUNDARY;
+
   do {
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
+
+    MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(cd_dyn_vert, v2);
+    const bool bound2 = mv2->flag & DYNVERT_BOUNDARY;
+
+    if (bound1 != bound2) {
+      e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+      continue;
+    }
 
     sub_v3_v3v3(tan, v2->co, v->co);
     float d = dot_v3v3(tan, v->no);
@@ -162,6 +173,7 @@ BLI_INLINE void surface_smooth_v_safe(BMVert *v)
     madd_v3_v3fl(tan, v->no, -d * 0.99f);
     add_v3_v3(co, tan);
     tot += 1.0f;
+
     e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
   } while (e != v->e);
 
@@ -1309,6 +1321,7 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
   EdgeQueueContext *eq_ctx = tdata->eq_ctx;
 
   BMFace *f;
+  const int cd_dyn_vert = tdata->pbvh->cd_dyn_vert;
 
   TGSET_ITER (f, node->bm_faces) {
     BMLoop *l = f->l_first;
@@ -1336,7 +1349,7 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
       do {
         // try to improve convergence by applying a small amount of smoothing to topology,
         // but tangentially to surface.
-        surface_smooth_v_safe(l_iter->v);
+        surface_smooth_v_safe(l_iter->v, cd_dyn_vert);
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
         float w = maskcb_get(eq_ctx, l_iter->e);
@@ -1610,12 +1623,23 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
   BLI_parallel_range_settings_defaults(&settings);
   BLI_task_parallel_range(0, count, tdata, short_edge_queue_task_cb, &settings);
 
+  const int cd_dyn_vert = pbvh->cd_dyn_vert;
+
   for (int i = 0; i < count; i++) {
     EdgeQueueThreadData *td = tdata + i;
 
     BMEdge **edges = td->edges;
     for (int j = 0; j < td->totedge; j++) {
       BMEdge *e = edges[j];
+      MDynTopoVert *mv1, *mv2;
+
+      mv1 = BKE_PBVH_DYNVERT(cd_dyn_vert, e->v1);
+      mv2 = BKE_PBVH_DYNVERT(cd_dyn_vert, e->v2);
+
+      if ((mv1->flag & DYNVERT_BOUNDARY) != (mv2->flag & DYNVERT_BOUNDARY)) {
+        continue;
+      }
+
       float w = calc_weighted_edge_collapse(eq_ctx, e->v1, e->v2);
       float w2 = maskcb_get(eq_ctx, e);
 
@@ -1652,6 +1676,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v2);
 
   bool boundary = (mv1->flag & DYNVERT_BOUNDARY) && (mv2->flag & DYNVERT_BOUNDARY);
+  bool check_boundary = (mv1->flag & DYNVERT_BOUNDARY) | (mv2->flag & DYNVERT_BOUNDARY);
 
   /* Get all faces adjacent to the edge */
   pbvh_bmesh_edge_loops(edge_loops, e);
@@ -1681,11 +1706,6 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   float vws[2] = {0.5f, 0.5f};
   CustomData_bmesh_interp(
       &pbvh->bm->vdata, (const void **)vsrcs, (float *)vws, NULL, 2, v_new->head.data);
-
-  if (boundary) {
-    MDynTopoVert *mv_new = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_new);
-    mv_new->flag |= DYNVERT_BOUNDARY;
-  }
 
   /* For each face, add two new triangles and delete the original */
   for (int i = 0; i < (int)edge_loops->count; i++) {
@@ -1825,6 +1845,16 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   }
 
   BM_edge_kill(pbvh->bm, e);
+
+  MDynTopoVert *mv_new = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_new);
+  bool boundary2 = boundary || (check_boundary && BM_vert_is_boundary(v_new));
+
+  if (boundary2) {
+    mv_new->flag |= DYNVERT_BOUNDARY;
+  }
+  else {
+    mv_new->flag &= ~DYNVERT_BOUNDARY;
+  }
 }
 
 static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
@@ -2215,9 +2245,13 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     }
     BM_LOOPS_OF_VERT_ITER_END;
 
+    MDynTopoVert *mv_conn = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
+
     if (BM_vert_is_boundary(v_conn)) {
-      MDynTopoVert *mv_conn = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
       mv_conn->flag |= DYNVERT_BOUNDARY;
+    }
+    else {
+      mv_conn->flag &= ~DYNVERT_BOUNDARY;
     }
   }
 
@@ -2342,13 +2376,13 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
   return any_collapsed;
 }
 
-//need to file a CLANG bug
+// need to file a CLANG bug
 ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
-                                const float center[3],
-                                const float view_normal[3],
-                                float radius,
-                                const bool use_frontface,
-                                const bool use_projected)
+                                            const float center[3],
+                                            const float view_normal[3],
+                                            float radius,
+                                            const bool use_frontface,
+                                            const bool use_projected)
 {
   bool modified = false;
 
