@@ -213,7 +213,8 @@ int SIM_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
   return 1;
 }
 
-void SIM_mass_spring_set_implicit_vertex_mass(Implicit_Data *data, int index, float mass){
+void SIM_mass_spring_set_implicit_vertex_mass(Implicit_Data *data, int index, float mass)
+{
   SIM_mass_spring_set_vertex_mass(data, index, mass);
 }
 

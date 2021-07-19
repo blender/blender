@@ -19,9 +19,9 @@
  */
 
 #include "COM_SMAAOperation.h"
+#include "BKE_node.h"
 #include "BLI_math.h"
 #include "COM_SMAAAreaTexture.h"
-#include "BKE_node.h"
 
 extern "C" {
 #include "IMB_colormanagement.h"

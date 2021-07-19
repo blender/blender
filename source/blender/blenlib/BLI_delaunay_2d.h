@@ -110,7 +110,7 @@ extern "C" {
  * If zero is supplied for epsilon, an internal value of 1e-8 used
  * instead, since this code will not work correctly if it is not allowed
  * to merge "too near" vertices.
- * 
+ *
  * Normally the output will contain mappings from outputs to inputs.
  * If this is not needed, set need_ids to false and the execution may be much
  * faster in some circumstances.
