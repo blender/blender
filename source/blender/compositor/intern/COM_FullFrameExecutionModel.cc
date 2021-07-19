@@ -104,6 +104,7 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
   op->render(op_buf, areas, input_bufs);
   active_buffers_.set_rendered_buffer(op, std::unique_ptr<MemoryBuffer>(op_buf));
 
+  DebugInfo::operation_rendered(op, op_buf);
   operation_finished(op);
 }
 
