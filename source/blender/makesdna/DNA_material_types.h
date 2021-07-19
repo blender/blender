@@ -160,6 +160,8 @@ typedef struct MaterialLineArt {
 
 typedef enum eMaterialLineArtFlags {
   LRT_MATERIAL_MASK_ENABLED = (1 << 0),
+
+  /* Deprecated, kept for versioning code. */
   LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS = (1 << 1),
 } eMaterialLineArtFlags;
 

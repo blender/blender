@@ -702,14 +702,6 @@ static void rna_def_material_lineart(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Mask", "");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
 
-  prop = RNA_def_property(srna, "use_mat_occlusion", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS);
-  RNA_def_property_ui_text(prop,
-                           "Custom Occlusion Effectiveness",
-                           "Use custom occlusion effectiveness for this material");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
-
   prop = RNA_def_property(srna, "mat_occlusion", PROP_INT, PROP_NONE);
   RNA_def_property_int_default(prop, 1);
   RNA_def_property_ui_range(prop, 0.0f, 5.0f, 1.0f, 1);

@@ -31,6 +31,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_genfile.h"
 #include "DNA_listBase.h"
+#include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_text_types.h"
 #include "DNA_workspace_types.h"
@@ -503,6 +504,11 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         BLI_strncpy(scene->master_collection->id.name + 2,
                     BKE_SCENE_COLLECTION_NAME,
                     sizeof(scene->master_collection->id.name) - 2);
+      }
+    }
+    LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
+      if (!(mat->lineart.flags & LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS)) {
+        mat->lineart.mat_occlusion = 1;
       }
     }
   }
