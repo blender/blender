@@ -295,24 +295,6 @@ typedef struct Material {
 #define MAP_COL (1 << 0)
 #define MAP_ALPHA (1 << 7)
 
-/* pmapto */
-/* init */
-#define MAP_PA_INIT ((1 << 5) - 1)
-#define MAP_PA_TIME (1 << 0)
-#define MAP_PA_LIFE (1 << 1)
-#define MAP_PA_DENS (1 << 2)
-#define MAP_PA_SIZE (1 << 3)
-#define MAP_PA_LENGTH (1 << 4)
-/* reset */
-#define MAP_PA_IVEL (1 << 5)
-/* physics */
-#define MAP_PA_PVEL (1 << 6)
-/* path cache */
-#define MAP_PA_CLUMP (1 << 7)
-#define MAP_PA_KINK (1 << 8)
-#define MAP_PA_ROUGH (1 << 9)
-#define MAP_PA_FREQ (1 << 10)
-
 /* pr_type */
 #define MA_FLAT 0
 #define MA_SPHERE 1
