@@ -1524,7 +1524,8 @@ static PyObject *list_of_lists_from_arrays(const int *array,
 
 PyDoc_STRVAR(
     M_Geometry_delaunay_2d_cdt_doc,
-    ".. function:: delaunay_2d_cdt(vert_coords, edges, faces, output_type, epsilon [,need_ids])\n"
+    ".. function:: delaunay_2d_cdt(vert_coords, edges, faces, output_type, epsilon, "
+    "need_ids=True)\n"
     "\n"
     "   Computes the Constrained Delaunay Triangulation of a set of vertices,\n"
     "   with edges and faces that must appear in the triangulation.\n"
@@ -1554,7 +1555,7 @@ PyDoc_STRVAR(
     "   :type output_type: int\\n"
     "   :arg epsilon: For nearness tests; should not be zero\n"
     "   :type epsilon: float\n"
-    "   :arg need_ids: are the orig output arrays needed? (optional, default True)\n"
+    "   :arg need_ids: are the orig output arrays needed?\n"
     "   :type need_args: bool\n"
     "   :return: Output tuple, (vert_coords, edges, faces, orig_verts, orig_edges, orig_faces)\n"
     "   :rtype: (list of `mathutils.Vector`, "
