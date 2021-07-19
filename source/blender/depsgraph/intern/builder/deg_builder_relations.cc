@@ -2269,21 +2269,21 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       Curve *cu = (Curve *)obdata;
       if (cu->bevobj != nullptr) {
         ComponentKey bevob_geom_key(&cu->bevobj->id, NodeType::GEOMETRY);
-        add_relation(bevob_geom_key, obdata_geom_eval_key, "Curve Bevel Geometry");
+        add_relation(bevob_geom_key, obdata_geom_init_key, "Curve Bevel Geometry");
         ComponentKey bevob_key(&cu->bevobj->id, NodeType::TRANSFORM);
-        add_relation(bevob_key, obdata_geom_eval_key, "Curve Bevel Transform");
+        add_relation(bevob_key, obdata_geom_init_key, "Curve Bevel Transform");
         build_object(cu->bevobj);
       }
       if (cu->taperobj != nullptr) {
         ComponentKey taperob_key(&cu->taperobj->id, NodeType::GEOMETRY);
-        add_relation(taperob_key, obdata_geom_eval_key, "Curve Taper");
+        add_relation(taperob_key, obdata_geom_init_key, "Curve Taper");
         build_object(cu->taperobj);
       }
       if (cu->textoncurve != nullptr) {
         ComponentKey textoncurve_geom_key(&cu->textoncurve->id, NodeType::GEOMETRY);
-        add_relation(textoncurve_geom_key, obdata_geom_eval_key, "Text on Curve Geometry");
+        add_relation(textoncurve_geom_key, obdata_geom_init_key, "Text on Curve Geometry");
         ComponentKey textoncurve_key(&cu->textoncurve->id, NodeType::TRANSFORM);
-        add_relation(textoncurve_key, obdata_geom_eval_key, "Text on Curve Transform");
+        add_relation(textoncurve_key, obdata_geom_init_key, "Text on Curve Transform");
         build_object(cu->textoncurve);
       }
       break;
