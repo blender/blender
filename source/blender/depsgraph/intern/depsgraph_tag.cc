@@ -117,7 +117,7 @@ void depsgraph_select_tag_to_component_opcode(const ID *id,
   }
   else if (is_selectable_data_id_type(id_type)) {
     *component_type = NodeType::BATCH_CACHE;
-    *operation_code = OperationCode::BATCH_UPDATE_SELECT;
+    *operation_code = OperationCode::GEOMETRY_SELECT_UPDATE;
   }
   else {
     *component_type = NodeType::COPY_ON_WRITE;
@@ -168,10 +168,6 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       break;
     case ID_RECALC_GEOMETRY:
       depsgraph_geometry_tag_to_component(id, component_type);
-      break;
-    case ID_RECALC_GEOMETRY_DEFORM:
-      depsgraph_geometry_tag_to_component(id, component_type);
-      *operation_code = OperationCode::GEOMETRY_EVAL_DEFORM;
       break;
     case ID_RECALC_ANIMATION:
       *component_type = NodeType::ANIMATION;
@@ -712,8 +708,6 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "GEOMETRY";
     case ID_RECALC_GEOMETRY_ALL_MODES:
       return "GEOMETRY_ALL_MODES";
-    case ID_RECALC_GEOMETRY_DEFORM:
-      return "GEOMETRY_DEFORM";
     case ID_RECALC_ANIMATION:
       return "ANIMATION";
     case ID_RECALC_PSYS_REDO:
