@@ -1318,6 +1318,7 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
   this->m_adjacentOnly = false;
   this->m_keepInside = false;
   this->flags.complex = true;
+  is_output_rendered_ = false;
 }
 
 bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,
@@ -1379,6 +1380,45 @@ void DoubleEdgeMaskOperation::deinitExecution()
   if (this->m_cachedInstance) {
     MEM_freeN(this->m_cachedInstance);
     this->m_cachedInstance = nullptr;
+  }
+}
+
+void DoubleEdgeMaskOperation::get_area_of_interest(int UNUSED(input_idx),
+                                                   const rcti &UNUSED(output_area),
+                                                   rcti &r_input_area)
+{
+  r_input_area.xmax = this->getWidth();
+  r_input_area.xmin = 0;
+  r_input_area.ymax = this->getHeight();
+  r_input_area.ymin = 0;
+}
+
+void DoubleEdgeMaskOperation::update_memory_buffer(MemoryBuffer *output,
+                                                   const rcti &UNUSED(area),
+                                                   Span<MemoryBuffer *> inputs)
+{
+  if (!is_output_rendered_) {
+    /* Ensure full buffers to work with no strides. */
+    MemoryBuffer *input_inner_mask = inputs[0];
+    MemoryBuffer *inner_mask = input_inner_mask->is_a_single_elem() ? input_inner_mask->inflate() :
+                                                                      input_inner_mask;
+    MemoryBuffer *input_outer_mask = inputs[1];
+    MemoryBuffer *outer_mask = input_outer_mask->is_a_single_elem() ? input_outer_mask->inflate() :
+                                                                      input_outer_mask;
+
+    BLI_assert(output->getWidth() == this->getWidth());
+    BLI_assert(output->getHeight() == this->getHeight());
+    /* TODO(manzanilla): Once tiled implementation is removed, use execution system to run
+     * multi-threadly where possible. */
+    doDoubleEdgeMask(inner_mask->getBuffer(), outer_mask->getBuffer(), output->getBuffer());
+    is_output_rendered_ = true;
+
+    if (inner_mask != input_inner_mask) {
+      delete inner_mask;
+    }
+    if (outer_mask != input_outer_mask) {
+      delete outer_mask;
+    }
   }
 }
 
