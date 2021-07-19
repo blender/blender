@@ -402,8 +402,7 @@ void BKE_object_data_eval_batch_cache_deform_tag(Depsgraph *depsgraph, ID *objec
       BKE_mesh_batch_cache_dirty_tag((Mesh *)object_data, BKE_MESH_BATCH_DIRTY_DEFORM);
       break;
     default:
-      /* Only mesh is currently supported. Fallback to dirty all for other datablocks types. */
-      BKE_object_data_batch_cache_dirty_tag(object_data);
+      /* Only mesh is currently supported. */
       break;
   }
 }
