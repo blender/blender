@@ -53,7 +53,7 @@ class AssetTemporaryIDConsumer : NonCopyable, NonMovable {
 
   ID *get_local_id()
   {
-    return ED_assetlist_asset_local_id_get(&handle_);
+    return ED_asset_handle_get_local_id(&handle_);
   }
 
   ID *import_id(const bContext *C,

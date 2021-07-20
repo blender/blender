@@ -495,7 +495,8 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
                                             const AssetLibraryReference &library_reference,
                                             const AssetHandle &asset_handle)
 {
-  if (asset_handle.file_data->id || !asset_handle.file_data->asset_data) {
+  if (ED_asset_handle_get_local_id(&asset_handle) ||
+      !ED_asset_handle_get_metadata(&asset_handle)) {
     return {};
   }
   const char *library_path = ED_assetlist_library_path(&library_reference);
@@ -511,11 +512,6 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
   BLI_join_dirfile(path, sizeof(path), library_path, asset_relpath);
 
   return path;
-}
-
-ID *ED_assetlist_asset_local_id_get(const AssetHandle *asset_handle)
-{
-  return asset_handle->file_data->asset_data ? asset_handle->file_data->id : nullptr;
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)

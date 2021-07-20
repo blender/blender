@@ -544,7 +544,7 @@ static bool poselib_asset_in_context(bContext *C)
   AssetHandle asset_handle = CTX_wm_asset_handle(C, &asset_handle_valid);
 
   return (asset_library != NULL) && asset_handle_valid &&
-         (asset_handle.file_data->blentype == ID_AC);
+         (ED_asset_handle_get_id_type(&asset_handle) == ID_AC);
 }
 
 /* Poll callback for operators that require existing PoseLib data (with poses) to work. */

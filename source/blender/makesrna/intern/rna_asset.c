@@ -156,7 +156,7 @@ static void rna_AssetHandle_get_full_library_path(
 static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
 {
   const AssetHandle *asset = ptr->data;
-  ID *id = ED_assetlist_asset_local_id_get(asset);
+  ID *id = ED_asset_handle_get_local_id(asset);
   return rna_pointer_inherit_refine(ptr, &RNA_ID, id);
 }
 

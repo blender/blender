@@ -44,6 +44,10 @@ int ED_asset_library_reference_to_enum_value(const struct AssetLibraryReference 
 struct AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
 
 const char *ED_asset_handle_get_name(const AssetHandle *asset);
+AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset);
+struct ID *ED_asset_handle_get_local_id(const AssetHandle *asset);
+ID_Type ED_asset_handle_get_id_type(const AssetHandle *asset);
+int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset);
 void ED_asset_handle_get_full_library_path(const struct bContext *C,
                                            const AssetLibraryReference *asset_library,
                                            const AssetHandle *asset,
@@ -69,7 +73,6 @@ void ED_assetlist_storage_tag_main_data_dirty(void);
 void ED_assetlist_storage_id_remap(struct ID *id_old, struct ID *id_new);
 void ED_assetlist_storage_exit(void);
 
-ID *ED_assetlist_asset_local_id_get(const AssetHandle *asset_handle);
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 const char *ED_assetlist_library_path(const struct AssetLibraryReference *library_reference);
 

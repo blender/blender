@@ -139,6 +139,26 @@ const char *ED_asset_handle_get_name(const AssetHandle *asset)
   return asset->file_data->name;
 }
 
+AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset)
+{
+  return asset->file_data->asset_data;
+}
+
+ID *ED_asset_handle_get_local_id(const AssetHandle *asset)
+{
+  return asset->file_data->id;
+}
+
+ID_Type ED_asset_handle_get_id_type(const AssetHandle *asset)
+{
+  return static_cast<ID_Type>(asset->file_data->blentype);
+}
+
+int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset)
+{
+  return asset->file_data->preview_icon_id;
+}
+
 void ED_asset_handle_get_full_library_path(const bContext *C,
                                            const AssetLibraryReference *asset_library,
                                            const AssetHandle *asset,
