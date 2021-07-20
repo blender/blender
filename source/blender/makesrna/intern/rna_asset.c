@@ -132,6 +132,14 @@ static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_FileSelectEntry, asset_handle->file_data);
 }
 
+static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *UNUSED(reports))
+{
+  AssetHandle *asset_handle = ptr->data;
+  asset_handle->file_data = value.data;
+}
+
 static void rna_AssetHandle_get_full_library_path(
     // AssetHandle *asset,
     bContext *C,
@@ -148,14 +156,6 @@ static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
   const AssetHandle *asset = ptr->data;
   ID *id = ED_assetlist_asset_local_id_get(asset);
   return rna_pointer_inherit_refine(ptr, &RNA_ID, id);
-}
-
-static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
-                                          PointerRNA value,
-                                          struct ReportList *UNUSED(reports))
-{
-  AssetHandle *asset_handle = ptr->data;
-  asset_handle->file_data = value.data;
 }
 
 int rna_asset_library_reference_get(const AssetLibraryReference *library)
@@ -343,7 +343,9 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "AssetHandle", "PropertyGroup");
   RNA_def_struct_ui_text(srna, "Asset Handle", "Reference to some asset");
 
-  /* TODO why is this editable? There probably shouldn't be a setter. */
+  /* TODO It is super ugly to expose the file data here. We have to do it though so the asset view
+   * template can populate a RNA collection with asset-handles, which are just file entries
+   * currently. A proper design is being worked on. */
   prop = RNA_def_property(srna, "file_data", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "FileSelectEntry");
