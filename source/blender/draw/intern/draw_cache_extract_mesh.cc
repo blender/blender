@@ -532,7 +532,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   mesh_render_data_update_normals(mr, data_flag);
   mesh_render_data_update_looptris(mr, iter_type, data_flag);
   mesh_render_data_update_loose_geom(mr, update_task_data->cache, iter_type, data_flag);
-  mesh_render_data_update_mat_offsets(mr, update_task_data->cache, data_flag);
+  mesh_render_data_update_polys_sorted(mr, update_task_data->cache, data_flag);
 }
 
 static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *task_graph,

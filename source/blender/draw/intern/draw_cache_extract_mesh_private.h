@@ -101,10 +101,12 @@ typedef struct MeshRenderData {
   float (*loop_normals)[3];
   float (*poly_normals)[3];
   int *lverts, *ledges;
+
   struct {
-    int *tri;
+    int *tri_first_index;
+    int *mat_tri_len;
     int visible_tri_len;
-  } mat_offsets;
+  } poly_sorted;
 } MeshRenderData;
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData *mr, int idx)
@@ -254,9 +256,9 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
                                         MeshBufferExtractionCache *cache,
                                         const eMRIterType iter_type,
                                         const eMRDataType data_flag);
-void mesh_render_data_update_mat_offsets(MeshRenderData *mr,
-                                         MeshBufferExtractionCache *cache,
-                                         const eMRDataType data_flag);
+void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
+                                          MeshBufferExtractionCache *cache,
+                                          const eMRDataType data_flag);
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,
                                       const eMRDataType data_flag);
