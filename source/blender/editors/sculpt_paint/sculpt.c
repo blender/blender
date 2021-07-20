@@ -1508,6 +1508,11 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const SculptVertRef vert
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, ((BMVert *)(vertex.i)));
+
+      if (mv->flag & DYNVERT_NEED_BOUNDARY) {
+        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, (BMVert *)vertex.i);
+      }
+
       return mv->flag & DYNVERT_BOUNDARY;
     }
     case PBVH_FACES: {

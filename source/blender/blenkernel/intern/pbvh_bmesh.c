@@ -1194,13 +1194,13 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
 }
 
 /* Build a PBVH from a BMesh */
-void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                          BMesh *bm,
-                          bool smooth_shading,
-                          BMLog *log,
-                          const int cd_vert_node_offset,
-                          const int cd_face_node_offset,
-                          const int cd_dyn_vert)
+ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                                      BMesh *bm,
+                                      bool smooth_shading,
+                                      BMLog *log,
+                                      const int cd_vert_node_offset,
+                                      const int cd_face_node_offset,
+                                      const int cd_dyn_vert)
 {
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
@@ -2103,6 +2103,7 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
   pbvh->cd_vcol_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
   pbvh->cd_dyn_vert = cd_dyn_vert;
+  pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
 }
 
 static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)

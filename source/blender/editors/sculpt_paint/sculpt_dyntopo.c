@@ -515,7 +515,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   BMIter iter;
   BMVert *v;
-  int cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
 
   int cd_pers_co = -1, cd_pers_no = -1, cd_pers_disp = -1;
   int cd_layer_disp = -1;
@@ -533,13 +532,12 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
     cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
     cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
-
-    cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
   }
   else {
     cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
   }
 
+  int cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
   SCULPT_dyntopo_node_layers_update_offsets(ss);
 
   int i = 0;

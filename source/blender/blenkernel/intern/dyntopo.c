@@ -157,6 +157,7 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v)
   pbvh_check_vert_boundary(pbvh, v);
 
   const int cd_dyn_vert = pbvh->cd_dyn_vert;
+
   MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
   const bool bound1 = mv1->flag & DYNVERT_ALL_BOUNDARY;
 
@@ -2408,15 +2409,16 @@ ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
         continue;
       }
 
-      pbvh_check_vert_boundary(pbvh, v);
-
-      MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
-      if (mv->flag & DYNVERT_ALL_BOUNDARY) {
+      const int val = BM_vert_edge_count(v);
+      if (val != 4 && val != 3) {
         continue;
       }
 
-      const int val = BM_vert_edge_count(v);
-      if (val != 4 && val != 3) {
+      MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+
+      pbvh_check_vert_boundary(pbvh, v);
+
+      if (mv->flag & DYNVERT_ALL_BOUNDARY) {
         continue;
       }
 

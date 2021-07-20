@@ -710,6 +710,11 @@ static void rna_Brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
   /*WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL); */
 }
 
+static void rna_Brush_dyntopo_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+}
+
 static void rna_Brush_material_update(bContext *UNUSED(C), PointerRNA *UNUSED(ptr))
 {
   /* number of material users changed */
@@ -1181,21 +1186,21 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 1, 500, 5, -1);
   RNA_def_property_ui_text(
       prop, "Spacing", "Spacing between DynTopo daubs as a percentage of brush diameter");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "detail_percent", PROP_FLOAT, PROP_PERCENTAGE);
   RNA_def_property_float_sdna(prop, NULL, "detail_percent");
   RNA_def_property_range(prop, 1, 1000);
   RNA_def_property_ui_range(prop, 1, 500, 5, -1);
   RNA_def_property_ui_text(prop, "Detail Percent", "");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "detail_size");
   RNA_def_property_range(prop, 0.0, 100.0);
   RNA_def_property_ui_range(prop, 0.0, 50.0, 0.1, 4);
   RNA_def_property_ui_text(prop, "Detail Size", "");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "detail_range", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "detail_range");
@@ -1203,7 +1208,7 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.001, 4);
   RNA_def_property_ui_text(
       prop, "Detail Range", "Higher values are faster but produce lower quality topology");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "constant_detail", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "constant_detail");
@@ -1213,35 +1218,35 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
                            "Resolution",
                            "Maximum edge length for dynamic topology sculpting (as divisor "
                            "of blender unit - higher value means smaller edge length)");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "subdivide", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_SUBDIVIDE);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);
   RNA_def_property_ui_text(prop, "Subdivide", "Enable Dyntopo Subdivision");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_DISABLED);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);
   RNA_def_property_ui_text(prop, "Disable", "Disable Dyntopo for this brush");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "cleanup", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_CLEANUP);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);
   RNA_def_property_ui_text(prop, "Cleanup", "Dissolve Verts With Only 3 or 4 faces");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "collapse", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_COLLAPSE);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);
   RNA_def_property_ui_text(prop, "Collapse", "Enable Dyntopo Decimation");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, 0);
   RNA_def_property_enum_sdna(prop, NULL, "mode");

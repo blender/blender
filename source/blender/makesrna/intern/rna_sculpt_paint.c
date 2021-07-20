@@ -833,11 +833,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_dyntopo_cleanup", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_CLEANUP);
-  RNA_def_property_ui_text(prop,
-                           "Cleanup",
-                           "Removes verts surrounded by only 3 or 4 edges");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+  RNA_def_property_ui_text(prop, "Cleanup", "Removes verts surrounded by only 3 or 4 edges");
 
   prop = RNA_def_property(srna, "use_flat_vcol_shading", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_FLAT_VCOL_SHADING);
