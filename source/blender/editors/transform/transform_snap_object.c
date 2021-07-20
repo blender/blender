@@ -1213,49 +1213,56 @@ static bool snap_bound_box_check_dist(const float min[3],
   return true;
 }
 
-static void cb_mvert_co_get(const int index, const float **co, const BVHTreeFromMesh *data)
+static void cb_mvert_co_get(const int index, const void *user_data, const float **r_co)
 {
-  *co = data->vert[index].co;
+  const BVHTreeFromMesh *data = user_data;
+  *r_co = data->vert[index].co;
 }
 
-static void cb_bvert_co_get(const int index, const float **co, const BMEditMesh *data)
+static void cb_bvert_co_get(const int index, const void *user_data, const float **r_co)
 {
+  const BMEditMesh *data = user_data;
   BMVert *eve = BM_vert_at_index(data->bm, index);
-  *co = eve->co;
+  *r_co = eve->co;
 }
 
-static void cb_mvert_no_copy(const int index, float r_no[3], const BVHTreeFromMesh *data)
+static void cb_mvert_no_copy(const int index, const void *user_data, float r_no[3])
 {
+  const BVHTreeFromMesh *data = user_data;
   const MVert *vert = data->vert + index;
 
   normal_short_to_float_v3(r_no, vert->no);
 }
 
-static void cb_bvert_no_copy(const int index, float r_no[3], const BMEditMesh *data)
+static void cb_bvert_no_copy(const int index, const void *user_data, float r_no[3])
 {
+  const BMEditMesh *data = user_data;
   BMVert *eve = BM_vert_at_index(data->bm, index);
 
   copy_v3_v3(r_no, eve->no);
 }
 
-static void cb_medge_verts_get(const int index, int v_index[2], const BVHTreeFromMesh *data)
+static void cb_medge_verts_get(const int index, const void *user_data, int r_v_index[2])
 {
+  const BVHTreeFromMesh *data = user_data;
   const MEdge *edge = &data->edge[index];
 
-  v_index[0] = edge->v1;
-  v_index[1] = edge->v2;
+  r_v_index[0] = edge->v1;
+  r_v_index[1] = edge->v2;
 }
 
-static void cb_bedge_verts_get(const int index, int v_index[2], const BMEditMesh *data)
+static void cb_bedge_verts_get(const int index, const void *user_data, int r_v_index[2])
 {
+  const BMEditMesh *data = user_data;
   BMEdge *eed = BM_edge_at_index(data->bm, index);
 
-  v_index[0] = BM_elem_index_get(eed->v1);
-  v_index[1] = BM_elem_index_get(eed->v2);
+  r_v_index[0] = BM_elem_index_get(eed->v1);
+  r_v_index[1] = BM_elem_index_get(eed->v2);
 }
 
-static void cb_mlooptri_edges_get(const int index, int v_index[3], const BVHTreeFromMesh *data)
+static void cb_mlooptri_edges_get(const int index, const void *user_data, int r_v_index[3])
 {
+  const BVHTreeFromMesh *data = user_data;
   const MEdge *medge = data->edge;
   const MLoop *mloop = data->loop;
   const MLoopTri *lt = &data->looptri[index];
@@ -1264,22 +1271,23 @@ static void cb_mlooptri_edges_get(const int index, int v_index[3], const BVHTree
     const uint tri_edge[2] = {mloop[lt->tri[j]].v, mloop[lt->tri[j_next]].v};
     if (ELEM(ed->v1, tri_edge[0], tri_edge[1]) && ELEM(ed->v2, tri_edge[0], tri_edge[1])) {
       // printf("real edge found\n");
-      v_index[j] = mloop[lt->tri[j]].e;
+      r_v_index[j] = mloop[lt->tri[j]].e;
     }
     else {
-      v_index[j] = -1;
+      r_v_index[j] = -1;
     }
   }
 }
 
-static void cb_mlooptri_verts_get(const int index, int v_index[3], const BVHTreeFromMesh *data)
+static void cb_mlooptri_verts_get(const int index, const void *user_data, int r_v_index[3])
 {
+  const BVHTreeFromMesh *data = user_data;
   const MLoop *loop = data->loop;
   const MLoopTri *looptri = &data->looptri[index];
 
-  v_index[0] = loop[looptri->tri[0]].v;
-  v_index[1] = loop[looptri->tri[1]].v;
-  v_index[2] = loop[looptri->tri[2]].v;
+  r_v_index[0] = loop[looptri->tri[0]].v;
+  r_v_index[1] = loop[looptri->tri[1]].v;
+  r_v_index[2] = loop[looptri->tri[2]].v;
 }
 
 static bool test_projected_vert_dist(const struct DistProjectedAABBPrecalc *precalc,
@@ -1348,12 +1356,20 @@ static bool test_projected_edge_dist(const struct DistProjectedAABBPrecalc *prec
 /** \name Walk DFS
  * \{ */
 
-typedef void (*Nearest2DGetVertCoCallback)(const int index, const float **co, void *data);
-typedef void (*Nearest2DGetEdgeVertsCallback)(const int index, const int v_index[2], void *data);
-typedef void (*Nearest2DGetTriVertsCallback)(const int index, const int v_index[3], void *data);
+typedef void (*Nearest2DGetVertCoCallback)(const int index,
+                                           const void *user_data,
+                                           const float **r_co);
+typedef void (*Nearest2DGetEdgeVertsCallback)(const int index,
+                                              const void *user_data,
+                                              int r_v_index[2]);
+typedef void (*Nearest2DGetTriVertsCallback)(const int index,
+                                             const void *user_data,
+                                             int r_v_index[3]);
 /* Equal the previous one */
-typedef void (*Nearest2DGetTriEdgesCallback)(const int index, const int e_index[3], void *data);
-typedef void (*Nearest2DCopyVertNoCallback)(const int index, const float r_no[3], void *data);
+typedef void (*Nearest2DGetTriEdgesCallback)(const int index,
+                                             const void *user_data,
+                                             int r_e_index[3]);
+typedef void (*Nearest2DCopyVertNoCallback)(const int index, const void *user_data, float r_no[3]);
 
 typedef struct Nearest2dUserData {
   void *userdata;
@@ -1374,18 +1390,18 @@ static void nearest2d_data_init(SnapObjectData *sod,
 {
   if (sod->type == SNAP_MESH) {
     r_nearest2d->userdata = &sod->treedata_mesh;
-    r_nearest2d->get_vert_co = (Nearest2DGetVertCoCallback)cb_mvert_co_get;
-    r_nearest2d->get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_medge_verts_get;
-    r_nearest2d->copy_vert_no = (Nearest2DCopyVertNoCallback)cb_mvert_no_copy;
-    r_nearest2d->get_tri_verts_index = (Nearest2DGetTriVertsCallback)cb_mlooptri_verts_get;
-    r_nearest2d->get_tri_edges_index = (Nearest2DGetTriEdgesCallback)cb_mlooptri_edges_get;
+    r_nearest2d->get_vert_co = cb_mvert_co_get;
+    r_nearest2d->get_edge_verts_index = cb_medge_verts_get;
+    r_nearest2d->copy_vert_no = cb_mvert_no_copy;
+    r_nearest2d->get_tri_verts_index = cb_mlooptri_verts_get;
+    r_nearest2d->get_tri_edges_index = cb_mlooptri_edges_get;
   }
   else {
     BLI_assert(sod->type == SNAP_EDIT_MESH);
     r_nearest2d->userdata = sod->treedata_editmesh.em;
-    r_nearest2d->get_vert_co = (Nearest2DGetVertCoCallback)cb_bvert_co_get;
-    r_nearest2d->get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_bedge_verts_get;
-    r_nearest2d->copy_vert_no = (Nearest2DCopyVertNoCallback)cb_bvert_no_copy;
+    r_nearest2d->get_vert_co = cb_bvert_co_get;
+    r_nearest2d->get_edge_verts_index = cb_bedge_verts_get;
+    r_nearest2d->copy_vert_no = cb_bvert_no_copy;
     r_nearest2d->get_tri_verts_index = NULL;
     r_nearest2d->get_tri_edges_index = NULL;
   }
@@ -1404,7 +1420,7 @@ static void cb_snap_vert(void *userdata,
   struct Nearest2dUserData *data = userdata;
 
   const float *co;
-  data->get_vert_co(index, &co, data->userdata);
+  data->get_vert_co(index, data->userdata, &co);
 
   if (test_projected_vert_dist(precalc,
                                clip_plane,
@@ -1413,7 +1429,7 @@ static void cb_snap_vert(void *userdata,
                                co,
                                &nearest->dist_sq,
                                nearest->co)) {
-    data->copy_vert_no(index, nearest->no, data->userdata);
+    data->copy_vert_no(index, data->userdata, nearest->no);
     nearest->index = index;
   }
 }
@@ -1428,11 +1444,11 @@ static void cb_snap_edge(void *userdata,
   struct Nearest2dUserData *data = userdata;
 
   int vindex[2];
-  data->get_edge_verts_index(index, vindex, data->userdata);
+  data->get_edge_verts_index(index, data->userdata, vindex);
 
   const float *v_pair[2];
-  data->get_vert_co(vindex[0], &v_pair[0], data->userdata);
-  data->get_vert_co(vindex[1], &v_pair[1], data->userdata);
+  data->get_vert_co(vindex[0], data->userdata, &v_pair[0]);
+  data->get_vert_co(vindex[1], data->userdata, &v_pair[1]);
 
   if (test_projected_edge_dist(precalc,
                                clip_plane,
@@ -1457,7 +1473,7 @@ static void cb_snap_edge_verts(void *userdata,
   struct Nearest2dUserData *data = userdata;
 
   int vindex[2];
-  data->get_edge_verts_index(index, vindex, data->userdata);
+  data->get_edge_verts_index(index, data->userdata, vindex);
 
   for (int i = 2; i--;) {
     if (vindex[i] == nearest->index) {
@@ -1478,12 +1494,12 @@ static void cb_snap_tri_edges(void *userdata,
 
   if (data->use_backface_culling) {
     int vindex[3];
-    data->get_tri_verts_index(index, vindex, data->userdata);
+    data->get_tri_verts_index(index, data->userdata, vindex);
 
     const float *t0, *t1, *t2;
-    data->get_vert_co(vindex[0], &t0, data->userdata);
-    data->get_vert_co(vindex[1], &t1, data->userdata);
-    data->get_vert_co(vindex[2], &t2, data->userdata);
+    data->get_vert_co(vindex[0], data->userdata, &t0);
+    data->get_vert_co(vindex[1], data->userdata, &t1);
+    data->get_vert_co(vindex[2], data->userdata, &t2);
     float dummy[3];
     if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
       return;
@@ -1491,7 +1507,7 @@ static void cb_snap_tri_edges(void *userdata,
   }
 
   int eindex[3];
-  data->get_tri_edges_index(index, eindex, data->userdata);
+  data->get_tri_edges_index(index, data->userdata, eindex);
   for (int i = 3; i--;) {
     if (eindex[i] != -1) {
       if (eindex[i] == nearest->index) {
@@ -1512,13 +1528,13 @@ static void cb_snap_tri_verts(void *userdata,
   struct Nearest2dUserData *data = userdata;
 
   int vindex[3];
-  data->get_tri_verts_index(index, vindex, data->userdata);
+  data->get_tri_verts_index(index, data->userdata, vindex);
 
   if (data->use_backface_culling) {
     const float *t0, *t1, *t2;
-    data->get_vert_co(vindex[0], &t0, data->userdata);
-    data->get_vert_co(vindex[1], &t1, data->userdata);
-    data->get_vert_co(vindex[2], &t2, data->userdata);
+    data->get_vert_co(vindex[0], data->userdata, &t0);
+    data->get_vert_co(vindex[1], data->userdata, &t1);
+    data->get_vert_co(vindex[2], data->userdata, &t2);
     float dummy[3];
     if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
       return;
@@ -1693,11 +1709,11 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
       sod, snapdata->view_proj == VIEW_PROJ_PERSP, use_backface_culling, &nearest2d);
 
   int vindex[2];
-  nearest2d.get_edge_verts_index(*r_index, vindex, nearest2d.userdata);
+  nearest2d.get_edge_verts_index(*r_index, nearest2d.userdata, vindex);
 
   const float *v_pair[2];
-  nearest2d.get_vert_co(vindex[0], &v_pair[0], nearest2d.userdata);
-  nearest2d.get_vert_co(vindex[1], &v_pair[1], nearest2d.userdata);
+  nearest2d.get_vert_co(vindex[0], nearest2d.userdata, &v_pair[0]);
+  nearest2d.get_vert_co(vindex[1], nearest2d.userdata, &v_pair[1]);
 
   struct DistProjectedAABBPrecalc neasrest_precalc;
   {
@@ -1744,7 +1760,7 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
           if (r_no) {
             float imat[4][4];
             invert_m4_m4(imat, obmat);
-            nearest2d.copy_vert_no(vindex[v_id], r_no, nearest2d.userdata);
+            nearest2d.copy_vert_no(vindex[v_id], nearest2d.userdata, r_no);
             mul_transposed_mat3_m4_v3(imat, r_no);
             normalize_v3(r_no);
           }
