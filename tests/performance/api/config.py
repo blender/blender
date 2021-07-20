@@ -31,6 +31,7 @@ class TestEntry:
     device_id: str = 'CPU'
     device_name: str = 'Unknown CPU'
     status: str = 'queued'
+    error_msg: str = ''
     output: Dict = field(default_factory=dict)
     benchmark_type: str = 'comparison'
 
@@ -42,7 +43,8 @@ class TestEntry:
 
     def from_json(self, json_dict):
         for field in self.__dataclass_fields__:
-            setattr(self, field, json_dict[field])
+            if field in json_dict:
+                setattr(self, field, json_dict[field])
 
 
 class TestQueue:

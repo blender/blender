@@ -88,16 +88,21 @@ class TestEnvironment:
         self.call([self.git_executable, 'reset', '--hard', 'HEAD'], self.blender_dir)
         self.call([self.git_executable, 'checkout', '--detach', git_hash], self.blender_dir)
 
-    def build(self) -> None:
+    def build(self) -> bool:
         # Build Blender revision
         if not self.build_dir.exists():
             sys.stderr.write('\n\nError: no build set up, run `./benchmark init --build` first\n')
             sys.exit(1)
 
         jobs = str(multiprocessing.cpu_count())
-        self.call([self.cmake_executable, '.'] + self.cmake_options, self.build_dir)
-        self.call([self.cmake_executable, '--build', '.', '-j', jobs, '--target', 'install'], self.build_dir)
+        try:
+            self.call([self.cmake_executable, '.'] + self.cmake_options, self.build_dir)
+            self.call([self.cmake_executable, '--build', '.', '-j', jobs, '--target', 'install'], self.build_dir)
+        except:
+            return False
+
         self._init_default_blender_executable()
+        return True
 
     def set_blender_executable(self, executable_path: pathlib.Path) -> None:
         # Run all Blender commands with this executable.
@@ -277,8 +282,10 @@ class TestEnvironment:
 
     def resolve_git_hash(self, revision):
         # Get git hash for a tag or branch.
-        return self.call([self.git_executable, 'rev-parse', revision], self.blender_git_dir)[0].strip()
+        lines = self.call([self.git_executable, 'rev-parse', revision], self.blender_git_dir)
+        return lines[0].strip() if len(lines) else revision
 
     def git_hash_date(self, git_hash):
         # Get commit data for a git hash.
-        return int(self.call([self.git_executable, 'log', '-n1', git_hash, '--format=%at'], self.blender_git_dir)[0].strip())
+        lines = self.call([self.git_executable, 'log', '-n1', git_hash, '--format=%at'], self.blender_git_dir)
+        return int(lines[0].strip()) if len(lines) else 0
