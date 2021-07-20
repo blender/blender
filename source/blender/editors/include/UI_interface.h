@@ -35,9 +35,11 @@ extern "C" {
 /* Struct Declarations */
 
 struct ARegion;
+struct AssetHandle;
 struct AssetFilterSettings;
 struct AutoComplete;
 struct EnumPropertyItem;
+struct FileDirEntry;
 struct FileSelectParams;
 struct ID;
 struct IDProperty;
@@ -769,9 +771,8 @@ int UI_but_return_value_get(uiBut *but);
 
 void UI_but_drag_set_id(uiBut *but, struct ID *id);
 void UI_but_drag_set_asset(uiBut *but,
-                           const char *name,
+                           const struct AssetHandle *asset,
                            const char *path,
-                           int id_type,
                            int import_type, /* eFileAssetImportType */
                            int icon,
                            struct ImBuf *imb,
