@@ -370,10 +370,12 @@ static void transfer_attribute_nearest(const GeometrySet &src_geometry,
           break;
         }
         case ATTR_DOMAIN_CORNER: {
-          use_mesh = true;
-          mesh_indices.reinitialize(tot_samples);
-          mesh_distances_sq.reinitialize(tot_samples);
-          get_closest_mesh_corners(*mesh, dst_positions, mesh_indices, mesh_distances_sq, {});
+          if (mesh->totloop > 0) {
+            use_mesh = true;
+            mesh_indices.reinitialize(tot_samples);
+            mesh_distances_sq.reinitialize(tot_samples);
+            get_closest_mesh_corners(*mesh, dst_positions, mesh_indices, mesh_distances_sq, {});
+          }
           break;
         }
         default: {
