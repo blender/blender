@@ -31,8 +31,11 @@
 #include "DNA_object_types.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
+#include "BKE_action.hh"
+#include "BKE_armature.hh"
 #include "BKE_idprop.h"
+
+using namespace blender::bke;
 
 /* simple struct for storing backup info for one pose channel */
 typedef struct PoseChannelBackup {
@@ -51,21 +54,27 @@ struct PoseBackup {
 
 static PoseBackup *pose_backup_create(const Object *ob,
                                       const bAction *action,
-                                      const bool is_bone_selection_relevant)
+                                      const BoneNameSet &selected_bone_names)
 {
   ListBase backups = {nullptr, nullptr};
-  const bArmature *armature = static_cast<const bArmature *>(ob->data);
+  const bool is_bone_selection_relevant = !selected_bone_names.is_empty();
 
-  /* TODO(Sybren): reuse same approach as in `armature_pose.cc` in this function, as that doesn't
-   * have the assumption that action group names are bone names. */
-  LISTBASE_FOREACH (bActionGroup *, agrp, &action->groups) {
-    bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
-    if (pchan == nullptr) {
-      continue;
+  BoneNameSet backed_up_bone_names;
+  /* Make a backup of the given pose channel. */
+  auto store_animated_pchans = [&](FCurve *, const char *bone_name) {
+    if (backed_up_bone_names.contains(bone_name)) {
+      /* Only backup each bone once. */
+      return;
     }
 
-    if (is_bone_selection_relevant && !PBONE_SELECTED(armature, pchan->bone)) {
-      continue;
+    bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+    if (pchan == nullptr) {
+      /* FCurve targets non-existent bone. */
+      return;
+    }
+
+    if (is_bone_selection_relevant && !selected_bone_names.contains(bone_name)) {
+      return;
     }
 
     PoseChannelBackup *chan_bak = static_cast<PoseChannelBackup *>(
@@ -78,7 +87,11 @@ static PoseBackup *pose_backup_create(const Object *ob,
     }
 
     BLI_addtail(&backups, chan_bak);
-  }
+    backed_up_bone_names.add_new(bone_name);
+  };
+
+  /* Call `store_animated_pchans()` for each FCurve that targets a bone. */
+  BKE_action_find_fcurves_with_bones(action, store_animated_pchans);
 
   /* PoseBackup is constructed late, so that the above loop can use stack variables. */
   PoseBackup *pose_backup = static_cast<PoseBackup *>(MEM_callocN(sizeof(*pose_backup), __func__));
@@ -89,24 +102,14 @@ static PoseBackup *pose_backup_create(const Object *ob,
 
 PoseBackup *ED_pose_backup_create_all_bones(const Object *ob, const bAction *action)
 {
-  return pose_backup_create(ob, action, false);
+  return pose_backup_create(ob, action, BoneNameSet());
 }
 
 PoseBackup *ED_pose_backup_create_selected_bones(const Object *ob, const bAction *action)
 {
-  /* See if bone selection is relevant. */
-  bool all_bones_selected = true;
-  bool no_bones_selected = true;
   const bArmature *armature = static_cast<const bArmature *>(ob->data);
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    const bool is_selected = PBONE_SELECTED(armature, pchan->bone);
-    all_bones_selected &= is_selected;
-    no_bones_selected &= !is_selected;
-  }
-
-  /* If no bones are selected, act as if all are. */
-  const bool is_bone_selection_relevant = !all_bones_selected && !no_bones_selected;
-  return pose_backup_create(ob, action, is_bone_selection_relevant);
+  const BoneNameSet selected_bone_names = BKE_armature_find_selected_bone_names(armature);
+  return pose_backup_create(ob, action, selected_bone_names);
 }
 
 bool ED_pose_backup_is_selection_relevant(const struct PoseBackup *pose_backup)
