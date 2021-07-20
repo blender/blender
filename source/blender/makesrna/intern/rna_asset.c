@@ -129,7 +129,9 @@ static void rna_AssetMetaData_active_tag_range(
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
 {
   AssetHandle *asset_handle = ptr->data;
-  return rna_pointer_inherit_refine(ptr, &RNA_FileSelectEntry, asset_handle->file_data);
+  /* Have to cast away const, but the file entry API doesn't allow modifications anyway. */
+  return rna_pointer_inherit_refine(
+      ptr, &RNA_FileSelectEntry, (FileDirEntry *)asset_handle->file_data);
 }
 
 static void rna_AssetHandle_file_data_set(PointerRNA *ptr,

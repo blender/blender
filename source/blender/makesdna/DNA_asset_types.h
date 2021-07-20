@@ -116,7 +116,7 @@ typedef struct AssetLibraryReference {
 #
 #
 typedef struct AssetHandle {
-  struct FileDirEntry *file_data;
+  const struct FileDirEntry *file_data;
 } AssetHandle;
 
 #ifdef __cplusplus
