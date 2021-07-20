@@ -1914,7 +1914,7 @@ float UI_view2d_scale_get_y(const View2D *v2d)
   return BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
 /**
- * Same as ``UI_view2d_scale_get() - 1.0f / x, y``
+ * Same as `UI_view2d_scale_get() - 1.0f / x, y`.
  */
 void UI_view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
 {

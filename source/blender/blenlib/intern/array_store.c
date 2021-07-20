@@ -1403,16 +1403,16 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
  * Create a new array store, which can store any number of arrays
  * as long as their stride matches.
  *
- * \param stride: ``sizeof()`` each element,
+ * \param stride: `sizeof()` each element,
  *
- * \note while a stride of ``1`` will always work,
+ * \note while a stride of `1` will always work,
  * its less efficient since duplicate chunks of memory will be searched
  * at positions unaligned with the array data.
  *
  * \param chunk_count: Number of elements to split each chunk into.
  * - A small value increases the ability to de-duplicate chunks,
  *   but adds overhead by increasing the number of chunks to look up when searching for duplicates,
- *   as well as some overhead constructing the original array again, with more calls to ``memcpy``.
+ *   as well as some overhead constructing the original array again, with more calls to `memcpy`.
  * - Larger values reduce the *book keeping* overhead,
  *   but increase the chance a small,
  *   isolated change will cause a larger amount of data to be duplicated.

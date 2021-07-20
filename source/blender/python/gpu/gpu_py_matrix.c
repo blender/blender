@@ -22,8 +22,8 @@
  * \warning While these functions attempt to ensure correct stack usage.
  * Mixing Python and C functions may still crash on invalid use.
  *
- * - Use ``bpygpu_`` for local API.
- * - Use ``BPyGPU`` for public API.
+ * - Use `bpygpu_` for local API.
+ * - Use `BPyGPU` for public API.
  */
 
 #include <Python.h>

@@ -1168,12 +1168,12 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     }
 
     /**
-     * The 2 new faces created and assigned to ``f_new`` have their
+     * The 2 new faces created and assigned to `f_new` have their
      * verts & edges shuffled around.
      *
      * - faces wind anticlockwise in this example.
-     * - original edge is ``(v1, v2)``
-     * - original face is ``(v1, v2, v3)``
+     * - original edge is `(v1, v2)`
+     * - original face is `(v1, v2, v3)`
      *
      * <pre>
      *         + v3(v_opp)
@@ -1189,8 +1189,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
      *  (first) (second)
      * </pre>
      *
-     * - f_new (first):  ``v_tri=(v1, v4, v3), e_tri=(e1, e5, e4)``
-     * - f_new (second): ``v_tri=(v4, v2, v3), e_tri=(e2, e3, e5)``
+     * - f_new (first):  `v_tri=(v1, v4, v3), e_tri=(e1, e5, e4)`
+     * - f_new (second): `v_tri=(v4, v2, v3), e_tri=(e2, e3, e5)`
      */
 
     /* Create two new faces */

@@ -123,7 +123,7 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
  * so don't assume anything.
  * \param scene: Current scene (for getting current frame)
  * \param mode: (TfmMode) transform mode that this transform is for
- * \param value: From the transform code, this is ``t->vec[0]``
+ * \param value: From the transform code, this is `t->vec[0]`
  * (which is delta transform for grab/extend, and scale factor for scale)
  * \param side: (B/L/R) for 'extend' functionality, which side of current frame to use
  */

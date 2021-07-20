@@ -868,7 +868,7 @@ static void non_recursive_bvh_div_nodes(const BVHTree *tree,
  * \{ */
 
 /**
- * \note many callers don't check for ``NULL`` return.
+ * \note many callers don't check for `NULL` return.
  */
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 {

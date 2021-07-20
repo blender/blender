@@ -19,11 +19,11 @@
 /** \file
  * \ingroup bpygpu
  *
- * This file defines the offscreen functionalities of the 'gpu' module
+ * This file defines the off-screen functionalities of the 'gpu' module
  * used for off-screen OpenGL rendering.
  *
- * - Use ``bpygpu_`` for local API.
- * - Use ``BPyGPU`` for public API.
+ * - Use `bpygpu_` for local API.
+ * - Use `BPyGPU` for public API.
  */
 
 #include <Python.h>

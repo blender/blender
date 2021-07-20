@@ -1312,7 +1312,7 @@ MINLINE bool is_one_v3(const float v[3])
 /* -------------------------------------------------------------------- */
 /** \name Vector Comparison
  *
- * \note use ``value <= limit``, so a limit of zero doesn't fail on an exact match.
+ * \note use `value <= limit`, so a limit of zero doesn't fail on an exact match.
  * \{ */
 
 MINLINE bool equals_v2v2(const float v1[2], const float v2[2])

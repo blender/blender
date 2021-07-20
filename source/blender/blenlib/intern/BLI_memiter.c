@@ -73,7 +73,7 @@ typedef struct BLI_memiter_chunk {
   struct BLI_memiter_chunk *next;
   /**
    * internal format is:
-   * ``[next_pointer, size:data, size:data, ..., negative_offset]``
+   * `[next_pointer, size:data, size:data, ..., negative_offset]`
    *
    * Where negative offset rewinds to the start.
    */

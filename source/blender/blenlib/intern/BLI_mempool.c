@@ -63,9 +63,9 @@
 #endif
 
 /**
- * Important that this value is an is _not_  aligned with ``sizeof(void *)``.
+ * Important that this value is an is _not_  aligned with `sizeof(void *)`.
  * So having a pointer to 2/4/8... aligned memory is enough to ensure
- * the freeword will never be used.
+ * the `freeword` will never be used.
  * To be safe, use a word that's the same in both directions.
  */
 #define FREEWORD \

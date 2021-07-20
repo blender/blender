@@ -987,7 +987,7 @@ const char *WM_init_state_app_template_get(void)
  * or called for 'New File' both startup.blend and userpref.blend are checked.
  *
  * \param use_factory_settings:
- * Ignore on-disk startup file, use bundled ``datatoc_startup_blend`` instead.
+ * Ignore on-disk startup file, use bundled `datatoc_startup_blend` instead.
  * Used for "Restore Factory Settings".
  *
  * \param use_userdef: Load factory settings as well as startup file.

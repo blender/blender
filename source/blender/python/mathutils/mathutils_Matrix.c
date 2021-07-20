@@ -1174,7 +1174,7 @@ static void matrix_invert_with_det_n_internal(float *mat_dst,
 }
 
 /**
- * \param r_mat: can be from ``self->matrix`` or not.
+ * \param r_mat: can be from `self->matrix` or not.
  */
 static bool matrix_invert_internal(const MatrixObject *self, float *r_mat)
 {
@@ -1191,8 +1191,8 @@ static bool matrix_invert_internal(const MatrixObject *self, float *r_mat)
 }
 
 /**
- * Similar to ``matrix_invert_internal`` but should never error.
- * \param r_mat: can be from ``self->matrix`` or not.
+ * Similar to `matrix_invert_internal` but should never error.
+ * \param r_mat: can be from `self->matrix` or not.
  */
 static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
 {

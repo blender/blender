@@ -19,8 +19,8 @@
  *
  * This file defines the gpu.state API.
  *
- * - Use ``bpygpu_`` for local API.
- * - Use ``BPyGPU`` for public API.
+ * - Use `bpygpu_` for local API.
+ * - Use `BPyGPU` for public API.
  */
 
 #include <Python.h>

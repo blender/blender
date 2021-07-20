@@ -78,7 +78,7 @@ static int mathutils_array_parse_fast(float *array,
 }
 
 /**
- * helper function that returns a Python ``__hash__``.
+ * helper function that returns a Python `__hash__`.
  *
  * \note consistent with the equivalent tuple of floats (CPython's 'tuplehash')
  */

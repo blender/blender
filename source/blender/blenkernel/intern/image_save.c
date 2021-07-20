@@ -135,8 +135,8 @@ static void imbuf_save_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
 
 /**
  * \return success.
- * \note ``ima->filepath`` and ``ibuf->name`` should end up the same.
- * \note for multiview the first ``ibuf`` is important to get the settings.
+ * \note `ima->filepath` and `ibuf->name` should end up the same.
+ * \note for multi-view the first `ibuf` is important to get the settings.
  */
 static bool image_save_single(ReportList *reports,
                               Image *ima,

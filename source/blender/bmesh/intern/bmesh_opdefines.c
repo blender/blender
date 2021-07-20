@@ -245,7 +245,7 @@ static BMOpDefine bmo_region_extend_def = {
  * Edge Rotate.
  *
  * Rotates edges topologically.  Also known as "spin edge" to some people.
- * Simple example: ``[/] becomes [|] then [\]``.
+ * Simple example: `[/] becomes [|] then [\]`.
  */
 static BMOpDefine bmo_rotate_edges_def = {
   "rotate_edges",

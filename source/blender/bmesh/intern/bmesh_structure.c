@@ -592,7 +592,7 @@ int bmesh_radial_facevert_count_at_most(const BMLoop *l, const BMVert *v, const 
 /**
  * \brief RADIAL CHECK FACE VERT
  *
- * Quicker check for ``bmesh_radial_facevert_count(...) != 0``
+ * Quicker check for `bmesh_radial_facevert_count(...) != 0`.
  */
 bool bmesh_radial_facevert_check(const BMLoop *l, const BMVert *v)
 {

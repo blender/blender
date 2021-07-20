@@ -375,7 +375,7 @@ typedef struct ProjPaintState {
   /* -------------------------------------------------------------------- */
   /* Vars shared between multiple views (keep last) */
   /**
-   * This data is owned by ``ProjStrokeHandle.ps_views[0]``,
+   * This data is owned by `ProjStrokeHandle.ps_views[0]`,
    * all other views re-use the data.
    */
 

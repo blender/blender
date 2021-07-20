@@ -766,7 +766,7 @@ bool BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb)
 }
 
 /**
- * Fast alternative to ``(BM_vert_edge_count(v) == 2)``
+ * Fast alternative to `(BM_vert_edge_count(v) == 2)`.
  */
 bool BM_vert_is_edge_pair(const BMVert *v)
 {
@@ -779,7 +779,7 @@ bool BM_vert_is_edge_pair(const BMVert *v)
 }
 
 /**
- * Fast alternative to ``(BM_vert_edge_count(v) == 2)``
+ * Fast alternative to `(BM_vert_edge_count(v) == 2)`
  * that checks both edges connect to the same faces.
  */
 bool BM_vert_is_edge_pair_manifold(const BMVert *v)
@@ -896,7 +896,7 @@ int BM_vert_face_count_at_most(const BMVert *v, int count_max)
 /**
  * Return true if the vertex is connected to _any_ faces.
  *
- * same as ``BM_vert_face_count(v) != 0`` or ``BM_vert_find_first_loop(v) == NULL``
+ * same as `BM_vert_face_count(v) != 0` or `BM_vert_find_first_loop(v) == NULL`.
  */
 bool BM_vert_face_check(const BMVert *v)
 {

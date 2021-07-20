@@ -232,7 +232,7 @@ size_t BLI_vsnprintf(char *__restrict buffer,
 }
 
 /**
- * A version of #BLI_vsnprintf that returns ``strlen(buffer)``
+ * A version of #BLI_vsnprintf that returns `strlen(buffer)`
  */
 size_t BLI_vsnprintf_rlen(char *__restrict buffer,
                           size_t maxncpy,
@@ -278,7 +278,7 @@ size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict
 }
 
 /**
- * A version of #BLI_snprintf that returns ``strlen(dst)``
+ * A version of #BLI_snprintf that returns `strlen(dst)`
  */
 size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
 {

@@ -165,7 +165,7 @@ float area_squared_poly_v3(const float verts[][3], unsigned int nr)
 /**
  * Scalar cross product of a 2d polygon.
  *
- * - equivalent to ``area * 2``
+ * - equivalent to `area * 2`
  * - useful for checking polygon winding (a positive value is clockwise).
  */
 float cross_poly_v2(const float verts[][2], unsigned int nr)
@@ -518,7 +518,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3])
 }
 
 /**
- * Check if \a p is inside the 2x planes defined by ``(v1, v2, v3)``
+ * Check if \a p is inside the 2x planes defined by `(v1, v2, v3)`
  * where the 3x points define 2x planes.
  *
  * \param axis_ref: used when v1,v2,v3 form a line and to check if the corner is concave/convex.
@@ -527,7 +527,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3])
  * (it just defines the planes).
  *
  * \return the lowest squared distance to either of the planes.
- * where ``(return < 0.0)`` is outside.
+ * where `(return < 0.0)` is outside.
  *
  * <pre>
  *            v1
@@ -1421,7 +1421,7 @@ int isect_seg_seg_v2_lambda_mu_db(const double v1[2],
  * \return r_p1, r_p2: Intersection coordinates.
  *
  * \note The order of assignment for intersection points (\a r_p1, \a r_p2) is predictable,
- * based on the direction defined by ``l2 - l1``,
+ * based on the direction defined by `l2 - l1`,
  * this direction compared with the normal of each point on the sphere:
  * \a r_p1 always has a >= 0.0 dot product.
  * \a r_p2 always has a <= 0.0 dot product.
@@ -3426,7 +3426,7 @@ float ray_point_factor_v3(const float p[3],
 
 /**
  * A simplified version of #closest_to_line_v3
- * we only need to return the ``lambda``
+ * we only need to return the `lambda`
  *
  * \param epsilon: avoid approaching divide-by-zero.
  * Passing a zero will just check for nonzero division.

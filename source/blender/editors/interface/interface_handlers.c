@@ -3066,7 +3066,7 @@ static bool ui_textedit_set_cursor_pos_foreach_glyph(const char *UNUSED(str),
 /**
  * \param x: Screen space cursor location - #wmEvent.x
  *
- * \note ``but->block->aspect`` is used here, so drawing button style is getting scaled too.
+ * \note `but->block->aspect` is used here, so drawing button style is getting scaled too.
  */
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, const float x)
 {
