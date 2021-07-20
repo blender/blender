@@ -29,6 +29,8 @@
 
 #include <stdio.h>
 
+#define DYNVERT_ALL_BOUNDARY (DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY)
+
 #define DYNTOPO_MAX_ITER 4096
 
 #define DYNTOPO_USE_HEAP
@@ -138,7 +140,7 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
   } \
   ((void)0)
 
-BLI_INLINE void surface_smooth_v_safe(BMVert *v, int cd_dyn_vert)
+BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v)
 {
   float co[3];
   float tan[3];
@@ -152,15 +154,19 @@ BLI_INLINE void surface_smooth_v_safe(BMVert *v, int cd_dyn_vert)
   if (!e) {
     return;
   }
+  pbvh_check_vert_boundary(pbvh, v);
 
+  const int cd_dyn_vert = pbvh->cd_dyn_vert;
   MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
-  const bool bound1 = mv1->flag & DYNVERT_BOUNDARY;
+  const bool bound1 = mv1->flag & DYNVERT_ALL_BOUNDARY;
 
   do {
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
 
+    pbvh_check_vert_boundary(pbvh, v2);
+
     MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(cd_dyn_vert, v2);
-    const bool bound2 = mv2->flag & DYNVERT_BOUNDARY;
+    const bool bound2 = mv2->flag & DYNVERT_ALL_BOUNDARY;
 
     if (bound1 != bound2) {
       e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
@@ -1349,7 +1355,7 @@ static void long_edge_queue_task_cb(void *__restrict userdata,
       do {
         // try to improve convergence by applying a small amount of smoothing to topology,
         // but tangentially to surface.
-        surface_smooth_v_safe(l_iter->v, cd_dyn_vert);
+        surface_smooth_v_safe(tdata->pbvh, l_iter->v);
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
         float w = maskcb_get(eq_ctx, l_iter->e);
@@ -1636,7 +1642,10 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
       mv1 = BKE_PBVH_DYNVERT(cd_dyn_vert, e->v1);
       mv2 = BKE_PBVH_DYNVERT(cd_dyn_vert, e->v2);
 
-      if ((mv1->flag & DYNVERT_BOUNDARY) != (mv2->flag & DYNVERT_BOUNDARY)) {
+      pbvh_check_vert_boundary(pbvh, e->v1);
+      pbvh_check_vert_boundary(pbvh, e->v2);
+
+      if ((mv1->flag & DYNVERT_ALL_BOUNDARY) != (mv2->flag & DYNVERT_ALL_BOUNDARY)) {
         continue;
       }
 
@@ -1675,8 +1684,10 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v1);
   MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v2);
 
-  bool boundary = (mv1->flag & DYNVERT_BOUNDARY) && (mv2->flag & DYNVERT_BOUNDARY);
-  bool check_boundary = (mv1->flag & DYNVERT_BOUNDARY) | (mv2->flag & DYNVERT_BOUNDARY);
+  pbvh_check_vert_boundary(pbvh, e->v1);
+  pbvh_check_vert_boundary(pbvh, e->v2);
+
+  bool boundary = (mv1->flag & DYNVERT_ALL_BOUNDARY) && (mv2->flag & DYNVERT_ALL_BOUNDARY);
 
   /* Get all faces adjacent to the edge */
   pbvh_bmesh_edge_loops(edge_loops, e);
@@ -1847,14 +1858,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   BM_edge_kill(pbvh->bm, e);
 
   MDynTopoVert *mv_new = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_new);
-  bool boundary2 = boundary || (check_boundary && BM_vert_is_boundary(v_new));
-
-  if (boundary2) {
-    mv_new->flag |= DYNVERT_BOUNDARY;
-  }
-  else {
-    mv_new->flag &= ~DYNVERT_BOUNDARY;
-  }
+  bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v_new);
 }
 
 static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
@@ -2247,12 +2251,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     MDynTopoVert *mv_conn = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
 
-    if (BM_vert_is_boundary(v_conn)) {
-      mv_conn->flag |= DYNVERT_BOUNDARY;
-    }
-    else {
-      mv_conn->flag &= ~DYNVERT_BOUNDARY;
-    }
+    bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v_conn);
   }
 
   /* Delete v_del */
@@ -2409,6 +2408,11 @@ ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
         continue;
       }
 
+      MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
+      if (mv->flag & DYNVERT_ALL_BOUNDARY) {
+        continue;
+      }
+
       const int val = BM_vert_edge_count(v);
       if (val != 4 && val != 3) {
         continue;
@@ -2473,6 +2477,23 @@ ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
       if (ni >= 0 && BLI_table_gset_haskey(pbvh->nodes[ni].bm_other_verts, v)) {
         printf("error!\n");
         BLI_table_gset_remove(pbvh->nodes[ni].bm_other_verts, v, NULL);
+      }
+      else if (ni < 0) {
+        printf("error!\n");
+
+        // attempt to recover
+
+        BMFace *f;
+        BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
+          int ni2 = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
+
+          if (ni2 != DYNTOPO_NODE_NONE) {
+            PBVHNode *node2 = pbvh->nodes + ni2;
+
+            BLI_table_gset_remove(node2->bm_unique_verts, v, NULL);
+            BLI_table_gset_remove(node2->bm_other_verts, v, NULL);
+          }
+        }
       }
 
       BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);

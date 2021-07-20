@@ -825,7 +825,10 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, SculptVertRef index, int face
 
       BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
         int fset = BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset);
-        if (fset >= 0) {
+        if (fset >= 0 && fset != abs(face_set)) {
+          MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+
+          mv->flag |= DYNVERT_NEED_BOUNDARY;
           BM_ELEM_CD_SET_INT(l->f, ss->cd_faceset_offset, abs(face_set));
         }
       }

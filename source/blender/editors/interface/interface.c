@@ -86,7 +86,26 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "BLI_asan.h"
 #include "interface_intern.h"
+
+void poison_ui_but(struct uiBut *but)
+{
+  BLI_asan_poison(but->poison1, sizeof(but->poison1));
+  BLI_asan_poison(but->poison2, sizeof(but->poison2));
+  BLI_asan_poison(but->poison3, sizeof(but->poison3));
+  BLI_asan_poison(but->poison4, sizeof(but->poison4));
+  BLI_asan_poison(but->poison5, sizeof(but->poison5));
+}
+
+void unpoison_ui_but(struct uiBut *but)
+{
+  BLI_asan_unpoison(but->poison1, sizeof(but->poison1));
+  BLI_asan_unpoison(but->poison2, sizeof(but->poison2));
+  BLI_asan_unpoison(but->poison3, sizeof(but->poison3));
+  BLI_asan_unpoison(but->poison4, sizeof(but->poison4));
+  BLI_asan_unpoison(but->poison5, sizeof(but->poison5));
+}
 
 /* prototypes. */
 static void ui_but_to_pixelrect(struct rcti *rect,
@@ -3368,9 +3387,16 @@ static void ui_but_free_type_specific(uiBut *but)
   }
 }
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_threads.h"
+
 /* can be called with C==NULL */
-static void ui_but_free(const bContext *C, uiBut *but)
+ATTR_NO_OPT static void ui_but_free(const bContext *C, uiBut *but)
 {
+  if (!BLI_thread_is_main()) {
+    printf("Evil!\n");
+  }
+
   if (but->opptr) {
     WM_operator_properties_free(but->opptr);
     MEM_freeN(but->opptr);
@@ -3418,6 +3444,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
 
   BLI_assert(UI_butstore_is_registered(but->block, but) == false);
 
+  unpoison_ui_but(but);
   MEM_freeN(but);
 }
 
@@ -3964,7 +3991,11 @@ static uiBut *ui_but_alloc(const eButType type)
   const char *alloc_str;
   ui_but_alloc_info(type, &alloc_size, &alloc_str, NULL);
 
-  return MEM_callocN(alloc_size, alloc_str);
+  uiBut *ret = MEM_callocN(alloc_size, alloc_str);
+
+  poison_ui_but(ret);
+
+  return ret;
 }
 
 /**
@@ -3998,7 +4029,10 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
     const bool has_str_ptr_to_self = but->str == but->strdata;
     const bool has_poin_ptr_to_self = but->poin == (char *)but;
 
+    unpoison_ui_but(but);
     but = MEM_recallocN_id(but, alloc_size, alloc_str);
+    poison_ui_but(but);
+
     but->type = new_type;
     if (has_str_ptr_to_self) {
       but->str = but->strdata;

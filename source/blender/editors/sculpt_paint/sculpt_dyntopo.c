@@ -534,22 +534,20 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
     cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
 
-    SCULPT_dyntopo_node_layers_update_offsets(ss);
-
     cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
   }
   else {
     cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
   }
 
+  SCULPT_dyntopo_node_layers_update_offsets(ss);
+
   int i = 0;
 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
-    if (BM_vert_is_boundary(v)) {
-      mv->flag |= DYNVERT_BOUNDARY;
-    }
+    BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, v);
 
     // persistent base
     if (cd_pers_co >= 0) {

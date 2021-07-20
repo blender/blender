@@ -16,9 +16,12 @@
 
 #pragma once
 
+#include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
+
+#include "bmesh.h"
 
 /** \file
  * \ingroup bli
@@ -305,3 +308,16 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);
 void pbvh_bmesh_check_nodes(PBVH *pbvh);
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
+void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVert *v);
+
+BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
+{
+  MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
+
+  if (mv->flag & DYNVERT_NEED_BOUNDARY) {
+    bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v);
+    return true;
+  }
+
+  return false;
+}

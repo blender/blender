@@ -64,6 +64,10 @@ Topology rake:
 #include "bmesh.h"
 #include "pbvh_intern.h"
 
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
 #if 0
@@ -1128,6 +1132,56 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
 
 /***************************** Public API *****************************/
 
+void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVert *v)
+{
+  MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
+
+  BMEdge *e = v->e;
+  mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY);
+
+  if (!e) {
+    mv->flag |= DYNVERT_BOUNDARY;
+    return;
+  }
+
+  int lastfset = 0;
+  bool first = true;
+
+  do {
+    if (e->l) {
+      int fset = abs(BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset));
+
+      if (!first && fset != lastfset) {
+        mv->flag |= DYNVERT_FSET_BOUNDARY;
+      }
+
+      lastfset = fset;
+      first = false;
+
+      // also check e->l->radial_next, in case we are not manifold
+      // which can mess up the loop order
+      if (e->l->radial_next != e->l) {
+        fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
+
+        if (fset != lastfset) {
+          mv->flag |= DYNVERT_FSET_BOUNDARY;
+        }
+      }
+    }
+
+    if (!e->l || e->l->radial_next == e->l) {
+      mv->flag |= DYNVERT_BOUNDARY;
+    }
+
+    e = e->v1 == v ? e->v1_disk_link.next : e->v2_disk_link.next;
+  } while (e != v->e);
+}
+
+void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVert *v)
+{
+  bke_pbvh_update_vert_boundary(cd_dyn_vert, cd_faceset_offset, v);
+}
+
 /*Used by symmetrize to update boundary flags*/
 void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
 {
@@ -1135,14 +1189,7 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
   BMIter iter;
 
   BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
-    MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
-
-    if (BM_vert_is_boundary(v)) {
-      mv->flag |= DYNVERT_BOUNDARY;
-    }
-    else {
-      mv->flag &= ~DYNVERT_BOUNDARY;
-    }
+    bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v);
   }
 }
 
@@ -1184,9 +1231,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
     mv->flag = 0;
 
-    if (BM_vert_is_boundary(v)) {
-      mv->flag |= DYNVERT_BOUNDARY;
-    }
+    bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v);
 
     copy_v3_v3(mv->origco, v->co);
     copy_v3_v3(mv->origno, v->no);

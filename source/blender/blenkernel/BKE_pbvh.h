@@ -734,6 +734,7 @@ PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
 struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
+void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, struct BMVert *v);
 
 #ifdef __cplusplus
 }
