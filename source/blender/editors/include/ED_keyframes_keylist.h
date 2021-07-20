@@ -137,7 +137,8 @@ typedef enum eKeyframeExtremeDrawOpts {
 
 /* ******************************* Methods ****************************** */
 
-/* Keydata Generation --------------- */
+/* Key-data Generation --------------- */
+
 /* F-Curve */
 void fcurve_to_keylist(struct AnimData *adt,
                        struct FCurve *fcu,

@@ -1409,7 +1409,7 @@ void DoubleEdgeMaskOperation::update_memory_buffer(MemoryBuffer *output,
     BLI_assert(output->getWidth() == this->getWidth());
     BLI_assert(output->getHeight() == this->getHeight());
     /* TODO(manzanilla): Once tiled implementation is removed, use execution system to run
-     * multi-threadly where possible. */
+     * multi-threaded where possible. */
     doDoubleEdgeMask(inner_mask->getBuffer(), outer_mask->getBuffer(), output->getBuffer());
     is_output_rendered_ = true;
 

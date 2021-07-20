@@ -74,7 +74,7 @@ namespace blender::nodes {
 struct TrimLocation {
   /* Control point index at the start side of the trim location. */
   int left_index;
-  /* Control point intex at the end of the trim location's segment. */
+  /* Control point index at the end of the trim location's segment. */
   int right_index;
   /* The factor between the left and right indices. */
   float factor;
@@ -106,8 +106,10 @@ static void linear_trim_data(const TrimLocation &start,
   data[size - 1] = end_data;
 }
 
-/* Identical operation as #linear_trim_data, but opy data to a new MutableSpan rather than
- * modifying the original data. */
+/**
+ * Identical operation as #linear_trim_data, but copy data to a new #MutableSpan rather than
+ * modifying the original data.
+ */
 template<typename T>
 static void linear_trim_to_output_data(const TrimLocation &start,
                                        const TrimLocation &end,
@@ -357,7 +359,7 @@ static void geo_node_curve_trim_exec(GeoNodeExecParams params)
       }
 
       /* Return a spline with one point instead of implicitly
-       * reversing the sline or switching the parameters. */
+       * reversing the spline or switching the parameters. */
       if (end < start) {
         spline.resize(1);
         continue;

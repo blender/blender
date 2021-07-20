@@ -2094,13 +2094,14 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
 
 /**
  * Reduce a series of points when the distance is below a threshold.
- * Special case for first and last points (both are keeped) for other points,
+ * Special case for first and last points (both are kept) for other points,
  * the merge point always is at first point.
- * \param gpd: Grease pencil data-block
- * \param gpf: Grease Pencil frame
- * \param gps: Grease Pencil stroke
- * \param threshold: Distance between points
- * \param use_unselected: Set to true to analyze all stroke and not only selected points
+ *
+ * \param gpd: Grease pencil data-block.
+ * \param gpf: Grease Pencil frame.
+ * \param gps: Grease Pencil stroke.
+ * \param threshold: Distance between points.
+ * \param use_unselected: Set to true to analyze all stroke and not only selected points.
  */
 void BKE_gpencil_stroke_merge_distance(bGPdata *gpd,
                                        bGPDframe *gpf,
@@ -2276,7 +2277,7 @@ static void gpencil_generate_edgeloops(Object *ob,
   }
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
-   * This is reused for each edgeloop to create gpencil stroke. */
+   * This is reused for each edge-loop to create gpencil stroke. */
   uint *stroke = (uint *)MEM_callocN(sizeof(uint) * me->totedge * 2, __func__);
   uint *stroke_fw = (uint *)MEM_callocN(sizeof(uint) * me->totedge, __func__);
   uint *stroke_bw = (uint *)MEM_callocN(sizeof(uint) * me->totedge, __func__);
@@ -2468,7 +2469,7 @@ static void make_element_name(const char *obname, const char *name, const int ma
  * \param scene: Original scene.
  * \param ob_gp: Grease pencil object to add strokes.
  * \param ob_mesh: Mesh to convert.
- * \param angle: Limit angle to consider a edgeloop ends.
+ * \param angle: Limit angle to consider a edge-loop ends.
  * \param thickness: Thickness of the strokes.
  * \param offset: Offset along the normals.
  * \param matrix: Transformation matrix.

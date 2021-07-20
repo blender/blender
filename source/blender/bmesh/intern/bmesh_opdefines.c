@@ -1942,7 +1942,7 @@ static BMOpDefine bmo_inset_region_def = {
 };
 
 /*
- * Edgeloop Offset.
+ * Edge-loop Offset.
  *
  * Creates edge loops based on simple edge-outset method.
  */
