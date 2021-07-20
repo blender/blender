@@ -655,8 +655,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     Tex *tx;
     ParticleSettings *part;
     Object *ob;
-    // PTCacheID *pid;
-    // ListBase pidlist;
+#if 0
+    PTCacheID *pid;
+    ListBase pidlist;
+#endif
 
     bSound *sound;
     Sequence *seq;
@@ -766,12 +768,15 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* set old pointcaches to have disk cache flag */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 
-      // BKE_ptcache_ids_from_object(&pidlist, ob);
+#if 0
+      BKE_ptcache_ids_from_object(&pidlist, ob);
 
-      // for (pid = pidlist.first; pid; pid = pid->next)
-      //  pid->cache->flag |= PTCACHE_DISK_CACHE;
+      for (pid = pidlist.first; pid; pid = pid->next) {
+       pid->cache->flag |= PTCACHE_DISK_CACHE;
+      }
 
-      // BLI_freelistN(&pidlist);
+      BLI_freelistN(&pidlist);
+#endif
     }
 
     /* type was a mixed flag & enum. move the 2d flag elsewhere */
@@ -789,18 +794,23 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     Tex *tex;
     Scene *sce;
     ToolSettings *ts;
-    // PTCacheID *pid;
-    // ListBase pidlist;
+#if 0
+    PTCacheID *pid;
+    ListBase pidlist;
+#endif
 
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-      // BKE_ptcache_ids_from_object(&pidlist, ob);
+#if 0
+      BKE_ptcache_ids_from_object(&pidlist, ob);
 
-      // for (pid = pidlist.first; pid; pid = pid->next) {
-      //  if (BLI_listbase_is_empty(pid->ptcaches))
-      //      pid->ptcaches->first = pid->ptcaches->last = pid->cache;
-      //}
+      for (pid = pidlist.first; pid; pid = pid->next) {
+        if (BLI_listbase_is_empty(pid->ptcaches)) {
+          pid->ptcaches->first = pid->ptcaches->last = pid->cache;
+        }
+      }
 
-      // BLI_freelistN(&pidlist);
+      BLI_freelistN(&pidlist);
+#endif
 
       if (ob->totcol && ob->matbits == NULL) {
         int a;

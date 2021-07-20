@@ -823,11 +823,13 @@ static boid_rule_cb boid_rules[] = {
     rule_follow_leader,
     rule_average_speed,
     rule_fight,
-    // rule_help,
-    // rule_protect,
-    // rule_hide,
-    // rule_follow_path,
-    // rule_follow_wall,
+#if 0
+    rule_help,
+    rule_protect,
+    rule_hide,
+    rule_follow_path,
+    rule_follow_wall,
+#endif
 };
 
 static void set_boid_values(BoidValues *val, BoidSettings *boids, ParticleData *pa)
@@ -1069,11 +1071,13 @@ static BoidState *get_boid_state(BoidSettings *boids, ParticleData *pa)
 
   return state;
 }
-// static int boid_condition_is_true(BoidCondition *cond)
-//{
-//  /* TODO */
-//  return 0;
-//}
+
+#if 0 /* TODO  */
+static int boid_condition_is_true(BoidCondition *cond)
+{
+ return 0;
+}
+#endif
 
 /* determines the velocity the boid wants to have */
 void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
@@ -1085,7 +1089,6 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
   BoidParticle *bpa = pa->boid;
   ParticleSystem *psys = bbd->sim->psys;
   int rand;
-  // BoidCondition *cond;
 
   if (bpa->data.health <= 0.0f) {
     pa->alive = PARS_DYING;
@@ -1093,15 +1096,17 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
     return;
   }
 
-  // planned for near future
-  // cond = state->conditions.first;
-  // for (; cond; cond=cond->next) {
-  //  if (boid_condition_is_true(cond)) {
-  //      pa->boid->state_id = cond->state_id;
-  //      state = get_boid_state(boids, pa);
-  //      break; /* only first true condition is used */
-  //  }
-  //}
+  /* Planned for near future. */
+#if 0
+  BoidCondition *cond = state->conditions.first;
+  for (; cond; cond = cond->next) {
+    if (boid_condition_is_true(cond)) {
+      pa->boid->state_id = cond->state_id;
+      state = get_boid_state(boids, pa);
+      break; /* only first true condition is used */
+    }
+  }
+#endif
 
   zero_v3(bbd->wanted_co);
   bbd->wanted_speed = 0.0f;
@@ -1507,20 +1512,22 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
     }
     case eBoidMode_Climbing: {
       boid_climb(boids, pa, ground_co, ground_nor);
-      // float nor[3];
-      // copy_v3_v3(nor, ground_nor);
+#if 0
+      float nor[3];
+      copy_v3_v3(nor, ground_nor);
 
-      ///* gather apparent gravity to r_ve */
-      // madd_v3_v3fl(pa->r_ve, ground_nor, -1.0);
-      // normalize_v3(pa->r_ve);
+      /* Gather apparent gravity to r_ve. */
+      madd_v3_v3fl(pa->r_ve, ground_nor, -1.0);
+      normalize_v3(pa->r_ve);
 
-      ///* raise boid it's size from surface */
-      // mul_v3_fl(nor, pa->size * boids->height);
-      // add_v3_v3v3(pa->state.co, ground_co, nor);
+      /* Raise boid it's size from surface. */
+      mul_v3_fl(nor, pa->size * boids->height);
+      add_v3_v3v3(pa->state.co, ground_co, nor);
 
-      ///* remove normal component from velocity */
-      // project_v3_v3v3(v, pa->state.vel, ground_nor);
-      // sub_v3_v3v3(pa->state.vel, pa->state.vel, v);
+      /* Remove normal component from velocity. */
+      project_v3_v3v3(v, pa->state.vel, ground_nor);
+      sub_v3_v3v3(pa->state.vel, pa->state.vel, v);
+#endif
       break;
     }
     case eBoidMode_OnLand: {
