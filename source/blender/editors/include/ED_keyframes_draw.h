@@ -28,10 +28,7 @@ extern "C" {
 #endif
 
 struct AnimData;
-struct CacheFile;
-struct DLRBT_Tree;
 struct FCurve;
-struct ListBase;
 struct MaskLayer;
 struct Object;
 struct Scene;
