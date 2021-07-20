@@ -663,7 +663,7 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
 
     for (const int i_spline : splines.index_range()) {
       const int eval_size = splines[i_spline]->evaluated_points_size();
-      if (splines[i_spline]->is_cyclic()) {
+      if (splines[i_spline]->is_cyclic() && splines[i_spline]->evaluated_edges_size() > 1) {
         GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + eval_size - 1);
       }
       for (const int i_point : IndexRange(eval_size)) {
