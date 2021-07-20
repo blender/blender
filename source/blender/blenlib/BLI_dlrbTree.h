@@ -111,20 +111,22 @@ void BLI_dlrbTree_linkedlist_sync(DLRBT_Tree *tree);
 /* Searching ------------------------------------ */
 
 /* Find the node which matches or is the closest to the requested node */
-DLRBT_Node *BLI_dlrbTree_search(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *search_data);
+DLRBT_Node *BLI_dlrbTree_search(const DLRBT_Tree *tree,
+                                DLRBT_Comparator_FP cmp_cb,
+                                void *search_data);
 
 /* Find the node which exactly matches the required data */
-DLRBT_Node *BLI_dlrbTree_search_exact(DLRBT_Tree *tree,
+DLRBT_Node *BLI_dlrbTree_search_exact(const DLRBT_Tree *tree,
                                       DLRBT_Comparator_FP cmp_cb,
                                       void *search_data);
 
 /* Find the node which occurs immediately before the best matching node */
-DLRBT_Node *BLI_dlrbTree_search_prev(DLRBT_Tree *tree,
+DLRBT_Node *BLI_dlrbTree_search_prev(const DLRBT_Tree *tree,
                                      DLRBT_Comparator_FP cmp_cb,
                                      void *search_data);
 
 /* Find the node which occurs immediately after the best matching node */
-DLRBT_Node *BLI_dlrbTree_search_next(DLRBT_Tree *tree,
+DLRBT_Node *BLI_dlrbTree_search_next(const DLRBT_Tree *tree,
                                      DLRBT_Comparator_FP cmp_cb,
                                      void *search_data);
 
