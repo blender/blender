@@ -34,6 +34,7 @@ set(SRC
   asset_list.cc
   asset_ops.cc
   asset_temp_id_consumer.cc
+  intern/asset_handle.cc
   intern/asset_library_reference.cc
 
   intern/asset_library_reference.hh
