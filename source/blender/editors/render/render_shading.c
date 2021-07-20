@@ -56,6 +56,7 @@
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -1043,6 +1044,10 @@ static int view_layer_add_aov_exec(bContext *C, wmOperator *UNUSED(op))
     engine = NULL;
   }
 
+  if (scene->nodetree) {
+    ntreeCompositUpdateRLayers(scene->nodetree);
+  }
+
   DEG_id_tag_update(&scene->id, 0);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
@@ -1089,6 +1094,10 @@ static int view_layer_remove_aov_exec(bContext *C, wmOperator *UNUSED(op))
     }
     RE_engine_free(engine);
     engine = NULL;
+  }
+
+  if (scene->nodetree) {
+    ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
   DEG_id_tag_update(&scene->id, 0);
