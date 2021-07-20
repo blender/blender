@@ -58,12 +58,10 @@ static void asset_view_item_but_drag_set(uiBut *but,
     return;
   }
 
-  const blender::StringRef asset_list_path = ED_assetlist_library_path(&list_data->asset_library);
   char blend_path[FILE_MAX_LIBEXTRA];
+  ED_asset_handle_get_full_library_path(NULL, &list_data->asset_library, asset_handle, blend_path);
 
-  char path[FILE_MAX_LIBEXTRA];
-  BLI_join_dirfile(path, sizeof(path), asset_list_path.data(), asset_handle->file_data->relpath);
-  if (BLO_library_path_explode(path, blend_path, nullptr, nullptr)) {
+  if (blend_path[0]) {
     ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
     UI_but_drag_set_asset(but,
                           asset_handle->file_data->name,

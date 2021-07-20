@@ -500,7 +500,7 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
     return {};
   }
   const char *library_path = ED_assetlist_library_path(&library_reference);
-  if (!library_path) {
+  if (!library_path && C) {
     library_path = assetlist_library_path_from_sfile_get_hack(C);
   }
   if (!library_path) {
