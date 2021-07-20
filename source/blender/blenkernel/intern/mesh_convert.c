@@ -212,40 +212,6 @@ static void make_edges_mdata_extend(
 }
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
-/* return non-zero on error */
-int BKE_mesh_nurbs_to_mdata(Object *ob,
-                            MVert **r_allvert,
-                            int *r_totvert,
-                            MEdge **r_alledge,
-                            int *r_totedge,
-                            MLoop **r_allloop,
-                            MPoly **r_allpoly,
-                            int *r_totloop,
-                            int *r_totpoly)
-{
-  ListBase disp = {NULL, NULL};
-
-  if (ob->runtime.curve_cache) {
-    disp = ob->runtime.curve_cache->disp;
-  }
-
-  return BKE_mesh_nurbs_displist_to_mdata(ob,
-                                          &disp,
-                                          r_allvert,
-                                          r_totvert,
-                                          r_alledge,
-                                          r_totedge,
-                                          r_allloop,
-                                          r_allpoly,
-                                          NULL,
-                                          r_totloop,
-                                          r_totpoly);
-}
-
-/* BMESH: this doesn't calculate all edges from polygons,
- * only free standing edges are calculated */
-
-/* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* use specified dispbase */
 int BKE_mesh_nurbs_displist_to_mdata(const Object *ob,
                                      const ListBase *dispbase,

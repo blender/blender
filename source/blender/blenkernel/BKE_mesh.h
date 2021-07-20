@@ -143,15 +143,6 @@ int BKE_mesh_mface_index_validate(struct MFace *mface,
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
-int BKE_mesh_nurbs_to_mdata(struct Object *ob,
-                            struct MVert **r_allvert,
-                            int *r_totvert,
-                            struct MEdge **r_alledge,
-                            int *r_totedge,
-                            struct MLoop **r_allloop,
-                            struct MPoly **r_allpoly,
-                            int *r_totloop,
-                            int *r_totpoly);
 int BKE_mesh_nurbs_displist_to_mdata(const struct Object *ob,
                                      const struct ListBase *dispbase,
                                      struct MVert **r_allvert,
