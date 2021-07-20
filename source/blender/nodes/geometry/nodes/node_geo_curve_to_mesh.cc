@@ -168,16 +168,16 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
 
       MLoop &loop_a = r_loops[ring_segment_loop_offset];
       loop_a.v = ring_vert_offset + i_profile;
-      loop_a.e = ring_edge_start + i_profile;
+      loop_a.e = spline_edge_start + i_ring;
       MLoop &loop_b = r_loops[ring_segment_loop_offset + 1];
-      loop_b.v = ring_vert_offset + i_next_profile;
-      loop_b.e = next_spline_edge_start + i_ring;
+      loop_b.v = next_ring_vert_offset + i_profile;
+      loop_b.e = next_ring_edge_offset + i_profile;
       MLoop &loop_c = r_loops[ring_segment_loop_offset + 2];
       loop_c.v = next_ring_vert_offset + i_next_profile;
-      loop_c.e = next_ring_edge_offset + i_profile;
+      loop_c.e = next_spline_edge_start + i_ring;
       MLoop &loop_d = r_loops[ring_segment_loop_offset + 3];
-      loop_d.v = next_ring_vert_offset + i_profile;
-      loop_d.e = spline_edge_start + i_ring;
+      loop_d.v = ring_vert_offset + i_next_profile;
+      loop_d.e = ring_edge_start + i_profile;
     }
   }
 
