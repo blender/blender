@@ -45,6 +45,8 @@
     .alpha_threshold = 0.5f, \
  \
     .blend_shadow = MA_BS_SOLID, \
+    \
+    .lineart.mat_occlusion = 1, \
   }
 
 /** \} */

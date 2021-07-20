@@ -88,7 +88,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
     name = outnode->name;
     input = outnode->inputs.first;
 
-    if ((STR_ELEM(name, "set_value", "set_rgb", "set_rgba")) && (input->type == type)) {
+    if (STR_ELEM(name, "set_value", "set_rgb", "set_rgba") && (input->type == type)) {
       input = MEM_dupallocN(outnode->inputs.first);
       if (input->link) {
         input->link->users++;

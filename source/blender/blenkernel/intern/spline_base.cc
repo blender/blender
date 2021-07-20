@@ -410,7 +410,7 @@ Spline::LookupResult Spline::lookup_evaluated_length(const float length) const
 
   const float *offset = std::lower_bound(lengths.begin(), lengths.end(), length);
   const int index = offset - lengths.begin();
-  const int next_index = (index == this->size() - 1) ? 0 : index + 1;
+  const int next_index = (index == this->evaluated_points_size() - 1) ? 0 : index + 1;
 
   const float previous_length = (index == 0) ? 0.0f : lengths[index - 1];
   const float factor = (length - previous_length) / (lengths[index] - previous_length);

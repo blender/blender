@@ -53,12 +53,12 @@ static bool is_constant_foldable(NodeOperation *operation)
   return false;
 }
 
-static Vector<NodeOperation *> find_constant_foldable_operations(Span<NodeOperation *> operations)
+static Set<NodeOperation *> find_constant_foldable_operations(Span<NodeOperation *> operations)
 {
-  Vector<NodeOperation *> foldable_ops;
+  Set<NodeOperation *> foldable_ops;
   for (NodeOperation *op : operations) {
     if (is_constant_foldable(op)) {
-      foldable_ops.append(op);
+      foldable_ops.add(op);
     }
   }
   return foldable_ops;
@@ -132,7 +132,7 @@ Vector<MemoryBuffer *> ConstantFolder::get_constant_input_buffers(NodeOperation 
 /** Returns constant operations resulted from folded operations. */
 Vector<ConstantOperation *> ConstantFolder::try_fold_operations(Span<NodeOperation *> operations)
 {
-  Vector<NodeOperation *> foldable_ops = find_constant_foldable_operations(operations);
+  Set<NodeOperation *> foldable_ops = find_constant_foldable_operations(operations);
   if (foldable_ops.size() == 0) {
     return Vector<ConstantOperation *>();
   }

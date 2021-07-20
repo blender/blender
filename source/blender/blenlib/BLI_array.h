@@ -58,7 +58,7 @@ void _bli_array_grow_func(void **arr_p,
 /** \name Public defines
  * \{ */
 
-/** use ``sizeof(*(arr))`` to ensure the array exists and is an array */
+/** use `sizeof(*(arr))` to ensure the array exists and is an array */
 #define BLI_array_declare(arr) \
   int _##arr##_len = ((void)(sizeof(*(arr))), 0); \
   void *_##arr##_static = NULL

@@ -1825,7 +1825,7 @@ static void rna_KeyMapItem_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 #else /* RNA_RUNTIME */
 
 /**
- * expose ``Operator.options`` as its own type so we can control each flags use
+ * expose `Operator.options` as its own type so we can control each flags use
  * (some are read-only).
  */
 static void rna_def_operator_options_runtime(BlenderRNA *brna)

@@ -647,7 +647,8 @@
     .target = NULL, \
     .verts = NULL, \
     .falloff = 4.0f, \
-    .numverts = 0, \
+    .num_mesh_verts = 0, \
+    .num_bind_verts = 0, \
     .numpoly = 0, \
     .flags = 0, \
     .mat = _DNA_DEFAULT_UNIT_M4, \

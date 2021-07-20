@@ -20,15 +20,17 @@
 
 #include "BKE_global.h"
 #include "BLI_rect.h"
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_image_types.h"
 
 namespace blender::compositor {
 
-class ViewerOperation : public NodeOperation {
+class ViewerOperation : public MultiThreadedOperation {
  private:
+  /* TODO(manzanilla): To be removed together with tiled implementation. */
   float *m_outputBuffer;
   float *m_depthBuffer;
+
   Image *m_image;
   ImageUser *m_imageUser;
   bool m_active;
@@ -125,8 +127,12 @@ class ViewerOperation : public NodeOperation {
     this->m_displaySettings = displaySettings;
   }
 
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+
  private:
-  void updateImage(rcti *rect);
+  void updateImage(const rcti *rect);
   void initImage();
 };
 

@@ -189,7 +189,7 @@ static PyObject *bpy_bm_utils_vert_dissolve(PyObject *UNUSED(self), PyObject *ar
 
   bm = py_vert->bm;
 
-  return PyBool_FromLong((BM_vert_dissolve(bm, py_vert->v)));
+  return PyBool_FromLong(BM_vert_dissolve(bm, py_vert->v));
 }
 
 PyDoc_STRVAR(bpy_bm_utils_vert_splice_doc,

@@ -525,7 +525,7 @@ PyObject *PyC_FrozenSetFromStrings(const char **strings)
  *
  * Implementation - we can't actually prepend the existing exception,
  * because it could have _any_ arguments given to it, so instead we get its
- * ``__str__`` output and raise our own exception including it.
+ * `__str__` output and raise our own exception including it.
  */
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...)
 {

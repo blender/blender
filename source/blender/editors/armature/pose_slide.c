@@ -77,7 +77,7 @@
 #include "UI_resources.h"
 
 #include "ED_armature.h"
-#include "ED_keyframes_draw.h"
+#include "ED_keyframes_keylist.h"
 #include "ED_markers.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"

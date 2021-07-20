@@ -34,7 +34,7 @@ static constexpr size_t base_dpi = 96;
 struct window_t {
   GHOST_WindowWayland *w;
   wl_surface *surface;
-  // outputs on which the window is currently shown on
+  /* Outputs on which the window is currently shown on. */
   std::unordered_set<const output_t *> outputs;
   uint16_t dpi = 0;
   int scale = 1;
@@ -154,8 +154,8 @@ static bool update_scale(GHOST_WindowWayland *window)
 
   if (scale > 0 && window->scale() != scale) {
     window->scale() = scale;
-    // using the real DPI will cause wrong scaling of the UI
-    // use a multiplier for the default DPI as workaround
+    /* Using the real DPI will cause wrong scaling of the UI
+     * use a multiplier for the default DPI as workaround. */
     window->dpi() = scale * base_dpi;
     wl_surface_set_buffer_scale(window->surface(), scale);
     return true;

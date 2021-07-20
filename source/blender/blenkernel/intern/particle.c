@@ -4418,12 +4418,12 @@ void psys_get_texture(
 
       if ((event & mtex->mapto) & PAMAP_TIME) {
         /* the first time has to set the base value for time regardless of blend mode */
-        if ((setvars & MAP_PA_TIME) == 0) {
+        if ((setvars & PAMAP_TIME) == 0) {
           int flip = (mtex->timefac < 0.0f);
           float timefac = fabsf(mtex->timefac);
           ptex->time *= 1.0f - timefac;
           ptex->time += timefac * ((flip) ? 1.0f - value : value);
-          setvars |= MAP_PA_TIME;
+          setvars |= PAMAP_TIME;
         }
         else {
           ptex->time = texture_value_blend(def, ptex->time, value, mtex->timefac, blend);

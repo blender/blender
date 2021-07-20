@@ -31,6 +31,8 @@ extern "C" {
 #include "BKE_appdir.h"
 #include "BKE_node.h"
 #include "DNA_node_types.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 }
 
 #include "COM_ExecutionSystem.h"
@@ -50,7 +52,7 @@ std::string DebugInfo::m_current_node_name;
 std::string DebugInfo::m_current_op_name;
 DebugInfo::GroupStateMap DebugInfo::m_group_states;
 
-static std::string operation_class_name(NodeOperation *op)
+static std::string operation_class_name(const NodeOperation *op)
 {
   std::string full_name = typeid(*op).name();
   /* Remove name-spaces. */
@@ -449,6 +451,47 @@ void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
     FILE *fp = BLI_fopen(filename, "wb");
     fputs(str, fp);
     fclose(fp);
+  }
+}
+
+static std::string get_operations_export_dir()
+{
+  return std::string(BKE_tempdir_session()) + "COM_operations" + SEP_STR;
+}
+
+void DebugInfo::export_operation(const NodeOperation *op, MemoryBuffer *render)
+{
+  ImBuf *ibuf = IMB_allocFromBuffer(nullptr,
+                                    render->getBuffer(),
+                                    render->getWidth(),
+                                    render->getHeight(),
+                                    render->get_num_channels());
+
+  const std::string file_name = operation_class_name(op) + "_" + std::to_string(op->get_id()) +
+                                ".png";
+  const std::string path = get_operations_export_dir() + file_name;
+  BLI_make_existing_file(path.c_str());
+  IMB_saveiff(ibuf, path.c_str(), ibuf->flags);
+  IMB_freeImBuf(ibuf);
+}
+
+void DebugInfo::delete_operation_exports()
+{
+  const std::string dir = get_operations_export_dir();
+  if (BLI_exists(dir.c_str())) {
+    struct direntry *file_list;
+    int num_files = BLI_filelist_dir_contents(dir.c_str(), &file_list);
+    for (int i = 0; i < num_files; i++) {
+      direntry *file = &file_list[i];
+      const eFileAttributes file_attrs = BLI_file_attributes(file->path);
+      if (file_attrs & FILE_ATTR_ANY_LINK) {
+        continue;
+      }
+
+      if (BLI_is_file(file->path) && BLI_path_extension_check(file->path, ".png")) {
+        BLI_delete(file->path, false, false);
+      }
+    }
   }
 }
 

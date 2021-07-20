@@ -37,6 +37,8 @@ struct Collection;
 struct ID;
 struct Image;
 struct ListBase;
+struct Material;
+struct Tex;
 struct bGPdata;
 struct bNodeInstanceHash;
 struct bNodeLink;
@@ -44,8 +46,6 @@ struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
 struct uiBlock;
-struct Tex;
-struct Material;
 
 #define NODE_MAXSTR 64
 
@@ -1385,6 +1385,11 @@ typedef struct NodeGeometryCurveSubdivide {
   uint8_t cuts_type;
 } NodeGeometryCurveSubdivide;
 
+typedef struct NodeGeometryCurveTrim {
+  /* GeometryNodeCurveInterpolateMode. */
+  uint8_t mode;
+} NodeGeometryCurveTrim;
+
 typedef struct NodeGeometryCurveToPoints {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
@@ -1943,6 +1948,11 @@ typedef enum GeometryNodeCurveSampleMode {
   GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
   GEO_NODE_CURVE_SAMPLE_EVALUATED = 2,
 } GeometryNodeCurveSampleMode;
+
+typedef enum GeometryNodeCurveInterpolateMode {
+  GEO_NODE_CURVE_INTERPOLATE_FACTOR = 0,
+  GEO_NODE_CURVE_INTERPOLATE_LENGTH = 1,
+} GeometryNodeCurveInterpolateMode;
 
 typedef enum GeometryNodeAttributeTransferMapMode {
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,

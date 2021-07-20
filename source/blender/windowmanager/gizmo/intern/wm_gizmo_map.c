@@ -91,7 +91,7 @@ enum {
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoMap Selection Array API
  *
- * Just handle ``wm_gizmomap_select_array_*``, not flags or callbacks.
+ * Just handle `wm_gizmomap_select_array_*`, not flags or callbacks.
  *
  * \{ */
 

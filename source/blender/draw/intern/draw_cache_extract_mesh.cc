@@ -76,27 +76,23 @@ struct ExtractorRunData {
 
 class ExtractorRunDatas : public Vector<ExtractorRunData> {
  public:
-  void filter_into(ExtractorRunDatas &result, eMRIterType iter_type) const
+  void filter_into(ExtractorRunDatas &result, eMRIterType iter_type, const bool is_mesh) const
   {
     for (const ExtractorRunData &data : *this) {
       const MeshExtract *extractor = data.extractor;
-      if ((iter_type & MR_ITER_LOOPTRI) && extractor->iter_looptri_bm) {
-        BLI_assert(extractor->iter_looptri_mesh);
+      if ((iter_type & MR_ITER_LOOPTRI) && *(&extractor->iter_looptri_bm + is_mesh)) {
         result.append(data);
         continue;
       }
-      if ((iter_type & MR_ITER_POLY) && extractor->iter_poly_bm) {
-        BLI_assert(extractor->iter_poly_mesh);
+      if ((iter_type & MR_ITER_POLY) && *(&extractor->iter_poly_bm + is_mesh)) {
         result.append(data);
         continue;
       }
-      if ((iter_type & MR_ITER_LEDGE) && extractor->iter_ledge_bm) {
-        BLI_assert(extractor->iter_ledge_mesh);
+      if ((iter_type & MR_ITER_LEDGE) && *(&extractor->iter_ledge_bm + is_mesh)) {
         result.append(data);
         continue;
       }
-      if ((iter_type & MR_ITER_LVERT) && extractor->iter_lvert_bm) {
-        BLI_assert(extractor->iter_lvert_mesh);
+      if ((iter_type & MR_ITER_LVERT) && *(&extractor->iter_lvert_bm + is_mesh)) {
         result.append(data);
         continue;
       }
@@ -427,7 +423,7 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
       return;
   }
 
-  extractors->filter_into(range_data.extractors, iter_type);
+  extractors->filter_into(range_data.extractors, iter_type, is_mesh);
   BLI_task_parallel_range(0, stop, &range_data, func, settings);
 }
 

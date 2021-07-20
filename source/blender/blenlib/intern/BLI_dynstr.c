@@ -291,7 +291,7 @@ int BLI_dynstr_get_len(const DynStr *ds)
 /**
  * Get a DynStr's contents as a c-string.
  * The \a rets argument must be allocated to be at
- * least the size of ``BLI_dynstr_get_len(ds) + 1``.
+ * least the size of `BLI_dynstr_get_len(ds) + 1`.
  *
  * \param ds: The DynStr of interest.
  * \param rets: The string to fill.

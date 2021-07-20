@@ -1653,7 +1653,7 @@ static void object_update_from_subsurf_ccg(Object *object)
    *
    * All this is defeating all the designs we need to follow to allow safe
    * threaded evaluation, but this is as good as we can make it within the
-   * current sculpt//evaluated mesh design. This is also how we've survived
+   * current sculpt/evaluated mesh design. This is also how we've survived
    * with old DerivedMesh based solutions. So, while this is all wrong and
    * needs reconsideration, doesn't seem to be a big stopper for real
    * production artists.

@@ -861,9 +861,9 @@ static void action_preview_render_cleanup(IconPreview *preview, struct PoseBacku
   DEG_id_tag_update(&preview->active_object->id, ID_RECALC_GEOMETRY);
 }
 
-/* Render a pose. It is assumed that the pose has already been applied and that the scene camera is
- * capturing the pose. In other words, this function just renders from the scene camera without
- * evaluating the Action stored in preview->id. */
+/* Render a pose from the scene camera. It is assumed that the scene camera is
+ * capturing the pose. The pose is applied temporarily to the current object
+ * before rendering. */
 static void action_preview_render(IconPreview *preview, IconPreviewSize *preview_sized)
 {
   char err_out[256] = "";
@@ -1308,8 +1308,9 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
     scaledy = (float)h;
   }
 
-  ex = (short)scaledx;
-  ey = (short)scaledy;
+  /* Scaling down must never assign zero width/height, see: T89868. */
+  ex = MAX2(1, (short)scaledx);
+  ey = MAX2(1, (short)scaledy);
 
   dx = (w - ex) / 2;
   dy = (h - ey) / 2;

@@ -312,7 +312,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
     mesh->totselect = 0;
   }
 
-  if ((BLO_read_requires_endian_switch(reader)) && mesh->tface) {
+  if (BLO_read_requires_endian_switch(reader) && mesh->tface) {
     TFace *tf = mesh->tface;
     for (int i = 0; i < mesh->totface; i++, tf++) {
       BLI_endian_switch_uint32_array(tf->col, 4);
@@ -1874,6 +1874,8 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
   }
 
   mesh->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
+  mesh->runtime.cd_dirty_poly &= ~CD_MASK_NORMAL;
+  mesh->runtime.cd_dirty_loop &= ~CD_MASK_NORMAL;
 }
 
 void BKE_mesh_calc_normals_split(Mesh *mesh)

@@ -337,7 +337,7 @@ static bool bm_face_split_edgenet_find_loop_walk(BMVert *v_init,
     /* in rare cases there may be edges with a single connecting vertex */
     if (e_next != e_first) {
       do {
-        if ((BM_ELEM_API_FLAG_TEST(e_next, EDGE_NET)) &&
+        if (BM_ELEM_API_FLAG_TEST(e_next, EDGE_NET) &&
             (bm_edge_flagged_radial_count(e_next) < 2)) {
           BMVert *v_next;
 

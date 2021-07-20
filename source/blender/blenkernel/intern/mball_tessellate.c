@@ -305,7 +305,7 @@ static void build_bvh_spatial(PROCESS *process,
 
 /**
  * Computes density from given metaball at given position.
- * Metaball equation is: ``(1 - r^2 / R^2)^3 * s``
+ * Metaball equation is: `(1 - r^2 / R^2)^3 * s`
  *
  * r = distance from center
  * R = metaball radius

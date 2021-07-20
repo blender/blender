@@ -2285,7 +2285,7 @@ struct less_SVertex2D {
     Vec3r A = x->point2D();
     Vec3r B = y->point2D();
     for (unsigned int i = 0; i < 3; i++) {
-      if ((fabs(A[i] - B[i])) < epsilon) {
+      if (fabs(A[i] - B[i]) < epsilon) {
         continue;
       }
       if (A[i] < B[i]) {

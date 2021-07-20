@@ -332,16 +332,6 @@ IDTypeInfo IDType_ID_CU = {
     .lib_override_apply_post = NULL,
 };
 
-static int cu_isectLL(const float v1[3],
-                      const float v2[3],
-                      const float v3[3],
-                      const float v4[3],
-                      short cox,
-                      short coy,
-                      float *lambda,
-                      float *mu,
-                      float vec[3]);
-
 /* frees editcurve entirely */
 void BKE_curve_editfont_free(Curve *cu)
 {
@@ -563,18 +553,6 @@ void BKE_curve_texspace_ensure(Curve *cu)
 {
   if ((cu->texflag & CU_AUTOSPACE) && !(cu->texflag & CU_AUTOSPACE_EVALUATED)) {
     BKE_curve_texspace_calc(cu);
-  }
-}
-
-void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_size[3])
-{
-  BKE_curve_texspace_ensure(cu);
-
-  if (r_loc) {
-    copy_v3_v3(r_loc, cu->loc);
-  }
-  if (r_size) {
-    copy_v3_v3(r_size, cu->size);
   }
 }
 

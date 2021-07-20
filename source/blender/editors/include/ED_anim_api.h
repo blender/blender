@@ -34,9 +34,9 @@ struct ListBase;
 
 struct ARegion;
 struct ARegionType;
+struct FModifier;
 struct Main;
 struct NlaStrip;
-struct FModifier;
 struct PanelType;
 struct ReportList;
 struct ScrArea;

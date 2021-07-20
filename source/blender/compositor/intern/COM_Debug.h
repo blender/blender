@@ -30,6 +30,9 @@ namespace blender::compositor {
 static constexpr bool COM_EXPORT_GRAPHVIZ = false;
 static constexpr bool COM_GRAPHVIZ_SHOW_NODE_NAME = false;
 
+/* Saves operations results to image files. */
+static constexpr bool COM_EXPORT_OPERATION_BUFFERS = false;
+
 class Node;
 class ExecutionSystem;
 class ExecutionGroup;
@@ -75,6 +78,9 @@ class DebugInfo {
         m_group_states[execution_group] = EG_WAIT;
       }
     }
+    if (COM_EXPORT_OPERATION_BUFFERS) {
+      delete_operation_exports();
+    }
   };
 
   static void node_added(const Node *node)
@@ -118,6 +124,14 @@ class DebugInfo {
     }
   };
 
+  static void operation_rendered(const NodeOperation *op, MemoryBuffer *render)
+  {
+    /* Don't export constant operations as there are too many and it's rarely useful. */
+    if (COM_EXPORT_OPERATION_BUFFERS && render && !render->is_a_single_elem()) {
+      export_operation(op, render);
+    }
+  }
+
   static void graphviz(const ExecutionSystem *system, StringRefNull name = "");
 
  protected:
@@ -133,6 +147,9 @@ class DebugInfo {
       const char *name, const char *color, const char *style, char *str, int maxlen);
   static int graphviz_legend(char *str, int maxlen, bool has_execution_groups);
   static bool graphviz_system(const ExecutionSystem *system, char *str, int maxlen);
+
+  static void export_operation(const NodeOperation *op, MemoryBuffer *render);
+  static void delete_operation_exports();
 };
 
 }  // namespace blender::compositor

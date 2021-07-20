@@ -1779,7 +1779,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
 
     item = seq_fast_items[i];
 
-    if ((PyTuple_CheckExact(item)) && (item_size = PyTuple_GET_SIZE(item)) &&
+    if (PyTuple_CheckExact(item) && (item_size = PyTuple_GET_SIZE(item)) &&
         (item_size >= 3 && item_size <= 5) &&
         (tmp.identifier = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
         (tmp.name = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&

@@ -69,8 +69,8 @@ extern "C" {
  * \attention defined in ???
  */
 struct ImBuf;
-struct rcti;
 struct rctf;
+struct rcti;
 
 /**
  *

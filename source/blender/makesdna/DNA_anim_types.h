@@ -210,7 +210,7 @@ typedef struct FMod_Envelope {
 } FMod_Envelope;
 
 /* cycling/repetition modifier data */
-// TODO: we can only do complete cycles...
+/* TODO: we can only do complete cycles. */
 typedef struct FMod_Cycles {
   /** Extrapolation mode to use before first keyframe. */
   short before_mode;

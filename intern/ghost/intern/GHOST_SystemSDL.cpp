@@ -143,7 +143,7 @@ GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings glSetti
 {
   GHOST_Context *context = new GHOST_ContextSDL(0,
                                                 NULL,
-                                                0,  // profile bit
+                                                0, /* Profile bit. */
                                                 3,
                                                 3,
                                                 GHOST_OPENGL_SDL_CONTEXT_FLAGS,
@@ -279,7 +279,7 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
       GXMAP(type, SDL_SCANCODE_AUDIOPLAY, GHOST_kKeyMediaPlay);
       GXMAP(type, SDL_SCANCODE_AUDIOSTOP, GHOST_kKeyMediaStop);
       GXMAP(type, SDL_SCANCODE_AUDIOPREV, GHOST_kKeyMediaFirst);
-      // GXMAP(type,XF86XK_AudioRewind,       GHOST_kKeyMediaFirst);
+      // GXMAP(type, XF86XK_AudioRewind, GHOST_kKeyMediaFirst);
       GXMAP(type, SDL_SCANCODE_AUDIONEXT, GHOST_kKeyMediaLast);
 
       default:
@@ -315,7 +315,10 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       SDL_WindowEvent &sdl_sub_evt = sdl_event->window;
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
-      // assert(window != NULL); // can be NULL on close window.
+      /* Can be NULL on close window. */
+#if 0
+      assert(window != NULL);
+#endif
 
       switch (sdl_sub_evt.event) {
         case SDL_WINDOWEVENT_EXPOSED:
@@ -376,14 +379,14 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
         bounds.wrapPoint(x_new, y_new, 8, window->getCursorGrabAxis());
         window->getCursorGrabAccum(x_accum, y_accum);
 
-        // can't use setCursorPosition because the mouse may have no focus!
+        /* Can't use #setCursorPosition because the mouse may have no focus! */
         if (x_new != x_root || y_new != y_root) {
-          if (1) {  //xme.time > m_last_warp) {
+          if (1 /* `xme.time > m_last_warp` */ ) {
             /* when wrapping we don't need to add an event because the
-             * setCursorPosition call will cause a new event after */
+             * #setCursorPosition call will cause a new event after */
             SDL_WarpMouseInWindow(sdl_win, x_new - x_win, y_new - y_win); /* wrap */
             window->setCursorGrabAccum(x_accum + (x_root - x_new), y_accum + (y_root - y_new));
-            // m_last_warp= lastEventTime(xme.time);
+            // m_last_warp = lastEventTime(xme.time);
           }
           else {
             // setCursorPosition(x_new, y_new); /* wrap but don't accumulate */
@@ -659,8 +662,8 @@ bool GHOST_SystemSDL::generateWindowExposeEvents()
 
 bool GHOST_SystemSDL::processEvents(bool waitForEvent)
 {
-  // Get all the current events -- translate them into
-  // ghost events and call base class pushEvent() method.
+  /* Get all the current events - translate them into
+   * ghost events and call base class #pushEvent() method. */
 
   bool anyProcessed = false;
 
@@ -679,7 +682,7 @@ bool GHOST_SystemSDL::processEvents(bool waitForEvent)
 
         if (maxSleep >= 0) {
           SDL_WaitEventTimeout(NULL, next - getMilliSeconds());
-          // SleepTillEvent(m_display, next - getMilliSeconds()); // X11
+          // SleepTillEvent(m_display, next - getMilliSeconds()); /* X11. */
         }
       }
     }
@@ -707,10 +710,10 @@ GHOST_WindowSDL *GHOST_SystemSDL::findGhostWindow(SDL_Window *sdl_win)
   if (sdl_win == NULL)
     return NULL;
 
-  // It is not entirely safe to do this as the backptr may point
-  // to a window that has recently been removed.
-  // We should always check the window manager's list of windows
-  // and only process events on these windows.
+  /* It is not entirely safe to do this as the backptr may point
+   * to a window that has recently been removed.
+   * We should always check the window manager's list of windows
+   * and only process events on these windows. */
 
   const std::vector<GHOST_IWindow *> &win_vec = m_windowManager->getWindows();
 

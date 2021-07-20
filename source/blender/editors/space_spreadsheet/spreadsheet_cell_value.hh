@@ -22,8 +22,8 @@
 #include "BLI_float2.hh"
 #include "BLI_float3.hh"
 
-struct Object;
 struct Collection;
+struct Object;
 
 namespace blender::ed::spreadsheet {
 

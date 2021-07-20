@@ -30,9 +30,9 @@ extern "C" {
 #include "BLI_ghash.h"
 
 struct Editing;
-struct Sequence;
 struct GSet;
 struct GSetIterator;
+struct Sequence;
 
 #define SEQ_ITERATOR_FOREACH(var, collection) \
   for (SeqIterator iter = {{{NULL}}}; \

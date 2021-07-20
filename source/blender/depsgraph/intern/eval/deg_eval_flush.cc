@@ -58,15 +58,15 @@
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 
-// Invalidate data-block data when update is flushed on it.
-//
-// The idea of this is to help catching cases when area is accessing data which
-// is not yet evaluated, which could happen due to missing relations. The issue
-// is that usually that data will be kept from previous frame, and it looks to
-// be plausible.
-//
-// This ensures that data does not look plausible, making it much easier to
-// catch usage of invalid state.
+/* Invalidate data-block data when update is flushed on it.
+ *
+ * The idea of this is to help catching cases when area is accessing data which
+ * is not yet evaluated, which could happen due to missing relations. The issue
+ * is that usually that data will be kept from previous frame, and it looks to
+ * be plausible.
+ *
+ * This ensures that data does not look plausible, making it much easier to
+ * catch usage of invalid state. */
 #undef INVALIDATE_ON_FLUSH
 
 namespace blender::deg {
@@ -144,10 +144,7 @@ inline void flush_handle_component_node(IDNode *id_node,
    * special component where we don't want all operations to be tagged.
    *
    * TODO(sergey): Make this a more generic solution. */
-  if (!ELEM(comp_node->type,
-            NodeType::PARTICLE_SETTINGS,
-            NodeType::PARTICLE_SYSTEM,
-            NodeType::BATCH_CACHE)) {
+  if (!ELEM(comp_node->type, NodeType::PARTICLE_SETTINGS, NodeType::PARTICLE_SYSTEM)) {
     for (OperationNode *op : comp_node->operations) {
       op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
     }

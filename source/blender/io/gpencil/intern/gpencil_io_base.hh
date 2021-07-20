@@ -37,9 +37,9 @@ struct Object;
 struct RegionView3D;
 struct Scene;
 
-struct bGPdata;
 struct bGPDlayer;
 struct bGPDstroke;
+struct bGPdata;
 
 using blender::Vector;
 

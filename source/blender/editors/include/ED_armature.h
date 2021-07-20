@@ -31,7 +31,6 @@
 extern "C" {
 #endif
 
-struct bAction;
 struct Base;
 struct Bone;
 struct Depsgraph;
@@ -46,6 +45,7 @@ struct Scene;
 struct UndoType;
 struct View3D;
 struct ViewLayer;
+struct bAction;
 struct bArmature;
 struct bContext;
 struct bPoseChannel;
@@ -255,8 +255,8 @@ struct PoseBackup *ED_pose_backup_create_selected_bones(
 struct PoseBackup *ED_pose_backup_create_all_bones(
     const struct Object *ob, const struct bAction *action) ATTR_WARN_UNUSED_RESULT;
 bool ED_pose_backup_is_selection_relevant(const struct PoseBackup *pose_backup);
-void ED_pose_backup_restore(const struct PoseBackup *pose_backup);
-void ED_pose_backup_free(struct PoseBackup *pose_backup);
+void ED_pose_backup_restore(const struct PoseBackup *pbd);
+void ED_pose_backup_free(struct PoseBackup *pbd);
 
 #ifdef __cplusplus
 }

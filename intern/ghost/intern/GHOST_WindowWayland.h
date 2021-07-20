@@ -29,9 +29,9 @@
 
 class GHOST_SystemWayland;
 
+struct output_t;
 struct window_t;
 struct wl_surface;
-struct output_t;
 
 class GHOST_WindowWayland : public GHOST_Window {
  public:

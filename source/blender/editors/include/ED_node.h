@@ -31,6 +31,7 @@ struct ID;
 struct Main;
 struct Scene;
 struct ScrArea;
+struct SpaceNode;
 struct Tex;
 struct View2D;
 struct bContext;
@@ -40,7 +41,6 @@ struct bNodeSocketType;
 struct bNodeTree;
 struct bNodeTreeType;
 struct bNodeType;
-struct SpaceNode;
 
 typedef enum {
   NODE_TOP = 1,

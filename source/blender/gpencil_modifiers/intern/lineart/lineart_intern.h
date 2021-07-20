@@ -33,10 +33,10 @@
 #include <math.h>
 #include <string.h>
 
-struct LineartStaticMemPool;
-struct LineartStaticMemPoolNode;
 struct LineartEdge;
 struct LineartRenderBuffer;
+struct LineartStaticMemPool;
+struct LineartStaticMemPoolNode;
 
 void *lineart_list_append_pointer_pool(ListBase *h, struct LineartStaticMemPool *smp, void *data);
 void *lineart_list_append_pointer_pool_sized(ListBase *h,

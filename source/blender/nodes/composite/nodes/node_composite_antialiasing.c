@@ -42,9 +42,9 @@ static void node_composit_init_antialiasing(bNodeTree *UNUSED(ntree), bNode *nod
 {
   NodeAntiAliasingData *data = MEM_callocN(sizeof(NodeAntiAliasingData), "node antialiasing data");
 
-  data->threshold = 1.0f;
-  data->contrast_limit = 0.2f;
-  data->corner_rounding = 0.25f;
+  data->threshold = CMP_DEFAULT_SMAA_THRESHOLD;
+  data->contrast_limit = CMP_DEFAULT_SMAA_CONTRAST_LIMIT;
+  data->corner_rounding = CMP_DEFAULT_SMAA_CORNER_ROUNDING;
 
   node->storage = data;
 }

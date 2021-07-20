@@ -7424,10 +7424,13 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
     PyObject *metaclass;
     const char *idname = RNA_struct_identifier(srna);
 
-    /* Remove __doc__ for now. */
-    // const char *descr = RNA_struct_ui_description(srna);
-    // if (!descr) descr = "(no docs)";
-    // "__doc__", descr
+    /* Remove `__doc__` for now because we don't need it to generate docs. */
+#if 0
+    const char *descr = RNA_struct_ui_description(srna);
+    if (!descr) {
+      descr = "(no docs)";
+    }
+#endif
 
     if (RNA_struct_idprops_check(srna) &&
         !PyObject_IsSubclass(py_base, (PyObject *)&pyrna_struct_meta_idprop_Type)) {

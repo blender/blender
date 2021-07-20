@@ -31,11 +31,11 @@
 #ifndef WIN32
 #  include <signal.h>
 #  include <stdlib.h>
-#  include <sys/mman.h>  // for mmap
-#  include <unistd.h>    // for read close
+#  include <sys/mman.h> /* For mmap. */
+#  include <unistd.h>   /* For read close. */
 #else
 #  include "BLI_winstuff.h"
-#  include <io.h>  // for open close read
+#  include <io.h> /* For open close read. */
 #endif
 
 struct BLI_mmap_file {

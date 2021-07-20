@@ -26,14 +26,14 @@
 void GHOST_Rect::inset(int32_t i)
 {
   if (i > 0) {
-    // Grow the rectangle
+    /* Grow the rectangle. */
     m_l -= i;
     m_r += i;
     m_t -= i;
     m_b += i;
   }
   else if (i < 0) {
-    // Shrink the rectangle, check for insets larger than half the size
+    /* Shrink the rectangle, check for insets larger than half the size. */
     int32_t i2 = i * 2;
     if (getWidth() > i2) {
       m_l += i;
@@ -62,12 +62,12 @@ GHOST_TVisibility GHOST_Rect::getVisibility(GHOST_Rect &r) const
   bool rb = isInside(r.m_r, r.m_b);
   GHOST_TVisibility v;
   if (lt && rt && lb && rb) {
-    // All points inside, rectangle is inside this
+    /* All points inside, rectangle is inside this. */
     v = GHOST_kFullyVisible;
   }
   else if (!(lt || rt || lb || rb)) {
-    // None of the points inside
-    // Check to see whether the rectangle is larger than this one
+    /* None of the points inside.
+     * Check to see whether the rectangle is larger than this one. */
     if ((r.m_l < m_l) && (r.m_t < m_t) && (r.m_r > m_r) && (r.m_b > m_b)) {
       v = GHOST_kPartiallyVisible;
     }
@@ -76,7 +76,7 @@ GHOST_TVisibility GHOST_Rect::getVisibility(GHOST_Rect &r) const
     }
   }
   else {
-    // Some of the points inside, rectangle is partially inside
+    /* Some of the points inside, rectangle is partially inside. */
     v = GHOST_kPartiallyVisible;
   }
   return v;

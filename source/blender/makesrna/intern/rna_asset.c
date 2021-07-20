@@ -137,7 +137,7 @@ static void rna_AssetHandle_get_full_library_path(
     bContext *C,
     FileDirEntry *asset_file,
     AssetLibraryReference *library,
-    char r_result[FILE_MAX_LIBEXTRA])
+    char r_result[/*FILE_MAX_LIBEXTRA*/])
 {
   AssetHandle asset = {.file_data = asset_file};
   ED_asset_handle_get_full_library_path(C, library, &asset, r_result);

@@ -361,8 +361,10 @@ static bool add_vertex_extrude(const bContext *C,
     }
   }
 
-  //      print_v2("", tangent_point);
-  //      printf("%d\n", point_index);
+#if 0
+  print_v2("", tangent_point);
+  printf("%d\n", point_index);
+#endif
 
   mask_spline_add_point_at_index(spline, point_index);
 

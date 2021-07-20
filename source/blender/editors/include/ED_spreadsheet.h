@@ -16,14 +16,14 @@
 
 #pragma once
 
-struct SpreadsheetContext;
-struct SpaceSpreadsheet;
-struct SpaceNode;
 struct ID;
-struct bNode;
 struct Main;
-struct bContext;
 struct Object;
+struct SpaceNode;
+struct SpaceSpreadsheet;
+struct SpreadsheetContext;
+struct bContext;
+struct bNode;
 
 #ifdef __cplusplus
 extern "C" {

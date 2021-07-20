@@ -368,7 +368,7 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
     else if (pset->edittype == PE_TYPE_SOFTBODY && pid->type == PTCACHE_TYPE_SOFTBODY) {
       if (create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit) {
         pset->flag |= PE_FADE_TIME;
-        // NICE TO HAVE but doesn't work: pset->brushtype = PE_BRUSH_COMB;
+        /* Nice to have but doesn't work: `pset->brushtype = PE_BRUSH_COMB;`. */
         PE_create_particle_edit(depsgraph, scene, ob, pid->cache, NULL);
       }
       edit = pid->cache->edit;
@@ -377,7 +377,7 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
     else if (pset->edittype == PE_TYPE_CLOTH && pid->type == PTCACHE_TYPE_CLOTH) {
       if (create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit) {
         pset->flag |= PE_FADE_TIME;
-        // NICE TO HAVE but doesn't work: pset->brushtype = PE_BRUSH_COMB;
+        /* Nice to have but doesn't work: `pset->brushtype = PE_BRUSH_COMB;`. */
         PE_create_particle_edit(depsgraph, scene, ob, pid->cache, NULL);
       }
       edit = pid->cache->edit;

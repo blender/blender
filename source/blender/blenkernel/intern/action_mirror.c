@@ -324,8 +324,9 @@ static void action_flip_pchan(Object *ob_arm,
 
     /* The rest pose having an X-axis that is not mapping to a left/right direction (so aligned
      * with the Y or Z axis) creates issues when flipping the pose. Instead of a negative scale on
-     * the X-axis, it turns into a 180 degree rotation over the Y-axis. This has only been observed
-     * with non-flippable bones, hence the check for `pchan_flip`. */
+     * the X-axis, it turns into a 180 degree rotation over the Y-axis.
+     * This has only been observed with bones that can't be flipped,
+     * hence the check for `pchan_flip`. */
     const float unit_x[4] = {1.0f, 0.0f, 0.0f, 0.0f};
     const bool is_problematic = pchan_flip == NULL &&
                                 fabsf(dot_v4v4(pchan->bone->arm_mat[0], unit_x)) <= 1e-6;

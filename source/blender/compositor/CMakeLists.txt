@@ -49,8 +49,11 @@ set(SRC
   COM_compositor.h
   COM_defines.h
 
+  intern/COM_BufferArea.h
   intern/COM_BufferOperation.cc
   intern/COM_BufferOperation.h
+  intern/COM_BufferRange.h
+  intern/COM_BuffersIterator.h
   intern/COM_CPUDevice.cc
   intern/COM_CPUDevice.h
   intern/COM_ChunkOrder.cc

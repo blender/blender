@@ -2453,7 +2453,7 @@ bool ui_but_is_rna_valid(uiBut *but)
  */
 bool ui_but_supports_cycling(const uiBut *but)
 {
-  return ((ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER, UI_BTYPE_LISTBOX)) ||
+  return (ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER, UI_BTYPE_LISTBOX) ||
           (but->type == UI_BTYPE_MENU && ui_but_menu_step_poll(but)) ||
           (but->type == UI_BTYPE_COLOR && ((uiButColor *)but)->is_pallete_color) ||
           (but->menu_step_func != NULL));

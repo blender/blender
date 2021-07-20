@@ -100,11 +100,7 @@ enum class OperationCode {
   /* Initialize evaluation of the geometry. Is an entry operation of geometry
    * component. */
   GEOMETRY_EVAL_INIT,
-  /* Evaluate the geometry, including modifiers, and update only batches that
-   * are affected by deform operations. */
-  GEOMETRY_EVAL_DEFORM,
-  /* Evaluate the geometry, including modifiers, but don't update the batch
-   * cache. */
+  /* Evaluate the whole geometry, including modifiers. */
   GEOMETRY_EVAL,
   /* Evaluation of geometry is completely done. */
   GEOMETRY_EVAL_DONE,
@@ -182,9 +178,7 @@ enum class OperationCode {
   WORLD_UPDATE,
 
   /* Batch caches. -------------------------------------------------------- */
-  BATCH_UPDATE_SELECT,
-  BATCH_UPDATE_DEFORM,
-  BATCH_UPDATE_ALL,
+  GEOMETRY_SELECT_UPDATE,
 
   /* Masks. --------------------------------------------------------------- */
   MASK_ANIMATION,

@@ -90,7 +90,7 @@ void GLBackend::platform_init()
       device |= GPU_DEVICE_INTEL_UHD;
     }
   }
-  else if ((strstr(renderer, "Mesa DRI R")) ||
+  else if (strstr(renderer, "Mesa DRI R") ||
            (strstr(renderer, "Radeon") && strstr(vendor, "X.Org")) ||
            (strstr(renderer, "AMD") && strstr(vendor, "X.Org")) ||
            (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||

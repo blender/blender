@@ -507,6 +507,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeMeshToCurve"),
         NodeItem("GeometryNodeCurveToPoints"),
         NodeItem("GeometryNodeCurveEndpoints"),
+        NodeItem("GeometryNodeCurveTrim"),
         NodeItem("GeometryNodeCurveLength"),
         NodeItem("GeometryNodeCurveReverse"),
     ]),

@@ -53,7 +53,7 @@ static void asset_view_item_but_drag_set(uiBut *but,
                                          AssetHandle *asset_handle)
 {
   ID *id = asset_handle->file_data->id;
-  if (id != NULL) {
+  if (id != nullptr) {
     UI_but_drag_set_id(but, id);
     return;
   }
@@ -257,14 +257,14 @@ void uiTemplateAssetView(uiLayout *layout,
 
   if (activate_opname) {
     PointerRNA *ptr = UI_list_custom_activate_operator_set(
-        list, activate_opname, r_activate_op_properties != NULL);
+        list, activate_opname, r_activate_op_properties != nullptr);
     if (r_activate_op_properties && ptr) {
       *r_activate_op_properties = *ptr;
     }
   }
   if (drag_opname) {
     PointerRNA *ptr = UI_list_custom_drag_operator_set(
-        list, drag_opname, r_drag_op_properties != NULL);
+        list, drag_opname, r_drag_op_properties != nullptr);
     if (r_drag_op_properties && ptr) {
       *r_drag_op_properties = *ptr;
     }

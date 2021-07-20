@@ -1803,10 +1803,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
     tri->material_mask_bits |= ((mat && (mat->lineart.flags & LRT_MATERIAL_MASK_ENABLED)) ?
                                     mat->lineart.material_mask_bits :
                                     0);
-    tri->mat_occlusion |= ((mat &&
-                            (mat->lineart.flags & LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS)) ?
-                               mat->lineart.mat_occlusion :
-                               1);
+    tri->mat_occlusion |= (mat ? mat->lineart.mat_occlusion : 1);
 
     tri->intersection_mask = obi->override_intersection_mask;
 
@@ -3442,9 +3439,9 @@ static bool lineart_bounding_area_triangle_intersect(LineartRenderBuffer *fb,
     return true;
   }
 
-  if ((lineart_bounding_area_edge_intersect(fb, FBC1, FBC2, ba)) ||
-      (lineart_bounding_area_edge_intersect(fb, FBC2, FBC3, ba)) ||
-      (lineart_bounding_area_edge_intersect(fb, FBC3, FBC1, ba))) {
+  if (lineart_bounding_area_edge_intersect(fb, FBC1, FBC2, ba) ||
+      lineart_bounding_area_edge_intersect(fb, FBC2, FBC3, ba) ||
+      lineart_bounding_area_edge_intersect(fb, FBC3, FBC1, ba)) {
     return true;
   }
 

@@ -34,9 +34,9 @@ struct ParticleSystem;
 struct Scene;
 struct UndoType;
 struct ViewLayer;
-struct wmGenericUserData;
 struct bContext;
 struct rcti;
+struct wmGenericUserData;
 
 /* particle edit mode */
 void PE_free_ptcache_edit(struct PTCacheEdit *edit);

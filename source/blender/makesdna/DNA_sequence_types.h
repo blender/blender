@@ -43,9 +43,9 @@ extern "C" {
 struct Ipo;
 struct MovieClip;
 struct Scene;
+struct SequenceLookup;
 struct VFont;
 struct bSound;
-struct SequenceLookup;
 
 /* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 

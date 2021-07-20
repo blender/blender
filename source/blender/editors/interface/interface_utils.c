@@ -852,7 +852,7 @@ static bool ui_view2d_cur_ensure_rect_in_view(View2D *v2d, const rctf *rect)
 void UI_but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
 {
   View2D *v2d = &region->v2d;
-  /* Unitialized view or region that doesn't use View2D. */
+  /* Uninitialized view or region that doesn't use View2D. */
   if ((v2d->flag & V2D_IS_INIT) == 0) {
     return;
   }

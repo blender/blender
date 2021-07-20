@@ -26,7 +26,7 @@
  * The Bake API is fully implemented with Python rna functions.
  * The operator expects/call a function:
  *
- * ``def bake(scene, object, pass_type, object_id, pixel_array, num_pixels, depth, result)``
+ * `def bake(scene, object, pass_type, object_id, pixel_array, num_pixels, depth, result)`
  * - scene: current scene (Python object)
  * - object: object to render (Python object)
  * - pass_type: pass to render (string, e.g., "COMBINED", "AO", "NORMAL", ...)
@@ -53,10 +53,10 @@
  * \endcode
  *
  * In python you have access to:
- * - ``primitive_id``, ``object_id``,  ``uv``, ``du_dx``, ``du_dy``, ``next``
- * - ``next()`` is a function that returns the next #BakePixel in the array.
+ * - `primitive_id`, `object_id`, `uv`, `du_dx`, `du_dy`, `next`.
+ * - `next()` is a function that returns the next #BakePixel in the array.
  *
- * \note Pixels that should not be baked have ``primitive_id == -1``
+ * \note Pixels that should not be baked have `primitive_id == -1`.
  *
  * For a complete implementation example look at the Cycles Bake commit.
  */

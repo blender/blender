@@ -1013,14 +1013,14 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
       uiLayoutRow(col, true), imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
 
   /* only display depth setting if multiple depths can be used */
-  if ((ELEM(depth_ok,
-            R_IMF_CHAN_DEPTH_1,
-            R_IMF_CHAN_DEPTH_8,
-            R_IMF_CHAN_DEPTH_10,
-            R_IMF_CHAN_DEPTH_12,
-            R_IMF_CHAN_DEPTH_16,
-            R_IMF_CHAN_DEPTH_24,
-            R_IMF_CHAN_DEPTH_32)) == 0) {
+  if (ELEM(depth_ok,
+           R_IMF_CHAN_DEPTH_1,
+           R_IMF_CHAN_DEPTH_8,
+           R_IMF_CHAN_DEPTH_10,
+           R_IMF_CHAN_DEPTH_12,
+           R_IMF_CHAN_DEPTH_16,
+           R_IMF_CHAN_DEPTH_24,
+           R_IMF_CHAN_DEPTH_32) == 0) {
     uiItemR(uiLayoutRow(col, true), imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   }
 

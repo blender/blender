@@ -10039,6 +10039,32 @@ static void def_geo_curve_to_points(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_curve_trim(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_INTERPOLATE_FACTOR,
+       "FACTOR",
+       0,
+       "Factor",
+       "Find the endpoint positions using a factor of each spline's length"},
+      {GEO_NODE_CURVE_INTERPOLATE_LENGTH,
+       "LENGTH",
+       0,
+       "Length",
+       "Find the endpoint positions using a length from the start of each spline"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCurveTrim", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "How to find endpoint positions for the trimmed spline");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 static void def_geo_attribute_transfer(StructRNA *srna)
 {
   static EnumPropertyItem mapping_items[] = {

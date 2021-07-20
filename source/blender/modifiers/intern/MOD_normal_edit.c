@@ -257,10 +257,10 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
   generate_vert_coordinates(mesh, ob, ob_target, enmd->offset, num_verts, cos, size);
 
   /**
-   * size gives us our spheroid coefficients ``(A, B, C)``.
+   * size gives us our spheroid coefficients `(A, B, C)`.
    * Then, we want to find out for each vert its (a, b, c) triple (proportional to (A, B, C) one).
    *
-   * Ellipsoid basic equation: ``(x^2/a^2) + (y^2/b^2) + (z^2/c^2) = 1.``
+   * Ellipsoid basic equation: `(x^2/a^2) + (y^2/b^2) + (z^2/c^2) = 1`.
    * Since we want to find (a, b, c) matching this equation and proportional to (A, B, C),
    * we can do:
    * <pre>

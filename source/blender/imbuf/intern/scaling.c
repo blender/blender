@@ -1195,22 +1195,9 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 {
   uchar *rect, *_newrect = NULL, *newrect;
   float *rectf, *_newrectf = NULL, *newrectf;
-  float sample, add;
-  float val_a, nval_a, diff_a;
-  float val_b, nval_b, diff_b;
-  float val_g, nval_g, diff_g;
-  float val_r, nval_r, diff_r;
-  float val_af, nval_af, diff_af;
-  float val_bf, nval_bf, diff_bf;
-  float val_gf, nval_gf, diff_gf;
-  float val_rf, nval_rf, diff_rf;
   int x, y;
   bool do_rect = false, do_float = false;
 
-  val_a = nval_a = diff_a = val_b = nval_b = diff_b = 0;
-  val_g = nval_g = diff_g = val_r = nval_r = diff_r = 0;
-  val_af = nval_af = diff_af = val_bf = nval_bf = diff_bf = 0;
-  val_gf = nval_gf = diff_gf = val_rf = nval_rf = diff_rf = 0;
   if (ibuf == NULL) {
     return NULL;
   }
@@ -1236,119 +1223,158 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
     }
   }
 
-  add = (ibuf->x - 1.001) / (newx - 1.0);
-
   rect = (uchar *)ibuf->rect;
   rectf = (float *)ibuf->rect_float;
   newrect = _newrect;
   newrectf = _newrectf;
 
-  for (y = ibuf->y; y > 0; y--) {
-
-    sample = 0;
-
+  /* Special case, copy all columns, needed since the scaling logic assumes there is at least
+   * two rows to interpolate between causing out of bounds read for 1px images, see T70356. */
+  if (UNLIKELY(ibuf->x == 1)) {
     if (do_rect) {
-      val_a = rect[0];
-      nval_a = rect[4];
-      diff_a = nval_a - val_a;
-      val_a += 0.5f;
-
-      val_b = rect[1];
-      nval_b = rect[5];
-      diff_b = nval_b - val_b;
-      val_b += 0.5f;
-
-      val_g = rect[2];
-      nval_g = rect[6];
-      diff_g = nval_g - val_g;
-      val_g += 0.5f;
-
-      val_r = rect[3];
-      nval_r = rect[7];
-      diff_r = nval_r - val_r;
-      val_r += 0.5f;
-
-      rect += 8;
+      for (y = ibuf->y; y > 0; y--) {
+        for (x = newx; x > 0; x--) {
+          memcpy(newrect, rect, sizeof(char[4]));
+          newrect += 4;
+        }
+        rect += 4;
+      }
     }
     if (do_float) {
-      val_af = rectf[0];
-      nval_af = rectf[4];
-      diff_af = nval_af - val_af;
-
-      val_bf = rectf[1];
-      nval_bf = rectf[5];
-      diff_bf = nval_bf - val_bf;
-
-      val_gf = rectf[2];
-      nval_gf = rectf[6];
-      diff_gf = nval_gf - val_gf;
-
-      val_rf = rectf[3];
-      nval_rf = rectf[7];
-      diff_rf = nval_rf - val_rf;
-
-      rectf += 8;
-    }
-    for (x = newx; x > 0; x--) {
-      if (sample >= 1.0f) {
-        sample -= 1.0f;
-
-        if (do_rect) {
-          val_a = nval_a;
-          nval_a = rect[0];
-          diff_a = nval_a - val_a;
-          val_a += 0.5f;
-
-          val_b = nval_b;
-          nval_b = rect[1];
-          diff_b = nval_b - val_b;
-          val_b += 0.5f;
-
-          val_g = nval_g;
-          nval_g = rect[2];
-          diff_g = nval_g - val_g;
-          val_g += 0.5f;
-
-          val_r = nval_r;
-          nval_r = rect[3];
-          diff_r = nval_r - val_r;
-          val_r += 0.5f;
-          rect += 4;
+      for (y = ibuf->y; y > 0; y--) {
+        for (x = newx; x > 0; x--) {
+          memcpy(newrectf, rectf, sizeof(float[4]));
+          newrectf += 4;
         }
-        if (do_float) {
-          val_af = nval_af;
-          nval_af = rectf[0];
-          diff_af = nval_af - val_af;
-
-          val_bf = nval_bf;
-          nval_bf = rectf[1];
-          diff_bf = nval_bf - val_bf;
-
-          val_gf = nval_gf;
-          nval_gf = rectf[2];
-          diff_gf = nval_gf - val_gf;
-
-          val_rf = nval_rf;
-          nval_rf = rectf[3];
-          diff_rf = nval_rf - val_rf;
-          rectf += 4;
-        }
+        rectf += 4;
       }
+    }
+  }
+  else {
+    const float add = (ibuf->x - 1.001) / (newx - 1.0);
+    float sample;
+
+    float val_a, nval_a, diff_a;
+    float val_b, nval_b, diff_b;
+    float val_g, nval_g, diff_g;
+    float val_r, nval_r, diff_r;
+    float val_af, nval_af, diff_af;
+    float val_bf, nval_bf, diff_bf;
+    float val_gf, nval_gf, diff_gf;
+    float val_rf, nval_rf, diff_rf;
+
+    val_a = nval_a = diff_a = val_b = nval_b = diff_b = 0;
+    val_g = nval_g = diff_g = val_r = nval_r = diff_r = 0;
+    val_af = nval_af = diff_af = val_bf = nval_bf = diff_bf = 0;
+    val_gf = nval_gf = diff_gf = val_rf = nval_rf = diff_rf = 0;
+
+    for (y = ibuf->y; y > 0; y--) {
+
+      sample = 0;
+
       if (do_rect) {
-        newrect[0] = val_a + sample * diff_a;
-        newrect[1] = val_b + sample * diff_b;
-        newrect[2] = val_g + sample * diff_g;
-        newrect[3] = val_r + sample * diff_r;
-        newrect += 4;
+        val_a = rect[0];
+        nval_a = rect[4];
+        diff_a = nval_a - val_a;
+        val_a += 0.5f;
+
+        val_b = rect[1];
+        nval_b = rect[5];
+        diff_b = nval_b - val_b;
+        val_b += 0.5f;
+
+        val_g = rect[2];
+        nval_g = rect[6];
+        diff_g = nval_g - val_g;
+        val_g += 0.5f;
+
+        val_r = rect[3];
+        nval_r = rect[7];
+        diff_r = nval_r - val_r;
+        val_r += 0.5f;
+
+        rect += 8;
       }
       if (do_float) {
-        newrectf[0] = val_af + sample * diff_af;
-        newrectf[1] = val_bf + sample * diff_bf;
-        newrectf[2] = val_gf + sample * diff_gf;
-        newrectf[3] = val_rf + sample * diff_rf;
-        newrectf += 4;
+        val_af = rectf[0];
+        nval_af = rectf[4];
+        diff_af = nval_af - val_af;
+
+        val_bf = rectf[1];
+        nval_bf = rectf[5];
+        diff_bf = nval_bf - val_bf;
+
+        val_gf = rectf[2];
+        nval_gf = rectf[6];
+        diff_gf = nval_gf - val_gf;
+
+        val_rf = rectf[3];
+        nval_rf = rectf[7];
+        diff_rf = nval_rf - val_rf;
+
+        rectf += 8;
       }
-      sample += add;
+      for (x = newx; x > 0; x--) {
+        if (sample >= 1.0f) {
+          sample -= 1.0f;
+
+          if (do_rect) {
+            val_a = nval_a;
+            nval_a = rect[0];
+            diff_a = nval_a - val_a;
+            val_a += 0.5f;
+
+            val_b = nval_b;
+            nval_b = rect[1];
+            diff_b = nval_b - val_b;
+            val_b += 0.5f;
+
+            val_g = nval_g;
+            nval_g = rect[2];
+            diff_g = nval_g - val_g;
+            val_g += 0.5f;
+
+            val_r = nval_r;
+            nval_r = rect[3];
+            diff_r = nval_r - val_r;
+            val_r += 0.5f;
+            rect += 4;
+          }
+          if (do_float) {
+            val_af = nval_af;
+            nval_af = rectf[0];
+            diff_af = nval_af - val_af;
+
+            val_bf = nval_bf;
+            nval_bf = rectf[1];
+            diff_bf = nval_bf - val_bf;
+
+            val_gf = nval_gf;
+            nval_gf = rectf[2];
+            diff_gf = nval_gf - val_gf;
+
+            val_rf = nval_rf;
+            nval_rf = rectf[3];
+            diff_rf = nval_rf - val_rf;
+            rectf += 4;
+          }
+        }
+        if (do_rect) {
+          newrect[0] = val_a + sample * diff_a;
+          newrect[1] = val_b + sample * diff_b;
+          newrect[2] = val_g + sample * diff_g;
+          newrect[3] = val_r + sample * diff_r;
+          newrect += 4;
+        }
+        if (do_float) {
+          newrectf[0] = val_af + sample * diff_af;
+          newrectf[1] = val_bf + sample * diff_bf;
+          newrectf[2] = val_gf + sample * diff_gf;
+          newrectf[3] = val_rf + sample * diff_rf;
+          newrectf += 4;
+        }
+        sample += add;
+      }
     }
   }
 
@@ -1371,22 +1397,9 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 {
   uchar *rect, *_newrect = NULL, *newrect;
   float *rectf, *_newrectf = NULL, *newrectf;
-  float sample, add;
-  float val_a, nval_a, diff_a;
-  float val_b, nval_b, diff_b;
-  float val_g, nval_g, diff_g;
-  float val_r, nval_r, diff_r;
-  float val_af, nval_af, diff_af;
-  float val_bf, nval_bf, diff_bf;
-  float val_gf, nval_gf, diff_gf;
-  float val_rf, nval_rf, diff_rf;
   int x, y, skipx;
   bool do_rect = false, do_float = false;
 
-  val_a = nval_a = diff_a = val_b = nval_b = diff_b = 0;
-  val_g = nval_g = diff_g = val_r = nval_r = diff_r = 0;
-  val_af = nval_af = diff_af = val_bf = nval_bf = diff_bf = 0;
-  val_gf = nval_gf = diff_gf = val_rf = nval_rf = diff_rf = 0;
   if (ibuf == NULL) {
     return NULL;
   }
@@ -1412,126 +1425,159 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
     }
   }
 
-  add = (ibuf->y - 1.001) / (newy - 1.0);
-  skipx = 4 * ibuf->x;
-
   rect = (uchar *)ibuf->rect;
   rectf = (float *)ibuf->rect_float;
   newrect = _newrect;
   newrectf = _newrectf;
 
-  for (x = ibuf->x; x > 0; x--) {
+  skipx = 4 * ibuf->x;
 
-    sample = 0;
+  /* Special case, copy all rows, needed since the scaling logic assumes there is at least
+   * two rows to interpolate between causing out of bounds read for 1px images, see T70356. */
+  if (UNLIKELY(ibuf->y == 1)) {
     if (do_rect) {
-      rect = ((uchar *)ibuf->rect) + 4 * (x - 1);
-      newrect = _newrect + 4 * (x - 1);
-
-      val_a = rect[0];
-      nval_a = rect[skipx];
-      diff_a = nval_a - val_a;
-      val_a += 0.5f;
-
-      val_b = rect[1];
-      nval_b = rect[skipx + 1];
-      diff_b = nval_b - val_b;
-      val_b += 0.5f;
-
-      val_g = rect[2];
-      nval_g = rect[skipx + 2];
-      diff_g = nval_g - val_g;
-      val_g += 0.5f;
-
-      val_r = rect[3];
-      nval_r = rect[skipx + 3];
-      diff_r = nval_r - val_r;
-      val_r += 0.5f;
-
-      rect += 2 * skipx;
-    }
-    if (do_float) {
-      rectf = ibuf->rect_float + 4 * (x - 1);
-      newrectf = _newrectf + 4 * (x - 1);
-
-      val_af = rectf[0];
-      nval_af = rectf[skipx];
-      diff_af = nval_af - val_af;
-
-      val_bf = rectf[1];
-      nval_bf = rectf[skipx + 1];
-      diff_bf = nval_bf - val_bf;
-
-      val_gf = rectf[2];
-      nval_gf = rectf[skipx + 2];
-      diff_gf = nval_gf - val_gf;
-
-      val_rf = rectf[3];
-      nval_rf = rectf[skipx + 3];
-      diff_rf = nval_rf - val_rf;
-
-      rectf += 2 * skipx;
-    }
-
-    for (y = newy; y > 0; y--) {
-      if (sample >= 1.0f) {
-        sample -= 1.0f;
-
-        if (do_rect) {
-          val_a = nval_a;
-          nval_a = rect[0];
-          diff_a = nval_a - val_a;
-          val_a += 0.5f;
-
-          val_b = nval_b;
-          nval_b = rect[1];
-          diff_b = nval_b - val_b;
-          val_b += 0.5f;
-
-          val_g = nval_g;
-          nval_g = rect[2];
-          diff_g = nval_g - val_g;
-          val_g += 0.5f;
-
-          val_r = nval_r;
-          nval_r = rect[3];
-          diff_r = nval_r - val_r;
-          val_r += 0.5f;
-          rect += skipx;
-        }
-        if (do_float) {
-          val_af = nval_af;
-          nval_af = rectf[0];
-          diff_af = nval_af - val_af;
-
-          val_bf = nval_bf;
-          nval_bf = rectf[1];
-          diff_bf = nval_bf - val_bf;
-
-          val_gf = nval_gf;
-          nval_gf = rectf[2];
-          diff_gf = nval_gf - val_gf;
-
-          val_rf = nval_rf;
-          nval_rf = rectf[3];
-          diff_rf = nval_rf - val_rf;
-          rectf += skipx;
-        }
-      }
-      if (do_rect) {
-        newrect[0] = val_a + sample * diff_a;
-        newrect[1] = val_b + sample * diff_b;
-        newrect[2] = val_g + sample * diff_g;
-        newrect[3] = val_r + sample * diff_r;
+      for (y = newy; y > 0; y--) {
+        memcpy(newrect, rect, sizeof(char) * skipx);
         newrect += skipx;
       }
-      if (do_float) {
-        newrectf[0] = val_af + sample * diff_af;
-        newrectf[1] = val_bf + sample * diff_bf;
-        newrectf[2] = val_gf + sample * diff_gf;
-        newrectf[3] = val_rf + sample * diff_rf;
+    }
+    if (do_float) {
+      for (y = newy; y > 0; y--) {
+        memcpy(newrectf, rectf, sizeof(float) * skipx);
         newrectf += skipx;
       }
-      sample += add;
+    }
+  }
+  else {
+    const float add = (ibuf->y - 1.001) / (newy - 1.0);
+    float sample;
+
+    float val_a, nval_a, diff_a;
+    float val_b, nval_b, diff_b;
+    float val_g, nval_g, diff_g;
+    float val_r, nval_r, diff_r;
+    float val_af, nval_af, diff_af;
+    float val_bf, nval_bf, diff_bf;
+    float val_gf, nval_gf, diff_gf;
+    float val_rf, nval_rf, diff_rf;
+
+    val_a = nval_a = diff_a = val_b = nval_b = diff_b = 0;
+    val_g = nval_g = diff_g = val_r = nval_r = diff_r = 0;
+    val_af = nval_af = diff_af = val_bf = nval_bf = diff_bf = 0;
+    val_gf = nval_gf = diff_gf = val_rf = nval_rf = diff_rf = 0;
+
+    for (x = ibuf->x; x > 0; x--) {
+      sample = 0;
+      if (do_rect) {
+        rect = ((uchar *)ibuf->rect) + 4 * (x - 1);
+        newrect = _newrect + 4 * (x - 1);
+
+        val_a = rect[0];
+        nval_a = rect[skipx];
+        diff_a = nval_a - val_a;
+        val_a += 0.5f;
+
+        val_b = rect[1];
+        nval_b = rect[skipx + 1];
+        diff_b = nval_b - val_b;
+        val_b += 0.5f;
+
+        val_g = rect[2];
+        nval_g = rect[skipx + 2];
+        diff_g = nval_g - val_g;
+        val_g += 0.5f;
+
+        val_r = rect[3];
+        nval_r = rect[skipx + 3];
+        diff_r = nval_r - val_r;
+        val_r += 0.5f;
+
+        rect += 2 * skipx;
+      }
+      if (do_float) {
+        rectf = ibuf->rect_float + 4 * (x - 1);
+        newrectf = _newrectf + 4 * (x - 1);
+
+        val_af = rectf[0];
+        nval_af = rectf[skipx];
+        diff_af = nval_af - val_af;
+
+        val_bf = rectf[1];
+        nval_bf = rectf[skipx + 1];
+        diff_bf = nval_bf - val_bf;
+
+        val_gf = rectf[2];
+        nval_gf = rectf[skipx + 2];
+        diff_gf = nval_gf - val_gf;
+
+        val_rf = rectf[3];
+        nval_rf = rectf[skipx + 3];
+        diff_rf = nval_rf - val_rf;
+
+        rectf += 2 * skipx;
+      }
+
+      for (y = newy; y > 0; y--) {
+        if (sample >= 1.0f) {
+          sample -= 1.0f;
+
+          if (do_rect) {
+            val_a = nval_a;
+            nval_a = rect[0];
+            diff_a = nval_a - val_a;
+            val_a += 0.5f;
+
+            val_b = nval_b;
+            nval_b = rect[1];
+            diff_b = nval_b - val_b;
+            val_b += 0.5f;
+
+            val_g = nval_g;
+            nval_g = rect[2];
+            diff_g = nval_g - val_g;
+            val_g += 0.5f;
+
+            val_r = nval_r;
+            nval_r = rect[3];
+            diff_r = nval_r - val_r;
+            val_r += 0.5f;
+            rect += skipx;
+          }
+          if (do_float) {
+            val_af = nval_af;
+            nval_af = rectf[0];
+            diff_af = nval_af - val_af;
+
+            val_bf = nval_bf;
+            nval_bf = rectf[1];
+            diff_bf = nval_bf - val_bf;
+
+            val_gf = nval_gf;
+            nval_gf = rectf[2];
+            diff_gf = nval_gf - val_gf;
+
+            val_rf = nval_rf;
+            nval_rf = rectf[3];
+            diff_rf = nval_rf - val_rf;
+            rectf += skipx;
+          }
+        }
+        if (do_rect) {
+          newrect[0] = val_a + sample * diff_a;
+          newrect[1] = val_b + sample * diff_b;
+          newrect[2] = val_g + sample * diff_g;
+          newrect[3] = val_r + sample * diff_r;
+          newrect += skipx;
+        }
+        if (do_float) {
+          newrectf[0] = val_af + sample * diff_af;
+          newrectf[1] = val_bf + sample * diff_bf;
+          newrectf[2] = val_gf + sample * diff_gf;
+          newrectf[3] = val_rf + sample * diff_rf;
+          newrectf += skipx;
+        }
+        sample += add;
+      }
     }
   }
 
@@ -1620,6 +1666,8 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
  */
 bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
+  BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
+
   if (ibuf == NULL) {
     return false;
   }
@@ -1666,6 +1714,8 @@ struct imbufRGBA {
  */
 bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
+  BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
+
   unsigned int *rect, *_newrect, *newrect;
   struct imbufRGBA *rectf, *_newrectf, *newrectf;
   int x, y;
@@ -1838,6 +1888,8 @@ static void *do_scale_thread(void *data_v)
 
 void IMB_scaleImBuf_threaded(ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
+  BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
+
   ScaleTreadInitData init_data = {NULL};
 
   /* prepare initialization data */

@@ -501,7 +501,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
     BLI_assert(0);
   }
 
-  if (ELEM(ob_target->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+  if (BKE_object_supports_vertex_groups(ob_target)) {
     /* get the def_nr for the overall armature vertex group if present */
     armature_def_nr = BKE_object_defgroup_name_index(ob_target, defgrp_name);
 
@@ -529,11 +529,9 @@ static void armature_deform_coords_impl(const Object *ob_arm,
         dverts_len = gps_target->totpoints;
       }
     }
-  }
 
-  /* get a vertex-deform-index to posechannel array */
-  if (deformflag & ARM_DEF_VGROUP) {
-    if (ELEM(ob_target->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
+    /* get a vertex-deform-index to posechannel array */
+    if (deformflag & ARM_DEF_VGROUP) {
       /* if we have a Mesh, only use dverts if it has them */
       if (em_target) {
         cd_dvert_offset = CustomData_get_offset(&em_target->bm->vdata, CD_MDEFORMVERT);

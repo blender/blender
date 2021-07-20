@@ -213,7 +213,8 @@ int SIM_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
   return 1;
 }
 
-void SIM_mass_spring_set_implicit_vertex_mass(Implicit_Data *data, int index, float mass){
+void SIM_mass_spring_set_implicit_vertex_mass(Implicit_Data *data, int index, float mass)
+{
   SIM_mass_spring_set_vertex_mass(data, index, mass);
 }
 
@@ -1051,18 +1052,22 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 
           SIM_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, NULL, NULL);
 
-          // BKE_sim_debug_data_add_circle(
-          //     clmd->debug_data, x, gdensity, 0.7, 0.3, 1,
-          //     "grid density", i, j, 3111);
+#  if 0
+          BKE_sim_debug_data_add_circle(
+              clmd->debug_data, x, gdensity, 0.7, 0.3, 1,
+              "grid density", i, j, 3111);
+#  endif
           if (!is_zero_v3(gvel) || !is_zero_v3(gvel_smooth)) {
             float dvel[3];
             sub_v3_v3v3(dvel, gvel_smooth, gvel);
-            // BKE_sim_debug_data_add_vector(
-            //     clmd->debug_data, x, gvel, 0.4, 0, 1,
-            //     "grid velocity", i, j, 3112);
-            // BKE_sim_debug_data_add_vector(
-            //     clmd->debug_data, x, gvel_smooth, 0.6, 1, 1,
-            //     "grid velocity", i, j, 3113);
+#  if 0
+            BKE_sim_debug_data_add_vector(
+                clmd->debug_data, x, gvel, 0.4, 0, 1,
+                "grid velocity", i, j, 3112);
+            BKE_sim_debug_data_add_vector(
+                clmd->debug_data, x, gvel_smooth, 0.6, 1, 1,
+                "grid velocity", i, j, 3113);
+#  endif
             BKE_sim_debug_data_add_vector(
                 clmd->debug_data, x, dvel, 0.4, 1, 0.7, "grid velocity", i, j, 3114);
 #  if 0
@@ -1073,12 +1078,14 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 
               interp_v3_v3v3(col, col0, col1,
                              CLAMPIS(gdensity * clmd->sim_parms->density_strength, 0.0, 1.0));
-              // BKE_sim_debug_data_add_circle(
-              //     clmd->debug_data, x, gdensity * clmd->sim_parms->density_strength, 0, 1, 0.4,
-              //     "grid velocity", i, j, 3115);
-              // BKE_sim_debug_data_add_dot(
-              //     clmd->debug_data, x, col[0], col[1], col[2],
-              //     "grid velocity", i, j, 3115);
+#    if 0
+              BKE_sim_debug_data_add_circle(
+                  clmd->debug_data, x, gdensity * clmd->sim_parms->density_strength, 0, 1, 0.4,
+                  "grid velocity", i, j, 3115);
+              BKE_sim_debug_data_add_dot(
+                  clmd->debug_data, x, col[0], col[1], col[2],
+                  "grid velocity", i, j, 3115);
+#    endif
               BKE_sim_debug_data_add_circle(
                   clmd->debug_data, x, 0.01f, col[0], col[1], col[2], "grid velocity", i, j, 3115);
             }

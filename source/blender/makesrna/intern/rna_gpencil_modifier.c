@@ -656,6 +656,24 @@ static void rna_TextureGpencilModifier_material_set(PointerRNA *ptr,
   rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
 }
 
+static void rna_Lineart_start_level_set(PointerRNA *ptr, int value)
+{
+  LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)ptr->data;
+
+  CLAMP(value, 0, 128);
+  lmd->level_start = value;
+  lmd->level_end = MAX2(value, lmd->level_end);
+}
+
+static void rna_Lineart_end_level_set(PointerRNA *ptr, int value)
+{
+  LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)ptr->data;
+
+  CLAMP(value, 0, 128);
+  lmd->level_end = value;
+  lmd->level_start = MIN2(value, lmd->level_start);
+}
+
 #else
 
 static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
@@ -3068,12 +3086,14 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Level Start", "Minimum number of occlusions for the generated strokes");
   RNA_def_property_range(prop, 0, 128);
+  RNA_def_property_int_funcs(prop, NULL, "rna_Lineart_start_level_set", NULL);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "level_end", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Level End", "Maximum number of occlusions for the generated strokes");
   RNA_def_property_range(prop, 0, 128);
+  RNA_def_property_int_funcs(prop, NULL, "rna_Lineart_end_level_set", NULL);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "target_material", PROP_POINTER, PROP_NONE);

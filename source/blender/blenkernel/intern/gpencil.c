@@ -2730,7 +2730,7 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
                                               int cfra)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_multiedit = ((GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) && (!GPENCIL_PLAY_ON(gpd)));
+  const bool is_multiedit = (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && (!GPENCIL_PLAY_ON(gpd)));
   const bool is_onion = do_onion && ((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0);
   const bool is_drawing = (gpd->runtime.sbuffer_used > 0);
 
