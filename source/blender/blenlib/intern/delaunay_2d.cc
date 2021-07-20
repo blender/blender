@@ -2851,10 +2851,12 @@ extern "C" ::CDT_result *BLI_delaunay_2d_cdt_calc(const ::CDT_input *input,
     for (int e = 0; e < ne; ++e) {
       tot_e_orig += res.edge_orig[e].size();
     }
-    for (int f = 0; f < nf; ++f) {
+  }
+  for (int f = 0; f < nf; ++f) {
+    if (input->need_ids) {
       tot_f_orig += res.face_orig[f].size();
-      tot_f_lens += res.face[f].size();
     }
+    tot_f_lens += res.face[f].size();
   }
 
   output->vert_coords = static_cast<decltype(output->vert_coords)>(
