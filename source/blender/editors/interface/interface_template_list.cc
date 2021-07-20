@@ -1170,7 +1170,7 @@ uiList *uiTemplateList_ex(uiLayout *layout,
                           enum uiTemplateListFlags flags,
                           void *customdata)
 {
-  TemplateListInputData input_data = {nullptr};
+  TemplateListInputData input_data = {{nullptr}};
   uiListType *ui_list_type;
   if (!ui_template_list_data_retrieve(listtype_name,
                                       list_id,
