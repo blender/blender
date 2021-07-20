@@ -1271,7 +1271,9 @@ PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
   }
 
   if (create_properties) {
-    WM_operator_properties_alloc(&dyn_data->custom_activate_opptr, nullptr, opname);
+    PointerRNA *opptr = dyn_data->custom_activate_opptr;
+    WM_operator_properties_alloc(
+        &dyn_data->custom_activate_opptr, opptr ? (IDProperty **)&opptr->data : nullptr, opname);
   }
 
   return dyn_data->custom_activate_opptr;
@@ -1291,7 +1293,9 @@ PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
   }
 
   if (create_properties) {
-    WM_operator_properties_alloc(&dyn_data->custom_drag_opptr, nullptr, opname);
+    PointerRNA *opptr = dyn_data->custom_drag_opptr;
+    WM_operator_properties_alloc(
+        &dyn_data->custom_drag_opptr, opptr ? (IDProperty **)&opptr->data : nullptr, opname);
   }
 
   return dyn_data->custom_drag_opptr;
