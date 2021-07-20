@@ -2408,6 +2408,8 @@ ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
         continue;
       }
 
+      pbvh_check_vert_boundary(pbvh, v);
+
       MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
       if (mv->flag & DYNVERT_ALL_BOUNDARY) {
         continue;
