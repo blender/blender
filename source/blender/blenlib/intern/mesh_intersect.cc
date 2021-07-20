@@ -1946,7 +1946,7 @@ static int get_cdt_edge_orig(
   if (face_eorig != NO_INDEX) {
     return face_eorig;
   }
-  else if (have_non_face_eorig) {
+  if (have_non_face_eorig) {
     /* This must have been an input to the CDT problem that was an intersection edge. */
     /* TODO: maybe there is an orig index:
      * This happens if an input edge was formed by an input face having
