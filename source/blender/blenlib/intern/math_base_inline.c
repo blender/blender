@@ -410,7 +410,7 @@ MINLINE float pingpongf(float value, float scale)
   return fabsf(fractf((value - scale) / (scale * 2.0f)) * scale * 2.0f - scale);
 }
 
-// Square.
+/* Square. */
 
 MINLINE int square_s(short a)
 {
@@ -442,7 +442,7 @@ MINLINE double square_d(double a)
   return a * a;
 }
 
-// Cube.
+/* Cube. */
 
 MINLINE int cube_s(short a)
 {
@@ -474,7 +474,7 @@ MINLINE double cube_d(double a)
   return a * a * a;
 }
 
-// Min/max
+/* Min/max */
 
 MINLINE float min_ff(float a, float b)
 {

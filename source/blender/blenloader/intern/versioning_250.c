@@ -132,7 +132,7 @@ static void sequencer_init_preview_region(ARegion *region)
   region->v2d.max[0] = 12000.0f;
   region->v2d.max[1] = 12000.0f;
   region->v2d.cur = region->v2d.tot;
-  region->v2d.align = V2D_ALIGN_FREE;  // (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+  region->v2d.align = V2D_ALIGN_FREE; /* `(V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y)` */
   region->v2d.keeptot = V2D_KEEPTOT_FREE;
 }
 
@@ -852,7 +852,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     Object *ob;
 
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-      if (ob->flag & 8192) {  // OB_POSEMODE = 8192
+      if (ob->flag & 8192) { /* OB_POSEMODE = 8192. */
         ob->mode |= OB_MODE_POSE;
       }
     }
@@ -1405,7 +1405,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       }
 
       if ((sce->r.ffcodecdata.flags & FFMPEG_MULTIPLEX_AUDIO) == 0) {
-        sce->r.ffcodecdata.audio_codec = 0x0;  // CODEC_ID_NONE
+        sce->r.ffcodecdata.audio_codec = 0x0; /* `CODEC_ID_NONE` */
       }
 
       SEQ_ALL_BEGIN (sce->ed, seq) {
@@ -1745,7 +1745,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
       /* New Settings */
       if (!MAIN_VERSION_ATLEAST(bmain, 252, 5)) {
-        brush->flag |= BRUSH_SPACE_ATTEN;  // explicitly enable adaptive space
+        brush->flag |= BRUSH_SPACE_ATTEN; /* Explicitly enable adaptive space. */
 
         /* spacing was originally in pixels, convert it to percentage for new version
          * size should not be zero due to sanity check above

@@ -137,7 +137,8 @@ short BLI_dlrbTree_contains(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *
  */
 
 /* Add the given data to the tree, and return the node added */
-// NOTE: for duplicates, the update_cb is called (if available), and the existing node is returned
+/* NOTE: for duplicates, the update_cb is called (if available),
+ * and the existing node is returned. */
 DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree,
                              DLRBT_Comparator_FP cmp_cb,
                              DLRBT_NAlloc_FP new_cb,
@@ -145,7 +146,7 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree,
                              void *data);
 
 /* Remove the given element from the tree and balance again */
-// FIXME: this is not implemented yet...
+/* FIXME: this is not implemented yet... */
 // void BLI_dlrbTree_remove(DLRBT_Tree *tree, DLRBT_Node *node);
 
 /* Node Operations (Manual) --------------------- */

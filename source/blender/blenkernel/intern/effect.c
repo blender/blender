@@ -547,7 +547,7 @@ static float eff_calc_visibility(ListBase *colliders,
   return visibility;
 }
 
-// noise function for wind e.g.
+/* Noise function for wind e.g. */
 static float wind_func(struct RNG *rng, float strength)
 {
   int random = (BLI_rng_get_int(rng) + 1) % 128; /* max 2357 */

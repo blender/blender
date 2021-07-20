@@ -217,7 +217,7 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
   attribs.push_back(NSOpenGLPFAOpenGLProfile);
   attribs.push_back(coreProfile ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy);
 
-  // Pixel Format Attributes for the windowed NSOpenGLContext
+  /* Pixel Format Attributes for the windowed NSOpenGLContext. */
   attribs.push_back(NSOpenGLPFADoubleBuffer);
 
   if (softwareGL) {
@@ -250,7 +250,8 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
   static const bool needAlpha = false;
 #endif
 
-  static bool softwareGL = getenv("BLENDER_SOFTWAREGL");  // command-line argument would be better
+  /* Command-line argument would be better. */
+  static bool softwareGL = getenv("BLENDER_SOFTWAREGL");
 
   std::vector<NSOpenGLPixelFormatAttribute> attribs;
   attribs.reserve(40);
@@ -287,7 +288,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 
   if (m_metalView) {
     if (m_defaultFramebuffer == 0) {
-      // Create a virtual framebuffer
+      /* Create a virtual frame-buffer. */
       [m_openGLContext makeCurrentContext];
       metalInitFramebuffer();
       initClearGL();
@@ -342,11 +343,11 @@ void GHOST_ContextCGL::metalInit()
     /* clang-format on */
     id<MTLDevice> device = m_metalLayer.device;
 
-    // Create a command queue for blit/present operation
+    /* Create a command queue for blit/present operation. */
     m_metalCmdQueue = (MTLCommandQueue *)[device newCommandQueue];
     [m_metalCmdQueue retain];
 
-    // Create shaders for blit operation
+    /* Create shaders for blit operation. */
     NSString *source = @R"msl(
       using namespace metal;
 
@@ -387,7 +388,7 @@ void GHOST_ContextCGL::metalInit()
           "GHOST_ContextCGL::metalInit: newLibraryWithSource:options:error: failed!");
     }
 
-    // Create a render pipeline for blit operation
+    /* Create a render pipeline for blit operation. */
     MTLRenderPipelineDescriptor *desc = [[[MTLRenderPipelineDescriptor alloc] init] autorelease];
 
     desc.fragmentFunction = [library newFunctionWithName:@"fragment_shader"];
@@ -460,7 +461,7 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
         "GHOST_ContextCGL::metalUpdateFramebuffer: CVPixelBufferCreate failed!");
   }
 
-  // Create an OpenGL texture
+  /* Create an OpenGL texture. */
   CVOpenGLTextureCacheRef cvGLTexCache = nil;
   cvret = CVOpenGLTextureCacheCreate(kCFAllocatorDefault,
                                      nil,
@@ -485,7 +486,7 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
   unsigned int glTex;
   glTex = CVOpenGLTextureGetName(cvGLTex);
 
-  // Create a Metal texture
+  /* Create a Metal texture. */
   CVMetalTextureCacheRef cvMetalTexCache = nil;
   cvret = CVMetalTextureCacheCreate(
       kCFAllocatorDefault, nil, m_metalLayer.device, nil, &cvMetalTexCache);

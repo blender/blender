@@ -231,7 +231,7 @@ static bool rule_avoid_collision(BoidRule *rule,
   int n, neighbors = 0, nearest = 0;
   bool ret = 0;
 
-  // check deflector objects first
+  /* Check deflector objects first. */
   if (acbr->options & BRULE_ACOLL_WITH_DEFLECTORS && bbd->sim->colliders) {
     ParticleCollision col;
     BVHTreeRayHit hit;
@@ -293,7 +293,7 @@ static bool rule_avoid_collision(BoidRule *rule,
     }
   }
 
-  // check boids in own system
+  /* Check boids in own system. */
   if (acbr->options & BRULE_ACOLL_WITH_BOIDS) {
     neighbors = BLI_kdtree_3d_range_search_with_len_squared_cb(bbd->sim->psys->tree,
                                                                pa->prev_state.co,

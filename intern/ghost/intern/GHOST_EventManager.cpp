@@ -108,12 +108,12 @@ GHOST_TSuccess GHOST_EventManager::addConsumer(GHOST_IEventConsumer *consumer)
   GHOST_TSuccess success;
   GHOST_ASSERT(consumer, "invalid consumer");
 
-  // Check to see whether the consumer is already in our list
+  /* Check to see whether the consumer is already in our list. */
   TConsumerVector::const_iterator iter = std::find(
       m_consumers.begin(), m_consumers.end(), consumer);
 
   if (iter == m_consumers.end()) {
-    // Add the consumer
+    /* Add the consumer. */
     m_consumers.push_back(consumer);
     success = GHOST_kSuccess;
   }
@@ -128,11 +128,11 @@ GHOST_TSuccess GHOST_EventManager::removeConsumer(GHOST_IEventConsumer *consumer
   GHOST_TSuccess success;
   GHOST_ASSERT(consumer, "invalid consumer");
 
-  // Check to see whether the consumer is in our list
+  /* Check to see whether the consumer is in our list. */
   TConsumerVector::iterator iter = std::find(m_consumers.begin(), m_consumers.end(), consumer);
 
   if (iter != m_consumers.end()) {
-    // Remove the consumer
+    /* Remove the consumer. */
     m_consumers.erase(iter);
     success = GHOST_kSuccess;
   }

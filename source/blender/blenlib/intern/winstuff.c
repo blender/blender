@@ -30,7 +30,7 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  define WIN32_SKIP_HKEY_PROTECTION  // need to use HKEY
+#  define WIN32_SKIP_HKEY_PROTECTION /* Need to use HKEY. */
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"

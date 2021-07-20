@@ -39,14 +39,14 @@ struct Scene;
 
 #define DO_INLINE MALWAYS_INLINE
 
-/* goal defines */
+/* Goal defines. */
 #define SOFTGOALSNAP 0.999f
 
 /* This is approximately the smallest number that can be
  * represented by a float, given its precision. */
 #define ALMOST_ZERO FLT_EPSILON
 
-/* Bits to or into the ClothVertex.flags. */
+/* Bits to or into the #ClothVertex.flags. */
 typedef enum eClothVertexFlag {
   CLOTH_VERT_FLAG_PINNED = (1 << 0),
   CLOTH_VERT_FLAG_NOSELFCOLL = (1 << 1), /* vertex NOT used for self collisions */
@@ -150,7 +150,7 @@ typedef struct ClothSpring {
   float target[3];
 } ClothSpring;
 
-// some macro enhancements for vector treatment
+/* Some macro enhancements for vector treatment. */
 #define VECSUBADDSS(v1, v2, aS, v3, bS) \
   { \
     *(v1) -= *(v2)*aS + *(v3)*bS; \
@@ -211,9 +211,8 @@ typedef enum {
   CLOTH_SPRING_FLAG_NEEDED = (1 << 2), /* Springs has values to be applied. */
 } CLOTH_SPRINGS_FLAGS;
 
-/////////////////////////////////////////////////
-// collision.c
-////////////////////////////////////////////////
+/* -------------------------------------------------------------------- */
+/* collision.c */
 
 struct CollPair;
 
@@ -225,20 +224,17 @@ typedef struct ColliderContacts {
   int totcollisions;
 } ColliderContacts;
 
-// needed for implicit.c
+/* needed for implicit.c */
 int cloth_bvh_collision(struct Depsgraph *depsgraph,
                         struct Object *ob,
                         struct ClothModifierData *clmd,
                         float step,
                         float dt);
 
-////////////////////////////////////////////////
+/* -------------------------------------------------------------------- */
+/* cloth.c */
 
-/////////////////////////////////////////////////
-// cloth.c
-////////////////////////////////////////////////
-
-// needed for modifier.c
+/* Needed for modifier.c */
 void cloth_free_modifier_extern(struct ClothModifierData *clmd);
 void cloth_free_modifier(struct ClothModifierData *clmd);
 void clothModifier_do(struct ClothModifierData *clmd,
@@ -250,17 +246,15 @@ void clothModifier_do(struct ClothModifierData *clmd,
 
 int cloth_uses_vgroup(struct ClothModifierData *clmd);
 
-// needed for collision.c
+/* Needed for collision.c */
 void bvhtree_update_from_cloth(struct ClothModifierData *clmd, bool moving, bool self);
 
-// needed for button_object.c
+/* Needed for button_object.c */
 void cloth_clear_cache(struct Object *ob, struct ClothModifierData *clmd, float framenr);
 
 void cloth_parallel_transport_hair_frame(float mat[3][3],
                                          const float dir_old[3],
                                          const float dir_new[3]);
-
-////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }

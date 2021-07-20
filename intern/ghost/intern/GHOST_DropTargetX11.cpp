@@ -115,8 +115,10 @@ GHOST_DropTargetX11::~GHOST_DropTargetX11()
 /* Based on: https://stackoverflow.com/a/2766963/432509 */
 
 typedef enum DecodeState_e {
-  STATE_SEARCH = 0,  ///< searching for an ampersand to convert
-  STATE_CONVERTING   ///< convert the two proceeding characters from hex
+  /** Searching for an ampersand to convert. */
+  STATE_SEARCH = 0,
+  /** Convert the two proceeding characters from hex. */
+  STATE_CONVERTING
 } DecodeState_e;
 
 void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char *encodedIn)

@@ -283,8 +283,8 @@ GHOST_TSuccess GHOST_ContextEGL::setSwapInterval(int interval)
 
 GHOST_TSuccess GHOST_ContextEGL::getSwapInterval(int &intervalOut)
 {
-  // This is a bit of a kludge because there does not seem to
-  // be a way to query the swap interval with EGL.
+  /* This is a bit of a kludge because there does not seem to
+   * be a way to query the swap interval with EGL. */
   intervalOut = m_swap_interval;
 
   return GHOST_kSuccess;
@@ -365,21 +365,21 @@ static const std::string &api_string(EGLenum api)
 
 GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 {
-  // objects have to be declared here due to the use of goto
+  /* Objects have to be declared here due to the use of `goto`. */
   std::vector<EGLint> attrib_list;
   EGLint num_config = 0;
 
   if (m_stereoVisual)
     fprintf(stderr, "Warning! Stereo OpenGL ES contexts are not supported.\n");
 
-  m_stereoVisual = false;  // It doesn't matter what the Window wants.
+  m_stereoVisual = false; /* It doesn't matter what the Window wants. */
 
   if (!initContextEGLEW()) {
     return GHOST_kFailure;
   }
 
 #ifdef WITH_GL_ANGLE
-  // d3dcompiler_XX.dll needs to be loaded before ANGLE will work
+  /* `d3dcompiler_XX.dll` needs to be loaded before ANGLE will work. */
   if (s_d3dcompiler == NULL) {
     s_d3dcompiler = LoadLibrary(D3DCOMPILER);
 
@@ -410,13 +410,13 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   if (!bindAPI(m_api))
     goto error;
 
-  // build attribute list
+  /* Build attribute list. */
 
   attrib_list.reserve(20);
 
   if (m_api == EGL_OPENGL_ES_API && EGLEW_VERSION_1_2) {
-    // According to the spec it seems that you are required to set EGL_RENDERABLE_TYPE,
-    // but some implementations (ANGLE) do not seem to care.
+    /* According to the spec it seems that you are required to set EGL_RENDERABLE_TYPE,
+     * but some implementations (ANGLE) do not seem to care. */
 
     if (m_contextMajorVersion == 1) {
       attrib_list.push_back(EGL_RENDERABLE_TYPE);
@@ -469,7 +469,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 #endif
 
   if (m_nativeWindow == 0) {
-    // off-screen surface
+    /* Off-screen surface. */
     attrib_list.push_back(EGL_SURFACE_TYPE);
     attrib_list.push_back(EGL_PBUFFER_BIT);
   }
@@ -479,8 +479,8 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   if (!EGL_CHK(::eglChooseConfig(m_display, &(attrib_list[0]), &m_config, 1, &num_config)))
     goto error;
 
-  // A common error is to assume that ChooseConfig worked because it returned EGL_TRUE
-  if (num_config != 1)  // num_config should be exactly 1
+  /* A common error is to assume that ChooseConfig worked because it returned EGL_TRUE. */
+  if (num_config != 1) /* `num_config` should be exactly 1. */
     goto error;
 
   if (m_nativeWindow != 0) {

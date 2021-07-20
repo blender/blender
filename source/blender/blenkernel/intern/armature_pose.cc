@@ -42,7 +42,7 @@ using BoneNameSet = blender::Set<std::string>;
 using ActionApplier =
     blender::FunctionRef<void(PointerRNA *, bAction *, const AnimationEvalContext *)>;
 
-// Forward declarations.
+/* Forward declarations. */
 BoneNameSet pose_apply_find_selected_bones(const bArmature *armature, const bPose *pose);
 void pose_apply_disable_fcurves_for_unselected_bones(bAction *action,
                                                      const BoneNameSet &selected_bone_names);
