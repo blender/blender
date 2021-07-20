@@ -291,6 +291,9 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
           int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
 
           if (fade > 0.05f && fset > 0) {
+            MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+            mv->flag |= DYNVERT_NEED_BOUNDARY;
+
             BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, active_fset);
           }
         }

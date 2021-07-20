@@ -3645,10 +3645,26 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     SCULPT_curvature_begin(ss, node, false);
   }
 
+  const bool have_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
+
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
+    }
+
+    /* ignore boundary verts
+      might want to call normal smooth with
+      rake's projection in this case, I'm not entirely sure
+      - joeedh
+    */
+    if (have_bmesh) {
+      BMVert *v = (BMVert *)vd.vertex.i;
+      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+
+      if (mv->flag & (DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY)) {
+        continue;
+      }
     }
 
     float direction2[3];
