@@ -81,7 +81,10 @@ class NewGeometryNodeTreeAssign(Operator):
         return geometry_modifier_poll(context)
 
     def execute(self, context):
-        modifier = context.object.modifiers.active
+        if context.area.type == 'PROPERTIES':
+            modifier = context.modifier
+        else:
+            modifier = context.object.modifiers.active
 
         if not modifier:
             return {'CANCELLED'}
