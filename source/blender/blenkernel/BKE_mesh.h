@@ -126,8 +126,8 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
 struct Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference);
 
 /* These functions construct a new Mesh,
- * contrary to BKE_mesh_from_nurbs which modifies ob itself. */
-struct Mesh *BKE_mesh_new_nomain_from_curve(struct Object *ob);
+ * contrary to BKE_mesh_to_curve_nurblist which modifies ob itself. */
+struct Mesh *BKE_mesh_new_nomain_from_curve(const struct Object *ob);
 struct Mesh *BKE_mesh_new_nomain_from_curve_displist(const struct Object *ob,
                                                      const struct ListBase *dispbase);
 
@@ -143,23 +143,11 @@ int BKE_mesh_mface_index_validate(struct MFace *mface,
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
-int BKE_mesh_nurbs_displist_to_mdata(const struct Object *ob,
-                                     const struct ListBase *dispbase,
-                                     struct MVert **r_allvert,
-                                     int *r_totvert,
-                                     struct MEdge **r_alledge,
-                                     int *r_totedge,
-                                     struct MLoop **r_allloop,
-                                     struct MPoly **r_allpoly,
-                                     struct MLoopUV **r_alluv,
-                                     int *r_totloop,
-                                     int *r_totpoly);
 void BKE_mesh_from_nurbs_displist(struct Main *bmain,
                                   struct Object *ob,
                                   struct ListBase *dispbase,
                                   const char *obdata_name,
                                   bool temporary);
-void BKE_mesh_from_nurbs(struct Main *bmain, struct Object *ob);
 void BKE_mesh_to_curve_nurblist(const struct Mesh *me,
                                 struct ListBase *nurblist,
                                 const int edge_users_test);
