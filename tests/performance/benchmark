@@ -112,7 +112,7 @@ def run_entry(env: api.TestEnvironment, config: api.TestConfig, row: List, entry
         env.set_blender_executable(pathlib.Path(entry.executable))
     else:
         env.checkout(git_hash)
-        env.build(git_hash)
+        env.build()
 
     # Run test and update output and status.
     entry.status = 'running'
@@ -126,7 +126,7 @@ def run_entry(env: api.TestEnvironment, config: api.TestConfig, row: List, entry
 
     # Restore default logging and Blender executable.
     env.unset_log_file()
-    env.unset_blender_executable()
+    env.set_default_blender_executable()
 
     return True
 
@@ -155,7 +155,7 @@ def cmd_list(env: api.TestEnvironment, argv: List) -> None:
     print('')
 
     print('CONFIGS')
-    configs = env.get_configs(names_only=True)
+    configs = env.get_config_names()
     for config_name in configs:
         print(config_name)
 
