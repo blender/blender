@@ -351,7 +351,8 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "FileSelectEntry");
   RNA_def_property_pointer_funcs(
       prop, "rna_AssetHandle_file_data_get", "rna_AssetHandle_file_data_set", NULL, NULL);
-  RNA_def_property_ui_text(prop, "File Entry", "File data used to refer to the asset");
+  RNA_def_property_ui_text(
+      prop, "File Entry", "TEMPORARY, DO NOT USE - File data used to refer to the asset");
 
   prop = RNA_def_property(srna, "local_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ID");
