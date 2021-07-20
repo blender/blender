@@ -47,27 +47,27 @@ static void vert_extrude_to_mesh_data(const Spline &spline,
                                       const float3 profile_vert,
                                       MutableSpan<MVert> r_verts,
                                       MutableSpan<MEdge> r_edges,
-                                      int vert_offset,
-                                      int edge_offset)
+                                      const int vert_offset,
+                                      const int edge_offset)
 {
   Span<float3> positions = spline.evaluated_positions();
 
   for (const int i : IndexRange(positions.size() - 1)) {
-    MEdge &edge = r_edges[edge_offset++];
+    MEdge &edge = r_edges[edge_offset + i];
     edge.v1 = vert_offset + i;
     edge.v2 = vert_offset + i + 1;
     edge.flag = ME_LOOSEEDGE;
   }
 
   if (spline.is_cyclic() && spline.evaluated_edges_size() > 1) {
-    MEdge &edge = r_edges[edge_offset++];
+    MEdge &edge = r_edges[edge_offset + spline.evaluated_edges_size() - 1];
     edge.v1 = vert_offset;
     edge.v2 = vert_offset + positions.size() - 1;
     edge.flag = ME_LOOSEEDGE;
   }
 
   for (const int i : positions.index_range()) {
-    MVert &vert = r_verts[vert_offset++];
+    MVert &vert = r_verts[vert_offset + i];
     copy_v3_v3(vert.co, positions[i] + profile_vert);
   }
 }
@@ -81,14 +81,14 @@ static void mark_edges_sharp(MutableSpan<MEdge> edges)
 
 static void spline_extrude_to_mesh_data(const Spline &spline,
                                         const Spline &profile_spline,
+                                        const int vert_offset,
+                                        const int edge_offset,
+                                        const int loop_offset,
+                                        const int poly_offset,
                                         MutableSpan<MVert> r_verts,
                                         MutableSpan<MEdge> r_edges,
                                         MutableSpan<MLoop> r_loops,
-                                        MutableSpan<MPoly> r_polys,
-                                        int vert_offset,
-                                        int edge_offset,
-                                        int loop_offset,
-                                        int poly_offset)
+                                        MutableSpan<MPoly> r_polys)
 {
   const int spline_vert_len = spline.evaluated_points_size();
   const int spline_edge_len = spline.evaluated_edges_size();
@@ -111,13 +111,14 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   /* Add the edges running along the length of the curve, starting at each profile vertex. */
   const int spline_edges_start = edge_offset;
   for (const int i_profile : IndexRange(profile_vert_len)) {
+    const int profile_edge_offset = spline_edges_start + i_profile * spline_edge_len;
     for (const int i_ring : IndexRange(spline_edge_len)) {
       const int i_next_ring = (i_ring == spline_vert_len - 1) ? 0 : i_ring + 1;
 
       const int ring_vert_offset = vert_offset + profile_vert_len * i_ring;
       const int next_ring_vert_offset = vert_offset + profile_vert_len * i_next_ring;
 
-      MEdge &edge = r_edges[edge_offset++];
+      MEdge &edge = r_edges[profile_edge_offset + i_ring];
       edge.v1 = ring_vert_offset + i_profile;
       edge.v2 = next_ring_vert_offset + i_profile;
       edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
@@ -125,14 +126,15 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   }
 
   /* Add the edges running along each profile ring. */
-  const int profile_edges_start = edge_offset;
+  const int profile_edges_start = spline_edges_start + profile_vert_len * spline_edge_len;
   for (const int i_ring : IndexRange(spline_vert_len)) {
     const int ring_vert_offset = vert_offset + profile_vert_len * i_ring;
 
+    const int ring_edge_offset = profile_edges_start + i_ring * profile_edge_len;
     for (const int i_profile : IndexRange(profile_edge_len)) {
       const int i_next_profile = (i_profile == profile_vert_len - 1) ? 0 : i_profile + 1;
 
-      MEdge &edge = r_edges[edge_offset++];
+      MEdge &edge = r_edges[ring_edge_offset + i_profile];
       edge.v1 = ring_vert_offset + i_profile;
       edge.v2 = ring_vert_offset + i_next_profile;
       edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
@@ -149,27 +151,31 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
     const int ring_edge_start = profile_edges_start + profile_edge_len * i_ring;
     const int next_ring_edge_offset = profile_edges_start + profile_edge_len * i_next_ring;
 
+    const int ring_poly_offset = poly_offset + i_ring * profile_edge_len;
+    const int ring_loop_offset = loop_offset + i_ring * profile_edge_len * 4;
+
     for (const int i_profile : IndexRange(profile_edge_len)) {
+      const int ring_segment_loop_offset = ring_loop_offset + i_profile * 4;
       const int i_next_profile = (i_profile == profile_vert_len - 1) ? 0 : i_profile + 1;
 
       const int spline_edge_start = spline_edges_start + spline_edge_len * i_profile;
       const int next_spline_edge_start = spline_edges_start + spline_edge_len * i_next_profile;
 
-      MPoly &poly = r_polys[poly_offset++];
-      poly.loopstart = loop_offset;
+      MPoly &poly = r_polys[ring_poly_offset + i_profile];
+      poly.loopstart = ring_segment_loop_offset;
       poly.totloop = 4;
       poly.flag = ME_SMOOTH;
 
-      MLoop &loop_a = r_loops[loop_offset++];
+      MLoop &loop_a = r_loops[ring_segment_loop_offset];
       loop_a.v = ring_vert_offset + i_profile;
       loop_a.e = ring_edge_start + i_profile;
-      MLoop &loop_b = r_loops[loop_offset++];
+      MLoop &loop_b = r_loops[ring_segment_loop_offset + 1];
       loop_b.v = ring_vert_offset + i_next_profile;
       loop_b.e = next_spline_edge_start + i_ring;
-      MLoop &loop_c = r_loops[loop_offset++];
+      MLoop &loop_c = r_loops[ring_segment_loop_offset + 2];
       loop_c.v = next_ring_vert_offset + i_next_profile;
       loop_c.e = next_ring_edge_offset + i_profile;
-      MLoop &loop_d = r_loops[loop_offset++];
+      MLoop &loop_d = r_loops[ring_segment_loop_offset + 3];
       loop_d.v = next_ring_vert_offset + i_profile;
       loop_d.e = spline_edge_start + i_ring;
     }
@@ -185,11 +191,11 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   for (const int i_ring : IndexRange(spline_vert_len)) {
     float4x4 point_matrix = float4x4::from_normalized_axis_data(
         positions[i_ring], normals[i_ring], tangents[i_ring]);
-
     point_matrix.apply_scale(radii[i_ring]);
 
+    const int ring_vert_start = vert_offset + i_ring * profile_vert_len;
     for (const int i_profile : IndexRange(profile_vert_len)) {
-      MVert &vert = r_verts[vert_offset++];
+      MVert &vert = r_verts[ring_vert_start + i_profile];
       copy_v3_v3(vert.co, point_matrix * profile_positions[i_profile]);
     }
   }
@@ -275,7 +281,7 @@ static ResultOffsets calculate_result_offsets(Span<SplinePtr> profiles, Span<Spl
  * Although it would be a sensible decision to use the better topology information available while
  * generating the mesh to also generate the normals, that work may wasted if the output mesh is
  * changed anyway in a way that affects the normals. So currently this code uses the safer /
- * simpler solution of not calculating normals.
+ * simpler solution of deferring normal calculation to the rest of Blender.
  */
 static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &profile)
 {
@@ -303,14 +309,14 @@ static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &pr
           const int i_mesh = spline_start_index + i_profile;
           spline_extrude_to_mesh_data(*curves[i_spline],
                                       *profiles[i_profile],
-                                      {mesh->mvert, mesh->totvert},
-                                      {mesh->medge, mesh->totedge},
-                                      {mesh->mloop, mesh->totloop},
-                                      {mesh->mpoly, mesh->totpoly},
                                       offsets.vert[i_mesh],
                                       offsets.edge[i_mesh],
                                       offsets.loop[i_mesh],
-                                      offsets.poly[i_mesh]);
+                                      offsets.poly[i_mesh],
+                                      {mesh->mvert, mesh->totvert},
+                                      {mesh->medge, mesh->totedge},
+                                      {mesh->mloop, mesh->totloop},
+                                      {mesh->mpoly, mesh->totpoly});
         }
       });
     }
