@@ -1874,7 +1874,7 @@ void text_test(
       vec2<T> start_co = b_vert[arc_origin_vert];
       vec2<T> end_co = b_vert[arc_terminal_vert];
       vec2<T> center_co = 0.5 * (start_co + end_co);
-      BLI_assert(start_co[0] == end_co[2]);
+      BLI_assert(start_co[0] == end_co[0]);
       double radius = abs(math_to_double<T>(end_co[1] - center_co[1]));
       double angle_delta = M_PI / (num_arc_points + 1);
       int start_vert = b_before_arcs_in.vert.size() + arc * num_arc_points;
