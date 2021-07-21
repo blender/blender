@@ -531,6 +531,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
 
   mesh_render_data_update_normals(mr, data_flag);
   mesh_render_data_update_looptris(mr, iter_type, data_flag);
+  mesh_render_data_update_loose_geom(mr, update_task_data->cache, iter_type, data_flag);
   mesh_render_data_update_mat_offsets(mr, update_task_data->cache, data_flag);
 }
 
@@ -685,9 +686,6 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   double rdata_start = PIL_check_seconds_timer();
 #endif
 
-  eMRIterType iter_type = extractors.iter_types();
-  eMRDataType data_flag = extractors.data_types();
-
   MeshRenderData *mr = mesh_render_data_create(me,
                                                extraction_cache,
                                                is_editmode,
@@ -696,8 +694,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                obmat,
                                                do_final,
                                                do_uvedit,
-                                               ts,
-                                               iter_type);
+                                               ts);
   mr->use_hide = use_hide;
   mr->use_subsurf_fdots = use_subsurf_fdots;
   mr->use_final_mesh = do_final;
@@ -705,6 +702,9 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 #ifdef DEBUG_TIME
   double rdata_end = PIL_check_seconds_timer();
 #endif
+
+  eMRIterType iter_type = extractors.iter_types();
+  eMRDataType data_flag = extractors.data_types();
 
   struct TaskNode *task_node_mesh_render_data = mesh_extract_render_data_node_create(
       task_graph, mr, extraction_cache, iter_type, data_flag);

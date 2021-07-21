@@ -247,10 +247,13 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
-                                        const ToolSettings *ts,
-                                        const eMRIterType iter_type);
+                                        const ToolSettings *ts);
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_flag);
+void mesh_render_data_update_loose_geom(MeshRenderData *mr,
+                                        MeshBufferExtractionCache *cache,
+                                        const eMRIterType iter_type,
+                                        const eMRDataType data_flag);
 void mesh_render_data_update_mat_offsets(MeshRenderData *mr,
                                          MeshBufferExtractionCache *cache,
                                          const eMRDataType data_flag);

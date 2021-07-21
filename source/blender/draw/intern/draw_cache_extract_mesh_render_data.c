@@ -165,6 +165,17 @@ static void mesh_render_data_ledges_bm(const MeshRenderData *mr,
   }
 }
 
+void mesh_render_data_update_loose_geom(MeshRenderData *mr,
+                                        MeshBufferExtractionCache *cache,
+                                        const eMRIterType iter_type,
+                                        const eMRDataType data_flag)
+{
+  if (iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) {
+    mesh_render_data_loose_geom_ensure(mr, cache);
+    mesh_render_data_loose_geom_load(mr, cache);
+  }
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */
@@ -454,8 +465,7 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
-                                        const ToolSettings *ts,
-                                        const eMRIterType iter_type)
+                                        const ToolSettings *ts)
 {
   MeshRenderData *mr = MEM_callocN(sizeof(*mr), __func__);
   mr->toolsettings = ts;
@@ -563,11 +573,6 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
     mr->loop_len = bm->totloop;
     mr->poly_len = bm->totface;
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
-  }
-
-  if (iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) {
-    mesh_render_data_loose_geom_ensure(mr, cache);
-    mesh_render_data_loose_geom_load(mr, cache);
   }
 
   return mr;
