@@ -73,7 +73,9 @@ void DerivedNodeTree::destruct_context_recursively(DTreeContext *context)
   context->~DTreeContext();
 }
 
-/* Returns true if there are any cycles in the node tree. */
+/**
+ * \return True when there is a link cycle. Unavailable sockets are ignored.
+ */
 bool DerivedNodeTree::has_link_cycles() const
 {
   for (const NodeTreeRef *tree_ref : used_node_tree_refs_) {
