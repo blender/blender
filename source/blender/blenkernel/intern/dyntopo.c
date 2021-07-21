@@ -3,6 +3,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_array.h"
 #include "BLI_bitmap.h"
@@ -12,6 +13,7 @@
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
 #include "BLI_heap_simple.h"
+#include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
@@ -139,6 +141,9 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
   BM_LOOPS_OF_VERT_ITER_END; \
   } \
   ((void)0)
+
+static bool check_face_is_tri(PBVH *pbvh, BMFace *f);
+static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v);
 
 BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v)
 {
@@ -1440,6 +1445,122 @@ static void short_edge_queue_task_cb(void *__restrict userdata,
   TGSET_ITER_END
 }
 
+ATTR_NO_OPT static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
+{
+  if (f->len == 3) {
+    return true;
+  }
+
+  if (f->len < 3) {
+    printf("pbvh had < 3 vert face!\n");
+    BKE_pbvh_bmesh_remove_face(pbvh, f, false);
+    return false;
+  }
+
+  BMFace **fs = NULL;
+  BMEdge **es = NULL;
+  LinkNode *dbl = NULL;
+  BLI_array_staticdeclare(fs, 32);
+  BLI_array_staticdeclare(es, 32);
+
+  BKE_pbvh_bmesh_remove_face(pbvh, f, true);
+
+  int len = (f->len - 2) * 3;
+
+  BLI_array_grow_items(fs, len);
+  BLI_array_grow_items(es, len);
+
+  int totface = 0;
+  int totedge = 0;
+  MemArena *arena = NULL;
+  struct Heap *heap = NULL;
+
+  if (f->len > 4) {
+    arena = BLI_memarena_new(512, "ngon arena");
+    heap = BLI_heap_new();
+  }
+
+  BM_face_triangulate(pbvh->bm,
+                      f,
+                      fs,
+                      &totface,
+                      es,
+                      &totedge,
+                      &dbl,
+                      MOD_TRIANGULATE_QUAD_FIXED,
+                      MOD_TRIANGULATE_NGON_BEAUTY,
+                      false,
+                      arena,
+                      heap);
+
+  while (totface && dbl) {
+    BMFace *f = dbl->link;
+    LinkNode *next = dbl->next;
+
+    for (int i = 0; i < totface; i++) {
+      if (fs[i] == f) {
+        fs[i] = NULL;
+      }
+    }
+
+    BM_face_kill(pbvh->bm, dbl->link);
+    MEM_freeN(dbl);
+    dbl = next;
+  }
+
+  for (int i = 0; i < totface; i++) {
+    BMFace *f2 = fs[i];
+
+    if (!f2) {
+      continue;
+    }
+
+    BKE_pbvh_bmesh_add_face(pbvh, f2, true, true);
+  }
+
+  BKE_pbvh_bmesh_add_face(pbvh, f, true, true);
+
+  BLI_array_free(fs);
+  BLI_array_free(es);
+
+  if (arena) {
+    BLI_memarena_free(arena);
+  }
+
+  if (heap) {
+    BLI_heap_free(heap, NULL);
+  }
+
+  return false;
+}
+
+ATTR_NO_OPT static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
+{
+  BMFace **fs = NULL;
+  BLI_array_staticdeclare(fs, 32);
+
+  MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+  if (!(mv->flag & DYNVERT_NEED_TRIANGULATE)) {
+    return true;
+  }
+
+  BMIter iter;
+  BMFace *f;
+  BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
+    BLI_array_append(fs, f);
+  }
+
+  mv->flag &= ~DYNVERT_NEED_TRIANGULATE;
+
+  for (int i = 0; i < BLI_array_len(fs); i++) {
+    check_face_is_tri(pbvh, fs[i]);
+  }
+
+  BLI_array_free(fs);
+
+  return false;
+}
+
 /* Create a priority queue containing vertex pairs connected by a long
  * edge as defined by PBVH.bm_max_edge_len.
  *
@@ -1680,6 +1801,9 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
                                   BLI_Buffer *edge_loops)
 {
   BMesh *bm = pbvh->bm;
+
+  check_vert_fan_are_tris(pbvh, e->v1);
+  check_vert_fan_are_tris(pbvh, e->v2);
 
   float co_mid[3], no_mid[3];
   MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v1);
@@ -1967,6 +2091,9 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
                                      EdgeQueueContext *eq_ctx)
 {
   BMVert *v_del, *v_conn;
+
+  check_vert_fan_are_tris(pbvh, e->v1);
+  check_vert_fan_are_tris(pbvh, e->v2);
 
   // customdata interpolation
   if (BM_elem_flag_test(e, BM_ELEM_SEAM)) {
@@ -2409,6 +2536,8 @@ ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
         continue;
       }
 
+      check_vert_fan_are_tris(pbvh, v);
+
       const int val = BM_vert_edge_count(v);
       if (val != 4 && val != 3) {
         continue;
@@ -2519,7 +2648,39 @@ ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
 
       modified = true;
 
+      if (!v->e) {
+        printf("mesh error!\n");
+        continue;
+      }
+
       l = v->e->l;
+
+      bool flipped = false;
+
+      if (val == 4) {
+        // check which quad diagonal to use to split quad
+        // try to preserve hard edges
+
+        float n1[3], n2[3], th1, th2;
+        normal_tri_v3(n1, ls[0]->v->co, ls[1]->v->co, ls[2]->v->co);
+        normal_tri_v3(n2, ls[0]->v->co, ls[2]->v->co, ls[3]->v->co);
+
+        th1 = dot_v3v3(n1, n2);
+
+        normal_tri_v3(n1, ls[1]->v->co, ls[2]->v->co, ls[3]->v->co);
+        normal_tri_v3(n2, ls[1]->v->co, ls[3]->v->co, ls[0]->v->co);
+
+        th2 = dot_v3v3(n1, n2);
+
+        if (th1 > th2) {
+          flipped = true;
+          BMLoop *ls2[4] = {ls[0], ls[1], ls[2], ls[3]};
+
+          for (int j = 0; j < 4; j++) {
+            ls[j] = ls2[(j + 1) % 4];
+          }
+        }
+      }
 
       vs[0] = ls[0]->v;
       vs[1] = ls[1]->v;
@@ -2540,11 +2701,15 @@ ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
         vs[1] = ls[2]->v;
         vs[2] = ls[3]->v;
 
-        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f, false, false);
+        BMFace *example = NULL;
+        if (v->e && v->e->l) {
+          example = v->e->l->f;
+        }
+
+        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, example, false, false);
 
         CustomData_bmesh_swap_data_simple(
             &pbvh->bm->ldata, &f2->l_first->prev->head.data, &ls[3]->head.data);
-
         CustomData_bmesh_copy_data(
             &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &f2->l_first->head.data);
         CustomData_bmesh_copy_data(

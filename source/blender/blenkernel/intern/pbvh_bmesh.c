@@ -1137,7 +1137,8 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
 
   BMEdge *e = v->e;
-  mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY);
+  mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY |
+                DYNVERT_NEED_TRIANGULATE);
 
   if (!e) {
     mv->flag |= DYNVERT_BOUNDARY;
@@ -1155,6 +1156,10 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
         mv->flag |= DYNVERT_FSET_BOUNDARY;
       }
 
+      if (e->l->f->len > 3) {
+        mv->flag |= DYNVERT_NEED_TRIANGULATE;
+      }
+
       lastfset = fset;
       first = false;
 
@@ -1162,6 +1167,10 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
       // which can mess up the loop order
       if (e->l->radial_next != e->l) {
         fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
+
+        if (e->l->radial_next->f->len > 3) {
+          mv->flag |= DYNVERT_NEED_TRIANGULATE;
+        }
 
         if (fset != lastfset) {
           mv->flag |= DYNVERT_FSET_BOUNDARY;
@@ -1557,11 +1566,35 @@ BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, SculptVertRef vertex)
   tribuf->verts[tribuf->totvert - 1] = vertex;
 }
 
+BLI_INLINE void pbvh_tribuf_add_edge(PBVHTriBuf *tribuf, int v1, int v2)
+{
+  tribuf->totedge++;
+
+  if (tribuf->totedge >= tribuf->edges_size) {
+    size_t newsize = (size_t)32 + (size_t)(tribuf->edges_size << 1);
+
+    if (!tribuf->edges) {
+      tribuf->edges = MEM_mallocN(sizeof(*tribuf->edges) * 2ULL * newsize, "tribuf edges");
+    }
+    else {
+      tribuf->edges = MEM_reallocN_id(
+          tribuf->edges, sizeof(*tribuf->edges) * 2ULL * newsize, "tribuf edges");
+    }
+
+    tribuf->edges_size = newsize;
+  }
+
+  int i = (tribuf->totedge - 1) * 2;
+
+  tribuf->edges[i] = v1;
+  tribuf->edges[i + 1] = v2;
+}
+
 /* In order to perform operations on the original node coordinates
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->bm;
 
@@ -1586,6 +1619,12 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     node->tribuf = MEM_callocN(sizeof(*node->tribuf), "node->tribuf");
   }
 
+  BMLoop **loops = NULL;
+  uint(*loops_idx)[3] = NULL;
+
+  BLI_array_staticdeclare(loops, 128);
+  BLI_array_staticdeclare(loops_idx, 128);
+
   PBVHTriBuf *tribufs = NULL;  // material-specific tribuffers
   BLI_array_declare(tribufs);
 
@@ -1593,8 +1632,11 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   node->tribuf->tottri = 0;
   node->tribuf->totvert = 0;
   node->tribuf->totloop = 0;
+  node->tribuf->totedge = 0;
 
   node->flag &= ~PBVH_UpdateTris;
+
+  const int edgeflag = BM_ELEM_TAG_ALT;
 
   BMFace *f;
 
@@ -1607,7 +1649,12 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       continue;
     }
 
-    PBVHTri *tri = pbvh_tribuf_add_tri(node->tribuf);
+    // clear edgeflag for building edge indices later
+    BMLoop *l = f->l_first;
+    do {
+      l->e->head.hflag &= ~edgeflag;
+    } while ((l = l->next) != f->l_first);
+
     const int mat_nr = f->mat_nr;
 
     if (mat_map[mat_nr] == -1) {
@@ -1621,6 +1668,70 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       BLI_array_append(tribufs, _tribuf);
     }
 
+#ifdef DYNTOPO_DYNAMIC_TESS
+    const int tottri = (f->len - 2);
+
+    BLI_array_clear(loops);
+    BLI_array_clear(loops_idx);
+    BLI_array_grow_items(loops, f->len);
+    BLI_array_grow_items(loops_idx, tottri);
+
+    BM_face_calc_tessellation(f, true, loops, loops_idx);
+
+    for (int i = 0; i < tottri; i++) {
+      PBVHTri *tri = pbvh_tribuf_add_tri(node->tribuf);
+      PBVHTriBuf *mat_tribuf = tribufs + mat_map[mat_nr];
+      PBVHTri *mat_tri = pbvh_tribuf_add_tri(mat_tribuf);
+
+      tri->eflag = mat_tri->eflag = 0;
+
+      for (int j = 0; j < 3; j++) {
+        BMLoop *l0 = loops[loops_idx[i][(j + 2) % 3]];
+        BMLoop *l = loops[loops_idx[i][j]];
+        BMLoop *l2 = loops[loops_idx[i][(j + 1) % 3]];
+
+        void **val = NULL;
+
+        bool has_edge = false;
+
+        if (BM_edge_exists(l->v, l2->v)) {
+          tri->eflag |= 1 << j;
+          mat_tri->eflag |= 1 << j;
+        }
+
+        if (!BLI_ghash_ensure_p(vmap, l->v, &val)) {
+          SculptVertRef sv = {(intptr_t)l->v};
+
+          minmax_v3v3_v3(min, max, l->v->co);
+
+          *val = (void *)node->tribuf->totvert;
+          pbvh_tribuf_add_vert(node->tribuf, sv);
+        }
+
+        tri->v[j] = (intptr_t)val[0];
+        tri->l[j] = (intptr_t)l;
+
+        val = NULL;
+        if (!BLI_ghash_ensure_p(mat_vmaps[mat_nr], l->v, &val)) {
+          SculptVertRef sv = {(intptr_t)l->v};
+
+          minmax_v3v3_v3(min, max, l->v->co);
+
+          *val = (void *)mat_tribuf->totvert;
+          pbvh_tribuf_add_vert(mat_tribuf, sv);
+        }
+
+        mat_tri->v[j] = (intptr_t)val[0];
+        mat_tri->l[j] = (intptr_t)l;
+      }
+
+      copy_v3_v3(tri->no, f->no);
+      copy_v3_v3(mat_tri->no, f->no);
+      tri->f.i = (intptr_t)f;
+      mat_tri->f.i = (intptr_t)f;
+    }
+#else
+    PBVHTri *tri = pbvh_tribuf_add_tri(node->tribuf);
     PBVHTriBuf *mat_tribuf = tribufs + mat_map[mat_nr];
     PBVHTri *mat_tri = pbvh_tribuf_add_tri(mat_tribuf);
 
@@ -1640,6 +1751,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       }
 
       tri->v[j] = (intptr_t)val[0];
+      tri->l[j] = (intptr_t)l;
 
       val = NULL;
       if (!BLI_ghash_ensure_p(mat_vmaps[mat_nr], l->v, &val)) {
@@ -1652,6 +1764,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       }
 
       mat_tri->v[j] = (intptr_t)val[0];
+      mat_tri->l[j] = (intptr_t)l;
 
       j++;
 
@@ -1664,8 +1777,41 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
     copy_v3_v3(tri->no, f->no);
     tri->f.i = (intptr_t)f;
+#endif
   }
   TGSET_ITER_END
+
+  TGSET_ITER (f, node->bm_faces) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+
+    int mat_nr = f->mat_nr;
+    PBVHTriBuf *mat_tribuf = tribufs + mat_map[mat_nr];
+
+    BMLoop *l = f->l_first;
+    do {
+      if (l->e->head.hflag & edgeflag) {
+        continue;
+      }
+
+      l->e->head.hflag |= edgeflag;
+
+      int v1 = (int)BLI_ghash_lookup(vmap, (void *)l->e->v1);
+      int v2 = (int)BLI_ghash_lookup(vmap, (void *)l->e->v2);
+
+      pbvh_tribuf_add_edge(node->tribuf, v1, v2);
+
+      v1 = (int)BLI_ghash_lookup(mat_vmaps[mat_nr], (void *)l->e->v1);
+      v2 = (int)BLI_ghash_lookup(mat_vmaps[mat_nr], (void *)l->e->v2);
+
+      pbvh_tribuf_add_edge(mat_tribuf, v1, v2);
+    } while ((l = l->next) != f->l_first);
+  }
+  TGSET_ITER_END
+
+  BLI_array_free(loops);
+  BLI_array_free(loops_idx);
 
   bm->elem_index_dirty |= BM_VERT;
 

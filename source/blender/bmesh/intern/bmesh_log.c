@@ -141,13 +141,22 @@ typedef struct {
   void *customdata;
 } BMLogVert;
 
+#define MAX_FACE_RESERVED 8
+
 typedef struct {
-  uint v_ids[3];
-  uint l_ids[3];
+  uint *v_ids;
+  uint *l_ids;
+  void **customdata;
+
   float no[3];
-  void *customdata[3];
   void *customdata_f;
   char hflag;
+
+  size_t len;
+
+  void *customdata_res[MAX_FACE_RESERVED];
+  uint v_ids_res[MAX_FACE_RESERVED];
+  uint l_ids_res[MAX_FACE_RESERVED];
 } BMLogFace;
 
 /************************* Get/set element IDs ************************/
@@ -328,19 +337,16 @@ static void bm_log_face_customdata(BMesh *bm, BMLog *log, BMFace *f, BMLogFace *
   // forcibly copy id
   // bm_log_copy_id(&bm->pdata, (BMElem *)f, lf->customdata_f);
 
-  BMLoop *l1 = f->l_first;
-  BMLoop *l2 = f->l_first->next;
-  BMLoop *l3 = f->l_first->prev;
-  BMLoop *ls[3] = {l1, l2, l3};
-
-  for (int i = 0; i < 3; i++) {
+  BMLoop *l = f->l_first;
+  int i = 0;
+  do {
     if (lf->customdata[i]) {
       BLI_mempool_free(entry->ldata.pool, lf->customdata[i]);
       lf->customdata[i] = NULL;
     }
 
-    CustomData_bmesh_copy_data(&bm->ldata, &entry->ldata, ls[i]->head.data, &lf->customdata[i]);
-  }
+    CustomData_bmesh_copy_data(&bm->ldata, &entry->ldata, l->head.data, &lf->customdata[i]);
+  } while ((i++, l = l->next) != f->l_first);
 #endif
 }
 
@@ -403,28 +409,40 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
 {
   BMLogEntry *entry = log->current_entry;
   BMLogFace *lf = BLI_mempool_alloc(entry->pool_faces);
-  BMVert *v[3];
 
-  lf->customdata_f = lf->customdata[0] = lf->customdata[1] = lf->customdata[2] = NULL;
-  BLI_assert(f->len == 3);
+  lf->len = (size_t)f->len;
 
-  // BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
-  BM_face_as_array_vert_tri(f, v);
+  bool have_loop_ids = (log->bm->idmap.flag & BM_LOOP);
+
+  if (f->len > MAX_FACE_RESERVED) {
+    lf->v_ids = (int *)MEM_callocN(sizeof(*lf->v_ids) * lf->len, "lf->l_ids");
+    lf->l_ids = (int *)MEM_callocN(sizeof(*lf->l_ids) * lf->len, "lf->l_ids");
+    lf->customdata = (void **)MEM_callocN(sizeof(*lf->l_ids) * lf->len, "lf->l_ids");
+  }
+  else {
+    lf->v_ids = lf->v_ids_res;
+    lf->l_ids = lf->l_ids_res;
+    lf->customdata = lf->customdata_res;
+  }
+
+  lf->customdata_f = NULL;
 
   copy_v3_v3(lf->no, f->no);
 
-  if (log->bm->idmap.flag & BM_LOOP) {
-    lf->l_ids[0] = (uint)BM_ELEM_GET_ID(log->bm, f->l_first);
-    lf->l_ids[1] = (uint)BM_ELEM_GET_ID(log->bm, f->l_first->next);
-    lf->l_ids[2] = (uint)BM_ELEM_GET_ID(log->bm, f->l_first->prev);
-  }
-  else {
-    lf->l_ids[0] = lf->l_ids[1] = lf->l_ids[2] = (uint)-1;
-  }
+  int i = 0;
+  BMLoop *l = f->l_first;
+  do {
+    if (have_loop_ids) {
+      lf->l_ids[i] = (uint)BM_ELEM_GET_ID(log->bm, l);
+    }
+    else {
+      lf->l_ids[i] = (uint)-1;
+    }
 
-  lf->v_ids[0] = bm_log_vert_id_get(log, v[0]);
-  lf->v_ids[1] = bm_log_vert_id_get(log, v[1]);
-  lf->v_ids[2] = bm_log_vert_id_get(log, v[2]);
+    lf->v_ids[i] = bm_log_vert_id_get(log, l->v);
+
+    lf->customdata[i] = NULL;
+  } while ((i++, l = l->next) != f->l_first);
 
   lf->hflag = f->head.hflag;
   return lf;
@@ -482,6 +500,9 @@ static void bm_log_faces_unmake(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
+  BMEdge **e_tri = NULL;
+  BLI_array_staticdeclare(e_tri, 32);
+
   GHASH_ITER (gh_iter, faces) {
     void *key = BLI_ghashIterator_getKey(&gh_iter);
     BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
@@ -493,33 +514,29 @@ static void bm_log_faces_unmake(
       continue;
     }
 
-    BMEdge *e_tri[3];
-    BMLoop *l_iter;
+    BLI_array_clear(e_tri);
+
+    BMLoop *l;
     int i;
 
-    l_iter = BM_FACE_FIRST_LOOP(f);
-    for (i = 0; i < 3; i++, l_iter = l_iter->next) {
-      e_tri[i] = l_iter->e;
-    }
-
     // ensure we have final customdata for face in log
-#ifdef CUSTOMDATA
+
+    l = f->l_first;
+    i = 0;
+    do {
+      if (lf->customdata[i]) {
+        CustomData_bmesh_copy_data(&bm->ldata, &entry->ldata, l->head.data, &lf->customdata[i]);
+      }
+
+      BLI_array_append(e_tri, l->e);
+    } while ((i++, l = l->next) != f->l_first);
+
     if (lf->customdata_f) {
       CustomData_bmesh_copy_data(&bm->pdata, &entry->pdata, f->head.data, &lf->customdata_f);
 
       // forcibly copy id
       // bm_log_copy_id(&bm->pdata, (BMElem *)f, lf->customdata_f);
     }
-
-    BMLoop *ls[3] = {f->l_first, f->l_first->next, f->l_first->prev};
-
-    for (i = 0; i < 3; i++) {
-      if (lf->customdata[i]) {
-        CustomData_bmesh_copy_data(
-            &bm->ldata, &entry->ldata, ls[i]->head.data, &lf->customdata[i]);
-      }
-    }
-#endif
 
     if (callbacks) {
       callbacks->on_face_kill(f, callbacks->userdata);
@@ -528,12 +545,14 @@ static void bm_log_faces_unmake(
     BM_face_kill(bm, f);
 
     /* Remove any unused edges */
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < (int)lf->len; i++) {
       if (BM_edge_is_wire(e_tri[i])) {
         BM_edge_kill(bm, e_tri[i]);
       }
     }
   }
+
+  BLI_array_free(e_tri);
 }
 
 static void bm_log_verts_restore(
@@ -568,35 +587,53 @@ static void bm_log_faces_restore(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
+  BMVert **vs_tmp = NULL;
+  BLI_array_staticdeclare(vs_tmp, 32);
+
+  bool have_loop_ids = (log->bm->idmap.flag & BM_LOOP);
+
   GHASH_ITER (gh_iter, faces) {
     void *key = BLI_ghashIterator_getKey(&gh_iter);
     BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
-    BMVert *v[3] = {
-        bm_log_vert_from_id(log, lf->v_ids[0]),
-        bm_log_vert_from_id(log, lf->v_ids[1]),
-        bm_log_vert_from_id(log, lf->v_ids[2]),
-    };
-    BMFace *f;
 
-    if (!v[0] || !v[1] || !v[2]) {
-      BMIter iter;
-      BMVert *v2;
-      const int cd_id = bm->idmap.cd_id_off[BM_VERT];
+    BLI_array_clear(vs_tmp);
+    bool bad = false;
 
-      BM_ITER_MESH (v2, &iter, bm, BM_VERTS_OF_MESH) {
-        int id = BM_ELEM_CD_GET_INT(v2, cd_id);
+    for (int i = 0; i < (int)lf->len; i++) {
+      BMVert *v = bm_log_vert_from_id(log, lf->v_ids[i]);
 
-        for (int i = 0; i < 3; i++) {
-          if (!v[i] && lf->v_ids[i] == (uint)id) {
-            printf("found vertex\n");
+      if (!v) {
+        BMIter iter;
+        BMVert *v2;
+        const int cd_id = bm->idmap.cd_id_off[BM_VERT];
+
+        bad = true;
+
+        BM_ITER_MESH (v2, &iter, bm, BM_VERTS_OF_MESH) {
+          int id = BM_ELEM_CD_GET_INT(v2, cd_id);
+
+          if (lf->v_ids[i] == (uint)id) {
+            printf("found vertex %d\n", id);
+            bad = false;
+            v = v2;
+            break;
           }
         }
+
+        if (bad) {
+          printf("Undo error! %p %p %p\n", v[0], v[1], v[2]);
+          break;
+        }
       }
-      printf("Undo error! %p %p %p\n", v[0], v[1], v[2]);
-      continue;
+
+      if (bad) {
+        continue;
+      }
+
+      BLI_array_append(vs_tmp, v);
     }
 
-    f = BM_face_create_verts(bm, v, 3, NULL, BM_CREATE_SKIP_ID, true);
+    BMFace *f = BM_face_create_verts(bm, vs_tmp, (int)lf->len, NULL, BM_CREATE_SKIP_ID, true);
     f->head.hflag = lf->hflag;
 
     copy_v3_v3(f->no, lf->no);
@@ -607,23 +644,25 @@ static void bm_log_faces_restore(
 
     bm_assign_id(bm, (BMElem *)f, POINTER_AS_UINT(key));
 
-    BMLoop *ls[3] = {f->l_first, f->l_first->next, f->l_first->prev};
+    BMLoop *l = f->l_first;
+    int j = 0;
 
-    for (int i = 0; i < 3; i++) {
-      if (lf->l_ids[i] != (uint)-1) {
-        bm_assign_id(bm, (BMElem *)ls[i], lf->l_ids[i]);
+    do {
+      if (have_loop_ids) {
+        bm_assign_id(bm, (BMElem *)l, lf->l_ids[j]);
       }
 
-      if (lf->customdata[i]) {
-        CustomData_bmesh_copy_data(
-            &entry->ldata, &bm->ldata, lf->customdata[i], &ls[i]->head.data);
+      if (lf->customdata[j]) {
+        CustomData_bmesh_copy_data(&entry->ldata, &bm->ldata, lf->customdata[j], &l->head.data);
       }
-    }
+    } while ((j++, l = l->next) != f->l_first);
 
     if (callbacks) {
       callbacks->on_face_add(f, callbacks->userdata);
     }
   }
+
+  BLI_array_free(vs_tmp);
 }
 
 static void bm_log_vert_values_swap(
@@ -691,7 +730,6 @@ static void bm_log_face_values_swap(BMLog *log,
 
     void *old_cdata = NULL;
 
-#ifdef CUSTOMDATA
     if (f->head.data) {
       old_cdata = scratch;
       memcpy(old_cdata, f->head.data, (size_t)log->bm->pdata.totsize);
@@ -701,15 +739,15 @@ static void bm_log_face_values_swap(BMLog *log,
       CustomData_bmesh_swap_data(&entry->pdata, &log->bm->pdata, lf->customdata_f, &f->head.data);
     }
 
-    BMLoop *ls[3] = {f->l_first, f->l_first->next, f->l_first->prev};
+    int i = 0;
+    BMLoop *l = f->l_first;
 
-    for (int i = 0; i < 3; i++) {
+    do {
       if (lf->customdata[i]) {
         CustomData_bmesh_swap_data(
-            &entry->ldata, &log->bm->ldata, lf->customdata[i], &ls[i]->head.data);
+            &entry->ldata, &log->bm->ldata, lf->customdata[i], &l->head.data);
       }
-    }
-#endif
+    } while ((i++, l = l->next) != f->l_first);
 
     if (callbacks) {
       callbacks->on_face_change(f, callbacks->userdata, old_cdata);
@@ -1544,9 +1582,6 @@ void BM_log_face_added(BMLog *log, BMFace *f)
   BMLogFace *lf;
   uint f_id = (uint)BM_ELEM_GET_ID(log->bm, f);
   void *key = POINTER_FROM_UINT(f_id);
-
-  /* Only triangles are supported for now */
-  BLI_assert(f->len == 3);
 
   lf = bm_log_face_alloc(log, f);
   log_ghash_insert(log, log->current_entry->added_faces, key, lf);

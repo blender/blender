@@ -9462,8 +9462,9 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
                    sd->symmetrize_direction,
                    dist,
                    true);
+#ifndef DYNTOPO_DYNAMIC_TESS
       SCULPT_dynamic_topology_triangulate(ss, ss->bm);
-
+#endif
       /* Bisect operator flags edges (keep tags clean for edge queue). */
       BM_mesh_elem_hflag_disable_all(ss->bm, BM_EDGE, BM_ELEM_TAG, false);
 
@@ -9600,10 +9601,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
     const char *message_unsupported = NULL;
-    if (me->totloop != me->totpoly * 3) {
-      message_unsupported = TIP_("non-triangle face");
-    }
-    else if (mmd != NULL) {
+    if (mmd != NULL) {
       message_unsupported = TIP_("multi-res modifier");
     }
     else {

@@ -508,7 +508,10 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                                            .active_shapekey = ob->shapenr,
                                        }));
 #endif
+
+#ifndef DYNTOPO_DYNAMIC_TESS
   SCULPT_dynamic_topology_triangulate(ss, ss->bm);
+#endif
 
   SCULPT_dyntopo_node_layers_add(ss);
   SCULPT_dyntopo_save_origverts(ss);

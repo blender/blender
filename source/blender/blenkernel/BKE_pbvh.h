@@ -54,7 +54,9 @@ BLI_INLINE SculptFaceRef BKE_pbvh_make_fref(intptr_t i)
 }
 
 typedef struct PBVHTri {
-  int v[3];  // references into PBVHTriBuf->verts
+  int v[3];       // references into PBVHTriBuf->verts
+  intptr_t l[3];  // loops
+  int eflag;      // bitmask of which edges in the tri are real edges in the mesh
 
   float no[3];
   SculptFaceRef f;
@@ -63,8 +65,9 @@ typedef struct PBVHTri {
 typedef struct PBVHTriBuf {
   PBVHTri *tris;
   SculptVertRef *verts;
-  int tottri, totvert;
-  int tris_size, verts_size;
+  int *edges;
+  int totvert, totedge, tottri;
+  int verts_size, edges_size, tris_size;
 
   // private field
   intptr_t *loops;
@@ -735,6 +738,8 @@ PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
 struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
 void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, struct BMVert *v);
+
+#define DYNTOPO_DYNAMIC_TESS
 
 #ifdef __cplusplus
 }
