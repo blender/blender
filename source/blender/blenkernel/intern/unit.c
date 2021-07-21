@@ -1303,7 +1303,7 @@ const char *BKE_unit_identifier_get(const void *usys_pt, int index)
 {
   const bUnitDef *unit = ((const bUnitCollection *)usys_pt)->units + index;
   if (unit->identifier == NULL) {
-    BLI_assert(false && "identifier for this unit is not specified yet");
+    BLI_assert_msg(0, "identifier for this unit is not specified yet");
   }
   return unit->identifier;
 }

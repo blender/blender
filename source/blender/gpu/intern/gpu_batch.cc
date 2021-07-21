@@ -184,7 +184,7 @@ int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
     }
   }
   /* we only make it this far if there is no room for another GPUVertBuf */
-  BLI_assert(0 && "Not enough Instance VBO slot in batch");
+  BLI_assert_msg(0, "Not enough Instance VBO slot in batch");
   return -1;
 }
 
@@ -207,7 +207,7 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
     }
   }
   /* we only make it this far if there is no room for another GPUVertBuf */
-  BLI_assert(0 && "Not enough VBO slot in batch");
+  BLI_assert_msg(0, "Not enough VBO slot in batch");
   return -1;
 }
 

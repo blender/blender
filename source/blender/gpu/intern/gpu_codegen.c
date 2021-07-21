@@ -657,7 +657,7 @@ static const char *attr_prefix_get(CustomDataType type)
     case CD_AUTO_FROM_NAME:
       return "a";
     default:
-      BLI_assert(false && "GPUVertAttr Prefix type not found : This should not happen!");
+      BLI_assert_msg(0, "GPUVertAttr Prefix type not found : This should not happen!");
       return "";
   }
 }

@@ -675,7 +675,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
     PropertyRNA *src_prop;
     RNA_id_pointer_create(id->override_library->reference, &id_refptr);
     if (!RNA_path_resolve_property(&id_refptr, oprop->rna_path, &src, &src_prop)) {
-      BLI_assert(0 && "Failed to create matching source (linked data) RNA pointer");
+      BLI_assert_msg(0, "Failed to create matching source (linked data) RNA pointer");
     }
   }
 
