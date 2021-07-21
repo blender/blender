@@ -14,6 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/** \file
+ * \ingroup edasset
+ */
+
 #include "BLI_hash.hh"
 
 #include "asset_library_reference.hh"
