@@ -453,6 +453,7 @@ typedef struct SculptArrayCopy {
   int index;
   int symm_pass;
   float mat[4][4];
+  float imat[4][4];
   float origin[3];
 } SculptArrayCopy;
 
@@ -460,6 +461,7 @@ typedef struct ScultpArrayPathPoint {
   float length;
   float strength;
   float co[3];
+  float orco[3];
   float direction[3];
 } ScultpArrayPathPoint;
 
@@ -475,6 +477,8 @@ typedef struct SculptArray {
     float total_length;
   } path;
   
+
+  float normal[3];
 
   bool source_mat_valid;
   float source_origin[3];
@@ -633,6 +637,9 @@ typedef struct SculptSession {
 
   SculptVertexInfo vertex_info;
   SculptFakeNeighbors fake_neighbors;
+
+  /* Array. */
+  SculptArray *array;
 
   /* Transform operator */
   float pivot_pos[3];

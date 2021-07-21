@@ -68,6 +68,12 @@ static const char array_instance_cd_name[] = "v_array_instance";
 #define ARRAY_INSTANCE_ORIGINAL -1 
 
 static void sculpt_vertex_array_data_get(SculptArray *array, const int vertex, int *r_copy, int *r_symmetry_pass) {
+  if (!array->copy_index) {
+    printf("NO ARRAY COPY\n");
+    *r_copy = ARRAY_INSTANCE_ORIGINAL;
+    *r_symmetry_pass = 0;
+    return;
+  }
   *r_copy = array->copy_index[vertex];
   *r_symmetry_pass = array->symmetry_pass[vertex];
 }
@@ -306,6 +312,7 @@ static SculptArray *sculpt_array_cache_create(Object *ob, const int num_copies) 
 }
 
 static void sculpt_array_cache_free(SculptArray *array) {
+  return;
   for (int symm_pass = 0; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
       MEM_SAFE_FREE(array->copies[symm_pass]);
   }
@@ -314,8 +321,13 @@ static void sculpt_array_cache_free(SculptArray *array) {
   MEM_freeN(array);
 }
 
-static void sculpt_array_init(Object *ob, SculptArray *array) {
+static void sculpt_array_init(Object *ob, Brush *brush, SculptArray *array) {
   SculptSession *ss = ob->sculpt;
+
+  /* TODO: add options. */
+  copy_v3_v3(array->normal, ss->cache->view_normal);
+
+
   for (int symm_pass = 0; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
       if (array->copies[symm_pass] == NULL) {
         continue;
@@ -388,11 +400,11 @@ static void sculpt_array_position_in_path_search(float *r_position, float *r_dir
   }
 }
 
-static void scultp_array_basis_from_direction(float r_mat[4][4], StrokeCache *cache, const float direction[3]) {
+static void scultp_array_basis_from_direction(float r_mat[4][4], SculptArray *array, const float direction[3]) {
   float direction_normalized[3];
   normalize_v3_v3(direction_normalized, direction);
   copy_v3_v3(r_mat[0], direction_normalized);
-  copy_v3_v3(r_mat[2], cache->view_normal);
+  cross_v3_v3v3(r_mat[2], r_mat[0], array->normal);
   cross_v3_v3v3(r_mat[1], r_mat[0], r_mat[2]);
   normalize_v3(r_mat[0]);
   normalize_v3(r_mat[1]);
@@ -435,7 +447,7 @@ static void sculpt_array_update_copy(StrokeCache *cache, SculptArray *array, Scu
 
 
   if (!(brush->flag2 & BRUSH_ARRAY_LOCK_ORIENTATION)) {
-  scultp_array_basis_from_direction(copy->mat, cache, direction);
+  scultp_array_basis_from_direction(copy->mat, array, direction);
   }
 
  
@@ -463,6 +475,7 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
   /* Main symmetry pass. */
   for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
     SculptArrayCopy *copy = &array->copies[0][copy_index];
+    unit_m4(copy->mat);
     sculpt_array_update_copy(ss->cache, array, copy, brush);
   }
 
@@ -483,6 +496,19 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
        }
       }
   }
+
+  for (int symm_pass = 0; symm_pass < PAINT_SYMM_AREAS; symm_pass++) {
+
+      if (array->copies[symm_pass] == NULL) {
+        continue;
+      }
+      for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
+          SculptArrayCopy *copy = &array->copies[symm_pass][copy_index];
+          print_m4("cosa", copy->mat);
+          invert_m4_m4(copy->imat, copy->mat);
+      }
+  }
+
 }
 
 static void do_array_deform_task_cb_ex(void *__restrict userdata,
@@ -491,7 +517,7 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
-  SculptArray *array = ss->cache->array;
+  SculptArray *array = ss->array;
 
     Mesh *mesh = BKE_object_get_original_mesh(data->ob);
 
@@ -508,9 +534,9 @@ static void do_array_deform_task_cb_ex(void *__restrict userdata,
     }
 
     SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
-    //printf("ARRAY COPY %d %d\n", array_index, array_symm_pass);
 
     float co[3];
+    copy_v3_v3(co, array->orco[vd.index]);
     mul_v3_m4v3(co, array->source_imat, array->orco[vd.index]);
     mul_v3_m4v3(co, copy->mat, co);
     float source_origin_symm[3];
@@ -585,12 +611,29 @@ static void sculpt_array_ensure_base_transform(Sculpt *sd, Object *ob, SculptArr
     return;
   }
 
-  scultp_array_basis_from_direction(array->source_mat, ss->cache, ss->cache->grab_delta);
+  scultp_array_basis_from_direction(array->source_mat, array, ss->cache->grab_delta);
   copy_v3_v3(array->source_mat[3], array->source_origin);
   invert_m4_m4(array->source_imat, array->source_mat);
 
   array->source_mat_valid = true;
   return;
+}
+
+static void sculpt_array_path_point_update(SculptArray *array, const int path_point_index) {
+  if (path_point_index == 0) {
+    return;
+  }
+
+  const int prev_path_point_index = path_point_index - 1;
+
+  ScultpArrayPathPoint *path_point = &array->path.points[path_point_index];
+  ScultpArrayPathPoint *prev_path_point = &array->path.points[prev_path_point_index];
+
+  if (len_v3v3(prev_path_point->co, path_point->co) <= 0.0001f) {
+      return;
+  }
+  sub_v3_v3v3(prev_path_point->direction, path_point->co, prev_path_point->co);
+  path_point->length = prev_path_point->length + normalize_v3(prev_path_point->direction);
 }
 
 
@@ -632,6 +675,76 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   Brush *brush = BKE_paint_brush(&sd->paint);
 
 
+  if (ss->cache->invert) {
+    if (!ss->array) {
+      return;
+    }
+
+    if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+
+    /* Update Array Path Orco. */
+    SculptArray *array = ss->array;
+    for (int i = 0; i < array->path.tot_points; i++) {
+      ScultpArrayPathPoint *point = &array->path.points[i];
+      copy_v3_v3(point->orco, point->co);
+    }
+
+    /* Update Geometry Orco. */
+    const int totvert = SCULPT_vertex_count_get(ss);
+    for (int i = 0; i < totvert; i++) {
+        int array_index = ARRAY_INSTANCE_ORIGINAL;
+        int array_symm_pass = 0;
+        sculpt_vertex_array_data_get(array, i, &array_index, &array_symm_pass);
+
+        if (array_index == ARRAY_INSTANCE_ORIGINAL) {
+          continue;
+        }
+       SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
+       //sub_v3_v3v3(array->orco[i], SCULPT_vertex_co_get(ss, i), copy->mat[3]);
+       float co[3];
+       float source_origin_symm[3];
+       flip_v3_v3(source_origin_symm, array->source_origin, array_symm_pass);
+       sub_v3_v3v3(co, SCULPT_vertex_co_get(ss, i), source_origin_symm);
+       mul_v3_m4v3(co, copy->imat, co);
+       mul_v3_m4v3(co, array->source_imat, co);
+
+       copy_v3_v3(array->orco[i], co);
+
+
+
+
+
+
+
+    }
+    }
+
+
+    SculptArray *array = ss->array;
+    for (int i = 0; i < array->path.tot_points; i++) {
+      ScultpArrayPathPoint *point = &array->path.points[i];
+      float point_co[3];
+      add_v3_v3v3(point_co, point->orco, array->source_origin);
+      const float len = len_v3v3(ss->cache->true_location, point_co);
+      const float fade = ss->cache->bstrength * BKE_brush_curve_strength(brush, len, ss->cache->radius);
+      if (fade <= 0.0f) {
+        continue;
+      }
+      madd_v3_v3v3fl(point->co, point->orco, ss->cache->grab_delta, fade);
+    }
+
+    for (int i = 0; i < array->path.tot_points; i++) {
+      sculpt_array_path_point_update(array, i);
+    }
+
+    sculpt_array_update(ob, brush, ss->array); 
+    sculpt_array_deform(sd, ob, nodes, totnode);
+
+    return;
+
+  }
+
+
   if (brush->array_count == 0) {
     return;
   }
@@ -642,22 +755,26 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   }
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-    ss->cache->array = sculpt_array_cache_create(ob, brush->array_count);
-    sculpt_array_init(ob, ss->cache->array);
-    sculpt_array_stroke_sample_add(ob, ss->cache->array);
-    sculpt_array_mesh_build(sd, ob, ss->cache->array);
+    if (ss->array) {
+      sculpt_array_cache_free(ss->array);
+    }
+
+    ss->array = sculpt_array_cache_create(ob, brush->array_count);
+    sculpt_array_init(ob, brush, ss->array);
+    sculpt_array_stroke_sample_add(ob, ss->array);
+    sculpt_array_mesh_build(sd, ob, ss->array);
     /* Original coordinates can't be stored yet as the SculptSession data needs to be updated after the mesh modifications performed when building the array geometry. */
 	  return;
   }
    
-   sculpt_array_ensure_base_transform(sd, ob, ss->cache->array);
-   sculpt_array_ensure_original_coordinates(ob, ss->cache->array);
-   sculpt_array_ensure_geometry_indices(ob, ss->cache->array);
+   sculpt_array_ensure_base_transform(sd, ob, ss->array);
+   sculpt_array_ensure_original_coordinates(ob, ss->array);
+   sculpt_array_ensure_geometry_indices(ob, ss->array);
 
 
-   sculpt_array_stroke_sample_add(ob, ss->cache->array);
+   sculpt_array_stroke_sample_add(ob, ss->array);
 
-   sculpt_array_update(ob, brush, ss->cache->array);
+   sculpt_array_update(ob, brush, ss->array);
 
    sculpt_array_deform(sd, ob, nodes, totnode);
 }
@@ -666,7 +783,7 @@ void SCULPT_array_path_draw(const uint gpuattr,
                                            Brush *brush,
                                            SculptSession *ss) {
     
-    SculptArray *array = ss->cache->array;
+    SculptArray *array = ss->array;
 
 
     /* Disable debug drawing. */

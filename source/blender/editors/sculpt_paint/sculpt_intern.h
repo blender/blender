@@ -1091,9 +1091,6 @@ typedef struct StrokeCache {
   /* Layer brush */
   float *layer_displacement_factor;
 
-  /* Array Brush */
-  struct ArrayBrush *array;
-
   float vertex_rotation; /* amount to rotate the vertices when using rotate brush */
   struct Dial *dial;
 
