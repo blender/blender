@@ -1212,10 +1212,12 @@ static void update_typeinfo(Main *bmain,
   FOREACH_NODETREE_END;
 }
 
-/* Try to initialize all typeinfo in a node tree.
- * NB: In general undefined typeinfo is a perfectly valid case,
+/**
+ * Try to initialize all type-info in a node tree.
+ *
+ * \note In general undefined type-info is a perfectly valid case,
  * the type may just be registered later.
- * In that case the update_typeinfo function will set typeinfo on registration
+ * In that case the update_typeinfo function will set type-info on registration
  * and do necessary updates.
  */
 void ntreeSetTypes(const struct bContext *C, bNodeTree *ntree)

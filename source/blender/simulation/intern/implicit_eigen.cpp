@@ -797,7 +797,7 @@ void SIM_mass_spring_force_drag(Implicit_Data *data, float drag)
   for (int i = 0; i < numverts; i++) {
     float tmp[3][3];
 
-    /* NB: uses root space velocity, no need to transform */
+    /* NOTE: Uses root space velocity, no need to transform. */
     madd_v3_v3fl(data->F.v3(i), data->V.v3(i), -drag);
 
     copy_m3_m3(tmp, I);

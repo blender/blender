@@ -147,7 +147,7 @@ node_categories = [
     MyNodeCategory('OTHERNODES', "Other Nodes", items=[
         # the node item can have additional settings,
         # which are applied to new nodes
-        # NB: settings values are stored as string expressions,
+        # NOTE: settings values are stored as string expressions,
         # for this reason they should be converted to strings using repr()
         NodeItem("CustomNodeType", label="Node A", settings={
             "my_string_prop": repr("Lorem ipsum dolor sit amet"),

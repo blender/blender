@@ -6622,10 +6622,9 @@ static void def_cmp_image(StructRNA *srna)
                            "Put node output buffer to straight alpha instead of premultiplied");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  /* NB: image user properties used in the UI are redefined in def_node_image_user,
+  /* NOTE: Image user properties used in the UI are redefined in def_node_image_user,
    * to trigger correct updates of the node editor. RNA design problem that prevents
-   * updates from nested structs ...
-   */
+   * updates from nested structs. */
   RNA_def_struct_sdna_from(srna, "ImageUser", "storage");
   def_node_image_user(srna);
 }
@@ -6722,9 +6721,8 @@ static void rna_def_cmp_output_file_slots_api(BlenderRNA *brna,
   parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket");
   RNA_def_function_return(func, parm);
 
-  /* NB: methods below can use the standard node socket API functions,
-   * included here for completeness.
-   */
+  /* NOTE: methods below can use the standard node socket API functions,
+   * included here for completeness. */
 
   func = RNA_def_function(srna, "remove", "rna_Node_socket_remove");
   RNA_def_function_ui_description(func, "Remove a file slot from this node");
@@ -10301,11 +10299,11 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Node", "Node owning this socket");
 
-  /* NB: the type property is used by standard sockets.
+  /* NOTE: The type property is used by standard sockets.
    * Ideally should be defined only for the registered subclass,
    * but to use the existing DNA is added in the base type here.
-   * Future socket types can ignore or override this if needed.
-   */
+   * Future socket types can ignore or override this if needed. */
+
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, node_socket_type_items);

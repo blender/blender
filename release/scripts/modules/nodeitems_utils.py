@@ -77,7 +77,7 @@ class NodeItem:
             else:
                 return bpy.app.translations.contexts.default
 
-    # NB: is a staticmethod because called with an explicit self argument
+    # NOTE: is a staticmethod because called with an explicit self argument
     # NodeItemCustom sets this as a variable attribute in __init__
     @staticmethod
     def draw(self, layout, _context):
