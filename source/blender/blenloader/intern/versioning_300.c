@@ -531,15 +531,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
-
-    {
-      if (!DNA_struct_elem_find(
-              fd->filesdna, "WorkSpace", "AssetLibraryReference", "active_asset_library")) {
-        LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
-          BKE_asset_library_reference_init_default(&workspace->active_asset_library);
-        }
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 10)) {
@@ -580,6 +571,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
+      }
+    }
+
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library")) {
+      LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+        BKE_asset_library_reference_init_default(&workspace->asset_library);
       }
     }
   }

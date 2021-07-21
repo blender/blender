@@ -107,16 +107,16 @@ static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, workspace);
 }
 
-static int rna_WorkSpace_active_asset_library_get(PointerRNA *ptr)
+static int rna_WorkSpace_asset_library_get(PointerRNA *ptr)
 {
   const WorkSpace *workspace = ptr->data;
-  return rna_asset_library_reference_get(&workspace->active_asset_library);
+  return rna_asset_library_reference_get(&workspace->asset_library);
 }
 
-static void rna_WorkSpace_active_asset_library_set(PointerRNA *ptr, int value)
+static void rna_WorkSpace_asset_library_set(PointerRNA *ptr, int value)
 {
   WorkSpace *workspace = ptr->data;
-  rna_asset_library_reference_set(&workspace->active_asset_library, value);
+  rna_asset_library_reference_set(&workspace->asset_library, value);
 }
 
 static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace,
@@ -420,7 +420,7 @@ static void rna_def_workspace(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_window_update_all");
 
   prop = rna_def_asset_library_reference_common(
-      srna, "rna_WorkSpace_active_asset_library_get", "rna_WorkSpace_active_asset_library_set");
+      srna, "rna_WorkSpace_asset_library_get", "rna_WorkSpace_asset_library_set");
   RNA_def_property_ui_text(prop,
                            "Asset Library",
                            "Active asset library to show in the UI, not used by the Asset Browser "

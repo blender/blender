@@ -58,7 +58,7 @@ static void workspace_init_data(ID *id)
 {
   WorkSpace *workspace = (WorkSpace *)id;
 
-  BKE_asset_library_reference_init_default(&workspace->active_asset_library);
+  BKE_asset_library_reference_init_default(&workspace->asset_library);
 }
 
 static void workspace_free_data(ID *id)
