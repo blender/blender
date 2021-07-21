@@ -30,11 +30,11 @@
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
 
-#include "ED_asset.h"
-
 #include "UI_resources.h"
 
 #include "RNA_define.h"
+
+#include "ED_asset_library.h"
 
 /**
  * Return an index that can be used to uniquely identify \a library, assuming

@@ -952,7 +952,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   /* If the button represents an id, it can set the "id" context pointer. */
-  if (U.experimental.use_asset_browser && ED_asset_can_make_single_from_context(C)) {
+  if (U.experimental.use_asset_browser && ED_asset_can_mark_single_from_context(C)) {
     ID *id = CTX_data_pointer_get_type(C, "id", &RNA_ID).data;
 
     /* Gray out items depending on if data-block is an asset. Preferably this could be done via

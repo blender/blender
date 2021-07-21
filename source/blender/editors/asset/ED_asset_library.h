@@ -15,34 +15,21 @@
  */
 
 /** \file
- * \ingroup editors
- *
- * The public API for assets is defined in dedicated headers. This is a utility file that just
- * includes all of these.
+ * \ingroup edasset
  */
 
 #pragma once
+
+#include "DNA_asset_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Barely anything here. Just general editor level functions. Actual asset level code is in
- * dedicated headers. */
-
-void ED_operatortypes_asset(void);
+int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *library);
+AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
+const struct EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(void);
 
 #ifdef __cplusplus
 }
-#endif
-
-#include "../asset/ED_asset_handle.h"
-#include "../asset/ED_asset_library.h"
-#include "../asset/ED_asset_list.h"
-#include "../asset/ED_asset_mark_clear.h"
-#include "../asset/ED_asset_temp_id_consumer.h"
-
-/* C++ only headers. */
-#ifdef __cplusplus
-#  include "../asset/ED_asset_list.hh"
 #endif

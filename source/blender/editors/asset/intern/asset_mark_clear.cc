@@ -16,6 +16,8 @@
 
 /** \file
  * \ingroup edasset
+ *
+ * Functions for marking and clearing assets.
  */
 
 #include <memory>
@@ -35,9 +37,8 @@
 
 #include "RNA_access.h"
 
-#include "ED_asset.h"
-
-using namespace blender;
+#include "ED_asset_list.h"
+#include "ED_asset_mark_clear.h"
 
 bool ED_asset_mark_id(const bContext *C, ID *id)
 {
@@ -75,7 +76,7 @@ bool ED_asset_clear_id(ID *id)
   return true;
 }
 
-bool ED_asset_can_make_single_from_context(const bContext *C)
+bool ED_asset_can_mark_single_from_context(const bContext *C)
 {
   /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_clear() to use. */
   return CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data != nullptr;

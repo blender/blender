@@ -21,6 +21,8 @@
  * Uses the `BLO_library_temp_xxx()` API internally.
  */
 
+#include <new>
+
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
@@ -32,7 +34,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "ED_asset.h"
+#include "ED_asset_handle.h"
+#include "ED_asset_temp_id_consumer.h"
 
 using namespace blender;
 

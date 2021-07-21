@@ -15,34 +15,24 @@
  */
 
 /** \file
- * \ingroup editors
- *
- * The public API for assets is defined in dedicated headers. This is a utility file that just
- * includes all of these.
+ * \ingroup edasset
  */
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <string>
 
-/* Barely anything here. Just general editor level functions. Actual asset level code is in
- * dedicated headers. */
+#include "BLI_function_ref.hh"
 
-void ED_operatortypes_asset(void);
+struct AssetLibraryReference;
+struct AssetHandle;
+struct bContext;
+struct FileDirEntry;
 
-#ifdef __cplusplus
-}
-#endif
+std::string ED_assetlist_asset_filepath_get(const bContext *C,
+                                            const AssetLibraryReference &library_reference,
+                                            const AssetHandle &asset_handle);
 
-#include "../asset/ED_asset_handle.h"
-#include "../asset/ED_asset_library.h"
-#include "../asset/ED_asset_list.h"
-#include "../asset/ED_asset_mark_clear.h"
-#include "../asset/ED_asset_temp_id_consumer.h"
-
-/* C++ only headers. */
-#ifdef __cplusplus
-#  include "../asset/ED_asset_list.hh"
-#endif
+/* Can return false to stop iterating. */
+using AssetListIterFn = blender::FunctionRef<bool(FileDirEntry &)>;
+void ED_assetlist_iterate(const AssetLibraryReference *library_reference, AssetListIterFn fn);

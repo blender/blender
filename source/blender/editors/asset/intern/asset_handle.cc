@@ -24,12 +24,15 @@
  * although that doesn't always work (see #rna_def_asset_handle()).
  */
 
+#include <string>
+
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"
 
 #include "BLO_readfile.h"
 
-#include "ED_asset.h"
+#include "ED_asset_handle.h"
+#include "ED_asset_list.hh"
 
 const char *ED_asset_handle_get_name(const AssetHandle *asset)
 {
