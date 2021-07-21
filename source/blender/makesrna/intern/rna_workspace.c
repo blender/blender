@@ -45,6 +45,8 @@
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"
 
+#  include "ED_asset.h"
+
 #  include "RNA_access.h"
 
 #  include "WM_toolsystem.h"
@@ -110,13 +112,13 @@ static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
 static int rna_WorkSpace_asset_library_get(PointerRNA *ptr)
 {
   const WorkSpace *workspace = ptr->data;
-  return rna_asset_library_reference_get(&workspace->asset_library);
+  return ED_asset_library_reference_to_enum_value(&workspace->asset_library);
 }
 
 static void rna_WorkSpace_asset_library_set(PointerRNA *ptr, int value)
 {
   WorkSpace *workspace = ptr->data;
-  rna_asset_library_reference_set(&workspace->asset_library, value);
+  workspace->asset_library = ED_asset_library_reference_from_enum_value(value);
 }
 
 static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace,

@@ -160,71 +160,18 @@ static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ID, id);
 }
 
-int rna_asset_library_reference_get(const AssetLibraryReference *library)
-{
-  return ED_asset_library_reference_to_enum_value(library);
-}
-
-void rna_asset_library_reference_set(AssetLibraryReference *library, int value)
-{
-  *library = ED_asset_library_reference_from_enum_value(value);
-}
-
 const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSED(C),
                                                           PointerRNA *UNUSED(ptr),
                                                           PropertyRNA *UNUSED(prop),
                                                           bool *r_free)
 {
-  const EnumPropertyItem predefined_items[] = {
-      /* For the future. */
-      // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
-      {ASSET_LIBRARY_LOCAL,
-       "LOCAL",
-       ICON_BLENDER,
-       "Current File",
-       "Show the assets currently available in this Blender session"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  EnumPropertyItem *item = NULL;
-  int totitem = 0;
-
-  /* Add separator if needed. */
-  if (!BLI_listbase_is_empty(&U.asset_libraries)) {
-    const EnumPropertyItem sepr = {0, "", 0, "Custom", NULL};
-    RNA_enum_item_add(&item, &totitem, &sepr);
+  const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf();
+  if (!items) {
+    *r_free = false;
   }
 
-  int i = 0;
-  for (bUserAssetLibrary *user_library = U.asset_libraries.first; user_library;
-       user_library = user_library->next, i++) {
-    /* Note that the path itself isn't checked for validity here. If an invalid library path is
-     * used, the Asset Browser can give a nice hint on what's wrong. */
-    const bool is_valid = (user_library->name[0] && user_library->path[0]);
-    if (!is_valid) {
-      continue;
-    }
-
-    /* Use library path as description, it's a nice hint for users. */
-    EnumPropertyItem tmp = {ASSET_LIBRARY_CUSTOM + i,
-                            user_library->name,
-                            ICON_NONE,
-                            user_library->name,
-                            user_library->path};
-    RNA_enum_item_add(&item, &totitem, &tmp);
-  }
-
-  if (totitem) {
-    const EnumPropertyItem sepr = {0, "", 0, "Built-in", NULL};
-    RNA_enum_item_add(&item, &totitem, &sepr);
-  }
-
-  /* Add predefined items. */
-  RNA_enum_items_add(&item, &totitem, predefined_items);
-
-  RNA_enum_item_end(&item, &totitem);
   *r_free = true;
-  return item;
+  return items;
 }
 
 #else

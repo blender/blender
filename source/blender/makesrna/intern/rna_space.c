@@ -536,6 +536,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "DEG_depsgraph_build.h"
 
 #  include "ED_anim_api.h"
+#  include "ED_asset.h"
 #  include "ED_buttons.h"
 #  include "ED_clip.h"
 #  include "ED_fileselect.h"
@@ -2562,112 +2563,19 @@ static PointerRNA rna_FileSelectParams_filter_id_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_FileSelectIDFilter, ptr->data);
 }
 
-/* TODO use rna_def_asset_library_reference_common() */
-
 static int rna_FileAssetSelectParams_asset_library_get(PointerRNA *ptr)
 {
   FileAssetSelectParams *params = ptr->data;
   /* Just an extra sanity check to ensure this isn't somehow called for RNA_FileSelectParams. */
   BLI_assert(ptr->type == &RNA_FileAssetSelectParams);
 
-  /* Simple case: Predefined repo, just set the value. */
-  if (params->asset_library.type < ASSET_LIBRARY_CUSTOM) {
-    return params->asset_library.type;
-  }
-
-  /* Note that the path isn't checked for validity here. If an invalid library path is used, the
-   * Asset Browser can give a nice hint on what's wrong. */
-  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-      &U, params->asset_library.custom_library_index);
-  if (user_library) {
-    return ASSET_LIBRARY_CUSTOM + params->asset_library.custom_library_index;
-  }
-
-  BLI_assert(0);
-  return ASSET_LIBRARY_LOCAL;
+  return ED_asset_library_reference_to_enum_value(&params->asset_library);
 }
 
 static void rna_FileAssetSelectParams_asset_library_set(PointerRNA *ptr, int value)
 {
   FileAssetSelectParams *params = ptr->data;
-
-  /* Simple case: Predefined repo, just set the value. */
-  if (value < ASSET_LIBRARY_CUSTOM) {
-    params->asset_library.type = value;
-    params->asset_library.custom_library_index = -1;
-    BLI_assert(ELEM(value, ASSET_LIBRARY_LOCAL));
-    return;
-  }
-
-  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
-      &U, value - ASSET_LIBRARY_CUSTOM);
-
-  /* Note that the path isn't checked for validity here. If an invalid library path is used, the
-   * Asset Browser can give a nice hint on what's wrong. */
-  const bool is_valid = (user_library->name[0] && user_library->path[0]);
-  if (!user_library) {
-    params->asset_library.type = ASSET_LIBRARY_LOCAL;
-    params->asset_library.custom_library_index = -1;
-  }
-  else if (user_library && is_valid) {
-    params->asset_library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
-    params->asset_library.type = ASSET_LIBRARY_CUSTOM;
-  }
-}
-
-static const EnumPropertyItem *rna_FileAssetSelectParams_asset_library_itemf(
-    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
-{
-  const EnumPropertyItem predefined_items[] = {
-      /* For the future. */
-      // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
-      {ASSET_LIBRARY_LOCAL,
-       "LOCAL",
-       ICON_BLENDER,
-       "Current File",
-       "Show the assets currently available in this Blender session"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  EnumPropertyItem *item = NULL;
-  int totitem = 0;
-
-  /* Add separator if needed. */
-  if (!BLI_listbase_is_empty(&U.asset_libraries)) {
-    const EnumPropertyItem sepr = {0, "", 0, "Custom", NULL};
-    RNA_enum_item_add(&item, &totitem, &sepr);
-  }
-
-  int i = 0;
-  for (bUserAssetLibrary *user_library = U.asset_libraries.first; user_library;
-       user_library = user_library->next, i++) {
-    /* Note that the path itself isn't checked for validity here. If an invalid library path is
-     * used, the Asset Browser can give a nice hint on what's wrong. */
-    const bool is_valid = (user_library->name[0] && user_library->path[0]);
-    if (!is_valid) {
-      continue;
-    }
-
-    /* Use library path as description, it's a nice hint for users. */
-    EnumPropertyItem tmp = {ASSET_LIBRARY_CUSTOM + i,
-                            user_library->name,
-                            ICON_NONE,
-                            user_library->name,
-                            user_library->path};
-    RNA_enum_item_add(&item, &totitem, &tmp);
-  }
-
-  if (totitem) {
-    const EnumPropertyItem sepr = {0, "", 0, "Built-in", NULL};
-    RNA_enum_item_add(&item, &totitem, &sepr);
-  }
-
-  /* Add predefined items. */
-  RNA_enum_items_add(&item, &totitem, predefined_items);
-
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-  return item;
+  params->asset_library = ED_asset_library_reference_from_enum_value(value);
 }
 
 static void rna_FileAssetSelectParams_asset_category_set(PointerRNA *ptr, uint64_t value)
@@ -6559,12 +6467,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Asset Select Parameters", "Settings for the file selection in Asset Browser mode");
 
-  prop = RNA_def_property(srna, "asset_library", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, DummyRNA_NULL_items);
-  RNA_def_property_enum_funcs(prop,
-                              "rna_FileAssetSelectParams_asset_library_get",
-                              "rna_FileAssetSelectParams_asset_library_set",
-                              "rna_FileAssetSelectParams_asset_library_itemf");
+  prop = rna_def_asset_library_reference_common(srna,
+                                                "rna_FileAssetSelectParams_asset_library_get",
+                                                "rna_FileAssetSelectParams_asset_library_set");
   RNA_def_property_ui_text(prop, "Asset Library", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 

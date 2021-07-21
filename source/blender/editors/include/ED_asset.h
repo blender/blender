@@ -42,6 +42,7 @@ bool ED_asset_can_make_single_from_context(const struct bContext *C);
 
 int ED_asset_library_reference_to_enum_value(const struct AssetLibraryReference *library);
 struct AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
+const struct EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(void);
 
 const char *ED_asset_handle_get_name(const AssetHandle *asset);
 AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset);

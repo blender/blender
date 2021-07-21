@@ -36,6 +36,7 @@ set(SRC
   asset_temp_id_consumer.cc
   intern/asset_handle.cc
   intern/asset_library_reference.cc
+  intern/asset_library_reference_enum.cc
 
   intern/asset_library_reference.hh
 )
