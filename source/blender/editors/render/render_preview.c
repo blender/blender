@@ -234,7 +234,7 @@ static Scene *preview_get_scene(Main *pr_main)
   return pr_main->scenes.first;
 }
 
-static const char *preview_collection_name(const char pr_type)
+static const char *preview_collection_name(const ePreviewType pr_type)
 {
   switch (pr_type) {
     case MA_FLAT:
@@ -267,8 +267,8 @@ static const char *preview_collection_name(const char pr_type)
 
 static void set_preview_visibility(Scene *scene,
                                    ViewLayer *view_layer,
-                                   char pr_type,
-                                   int pr_method)
+                                   const ePreviewType pr_type,
+                                   const ePreviewRenderMethod pr_method)
 {
   /* Set appropriate layer as visible. */
   LayerCollection *lc = view_layer->layer_collections.first;
@@ -432,14 +432,12 @@ static Scene *preview_prepare_scene(
           sce->world->horb = 0.05f;
         }
 
-        if (sp->pr_method == PR_ICON_RENDER && sp->pr_main == G_pr_main_grease_pencil) {
-          /* For grease pencil, always use sphere for icon renders. */
-          set_preview_visibility(sce, view_layer, MA_SPHERE_A, sp->pr_method);
-        }
-        else {
-          /* Use specified preview shape for both preview panel and icon previews. */
-          set_preview_visibility(sce, view_layer, mat->pr_type, sp->pr_method);
-        }
+        /* For grease pencil, always use sphere for icon renders. */
+        const ePreviewType preview_type = (sp->pr_method == PR_ICON_RENDER &&
+                                           sp->pr_main == G_pr_main_grease_pencil) ?
+                                              MA_SPHERE_A :
+                                              mat->pr_type;
+        set_preview_visibility(sce, view_layer, preview_type, sp->pr_method);
 
         if (sp->pr_method != PR_ICON_RENDER) {
           if (mat->nodetree && sp->pr_method == PR_NODE_RENDER) {
