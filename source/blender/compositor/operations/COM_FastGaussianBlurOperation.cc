@@ -148,8 +148,8 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   }
 
   /* See "Recursive Gabor Filtering" by Young/VanVliet
-   * all factors here in double.prec.
-   * Required, because for single.prec it seems to blow up if sigma > ~200 */
+   * all factors here in double-precision.
+   * Required, because for single-precision floating point seems to blow up if `sigma > ~200`. */
   if (sigma >= 3.556f) {
     q = 0.9804f * (sigma - 3.556f) + 2.5091f;
   }
@@ -158,7 +158,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   }
   q2 = q * q;
   sc = (1.1668 + q) * (3.203729649 + (2.21566 + q) * q);
-  /* No gabor filtering here, so no complex multiplies, just the regular coefs.
+  /* No gabor filtering here, so no complex multiplies, just the regular coefficients.
    * all negated here, so as not to have to recalc Triggs/Sdika matrix. */
   cf[1] = q * (5.788961737 + (6.76492 + 3.0 * q) * q) / sc;
   cf[2] = -q2 * (3.38246 + 3.0 * q) / sc;
@@ -168,7 +168,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
 
   /* Triggs/Sdika border corrections,
    * it seems to work, not entirely sure if it is actually totally correct,
-   * Besides J.M.Geusebroek's anigauss.c (see http://www.science.uva.nl/~mark),
+   * Besides J.M.Geusebroek's `anigauss.c` (see http://www.science.uva.nl/~mark),
    * found one other implementation by Cristoph Lampert,
    * but neither seem to be quite the same, result seems to be ok so far anyway.
    * Extra scale factor here to not have to do it in filter,

@@ -770,9 +770,9 @@ GPUBatch *DRW_cache_normal_arrow_get(void)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Dummy vbos
+/** \name Dummy VBO's
  *
- * We need a dummy vbo containing the vertex count to draw instances ranges.
+ * We need a dummy VBO containing the vertex count to draw instances ranges.
  *
  * \{ */
 

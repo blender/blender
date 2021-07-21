@@ -266,7 +266,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   }
   const short edge_tex_sep = (short)((edge_tex_count - 1) * 5.0f * U.dpi_fac);
 
-  /* make the precision of the display value proportionate to the gridsize */
+  /* Make the precision of the display value proportionate to the grid-size. */
 
   if (grid <= 0.01f) {
     conv_float = "%.6g";

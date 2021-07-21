@@ -114,7 +114,7 @@ class GHOST_NDOFManager {
   virtual bool available() = 0;
 
   /**
-   * Rach platform's device detection should call this
+   * Each platform's device detection should call this
    * use standard USB/HID identifiers.
    */
   bool setDevice(unsigned short vendor_id, unsigned short product_id);

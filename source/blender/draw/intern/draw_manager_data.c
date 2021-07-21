@@ -74,7 +74,7 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
       return;
     }
   }
-  /* Cumulate batch indices */
+  /* Accumulate batch indices */
   for (int i = 1; i < ARRAY_SIZE(idx); i++) {
     idx[i] += idx[i - 1];
   }
