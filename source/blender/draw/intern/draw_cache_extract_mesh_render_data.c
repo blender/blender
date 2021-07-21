@@ -170,7 +170,7 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
                                         const eMRIterType iter_type,
                                         const eMRDataType data_flag)
 {
-  if (iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) {
+  if ((iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) || (data_flag & MR_DATA_LOOSE_GEOM)) {
     mesh_render_data_loose_geom_ensure(mr, cache);
     mesh_render_data_loose_geom_load(mr, cache);
   }
