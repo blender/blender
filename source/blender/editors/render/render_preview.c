@@ -265,10 +265,7 @@ static const char *preview_collection_name(const ePreviewType pr_type)
   }
 }
 
-static void set_preview_visibility(Scene *scene,
-                                   ViewLayer *view_layer,
-                                   const ePreviewType pr_type,
-                                   const ePreviewRenderMethod pr_method)
+static void switch_preview_collection_visibilty(ViewLayer *view_layer, const ePreviewType pr_type)
 {
   /* Set appropriate layer as visible. */
   LayerCollection *lc = view_layer->layer_collections.first;
@@ -282,7 +279,11 @@ static void set_preview_visibility(Scene *scene,
       lc->collection->flag |= COLLECTION_RESTRICT_RENDER;
     }
   }
+}
 
+static void switch_preview_floor_visibility(ViewLayer *view_layer,
+                                            const ePreviewRenderMethod pr_method)
+{
   /* Hide floor for icon renders. */
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (STREQ(base->object->id.name + 2, "Floor")) {
@@ -294,7 +295,15 @@ static void set_preview_visibility(Scene *scene,
       }
     }
   }
+}
 
+static void set_preview_visibility(Scene *scene,
+                                   ViewLayer *view_layer,
+                                   const ePreviewType pr_type,
+                                   const ePreviewRenderMethod pr_method)
+{
+  switch_preview_collection_visibilty(view_layer, pr_type);
+  switch_preview_floor_visibility(view_layer, pr_method);
   BKE_layer_collection_sync(scene, view_layer);
 }
 
