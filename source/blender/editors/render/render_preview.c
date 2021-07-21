@@ -359,7 +359,7 @@ static World *preview_get_world(Main *pr_main)
     result = pr_main->worlds.first;
   }
 
-  BLI_assert(result & "Preview file has no world.");
+  BLI_assert(result && "Preview file has no world.");
   return result;
 }
 
