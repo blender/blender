@@ -382,7 +382,7 @@ typedef struct FileList {
 
   eFileSelectType type;
   /* The library this list was created for. Stored here so we know when to re-read. */
-  FileSelectAssetLibraryUID *asset_library;
+  AssetLibraryReference *asset_library;
 
   short flags;
 
@@ -1045,8 +1045,8 @@ void filelist_setfilter_options(FileList *filelist,
  * Checks two libraries for equality.
  * \return True if the libraries match.
  */
-static bool filelist_compare_asset_libraries(const FileSelectAssetLibraryUID *library_a,
-                                             const FileSelectAssetLibraryUID *library_b)
+static bool filelist_compare_asset_libraries(const AssetLibraryReference *library_a,
+                                             const AssetLibraryReference *library_b)
 {
   if (library_a->type != library_b->type) {
     return false;
@@ -1065,7 +1065,7 @@ static bool filelist_compare_asset_libraries(const FileSelectAssetLibraryUID *li
 /**
  * \param asset_library: May be NULL to unset the library.
  */
-void filelist_setlibrary(FileList *filelist, const FileSelectAssetLibraryUID *asset_library)
+void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_library)
 {
   /* Unset if needed. */
   if (!asset_library) {

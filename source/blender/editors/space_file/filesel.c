@@ -415,7 +415,7 @@ FileAssetSelectParams *ED_fileselect_get_asset_params(const SpaceFile *sfile)
 
 static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 {
-  FileSelectAssetLibraryUID *library = &asset_params->asset_library;
+  AssetLibraryReference *library = &asset_params->asset_library;
   FileSelectParams *base_params = &asset_params->base_params;
   bUserAssetLibrary *user_library = NULL;
 

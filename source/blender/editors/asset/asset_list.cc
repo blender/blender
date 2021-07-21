@@ -143,11 +143,6 @@ void AssetList::setup(const AssetFilterSettings *filter_settings)
 {
   FileList *files = filelist_;
 
-  /* TODO there should only be one (FileSelectAssetLibraryUID vs. AssetLibraryReference). */
-  FileSelectAssetLibraryUID file_asset_lib_ref;
-  file_asset_lib_ref.type = library_ref_.type;
-  file_asset_lib_ref.custom_library_index = library_ref_.custom_library_index;
-
   bUserAssetLibrary *user_library = nullptr;
 
   /* Ensure valid repository, or fall-back to local one. */
@@ -162,7 +157,7 @@ void AssetList::setup(const AssetFilterSettings *filter_settings)
   /* TODO pass options properly. */
   filelist_setrecursion(files, 1);
   filelist_setsorting(files, FILE_SORT_ALPHA, false);
-  filelist_setlibrary(files, &file_asset_lib_ref);
+  filelist_setlibrary(files, &library_ref_);
   /* TODO different filtering settings require the list to be reread. That's a no-go for when we
    * want to allow showing the same asset library with different filter settings (as in,
    * different ID types). The filelist needs to be made smarter somehow, maybe goes together with
