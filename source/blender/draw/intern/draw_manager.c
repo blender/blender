@@ -147,7 +147,7 @@ static bool drw_draw_show_annotation(void)
        * the draw manager is only used to draw the background. */
       return false;
     default:
-      BLI_assert("");
+      BLI_assert(0);
       return false;
   }
 }

@@ -1947,7 +1947,7 @@ static void nlaevalchan_blendOrcombine(NlaEvalChannelSnapshot *lower_necs,
           return;
         }
         default:
-          BLI_assert("Mix mode should've been handled");
+          BLI_assert_msg(0, "Mix mode should've been handled");
       }
       return;
     }
@@ -1960,7 +1960,7 @@ static void nlaevalchan_blendOrcombine(NlaEvalChannelSnapshot *lower_necs,
       return;
     }
     default:
-      BLI_assert("Blend mode should've been handled");
+      BLI_assert_msg(0, "Blend mode should've been handled");
   }
 }
 
@@ -2110,7 +2110,7 @@ static void nlaevalchan_blendOrcombine_get_inverted_upper_evalchan(
           return;
         }
         default:
-          BLI_assert("Mix mode should've been handled");
+          BLI_assert_msg(0, "Mix mode should've been handled");
       }
       return;
     }
@@ -2123,7 +2123,7 @@ static void nlaevalchan_blendOrcombine_get_inverted_upper_evalchan(
       return;
     }
     default:
-      BLI_assert("Blend mode should've been handled");
+      BLI_assert_msg(0, "Blend mode should've been handled");
   }
 }
 

@@ -532,7 +532,7 @@ bool BLI_task_pool_current_canceled(TaskPool *pool)
     case TASK_POOL_BACKGROUND_SERIAL:
       return background_task_pool_canceled(pool);
   }
-  BLI_assert("BLI_task_pool_canceled: Control flow should not come here!");
+  BLI_assert_msg(0, "BLI_task_pool_canceled: Control flow should not come here!");
   return false;
 }
 

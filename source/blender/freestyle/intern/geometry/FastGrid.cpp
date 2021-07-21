@@ -62,7 +62,7 @@ Cell *FastGrid::getCell(const Vec3u &p)
          << " " << _cells_size << endl;
   }
 #endif
-  BLI_assert(_cells || ("_cells is a null pointer"));
+  BLI_assert_msg(_cells, "_cells is a null pointer");
   BLI_assert((_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]) < _cells_size);
   BLI_assert(p[0] < _cells_nb[0]);
   BLI_assert(p[1] < _cells_nb[1]);
@@ -72,7 +72,7 @@ Cell *FastGrid::getCell(const Vec3u &p)
 
 void FastGrid::fillCell(const Vec3u &p, Cell &cell)
 {
-  BLI_assert(_cells || ("_cells is a null pointer"));
+  BLI_assert_msg(_cells, "_cells is a null pointer");
   BLI_assert((_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]) < _cells_size);
   BLI_assert(p[0] < _cells_nb[0]);
   BLI_assert(p[1] < _cells_nb[1]);
