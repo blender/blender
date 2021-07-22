@@ -242,7 +242,6 @@ typedef struct MeshExtract {
 
 /* draw_cache_extract_mesh_render_data.c */
 MeshRenderData *mesh_render_data_create(Mesh *me,
-                                        MeshBufferExtractionCache *cache,
                                         const bool is_editmode,
                                         const bool is_paint_mode,
                                         const bool is_mode_active,

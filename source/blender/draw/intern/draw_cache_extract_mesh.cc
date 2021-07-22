@@ -686,15 +686,8 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   double rdata_start = PIL_check_seconds_timer();
 #endif
 
-  MeshRenderData *mr = mesh_render_data_create(me,
-                                               extraction_cache,
-                                               is_editmode,
-                                               is_paint_mode,
-                                               is_mode_active,
-                                               obmat,
-                                               do_final,
-                                               do_uvedit,
-                                               ts);
+  MeshRenderData *mr = mesh_render_data_create(
+      me, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
   mr->use_hide = use_hide;
   mr->use_subsurf_fdots = use_subsurf_fdots;
   mr->use_final_mesh = do_final;

@@ -462,7 +462,6 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
  * otherwise don't use modifiers as they are not from this object.
  */
 MeshRenderData *mesh_render_data_create(Mesh *me,
-                                        MeshBufferExtractionCache *cache,
                                         const bool is_editmode,
                                         const bool is_paint_mode,
                                         const bool is_mode_active,
