@@ -489,7 +489,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
 
   static const char *_keywords[] = {
       "x", "y", "xsize", "ysize", "channels", "slot", "format", "data", NULL};
-  static _PyArg_Parser _parser = {"iiiiiIO&|$O!:GPUTexture.__new__", _keywords, 0};
+  static _PyArg_Parser _parser = {"iiiiiIO&|$O!:read_color", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
@@ -572,7 +572,7 @@ static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
   BPyGPUBuffer *py_buffer = NULL;
 
   static const char *_keywords[] = {"x", "y", "xsize", "ysize", "data", NULL};
-  static _PyArg_Parser _parser = {"iiii|$O!:GPUFrameBuffer.read_depth", _keywords, 0};
+  static _PyArg_Parser _parser = {"iiii|$O!:read_depth", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, &x, &y, &w, &h, &BPyGPU_BufferType, &py_buffer)) {
     return NULL;
