@@ -551,6 +551,57 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
   return (PyObject *)py_buffer;
 }
 
+PyDoc_STRVAR(pygpu_framebuffer_read_depth_doc,
+             ".. function:: read_depth(x, y, xsize, ysize, data=data)\n"
+             "\n"
+             "   Read a pixel depth block from the frame buffer.\n"
+             "\n"
+             "   :param x, y: Lower left corner of a rectangular block of pixels.\n"
+             "   :param xsize, ysize: Dimensions of the pixel rectangle.\n"
+             "   :type x, y, xsize, ysize: int\n"
+             "   :arg data: Optional Buffer object to fill with the pixels values.\n"
+             "   :type data: :class:`gpu.types.Buffer`\n"
+             "   :return: The Buffer with the read pixels.\n"
+             "   :rtype: :class:`gpu.types.Buffer`\n");
+static PyObject *pygpu_framebuffer_read_depth(BPyGPUFrameBuffer *self,
+                                              PyObject *args,
+                                              PyObject *kwds)
+{
+  PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
+  int x, y, w, h;
+  BPyGPUBuffer *py_buffer = NULL;
+
+  static const char *_keywords[] = {"x", "y", "xsize", "ysize", "data", NULL};
+  static _PyArg_Parser _parser = {"iiii|$O!:GPUFrameBuffer.read_depth", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kwds, &_parser, &x, &y, &w, &h, &BPyGPU_BufferType, &py_buffer)) {
+    return NULL;
+  }
+
+  if (py_buffer) {
+    if (py_buffer->format != GPU_DATA_FLOAT) {
+      PyErr_SetString(PyExc_AttributeError, "the format of the buffer must be 'GPU_DATA_FLOAT'");
+      return NULL;
+    }
+
+    size_t size_curr = bpygpu_Buffer_size(py_buffer);
+    size_t size_expected = w * h * GPU_texture_dataformat_size(GPU_DATA_FLOAT);
+    if (size_curr < size_expected) {
+      PyErr_SetString(PyExc_BufferError, "the buffer size is smaller than expected");
+      return NULL;
+    }
+  }
+  else {
+    py_buffer = BPyGPU_Buffer_CreatePyObject(GPU_DATA_FLOAT, (Py_ssize_t[]){h, w}, 2, NULL);
+    BLI_assert(bpygpu_Buffer_size(py_buffer) ==
+               w * h * GPU_texture_dataformat_size(GPU_DATA_FLOAT));
+  }
+
+  GPU_framebuffer_read_depth(self->fb, x, y, w, h, GPU_DATA_FLOAT, py_buffer->buf.as_void);
+
+  return (PyObject *)py_buffer;
+}
+
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
 PyDoc_STRVAR(pygpu_framebuffer_free_doc,
              ".. method:: free()\n"
@@ -598,6 +649,10 @@ static struct PyMethodDef pygpu_framebuffer__tp_methods[] = {
      (PyCFunction)pygpu_framebuffer_read_color,
      METH_VARARGS | METH_KEYWORDS,
      pygpu_framebuffer_read_color_doc},
+    {"read_depth",
+     (PyCFunction)pygpu_framebuffer_read_depth,
+     METH_VARARGS | METH_KEYWORDS,
+     pygpu_framebuffer_read_depth_doc},
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
     {"free", (PyCFunction)pygpu_framebuffer_free, METH_NOARGS, pygpu_framebuffer_free_doc},
 #endif
