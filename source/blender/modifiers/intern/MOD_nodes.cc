@@ -1133,6 +1133,18 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
+  /* Draw node warnings. */
+  if (nmd->runtime_eval_log != nullptr) {
+    const geo_log::ModifierLog &log = *static_cast<geo_log::ModifierLog *>(nmd->runtime_eval_log);
+    log.foreach_node_log([layout](const geo_log::NodeLog &node_log) {
+      for (const geo_log::NodeWarning &warning : node_log.warnings()) {
+        if (warning.type != geo_log::NodeWarningType::Info) {
+          uiItemL(layout, warning.message.c_str(), ICON_ERROR);
+        }
+      }
+    });
+  }
+
   modifier_panel_end(layout, ptr);
 }
 
