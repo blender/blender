@@ -18,8 +18,8 @@
 
 #pragma once
 
+#include "BLI_assert.h"
 #include "BLI_rect.h"
-
 #include <iterator>
 
 namespace blender::compositor {
@@ -111,26 +111,35 @@ template<typename T> class BufferArea : rcti {
  private:
   template<typename TIterator> constexpr TIterator begin_iterator() const
   {
+    T *end_ptr = get_end_ptr();
     if (elem_stride_ == 0) {
       /* Iterate a single element. */
-      return TIterator(buffer_, 1, 1, 1);
+      return TIterator(buffer_, end_ptr, 1, 1, 1);
     }
 
     T *begin_ptr = buffer_ + (intptr_t)this->ymin * buffer_width_ * elem_stride_ +
                    (intptr_t)this->xmin * elem_stride_;
-    return TIterator(begin_ptr, buffer_width_, BLI_rcti_size_x(this), elem_stride_);
+    return TIterator(begin_ptr, end_ptr, buffer_width_, BLI_rcti_size_x(this), elem_stride_);
   }
 
   template<typename TIterator> constexpr TIterator end_iterator() const
   {
+    T *end_ptr = get_end_ptr();
     if (elem_stride_ == 0) {
       /* Iterate a single element. */
-      return TIterator(buffer_ + 1, 1, 1, 1);
+      return TIterator(end_ptr, end_ptr, 1, 1, 1);
     }
 
-    T *end_ptr = buffer_ + (intptr_t)(this->ymax - 1) * buffer_width_ * elem_stride_ +
-                 (intptr_t)this->xmax * elem_stride_;
-    return TIterator(end_ptr, buffer_width_, BLI_rcti_size_x(this), elem_stride_);
+    return TIterator(end_ptr, end_ptr, buffer_width_, BLI_rcti_size_x(this), elem_stride_);
+  }
+
+  T *get_end_ptr() const
+  {
+    if (elem_stride_ == 0) {
+      return buffer_ + 1;
+    }
+    return buffer_ + (intptr_t)(this->ymax - 1) * buffer_width_ * elem_stride_ +
+           (intptr_t)this->xmax * elem_stride_;
   }
 };
 
@@ -149,23 +158,31 @@ template<typename T> class BufferAreaIterator {
   int rows_gap_;
   T *current_;
   const T *row_end_;
+  const T *end_;
 
  public:
   constexpr BufferAreaIterator() = default;
 
-  constexpr BufferAreaIterator(T *current, int buffer_width, int area_width, int elem_stride = 1)
+  constexpr BufferAreaIterator(
+      T *current, const T *end, int buffer_width, int area_width, int elem_stride = 1)
       : elem_stride_(elem_stride),
         row_stride_(buffer_width * elem_stride),
         rows_gap_(row_stride_ - area_width * elem_stride),
         current_(current),
-        row_end_(current + area_width * elem_stride)
+        row_end_(current + area_width * elem_stride),
+        end_(end)
   {
   }
 
   constexpr BufferAreaIterator &operator++()
   {
     current_ += elem_stride_;
+    BLI_assert(current_ <= row_end_);
     if (current_ == row_end_) {
+      BLI_assert(current_ <= end_);
+      if (current_ == end_) {
+        return *this;
+      }
       current_ += rows_gap_;
       row_end_ += row_stride_;
     }
