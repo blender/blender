@@ -543,6 +543,7 @@ struct CurveEval {
 
   blender::Span<SplinePtr> splines() const;
   blender::MutableSpan<SplinePtr> splines();
+  bool has_spline_with_type(const Spline::Type type) const;
 
   void resize(const int size);
   void add_spline(SplinePtr spline);
