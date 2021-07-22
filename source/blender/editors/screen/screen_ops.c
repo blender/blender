@@ -4333,10 +4333,8 @@ static bool match_region_with_redraws(const ScrArea *area,
   return false;
 }
 
-static void screen_animation_region_tag_redraw(ScrArea *area,
-                                               ARegion *region,
-                                               const Scene *scene,
-                                               eScreen_Redraws_Flag redraws)
+static void screen_animation_region_tag_redraw(
+    bContext *C, ScrArea *area, ARegion *region, const Scene *scene, eScreen_Redraws_Flag redraws)
 {
   /* Do follow time here if editor type supports it */
   if ((redraws & TIME_FOLLOW) &&
@@ -4359,9 +4357,29 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
   /* No need to do a full redraw as the current frame indicator is only updated.
    * We do need to redraw when this area is in full screen as no other areas
    * will be tagged for redrawing. */
-  if ((region->regiontype == RGN_TYPE_WINDOW) &&
-      (ELEM(area->spacetype, SPACE_GRAPH, SPACE_NLA, SPACE_ACTION)) && !area->full) {
-    return;
+  if (region->regiontype == RGN_TYPE_WINDOW && !area->full) {
+    if (ELEM(area->spacetype, SPACE_NLA, SPACE_ACTION)) {
+      return;
+    }
+
+    /* Drivers Editor needs a full redraw on playback for graph_draw_driver_debug().
+     * This will make it slower than regular graph editor during playback, but drawing this in
+     * graph_main_region_draw_overlay() is not feasible because it requires animation filtering
+     * which has significant overhead which needs to be avoided in the overlay which is redrawn on
+     * every UI interaction. */
+    if (area->spacetype == SPACE_GRAPH) {
+      const SpaceGraph *sipo = area->spacedata.first;
+      if (sipo->mode != SIPO_MODE_DRIVERS) {
+        return;
+      }
+      bAnimContext ac;
+      if (ANIM_animdata_get_context(C, &ac) == false) {
+        return;
+      }
+      if (ac.datatype != ANIMCONT_DRIVERS) {
+        return;
+      }
+    }
   }
   ED_region_tag_redraw(region);
 }
@@ -4549,7 +4567,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator *UNUSED(op), con
         }
 
         if (redraw) {
-          screen_animation_region_tag_redraw(area, region, scene, sad->redraws);
+          screen_animation_region_tag_redraw(C, area, region, scene, sad->redraws);
         }
       }
     }
