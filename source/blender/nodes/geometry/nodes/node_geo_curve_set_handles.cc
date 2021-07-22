@@ -101,6 +101,12 @@ static void geo_node_curve_set_handles_exec(GeoNodeExecParams params)
     }
 
     BezierSpline &bezier_spline = static_cast<BezierSpline &>(*spline);
+    if (ELEM(new_handle_type, BezierSpline::HandleType::Free, BezierSpline::HandleType::Align)) {
+      /* In this case the automatically calculated handle types need to be "baked", because
+       * they're possibly changing from a type that is calculated automatically to a type that
+       * is positioned manually. */
+      bezier_spline.ensure_auto_handles();
+    }
     has_bezier_spline = true;
     for (int i_point : IndexRange(bezier_spline.size())) {
       if (selection[point_index]) {

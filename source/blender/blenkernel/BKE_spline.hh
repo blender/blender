@@ -306,6 +306,7 @@ class BezierSpline final : public Spline {
   blender::MutableSpan<HandleType> handle_types_right();
   blender::Span<blender::float3> handle_positions_right() const;
   blender::MutableSpan<blender::float3> handle_positions_right();
+  void ensure_auto_handles() const;
 
   void translate(const blender::float3 &translation) override;
   void transform(const blender::float4x4 &matrix) override;
@@ -353,8 +354,6 @@ class BezierSpline final : public Spline {
   void correct_end_tangents() const final;
   void copy_settings(Spline &dst) const final;
   void copy_data(Spline &dst) const final;
-
-  void ensure_auto_handles() const;
 };
 
 /**
