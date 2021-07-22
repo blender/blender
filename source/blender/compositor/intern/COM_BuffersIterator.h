@@ -31,10 +31,10 @@ namespace blender::compositor {
 template<typename T> class BuffersIteratorBuilder {
  public:
   class Iterator {
+    int x_start_;
+    int x_end_;
     const T *out_end_;
-    const T *out_row_end_;
     int out_elem_stride_;
-    int out_row_stride_;
     /* Stride between an output row end and the next row start. */
     int out_rows_gap_;
 
@@ -48,9 +48,9 @@ template<typename T> class BuffersIteratorBuilder {
     friend class BuffersIteratorBuilder;
 
    public:
-    /**
-     * Current output element.
-     */
+    int x;
+    int y;
+    /** Current output element. */
     T *out;
 
    public:
@@ -85,9 +85,11 @@ template<typename T> class BuffersIteratorBuilder {
       for (In &in : ins_) {
         in.in += in.elem_stride;
       }
-      if (out == out_row_end_) {
+      x++;
+      if (x == x_end_) {
+        x = x_start_;
+        y++;
         out += out_rows_gap_;
-        out_row_end_ += out_row_stride_;
         for (In &in : ins_) {
           in.in += in.rows_gap;
         }
@@ -110,43 +112,72 @@ template<typename T> class BuffersIteratorBuilder {
   /**
    * Create a buffers iterator builder to iterate given output buffer area.
    * \param output: Output buffer.
-   * \param buffer_width: Number of elements in an output buffer row.
-   * \param area: Rectangle area to be iterated in all buffers.
+   * \param buffer_area: Whole output buffer area (may have offset position).
+   * \param iterated_area: Area to be iterated in all buffers.
    * \param elem_stride: Output buffer element stride.
    */
-  BuffersIteratorBuilder(T *output, int buffer_width, const rcti &area, int elem_stride = 1)
-      : area_(area), is_built_(false)
+  BuffersIteratorBuilder(T *output,
+                         const rcti &buffer_area,
+                         const rcti &iterated_area,
+                         int elem_stride = 1)
+      : area_(iterated_area), is_built_(false)
   {
+    BLI_assert(BLI_rcti_inside_rcti(&buffer_area, &iterated_area));
+    iterator_.x = iterated_area.xmin;
+    iterator_.y = iterated_area.ymin;
+    iterator_.x_start_ = iterated_area.xmin;
+    iterator_.x_end_ = iterated_area.xmax;
+
     iterator_.out_elem_stride_ = elem_stride;
-    iterator_.out_row_stride_ = buffer_width * elem_stride;
-    iterator_.out_rows_gap_ = iterator_.out_row_stride_ - BLI_rcti_size_x(&area) * elem_stride;
-    iterator_.out = output + (intptr_t)area.ymin * iterator_.out_row_stride_ +
-                    (intptr_t)area.xmin * elem_stride;
-    iterator_.out_row_end_ = iterator_.out + (intptr_t)BLI_rcti_size_x(&area) * elem_stride;
-    iterator_.out_end_ = iterator_.out_row_end_ +
-                         (intptr_t)iterator_.out_row_stride_ * (BLI_rcti_size_y(&area) - 1);
+    const int buffer_width = BLI_rcti_size_x(&buffer_area);
+    intptr_t out_row_stride = buffer_width * elem_stride;
+    iterator_.out_rows_gap_ = out_row_stride - BLI_rcti_size_x(&iterated_area) * elem_stride;
+    const int out_start_x = iterated_area.xmin - buffer_area.xmin;
+    const int out_start_y = iterated_area.ymin - buffer_area.ymin;
+    iterator_.out = output + (intptr_t)out_start_y * out_row_stride +
+                    (intptr_t)out_start_x * elem_stride;
+    const T *out_row_end_ = iterator_.out +
+                            (intptr_t)BLI_rcti_size_x(&iterated_area) * elem_stride;
+    iterator_.out_end_ = out_row_end_ +
+                         (intptr_t)out_row_stride * (BLI_rcti_size_y(&iterated_area) - 1);
   }
 
   /**
    * Create a buffers iterator builder to iterate given output buffer with no offsets.
    */
   BuffersIteratorBuilder(T *output, int buffer_width, int buffer_height, int elem_stride = 1)
-      : BuffersIteratorBuilder(
-            output, buffer_width, {0, buffer_width, 0, buffer_height}, elem_stride)
+      : BuffersIteratorBuilder(output,
+                               {0, buffer_width, 0, buffer_height},
+                               {0, buffer_width, 0, buffer_height},
+                               elem_stride)
   {
   }
 
   /**
-   * Add an input buffer to be iterated. Its coordinates must be correlated with the output.
+   * Add an input buffer to be iterated. It must contain iterated area.
+   */
+  void add_input(const T *input, const rcti &buffer_area, int elem_stride = 1)
+  {
+    BLI_assert(!is_built_);
+    BLI_assert(BLI_rcti_inside_rcti(&buffer_area, &area_));
+    typename Iterator::In in;
+    in.elem_stride = elem_stride;
+    const int buffer_width = BLI_rcti_size_x(&buffer_area);
+    in.rows_gap = buffer_width * elem_stride - BLI_rcti_size_x(&area_) * elem_stride;
+    const int in_start_x = area_.xmin - buffer_area.xmin;
+    const int in_start_y = area_.ymin - buffer_area.ymin;
+    in.in = input + in_start_y * buffer_width * elem_stride + in_start_x * elem_stride;
+    iterator_.ins_.append(std::move(in));
+  }
+
+  /**
+   * Add an input buffer to be iterated with no offsets. It must contain iterated area.
    */
   void add_input(const T *input, int buffer_width, int elem_stride = 1)
   {
-    BLI_assert(!is_built_);
-    typename Iterator::In in;
-    in.elem_stride = elem_stride;
-    in.rows_gap = buffer_width * elem_stride - BLI_rcti_size_x(&area_) * elem_stride;
-    in.in = input + area_.ymin * buffer_width * elem_stride + area_.xmin * elem_stride;
-    iterator_.ins_.append(std::move(in));
+    rcti buffer_area;
+    BLI_rcti_init(&buffer_area, 0, buffer_width, 0, area_.ymax);
+    add_input(input, buffer_area, elem_stride);
   }
 
   /**
