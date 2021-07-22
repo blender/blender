@@ -131,6 +131,8 @@ class ViewerOperation : public MultiThreadedOperation {
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
 
+  void clear_display_buffer();
+
  private:
   void updateImage(const rcti *rect);
   void initImage();

@@ -246,4 +246,17 @@ void ViewerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
   updateImage(&area);
 }
 
+void ViewerOperation::clear_display_buffer()
+{
+  BLI_assert(isActiveViewerOutput());
+  initImage();
+  size_t buf_bytes = (size_t)m_ibuf->y * m_ibuf->x * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float);
+  if (buf_bytes > 0) {
+    memset(m_outputBuffer, 0, buf_bytes);
+    rcti display_area;
+    BLI_rcti_init(&display_area, 0, m_ibuf->x, 0, m_ibuf->y);
+    updateImage(&display_area);
+  }
+}
+
 }  // namespace blender::compositor

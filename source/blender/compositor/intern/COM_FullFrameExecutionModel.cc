@@ -20,6 +20,7 @@
 #include "COM_Debug.h"
 #include "COM_ExecutionGroup.h"
 #include "COM_ReadBufferOperation.h"
+#include "COM_ViewerOperation.h"
 #include "COM_WorkScheduler.h"
 
 #include "BLT_translation.h"
@@ -100,11 +101,15 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
 
   const bool has_outputs = op->getNumberOfOutputSockets() > 0;
   MemoryBuffer *op_buf = has_outputs ? create_operation_buffer(op) : nullptr;
-  Span<rcti> areas = active_buffers_.get_areas_to_render(op);
-  op->render(op_buf, areas, input_bufs);
+  if (op->getWidth() > 0 && op->getHeight() > 0) {
+    Span<rcti> areas = active_buffers_.get_areas_to_render(op);
+    op->render(op_buf, areas, input_bufs);
+    DebugInfo::operation_rendered(op, op_buf);
+  }
+  /* Even if operation has no resolution set the empty buffer. It will be clipped with a
+   * TranslateOperation from convert resolutions if linked to an operation with resolution. */
   active_buffers_.set_rendered_buffer(op, std::unique_ptr<MemoryBuffer>(op_buf));
 
-  DebugInfo::operation_rendered(op, op_buf);
   operation_finished(op);
 }
 
@@ -118,9 +123,15 @@ void FullFrameExecutionModel::render_operations()
   WorkScheduler::start(this->context_);
   for (eCompositorPriority priority : priorities_) {
     for (NodeOperation *op : operations_) {
-      if (op->isOutputOperation(is_rendering) && op->getRenderPriority() == priority) {
+      const bool has_size = op->getWidth() > 0 && op->getHeight() > 0;
+      const bool is_priority_output = op->isOutputOperation(is_rendering) &&
+                                      op->getRenderPriority() == priority;
+      if (is_priority_output && has_size) {
         render_output_dependencies(op);
         render_operation(op);
+      }
+      else if (is_priority_output && !has_size && op->isActiveViewerOutput()) {
+        static_cast<ViewerOperation *>(op)->clear_display_buffer();
       }
     }
   }
