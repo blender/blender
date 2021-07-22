@@ -300,6 +300,7 @@ DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_QUADRATIC_BEZIER, 0, "CURVE_PRIMI
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_STAR, 0, "CURVE_PRIMITIVE_STAR", CurveStar, "Star", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_SPIRAL, 0, "CURVE_PRIMITIVE_SPIRAL", CurveSpiral, "Curve Spiral", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_RESAMPLE, def_geo_curve_resample, "CURVE_RESAMPLE", CurveResample, "Resample Curve", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_SET_HANDLES, def_geo_curve_set_handles, "CURVE_SET_HANDLES", CurveSetHandles, "Set Handle Type", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_SUBDIVIDE, def_geo_curve_subdivide, "CURVE_SUBDIVIDE", CurveSubdivide, "Curve Subdivide", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "Curve to Mesh", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TRIM, def_geo_curve_trim, "CURVE_TRIM", CurveTrim, "Curve Trim", "")
