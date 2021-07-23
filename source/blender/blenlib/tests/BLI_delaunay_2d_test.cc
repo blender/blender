@@ -1948,6 +1948,12 @@ void text_test(
     if (num_lines > 1) {
       label += " lines=" + std::to_string(num_lines);
     }
+    if (!need_ids) {
+      label += " no_ids";
+    }
+    if (otype != CDT_INSIDE_WITH_HOLES) {
+      label += " otype=" + std::to_string(otype);
+    }
     graph_draw<T>(label, out.vert, out.edge, out.face);
   }
 }
@@ -1955,6 +1961,51 @@ void text_test(
 TEST(delaunay_d, TextB10)
 {
   text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES, true);
+}
+
+TEST(delaunay_d, TextB10_noids)
+{
+  text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES, false);
+}
+
+TEST(delaunay_d, TextB10_inside)
+{
+  text_test<double>(10, 1, 1, CDT_INSIDE, true);
+}
+
+TEST(delaunay_d, TextB10_inside_noids)
+{
+  text_test<double>(10, 1, 1, CDT_INSIDE, false);
+}
+
+TEST(delaunay_d, TextB10_constraints)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS, true);
+}
+
+TEST(delaunay_d, TextB10_constraints_noids)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS, false);
+}
+
+TEST(delaunay_d, TextB10_constraints_valid_bmesh)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS_VALID_BMESH, true);
+}
+
+TEST(delaunay_d, TextB10_constraints_valid_bmesh_noids)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS_VALID_BMESH, false);
+}
+
+TEST(delaunay_d, TextB10_constraints_valid_bmesh_with_holes)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES, true);
+}
+
+TEST(delaunay_d, TextB10_constraints_valid_bmesh_with_holes_noids)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES, false);
 }
 
 TEST(delaunay_d, TextB200)

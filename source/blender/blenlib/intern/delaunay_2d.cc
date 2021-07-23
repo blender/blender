@@ -2208,7 +2208,10 @@ static int power_of_10_greater_equal_to(int x)
  * order around each face in turn. And then the next face starts at
  * cdt->face_edge_offset beyond the start for the previous face.
  */
-template<typename T> void add_face_constraints(CDT_state<T> *cdt_state, const CDT_input<T> &input)
+template<typename T>
+void add_face_constraints(CDT_state<T> *cdt_state,
+                          const CDT_input<T> &input,
+                          CDT_output_type output_type)
 {
   int nv = input.vert.size();
   int nf = input.face.size();
@@ -2265,8 +2268,16 @@ template<typename T> void add_face_constraints(CDT_state<T> *cdt_state, const CD
     }
     int fedge_end = fedge_start + flen - 1;
     if (face_symedge0 != nullptr) {
+      /* We need to propagate face ids to all faces that represent #f, if #need_ids.
+       * Even if `need_ids == false`, we need to propagate at least the fact that
+       * the face ids set would be non-empty if the output type is one of the ones
+       * making valid BMesh faces. */
       int id = cdt_state->need_ids ? f : 0;
       add_face_ids(cdt_state, face_symedge0, id, fedge_start, fedge_end);
+      if (cdt_state->need_ids || (output_type == CDT_CONSTRAINTS_VALID_BMESH ||
+                                  output_type == CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES)) {
+        add_face_ids(cdt_state, face_symedge0, f, fedge_start, fedge_end);
+      }
     }
     fstart += flen;
   }
@@ -2779,7 +2790,7 @@ CDT_result<T> delaunay_calc(const CDT_input<T> &input, CDT_output_type output_ty
   add_input_verts(&cdt_state, input);
   initial_triangulation(&cdt_state.cdt);
   add_edge_constraints(&cdt_state, input);
-  add_face_constraints(&cdt_state, input);
+  add_face_constraints(&cdt_state, input, output_type);
   return get_cdt_output(&cdt_state, input, output_type);
 }
 
