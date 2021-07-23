@@ -848,7 +848,10 @@ static void ui_node_draw_input(
           break;
         case SOCK_STRING: {
           const bNodeTree *node_tree = (const bNodeTree *)nodeptr.owner_id;
-          if (node_tree->type == NTREE_GEOMETRY) {
+          SpaceNode *snode = CTX_wm_space_node(C);
+          if (node_tree->type == NTREE_GEOMETRY && snode != nullptr) {
+            /* Only add the attribute search in the node editor, in other places there is not
+             * enough context. */
             node_geometry_add_attribute_search_button(C, node_tree, node, &inputptr, row);
           }
           else {
