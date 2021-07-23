@@ -51,8 +51,14 @@ struct float4x4 {
   {
     BLI_ASSERT_UNIT_V3(forward);
     BLI_ASSERT_UNIT_V3(up);
+
+    /* Negate the cross product so that the resulting matrix has determinant 1 (instead of -1).
+     * Without the negation, the result would be a so called improper rotation. That means it
+     * contains a reflection. Such an improper rotation matrix could not be converted to another
+     * representation of a rotation such as euler angles. */
+    const float3 cross = -float3::cross(forward, up);
+
     float4x4 matrix;
-    const float3 cross = float3::cross(forward, up);
     matrix.values[0][0] = forward.x;
     matrix.values[1][0] = cross.x;
     matrix.values[2][0] = up.x;
