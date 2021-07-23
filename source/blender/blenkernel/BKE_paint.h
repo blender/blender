@@ -477,8 +477,11 @@ typedef struct SculptArray {
     float total_length;
   } path;
   
-
+  int mode;
   float normal[3];
+  float direction[3];
+  float radial_angle;
+  float initial_radial_angle;
 
   bool source_mat_valid;
   float source_origin[3];
