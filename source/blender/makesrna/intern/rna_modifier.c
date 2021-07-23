@@ -3296,6 +3296,13 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth factor effect");
   RNA_def_property_update(prop, 0, "rna_CorrectiveSmoothModifier_update");
 
+  prop = RNA_def_property(srna, "projection", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "projection");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 5, 3);
+  RNA_def_property_ui_text(prop, "Projection", "Volume preserving projection");
+  RNA_def_property_update(prop, 0, "rna_CorrectiveSmoothModifier_update");
+
   prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "repeat");
   RNA_def_property_ui_range(prop, 0, 200, 1, -1);

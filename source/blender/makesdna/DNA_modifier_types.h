@@ -1843,10 +1843,10 @@ typedef struct CorrectiveSmoothModifierData {
   /* NOTE: -1 is used to bind. */
   unsigned int bind_coords_num;
 
-  float lambda, scale;
+  float lambda, scale, projection;
   short repeat, flag;
   char smooth_type, rest_source;
-  char _pad[6];
+  char _pad[2];
 
   /** MAX_VGROUP_NAME. */
   char defgrp_name[64];
@@ -1900,10 +1900,7 @@ typedef struct UVWarpModifierData {
 } UVWarpModifierData;
 
 /* UVWarp modifier flags */
-enum {
-  MOD_UVWARP_INVERT_VGROUP = 1 << 0,
-  MOD_UVWARP_RESTRICT_ISLANDS = 1<<1
-};
+enum { MOD_UVWARP_INVERT_VGROUP = 1 << 0, MOD_UVWARP_RESTRICT_ISLANDS = 1 << 1 };
 
 /* cache modifier */
 typedef struct MeshCacheModifierData {
