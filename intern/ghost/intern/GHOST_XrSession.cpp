@@ -409,6 +409,7 @@ void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
                                XrCompositionLayerProjectionView &r_proj_layer_view,
                                XrSpaceLocation &view_location,
                                XrView &view,
+                               uint32_t view_idx,
                                void *draw_customdata)
 {
   XrSwapchainImageBaseHeader *swapchain_image = swapchain.acquireDrawableSwapchainImage();
@@ -419,6 +420,8 @@ void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
   r_proj_layer_view.fov = view.fov;
   swapchain.updateCompositionLayerProjectViewSubImage(r_proj_layer_view.subImage);
 
+  assert(view_idx < 256);
+  draw_view_info.view_idx = (char)view_idx;
   draw_view_info.expects_srgb_buffer = swapchain.isBufferSRGB();
   draw_view_info.ofsx = r_proj_layer_view.subImage.imageRect.offset.x;
   draw_view_info.ofsy = r_proj_layer_view.subImage.imageRect.offset.y;
@@ -468,6 +471,7 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
              r_proj_layer_views[view_idx],
              view_location,
              m_oxr->views[view_idx],
+             view_idx,
              draw_customdata);
   }
 

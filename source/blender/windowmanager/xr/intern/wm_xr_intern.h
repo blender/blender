@@ -85,9 +85,15 @@ typedef struct wmXrRuntimeData {
   wmXrSessionExitFn exit_fn;
 } wmXrRuntimeData;
 
-typedef struct {
+typedef struct wmXrViewportPair {
+  struct wmXrViewportPair *next, *prev;
   struct GPUOffScreen *offscreen;
   struct GPUViewport *viewport;
+} wmXrViewportPair;
+
+typedef struct {
+  /* Offscreen buffers/viewports for each view. */
+  ListBase viewports; /* wmXrViewportPair */
 } wmXrSurfaceData;
 
 typedef struct wmXrDrawData {

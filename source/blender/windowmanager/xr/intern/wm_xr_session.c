@@ -546,7 +546,6 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
  */
 static void wm_xr_session_surface_draw(bContext *C)
 {
-  wmXrSurfaceData *surface_data = g_xr_surface->customdata;
   wmWindowManager *wm = CTX_wm_manager(C);
   Main *bmain = CTX_data_main(C);
   wmXrDrawData draw_data;
@@ -562,38 +561,50 @@ static void wm_xr_session_surface_draw(bContext *C)
 
   GHOST_XrSessionDrawViews(wm->xr.runtime->context, &draw_data);
 
-  GPU_offscreen_unbind(surface_data->offscreen, false);
+  GPU_framebuffer_restore();
 }
 
 bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
                                             const GHOST_XrDrawViewInfo *draw_view)
 {
-  const bool size_changed = surface_data->offscreen &&
-                            (GPU_offscreen_width(surface_data->offscreen) != draw_view->width) &&
-                            (GPU_offscreen_height(surface_data->offscreen) != draw_view->height);
+  wmXrViewportPair *vp = NULL;
+  if (draw_view->view_idx >= BLI_listbase_count(&surface_data->viewports)) {
+    vp = MEM_callocN(sizeof(*vp), __func__);
+    BLI_addtail(&surface_data->viewports, vp);
+  }
+  else {
+    vp = BLI_findlink(&surface_data->viewports, draw_view->view_idx);
+  }
+  BLI_assert(vp);
+
+  GPUOffScreen *offscreen = vp->offscreen;
+  GPUViewport *viewport = vp->viewport;
+  const bool size_changed = offscreen && (GPU_offscreen_width(offscreen) != draw_view->width) &&
+                            (GPU_offscreen_height(offscreen) != draw_view->height);
   char err_out[256] = "unknown";
   bool failure = false;
 
-  if (surface_data->offscreen) {
-    BLI_assert(surface_data->viewport);
+  if (offscreen) {
+    BLI_assert(viewport);
 
     if (!size_changed) {
       return true;
     }
-    GPU_viewport_free(surface_data->viewport);
-    GPU_offscreen_free(surface_data->offscreen);
+    GPU_viewport_free(viewport);
+    GPU_offscreen_free(offscreen);
   }
 
-  if (!(surface_data->offscreen = GPU_offscreen_create(
-            draw_view->width, draw_view->height, true, false, err_out))) {
-    failure = true;
+  offscreen = vp->offscreen = GPU_offscreen_create(
+      draw_view->width, draw_view->height, true, false, err_out);
+  if (offscreen) {
+    viewport = vp->viewport = GPU_viewport_create();
+    if (!viewport) {
+      GPU_offscreen_free(offscreen);
+      offscreen = vp->offscreen = NULL;
+      failure = true;
+    }
   }
-
-  if (failure) {
-    /* Pass. */
-  }
-  else if (!(surface_data->viewport = GPU_viewport_create())) {
-    GPU_offscreen_free(surface_data->offscreen);
+  else {
     failure = true;
   }
 
@@ -608,12 +619,17 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
 static void wm_xr_session_surface_free_data(wmSurface *surface)
 {
   wmXrSurfaceData *data = surface->customdata;
+  ListBase *lb = &data->viewports;
+  wmXrViewportPair *vp;
 
-  if (data->viewport) {
-    GPU_viewport_free(data->viewport);
-  }
-  if (data->offscreen) {
-    GPU_offscreen_free(data->offscreen);
+  while (vp = BLI_pophead(lb)) {
+    if (vp->viewport) {
+      GPU_viewport_free(vp->viewport);
+    }
+    if (vp->offscreen) {
+      GPU_offscreen_free(vp->offscreen);
+    }
+    BLI_freelinkN(lb, vp);
   }
 
   MEM_freeN(surface->customdata);
