@@ -36,7 +36,7 @@
 static PyTypeObject BlenderAppFFmpegType;
 
 #define DEF_FFMPEG_LIB_VERSION(lib) \
-  {(#lib "_version"), ("The " #lib " version  as a tuple of 3 numbers")}, \
+  {(#lib "_version"), ("The " #lib " version as a tuple of 3 numbers")}, \
   { \
     (#lib "_version_string"), ("The " #lib " version formatted as a string") \
   }
