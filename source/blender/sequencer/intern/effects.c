@@ -3136,7 +3136,7 @@ static int early_out_speed(Sequence *UNUSED(seq), float UNUSED(facf0), float UNU
  * useful to use speed effect on these strips because they can be animated. This can be done by
  * using their length as is on timeline as content length. See T82698.
  */
-int seq_effect_speed_get_strip_content_length(const Sequence *seq)
+static int seq_effect_speed_get_strip_content_length(const Sequence *seq)
 {
   if ((seq->type & SEQ_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(seq->type) == 0) {
     return seq->enddisp - seq->startdisp;

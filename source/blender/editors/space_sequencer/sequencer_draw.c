@@ -92,8 +92,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "intern/effects.h"
-
 /* Own include. */
 #include "sequencer_intern.h"
 
@@ -1010,104 +1008,46 @@ static void fcurve_batch_add_verts(GPUVertBuf *vbo,
  * - Volume for sound strips.
  * - Opacity for the other types.
  */
-static void draw_seq_fcurve_overlay(Scene *scene,
-                                    View2D *v2d,
-                                    Sequence *seq,
-                                    float x1,
-                                    float y1,
-                                    float x2,
-                                    float y2,
-                                    float pixelx,
-                                    float pixely)
+static void draw_seq_fcurve_overlay(
+    Scene *scene, View2D *v2d, Sequence *seq, float x1, float y1, float x2, float y2, float pixelx)
 {
-  /* Clamp curve evaluation to the editor's borders. */
-  const int eval_start = max_ff(x1, v2d->cur.xmin);
-  const int eval_end = min_ff(x2, v2d->cur.xmax + 1);
-  if (eval_start >= eval_end) {
-    return;
-  }
+  FCurve *fcu;
 
-  const float y_height = y2 - y1;
-  double curve_val;
-  GPUVertBuf *vbo = NULL;
-  uint vert_count = 0;
-
-  GPUVertFormat format = {0};
-  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-  const char *prop_name = NULL;
-  if (seq->type == SEQ_TYPE_SPEED) {
-    SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
-    switch (v->speed_control_type) {
-      case SEQ_SPEED_MULTIPLY: {
-        prop_name = "speed_factor";
-        break;
-      }
-      case SEQ_SPEED_FRAME_NUMBER: {
-        prop_name = "speed_frame_number";
-        break;
-      }
-      case SEQ_SPEED_LENGTH: {
-        prop_name = "speed_length";
-        break;
-      }
-      case SEQ_SPEED_STRETCH: {
-        break;
-      }
-    }
-  }
-  else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    prop_name = "volume";
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
   }
   else {
-    prop_name = "blend_alpha";
+    fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "blend_alpha", 0, NULL);
   }
-
-  FCurve *fcu = NULL;
-  if (prop_name) {
-    fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, prop_name, 0, NULL);
-  }
-
-  float ymax = 1.0f;
-  float ymin = 0.0f;
 
   if (fcu && !BKE_fcurve_is_empty(fcu)) {
+
+    /* Clamp curve evaluation to the editor's borders. */
+    int eval_start = max_ff(x1, v2d->cur.xmin);
+    int eval_end = min_ff(x2, v2d->cur.xmax + 1);
+
     int eval_step = max_ii(1, floor(pixelx));
+
+    if (eval_start >= eval_end) {
+      return;
+    }
+
+    GPUVertFormat format = {0};
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+
     uint max_verts = 2 * ((eval_end - eval_start) / eval_step + 1);
-
-    vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, max_verts);
+    uint vert_count = 0;
 
+    const float y_height = y2 - y1;
+    float curve_val;
     float prev_val = INT_MIN;
     bool skip = false;
 
-    if (seq->type == SEQ_TYPE_SPEED) {
-      BKE_fcurve_calc_bounds(fcu, NULL, NULL, &ymin, &ymax, false, false);
-      ymin = min_ff(ymin, 0.0f);
-      SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
-      switch (v->speed_control_type) {
-        case SEQ_SPEED_LENGTH: {
-          ymax = max_ff(ymax, 100.0f);
-          break;
-        }
-        case SEQ_SPEED_FRAME_NUMBER: {
-          ymax = max_ff(ymax, (float)seq_effect_speed_get_strip_content_length(seq->seq1));
-          break;
-        }
-        case SEQ_SPEED_MULTIPLY: {
-          ymax = max_ff(ymax, 1.0f);
-        }
-      }
-    }
-
     for (int timeline_frame = eval_start; timeline_frame <= eval_end;
          timeline_frame += eval_step) {
-
       curve_val = evaluate_fcurve(fcu, timeline_frame);
-      if (seq->type == SEQ_TYPE_SPEED) {
-        curve_val = ratiof(ymin, ymax, curve_val);
-      }
-
       CLAMP(curve_val, 0.0f, 1.0f);
 
       /* Avoid adding adjacent verts that have the same value. */
@@ -1126,69 +1066,19 @@ static void draw_seq_fcurve_overlay(Scene *scene,
       fcurve_batch_add_verts(vbo, y1, y2, y_height, timeline_frame, curve_val, &vert_count);
       prev_val = curve_val;
     }
-  }
-  else {
-    /* Draw the values without f-curves. */
-    if (seq->type == SEQ_TYPE_SPEED) {
-      SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
-      if (v->speed_control_type != SEQ_SPEED_MULTIPLY) {
-        if (v->speed_control_type == SEQ_SPEED_FRAME_NUMBER) {
-          curve_val = ((float)v->speed_fader_frame_number /
-                       (float)seq_effect_speed_get_strip_content_length(seq->seq1));
-        }
-        else if (v->speed_control_type == SEQ_SPEED_LENGTH) {
-          curve_val = (v->speed_fader_length / 100.0f);
-        }
-        else {
-          BLI_assert(v->speed_control_type == SEQ_SPEED_STRETCH);
-          const int target_strip_length = seq_effect_speed_get_strip_content_length(seq->seq1);
-          if ((seq->seq1->enddisp != seq->seq1->start) && (target_strip_length != 0)) {
-            curve_val = (float)target_strip_length /
-                        (float)(seq->seq1->enddisp - seq->seq1->start);
-          }
-        }
-        if (curve_val < 0.0f) {
-          ymin = curve_val;
-          curve_val = 0.0f;
-        }
-        if (curve_val > 1.0f) {
-          ymax = curve_val;
-          curve_val = 1.0f;
-        }
 
-        vbo = GPU_vertbuf_create_with_format(&format);
-        GPU_vertbuf_data_alloc(vbo, 4);
-        fcurve_batch_add_verts(vbo, y1, y2, y_height, eval_start, curve_val, &vert_count);
-        fcurve_batch_add_verts(vbo, y1, y2, y_height, eval_end, curve_val, &vert_count);
-      }
-    }
-  }
-
-  if (vert_count > 0) {
-    GPUBatch *batch = GPU_batch_create(GPU_PRIM_TRI_STRIP, vbo, NULL);
+    GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
     GPU_vertbuf_data_len_set(vbo, vert_count);
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
     GPU_batch_uniform_4f(batch, "color", 0.0f, 0.0f, 0.0f, 0.15f);
     GPU_blend(GPU_BLEND_ALPHA);
 
-    GPU_batch_draw(batch);
+    if (vert_count > 0) {
+      GPU_batch_draw(batch);
+    }
 
     GPU_blend(GPU_BLEND_NONE);
     GPU_batch_discard(batch);
-  }
-  GPU_VERTBUF_DISCARD_SAFE(vbo);
-
-  if (ymin < 0.0f) {
-    /* Draw line at zero. */
-    float y_ratio = ratiof(ymin, ymax, 0.0f);
-    float y_orig = y1 + y_ratio * y_height;
-
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    GPU_blend(GPU_BLEND_ALPHA);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    immUniformThemeColorShade(TH_CFRAME, -10);
-    immRectf(pos, eval_start, y_orig, eval_end, y_orig + (2 * pixely));
-    immUnbindProgram();
   }
 }
 
@@ -1264,7 +1154,7 @@ static void draw_seq_strip(const bContext *C,
   }
 
   if ((sseq->flag & SEQ_SHOW_STRIP_OVERLAY) && (sseq->flag & SEQ_SHOW_FCURVES)) {
-    draw_seq_fcurve_overlay(scene, v2d, seq, x1, y1, x2, y2, pixelx, pixely);
+    draw_seq_fcurve_overlay(scene, v2d, seq, x1, y1, x2, y2, pixelx);
   }
 
   /* Draw sound strip waveform. */
