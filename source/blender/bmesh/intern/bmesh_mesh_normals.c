@@ -1106,7 +1106,7 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
   }
 
   if (split_angle_cos != -1.0f) {
-    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, true);
+    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, false);
   }
 
   /* Clear all loops' tags (means none are to be skipped for now). */
