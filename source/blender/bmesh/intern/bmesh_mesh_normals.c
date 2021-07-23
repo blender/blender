@@ -43,10 +43,12 @@
 /* Smooth angle to use when tagging edges is disabled entirely. */
 #define EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS -FLT_MAX
 
-static void bm_mesh_edges_sharp_tag(BMesh *bm,
-                                    const float (*fnos)[3],
-                                    const float split_angle,
-                                    const bool do_sharp_edges_tag);
+static void bm_edge_tag_from_smooth_and_set_sharp(const float (*fnos)[3],
+                                                  BMEdge *e,
+                                                  const float split_angle_cos);
+static void bm_edge_tag_from_smooth(const float (*fnos)[3],
+                                    BMEdge *e,
+                                    const float split_angle_cos);
 
 /* -------------------------------------------------------------------- */
 /** \name Update Vertex & Face Normals
@@ -413,49 +415,23 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
   const bool check_angle = (split_angle < (float)M_PI);
   const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
-  {
-    char htype = BM_VERT | BM_LOOP;
-    if (fnos) {
-      htype |= BM_FACE;
-    }
-    BM_mesh_elem_index_ensure(bm, htype);
+  if (fnos) {
+    BM_mesh_elem_index_ensure(bm, BM_FACE);
   }
 
-  /* This first loop checks which edges are actually smooth,
-   * and pre-populate lnos with vnos (as if they were all smooth). */
-  BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
-    BMLoop *l_a, *l_b;
-
-    BM_elem_index_set(e, i);              /* set_inline */
-    BM_elem_flag_disable(e, BM_ELEM_TAG); /* Clear tag (means edge is sharp). */
-
-    /* An edge with only two loops, might be smooth... */
-    if (BM_edge_loop_pair(e, &l_a, &l_b)) {
-      bool is_angle_smooth = true;
-      if (check_angle) {
-        const float *no_a = fnos ? fnos[BM_elem_index_get(l_a->f)] : l_a->f->no;
-        const float *no_b = fnos ? fnos[BM_elem_index_get(l_b->f)] : l_b->f->no;
-        is_angle_smooth = (dot_v3v3(no_a, no_b) >= split_angle_cos);
+  if (do_sharp_edges_tag) {
+    BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
+      BM_elem_index_set(e, i); /* set_inline */
+      if (e->l != NULL) {
+        bm_edge_tag_from_smooth_and_set_sharp(fnos, e, split_angle_cos);
       }
-
-      /* We only tag edges that are *really* smooth:
-       * If the angle between both its polys' normals is below split_angle value,
-       * and it is tagged as such,
-       * and both its faces are smooth,
-       * and both its faces have compatible (non-flipped) normals,
-       * i.e. both loops on the same edge do not share the same vertex.
-       */
-      if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && BM_elem_flag_test(l_a->f, BM_ELEM_SMOOTH) &&
-          BM_elem_flag_test(l_b->f, BM_ELEM_SMOOTH) && l_a->v != l_b->v) {
-        if (is_angle_smooth) {
-          BM_elem_flag_enable(e, BM_ELEM_TAG);
-        }
-        else if (do_sharp_edges_tag) {
-          /* Note that we do not care about the other sharp-edge cases
-           * (sharp poly, non-manifold edge, etc.),
-           * only tag edge as sharp when it is due to angle threshold. */
-          BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
-        }
+    }
+  }
+  else {
+    BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
+      BM_elem_index_set(e, i); /* set_inline */
+      if (e->l != NULL) {
+        bm_edge_tag_from_smooth(fnos, e, split_angle_cos);
       }
     }
   }
@@ -832,25 +808,45 @@ static int bm_loop_index_cmp(const void *a, const void *b)
   return 1;
 }
 
+/**
+ * We only tag edges that are *really* smooth when the following conditions are met:
+ * - The angle between both its polygons normals is below split_angle value.
+ * - The edge is tagged as smooth.
+ * - The faces of the edge are tagged as smooth.
+ * - The faces of the edge have compatible (non-flipped) topological normal (winding),
+ *   i.e. both loops on the same edge do not share the same vertex.
+ */
+BLI_INLINE bool bm_edge_is_smooth_no_angle_test(const BMEdge *e,
+                                                const BMLoop *l_a,
+                                                const BMLoop *l_b)
+{
+  return (
+      /* The face is manifold. */
+      (l_a->radial_next == l_b) &&
+      /* Faces have winding that faces the same way. */
+      (l_a->v != l_b->v) &&
+      /* The edge is smooth. */
+      BM_elem_flag_test(e, BM_ELEM_SMOOTH) &&
+      /* Both faces are smooth. */
+      BM_elem_flag_test(l_a->f, BM_ELEM_SMOOTH) && BM_elem_flag_test(l_b->f, BM_ELEM_SMOOTH));
+}
+
 static void bm_edge_tag_from_smooth(const float (*fnos)[3], BMEdge *e, const float split_angle_cos)
 {
   BLI_assert(e->l != NULL);
   BMLoop *l_a = e->l, *l_b = l_a->radial_next;
   bool is_smooth = false;
-  if (l_a->radial_next == l_b) {
-    if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && BM_elem_flag_test(l_a->f, BM_ELEM_SMOOTH) &&
-        BM_elem_flag_test(l_b->f, BM_ELEM_SMOOTH) && l_a->v != l_b->v) {
-      if (split_angle_cos != -1.0f) {
-        const float dot = (fnos == NULL) ? dot_v3v3(l_a->f->no, l_b->f->no) :
-                                           dot_v3v3(fnos[BM_elem_index_get(l_a->f)],
-                                                    fnos[BM_elem_index_get(l_b->f)]);
-        if (dot >= split_angle_cos) {
-          is_smooth = true;
-        }
-      }
-      else {
+  if (bm_edge_is_smooth_no_angle_test(e, l_a, l_b)) {
+    if (split_angle_cos != -1.0f) {
+      const float dot = (fnos == NULL) ? dot_v3v3(l_a->f->no, l_b->f->no) :
+                                         dot_v3v3(fnos[BM_elem_index_get(l_a->f)],
+                                                  fnos[BM_elem_index_get(l_b->f)]);
+      if (dot >= split_angle_cos) {
         is_smooth = true;
       }
+    }
+    else {
+      is_smooth = true;
     }
   }
 
@@ -865,6 +861,43 @@ static void bm_edge_tag_from_smooth(const float (*fnos)[3], BMEdge *e, const flo
   else {
     *hflag_p = *hflag_p & ~BM_ELEM_TAG;
   }
+}
+
+/**
+ * A version of #bm_edge_tag_from_smooth that sets sharp edges
+ * when they would be considered smooth but exceed the split angle .
+ *
+ * \note This doesn't have the same atomic requirement as #bm_edge_tag_from_smooth
+ * since it isn't run from multiple threads at once.
+ */
+static void bm_edge_tag_from_smooth_and_set_sharp(const float (*fnos)[3],
+                                                  BMEdge *e,
+                                                  const float split_angle_cos)
+{
+  BLI_assert(e->l != NULL);
+  BMLoop *l_a = e->l, *l_b = l_a->radial_next;
+  bool is_smooth = false;
+  if (bm_edge_is_smooth_no_angle_test(e, l_a, l_b)) {
+    if (split_angle_cos != -1.0f) {
+      const float dot = (fnos == NULL) ? dot_v3v3(l_a->f->no, l_b->f->no) :
+                                         dot_v3v3(fnos[BM_elem_index_get(l_a->f)],
+                                                  fnos[BM_elem_index_get(l_b->f)]);
+      if (dot >= split_angle_cos) {
+        is_smooth = true;
+      }
+      else {
+        /* Note that we do not care about the other sharp-edge cases
+         * (sharp poly, non-manifold edge, etc.),
+         * only tag edge as sharp when it is due to angle threshold. */
+        BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
+      }
+    }
+    else {
+      is_smooth = true;
+    }
+  }
+
+  BM_elem_flag_set(e, BM_ELEM_TAG, is_smooth);
 }
 
 /**
