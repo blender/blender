@@ -92,6 +92,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "intern/effects.h"
+
 /* Own include. */
 #include "sequencer_intern.h"
 
@@ -1008,12 +1010,41 @@ static void fcurve_batch_add_verts(GPUVertBuf *vbo,
  * - Volume for sound strips.
  * - Opacity for the other types.
  */
-static void draw_seq_fcurve_overlay(
-    Scene *scene, View2D *v2d, Sequence *seq, float x1, float y1, float x2, float y2, float pixelx)
+static void draw_seq_fcurve_overlay(Scene *scene,
+                                    View2D *v2d,
+                                    Sequence *seq,
+                                    float x1,
+                                    float y1,
+                                    float x2,
+                                    float y2,
+                                    float pixelx,
+                                    float pixely)
 {
+  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   FCurve *fcu;
+  double curve_val;
 
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+  if (seq->type == SEQ_TYPE_SPEED) {
+    switch (v->speed_control_type) {
+      case SEQ_SPEED_MULTIPLY: {
+        fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
+        break;
+      }
+      case SEQ_SPEED_FRAME_NUMBER: {
+        fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_frame_number", 0, NULL);
+        break;
+      }
+      case SEQ_SPEED_LENGTH: {
+        fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_length", 0, NULL);
+        break;
+      }
+      case SEQ_SPEED_STRETCH: {
+        fcu = NULL;
+        break;
+      }
+    }
+  }
+  else if (seq->type == SEQ_TYPE_SOUND_RAM) {
     fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
   }
   else {
@@ -1041,13 +1072,66 @@ static void draw_seq_fcurve_overlay(
     uint vert_count = 0;
 
     const float y_height = y2 - y1;
-    float curve_val;
     float prev_val = INT_MIN;
     bool skip = false;
+    double ymax = 1.0;
+    double ymin = 0.0;
+
+    if (seq->type == SEQ_TYPE_SPEED) {
+      SEQ_effect_handle_get(seq);
+      switch (v->speed_control_type) {
+        case SEQ_SPEED_LENGTH: {
+          ymin = 0.0;
+          ymax = 100.0;
+          break;
+        }
+        case SEQ_SPEED_FRAME_NUMBER: {
+          ymin = 0;
+          ymax = seq_effect_speed_get_strip_content_length(seq->seq1);
+          break;
+        }
+        case SEQ_SPEED_MULTIPLY: {
+          ymin = 0.0;
+          ymax = 0.0;
+          /* Get range. */
+          for (int timeline_frame = eval_start; timeline_frame <= eval_end;
+               timeline_frame += eval_step) {
+            curve_val = evaluate_fcurve(fcu, timeline_frame);
+            if (curve_val > ymax) {
+              ymax = curve_val;
+            }
+            if (curve_val < ymin) {
+              ymin = curve_val;
+            }
+          }
+          if (ymin < 0) {
+            ymax = ymax + fabs(ymin);
+            ymin = fabs(ymin);
+          }
+          else {
+            ymax = ymax - ymin;
+            ymin = -ymin;
+          }
+        }
+      }
+    }
 
     for (int timeline_frame = eval_start; timeline_frame <= eval_end;
          timeline_frame += eval_step) {
-      curve_val = evaluate_fcurve(fcu, timeline_frame);
+
+      if (seq->type == SEQ_TYPE_SPEED) {
+        curve_val = evaluate_fcurve(fcu, timeline_frame);
+
+        if (v->speed_control_type == SEQ_SPEED_MULTIPLY) {
+          curve_val = (((curve_val + ymin) / (ymax + ymin)) * v->globalSpeed);
+        }
+        else {
+          curve_val = ((curve_val / (ymax - ymin)) * v->globalSpeed);
+        }
+      }
+      else {
+        curve_val = evaluate_fcurve(fcu, timeline_frame);
+      }
       CLAMP(curve_val, 0.0f, 1.0f);
 
       /* Avoid adding adjacent verts that have the same value. */
@@ -1079,6 +1163,47 @@ static void draw_seq_fcurve_overlay(
 
     GPU_blend(GPU_BLEND_NONE);
     GPU_batch_discard(batch);
+
+    if ((v->speed_control_type == SEQ_SPEED_MULTIPLY) && (ymin > 0.0f)) {
+      /* Draw line at zero. */
+      uint pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      GPU_blend(GPU_BLEND_ALPHA);
+      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immUniformThemeColorShade(TH_CFRAME, -10);
+      immRectf(
+          pos, x1, (ymin / (ymax + ymin)) + y1, x2, (ymin / (ymax + ymin)) + y1 + (2 * pixely));
+      immUnbindProgram();
+    }
+  }
+  else {
+    /* Draw the values without f-curves. */
+    if (seq->type == SEQ_TYPE_SPEED) {
+      if (v->speed_control_type == SEQ_SPEED_FRAME_NUMBER) {
+        curve_val = ((float)v->speed_fader_frame_number /
+                     (float)seq_effect_speed_get_strip_content_length(seq->seq1));
+      }
+      else if (v->speed_control_type == SEQ_SPEED_LENGTH) {
+        curve_val = (v->speed_fader_length / 100);
+      }
+      else if (v->speed_control_type == SEQ_SPEED_STRETCH) {
+        const int target_strip_length = seq_effect_speed_get_strip_content_length(seq->seq1);
+        if ((seq->seq1->enddisp != seq->seq1->start) && (target_strip_length != 0)) {
+          curve_val = (float)target_strip_length / (float)(seq->seq1->enddisp - seq->seq1->start);
+        }
+      }
+      else {
+        curve_val = 0;
+      }
+      CLAMP(curve_val, 0.0f, 1.0f);
+      uint pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      GPU_blend(GPU_BLEND_ALPHA);
+      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immUniformColor4ub(0, 0, 0, 51);
+      immRectf(pos, x1, ((y2 - y1) * curve_val) + y1, x2, y2);
+      immUnbindProgram();
+    }
   }
 }
 
@@ -1154,7 +1279,7 @@ static void draw_seq_strip(const bContext *C,
   }
 
   if ((sseq->flag & SEQ_SHOW_STRIP_OVERLAY) && (sseq->flag & SEQ_SHOW_FCURVES)) {
-    draw_seq_fcurve_overlay(scene, v2d, seq, x1, y1, x2, y2, pixelx);
+    draw_seq_fcurve_overlay(scene, v2d, seq, x1, y1, x2, y2, pixelx, pixely);
   }
 
   /* Draw sound strip waveform. */
