@@ -225,7 +225,7 @@ typedef enum wmXrSessionStateEvent {
   SESSION_STATE_EVENT_NONE = 0,
   SESSION_STATE_EVENT_START,
   SESSION_STATE_EVENT_RESET_TO_BASE_POSE,
-  SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE,
+  SESSION_STATE_EVENT_POSITION_TRACKING_TOGGLE,
 } wmXrSessionStateEvent;
 
 static bool wm_xr_session_draw_data_needs_reset_to_base_pose(const wmXrSessionState *state,
@@ -253,7 +253,7 @@ static wmXrSessionStateEvent wm_xr_session_state_to_event(const wmXrSessionState
                                            XR_SESSION_USE_POSITION_TRACKING) !=
                                           (settings->flag & XR_SESSION_USE_POSITION_TRACKING));
   if (position_tracking_toggled) {
-    return SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE;
+    return SESSION_STATE_EVENT_POSITION_TRACKING_TOGGLE;
   }
 
   return SESSION_STATE_EVENT_NONE;
@@ -288,7 +288,7 @@ void wm_xr_session_draw_data_update(const wmXrSessionState *state,
         copy_v3_fl(draw_data->eye_position_ofs, 0.0f);
       }
       break;
-    case SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE:
+    case SESSION_STATE_EVENT_POSITION_TRACKING_TOGGLE:
       if (use_position_tracking) {
         /* Keep the current position, and let the user move from there. */
         copy_v3_v3(draw_data->eye_position_ofs, state->prev_eye_position_ofs);
