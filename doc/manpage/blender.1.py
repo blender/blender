@@ -122,7 +122,7 @@ is a full-featured 3D application. It supports the entirety of the 3D pipeline -
 '''modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
 
 Use Blender to create 3D images and animations, films and commercials, content for games, '''
-r'''architectural and industrial visualizatons, and scientific visualizations.
+r'''architectural and industrial visualizations, and scientific visualizations.
 
 https://www.blender.org''')
 
