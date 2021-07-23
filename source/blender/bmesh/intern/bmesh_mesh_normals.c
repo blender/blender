@@ -44,9 +44,7 @@
 #define EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS -FLT_MAX
 
 static void bm_mesh_edges_sharp_tag(BMesh *bm,
-                                    const float (*vnos)[3],
                                     const float (*fnos)[3],
-                                    float (*r_lnos)[3],
                                     const float split_angle,
                                     const bool do_sharp_edges_tag);
 
@@ -404,9 +402,7 @@ void BM_normals_loops_edges_tag(BMesh *bm, const bool do_edges)
  * Helpers for #BM_mesh_loop_normals_update and #BM_loops_calc_normal_vcos
  */
 static void bm_mesh_edges_sharp_tag(BMesh *bm,
-                                    const float (*vnos)[3],
                                     const float (*fnos)[3],
-                                    float (*r_lnos)[3],
                                     const float split_angle,
                                     const bool do_sharp_edges_tag)
 {
@@ -452,16 +448,7 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
       if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && BM_elem_flag_test(l_a->f, BM_ELEM_SMOOTH) &&
           BM_elem_flag_test(l_b->f, BM_ELEM_SMOOTH) && l_a->v != l_b->v) {
         if (is_angle_smooth) {
-          const float *no;
           BM_elem_flag_enable(e, BM_ELEM_TAG);
-
-          /* linked vertices might be fully smooth, copy their normals to loop ones. */
-          if (r_lnos) {
-            no = vnos ? vnos[BM_elem_index_get(l_a->v)] : l_a->v->no;
-            copy_v3_v3(r_lnos[BM_elem_index_get(l_a)], no);
-            no = vnos ? vnos[BM_elem_index_get(l_b->v)] : l_b->v->no;
-            copy_v3_v3(r_lnos[BM_elem_index_get(l_b)], no);
-          }
         }
         else if (do_sharp_edges_tag) {
           /* Note that we do not care about the other sharp-edge cases
@@ -489,7 +476,7 @@ void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle)
     return;
   }
 
-  bm_mesh_edges_sharp_tag(bm, NULL, NULL, NULL, split_angle, true);
+  bm_mesh_edges_sharp_tag(bm, NULL, split_angle, true);
 }
 
 /** \} */
@@ -1119,7 +1106,7 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
   }
 
   if (split_angle_cos != -1.0f) {
-    bm_mesh_edges_sharp_tag(bm, NULL, fnos, NULL, has_clnors ? (float)M_PI : split_angle, true);
+    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, true);
   }
 
   /* Clear all loops' tags (means none are to be skipped for now). */
@@ -1583,7 +1570,6 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
  */
 static void bm_mesh_loops_custom_normals_set(BMesh *bm,
                                              const float (*vcos)[3],
-                                             const float (*vnos)[3],
                                              const float (*fnos)[3],
                                              MLoopNorSpaceArray *r_lnors_spacearr,
                                              short (*r_clnors_data)[2],
@@ -1601,7 +1587,7 @@ static void bm_mesh_loops_custom_normals_set(BMesh *bm,
 
   /* Tag smooth edges and set lnos from vnos when they might be completely smooth...
    * When using custom loop normals, disable the angle feature! */
-  bm_mesh_edges_sharp_tag(bm, vnos, fnos, cur_lnors, (float)M_PI, false);
+  bm_mesh_edges_sharp_tag(bm, fnos, (float)M_PI, false);
 
   /* Finish computing lnos by accumulating face normals
    * in each fan of faces defined by sharp edges. */
@@ -2322,7 +2308,6 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
   }
 
   bm_mesh_loops_custom_normals_set(bm,
-                                   NULL,
                                    NULL,
                                    NULL,
                                    bm->lnor_spacearr,
