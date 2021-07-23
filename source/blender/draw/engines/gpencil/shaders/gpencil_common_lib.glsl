@@ -327,7 +327,7 @@ vec2 safe_normalize_len(vec2 v, out float len)
 
 float stroke_thickness_modulate(float thickness)
 {
-  /* Modify stroke thickness by object and layer factors.-*/
+  /* Modify stroke thickness by object and layer factors. */
   thickness *= thicknessScale;
   thickness += thicknessOffset;
   thickness = max(1.0, thickness);

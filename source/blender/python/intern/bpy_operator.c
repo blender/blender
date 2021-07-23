@@ -339,7 +339,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  /* When calling  bpy.ops.wm.read_factory_settings() bpy.data's main pointer
+  /* When calling `bpy.ops.wm.read_factory_settings()` `bpy.data's` main pointer
    * is freed by clear_globals(), further access will crash blender.
    * Setting context is not needed in this case, only calling because this
    * function corrects bpy.data (internal Main pointer) */

@@ -513,7 +513,7 @@ typedef struct bTheme {
 typedef struct bAddon {
   struct bAddon *next, *prev;
   char module[64];
-  /** User-Defined Properties on this  Addon (for storing preferences). */
+  /** User-Defined Properties on this add-on (for storing preferences). */
   IDProperty *prop;
 } bAddon;
 
@@ -800,7 +800,7 @@ typedef struct UserDef {
   short rvisize;
   /** Rotating view icon brightness. */
   short rvibright;
-  /** Maximum number of recently used files to remember . */
+  /** Maximum number of recently used files to remember. */
   short recent_files;
   /** Milliseconds to spend spinning the view. */
   short smooth_viewtx;
@@ -1291,7 +1291,7 @@ typedef enum eTimecodeStyles {
   USER_TIMECODE_SECONDS_ONLY = 4,
   /**
    * Private (not exposed as generic choices) options.
-   * milliseconds for sub-frames , SubRip format- HH:MM:SS,sss.
+   * milliseconds for sub-frames, SubRip format- HH:MM:SS,sss.
    */
   USER_TIMECODE_SUBRIP = 100,
 } eTimecodeStyles;

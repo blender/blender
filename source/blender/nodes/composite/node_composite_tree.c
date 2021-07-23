@@ -264,14 +264,15 @@ void ntreeCompositExecTree(Scene *scene,
 
 /* *********************************************** */
 
-/* Update the outputs of the render layer nodes.
+/**
+ * Update the outputs of the render layer nodes.
  * Since the outputs depend on the render engine, this part is a bit complex:
- * - ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
+ * - #ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
  * - Each render layer node calls the update function of the
  *   render engine that's used for its scene.
  * - The render engine calls RE_engine_register_pass for each pass.
- * - RE_engine_register_pass calls ntreeCompositRegisterPass,.
- *   which calls node_cmp_rlayers_register_pass for every render layer node.
+ * - #RE_engine_register_pass calls #ntreeCompositRegisterPass,
+ *   which calls #node_cmp_rlayers_register_pass for every render layer node.
  */
 void ntreeCompositUpdateRLayers(bNodeTree *ntree)
 {

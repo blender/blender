@@ -623,7 +623,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   CustomData *ldata = &result->ldata;
   clnors = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
 
-  /* Keep info  whether we had clnors,
+  /* Keep info whether we had clnors,
    * it helps when generating clnor spaces and default normals. */
   const bool has_clnors = clnors != NULL;
   if (!clnors) {

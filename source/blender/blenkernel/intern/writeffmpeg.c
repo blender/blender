@@ -1747,9 +1747,10 @@ void BKE_ffmpeg_preset_set(RenderData *rd, int preset)
       rd->ffcodecdata.type = FFMPEG_MPEG2;
       rd->ffcodecdata.video_bitrate = 6000;
 
-      /* Don't set resolution, see T21351.
-       * rd->xsch = 720;
-       * rd->ysch = isntsc ? 480 : 576; */
+#  if 0 /* Don't set resolution, see T21351. */
+      rd->xsch = 720;
+      rd->ysch = isntsc ? 480 : 576;
+#  endif
 
       rd->ffcodecdata.gop_size = isntsc ? 18 : 15;
       rd->ffcodecdata.rc_max_rate = 9000;

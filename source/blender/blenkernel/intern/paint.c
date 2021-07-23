@@ -880,7 +880,7 @@ static int palettecolor_compare_luminance(const void *a1, const void *a2)
 
 void BKE_palette_sort_hsv(tPaletteColorHSV *color_array, const int totcol)
 {
-  /* Sort by Hue , Saturation and Value. */
+  /* Sort by Hue, Saturation and Value. */
   qsort(color_array, totcol, sizeof(tPaletteColorHSV), palettecolor_compare_hsv);
 }
 

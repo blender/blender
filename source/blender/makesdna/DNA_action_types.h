@@ -830,7 +830,7 @@ typedef struct SpaceAction {
   /** The currently active context (when not showing action). */
   bDopeSheet ads;
 
-  /** For Time-Slide transform mode drawing - current frame?. */
+  /** For Time-Slide transform mode drawing - current frame? */
   float timeslide;
 
   short flag;
@@ -838,7 +838,7 @@ typedef struct SpaceAction {
   char mode;
   /* Storage for sub-space types. */
   char mode_prev;
-  /** Automatic keyframe snapping mode  . */
+  /** Automatic keyframe snapping mode. */
   char autosnap;
   /** (eTimeline_Cache_Flag). */
   char cache_display;

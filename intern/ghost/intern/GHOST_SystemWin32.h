@@ -360,8 +360,8 @@ class GHOST_SystemWin32 : public GHOST_System {
   static GHOST_EventKey *processKeyEvent(GHOST_WindowWin32 *window, RAWINPUT const &raw);
 
   /**
-   * Process special keys (VK_OEM_*), to see if current key layout
-   * gives us anything special, like ! on french AZERTY.
+   * Process special keys `VK_OEM_*`, to see if current key layout
+   * gives us anything special, like `!` on French AZERTY.
    * \param vKey: The virtual key from #hardKey.
    * \param scanCode: The ScanCode of pressed key (similar to PS/2 Set 1).
    */

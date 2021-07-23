@@ -182,8 +182,8 @@ void BLI_string_flip_side_name(char *r_name,
 
   /* We first check the case with a .### extension, let's find the last period */
   if (isdigit(r_name[len - 1])) {
-    index = strrchr(r_name, '.');     /* last occurrence. */
-    if (index && isdigit(index[1])) { /* doesn't handle case bone.1abc2 correct..., whatever! */
+    index = strrchr(r_name, '.');     /* Last occurrence. */
+    if (index && isdigit(index[1])) { /* Doesn't handle case `bone.1abc2` correct..., whatever! */
       if (strip_number == false) {
         BLI_strncpy(number, index, name_len);
       }
@@ -194,7 +194,7 @@ void BLI_string_flip_side_name(char *r_name,
 
   BLI_strncpy(prefix, r_name, name_len);
 
-  /* first case; separator . - _ with extensions r R l L. */
+  /* First case; separator (`.` or `_`) with extensions in `r R l L`. */
   if ((len > 1) && is_char_sep(r_name[len - 2])) {
     is_set = true;
     switch (r_name[len - 1]) {

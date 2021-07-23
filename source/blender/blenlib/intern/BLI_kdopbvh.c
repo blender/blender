@@ -22,7 +22,7 @@
  * \brief BVH-tree implementation.
  *
  * k-DOP BVH (Discrete Oriented Polytope, Bounding Volume Hierarchy).
- * A k-DOP is represented as k/2 pairs of min , max values for k/2 directions (intervals, "slabs").
+ * A k-DOP is represented as k/2 pairs of min, max values for k/2 directions (intervals, "slabs").
  *
  * See: http://www.gris.uni-tuebingen.de/people/staff/jmezger/papers/bvh.pdf
  *

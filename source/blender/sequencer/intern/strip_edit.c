@@ -112,8 +112,8 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
   Sequence *seq;
   int seqmute;
 
-  /* for sound we go over full meta tree to update muted state,
-   * since sound is played outside of evaluating the imbufs, */
+  /* For sound we go over full meta tree to update muted state,
+   * since sound is played outside of evaluating the imbufs. */
   for (seq = seqbasep->first; seq; seq = seq->next) {
     seqmute = (mute || (seq->flag & SEQ_MUTE));
 

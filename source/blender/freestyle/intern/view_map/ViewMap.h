@@ -477,10 +477,14 @@ class TVertex : public ViewVertex {
   directedViewEdge _FrontEdgeB;
   directedViewEdge _BackEdgeA;
   directedViewEdge _BackEdgeB;
-  Id _Id;  // id to identify t vertices . these id will be negative in order not to be mixed with
-           // NonTVertex ids.
-  edge_pointers_container
-      _sortedEdges;  // the list of the four ViewEdges, ordered in CCW order (in the image plan)
+
+  /**
+   * ID to identify t vertices.
+   * these id will be negative in order not to be mixed with NonTVertex ids.
+   */
+  Id _Id;
+  /** The list of the four ViewEdges, ordered in CCW order (in the image plan). */
+  edge_pointers_container _sortedEdges;
 
  public:
   /** Default constructor. */

@@ -2123,7 +2123,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
                 for (int j = len_local; j--;) {
                   array_b[j] = j >= i ? -array_b[j] : fac * (array_a[j] - array_b[j]);
                   if (array_b[j] < prop_min || array_b[j] > prop_max) {
-                    /* We failed to  find a suitable diff op,
+                    /* We failed to find a suitable diff op,
                      * fall back to plain REPLACE one. */
                     opop->operation = IDOVERRIDE_LIBRARY_OP_REPLACE;
                     do_set = false;
@@ -2213,7 +2213,7 @@ bool rna_property_override_store_default(Main *UNUSED(bmain),
                 for (int j = len_local; j--;) {
                   array_b[j] = j >= i ? -array_b[j] : fac * (array_a[j] - array_b[j]);
                   if (array_b[j] < prop_min || array_b[j] > prop_max) {
-                    /* We failed to  find a suitable diff op,
+                    /* We failed to find a suitable diff op,
                      * fall back to plain REPLACE one. */
                     opop->operation = IDOVERRIDE_LIBRARY_OP_REPLACE;
                     do_set = false;

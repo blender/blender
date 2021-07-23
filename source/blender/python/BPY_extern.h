@@ -30,7 +30,7 @@ struct PathResolvedRNA;
 struct Text;              /* defined in DNA_text_types.h */
 struct bConstraint;       /* DNA_constraint_types.h */
 struct bConstraintOb;     /* DNA_constraint_types.h */
-struct bConstraintTarget; /* DNA_constraint_types.h*/
+struct bConstraintTarget; /* DNA_constraint_types.h */
 struct bContext;
 struct bContextDataResult;
 struct bPythonConstraint; /* DNA_constraint_types.h */

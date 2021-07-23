@@ -1750,7 +1750,7 @@ typedef struct Scene {
   /** (runtime) info/cache used for presenting playback framerate info to the user. */
   void *fps_info;
 
-  /* none of the dependency graph  vars is mean to be saved */
+  /* None of the dependency graph vars is mean to be saved. */
   struct GHash *depsgraph_hash;
   char _pad7[4];
 

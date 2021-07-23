@@ -113,7 +113,7 @@ const UserDef U_default = {
     .gp_eraser = 25,
     .gp_settings = 0,
 
-    /** Initialized by: #BKE_studiolight_default . */
+    /** Initialized by: #BKE_studiolight_default. */
     .light_param = {{0}},
     .light_ambient = {0, 0, 0},
 

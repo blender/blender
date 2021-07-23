@@ -1189,7 +1189,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
     const int menus_width = 160 * dpi_fac;
     const bool is_render_result = (ima->type == IMA_TYPE_R_RESULT);
 
-    /* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
+    /* Use BKE_image_acquire_renderresult so we get the correct slot in the menu. */
     rr = BKE_image_acquire_renderresult(scene, ima);
     uiblock_layer_pass_buttons(
         layout, ima, rr, iuser, menus_width, is_render_result ? &ima->render_slot : NULL);

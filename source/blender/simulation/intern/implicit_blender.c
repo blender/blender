@@ -180,8 +180,8 @@ DO_INLINE void mul_lfvectorS(float (*to)[3],
     mul_fvector_S(to[i], fLongVector[i], scalar);
   }
 }
-/* Multiply long vector with scalar. */
-/* A -= B * float */
+/* Multiply long vector with scalar.
+ * `A -= B * float` */
 DO_INLINE void submul_lfvectorS(float (*to)[3],
                                 float (*fLongVector)[3],
                                 float scalar,
@@ -209,7 +209,7 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3],
   }
   return temp;
 }
-/* A = B + C  --> for big vector */
+/* `A = B + C` -> for big vector. */
 DO_INLINE void add_lfvector_lfvector(float (*to)[3],
                                      float (*fLongVectorA)[3],
                                      float (*fLongVectorB)[3],
@@ -221,7 +221,7 @@ DO_INLINE void add_lfvector_lfvector(float (*to)[3],
     add_v3_v3v3(to[i], fLongVectorA[i], fLongVectorB[i]);
   }
 }
-/* A = B + C * float --> for big vector */
+/* `A = B + C * float` -> for big vector. */
 DO_INLINE void add_lfvector_lfvectorS(float (*to)[3],
                                       float (*fLongVectorA)[3],
                                       float (*fLongVectorB)[3],
@@ -234,7 +234,7 @@ DO_INLINE void add_lfvector_lfvectorS(float (*to)[3],
     VECADDS(to[i], fLongVectorA[i], fLongVectorB[i], bS);
   }
 }
-/* A = B * float + C * float --> for big vector */
+/* `A = B * float + C * float` -> for big vector */
 DO_INLINE void add_lfvectorS_lfvectorS(float (*to)[3],
                                        float (*fLongVectorA)[3],
                                        float aS,
@@ -248,7 +248,7 @@ DO_INLINE void add_lfvectorS_lfvectorS(float (*to)[3],
     VECADDSS(to[i], fLongVectorA[i], aS, fLongVectorB[i], bS);
   }
 }
-/* A = B - C * float --> for big vector */
+/* `A = B - C * float` -> for big vector. */
 DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3],
                                       float (*fLongVectorA)[3],
                                       float (*fLongVectorB)[3],
@@ -260,7 +260,7 @@ DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3],
     VECSUBS(to[i], fLongVectorA[i], fLongVectorB[i], bS);
   }
 }
-/* A = B - C --> for big vector */
+/* `A = B - C` -> for big vector. */
 DO_INLINE void sub_lfvector_lfvector(float (*to)[3],
                                      float (*fLongVectorA)[3],
                                      float (*fLongVectorB)[3],
@@ -455,7 +455,7 @@ DO_INLINE void add_fmatrix_fmatrix(float to[3][3],
   add_v3_v3v3(to[1], matrixA[1], matrixB[1]);
   add_v3_v3v3(to[2], matrixA[2], matrixB[2]);
 }
-/* A -= B*x + C*y (3x3 matrix sub-addition with 3x3 matrix) */
+/* `A -= B*x + (C * y)` (3x3 matrix sub-addition with 3x3 matrix). */
 DO_INLINE void subadd_fmatrixS_fmatrixS(
     float to[3][3], const float matrixA[3][3], float aS, const float matrixB[3][3], float bS)
 {
@@ -463,7 +463,7 @@ DO_INLINE void subadd_fmatrixS_fmatrixS(
   VECSUBADDSS(to[1], matrixA[1], aS, matrixB[1], bS);
   VECSUBADDSS(to[2], matrixA[2], aS, matrixB[2], bS);
 }
-/* A = B - C (3x3 matrix subtraction with 3x3 matrix) */
+/* `A = B - C` (3x3 matrix subtraction with 3x3 matrix). */
 DO_INLINE void sub_fmatrix_fmatrix(float to[3][3],
                                    const float matrixA[3][3],
                                    const float matrixB[3][3])
@@ -1683,8 +1683,8 @@ BLI_INLINE void dfdx_damp(float to[3][3],
                           float rest,
                           float damping)
 {
-  /* inner spring damping   vel is the relative velocity  of the endpoints. */
-  //  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
+  /* Inner spring damping `vel` is the relative velocity of the endpoints. */
+  // return (I - outerprod(dir, dir)) * (-damping * -(dot(dir, vel) / Max(length, rest)));
   mul_fvectorT_fvector(to, dir, dir);
   sub_fmatrix_fmatrix(to, I, to);
   mul_fmatrix_S(to, (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));

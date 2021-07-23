@@ -5031,7 +5031,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
     }
   }
   else {
-    /* get data until . or [ */
+    /* Get data until `.` or `[`. */
     p = *path;
 
     while (*p && *p != '.' && *p != '[') {

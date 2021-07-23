@@ -2444,7 +2444,7 @@ static void direct_link_id_common(
     BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int tag)
 {
   if (!BLO_read_data_is_undo(reader)) {
-    /* When actually reading a file , we do want to reset/re-generate session uuids.
+    /* When actually reading a file, we do want to reset/re-generate session uuids.
      * In undo case, we want to re-use existing ones. */
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
   }

@@ -231,7 +231,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
         uint idx = vert->dw[j].def_nr;
         if (idx >= joint_index_by_def_index.size()) {
           /* XXX: Maybe better find out where and
-           *      why the Out Of Bound indexes get created ? */
+           *      why the Out Of Bound indexes get created? */
           oob_counter += 1;
         }
         else {

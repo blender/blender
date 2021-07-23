@@ -131,8 +131,7 @@ static void next_state(void)
   ulong *p = state;
   int j;
 
-  /* if init_genrand() has not been called, */
-  /* a default initial seed is used         */
+  /* If init_genrand() has not been called, a default initial seed is used. */
   if (initf == 0) {
     init_genrand(5489UL);
   }

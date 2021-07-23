@@ -495,7 +495,7 @@ void GPU_framebuffer_py_reference_set(GPUFrameBuffer *gpu_fb, void **py_ref)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name  Frame-Buffer Stack
+/** \name Frame-Buffer Stack
  *
  * Keeps track of frame-buffer binding operation to restore previously bound frame-buffers.
  * \{ */

@@ -988,11 +988,11 @@ static void do_createEdgeLocationBuffer(unsigned int t,
    *
    * Example:  9 by 9 pixel block
    *
-   * . = pixel non-white in both outer and inner mask
-   * o = pixel white in outer, but not inner mask, adjacent to "." pixel
-   * g = pixel white in outer, but not inner mask, not adjacent to "." pixel
-   * i = pixel white in inner mask, adjacent to "g" or "." pixel
-   * F = pixel white in inner mask, only adjacent to other pixels white in the inner mask
+   * `.` = Pixel non-white in both outer and inner mask.
+   * `o` = Pixel white in outer, but not inner mask, adjacent to "." pixel.
+   * `g` = Pixel white in outer, but not inner mask, not adjacent to "." pixel.
+   * `i` = Pixel white in inner mask, adjacent to "g" or "." pixel.
+   * `F` = Pixel white in inner mask, only adjacent to other pixels white in the inner mask.
    *
    *
    * .........   <----- pixel #80
@@ -1108,9 +1108,9 @@ static void do_fillGradientBuffer(unsigned int rw,
    * outside edge.
    *
    * In an image where:
-   * . = blank (black) pixels, not covered by inner mask or outer mask
-   * + = desired gradient pixels, covered only by outer mask
-   * * = white full mask pixels, covered by at least inner mask
+   * `.` = Blank (black) pixels, not covered by inner mask or outer mask.
+   * `+` = Desired gradient pixels, covered only by outer mask.
+   * `*` = White full mask pixels, covered by at least inner mask.
    *
    * ...............................
    * ...............+++++++++++.....

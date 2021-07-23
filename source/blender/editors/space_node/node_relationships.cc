@@ -299,7 +299,7 @@ static void pick_input_link_by_link_intersect(const bContext *C,
 
   /* If no linked was picked in this call, try using the one picked in the previous call.
    * Not essential for the basic behavior, but can make interaction feel a bit better if
-   * the  mouse moves to the right and loses the "selection." */
+   * the mouse moves to the right and loses the "selection." */
   if (!link_to_pick) {
     bNodeLink *last_picked_link = nldrag->last_picked_multi_input_socket_link;
     if (last_picked_link) {

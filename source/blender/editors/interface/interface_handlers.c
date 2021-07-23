@@ -3929,7 +3929,7 @@ static void ui_do_but_textedit(
 
       /* exception that's useful for number buttons, some keyboard
        * numpads have a comma instead of a period */
-      if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) { /* could use data->min*/
+      if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) { /* Could use `data->min`. */
         if (event->type == EVT_PADPERIOD && ascii == ',') {
           ascii = '.';
           utf8_buf = NULL; /* force ascii fallback */
@@ -9486,7 +9486,7 @@ static void ui_list_activate_row_from_index(
     /* A bit ugly, set the active index in RNA directly. That's because a button that's
      * scrolled away in the list box isn't created at all.
      * The custom activate operator (#uiList.custom_activate_opname) is not called in this case
-     * (which may need the row button context).*/
+     * (which may need the row button context). */
     RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, index);
     RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);
     ui_apply_but_undo(listbox);
@@ -9505,7 +9505,7 @@ static int ui_list_get_increment(const uiList *ui_list, const int type, const in
     increment = (type == EVT_UPARROWKEY) ? -columns : columns;
   }
   else {
-    /* Left or right in grid layouts or any direction in single column layouts increments by 1.  */
+    /* Left or right in grid layouts or any direction in single column layouts increments by 1. */
     increment = ELEM(type, EVT_UPARROWKEY, EVT_LEFTARROWKEY, WHEELUPMOUSE) ? -1 : 1;
   }
 

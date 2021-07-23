@@ -866,11 +866,11 @@ static void fill_sphere_data(int nrings,
   };
   Array<int> eid = {0, 0, 0, 0}; /* Don't care about edge ids. */
   /*
-   * (x, y , z) is given from inclination theta and azimuth phi,
-   * where 0 <= theta <= pi;  0 <= phi <= 2pi.
-   * x = radius * sin(theta) cos(phi)
-   * y = radius * sin(theta) sin(phi)
-   * z = radius * cos(theta)
+   * (x, y, z) is given from inclination theta and azimuth phi,
+   * where: `0 <= theta <= pi;  0 <= phi <= 2pi`.
+   * `x = radius * sin(theta) cos(phi)`
+   * `y = radius * sin(theta) sin(phi)`
+   * `z = radius * cos(theta)`
    */
   for (int s = 0; s < nsegs; ++s) {
     double phi = s * delta_phi;

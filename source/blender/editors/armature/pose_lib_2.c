@@ -130,7 +130,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   /* start tagging/keying */
   const bArmature *armature = pbd->ob->data;
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
-    /* only for selected bones unless there aren't any selected, in which case all are included  */
+    /* Only for selected bones unless there aren't any selected, in which case all are included. */
     bPoseChannel *pchan = BKE_pose_channel_find_name(pose, agrp->name);
     if (pchan == NULL) {
       continue;

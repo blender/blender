@@ -894,8 +894,8 @@ BLI_INLINE void dfdx_damp(float to[3][3],
                           float rest,
                           float damping)
 {
-  /* inner spring damping   vel is the relative velocity  of the endpoints. */
-  //  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
+  /* Inner spring damping vel is the relative velocity of the endpoints. */
+  // return (I - outerprod(dir, dir)) * (-damping * -(dot(dir, vel) / Max(length, rest)));
   mul_fvectorT_fvector(to, dir, dir);
   sub_fmatrix_fmatrix(to, I, to);
   mul_fmatrix_S(to, (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));

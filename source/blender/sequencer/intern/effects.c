@@ -1428,10 +1428,9 @@ static void do_mul_effect_byte(float facf0,
   fac1 = (int)(256.0f * facf0);
   fac3 = (int)(256.0f * facf1);
 
-  /* formula:
-   * fac * (a * b) + (1 - fac) * a  => fac * a * (b - 1) + axaux = c * px + py * s; //+centx
-   * yaux = -s * px + c * py; //+centy
-   */
+  /* Formula:
+   * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + axaux = c * px + py * s;` // + centx
+   * `yaux = -s * px + c * py;` // + centy */
 
   while (y--) {
 
@@ -1483,9 +1482,8 @@ static void do_mul_effect_float(
   fac1 = facf0;
   fac3 = facf1;
 
-  /* formula:
-   * fac * (a * b) + (1 - fac) * a  =>  fac * a * (b - 1) + a
-   */
+  /* Formula:
+   * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + a`. */
 
   while (y--) {
     x = xo;

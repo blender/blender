@@ -125,7 +125,7 @@ typedef struct RigidBodyOb_Shared {
  */
 typedef struct RigidBodyOb {
   /* General Settings for this RigidBodyOb */
-  /** (eRigidBodyOb_Type) role of RigidBody in sim . */
+  /** (eRigidBodyOb_Type) role of RigidBody in sim. */
   short type;
   /** (eRigidBody_Shape) collision shape to use. */
   short shape;
@@ -243,7 +243,7 @@ typedef struct RigidBodyCon {
   struct Object *ob2;
 
   /* General Settings for this RigidBodyCon */
-  /** (eRigidBodyCon_Type) role of RigidBody in sim . */
+  /** (eRigidBodyCon_Type) role of RigidBody in sim. */
   short type;
   /** Number of constraint solver iterations made per simulation step. */
   short num_solver_iterations;

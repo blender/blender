@@ -185,7 +185,7 @@ typedef struct BMLoop {
   struct BMFace *f;
 
   /**
-   * Other loops connected to this edge,.
+   * Other loops connected to this edge.
    *
    * This is typically use for accessing an edges faces,
    * however this is done by stepping over it's loops.
