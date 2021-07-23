@@ -1688,40 +1688,6 @@ static void bm_mesh_loops_calc_normals_no_autosmooth(BMesh *bm,
   }
 }
 
-#if 0 /* Unused currently */
-/**
- * \brief BMesh Compute Loop Normals
- *
- * Updates the loop normals of a mesh.
- * Assumes vertex and face normals are valid (else call BM_mesh_normals_update() first)!
- */
-void BM_mesh_loop_normals_update(BMesh *bm,
-                                 const bool use_split_normals,
-                                 const float split_angle,
-                                 float (*r_lnos)[3],
-                                 MLoopNorSpaceArray *r_lnors_spacearr,
-                                 const short (*clnors_data)[2],
-                                 const int cd_loop_clnors_offset)
-{
-  const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
-
-  if (use_split_normals) {
-    /* Tag smooth edges and set lnos from vnos when they might be completely smooth...
-     * When using custom loop normals, disable the angle feature! */
-    bm_mesh_edges_sharp_tag(bm, NULL, NULL, has_clnors ? (float)M_PI : split_angle, r_lnos);
-
-    /* Finish computing lnos by accumulating face normals
-     * in each fan of faces defined by sharp edges. */
-    bm_mesh_loops_calc_normals(
-        bm, NULL, NULL, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
-  }
-  else {
-    BLI_assert(!r_lnors_spacearr);
-    bm_mesh_loops_calc_normals_no_autosmooth(bm, NULL, NULL, r_lnos);
-  }
-}
-#endif
-
 /**
  * \brief BMesh Compute Loop Normals from/to external data.
  *
