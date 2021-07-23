@@ -263,6 +263,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Use Denoising",
         description="Denoise the rendered image",
         default=False,
+        update=update_render_passes,
     )
     use_preview_denoising: BoolProperty(
         name="Use Viewport Denoising",
