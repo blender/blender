@@ -439,7 +439,7 @@ void mesh_foreachScreenEdge(ViewContext *vc,
   }
 
   BM_mesh_elem_table_ensure(vc->em->bm, BM_EDGE);
-  BKE_mesh_foreach_mapped_edge(me, mesh_foreachScreenEdge__mapFunc, &data);
+  BKE_mesh_foreach_mapped_edge(me, vc->em->bm->totedge, mesh_foreachScreenEdge__mapFunc, &data);
 }
 
 /** \} */
@@ -529,10 +529,11 @@ void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
 
   if ((clip_flag & V3D_PROJ_TEST_CLIP_BB) && (vc->rv3d->clipbb != NULL)) {
     ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups. */
-    BKE_mesh_foreach_mapped_edge(me, mesh_foreachScreenEdge_clip_bb_segment__mapFunc, &data);
+    BKE_mesh_foreach_mapped_edge(
+        me, vc->em->bm->totedge, mesh_foreachScreenEdge_clip_bb_segment__mapFunc, &data);
   }
   else {
-    BKE_mesh_foreach_mapped_edge(me, mesh_foreachScreenEdge__mapFunc, &data);
+    BKE_mesh_foreach_mapped_edge(me, vc->em->bm->totedge, mesh_foreachScreenEdge__mapFunc, &data);
   }
 }
 

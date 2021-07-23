@@ -95,9 +95,14 @@ void BKE_mesh_foreach_mapped_vert(Mesh *mesh,
   }
 }
 
-/* Copied from cdDM_foreachMappedEdge */
+/**
+ * Copied from #cdDM_foreachMappedEdge.
+ * \param tot_edges: Number of original edges. Used to avoid calling the callback with invalid
+ * edge indices.
+ */
 void BKE_mesh_foreach_mapped_edge(
     Mesh *mesh,
+    const int tot_edges,
     void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
     void *userData)
 {
@@ -138,7 +143,7 @@ void BKE_mesh_foreach_mapped_edge(
         func(userData, orig, mv[med->v1].co, mv[med->v2].co);
       }
     }
-    else {
+    else if (mesh->totedge == tot_edges) {
       for (int i = 0; i < mesh->totedge; i++, med++) {
         func(userData, i, mv[med->v1].co, mv[med->v2].co);
       }
