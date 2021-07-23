@@ -317,6 +317,7 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
 {
   GHOST_XrPose viewer_pose;
   const bool use_position_tracking = settings->flag & XR_SESSION_USE_POSITION_TRACKING;
+  const bool use_absolute_tracking = settings->flag & XR_SESSION_USE_ABSOLUTE_TRACKING;
 
   mul_qt_qtqt(viewer_pose.orientation_quat,
               draw_data->base_pose.orientation_quat,
@@ -324,13 +325,15 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
   copy_v3_v3(viewer_pose.position, draw_data->base_pose.position);
   /* The local pose and the eye pose (which is copied from an earlier local pose) both are view
    * space, so Y-up. In this case we need them in regular Z-up. */
-  viewer_pose.position[0] -= draw_data->eye_position_ofs[0];
-  viewer_pose.position[1] += draw_data->eye_position_ofs[2];
-  viewer_pose.position[2] -= draw_data->eye_position_ofs[1];
   if (use_position_tracking) {
     viewer_pose.position[0] += draw_view->local_pose.position[0];
     viewer_pose.position[1] -= draw_view->local_pose.position[2];
     viewer_pose.position[2] += draw_view->local_pose.position[1];
+  }
+  if (!use_absolute_tracking) {
+    viewer_pose.position[0] -= draw_data->eye_position_ofs[0];
+    viewer_pose.position[1] += draw_data->eye_position_ofs[2];
+    viewer_pose.position[2] -= draw_data->eye_position_ofs[1];
   }
 
   copy_v3_v3(state->viewer_pose.position, viewer_pose.position);
@@ -451,9 +454,14 @@ static void wm_xr_session_controller_mats_update(const XrSessionSettings *settin
   float base_inv[4][4];
   float tmp[4][4];
 
-  zero_v3(view_ofs);
   if ((settings->flag & XR_SESSION_USE_POSITION_TRACKING) == 0) {
-    add_v3_v3(view_ofs, state->prev_local_pose.position);
+    copy_v3_v3(view_ofs, state->prev_local_pose.position);
+  }
+  else {
+    zero_v3(view_ofs);
+  }
+  if ((settings->flag & XR_SESSION_USE_ABSOLUTE_TRACKING) == 0) {
+    add_v3_v3(view_ofs, state->prev_eye_position_ofs);
   }
 
   wm_xr_pose_to_viewmat(&state->prev_base_pose, base_inv);
