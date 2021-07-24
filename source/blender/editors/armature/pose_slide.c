@@ -1046,10 +1046,9 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *
   /* Add a modal handler for this operator. */
   WM_event_add_modal_handler(C, op);
 
-  /* Hide Bone Overlay. */
+  /* Save current bone visibility. */
   View3D *v3d = pso->area->spacedata.first;
   pso->overlay_flag = v3d->overlay.flag;
-  v3d->overlay.flag |= V3D_OVERLAY_HIDE_BONES;
 
   return OPERATOR_RUNNING_MODAL;
 }
