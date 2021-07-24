@@ -622,7 +622,7 @@ static void wm_xr_session_surface_free_data(wmSurface *surface)
   ListBase *lb = &data->viewports;
   wmXrViewportPair *vp;
 
-  while (vp = BLI_pophead(lb)) {
+  while ((vp = BLI_pophead(lb))) {
     if (vp->viewport) {
       GPU_viewport_free(vp->viewport);
     }
