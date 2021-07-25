@@ -37,6 +37,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -79,6 +80,7 @@ struct BMLogEntry {
 
   BLI_mempool *pool_verts;
   BLI_mempool *pool_faces;
+  MemArena *arena;
 
   /* This is only needed for dropping BMLogEntries while still in
    * dynamic-topology mode, as that should release vert/face IDs
@@ -415,9 +417,9 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
   bool have_loop_ids = (log->bm->idmap.flag & BM_LOOP);
 
   if (f->len > MAX_FACE_RESERVED) {
-    lf->v_ids = (int *)MEM_callocN(sizeof(*lf->v_ids) * lf->len, "lf->l_ids");
-    lf->l_ids = (int *)MEM_callocN(sizeof(*lf->l_ids) * lf->len, "lf->l_ids");
-    lf->customdata = (void **)MEM_callocN(sizeof(*lf->l_ids) * lf->len, "lf->l_ids");
+    lf->v_ids = (int *)BLI_memarena_alloc(entry->arena, sizeof(*lf->v_ids) * lf->len);
+    lf->l_ids = (int *)BLI_memarena_alloc(entry->arena, sizeof(*lf->l_ids) * lf->len);
+    lf->customdata = (void **)BLI_memarena_alloc(entry->arena, sizeof(void *) * lf->len);
   }
   else {
     lf->v_ids = lf->v_ids_res;
@@ -621,7 +623,7 @@ static void bm_log_faces_restore(
         }
 
         if (bad) {
-          printf("Undo error! %p %p %p\n", v[0], v[1], v[2]);
+          printf("Undo error! %p\n", v);
           break;
         }
       }
@@ -791,6 +793,7 @@ static BMLogEntry *bm_log_entry_create(void)
 
   entry->pool_verts = BLI_mempool_create(sizeof(BMLogVert), 0, 64, BLI_MEMPOOL_NOP);
   entry->pool_faces = BLI_mempool_create(sizeof(BMLogFace), 0, 64, BLI_MEMPOOL_NOP);
+  entry->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "bmlog arena");
 
   return entry;
 }
@@ -827,6 +830,7 @@ static void bm_log_entry_free(BMLogEntry *entry)
 
   BLI_mempool_destroy(entry->pool_verts);
   BLI_mempool_destroy(entry->pool_faces);
+  BLI_memarena_free(entry->arena);
 
   if (entry->vdata.pool) {
     BLI_mempool_destroy(entry->vdata.pool);
