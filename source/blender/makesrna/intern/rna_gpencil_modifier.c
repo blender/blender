@@ -3033,15 +3033,14 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "source_object", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_struct_type(prop, "Object");
-  RNA_def_property_ui_text(
-      prop, "Source Object", "Source object that this modifier uses data from");
+  RNA_def_property_ui_text(prop, "Object", "Generate strokes from this object");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   prop = RNA_def_property(srna, "source_collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_struct_type(prop, "Collection");
   RNA_def_property_ui_text(
-      prop, "Source Collection", "Source collection that this modifier uses data from");
+      prop, "Collection", "Generate strokes from the objects in this collection");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   /* types */
@@ -3105,12 +3104,11 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
                                  NULL,
                                  "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(
-      prop, "Target Material", "Grease Pencil material assigned to the generated strokes");
+      prop, "Material", "Grease Pencil material assigned to the generated strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "target_layer", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(
-      prop, "Target Layer", "Grease Pencil layer assigned to the generated strokes");
+  RNA_def_property_ui_text(prop, "Layer", "Grease Pencil layer assigned to the generated strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "source_vertex_group", PROP_STRING, PROP_NONE);
@@ -3275,7 +3273,7 @@ void RNA_def_greasepencil_modifier(BlenderRNA *brna)
 
   /* data */
   srna = RNA_def_struct(brna, "GpencilModifier", NULL);
-  RNA_def_struct_ui_text(srna, "GpencilModifier", "Modifier affecting the grease pencil object");
+  RNA_def_struct_ui_text(srna, "GpencilModifier", "Modifier affecting the Grease Pencil object");
   RNA_def_struct_refine_func(srna, "rna_GpencilModifier_refine");
   RNA_def_struct_path_func(srna, "rna_GpencilModifier_path");
   RNA_def_struct_sdna(srna, "GpencilModifierData");
