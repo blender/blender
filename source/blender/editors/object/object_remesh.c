@@ -195,6 +195,10 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     BKE_remesh_reproject_vertex_paint(new_mesh, mesh);
   }
 
+  if (ob->mode == OB_MODE_SCULPT) {
+    BKE_mesh_remesh_sculpt_array_update(ob, new_mesh, mesh);
+  }
+
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
 
   if (smooth_normals) {

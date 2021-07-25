@@ -45,6 +45,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_remesh_voxel.h" /* own include */
 #include "BKE_mesh_runtime.h"
+#include "BKE_paint.h"
 
 #include "bmesh_tools.h"
 
@@ -350,6 +351,79 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
     }
   }
   free_bvhtree_from_mesh(&bvhtree);
+}
+
+void BKE_mesh_remesh_sculpt_array_update(Object *ob, Mesh *target, Mesh *source)
+{
+
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss) {
+    return;
+  }
+
+  SculptArray *array = ss->array;
+  if (!array) {
+    return;
+  }
+
+  BVHTreeFromMesh bvhtree = {
+      .nearest_callback = NULL,
+  };
+  BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
+  MVert *target_verts = CustomData_get_layer(&target->vdata, CD_MVERT);
+
+  const int target_totvert = target->totvert;
+
+  int *target_copy_index = MEM_malloc_arrayN(sizeof(int), target_totvert, "target_copy_index");
+  int *target_symmertry = MEM_malloc_arrayN(sizeof(int), target_totvert, "target_copy_index");
+  float (*target_orco)[3] = MEM_malloc_arrayN(target->totvert, sizeof(float) * 3, "array orco");
+
+  for (int i = 0; i < target_totvert; i++) {
+    target_copy_index[i] = -1;
+    target_symmertry[i] = 0;
+    copy_v3_v3(target_orco, target->mvert[i].co);
+  }
+  
+  for (int i = 0; i < target->totvert; i++) {
+    float from_co[3];
+    BVHTreeNearest nearest;
+    nearest.index = -1;
+    nearest.dist_sq = FLT_MAX;
+    copy_v3_v3(from_co, target_verts[i].co);
+    BLI_bvhtree_find_nearest(bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
+    if (nearest.index != -1) {
+      target_copy_index[i] = array->copy_index[nearest.index];
+      target_symmertry[i] = array->symmetry_pass[nearest.index];
+    }
+  }
+  free_bvhtree_from_mesh(&bvhtree);
+
+  MEM_freeN(array->copy_index);
+  MEM_freeN(array->symmetry_pass);
+  MEM_freeN(array->orco);
+
+  array->copy_index = target_copy_index;
+  array->symmetry_pass = target_symmertry;
+  array->orco = target_orco;
+
+    for (int i = 0; i < target->totvert; i++) {
+        int array_index = target_copy_index[i];
+        int array_symm_pass = target_symmertry[i];
+        if (array_index == -1) {
+          continue;
+        }
+       SculptArrayCopy *copy = &array->copies[array_symm_pass][array_index];
+       float co[3];
+       float source_origin_symm[3];
+       copy_v3_v3(co, target->mvert[i].co);
+       /* TODO: MAke symmetry work here. */
+       //flip_v3_v3(source_origin_symm, array->source_origin, array_symm_pass);
+       mul_v3_m4v3(co, array->source_imat, co); 
+       mul_v3_m4v3(co, copy->imat, co);
+       sub_v3_v3v3(co, co, source_origin_symm);
+       copy_v3_v3(array->orco[i], co);
+      }
 }
 
 void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)

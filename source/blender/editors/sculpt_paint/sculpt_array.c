@@ -513,7 +513,6 @@ static void sculpt_array_update(Object *ob, Brush *brush, SculptArray *array) {
       }
       for (int copy_index = 0; copy_index < array->num_copies; copy_index++) {
           SculptArrayCopy *copy = &array->copies[symm_pass][copy_index];
-          print_m4("cosa", copy->mat);
           invert_m4_m4(copy->imat, copy->mat);
       }
   }
@@ -579,6 +578,104 @@ static void sculpt_array_deform(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(
       0, totnode, &data, do_array_deform_task_cb_ex, &settings);
+}
+
+
+static void do_array_smooth_task_cb_ex(void *__restrict userdata,
+                                     const int n,
+                                     const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  SculptArray *array = ss->array;
+
+    Mesh *mesh = BKE_object_get_original_mesh(data->ob);
+
+    bool any_modified = false;
+
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    int array_index = ARRAY_INSTANCE_ORIGINAL;
+    int array_symm_pass = 0;
+    sculpt_vertex_array_data_get(array, vd.index, &array_index, &array_symm_pass);
+
+    const float fade = array->smooth_strength[vd.index];
+
+    if (fade == 0.0f) {
+      continue;
+    }
+
+    float smooth_co[3];
+    SCULPT_neighbor_coords_average(ss, smooth_co, vd.index);
+    float disp[3];
+    sub_v3_v3v3(disp, smooth_co, vd.co);
+    mul_v3_fl(disp, fade);
+    add_v3_v3(vd.co, disp);
+
+
+/*
+    if (array_index == ARRAY_INSTANCE_ORIGINAL) {
+      continue;
+    }
+
+    bool do_smooth = false;
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+      int neighbor_array_index = ARRAY_INSTANCE_ORIGINAL;
+      int neighbor_symm_pass = 0;
+      sculpt_vertex_array_data_get(array, ni.index, &neighbor_array_index,&neighbor_symm_pass);
+      if (neighbor_array_index != array_index) {
+        do_smooth = true;
+      }
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    if (!do_smooth) {
+      continue;
+    }
+    */
+
+
+
+    any_modified = true;
+
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (any_modified) {
+    BKE_pbvh_node_mark_update(data->nodes[n]);
+  }
+}
+
+static void sculpt_array_smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode) {
+
+
+
+  /* Threaded loop over nodes. */
+  SculptSession *ss = ob->sculpt;
+  SculptArray *array = ss->array;
+
+  if (!array) {
+    return;
+  }
+
+  if (!array->smooth_strength) {
+    return;
+  }
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(
+      0, totnode, &data, do_array_smooth_task_cb_ex, &settings);
 }
 
 static void sculpt_array_ensure_original_coordinates(Object *ob, SculptArray *array){
@@ -690,9 +787,56 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     }
 
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    SculptArray *array = ss->array;
+    const int totvert = SCULPT_vertex_count_get(ss);
+
+
+    /* Rebuild smooth strength cache. */
+    MEM_SAFE_FREE(array->smooth_strength);
+    array->smooth_strength = MEM_calloc_arrayN(sizeof(float), totvert, "smooth_strength");
+
+
+    for (int i = 0; i < totvert; i++) {
+    int array_index = ARRAY_INSTANCE_ORIGINAL;
+    int array_symm_pass = 0;
+    sculpt_vertex_array_data_get(array, i, &array_index, &array_symm_pass);
+
+    if (array_index == ARRAY_INSTANCE_ORIGINAL) {
+      continue;
+    }
+
+    /* TODO: this can be cached. */
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+      int neighbor_array_index = ARRAY_INSTANCE_ORIGINAL;
+      int neighbor_symm_pass = 0;
+      sculpt_vertex_array_data_get(array, ni.index, &neighbor_array_index,&neighbor_symm_pass);
+      if (neighbor_array_index != array_index) {
+        array->smooth_strength[i] = 1.0f;
+        break;
+      }
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    }
+
+    for(int smooth_iterations = 0; smooth_iterations < 4; smooth_iterations++) {
+      for (int i = 0; i < totvert; i++) {
+      float avg = array->smooth_strength[i];
+      int count = 1;
+       SculptVertexNeighborIter ni;
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+          avg += array->smooth_strength[ni.index];
+          count++;
+       }
+       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+       array->smooth_strength[i] = avg / count;
+      }
+    }
+
+
+
 
     /* Update Array Path Orco. */
-    SculptArray *array = ss->array;
     for (int i = 0; i < array->path.tot_points; i++) {
       ScultpArrayPathPoint *point = &array->path.points[i];
       copy_v3_v3(point->orco, point->co);
@@ -700,7 +844,6 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     array->initial_radial_angle = array->radial_angle;
 
     /* Update Geometry Orco. */
-    const int totvert = SCULPT_vertex_count_get(ss);
     for (int i = 0; i < totvert; i++) {
         int array_index = ARRAY_INSTANCE_ORIGINAL;
         int array_symm_pass = 0;
@@ -715,9 +858,9 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
        float source_origin_symm[3];
        copy_v3_v3(co, SCULPT_vertex_co_get(ss, i));
        flip_v3_v3(source_origin_symm, array->source_origin, array_symm_pass);
-       mul_v3_m4v3(co, array->source_imat, co);
        mul_v3_m4v3(co, copy->imat, co);
-       sub_v3_v3v3(co, co, source_origin_symm);
+       mul_v3_m4v3(co, array->source_imat, co); 
+       //sub_v3_v3v3(co, co, source_origin_symm);
 
        copy_v3_v3(array->orco[i], co);
       }
@@ -757,12 +900,13 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
       normalize_v3(brush_co);
       normalize_v3_v3(array_disp_co, sculpt_array_delta_from_path(array));
       array->radial_angle = angle_signed_on_axis_v3v3_v3(brush_co, array_disp_co, array->normal);
-
-     
     }
 
     sculpt_array_update(ob, brush, ss->array); 
     sculpt_array_deform(sd, ob, nodes, totnode);
+    for (int i = 0; i < 5; i++) {
+      sculpt_array_smooth(sd, ob, nodes, totnode);
+    }
 
     return;
 

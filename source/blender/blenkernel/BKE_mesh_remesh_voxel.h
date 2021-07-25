@@ -62,6 +62,7 @@ void BKE_mesh_remesh_reproject_paint_mask(struct Mesh *target, struct Mesh *sour
 void BKE_remesh_reproject_vertex_paint(struct Mesh *target, struct Mesh *source);
 void BKE_remesh_reproject_sculpt_face_sets(struct Mesh *target, struct Mesh *source);
 void BKE_remesh_reproject_materials(struct Mesh *target, struct Mesh *source);
+void BKE_mesh_remesh_sculpt_array_update(struct Object *ob, struct Mesh *target, struct Mesh *source);
 
 #ifdef __cplusplus
 }

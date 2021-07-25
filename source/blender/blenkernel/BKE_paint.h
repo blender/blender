@@ -492,6 +492,8 @@ typedef struct SculptArray {
   int *copy_index;
   int *symmetry_pass;
 
+  float *smooth_strength;
+
 } SculptArray;
 
 typedef struct SculptFakeNeighbors {
