@@ -171,10 +171,14 @@ class BKE_armature_find_selected_bones_test : public testing::Test {
     strcpy(bone2.name, "bone2");
     strcpy(bone3.name, "bone3");
 
-    arm.bonebase = {NULL, NULL};
-    BLI_addtail(&arm.bonebase, &bone1);
-    BLI_addtail(&arm.bonebase, &bone2);
-    BLI_addtail(&arm.bonebase, &bone3);
+    arm.bonebase = {nullptr, nullptr};
+    bone1.childbase = {nullptr, nullptr};
+    bone2.childbase = {nullptr, nullptr};
+    bone3.childbase = {nullptr, nullptr};
+
+    BLI_addtail(&arm.bonebase, &bone1);     // bone1 is root bone
+    BLI_addtail(&arm.bonebase, &bone2);     // bone2 is root bone
+    BLI_addtail(&bone2.childbase, &bone3);  // bone3 has bone2 as parent
 
     // Make sure the armature & its bones are visible, to make them selectable.
     arm.layer = bone1.layer = bone2.layer = bone3.layer = 1;

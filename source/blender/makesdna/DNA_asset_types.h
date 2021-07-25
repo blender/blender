@@ -89,7 +89,6 @@ typedef enum eAssetLibraryType {
   ASSET_LIBRARY_CUSTOM = 100,
 } eAssetLibraryType;
 
-/* TODO copy of FileSelectAssetLibraryUID */
 /**
  * Information to identify a asset library. May be either one of the predefined types (current
  * 'Main', builtin library, project library), or a custom type as defined in the Preferences.
@@ -116,7 +115,7 @@ typedef struct AssetLibraryReference {
 #
 #
 typedef struct AssetHandle {
-  struct FileDirEntry *file_data;
+  const struct FileDirEntry *file_data;
 } AssetHandle;
 
 #ifdef __cplusplus

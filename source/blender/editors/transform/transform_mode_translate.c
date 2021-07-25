@@ -266,7 +266,8 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   if (t->flag & T_AUTOIK) {
     short chainlen = t->settings->autoik_chainlen;
     if (chainlen) {
-      ofs += BLI_snprintf_rlen(str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("AutoIK-Len: %d"), chainlen);
+      ofs += BLI_snprintf_rlen(
+          str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Auto IK Length: %d"), chainlen);
       ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
     }
   }

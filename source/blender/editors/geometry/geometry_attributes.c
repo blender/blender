@@ -47,6 +47,21 @@ static bool geometry_attributes_poll(bContext *C)
          BKE_id_attributes_supported(data);
 }
 
+static bool geometry_attributes_remove_poll(bContext *C)
+{
+  if (!geometry_attributes_poll(C)) {
+    return false;
+  }
+
+  Object *ob = ED_object_context(C);
+  ID *data = (ob) ? ob->data : NULL;
+  if (BKE_id_attributes_active_get(data) != NULL) {
+    return true;
+  }
+
+  return false;
+}
+
 static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
                                                                PointerRNA *UNUSED(ptr),
                                                                PropertyRNA *UNUSED(prop),
@@ -160,7 +175,7 @@ void GEOMETRY_OT_attribute_remove(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = geometry_attribute_remove_exec;
-  ot->poll = geometry_attributes_poll;
+  ot->poll = geometry_attributes_remove_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

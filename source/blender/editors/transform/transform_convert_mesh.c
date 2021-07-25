@@ -1981,7 +1981,7 @@ static void tc_mesh_partial_update(TransInfo *t,
 
   /* Promote the partial update types based on the previous state
    * so the values that no longer modified are reset before being left as-is.
-   * Needed for translation which can toggle snap-to-normal during transform.  */
+   * Needed for translation which can toggle snap-to-normal during transform. */
   const enum ePartialType partial_for_looptri = MAX2(partial_state->for_looptri,
                                                      partial_state_prev->for_looptri);
   const enum ePartialType partial_for_normals = MAX2(partial_state->for_normals,

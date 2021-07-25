@@ -192,7 +192,7 @@ inline GLenum to_gl_internal_format(eGPUTextureFormat format)
     case GPU_DEPTH_COMPONENT16:
       return GL_DEPTH_COMPONENT16;
     default:
-      BLI_assert(!"Texture format incorrect or unsupported\n");
+      BLI_assert_msg(0, "Texture format incorrect or unsupported");
       return 0;
   }
 }
@@ -287,7 +287,7 @@ inline GLenum to_gl(eGPUDataFormat format)
     case GPU_DATA_10_11_11_REV:
       return GL_UNSIGNED_INT_10F_11F_11F_REV;
     default:
-      BLI_assert(!"Unhandled data format");
+      BLI_assert_msg(0, "Unhandled data format");
       return GL_FLOAT;
   }
 }
@@ -359,7 +359,7 @@ inline GLenum to_gl_data_format(eGPUTextureFormat format)
     case GPU_RGBA8_DXT5:
       return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
     default:
-      BLI_assert(!"Texture format incorrect or unsupported\n");
+      BLI_assert_msg(0, "Texture format incorrect or unsupported\n");
       return 0;
   }
 }
@@ -377,7 +377,7 @@ inline GLenum channel_len_to_gl(int channel_len)
     case 4:
       return GL_RGBA;
     default:
-      BLI_assert(!"Wrong number of texture channels");
+      BLI_assert_msg(0, "Wrong number of texture channels");
       return GL_RED;
   }
 }

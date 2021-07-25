@@ -1705,7 +1705,7 @@ static void exr_print_filecontents(MultiPartInputFile &file)
   }
 }
 
-/* for non-multilayer, map  R G B A channel names to something that's in this file */
+/* For non-multi-layer, map R G B A channel names to something that's in this file. */
 static const char *exr_rgba_channelname(MultiPartInputFile &file, const char *chan)
 {
   const ChannelList &channels = file.header(0).channels();

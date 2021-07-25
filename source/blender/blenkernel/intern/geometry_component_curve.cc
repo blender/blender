@@ -854,17 +854,9 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
       return {};
     }
 
-    bool curve_has_bezier_spline = false;
-    for (SplinePtr &spline : curve->splines()) {
-      if (spline->type() == Spline::Type::Bezier) {
-        curve_has_bezier_spline = true;
-        break;
-      }
-    }
-
     /* Use the regular position virtual array when there aren't any Bezier splines
      * to avoid the overhead of checking the spline type for every point. */
-    if (!curve_has_bezier_spline) {
+    if (!curve->has_spline_with_type(Spline::Type::Bezier)) {
       return BuiltinPointAttributeProvider<float3>::try_get_for_write(component);
     }
 

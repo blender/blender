@@ -130,7 +130,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   /* start tagging/keying */
   const bArmature *armature = pbd->ob->data;
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
-    /* only for selected bones unless there aren't any selected, in which case all are included  */
+    /* Only for selected bones unless there aren't any selected, in which case all are included. */
     bPoseChannel *pchan = BKE_pose_channel_find_name(pose, agrp->name);
     if (pchan == NULL) {
       continue;
@@ -422,7 +422,7 @@ static void poselib_blend_cleanup(bContext *C, wmOperator *op)
     case POSE_BLEND_BLENDING:
     case POSE_BLEND_ORIGINAL:
       /* Cleanup should not be called directly from these states. */
-      BLI_assert(!"poselib_blend_cleanup: unexpected pose blend state");
+      BLI_assert_msg(0, "poselib_blend_cleanup: unexpected pose blend state");
       BKE_report(op->reports, RPT_ERROR, "Internal pose library error, cancelling operator");
       ATTR_FALLTHROUGH;
     case POSE_BLEND_CANCEL:
@@ -544,7 +544,7 @@ static bool poselib_asset_in_context(bContext *C)
   AssetHandle asset_handle = CTX_wm_asset_handle(C, &asset_handle_valid);
 
   return (asset_library != NULL) && asset_handle_valid &&
-         (asset_handle.file_data->blentype == ID_AC);
+         (ED_asset_handle_get_id_type(&asset_handle) == ID_AC);
 }
 
 /* Poll callback for operators that require existing PoseLib data (with poses) to work. */

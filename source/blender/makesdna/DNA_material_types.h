@@ -298,18 +298,20 @@ typedef struct Material {
 #define MAP_ALPHA (1 << 7)
 
 /* pr_type */
-#define MA_FLAT 0
-#define MA_SPHERE 1
-#define MA_CUBE 2
-#define MA_SHADERBALL 3
-#define MA_SPHERE_A 4 /* Used for icon renders only. */
-#define MA_TEXTURE 5
-#define MA_LAMP 6
-#define MA_SKY 7
-#define MA_HAIR 10
-#define MA_ATMOS 11
-#define MA_CLOTH 12
-#define MA_FLUID 13
+typedef enum ePreviewType {
+  MA_FLAT = 0,
+  MA_SPHERE = 1,
+  MA_CUBE = 2,
+  MA_SHADERBALL = 3,
+  MA_SPHERE_A = 4, /* Used for icon renders only. */
+  MA_TEXTURE = 5,
+  MA_LAMP = 6,
+  MA_SKY = 7,
+  MA_HAIR = 10,
+  MA_ATMOS = 11,
+  MA_CLOTH = 12,
+  MA_FLUID = 13,
+} ePreviewType;
 
 /* pr_flag */
 #define MA_PREVIEW_WORLD (1 << 0)

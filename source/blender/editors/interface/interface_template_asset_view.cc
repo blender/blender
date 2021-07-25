@@ -52,25 +52,24 @@ static void asset_view_item_but_drag_set(uiBut *but,
                                          AssetViewListData *list_data,
                                          AssetHandle *asset_handle)
 {
-  ID *id = asset_handle->file_data->id;
+  ID *id = ED_asset_handle_get_local_id(asset_handle);
   if (id != nullptr) {
     UI_but_drag_set_id(but, id);
     return;
   }
 
-  const blender::StringRef asset_list_path = ED_assetlist_library_path(&list_data->asset_library);
   char blend_path[FILE_MAX_LIBEXTRA];
+  /* Context can be NULL here, it's only needed for a File Browser specific hack that should go
+   * away before too long. */
+  ED_asset_handle_get_full_library_path(NULL, &list_data->asset_library, asset_handle, blend_path);
 
-  char path[FILE_MAX_LIBEXTRA];
-  BLI_join_dirfile(path, sizeof(path), asset_list_path.data(), asset_handle->file_data->relpath);
-  if (BLO_library_path_explode(path, blend_path, nullptr, nullptr)) {
+  if (blend_path[0]) {
     ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
     UI_but_drag_set_asset(but,
-                          asset_handle->file_data->name,
+                          asset_handle,
                           BLI_strdup(blend_path),
-                          asset_handle->file_data->blentype,
                           FILE_ASSET_IMPORT_APPEND,
-                          asset_handle->file_data->preview_icon_id,
+                          ED_asset_handle_get_preview_icon_id(asset_handle),
                           imbuf,
                           1.0f);
   }
@@ -101,8 +100,8 @@ static void asset_view_draw_item(uiList *ui_list,
   uiBut *but = uiDefIconTextBut(block,
                                 UI_BTYPE_PREVIEW_TILE,
                                 0,
-                                asset_handle->file_data->preview_icon_id,
-                                asset_handle->file_data->name,
+                                ED_asset_handle_get_preview_icon_id(asset_handle),
+                                ED_asset_handle_get_name(asset_handle),
                                 0,
                                 0,
                                 size_x,
@@ -114,7 +113,7 @@ static void asset_view_draw_item(uiList *ui_list,
                                 0,
                                 "");
   ui_def_but_icon(but,
-                  asset_handle->file_data->preview_icon_id,
+                  ED_asset_handle_get_preview_icon_id(asset_handle),
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
   if (!ui_list->dyn_data->custom_drag_optype) {

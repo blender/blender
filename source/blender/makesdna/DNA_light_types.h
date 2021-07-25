@@ -134,7 +134,7 @@ typedef struct Light {
 /* #define LA_NO_DIFF       (1 << 11) */ /* not used anywhere */
 /* #define LA_NO_SPEC       (1 << 12) */ /* not used anywhere */
 /* #define LA_SHAD_RAY      (1 << 13) */ /* not used anywhere - cleaned */
-/* yafray: light  shadowbuffer flag, softlight */
+/* yafray: light shadowbuffer flag, softlight */
 /* Since it is used with LOCAL light, can't use LA_SHAD */
 /* #define LA_YF_SOFT       (1 << 14) */ /* not used anymore */
 /* #define LA_LAYER_SHADOW  (1 << 15) */ /* not used anymore */

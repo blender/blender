@@ -1212,10 +1212,12 @@ static void update_typeinfo(Main *bmain,
   FOREACH_NODETREE_END;
 }
 
-/* Try to initialize all typeinfo in a node tree.
- * NB: In general undefined typeinfo is a perfectly valid case,
+/**
+ * Try to initialize all type-info in a node tree.
+ *
+ * \note In general undefined type-info is a perfectly valid case,
  * the type may just be registered later.
- * In that case the update_typeinfo function will set typeinfo on registration
+ * In that case the update_typeinfo function will set type-info on registration
  * and do necessary updates.
  */
 void ntreeSetTypes(const struct bContext *C, bNodeTree *ntree)
@@ -5117,6 +5119,7 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_primitive_star();
   register_node_type_geo_curve_resample();
   register_node_type_geo_curve_reverse();
+  register_node_type_geo_curve_set_handles();
   register_node_type_geo_curve_subdivide();
   register_node_type_geo_curve_to_mesh();
   register_node_type_geo_curve_to_points();

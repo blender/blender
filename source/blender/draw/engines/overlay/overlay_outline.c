@@ -340,7 +340,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
 
   if (shgroup && geom) {
     if (ob->type == OB_POINTCLOUD) {
-      /* Draw range to avoid drawcall batching messing up the instance attrib. */
+      /* Draw range to avoid drawcall batching messing up the instance attribute. */
       DRW_shgroup_call_instance_range(shgroup, ob, geom, 0, 0);
     }
     else {

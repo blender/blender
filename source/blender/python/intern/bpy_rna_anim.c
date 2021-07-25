@@ -605,7 +605,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
     DEG_relations_tag_update(CTX_data_main(context));
   }
   else {
-    /* XXX, should be handled by reports, */
+    /* XXX: should be handled by reports. */
     PyErr_SetString(PyExc_TypeError,
                     "bpy_struct.driver_add(): failed because of an internal error");
     return NULL;

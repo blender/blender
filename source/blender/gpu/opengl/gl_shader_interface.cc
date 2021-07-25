@@ -170,7 +170,7 @@ GLShaderInterface::GLShaderInterface(GLuint program)
         program, GL_SHADER_STORAGE_BLOCK, GL_MAX_NAME_LENGTH, &max_ssbo_name_len);
   }
 
-  BLI_assert(ubo_len <= 16 && "enabled_ubo_mask_ is uint16_t");
+  BLI_assert_msg(ubo_len <= 16, "enabled_ubo_mask_ is uint16_t");
 
   /* Work around driver bug with Intel HD 4600 on Windows 7/8, where
    * GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH does not work. */

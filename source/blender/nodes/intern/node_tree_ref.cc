@@ -423,7 +423,13 @@ static bool has_link_cycles_recursive(const NodeRef &node,
   is_in_stack[node_id] = true;
 
   for (const OutputSocketRef *from_socket : node.outputs()) {
+    if (!from_socket->is_available()) {
+      continue;
+    }
     for (const InputSocketRef *to_socket : from_socket->directly_linked_sockets()) {
+      if (!to_socket->is_available()) {
+        continue;
+      }
       const NodeRef &to_node = to_socket->node();
       if (has_link_cycles_recursive(to_node, visited, is_in_stack)) {
         return true;
@@ -435,6 +441,9 @@ static bool has_link_cycles_recursive(const NodeRef &node,
   return false;
 }
 
+/**
+ * \return True when there is a link cycle. Unavailable sockets are ignored.
+ */
 bool NodeTreeRef::has_link_cycles() const
 {
   const int node_amount = nodes_by_id_.size();

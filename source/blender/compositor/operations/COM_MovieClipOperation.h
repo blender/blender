@@ -19,7 +19,7 @@
 #pragma once
 
 #include "BLI_listbase.h"
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_movieclip_types.h"
 #include "IMB_imbuf_types.h"
 
@@ -28,7 +28,7 @@ namespace blender::compositor {
 /**
  * Base class for movie clip
  */
-class MovieClipBaseOperation : public NodeOperation {
+class MovieClipBaseOperation : public MultiThreadedOperation {
  protected:
   MovieClip *m_movieClip;
   MovieClipUser *m_movieClipUser;
@@ -67,6 +67,10 @@ class MovieClipBaseOperation : public NodeOperation {
     this->m_framenumber = framenumber;
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 class MovieClipOperation : public MovieClipBaseOperation {
@@ -78,6 +82,10 @@ class MovieClipAlphaOperation : public MovieClipBaseOperation {
  public:
   MovieClipAlphaOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

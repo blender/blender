@@ -628,7 +628,7 @@ extern void GHOST_ScreenToClient(
     GHOST_WindowHandle windowhandle, int32_t inX, int32_t inY, int32_t *outX, int32_t *outY);
 
 /**
- * Converts a point in screen coordinates to client rectangle coordinates
+ * Converts a point in client rectangle coordinates to screen coordinates.
  * \param windowhandle: The handle to the window.
  * \param inX: The x-coordinate in the client rectangle.
  * \param inY: The y-coordinate in the client rectangle.

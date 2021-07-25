@@ -226,7 +226,7 @@ typedef enum PropertyFlag {
   PROP_ICONS_CONSECUTIVE = (1 << 12),
   PROP_ICONS_REVERSE = (1 << 8),
 
-  /** Hidden in  the user interface. */
+  /** Hidden in the user interface. */
   PROP_HIDDEN = (1 << 19),
   /** Do not write in presets. */
   PROP_SKIP_SAVE = (1 << 28),

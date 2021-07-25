@@ -33,6 +33,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_image.h"
 
@@ -55,6 +57,464 @@
 #include "RNA_access.h"
 #include "WM_api.h"
 #include "WM_types.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Slider
+ *
+ * The generic slider is supposed to be called during modal operations. It calculates a factor
+ * value based on mouse position and draws a visual representation. In order to use it, you need to
+ * store a reference to a tSlider in your operator which you get by calling "ED_slider_create".
+ * Then you need to update it during modal operations by calling "ED_slider_modal", which will
+ * update tSlider->factor for you to use. To remove drawing and free the memory, call
+ * "ED_slider_destroy".
+ * \{ */
+
+#define SLIDE_PIXEL_DISTANCE (300.0f * U.dpi_fac)
+#define OVERSHOOT_RANGE_DELTA 0.2f
+
+typedef struct tSlider {
+  struct Scene *scene;
+  struct ScrArea *area;
+  /* Header of the region used for drawing the slider. */
+  struct ARegion *region_header;
+
+  /* Draw callback handler. */
+  void *draw_handle;
+
+  /* Accumulative, unclamped and unrounded factor. */
+  float raw_factor;
+
+  /** 0-1 value for determining the influence of whatever is relevant. */
+  float factor;
+
+  /* Last mouse cursor position used for mouse movement delta calculation. */
+  float last_cursor[2];
+
+  /* Enable range beyond 0-100%. */
+  bool allow_overshoot;
+
+  /* Allow overshoot or clamp between 0% and 100%. */
+  bool overshoot;
+
+  /* Move factor in 10% steps. */
+  bool increments;
+
+  /* Reduces factor delta from mouse movement. */
+  bool precision;
+} tSlider;
+
+static void draw_overshoot_triangle(const uint8_t color[4],
+                                    const bool facing_right,
+                                    const float x,
+                                    const float y)
+{
+  const uint shdr_pos_2d = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_polygon_smooth(true);
+  immUniformColor3ubvAlpha(color, 225);
+  const float triangle_side_length = facing_right ? 6 * U.pixelsize : -6 * U.pixelsize;
+  const float triangle_offset = facing_right ? 2 * U.pixelsize : -2 * U.pixelsize;
+
+  immBegin(GPU_PRIM_TRIS, 3);
+  immVertex2f(shdr_pos_2d, x + triangle_offset + triangle_side_length, y);
+  immVertex2f(shdr_pos_2d, x + triangle_offset, y + triangle_side_length / 2);
+  immVertex2f(shdr_pos_2d, x + triangle_offset, y - triangle_side_length / 2);
+  immEnd();
+
+  GPU_polygon_smooth(false);
+  GPU_blend(GPU_BLEND_NONE);
+  immUnbindProgram();
+}
+
+static void draw_ticks(const float start_factor,
+                       const float end_factor,
+                       const float line_start[2],
+                       const float base_tick_height,
+                       const float line_width,
+                       const uint8_t color_overshoot[4],
+                       const uint8_t color_line[4])
+{
+  /* Use factor represented as 0-100 int to avoid floating point precision problems. */
+  const int tick_increment = 10;
+
+  /* Round initial_tick_factor up to the next tick_increment. */
+  int tick_percentage = ceil((start_factor * 100) / tick_increment) * tick_increment;
+
+  while (tick_percentage <= (int)(end_factor * 100)) {
+    float tick_height;
+    /* Different ticks have different heights. Multiples of 100% are the tallest, 50% is a bit
+     * smaller and the rest is the minimum size. */
+    if (tick_percentage % 100 == 0) {
+      tick_height = base_tick_height;
+    }
+    else if (tick_percentage % 50 == 0) {
+      tick_height = base_tick_height * 0.8;
+    }
+    else {
+      tick_height = base_tick_height * 0.5;
+    }
+
+    const float x = line_start[0] +
+                    (((float)tick_percentage / 100) - start_factor) * SLIDE_PIXEL_DISTANCE;
+    const rctf tick_rect = {
+        .xmin = x - (line_width / 2),
+        .xmax = x + (line_width / 2),
+        .ymin = line_start[1] - (tick_height / 2),
+        .ymax = line_start[1] + (tick_height / 2),
+    };
+
+    if (tick_percentage < 0 || tick_percentage > 100) {
+      UI_draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_overshoot, 255);
+    }
+    else {
+      UI_draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_line, 255);
+    }
+    tick_percentage += tick_increment;
+  }
+}
+
+static void draw_main_line(const rctf *main_line_rect,
+                           const float factor,
+                           const bool overshoot,
+                           const uint8_t color_overshoot[4],
+                           const uint8_t color_line[4])
+{
+  if (overshoot) {
+    /* In overshoot mode, draw the 0-100% range differently to provide a visual reference. */
+    const float line_zero_percent = main_line_rect->xmin -
+                                    ((factor - 0.5f - OVERSHOOT_RANGE_DELTA) *
+                                     SLIDE_PIXEL_DISTANCE);
+
+    const float clamped_line_zero_percent = clamp_f(
+        line_zero_percent, main_line_rect->xmin, main_line_rect->xmax);
+    const float clamped_line_hundred_percent = clamp_f(
+        line_zero_percent + SLIDE_PIXEL_DISTANCE, main_line_rect->xmin, main_line_rect->xmax);
+
+    const rctf left_overshoot_line_rect = {
+        .xmin = main_line_rect->xmin,
+        .xmax = clamped_line_zero_percent,
+        .ymin = main_line_rect->ymin,
+        .ymax = main_line_rect->ymax,
+    };
+    const rctf right_overshoot_line_rect = {
+        .xmin = clamped_line_hundred_percent,
+        .xmax = main_line_rect->xmax,
+        .ymin = main_line_rect->ymin,
+        .ymax = main_line_rect->ymax,
+    };
+    UI_draw_roundbox_3ub_alpha(&left_overshoot_line_rect, true, 0, color_overshoot, 255);
+    UI_draw_roundbox_3ub_alpha(&right_overshoot_line_rect, true, 0, color_overshoot, 255);
+
+    const rctf non_overshoot_line_rect = {
+        .xmin = clamped_line_zero_percent,
+        .xmax = clamped_line_hundred_percent,
+        .ymin = main_line_rect->ymin,
+        .ymax = main_line_rect->ymax,
+    };
+    UI_draw_roundbox_3ub_alpha(&non_overshoot_line_rect, true, 0, color_line, 255);
+  }
+  else {
+    UI_draw_roundbox_3ub_alpha(main_line_rect, true, 0, color_line, 255);
+  }
+}
+
+static void draw_backdrop(const int fontid,
+                          const rctf *main_line_rect,
+                          const float color_bg[4],
+                          const short region_y_size,
+                          const float base_tick_height)
+{
+  float string_pixel_size[2];
+  const char *percentage_string_placeholder = "000%%";
+  BLF_width_and_height(fontid,
+                       percentage_string_placeholder,
+                       sizeof(percentage_string_placeholder),
+                       &string_pixel_size[0],
+                       &string_pixel_size[1]);
+  const float pad[2] = {(region_y_size - base_tick_height) / 2, 2.0f * U.pixelsize};
+  const rctf backdrop_rect = {
+      .xmin = main_line_rect->xmin - string_pixel_size[0] - pad[0],
+      .xmax = main_line_rect->xmax + pad[0],
+      .ymin = pad[1],
+      .ymax = region_y_size - pad[1],
+  };
+  UI_draw_roundbox_aa(&backdrop_rect, true, 4.0f, color_bg);
+}
+
+/* Draw an on screen Slider for a Pose Slide Operator. */
+static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void *arg)
+{
+  tSlider *slider = arg;
+
+  /* Only draw in region from which the Operator was started. */
+  if (region != slider->region_header) {
+    return;
+  }
+
+  uint8_t color_text[4];
+  uint8_t color_line[4];
+  uint8_t color_handle[4];
+  uint8_t color_overshoot[4];
+  float color_bg[4];
+
+  /* Get theme colors. */
+  UI_GetThemeColor4ubv(TH_TEXT, color_text);
+  UI_GetThemeColor4ubv(TH_TEXT, color_line);
+  UI_GetThemeColor4ubv(TH_TEXT, color_overshoot);
+  UI_GetThemeColor4ubv(TH_ACTIVE, color_handle);
+  UI_GetThemeColor3fv(TH_BACK, color_bg);
+
+  color_bg[3] = 0.5f;
+  color_overshoot[0] = color_overshoot[0] * 0.7;
+  color_overshoot[1] = color_overshoot[1] * 0.7;
+  color_overshoot[2] = color_overshoot[2] * 0.7;
+
+  /* Get the default font. */
+  const uiStyle *style = UI_style_get();
+  const uiFontStyle *fstyle = &style->widget;
+  const int fontid = fstyle->uifont_id;
+  BLF_color3ubv(fontid, color_text);
+  BLF_rotation(fontid, 0.0f);
+
+  const float line_width = 1.5 * U.pixelsize;
+  const float base_tick_height = 12.0 * U.pixelsize;
+  const float line_y = region->winy / 2;
+
+  rctf main_line_rect = {
+      .xmin = (region->winx / 2) - (SLIDE_PIXEL_DISTANCE / 2),
+      .xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2),
+      .ymin = line_y - line_width / 2,
+      .ymax = line_y + line_width / 2,
+  };
+  float line_start_factor = 0;
+  int handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * slider->factor;
+
+  if (slider->overshoot) {
+    main_line_rect.xmin = main_line_rect.xmin - SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
+    main_line_rect.xmax = main_line_rect.xmax + SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
+    line_start_factor = slider->factor - 0.5f - OVERSHOOT_RANGE_DELTA;
+    handle_pos_x = region->winx / 2;
+  }
+
+  draw_backdrop(fontid, &main_line_rect, color_bg, slider->region_header->winy, base_tick_height);
+
+  draw_main_line(&main_line_rect, slider->factor, slider->overshoot, color_overshoot, color_line);
+
+  const float factor_range = slider->overshoot ? 1 + OVERSHOOT_RANGE_DELTA * 2 : 1;
+  const float line_start_position[2] = {main_line_rect.xmin, line_y};
+  draw_ticks(line_start_factor,
+             line_start_factor + factor_range,
+             line_start_position,
+             base_tick_height,
+             line_width,
+             color_overshoot,
+             color_line);
+
+  /* Draw triangles at the ends of the line in overshoot mode to indicate direction of 0-100%
+   * range. */
+  if (slider->overshoot) {
+    if (slider->factor > 1 + OVERSHOOT_RANGE_DELTA + 0.5) {
+      draw_overshoot_triangle(color_line, false, main_line_rect.xmin, line_y);
+    }
+    if (slider->factor < 0 - OVERSHOOT_RANGE_DELTA - 0.5) {
+      draw_overshoot_triangle(color_line, true, main_line_rect.xmax, line_y);
+    }
+  }
+
+  char percentage_string[256];
+
+  /* Draw handle indicating current factor. */
+  const rctf handle_rect = {
+      .xmin = handle_pos_x - (line_width),
+      .xmax = handle_pos_x + (line_width),
+      .ymin = line_y - (base_tick_height / 2),
+      .ymax = line_y + (base_tick_height / 2),
+  };
+
+  UI_draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
+  BLI_snprintf(percentage_string, sizeof(percentage_string), "%.0f%%", slider->factor * 100);
+
+  /* Draw percentage string. */
+  float percentage_string_pixel_size[2];
+  BLF_width_and_height(fontid,
+                       percentage_string,
+                       sizeof(percentage_string),
+                       &percentage_string_pixel_size[0],
+                       &percentage_string_pixel_size[1]);
+
+  BLF_position(fontid,
+               main_line_rect.xmin - 24.0 * U.pixelsize - percentage_string_pixel_size[0] / 2,
+               (region->winy / 2) - percentage_string_pixel_size[1] / 2,
+               0.0f);
+  BLF_draw(fontid, percentage_string, sizeof(percentage_string));
+}
+
+static void slider_update_factor(tSlider *slider, const wmEvent *event)
+{
+  const float factor_delta = (event->x - slider->last_cursor[0]) / SLIDE_PIXEL_DISTANCE;
+  /* Reduced factor delta in precision mode (shift held). */
+  slider->raw_factor += slider->precision ? (factor_delta / 8) : factor_delta;
+  slider->factor = slider->raw_factor;
+  slider->last_cursor[0] = event->x;
+  slider->last_cursor[1] = event->y;
+
+  if (!slider->overshoot) {
+    slider->factor = clamp_f(slider->factor, 0, 1);
+  }
+
+  if (slider->increments) {
+    slider->factor = round(slider->factor * 10) / 10;
+  }
+}
+
+tSlider *ED_slider_create(struct bContext *C)
+{
+  tSlider *slider = MEM_callocN(sizeof(tSlider), "tSlider");
+  slider->scene = CTX_data_scene(C);
+  slider->area = CTX_wm_area(C);
+  slider->region_header = CTX_wm_region(C);
+
+  /* Default is true, caller needs to manually set to false. */
+  slider->allow_overshoot = true;
+
+  /* Set initial factor. */
+  slider->raw_factor = 0.5f;
+  slider->factor = 0.5;
+
+  /* Add draw callback. Always in header. */
+  LISTBASE_FOREACH (ARegion *, region, &slider->area->regionbase) {
+    if (region->regiontype == RGN_TYPE_HEADER) {
+      slider->region_header = region;
+      slider->draw_handle = ED_region_draw_cb_activate(
+          region->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
+    }
+  }
+
+  return slider;
+}
+
+/* For modal operations so the percentage doesn't pop on the first mouse movement. */
+void ED_slider_init(struct tSlider *slider, const wmEvent *event)
+{
+  slider->last_cursor[0] = event->x;
+  slider->last_cursor[1] = event->y;
+}
+
+/* Calculate slider factor based on mouse position. */
+bool ED_slider_modal(tSlider *slider, const wmEvent *event)
+{
+  bool event_handled = true;
+  /* Handle key presses. */
+  switch (event->type) {
+    case EVT_EKEY:
+      if (slider->allow_overshoot) {
+        slider->overshoot = event->val == KM_PRESS ? !slider->overshoot : slider->overshoot;
+        slider_update_factor(slider, event);
+      }
+      break;
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY:
+      slider->precision = event->val == KM_PRESS;
+      break;
+    case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY:
+      slider->increments = event->val == KM_PRESS;
+      break;
+    case MOUSEMOVE:;
+      /* Update factor. */
+      slider_update_factor(slider, event);
+      break;
+    default:
+      event_handled = false;
+      break;
+  }
+
+  ED_region_tag_redraw(slider->region_header);
+
+  return event_handled;
+}
+
+/* Return string based on the current state of the slider. */
+void ED_slider_status_string_get(const struct tSlider *slider,
+                                 char *status_string,
+                                 const size_t size_of_status_string)
+{
+  /* 50 characters is enough to fit the individual setting strings. Extend if message is longer. */
+  char overshoot_str[50];
+  char precision_str[50];
+  char increments_str[50];
+
+  if (slider->allow_overshoot) {
+    if (slider->overshoot) {
+      STRNCPY(overshoot_str, TIP_("[E] - Disable overshoot"));
+    }
+    else {
+      STRNCPY(overshoot_str, TIP_("[E] - Enable overshoot"));
+    }
+  }
+  else {
+    STRNCPY(overshoot_str, TIP_("Overshoot disabled"));
+  }
+
+  if (slider->precision) {
+    STRNCPY(precision_str, TIP_("[Shift] - Precision active"));
+  }
+  else {
+    STRNCPY(precision_str, TIP_("Shift - Hold for precision"));
+  }
+
+  if (slider->increments) {
+    STRNCPY(increments_str, TIP_("[Ctrl] - Increments active"));
+  }
+  else {
+    STRNCPY(increments_str, TIP_("Ctrl - Hold for 10% increments"));
+  }
+
+  BLI_snprintf(status_string,
+               size_of_status_string,
+               "%s | %s | %s",
+               overshoot_str,
+               precision_str,
+               increments_str);
+}
+
+void ED_slider_destroy(struct bContext *C, tSlider *slider)
+{
+  /* Remove draw callback. */
+  ED_region_draw_cb_exit(slider->region_header->type, slider->draw_handle);
+  ED_area_status_text(slider->area, NULL);
+  ED_workspace_status_text(C, NULL);
+  MEM_freeN(slider);
+}
+
+/* Setters & Getters */
+
+float ED_slider_factor_get(struct tSlider *slider)
+{
+  return slider->factor;
+}
+
+void ED_slider_factor_set(struct tSlider *slider, const float factor)
+{
+  slider->factor = factor;
+  if (!slider->overshoot) {
+    slider->factor = clamp_f(slider->factor, 0, 1);
+  }
+}
+
+bool ED_slider_allow_overshoot_get(struct tSlider *slider)
+{
+  return slider->allow_overshoot;
+}
+
+void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value)
+{
+  slider->allow_overshoot = value;
+}
+
+/** \} */
 
 /**
  * Callback that draws a line between the mouse and a position given as the initial argument.

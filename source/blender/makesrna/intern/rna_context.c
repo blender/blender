@@ -146,7 +146,9 @@ static PointerRNA rna_Context_asset_file_handle_get(PointerRNA *ptr)
   }
 
   PointerRNA newptr;
-  RNA_pointer_create(NULL, &RNA_FileSelectEntry, asset_handle.file_data, &newptr);
+  /* Have to cast away const, but the file entry API doesn't allow modifications anyway. */
+  RNA_pointer_create(
+      NULL, &RNA_FileSelectEntry, (struct FileDirEntry *)asset_handle.file_data, &newptr);
   return newptr;
 }
 

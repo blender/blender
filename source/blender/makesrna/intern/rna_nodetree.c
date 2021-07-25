@@ -6622,10 +6622,9 @@ static void def_cmp_image(StructRNA *srna)
                            "Put node output buffer to straight alpha instead of premultiplied");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  /* NB: image user properties used in the UI are redefined in def_node_image_user,
+  /* NOTE: Image user properties used in the UI are redefined in def_node_image_user,
    * to trigger correct updates of the node editor. RNA design problem that prevents
-   * updates from nested structs ...
-   */
+   * updates from nested structs. */
   RNA_def_struct_sdna_from(srna, "ImageUser", "storage");
   def_node_image_user(srna);
 }
@@ -6722,9 +6721,8 @@ static void rna_def_cmp_output_file_slots_api(BlenderRNA *brna,
   parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket");
   RNA_def_function_return(func, parm);
 
-  /* NB: methods below can use the standard node socket API functions,
-   * included here for completeness.
-   */
+  /* NOTE: methods below can use the standard node socket API functions,
+   * included here for completeness. */
 
   func = RNA_def_function(srna, "remove", "rna_Node_socket_remove");
   RNA_def_function_ui_description(func, "Remove a file slot from this node");
@@ -9443,6 +9441,52 @@ static void def_geo_attribute_vector_rotate(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_curve_set_handles(StructRNA *srna)
+{
+  static const EnumPropertyItem type_items[] = {
+      {GEO_NODE_CURVE_HANDLE_FREE,
+       "FREE",
+       ICON_HANDLE_FREE,
+       "Free",
+       "The handle can be moved anywhere, and doesn't influence the point's other handle"},
+      {GEO_NODE_CURVE_HANDLE_AUTO,
+       "AUTO",
+       ICON_HANDLE_AUTO,
+       "Auto",
+       "The location is automatically calculated to be smooth"},
+      {GEO_NODE_CURVE_HANDLE_VECTOR,
+       "VECTOR",
+       ICON_HANDLE_VECTOR,
+       "Vector",
+       "The location is calculated to point to the next/previous control point"},
+      {GEO_NODE_CURVE_HANDLE_ALIGN,
+       "ALIGN",
+       ICON_HANDLE_ALIGNED,
+       "Align",
+       "The location is constrained to point in the opposite direction as the other handle"},
+      {0, NULL, 0, NULL, NULL}};
+
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_HANDLE_LEFT, "LEFT", ICON_NONE, "Left", "Update the left handles"},
+      {GEO_NODE_CURVE_HANDLE_RIGHT, "RIGHT", ICON_NONE, "Right", "Update the right handles"},
+      {0, NULL, 0, NULL, NULL}};
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCurveSetHandles", "storage");
+
+  prop = RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "handle_type");
+  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "Whether to update left and right handles");
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 static void def_geo_curve_primitive_circle(StructRNA *srna)
 {
   static const EnumPropertyItem mode_items[] = {
@@ -10301,11 +10345,11 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Node", "Node owning this socket");
 
-  /* NB: the type property is used by standard sockets.
+  /* NOTE: The type property is used by standard sockets.
    * Ideally should be defined only for the registered subclass,
    * but to use the existing DNA is added in the base type here.
-   * Future socket types can ignore or override this if needed.
-   */
+   * Future socket types can ignore or override this if needed. */
+
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, node_socket_type_items);

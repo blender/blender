@@ -31,6 +31,7 @@ class TestEntry:
     device_id: str = 'CPU'
     device_name: str = 'Unknown CPU'
     status: str = 'queued'
+    error_msg: str = ''
     output: Dict = field(default_factory=dict)
     benchmark_type: str = 'comparison'
 
@@ -42,7 +43,8 @@ class TestEntry:
 
     def from_json(self, json_dict):
         for field in self.__dataclass_fields__:
-            setattr(self, field, json_dict[field])
+            if field in json_dict:
+                setattr(self, field, json_dict[field])
 
 
 class TestQueue:
@@ -112,7 +114,7 @@ class TestConfig:
         self.base_dir = env.base_dir / name
         self.logs_dir = self.base_dir / 'logs'
 
-        config = self._read_config_module()
+        config = TestConfig._read_config_module(self.base_dir)
         self.tests = TestCollection(env,
                                     getattr(config, 'tests', ['*']),
                                     getattr(config, 'categories', ['*']))
@@ -154,10 +156,17 @@ class TestConfig:
         with open(config_file, 'w') as f:
             f.write(default_config)
 
-    def _read_config_module(self) -> None:
+    @staticmethod
+    def read_blender_executables(env, name) -> List:
+        config = TestConfig._read_config_module(env.base_dir / name)
+        builds = getattr(config, 'builds', {})
+        return [pathlib.Path(build) for build in builds.values()]
+
+    @staticmethod
+    def _read_config_module(base_dir: pathlib.Path) -> None:
         # Import config.py as a module.
         import importlib.util
-        spec = importlib.util.spec_from_file_location("testconfig", self.base_dir / 'config.py')
+        spec = importlib.util.spec_from_file_location("testconfig", base_dir / 'config.py')
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         return mod
@@ -195,14 +204,14 @@ class TestConfig:
 
         # Get entries for revisions based on existing builds.
         for revision_name, executable in self.builds.items():
-            executable_path = pathlib.Path(executable)
-            if not executable_path.exists():
+            executable_path = env._blender_executable_from_path(pathlib.Path(executable))
+            if not executable_path:
                 sys.stderr.write(f'Error: build {executable} not found\n')
                 sys.exit(1)
 
             env.set_blender_executable(executable_path)
             git_hash, _ = env.run_in_blender(get_build_hash, {})
-            env.unset_blender_executable()
+            env.set_default_blender_executable()
 
             mtime = executable_path.stat().st_mtime
             entries += self._get_entries(revision_name, git_hash, executable, mtime)

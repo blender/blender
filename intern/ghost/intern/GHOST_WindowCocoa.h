@@ -157,7 +157,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
   void screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
 
   /**
-   * Converts a point in screen coordinates to client rectangle coordinates
+   * Converts a point in client rectangle coordinates to screen coordinates.
    * \param inX: The x-coordinate in the client rectangle.
    * \param inY: The y-coordinate in the client rectangle.
    * \param outX: The x-coordinate on the screen.
@@ -166,7 +166,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
   void clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
 
   /**
-   * Converts a point in screen coordinates to client rectangle coordinates
+   * Converts a point in client rectangle coordinates to screen coordinates.
    * but without the y coordinate conversion needed for ghost compatibility.
    * \param inX: The x-coordinate in the client rectangle.
    * \param inY: The y-coordinate in the client rectangle.
@@ -178,10 +178,10 @@ class GHOST_WindowCocoa : public GHOST_Window {
   /**
    * Converts a point in screen coordinates to client rectangle coordinates,
    * but without the y coordinate conversion needed for ghost compatibility.
-   * \param inX: The x-coordinate in the client rectangle.
-   * \param inY: The y-coordinate in the client rectangle.
-   * \param outX: The x-coordinate on the screen.
-   * \param outY: The y-coordinate on the screen.
+   * \param inX: The x-coordinate on the screen.
+   * \param inY: The y-coordinate on the screen.
+   * \param outX: The x-coordinate in the client rectangle.
+   * \param outY: The y-coordinate in the client rectangle.
    */
   void screenToClientIntern(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const;
 

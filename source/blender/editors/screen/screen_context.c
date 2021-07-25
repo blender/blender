@@ -1031,7 +1031,7 @@ static eContextResult screen_ctx_asset_library(const bContext *C, bContextDataRe
 {
   WorkSpace *workspace = CTX_wm_workspace(C);
   CTX_data_pointer_set(
-      result, &workspace->id, &RNA_AssetLibraryReference, &workspace->active_asset_library);
+      result, &workspace->id, &RNA_AssetLibraryReference, &workspace->asset_library);
   return CTX_RESULT_OK;
 }
 

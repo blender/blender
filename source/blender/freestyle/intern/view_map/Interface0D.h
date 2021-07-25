@@ -311,13 +311,13 @@ class Interface0DIterator : public Iterator {
     return result;
   }
 
-  /** operator == . */
+  /** operator `==`. */
   bool operator==(const Interface0DIterator &it) const
   {
     return _iterator->operator==(*(it._iterator));
   }
 
-  /** operator != . */
+  /** operator `!=`. */
   bool operator!=(const Interface0DIterator &it) const
   {
     return !(*this == it);

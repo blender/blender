@@ -856,7 +856,9 @@ static void mesh_buffer_extraction_cache_clear(MeshBufferExtractionCache *extrac
   extraction_cache->loose_geom.edge_len = 0;
   extraction_cache->loose_geom.vert_len = 0;
 
-  MEM_SAFE_FREE(extraction_cache->mat_offsets.tri);
+  MEM_SAFE_FREE(extraction_cache->poly_sorted.tri_first_index);
+  MEM_SAFE_FREE(extraction_cache->poly_sorted.mat_tri_len);
+  extraction_cache->poly_sorted.visible_tri_len = 0;
 }
 
 static void mesh_batch_cache_clear(Mesh *me)

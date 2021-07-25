@@ -1072,7 +1072,7 @@ static BoidState *get_boid_state(BoidSettings *boids, ParticleData *pa)
   return state;
 }
 
-#if 0 /* TODO  */
+#if 0 /* TODO */
 static int boid_condition_is_true(BoidCondition *cond)
 {
  return 0;

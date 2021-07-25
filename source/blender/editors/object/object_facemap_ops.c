@@ -176,6 +176,21 @@ static bool face_map_supported_edit_mode_poll(bContext *C)
   return false;
 }
 
+static bool face_map_supported_remove_poll(bContext *C)
+{
+  if (!face_map_supported_poll(C)) {
+    return false;
+  }
+
+  Object *ob = ED_object_context(C);
+  bFaceMap *fmap = BLI_findlink(&ob->fmaps, ob->actfmap - 1);
+  if (fmap) {
+    return true;
+  }
+
+  return false;
+}
+
 static int face_map_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = ED_object_context(C);
@@ -225,7 +240,7 @@ void OBJECT_OT_face_map_remove(struct wmOperatorType *ot)
   ot->description = "Remove a face map from the active object";
 
   /* api callbacks */
-  ot->poll = face_map_supported_poll;
+  ot->poll = face_map_supported_remove_poll;
   ot->exec = face_map_remove_exec;
 
   /* flags */

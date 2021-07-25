@@ -42,9 +42,9 @@ typedef struct wmSurface {
   /** Free customdata, not the surface itself (done by wm_surface API) */
   void (*free_data)(struct wmSurface *);
 
-  /** Called  when surface is activated for drawing (made drawable). */
+  /** Called when surface is activated for drawing (made drawable). */
   void (*activate)(void);
-  /** Called  when surface is deactivated for drawing (current drawable cleared). */
+  /** Called when surface is deactivated for drawing (current drawable cleared). */
   void (*deactivate)(void);
 } wmSurface;
 

@@ -85,10 +85,10 @@ void WM_event_print(const wmEvent *event)
     event_ids_from_type_and_value(event->prevtype, event->prevval, &prev_type_id, &prev_val_id);
 
     printf(
-        "wmEvent  type:%d / %s, val:%d / %s,\n"
-        "         prev_type:%d / %s, prev_val:%d / %s,\n"
-        "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, is_repeat:%d,\n"
-        "         mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p\n",
+        "wmEvent type:%d / %s, val:%d / %s,\n"
+        "        prev_type:%d / %s, prev_val:%d / %s,\n"
+        "        shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, is_repeat:%d,\n"
+        "        mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p\n",
         event->type,
         type_id,
         event->val,

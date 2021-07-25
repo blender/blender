@@ -697,7 +697,9 @@ static void tree_element_sequence_dup_activate(Scene *scene, TreeElement *UNUSED
 {
   Editing *ed = SEQ_editing_get(scene, false);
 
-  /* XXX  select_single_seq(seq, 1); */
+#if 0
+  select_single_seq(seq, 1);
+#endif
   Sequence *p = ed->seqbasep->first;
   while (p) {
     if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->name[0] == '\0')) {
@@ -705,8 +707,11 @@ static void tree_element_sequence_dup_activate(Scene *scene, TreeElement *UNUSED
       continue;
     }
 
-    /* XXX: if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) select_single_seq(p,
-     * 0); */
+#if 0
+    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
+      select_single_seq(p, 0);
+    }
+#endif
     p = p->next;
   }
 }

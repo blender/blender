@@ -522,7 +522,7 @@ typedef struct ARegion {
 
   /** Use this string to draw info. */
   char *headerstr;
-  /** XXX 2.50, need spacedata equivalent?. */
+  /** XXX 2.50, need spacedata equivalent? */
   void *regiondata;
 
   ARegion_Runtime runtime;

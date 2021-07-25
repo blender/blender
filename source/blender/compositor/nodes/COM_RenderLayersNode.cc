@@ -143,7 +143,7 @@ void RenderLayersNode::missingSocketLink(NodeConverter &converter, NodeOutput *o
       break;
     }
     default: {
-      BLI_assert("!Unexpected data type");
+      BLI_assert_msg(0, "Unexpected data type");
       return;
     }
   }

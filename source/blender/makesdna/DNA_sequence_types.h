@@ -201,6 +201,7 @@ typedef struct Sequence {
   ListBase anims;
 
   float effect_fader;
+  /* DEPRECATED, only used for versioning. */
   float speed_fader;
 
   /* pointers for effects: */
@@ -335,11 +336,27 @@ typedef struct SolidColorVars {
 
 typedef struct SpeedControlVars {
   float *frameMap;
+  /* DEPRECATED, only used for versioning. */
   float globalSpeed;
+  /* DEPRECATED, only used for versioning. */
   int flags;
+
   int length;
   int lastValidFrame;
+  int speed_control_type;
+
+  float speed_fader;
+  float speed_fader_length;
+  float speed_fader_frame_number;
 } SpeedControlVars;
+
+/* SpeedControlVars.speed_control_type */
+enum {
+  SEQ_SPEED_STRETCH = 0,
+  SEQ_SPEED_MULTIPLY = 1,
+  SEQ_SPEED_LENGTH = 2,
+  SEQ_SPEED_FRAME_NUMBER = 3,
+};
 
 typedef struct GaussianBlurVars {
   float size_x;
@@ -485,9 +502,9 @@ typedef struct SequencerScopes {
 #define SEQ_EDIT_PROXY_DIR_STORAGE 1
 
 /* SpeedControlVars->flags */
-#define SEQ_SPEED_INTEGRATE (1 << 0)
+#define SEQ_SPEED_UNUSED_2 (1 << 0) /* cleared */
 #define SEQ_SPEED_UNUSED_1 (1 << 1) /* cleared */
-#define SEQ_SPEED_COMPRESS_IPO_Y (1 << 2)
+#define SEQ_SPEED_UNUSED_3 (1 << 2) /* cleared */
 #define SEQ_SPEED_USE_INTERPOLATION (1 << 3)
 
 /* ***************** SEQUENCE ****************** */

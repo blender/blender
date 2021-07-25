@@ -867,7 +867,7 @@ static void q_scale_float(
  *
  * only handles common cases when we either
  *
- * scale  both, x and y or
+ * scale both, x and y or
  * shrink both, x and y
  *
  * but that is pretty fast:

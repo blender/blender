@@ -423,7 +423,7 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
 
   /* get some info from CCGSubSurf */
   totface = ccgSubSurf_getNumFaces(uvss);
-  /* edgeSize = ccgSubSurf_getEdgeSize(uvss); */ /*UNUSED*/
+  // edgeSize = ccgSubSurf_getEdgeSize(uvss); /* UNUSED */
   gridSize = ccgSubSurf_getGridSize(uvss);
   gridFaces = gridSize - 1;
 

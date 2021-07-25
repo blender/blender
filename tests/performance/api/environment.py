@@ -27,9 +27,10 @@ class TestEnvironment:
         self.git_executable = 'git'
         self.cmake_executable = 'cmake'
         self.cmake_options = ['-DWITH_INTERNATIONAL=OFF', '-DWITH_BUILDINFO=OFF']
-        self.unset_blender_executable()
         self.log_file = None
         self.machine = None
+        self._init_default_blender_executable()
+        self.set_default_blender_executable()
 
     def get_machine(self, need_gpus: bool=True) -> None:
         if not self.machine or (need_gpus and not self.machine.has_gpus):
@@ -46,7 +47,7 @@ class TestEnvironment:
         print(f'Init {self.base_dir}')
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
-        if len(self.get_configs(names_only=True)) == 0:
+        if len(self.get_configs_names()) == 0:
             config_dir = self.base_dir / 'default'
             print(f'Creating default configuration in {config_dir}')
             TestConfig.write_default_config(self, config_dir)
@@ -77,7 +78,7 @@ class TestEnvironment:
 
         print('Done')
 
-    def checkout(self) -> None:
+    def checkout(self, git_hash) -> None:
         # Checkout Blender revision
         if not self.blender_dir.exists():
             sys.stderr.write('\n\nError: no build set up, run `./benchmark init --build` first\n')
@@ -87,32 +88,68 @@ class TestEnvironment:
         self.call([self.git_executable, 'reset', '--hard', 'HEAD'], self.blender_dir)
         self.call([self.git_executable, 'checkout', '--detach', git_hash], self.blender_dir)
 
-        self.build()
-
-    def build(self) -> None:
+    def build(self) -> bool:
         # Build Blender revision
         if not self.build_dir.exists():
             sys.stderr.write('\n\nError: no build set up, run `./benchmark init --build` first\n')
             sys.exit(1)
 
         jobs = str(multiprocessing.cpu_count())
-        self.call([self.cmake_executable, '.'] + self.cmake_options, self.build_dir)
-        self.call([self.cmake_executable, '--build', '.', '-j', jobs, '--target', 'install'], self.build_dir)
+        try:
+            self.call([self.cmake_executable, '.'] + self.cmake_options, self.build_dir)
+            self.call([self.cmake_executable, '--build', '.', '-j', jobs, '--target', 'install'], self.build_dir)
+        except:
+            return False
+
+        self._init_default_blender_executable()
+        return True
 
     def set_blender_executable(self, executable_path: pathlib.Path) -> None:
         # Run all Blender commands with this executable.
         self.blender_executable = executable_path
 
-    def unset_blender_executable(self) -> None:
+    def _blender_executable_name(self) -> pathlib.Path:
         if platform.system() == "Windows":
-            self.blender_executable = self.build_dir / 'bin' / 'blender.exe'
+            return pathlib.Path('blender.exe')
         elif platform.system() == "Darwin":
-            self.blender_executable = self.build_dir / 'bin' / 'Blender.app' / 'Contents' / 'MacOS' / 'Blender'
+            return pathlib.Path('Blender.app') / 'Contents' / 'MacOS' / 'Blender'
         else:
-            self.blender_executable = self.build_dir / 'bin' / 'blender'
+            return pathlib.Path('blender')
 
-        if not self.blender_executable.exists():
-            self.blender_executable = 'blender'
+    def _blender_executable_from_path(self, executable: pathlib.Path) -> pathlib.Path:
+        if executable.is_dir():
+            # Directory
+            executable = executable / self._blender_executable_name()
+        elif not executable.is_file() and executable.name == 'blender':
+            # Executable path without proper path on Windows or macOS.
+            executable = executable.parent() / self._blender_executable_name()
+
+        if executable.is_file():
+            return executable
+
+        return None
+
+    def _init_default_blender_executable(self) -> None:
+        # Find a default executable to run commands independent of testing a specific build.
+        # Try own built executable.
+        built_executable = self._blender_executable_from_path(self.build_dir / 'bin')
+        if built_executable:
+            self.default_blender_executable = built_executable
+            return
+
+        # Try find an executable in the configs.
+        for config_name in self.get_config_names():
+            for executable in TestConfig.read_blender_executables(self, config_name):
+                executable = self._blender_executable_from_path(executable)
+                if executable:
+                    self.default_blender_executable = executable
+                    return
+
+        # Fallback to a "blender" command in the hope it's available.
+        self.default_blender_executable = pathlib.Path("blender")
+
+    def set_default_blender_executable(self) -> None:
+        self.blender_executable = self.default_blender_executable
 
     def set_log_file(self, filepath: pathlib.Path, clear=True) -> None:
         # Log all commands and output to this file.
@@ -219,26 +256,36 @@ class TestEnvironment:
             filepaths.append(pathlib.Path(filename))
         return filepaths
 
+    def get_config_names(self) -> List:
+        names = []
+
+        if self.base_dir.exists():
+            for dirname in os.listdir(self.base_dir):
+                dirpath = self.base_dir / dirname / 'config.py'
+                if dirpath.exists():
+                    names.append(dirname)
+
+        return names
+
     def get_configs(self, name: str=None, names_only: bool=False) -> List:
         # Get list of configurations in the benchmarks directory.
         configs = []
 
-        if self.base_dir.exists():
-            for dirname in os.listdir(self.base_dir):
-                if not name or dirname == name:
-                    dirpath = self.base_dir / dirname / 'config.py'
-                    if dirpath.exists():
-                        if names_only:
-                            configs.append(dirname)
-                        else:
-                            configs.append(TestConfig(self, dirname))
+        for config_name in self.get_config_names():
+            if not name or config_name == name:
+                if names_only:
+                    configs.append(config_name)
+                else:
+                    configs.append(TestConfig(self, config_name))
 
         return configs
 
     def resolve_git_hash(self, revision):
         # Get git hash for a tag or branch.
-        return self.call([self.git_executable, 'rev-parse', revision], self.blender_git_dir)[0].strip()
+        lines = self.call([self.git_executable, 'rev-parse', revision], self.blender_git_dir)
+        return lines[0].strip() if len(lines) else revision
 
     def git_hash_date(self, git_hash):
         # Get commit data for a git hash.
-        return int(self.call([self.git_executable, 'log', '-n1', git_hash, '--format=%at'], self.blender_git_dir)[0].strip())
+        lines = self.call([self.git_executable, 'log', '-n1', git_hash, '--format=%at'], self.blender_git_dir)
+        return int(lines[0].strip()) if len(lines) else 0

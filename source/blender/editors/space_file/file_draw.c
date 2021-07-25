@@ -185,9 +185,8 @@ static void file_draw_icon(const SpaceFile *sfile,
         BLI_assert(asset_params != NULL);
 
         UI_but_drag_set_asset(but,
-                              file->name,
+                              &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
-                              file->blentype,
                               asset_params->import_type,
                               icon,
                               preview_image,
@@ -500,9 +499,8 @@ static void file_draw_preview(const SpaceFile *sfile,
         BLI_assert(asset_params != NULL);
 
         UI_but_drag_set_asset(but,
-                              file->name,
+                              &(AssetHandle){.file_data = file},
                               BLI_strdup(blend_path),
-                              file->blentype,
                               asset_params->import_type,
                               icon,
                               imb,

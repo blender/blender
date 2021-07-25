@@ -237,7 +237,7 @@ constexpr MeshExtract create_extractor_lines_loose_only()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lines_loose_only_init;
-  extractor.data_type = MR_DATA_NONE;
+  extractor.data_type = MR_DATA_LOOSE_GEOM;
   extractor.data_size = 0;
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_loose);

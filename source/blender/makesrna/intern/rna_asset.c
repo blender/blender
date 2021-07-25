@@ -129,7 +129,17 @@ static void rna_AssetMetaData_active_tag_range(
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
 {
   AssetHandle *asset_handle = ptr->data;
-  return rna_pointer_inherit_refine(ptr, &RNA_FileSelectEntry, asset_handle->file_data);
+  /* Have to cast away const, but the file entry API doesn't allow modifications anyway. */
+  return rna_pointer_inherit_refine(
+      ptr, &RNA_FileSelectEntry, (FileDirEntry *)asset_handle->file_data);
+}
+
+static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *UNUSED(reports))
+{
+  AssetHandle *asset_handle = ptr->data;
+  asset_handle->file_data = value.data;
 }
 
 static void rna_AssetHandle_get_full_library_path(
@@ -146,26 +156,8 @@ static void rna_AssetHandle_get_full_library_path(
 static PointerRNA rna_AssetHandle_local_id_get(PointerRNA *ptr)
 {
   const AssetHandle *asset = ptr->data;
-  ID *id = ED_assetlist_asset_local_id_get(asset);
+  ID *id = ED_asset_handle_get_local_id(asset);
   return rna_pointer_inherit_refine(ptr, &RNA_ID, id);
-}
-
-static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
-                                          PointerRNA value,
-                                          struct ReportList *UNUSED(reports))
-{
-  AssetHandle *asset_handle = ptr->data;
-  asset_handle->file_data = value.data;
-}
-
-int rna_asset_library_reference_get(const AssetLibraryReference *library)
-{
-  return ED_asset_library_reference_to_enum_value(library);
-}
-
-void rna_asset_library_reference_set(AssetLibraryReference *library, int value)
-{
-  *library = ED_asset_library_reference_from_enum_value(value);
 }
 
 const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSED(C),
@@ -173,56 +165,13 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSED(C),
                                                           PropertyRNA *UNUSED(prop),
                                                           bool *r_free)
 {
-  const EnumPropertyItem predefined_items[] = {
-      /* For the future. */
-      // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
-      {ASSET_LIBRARY_LOCAL,
-       "LOCAL",
-       ICON_BLENDER,
-       "Current File",
-       "Show the assets currently available in this Blender session"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  EnumPropertyItem *item = NULL;
-  int totitem = 0;
-
-  /* Add separator if needed. */
-  if (!BLI_listbase_is_empty(&U.asset_libraries)) {
-    const EnumPropertyItem sepr = {0, "", 0, "Custom", NULL};
-    RNA_enum_item_add(&item, &totitem, &sepr);
+  const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf();
+  if (!items) {
+    *r_free = false;
   }
 
-  int i = 0;
-  for (bUserAssetLibrary *user_library = U.asset_libraries.first; user_library;
-       user_library = user_library->next, i++) {
-    /* Note that the path itself isn't checked for validity here. If an invalid library path is
-     * used, the Asset Browser can give a nice hint on what's wrong. */
-    const bool is_valid = (user_library->name[0] && user_library->path[0]);
-    if (!is_valid) {
-      continue;
-    }
-
-    /* Use library path as description, it's a nice hint for users. */
-    EnumPropertyItem tmp = {ASSET_LIBRARY_CUSTOM + i,
-                            user_library->name,
-                            ICON_NONE,
-                            user_library->name,
-                            user_library->path};
-    RNA_enum_item_add(&item, &totitem, &tmp);
-  }
-
-  if (totitem) {
-    const EnumPropertyItem sepr = {0, "", 0, "Built-in", NULL};
-    RNA_enum_item_add(&item, &totitem, &sepr);
-  }
-
-  /* Add predefined items. */
-  RNA_enum_items_add(&item, &totitem, predefined_items);
-
-  RNA_enum_item_end(&item, &totitem);
   *r_free = true;
-  return item;
+  return items;
 }
 
 #else
@@ -343,13 +292,16 @@ static void rna_def_asset_handle(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "AssetHandle", "PropertyGroup");
   RNA_def_struct_ui_text(srna, "Asset Handle", "Reference to some asset");
 
-  /* TODO why is this editable? There probably shouldn't be a setter. */
+  /* TODO It is super ugly to expose the file data here. We have to do it though so the asset view
+   * template can populate a RNA collection with asset-handles, which are just file entries
+   * currently. A proper design is being worked on. */
   prop = RNA_def_property(srna, "file_data", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "FileSelectEntry");
   RNA_def_property_pointer_funcs(
       prop, "rna_AssetHandle_file_data_get", "rna_AssetHandle_file_data_set", NULL, NULL);
-  RNA_def_property_ui_text(prop, "File Entry", "File data used to refer to the asset");
+  RNA_def_property_ui_text(
+      prop, "File Entry", "TEMPORARY, DO NOT USE - File data used to refer to the asset");
 
   prop = RNA_def_property(srna, "local_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ID");
@@ -377,7 +329,7 @@ PropertyRNA *rna_def_asset_library_reference_common(struct StructRNA *srna,
                                                     const char *get,
                                                     const char *set)
 {
-  PropertyRNA *prop = RNA_def_property(srna, "active_asset_library", PROP_ENUM, PROP_NONE);
+  PropertyRNA *prop = RNA_def_property(srna, "asset_library", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, DummyRNA_NULL_items);
   RNA_def_property_enum_funcs(prop, get, set, "rna_asset_library_reference_itemf");
 

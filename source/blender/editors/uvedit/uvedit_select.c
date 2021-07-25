@@ -1126,7 +1126,7 @@ static void uv_select_edgeloop_single_side_tag(const Scene *scene,
     while (l_step != NULL) {
 
       if (!uvedit_face_visible_test(scene, l_step->f) ||
-          /* Check the boundary is still a  boundary. */
+          /* Check the boundary is still a boundary. */
           (uvedit_loop_find_other_radial_loop_with_visible_face(
                scene, l_step, cd_loop_uv_offset) != NULL)) {
         break;

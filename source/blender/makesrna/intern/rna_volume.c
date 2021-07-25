@@ -495,7 +495,7 @@ static void rna_def_volume_render(BlenderRNA *brna)
   prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, space_items);
   RNA_def_property_ui_text(
-      prop, "Space", "Specify volume density and step size  in object or world space");
+      prop, "Space", "Specify volume density and step size in object or world space");
   RNA_def_property_update(prop, 0, "rna_Volume_update_display");
 
   prop = RNA_def_property(srna, "step_size", PROP_FLOAT, PROP_DISTANCE);

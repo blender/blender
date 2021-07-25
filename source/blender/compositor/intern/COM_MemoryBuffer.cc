@@ -136,9 +136,9 @@ BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs)
 
 BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs, const rcti &area)
 {
-  BuffersIteratorBuilder<float> builder(m_buffer, getWidth(), area, elem_stride);
+  BuffersIteratorBuilder<float> builder(m_buffer, m_rect, area, elem_stride);
   for (MemoryBuffer *input : inputs) {
-    builder.add_input(input->getBuffer(), input->getWidth(), input->elem_stride);
+    builder.add_input(input->getBuffer(), input->get_rect(), input->elem_stride);
   }
   return builder.build();
 }

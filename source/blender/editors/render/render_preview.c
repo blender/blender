@@ -234,7 +234,7 @@ static Scene *preview_get_scene(Main *pr_main)
   return pr_main->scenes.first;
 }
 
-static const char *preview_collection_name(const char pr_type)
+static const char *preview_collection_name(const ePreviewType pr_type)
 {
   switch (pr_type) {
     case MA_FLAT:
@@ -265,10 +265,7 @@ static const char *preview_collection_name(const char pr_type)
   }
 }
 
-static void set_preview_visibility(Scene *scene,
-                                   ViewLayer *view_layer,
-                                   char pr_type,
-                                   int pr_method)
+static void switch_preview_collection_visibilty(ViewLayer *view_layer, const ePreviewType pr_type)
 {
   /* Set appropriate layer as visible. */
   LayerCollection *lc = view_layer->layer_collections.first;
@@ -282,7 +279,11 @@ static void set_preview_visibility(Scene *scene,
       lc->collection->flag |= COLLECTION_RESTRICT_RENDER;
     }
   }
+}
 
+static void switch_preview_floor_visibility(ViewLayer *view_layer,
+                                            const ePreviewRenderMethod pr_method)
+{
   /* Hide floor for icon renders. */
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (STREQ(base->object->id.name + 2, "Floor")) {
@@ -294,7 +295,15 @@ static void set_preview_visibility(Scene *scene,
       }
     }
   }
+}
 
+static void set_preview_visibility(Scene *scene,
+                                   ViewLayer *view_layer,
+                                   const ePreviewType pr_type,
+                                   const ePreviewRenderMethod pr_method)
+{
+  switch_preview_collection_visibilty(view_layer, pr_type);
+  switch_preview_floor_visibility(view_layer, pr_method);
   BKE_layer_collection_sync(scene, view_layer);
 }
 
@@ -348,6 +357,38 @@ static ID *duplicate_ids(ID *id, const bool allow_failure)
   }
 }
 
+static World *preview_get_world(Main *pr_main)
+{
+  World *result = NULL;
+  const char *world_name = "World";
+  result = BLI_findstring(&pr_main->worlds, world_name, offsetof(ID, name) + 2);
+
+  /* No world found return first world. */
+  if (result == NULL) {
+    result = pr_main->worlds.first;
+  }
+
+  BLI_assert_msg(result, "Preview file has no world.");
+  return result;
+}
+
+static void preview_sync_exposure(World *dst, const World *src)
+{
+  BLI_assert(dst);
+  BLI_assert(src);
+  dst->exp = src->exp;
+  dst->range = src->range;
+}
+
+static World *preview_prepare_world(Main *pr_main, const World *world)
+{
+  World *result = preview_get_world(pr_main);
+  if (world) {
+    preview_sync_exposure(result, world);
+  }
+  return result;
+}
+
 /* call this with a pointer to initialize preview scene */
 /* call this with NULL to restore assigned ID pointers in preview scene */
 static Scene *preview_prepare_scene(
@@ -368,13 +409,7 @@ static Scene *preview_prepare_scene(
 
     /* this flag tells render to not execute depsgraph or ipos etc */
     sce->r.scemode |= R_BUTS_PREVIEW;
-    /* set world always back, is used now */
-    sce->world = pr_main->worlds.first;
-    /* now: exposure copy */
-    if (scene->world) {
-      sce->world->exp = scene->world->exp;
-      sce->world->range = scene->world->range;
-    }
+    BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
 
     sce->r.color_mgt_flag = scene->r.color_mgt_flag;
     BKE_color_managed_display_settings_copy(&sce->display_settings, &scene->display_settings);
@@ -400,12 +435,12 @@ static Scene *preview_prepare_scene(
 
     sce->r.cfra = scene->r.cfra;
 
+    /* Setup the world. */
+    sce->world = preview_prepare_world(pr_main, scene->world);
+
     if (id_type == ID_TE) {
       /* Texture is not actually rendered with engine, just set dummy value. */
       BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(sce->r.engine));
-    }
-    else {
-      BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
     }
 
     if (id_type == ID_MA) {
@@ -432,14 +467,12 @@ static Scene *preview_prepare_scene(
           sce->world->horb = 0.05f;
         }
 
-        if (sp->pr_method == PR_ICON_RENDER && sp->pr_main == G_pr_main_grease_pencil) {
-          /* For grease pencil, always use sphere for icon renders. */
-          set_preview_visibility(sce, view_layer, MA_SPHERE_A, sp->pr_method);
-        }
-        else {
-          /* Use specified preview shape for both preview panel and icon previews. */
-          set_preview_visibility(sce, view_layer, mat->pr_type, sp->pr_method);
-        }
+        /* For grease pencil, always use sphere for icon renders. */
+        const ePreviewType preview_type = (sp->pr_method == PR_ICON_RENDER &&
+                                           sp->pr_main == G_pr_main_grease_pencil) ?
+                                              MA_SPHERE_A :
+                                              mat->pr_type;
+        set_preview_visibility(sce, view_layer, preview_type, sp->pr_method);
 
         if (sp->pr_method != PR_ICON_RENDER) {
           if (mat->nodetree && sp->pr_method == PR_NODE_RENDER) {
@@ -691,8 +724,8 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 struct ObjectPreviewData {
   /* The main for the preview, not of the current file. */
   Main *pr_main;
-  /* Copy of the object to create the preview for. The copy is for thread safety (and to insert it
-   * into an own main). */
+  /* Copy of the object to create the preview for. The copy is for thread safety (and to insert
+   * it into an own main). */
   Object *object;
   int sizex;
   int sizey;
@@ -1551,8 +1584,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
 
     /* check_engine_supports_preview() checks whether the engine supports "preview mode" (think:
      * Material Preview). This check is only relevant when the render function called below is
-     * going to use such a mode. Object and Action render functions use Solid mode, though, so they
-     * can skip this test. */
+     * going to use such a mode. Object and Action render functions use Solid mode, though, so
+     * they can skip this test. */
     /* TODO: Decouple the ID-type-specific render functions from this function, so that it's not
      * necessary to know here what happens inside lower-level functions. */
     const bool use_solid_render_mode = (ip->id != NULL) && ELEM(GS(ip->id->name), ID_OB, ID_AC);

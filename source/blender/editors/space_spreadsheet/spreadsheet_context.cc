@@ -489,7 +489,7 @@ bool ED_spreadsheet_context_path_is_active(const bContext *C, SpaceSpreadsheet *
           break;
         }
         SpreadsheetContextNode *node_context = (SpreadsheetContextNode *)node_context_path[i];
-        if (!STREQ(node_context->node_name, tree_path[i]->node_name)) {
+        if (!STREQ(node_context->node_name, tree_path[i + 1]->node_name)) {
           break;
         }
         valid_count++;

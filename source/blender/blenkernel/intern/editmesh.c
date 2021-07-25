@@ -306,7 +306,7 @@ const float (*BKE_editmesh_vert_coords_when_deformed(struct Depsgraph *depsgraph
   }
   else if ((em->mesh_eval_final != NULL) &&
            (em->mesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
-    /* If this is an edit-mesh type, leave NULL as we can use the vertex coords. . */
+    /* If this is an edit-mesh type, leave NULL as we can use the vertex coords. */
   }
   else {
     /* Constructive modifiers have been used, we need to allocate coordinates. */

@@ -918,7 +918,7 @@ void BKE_fcurve_active_keyframe_set(FCurve *fcu, const BezTriple *active_bezt)
   }
 
   /* The active keyframe should always be selected. */
-  BLI_assert(BEZT_ISSEL_ANY(active_bezt) || !"active keyframe must be selected");
+  BLI_assert_msg(BEZT_ISSEL_ANY(active_bezt), "active keyframe must be selected");
 
   fcu->active_keyframe_index = (int)offset;
 }

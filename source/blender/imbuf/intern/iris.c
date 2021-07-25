@@ -39,7 +39,7 @@
 #define IMAGIC 0732
 
 typedef struct {
-  ushort imagic; /* stuff saved on disk . . */
+  ushort imagic; /* Stuff saved on disk. */
   ushort type;
   ushort dim;
   ushort xsize;

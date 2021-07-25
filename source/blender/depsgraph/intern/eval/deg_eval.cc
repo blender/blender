@@ -103,7 +103,7 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
   ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(state->graph);
 
   /* Sanity checks. */
-  BLI_assert(!operation_node->is_noop() && "NOOP nodes should not actually be scheduled");
+  BLI_assert_msg(!operation_node->is_noop(), "NOOP nodes should not actually be scheduled");
   /* Perform operation. */
   if (state->do_stats) {
     const double start_time = PIL_check_seconds_timer();

@@ -348,7 +348,7 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 
 /* For the given scene get view layer which corresponds to an original for the
  * scene's evaluated one. This depends on how the scene is pulled into the
- * dependency  graph. */
+ * dependency graph. */
 ViewLayer *get_original_view_layer(const Depsgraph *depsgraph, const IDNode *id_node)
 {
   if (id_node->linked_state == DEG_ID_LINKED_DIRECTLY) {

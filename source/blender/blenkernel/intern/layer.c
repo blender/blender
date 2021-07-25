@@ -1237,7 +1237,7 @@ void BKE_layer_collection_isolate_global(Scene *scene,
   bool hide_it = extend && (lc->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER);
 
   if (!extend) {
-    /* Hide all collections . */
+    /* Hide all collections. */
     LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
       layer_collection_flag_set_recursive(lc_iter, LAYER_COLLECTION_HIDE);
     }

@@ -66,6 +66,8 @@ def print_row(config: api.TestConfig, entries: List, end='\n') -> None:
 
             if status == 'outdated':
                 result += " (outdated)"
+        elif status == 'failed':
+            result = "failed: " + entry.error_msg
         else:
             result = status
 
@@ -105,20 +107,37 @@ def run_entry(env: api.TestEnvironment, config: api.TestConfig, row: List, entry
         logname += '_' + device_id
     env.set_log_file(config.logs_dir / (logname + '.log'), clear=True)
 
+    # Clear output
+    entry.output = None
+    entry.error_msg = ''
+
     # Build revision, or just set path to existing executable.
     entry.status = 'building'
     print_row(config, row, end='\r')
+    executable_ok = True
     if len(entry.executable):
         env.set_blender_executable(pathlib.Path(entry.executable))
     else:
         env.checkout(git_hash)
-        env.build(git_hash)
+        executable_ok = env.build()
+        if not executable_ok:
+            entry.status = 'failed'
+            entry.error_msg = 'Failed to build'
 
     # Run test and update output and status.
     entry.status = 'running'
     print_row(config, row, end='\r')
-    entry.output = test.run(env, device_id)
-    entry.status = 'done' if entry.output else 'failed'
+
+    if executable_ok:
+        try:
+            entry.output = test.run(env, device_id)
+            if not entry.output:
+                raise Exception("Test produced no output")
+            entry.status = 'done'
+        except Exception as e:
+            entry.status = 'failed'
+            entry.error_msg = str(e)
+
     print_row(config, row, end='\r')
 
     # Update device name in case the device changed since the entry was created.
@@ -126,7 +145,7 @@ def run_entry(env: api.TestEnvironment, config: api.TestConfig, row: List, entry
 
     # Restore default logging and Blender executable.
     env.unset_log_file()
-    env.unset_blender_executable()
+    env.set_default_blender_executable()
 
     return True
 
@@ -155,7 +174,7 @@ def cmd_list(env: api.TestEnvironment, argv: List) -> None:
     print('')
 
     print('CONFIGS')
-    configs = env.get_configs(names_only=True)
+    configs = env.get_config_names()
     for config_name in configs:
         print(config_name)
 
