@@ -621,7 +621,7 @@ static void vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 }
 
-static void baking_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void bake_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA ob_ptr;
@@ -677,7 +677,7 @@ static void panelRegister(ARegionType *region_type)
   gpencil_modifier_subpanel_register(
       region_type, "vgroup", "Vertex Weight Transfer", NULL, vgroup_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
-      region_type, "baking", "Baking", NULL, baking_panel_draw, panel_type);
+      region_type, "bake", "Bake", NULL, bake_panel_draw, panel_type);
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Lineart = {
