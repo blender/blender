@@ -320,13 +320,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetRedAlert(row, !material_valid);
-  uiItemPointerR(row,
-                 ptr,
-                 "target_material",
-                 &obj_data_ptr,
-                 "materials",
-                 NULL,
-                 material_valid ? ICON_SHADING_TEXTURE : ICON_ERROR);
+  uiItemPointerR(
+      row, ptr, "target_material", &obj_data_ptr, "materials", NULL, ICON_SHADING_TEXTURE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
