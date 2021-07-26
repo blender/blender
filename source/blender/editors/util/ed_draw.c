@@ -63,10 +63,10 @@
  *
  * The generic slider is supposed to be called during modal operations. It calculates a factor
  * value based on mouse position and draws a visual representation. In order to use it, you need to
- * store a reference to a tSlider in your operator which you get by calling "ED_slider_create".
- * Then you need to update it during modal operations by calling "ED_slider_modal", which will
- * update tSlider->factor for you to use. To remove drawing and free the memory, call
- * "ED_slider_destroy".
+ * store a reference to a #tSlider in your operator which you get by calling #ED_slider_create.
+ * Then you need to update it during modal operations by calling #ED_slider_modal", which will
+ * update #tSlider.factor for you to use. To remove drawing and free the memory, call
+ * #ED_slider_destroy.
  * \{ */
 
 #define SLIDE_PIXEL_DISTANCE (300.0f * U.dpi_fac)
@@ -75,31 +75,32 @@
 typedef struct tSlider {
   struct Scene *scene;
   struct ScrArea *area;
-  /* Header of the region used for drawing the slider. */
+
+  /** Header of the region used for drawing the slider. */
   struct ARegion *region_header;
 
-  /* Draw callback handler. */
+  /** Draw callback handler. */
   void *draw_handle;
 
-  /* Accumulative, unclamped and unrounded factor. */
+  /** Accumulative factor (not clamped or rounded). */
   float raw_factor;
 
   /** 0-1 value for determining the influence of whatever is relevant. */
   float factor;
 
-  /* Last mouse cursor position used for mouse movement delta calculation. */
+  /** Last mouse cursor position used for mouse movement delta calculation. */
   float last_cursor[2];
 
-  /* Enable range beyond 0-100%. */
+  /** Enable range beyond 0-100%. */
   bool allow_overshoot;
 
-  /* Allow overshoot or clamp between 0% and 100%. */
+  /** Allow overshoot or clamp between 0% and 100%. */
   bool overshoot;
 
-  /* Move factor in 10% steps. */
+  /** Move factor in 10% steps. */
   bool increments;
 
-  /* Reduces factor delta from mouse movement. */
+  /** Reduces factor delta from mouse movement. */
   bool precision;
 } tSlider;
 
@@ -243,7 +244,9 @@ static void draw_backdrop(const int fontid,
   UI_draw_roundbox_aa(&backdrop_rect, true, 4.0f, color_bg);
 }
 
-/* Draw an on screen Slider for a Pose Slide Operator. */
+/**
+ * Draw an on screen Slider for a Pose Slide Operator.
+ */
 static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void *arg)
 {
   tSlider *slider = arg;
@@ -395,14 +398,18 @@ tSlider *ED_slider_create(struct bContext *C)
   return slider;
 }
 
-/* For modal operations so the percentage doesn't pop on the first mouse movement. */
+/**
+ * For modal operations so the percentage doesn't pop on the first mouse movement.
+ */
 void ED_slider_init(struct tSlider *slider, const wmEvent *event)
 {
   slider->last_cursor[0] = event->x;
   slider->last_cursor[1] = event->y;
 }
 
-/* Calculate slider factor based on mouse position. */
+/**
+ * Calculate slider factor based on mouse position.
+ */
 bool ED_slider_modal(tSlider *slider, const wmEvent *event)
 {
   bool event_handled = true;
@@ -436,7 +443,9 @@ bool ED_slider_modal(tSlider *slider, const wmEvent *event)
   return event_handled;
 }
 
-/* Return string based on the current state of the slider. */
+/**
+ * Return string based on the current state of the slider.
+ */
 void ED_slider_status_string_get(const struct tSlider *slider,
                                  char *status_string,
                                  const size_t size_of_status_string)
@@ -769,7 +778,9 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
   return 0;
 }
 
-/* Should be kept in sync with BKE_image_stamp_buf */
+/**
+ * \note Keep in sync with #BKE_image_stamp_buf.
+ */
 void ED_region_image_metadata_draw(
     int x, int y, ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy)
 {
