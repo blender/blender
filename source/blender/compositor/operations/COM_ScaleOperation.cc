@@ -54,33 +54,24 @@ ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
   this->m_inputYOperation = nullptr;
 }
 
-static std::optional<float> get_constant_scale(NodeOperation *op)
+float ScaleOperation::get_constant_scale(const int input_op_idx, const float factor)
 {
-  if (op->get_flags().is_constant_operation) {
-    return ((ConstantOperation *)op)->get_constant_elem()[0];
+  const bool is_constant = getInputOperation(input_op_idx)->get_flags().is_constant_operation;
+  if (is_constant) {
+    return ((ConstantOperation *)getInputOperation(input_op_idx))->get_constant_elem()[0] * factor;
   }
 
-  return std::optional<float>();
+  return 1.0f;
 }
 
 float ScaleOperation::get_constant_scale_x()
 {
-  std::optional<float> scale_x = get_constant_scale(getInputOperation(1));
-  if (scale_x.has_value()) {
-    return scale_x.value() * get_relative_scale_x_factor();
-  }
-
-  return 1.0f;
+  return get_constant_scale(1, get_relative_scale_x_factor());
 }
 
 float ScaleOperation::get_constant_scale_y()
 {
-  std::optional<float> scale_y = get_constant_scale(getInputOperation(2));
-  if (scale_y.has_value()) {
-    return scale_y.value() * get_relative_scale_y_factor();
-  }
-
-  return 1.0f;
+  return get_constant_scale(2, get_relative_scale_y_factor());
 }
 
 BLI_INLINE float scale_coord(const int coord, const float center, const float relative_scale)

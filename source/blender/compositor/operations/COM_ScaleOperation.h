@@ -71,6 +71,7 @@ class ScaleOperation : public BaseScaleOperation {
   virtual float get_relative_scale_y_factor() = 0;
 
  private:
+  float get_constant_scale(int input_op_idx, float factor);
   float get_constant_scale_x();
   float get_constant_scale_y();
   void scale_area(rcti &rect, float scale_x, float scale_y);
