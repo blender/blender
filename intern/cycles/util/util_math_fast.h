@@ -103,7 +103,7 @@ ccl_device float fast_sinf(float x)
    * 1.19209e-07 max error
    */
   int q = fast_rint(x * M_1_PI_F);
-  float qf = q;
+  float qf = (float)q;
   x = madd(qf, -0.78515625f * 4, x);
   x = madd(qf, -0.00024187564849853515625f * 4, x);
   x = madd(qf, -3.7747668102383613586e-08f * 4, x);
@@ -132,7 +132,7 @@ ccl_device float fast_cosf(float x)
 {
   /* Same argument reduction as fast_sinf(). */
   int q = fast_rint(x * M_1_PI_F);
-  float qf = q;
+  float qf = (float)q;
   x = madd(qf, -0.78515625f * 4, x);
   x = madd(qf, -0.00024187564849853515625f * 4, x);
   x = madd(qf, -3.7747668102383613586e-08f * 4, x);
@@ -160,7 +160,7 @@ ccl_device void fast_sincosf(float x, float *sine, float *cosine)
 {
   /* Same argument reduction as fast_sin. */
   int q = fast_rint(x * M_1_PI_F);
-  float qf = q;
+  float qf = (float)q;
   x = madd(qf, -0.78515625f * 4, x);
   x = madd(qf, -0.00024187564849853515625f * 4, x);
   x = madd(qf, -3.7747668102383613586e-08f * 4, x);
@@ -207,7 +207,7 @@ ccl_device float fast_tanf(float x)
    * we sometimes need to take the reciprocal of the polynomial
    */
   int q = fast_rint(x * 2.0f * M_1_PI_F);
-  float qf = q;
+  float qf = (float)q;
   x = madd(qf, -0.78515625f * 2, x);
   x = madd(qf, -0.00024187564849853515625f * 2, x);
   x = madd(qf, -3.7747668102383613586e-08f * 2, x);
@@ -407,7 +407,7 @@ ccl_device float fast_logb(float x)
   x = fabsf(x);
   x = clamp(x, FLT_MIN, FLT_MAX);
   unsigned bits = __float_as_uint(x);
-  return (int)(bits >> 23) - 127;
+  return (float)((int)(bits >> 23) - 127);
 }
 
 ccl_device float fast_exp2f(float x)
