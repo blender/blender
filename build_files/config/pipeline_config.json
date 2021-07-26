@@ -41,7 +41,7 @@
             },
             "cuda11":
             {
-                "version": "11.3"
+                "version": "11.4"
             }
         },
         "cmake":

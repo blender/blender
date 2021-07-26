@@ -461,18 +461,19 @@ string CUDADevice::compile_kernel(const DeviceRequestedFeatures &requested_featu
 
   const int nvcc_cuda_version = cuewCompilerVersion();
   VLOG(1) << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
-  if (nvcc_cuda_version < 80) {
+  if (nvcc_cuda_version < 101) {
     printf(
         "Unsupported CUDA version %d.%d detected, "
-        "you need CUDA 8.0 or newer.\n",
+        "you need CUDA 10.1 or newer.\n",
         nvcc_cuda_version / 10,
         nvcc_cuda_version % 10);
     return string();
   }
-  else if (!(nvcc_cuda_version == 101 || nvcc_cuda_version == 102)) {
+  else if (!(nvcc_cuda_version == 101 || nvcc_cuda_version == 102 || nvcc_cuda_version == 111 ||
+             nvcc_cuda_version == 112 || nvcc_cuda_version == 113 || nvcc_cuda_version == 114)) {
     printf(
         "CUDA version %d.%d detected, build may succeed but only "
-        "CUDA 10.1 and 10.2 are officially supported.\n",
+        "CUDA 10.1 to 11.4 are officially supported.\n",
         nvcc_cuda_version / 10,
         nvcc_cuda_version % 10);
   }
