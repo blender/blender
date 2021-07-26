@@ -435,9 +435,7 @@ static bool anything_showing_through(PointerRNA *ptr)
   if (use_multiple_levels) {
     return (MAX2(level_start, level_end) > 0);
   }
-  else {
-    return (level_start > 0);
-  }
+  return (level_start > 0);
 }
 
 static void material_mask_panel_draw_header(const bContext *UNUSED(C), Panel *panel)

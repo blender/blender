@@ -38,14 +38,14 @@
 using namespace blender::bke;
 
 /* simple struct for storing backup info for one pose channel */
-typedef struct PoseChannelBackup {
+struct PoseChannelBackup {
   struct PoseChannelBackup *next, *prev;
 
   struct bPoseChannel *pchan; /* Pose channel this backup is for. */
 
   struct bPoseChannel olddata; /* Backup of pose channel. */
   struct IDProperty *oldprops; /* Backup copy (needs freeing) of pose channel's ID properties. */
-} PoseChannelBackup;
+};
 
 struct PoseBackup {
   bool is_bone_selection_relevant;
@@ -61,7 +61,7 @@ static PoseBackup *pose_backup_create(const Object *ob,
 
   BoneNameSet backed_up_bone_names;
   /* Make a backup of the given pose channel. */
-  auto store_animated_pchans = [&](FCurve *, const char *bone_name) {
+  auto store_animated_pchans = [&](FCurve * /* unused */, const char *bone_name) {
     if (backed_up_bone_names.contains(bone_name)) {
       /* Only backup each bone once. */
       return;

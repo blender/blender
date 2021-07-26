@@ -59,9 +59,10 @@ static void asset_view_item_but_drag_set(uiBut *but,
   }
 
   char blend_path[FILE_MAX_LIBEXTRA];
-  /* Context can be NULL here, it's only needed for a File Browser specific hack that should go
+  /* Context can be null here, it's only needed for a File Browser specific hack that should go
    * away before too long. */
-  ED_asset_handle_get_full_library_path(NULL, &list_data->asset_library, asset_handle, blend_path);
+  ED_asset_handle_get_full_library_path(
+      nullptr, &list_data->asset_library, asset_handle, blend_path);
 
   if (blend_path[0]) {
     ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
