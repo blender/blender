@@ -1602,7 +1602,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *region)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Offscreen Drawing
+/** \name Off-screen Drawing
  * \{ */
 
 static void view3d_stereo3d_setup_offscreen(Depsgraph *depsgraph,

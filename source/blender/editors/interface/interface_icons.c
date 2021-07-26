@@ -286,18 +286,15 @@ static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float
 static void vicon_keytype_draw_wrapper(
     int x, int y, int w, int h, float alpha, short key_type, short handle_type)
 {
-  /* init dummy theme state for Action Editor - where these colors are defined
-   * (since we're doing this offscreen, free from any particular space_id)
-   */
+  /* Initialize dummy theme state for Action Editor - where these colors are defined
+   * (since we're doing this off-screen, free from any particular space_id). */
   struct bThemeState theme_state;
 
   UI_Theme_Store(&theme_state);
   UI_SetTheme(SPACE_ACTION, RGN_TYPE_WINDOW);
 
-  /* the "x" and "y" given are the bottom-left coordinates of the icon,
-   * while the draw_keyframe_shape() function needs the midpoint for
-   * the keyframe
-   */
+  /* The "x" and "y" given are the bottom-left coordinates of the icon,
+   * while the #draw_keyframe_shape() function needs the midpoint for the keyframe. */
   const float xco = x + w / 2 + 0.5f;
   const float yco = y + h / 2 + 0.5f;
 
@@ -1347,8 +1344,8 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
     case ICON_TYPE_PREVIEW: {
       ID *id = (icon->id_type != 0) ? icon->obj : NULL;
       PreviewImage *prv = id ? BKE_previewimg_id_ensure(id) : icon->obj;
-      /* Using jobs for screen previews crashes due to offscreen rendering.
-       * XXX would be nicer if PreviewImage could store if it supports jobs */
+      /* Using jobs for screen previews crashes due to off-screen rendering.
+       * XXX: would be nicer if #PreviewImage could store if it supports jobs. */
       const bool use_jobs = !id || (GS(id->name) != ID_SCR);
 
       if (prv) {
@@ -2144,7 +2141,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 static int ui_id_screen_get_icon(const bContext *C, ID *id)
 {
   BKE_icon_id_ensure(id);
-  /* Don't use jobs here, offscreen rendering doesn't like this and crashes. */
+  /* Don't use jobs here, off-screen rendering doesn't like this and crashes. */
   ui_id_icon_render(C, id, false);
 
   return id->icon_id;

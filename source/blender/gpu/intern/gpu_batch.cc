@@ -268,7 +268,7 @@ void GPU_batch_draw_advanced(
   }
   if (i_count == 0) {
     i_count = (batch->inst[0]) ? batch->inst_(0)->vertex_len : 1;
-    /* Meh. This is to be able to use different numbers of verts in instance vbos. */
+    /* Meh. This is to be able to use different numbers of verts in instance VBO's. */
     if (batch->inst[1] != nullptr) {
       i_count = min_ii(i_count, batch->inst_(1)->vertex_len);
     }

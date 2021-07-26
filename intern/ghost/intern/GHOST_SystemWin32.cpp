@@ -259,7 +259,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
 }
 
 /**
- * Create a new offscreen context.
+ * Create a new off-screen context.
  * Never explicitly delete the window, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
@@ -363,7 +363,7 @@ GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
 }
 
 /**
- * Create a new offscreen DirectX 11 context.
+ * Create a new off-screen DirectX 11 context.
  * Never explicitly delete the window, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */

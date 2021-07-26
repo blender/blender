@@ -384,7 +384,7 @@ typedef struct BevelParams {
 
 // #pragma GCC diagnostic ignored "-Wpadded"
 
-/* Only for debugging, this file shouldn't be in blender repo. */
+/* Only for debugging, this file shouldn't be in blender repository. */
 // #include "bevdebug.c"
 
 /* Use the unused _BM_ELEM_TAG_ALT flag to flag the 'long' loops (parallel to beveled edge)
@@ -1495,8 +1495,8 @@ static void offset_meet(BevelParams *bp,
   }
 }
 
-/* This was changed from 0.25f to fix bug T86768. Original bug T44961 remainx fixed with this
- * value. */
+/* This was changed from 0.25f to fix bug T86768.
+ * Original bug T44961 remains fixed with this value. */
 #define BEVEL_GOOD_ANGLE 0.0001f
 
 /**

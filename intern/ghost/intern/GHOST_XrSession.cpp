@@ -148,7 +148,7 @@ static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &
 
   if (XR_FAILED(result)) {
     /* One of the rare cases where we don't want to immediately throw an exception on failure,
-     * since runtimes are not required to support the stage reference space. Although we need the
+     * since run-times are not required to support the stage reference space. Although we need the
      * stage reference space for absolute tracking, if the runtime doesn't support it then just
      * fallback to the local space. */
     if (result == XR_ERROR_REFERENCE_SPACE_UNSUPPORTED) {

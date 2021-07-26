@@ -270,7 +270,7 @@ typedef struct ProjPaintState {
   float stencil_value;
 
   /* projection painting only */
-  /** for multithreading, the first item is sometimes used for non threaded cases too. */
+  /** For multi-threading, the first item is sometimes used for non threaded cases too. */
   MemArena *arena_mt[BLENDER_MAX_THREADS];
   /** screen sized 2D array, each pixel has a linked list of ProjPixel's */
   LinkNode **bucketRect;
@@ -4449,7 +4449,7 @@ static void project_paint_begin(const bContext *C,
   ProjPaintFaceLookup face_lookup;
   const MLoopUV *mloopuv_base = NULL;
 
-  /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
+  /* At the moment this is just ps->arena_mt[0], but use this to show were not multi-threading. */
   MemArena *arena;
 
   const int diameter = 2 * BKE_brush_size_get(ps->scene, ps->brush);

@@ -93,7 +93,7 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
     }
   }
   else {
-    /* For offscreen contexts. Default framebuffer is NULL. */
+    /* For off-screen contexts. Default frame-buffer is NULL. */
     back_left = new GLFrameBuffer("back_left", this, GL_NONE, 0, 0, 0);
   }
 

@@ -92,7 +92,7 @@ typedef struct wmXrViewportPair {
 } wmXrViewportPair;
 
 typedef struct {
-  /* Offscreen buffers/viewports for each view. */
+  /** Off-screen buffers/viewports for each view. */
   ListBase viewports; /* wmXrViewportPair */
 } wmXrSurfaceData;
 

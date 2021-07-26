@@ -1089,7 +1089,7 @@ bTheme *UI_GetTheme(void)
 }
 
 /**
- * for the rare case we need to temp swap in a different theme (offscreen render)
+ * For the rare case we need to temp swap in a different theme (off-screen render).
  */
 void UI_Theme_Store(struct bThemeState *theme_state)
 {
