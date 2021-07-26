@@ -266,7 +266,7 @@ inline bool try_dispatch_float_math_fl3_fl3_to_fl3(const NodeVectorMathOperation
       return dispatch([](float3 a, float3 b) { return float3::cross_high_precision(a, b); });
     case NODE_VECTOR_MATH_PROJECT:
       return dispatch([](float3 a, float3 b) {
-        float length_squared = float3::dot(b, b);
+        float length_squared = b.length_squared();
         return (length_squared != 0.0) ? (float3::dot(a, b) / length_squared) * b : float3(0.0f);
       });
     case NODE_VECTOR_MATH_REFLECT:
