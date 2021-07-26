@@ -734,11 +734,9 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "noise_scale", text="Upres Factor")
-        # TODO (sebbas): Mantaflow only supports wavelet noise. Maybe get rid of noise type field.
-        col.prop(domain, "noise_type", text="Noise Method")
+        col.prop(domain, "noise_strength", text="Strength")
 
         col = flow.column()
-        col.prop(domain, "noise_strength", text="Strength")
         col.prop(domain, "noise_pos_scale", text="Scale")
         col.prop(domain, "noise_time_anim", text="Time")
 

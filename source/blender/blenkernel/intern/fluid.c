@@ -5005,7 +5005,6 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     tfds->noise_pos_scale = fds->noise_pos_scale;
     tfds->noise_time_anim = fds->noise_time_anim;
     tfds->noise_scale = fds->noise_scale;
-    tfds->noise_type = fds->noise_type;
 
     /* liquid domain options */
     tfds->flip_ratio = fds->flip_ratio;
