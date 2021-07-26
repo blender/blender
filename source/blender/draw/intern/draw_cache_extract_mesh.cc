@@ -41,8 +41,9 @@
 #include "GPU_capabilities.h"
 
 #include "draw_cache_extract.h"
-#include "draw_cache_extract_mesh_private.h"
 #include "draw_cache_inline.h"
+
+#include "mesh_extractors/extract_mesh.h"
 
 // #define DEBUG_TIME
 
