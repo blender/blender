@@ -440,13 +440,8 @@ if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR CMAKE_OSX_ARCHITECTURES MATCHES "
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ftree-vectorize  -fvariable-expansion-in-unroller")
   endif()
 else()
-<<<<<<< HEAD
-  set(CMAKE_C_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
-  set(CMAKE_CXX_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
-=======
-  set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic")
-  set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic")
->>>>>>> fc6a1f44d2e (macOS: use -fno-strict-aliasing for all build types.)
+  set(CMAKE_C_FLAGS_RELEASE "-mdynamic-no-pic")
+  set(CMAKE_CXX_FLAGS_RELEASE "-mdynamic-no-pic")
 endif()
 
 if(${XCODE_VERSION} VERSION_EQUAL 5 OR ${XCODE_VERSION} VERSION_GREATER 5)
