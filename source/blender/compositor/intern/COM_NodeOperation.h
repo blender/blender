@@ -75,12 +75,6 @@ enum class ResizeMode {
   Stretch = NS_CR_STRETCH,
 };
 
-enum class PixelSampler {
-  Nearest = 0,
-  Bilinear = 1,
-  Bicubic = 2,
-};
-
 class NodeOperationInput {
  private:
   NodeOperation *m_operation;
@@ -423,6 +417,12 @@ class NodeOperation {
   {
     exec_system_ = system;
   }
+
+  /**
+   * Initializes operation data needed after operations are linked and resolutions determined. For
+   * rendering heap memory data use initExecution().
+   */
+  virtual void init_data();
 
   virtual void initExecution();
 

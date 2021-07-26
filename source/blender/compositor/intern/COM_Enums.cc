@@ -17,8 +17,27 @@
  */
 
 #include "COM_Enums.h"
+#include "BLI_rect.h"
 
 namespace blender::compositor {
+
+void expand_area_for_sampler(rcti &area, PixelSampler sampler)
+{
+  switch (sampler) {
+    case PixelSampler::Nearest:
+      break;
+    case PixelSampler::Bilinear:
+      area.xmax += 1;
+      area.ymax += 1;
+      break;
+    case PixelSampler::Bicubic:
+      area.xmin -= 1;
+      area.xmax += 2;
+      area.ymin -= 1;
+      area.ymax += 2;
+      break;
+  }
+}
 
 std::ostream &operator<<(std::ostream &os, const eCompositorPriority &priority)
 {

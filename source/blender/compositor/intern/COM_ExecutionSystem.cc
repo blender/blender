@@ -112,6 +112,9 @@ void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
 void ExecutionSystem::execute()
 {
   DebugInfo::execute_started(this);
+  for (NodeOperation *op : m_operations) {
+    op->init_data();
+  }
   execution_model_->execute(*this);
 }
 

@@ -100,6 +100,11 @@ void NodeOperation::setResolutionInputSocketIndex(unsigned int index)
 {
   this->m_resolutionInputSocketIndex = index;
 }
+
+void NodeOperation::init_data()
+{
+  /* Pass. */
+}
 void NodeOperation::initExecution()
 {
   /* pass */
