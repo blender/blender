@@ -491,7 +491,7 @@ int WM_event_absolute_delta_y(const struct wmEvent *event)
 bool WM_event_is_ime_switch(const struct wmEvent *event)
 {
   return event->val == KM_PRESS && event->type == EVT_SPACEKEY &&
-         (event->ctrl || event->oskey || event->shift || event->alt);
+         (event->ctrl || event->oskey || event->alt);
 }
 #endif
 
