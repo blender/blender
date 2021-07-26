@@ -1409,10 +1409,7 @@ typedef struct ToolSettings {
   char gpencil_v3d_align;
   /** General 2D Editor. */
   char gpencil_v2d_align;
-  /** Sequencer Preview. */
-  char gpencil_seq_align;
-  /** Image Editor. */
-  char gpencil_ima_align;
+  char _pad0[2];
 
   /* Annotations */
   /** Stroke placement settings - 3D View. */

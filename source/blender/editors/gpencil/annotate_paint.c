@@ -1320,7 +1320,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
       p->area = curarea;
       p->region = region;
       p->v2d = &region->v2d;
-      p->align_flag = &ts->gpencil_seq_align;
+      p->align_flag = &ts->gpencil_v2d_align;
 
       /* check that gpencil data is allowed to be drawn */
       if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
@@ -1339,7 +1339,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
       p->area = curarea;
       p->region = region;
       p->v2d = &region->v2d;
-      p->align_flag = &ts->gpencil_ima_align;
+      p->align_flag = &ts->gpencil_v2d_align;
       break;
     }
     case SPACE_CLIP: {
