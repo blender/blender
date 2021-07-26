@@ -1358,7 +1358,7 @@ static int gpencil_merge_layer_exec(bContext *C, wmOperator *op)
     /* Apply layer transformation. */
     LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
       for (int p = 0; p < gps_src->totpoints; p++) {
-        const bGPDspoint *pt = &gps_src->points[p];
+        bGPDspoint *pt = &gps_src->points[p];
         mul_v3_m4v3(&pt->x, gpl_src->layer_mat, &pt->x);
       }
     }
