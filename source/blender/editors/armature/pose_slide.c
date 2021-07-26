@@ -1253,6 +1253,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
           case EVT_HKEY: {
             View3D *v3d = pso->area->spacedata.first;
             v3d->overlay.flag ^= V3D_OVERLAY_HIDE_BONES;
+            ED_region_tag_redraw(pso->region);
           }
 
           default: /* Some other unhandled key... */
