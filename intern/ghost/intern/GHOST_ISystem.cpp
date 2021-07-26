@@ -58,9 +58,10 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
     try {
       m_system = new GHOST_SystemWayland();
       if (!std::getenv("BLENDER_WAYLAND")) {
-        printf("Connected to a Wayland compositor but Wayland is disabled at "\
-               "runtime.\nSet environment variable 'BLENDER_WAYLAND' (e.g. "\
-               "BLENDER_WAYLAND= blender) to use Wayland.\n");
+        printf(
+            "Connected to a Wayland compositor but Wayland is disabled at runtime.\n"
+            "Set environment variable 'BLENDER_WAYLAND' "
+            "(e.g. BLENDER_WAYLAND= blender) to use Wayland.\n");
         throw std::runtime_error(std::string());
       }
     }
