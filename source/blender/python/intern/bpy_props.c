@@ -726,12 +726,8 @@ static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
       for (i = 0; i < len; i++) {
         values[i] = false;
       }
-
-      /* PyC_AsArray decrements refcount internally on error */
     }
-    else {
-      Py_DECREF(ret);
-    }
+    Py_DECREF(ret);
   }
 
   if (use_gil) {
@@ -977,12 +973,8 @@ static void bpy_prop_int_array_get_fn(struct PointerRNA *ptr,
       for (i = 0; i < len; i++) {
         values[i] = 0;
       }
-
-      /* PyC_AsArray decrements refcount internally on error */
     }
-    else {
-      Py_DECREF(ret);
-    }
+    Py_DECREF(ret);
   }
 
   if (use_gil) {
@@ -1228,12 +1220,8 @@ static void bpy_prop_float_array_get_fn(struct PointerRNA *ptr,
       for (i = 0; i < len; i++) {
         values[i] = 0.0f;
       }
-
-      /* PyC_AsArray decrements refcount internally on error */
     }
-    else {
-      Py_DECREF(ret);
-    }
+    Py_DECREF(ret);
   }
 
   if (use_gil) {
