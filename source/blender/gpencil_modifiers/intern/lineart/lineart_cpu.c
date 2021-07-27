@@ -2475,8 +2475,8 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
       }
     }
     else if (st_r == 0) {
-      INTERSECT_JUST_GREATER(is, order, 0, LCross);
-      if (LRT_ABC(LCross) && is[LCross] > 0) {
+      INTERSECT_JUST_GREATER(is, order, DBL_TRIANGLE_LIM, LCross);
+      if (LRT_ABC(LCross) && is[LCross] > DBL_TRIANGLE_LIM) {
         INTERSECT_JUST_GREATER(is, order, is[LCross], RCross);
       }
       else {
