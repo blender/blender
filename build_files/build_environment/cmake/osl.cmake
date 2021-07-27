@@ -51,6 +51,7 @@ set(OSL_EXTRA_ARGS
   -DOpenImageIO_ROOT=${LIBDIR}/openimageio/
   -DOSL_BUILD_TESTS=OFF
   -DOSL_BUILD_MATERIALX=OFF
+  -DPNG_ROOT=${LIBDIR}/png
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
   ${OSL_FLEX_BISON}
@@ -69,12 +70,8 @@ set(OSL_EXTRA_ARGS
   ${OSL_SIMD_FLAGS}
   -Dpugixml_ROOT=${LIBDIR}/pugixml
   -DUSE_PYTHON=OFF
+  -DCMAKE_CXX_STANDARD=14
 )
-
-# Apple arm64 uses LLVM 11, LLVM 10+ requires C++14
-if (APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-  list(APPEND OSL_EXTRA_ARGS -DCMAKE_CXX_STANDARD=14)
-endif()
 
 ExternalProject_Add(external_osl
   URL file://${PACKAGE_DIR}/${OSL_FILE}
@@ -93,10 +90,20 @@ add_dependencies(
   ll
   external_openexr
   external_zlib
-  external_flexbison
   external_openimageio
   external_pugixml
 )
+if(WIN32)
+  add_dependencies(
+    external_osl
+    external_flexbison
+  )
+else()
+  add_dependencies(
+    external_osl
+    external_flex
+  )
+endif()
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
