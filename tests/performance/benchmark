@@ -125,10 +125,10 @@ def run_entry(env: api.TestEnvironment, config: api.TestConfig, row: List, entry
             entry.error_msg = 'Failed to build'
 
     # Run test and update output and status.
-    entry.status = 'running'
-    print_row(config, row, end='\r')
-
     if executable_ok:
+        entry.status = 'running'
+        print_row(config, row, end='\r')
+
         try:
             entry.output = test.run(env, device_id)
             if not entry.output:

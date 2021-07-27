@@ -1268,11 +1268,6 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       {FLUID_DOMAIN_TYPE_LIQUID, "LIQUID", 0, "Liquid", "Create domain for liquids"},
       {0, NULL, 0, NULL, NULL}};
 
-  static const EnumPropertyItem prop_noise_type_items[] = {
-      {FLUID_NOISE_TYPE_WAVELET, "NOISEWAVE", 0, "Wavelet", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem prop_compression_items[] = {
       {VDB_COMPRESSION_ZIP, "ZIP", 0, "Zip", "Effective but slow compression"},
 #  ifdef WITH_OPENVDB_BLOSC
@@ -1810,14 +1805,6 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
                            "Noise Scale",
                            "The noise simulation is scaled up by this factor (compared to the "
                            "base resolution of the domain)");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_domain_noise_reset");
-
-  prop = RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "noise_type");
-  RNA_def_property_enum_items(prop, prop_noise_type_items);
-  RNA_def_property_ui_text(
-      prop, "Noise Method", "Noise method which is used during the high-res simulation");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_domain_noise_reset");
 

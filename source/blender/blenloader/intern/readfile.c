@@ -464,6 +464,13 @@ void blo_join_main(ListBase *mainlist)
   Main *tojoin, *mainl;
 
   mainl = mainlist->first;
+
+  if (mainl->id_map != NULL) {
+    /* Cannot keep this since we add some IDs from joined mains. */
+    BKE_main_idmap_destroy(mainl->id_map);
+    mainl->id_map = NULL;
+  }
+
   while ((tojoin = mainl->next)) {
     add_main_to_main(mainl, tojoin);
     BLI_remlink(mainlist, tojoin);
@@ -500,6 +507,12 @@ void blo_split_main(ListBase *mainlist, Main *main)
 
   if (BLI_listbase_is_empty(&main->libraries)) {
     return;
+  }
+
+  if (main->id_map != NULL) {
+    /* Cannot keep this since we remove some IDs from given main. */
+    BKE_main_idmap_destroy(main->id_map);
+    main->id_map = NULL;
   }
 
   /* (Library.temp_index -> Main), lookup table */
@@ -3209,6 +3222,10 @@ static ID *create_placeholder(Main *mainvar, const short idcode, const char *idn
   BLI_addtail(lb, ph_id);
   id_sort_by_name(lb, ph_id, NULL);
 
+  if (mainvar->id_map != NULL) {
+    BKE_main_idmap_insert_id(mainvar->id_map, ph_id);
+  }
+
   if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uuid_ensure(ph_id);
   }
@@ -3667,6 +3684,10 @@ static BHead *read_libblock(FileData *fd,
       if (r_id) {
         *r_id = id_old;
       }
+      if (main->id_map != NULL) {
+        BKE_main_idmap_insert_id(main->id_map, id_old);
+      }
+
       return blo_bhead_next(fd, bhead);
     }
   }
@@ -3725,6 +3746,11 @@ static BHead *read_libblock(FileData *fd,
     }
 
     direct_link_id(fd, main, id_tag, id, id_old);
+
+    if (main->id_map != NULL) {
+      BKE_main_idmap_insert_id(main->id_map, id);
+    }
+
     return blo_bhead_next(fd, bhead);
   }
 
@@ -3748,6 +3774,13 @@ static BHead *read_libblock(FileData *fd,
   else if (id_old) {
     /* For undo, store contents read into id at id_old. */
     read_libblock_undo_restore_at_old_address(fd, main, id, id_old);
+
+    if (main->id_map != NULL) {
+      BKE_main_idmap_insert_id(main->id_map, id_old);
+    }
+  }
+  else if (main->id_map != NULL) {
+    BKE_main_idmap_insert_id(main->id_map, id);
   }
 
   return bhead;
@@ -4299,6 +4332,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
   fd->mainlist = NULL; /* Safety, this is local variable, shall not be used afterward. */
 
+  BLI_assert(bfd->main->id_map == NULL);
+
   return bfd;
 }
 
@@ -4443,9 +4478,16 @@ static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
 
 static ID *is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
 {
+  if (mainvar->id_map == NULL) {
+    mainvar->id_map = BKE_main_idmap_create(mainvar, false, NULL, MAIN_IDMAP_TYPE_NAME);
+  }
+  BLI_assert(BKE_main_idmap_main_get(mainvar->id_map) == mainvar);
+
   const char *idname = blo_bhead_id_name(fd, bhead);
-  /* which_libbase can be NULL, intentionally not using idname+2 */
-  return BLI_findstring(which_libbase(mainvar, GS(idname)), idname, offsetof(ID, name));
+
+  ID *id = BKE_main_idmap_lookup_name(mainvar->id_map, GS(idname), idname + 2, mainvar->curlib);
+  BLI_assert(id == BLI_findstring(which_libbase(mainvar, GS(idname)), idname, offsetof(ID, name)));
+  return id;
 }
 
 /** \} */
@@ -5196,6 +5238,10 @@ static void library_link_end(Main *mainl,
   Main *mainvar;
   Library *curlib;
 
+  if (mainl->id_map == NULL) {
+    mainl->id_map = BKE_main_idmap_create(mainl, false, NULL, MAIN_IDMAP_TYPE_NAME);
+  }
+
   /* expander now is callback function */
   BLO_main_expander(expand_doit_library);
 
@@ -5401,6 +5447,9 @@ static void read_library_linked_ids(FileData *basefd,
       ID *id_next = id->next;
       if ((id->tag & LIB_TAG_ID_LINK_PLACEHOLDER) && !(id->flag & LIB_INDIRECT_WEAK_LINK)) {
         BLI_remlink(lbarray[a], id);
+        if (mainvar->id_map != NULL) {
+          BKE_main_idmap_remove_id(mainvar->id_map, id);
+        }
 
         /* When playing with lib renaming and such, you may end with cases where
          * you have more than one linked ID of the same data-block from same
@@ -5569,6 +5618,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
         if (fd) {
           do_it = true;
+
+          if (mainptr->id_map == NULL) {
+            mainptr->id_map = BKE_main_idmap_create(mainptr, false, NULL, MAIN_IDMAP_TYPE_NAME);
+          }
         }
 
         /* Read linked data-locks for each link placeholder, and replace

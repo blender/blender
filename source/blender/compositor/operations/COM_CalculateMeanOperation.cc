@@ -19,6 +19,7 @@
 #include "COM_CalculateMeanOperation.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "COM_ExecutionSystem.h"
 
 #include "IMB_colormanagement.h"
 
@@ -126,6 +127,95 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
     }
   }
   this->m_result = sum / pixels;
+}
+
+void CalculateMeanOperation::setSetting(int setting)
+{
+  this->m_setting = setting;
+  switch (setting) {
+    case 1: {
+      setting_func_ = IMB_colormanagement_get_luminance;
+      break;
+    }
+    case 2: {
+      setting_func_ = [](const float *elem) { return elem[0]; };
+      break;
+    }
+    case 3: {
+      setting_func_ = [](const float *elem) { return elem[1]; };
+      break;
+    }
+    case 4: {
+      setting_func_ = [](const float *elem) { return elem[2]; };
+      break;
+    }
+    case 5: {
+      setting_func_ = [](const float *elem) {
+        float yuv[3];
+        rgb_to_yuv(elem[0], elem[1], elem[2], &yuv[0], &yuv[1], &yuv[2], BLI_YUV_ITU_BT709);
+        return yuv[0];
+      };
+      break;
+    }
+  }
+}
+
+void CalculateMeanOperation::get_area_of_interest(int input_idx,
+                                                  const rcti &UNUSED(output_area),
+                                                  rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  NodeOperation *operation = getInputOperation(input_idx);
+  r_input_area.xmin = 0;
+  r_input_area.ymin = 0;
+  r_input_area.xmax = operation->getWidth();
+  r_input_area.ymax = operation->getHeight();
+}
+
+void CalculateMeanOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
+                                                          const rcti &UNUSED(area),
+                                                          Span<MemoryBuffer *> inputs)
+{
+  if (!this->m_iscalculated) {
+    MemoryBuffer *input = inputs[0];
+    m_result = calc_mean(input);
+    this->m_iscalculated = true;
+  }
+}
+
+void CalculateMeanOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                          const rcti &area,
+                                                          Span<MemoryBuffer *> UNUSED(inputs))
+{
+  output->fill(area, &m_result);
+}
+
+float CalculateMeanOperation::calc_mean(const MemoryBuffer *input)
+{
+  PixelsSum total = {0};
+  exec_system_->execute_work<PixelsSum>(
+      input->get_rect(),
+      [=](const rcti &split) { return calc_area_sum(input, split); },
+      total,
+      [](PixelsSum &join, const PixelsSum &chunk) {
+        join.sum += chunk.sum;
+        join.num_pixels += chunk.num_pixels;
+      });
+  return total.num_pixels == 0 ? 0.0f : total.sum / total.num_pixels;
+}
+
+using PixelsSum = CalculateMeanOperation::PixelsSum;
+PixelsSum CalculateMeanOperation::calc_area_sum(const MemoryBuffer *input, const rcti &area)
+{
+  PixelsSum result = {0};
+  for (const float *elem : input->get_buffer_area(area)) {
+    if (elem[3] <= 0.0f) {
+      continue;
+    }
+    result.sum += setting_func_(elem);
+    result.num_pixels++;
+  }
+  return result;
 }
 
 }  // namespace blender::compositor

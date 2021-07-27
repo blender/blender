@@ -178,19 +178,19 @@ static void eevee_cache_finish(void *vedata)
   }
   EEVEE_renderpasses_output_init(sldata, vedata, tot_samples);
 
-  /* Restart taa if a shader has finish compiling. */
-  /* HACK We should use notification of some sort from the compilation job instead. */
+  /* Restart TAA if a shader has finish compiling. */
+  /* HACK: We should use notification of some sort from the compilation job instead. */
   if (g_data->queued_shaders_count != g_data->queued_shaders_count_prev) {
     g_data->queued_shaders_count_prev = g_data->queued_shaders_count;
     EEVEE_temporal_sampling_reset(vedata);
   }
 }
 
-/* As renders in an HDR offscreen buffer, we need draw everything once
+/* As renders in an HDR off-screen buffer, we need draw everything once
  * during the background pass. This way the other drawing callback between
  * the background and the scene pass are visible.
  * NOTE: we could break it up in two passes using some depth test
- * to reduce the fillrate */
+ * to reduce the fill-rate. */
 static void eevee_draw_scene(void *vedata)
 {
   EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;

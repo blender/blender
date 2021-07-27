@@ -80,10 +80,10 @@ static void py_rna_gizmo_handler_get_cb(const wmGizmo *UNUSED(gz),
     }
     else {
       if (PyC_AsArray(value,
+                      sizeof(*value),
                       ret,
                       gz_prop->type->array_length,
                       &PyFloat_Type,
-                      false,
                       "Gizmo get callback: ") == -1) {
         goto fail;
       }
@@ -426,11 +426,11 @@ static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *ar
       if (array_len != 0) {
         float *value = BLI_array_alloca(value, array_len);
         if (PyC_AsArray(value,
+                        sizeof(*value),
                         params.value,
                         gz_prop->type->array_length,
                         &PyFloat_Type,
-                        false,
-                        "Gizmo target property array") == -1) {
+                        "Gizmo target property array: ") == -1) {
           goto fail;
         }
         WM_gizmo_target_property_float_set_array(BPY_context_get(), gz, gz_prop, value);

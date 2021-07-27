@@ -109,15 +109,15 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf()
        ICON_BLENDER,
        "Current File",
        "Show the assets currently available in this Blender session"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
-  EnumPropertyItem *item = NULL;
+  EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
   /* Add separator if needed. */
   if (!BLI_listbase_is_empty(&U.asset_libraries)) {
-    const EnumPropertyItem sepr = {0, "", 0, "Custom", NULL};
+    const EnumPropertyItem sepr = {0, "", 0, "Custom", nullptr};
     RNA_enum_item_add(&item, &totitem, &sepr);
   }
 
@@ -144,7 +144,7 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf()
   }
 
   if (totitem) {
-    const EnumPropertyItem sepr = {0, "", 0, "Built-in", NULL};
+    const EnumPropertyItem sepr = {0, "", 0, "Built-in", nullptr};
     RNA_enum_item_add(&item, &totitem, &sepr);
   }
 

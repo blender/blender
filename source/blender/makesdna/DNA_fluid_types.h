@@ -198,11 +198,6 @@ enum {
   FLUID_DOMAIN_TYPE_LIQUID = 1,
 };
 
-/* Smoke noise types. */
-enum {
-  FLUID_NOISE_TYPE_WAVELET = (1 << 0),
-};
-
 /* Mesh levelset generator types. */
 enum {
   FLUID_DOMAIN_MESH_IMPROVED = 0,
@@ -580,8 +575,7 @@ typedef struct FluidDomainSettings {
   float noise_time_anim;
   int res_noise[3];
   int noise_scale;
-  short noise_type; /* Noise type: wave, curl, anisotropic. */
-  char _pad3[2];    /* Unused. */
+  char _pad3[4];    /* Unused. */
 
   /* Liquid domain options. */
   float particle_randomness;

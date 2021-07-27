@@ -40,7 +40,7 @@ void TransformNode::convertToOperations(NodeConverter &converter,
   NodeInput *angleInput = this->getInputSocket(3);
   NodeInput *scaleInput = this->getInputSocket(4);
 
-  ScaleOperation *scaleOperation = new ScaleOperation();
+  ScaleRelativeOperation *scaleOperation = new ScaleRelativeOperation();
   converter.addOperation(scaleOperation);
 
   RotateOperation *rotateOperation = new RotateOperation();

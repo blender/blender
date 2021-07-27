@@ -25,7 +25,7 @@
 
 #include "BLI_string.h"
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
 
 namespace blender::draw {
 

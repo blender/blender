@@ -239,7 +239,7 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
     }
     attribs[i++] = 0;
 
-    /* Some drivers don't like having a true offscreen context.
+    /* Some drivers don't like having a true off-screen context.
      * Create a pixel buffer instead of a window to render to.
      * even if it will never be used for drawing. */
     int pbuffer_attribs[] = {GLX_PBUFFER_WIDTH, 1, GLX_PBUFFER_HEIGHT, 1, None};

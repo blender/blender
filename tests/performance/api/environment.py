@@ -122,7 +122,7 @@ class TestEnvironment:
             executable = executable / self._blender_executable_name()
         elif not executable.is_file() and executable.name == 'blender':
             # Executable path without proper path on Windows or macOS.
-            executable = executable.parent() / self._blender_executable_name()
+            executable = executable.parent / self._blender_executable_name()
 
         if executable.is_file():
             return executable

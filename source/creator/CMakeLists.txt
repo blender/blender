@@ -1060,13 +1060,6 @@ elseif(APPLE)
     endif()
   endif()
 
-  if(WITH_LLVM AND NOT LLVM_STATIC)
-    install(
-      FILES ${LIBDIR}/llvm/lib/libLLVM-3.4.dylib
-      DESTINATION Blender.app/Contents/MacOS
-    )
-  endif()
-
   # python
   if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
     # Copy the python libs into the install directory

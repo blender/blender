@@ -17,6 +17,8 @@
 #include "BLI_math_base_safe.h"
 #include "BLI_task.hh"
 
+#include "RNA_enum_types.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -153,6 +155,20 @@ static CustomDataType operation_get_result_type(const NodeVectorMathOperation op
 }
 
 namespace blender::nodes {
+
+static void geo_node_vector_math_label(bNodeTree *UNUSED(ntree),
+                                       bNode *node,
+                                       char *label,
+                                       int maxlen)
+{
+  NodeAttributeMath &node_storage = *(NodeAttributeMath *)node->storage;
+  const char *name;
+  bool enum_label = RNA_enum_name(rna_enum_node_vec_math_items, node_storage.operation, &name);
+  if (!enum_label) {
+    name = "Unknown";
+  }
+  BLI_snprintf(label, maxlen, IFACE_("Vector %s"), IFACE_(name));
+}
 
 static void geo_node_attribute_vector_math_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -549,6 +565,7 @@ void register_node_type_geo_attribute_vector_math()
       &ntype, geo_node_attribute_vector_math_in, geo_node_attribute_vector_math_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_vector_math_exec;
   ntype.draw_buttons = geo_node_attribute_vector_math_layout;
+  node_type_label(&ntype, blender::nodes::geo_node_vector_math_label);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_vector_math_update);
   node_type_init(&ntype, geo_node_attribute_vector_math_init);
   node_type_storage(

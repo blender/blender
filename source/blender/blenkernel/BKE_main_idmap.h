@@ -50,8 +50,13 @@ struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
                                             const int idmap_types) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 void BKE_main_idmap_destroy(struct IDNameLib_Map *id_map) ATTR_NONNULL();
+
+void BKE_main_idmap_insert_id(struct IDNameLib_Map *id_map, struct ID *id) ATTR_NONNULL();
+void BKE_main_idmap_remove_id(struct IDNameLib_Map *id_map, struct ID *id) ATTR_NONNULL();
+
 struct Main *BKE_main_idmap_main_get(struct IDNameLib_Map *id_map) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
+
 struct ID *BKE_main_idmap_lookup_name(struct IDNameLib_Map *id_map,
                                       short id_type,
                                       const char *name,

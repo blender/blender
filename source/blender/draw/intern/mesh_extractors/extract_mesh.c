@@ -29,7 +29,8 @@
 
 #include "ED_uvedit.h"
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
+
 #include "draw_cache_impl.h"
 
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferCache *mbc)

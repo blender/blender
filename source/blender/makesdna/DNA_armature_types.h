@@ -76,7 +76,12 @@ typedef struct Bone {
 
   /** dist, weight: for non-deformgroup deforms. */
   float dist, weight;
-  /** width: for block bones. keep in this order, transform!. */
+  /**
+   * The width for block bones.
+   *
+   * \note keep in this order for transform code which stores a pointer to `xwidth`,
+   * accessing length and `zwidth` as offsets.
+   */
   float xwidth, length, zwidth;
   /**
    * Radius for head/tail sphere, defining deform as well,

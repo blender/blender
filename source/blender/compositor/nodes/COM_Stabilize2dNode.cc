@@ -43,7 +43,7 @@ void Stabilize2dNode::convertToOperations(NodeConverter &converter,
   MovieClip *clip = (MovieClip *)editorNode->id;
   bool invert = (editorNode->custom2 & CMP_NODEFLAG_STABILIZE_INVERSE) != 0;
 
-  ScaleOperation *scaleOperation = new ScaleOperation();
+  ScaleRelativeOperation *scaleOperation = new ScaleRelativeOperation();
   scaleOperation->setSampler((PixelSampler)editorNode->custom1);
   RotateOperation *rotateOperation = new RotateOperation();
   rotateOperation->setDoDegree2RadConversion(false);

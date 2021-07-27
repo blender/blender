@@ -492,6 +492,7 @@ void DebugInfo::delete_operation_exports()
         BLI_delete(file->path, false, false);
       }
     }
+    BLI_filelist_free(file_list, num_files);
   }
 }
 

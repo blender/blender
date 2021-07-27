@@ -24,25 +24,25 @@ import sys
 import bpy
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from modules.mesh_test import RunTest, ModifierSpec, MeshTest
+from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest
 
 
 def main():
     test = [
 
-        MeshTest("ClothSimple", "testClothPlane", "expectedClothPlane",
+        SpecMeshTest("ClothSimple", "testClothPlane", "expectedClothPlane",
                  [ModifierSpec('Cloth', 'CLOTH', {'settings': {'quality': 5}}, 15)], threshold=1e-3),
 
         # Not reproducible
-        # MeshTest("ClothPressure", "testObjClothPressure", "expObjClothPressure",
+        # SpecMeshTest("ClothPressure", "testObjClothPressure", "expObjClothPressure",
         #           [ModifierSpec('Cloth2', 'CLOTH', {'settings': {'use_pressure': True,
         #           'uniform_pressure_force': 1}}, 16)]),
 
         # Not reproducible
-        # MeshTest("ClothSelfCollision", "testClothCollision", "expClothCollision",
+        # SpecMeshTest("ClothSelfCollision", "testClothCollision", "expClothCollision",
         #           [ModifierSpec('Cloth', 'CLOTH', {'collision_settings': {'use_self_collision': True}}, 67)]),
 
-        MeshTest("ClothSpring", "testTorusClothSpring", "expTorusClothSpring",
+        SpecMeshTest("ClothSpring", "testTorusClothSpring", "expTorusClothSpring",
                  [ModifierSpec('Cloth2', 'CLOTH', {'settings': {'use_internal_springs': True}}, 10)], threshold=1e-3),
 
     ]

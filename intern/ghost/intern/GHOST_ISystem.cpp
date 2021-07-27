@@ -57,12 +57,6 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
     /* Special case, try Wayland, fall back to X11. */
     try {
       m_system = new GHOST_SystemWayland();
-      if (!std::getenv("BLENDER_WAYLAND")) {
-        printf("Connected to a Wayland compositor but Wayland is disabled at "\
-               "runtime.\nSet environment variable 'BLENDER_WAYLAND' (e.g. "\
-               "BLENDER_WAYLAND= blender) to use Wayland.\n");
-        throw std::runtime_error(std::string());
-      }
     }
     catch (const std::runtime_error &) {
       /* fallback to X11. */

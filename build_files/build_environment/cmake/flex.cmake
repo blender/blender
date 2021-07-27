@@ -16,18 +16,13 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-
-ExternalProject_Add(external_openmp
-  URL file://${PACKAGE_DIR}/${OPENMP_FILE}
+ExternalProject_Add(external_flex
+  URL file://${PACKAGE_DIR}/${FLEX_FILE}
+  URL_HASH ${FLEX_HASH_TYPE}=${FLEX_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH ${OPENMP_HASH_TYPE}=${OPENMP_HASH}
-  PREFIX ${BUILD_DIR}/openmp
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openmp ${DEFAULT_CMAKE_FLAGS}
-  INSTALL_COMMAND cd ${BUILD_DIR}/openmp/src/external_openmp-build && install_name_tool -id @rpath/libomp.dylib runtime/src/libomp.dylib && make install
-  INSTALL_DIR ${LIBDIR}/openmp
-)
-
-add_dependencies(
-  external_openmp
-  ll
+  PREFIX ${BUILD_DIR}/flex
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/flex/src/external_flex/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flex
+  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/flex/src/external_flex/ && make -j${MAKE_THREADS}
+  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/flex/src/external_flex/ && make install
+  INSTALL_DIR ${LIBDIR}/flex
 )

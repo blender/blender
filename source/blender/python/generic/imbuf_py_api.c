@@ -242,7 +242,7 @@ static int py_imbuf_ppm_set(Py_ImBuf *self, PyObject *value, void *UNUSED(closur
   PY_IMBUF_CHECK_INT(self);
   double ppm[2];
 
-  if (PyC_AsArray(ppm, value, 2, &PyFloat_Type, true, "ppm") == -1) {
+  if (PyC_AsArray(ppm, sizeof(*ppm), value, 2, &PyFloat_Type, "ppm") == -1) {
     return -1;
   }
 

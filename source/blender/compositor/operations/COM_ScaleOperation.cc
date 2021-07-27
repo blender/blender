@@ -17,6 +17,7 @@
  */
 
 #include "COM_ScaleOperation.h"
+#include "COM_ConstantOperation.h"
 
 namespace blender::compositor {
 
@@ -52,13 +53,51 @@ ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
   this->m_inputXOperation = nullptr;
   this->m_inputYOperation = nullptr;
 }
+
+float ScaleOperation::get_constant_scale(const int input_op_idx, const float factor)
+{
+  const bool is_constant = getInputOperation(input_op_idx)->get_flags().is_constant_operation;
+  if (is_constant) {
+    return ((ConstantOperation *)getInputOperation(input_op_idx))->get_constant_elem()[0] * factor;
+  }
+
+  return 1.0f;
+}
+
+float ScaleOperation::get_constant_scale_x()
+{
+  return get_constant_scale(1, get_relative_scale_x_factor());
+}
+
+float ScaleOperation::get_constant_scale_y()
+{
+  return get_constant_scale(2, get_relative_scale_y_factor());
+}
+
+BLI_INLINE float scale_coord(const int coord, const float center, const float relative_scale)
+{
+  return center + (coord - center) / relative_scale;
+}
+
+void ScaleOperation::scale_area(rcti &rect, float scale_x, float scale_y)
+{
+  rect.xmin = scale_coord(rect.xmin, m_centerX, scale_x);
+  rect.xmax = scale_coord(rect.xmax, m_centerX, scale_x);
+  rect.ymin = scale_coord(rect.ymin, m_centerY, scale_y);
+  rect.ymax = scale_coord(rect.ymax, m_centerY, scale_y);
+}
+
+void ScaleOperation::init_data()
+{
+  m_centerX = getWidth() / 2.0f;
+  m_centerY = getHeight() / 2.0f;
+}
+
 void ScaleOperation::initExecution()
 {
   this->m_inputOperation = this->getInputSocketReader(0);
   this->m_inputXOperation = this->getInputSocketReader(1);
   this->m_inputYOperation = this->getInputSocketReader(2);
-  this->m_centerX = this->getWidth() / 2.0;
-  this->m_centerY = this->getHeight() / 2.0;
 }
 
 void ScaleOperation::deinitExecution()
@@ -68,7 +107,52 @@ void ScaleOperation::deinitExecution()
   this->m_inputYOperation = nullptr;
 }
 
-void ScaleOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+void ScaleOperation::get_area_of_interest(const int input_idx,
+                                          const rcti &output_area,
+                                          rcti &r_input_area)
+{
+  r_input_area = output_area;
+  if (input_idx != 0 || m_variable_size) {
+    return;
+  }
+
+  float scale_x = get_constant_scale_x();
+  float scale_y = get_constant_scale_y();
+  scale_area(r_input_area, scale_x, scale_y);
+  expand_area_for_sampler(r_input_area, (PixelSampler)m_sampler);
+}
+
+void ScaleOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                  const rcti &area,
+                                                  Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input_img = inputs[0];
+  MemoryBuffer *input_x = inputs[1];
+  MemoryBuffer *input_y = inputs[2];
+  const float scale_x_factor = get_relative_scale_x_factor();
+  const float scale_y_factor = get_relative_scale_y_factor();
+  BuffersIterator<float> it = output->iterate_with({input_x, input_y}, area);
+  for (; !it.is_end(); ++it) {
+    const float rel_scale_x = *it.in(0) * scale_x_factor;
+    const float rel_scale_y = *it.in(1) * scale_y_factor;
+    const float scaled_x = scale_coord(it.x, m_centerX, rel_scale_x);
+    const float scaled_y = scale_coord(it.y, m_centerY, rel_scale_y);
+    input_img->read_elem_sampled(scaled_x, scaled_y, (PixelSampler)m_sampler, it.out);
+  }
+}
+
+ScaleRelativeOperation::ScaleRelativeOperation() : ScaleOperation()
+{
+}
+
+ScaleRelativeOperation::ScaleRelativeOperation(DataType data_type) : ScaleOperation(data_type)
+{
+}
+
+void ScaleRelativeOperation::executePixelSampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
 {
   PixelSampler effective_sampler = getEffectiveSampler(sampler);
 
@@ -86,9 +170,9 @@ void ScaleOperation::executePixelSampled(float output[4], float x, float y, Pixe
   this->m_inputOperation->readSampled(output, nx, ny, effective_sampler);
 }
 
-bool ScaleOperation::determineDependingAreaOfInterest(rcti *input,
-                                                      ReadBufferOperation *readOperation,
-                                                      rcti *output)
+bool ScaleRelativeOperation::determineDependingAreaOfInterest(rcti *input,
+                                                              ReadBufferOperation *readOperation,
+                                                              rcti *output)
 {
   rcti newInput;
   if (!m_variable_size) {
@@ -113,34 +197,6 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input,
     newInput.ymin = 0;
   }
   return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
-}
-
-// SCALE ABSOLUTE
-ScaleAbsoluteOperation::ScaleAbsoluteOperation() : BaseScaleOperation()
-{
-  this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);
-  this->addInputSocket(DataType::Value);
-  this->addOutputSocket(DataType::Color);
-  this->setResolutionInputSocketIndex(0);
-  this->m_inputOperation = nullptr;
-  this->m_inputXOperation = nullptr;
-  this->m_inputYOperation = nullptr;
-}
-void ScaleAbsoluteOperation::initExecution()
-{
-  this->m_inputOperation = this->getInputSocketReader(0);
-  this->m_inputXOperation = this->getInputSocketReader(1);
-  this->m_inputYOperation = this->getInputSocketReader(2);
-  this->m_centerX = this->getWidth() / 2.0;
-  this->m_centerY = this->getHeight() / 2.0;
-}
-
-void ScaleAbsoluteOperation::deinitExecution()
-{
-  this->m_inputOperation = nullptr;
-  this->m_inputXOperation = nullptr;
-  this->m_inputYOperation = nullptr;
 }
 
 void ScaleAbsoluteOperation::executePixelSampled(float output[4],
@@ -202,8 +258,7 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
     newInput.ymax = this->getHeight();
     newInput.ymin = 0;
   }
-
-  return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+  return ScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 // Absolute fixed size
@@ -215,11 +270,12 @@ ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
   this->m_inputOperation = nullptr;
   this->m_is_offset = false;
 }
-void ScaleFixedSizeOperation::initExecution()
+
+void ScaleFixedSizeOperation::init_data()
 {
-  this->m_inputOperation = this->getInputSocketReader(0);
-  this->m_relX = this->m_inputOperation->getWidth() / (float)this->m_newWidth;
-  this->m_relY = this->m_inputOperation->getHeight() / (float)this->m_newHeight;
+  const NodeOperation *input_op = getInputOperation(0);
+  this->m_relX = input_op->getWidth() / (float)this->m_newWidth;
+  this->m_relY = input_op->getHeight() / (float)this->m_newHeight;
 
   /* *** all the options below are for a fairly special case - camera framing *** */
   if (this->m_offsetX != 0.0f || this->m_offsetY != 0.0f) {
@@ -237,8 +293,8 @@ void ScaleFixedSizeOperation::initExecution()
 
   if (this->m_is_aspect) {
     /* apply aspect from clip */
-    const float w_src = this->m_inputOperation->getWidth();
-    const float h_src = this->m_inputOperation->getHeight();
+    const float w_src = input_op->getWidth();
+    const float h_src = input_op->getHeight();
 
     /* destination aspect is already applied from the camera frame */
     const float w_dst = this->m_newWidth;
@@ -265,6 +321,11 @@ void ScaleFixedSizeOperation::initExecution()
     }
   }
   /* *** end framing options *** */
+}
+
+void ScaleFixedSizeOperation::initExecution()
+{
+  this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void ScaleFixedSizeOperation::deinitExecution()
@@ -313,6 +374,40 @@ void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2],
   BaseScaleOperation::determineResolution(resolution, nr);
   resolution[0] = this->m_newWidth;
   resolution[1] = this->m_newHeight;
+}
+
+void ScaleFixedSizeOperation::get_area_of_interest(const int input_idx,
+                                                   const rcti &output_area,
+                                                   rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  r_input_area.xmax = (output_area.xmax - m_offsetX) * this->m_relX;
+  r_input_area.xmin = (output_area.xmin - m_offsetX) * this->m_relX;
+  r_input_area.ymax = (output_area.ymax - m_offsetY) * this->m_relY;
+  r_input_area.ymin = (output_area.ymin - m_offsetY) * this->m_relY;
+  expand_area_for_sampler(r_input_area, (PixelSampler)m_sampler);
+}
+
+void ScaleFixedSizeOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                           const rcti &area,
+                                                           Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input_img = inputs[0];
+  PixelSampler sampler = (PixelSampler)m_sampler;
+  BuffersIterator<float> it = output->iterate_with({}, area);
+  if (this->m_is_offset) {
+    for (; !it.is_end(); ++it) {
+      const float nx = (it.x - this->m_offsetX) * this->m_relX;
+      const float ny = (it.y - this->m_offsetY) * this->m_relY;
+      input_img->read_elem_sampled(nx, ny, sampler, it.out);
+    }
+  }
+  else {
+    for (; !it.is_end(); ++it) {
+      input_img->read_elem_sampled(it.x * this->m_relX, it.y * this->m_relY, sampler, it.out);
+    }
+  }
 }
 
 }  // namespace blender::compositor

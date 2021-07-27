@@ -20,12 +20,10 @@ if(WIN32)
   set(OSL_CMAKE_CXX_STANDARD_LIBRARIES "kernel32${LIBEXT} user32${LIBEXT} gdi32${LIBEXT} winspool${LIBEXT} shell32${LIBEXT} ole32${LIBEXT} oleaut32${LIBEXT} uuid${LIBEXT} comdlg32${LIBEXT} advapi32${LIBEXT} psapi${LIBEXT}")
   set(OSL_FLEX_BISON -DFLEX_EXECUTABLE=${LIBDIR}/flexbison/win_flex.exe -DBISON_EXECUTABLE=${LIBDIR}/flexbison/win_bison.exe)
   set(OSL_SIMD_FLAGS -DOIIO_NOSIMD=1 -DOIIO_SIMD=sse2)
-  SET(OSL_PLATFORM_FLAGS -DLINKSTATIC=ON)
 else()
   set(OSL_CMAKE_CXX_STANDARD_LIBRARIES)
   set(OSL_FLEX_BISON)
   set(OSL_OPENIMAGEIO_LIBRARY "${LIBDIR}/openimageio/lib/${LIBPREFIX}OpenImageIO${LIBEXT};${LIBDIR}/openimageio/lib/${LIBPREFIX}OpenImageIO_Util${LIBEXT};${LIBDIR}/png/lib/${LIBPREFIX}png16${LIBEXT};${LIBDIR}/jpg/lib/${LIBPREFIX}jpeg${LIBEXT};${LIBDIR}/tiff/lib/${LIBPREFIX}tiff${LIBEXT};${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf${OPENEXR_VERSION_POSTFIX}${LIBEXT}")
-  SET(OSL_PLATFORM_FLAGS)
 endif()
 
 set(OSL_ILMBASE_CUSTOM_LIBRARIES "${LIBDIR}/openexr/lib/Imath${OPENEXR_VERSION_POSTFIX}.lib^^${LIBDIR}/openexr/lib/Half{OPENEXR_VERSION_POSTFIX}.lib^^${LIBDIR}/openexr/lib/IlmThread${OPENEXR_VERSION_POSTFIX}.lib^^${LIBDIR}/openexr/lib/Iex${OPENEXR_VERSION_POSTFIX}.lib")
@@ -51,12 +49,13 @@ set(OSL_EXTRA_ARGS
   -DOpenImageIO_ROOT=${LIBDIR}/openimageio/
   -DOSL_BUILD_TESTS=OFF
   -DOSL_BUILD_MATERIALX=OFF
+  -DPNG_ROOT=${LIBDIR}/png
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
   ${OSL_FLEX_BISON}
   -DCMAKE_CXX_STANDARD_LIBRARIES=${OSL_CMAKE_CXX_STANDARD_LIBRARIES}
   -DBUILD_SHARED_LIBS=OFF
-  ${OSL_PLATFORM_FLAGS}
+  -DLINKSTATIC=ON
   -DOSL_BUILD_PLUGINS=OFF
   -DSTOP_ON_WARNING=OFF
   -DUSE_LLVM_BITCODE=OFF
@@ -69,12 +68,8 @@ set(OSL_EXTRA_ARGS
   ${OSL_SIMD_FLAGS}
   -Dpugixml_ROOT=${LIBDIR}/pugixml
   -DUSE_PYTHON=OFF
+  -DCMAKE_CXX_STANDARD=14
 )
-
-# Apple arm64 uses LLVM 11, LLVM 10+ requires C++14
-if (APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-  list(APPEND OSL_EXTRA_ARGS -DCMAKE_CXX_STANDARD=14)
-endif()
 
 ExternalProject_Add(external_osl
   URL file://${PACKAGE_DIR}/${OSL_FILE}
@@ -93,10 +88,20 @@ add_dependencies(
   ll
   external_openexr
   external_zlib
-  external_flexbison
   external_openimageio
   external_pugixml
 )
+if(WIN32)
+  add_dependencies(
+    external_osl
+    external_flexbison
+  )
+else()
+  add_dependencies(
+    external_osl
+    external_flex
+  )
+endif()
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)

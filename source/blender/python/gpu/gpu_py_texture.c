@@ -153,7 +153,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *arg
   int len = 1;
   if (PySequence_Check(py_size)) {
     len = PySequence_Size(py_size);
-    if (PyC_AsArray(size, py_size, len, &PyLong_Type, false, "GPUTexture.__new__") == -1) {
+    if (PyC_AsArray(size, sizeof(*size), py_size, len, &PyLong_Type, "GPUTexture.__new__") == -1) {
       return NULL;
     }
   }
@@ -321,10 +321,11 @@ static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObje
 
   memset(&values, 0, sizeof(values));
   if (PyC_AsArray(&values,
+                  (pygpu_dataformat.value_found == GPU_DATA_FLOAT) ? sizeof(*values.f) :
+                                                                     sizeof(*values.i),
                   py_values,
                   shape,
-                  pygpu_dataformat.value_found == GPU_DATA_FLOAT ? &PyFloat_Type : &PyLong_Type,
-                  false,
+                  (pygpu_dataformat.value_found == GPU_DATA_FLOAT) ? &PyFloat_Type : &PyLong_Type,
                   "clear") == -1) {
     return NULL;
   }

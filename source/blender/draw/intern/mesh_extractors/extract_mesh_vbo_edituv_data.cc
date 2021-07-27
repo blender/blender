@@ -21,7 +21,8 @@
  * \ingroup draw
  */
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
+
 #include "draw_cache_impl.h"
 
 namespace blender::draw {

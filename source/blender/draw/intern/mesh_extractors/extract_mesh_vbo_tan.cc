@@ -30,7 +30,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
 
-#include "draw_cache_extract_mesh_private.h"
+#include "extract_mesh.h"
 
 namespace blender::draw {
 

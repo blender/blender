@@ -49,17 +49,17 @@ typedef struct IMMDrawPixelsTexState {
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
 
 /**
- * immDrawPixelsTex - Functions like a limited glDrawPixels, but actually draws the
+ * #immDrawPixelsTex - Functions like a limited #glDrawPixels, but actually draws the
  * image using textures, which can be tremendously faster on low-end
  * cards, and also avoids problems with the raster position being
- * clipped when offscreen. Pixel unpacking parameters and
- * the glPixelZoom values are _not_ respected.
+ * clipped when off-screen. Pixel unpacking parameters and
+ * the #glPixelZoom values are _not_ respected.
  *
- * \attention Use immDrawPixelsTexSetup before calling this function.
+ * \attention Use #immDrawPixelsTexSetup before calling this function.
  *
- * \attention This routine makes many assumptions: the rect data
+ * \attention This routine makes many assumptions: the `rect` data
  * is expected to be in RGBA byte or float format, and the
- * modelview and projection matrices are assumed to define a
+ * model-view and projection matrices are assumed to define a
  * 1-to-1 mapping to screen space.
  */
 void immDrawPixelsTex(IMMDrawPixelsTexState *state,

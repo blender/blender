@@ -42,16 +42,16 @@ void PyC_Err_PrintWithFunc(PyObject *py_func);
 void PyC_FileAndNum(const char **r_filename, int *r_lineno);
 void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno); /* checks python is running */
 int PyC_AsArray_FAST(void *array,
+                     const size_t array_elem_size,
                      PyObject *value_fast,
                      const Py_ssize_t length,
                      const PyTypeObject *type,
-                     const bool is_double,
                      const char *error_prefix);
 int PyC_AsArray(void *array,
+                const size_t array_elem_size,
                 PyObject *value,
                 const Py_ssize_t length,
                 const PyTypeObject *type,
-                const bool is_double,
                 const char *error_prefix);
 
 PyObject *PyC_Tuple_PackArray_F32(const float *array, uint len);

@@ -218,6 +218,11 @@ struct float4x4 {
     return result;
   }
 
+  bool is_negative() const
+  {
+    return is_negative_m4(ptr());
+  }
+
   uint64_t hash() const
   {
     uint64_t h = 435109;

@@ -163,7 +163,7 @@ class CPPType : NonCopyable, NonMovable {
    * Required memory in bytes for an instance of this type.
    *
    * C++ equivalent:
-   *   sizeof(T);
+   *   `sizeof(T);`
    */
   int64_t size() const
   {

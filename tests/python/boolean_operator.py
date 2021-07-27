@@ -29,37 +29,37 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from modules.mesh_test import MeshTest, OperatorSpecEditMode, RunTest
+from modules.mesh_test import SpecMeshTest, OperatorSpecEditMode, RunTest
 
 
 def main():
     tests = [
 
-        MeshTest('Cubecube_intersect_union', 'Cubecube', 'Cubecube_result_1',
+        SpecMeshTest('Cubecube_intersect_union', 'Cubecube', 'Cubecube_result_1',
                  [OperatorSpecEditMode('intersect_boolean',
                                        {'operation': 'UNION', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
-        MeshTest('Cubecube_intersect_intersect', 'Cubecube', 'Cubecube_result_2',
+        SpecMeshTest('Cubecube_intersect_intersect', 'Cubecube', 'Cubecube_result_2',
                  [OperatorSpecEditMode('intersect_boolean', {'operation': 'INTERSECT', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
-        MeshTest('Cubecube_intersect_difference', 'Cubecube', 'Cubecube_result_3',
+        SpecMeshTest('Cubecube_intersect_difference', 'Cubecube', 'Cubecube_result_3',
                  [OperatorSpecEditMode('intersect_boolean', {'operation': 'DIFFERENCE', 'solver': 'FAST'}, 'FACE',
                                        {0, 1, 2, 3, 4, 5}, )]),
-        MeshTest('Cubecube_intersect_cut', 'Cubecube', 'Cubecube_result_4', [OperatorSpecEditMode('intersect',
+        SpecMeshTest('Cubecube_intersect_cut', 'Cubecube', 'Cubecube_result_4', [OperatorSpecEditMode('intersect',
                                                                                                   {'separate_mode': 'CUT', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
-        MeshTest('Cubecube_intersect_all', 'Cubecube', 'Cubecube_result_5',
+        SpecMeshTest('Cubecube_intersect_all', 'Cubecube', 'Cubecube_result_5',
                  [OperatorSpecEditMode('intersect',
                                        {'separate_mode': 'ALL', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
-        MeshTest('Cubecube_intersect_none', 'Cubecube', 'Cubecube_result_6',
+        SpecMeshTest('Cubecube_intersect_none', 'Cubecube', 'Cubecube_result_6',
                  [OperatorSpecEditMode('intersect',
                                        {'separate_mode': 'NONE', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
-        MeshTest('Cubecube_intersect_select_none', 'Cubecube',
+        SpecMeshTest('Cubecube_intersect_select_none', 'Cubecube',
                  'Cubecube_result_7',
                  [OperatorSpecEditMode('intersect',
                                        {'mode': 'SELECT', 'separate_mode': 'NONE', 'solver': 'FAST'}, 'FACE',
                                        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, )]),
-        MeshTest('Cubecone_intersect_union', 'Cubecone', 'Cubecone_result_1',
+        SpecMeshTest('Cubecone_intersect_union', 'Cubecone', 'Cubecone_result_1',
                  [OperatorSpecEditMode('intersect_boolean',
                                        {'operation': 'UNION', 'solver': 'FAST'}, 'FACE', {6, 7, 8, 9, 10}, )]),
-        MeshTest('Cubecones_intersect_union', 'Cubecones', 'Cubecones_result_1',
+        SpecMeshTest('Cubecones_intersect_union', 'Cubecones', 'Cubecones_result_1',
                  [OperatorSpecEditMode('intersect_boolean', {'operation': 'UNION', 'solver': 'FAST'}, 'FACE', {0, 1, 2, 3, 4, 5}, )]),
 
     ]

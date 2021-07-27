@@ -22,6 +22,8 @@
 
 #include <ostream>
 
+struct rcti;
+
 namespace blender::compositor {
 
 /**
@@ -84,6 +86,13 @@ enum class eWorkPackageType {
    */
   CustomFunction = 1
 };
+
+enum class PixelSampler {
+  Nearest = 0,
+  Bilinear = 1,
+  Bicubic = 2,
+};
+void expand_area_for_sampler(rcti &area, PixelSampler sampler);
 
 std::ostream &operator<<(std::ostream &os, const eCompositorPriority &priority);
 std::ostream &operator<<(std::ostream &os, const eWorkPackageState &execution_state);

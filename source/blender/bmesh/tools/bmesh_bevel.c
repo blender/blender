@@ -384,7 +384,7 @@ typedef struct BevelParams {
 
 // #pragma GCC diagnostic ignored "-Wpadded"
 
-/* Only for debugging, this file shouldn't be in blender repo. */
+/* Only for debugging, this file shouldn't be in blender repository. */
 // #include "bevdebug.c"
 
 /* Use the unused _BM_ELEM_TAG_ALT flag to flag the 'long' loops (parallel to beveled edge)
@@ -1495,8 +1495,9 @@ static void offset_meet(BevelParams *bp,
   }
 }
 
-/* Chosen so 1/sin(BEVEL_GOOD_ANGLE) is about 4, giving that expansion factor to bevel width. */
-#define BEVEL_GOOD_ANGLE 0.25f
+/* This was changed from 0.25f to fix bug T86768.
+ * Original bug T44961 remains fixed with this value. */
+#define BEVEL_GOOD_ANGLE 0.0001f
 
 /**
  * Calculate the meeting point between e1 and e2 (one of which should have zero offsets),

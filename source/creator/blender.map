@@ -74,21 +74,55 @@ local:
   *YAML*;
 
   /* LLVM symbols not in the LLVM namespace that can conflict with LLVM usage
-   * in OpenGL and OpenCL drivers. */
+   * in OpenGL and OpenCL drivers.
+   *
+   * These are found by doing a Blender build with and without OSL, and
+   * comparing the output of nm -gD ./bin/blender to find symbols. */
+  AlwaysSpillBase;
+  AsmMacroMaxNestingDepth;
+  AttributorRun;
+  CheckBFIUnknownBlockQueries;
+  *cloneBitwiseIVUser*;
+  *computeHostNumHardwareThread*;
+  *computeHostNumPhysicalCores*;
   decodeInstruction;
+  DisableBasicAA;
+  DisablePreInliner;
+  DisableWholeProgramVisibility;
+  EnableCHR;
+  EnableConstraintElimination;
+  EnableGVNHoist;
+  EnableGVNSink;
   EnableHotColdSplit;
   EnableIPRA;
+  EnableIROutliner;
+  EnableKnowledgeRetention;
+  EnableLoopFlatten;
+  EnableMatrix;
   EnableOrderFileInstrumentation;
+  EnablePGSO;
+  EnableUnrollAndJam;
   EnableVPlanNativePath;
   EnableVPlanPredication;
+  ExtraVectorizerPasses;
   FlattenedProfileUsed;
+  ForcePGSO;
   ForceStackAlign;
   ForceSummaryEdgesCold;
   FSEC;
+  *getExtendedOperandRecurrence*;
+  *getWideRecurrence*;
+  InlinerFunctionImportStats;
+  *IROutlinerLegacyPass*;
   __jit_debug_descriptor;
   __jit_debug_register_code;
   _Jv_RegisterClasses;
+  *LiveDebugValues*;
+  *LoopInterchangeLegacyPass*;
   MachineRegionInfoPassID;
+  MaxDevirtIterations;
+  MaxRegistersForGCPointers;
+  MemOPOptMemcmpBcmp;
   MemOPSizeLarge;
   MemOPSizeRange;
   MISchedPostRA;
@@ -97,18 +131,40 @@ local:
   Name;
   NumNamedVarArgParams;
   PGOViewCounts;
+  PGSOColdCodeOnly;
+  PGSOColdCodeOnlyForInstrPGO;
+  PGSOColdCodeOnlyForPartialSamplePGO;
+  PGSOColdCodeOnlyForSamplePGO;
+  PgsoCutoffInstrProf;
+  PgsoCutoffSampleProf;
+  PGSOLargeWorkingSetSizeOnly;
+  PreInlineThreshold;
   PrintBlockFreqFuncName;
   PrintBranchProbFuncName;
   ProfileLikelyProb;
+  RunNewGVN;
+  RunPartialInlining;
+  RunSLPVectorization;
+  ScalePartialSampleProfileWorkingSetSize;
+  *ScopedAliasMetadataDeepCloner*;
+  ShouldPreserveAllAttributes;
+  SkipFunctionNames;
   StartAfterOptName;
   StartBeforeOptName;
   StaticLikelyProb;
   StopAfterOptName;
   StopBeforeOptName;
+  UseContextLessSummary;
   UseDbgAddr;
+  UseLEB128Directives;
+  UseRegistersForDeoptValues;
+  UseRegistersForGCPointersInLandingPad;
   ViewBlockFreqFuncName;
   ViewBlockLayoutWithBFI;
   ViewHotFreqPercent;
+  WholeProgramVisibility;
+  *widenLoopCompare*;
+  *widenWithVariant*;
   WriteRelBFToSummary;
   X86CompilationCallback*;
 };

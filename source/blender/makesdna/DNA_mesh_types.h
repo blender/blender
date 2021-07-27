@@ -175,7 +175,7 @@ typedef struct Mesh {
   struct Mesh *texcomesh;
 
   /* When the object is available, the preferred access method is: BKE_editmesh_from_object(ob) */
-  /** Not saved in file!. */
+  /** Not saved in file. */
   struct BMEditMesh *edit_mesh;
 
   struct CustomData vdata, edata, fdata;

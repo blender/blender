@@ -188,8 +188,8 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              GHOST_GLSettings glSettings);
 
 /**
- * Create a new offscreen context.
- * Never explicitly delete the context, use disposeContext() instead.
+ * Create a new off-screen context.
+ * Never explicitly delete the context, use #disposeContext() instead.
  * \param systemhandle: The handle to the system.
  * \param platform_support_callback: An optional callback to check platform support.
  * \return A handle to the new context ( == NULL if creation failed).

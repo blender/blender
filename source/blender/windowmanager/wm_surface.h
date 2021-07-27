@@ -19,7 +19,7 @@
  *
  * \name WM-Surface
  *
- * Container to manage painting in an offscreen context.
+ * Container to manage painting in an off-screen context.
  */
 
 #pragma once

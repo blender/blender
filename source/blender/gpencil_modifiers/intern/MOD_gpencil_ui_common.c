@@ -346,7 +346,7 @@ static void gpencil_modifier_panel_header(const bContext *UNUSED(C), Panel *pane
   uiItemMenuF(row, "", ICON_DOWNARROW_HLT, gpencil_modifier_ops_extra_draw, md);
 
   /* Remove button. */
-  sub = uiLayoutRow(row, true);
+  sub = uiLayoutRow(row, false);
   uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
   uiItemO(sub, "", ICON_X, "OBJECT_OT_gpencil_modifier_remove");
 
