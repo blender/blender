@@ -487,6 +487,8 @@ int WM_event_absolute_delta_y(const struct wmEvent *event)
 /**
  * Most OS's use `Ctrl+Space` / `OsKey+Space` to switch IME,
  * so don't type in the space character.
+ *
+ * \note Shift is excluded from this check since it prevented typing `Shift+Space`, see: T85517.
  */
 bool WM_event_is_ime_switch(const struct wmEvent *event)
 {
