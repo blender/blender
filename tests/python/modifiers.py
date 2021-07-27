@@ -26,7 +26,7 @@ from random import shuffle, seed
 import bpy
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from modules.mesh_test import RunTest, ModifierSpec, MeshTest
+from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest
 
 seed(0)
 
@@ -87,22 +87,22 @@ def main():
         # List of 'Generate' modifiers on a cube
         ###############################
         # 0
-        # MeshTest("testCube", "expectedCube", get_generate_modifiers_list("testCube")),
-        MeshTest("CubeRandom", "testCubeRandom", "expectedCubeRandom",
+        # SpecMeshTest("testCube", "expectedCube", get_generate_modifiers_list("testCube")),
+        SpecMeshTest("CubeRandom", "testCubeRandom", "expectedCubeRandom",
                  get_generate_modifiers_list("testCubeRandom", randomize=True)),
-        MeshTest("CubeMaskFirst", "testCubeMaskFirst", "expectedCubeMaskFirst", mask_first_list),
+        SpecMeshTest("CubeMaskFirst", "testCubeMaskFirst", "expectedCubeMaskFirst", mask_first_list),
 
-        MeshTest("CollapseDecimate", "testCollapseDecimate", "expectedCollapseDecimate",
+        SpecMeshTest("CollapseDecimate", "testCollapseDecimate", "expectedCollapseDecimate",
                  [ModifierSpec('decimate', 'DECIMATE',
                                {'decimate_type': 'COLLAPSE', 'ratio': 0.25, 'use_collapse_triangulate': True})]),
-        MeshTest("PlanarDecimate", "testPlanarDecimate", "expectedPlanarDecimate",
+        SpecMeshTest("PlanarDecimate", "testPlanarDecimate", "expectedPlanarDecimate",
                  [ModifierSpec('decimate', 'DECIMATE',
                                {'decimate_type': 'DISSOLVE', 'angle_limit': math.radians(30)})]),
-        MeshTest("UnsubdivideDecimate", "testUnsubdivideDecimate", "expectedUnsubdivideDecimate",
+        SpecMeshTest("UnsubdivideDecimate", "testUnsubdivideDecimate", "expectedUnsubdivideDecimate",
                  [ModifierSpec('decimate', 'DECIMATE', {'decimate_type': 'UNSUBDIV', 'iterations': 2})]),
 
         # 5
-        MeshTest("RadialBisectMirror", "testRadialBisectMirror", "expectedRadialBisectMirror",
+        SpecMeshTest("RadialBisectMirror", "testRadialBisectMirror", "expectedRadialBisectMirror",
                  [ModifierSpec('mirror1', 'MIRROR', {'use_bisect_axis': (True, False, False)}),
                   ModifierSpec('mirror2', 'MIRROR', {'use_bisect_axis': (True, False, False),
                                                      'mirror_object': bpy.data.objects[
@@ -111,17 +111,17 @@ def main():
                                {'use_axis': (False, True, False), 'use_bisect_axis': (False, True, False),
                                 'use_bisect_flip_axis': (False, True, False),
                                 'mirror_object': bpy.data.objects["testRadialBisectMirrorHelper"]})]),
-        MeshTest("T58411Mirror", "regressT58411Mirror", "expectedT58411Mirror",
+        SpecMeshTest("T58411Mirror", "regressT58411Mirror", "expectedT58411Mirror",
                  [ModifierSpec('mirror', 'MIRROR', {}),
                   ModifierSpec('bevel', 'BEVEL', {'segments': 2, 'limit_method': 'WEIGHT'}),
                   ModifierSpec('subd', 'SUBSURF', {'levels': 1})]),
 
-        MeshTest("BasicScrew", "testBasicScrew", "expectedBasicScrew",
+        SpecMeshTest("BasicScrew", "testBasicScrew", "expectedBasicScrew",
                  [ModifierSpec('mirror', 'MIRROR', {'mirror_object': bpy.data.objects["testBasicScrewHelper"]}),
                   ModifierSpec("screw", 'SCREW',
                                {'angle': math.radians(400), 'steps': 20, 'iterations': 2, 'screw_offset': 2,
                                 'use_normal_calculate': True})]),
-        MeshTest("ObjectScrew", "testObjectScrew", "expectedObjectScrew",
+        SpecMeshTest("ObjectScrew", "testObjectScrew", "expectedObjectScrew",
                  [ModifierSpec('mirror', 'MIRROR', {'mirror_object': bpy.data.objects["testObjectScrewHelper2"]}),
                   ModifierSpec("screw", 'SCREW',
                                {"angle": math.radians(600), 'steps': 32, 'iterations': 1,
@@ -129,16 +129,16 @@ def main():
                                 'use_normal_calculate': True, 'object': bpy.data.objects["testObjectScrewHelper1"]})]),
 
         # 9
-        MeshTest("MergedScrewWeld", "testMergedScrewWeld", "expectedMergedScrewWeld",
+        SpecMeshTest("MergedScrewWeld", "testMergedScrewWeld", "expectedMergedScrewWeld",
                  [ModifierSpec("screw", 'SCREW',
                                {'angle': math.radians(360), 'steps': 12, 'iterations': 1, 'screw_offset': 1,
                                 'use_normal_calculate': True, 'use_merge_vertices': True}),
                   ModifierSpec("weld", 'WELD', {"merge_threshold": 0.001})]),
-        MeshTest("T72380Weld", "regressT72380Weld", "expectedT72380Weld",
+        SpecMeshTest("T72380Weld", "regressT72380Weld", "expectedT72380Weld",
                  [ModifierSpec('vedit', 'VERTEX_WEIGHT_EDIT',
                                {'vertex_group': 'Group', 'use_remove': True, 'remove_threshold': 1}),
                   ModifierSpec("weld", 'WELD', {"merge_threshold": 0.2, "vertex_group": "Group"})]),
-        MeshTest("T72792Weld", "regressT72792Weld", "expectedT72792Weld",
+        SpecMeshTest("T72792Weld", "regressT72792Weld", "expectedT72792Weld",
                  [ModifierSpec('array', 'ARRAY', {'fit_type': 'FIXED_COUNT', 'count': 2}),
                   ModifierSpec("weld", 'WELD', {"merge_threshold": 0.1, "vertex_group": "Group"})]),
 
@@ -146,89 +146,89 @@ def main():
         # One 'Generate' modifier on primitive meshes
         #############################################
         # 12
-        MeshTest("CubeArray", "testCubeArray", "expectedCubeArray",
+        SpecMeshTest("CubeArray", "testCubeArray", "expectedCubeArray",
                  [ModifierSpec('array', 'ARRAY', {})]),
-        MeshTest("CapArray", "testCapArray", "expectedCapArray",
+        SpecMeshTest("CapArray", "testCapArray", "expectedCapArray",
                  [ModifierSpec('array', 'ARRAY',
                                {'fit_type': 'FIT_LENGTH', 'fit_length': 2.0,
                                 'start_cap': bpy.data.objects["testCapStart"],
                                 'end_cap': bpy.data.objects["testCapEnd"]})]),
-        MeshTest("CurveArray", "testCurveArray", "expectedCurveArray",
+        SpecMeshTest("CurveArray", "testCurveArray", "expectedCurveArray",
                  [ModifierSpec('array', 'ARRAY',
                                {'fit_type': 'FIT_CURVE', 'curve': bpy.data.objects["testCurveArrayHelper"],
                                 'use_relative_offset': False, 'use_constant_offset': True,
                                 'constant_offset_displace': (0.5, 0, 0)})]),
-        MeshTest("RadialArray", "testRadialArray", "expectedRadialArray",
+        SpecMeshTest("RadialArray", "testRadialArray", "expectedRadialArray",
                  [ModifierSpec('array', 'ARRAY', {'fit_type': 'FIXED_COUNT', 'count': 3, 'use_merge_vertices': True,
                                                   'use_merge_vertices_cap': True, 'use_relative_offset': False,
                                                   'use_object_offset': True,
                                                   'offset_object': bpy.data.objects["testRadialArrayHelper"]})]),
 
-        MeshTest("CylinderBuild", "testCylinderBuild", "expectedCylinderBuild",
+        SpecMeshTest("CylinderBuild", "testCylinderBuild", "expectedCylinderBuild",
                  [ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2)]),
 
         # 17
-        MeshTest("ConeDecimate", "testConeDecimate", "expectedConeDecimate",
+        SpecMeshTest("ConeDecimate", "testConeDecimate", "expectedConeDecimate",
                  [ModifierSpec('decimate', 'DECIMATE', {'ratio': 0.5})]),
-        MeshTest("CubeEdgeSplit", "testCubeEdgeSplit", "expectedCubeEdgeSplit",
+        SpecMeshTest("CubeEdgeSplit", "testCubeEdgeSplit", "expectedCubeEdgeSplit",
                  [ModifierSpec('edge split', 'EDGE_SPLIT', {})]),
 
-        MeshTest("SphereMirror", "testSphereMirror", "expectedSphereMirror",
+        SpecMeshTest("SphereMirror", "testSphereMirror", "expectedSphereMirror",
                  [ModifierSpec('mirror', 'MIRROR', {})]),
-        MeshTest("LocalMirror", "testLocalMirror", "expectedLocalMirror",
+        SpecMeshTest("LocalMirror", "testLocalMirror", "expectedLocalMirror",
                  [ModifierSpec('mirror', 'MIRROR', {'use_clip': True})]),
-        MeshTest("ObjectOffsetMirror", "testObjectOffsetMirror", "expectedObjectOffsetMirror",
+        SpecMeshTest("ObjectOffsetMirror", "testObjectOffsetMirror", "expectedObjectOffsetMirror",
                  [ModifierSpec('mirror', 'MIRROR',
                                {'mirror_object': bpy.data.objects["testObjectOffsetMirrorHelper"]})]),
 
-        MeshTest("CylinderMask", "testCylinderMask", "expectedCylinderMask",
+        SpecMeshTest("CylinderMask", "testCylinderMask", "expectedCylinderMask",
                  [ModifierSpec('mask', 'MASK', {'vertex_group': "mask_vertex_group"})]),
-        MeshTest("ConeMultiRes", "testConeMultiRes", "expectedConeMultiRes",
+        SpecMeshTest("ConeMultiRes", "testConeMultiRes", "expectedConeMultiRes",
                  [ModifierSpec('multires', 'MULTIRES', {})]),
 
         # 24
-        MeshTest("CubeScrew", "testCubeScrew", "expectedCubeScrew",
+        SpecMeshTest("CubeScrew", "testCubeScrew", "expectedCubeScrew",
                  [ModifierSpec('screw', 'SCREW', {})]),
 
-        MeshTest("CubeSolidify", "testCubeSolidify", "expectedCubeSolidify",
+        SpecMeshTest("CubeSolidify", "testCubeSolidify", "expectedCubeSolidify",
                  [ModifierSpec('solidify', 'SOLIDIFY', {})]),
-        MeshTest("ComplexSolidify", "testComplexSolidify", "expectedComplexSolidify",
+        SpecMeshTest("ComplexSolidify", "testComplexSolidify", "expectedComplexSolidify",
                  [ModifierSpec('solidify', 'SOLIDIFY', {'solidify_mode': 'NON_MANIFOLD', 'thickness': 0.05, 'offset': 0,
                                                         'nonmanifold_thickness_mode': 'CONSTRAINTS'})]),
-        MeshTest("T63063Solidify", "regressT63063Solidify", "expectedT63063Solidify",
+        SpecMeshTest("T63063Solidify", "regressT63063Solidify", "expectedT63063Solidify",
                  [ModifierSpec('solid', 'SOLIDIFY', {'thickness': 0.1, 'offset': 0.7})]),
-        MeshTest("T61979Solidify", "regressT61979Solidify", "expectedT61979Solidify",
+        SpecMeshTest("T61979Solidify", "regressT61979Solidify", "expectedT61979Solidify",
                  [ModifierSpec('solid', 'SOLIDIFY',
                                {'thickness': -0.25, 'use_even_offset': True, 'use_quality_normals': True})]),
 
-        MeshTest("MonkeySubsurf", "testMonkeySubsurf", "expectedMonkeySubsurf",
+        SpecMeshTest("MonkeySubsurf", "testMonkeySubsurf", "expectedMonkeySubsurf",
                  [ModifierSpec('subsurf', 'SUBSURF', {})]),
-        MeshTest("CatmullClarkSubdivisionSurface", "testCatmullClarkSubdivisionSurface",
+        SpecMeshTest("CatmullClarkSubdivisionSurface", "testCatmullClarkSubdivisionSurface",
                  "expectedCatmullClarkSubdivisionSurface",
                  [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2})]),
-        MeshTest("SimpleSubdivisionSurface", "testSimpleSubdivisionSurface", "expectedSimpleSubdivisionSurface",
+        SpecMeshTest("SimpleSubdivisionSurface", "testSimpleSubdivisionSurface", "expectedSimpleSubdivisionSurface",
                  [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2, 'subdivision_type': 'SIMPLE'})]),
-        MeshTest("Crease2dSubdivisionSurface", "testCrease2dSubdivisionSurface", "expectedCrease2dSubdivisionSurface",
+        SpecMeshTest("Crease2dSubdivisionSurface", "testCrease2dSubdivisionSurface", "expectedCrease2dSubdivisionSurface",
                  [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2})]),
-        MeshTest("Crease3dSubdivisionSurface", "testCrease3dSubdivisionSurface", "expectedCrease3dSubdivisionSurface",
+        SpecMeshTest("Crease3dSubdivisionSurface", "testCrease3dSubdivisionSurface", "expectedCrease3dSubdivisionSurface",
                  [ModifierSpec("subdivision", 'SUBSURF', {"levels": 2})]),
 
         # 34
 
-        MeshTest("SphereTriangulate", "testSphereTriangulate", "expectedSphereTriangulate",
+        SpecMeshTest("SphereTriangulate", "testSphereTriangulate", "expectedSphereTriangulate",
                  [ModifierSpec('triangulate', 'TRIANGULATE', {})]),
-        MeshTest("MonkeyWireframe", "testMonkeyWireframe", "expectedMonkeyWireframe",
+        SpecMeshTest("MonkeyWireframe", "testMonkeyWireframe", "expectedMonkeyWireframe",
                  [ModifierSpec('wireframe', 'WIREFRAME', {})]),
 
         # Duplicate the object, test object and expected object have same world coordinates.
-        MeshTest("Skin", "testObjPlaneSkin", "expObjPlaneSkin",
+        SpecMeshTest("Skin", "testObjPlaneSkin", "expObjPlaneSkin",
                  [ModifierSpec('skin', 'SKIN', {})]),
 
-        MeshTest("MergedWeld", "testMergedWeld", "expectedMergedWeld",
+        SpecMeshTest("MergedWeld", "testMergedWeld", "expectedMergedWeld",
                  [ModifierSpec("weld", 'WELD', {"merge_threshold": 0.021})]),
-        MeshTest("MergedAllWeld", "testMergedAllWeld", "expectedMergedAllWeld",
+        SpecMeshTest("MergedAllWeld", "testMergedAllWeld", "expectedMergedAllWeld",
                  [ModifierSpec("weld", 'WELD', {"merge_threshold": 1.8})]),
-        MeshTest("MergedNoneWeld", "testMergedNoneWeld", "expectedMergedNoneWeld",
+        SpecMeshTest("MergedNoneWeld", "testMergedNoneWeld", "expectedMergedNoneWeld",
                  [ModifierSpec("weld", 'WELD', {"merge_threshold": 0.019})]),
 
 
@@ -236,109 +236,109 @@ def main():
         # One 'Deform' modifier on primitive meshes
         #############################################
         # 39
-        MeshTest("MonkeyArmature", "testMonkeyArmature", "expectedMonkeyArmature",
+        SpecMeshTest("MonkeyArmature", "testMonkeyArmature", "expectedMonkeyArmature",
                  [ModifierSpec('armature', 'ARMATURE',
                                {'object': bpy.data.objects['testArmature'], 'use_vertex_groups': True})]),
-        MeshTest("TorusCast", "testTorusCast", "expectedTorusCast",
+        SpecMeshTest("TorusCast", "testTorusCast", "expectedTorusCast",
                  [ModifierSpec('cast', 'CAST', {'factor': 2.64})]),
-        MeshTest("CubeCurve", "testCubeCurve", "expectedCubeCurve",
+        SpecMeshTest("CubeCurve", "testCubeCurve", "expectedCubeCurve",
                  [ModifierSpec('curve', 'CURVE', {'object': bpy.data.objects['testBezierCurve']})]),
-        MeshTest("MonkeyDisplace", "testMonkeyDisplace", "expectedMonkeyDisplace",
+        SpecMeshTest("MonkeyDisplace", "testMonkeyDisplace", "expectedMonkeyDisplace",
                  [ModifierSpec('displace', "DISPLACE", {})]),
 
         # Hook modifier requires moving the hook object to get a mesh change
         # so can't test it with the current framework
-        # MeshTest("MonkeyHook", "testMonkeyHook", "expectedMonkeyHook",
+        # SpecMeshTest("MonkeyHook", "testMonkeyHook", "expectedMonkeyHook",
         #  [ModifierSpec('hook', 'HOOK', {'object': bpy.data.objects["EmptyHook"], 'vertex_group':
         #  "HookVertexGroup"})]),
 
         # 43
         # ModifierSpec('laplacian_deform', 'LAPLACIANDEFORM', {}) Laplacian requires a more complex mesh
-        MeshTest("CubeLattice", "testCubeLattice", "expectedCubeLattice",
+        SpecMeshTest("CubeLattice", "testCubeLattice", "expectedCubeLattice",
                  [ModifierSpec('lattice', 'LATTICE', {'object': bpy.data.objects["testLattice"]})]),
 
-        MeshTest("PlaneShrinkWrap", "testPlaneShrinkWrap", "expectedPlaneShrinkWrap",
+        SpecMeshTest("PlaneShrinkWrap", "testPlaneShrinkWrap", "expectedPlaneShrinkWrap",
                  [ModifierSpec('shrinkwrap', 'SHRINKWRAP',
                                {'target': bpy.data.objects["testCubeWrap"], 'offset': 0.5})]),
 
-        MeshTest("CylinderSimpleDeform", "testCylinderSimpleDeform", "expectedCylinderSimpleDeform",
+        SpecMeshTest("CylinderSimpleDeform", "testCylinderSimpleDeform", "expectedCylinderSimpleDeform",
                  [ModifierSpec('simple_deform', 'SIMPLE_DEFORM', {'angle': math.radians(180), 'deform_axis': 'Z'})]),
 
-        MeshTest("PlaneSmooth", "testPlaneSmooth", "expectedPlaneSmooth",
+        SpecMeshTest("PlaneSmooth", "testPlaneSmooth", "expectedPlaneSmooth",
                  [ModifierSpec('smooth', 'SMOOTH', {'iterations': 11})]),
 
         # Smooth corrective requires a complex mesh.
 
-        MeshTest("BalloonLaplacianSmooth", "testBalloonLaplacianSmooth", "expectedBalloonLaplacianSmooth",
+        SpecMeshTest("BalloonLaplacianSmooth", "testBalloonLaplacianSmooth", "expectedBalloonLaplacianSmooth",
                  [ModifierSpec('laplaciansmooth', 'LAPLACIANSMOOTH', {'lambda_factor': 12, 'lambda_border': 12})]),
 
         # Gets updated often
-        MeshTest("WavePlane", "testObjPlaneWave", "expObjPlaneWave",
+        SpecMeshTest("WavePlane", "testObjPlaneWave", "expObjPlaneWave",
                  [ModifierSpec('wave', 'WAVE', {})]),
 
         #############################################
         # CURVES Generate Modifiers
         #############################################
         # Caution: Make sure test object has no modifier in "added" state, the test may fail.
-        MeshTest("BezCurveArray", "testObjBezierCurveArray", "expObjBezierCurveArray",
+        SpecMeshTest("BezCurveArray", "testObjBezierCurveArray", "expObjBezierCurveArray",
                  [ModifierSpec('array', 'ARRAY', {})]),
 
-        MeshTest("CurveBevel", "testObjBezierCurveBevel", "expObjBezierCurveBevel",
+        SpecMeshTest("CurveBevel", "testObjBezierCurveBevel", "expObjBezierCurveBevel",
                  [ModifierSpec('bevel', 'BEVEL', {'limit_method': 'NONE'})]),
 
-        MeshTest("CurveBuild", "testObjBezierCurveBuild", "expObjBezierCurveBuild",
+        SpecMeshTest("CurveBuild", "testObjBezierCurveBuild", "expObjBezierCurveBuild",
                  [ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2)]),
 
-        MeshTest("CurveDecimate", "testObjBezierCurveDecimate", "expObjBezierCurveDecimate",
+        SpecMeshTest("CurveDecimate", "testObjBezierCurveDecimate", "expObjBezierCurveDecimate",
                  [ModifierSpec('decimate', 'DECIMATE', {'ratio': 0.5})]),
 
-        MeshTest("CurveEdgeSplit", "testObjBezierCurveEdgeSplit", "expObjBezierCurveEdgeSplit",
+        SpecMeshTest("CurveEdgeSplit", "testObjBezierCurveEdgeSplit", "expObjBezierCurveEdgeSplit",
                  [ModifierSpec('edgeSplit', 'EDGE_SPLIT', {})]),
 
-        MeshTest("CurveMirror", "testObjBezierCurveMirror", "expObjBezierCurveMirror",
+        SpecMeshTest("CurveMirror", "testObjBezierCurveMirror", "expObjBezierCurveMirror",
                  [ModifierSpec('mirror', 'MIRROR', {'use_axis': (True, True, False)})]),
 
-        MeshTest("CurveScrew", "testObjBezierCurveScrew", "expObjBezierCurveScrew",
+        SpecMeshTest("CurveScrew", "testObjBezierCurveScrew", "expObjBezierCurveScrew",
                  [ModifierSpec('screw', 'SCREW', {})]),
 
-        MeshTest("CurveSolidify", "testObjBezierCurveSolidify", "expObjBezierCurveSolidify",
+        SpecMeshTest("CurveSolidify", "testObjBezierCurveSolidify", "expObjBezierCurveSolidify",
                  [ModifierSpec('solidify', 'SOLIDIFY', {'thickness': 1})]),
 
-        MeshTest("CurveSubSurf", "testObjBezierCurveSubSurf", "expObjBezierCurveSubSurf",
+        SpecMeshTest("CurveSubSurf", "testObjBezierCurveSubSurf", "expObjBezierCurveSubSurf",
                  [ModifierSpec('subSurf', 'SUBSURF', {})]),
 
-        MeshTest("CurveTriangulate", "testObjBezierCurveTriangulate", "expObjBezierCurveTriangulate",
+        SpecMeshTest("CurveTriangulate", "testObjBezierCurveTriangulate", "expObjBezierCurveTriangulate",
                  [ModifierSpec('triangulate', 'TRIANGULATE', {})]),
 
         # Test 60
         # Caution Weld: if the distance is increased beyond a limit, the object disappears
-        MeshTest("CurveWeld", "testObjBezierCurveWeld", "expObjBezierCurveWeld",
+        SpecMeshTest("CurveWeld", "testObjBezierCurveWeld", "expObjBezierCurveWeld",
                  [ModifierSpec('weld', 'WELD', {})]),
 
-        MeshTest("CurveWeld2", "testObjBezierCurveWeld2", "expObjBezierCurveWeld2",
+        SpecMeshTest("CurveWeld2", "testObjBezierCurveWeld2", "expObjBezierCurveWeld2",
                  [ModifierSpec('weld', 'WELD', {})]),
 
         #############################################
         # Curves Deform Modifiers
         #############################################
         # Test 62
-        MeshTest("CurveCast", "testObjBezierCurveCast", "expObjBezierCurveCast",
+        SpecMeshTest("CurveCast", "testObjBezierCurveCast", "expObjBezierCurveCast",
                  [ModifierSpec('Cast', 'CAST', {'cast_type': 'CYLINDER', 'factor': 10})]),
 
-        MeshTest("CurveShrinkWrap", "testObjBezierCurveShrinkWrap", "expObjBezierCurveShrinkWrap",
+        SpecMeshTest("CurveShrinkWrap", "testObjBezierCurveShrinkWrap", "expObjBezierCurveShrinkWrap",
                  [ModifierSpec('ShrinkWrap', 'SHRINKWRAP',
                                {'target': bpy.data.objects['testShrinkWrapHelperSuzanne']})]),
 
-        MeshTest("CurveSimpleDeform", "testObjBezierCurveSimpleDeform", "expObjBezierCurveSimpleDeform",
+        SpecMeshTest("CurveSimpleDeform", "testObjBezierCurveSimpleDeform", "expObjBezierCurveSimpleDeform",
                  [ModifierSpec('simple_deform', 'SIMPLE_DEFORM', {'angle': math.radians(90)})]),
 
-        MeshTest("CurveSmooth", "testObjBezierCurveSmooth", "expObjBezierCurveSmooth",
+        SpecMeshTest("CurveSmooth", "testObjBezierCurveSmooth", "expObjBezierCurveSmooth",
                  [ModifierSpec('smooth', 'SMOOTH', {'factor': 10})]),
 
-        MeshTest("CurveWave", "testObjBezierCurveWave", "expObjBezierCurveWave",
+        SpecMeshTest("CurveWave", "testObjBezierCurveWave", "expObjBezierCurveWave",
                  [ModifierSpec('curve_wave', 'WAVE', {'time_offset': -1.5})]),
 
-        MeshTest("CurveCurve", "testObjBezierCurveCurve", "expObjBezierCurveCurve",
+        SpecMeshTest("CurveCurve", "testObjBezierCurveCurve", "expObjBezierCurveCurve",
                  [ModifierSpec('curve_Curve', 'CURVE', {'object': bpy.data.objects['NurbsCurve']})]),
 
     ]
