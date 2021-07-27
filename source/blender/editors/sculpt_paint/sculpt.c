@@ -7887,6 +7887,9 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 
     sculpt_update_cache_invariants(C, sd, ss, op, mouse);
 
+    SculptCursorGeometryInfo sgi;
+    SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+
     SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));
 
     return true;
