@@ -1013,6 +1013,15 @@ bool BKE_lib_override_library_resync(Main *bmain,
 
   ID *id_root_reference = id_root->override_library->reference;
 
+  if (id_root_reference->tag & LIB_TAG_MISSING) {
+    BKE_reportf(reports != NULL ? reports->reports : NULL,
+                RPT_ERROR,
+                "impossible to resync data-block %s and its dependencies, as its linked reference "
+                "is missing",
+                id_root->name + 2);
+    return false;
+  }
+
   BKE_main_relations_create(bmain, 0);
   LibOverrideGroupTagData data = {.bmain = bmain,
                                   .scene = scene,
