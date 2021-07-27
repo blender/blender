@@ -208,8 +208,8 @@ class ExecutionSystem {
   void execute_work(const rcti &work_rect, std::function<void(const rcti &split_rect)> work_func);
 
   /**
-   * Multi-threadedly execute given work function passing work_rect splits as argument. On
-   * finished, caller thread will call reduce_func for each thread result.
+   * Multi-threaded execution of given work function passing work_rect splits as argument.
+   * Once finished, caller thread will call reduce_func for each thread result.
    */
   template<typename TResult>
   void execute_work(const rcti &work_rect,

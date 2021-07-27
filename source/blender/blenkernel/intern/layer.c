@@ -743,7 +743,7 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  * called a lot (e.g. during massive remappings of IDs).
  *
  * Usage of these should be done very carefully though. In particular, calling
- * code must ensures it resync LayerCollections before any UI/Eevnt loop
+ * code must ensures it resync LayerCollections before any UI/Event loop
  * handling can happen.
  *
  * WARNING: This is not threadsafe at all, only use from main thread.

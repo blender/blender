@@ -82,7 +82,7 @@ typedef struct IpoCurve {
   char _pad0[2];
   /** Minimum/maximum y-extents for curve. */
   float ymin, ymax;
-  /** ???. */
+  /** Unused since the first available revision. */
   unsigned int bitmask;
 
   /** Minimum/maximum values for sliders (in action editor). */

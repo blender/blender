@@ -734,7 +734,7 @@ typedef struct RenderData {
 
   /* sequencer options */
   char seq_prev_type;
-  /** UNUSED!. */
+  /** UNUSED. */
   char seq_rend_type;
   /** Flag use for sequence render/draw. */
   char seq_flag;
@@ -1535,7 +1535,7 @@ typedef struct ToolSettings {
 
 typedef struct UnitSettings {
   /* Display/Editing unit options for each scene */
-  /** Maybe have other unit conversions?. */
+  /** Maybe have other unit conversions? */
   float scale_length;
   /** Imperial, metric etc. */
   char system;

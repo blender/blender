@@ -66,7 +66,7 @@
 /* Batching buffer for drawing. */
 BatchBLF g_batch;
 
-/* freetype2 handle ONLY for this file!. */
+/* freetype2 handle ONLY for this file! */
 static FT_Library ft_lib;
 static SpinLock ft_lib_mutex;
 static SpinLock blf_glyph_cache_mutex;

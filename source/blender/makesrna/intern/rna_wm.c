@@ -1912,7 +1912,7 @@ static void rna_def_operator(BlenderRNA *brna)
   /* Registration */
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "type->idname");
-  /* else it uses the pointer size!. -3 because '.' -> '_OT_' */
+  /* Without setting the length the pointer size would be used. -3 because `.` -> `_OT_`. */
   RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME - 3);
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_idname_set");
   /* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */

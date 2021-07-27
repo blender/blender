@@ -382,7 +382,7 @@ typedef struct LineStyleGeometryModifier_PerlinNoise1D {
   struct LineStyleModifier modifier;
 
   float frequency, amplitude;
-  /** In radians!. */
+  /** In radians. */
   float angle;
   unsigned int octaves;
   int seed;
@@ -393,7 +393,7 @@ typedef struct LineStyleGeometryModifier_PerlinNoise2D {
   struct LineStyleModifier modifier;
 
   float frequency, amplitude;
-  /** In radians!. */
+  /** In radians. */
   float angle;
   unsigned int octaves;
   int seed;
@@ -463,7 +463,7 @@ typedef struct LineStyleGeometryModifier_2DTransform {
 
   int pivot;
   float scale_x, scale_y;
-  /** In radians!. */
+  /** In radians. */
   float angle;
   float pivot_u;
   float pivot_x, pivot_y;
@@ -483,7 +483,7 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
   struct LineStyleModifier modifier;
 
   float min_thickness, max_thickness;
-  /** In radians!. */
+  /** In radians. */
   float orientation;
   char _pad[4];
 } LineStyleThicknessModifier_Calligraphy;

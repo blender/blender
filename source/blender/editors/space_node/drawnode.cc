@@ -165,7 +165,7 @@ static void node_buts_curvevec(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 }
 
 #define SAMPLE_FLT_ISNONE FLT_MAX
-/* bad bad, 2.5 will do better?... no it won't... */
+/* Bad bad, 2.5 will do better? ... no it won't! */
 static float _sample_col[4] = {SAMPLE_FLT_ISNONE};
 void ED_node_sample_set(const float col[4])
 {

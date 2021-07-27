@@ -2026,7 +2026,7 @@ static const EnumPropertyItem prop_animchannel_settings_types[] = {
  * \param mode: eAnimChannels_SetFlag.
  * \param onlysel: only selected channels get the flag set.
  *
- * TODO: enable a setting which turns flushing on/off?.
+ * TODO: enable a setting which turns flushing on/off?
  */
 static void setflag_anim_channels(bAnimContext *ac,
                                   eAnimChannel_Settings setting,
