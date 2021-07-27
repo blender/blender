@@ -98,6 +98,9 @@ void BKE_action_get_frame_range(const struct bAction *act, float *r_start, float
 /* Does action have any motion data at all? */
 bool action_has_motion(const struct bAction *act);
 
+/* Is the action configured as cyclic. */
+bool BKE_action_is_cyclic(const struct bAction *act);
+
 /* Action Groups API ----------------- */
 
 /* Get the active action-group for an Action */

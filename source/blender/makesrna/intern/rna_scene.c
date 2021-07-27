@@ -3425,7 +3425,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop,
       "Cycle-Aware Keying",
       "For channels with cyclic extrapolation, keyframe insertion is automatically "
-      "remapped inside the cycle time range, and keeps ends in sync");
+      "remapped inside the cycle time range, and keeps ends in sync. Curves newly added to "
+      "actions with a Manual Frame Range and Cyclic Animation are automatically made cyclic");
 
   /* Keyframing */
   prop = RNA_def_property(srna, "keyframe_type", PROP_ENUM, PROP_NONE);

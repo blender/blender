@@ -701,6 +701,8 @@ typedef enum eAction_Flags {
   /* ACT_DISABLED = (1 << 11), */  /* UNUSED */
   /** The action has a manually set intended playback frame range. */
   ACT_FRAME_RANGE = (1 << 12),
+  /** The action is intended to be a cycle (requires ACT_FRAME_RANGE). */
+  ACT_CYCLIC = (1 << 13),
 } eAction_Flags;
 
 /* ************************************************ */

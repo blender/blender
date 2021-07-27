@@ -556,6 +556,8 @@ class DopesheetActionPanelBase:
         row.prop(action, "frame_start", text="Start")
         row.prop(action, "frame_end", text="End")
 
+        col.prop(action, "use_cyclic")
+
 
 class DOPESHEET_PT_action(DopesheetActionPanelBase, Panel):
     bl_space_type = 'DOPESHEET_EDITOR'

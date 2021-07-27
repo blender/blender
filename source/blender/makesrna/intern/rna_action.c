@@ -893,6 +893,16 @@ static void rna_def_action(BlenderRNA *brna)
       "(this range is used by some tools, but does not affect animation evaluation)");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
+  prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CYCLIC);
+  RNA_def_property_ui_text(
+      prop,
+      "Cyclic Animation",
+      "The action is intended to be used as a cycle looping over its manually set "
+      "playback frame range (enabling this doesn't automatically make it loop)");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+
   prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_float_sdna(prop, NULL, "frame_start");

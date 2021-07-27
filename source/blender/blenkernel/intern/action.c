@@ -1591,6 +1591,12 @@ void BKE_action_get_frame_range(const struct bAction *act, float *r_start, float
   }
 }
 
+/* Is the action configured as cyclic. */
+bool BKE_action_is_cyclic(const struct bAction *act)
+{
+  return act && (act->flag & ACT_FRAME_RANGE) && (act->flag & ACT_CYCLIC);
+}
+
 /* Return flags indicating which transforms the given object/posechannel has
  * - if 'curves' is provided, a list of links to these curves are also returned
  */

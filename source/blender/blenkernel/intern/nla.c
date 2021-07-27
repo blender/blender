@@ -395,6 +395,11 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
     strip->flag &= ~NLASTRIP_FLAG_SYNC_LENGTH;
   }
 
+  /* Enable cyclic time for known cyclic actions. */
+  if (BKE_action_is_cyclic(act)) {
+    strip->flag |= NLASTRIP_FLAG_USR_TIME_CYCLIC;
+  }
+
   /* assign the action reference */
   strip->act = act;
   id_us_plus(&act->id);
