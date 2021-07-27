@@ -103,10 +103,31 @@ int PyC_AsArray_FAST(void *array,
   }
   else if (type == &PyLong_Type) {
     switch (array_item_size) {
+      case sizeof(int64_t): {
+        int64_t *array_int = array;
+        for (i = 0; i < length; i++) {
+          array_int[i] = PyC_Long_AsI64(value_fast_items[i]);
+        }
+        break;
+      }
       case sizeof(int32_t): {
         int32_t *array_int = array;
         for (i = 0; i < length; i++) {
           array_int[i] = PyC_Long_AsI32(value_fast_items[i]);
+        }
+        break;
+      }
+      case sizeof(int16_t): {
+        int16_t *array_int = array;
+        for (i = 0; i < length; i++) {
+          array_int[i] = PyC_Long_AsI16(value_fast_items[i]);
+        }
+        break;
+      }
+      case sizeof(int8_t): {
+        int8_t *array_int = array;
+        for (i = 0; i < length; i++) {
+          array_int[i] = PyC_Long_AsI8(value_fast_items[i]);
         }
         break;
       }
@@ -118,8 +139,29 @@ int PyC_AsArray_FAST(void *array,
   }
   else if (type == &PyBool_Type) {
     switch (array_item_size) {
-      case sizeof(bool): {
-        bool *array_bool = array;
+      case sizeof(int64_t): {
+        int64_t *array_bool = array;
+        for (i = 0; i < length; i++) {
+          array_bool[i] = (PyLong_AsLong(value_fast_items[i]) != 0);
+        }
+        break;
+      }
+      case sizeof(int32_t): {
+        int32_t *array_bool = array;
+        for (i = 0; i < length; i++) {
+          array_bool[i] = (PyLong_AsLong(value_fast_items[i]) != 0);
+        }
+        break;
+      }
+      case sizeof(int16_t): {
+        int16_t *array_bool = array;
+        for (i = 0; i < length; i++) {
+          array_bool[i] = (PyLong_AsLong(value_fast_items[i]) != 0);
+        }
+        break;
+      }
+      case sizeof(int8_t): {
+        int8_t *array_bool = array;
         for (i = 0; i < length; i++) {
           array_bool[i] = (PyLong_AsLong(value_fast_items[i]) != 0);
         }
