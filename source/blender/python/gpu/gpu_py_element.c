@@ -144,8 +144,12 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject *UNUSED(type), PyObject *ar
           goto finally;
         }
 
-        ok = PyC_AsArray_FAST(
-                 values, seq_fast_item, verts_per_prim, &PyLong_Type, false, error_prefix) == 0;
+        ok = PyC_AsArray_FAST(values,
+                              sizeof(*values),
+                              seq_fast_item,
+                              verts_per_prim,
+                              &PyLong_Type,
+                              error_prefix) == 0;
 
         if (ok) {
           for (uint j = 0; j < verts_per_prim; j++) {

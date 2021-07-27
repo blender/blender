@@ -309,7 +309,8 @@ static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
         ret = -1;
       }
       else {
-        ret = PyC_AsArray_FAST(values, seq_fast, length, &PyLong_Type, false, error_prefix);
+        ret = PyC_AsArray_FAST(
+            values, sizeof(*values), seq_fast, length, &PyLong_Type, error_prefix);
       }
       Py_DECREF(seq_fast);
     }
@@ -448,7 +449,8 @@ static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
         ret = -1;
       }
       else {
-        ret = PyC_AsArray_FAST(values, seq_fast, length, &PyLong_Type, false, error_prefix);
+        ret = PyC_AsArray_FAST(
+            values, sizeof(*values), seq_fast, length, &PyLong_Type, error_prefix);
       }
       Py_DECREF(seq_fast);
     }

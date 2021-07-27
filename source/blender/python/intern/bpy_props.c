@@ -719,7 +719,8 @@ static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
     }
   }
   else {
-    if (PyC_AsArray(values, ret, len, &PyBool_Type, false, "BoolVectorProperty get") == -1) {
+    if (PyC_AsArray(values, sizeof(*values), ret, len, &PyBool_Type, "BoolVectorProperty get: ") ==
+        -1) {
       PyC_Err_PrintWithFunc(py_func);
 
       for (i = 0; i < len; i++) {
@@ -969,7 +970,8 @@ static void bpy_prop_int_array_get_fn(struct PointerRNA *ptr,
     }
   }
   else {
-    if (PyC_AsArray(values, ret, len, &PyLong_Type, false, "IntVectorProperty get") == -1) {
+    if (PyC_AsArray(values, sizeof(*values), ret, len, &PyLong_Type, "IntVectorProperty get: ") ==
+        -1) {
       PyC_Err_PrintWithFunc(py_func);
 
       for (i = 0; i < len; i++) {
@@ -1219,7 +1221,8 @@ static void bpy_prop_float_array_get_fn(struct PointerRNA *ptr,
     }
   }
   else {
-    if (PyC_AsArray(values, ret, len, &PyFloat_Type, false, "FloatVectorProperty get") == -1) {
+    if (PyC_AsArray(
+            values, sizeof(*values), ret, len, &PyFloat_Type, "FloatVectorProperty get: ") == -1) {
       PyC_Err_PrintWithFunc(py_func);
 
       for (i = 0; i < len; i++) {
@@ -2629,9 +2632,12 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
       return NULL;
     }
 
-    if (pydef &&
-        PyC_AsArray(
-            def, pydef, size, &PyBool_Type, false, "BoolVectorProperty(default=sequence)") == -1) {
+    if (pydef && (PyC_AsArray(def,
+                              sizeof(*def),
+                              pydef,
+                              size,
+                              &PyBool_Type,
+                              "BoolVectorProperty(default=sequence): ") == -1)) {
       return NULL;
     }
 
@@ -2916,9 +2922,12 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
       return NULL;
     }
 
-    if (pydef &&
-        PyC_AsArray(
-            def, pydef, size, &PyLong_Type, false, "IntVectorProperty(default=sequence)") == -1) {
+    if (pydef && (PyC_AsArray(def,
+                              sizeof(*def),
+                              pydef,
+                              size,
+                              &PyLong_Type,
+                              "IntVectorProperty(default=sequence): ") == -1)) {
       return NULL;
     }
 
@@ -3196,10 +3205,12 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
       return NULL;
     }
 
-    if (pydef &&
-        PyC_AsArray(
-            def, pydef, size, &PyFloat_Type, false, "FloatVectorProperty(default=sequence)") ==
-            -1) {
+    if (pydef && (PyC_AsArray(def,
+                              sizeof(*def),
+                              pydef,
+                              size,
+                              &PyFloat_Type,
+                              "FloatVectorProperty(default=sequence): ") == -1)) {
       return NULL;
     }
 

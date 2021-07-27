@@ -57,10 +57,10 @@
 
 /* array utility function */
 int PyC_AsArray_FAST(void *array,
+                     const size_t array_item_size,
                      PyObject *value_fast,
                      const Py_ssize_t length,
                      const PyTypeObject *type,
-                     const bool is_double,
                      const char *error_prefix)
 {
   const Py_ssize_t value_len = PySequence_Fast_GET_SIZE(value_fast);
@@ -80,30 +80,55 @@ int PyC_AsArray_FAST(void *array,
 
   /* for each type */
   if (type == &PyFloat_Type) {
-    if (is_double) {
-      double *array_double = array;
-      for (i = 0; i < length; i++) {
-        array_double[i] = PyFloat_AsDouble(value_fast_items[i]);
+    switch (array_item_size) {
+      case sizeof(double): {
+        double *array_double = array;
+        for (i = 0; i < length; i++) {
+          array_double[i] = PyFloat_AsDouble(value_fast_items[i]);
+        }
+        break;
       }
-    }
-    else {
-      float *array_float = array;
-      for (i = 0; i < length; i++) {
-        array_float[i] = PyFloat_AsDouble(value_fast_items[i]);
+      case sizeof(float): {
+        float *array_float = array;
+        for (i = 0; i < length; i++) {
+          array_float[i] = PyFloat_AsDouble(value_fast_items[i]);
+        }
+        break;
+      }
+      default: {
+        /* Internal error. */
+        BLI_assert_unreachable();
       }
     }
   }
   else if (type == &PyLong_Type) {
-    /* could use is_double for 'long int' but no use now */
-    int *array_int = array;
-    for (i = 0; i < length; i++) {
-      array_int[i] = PyC_Long_AsI32(value_fast_items[i]);
+    switch (array_item_size) {
+      case sizeof(int32_t): {
+        int32_t *array_int = array;
+        for (i = 0; i < length; i++) {
+          array_int[i] = PyC_Long_AsI32(value_fast_items[i]);
+        }
+        break;
+      }
+      default: {
+        /* Internal error. */
+        BLI_assert_unreachable();
+      }
     }
   }
   else if (type == &PyBool_Type) {
-    bool *array_bool = array;
-    for (i = 0; i < length; i++) {
-      array_bool[i] = (PyLong_AsLong(value_fast_items[i]) != 0);
+    switch (array_item_size) {
+      case sizeof(bool): {
+        bool *array_bool = array;
+        for (i = 0; i < length; i++) {
+          array_bool[i] = (PyLong_AsLong(value_fast_items[i]) != 0);
+        }
+        break;
+      }
+      default: {
+        /* Internal error. */
+        BLI_assert_unreachable();
+      }
     }
   }
   else {
@@ -123,10 +148,10 @@ int PyC_AsArray_FAST(void *array,
 }
 
 int PyC_AsArray(void *array,
+                const size_t array_item_size,
                 PyObject *value,
                 const Py_ssize_t length,
                 const PyTypeObject *type,
-                const bool is_double,
                 const char *error_prefix)
 {
   PyObject *value_fast;
@@ -136,7 +161,7 @@ int PyC_AsArray(void *array,
     return -1;
   }
 
-  ret = PyC_AsArray_FAST(array, value_fast, length, type, is_double, error_prefix);
+  ret = PyC_AsArray_FAST(array, array_item_size, value_fast, length, type, error_prefix);
   Py_DECREF(value_fast);
   return ret;
 }
