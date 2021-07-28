@@ -748,6 +748,11 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  *
  * WARNING: This is not threadsafe at all, only use from main thread.
  *
+ * NOTE: It is probably needed to use #BKE_main_collection_sync_remap instead
+ *       of just #BKE_main_collection_sync after disabling LayerCollection resync,
+ *       unless it is absolutely certain that no ID remapping (or any other process
+ *       that may invalidate the caches) will happen while it is disabled.
+ *
  * NOTE: This is a quick and safe band-aid around the long-known issue
  *       regarding this resync process.
  *       Proper fix would be to make resync itself lazy, i.e. only happen

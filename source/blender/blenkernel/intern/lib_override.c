@@ -772,7 +772,11 @@ static void lib_override_library_create_post_process(Main *bmain,
   /* NOTE: We only care about local IDs here, if a linked object is not instantiated in any way we
    * do not do anything about it. */
 
-  BKE_main_collection_sync(bmain);
+  /* We need to use the `_remap` version here as we prevented any LayerCollection resync during the
+   * whole liboverride resyncing, which involves a lot of ID remapping.
+   *
+   * Otherwise, cached Base GHash e.g. can contain invalid stale data. */
+  BKE_main_collection_sync_remap(bmain);
 
   /* We create a set of all objects referenced into the scene by its hierarchy of collections.
    * NOTE: This is different that the list of bases, since objects in excluded collections etc.
