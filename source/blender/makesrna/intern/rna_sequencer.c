@@ -324,7 +324,6 @@ static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_relations_invalidate_cache_composite(scene, seq);
   SEQ_transform_translate_sequence(scene, seq, value - seq->start);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
@@ -335,7 +334,6 @@ static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_relations_invalidate_cache_composite(scene, seq);
   SEQ_transform_set_left_handle_frame(seq, value);
   SEQ_transform_fix_single_image_seq_offsets(seq);
   do_sequence_frame_change_update(scene, seq);
@@ -347,7 +345,6 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_relations_invalidate_cache_composite(scene, seq);
   SEQ_transform_set_right_handle_frame(seq, value);
   SEQ_transform_fix_single_image_seq_offsets(seq);
   do_sequence_frame_change_update(scene, seq);
@@ -451,7 +448,6 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_relations_invalidate_cache_composite(scene, seq);
   SEQ_transform_set_right_handle_frame(seq, SEQ_transform_get_left_handle_frame(seq) + value);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
@@ -477,7 +473,6 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
   Editing *ed = SEQ_editing_get(scene, false);
   ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
 
-  SEQ_relations_invalidate_cache_composite(scene, seq);
   /* check channel increment or decrement */
   const int channel_delta = (value >= seq->machine) ? 1 : -1;
   seq->machine = value;
