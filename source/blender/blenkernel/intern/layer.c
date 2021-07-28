@@ -23,7 +23,10 @@
 
 #include <string.h>
 
+#include "CLG_log.h"
+
 #include "BLI_listbase.h"
+#include "BLI_mempool.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
@@ -62,6 +65,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLO_read_write.h"
+
+static CLG_LogRef LOG = {"bke.layercollection"};
 
 /* Set of flags which are dependent on a collection settings. */
 static const short g_base_collection_flags = (BASE_VISIBLE_DEPSGRAPH | BASE_VISIBLE_VIEWLAYER |
@@ -771,6 +776,194 @@ void BKE_layer_collection_resync_allow(void)
   no_resync = false;
 }
 
+typedef struct LayerCollectionResync {
+  struct LayerCollectionResync *prev, *next;
+
+  /* Temp data used to generate a queue during valid layer search. See
+   * #layer_collection_resync_find. */
+  struct LayerCollectionResync *queue_next;
+
+  /* LayerCollection and Collection wrapped by this data. */
+  LayerCollection *layer;
+  Collection *collection;
+
+  /* Hierarchical relationships in the old, existing ViewLayer state (except for newly created
+   * layers). */
+  struct LayerCollectionResync *parent_layer_resync;
+  ListBase children_layer_resync;
+
+  /* This layer still points to a valid collection. */
+  bool is_usable;
+  /* This layer is still valid as a parent, i.e. at least one of its original layer children is
+   * usable and matches one of its current children collections. */
+  bool is_valid_as_parent;
+  /* This layer is still valid as a child, i.e. its original layer parent is usable and matches one
+   * of its current parents collections. */
+  bool is_valid_as_child;
+  /* This layer is still fully valid in the new collection hierarchy, i.e. itself and all of its
+   * parents fully match the current collection hierarchy.
+   * OR
+   * This layer has already been re-used to match the new collections hierarchy. */
+  bool is_used;
+} LayerCollectionResync;
+
+static LayerCollectionResync *layer_collection_resync_create_recurse(
+    LayerCollectionResync *parent_layer_resync, LayerCollection *layer, BLI_mempool *mempool)
+{
+  LayerCollectionResync *layer_resync = BLI_mempool_calloc(mempool);
+
+  layer_resync->layer = layer;
+  layer_resync->collection = layer->collection;
+  layer_resync->parent_layer_resync = parent_layer_resync;
+  if (parent_layer_resync != NULL) {
+    BLI_addtail(&parent_layer_resync->children_layer_resync, layer_resync);
+  }
+
+  layer_resync->is_usable = (layer->collection != NULL);
+  layer_resync->is_valid_as_child =
+      layer_resync->is_usable && (parent_layer_resync == NULL ||
+                                  (parent_layer_resync->is_usable &&
+                                   BLI_findptr(&parent_layer_resync->layer->collection->children,
+                                               layer->collection,
+                                               offsetof(CollectionChild, collection)) != NULL));
+  if (layer_resync->is_valid_as_child) {
+    layer_resync->is_used = parent_layer_resync != NULL ? parent_layer_resync->is_used : true;
+  }
+  else {
+    layer_resync->is_used = false;
+  }
+
+  if (BLI_listbase_is_empty(&layer->layer_collections)) {
+    layer_resync->is_valid_as_parent = layer_resync->is_usable;
+  }
+  else {
+    LISTBASE_FOREACH (LayerCollection *, child_layer, &layer->layer_collections) {
+      LayerCollectionResync *child_layer_resync = layer_collection_resync_create_recurse(
+          layer_resync, child_layer, mempool);
+      if (layer_resync->is_usable && child_layer_resync->is_valid_as_child) {
+        layer_resync->is_valid_as_parent = true;
+      }
+    }
+  }
+
+  CLOG_INFO(&LOG,
+            4,
+            "Old LayerCollection for %s is...\n\tusable: %d\n\tvalid parent: %d\n\tvalid child: "
+            "%d\n\tused: %d\n",
+            layer_resync->collection ? layer_resync->collection->id.name : "<NONE>",
+            layer_resync->is_usable,
+            layer_resync->is_valid_as_parent,
+            layer_resync->is_valid_as_child,
+            layer_resync->is_used);
+
+  return layer_resync;
+}
+
+static LayerCollectionResync *layer_collection_resync_find(LayerCollectionResync *layer_resync,
+                                                           Collection *child_collection)
+{
+  /* Given the given parent, valid layer collection, find in the old hierarchy the best possible
+   * unused layer matching the given child collection.
+   *
+   * This uses the following heuristics:
+   *  - Prefer a layer descendant of the given parent one if possible.
+   *  - Prefer a layer as closely related as possible from the given parent.
+   *  - Do not used layers that are not head (highest possible ancestor) of a local valid hierarchy
+   *    branch, since we can assume we could then re-use its ancestor instead.
+   *
+   * A queue is used to ensure this order of preferences.
+   */
+
+  BLI_assert(layer_resync->collection != child_collection);
+  BLI_assert(child_collection != NULL);
+
+  LayerCollectionResync *current_layer_resync = NULL;
+  LayerCollectionResync *root_layer_resync = layer_resync;
+
+  LayerCollectionResync *queue_head = layer_resync, *queue_tail = layer_resync;
+  layer_resync->queue_next = NULL;
+
+  while (queue_head != NULL) {
+    current_layer_resync = queue_head;
+    queue_head = current_layer_resync->queue_next;
+
+    if (current_layer_resync->collection == child_collection &&
+        (current_layer_resync->parent_layer_resync == layer_resync ||
+         (!current_layer_resync->is_used && !current_layer_resync->is_valid_as_child))) {
+      /* This layer is a valid candidate, because its collection matches the seeked one, AND:
+       *  - It is a direct child of the initial given parent ('unchanged hierarchy' case), OR
+       *  - It is not currently used, and not part of a valid hierarchy (sub-)chain.
+       */
+      break;
+    }
+
+    /* Else, add all its direct children for further searching. */
+    LISTBASE_FOREACH (LayerCollectionResync *,
+                      child_layer_resync,
+                      &current_layer_resync->children_layer_resync) {
+      /* Add to tail of the queue. */
+      queue_tail->queue_next = child_layer_resync;
+      child_layer_resync->queue_next = NULL;
+      queue_tail = child_layer_resync;
+      if (queue_head == NULL) {
+        queue_head = queue_tail;
+      }
+    }
+
+    /* If all descendants from current layer have been processed, go one step higher and
+     * process all of its other siblings. */
+    if (queue_head == NULL && root_layer_resync->parent_layer_resync != NULL) {
+      LISTBASE_FOREACH (LayerCollectionResync *,
+                        sibling_layer_resync,
+                        &root_layer_resync->parent_layer_resync->children_layer_resync) {
+        if (sibling_layer_resync == root_layer_resync) {
+          continue;
+        }
+        /* Add to tail of the queue. */
+        queue_tail->queue_next = sibling_layer_resync;
+        sibling_layer_resync->queue_next = NULL;
+        queue_tail = sibling_layer_resync;
+        if (queue_head == NULL) {
+          queue_head = queue_tail;
+        }
+      }
+      root_layer_resync = root_layer_resync->parent_layer_resync;
+    }
+
+    current_layer_resync = NULL;
+  }
+
+  return current_layer_resync;
+}
+
+static void layer_collection_resync_unused_layers_free(ViewLayer *view_layer,
+                                                       LayerCollectionResync *layer_resync)
+{
+  LISTBASE_FOREACH (
+      LayerCollectionResync *, child_layer_resync, &layer_resync->children_layer_resync) {
+    layer_collection_resync_unused_layers_free(view_layer, child_layer_resync);
+  }
+
+  if (!layer_resync->is_used) {
+    CLOG_INFO(&LOG,
+              4,
+              "Freeing unused LayerCollection for %s",
+              layer_resync->collection != NULL ? layer_resync->collection->id.name :
+                                                 "<Deleted Collection>");
+
+    if (layer_resync->layer == view_layer->active_collection) {
+      view_layer->active_collection = NULL;
+    }
+
+    /* We do not want to go recursive here, this is handled through the LayerCollectionResync data
+     * wrapper. */
+    MEM_freeN(layer_resync->layer);
+    layer_resync->layer = NULL;
+    layer_resync->collection = NULL;
+    layer_resync->is_usable = false;
+  }
+}
+
 static void layer_collection_objects_sync(ViewLayer *view_layer,
                                           LayerCollection *layer,
                                           ListBase *r_lb_new_object_bases,
@@ -839,54 +1032,90 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
 }
 
 static void layer_collection_sync(ViewLayer *view_layer,
-                                  const ListBase *lb_children_collections,
-                                  ListBase *r_lb_children_layers,
+                                  LayerCollectionResync *layer_resync,
+                                  BLI_mempool *layer_resync_mempool,
                                   ListBase *r_lb_new_object_bases,
                                   const short parent_layer_flag,
                                   const short parent_collection_restrict,
                                   const short parent_layer_restrict,
                                   const ushort parent_local_collections_bits)
 {
-  /* TODO: support recovery after removal of intermediate collections, reordering, ..
-   * For local edits we can make editing operating do the appropriate thing, but for
-   * linking we can only sync after the fact. */
+  /* This function assumes current 'parent' layer collection is already fully (re)synced and valid
+   * regarding current Collection hierarchy.
+   *
+   * It will process all the children collections of the collection from the given 'parent' layer,
+   * re-use or create layer collections for each of them, and ensure orders also match.
+   *
+   * Then it will ensure that the objects owned by the given parent collection have a proper base.
+   *
+   * NOTE: This process is recursive.
+   */
 
-  /* Remove layer collections that no longer have a corresponding scene collection. */
-  LISTBASE_FOREACH_MUTABLE (LayerCollection *, child_layer, r_lb_children_layers) {
-    /* Note that ID remap can set child_layer->collection to NULL when deleting collections. */
-    Collection *child_collection = (child_layer->collection != NULL) ?
-                                       BLI_findptr(lb_children_collections,
-                                                   child_layer->collection,
-                                                   offsetof(CollectionChild, collection)) :
-                                       NULL;
+  /* Temporary storage for all valid (new or reused) children layers. */
+  ListBase new_lb_layer = {NULL, NULL};
 
-    if (child_collection == NULL) {
-      if (child_layer == view_layer->active_collection) {
-        view_layer->active_collection = NULL;
+  BLI_assert(layer_resync->is_used);
+
+  LISTBASE_FOREACH (CollectionChild *, child, &layer_resync->collection->children) {
+    Collection *child_collection = child->collection;
+    LayerCollectionResync *child_layer_resync = layer_collection_resync_find(layer_resync,
+                                                                             child_collection);
+
+    if (child_layer_resync != NULL) {
+      BLI_assert(child_layer_resync->collection != NULL);
+      BLI_assert(child_layer_resync->layer != NULL);
+      BLI_assert(child_layer_resync->is_usable);
+
+      if (child_layer_resync->is_used) {
+        CLOG_INFO(&LOG,
+                  4,
+                  "Found same existing LayerCollection for %s as child of %s",
+                  child_collection->id.name,
+                  layer_resync->collection->id.name);
+      }
+      else {
+        CLOG_INFO(&LOG,
+                  4,
+                  "Found a valid unused LayerCollection for %s as child of %s, re-using it",
+                  child_collection->id.name,
+                  layer_resync->collection->id.name);
       }
 
-      /* Free recursively. */
-      layer_collection_free(view_layer, child_layer);
-      BLI_freelinkN(r_lb_children_layers, child_layer);
-    }
-  }
+      child_layer_resync->is_used = true;
 
-  /* Add layer collections for any new scene collections, and ensure order is the same. */
-  ListBase lb_new_children_layers = {NULL, NULL};
-
-  LISTBASE_FOREACH (const CollectionChild *, child, lb_children_collections) {
-    Collection *child_collection = child->collection;
-    LayerCollection *child_layer = BLI_findptr(
-        r_lb_children_layers, child_collection, offsetof(LayerCollection, collection));
-
-    if (child_layer) {
-      BLI_remlink(r_lb_children_layers, child_layer);
-      BLI_addtail(&lb_new_children_layers, child_layer);
+      /* NOTE: Do not move the resync wrapper to match the new layer hierarchy, so that the old
+       * parenting info remains available. In case a search for a valid layer in the children of
+       * the current is required again, the old parenting hierarchy is needed as reference, not the
+       * new one.
+       */
+      BLI_remlink(&child_layer_resync->parent_layer_resync->layer->layer_collections,
+                  child_layer_resync->layer);
+      BLI_addtail(&new_lb_layer, child_layer_resync->layer);
     }
     else {
-      child_layer = layer_collection_add(&lb_new_children_layers, child_collection);
+      CLOG_INFO(&LOG,
+                4,
+                "No available LayerCollection for %s as child of %s, creating a new one",
+                child_collection->id.name,
+                layer_resync->collection->id.name);
+
+      LayerCollection *child_layer = layer_collection_add(&new_lb_layer, child_collection);
       child_layer->flag = parent_layer_flag;
+
+      child_layer_resync = BLI_mempool_calloc(layer_resync_mempool);
+      child_layer_resync->collection = child_collection;
+      child_layer_resync->layer = child_layer;
+      child_layer_resync->is_usable = true;
+      child_layer_resync->is_used = true;
+      child_layer_resync->is_valid_as_child = true;
+      child_layer_resync->is_valid_as_parent = true;
+      /* NOTE: Needs to be added to the layer_resync hierarchy so that the resync wrapper gets
+       * freed at the end. */
+      child_layer_resync->parent_layer_resync = layer_resync;
+      BLI_addtail(&layer_resync->children_layer_resync, child_layer_resync);
     }
+
+    LayerCollection *child_layer = child_layer_resync->layer;
 
     const ushort child_local_collections_bits = parent_local_collections_bits &
                                                 child_layer->local_collections_bits;
@@ -905,16 +1134,15 @@ static void layer_collection_sync(ViewLayer *view_layer,
 
     /* Sync child collections. */
     layer_collection_sync(view_layer,
-                          &child_collection->children,
-                          &child_layer->layer_collections,
+                          child_layer_resync,
+                          layer_resync_mempool,
                           r_lb_new_object_bases,
                           child_layer->flag,
                           child_collection_restrict,
                           child_layer_restrict,
                           child_local_collections_bits);
 
-    /* Layer collection exclude is not inherited, we can skip the remaining process, including
-     * object bases synchronization. */
+    /* Layer collection exclude is not inherited. */
     child_layer->runtime_flag = 0;
     if (child_layer->flag & LAYER_COLLECTION_EXCLUDE) {
       continue;
@@ -930,34 +1158,20 @@ static void layer_collection_sync(ViewLayer *view_layer,
         ((child_layer_restrict & LAYER_COLLECTION_HIDE) == 0)) {
       child_layer->runtime_flag |= LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
     }
-
-    layer_collection_objects_sync(view_layer,
-                                  child_layer,
-                                  r_lb_new_object_bases,
-                                  child_collection_restrict,
-                                  child_layer_restrict,
-                                  child_local_collections_bits);
   }
-
-  /* Free potentially remaining unused layer collections in old list.
-   * NOTE: While this does not happen in typical situations, some corner cases (like remapping
-   * several different collections to a single one) can lead to this list having extra unused
-   * items. */
-  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, r_lb_children_layers) {
-    if (lc == view_layer->active_collection) {
-      view_layer->active_collection = NULL;
-    }
-
-    /* Free recursively. */
-    layer_collection_free(view_layer, lc);
-    BLI_freelinkN(r_lb_children_layers, lc);
-  }
-  BLI_assert(BLI_listbase_is_empty(r_lb_children_layers));
 
   /* Replace layer collection list with new one. */
-  *r_lb_children_layers = lb_new_children_layers;
-  BLI_assert(BLI_listbase_count(lb_children_collections) ==
-             BLI_listbase_count(r_lb_children_layers));
+  layer_resync->layer->layer_collections = new_lb_layer;
+  BLI_assert(BLI_listbase_count(&layer_resync->collection->children) ==
+             BLI_listbase_count(&new_lb_layer));
+
+  /* Update bases etc. for objects. */
+  layer_collection_objects_sync(view_layer,
+                                layer_resync->layer,
+                                r_lb_new_object_bases,
+                                parent_collection_restrict,
+                                parent_layer_restrict,
+                                parent_local_collections_bits);
 }
 
 /**
@@ -976,6 +1190,12 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
     return;
   }
 
+  /* In some cases (from older files) we do have a master collection, yet no matching layer. Create
+   * the master one here, so that the rest of the code can work as expected. */
+  if (BLI_listbase_is_empty(&view_layer->layer_collections)) {
+    layer_collection_add(&view_layer->layer_collections, scene->master_collection);
+  }
+
   /* Free cache. */
   MEM_SAFE_FREE(view_layer->object_bases_array);
 
@@ -990,20 +1210,28 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
     base->flag_from_collection &= ~g_base_collection_flags;
   }
 
-  /* Generate new layer connections and object bases when collections changed. */
-  CollectionChild child = {.next = NULL, .prev = NULL, .collection = scene->master_collection};
-  const ListBase collections = {.first = &child, .last = &child};
-  ListBase new_object_bases = {.first = NULL, .last = NULL};
+  /* Generate temporary data representing the old layers hierarchy, and how well it matches the
+   * new collections hierarchy. */
+  BLI_mempool *layer_resync_mempool = BLI_mempool_create(
+      sizeof(LayerCollectionResync), 1024, 1024, BLI_MEMPOOL_NOP);
+  LayerCollectionResync *master_layer_resync = layer_collection_resync_create_recurse(
+      NULL, view_layer->layer_collections.first, layer_resync_mempool);
 
+  /* Generate new layer connections and object bases when collections changed. */
+  ListBase new_object_bases = {.first = NULL, .last = NULL};
   const short parent_exclude = 0, parent_restrict = 0, parent_layer_restrict = 0;
   layer_collection_sync(view_layer,
-                        &collections,
-                        &view_layer->layer_collections,
+                        master_layer_resync,
+                        layer_resync_mempool,
                         &new_object_bases,
                         parent_exclude,
                         parent_restrict,
                         parent_layer_restrict,
                         ~(0));
+
+  layer_collection_resync_unused_layers_free(view_layer, master_layer_resync);
+  BLI_mempool_destroy(layer_resync_mempool);
+  master_layer_resync = NULL;
 
   /* Any remaining object bases are to be removed. */
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
