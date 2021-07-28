@@ -102,11 +102,6 @@
 #define MUTE_ALPHA 120
 #define OVERLAP_ALPHA 180
 
-/* NOTE: Don't use SEQ_ALL_BEGIN/SEQ_ALL_END while drawing!
- * it messes up transform. */
-#undef SEQ_ALL_BEGIN
-#undef SEQ_ALL_END
-
 static Sequence *special_seq_update = NULL;
 
 void color3ubv_from_seq(Scene *curscene, Sequence *seq, uchar col[3])
