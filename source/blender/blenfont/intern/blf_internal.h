@@ -99,6 +99,8 @@ int blf_font_width_max(struct FontBLF *font);
 float blf_font_descender(struct FontBLF *font);
 float blf_font_ascender(struct FontBLF *font);
 
+char *blf_display_name(struct FontBLF *font);
+
 void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
                                      const char *str,
                                      size_t len,

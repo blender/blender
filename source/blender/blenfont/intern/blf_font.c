@@ -1465,3 +1465,11 @@ float blf_font_ascender(FontBLF *font)
   blf_glyph_cache_release(font);
   return ascender;
 }
+
+char *blf_display_name(FontBLF *font)
+{
+  if (!font->face->family_name) {
+    return NULL;
+  }
+  return BLI_sprintfN("%s %s", font->face->family_name, font->face->style_name);
+}
