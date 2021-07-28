@@ -2911,6 +2911,12 @@ static uiBut *ui_item_menu(uiLayout *layout,
 
 void uiItemM_ptr(uiLayout *layout, MenuType *mt, const char *name, int icon)
 {
+  uiBlock *block = layout->root->block;
+  bContext *C = block->evil_C;
+  if (WM_menutype_poll(C, mt) == false) {
+    return;
+  }
+
   if (!name) {
     name = CTX_IFACE_(mt->translation_context, mt->label);
   }
@@ -2949,6 +2955,9 @@ void uiItemMContents(uiLayout *layout, const char *menuname)
 
   uiBlock *block = layout->root->block;
   bContext *C = block->evil_C;
+  if (WM_menutype_poll(C, mt) == false) {
+    return;
+  }
   UI_menutype_draw(C, mt, layout);
 }
 
