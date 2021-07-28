@@ -444,10 +444,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
       set(name ${name}_experimental)
     endif()
 
-    if(WITH_CYCLES_DEBUG)
-      set(cuda_flags ${cuda_flags} -D __KERNEL_DEBUG__)
-    endif()
-
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}
         -D WITH_NANOVDB
@@ -561,11 +557,6 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       -I "${CMAKE_CURRENT_SOURCE_DIR}/kernels/cuda"
       --use_fast_math
       -o ${output})
-
-    if(WITH_CYCLES_DEBUG)
-      set(cuda_flags ${cuda_flags}
-        -D __KERNEL_DEBUG__)
-    endif()
 
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}

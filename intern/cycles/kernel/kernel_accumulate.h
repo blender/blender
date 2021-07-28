@@ -225,13 +225,6 @@ ccl_device_inline void path_radiance_init(KernelGlobals *kg, PathRadiance *L)
   L->denoising_albedo = zero_float3();
   L->denoising_depth = 0.0f;
 #endif
-
-#ifdef __KERNEL_DEBUG__
-  L->debug_data.num_bvh_traversed_nodes = 0;
-  L->debug_data.num_bvh_traversed_instances = 0;
-  L->debug_data.num_bvh_intersections = 0;
-  L->debug_data.num_ray_bounces = 0;
-#endif
 }
 
 ccl_device_inline void path_radiance_bsdf_bounce(KernelGlobals *kg,
@@ -595,7 +588,9 @@ ccl_device_inline void path_radiance_sum_shadowcatcher(KernelGlobals *kg,
   float shadow;
 
   if (UNLIKELY(!isfinite_safe(path_total))) {
+#  ifdef __KERNEL_DEBUG_NAN__
     kernel_assert(!"Non-finite total radiance along the path");
+#  endif
     shadow = 0.0f;
   }
   else if (path_total == 0.0f) {
@@ -641,7 +636,9 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg,
 
     /* Reject invalid value */
     if (!isfinite_safe(sum)) {
+#  ifdef __KERNEL_DEBUG_NAN__
       kernel_assert(!"Non-finite sum in path_radiance_clamp_and_sum!");
+#  endif
       L_sum = zero_float3();
 
       L->direct_diffuse = zero_float3();
@@ -667,7 +664,9 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg,
     /* Reject invalid value */
     float sum = fabsf((L_sum).x) + fabsf((L_sum).y) + fabsf((L_sum).z);
     if (!isfinite_safe(sum)) {
+#ifdef __KERNEL_DEBUG_NAN__
       kernel_assert(!"Non-finite final sum in path_radiance_clamp_and_sum!");
+#endif
       L_sum = zero_float3();
     }
   }

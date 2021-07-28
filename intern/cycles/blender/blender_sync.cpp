@@ -538,12 +538,6 @@ PassType BlenderSync::get_pass_type(BL::RenderPass &b_pass)
   MAP_PASS("BakePrimitive", PASS_BAKE_PRIMITIVE);
   MAP_PASS("BakeDifferential", PASS_BAKE_DIFFERENTIAL);
 
-#ifdef __KERNEL_DEBUG__
-  MAP_PASS("Debug BVH Traversed Nodes", PASS_BVH_TRAVERSED_NODES);
-  MAP_PASS("Debug BVH Traversed Instances", PASS_BVH_TRAVERSED_INSTANCES);
-  MAP_PASS("Debug BVH Intersections", PASS_BVH_INTERSECTIONS);
-  MAP_PASS("Debug Ray Bounces", PASS_RAY_BOUNCES);
-#endif
   MAP_PASS("Debug Render Time", PASS_RENDER_TIME);
   MAP_PASS("AdaptiveAuxBuffer", PASS_ADAPTIVE_AUX_BUFFER);
   MAP_PASS("Debug Sample Count", PASS_SAMPLE_COUNT);
@@ -641,24 +635,6 @@ vector<Pass> BlenderSync::sync_render_passes(BL::Scene &b_scene,
     }
   }
 
-#ifdef __KERNEL_DEBUG__
-  if (get_boolean(crl, "pass_debug_bvh_traversed_nodes")) {
-    b_engine.add_pass("Debug BVH Traversed Nodes", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_BVH_TRAVERSED_NODES, passes, "Debug BVH Traversed Nodes");
-  }
-  if (get_boolean(crl, "pass_debug_bvh_traversed_instances")) {
-    b_engine.add_pass("Debug BVH Traversed Instances", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_BVH_TRAVERSED_INSTANCES, passes, "Debug BVH Traversed Instances");
-  }
-  if (get_boolean(crl, "pass_debug_bvh_intersections")) {
-    b_engine.add_pass("Debug BVH Intersections", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_BVH_INTERSECTIONS, passes, "Debug BVH Intersections");
-  }
-  if (get_boolean(crl, "pass_debug_ray_bounces")) {
-    b_engine.add_pass("Debug Ray Bounces", 1, "X", b_view_layer.name().c_str());
-    Pass::add(PASS_RAY_BOUNCES, passes, "Debug Ray Bounces");
-  }
-#endif
   if (get_boolean(crl, "pass_debug_render_time")) {
     b_engine.add_pass("Debug Render Time", 1, "X", b_view_layer.name().c_str());
     Pass::add(PASS_RENDER_TIME, passes, "Debug Render Time");

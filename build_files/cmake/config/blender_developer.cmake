@@ -7,7 +7,6 @@
 set(WITH_ASSERT_ABORT                 ON  CACHE BOOL "" FORCE)
 set(WITH_BUILDINFO                    OFF CACHE BOOL "" FORCE)
 set(WITH_COMPILER_ASAN                ON  CACHE BOOL "" FORCE)
-set(WITH_CYCLES_DEBUG                 ON  CACHE BOOL "" FORCE)
 set(WITH_CYCLES_NATIVE_ONLY           ON  CACHE BOOL "" FORCE)
 set(WITH_DOC_MANPAGE                  OFF CACHE BOOL "" FORCE)
 set(WITH_GTESTS                       ON  CACHE BOOL "" FORCE)

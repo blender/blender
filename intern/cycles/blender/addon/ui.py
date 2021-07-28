@@ -936,29 +936,6 @@ class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, ViewLayerCryptomattePan
     bl_parent_id = "CYCLES_RENDER_PT_passes"
 
 
-class CYCLES_RENDER_PT_passes_debug(CyclesButtonsPanel, Panel):
-    bl_label = "Debug"
-    bl_context = "view_layer"
-    bl_parent_id = "CYCLES_RENDER_PT_passes"
-
-    @classmethod
-    def poll(cls, context):
-        import _cycles
-        return _cycles.with_cycles_debug
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        cycles_view_layer = context.view_layer.cycles
-
-        layout.prop(cycles_view_layer, "pass_debug_bvh_traversed_nodes")
-        layout.prop(cycles_view_layer, "pass_debug_bvh_traversed_instances")
-        layout.prop(cycles_view_layer, "pass_debug_bvh_intersections")
-        layout.prop(cycles_view_layer, "pass_debug_ray_bounces")
-
-
 class CYCLES_RENDER_PT_passes_aov(CyclesButtonsPanel, ViewLayerAOVPanel):
     bl_label = "Shader AOV"
     bl_context = "view_layer"
@@ -2317,7 +2294,6 @@ classes = (
     CYCLES_RENDER_PT_passes_data,
     CYCLES_RENDER_PT_passes_light,
     CYCLES_RENDER_PT_passes_crypto,
-    CYCLES_RENDER_PT_passes_debug,
     CYCLES_RENDER_PT_passes_aov,
     CYCLES_RENDER_PT_filter,
     CYCLES_RENDER_PT_override,
