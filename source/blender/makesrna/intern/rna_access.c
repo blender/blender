@@ -36,6 +36,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.h"
@@ -3676,6 +3677,8 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
   IDProperty *idprop;
 
+  static ThreadMutex lock = BLI_MUTEX_INITIALIZER;
+
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
@@ -3695,9 +3698,14 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
     return pprop->get(ptr);
   }
   if (prop->flag & PROP_IDPROPERTY) {
-    /* XXX temporary hack to add it automatically, reading should
-     * never do any write ops, to ensure thread safety etc. */
+    /* NOTE: While creating/writing data in an accessor is really bad design-wise, this is
+     * currently very difficult to avoid in that case. So a global mutex is used to keep ensuring
+     * thread safety. */
+    BLI_mutex_lock(&lock);
+    /* NOTE: We do not need to check again for existence of the pointer after locking here, since
+     * this is also done in #RNA_property_pointer_add itself. */
     RNA_property_pointer_add(ptr, prop);
+    BLI_mutex_unlock(&lock);
     return RNA_property_pointer_get(ptr, prop);
   }
   return PointerRNA_NULL;
