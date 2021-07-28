@@ -169,7 +169,7 @@ class AssetClearHelper {
  public:
   void operator()(PointerRNAVec &ids);
 
-  void reportResults(ReportList &reports) const;
+  void reportResults(const bContext *C, ReportList &reports) const;
   bool wasSuccessful() const;
 
  private:
@@ -198,10 +198,22 @@ void AssetClearHelper::operator()(PointerRNAVec &ids)
   }
 }
 
-void AssetClearHelper::reportResults(ReportList &reports) const
+void AssetClearHelper::reportResults(const bContext *C, ReportList &reports) const
 {
   if (!wasSuccessful()) {
-    BKE_report(&reports, RPT_ERROR, "No asset data-blocks selected/focused");
+    bool is_valid;
+    /* Dedicated error message for when there is an active asset detected, but it's not an ID local
+     * to this file. Helps users better understanding what's going on. */
+    if (AssetHandle active_asset = CTX_wm_asset_handle(C, &is_valid);
+        is_valid && !ED_asset_handle_get_local_id(&active_asset)) {
+      BKE_report(&reports,
+                 RPT_ERROR,
+                 "No asset data-blocks from the current file selected (assets must be stored in "
+                 "the current file to be able to edit or clear them)");
+    }
+    else {
+      BKE_report(&reports, RPT_ERROR, "No asset data-blocks selected/focused");
+    }
   }
   else if (stats.tot_cleared == 1) {
     /* If only one data-block: Give more useful message by printing asset name. */
@@ -224,7 +236,7 @@ static int asset_clear_exec(bContext *C, wmOperator *op)
 
   AssetClearHelper clear_helper;
   clear_helper(ids);
-  clear_helper.reportResults(*op->reports);
+  clear_helper.reportResults(C, *op->reports);
 
   if (!clear_helper.wasSuccessful()) {
     return OPERATOR_CANCELLED;
