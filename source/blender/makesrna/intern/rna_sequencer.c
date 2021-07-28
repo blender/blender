@@ -306,6 +306,10 @@ static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
     SEQ_transform_seqbase_shuffle(seqbase, seq, scene); /* XXX: BROKEN!, uses context seqbasep. */
   }
   SEQ_sort(seqbase);
+
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  }
 }
 
 /* A simple wrapper around above func, directly usable as prop update func.
