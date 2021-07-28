@@ -380,6 +380,8 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
     return;
   }
 
+  uiItemR(layout, ptr, "overscan", 0, NULL, ICON_NONE);
+
   uiLayout *col = uiLayoutColumn(layout, true);
 
   uiItemR(col, ptr, "use_remove_doubles", 0, NULL, ICON_NONE);

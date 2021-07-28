@@ -2013,7 +2013,10 @@ static void lineart_geometry_load_assign_thread(LineartObjectLoadTaskInfo *olti_
   use_olti->pending = obi;
 }
 
-static bool lineart_geometry_check_visible(double (*model_view_proj)[4], Object *use_ob)
+static bool lineart_geometry_check_visible(double (*model_view_proj)[4],
+                                           double shift_x,
+                                           double shift_y,
+                                           Object *use_ob)
 {
   BoundBox *bb = BKE_object_boundbox_get(use_ob);
   if (!bb) {
@@ -2027,6 +2030,8 @@ static bool lineart_geometry_check_visible(double (*model_view_proj)[4], Object 
     copy_v3db_v3fl(co[i], bb->vec[i]);
     copy_v3_v3_db(tmp, co[i]);
     mul_v4_m4v3_db(co[i], model_view_proj, tmp);
+    co[i][0] -= shift_x * 2 * co[i][3];
+    co[i][1] -= shift_y * 2 * co[i][3];
   }
 
   bool cond[6] = {true, true, true, true, true, true};
@@ -2062,11 +2067,6 @@ static void lineart_main_load_geometries(
   int fit = BKE_camera_sensor_fit(cam->sensor_fit, rb->w, rb->h);
   double asp = ((double)rb->w / (double)rb->h);
 
-  double t_start;
-
-  if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
-  }
   int bound_box_discard_count = 0;
 
   if (cam->type == CAM_PERSP) {
@@ -2076,12 +2076,18 @@ static void lineart_main_load_geometries(
     if (fit == CAMERA_SENSOR_FIT_HOR && asp < 1) {
       sensor /= asp;
     }
-    double fov = focallength_to_fov(cam->lens, sensor);
+    const double fov = focallength_to_fov(cam->lens / (1 + rb->overscan), sensor);
     lineart_matrix_perspective_44d(proj, fov, asp, cam->clip_start, cam->clip_end);
   }
   else if (cam->type == CAM_ORTHO) {
-    double w = cam->ortho_scale / 2;
+    const double w = cam->ortho_scale / 2;
     lineart_matrix_ortho_44d(proj, -w, w, -w / asp, w / asp, cam->clip_start, cam->clip_end);
+  }
+
+  double t_start;
+
+  if (G.debug_value == 4000) {
+    t_start = PIL_check_seconds_timer();
   }
 
   invert_m4_m4(inv, rb->cam_obmat);
@@ -2130,7 +2136,7 @@ static void lineart_main_load_geometries(
       continue;
     }
 
-    if (!lineart_geometry_check_visible(obi->model_view_proj, use_ob)) {
+    if (!lineart_geometry_check_visible(obi->model_view_proj, rb->shift_x, rb->shift_y, use_ob)) {
       if (G.debug_value == 4000) {
         bound_box_discard_count++;
       }
@@ -3022,6 +3028,11 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   int fit = BKE_camera_sensor_fit(c->sensor_fit, rb->w, rb->h);
   rb->shift_x = fit == CAMERA_SENSOR_FIT_HOR ? c->shiftx : c->shiftx / asp;
   rb->shift_y = fit == CAMERA_SENSOR_FIT_VERT ? c->shifty : c->shifty * asp;
+
+  rb->overscan = lmd->overscan;
+
+  rb->shift_x /= (1 + rb->overscan);
+  rb->shift_y /= (1 + rb->overscan);
 
   rb->crease_threshold = cos(M_PI - lmd->crease_threshold);
   rb->angle_splitting_threshold = lmd->angle_splitting_threshold;

@@ -307,6 +307,7 @@
     .calculation_flags = LRT_ALLOW_DUPLI_OBJECTS | LRT_ALLOW_CLIPPING_BOUNDARIES, \
     .angle_splitting_threshold = DEG2RAD(60.0f), \
     .chaining_image_threshold = 0.001f, \
+    .overscan = 0.1f,\
   }
 
 #define _DNA_DEFAULT_LengthGpencilModifierData \

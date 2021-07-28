@@ -228,6 +228,8 @@ typedef struct LineartRenderBuffer {
   double view_projection[4][4];
   double view[4][4];
 
+  float overscan;
+
   struct LineartBoundingArea *initial_bounding_areas;
   unsigned int bounding_area_count;
 

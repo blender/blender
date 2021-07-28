@@ -963,6 +963,12 @@ typedef struct LineartGpencilModifierData {
   char source_vertex_group[64];
   char vgname[64];
 
+  /* Camera focal length is divided by (1 + overscan), before caluclation, which give a wider FOV,
+   * this doesn't change coordinates range internally (-1, 1), but makes the caluclated frame
+   * bigger than actual output. This is for the easier shifting calculation. A value of 0.5 means
+   * the "internal" focal length become 2/3 of the actual camera. */
+  float overscan;
+
   float opacity;
   short thickness;
 
@@ -970,7 +976,7 @@ typedef struct LineartGpencilModifierData {
   unsigned char material_mask_bits;
   unsigned char intersection_mask;
 
-  char _pad[7];
+  char _pad[3];
 
   /** `0..1` range for cosine angle */
   float crease_threshold;
