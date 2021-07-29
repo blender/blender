@@ -213,6 +213,18 @@ int pyrna_set_to_enum_bitfield(const struct EnumPropertyItem *items,
                                int *r_value,
                                const char *error_prefix);
 
+/**
+ * Data for #pyrna_enum_value_parse_string & #pyrna_enum_bitfield_parse_set parsing utilities.
+ * Use with #PyArg_ParseTuple's `O&` formatting.
+ */
+struct BPy_EnumProperty_Parse {
+  const EnumPropertyItem *items;
+  int value;
+  bool is_set;
+};
+int pyrna_enum_value_parse_string(PyObject *o, void *p);
+int pyrna_enum_bitfield_parse_set(PyObject *o, void *p);
+
 int pyrna_enum_value_from_id(const EnumPropertyItem *item,
                              const char *identifier,
                              int *value,

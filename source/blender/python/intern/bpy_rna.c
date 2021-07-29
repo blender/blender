@@ -817,6 +817,44 @@ int pyrna_enum_value_from_id(const EnumPropertyItem *item,
   return 0;
 }
 
+/**
+ * Use with #PyArg_ParseTuple's `O&` formatting.
+ */
+int pyrna_enum_value_parse_string(PyObject *o, void *p)
+{
+  const char *identifier = PyUnicode_AsUTF8(o);
+  if (identifier == NULL) {
+    PyErr_Format(PyExc_TypeError, "expected a string enum, not %.200s", Py_TYPE(o)->tp_name);
+    return 0;
+  }
+  struct BPy_EnumProperty_Parse *parse_data = p;
+  if (pyrna_enum_value_from_id(
+          parse_data->items, identifier, &parse_data->value, "enum identifier") == -1) {
+    return 0;
+  }
+  parse_data->is_set = true;
+  return 1;
+}
+
+/**
+ * Use with #PyArg_ParseTuple's `O&` formatting.
+ */
+int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
+{
+  if (!PySet_Check(o)) {
+    PyErr_Format(PyExc_TypeError, "expected a set, not %.200s", Py_TYPE(o)->tp_name);
+    return 0;
+  }
+
+  struct BPy_EnumProperty_Parse *parse_data = p;
+  if (pyrna_set_to_enum_bitfield(
+          parse_data->items, o, &parse_data->value, "enum identifier set") == -1) {
+    return 0;
+  }
+  parse_data->is_set = true;
+  return 1;
+}
+
 /* NOTE(campbell): Regarding comparison `__cmp__`:
  * checking the 'ptr->data' matches works in almost all cases,
  * however there are a few RNA properties that are fake sub-structs and
