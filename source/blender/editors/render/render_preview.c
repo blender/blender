@@ -727,6 +727,8 @@ struct ObjectPreviewData {
   /* Copy of the object to create the preview for. The copy is for thread safety (and to insert
    * it into an own main). */
   Object *object;
+  /* Current frame. */
+  int cfra;
   int sizex;
   int sizey;
 };
@@ -760,6 +762,10 @@ static Scene *object_preview_scene_create(const struct ObjectPreviewData *previe
                                           Depsgraph **r_depsgraph)
 {
   Scene *scene = BKE_scene_add(preview_data->pr_main, "Object preview scene");
+  /* Preview need to be in the current frame to get a thumbnail similar of what
+   * viewport displays. */
+  CFRA = preview_data->cfra;
+
   ViewLayer *view_layer = scene->view_layers.first;
   Depsgraph *depsgraph = DEG_graph_new(
       preview_data->pr_main, scene, view_layer, DAG_EVAL_VIEWPORT);
@@ -804,6 +810,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
       .pr_main = preview_main,
       /* Act on a copy. */
       .object = (Object *)preview->id_copy,
+      .cfra = preview->scene->r.cfra,
       .sizex = preview_sized->sizex,
       .sizey = preview_sized->sizey,
   };
