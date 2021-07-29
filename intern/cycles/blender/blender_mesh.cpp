@@ -1137,7 +1137,6 @@ static void sync_mesh_cached_velocities(BL::Object &b_ob, Scene *scene, Mesh *me
 
 static void sync_mesh_fluid_motion(BL::Object &b_ob, Scene *scene, Mesh *mesh)
 {
-  LOG(INFO) << b_ob.name();
   if (!mesh_need_motion_attribute(b_ob, scene)) {
     return;
   }
