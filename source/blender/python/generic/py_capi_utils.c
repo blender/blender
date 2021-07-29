@@ -208,6 +208,105 @@ int PyC_AsArray(void *array,
   return ret;
 }
 
+static int PyC_AsArray_Multi_impl(void **array_p,
+                                  const size_t array_item_size,
+                                  PyObject *value,
+                                  const int *dims,
+                                  const int dims_len,
+                                  const PyTypeObject *type,
+                                  const char *error_prefix);
+
+static int PyC_AsArray_Multi_FAST_impl(void **array_p,
+                                       const size_t array_item_size,
+                                       PyObject *value_fast,
+                                       const int *dims,
+                                       const int dims_len,
+                                       const PyTypeObject *type,
+                                       const char *error_prefix)
+{
+  const Py_ssize_t value_len = PySequence_Fast_GET_SIZE(value_fast);
+  const int length = dims[0];
+
+  if (dims_len == 1) {
+    if (PyC_AsArray(*array_p, array_item_size, value_fast, length, type, error_prefix) == -1) {
+      return -1;
+    }
+    *array_p = POINTER_OFFSET(*array_p, array_item_size * length);
+  }
+  else {
+    if (value_len != length) {
+      PyErr_Format(PyExc_TypeError,
+                   "%.200s: invalid sequence length. expected %d, got %d",
+                   error_prefix,
+                   length,
+                   value_len);
+      return -1;
+    }
+
+    PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
+    const int *dims_next = dims + 1;
+    const int dims_next_len = dims_len - 1;
+
+    for (int i = 0; i < length; i++) {
+      if (PyC_AsArray_Multi_impl(array_p,
+                                 array_item_size,
+                                 value_fast_items[i],
+                                 dims_next,
+                                 dims_next_len,
+                                 type,
+                                 error_prefix) == -1) {
+        return -1;
+      }
+    }
+  }
+  return 0;
+}
+
+static int PyC_AsArray_Multi_impl(void **array_p,
+                                  const size_t array_item_size,
+                                  PyObject *value,
+                                  const int *dims,
+                                  const int dims_len,
+                                  const PyTypeObject *type,
+                                  const char *error_prefix)
+{
+  PyObject *value_fast;
+  int ret;
+
+  if (!(value_fast = PySequence_Fast(value, error_prefix))) {
+    return -1;
+  }
+
+  ret = PyC_AsArray_Multi_FAST_impl(
+      array_p, array_item_size, value_fast, dims, dims_len, type, error_prefix);
+  Py_DECREF(value_fast);
+  return ret;
+}
+
+int PyC_AsArray_Multi_FAST(void *array,
+                           const size_t array_item_size,
+                           PyObject *value_fast,
+                           const int *dims,
+                           const int dims_len,
+                           const PyTypeObject *type,
+                           const char *error_prefix)
+{
+  return PyC_AsArray_Multi_FAST_impl(
+      &array, array_item_size, value_fast, dims, dims_len, type, error_prefix);
+}
+
+int PyC_AsArray_Multi(void *array,
+                      const size_t array_item_size,
+                      PyObject *value,
+                      const int *dims,
+                      const int dims_len,
+                      const PyTypeObject *type,
+                      const char *error_prefix)
+{
+  return PyC_AsArray_Multi_impl(
+      &array, array_item_size, value, dims, dims_len, type, error_prefix);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -260,6 +359,108 @@ PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len)
     PyTuple_SET_ITEM(tuple, i, PyBool_FromLong(array[i]));
   }
   return tuple;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Typed Tuple Packing (Multi-Dimensional)
+ * \{ */
+
+static PyObject *PyC_Tuple_PackArray_Multi_F32_impl(const float **array_p,
+                                                    const int dims[],
+                                                    const int dims_len)
+{
+  const int len = dims[0];
+  if (dims_len == 1) {
+    PyObject *tuple = PyC_Tuple_PackArray_F32(*array_p, len);
+    *array_p = (*array_p) + len;
+    return tuple;
+  }
+  PyObject *tuple = PyTuple_New(dims[0]);
+  const int *dims_next = dims + 1;
+  const int dims_next_len = dims_len - 1;
+  for (uint i = 0; i < len; i++) {
+    PyTuple_SET_ITEM(
+        tuple, i, PyC_Tuple_PackArray_Multi_F32_impl(array_p, dims_next, dims_next_len));
+  }
+  return tuple;
+}
+PyObject *PyC_Tuple_PackArray_Multi_F32(const float *array, const int dims[], const int dims_len)
+{
+  return PyC_Tuple_PackArray_Multi_F32_impl(&array, dims, dims_len);
+}
+
+static PyObject *PyC_Tuple_PackArray_Multi_F64_impl(const double **array_p,
+                                                    const int dims[],
+                                                    const int dims_len)
+{
+  const int len = dims[0];
+  if (dims_len == 1) {
+    PyObject *tuple = PyC_Tuple_PackArray_F64(*array_p, len);
+    *array_p = (*array_p) + len;
+    return tuple;
+  }
+  PyObject *tuple = PyTuple_New(dims[0]);
+  const int *dims_next = dims + 1;
+  const int dims_next_len = dims_len - 1;
+  for (uint i = 0; i < len; i++) {
+    PyTuple_SET_ITEM(
+        tuple, i, PyC_Tuple_PackArray_Multi_F64_impl(array_p, dims_next, dims_next_len));
+  }
+  return tuple;
+}
+PyObject *PyC_Tuple_PackArray_Multi_F64(const double *array, const int dims[], const int dims_len)
+{
+  return PyC_Tuple_PackArray_Multi_F64_impl(&array, dims, dims_len);
+}
+
+static PyObject *PyC_Tuple_PackArray_Multi_I32_impl(const int **array_p,
+                                                    const int dims[],
+                                                    const int dims_len)
+{
+  const int len = dims[0];
+  if (dims_len == 1) {
+    PyObject *tuple = PyC_Tuple_PackArray_I32(*array_p, len);
+    *array_p = (*array_p) + len;
+    return tuple;
+  }
+  PyObject *tuple = PyTuple_New(dims[0]);
+  const int *dims_next = dims + 1;
+  const int dims_next_len = dims_len - 1;
+  for (uint i = 0; i < len; i++) {
+    PyTuple_SET_ITEM(
+        tuple, i, PyC_Tuple_PackArray_Multi_I32_impl(array_p, dims_next, dims_next_len));
+  }
+  return tuple;
+}
+PyObject *PyC_Tuple_PackArray_Multi_I32(const int *array, const int dims[], const int dims_len)
+{
+  return PyC_Tuple_PackArray_Multi_I32_impl(&array, dims, dims_len);
+}
+
+static PyObject *PyC_Tuple_PackArray_Multi_Bool_impl(const bool **array_p,
+                                                     const int dims[],
+                                                     const int dims_len)
+{
+  const int len = dims[0];
+  if (dims_len == 1) {
+    PyObject *tuple = PyC_Tuple_PackArray_Bool(*array_p, len);
+    *array_p = (*array_p) + len;
+    return tuple;
+  }
+  PyObject *tuple = PyTuple_New(dims[0]);
+  const int *dims_next = dims + 1;
+  const int dims_next_len = dims_len - 1;
+  for (uint i = 0; i < len; i++) {
+    PyTuple_SET_ITEM(
+        tuple, i, PyC_Tuple_PackArray_Multi_Bool_impl(array_p, dims_next, dims_next_len));
+  }
+  return tuple;
+}
+PyObject *PyC_Tuple_PackArray_Multi_Bool(const bool *array, const int dims[], const int dims_len)
+{
+  return PyC_Tuple_PackArray_Multi_Bool_impl(&array, dims, dims_len);
 }
 
 /** \} */
