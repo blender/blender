@@ -182,13 +182,6 @@ static void asset_view_template_refresh_asset_collection(
         nullptr, &RNA_FileSelectEntry, const_cast<FileDirEntry *>(asset.file_data), &fileptr);
     RNA_pointer_set(&itemptr, "file_data", fileptr);
 
-    /* Copy name from file to asset-handle name ID-property. */
-    char name[MAX_NAME];
-    PropertyRNA *file_name_prop = RNA_struct_name_property(fileptr.type);
-    RNA_property_string_get(&fileptr, file_name_prop, name);
-    PropertyRNA *asset_name_prop = RNA_struct_name_property(&RNA_AssetHandle);
-    RNA_property_string_set(&itemptr, asset_name_prop, name);
-
     return true;
   });
 }
