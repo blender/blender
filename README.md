@@ -14,9 +14,9 @@
 Main sets are like,
 * Windows: 10 (A tip is [here](http://blog.reaticle.com/2020/06/22/system-language.html))
 * Visual Studio: 2013
-* Blender: 2.79
-* Bullet3 : 2.83
-* TortoiseSVN : ~>1.10.1
-* CMake: ~>3.9.6
-* Building  libraries: /bf-blender/tags/blender-2.79-release/lib,[link here]( https://svn.blender.org/svnroot/bf-blender/tags/blender-2.79-release/lib/win64_vc14/)
+* Blender: ```2.79```
+* Bullet3 : ```2.83```
+* TortoiseSVN :``` ~>1.10.1```
+* CMake:``` ~>3.9.6```
+* Building  libraries: /bf-blender/tags/blender-2.79-release/lib>>>```[link here]```( https://svn.blender.org/svnroot/bf-blender/tags/blender-2.79-release/lib/win64_vc14/)
 
