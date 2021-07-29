@@ -492,7 +492,7 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.11.10.0"
+OSL_VERSION="1.11.14.1"
 OSL_VERSION_SHORT="1.11"
 OSL_VERSION_MIN="1.11"
 OSL_VERSION_MAX="2.0"
@@ -2316,6 +2316,7 @@ compile_OSL() {
         tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
             -xf $_src.tar.gz
       fi
+      patch -d $_src -p1 < $SCRIPT_DIR/patches/osl.diff
     fi
 
     cd $_src
@@ -2338,7 +2339,6 @@ compile_OSL() {
 
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_PLUGINS=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_TESTS=OFF"
@@ -2346,7 +2346,10 @@ compile_OSL() {
     cmake_d="$cmake_d -D USE_PARTIO=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_MATERIALX=OFF"
     cmake_d="$cmake_d -D USE_QT=OFF"
+    cmake_d="$cmake_d -D USE_Qt5=OFF"
     cmake_d="$cmake_d -D USE_PYTHON=OFF"
+    cmake_d="$cmake_d -D USE_PARTIO=OFF"
+    cmake_d="$cmake_d -D INSTALL_DOCS=OFF"
 
     if [ $(uname -m) != "aarch64" ]; then
       cmake_d="$cmake_d -D USE_SIMD=sse2"
@@ -2368,10 +2371,7 @@ compile_OSL() {
     fi
 
     if [ -d $INST/oiio ]; then
-      cmake_d="$cmake_d -D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
-      # HACK! SIC!!!!
-      # Quiet incredible, but if root dir is given, path to lib is found, but not path to include...
-      cmake_d="$cmake_d -D OPENIMAGEIO_INCLUDE_DIR=$INST/oiio/include"
+      cmake_d="$cmake_d -D OpenImageIO_ROOT=$INST/oiio"
     fi
 
     if [ ! -z $LLVM_VERSION_FOUND ]; then
@@ -4112,6 +4112,8 @@ install_DEB() {
 
 
   PRINT ""
+  # Debian OIIO includes again libopencv, without even properly dealing with this dependency...
+  OIIO_FORCE_BUILD=true
   if [ "$OIIO_SKIP" = true ]; then
     WARNING "Skipping OpenImageIO installation, as requested..."
   elif [ "$OIIO_FORCE_BUILD" = true ]; then
