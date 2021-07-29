@@ -10,7 +10,7 @@
 [![DOI](https://zenodo.org/badge/352937464.svg)](https://zenodo.org/badge/latestdoi/352937464)
 
 # Buiding Notation
-[Splash](release\datafiles\splash.png)
+![Splash](release\datafiles\splash.png)
 
 ## 1 Versions are important
 Main sets are like,
