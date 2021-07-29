@@ -7,6 +7,7 @@
 * **Multiple-data operation system is improved with Python API including velocity, force, location, orientation and contact number.**
 * advanced computer technology is adopted for fast and stable simulation, that is, CPU Streaming SIMD Extensions 2 (SS2) for core dynamics computation and GPU compute unified device architecture (CUDA 8.0) for 3D creating and rendering.
 
+[![DOI](https://zenodo.org/badge/352937464.svg)](https://zenodo.org/badge/latestdoi/352937464)
 
 # Buiding Notation
 
