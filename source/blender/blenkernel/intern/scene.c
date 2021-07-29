@@ -231,7 +231,6 @@ static void scene_init_data(ID *id)
 
   /* Sequencer */
   scene->toolsettings->sequencer_tool_settings = SEQ_tool_settings_init();
-  scene->toolsettings->snap_flag |= SCE_SNAP_SEQ;
 
   for (size_t i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
     scene->orientation_slots[i].index_custom = -1;
