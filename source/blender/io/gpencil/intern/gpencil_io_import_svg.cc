@@ -148,6 +148,8 @@ bool GpencilImporterSVG::read()
         for (bGPDspoint &pt : MutableSpan(gps->points, gps->totpoints)) {
           sub_v3_v3(&pt.x, gp_center);
         }
+        /* Calc stroke bounding box. */
+        BKE_gpencil_stroke_boundingbox_calc(gps);
       }
     }
   }
