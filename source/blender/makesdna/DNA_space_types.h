@@ -654,6 +654,7 @@ typedef enum eSpaceSeq_Flag {
   SEQ_SHOW_STRIP_SOURCE = (1 << 15),
   SEQ_SHOW_STRIP_DURATION = (1 << 16),
   SEQ_USE_PROXIES = (1 << 17),
+  SEQ_SHOW_GRID = (1 << 18),
 } eSpaceSeq_Flag;
 
 /* SpaceSeq.view */

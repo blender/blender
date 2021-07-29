@@ -480,10 +480,11 @@ float UI_view2d_grid_resolution_y__values(const struct View2D *v2d)
 /* Line Drawing API
  **************************************************/
 
-void UI_view2d_draw_lines_x__discrete_values(const View2D *v2d)
+void UI_view2d_draw_lines_x__discrete_values(const View2D *v2d, bool display_minor_lines)
 {
   const uint major_line_distance = view2d_major_step_x__discrete(v2d);
-  view2d_draw_lines(v2d, major_line_distance, major_line_distance > 1, 'v');
+  view2d_draw_lines(
+      v2d, major_line_distance, display_minor_lines && (major_line_distance > 1), 'v');
 }
 
 void UI_view2d_draw_lines_x__values(const View2D *v2d)
@@ -498,21 +499,25 @@ void UI_view2d_draw_lines_y__values(const View2D *v2d)
   view2d_draw_lines(v2d, major_line_distance, true, 'h');
 }
 
-void UI_view2d_draw_lines_x__discrete_time(const View2D *v2d, const Scene *scene)
+void UI_view2d_draw_lines_x__discrete_time(const View2D *v2d,
+                                           const Scene *scene,
+                                           bool display_minor_lines)
 {
   const float major_line_distance = view2d_major_step_x__time(v2d, scene);
-  view2d_draw_lines(v2d, major_line_distance, major_line_distance > 1, 'v');
+  view2d_draw_lines(
+      v2d, major_line_distance, display_minor_lines && (major_line_distance > 1), 'v');
 }
 
 void UI_view2d_draw_lines_x__discrete_frames_or_seconds(const View2D *v2d,
                                                         const Scene *scene,
-                                                        bool display_seconds)
+                                                        bool display_seconds,
+                                                        bool display_minor_lines)
 {
   if (display_seconds) {
-    UI_view2d_draw_lines_x__discrete_time(v2d, scene);
+    UI_view2d_draw_lines_x__discrete_time(v2d, scene, display_minor_lines);
   }
   else {
-    UI_view2d_draw_lines_x__discrete_values(v2d);
+    UI_view2d_draw_lines_x__discrete_values(v2d, display_minor_lines);
   }
 }
 
@@ -521,7 +526,7 @@ void UI_view2d_draw_lines_x__frames_or_seconds(const View2D *v2d,
                                                bool display_seconds)
 {
   if (display_seconds) {
-    UI_view2d_draw_lines_x__discrete_time(v2d, scene);
+    UI_view2d_draw_lines_x__discrete_time(v2d, scene, true);
   }
   else {
     UI_view2d_draw_lines_x__values(v2d);

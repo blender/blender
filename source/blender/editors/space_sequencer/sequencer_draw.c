@@ -1981,7 +1981,7 @@ static void draw_seq_backdrop(View2D *v2d)
   /* Lines separating the horizontal bands. */
   i = max_ii(1, ((int)v2d->cur.ymin) - 1);
   int line_len = (int)v2d->cur.ymax - i + 1;
-  immUniformThemeColor(TH_GRID);
+  immUniformThemeColorShade(TH_GRID, 10);
   immBegin(GPU_PRIM_LINES, line_len * 2);
   while (line_len--) {
     immVertex2f(pos, v2d->cur.xmax, i);
@@ -2419,7 +2419,12 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   /* Get timeline bound-box, needed for the scroll-bars. */
   SEQ_timeline_boundbox(scene, SEQ_active_seqbase_get(ed), &v2d->tot);
   draw_seq_backdrop(v2d);
-  UI_view2d_constant_grid_draw(v2d, FPS);
+  if ((sseq->flag & SEQ_SHOW_STRIP_OVERLAY) && (sseq->flag & SEQ_SHOW_GRID)) {
+    U.v2d_min_gridsize *= 3;
+    UI_view2d_draw_lines_x__discrete_frames_or_seconds(
+        v2d, scene, (sseq->flag & SEQ_DRAWFRAMES) == 0, false);
+    U.v2d_min_gridsize /= 3;
+  }
 
   /* Only draw backdrop in timeline view. */
   if (sseq->view == SEQ_VIEW_SEQUENCE && sseq->draw_flag & SEQ_DRAW_BACKDROP) {
