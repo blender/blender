@@ -228,7 +228,8 @@ static int PyC_AsArray_Multi_FAST_impl(void **array_p,
   const int length = dims[0];
 
   if (dims_len == 1) {
-    if (PyC_AsArray(*array_p, array_item_size, value_fast, length, type, error_prefix) == -1) {
+    if (PyC_AsArray_FAST(*array_p, array_item_size, value_fast, length, type, error_prefix) ==
+        -1) {
       return -1;
     }
     *array_p = POINTER_OFFSET(*array_p, array_item_size * length);
