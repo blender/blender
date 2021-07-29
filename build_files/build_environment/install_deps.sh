@@ -1129,7 +1129,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * libjpeg, libpng, libtiff, [openjpeg2], [libopenal].
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libwayland-client0, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
-    * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp.
+    * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp.
     * libsdl2, libglew, libpugixml, libpotrace, [libgmp], [libglewmx], fontconfig, [libharu/libhpdf].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
@@ -3844,7 +3844,7 @@ install_DEB() {
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
              libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
-             libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev"
+             libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev"
              # libglewmx-dev  (broken in deb testing currently...)
 
   VORBIS_USE=true
@@ -4514,7 +4514,7 @@ install_RPM() {
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
-             gmp-devel pugixml-devel potrace-devel libharu-devel"
+             gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -5095,7 +5095,8 @@ install_ARCH() {
   _packages="$BASE_DEVEL git cmake fontconfig \
              libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
              $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl2 fftw \
-             libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu"
+             libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
+             zstd"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
