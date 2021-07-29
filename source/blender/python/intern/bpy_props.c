@@ -492,6 +492,145 @@ static void bpy_prop_assign_flag_override(PropertyRNA *prop, const int flag_over
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Multi-Dimensional Property Utilities
+ * \{ */
+
+struct BPYPropArrayLength {
+  int len_total;
+  /** Ignore `dims` when `dims_len == 0`. */
+  int dims[RNA_MAX_ARRAY_DIMENSION];
+  int dims_len;
+};
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ */
+static int bpy_prop_array_length_parse(PyObject *o, void *p)
+{
+  struct BPYPropArrayLength *array_len_info = p;
+
+  if (PyLong_CheckExact(o)) {
+    int size;
+    if (((size = PyLong_AsLong(o)) == -1)) {
+      PyErr_Format(
+          PyExc_ValueError, "expected number or sequence of numbers, got %s", Py_TYPE(o)->tp_name);
+      return 0;
+    }
+    if (size < 1 || size > PYRNA_STACK_ARRAY) {
+      PyErr_Format(
+          PyExc_TypeError, "(size=%d) must be between 1 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
+      return 0;
+    }
+    array_len_info->len_total = size;
+
+    /* Don't use this value. */
+    array_len_info->dims_len = 0;
+  }
+  else {
+    PyObject *seq_fast;
+    if (!(seq_fast = PySequence_Fast(o, "size must be a number of a sequence of numbers"))) {
+      return 0;
+    }
+    const int seq_len = PySequence_Fast_GET_SIZE(seq_fast);
+    if (seq_len < 1 || seq_len > RNA_MAX_ARRAY_DIMENSION) {
+      PyErr_Format(
+          PyExc_TypeError,
+          "(len(size)=%d) length must be between 1 and " STRINGIFY(RNA_MAX_ARRAY_DIMENSION),
+          seq_len);
+      Py_DECREF(seq_fast);
+      return 0;
+    }
+
+    PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
+    for (int i = 0; i < seq_len; i++) {
+      int size;
+      if (((size = PyLong_AsLong(seq_items[i])) == -1)) {
+        Py_DECREF(seq_fast);
+        PyErr_Format(PyExc_ValueError,
+                     "expected number in sequence, got %s at index %d",
+                     Py_TYPE(o)->tp_name,
+                     i);
+        return 0;
+      }
+      if (size < 1 || size > PYRNA_STACK_ARRAY) {
+        Py_DECREF(seq_fast);
+        PyErr_Format(PyExc_TypeError,
+                     "(size[%d]=%d) must be between 1 and " STRINGIFY(PYRNA_STACK_ARRAY),
+                     i,
+                     size);
+        return 0;
+      }
+
+      array_len_info->dims[i] = size;
+      array_len_info->dims_len = seq_len;
+    }
+  }
+  return 1;
+}
+
+/**
+ * Return -1 on error.
+ */
+static int bpy_prop_array_from_py_with_dims(void *values,
+                                            size_t values_elem_size,
+                                            PyObject *py_values,
+                                            const struct BPYPropArrayLength *array_len_info,
+                                            const PyTypeObject *type,
+                                            const char *error_str)
+{
+  if (array_len_info->dims_len == 0) {
+    return PyC_AsArray(
+        values, values_elem_size, py_values, array_len_info->len_total, type, error_str);
+  }
+  const int *dims = array_len_info->dims;
+  const int dims_len = array_len_info->dims_len;
+  return PyC_AsArray_Multi(values, values_elem_size, py_values, dims, dims_len, type, error_str);
+}
+
+static bool bpy_prop_array_is_matrix_compatible_ex(int subtype,
+                                                   const struct BPYPropArrayLength *array_len_info)
+{
+  return ((subtype == PROP_MATRIX) && (array_len_info->dims_len == 2) &&
+          ((array_len_info->dims[0] >= 2) && (array_len_info->dims[0] >= 4)) &&
+          ((array_len_info->dims[1] >= 2) && (array_len_info->dims[1] >= 4)));
+}
+
+static bool bpy_prop_array_is_matrix_compatible(PropertyRNA *prop,
+                                                const struct BPYPropArrayLength *array_len_info)
+{
+  BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+  return bpy_prop_array_is_matrix_compatible_ex(RNA_property_subtype(prop), array_len_info);
+}
+
+/**
+ * Needed since the internal storage of matrices swaps row/column.
+ */
+static void bpy_prop_array_matrix_swap_row_column_vn_vn(
+    float *values_dst, const float *values_src, const struct BPYPropArrayLength *array_len_info)
+{
+  BLI_assert(values_dst != values_src);
+  const int dim0 = array_len_info->dims[0], dim1 = array_len_info->dims[1];
+  BLI_assert(dim0 <= 4 && dim1 <= 4);
+  for (int i = 0; i < dim0; i++) {
+    for (int j = 0; j < dim1; j++) {
+      values_dst[(j * dim0) + i] = values_src[(i * dim1) + j];
+    }
+  }
+}
+
+static void bpy_prop_array_matrix_swap_row_column_vn(
+    float *values, const struct BPYPropArrayLength *array_len_info)
+{
+  const int dim0 = array_len_info->dims[0], dim1 = array_len_info->dims[1];
+  BLI_assert(dim0 <= 4 && dim1 <= 4);
+  float values_orig[4 * 4];
+  memcpy(values_orig, values, sizeof(float) * (dim0 * dim1));
+  bpy_prop_array_matrix_swap_row_column_vn_vn(values, values_orig, array_len_info);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Shared Property Callbacks
  *
  * Unique data is accessed via #RNA_property_py_data_get
@@ -687,7 +826,10 @@ static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
   PyGILState_STATE gilstate;
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
+  bool is_values_set = false;
   int i, len = RNA_property_array_length(ptr, prop);
+  struct BPYPropArrayLength array_len_info = {.len_total = len};
+  array_len_info.dims_len = RNA_property_array_dimension(ptr, prop, array_len_info.dims);
 
   BLI_assert(prop_store != NULL);
 
@@ -711,23 +853,26 @@ static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
 
   Py_DECREF(args);
 
-  if (ret == NULL) {
-    PyC_Err_PrintWithFunc(py_func);
+  if (ret != NULL) {
+    if (bpy_prop_array_from_py_with_dims(values,
+                                         sizeof(*values),
+                                         ret,
+                                         &array_len_info,
+                                         &PyBool_Type,
+                                         "BoolVectorProperty get callback") == -1) {
+      PyC_Err_PrintWithFunc(py_func);
+    }
+    else {
+      is_values_set = true;
+    }
+    Py_DECREF(ret);
+  }
 
+  if (is_values_set == false) {
+    /* This is the flattened length for multi-dimensional arrays. */
     for (i = 0; i < len; i++) {
       values[i] = false;
     }
-  }
-  else {
-    if (PyC_AsArray(values, sizeof(*values), ret, len, &PyBool_Type, "BoolVectorProperty get: ") ==
-        -1) {
-      PyC_Err_PrintWithFunc(py_func);
-
-      for (i = 0; i < len; i++) {
-        values[i] = false;
-      }
-    }
-    Py_DECREF(ret);
   }
 
   if (use_gil) {
@@ -753,6 +898,8 @@ static void bpy_prop_boolean_array_set_fn(struct PointerRNA *ptr,
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
   const int len = RNA_property_array_length(ptr, prop);
+  struct BPYPropArrayLength array_len_info = {.len_total = len};
+  array_len_info.dims_len = RNA_property_array_dimension(ptr, prop, array_len_info.dims);
 
   BLI_assert(prop_store != NULL);
 
@@ -772,7 +919,13 @@ static void bpy_prop_boolean_array_set_fn(struct PointerRNA *ptr,
   self = pyrna_struct_as_instance(ptr);
   PyTuple_SET_ITEM(args, 0, self);
 
-  py_values = PyC_Tuple_PackArray_Bool(values, len);
+  if (array_len_info.dims_len == 0) {
+    py_values = PyC_Tuple_PackArray_Bool(values, len);
+  }
+  else {
+    py_values = PyC_Tuple_PackArray_Multi_Bool(
+        values, array_len_info.dims, array_len_info.dims_len);
+  }
   PyTuple_SET_ITEM(args, 1, py_values);
 
   ret = PyObject_CallObject(py_func, args);
@@ -934,7 +1087,10 @@ static void bpy_prop_int_array_get_fn(struct PointerRNA *ptr,
   PyGILState_STATE gilstate;
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
+  bool is_values_set = false;
   int i, len = RNA_property_array_length(ptr, prop);
+  struct BPYPropArrayLength array_len_info = {.len_total = len};
+  array_len_info.dims_len = RNA_property_array_dimension(ptr, prop, array_len_info.dims);
 
   BLI_assert(prop_store != NULL);
 
@@ -958,23 +1114,26 @@ static void bpy_prop_int_array_get_fn(struct PointerRNA *ptr,
 
   Py_DECREF(args);
 
-  if (ret == NULL) {
-    PyC_Err_PrintWithFunc(py_func);
+  if (ret != NULL) {
+    if (bpy_prop_array_from_py_with_dims(values,
+                                         sizeof(*values),
+                                         ret,
+                                         &array_len_info,
+                                         &PyLong_Type,
+                                         "IntVectorProperty get callback") == -1) {
+      PyC_Err_PrintWithFunc(py_func);
+    }
+    else {
+      is_values_set = true;
+    }
+    Py_DECREF(ret);
+  }
 
+  if (is_values_set == false) {
+    /* This is the flattened length for multi-dimensional arrays. */
     for (i = 0; i < len; i++) {
       values[i] = 0;
     }
-  }
-  else {
-    if (PyC_AsArray(values, sizeof(*values), ret, len, &PyLong_Type, "IntVectorProperty get: ") ==
-        -1) {
-      PyC_Err_PrintWithFunc(py_func);
-
-      for (i = 0; i < len; i++) {
-        values[i] = 0;
-      }
-    }
-    Py_DECREF(ret);
   }
 
   if (use_gil) {
@@ -1000,6 +1159,8 @@ static void bpy_prop_int_array_set_fn(struct PointerRNA *ptr,
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
   const int len = RNA_property_array_length(ptr, prop);
+  struct BPYPropArrayLength array_len_info = {.len_total = len};
+  array_len_info.dims_len = RNA_property_array_dimension(ptr, prop, array_len_info.dims);
 
   BLI_assert(prop_store != NULL);
 
@@ -1019,7 +1180,14 @@ static void bpy_prop_int_array_set_fn(struct PointerRNA *ptr,
   self = pyrna_struct_as_instance(ptr);
   PyTuple_SET_ITEM(args, 0, self);
 
-  py_values = PyC_Tuple_PackArray_I32(values, len);
+  if (array_len_info.dims_len == 0) {
+    py_values = PyC_Tuple_PackArray_I32(values, len);
+  }
+  else {
+    py_values = PyC_Tuple_PackArray_Multi_I32(
+        values, array_len_info.dims, array_len_info.dims_len);
+  }
+
   PyTuple_SET_ITEM(args, 1, py_values);
 
   ret = PyObject_CallObject(py_func, args);
@@ -1181,7 +1349,10 @@ static void bpy_prop_float_array_get_fn(struct PointerRNA *ptr,
   PyGILState_STATE gilstate;
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
+  bool is_values_set = false;
   int i, len = RNA_property_array_length(ptr, prop);
+  struct BPYPropArrayLength array_len_info = {.len_total = len};
+  array_len_info.dims_len = RNA_property_array_dimension(ptr, prop, array_len_info.dims);
 
   BLI_assert(prop_store != NULL);
 
@@ -1205,23 +1376,30 @@ static void bpy_prop_float_array_get_fn(struct PointerRNA *ptr,
 
   Py_DECREF(args);
 
-  if (ret == NULL) {
-    PyC_Err_PrintWithFunc(py_func);
+  if (ret != NULL) {
+    if (bpy_prop_array_from_py_with_dims(values,
+                                         sizeof(*values),
+                                         ret,
+                                         &array_len_info,
+                                         &PyFloat_Type,
+                                         "FloatVectorProperty get callback") == -1) {
+      PyC_Err_PrintWithFunc(py_func);
+    }
+    else {
+      /* Only for float types. */
+      if (bpy_prop_array_is_matrix_compatible(prop, &array_len_info)) {
+        bpy_prop_array_matrix_swap_row_column_vn(values, &array_len_info);
+      }
+      is_values_set = true;
+    }
+    Py_DECREF(ret);
+  }
 
+  if (is_values_set == false) {
+    /* This is the flattened length for multi-dimensional arrays. */
     for (i = 0; i < len; i++) {
       values[i] = 0.0f;
     }
-  }
-  else {
-    if (PyC_AsArray(
-            values, sizeof(*values), ret, len, &PyFloat_Type, "FloatVectorProperty get: ") == -1) {
-      PyC_Err_PrintWithFunc(py_func);
-
-      for (i = 0; i < len; i++) {
-        values[i] = 0.0f;
-      }
-    }
-    Py_DECREF(ret);
   }
 
   if (use_gil) {
@@ -1247,6 +1425,8 @@ static void bpy_prop_float_array_set_fn(struct PointerRNA *ptr,
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
   const int len = RNA_property_array_length(ptr, prop);
+  struct BPYPropArrayLength array_len_info = {.len_total = len};
+  array_len_info.dims_len = RNA_property_array_dimension(ptr, prop, array_len_info.dims);
 
   BLI_assert(prop_store != NULL);
 
@@ -1266,7 +1446,14 @@ static void bpy_prop_float_array_set_fn(struct PointerRNA *ptr,
   self = pyrna_struct_as_instance(ptr);
   PyTuple_SET_ITEM(args, 0, self);
 
-  py_values = PyC_Tuple_PackArray_F32(values, len);
+  if (array_len_info.dims_len == 0) {
+    py_values = PyC_Tuple_PackArray_F32(values, len);
+  }
+  else {
+    /* No need for matrix column/row swapping here unless the matrix data is read directly. */
+    py_values = PyC_Tuple_PackArray_Multi_F32(
+        values, array_len_info.dims, array_len_info.dims_len);
+  }
   PyTuple_SET_ITEM(args, 1, py_values);
 
   ret = PyObject_CallObject(py_func, args);
@@ -2352,8 +2539,9 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
   "value in the UI.\n"
 
 #define BPY_PROPDEF_VECSIZE_DOC \
-  "   :arg size: Vector dimensions in [1, " STRINGIFY(PYRNA_STACK_ARRAY) "].\n" \
-"   :type size: int\n"
+  "   :arg size: Vector dimensions in [1, " STRINGIFY(PYRNA_STACK_ARRAY) "]. " \
+"An int sequence can be used to define multi-dimension arrays.\n" \
+"   :type size: int or int sequence\n"
 
 #define BPY_PROPDEF_INT_STEP_DOC \
   "   :arg step: Step of increment/decrement in UI, in [1, 100], defaults to 1 (WARNING: unused " \
@@ -2558,8 +2746,8 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 
   const char *id = NULL, *name = NULL, *description = "";
   Py_ssize_t id_len;
-  bool def[PYRNA_STACK_ARRAY] = {0};
-  int size = 3;
+  bool def[RNA_MAX_ARRAY_DIMENSION][PYRNA_STACK_ARRAY] = {{false}};
+  struct BPYPropArrayLength array_len_info = {.len_total = 3};
   PropertyRNA *prop;
   PyObject *pydef = NULL;
   PyObject *pyopts = NULL;
@@ -2589,7 +2777,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
       "set",
       NULL,
   };
-  static _PyArg_Parser _parser = {"s#|$ssOO!O!O!siOOO:BoolVectorProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {"s#|$ssOO!O!O!sO&OOO:BoolVectorProperty", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -2605,7 +2793,8 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
                                         &PySet_Type,
                                         &py_tags,
                                         &pysubtype,
-                                        &size,
+                                        bpy_prop_array_length_parse,
+                                        &array_len_info,
                                         &update_fn,
                                         &get_fn,
                                         &set_fn)) {
@@ -2617,21 +2806,15 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
                             property_flag_override_items,
                             property_subtype_array_items);
 
-  if (size < 1 || size > PYRNA_STACK_ARRAY) {
-    PyErr_Format(
-        PyExc_TypeError,
-        "BoolVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY),
-        size);
-    return NULL;
-  }
-
-  if (pydef && (PyC_AsArray(def,
-                            sizeof(*def),
-                            pydef,
-                            size,
-                            &PyBool_Type,
-                            "BoolVectorProperty(default=sequence): ") == -1)) {
-    return NULL;
+  if (pydef != NULL) {
+    if (bpy_prop_array_from_py_with_dims(def[0],
+                                         sizeof(*def[0]),
+                                         pydef,
+                                         &array_len_info,
+                                         &PyBool_Type,
+                                         "BoolVectorProperty(default=sequence)") == -1) {
+      return NULL;
+    }
   }
 
   if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
@@ -2648,11 +2831,21 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
     prop = RNA_def_boolean_array(
         srna, id, size, pydef ? def : NULL, name ? name : id, description);
 #endif
+
   prop = RNA_def_property(srna, id, PROP_BOOLEAN, subtype);
-  RNA_def_property_array(prop, size);
-  if (pydef) {
-    RNA_def_property_boolean_array_default(prop, def);
+  if (array_len_info.dims_len == 0) {
+    RNA_def_property_array(prop, array_len_info.len_total);
+    if (pydef != NULL) {
+      RNA_def_property_boolean_array_default(prop, def[0]);
+    }
   }
+  else {
+    RNA_def_property_multi_array(prop, array_len_info.dims_len, array_len_info.dims);
+    if (pydef != NULL) {
+      RNA_def_property_boolean_array_default(prop, &def[0][0]);
+    }
+  }
+
   RNA_def_property_ui_text(prop, name ? name : id, description);
 
   if (py_tags) {
@@ -2837,8 +3030,8 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
   const char *id = NULL, *name = NULL, *description = "";
   Py_ssize_t id_len;
   int min = INT_MIN, max = INT_MAX, soft_min = INT_MIN, soft_max = INT_MAX, step = 1;
-  int def[PYRNA_STACK_ARRAY] = {0};
-  int size = 3;
+  int def[RNA_MAX_ARRAY_DIMENSION][PYRNA_STACK_ARRAY] = {0};
+  struct BPYPropArrayLength array_len_info = {.len_total = 3};
   PropertyRNA *prop;
   PyObject *pydef = NULL;
   PyObject *pyopts = NULL;
@@ -2873,7 +3066,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
       "set",
       NULL,
   };
-  static _PyArg_Parser _parser = {"s#|$ssOiiiiiO!O!O!siOOO:IntVectorProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {"s#|$ssOiiiiiO!O!O!sO&OOO:IntVectorProperty", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -2894,7 +3087,8 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
                                         &PySet_Type,
                                         &py_tags,
                                         &pysubtype,
-                                        &size,
+                                        bpy_prop_array_length_parse,
+                                        &array_len_info,
                                         &update_fn,
                                         &get_fn,
                                         &set_fn)) {
@@ -2906,21 +3100,15 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
                             property_flag_override_items,
                             property_subtype_array_items);
 
-  if (size < 1 || size > PYRNA_STACK_ARRAY) {
-    PyErr_Format(
-        PyExc_TypeError,
-        "IntVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY),
-        size);
-    return NULL;
-  }
-
-  if (pydef && (PyC_AsArray(def,
-                            sizeof(*def),
-                            pydef,
-                            size,
-                            &PyLong_Type,
-                            "IntVectorProperty(default=sequence): ") == -1)) {
-    return NULL;
+  if (pydef != NULL) {
+    if (bpy_prop_array_from_py_with_dims(def[0],
+                                         sizeof(*def[0]),
+                                         pydef,
+                                         &array_len_info,
+                                         &PyLong_Type,
+                                         "IntVectorProperty(default=sequence)") == -1) {
+      return NULL;
+    }
   }
 
   if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
@@ -2934,10 +3122,19 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
   }
 
   prop = RNA_def_property(srna, id, PROP_INT, subtype);
-  RNA_def_property_array(prop, size);
-  if (pydef) {
-    RNA_def_property_int_array_default(prop, def);
+  if (array_len_info.dims_len == 0) {
+    RNA_def_property_array(prop, array_len_info.len_total);
+    if (pydef != NULL) {
+      RNA_def_property_int_array_default(prop, def[0]);
+    }
   }
+  else {
+    RNA_def_property_multi_array(prop, array_len_info.dims_len, array_len_info.dims);
+    if (pydef != NULL) {
+      RNA_def_property_int_array_default(prop, &def[0][0]);
+    }
+  }
+
   RNA_def_property_range(prop, min, max);
   RNA_def_property_ui_text(prop, name ? name : id, description);
   RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
@@ -3126,8 +3323,9 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
   const char *id = NULL, *name = NULL, *description = "";
   Py_ssize_t id_len;
   float min = -FLT_MAX, max = FLT_MAX, soft_min = -FLT_MAX, soft_max = FLT_MAX, step = 3;
-  float def[PYRNA_STACK_ARRAY] = {0.0f};
-  int precision = 2, size = 3;
+  float def[RNA_MAX_ARRAY_DIMENSION][PYRNA_STACK_ARRAY] = {{0.0f}};
+  int precision = 2;
+  struct BPYPropArrayLength array_len_info = {.len_total = 3};
   PropertyRNA *prop;
   PyObject *pydef = NULL;
   PyObject *pyopts = NULL;
@@ -3149,7 +3347,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
       "soft_max", "step", "precision",   "options", "override", "tags", "subtype",
       "unit",     "size", "update",      "get",     "set",      NULL,
   };
-  static _PyArg_Parser _parser = {"s#|$ssOfffffiO!O!O!ssiOOO:FloatVectorProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {"s#|$ssOfffffiO!O!O!ssO&OOO:FloatVectorProperty", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -3172,7 +3370,8 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
                                         &py_tags,
                                         &pysubtype,
                                         &pyunit,
-                                        &size,
+                                        bpy_prop_array_length_parse,
+                                        &array_len_info,
                                         &update_fn,
                                         &get_fn,
                                         &set_fn)) {
@@ -3189,21 +3388,18 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
     return NULL;
   }
 
-  if (size < 1 || size > PYRNA_STACK_ARRAY) {
-    PyErr_Format(
-        PyExc_TypeError,
-        "FloatVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY),
-        size);
-    return NULL;
-  }
-
-  if (pydef && (PyC_AsArray(def,
-                            sizeof(*def),
-                            pydef,
-                            size,
-                            &PyFloat_Type,
-                            "FloatVectorProperty(default=sequence): ") == -1)) {
-    return NULL;
+  if (pydef != NULL) {
+    if (bpy_prop_array_from_py_with_dims(def[0],
+                                         sizeof(*def[0]),
+                                         pydef,
+                                         &array_len_info,
+                                         &PyFloat_Type,
+                                         "FloatVectorProperty(default=sequence)") == -1) {
+      return NULL;
+    }
+    if (bpy_prop_array_is_matrix_compatible_ex(subtype, &array_len_info)) {
+      bpy_prop_array_matrix_swap_row_column_vn(&def[0][0], &array_len_info);
+    }
   }
 
   if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
@@ -3217,10 +3413,19 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
   }
 
   prop = RNA_def_property(srna, id, PROP_FLOAT, subtype | unit);
-  RNA_def_property_array(prop, size);
-  if (pydef) {
-    RNA_def_property_float_array_default(prop, def);
+  if (array_len_info.dims_len == 0) {
+    RNA_def_property_array(prop, array_len_info.len_total);
+    if (pydef != NULL) {
+      RNA_def_property_float_array_default(prop, def[0]);
+    }
   }
+  else {
+    RNA_def_property_multi_array(prop, array_len_info.dims_len, array_len_info.dims);
+    if (pydef != NULL) {
+      RNA_def_property_float_array_default(prop, &def[0][0]);
+    }
+  }
+
   RNA_def_property_range(prop, min, max);
   RNA_def_property_ui_text(prop, name ? name : id, description);
   RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
