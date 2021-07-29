@@ -1,0 +1,3 @@
+DEFAULT##|##Slab_bottom
+DEFAULT##|##Slab_top
+DEFAULT##|##Slab_side

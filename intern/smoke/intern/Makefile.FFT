@@ -1,0 +1,22 @@
+# common stuff
+LDFLAGS_COMMON = -lfftw3 #-lglut -lglu32 -lopengl32 -lz -lpng
+CFLAGS_COMMON =  -c -Wall -I./ #-I/cygdrive/c/lib/glvu/include -D_WIN32
+
+CC         = g++
+CFLAGS     = ${CFLAGS_COMMON} -O3 -Wno-unused
+LDFLAGS    = ${LDFLAGS_COMMON}
+EXECUTABLE = noiseFFT
+
+SOURCES    = noiseFFT.cpp
+OBJECTS    = $(SOURCES:.cpp=.o)
+
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@
+
+clean:
+	rm -f *.o $(EXECUTABLE_LOADER) $(EXECUTABLE)

@@ -1,0 +1,9 @@
+<sv_main:some_filename.py>
+  inputs:
+    verts: v [[]] some_socket_name
+    edges: s [[]]
+    radius: s 0.3
+  outputs:
+    verts: v verts_out
+    edges: s edges_out
+    mask: s masked_items_out

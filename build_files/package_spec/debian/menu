@@ -1,0 +1,4 @@
+?package(blender-snapshot):needs="X11" section="Applications/Graphics"\
+  longtitle="Blender 3D modeler / renderer"\
+  icon="/usr/share/icons/hicolor/scalable/apps/blender.svg"\
+  title="blender" command="/usr/bin/blender"

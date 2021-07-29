@@ -1,0 +1,105 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+#include "node_texture.h"
+
+/* Brick */
+
+float brick_noise(int n) /* fast integer noise */
+{
+	int nn;
+	n = (n + 1013) & 2147483647;
+	n = (n >> 13) ^ n;
+	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 2147483647;
+	return 0.5 * ((float)nn / 1073741824.0);
+}
+
+float brick(point p, float mortar_size, float mortar_smooth, float bias,
+	float BrickWidth, float row_height, float offset_amount, int offset_frequency,
+	float squash_amount, int squash_frequency, float tint)
+{
+	int bricknum, rownum;
+	float offset = 0.0;
+	float brick_width = BrickWidth;
+	float x, y;
+
+	rownum = (int)floor(p[1] / row_height);
+	
+	if (offset_frequency && squash_frequency) {
+		brick_width *= (rownum % squash_frequency) ? 1.0 : squash_amount;                /* squash */
+		offset       = (rownum % offset_frequency) ? 0.0 : (brick_width * offset_amount);  /* offset */
+	}
+
+	bricknum = (int)floor((p[0] + offset) / brick_width);
+
+	x = (p[0] + offset) - brick_width * bricknum;
+	y = p[1] - row_height * rownum;
+
+	tint = clamp((brick_noise((rownum << 16) + (bricknum & 65535)) + bias), 0.0, 1.0);
+
+	float min_dist = min(min(x, y), min(brick_width - x, row_height - y));
+	if(min_dist >= mortar_size) {
+		return 0.0;
+	}
+	else if(mortar_smooth == 0.0) {
+		return 1.0;
+	}
+	else {
+		min_dist = 1.0 - min_dist/mortar_size;
+		return smoothstep(0.0, mortar_smooth, min_dist);
+	}
+}
+
+shader node_brick_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+	float offset = 0.5,
+	int offset_frequency = 2,
+	float squash = 1.0,
+	int squash_frequency = 1,
+	point Vector = P,
+	color Color1 = 0.2,
+	color Color2 = 0.8,
+	color Mortar = 0.0,
+	float Scale = 5.0,
+	float MortarSize = 0.02,
+	float MortarSmooth = 0.0,
+	float Bias = 0.0,
+	float BrickWidth = 0.5,
+	float RowHeight = 0.25,
+	output float Fac = 0.0,
+	output color Color = 0.2)
+{
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
+	float tint = 0.0;
+	color Col = Color1;
+	
+	Fac = brick(p * Scale, MortarSize, MortarSmooth, Bias, BrickWidth, RowHeight,
+		offset, offset_frequency, squash, squash_frequency, tint);
+		
+	if (Fac != 1.0) {
+		float facm = 1.0 - tint;
+		Col = facm * Color1 + tint * Color2;
+	}
+	
+	Color = mix(Col, Mortar, Fac);
+}
+

@@ -1,0 +1,145 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_separate_hsv.oso
+shader node_separate_hsv
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{1,30} %write{2147483647,-1}
+oparam	float	H	0		%read{2147483647,-1} %write{46,46}
+oparam	float	S	0		%read{2147483647,-1} %write{47,47}
+oparam	float	V	0		%read{2147483647,-1} %write{48,48}
+local	float	___653_cmax	%read{11,31} %write{5,5}
+local	float	___653_cmin	%read{11,11} %write{10,10}
+local	float	___653_h	%read{41,45} %write{17,44}
+local	float	___653_s	%read{18,45} %write{15,16}
+local	float	___653_v	%read{45,45} %write{12,12}
+local	float	___653_cdelta	%read{15,23} %write{11,11}
+local	color	___653_c	%read{27,39} %write{23,23}
+local	color	col	%read{46,48} %write{45,45}
+const	string	$const1	"rgb_to_hsv"		%read{0,0} %write{2147483647,-1}
+const	int	$const2	0		%read{1,46} %write{2147483647,-1}
+temp	float	$tmp1	%read{5,5} %write{1,1}
+temp	float	$tmp2	%read{5,5} %write{4,4}
+const	int	$const3	1		%read{2,47} %write{2147483647,-1}
+temp	float	$tmp3	%read{4,4} %write{2,2}
+const	int	$const4	2		%read{3,48} %write{2147483647,-1}
+temp	float	$tmp4	%read{4,4} %write{3,3}
+temp	float	$tmp5	%read{10,10} %write{6,6}
+temp	float	$tmp6	%read{10,10} %write{9,9}
+temp	float	$tmp7	%read{9,9} %write{7,7}
+temp	float	$tmp8	%read{9,9} %write{8,8}
+const	float	$const5	0		%read{13,42} %write{2147483647,-1}
+temp	int	$tmp9	%read{14,14} %write{13,13}
+temp	int	$tmp10	%read{19,19} %write{18,18}
+temp	color	$tmp11	%read{22,22} %write{21,21}
+temp	color	$tmp12	%read{23,23} %write{22,22}
+temp	float	$tmp13	%read{25,25} %write{24,24}
+temp	int	$tmp14	%read{26,26} %write{25,25}
+temp	float	$tmp15	%read{29,29} %write{27,27}
+temp	float	$tmp16	%read{29,29} %write{28,28}
+temp	float	$tmp17	%read{31,31} %write{30,30}
+temp	int	$tmp18	%read{32,32} %write{31,31}
+const	float	$const6	2		%read{34,34} %write{2147483647,-1}
+temp	float	$tmp19	%read{34,34} %write{33,33}
+temp	float	$tmp20	%read{36,36} %write{34,34}
+temp	float	$tmp21	%read{36,36} %write{35,35}
+const	float	$const7	4		%read{38,38} %write{2147483647,-1}
+temp	float	$tmp22	%read{38,38} %write{37,37}
+temp	float	$tmp23	%read{40,40} %write{38,38}
+temp	float	$tmp24	%read{40,40} %write{39,39}
+const	float	$const8	6		%read{41,41} %write{2147483647,-1}
+temp	int	$tmp25	%read{43,43} %write{42,42}
+const	float	$const9	1		%read{44,44} %write{2147483647,-1}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_hsv.osl:26
+# 	color col = rgb_to_hsv(Color);
+	functioncall	$const1 46 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_hsv.osl"} %line{26} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:84
+# 
+	compref		$tmp1 Color $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{84} %argrw{"wrr"}
+	compref		$tmp3 Color $const3 	%argrw{"wrr"}
+	compref		$tmp4 Color $const4 	%argrw{"wrr"}
+	max		$tmp2 $tmp3 $tmp4 	%argrw{"wrr"}
+	max		___653_cmax $tmp1 $tmp2 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:85
+# color xyY_to_xyz(float x, float y, float Y)
+	compref		$tmp5 Color $const2 	%line{85} %argrw{"wrr"}
+	compref		$tmp7 Color $const3 	%argrw{"wrr"}
+	compref		$tmp8 Color $const4 	%argrw{"wrr"}
+	min		$tmp6 $tmp7 $tmp8 	%argrw{"wrr"}
+	min		___653_cmin $tmp5 $tmp6 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:86
+# {
+	sub		___653_cdelta ___653_cmax ___653_cmin 	%line{86} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:88
+# 
+	assign		___653_v ___653_cmax 	%line{88} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:90
+# 	else X = 0.0;
+	neq		$tmp9 ___653_cmax $const5 	%line{90} %argrw{"wrr"}
+	if		$tmp9 16 18 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:91
+# 
+	div		___653_s ___653_cdelta ___653_cmax 	%line{91} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:94
+# 
+	assign		___653_s $const5 	%line{94} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:95
+# 	return color(X, Y, Z);
+	assign		___653_h $const5 	%line{95} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:98
+# color xyz_to_rgb(float x, float y, float z)
+	eq		$tmp10 ___653_s $const5 	%line{98} %argrw{"wrr"}
+	if		$tmp10 21 45 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:99
+# {
+	assign		___653_h $const5 	%line{99} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:102
+# 	              0.055648 * x + -0.204043 * y +  1.057311 * z);
+	color		$tmp11 ___653_cmax ___653_cmax ___653_cmax 	%line{102} %argrw{"wrrr"}
+	sub		$tmp12 $tmp11 Color 	%argrw{"wrr"}
+	div		___653_c $tmp12 ___653_cdelta 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:104
+# 
+	compref		$tmp13 Color $const2 	%line{104} %argrw{"wrr"}
+	eq		$tmp14 $tmp13 ___653_cmax 	%argrw{"wrr"}
+	if		$tmp14 30 41 	%argrw{"r"}
+	compref		$tmp15 ___653_c $const4 	%argrw{"wrr"}
+	compref		$tmp16 ___653_c $const3 	%argrw{"wrr"}
+	sub		___653_h $tmp15 $tmp16 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:105
+# color rgb_to_hsv(color rgb)
+	compref		$tmp17 Color $const3 	%line{105} %argrw{"wrr"}
+	eq		$tmp18 $tmp17 ___653_cmax 	%argrw{"wrr"}
+	if		$tmp18 37 41 	%argrw{"r"}
+	compref		$tmp19 ___653_c $const2 	%argrw{"wrr"}
+	add		$tmp20 $const6 $tmp19 	%argrw{"wrr"}
+	compref		$tmp21 ___653_c $const4 	%argrw{"wrr"}
+	sub		___653_h $tmp20 $tmp21 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:106
+# {
+	compref		$tmp22 ___653_c $const3 	%line{106} %argrw{"wrr"}
+	add		$tmp23 $const7 $tmp22 	%argrw{"wrr"}
+	compref		$tmp24 ___653_c $const2 	%argrw{"wrr"}
+	sub		___653_h $tmp23 $tmp24 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:108
+# 	color c;
+	div		___653_h ___653_h $const8 	%line{108} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:110
+# 	cmax = max(rgb[0], max(rgb[1], rgb[2]));
+	lt		$tmp25 ___653_h $const5 	%line{110} %argrw{"wrr"}
+	if		$tmp25 45 45 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:111
+# 	cmin = min(rgb[0], min(rgb[1], rgb[2]));
+	add		___653_h ___653_h $const9 	%line{111} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:114
+# 	v = cmax;
+	color		col ___653_h ___653_s ___653_v 	%line{114} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_hsv.osl:28
+# 	H = col[0];
+	compref		H col $const2 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_hsv.osl"} %line{28} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_hsv.osl:29
+# 	S = col[1];
+	compref		S col $const3 	%line{29} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_hsv.osl:30
+# 	V = col[2];
+	compref		V col $const4 	%line{30} %argrw{"wrr"}
+	end

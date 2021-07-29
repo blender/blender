@@ -1,0 +1,20 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_ambient_occlusion.oso
+shader node_ambient_occlusion
+param	normal	NormalIn	0 0 0		%read{2147483647,-1} %write{0,0} %initexpr
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{2,2} %write{2147483647,-1}
+oparam	closure color	AO			%read{2147483647,-1} %write{2,2}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+temp	closure color	$tmp1	%read{2,2} %write{1,1}
+const	string	$const1	"ambient_occlusion"		%read{1,1} %write{2147483647,-1}
+code NormalIn
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_ambient_occlusion.osl:20
+# 	normal NormalIn = N,
+	assign		NormalIn N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_ambient_occlusion.osl"} %line{20} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_ambient_occlusion.osl:24
+# 	AO = Color * ambient_occlusion();
+	closure		$tmp1 $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_ambient_occlusion.osl"} %line{24} %argrw{"wr"}
+	mul		AO $tmp1 Color 	%argrw{"wrr"}
+	end

@@ -1,0 +1,153 @@
+The system is: Windows - 10.0.17134 - AMD64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.24.28314/bin/HostX64/x64/cl.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+?? x64 ? Microsoft (R) C/C++ ????? 19.24.28314 ?
+????(C) Microsoft Corporation????????
+
+CMakeCCompilerId.c
+Microsoft (R) Incremental Linker Version 14.24.28314.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+/out:CMakeCCompilerId.exe 
+CMakeCCompilerId.obj 
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.exe"
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.obj"
+
+The C compiler identification is MSVC, found in "D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/3.15.19101501-MSVC_2/CompilerIdC/CMakeCCompilerId.exe"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/VC/Tools/MSVC/14.24.28314/bin/HostX64/x64/cl.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+?? x64 ? Microsoft (R) C/C++ ????? 19.24.28314 ?
+????(C) Microsoft Corporation????????
+
+CMakeCXXCompilerId.cpp
+Microsoft (R) Incremental Linker Version 14.24.28314.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+/out:CMakeCXXCompilerId.exe 
+CMakeCXXCompilerId.obj 
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.exe"
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.obj"
+
+The CXX compiler identification is MSVC, found in "D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/3.15.19101501-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.exe"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_deb57 && [1/2] Building C object CMakeFiles\cmTC_deb57.dir\testCCompiler.c.obj
+[2/2] Linking C executable cmTC_deb57.exe
+
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_4dbe7 && [1/2] Building C object CMakeFiles\cmTC_4dbe7.dir\CMakeCCompilerABI.c.obj
+[2/2] Linking C executable cmTC_4dbe7.exe
+
+
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_12f1c && [1/2] Building CXX object CMakeFiles\cmTC_12f1c.dir\testCXXCompiler.cxx.obj
+[2/2] Linking CXX executable cmTC_12f1c.exe
+
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_0aee5 && [1/2] Building CXX object CMakeFiles\cmTC_0aee5.dir\CMakeCXXCompilerABI.cpp.obj
+[2/2] Linking CXX executable cmTC_0aee5.exe
+
+
+
+Performing C SOURCE FILE Test SUPPORT_SSE_BUILD succeeded with the following compile output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_1ecc5 && [1/2] Building C object CMakeFiles\cmTC_1ecc5.dir\src.c.obj
+src.c(3): warning C4101: "v": ????????
+[2/2] Linking C executable cmTC_1ecc5.exe
+
+
+...and run output:
+
+Return value: 1
+Source file was:
+
+			#include <xmmintrin.h>
+			int main(void) { __m128 v = _mm_setzero_ps(); return 0; }
+Performing C SOURCE FILE Test SUPPORT_SSE2_BUILD succeeded with the following compile output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_d7dad && [1/2] Building C object CMakeFiles\cmTC_d7dad.dir\src.c.obj
+src.c(3): warning C4101: "v": ????????
+[2/2] Linking C executable cmTC_d7dad.exe
+
+
+...and run output:
+
+Return value: 1
+Source file was:
+
+			#include <emmintrin.h>
+			int main(void) { __m128d v = _mm_setzero_pd(); return 0; }
+Determining if the include file memory exists passed with the following output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_a053c && [1/2] Building CXX object CMakeFiles\cmTC_a053c.dir\CheckIncludeFile.cxx.obj
+[2/2] Linking CXX executable cmTC_a053c.exe
+
+
+
+Performing C++ SOURCE FILE Test HAVE_SHARED_PTR_IN_STD_NAMESPACE succeeded with the following output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_9b85b && [1/2] Building CXX object CMakeFiles\cmTC_9b85b.dir\src.cxx.obj
+[2/2] Linking CXX executable cmTC_9b85b.exe
+
+
+Source file was:
+#include <memory>
+		                           int main() {
+		                             std::shared_ptr<int> int_ptr;
+		                             return 0;
+		                           }
+Determining if the include file unordered_map exists passed with the following output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_87409 && [1/2] Building CXX object CMakeFiles\cmTC_87409.dir\CheckIncludeFile.cxx.obj
+[2/2] Linking CXX executable cmTC_87409.exe
+
+
+
+Performing C++ SOURCE FILE Test HAVE_UNORDERED_MAP_IN_STD_NAMESPACE succeeded with the following output:
+Change Dir: D:/Download/Github/blender/code_blender/blender/out/build/x64-Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Preview/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe cmTC_4f3e9 && [1/2] Building CXX object CMakeFiles\cmTC_4f3e9.dir\src.cxx.obj
+[2/2] Linking CXX executable cmTC_4f3e9.exe
+
+
+Source file was:
+#include <unordered_map>
+		                          int main() {
+		                            std::unordered_map<int, int> map;
+		                            return 0;
+		                          }

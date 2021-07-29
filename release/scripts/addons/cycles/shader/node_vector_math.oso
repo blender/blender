@@ -1,0 +1,124 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_vector_math.oso
+shader node_vector_math
+param	string	type	"add"		%read{0,38} %write{2147483647,-1}
+param	vector	Vector1	0 0 0		%read{2,41} %write{2147483647,-1}
+param	vector	Vector2	0 0 0		%read{2,35} %write{2147483647,-1}
+oparam	float	Value	0		%read{2147483647,-1} %write{11,40}
+oparam	vector	Vector	0 0 0		%read{3,20} %write{2,41}
+local	vector	___650_c	%read{36,37} %write{35,35}
+const	string	$const1	"add"		%read{0,0} %write{2147483647,-1}
+temp	int	$tmp1	%read{1,1} %write{0,0}
+temp	float	$tmp2	%read{7,7} %write{4,4}
+const	int	$const2	0		%read{3,15} %write{2147483647,-1}
+temp	float	$tmp3	%read{4,4} %write{3,3}
+temp	float	$tmp4	%read{7,7} %write{6,6}
+const	int	$const3	1		%read{5,17} %write{2147483647,-1}
+temp	float	$tmp5	%read{6,6} %write{5,5}
+temp	float	$tmp6	%read{10,10} %write{7,7}
+temp	float	$tmp7	%read{10,10} %write{9,9}
+const	int	$const4	2		%read{8,20} %write{2147483647,-1}
+temp	float	$tmp8	%read{9,9} %write{8,8}
+temp	float	$tmp9	%read{11,11} %write{10,10}
+const	float	$const5	3		%read{11,23} %write{2147483647,-1}
+const	string	$const6	"subtract"		%read{12,12} %write{2147483647,-1}
+temp	int	$tmp10	%read{13,13} %write{12,12}
+temp	float	$tmp11	%read{19,19} %write{16,16}
+temp	float	$tmp12	%read{16,16} %write{15,15}
+temp	float	$tmp13	%read{19,19} %write{18,18}
+temp	float	$tmp14	%read{18,18} %write{17,17}
+temp	float	$tmp15	%read{22,22} %write{19,19}
+temp	float	$tmp16	%read{22,22} %write{21,21}
+temp	float	$tmp17	%read{21,21} %write{20,20}
+temp	float	$tmp18	%read{23,23} %write{22,22}
+const	string	$const7	"average"		%read{24,24} %write{2147483647,-1}
+temp	int	$tmp19	%read{25,25} %write{24,24}
+temp	vector	$tmp20	%read{27,27} %write{26,26}
+temp	vector	$tmp21	%read{29,29} %write{28,28}
+const	string	$const8	"dot_product"		%read{30,30} %write{2147483647,-1}
+temp	int	$tmp22	%read{31,31} %write{30,30}
+const	string	$const9	"cross_product"		%read{33,33} %write{2147483647,-1}
+temp	int	$tmp23	%read{34,34} %write{33,33}
+const	string	$const10	"normalize"		%read{38,38} %write{2147483647,-1}
+temp	int	$tmp24	%read{39,39} %write{38,38}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:26
+# 	if (type == "add") {
+	eq		$tmp1 type $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl"} %line{26} %argrw{"wrr"}
+	if		$tmp1 12 42 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:27
+# 		Vector = Vector1 + Vector2;
+	add		Vector Vector1 Vector2 	%line{27} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:28
+# 		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
+	compref		$tmp3 Vector $const2 	%line{28} %argrw{"wrr"}
+	abs		$tmp2 $tmp3 	%argrw{"wr"}
+	compref		$tmp5 Vector $const3 	%argrw{"wrr"}
+	abs		$tmp4 $tmp5 	%argrw{"wr"}
+	add		$tmp6 $tmp2 $tmp4 	%argrw{"wrr"}
+	compref		$tmp8 Vector $const4 	%argrw{"wrr"}
+	abs		$tmp7 $tmp8 	%argrw{"wr"}
+	add		$tmp9 $tmp6 $tmp7 	%argrw{"wrr"}
+	div		Value $tmp9 $const5 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:30
+# 	else if (type == "subtract") {
+	eq		$tmp10 type $const6 	%line{30} %argrw{"wrr"}
+	if		$tmp10 24 42 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:31
+# 		Vector = Vector1 - Vector2;
+	sub		Vector Vector1 Vector2 	%line{31} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:32
+# 		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
+	compref		$tmp12 Vector $const2 	%line{32} %argrw{"wrr"}
+	abs		$tmp11 $tmp12 	%argrw{"wr"}
+	compref		$tmp14 Vector $const3 	%argrw{"wrr"}
+	abs		$tmp13 $tmp14 	%argrw{"wr"}
+	add		$tmp15 $tmp11 $tmp13 	%argrw{"wrr"}
+	compref		$tmp17 Vector $const4 	%argrw{"wrr"}
+	abs		$tmp16 $tmp17 	%argrw{"wr"}
+	add		$tmp18 $tmp15 $tmp16 	%argrw{"wrr"}
+	div		Value $tmp18 $const5 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:34
+# 	else if (type == "average") {
+	eq		$tmp19 type $const7 	%line{34} %argrw{"wrr"}
+	if		$tmp19 30 42 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:35
+# 		Value = length(Vector1 + Vector2);
+	add		$tmp20 Vector1 Vector2 	%line{35} %argrw{"wrr"}
+	length		Value $tmp20 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:36
+# 		Vector = normalize(Vector1 + Vector2);
+	add		$tmp21 Vector1 Vector2 	%line{36} %argrw{"wrr"}
+	normalize	Vector $tmp21 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:38
+# 	else if (type == "dot_product") {
+	eq		$tmp22 type $const8 	%line{38} %argrw{"wrr"}
+	if		$tmp22 33 42 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:39
+# 		Value = dot(Vector1, Vector2);
+	dot		Value Vector1 Vector2 	%line{39} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:41
+# 	else if (type == "cross_product") {
+	eq		$tmp23 type $const9 	%line{41} %argrw{"wrr"}
+	if		$tmp23 38 42 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:42
+# 		vector c = cross(Vector1, Vector2);
+	cross		___650_c Vector1 Vector2 	%line{42} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:43
+# 		Value = length(c);
+	length		Value ___650_c 	%line{43} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:44
+# 		Vector = normalize(c);
+	normalize	Vector ___650_c 	%line{44} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:46
+# 	else if (type == "normalize") {
+	eq		$tmp24 type $const10 	%line{46} %argrw{"wrr"}
+	if		$tmp24 42 42 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:47
+# 		Value = length(Vector1);
+	length		Value Vector1 	%line{47} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_math.osl:48
+# 		Vector = normalize(Vector1);
+	normalize	Vector Vector1 	%line{48} %argrw{"wr"}
+	end

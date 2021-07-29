@@ -1,0 +1,46 @@
+def getMinValue(self):
+    if self.length == 0:
+        raise ValueError("Cannot find a min value in a list with zero elements")
+
+    cdef TYPE minValue = self.data[0]
+    for i in range(self.length):
+        if self.data[i] < minValue:
+            minValue = self.data[i]
+    return minValue
+
+def getMaxValue(self):
+    if self.length == 0:
+        raise ValueError("Cannot find a max value in a list with zero elements")
+
+    cdef TYPE maxValue = self.data[0]
+    for i in range(self.length):
+        if self.data[i] > maxValue:
+            maxValue = self.data[i]
+    return maxValue
+
+def getSumOfElements(self):
+    cdef TYPE sum = 0
+    for i in range(self.length):
+        sum += self.data[i]
+    return sum
+
+def getProductOfElements(self):
+    cdef TYPE sum = 1
+    for i in range(self.length):
+        sum *= self.data[i]
+    return sum
+
+def getAverageOfElements(self):
+    return <double>self.getSumOfElements() / <double>self.length
+
+def containsValueLowerThan(self, TYPE value):
+    for i in range(self.length):
+        if self.data[i] < value:
+            return True
+    return False
+
+def containsValueGreaterThan(self, TYPE value):
+    for i in range(self.length):
+        if self.data[i] > value:
+            return True
+    return False

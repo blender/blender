@@ -1,0 +1,272 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_anisotropic_bsdf.oso
+shader node_anisotropic_bsdf
+param	color	Color	0 0 0		%read{74,88} %write{2147483647,-1}
+param	string	distribution	"GGX"		%read{71,83} %write{2147483647,-1}
+param	float	Roughness	0		%read{64,70} %write{2147483647,-1}
+param	float	Anisotropy	0		%read{59,59} %write{2147483647,-1}
+param	float	Rotation	0		%read{3,5} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{7,87} %write{0,0} %initexpr
+param	normal	Tangent	0 0 0		%read{2,2} %write{1,1} %initexpr
+oparam	closure color	BSDF			%read{2147483647,-1} %write{74,88}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+global	vector	dPdu	%read{1,1} %write{2147483647,-1}
+local	vector	___537_axis	%read{12,14} %write{8,8}
+local	float	___537_cosang	%read{11,52} %write{10,10}
+local	float	___537_sinang	%read{22,47} %write{9,9}
+local	float	___537_cosang1	%read{21,46} %write{11,11}
+local	float	___537_x	%read{15,47} %write{12,12}
+local	float	___537_y	%read{20,45} %write{13,13}
+local	float	___537_z	%read{22,50} %write{14,14}
+local	matrix	___537_M	%read{56,56} %write{54,54}
+local	vector	T	%read{55,87} %write{2,57}
+local	float	RoughnessU	%read{77,87} %write{64,68}
+local	float	RoughnessV	%read{77,87} %write{66,70}
+local	float	aniso	%read{61,69} %write{60,60}
+const	float	$const1	0		%read{3,61} %write{2147483647,-1}
+temp	int	$tmp1	%read{4,4} %write{3,3}
+const	float	$const2	6.2831855		%read{5,5} %write{2147483647,-1}
+temp	float	$tmp2	%read{9,10} %write{5,5}
+const	point	$const3	0 0 0		%read{7,57} %write{2147483647,-1}
+const	string	$const4	"rotate"		%read{6,6} %write{2147483647,-1}
+temp	vector	$tmp4	%read{8,8} %write{7,7}
+const	float	$const5	1		%read{11,69} %write{2147483647,-1}
+const	int	$const6	0		%read{12,12} %write{2147483647,-1}
+const	int	$const7	1		%read{13,13} %write{2147483647,-1}
+const	int	$const8	2		%read{14,14} %write{2147483647,-1}
+temp	float	$tmp5	%read{19,19} %write{15,15}
+temp	float	$tmp6	%read{17,17} %write{16,16}
+temp	float	$tmp7	%read{18,18} %write{17,17}
+temp	float	$tmp8	%read{19,19} %write{18,18}
+temp	float	$tmp9	%read{54,54} %write{19,19}
+temp	float	$tmp10	%read{21,21} %write{20,20}
+temp	float	$tmp11	%read{23,23} %write{21,21}
+temp	float	$tmp12	%read{23,23} %write{22,22}
+temp	float	$tmp13	%read{54,54} %write{23,23}
+temp	float	$tmp14	%read{25,25} %write{24,24}
+temp	float	$tmp15	%read{27,27} %write{25,25}
+temp	float	$tmp16	%read{27,27} %write{26,26}
+temp	float	$tmp17	%read{54,54} %write{27,27}
+temp	float	$tmp18	%read{29,29} %write{28,28}
+temp	float	$tmp19	%read{31,31} %write{29,29}
+temp	float	$tmp20	%read{31,31} %write{30,30}
+temp	float	$tmp21	%read{54,54} %write{31,31}
+temp	float	$tmp22	%read{36,36} %write{32,32}
+temp	float	$tmp23	%read{34,34} %write{33,33}
+temp	float	$tmp24	%read{35,35} %write{34,34}
+temp	float	$tmp25	%read{36,36} %write{35,35}
+temp	float	$tmp26	%read{54,54} %write{36,36}
+temp	float	$tmp27	%read{38,38} %write{37,37}
+temp	float	$tmp28	%read{40,40} %write{38,38}
+temp	float	$tmp29	%read{40,40} %write{39,39}
+temp	float	$tmp30	%read{54,54} %write{40,40}
+temp	float	$tmp31	%read{42,42} %write{41,41}
+temp	float	$tmp32	%read{44,44} %write{42,42}
+temp	float	$tmp33	%read{44,44} %write{43,43}
+temp	float	$tmp34	%read{54,54} %write{44,44}
+temp	float	$tmp35	%read{46,46} %write{45,45}
+temp	float	$tmp36	%read{48,48} %write{46,46}
+temp	float	$tmp37	%read{48,48} %write{47,47}
+temp	float	$tmp38	%read{54,54} %write{48,48}
+temp	float	$tmp39	%read{53,53} %write{49,49}
+temp	float	$tmp40	%read{51,51} %write{50,50}
+temp	float	$tmp41	%read{52,52} %write{51,51}
+temp	float	$tmp42	%read{53,53} %write{52,52}
+temp	float	$tmp43	%read{54,54} %write{53,53}
+temp	vector	$tmp44	%read{57,57} %write{56,56}
+temp	vector	$tmp45	%read{56,56} %write{55,55}
+const	float	$const9	-0.99000001		%read{60,60} %write{2147483647,-1}
+const	float	$const10	0.99000001		%read{59,59} %write{2147483647,-1}
+const	string	$const11	"clamp"		%read{58,58} %write{2147483647,-1}
+temp	float	$tmp46	%read{60,60} %write{59,59}
+temp	int	$tmp47	%read{62,62} %write{61,61}
+temp	float	$tmp48	%read{64,64} %write{63,63}
+temp	float	$tmp49	%read{66,66} %write{65,65}
+temp	float	$tmp50	%read{68,68} %write{67,67}
+temp	float	$tmp51	%read{70,70} %write{69,69}
+const	string	$const12	"sharp"		%read{71,71} %write{2147483647,-1}
+temp	int	$tmp52	%read{72,72} %write{71,71}
+temp	closure color	$tmp53	%read{74,74} %write{73,73}
+const	string	$const13	"reflection"		%read{73,73} %write{2147483647,-1}
+const	string	$const14	"beckmann"		%read{75,75} %write{2147483647,-1}
+temp	int	$tmp54	%read{76,76} %write{75,75}
+temp	closure color	$tmp55	%read{78,78} %write{77,77}
+const	string	$const15	"microfacet_beckmann_aniso"		%read{77,77} %write{2147483647,-1}
+const	string	$const16	"GGX"		%read{79,79} %write{2147483647,-1}
+temp	int	$tmp56	%read{80,80} %write{79,79}
+temp	closure color	$tmp57	%read{82,82} %write{81,81}
+const	string	$const17	"microfacet_ggx_aniso"		%read{81,81} %write{2147483647,-1}
+const	string	$const18	"Multiscatter GGX"		%read{83,83} %write{2147483647,-1}
+temp	int	$tmp58	%read{84,84} %write{83,83}
+temp	closure color	$tmp59	%read{86,86} %write{85,85}
+const	string	$const19	"microfacet_multi_ggx_aniso"		%read{85,85} %write{2147483647,-1}
+temp	closure color	$tmp60	%read{88,88} %write{87,87}
+const	string	$const20	"ashikhmin_shirley"		%read{87,87} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:25
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl"} %line{25} %argrw{"wr"}
+code Tangent
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:26
+# 	normal Tangent = normalize(dPdu),
+	normalize	Tangent dPdu 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl"} %line{26} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:30
+# 	vector T = Tangent;
+	assign		T Tangent 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl"} %line{30} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:32
+# 	if (Rotation != 0.0)
+	neq		$tmp1 Rotation $const1 	%line{32} %argrw{"wrr"}
+	if		$tmp1 58 58 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:33
+# 		T = rotate(T, Rotation * M_2PI, point(0.0, 0.0, 0.0), Normal);
+	mul		$tmp2 Rotation $const2 	%line{33} %argrw{"wrr"}
+	functioncall	$const4 58 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:250
+#         // gives us the same result as if the shader-writer called refract()
+	sub		$tmp4 Normal $const3 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{250} %argrw{"wrr"}
+	normalize	___537_axis $tmp4 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:264
+#     fresnel(I, N, eta, Kr, Kt, R, T);
+	sin		___537_sinang $tmp2 	%line{264} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:265
+# }
+	cos		___537_cosang $tmp2 	%line{265} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:266
+# 
+	sub		___537_cosang1 $const5 ___537_cosang 	%line{266} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:267
+# 
+	compref		___537_x ___537_axis $const6 	%line{267} %argrw{"wrr"}
+	compref		___537_y ___537_axis $const7 	%argrw{"wrr"}
+	compref		___537_z ___537_axis $const8 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:268
+# normal transform (matrix Mto, normal p) BUILTIN;
+	mul		$tmp5 ___537_x ___537_x 	%line{268} %argrw{"wrr"}
+	mul		$tmp6 ___537_x ___537_x 	%argrw{"wrr"}
+	sub		$tmp7 $const5 $tmp6 	%argrw{"wrr"}
+	mul		$tmp8 $tmp7 ___537_cosang 	%argrw{"wrr"}
+	add		$tmp9 $tmp5 $tmp8 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:269
+# vector transform (matrix Mto, vector p) BUILTIN;
+	mul		$tmp10 ___537_x ___537_y 	%line{269} %argrw{"wrr"}
+	mul		$tmp11 $tmp10 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp12 ___537_z ___537_sinang 	%argrw{"wrr"}
+	add		$tmp13 $tmp11 $tmp12 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:270
+# point  transform (matrix Mto, point p) BUILTIN;
+	mul		$tmp14 ___537_x ___537_z 	%line{270} %argrw{"wrr"}
+	mul		$tmp15 $tmp14 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp16 ___537_y ___537_sinang 	%argrw{"wrr"}
+	sub		$tmp17 $tmp15 $tmp16 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:272
+# vector transform (string from, string to, vector p) BUILTIN;
+	mul		$tmp18 ___537_x ___537_y 	%line{272} %argrw{"wrr"}
+	mul		$tmp19 $tmp18 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp20 ___537_z ___537_sinang 	%argrw{"wrr"}
+	sub		$tmp21 $tmp19 $tmp20 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:273
+# point  transform (string from, string to, point p) BUILTIN;
+	mul		$tmp22 ___537_y ___537_y 	%line{273} %argrw{"wrr"}
+	mul		$tmp23 ___537_y ___537_y 	%argrw{"wrr"}
+	sub		$tmp24 $const5 $tmp23 	%argrw{"wrr"}
+	mul		$tmp25 $tmp24 ___537_cosang 	%argrw{"wrr"}
+	add		$tmp26 $tmp22 $tmp25 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:274
+# normal transform (string to, normal p) { return transform("common",to,p); }
+	mul		$tmp27 ___537_y ___537_z 	%line{274} %argrw{"wrr"}
+	mul		$tmp28 $tmp27 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp29 ___537_x ___537_sinang 	%argrw{"wrr"}
+	add		$tmp30 $tmp28 $tmp29 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:276
+# point  transform (string to, point p)  { return transform("common",to,p); }
+	mul		$tmp31 ___537_x ___537_z 	%line{276} %argrw{"wrr"}
+	mul		$tmp32 $tmp31 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp33 ___537_y ___537_sinang 	%argrw{"wrr"}
+	add		$tmp34 $tmp32 $tmp33 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:277
+# 
+	mul		$tmp35 ___537_y ___537_z 	%line{277} %argrw{"wrr"}
+	mul		$tmp36 $tmp35 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp37 ___537_x ___537_sinang 	%argrw{"wrr"}
+	sub		$tmp38 $tmp36 $tmp37 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:278
+# float transformu (string tounits, float x) BUILTIN;
+	mul		$tmp39 ___537_z ___537_z 	%line{278} %argrw{"wrr"}
+	mul		$tmp40 ___537_z ___537_z 	%argrw{"wrr"}
+	sub		$tmp41 $const5 $tmp40 	%argrw{"wrr"}
+	mul		$tmp42 $tmp41 ___537_cosang 	%argrw{"wrr"}
+	add		$tmp43 $tmp39 $tmp42 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:280
+# 
+	matrix		___537_M $tmp9 $tmp13 $tmp17 $const1 $tmp21 $tmp26 $tmp30 $const1 $tmp34 $tmp38 $tmp43 $const1 $const1 $const1 $const1 $const5 	%line{280} %argrw{"wrrrrrrrrrrrrrrrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:281
+# point rotate (point p, float angle, point a, point b)
+	sub		$tmp45 T $const3 	%line{281} %argrw{"wrr"}
+	transformv	$tmp44 ___537_M $tmp45 	%argrw{"wrr"}
+	add		T $tmp44 $const3 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:37
+# 	float aniso = clamp(Anisotropy, -0.99, 0.99);
+	functioncall	$const11 61 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl"} %line{37} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# float  log (float a,  float b) { return log(a)/log(b); }
+	min		$tmp46 Anisotropy $const10 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		aniso $tmp46 $const9 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:39
+# 	if (aniso < 0.0) {
+	lt		$tmp47 aniso $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl"} %line{39} %argrw{"wrr"}
+	if		$tmp47 67 71 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:40
+# 		RoughnessU = Roughness / (1.0 + aniso);
+	add		$tmp48 $const5 aniso 	%line{40} %argrw{"wrr"}
+	div		RoughnessU Roughness $tmp48 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:41
+# 		RoughnessV = Roughness * (1.0 + aniso);
+	add		$tmp49 $const5 aniso 	%line{41} %argrw{"wrr"}
+	mul		RoughnessV Roughness $tmp49 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:44
+# 		RoughnessU = Roughness * (1.0 - aniso);
+	sub		$tmp50 $const5 aniso 	%line{44} %argrw{"wrr"}
+	mul		RoughnessU Roughness $tmp50 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:45
+# 		RoughnessV = Roughness / (1.0 - aniso);
+	sub		$tmp51 $const5 aniso 	%line{45} %argrw{"wrr"}
+	div		RoughnessV Roughness $tmp51 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:48
+# 	if (distribution == "sharp")
+	eq		$tmp52 distribution $const12 	%line{48} %argrw{"wrr"}
+	if		$tmp52 75 89 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:49
+# 		BSDF = Color * reflection(Normal);
+	closure		$tmp53 $const13 Normal 	%line{49} %argrw{"wrr"}
+	mul		BSDF $tmp53 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:50
+# 	else if (distribution == "beckmann")
+	eq		$tmp54 distribution $const14 	%line{50} %argrw{"wrr"}
+	if		$tmp54 79 89 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:51
+# 		BSDF = Color * microfacet_beckmann_aniso(Normal, T, RoughnessU, RoughnessV);
+	closure		$tmp55 $const15 Normal T RoughnessU RoughnessV 	%line{51} %argrw{"wrrrrr"}
+	mul		BSDF $tmp55 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:52
+# 	else if (distribution == "GGX")
+	eq		$tmp56 distribution $const16 	%line{52} %argrw{"wrr"}
+	if		$tmp56 83 89 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:53
+# 		BSDF = Color * microfacet_ggx_aniso(Normal, T, RoughnessU, RoughnessV);
+	closure		$tmp57 $const17 Normal T RoughnessU RoughnessV 	%line{53} %argrw{"wrrrrr"}
+	mul		BSDF $tmp57 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:54
+# 	else if (distribution == "Multiscatter GGX")
+	eq		$tmp58 distribution $const18 	%line{54} %argrw{"wrr"}
+	if		$tmp58 87 89 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:55
+# 		BSDF = Color * microfacet_multi_ggx_aniso(Normal, T, RoughnessU, RoughnessV, Color);
+	closure		$tmp59 $const19 Normal T RoughnessU RoughnessV Color 	%line{55} %argrw{"wrrrrrr"}
+	mul		BSDF $tmp59 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_anisotropic_bsdf.osl:57
+# 		BSDF = Color * ashikhmin_shirley(Normal, T, RoughnessU, RoughnessV);
+	closure		$tmp60 $const20 Normal T RoughnessU RoughnessV 	%line{57} %argrw{"wrrrrr"}
+	mul		BSDF $tmp60 Color 	%argrw{"wrr"}
+	end

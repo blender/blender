@@ -1,0 +1,58 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+
+shader node_hair_bsdf(
+	color Color = 0.8,
+	string component = "reflection",
+	float Offset = 0.0,
+	float RoughnessU = 0.1,
+	float RoughnessV = 1.0,
+	normal Tangent = normal(0, 0, 0),
+	output closure color BSDF = 0)
+{
+	float roughnessh = clamp(RoughnessU, 0.001, 1.0);
+	float roughnessv = clamp(RoughnessV, 0.001, 1.0);
+	float offset = -Offset;
+
+	normal T;
+	float IsCurve = 0;
+	getattribute("geom:is_curve", IsCurve);
+
+	if (isconnected(Tangent)) {
+		T = Tangent;
+	}
+	else if(!IsCurve) {
+		T = normalize(dPdv);
+		offset = 0.0;
+	}
+	else {
+		T = normalize(dPdu);
+	}
+
+	if (backfacing() && IsCurve) {
+		BSDF = transparent();
+	}
+	else {
+		if (component == "reflection")
+			BSDF = Color * hair_reflection(Ng, roughnessh, roughnessv, T, offset);
+		else
+			BSDF = Color * hair_transmission(Ng, roughnessh, roughnessv, T, offset);
+	}
+}

@@ -1,0 +1,29 @@
+post_install() {
+  cat << EOF
+
+NOTE
+----
+Happy blending!
+
+EOF
+  echo "update desktop mime database..."
+  update-desktop-database
+}
+
+post_upgrade() {
+  post_install $1
+}
+
+pre_remove() {
+  /bin/true
+}
+
+post_remove() {
+  echo "update desktop mime database..."
+  update-desktop-database
+}
+
+op=$1
+shift
+
+$op $*

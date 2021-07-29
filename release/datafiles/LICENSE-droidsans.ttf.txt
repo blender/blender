@@ -1,0 +1,118 @@
+Blender Main I18n font ("droidsans.ttf") includes glyphs imported from the following fonts:
+
+1. DejaVu Sans
+2. Droid Sans Regular
+3. Samyak-devanagari
+4. Droid Sans Hebrew Regular
+5. Droid Sans Ethiopic Regular
+6. Samyak-tamil
+7. KhmerOSsys
+8. tlwg' Loma (Thaï)
+
+These were merged using FontForge in (approximately) the above order. For each glyph,
+a license of the font from which it was imported is applied.
+
+----------------------------------------------------------------------
+Summary of Copyrights and Licenses
+
+(1) DejaVu Sans
+
+Copyright: 2003 Bitstream, Inc. (Bitstream font glyphs)
+           2006 Tavmjong Bah (Arev font glyphs)
+           DejaVu changes are in public domain
+
+License:
+ DejaVu font glyphs are same as bfont.ttf. See LICENSE-bfont.ttf.txt.
+
+(2), (4), (5) Droid Sans Fonts family
+
+Copyright:
+    Copyright © 2006, 2007, 2008, 2009, 2010 Google Corp.
+    Droid is a trademark of Google Corp.
+
+License: Apache-2.0
+ See Appendix A.
+
+(3) Samyak-devanagari and (6) Samyak-tamil
+Copyright: 2005-2006, Rahul Bhalerao <b.rahul.pm@gmail.com>
+           2005-2006, Bageshri Salvi <sbageshri@gmail.com>
+           2005-2006, Pravin Satpute <pravin.d.s@gmail.com>
+           2005-2006, Sandeep Shedmake <Sandeep.shedmake@gmail.com>
+
+License: GPL-3 with font embedding exception
+ See Appendices B.
+
+(7) KhmerOSsys
+Copyright: 2005, 2006 Danh Hong
+           2005, 2006 Open Forum of Cambodia
+
+License: GPL-2.1+
+ See Appendices C.
+
+(8) tlwg Loma (Thaï)
+Copyright: 2003 National Electronics and Computer Technology Center
+
+Modified to fix and/or adapt kerning to Blender basic layout engine by Hồ Châu in 2016.
+
+License: GPL-2+ with Font exception
+ See Appendices C.
+
+----------------------------------------------------------------------
+Appendix A. Apache License Version 2.0
+
+ Licensed under the Apache License, Version 2.0 (the "License"); you
+ may not use this file except in compliance with the License. You may
+ obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ implied. See the License for the specific language governing
+ permissions and limitations under the License.
+
+----------------------------------------------------------------------
+Appendix B. GNU GPL Version 3 with font embedding exception
+
+GPL-3:
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Font embedding exception:
+ As a special exception, if you create a document which uses this
+ font, and embed this font or unaltered portions of this font into
+ the document, this font does not by itself cause the resulting
+ document to be covered by the GNU General Public License. This
+ exception does not however invalidate any other reasons why the
+ document might be covered by the GNU General Public License. If you
+ modify this font, you may extend this exception to your version of
+ the font, but you are not obligated to do so. If you do not wish to
+ do so, delete this exception statement from your version.
+
+----------------------------------------------------------------------
+Appendix C. GNU GPL Version 2.1
+
+This font is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation; either version 2.1 of the License, or
+(at your option) any later version.
+
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+License for more details.
+
+On Debian systems, the complete text of the GNU Lesser General Public
+License can be found in the file /usr/share/common-licenses/LGPL-2.
+

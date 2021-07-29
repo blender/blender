@@ -1,0 +1,53 @@
+{
+  "export_version": "0.072",
+  "framed_nodes": {},
+  "groups": {},
+  "nodes": {
+    "Cylinder": {
+      "bl_idname": "CylinderNode",
+      "color": [
+        0.9200000166893005,
+        0.9200000166893005,
+        0.9200000166893005
+      ],
+      "height": 100.0,
+      "hide": false,
+      "label": "",
+      "location": [
+        -352.99407958984375,
+        72.6220932006836
+      ],
+      "params": {
+        "Separate": 1
+      },
+      "use_custom_color": true,
+      "width": 140.0
+    },
+    "Viewer text mk3": {
+      "bl_idname": "ViewerNodeTextMK3",
+      "color": [
+        1.0,
+        0.8993440270423889,
+        0.9742509722709656
+      ],
+      "height": 100.0,
+      "hide": false,
+      "label": "",
+      "location": [
+        -185.2489471435547,
+        72.90972900390625
+      ],
+      "params": {},
+      "use_custom_color": true,
+      "width": 140.0
+    }
+  },
+  "update_lists": [
+    [
+      "Cylinder",
+      0,
+      "Viewer text mk3",
+      0
+    ]
+  ]
+}

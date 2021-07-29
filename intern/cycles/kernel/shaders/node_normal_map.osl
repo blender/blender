@@ -1,0 +1,92 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+shader node_normal_map(
+	normal NormalIn = N,
+	float Strength = 1.0,
+	color Color = color(0.5, 0.5, 1.0),
+	string space = "tangent",
+	string attr_name = "geom:tangent",
+	string attr_sign_name = "geom:tangent_sign",
+	output normal Normal = NormalIn)
+{
+	color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
+	int is_backfacing = backfacing();
+
+	if (space == "tangent") {
+		vector tangent;
+		vector ninterp;
+		float tangent_sign;
+		float is_smooth;
+
+		getattribute("geom:is_smooth", is_smooth);
+		if (!is_smooth) {
+			ninterp = normalize(transform("world", "object", Ng));
+
+			/* the normal is already inverted, which is too soon for the math here */
+			if (is_backfacing) {
+				ninterp = -ninterp;
+			}
+		}
+
+		// get _unnormalized_ interpolated normal and tangent
+		if (getattribute(attr_name, tangent) &&
+		    getattribute(attr_sign_name, tangent_sign) &&
+		    (!is_smooth || getattribute("geom:N", ninterp)))
+		{
+			// apply normal map
+			vector B = tangent_sign * cross(ninterp, tangent);
+			Normal = normalize(mcolor[0] * tangent + mcolor[1] * B + mcolor[2] * ninterp);
+
+			// transform to world space
+			Normal = normalize(transform("object", "world", Normal));
+		}
+		else {
+			Normal = normal(0, 0, 0);
+		}
+	}
+	else if (space == "object") {
+		Normal = normalize(transform("object", "world", vector(mcolor)));
+	}
+	else if (space == "world") {
+		Normal = normalize(vector(mcolor));
+	}
+	else if (space == "blender_object") {
+		/* strange blender convention */
+		mcolor[1] = -mcolor[1];
+		mcolor[2] = -mcolor[2];
+	
+		Normal = normalize(transform("object", "world", vector(mcolor)));
+	}
+	else if (space == "blender_world") {
+		/* strange blender convention */
+		mcolor[1] = -mcolor[1];
+		mcolor[2] = -mcolor[2];
+	
+		Normal = normalize(vector(mcolor));
+	}
+
+	/* invert normal for backfacing polygons */
+	if (is_backfacing) {
+		Normal = -Normal;
+	}
+
+	if (Strength != 1.0)
+		Normal = normalize(NormalIn + (Normal - NormalIn) * max(Strength, 0.0));
+}
+

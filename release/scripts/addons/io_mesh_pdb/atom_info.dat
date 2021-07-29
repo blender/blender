@@ -1,0 +1,1536 @@
+Atom
+====
+Number           : 1
+Name             : Hydrogen
+Short name       : H
+Color            : 0.99,0.99,0.99
+Radius used      : 0.320000
+Radius, covalent : 0.320000
+Radius, atomic   : 0.790000
+Charge state     : -1
+Radius, ionic    : 1.540000
+
+
+Atom
+====
+Number           : 2
+Name             : Helium
+Short name       : He
+Color            : 0.84,0.99,0.99
+Radius used      : 0.930000
+Radius, covalent : 0.930000
+Radius, atomic   : 0.490000
+
+
+Atom
+====
+Number           : 3
+Name             : Lithium
+Short name       : Li
+Color            : 0.79,0.5,0.99
+Radius used      : 1.230000
+Radius, covalent : 1.230000
+Radius, atomic   : 2.050000
+Charge state     : 1
+Radius, ionic    : 0.680000
+
+
+Atom
+====
+Number           : 4
+Name             : Beryllium
+Short name       : Be
+Color            : 0.75,0.99,0.0
+Radius used      : 0.900000
+Radius, covalent : 0.900000
+Radius, atomic   : 1.400000
+Charge state     : 1
+Radius, ionic    : 0.440000
+Charge state     : 2
+Radius, ionic    : 0.350000
+
+
+Atom
+====
+Number           : 5
+Name             : Boron
+Short name       : B
+Color            : 0.99,0.70,0.70
+Radius used      : 0.820000
+Radius, covalent : 0.820000
+Radius, atomic   : 1.170000
+Charge state     : 1
+Radius, ionic    : 0.350000
+Charge state     : 3
+Radius, ionic    : 0.230000
+
+
+Atom
+====
+Number           : 6
+Name             : Carbon
+Short name       : C
+Color            : 0.3,0.3,0.3
+Radius used      : 0.910000
+Radius, covalent : 0.770000
+Radius, atomic   : 0.910000
+Charge state     : -4
+Radius, ionic    : 2.600000
+Charge state     : 4
+Radius, ionic    : 0.160000
+
+
+Atom
+====
+Number           : 7
+Name             : Nitrogen
+Short name       : N
+Color            : 0.18,0.31,0.96
+Radius used      : 0.750000
+Radius, covalent : 0.750000
+Radius, atomic   : 0.750000
+Charge state     : -3
+Radius, ionic    : 1.710000
+Charge state     : 1
+Radius, ionic    : 0.250000
+Charge state     : 3
+Radius, ionic    : 0.160000
+Charge state     : 5
+Radius, ionic    : 0.130000
+
+
+Atom
+====
+Number           : 8
+Name             : Oxygen
+Short name       : O
+Color            : 0.99,0.05,0.05
+Radius used      : 0.730000
+Radius, covalent : 0.730000
+Radius, atomic   : 0.650000
+Charge state     : -2
+Radius, ionic    : 1.320000
+Charge state     : -1
+Radius, ionic    : 1.760000
+Charge state     : 1
+Radius, ionic    : 0.220000
+Charge state     : 6
+Radius, ionic    : 0.090000
+
+
+Atom
+====
+Number           : 9
+Name             : Fluorine
+Short name       : F
+Color            : 0.0,1.0,0.0
+Radius used      : 1.330000
+Radius, covalent : 0.720000
+Radius, atomic   : 0.570000
+Charge state     : -1
+Radius, ionic    : 1.330000
+Charge state     : 7
+Radius, ionic    : 0.080000
+
+
+Atom
+====
+Number           : 10
+Name             : Neon
+Short name       : Ne
+Color            : 0.69,0.88,0.95
+Radius used      : 0.710000
+Radius, covalent : 0.710000
+Radius, atomic   : 0.510000
+Charge state     : 1
+Radius, ionic    : 1.120000
+
+
+Atom
+====
+Number           : 11
+Name             : Sodium
+Short name       : Na
+Color            : 0.5,0.5,0.5
+Radius used      : 0.970000
+Radius, covalent : 1.540000
+Radius, atomic   : 2.230000
+Charge state     : 1
+Radius, ionic    : 0.970000
+
+
+Atom
+====
+Number           : 12
+Name             : Magnesium
+Short name       : Mg
+Color            : 0.38,0.066,1.0
+Radius used      : 0.660000
+Radius, covalent : 1.360000
+Radius, atomic   : 1.720000
+Charge state     : 1
+Radius, ionic    : 0.820000
+Charge state     : 2
+Radius, ionic    : 0.660000
+
+
+Atom
+====
+Number           : 13
+Name             : Aluminium
+Short name       : Al
+Color            : 0.74,0.64,0.64
+Radius used      : 1.180000
+Radius, covalent : 1.180000
+Radius, atomic   : 1.820000
+Charge state     : 3
+Radius, ionic    : 0.510000
+
+
+Atom
+====
+Number           : 14
+Name             : Silicon
+Short name       : Si
+Color            : 0.93,0.78,0.62
+Radius used      : 1.110000
+Radius, covalent : 1.110000
+Radius, atomic   : 1.460000
+Charge state     : -4
+Radius, ionic    : 2.710000
+Charge state     : -1
+Radius, ionic    : 3.840000
+Charge state     : 1
+Radius, ionic    : 0.650000
+Charge state     : 4
+Radius, ionic    : 0.420000
+
+
+Atom
+====
+Number           : 15
+Name             : Phosphorus
+Short name       : P
+Color            : 0.99,0.5,0.0
+Radius used      : 1.060000
+Radius, covalent : 1.060000
+Radius, atomic   : 1.230000
+Charge state     : -3
+Radius, ionic    : 2.120000
+Charge state     : 3
+Radius, ionic    : 0.440000
+Charge state     : 5
+Radius, ionic    : 0.350000
+
+
+Atom
+====
+Number           : 16
+Name             : Sulfur
+Short name       : S
+Color            : 0.99,0.99,0.18
+Radius used      : 1.020000
+Radius, covalent : 1.020000
+Radius, atomic   : 1.090000
+Charge state     : -2
+Radius, ionic    : 1.840000
+Charge state     : 2
+Radius, ionic    : 2.190000
+Charge state     : 4
+Radius, ionic    : 0.370000
+Charge state     : 6
+Radius, ionic    : 0.300000
+
+
+Atom
+====
+Number           : 17
+Name             : Chlorine
+Short name       : Cl
+Color            : 0.095,0.411,1.0
+Radius used      : 1.810000
+Radius, covalent : 0.990000
+Radius, atomic   : 0.970000
+Charge state     : -1
+Radius, ionic    : 1.810000
+Charge state     : 5
+Radius, ionic    : 0.340000
+Charge state     : 7
+Radius, ionic    : 0.270000
+
+
+Atom
+====
+Number           : 18
+Name             : Argon
+Short name       : Ar
+Color            : 0.5,0.81,0.88
+Radius used      : 0.980000
+Radius, covalent : 0.980000
+Radius, atomic   : 0.880000
+Charge state     : 1
+Radius, ionic    : 1.540000
+
+
+Atom
+====
+Number           : 19
+Name             : Potassium
+Short name       : K
+Color            : 0.55,0.25,0.82
+Radius used      : 2.030000
+Radius, covalent : 2.030000
+Radius, atomic   : 2.770000
+Charge state     : 1
+Radius, ionic    : 0.810000
+
+
+Atom
+====
+Number           : 20
+Name             : Calcium
+Short name       : Ca
+Color            : 0.23,0.99,0.0
+Radius used      : 1.740000
+Radius, covalent : 1.740000
+Radius, atomic   : 2.230000
+Charge state     : 1
+Radius, ionic    : 1.180000
+Charge state     : 2
+Radius, ionic    : 0.990000
+
+
+Atom
+====
+Number           : 21
+Name             : Scandium
+Short name       : Sc
+Color            : 0.89,0.89,0.89
+Radius used      : 1.440000
+Radius, covalent : 1.440000
+Radius, atomic   : 2.090000
+Charge state     : 3
+Radius, ionic    : 0.732000
+
+
+Atom
+====
+Number           : 22
+Name             : Titanium
+Short name       : Ti
+Color            : 0.74,0.75,0.77
+Radius used      : 1.320000
+Radius, covalent : 1.320000
+Radius, atomic   : 2.000000
+Charge state     : 1
+Radius, ionic    : 0.960000
+Charge state     : 2
+Radius, ionic    : 0.940000
+Charge state     : 3
+Radius, ionic    : 0.760000
+Charge state     : 4
+Radius, ionic    : 0.680000
+
+
+Atom
+====
+Number           : 23
+Name             : Vanadium
+Short name       : V
+Color            : 0.64,0.64,0.66
+Radius used      : 1.220000
+Radius, covalent : 1.220000
+Radius, atomic   : 1.920000
+Charge state     : 2
+Radius, ionic    : 0.880000
+Charge state     : 3
+Radius, ionic    : 0.740000
+Charge state     : 4
+Radius, ionic    : 0.630000
+Charge state     : 5
+Radius, ionic    : 0.590000
+
+
+Atom
+====
+Number           : 24
+Name             : Chromium
+Short name       : Cr
+Color            : 0.53,0.59,0.77
+Radius used      : 1.180000
+Radius, covalent : 1.180000
+Radius, atomic   : 1.850000
+Charge state     : 1
+Radius, ionic    : 0.810000
+Charge state     : 2
+Radius, ionic    : 0.890000
+Charge state     : 3
+Radius, ionic    : 0.630000
+Charge state     : 6
+Radius, ionic    : 0.520000
+
+
+Atom
+====
+Number           : 25
+Name             : Manganese
+Short name       : Mn
+Color            : 0.60,0.47,0.77
+Radius used      : 1.170000
+Radius, covalent : 1.170000
+Radius, atomic   : 1.790000
+Charge state     : 2
+Radius, ionic    : 0.800000
+Charge state     : 3
+Radius, ionic    : 0.660000
+Charge state     : 4
+Radius, ionic    : 0.600000
+Charge state     : 7
+Radius, ionic    : 0.460000
+
+
+Atom
+====
+Number           : 26
+Name             : Iron
+Short name       : Fe
+Color            : 0.87,0.39,0.19
+Radius used      : 1.170000
+Radius, covalent : 1.170000
+Radius, atomic   : 1.720000
+Charge state     : 2
+Radius, ionic    : 0.740000
+Charge state     : 3
+Radius, ionic    : 0.640000
+
+
+Atom
+====
+Number           : 27
+Name             : Cobalt
+Short name       : Co
+Color            : 0.93,0.56,0.62
+Radius used      : 1.160000
+Radius, covalent : 1.160000
+Radius, atomic   : 1.670000
+Charge state     : 2
+Radius, ionic    : 0.720000
+Charge state     : 3
+Radius, ionic    : 0.630000
+
+
+Atom
+====
+Number           : 28
+Name             : Nickel
+Short name       : Ni
+Color            : 0.31,0.81,0.31
+Radius used      : 1.150000
+Radius, covalent : 1.150000
+Radius, atomic   : 1.620000
+Charge state     : 2
+Radius, ionic    : 0.690000
+
+
+Atom
+====
+Number           : 29
+Name             : Copper
+Short name       : Cu
+Color            : 0.78,0.5,0.19
+Radius used      : 1.170000
+Radius, covalent : 1.170000
+Radius, atomic   : 1.570000
+Charge state     : 1
+Radius, ionic    : 0.960000
+Charge state     : 2
+Radius, ionic    : 0.720000
+
+
+Atom
+====
+Number           : 30
+Name             : Zinc
+Short name       : Zn
+Color            : 0.48,0.5,0.68
+Radius used      : 1.250000
+Radius, covalent : 1.250000
+Radius, atomic   : 1.530000
+Charge state     : 1
+Radius, ionic    : 0.880000
+Charge state     : 2
+Radius, ionic    : 0.740000
+
+
+Atom
+====
+Number           : 31
+Name             : Gallium
+Short name       : Ga
+Color            : 0.75,0.55,0.55
+Radius used      : 1.260000
+Radius, covalent : 1.260000
+Radius, atomic   : 1.810000
+Charge state     : 1
+Radius, ionic    : 0.810000
+Charge state     : 3
+Radius, ionic    : 0.620000
+
+
+Atom
+====
+Number           : 32
+Name             : Germanium
+Short name       : Ge
+Color            : 0.39,0.55,0.55
+Radius used      : 1.220000
+Radius, covalent : 1.220000
+Radius, atomic   : 1.520000
+Charge state     : -4
+Radius, ionic    : 2.720000
+Charge state     : 2
+Radius, ionic    : 0.730000
+Charge state     : 4
+Radius, ionic    : 0.530000
+
+
+Atom
+====
+Number           : 33
+Name             : Arsenic
+Short name       : As
+Color            : 0.73,0.5,0.88
+Radius used      : 1.200000
+Radius, covalent : 1.200000
+Radius, atomic   : 1.330000
+Charge state     : -3
+Radius, ionic    : 2.220000
+Charge state     : 3
+Radius, ionic    : 0.580000
+Charge state     : 5
+Radius, ionic    : 0.460000
+
+
+Atom
+====
+Number           : 34
+Name             : Selenium
+Short name       : Se
+Color            : 0.99,0.62,0.0
+Radius used      : 1.160000
+Radius, covalent : 1.160000
+Radius, atomic   : 1.220000
+Charge state     : -2
+Radius, ionic    : 1.910000
+Charge state     : -1
+Radius, ionic    : 2.320000
+Charge state     : 1
+Radius, ionic    : 0.660000
+Charge state     : 4
+Radius, ionic    : 0.500000
+Charge state     : 6
+Radius, ionic    : 0.420000
+
+
+Atom
+====
+Number           : 35
+Name             : Bromine
+Short name       : Br
+Color            : 0.64,0.16,0.16
+Radius used      : 1.140000
+Radius, covalent : 1.140000
+Radius, atomic   : 1.120000
+Charge state     : -1
+Radius, ionic    : 1.960000
+Charge state     : 5
+Radius, ionic    : 0.470000
+Charge state     : 7
+Radius, ionic    : 0.390000
+
+
+Atom
+====
+Number           : 36
+Name             : Krypton
+Short name       : Kr
+Color            : 0.35,0.71,0.81
+Radius used      : 1.310000
+Radius, covalent : 1.310000
+Radius, atomic   : 1.240000
+
+
+Atom
+====
+Number           : 37
+Name             : Rubidium
+Short name       : Rb
+Color            : 0.43,0.17,0.68
+Radius used      : 2.160000
+Radius, covalent : 2.160000
+Radius, atomic   : 2.980000
+Charge state     : 1
+Radius, ionic    : 1.470000
+
+
+Atom
+====
+Number           : 38
+Name             : Strontium
+Short name       : Sr
+Color            : 0.0,0.99,0.0
+Radius used      : 1.910000
+Radius, covalent : 1.910000
+Radius, atomic   : 2.450000
+Charge state     : 2
+Radius, ionic    : 1.120000
+
+
+Atom
+====
+Number           : 39
+Name             : Yttrium
+Short name       : Y
+Color            : 0.57,0.99,0.99
+Radius used      : 1.620000
+Radius, covalent : 1.620000
+Radius, atomic   : 2.270000
+Charge state     : 3
+Radius, ionic    : 0.893000
+
+
+Atom
+====
+Number           : 40
+Name             : Zirconium
+Short name       : Zr
+Color            : 0.57,0.87,0.87
+Radius used      : 1.450000
+Radius, covalent : 1.450000
+Radius, atomic   : 2.160000
+Charge state     : 1
+Radius, ionic    : 1.090000
+Charge state     : 4
+Radius, ionic    : 0.790000
+
+
+Atom
+====
+Number           : 41
+Name             : Niobium
+Short name       : Nb
+Color            : 0.44,0.75,0.78
+Radius used      : 1.340000
+Radius, covalent : 1.340000
+Radius, atomic   : 2.080000
+Charge state     : 1
+Radius, ionic    : 1.000000
+Charge state     : 4
+Radius, ionic    : 0.740000
+Charge state     : 5
+Radius, ionic    : 0.690000
+
+
+Atom
+====
+Number           : 42
+Name             : Molybdenum
+Short name       : Mo
+Color            : 0.32,0.70,0.70
+Radius used      : 1.300000
+Radius, covalent : 1.300000
+Radius, atomic   : 2.010000
+Charge state     : 1
+Radius, ionic    : 0.930000
+Charge state     : 4
+Radius, ionic    : 0.700000
+Charge state     : 6
+Radius, ionic    : 0.620000
+
+
+Atom
+====
+Number           : 43
+Name             : Technetium
+Short name       : Tc
+Color            : 0.23,0.61,0.61
+Radius used      : 1.270000
+Radius, covalent : 1.270000
+Radius, atomic   : 1.950000
+Charge state     : 7
+Radius, ionic    : 0.979000
+
+
+Atom
+====
+Number           : 44
+Name             : Ruthenium
+Short name       : Ru
+Color            : 0.14,0.55,0.55
+Radius used      : 1.250000
+Radius, covalent : 1.250000
+Radius, atomic   : 1.890000
+Charge state     : 4
+Radius, ionic    : 0.670000
+
+
+Atom
+====
+Number           : 45
+Name             : Rhodium
+Short name       : Rh
+Color            : 0.03,0.48,0.54
+Radius used      : 1.250000
+Radius, covalent : 1.250000
+Radius, atomic   : 1.830000
+Charge state     : 3
+Radius, ionic    : 0.680000
+
+
+Atom
+====
+Number           : 46
+Name             : Palladium
+Short name       : Pd
+Color            : 0.0,0.41,0.51
+Radius used      : 1.280000
+Radius, covalent : 1.280000
+Radius, atomic   : 1.790000
+Charge state     : 2
+Radius, ionic    : 0.800000
+Charge state     : 4
+Radius, ionic    : 0.650000
+
+
+Atom
+====
+Number           : 47
+Name             : Silver
+Short name       : Ag
+Color            : 0.75,0.75,0.75
+Radius used      : 1.340000
+Radius, covalent : 1.340000
+Radius, atomic   : 1.750000
+Charge state     : 1
+Radius, ionic    : 1.260000
+Charge state     : 2
+Radius, ionic    : 0.890000
+
+
+Atom
+====
+Number           : 48
+Name             : Cadmium
+Short name       : Cd
+Color            : 0.99,0.84,0.55
+Radius used      : 1.480000
+Radius, covalent : 1.480000
+Radius, atomic   : 1.710000
+Charge state     : 1
+Radius, ionic    : 1.140000
+Charge state     : 2
+Radius, ionic    : 0.970000
+
+
+Atom
+====
+Number           : 49
+Name             : Indium
+Short name       : In
+Color            : 0.64,0.45,0.44
+Radius used      : 1.440000
+Radius, covalent : 1.440000
+Radius, atomic   : 2.000000
+Charge state     : 3
+Radius, ionic    : 0.810000
+
+
+Atom
+====
+Number           : 50
+Name             : Tin
+Short name       : Sn
+Color            : 0.39,0.5,0.5
+Radius used      : 1.410000
+Radius, covalent : 1.410000
+Radius, atomic   : 1.720000
+Charge state     : -4
+Radius, ionic    : 2.940000
+Charge state     : -1
+Radius, ionic    : 3.700000
+Charge state     : 2
+Radius, ionic    : 0.930000
+Charge state     : 4
+Radius, ionic    : 0.710000
+
+
+Atom
+====
+Number           : 51
+Name             : Antimony
+Short name       : Sb
+Color            : 0.61,0.38,0.70
+Radius used      : 1.400000
+Radius, covalent : 1.400000
+Radius, atomic   : 1.530000
+Charge state     : -3
+Radius, ionic    : 2.450000
+Charge state     : 3
+Radius, ionic    : 0.760000
+Charge state     : 5
+Radius, ionic    : 0.620000
+
+
+Atom
+====
+Number           : 52
+Name             : Tellurium
+Short name       : Te
+Color            : 0.82,0.47,0.0
+Radius used      : 1.360000
+Radius, covalent : 1.360000
+Radius, atomic   : 1.420000
+Charge state     : -2
+Radius, ionic    : 2.110000
+Charge state     : -1
+Radius, ionic    : 2.500000
+Charge state     : 1
+Radius, ionic    : 0.820000
+Charge state     : 4
+Radius, ionic    : 0.700000
+Charge state     : 6
+Radius, ionic    : 0.560000
+
+
+Atom
+====
+Number           : 53
+Name             : Iodine
+Short name       : I
+Color            : 0.57,0.0,0.57
+Radius used      : 1.330000
+Radius, covalent : 1.330000
+Radius, atomic   : 1.320000
+Charge state     : -1
+Radius, ionic    : 2.200000
+Charge state     : 5
+Radius, ionic    : 0.620000
+Charge state     : 7
+Radius, ionic    : 0.500000
+
+
+Atom
+====
+Number           : 54
+Name             : Xenon
+Short name       : Xe
+Color            : 0.25,0.61,0.68
+Radius used      : 1.310000
+Radius, covalent : 1.310000
+Radius, atomic   : 1.240000
+
+
+Atom
+====
+Number           : 55
+Name             : Caesium
+Short name       : Cs
+Color            : 0.33,0.08,0.55
+Radius used      : 2.350000
+Radius, covalent : 2.350000
+Radius, atomic   : 3.350000
+Charge state     : 1
+Radius, ionic    : 1.670000
+
+
+Atom
+====
+Number           : 56
+Name             : Barium
+Short name       : Ba
+Color            : 0.0,0.78,0.0
+Radius used      : 1.980000
+Radius, covalent : 1.980000
+Radius, atomic   : 2.780000
+Charge state     : 1
+Radius, ionic    : 1.530000
+Charge state     : 2
+Radius, ionic    : 1.340000
+
+
+Atom
+====
+Number           : 57
+Name             : Lanthanum
+Short name       : La
+Color            : 0.43,0.82,0.99
+Radius used      : 1.690000
+Radius, covalent : 1.690000
+Radius, atomic   : 2.740000
+Charge state     : 1
+Radius, ionic    : 1.390000
+Charge state     : 3
+Radius, ionic    : 1.061000
+
+
+Atom
+====
+Number           : 58
+Name             : Cerium
+Short name       : Ce
+Color            : 0.99,0.99,0.77
+Radius used      : 1.650000
+Radius, covalent : 1.650000
+Radius, atomic   : 2.700000
+Charge state     : 1
+Radius, ionic    : 1.270000
+Charge state     : 3
+Radius, ionic    : 1.034000
+Charge state     : 4
+Radius, ionic    : 0.920000
+
+
+Atom
+====
+Number           : 59
+Name             : Praseodymium
+Short name       : Pr
+Color            : 0.84,0.99,0.77
+Radius used      : 1.650000
+Radius, covalent : 1.650000
+Radius, atomic   : 2.670000
+Charge state     : 3
+Radius, ionic    : 1.013000
+Charge state     : 4
+Radius, ionic    : 0.900000
+
+
+Atom
+====
+Number           : 60
+Name             : Neodymium
+Short name       : Nd
+Color            : 0.77,0.99,0.77
+Radius used      : 1.640000
+Radius, covalent : 1.640000
+Radius, atomic   : 2.640000
+Charge state     : 3
+Radius, ionic    : 0.995000
+
+
+Atom
+====
+Number           : 61
+Name             : Promethium
+Short name       : Pm
+Color            : 0.63,0.99,0.77
+Radius used      : 1.630000
+Radius, covalent : 1.630000
+Radius, atomic   : 2.620000
+Charge state     : 3
+Radius, ionic    : 0.979000
+
+
+Atom
+====
+Number           : 62
+Name             : Samarium
+Short name       : Sm
+Color            : 0.55,0.99,0.77
+Radius used      : 1.620000
+Radius, covalent : 1.620000
+Radius, atomic   : 2.590000
+Charge state     : 3
+Radius, ionic    : 0.964000
+
+
+Atom
+====
+Number           : 63
+Name             : Europium
+Short name       : Eu
+Color            : 0.37,0.99,0.77
+Radius used      : 1.850000
+Radius, covalent : 1.850000
+Radius, atomic   : 2.560000
+Charge state     : 2
+Radius, ionic    : 1.090000
+Charge state     : 3
+Radius, ionic    : 0.950000
+
+
+Atom
+====
+Number           : 64
+Name             : Gadolinium
+Short name       : Gd
+Color            : 0.26,0.99,0.77
+Radius used      : 1.610000
+Radius, covalent : 1.610000
+Radius, atomic   : 2.540000
+Charge state     : 3
+Radius, ionic    : 0.938000
+
+
+Atom
+====
+Number           : 65
+Name             : Terbium
+Short name       : Tb
+Color            : 0.18,0.99,0.77
+Radius used      : 1.590000
+Radius, covalent : 1.590000
+Radius, atomic   : 2.510000
+Charge state     : 3
+Radius, ionic    : 0.923000
+Charge state     : 4
+Radius, ionic    : 0.840000
+
+
+Atom
+====
+Number           : 66
+Name             : Dysprosium
+Short name       : Dy
+Color            : 0.12,0.99,0.77
+Radius used      : 1.590000
+Radius, covalent : 1.590000
+Radius, atomic   : 2.490000
+Charge state     : 3
+Radius, ionic    : 0.908000
+
+
+Atom
+====
+Number           : 67
+Name             : Holmium
+Short name       : Ho
+Color            : 0.0,0.99,0.60
+Radius used      : 1.580000
+Radius, covalent : 1.580000
+Radius, atomic   : 2.470000
+Charge state     : 3
+Radius, ionic    : 0.894000
+
+
+Atom
+====
+Number           : 68
+Name             : Erbium
+Short name       : Er
+Color            : 0.0,0.89,0.45
+Radius used      : 1.570000
+Radius, covalent : 1.570000
+Radius, atomic   : 2.450000
+Charge state     : 3
+Radius, ionic    : 0.881000
+
+
+Atom
+====
+Number           : 69
+Name             : Thulium
+Short name       : Tm
+Color            : 0.0,0.82,0.32
+Radius used      : 1.560000
+Radius, covalent : 1.560000
+Radius, atomic   : 2.420000
+Charge state     : 3
+Radius, ionic    : 0.870000
+
+
+Atom
+====
+Number           : 70
+Name             : Ytterbium
+Short name       : Yb
+Color            : 0.0,0.74,0.21
+Radius used      : 1.740000
+Radius, covalent : 1.740000
+Radius, atomic   : 2.400000
+Charge state     : 2
+Radius, ionic    : 0.930000
+Charge state     : 3
+Radius, ionic    : 0.858000
+
+
+Atom
+====
+Number           : 71
+Name             : Lutetium
+Short name       : Lu
+Color            : 0.0,0.66,0.14
+Radius used      : 1.560000
+Radius, covalent : 1.560000
+Radius, atomic   : 2.250000
+Charge state     : 3
+Radius, ionic    : 0.850000
+
+
+Atom
+====
+Number           : 72
+Name             : Hafnium
+Short name       : Hf
+Color            : 0.30,0.75,0.99
+Radius used      : 1.440000
+Radius, covalent : 1.440000
+Radius, atomic   : 2.160000
+Charge state     : 4
+Radius, ionic    : 0.780000
+
+
+Atom
+====
+Number           : 73
+Name             : Tantalum
+Short name       : Ta
+Color            : 0.30,0.64,0.99
+Radius used      : 1.340000
+Radius, covalent : 1.340000
+Radius, atomic   : 2.090000
+Charge state     : 5
+Radius, ionic    : 0.680000
+
+
+Atom
+====
+Number           : 74
+Name             : Tungsten
+Short name       : W
+Color            : 0.12,0.57,0.83
+Radius used      : 1.300000
+Radius, covalent : 1.300000
+Radius, atomic   : 2.020000
+Charge state     : 4
+Radius, ionic    : 0.700000
+Charge state     : 6
+Radius, ionic    : 0.620000
+
+
+Atom
+====
+Number           : 75
+Name             : Rhenium
+Short name       : Re
+Color            : 0.14,0.48,0.66
+Radius used      : 1.280000
+Radius, covalent : 1.280000
+Radius, atomic   : 1.970000
+Charge state     : 4
+Radius, ionic    : 0.720000
+Charge state     : 7
+Radius, ionic    : 0.560000
+
+
+Atom
+====
+Number           : 76
+Name             : Osmium
+Short name       : Os
+Color            : 0.14,0.39,0.58
+Radius used      : 1.260000
+Radius, covalent : 1.260000
+Radius, atomic   : 1.920000
+Charge state     : 4
+Radius, ionic    : 0.880000
+Charge state     : 6
+Radius, ionic    : 0.690000
+
+
+Atom
+====
+Number           : 77
+Name             : Iridium
+Short name       : Ir
+Color            : 0.08,0.32,0.52
+Radius used      : 1.270000
+Radius, covalent : 1.270000
+Radius, atomic   : 1.870000
+Charge state     : 4
+Radius, ionic    : 0.680000
+
+
+Atom
+====
+Number           : 78
+Name             : Platinium
+Short name       : Pt
+Color            : 0.81,0.81,0.87
+Radius used      : 1.300000
+Radius, covalent : 1.300000
+Radius, atomic   : 1.830000
+Charge state     : 2
+Radius, ionic    : 0.800000
+Charge state     : 4
+Radius, ionic    : 0.650000
+
+
+Atom
+====
+Number           : 79
+Name             : Gold
+Short name       : Au
+Color            : 0.99,0.81,0.13
+Radius used      : 1.340000
+Radius, covalent : 1.340000
+Radius, atomic   : 1.790000
+Charge state     : 1
+Radius, ionic    : 1.370000
+Charge state     : 3
+Radius, ionic    : 0.850000
+
+
+Atom
+====
+Number           : 80
+Name             : Mercury
+Short name       : Hg
+Color            : 0.71,0.71,0.81
+Radius used      : 1.490000
+Radius, covalent : 1.490000
+Radius, atomic   : 1.760000
+Charge state     : 1
+Radius, ionic    : 1.270000
+Charge state     : 2
+Radius, ionic    : 1.100000
+
+
+Atom
+====
+Number           : 81
+Name             : Thallium
+Short name       : Tl
+Color            : 0.64,0.32,0.30
+Radius used      : 1.480000
+Radius, covalent : 1.480000
+Radius, atomic   : 2.080000
+Charge state     : 1
+Radius, ionic    : 1.470000
+Charge state     : 3
+Radius, ionic    : 0.950000
+
+
+Atom
+====
+Number           : 82
+Name             : Lead
+Short name       : Pb
+Color            : 0.33,0.34,0.37
+Radius used      : 1.470000
+Radius, covalent : 1.470000
+Radius, atomic   : 1.810000
+Charge state     : 2
+Radius, ionic    : 1.200000
+Charge state     : 4
+Radius, ionic    : 0.840000
+
+
+Atom
+====
+Number           : 83
+Name             : Bismuth
+Short name       : Bi
+Color            : 0.61,0.30,0.70
+Radius used      : 1.460000
+Radius, covalent : 1.460000
+Radius, atomic   : 1.630000
+Charge state     : 1
+Radius, ionic    : 0.980000
+Charge state     : 3
+Radius, ionic    : 0.960000
+Charge state     : 5
+Radius, ionic    : 0.740000
+
+
+Atom
+====
+Number           : 84
+Name             : Polonium
+Short name       : Po
+Color            : 0.66,0.35,0.0
+Radius used      : 1.460000
+Radius, covalent : 1.460000
+Radius, atomic   : 1.530000
+Charge state     : 6
+Radius, ionic    : 0.670000
+
+
+Atom
+====
+Number           : 85
+Name             : Astatine
+Short name       : At
+Color            : 0.45,0.30,0.26
+Radius used      : 1.450000
+Radius, covalent : 1.450000
+Radius, atomic   : 1.430000
+Charge state     : -3
+Radius, ionic    : 2.220000
+Charge state     : 3
+Radius, ionic    : 0.850000
+Charge state     : 5
+Radius, ionic    : 0.460000
+
+
+Atom
+====
+Number           : 86
+Name             : Radon
+Short name       : Rn
+Color            : 0.25,0.50,0.58
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.340000
+
+
+Atom
+====
+Number           : 87
+Name             : Francium
+Short name       : Fr
+Color            : 0.25,0.0,0.39
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+Charge state     : 1
+Radius, ionic    : 1.800000
+
+
+Atom
+====
+Number           : 88
+Name             : Radium
+Short name       : Ra
+Color            : 0.0,0.48,0.0
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+Charge state     : 2
+Radius, ionic    : 1.430000
+
+
+Atom
+====
+Number           : 89
+Name             : Actinium
+Short name       : Ac
+Color            : 0.43,0.66,0.97
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+Charge state     : 3
+Radius, ionic    : 1.180000
+
+
+Atom
+====
+Number           : 90
+Name             : Thorium
+Short name       : Th
+Color            : 0.0,0.72,0.99
+Radius used      : 1.650000
+Radius, covalent : 1.650000
+Radius, atomic   : 1.000000
+Charge state     : 4
+Radius, ionic    : 1.020000
+
+
+Atom
+====
+Number           : 91
+Name             : Protactinium
+Short name       : Pa
+Color            : 0.0,0.62,0.99
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+Charge state     : 3
+Radius, ionic    : 1.130000
+Charge state     : 4
+Radius, ionic    : 0.980000
+Charge state     : 5
+Radius, ionic    : 0.890000
+
+
+Atom
+====
+Number           : 92
+Name             : Uranium
+Short name       : U
+Color            : 0.0,0.55,0.99
+Radius used      : 1.420000
+Radius, covalent : 1.420000
+Radius, atomic   : 1.000000
+Charge state     : 4
+Radius, ionic    : 0.970000
+Charge state     : 6
+Radius, ionic    : 0.800000
+
+
+Atom
+====
+Number           : 93
+Name             : Neptunium
+Short name       : Np
+Color            : 0.0,0.5,0.99
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+Charge state     : 3
+Radius, ionic    : 1.100000
+Charge state     : 4
+Radius, ionic    : 0.950000
+Charge state     : 7
+Radius, ionic    : 0.710000
+
+
+Atom
+====
+Number           : 94
+Name             : Plutonium
+Short name       : Pu
+Color            : 0.0,0.41,0.99
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+Charge state     : 3
+Radius, ionic    : 1.080000
+Charge state     : 4
+Radius, ionic    : 0.930000
+
+
+Atom
+====
+Number           : 95
+Name             : Americium
+Short name       : Am
+Color            : 0.32,0.35,0.94
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+Charge state     : 3
+Radius, ionic    : 1.070000
+Charge state     : 4
+Radius, ionic    : 0.920000
+
+
+Atom
+====
+Number           : 96
+Name             : Curium
+Short name       : Cm
+Color            : 0.46,0.35,0.88
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+
+
+Atom
+====
+Number           : 97
+Name             : Berkelium
+Short name       : Bk
+Color            : 0.53,0.30,0.88
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+
+
+Atom
+====
+Number           : 98
+Name             : Californium
+Short name       : Cf
+Color            : 0.62,0.21,0.82
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+
+
+Atom
+====
+Number           : 99
+Name             : Einsteinium
+Short name       : Es
+Color            : 0.69,0.12,0.82
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+
+
+Atom
+====
+Number           : 100
+Name             : Fermium
+Short name       : Fm
+Color            : 0.69,0.12,0.72
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+
+
+Atom
+====
+Number           : 101
+Name             : Mendelevium
+Short name       : Md
+Color            : 0.69,0.05,0.64
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+
+
+Atom
+====
+Number           : 102
+Name             : Nobelium
+Short name       : No
+Color            : 0.73,0.05,0.52
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+
+
+Atom
+====
+Number           : 103
+Name             : Lawrencium
+Short name       : Lr
+Color            : 0.77,0.0,0.39
+Radius used      : 1.000000
+Radius, covalent : 1.000000
+Radius, atomic   : 1.000000
+
+
+Atom
+====
+Number           : 104
+Name             : Vacancy
+Short name       : Vac
+Color            : 0.5,0.5,0.5
+Radius used      : 1.2
+Radius, covalent : 1.0
+Radius, atomic   : 1.0
+
+
+Atom
+====
+Number           : 105
+Name             : Default
+Short name       : Default
+Color            : 0.5,0.5,0.5
+Radius used      : 1.0
+Radius, covalent : 1.0
+Radius, atomic   : 1.0
+
+
+Atom
+====
+Number           : 106
+Name             : Stick
+Short name       : Stick
+Color            : 0.5,0.5,0.5
+Radius used      : 1.0
+Radius, covalent : 1.0
+Radius, atomic   : 1.0

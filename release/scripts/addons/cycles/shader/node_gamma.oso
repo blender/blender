@@ -1,0 +1,12 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_gamma.oso
+shader node_gamma
+param	color	ColorIn	0.80000001 0.80000001 0.80000001		%read{0,0} %write{2147483647,-1}
+param	float	Gamma	1		%read{0,0} %write{2147483647,-1}
+oparam	color	ColorOut	0 0 0		%read{2147483647,-1} %write{0,0}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_gamma.osl:24
+# 	ColorOut = pow(ColorIn, Gamma);
+	pow		ColorOut ColorIn Gamma 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_gamma.osl"} %line{24} %argrw{"wrr"}
+	end

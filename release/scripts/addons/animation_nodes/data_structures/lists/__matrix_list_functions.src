@@ -1,0 +1,21 @@
+def toEulers(self, bint isNormalized = False):
+    from ... math import matrix4x4ListToEulerList
+    return matrix4x4ListToEulerList(self, isNormalized)
+
+def toQuaternions(self, bint isNormalized = False):
+    from ... math import matrix4x4ListToQuaternionList
+    return matrix4x4ListToQuaternionList(self, isNormalized)
+
+def transpose(self):
+    cdef Py_ssize_t i
+    for i in range(self.length):
+        transposeMatrix_Inplace(self.data + i)
+
+def transform(self, matrix):
+    cdef Matrix4 transformation
+    cdef Matrix4 temp
+    cdef Py_ssize_t i
+    setMatrix4(&transformation, matrix)
+    for i in range(self.length):
+        multMatrix4(&temp, &transformation, self.data + i)
+        self.data[i] = temp

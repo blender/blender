@@ -1,0 +1,37 @@
+from . clist cimport CList
+
+cdef class LISTNAME(CList):
+    cdef:
+        TYPE* data
+        Py_ssize_t length
+        Py_ssize_t capacity
+
+    cdef grow(self, Py_ssize_t minCapacity)
+    cdef void shrinkToLength(self)
+    cdef replaceArray(self, TYPE* newData, Py_ssize_t newLength, Py_ssize_t newCapacity)
+
+    cdef extendList(self, list values)
+    cdef extendTuple(self, tuple values)
+    cdef Py_ssize_t searchIndex(self, TYPE value)
+
+    cdef LISTNAME getValuesInSlice(self, slice sliceObject)
+    cdef setValuesInSlice(self, slice sliceObject, values)
+    cdef removeValuesInSlice(self, slice sliceObject)
+
+    cdef setValuesInSimpleSlice(self, Py_ssize_t start, Py_ssize_t stop, values)
+    cdef setValuesInExtendedSlice(self, Py_ssize_t start, Py_ssize_t stop, Py_ssize_t step, values)
+
+    cdef getValueAtIndex(self, Py_ssize_t index)
+    cdef setValueAtIndex(self, Py_ssize_t index, TYPE value)
+    cdef removeValueAtIndex(self, Py_ssize_t index)
+
+    cdef getValuesInIndexList(self, indices)
+
+    cdef overwrite(self, LISTNAME other, Py_ssize_t index = ?)
+    cdef overwriteArray(self, TYPE* array, Py_ssize_t arrayLength, Py_ssize_t index)
+
+    # Helpers
+    cdef tryConversion(self, value, TYPE* target)
+    cdef toPyObject(self, TYPE* value)
+    cdef equals_SameType(self, LISTNAME other)
+    cdef tryCorrectIndex(self, Py_ssize_t index)

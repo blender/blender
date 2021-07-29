@@ -1,0 +1,59 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+shader node_anisotropic_bsdf(
+	color Color = 0.0,
+	string distribution = "GGX",
+	float Roughness = 0.0,
+	float Anisotropy = 0.0,
+	float Rotation = 0.0,
+	normal Normal = N,
+	normal Tangent = normalize(dPdu),
+	output closure color BSDF = 0)
+{
+	/* rotate tangent around normal */
+	vector T = Tangent;
+
+	if (Rotation != 0.0)
+		T = rotate(T, Rotation * M_2PI, point(0.0, 0.0, 0.0), Normal);
+
+	/* compute roughness */
+	float RoughnessU, RoughnessV;
+	float aniso = clamp(Anisotropy, -0.99, 0.99);
+
+	if (aniso < 0.0) {
+		RoughnessU = Roughness / (1.0 + aniso);
+		RoughnessV = Roughness * (1.0 + aniso);
+	}
+	else {
+		RoughnessU = Roughness * (1.0 - aniso);
+		RoughnessV = Roughness / (1.0 - aniso);
+	}
+
+	if (distribution == "sharp")
+		BSDF = Color * reflection(Normal);
+	else if (distribution == "beckmann")
+		BSDF = Color * microfacet_beckmann_aniso(Normal, T, RoughnessU, RoughnessV);
+	else if (distribution == "GGX")
+		BSDF = Color * microfacet_ggx_aniso(Normal, T, RoughnessU, RoughnessV);
+	else if (distribution == "Multiscatter GGX")
+		BSDF = Color * microfacet_multi_ggx_aniso(Normal, T, RoughnessU, RoughnessV, Color);
+	else
+		BSDF = Color * ashikhmin_shirley(Normal, T, RoughnessU, RoughnessV);
+}
+

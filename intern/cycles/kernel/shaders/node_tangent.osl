@@ -1,0 +1,48 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+shader node_tangent(
+	normal NormalIn = N,
+	string attr_name = "geom:tangent",
+	string direction_type = "radial",
+	string axis = "z",
+	output normal Tangent = normalize(dPdu))
+{
+	vector T;
+
+	if (direction_type == "uv_map") {
+		getattribute(attr_name, T);
+	}
+	else if (direction_type == "radial") {
+		point generated;
+
+		if (!getattribute("geom:generated", generated))
+			generated = P;
+
+		if (axis == "x")
+			T = vector(0.0, -(generated[2] - 0.5), (generated[1] - 0.5));
+		else if (axis == "y")
+			T = vector(-(generated[2] - 0.5), 0.0, (generated[0] - 0.5));
+		else
+			T = vector(-(generated[1] - 0.5), (generated[0] - 0.5), 0.0);
+	}
+
+	T = transform("object", "world", T);
+	Tangent = cross(NormalIn, normalize(cross(T, NormalIn)));
+}
+

@@ -1,0 +1,324 @@
+diff --git a/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorld.h b/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorld.h
+index be9eca6..ec40c96 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorld.h
++++ b/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorld.h
+@@ -15,7 +15,7 @@ subject to the following restrictions:
+ 
+ 
+ /**
+- * @mainpage Bullet Documentation
++ * @page Bullet Documentation
+  *
+  * @section intro_sec Introduction
+  * Bullet is a Collision Detection and Rigid Body Dynamics Library. The Library is Open Source and free for commercial use, under the ZLib license ( http://opensource.org/licenses/zlib-license.php ).
+diff --git a/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorldImporter.cpp b/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorldImporter.cpp
+index 36dd043..57eb817 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorldImporter.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorldImporter.cpp
+@@ -579,14 +579,10 @@ btCollisionShape* btCollisionWorldImporter::convertCollisionShape(  btCollisionS
+ 				btCompoundShapeData* compoundData = (btCompoundShapeData*)shapeData;
+ 				btCompoundShape* compoundShape = createCompoundShape();
+ 
+-				btCompoundShapeChildData* childShapeDataArray = &compoundData->m_childShapePtr[0];
+-
+ 
+ 				btAlignedObjectArray<btCollisionShape*> childShapes;
+ 				for (int i=0;i<compoundData->m_numChildShapes;i++)
+ 				{
+-					btCompoundShapeChildData* ptr = &compoundData->m_childShapePtr[i];
+-
+ 					btCollisionShapeData* cd = compoundData->m_childShapePtr[i].m_childShape;
+ 
+ 					btCollisionShape* childShape = convertCollisionShape(cd);
+diff --git a/extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp b/extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp
+index 57fc119..31faf1d 100644
+--- a/extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp
++++ b/extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.cpp
+@@ -29,14 +29,11 @@ subject to the following restrictions:
+ static btVector3
+ getNormalizedVector(const btVector3& v)
+ {
+-	btScalar l = v.length();
+-	btVector3 n = v;
+-	if (l < SIMD_EPSILON) {
+-		n.setValue(0,0,0);
+-	} else {
+-		n /= l;
+-	}
++	btVector3 n(0, 0, 0);
+ 
++	if (v.length() > SIMD_EPSILON) {
++		n = v.normalized();
++	}
+ 	return n;
+ }
+ 
+diff --git a/extern/bullet2/src/BulletDynamics/ConstraintSolver/btSolverBody.h b/extern/bullet2/src/BulletDynamics/ConstraintSolver/btSolverBody.h
+index 27ccefe..8e4456e 100644
+--- a/extern/bullet2/src/BulletDynamics/ConstraintSolver/btSolverBody.h
++++ b/extern/bullet2/src/BulletDynamics/ConstraintSolver/btSolverBody.h
+@@ -37,8 +37,13 @@ struct	btSimdScalar
+ 	{
+ 
+ 	}
+-
++/* workaround for clang 3.4 ( == apple clang 5.1 ) issue, friction would fail with forced inlining */
++#if (defined(__clang__) && defined(__apple_build_version__) &&  (__clang_major__ == 5) && (__clang_minor__ == 1)) \
++|| (defined(__clang__) && !defined(__apple_build_version__) && (__clang_major__ == 3) && (__clang_minor__ == 4))
++	inline __attribute__ ((noinline)) btSimdScalar(float	fl)
++#else
+ 	SIMD_FORCE_INLINE	btSimdScalar(float	fl)
++#endif
+ 	:m_vec128 (_mm_set1_ps(fl))
+ 	{
+ 	}
+diff --git a/extern/bullet2/src/BulletDynamics/Featherstone/btMultiBody.cpp b/extern/bullet2/src/BulletDynamics/Featherstone/btMultiBody.cpp
+index 5d62da7..fcd312e 100644
+--- a/extern/bullet2/src/BulletDynamics/Featherstone/btMultiBody.cpp
++++ b/extern/bullet2/src/BulletDynamics/Featherstone/btMultiBody.cpp
+@@ -28,7 +28,6 @@
+ #include "btMultiBodyJointFeedback.h"
+ #include "LinearMath/btTransformUtil.h"
+ #include "LinearMath/btSerializer.h"
+-#include "Bullet3Common/b3Logging.h"
+ // #define INCLUDE_GYRO_TERM 
+ 
+ ///todo: determine if we need these options. If so, make a proper API, otherwise delete those globals
+@@ -1732,7 +1731,6 @@ void btMultiBody::goToSleep()
+ 
+ void btMultiBody::checkMotionAndSleepIfRequired(btScalar timestep)
+ {
+-	int num_links = getNumLinks();
+ 	extern bool gDisableDeactivation;
+     if (!m_canSleep || gDisableDeactivation) 
+ 	{
+diff --git a/extern/bullet2/src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.cpp b/extern/bullet2/src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.cpp
+index 8a034b3..4f66b20 100644
+--- a/extern/bullet2/src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.cpp
++++ b/extern/bullet2/src/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.cpp
+@@ -809,7 +809,6 @@ static void applyJointFeedback(btMultiBodyJacobianData& data, const btMultiBodyS
+ }
+ #endif
+ 
+-#include "Bullet3Common/b3Logging.h"
+ void btMultiBodyConstraintSolver::writeBackSolverBodyToMultiBody(btMultiBodySolverConstraint& c, btScalar deltaTime)
+ {
+ #if 1 
+diff --git a/extern/bullet2/src/BulletSoftBody/btSparseSDF.h b/extern/bullet2/src/BulletSoftBody/btSparseSDF.h
+index bcf0c79..8992ddb 100644
+--- a/extern/bullet2/src/BulletSoftBody/btSparseSDF.h
++++ b/extern/bullet2/src/BulletSoftBody/btSparseSDF.h
+@@ -185,7 +185,6 @@ struct	btSparseSdf
+ 		{
+ 			++nprobes;		
+ 			++ncells;
+-			int sz = sizeof(Cell);
+ 			if (ncells>m_clampCells)
+ 			{
+ 				static int numResets=0;
+diff --git a/extern/bullet2/src/LinearMath/btConvexHullComputer.cpp b/extern/bullet2/src/LinearMath/btConvexHullComputer.cpp
+index d58ac95..3fd77df 100644
+--- a/extern/bullet2/src/LinearMath/btConvexHullComputer.cpp
++++ b/extern/bullet2/src/LinearMath/btConvexHullComputer.cpp
+@@ -2665,6 +2665,7 @@ btScalar btConvexHullComputer::compute(const void* coords, bool doubleCoords, in
+ 	}
+ 
+ 	vertices.resize(0);
++	original_vertex_index.resize(0);
+ 	edges.resize(0);
+ 	faces.resize(0);
+ 
+@@ -2675,6 +2676,7 @@ btScalar btConvexHullComputer::compute(const void* coords, bool doubleCoords, in
+ 	{
+ 		btConvexHullInternal::Vertex* v = oldVertices[copied];
+ 		vertices.push_back(hull.getCoordinates(v));
++		original_vertex_index.push_back(v->point.index);
+ 		btConvexHullInternal::Edge* firstEdge = v->edges;
+ 		if (firstEdge)
+ 		{
+diff --git a/extern/bullet2/src/LinearMath/btConvexHullComputer.h b/extern/bullet2/src/LinearMath/btConvexHullComputer.h
+index 7240ac4..6871ce8 100644
+--- a/extern/bullet2/src/LinearMath/btConvexHullComputer.h
++++ b/extern/bullet2/src/LinearMath/btConvexHullComputer.h
+@@ -67,6 +67,7 @@ class btConvexHullComputer
+ 
+ 		// Vertices of the output hull
+ 		btAlignedObjectArray<btVector3> vertices;
++		btAlignedObjectArray<int> original_vertex_index;
+ 
+ 		// Edges of the output hull
+ 		btAlignedObjectArray<Edge> edges;
+diff --git a/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexHullShape.cpp b/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexHullShape.cpp
+index 0623e35..02ea503 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexHullShape.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexHullShape.cpp
+@@ -13,9 +13,9 @@ subject to the following restrictions:
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+ 
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ #include "btConvexHullShape.h"
+ #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
+diff --git a/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexShape.cpp b/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexShape.cpp
+index b56d729..88018b4 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexShape.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexShape.cpp
+@@ -13,9 +13,9 @@ subject to the following restrictions:
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+ 
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ #include "btConvexShape.h"
+ #include "btTriangleShape.h"
+diff --git a/extern/bullet2/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp b/extern/bullet2/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
+index a7362ea..6abfdff 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
+@@ -13,9 +13,9 @@ subject to the following restrictions:
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+ 
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ #include "btMultiSphereShape.h"
+ #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
+diff --git a/extern/bullet2/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp b/extern/bullet2/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+index 4854f37..9095c59 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+@@ -12,9 +12,9 @@ subject to the following restrictions:
+ 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ #include "BulletCollision/CollisionShapes/btPolyhedralConvexShape.h"
+ #include "btConvexPolyhedron.h"
+diff --git a/extern/bullet2/src/LinearMath/btVector3.cpp b/extern/bullet2/src/LinearMath/btVector3.cpp
+index e05bdcc..dbcf2b6 100644
+--- a/extern/bullet2/src/LinearMath/btVector3.cpp
++++ b/extern/bullet2/src/LinearMath/btVector3.cpp
+@@ -15,9 +15,9 @@
+  This source version has been altered.
+  */
+ 
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ 
+ #include "btVector3.h"
+diff --git a/extern/bullet2/src/BulletDynamics/Dynamics/btRigidBody.cpp b/extern/bullet2/src/BulletDynamics/Dynamics/btRigidBody.cpp
+index e0e8bc7..a788268 100644
+--- a/extern/bullet2/src/BulletDynamics/Dynamics/btRigidBody.cpp
++++ b/extern/bullet2/src/BulletDynamics/Dynamics/btRigidBody.cpp
+@@ -425,50 +425,38 @@ void btRigidBody::setCenterOfMassTransform(const btTransform& xform)
+ }
+ 
+ 
++bool btRigidBody::checkCollideWithOverride(const  btCollisionObject* co) const
++{
++	const btRigidBody* otherRb = btRigidBody::upcast(co);
++	if (!otherRb)
++		return true;
++
++	for (int i = 0; i < m_constraintRefs.size(); ++i)
++	{
++		const btTypedConstraint* c = m_constraintRefs[i];
++		if (c->isEnabled())
++			if (&c->getRigidBodyA() == otherRb || &c->getRigidBodyB() == otherRb)
++				return false;
++	}
++
++	return true;
++}
+ 
+ 
+ 
+ void btRigidBody::addConstraintRef(btTypedConstraint* c)
+ {
+-	///disable collision with the 'other' body
+-
+ 	int index = m_constraintRefs.findLinearSearch(c);
+-	//don't add constraints that are already referenced
+-	//btAssert(index == m_constraintRefs.size());
+ 	if (index == m_constraintRefs.size())
+-	{
+-		m_constraintRefs.push_back(c);
+-		btCollisionObject* colObjA = &c->getRigidBodyA();
+-		btCollisionObject* colObjB = &c->getRigidBodyB();
+-		if (colObjA == this)
+-		{
+-			colObjA->setIgnoreCollisionCheck(colObjB, true);
+-		}
+-		else
+-		{
+-			colObjB->setIgnoreCollisionCheck(colObjA, true);
+-		}
+-	} 
++		m_constraintRefs.push_back(c); 
++
++	m_checkCollideWith = true;
+ }
+ 
+ void btRigidBody::removeConstraintRef(btTypedConstraint* c)
+ {
+-	int index = m_constraintRefs.findLinearSearch(c);
+-	//don't remove constraints that are not referenced
+-	if(index < m_constraintRefs.size())
+-    {
+-        m_constraintRefs.remove(c);
+-        btCollisionObject* colObjA = &c->getRigidBodyA();
+-        btCollisionObject* colObjB = &c->getRigidBodyB();
+-        if (colObjA == this)
+-        {
+-            colObjA->setIgnoreCollisionCheck(colObjB, false);
+-        }
+-        else
+-        {
+-            colObjB->setIgnoreCollisionCheck(colObjA, false);
+-        }
+-    }
++	m_constraintRefs.remove(c);
++	m_checkCollideWith = m_constraintRefs.size() > 0;
+ }
+ 
+ int	btRigidBody::calculateSerializeBufferSize()	const
+diff --git a/extern/bullet2/src/BulletDynamics/Dynamics/btRigidBody.h b/extern/bullet2/src/BulletDynamics/Dynamics/btRigidBody.h
+index 1d177db..c2f8c5d 100644
+--- a/extern/bullet2/src/BulletDynamics/Dynamics/btRigidBody.h
++++ b/extern/bullet2/src/BulletDynamics/Dynamics/btRigidBody.h
+@@ -509,6 +509,8 @@ public:
+ 		return (getBroadphaseProxy() != 0);
+ 	}
+ 
++	virtual bool checkCollideWithOverride(const  btCollisionObject* co) const;
++
+ 	void addConstraintRef(btTypedConstraint* c);
+ 	void removeConstraintRef(btTypedConstraint* c);
+ 

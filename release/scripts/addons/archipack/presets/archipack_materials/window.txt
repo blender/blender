@@ -1,0 +1,6 @@
+DEFAULT##|##Window_inside
+DEFAULT##|##Window_outside
+DEFAULT##|##Window_glass
+DEFAULT##|##Window_metal
+DEFAULT##|##Window_stone
+DEFAULT##|##Window_blind

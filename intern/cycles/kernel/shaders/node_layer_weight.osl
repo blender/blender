@@ -1,0 +1,45 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+#include "node_fresnel.h"
+
+shader node_layer_weight(
+	float Blend = 0.5,
+	normal Normal = N,
+	output float Fresnel = 0.0,
+	output float Facing = 0.0)
+{
+	float blend = Blend;
+	float cosi = dot(I, Normal);
+
+	/* Fresnel */ 
+	float eta = max(1.0 - Blend, 1e-5);
+	eta = backfacing() ? eta : 1.0 / eta;
+	Fresnel = fresnel_dielectric_cos(cosi, eta);
+
+	/* Facing */ 
+	Facing = fabs(cosi);
+
+	if (blend != 0.5) {
+		blend = clamp(blend, 0.0, 1.0 - 1e-5);
+		blend = (blend < 0.5) ? 2.0 * blend : 0.5 / (1.0 - blend);
+
+		Facing = pow(Facing, blend);
+	}
+
+	Facing = 1.0 - Facing;
+}

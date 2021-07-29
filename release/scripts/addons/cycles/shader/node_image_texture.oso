@@ -1,0 +1,1650 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_image_texture.oso
+shader node_image_texture
+param	int	use_mapping	0		%read{2,2} %write{2147483647,-1}
+param	matrix	mapping	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0		%read{3,3} %write{2147483647,-1} %derivs
+param	point	Vector	0 0 0		%read{1,1} %write{0,0} %derivs %initexpr
+param	string	filename	""		%read{10,639} %write{2147483647,-1}
+param	string	color_space	"sRGB"		%read{27,656} %write{2147483647,-1}
+param	string	projection	"flat"		%read{4,605} %write{2147483647,-1}
+param	string	interpolation	"smartcubic"		%read{10,639} %write{2147483647,-1}
+param	string	extension	"periodic"		%read{10,639} %write{2147483647,-1}
+param	float	projection_blend	0		%read{94,94} %write{2147483647,-1}
+param	int	is_float	1		%read{23,652} %write{2147483647,-1}
+param	int	use_alpha	1		%read{11,640} %write{2147483647,-1}
+oparam	color	Color	0 0 0		%read{337,497} %write{76,705}
+oparam	float	Alpha	1		%read{13,649} %write{10,639}
+global	point	P	%read{0,0} %write{2147483647,-1} %derivs
+global	normal	N	%read{79,79} %write{2147483647,-1}
+local	float	___662_u	%read{633,634} %write{631,632} %derivs
+local	float	___662_v	%read{634,634} %write{613,633} %derivs
+local	float	___662_len	%read{622,627} %write{621,621} %derivs
+local	float	___665_len	%read{508,527} %write{507,507} %derivs
+local	float	___665_v	%read{533,533} %write{530,532} %derivs
+local	float	___665_u	%read{532,533} %write{519,531} %derivs
+local	color	___670_rgb	%read{20,705} %write{10,704}
+local	point	p	%read{3,608} %write{1,3} %derivs
+local	vector	___674_Nob	%read{80,250} %write{79,92}
+local	vector	___674_weight	%read{167,498} %write{93,258}
+local	float	___674_blend	%read{95,223} %write{94,94}
+local	float	___674_limit	%read{101,254} %write{96,96}
+local	float	___674_tmp_alpha	%read{272,499} %write{269,429}
+local	point	___687_projected	%read{534,535} %write{533,533} %derivs
+local	point	___688_projected	%read{635,636} %write{634,634} %derivs
+const	string	$const1	"flat"		%read{4,4} %write{2147483647,-1}
+temp	int	$tmp1	%read{5,5} %write{4,4}
+const	int	$const2	0		%read{6,659} %write{2147483647,-1}
+temp	float	$tmp2	%read{10,10} %write{6,6} %derivs
+const	int	$const3	1		%read{7,674} %write{2147483647,-1}
+temp	float	$tmp3	%read{9,9} %write{7,7} %derivs
+const	string	$const4	"image_texture_lookup"		%read{8,637} %write{2147483647,-1}
+const	float	$const5	1		%read{9,700} %write{2147483647,-1}
+temp	float	$tmp4	%read{10,10} %write{9,9} %derivs
+const	string	$const6	"wrap"		%read{10,639} %write{2147483647,-1}
+const	string	$const7	"interp"		%read{10,639} %write{2147483647,-1}
+const	string	$const8	"alpha"		%read{10,639} %write{2147483647,-1}
+const	string	$const9	"color_unpremultiply"		%read{12,641} %write{2147483647,-1}
+temp	int	$tmp5	%read{14,14} %write{13,13}
+temp	int	$tmp6	%read{15,19} %write{14,18}
+const	float	$const10	0		%read{16,695} %write{2147483647,-1}
+temp	int	$tmp7	%read{17,17} %write{16,16}
+temp	int	$tmp8	%read{18,18} %write{17,17}
+temp	int	$tmp9	%read{24,24} %write{23,23}
+temp	color	$tmp10	%read{26,26} %write{25,25}
+const	string	$const11	"sRGB"		%read{27,656} %write{2147483647,-1}
+temp	int	$tmp11	%read{28,28} %write{27,27}
+const	string	$const12	"color_srgb_to_scene_linear"		%read{29,690} %write{2147483647,-1}
+temp	float	$tmp12	%read{75,75} %write{36,43}
+temp	float	$tmp13	%read{32,40} %write{30,30}
+const	float	$const13	0.040449999		%read{32,691} %write{2147483647,-1}
+temp	int	$tmp14	%read{33,33} %write{32,32}
+temp	int	$tmp15	%read{35,35} %write{34,34}
+const	float	$const14	12.92		%read{37,696} %write{2147483647,-1}
+temp	float	$tmp16	%read{38,38} %write{37,37}
+const	float	$const15	0.055		%read{40,699} %write{2147483647,-1}
+temp	float	$tmp17	%read{42,42} %write{40,40}
+const	float	$const16	1.0549999		%read{41,700} %write{2147483647,-1}
+temp	float	$tmp18	%read{42,42} %write{41,41}
+temp	float	$tmp19	%read{43,43} %write{42,42}
+const	float	$const17	2.4000001		%read{43,702} %write{2147483647,-1}
+temp	float	$tmp20	%read{75,75} %write{51,58}
+temp	float	$tmp21	%read{47,55} %write{45,45}
+temp	int	$tmp22	%read{48,48} %write{47,47}
+temp	int	$tmp23	%read{50,50} %write{49,49}
+temp	float	$tmp24	%read{53,53} %write{52,52}
+temp	float	$tmp25	%read{57,57} %write{55,55}
+temp	float	$tmp26	%read{57,57} %write{56,56}
+temp	float	$tmp27	%read{58,58} %write{57,57}
+temp	float	$tmp28	%read{75,75} %write{66,73}
+const	int	$const18	2		%read{60,689} %write{2147483647,-1}
+temp	float	$tmp29	%read{62,70} %write{60,60}
+temp	int	$tmp30	%read{63,63} %write{62,62}
+temp	int	$tmp31	%read{65,65} %write{64,64}
+temp	float	$tmp32	%read{68,68} %write{67,67}
+temp	float	$tmp33	%read{72,72} %write{70,70}
+temp	float	$tmp34	%read{72,72} %write{71,71}
+temp	float	$tmp35	%read{73,73} %write{72,72}
+const	string	$const19	"box"		%read{77,77} %write{2147483647,-1}
+temp	int	$tmp36	%read{78,78} %write{77,77}
+const	string	$const20	"world"		%read{79,79} %write{2147483647,-1}
+const	string	$const21	"object"		%read{79,79} %write{2147483647,-1}
+temp	float	$tmp37	%read{86,86} %write{81,81}
+temp	float	$tmp38	%read{81,81} %write{80,80}
+temp	float	$tmp39	%read{86,86} %write{83,83}
+temp	float	$tmp40	%read{83,83} %write{82,82}
+temp	float	$tmp41	%read{86,86} %write{85,85}
+temp	float	$tmp42	%read{85,85} %write{84,84}
+temp	float	$tmp43	%read{89,89} %write{87,87}
+temp	float	$tmp44	%read{89,89} %write{88,88}
+temp	float	$tmp45	%read{91,91} %write{89,89}
+temp	float	$tmp46	%read{91,91} %write{90,90}
+temp	float	$tmp47	%read{92,92} %write{91,91}
+const	vector	$const22	0 0 0		%read{93,93} %write{2147483647,-1}
+const	float	$const23	0.5		%read{96,631} %write{2147483647,-1}
+temp	float	$tmp48	%read{96,96} %write{95,95}
+temp	float	$tmp49	%read{102,102} %write{97,97}
+temp	float	$tmp50	%read{100,100} %write{98,98}
+temp	float	$tmp51	%read{100,100} %write{99,99}
+temp	float	$tmp52	%read{101,101} %write{100,100}
+temp	float	$tmp53	%read{102,102} %write{101,101}
+temp	int	$tmp54	%read{103,103} %write{102,102}
+temp	int	$tmp55	%read{104,113} %write{103,112}
+temp	float	$tmp56	%read{110,110} %write{105,105}
+temp	float	$tmp57	%read{108,108} %write{106,106}
+temp	float	$tmp58	%read{108,108} %write{107,107}
+temp	float	$tmp59	%read{109,109} %write{108,108}
+temp	float	$tmp60	%read{110,110} %write{109,109}
+temp	int	$tmp61	%read{111,111} %write{110,110}
+temp	int	$tmp62	%read{112,112} %write{111,111}
+temp	float	$tmp63	%read{120,120} %write{115,115}
+temp	float	$tmp64	%read{118,118} %write{116,116}
+temp	float	$tmp65	%read{118,118} %write{117,117}
+temp	float	$tmp66	%read{119,119} %write{118,118}
+temp	float	$tmp67	%read{120,120} %write{119,119}
+temp	int	$tmp68	%read{121,121} %write{120,120}
+temp	int	$tmp69	%read{122,131} %write{121,130}
+temp	float	$tmp70	%read{128,128} %write{123,123}
+temp	float	$tmp71	%read{126,126} %write{124,124}
+temp	float	$tmp72	%read{126,126} %write{125,125}
+temp	float	$tmp73	%read{127,127} %write{126,126}
+temp	float	$tmp74	%read{128,128} %write{127,127}
+temp	int	$tmp75	%read{129,129} %write{128,128}
+temp	int	$tmp76	%read{130,130} %write{129,129}
+temp	float	$tmp77	%read{138,138} %write{133,133}
+temp	float	$tmp78	%read{136,136} %write{134,134}
+temp	float	$tmp79	%read{136,136} %write{135,135}
+temp	float	$tmp80	%read{137,137} %write{136,136}
+temp	float	$tmp81	%read{138,138} %write{137,137}
+temp	int	$tmp82	%read{139,139} %write{138,138}
+temp	int	$tmp83	%read{140,149} %write{139,148}
+temp	float	$tmp84	%read{146,146} %write{141,141}
+temp	float	$tmp85	%read{144,144} %write{142,142}
+temp	float	$tmp86	%read{144,144} %write{143,143}
+temp	float	$tmp87	%read{145,145} %write{144,144}
+temp	float	$tmp88	%read{146,146} %write{145,145}
+temp	int	$tmp89	%read{147,147} %write{146,146}
+temp	int	$tmp90	%read{148,148} %write{147,147}
+temp	int	$tmp91	%read{152,152} %write{151,151}
+temp	float	$tmp92	%read{159,159} %write{153,153}
+temp	float	$tmp93	%read{158,158} %write{154,154}
+temp	float	$tmp94	%read{157,157} %write{155,155}
+temp	float	$tmp95	%read{157,157} %write{156,156}
+temp	float	$tmp96	%read{158,158} %write{157,157}
+temp	float	$tmp97	%read{159,159} %write{158,158}
+temp	int	$tmp98	%read{160,160} %write{159,159}
+temp	float	$tmp99	%read{165,165} %write{161,161}
+temp	float	$tmp100	%read{164,164} %write{162,162}
+temp	float	$tmp101	%read{164,164} %write{163,163}
+temp	float	$tmp102	%read{165,165} %write{164,164}
+temp	float	$tmp103	%read{166,166} %write{165,165}
+temp	float	$tmp104	%read{175,175} %write{174,174}
+temp	float	$tmp105	%read{170,170} %write{167,167}
+temp	float	$tmp106	%read{169,169} %write{168,168}
+temp	float	$tmp107	%read{170,170} %write{169,169}
+temp	float	$tmp108	%read{171,171} %write{170,170}
+temp	float	$tmp109	%read{173,173} %write{171,171}
+const	string	$const24	"clamp"		%read{172,224} %write{2147483647,-1}
+temp	float	$tmp110	%read{174,174} %write{173,173}
+temp	float	$tmp111	%read{177,177} %write{176,176}
+temp	float	$tmp112	%read{178,178} %write{177,177}
+temp	float	$tmp113	%read{185,185} %write{179,179}
+temp	float	$tmp114	%read{184,184} %write{180,180}
+temp	float	$tmp115	%read{183,183} %write{181,181}
+temp	float	$tmp116	%read{183,183} %write{182,182}
+temp	float	$tmp117	%read{184,184} %write{183,183}
+temp	float	$tmp118	%read{185,185} %write{184,184}
+temp	int	$tmp119	%read{186,186} %write{185,185}
+temp	float	$tmp120	%read{191,191} %write{187,187}
+temp	float	$tmp121	%read{190,190} %write{188,188}
+temp	float	$tmp122	%read{190,190} %write{189,189}
+temp	float	$tmp123	%read{191,191} %write{190,190}
+temp	float	$tmp124	%read{192,192} %write{191,191}
+temp	float	$tmp125	%read{201,201} %write{200,200}
+temp	float	$tmp126	%read{196,196} %write{193,193}
+temp	float	$tmp127	%read{195,195} %write{194,194}
+temp	float	$tmp128	%read{196,196} %write{195,195}
+temp	float	$tmp129	%read{197,197} %write{196,196}
+temp	float	$tmp130	%read{199,199} %write{197,197}
+temp	float	$tmp131	%read{200,200} %write{199,199}
+temp	float	$tmp132	%read{203,203} %write{202,202}
+temp	float	$tmp133	%read{204,204} %write{203,203}
+temp	float	$tmp134	%read{211,211} %write{205,205}
+temp	float	$tmp135	%read{210,210} %write{206,206}
+temp	float	$tmp136	%read{209,209} %write{207,207}
+temp	float	$tmp137	%read{209,209} %write{208,208}
+temp	float	$tmp138	%read{210,210} %write{209,209}
+temp	float	$tmp139	%read{211,211} %write{210,210}
+temp	int	$tmp140	%read{212,212} %write{211,211}
+temp	float	$tmp141	%read{217,217} %write{213,213}
+temp	float	$tmp142	%read{216,216} %write{214,214}
+temp	float	$tmp143	%read{216,216} %write{215,215}
+temp	float	$tmp144	%read{217,217} %write{216,216}
+temp	float	$tmp145	%read{218,218} %write{217,217}
+temp	float	$tmp146	%read{227,227} %write{226,226}
+temp	float	$tmp147	%read{222,222} %write{219,219}
+temp	float	$tmp148	%read{221,221} %write{220,220}
+temp	float	$tmp149	%read{222,222} %write{221,221}
+temp	float	$tmp150	%read{223,223} %write{222,222}
+temp	float	$tmp151	%read{225,225} %write{223,223}
+temp	float	$tmp152	%read{226,226} %write{225,225}
+temp	float	$tmp153	%read{229,229} %write{228,228}
+temp	float	$tmp154	%read{230,230} %write{229,229}
+const	float	$const25	2		%read{231,609} %write{2147483647,-1}
+temp	float	$tmp155	%read{233,233} %write{231,231}
+temp	float	$tmp156	%read{233,233} %write{232,232}
+temp	float	$tmp157	%read{235,235} %write{233,233}
+temp	float	$tmp158	%read{235,235} %write{234,234}
+temp	float	$tmp159	%read{238,238} %write{235,235}
+temp	float	$tmp160	%read{237,237} %write{236,236}
+temp	float	$tmp161	%read{238,238} %write{237,237}
+temp	float	$tmp162	%read{239,239} %write{238,238}
+temp	float	$tmp163	%read{242,242} %write{240,240}
+temp	float	$tmp164	%read{242,242} %write{241,241}
+temp	float	$tmp165	%read{244,244} %write{242,242}
+temp	float	$tmp166	%read{244,244} %write{243,243}
+temp	float	$tmp167	%read{247,247} %write{244,244}
+temp	float	$tmp168	%read{246,246} %write{245,245}
+temp	float	$tmp169	%read{247,247} %write{246,246}
+temp	float	$tmp170	%read{248,248} %write{247,247}
+temp	float	$tmp171	%read{251,251} %write{249,249}
+temp	float	$tmp172	%read{251,251} %write{250,250}
+temp	float	$tmp173	%read{253,253} %write{251,251}
+temp	float	$tmp174	%read{253,253} %write{252,252}
+temp	float	$tmp175	%read{256,256} %write{253,253}
+temp	float	$tmp176	%read{255,255} %write{254,254}
+temp	float	$tmp177	%read{256,256} %write{255,255}
+temp	float	$tmp178	%read{257,257} %write{256,256}
+const	color	$const26	0 0 0		%read{259,259} %write{2147483647,-1}
+temp	float	$tmp179	%read{262,262} %write{261,261}
+temp	int	$tmp180	%read{263,263} %write{262,262}
+temp	float	$tmp181	%read{336,336} %write{264,264}
+temp	color	$tmp182	%read{336,336} %write{335,335}
+temp	float	$tmp183	%read{269,269} %write{265,265} %derivs
+temp	float	$tmp184	%read{268,268} %write{266,266} %derivs
+temp	float	$tmp185	%read{269,269} %write{268,268} %derivs
+temp	int	$tmp186	%read{273,273} %write{272,272}
+temp	int	$tmp187	%read{274,278} %write{273,277}
+temp	int	$tmp188	%read{276,276} %write{275,275}
+temp	int	$tmp189	%read{277,277} %write{276,276}
+temp	int	$tmp190	%read{283,283} %write{282,282}
+temp	color	$tmp191	%read{285,285} %write{284,284}
+temp	int	$tmp192	%read{287,287} %write{286,286}
+temp	float	$tmp193	%read{334,334} %write{295,302}
+temp	float	$tmp194	%read{291,299} %write{289,289}
+temp	int	$tmp195	%read{292,292} %write{291,291}
+temp	int	$tmp196	%read{294,294} %write{293,293}
+temp	float	$tmp197	%read{297,297} %write{296,296}
+temp	float	$tmp198	%read{301,301} %write{299,299}
+temp	float	$tmp199	%read{301,301} %write{300,300}
+temp	float	$tmp200	%read{302,302} %write{301,301}
+temp	float	$tmp201	%read{334,334} %write{310,317}
+temp	float	$tmp202	%read{306,314} %write{304,304}
+temp	int	$tmp203	%read{307,307} %write{306,306}
+temp	int	$tmp204	%read{309,309} %write{308,308}
+temp	float	$tmp205	%read{312,312} %write{311,311}
+temp	float	$tmp206	%read{316,316} %write{314,314}
+temp	float	$tmp207	%read{316,316} %write{315,315}
+temp	float	$tmp208	%read{317,317} %write{316,316}
+temp	float	$tmp209	%read{334,334} %write{325,332}
+temp	float	$tmp210	%read{321,329} %write{319,319}
+temp	int	$tmp211	%read{322,322} %write{321,321}
+temp	int	$tmp212	%read{324,324} %write{323,323}
+temp	float	$tmp213	%read{327,327} %write{326,326}
+temp	float	$tmp214	%read{331,331} %write{329,329}
+temp	float	$tmp215	%read{331,331} %write{330,330}
+temp	float	$tmp216	%read{332,332} %write{331,331}
+temp	color	$tmp217	%read{337,337} %write{336,336}
+temp	float	$tmp218	%read{339,339} %write{338,338}
+temp	float	$tmp219	%read{340,340} %write{339,339}
+temp	float	$tmp220	%read{342,342} %write{341,341}
+temp	int	$tmp221	%read{343,343} %write{342,342}
+temp	float	$tmp222	%read{416,416} %write{344,344}
+temp	color	$tmp223	%read{416,416} %write{415,415}
+temp	float	$tmp224	%read{349,349} %write{345,345} %derivs
+temp	float	$tmp225	%read{348,348} %write{346,346} %derivs
+temp	float	$tmp226	%read{349,349} %write{348,348} %derivs
+temp	int	$tmp227	%read{353,353} %write{352,352}
+temp	int	$tmp228	%read{354,358} %write{353,357}
+temp	int	$tmp229	%read{356,356} %write{355,355}
+temp	int	$tmp230	%read{357,357} %write{356,356}
+temp	int	$tmp231	%read{363,363} %write{362,362}
+temp	color	$tmp232	%read{365,365} %write{364,364}
+temp	int	$tmp233	%read{367,367} %write{366,366}
+temp	float	$tmp234	%read{414,414} %write{375,382}
+temp	float	$tmp235	%read{371,379} %write{369,369}
+temp	int	$tmp236	%read{372,372} %write{371,371}
+temp	int	$tmp237	%read{374,374} %write{373,373}
+temp	float	$tmp238	%read{377,377} %write{376,376}
+temp	float	$tmp239	%read{381,381} %write{379,379}
+temp	float	$tmp240	%read{381,381} %write{380,380}
+temp	float	$tmp241	%read{382,382} %write{381,381}
+temp	float	$tmp242	%read{414,414} %write{390,397}
+temp	float	$tmp243	%read{386,394} %write{384,384}
+temp	int	$tmp244	%read{387,387} %write{386,386}
+temp	int	$tmp245	%read{389,389} %write{388,388}
+temp	float	$tmp246	%read{392,392} %write{391,391}
+temp	float	$tmp247	%read{396,396} %write{394,394}
+temp	float	$tmp248	%read{396,396} %write{395,395}
+temp	float	$tmp249	%read{397,397} %write{396,396}
+temp	float	$tmp250	%read{414,414} %write{405,412}
+temp	float	$tmp251	%read{401,409} %write{399,399}
+temp	int	$tmp252	%read{402,402} %write{401,401}
+temp	int	$tmp253	%read{404,404} %write{403,403}
+temp	float	$tmp254	%read{407,407} %write{406,406}
+temp	float	$tmp255	%read{411,411} %write{409,409}
+temp	float	$tmp256	%read{411,411} %write{410,410}
+temp	float	$tmp257	%read{412,412} %write{411,411}
+temp	color	$tmp258	%read{417,417} %write{416,416}
+temp	float	$tmp259	%read{419,419} %write{418,418}
+temp	float	$tmp260	%read{420,420} %write{419,419}
+temp	float	$tmp261	%read{422,422} %write{421,421}
+temp	int	$tmp262	%read{423,423} %write{422,422}
+temp	float	$tmp263	%read{496,496} %write{424,424}
+temp	color	$tmp264	%read{496,496} %write{495,495}
+temp	float	$tmp265	%read{429,429} %write{425,425} %derivs
+temp	float	$tmp266	%read{428,428} %write{426,426} %derivs
+temp	float	$tmp267	%read{429,429} %write{428,428} %derivs
+temp	int	$tmp268	%read{433,433} %write{432,432}
+temp	int	$tmp269	%read{434,438} %write{433,437}
+temp	int	$tmp270	%read{436,436} %write{435,435}
+temp	int	$tmp271	%read{437,437} %write{436,436}
+temp	int	$tmp272	%read{443,443} %write{442,442}
+temp	color	$tmp273	%read{445,445} %write{444,444}
+temp	int	$tmp274	%read{447,447} %write{446,446}
+temp	float	$tmp275	%read{494,494} %write{455,462}
+temp	float	$tmp276	%read{451,459} %write{449,449}
+temp	int	$tmp277	%read{452,452} %write{451,451}
+temp	int	$tmp278	%read{454,454} %write{453,453}
+temp	float	$tmp279	%read{457,457} %write{456,456}
+temp	float	$tmp280	%read{461,461} %write{459,459}
+temp	float	$tmp281	%read{461,461} %write{460,460}
+temp	float	$tmp282	%read{462,462} %write{461,461}
+temp	float	$tmp283	%read{494,494} %write{470,477}
+temp	float	$tmp284	%read{466,474} %write{464,464}
+temp	int	$tmp285	%read{467,467} %write{466,466}
+temp	int	$tmp286	%read{469,469} %write{468,468}
+temp	float	$tmp287	%read{472,472} %write{471,471}
+temp	float	$tmp288	%read{476,476} %write{474,474}
+temp	float	$tmp289	%read{476,476} %write{475,475}
+temp	float	$tmp290	%read{477,477} %write{476,476}
+temp	float	$tmp291	%read{494,494} %write{485,492}
+temp	float	$tmp292	%read{481,489} %write{479,479}
+temp	int	$tmp293	%read{482,482} %write{481,481}
+temp	int	$tmp294	%read{484,484} %write{483,483}
+temp	float	$tmp295	%read{487,487} %write{486,486}
+temp	float	$tmp296	%read{491,491} %write{489,489}
+temp	float	$tmp297	%read{491,491} %write{490,490}
+temp	float	$tmp298	%read{492,492} %write{491,491}
+temp	color	$tmp299	%read{497,497} %write{496,496}
+temp	float	$tmp300	%read{499,499} %write{498,498}
+temp	float	$tmp301	%read{500,500} %write{499,499}
+const	string	$const27	"sphere"		%read{501,501} %write{2147483647,-1}
+temp	int	$tmp302	%read{502,502} %write{501,501}
+temp	point	$tmp303	%read{507,526} %write{505,505} %derivs
+const	string	$const28	"texco_remap_square"		%read{503,607} %write{2147483647,-1}
+const	point	$const29	0.5 0.5 0.5		%read{504,608} %write{2147483647,-1}
+temp	vector	$tmp305	%read{505,505} %write{504,504} %derivs
+const	string	$const30	"map_to_sphere"		%read{506,506} %write{2147483647,-1}
+temp	int	$tmp306	%read{509,509} %write{508,508}
+temp	float	$tmp307	%read{511,511} %write{510,510}
+temp	int	$tmp308	%read{512,512} %write{511,511}
+temp	int	$tmp309	%read{513,518} %write{512,517}
+temp	float	$tmp310	%read{515,515} %write{514,514}
+temp	int	$tmp311	%read{516,516} %write{515,515}
+temp	int	$tmp312	%read{517,517} %write{516,516}
+temp	float	$tmp313	%read{523,523} %write{522,522} %derivs
+temp	float	$tmp314	%read{522,522} %write{520,520} %derivs
+temp	float	$tmp315	%read{522,522} %write{521,521} %derivs
+const	float	$const31	3.1415927		%read{523,629} %write{2147483647,-1}
+temp	float	$tmp316	%read{524,524} %write{523,523} %derivs
+temp	float	$tmp317	%read{525,525} %write{524,524} %derivs
+temp	float	$tmp318	%read{529,529} %write{528,528} %derivs
+temp	float	$tmp319	%read{527,527} %write{526,526} %derivs
+temp	float	$tmp320	%read{528,528} %write{527,527} %derivs
+temp	float	$tmp321	%read{530,530} %write{529,529} %derivs
+temp	float	$tmp322	%read{538,538} %write{534,534} %derivs
+temp	float	$tmp323	%read{537,537} %write{535,535} %derivs
+temp	float	$tmp324	%read{538,538} %write{537,537} %derivs
+temp	int	$tmp325	%read{542,542} %write{541,541}
+temp	int	$tmp326	%read{543,547} %write{542,546}
+temp	int	$tmp327	%read{545,545} %write{544,544}
+temp	int	$tmp328	%read{546,546} %write{545,545}
+temp	int	$tmp329	%read{552,552} %write{551,551}
+temp	color	$tmp330	%read{554,554} %write{553,553}
+temp	int	$tmp331	%read{556,556} %write{555,555}
+temp	float	$tmp332	%read{603,603} %write{564,571}
+temp	float	$tmp333	%read{560,568} %write{558,558}
+temp	int	$tmp334	%read{561,561} %write{560,560}
+temp	int	$tmp335	%read{563,563} %write{562,562}
+temp	float	$tmp336	%read{566,566} %write{565,565}
+temp	float	$tmp337	%read{570,570} %write{568,568}
+temp	float	$tmp338	%read{570,570} %write{569,569}
+temp	float	$tmp339	%read{571,571} %write{570,570}
+temp	float	$tmp340	%read{603,603} %write{579,586}
+temp	float	$tmp341	%read{575,583} %write{573,573}
+temp	int	$tmp342	%read{576,576} %write{575,575}
+temp	int	$tmp343	%read{578,578} %write{577,577}
+temp	float	$tmp344	%read{581,581} %write{580,580}
+temp	float	$tmp345	%read{585,585} %write{583,583}
+temp	float	$tmp346	%read{585,585} %write{584,584}
+temp	float	$tmp347	%read{586,586} %write{585,585}
+temp	float	$tmp348	%read{603,603} %write{594,601}
+temp	float	$tmp349	%read{590,598} %write{588,588}
+temp	int	$tmp350	%read{591,591} %write{590,590}
+temp	int	$tmp351	%read{593,593} %write{592,592}
+temp	float	$tmp352	%read{596,596} %write{595,595}
+temp	float	$tmp353	%read{600,600} %write{598,598}
+temp	float	$tmp354	%read{600,600} %write{599,599}
+temp	float	$tmp355	%read{601,601} %write{600,600}
+const	string	$const32	"tube"		%read{605,605} %write{2147483647,-1}
+temp	int	$tmp356	%read{606,606} %write{605,605}
+temp	point	$tmp357	%read{611,626} %write{609,609} %derivs
+temp	vector	$tmp359	%read{609,609} %write{608,608} %derivs
+const	string	$const33	"map_to_tube"		%read{610,610} %write{2147483647,-1}
+temp	float	$tmp360	%read{612,612} %write{611,611} %derivs
+temp	float	$tmp361	%read{613,613} %write{612,612} %derivs
+temp	float	$tmp362	%read{616,616} %write{614,614} %derivs
+temp	float	$tmp363	%read{616,616} %write{615,615} %derivs
+temp	float	$tmp364	%read{620,620} %write{616,616} %derivs
+temp	float	$tmp365	%read{619,619} %write{617,617} %derivs
+temp	float	$tmp366	%read{619,619} %write{618,618} %derivs
+temp	float	$tmp367	%read{620,620} %write{619,619} %derivs
+temp	float	$tmp368	%read{621,621} %write{620,620} %derivs
+temp	int	$tmp369	%read{623,623} %write{622,622}
+temp	float	$tmp370	%read{629,629} %write{628,628} %derivs
+temp	float	$tmp371	%read{625,625} %write{624,624} %derivs
+temp	float	$tmp372	%read{628,628} %write{625,625} %derivs
+temp	float	$tmp373	%read{627,627} %write{626,626} %derivs
+temp	float	$tmp374	%read{628,628} %write{627,627} %derivs
+temp	float	$tmp375	%read{630,630} %write{629,629} %derivs
+temp	float	$tmp376	%read{631,631} %write{630,630} %derivs
+temp	float	$tmp377	%read{639,639} %write{635,635} %derivs
+temp	float	$tmp378	%read{638,638} %write{636,636} %derivs
+temp	float	$tmp379	%read{639,639} %write{638,638} %derivs
+temp	int	$tmp380	%read{643,643} %write{642,642}
+temp	int	$tmp381	%read{644,648} %write{643,647}
+temp	int	$tmp382	%read{646,646} %write{645,645}
+temp	int	$tmp383	%read{647,647} %write{646,646}
+temp	int	$tmp384	%read{653,653} %write{652,652}
+temp	color	$tmp385	%read{655,655} %write{654,654}
+temp	int	$tmp386	%read{657,657} %write{656,656}
+temp	float	$tmp387	%read{704,704} %write{665,672}
+temp	float	$tmp388	%read{661,669} %write{659,659}
+temp	int	$tmp389	%read{662,662} %write{661,661}
+temp	int	$tmp390	%read{664,664} %write{663,663}
+temp	float	$tmp391	%read{667,667} %write{666,666}
+temp	float	$tmp392	%read{671,671} %write{669,669}
+temp	float	$tmp393	%read{671,671} %write{670,670}
+temp	float	$tmp394	%read{672,672} %write{671,671}
+temp	float	$tmp395	%read{704,704} %write{680,687}
+temp	float	$tmp396	%read{676,684} %write{674,674}
+temp	int	$tmp397	%read{677,677} %write{676,676}
+temp	int	$tmp398	%read{679,679} %write{678,678}
+temp	float	$tmp399	%read{682,682} %write{681,681}
+temp	float	$tmp400	%read{686,686} %write{684,684}
+temp	float	$tmp401	%read{686,686} %write{685,685}
+temp	float	$tmp402	%read{687,687} %write{686,686}
+temp	float	$tmp403	%read{704,704} %write{695,702}
+temp	float	$tmp404	%read{691,699} %write{689,689}
+temp	int	$tmp405	%read{692,692} %write{691,691}
+temp	int	$tmp406	%read{694,694} %write{693,693}
+temp	float	$tmp407	%read{697,697} %write{696,696}
+temp	float	$tmp408	%read{701,701} %write{699,699}
+temp	float	$tmp409	%read{701,701} %write{700,700}
+temp	float	$tmp410	%read{702,702} %write{701,701}
+code Vector
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:86
+# 	point Vector = P,
+	assign		Vector P 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{86} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:98
+# 	point p = Vector;
+	assign		p Vector 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{98} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:100
+# 	if (use_mapping)
+	if		use_mapping 4 4 	%line{100} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:101
+# 		p = transform(mapping, p);
+	transform	p mapping p 	%line{101} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:103
+# 	if (projection == "flat") {
+	eq		$tmp1 projection $const1 	%line{103} %argrw{"wrr"}
+	if		$tmp1 77 706 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:106
+# 		                             p[0], p[1],
+	compref		$tmp2 p $const2 	%line{106} %argrw{"wrr"}
+	compref		$tmp3 p $const3 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:111
+# 		                             extension);
+	functioncall	$const4 77 	%line{111} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:67
+# 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
+	sub		$tmp4 $const5 $tmp3 	%line{67} %argrw{"wrr"}
+	texture		___670_rgb filename $tmp2 $tmp4 $const6 extension $const7 interpolation $const8 Alpha 	%argrw{"wrrrrrrrrw"} %argderivs{2,3}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:69
+# 	if (use_alpha) {
+	if		use_alpha 27 27 	%line{69} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:70
+# 		rgb = color_unpremultiply(rgb, Alpha);
+	functioncall	$const9 23 	%line{70} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:51
+# 	if (alpha != 1.0 && alpha != 0.0)
+	neq		$tmp5 Alpha $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{51} %argrw{"wrr"}
+	neq		$tmp6 $tmp5 $const2 	%argrw{"wrr"}
+	if		$tmp6 19 19 	%argrw{"r"}
+	neq		$tmp7 Alpha $const10 	%argrw{"wrr"}
+	neq		$tmp8 $tmp7 $const2 	%argrw{"wrr"}
+	assign		$tmp6 $tmp8 	%argrw{"wr"}
+	if		$tmp6 22 22 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:52
+# 		return c / alpha;
+	div		___670_rgb ___670_rgb Alpha 	%line{52} %argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:54
+# 	return c;
+	assign		___670_rgb ___670_rgb 	%line{54} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:72
+# #include "node_color.h"
+	eq		$tmp9 is_float $const2 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{72} %argrw{"wrr"}
+	if		$tmp9 27 27 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:73
+# 
+	assign		$tmp10 $const5 	%line{73} %argrw{"wr"}
+	min		___670_rgb ___670_rgb $tmp10 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:76
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	eq		$tmp11 color_space $const11 	%line{76} %argrw{"wrr"}
+	if		$tmp11 76 76 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:77
+# }
+	functioncall	$const12 76 	%line{77} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:36
+# 		color_srgb_to_scene_linear(c[0]),
+	compref		$tmp13 ___670_rgb $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{36} %argrw{"wrr"}
+	functioncall	$const12 45 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp14 $tmp13 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp14 40 45 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp15 $tmp13 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp15 37 39 	%argrw{"r"}
+	assign		$tmp12 $const10 	%argrw{"wr"}
+	div		$tmp16 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp12 $tmp13 $tmp16 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp17 $tmp13 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp18 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp19 $tmp17 $tmp18 	%argrw{"wrr"}
+	pow		$tmp12 $tmp19 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:37
+# 		color_srgb_to_scene_linear(c[1]),
+	compref		$tmp21 ___670_rgb $const3 	%line{37} %argrw{"wrr"}
+	functioncall	$const12 60 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp22 $tmp21 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp22 55 60 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp23 $tmp21 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp23 52 54 	%argrw{"r"}
+	assign		$tmp20 $const10 	%argrw{"wr"}
+	div		$tmp24 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp20 $tmp21 $tmp24 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp25 $tmp21 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp26 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp27 $tmp25 $tmp26 	%argrw{"wrr"}
+	pow		$tmp20 $tmp27 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	compref		$tmp29 ___670_rgb $const18 	%line{38} %argrw{"wrr"}
+	functioncall	$const12 75 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp30 $tmp29 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp30 70 75 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp31 $tmp29 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp31 67 69 	%argrw{"r"}
+	assign		$tmp28 $const10 	%argrw{"wr"}
+	div		$tmp32 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp28 $tmp29 $tmp32 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp33 $tmp29 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp34 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp35 $tmp33 $tmp34 	%argrw{"wrr"}
+	pow		$tmp28 $tmp35 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	color		___670_rgb $tmp12 $tmp20 $tmp28 	%line{38} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:80
+# 	float v, u;
+	assign		Color ___670_rgb 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{80} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:113
+# 
+	eq		$tmp36 projection $const19 	%line{113} %argrw{"wrr"}
+	if		$tmp36 501 706 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:115
+# 		rgb = color_srgb_to_scene_linear(rgb);
+	transformn	___674_Nob $const20 $const21 N 	%line{115} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:118
+# 	return rgb;
+	compref		$tmp38 ___674_Nob $const2 	%line{118} %argrw{"wrr"}
+	fabs		$tmp37 $tmp38 	%argrw{"wr"}
+	compref		$tmp40 ___674_Nob $const3 	%argrw{"wrr"}
+	fabs		$tmp39 $tmp40 	%argrw{"wr"}
+	compref		$tmp42 ___674_Nob $const18 	%argrw{"wrr"}
+	fabs		$tmp41 $tmp42 	%argrw{"wr"}
+	vector		___674_Nob $tmp37 $tmp39 $tmp41 	%argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:119
+# }
+	compref		$tmp43 ___674_Nob $const2 	%line{119} %argrw{"wrr"}
+	compref		$tmp44 ___674_Nob $const3 	%argrw{"wrr"}
+	add		$tmp45 $tmp43 $tmp44 	%argrw{"wrr"}
+	compref		$tmp46 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp47 $tmp45 $tmp46 	%argrw{"wrr"}
+	div		___674_Nob ___674_Nob $tmp47 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:131
+# 	int is_float = 1,
+	assign		___674_weight $const22 	%line{131} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:132
+# 	int use_alpha = 1,
+	assign		___674_blend projection_blend 	%line{132} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:133
+# 	output color Color = 0.0,
+	add		$tmp48 $const5 ___674_blend 	%line{133} %argrw{"wrr"}
+	mul		___674_limit $const23 $tmp48 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:136
+# 	point p = Vector;
+	compref		$tmp49 ___674_Nob $const2 	%line{136} %argrw{"wrr"}
+	compref		$tmp50 ___674_Nob $const2 	%argrw{"wrr"}
+	compref		$tmp51 ___674_Nob $const3 	%argrw{"wrr"}
+	add		$tmp52 $tmp50 $tmp51 	%argrw{"wrr"}
+	mul		$tmp53 ___674_limit $tmp52 	%argrw{"wrr"}
+	gt		$tmp54 $tmp49 $tmp53 	%argrw{"wrr"}
+	neq		$tmp55 $tmp54 $const2 	%argrw{"wrr"}
+	if		$tmp55 113 113 	%argrw{"r"}
+	compref		$tmp56 ___674_Nob $const2 	%argrw{"wrr"}
+	compref		$tmp57 ___674_Nob $const2 	%argrw{"wrr"}
+	compref		$tmp58 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp59 $tmp57 $tmp58 	%argrw{"wrr"}
+	mul		$tmp60 ___674_limit $tmp59 	%argrw{"wrr"}
+	gt		$tmp61 $tmp56 $tmp60 	%argrw{"wrr"}
+	neq		$tmp62 $tmp61 $const2 	%argrw{"wrr"}
+	assign		$tmp55 $tmp62 	%argrw{"wr"}
+	if		$tmp55 115 259 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:137
+# 
+	compassign	___674_weight $const2 $const5 	%line{137} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:139
+# 		p = transform(mapping, p);
+	compref		$tmp63 ___674_Nob $const3 	%line{139} %argrw{"wrr"}
+	compref		$tmp64 ___674_Nob $const2 	%argrw{"wrr"}
+	compref		$tmp65 ___674_Nob $const3 	%argrw{"wrr"}
+	add		$tmp66 $tmp64 $tmp65 	%argrw{"wrr"}
+	mul		$tmp67 ___674_limit $tmp66 	%argrw{"wrr"}
+	gt		$tmp68 $tmp63 $tmp67 	%argrw{"wrr"}
+	neq		$tmp69 $tmp68 $const2 	%argrw{"wrr"}
+	if		$tmp69 131 131 	%argrw{"r"}
+	compref		$tmp70 ___674_Nob $const3 	%argrw{"wrr"}
+	compref		$tmp71 ___674_Nob $const3 	%argrw{"wrr"}
+	compref		$tmp72 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp73 $tmp71 $tmp72 	%argrw{"wrr"}
+	mul		$tmp74 ___674_limit $tmp73 	%argrw{"wrr"}
+	gt		$tmp75 $tmp70 $tmp74 	%argrw{"wrr"}
+	neq		$tmp76 $tmp75 $const2 	%argrw{"wrr"}
+	assign		$tmp69 $tmp76 	%argrw{"wr"}
+	if		$tmp69 133 259 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:140
+# 	
+	compassign	___674_weight $const3 $const5 	%line{140} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:142
+# 		Color = image_texture_lookup(filename,
+	compref		$tmp77 ___674_Nob $const18 	%line{142} %argrw{"wrr"}
+	compref		$tmp78 ___674_Nob $const2 	%argrw{"wrr"}
+	compref		$tmp79 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp80 $tmp78 $tmp79 	%argrw{"wrr"}
+	mul		$tmp81 ___674_limit $tmp80 	%argrw{"wrr"}
+	gt		$tmp82 $tmp77 $tmp81 	%argrw{"wrr"}
+	neq		$tmp83 $tmp82 $const2 	%argrw{"wrr"}
+	if		$tmp83 149 149 	%argrw{"r"}
+	compref		$tmp84 ___674_Nob $const18 	%argrw{"wrr"}
+	compref		$tmp85 ___674_Nob $const3 	%argrw{"wrr"}
+	compref		$tmp86 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp87 $tmp85 $tmp86 	%argrw{"wrr"}
+	mul		$tmp88 ___674_limit $tmp87 	%argrw{"wrr"}
+	gt		$tmp89 $tmp84 $tmp88 	%argrw{"wrr"}
+	neq		$tmp90 $tmp89 $const2 	%argrw{"wrr"}
+	assign		$tmp83 $tmp90 	%argrw{"wr"}
+	if		$tmp83 151 259 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:143
+# 		                             color_space,
+	compassign	___674_weight $const18 $const5 	%line{143} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:145
+# 		                             Alpha,
+	gt		$tmp91 ___674_blend $const10 	%line{145} %argrw{"wrr"}
+	if		$tmp91 258 259 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:147
+# 		                             is_float,
+	compref		$tmp92 ___674_Nob $const18 	%line{147} %argrw{"wrr"}
+	sub		$tmp93 $const5 ___674_limit 	%argrw{"wrr"}
+	compref		$tmp94 ___674_Nob $const3 	%argrw{"wrr"}
+	compref		$tmp95 ___674_Nob $const2 	%argrw{"wrr"}
+	add		$tmp96 $tmp94 $tmp95 	%argrw{"wrr"}
+	mul		$tmp97 $tmp93 $tmp96 	%argrw{"wrr"}
+	lt		$tmp98 $tmp92 $tmp97 	%argrw{"wrr"}
+	if		$tmp98 179 258 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:148
+# 		                             interpolation,
+	compref		$tmp99 ___674_Nob $const2 	%line{148} %argrw{"wrr"}
+	compref		$tmp100 ___674_Nob $const2 	%argrw{"wrr"}
+	compref		$tmp101 ___674_Nob $const3 	%argrw{"wrr"}
+	add		$tmp102 $tmp100 $tmp101 	%argrw{"wrr"}
+	div		$tmp103 $tmp99 $tmp102 	%argrw{"wrr"}
+	compassign	___674_weight $const2 $tmp103 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:149
+# 		                             extension);
+	compref		$tmp105 ___674_weight $const2 	%line{149} %argrw{"wrr"}
+	sub		$tmp106 $const5 ___674_blend 	%argrw{"wrr"}
+	mul		$tmp107 $const23 $tmp106 	%argrw{"wrr"}
+	sub		$tmp108 $tmp105 $tmp107 	%argrw{"wrr"}
+	div		$tmp109 $tmp108 ___674_blend 	%argrw{"wrr"}
+	functioncall	$const24 175 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp110 $tmp109 $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp104 $tmp110 $const10 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:149
+#  * you may not use this file except in compliance with the License.
+	compassign	___674_weight $const2 $tmp104 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{149} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:150
+#  * You may obtain a copy of the License at
+	compref		$tmp111 ___674_weight $const2 	%line{150} %argrw{"wrr"}
+	sub		$tmp112 $const5 $tmp111 	%argrw{"wrr"}
+	compassign	___674_weight $const3 $tmp112 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:152
+#  * http://www.apache.org/licenses/LICENSE-2.0
+	compref		$tmp113 ___674_Nob $const2 	%line{152} %argrw{"wrr"}
+	sub		$tmp114 $const5 ___674_limit 	%argrw{"wrr"}
+	compref		$tmp115 ___674_Nob $const3 	%argrw{"wrr"}
+	compref		$tmp116 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp117 $tmp115 $tmp116 	%argrw{"wrr"}
+	mul		$tmp118 $tmp114 $tmp117 	%argrw{"wrr"}
+	lt		$tmp119 $tmp113 $tmp118 	%argrw{"wrr"}
+	if		$tmp119 205 258 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:153
+#  *
+	compref		$tmp120 ___674_Nob $const3 	%line{153} %argrw{"wrr"}
+	compref		$tmp121 ___674_Nob $const3 	%argrw{"wrr"}
+	compref		$tmp122 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp123 $tmp121 $tmp122 	%argrw{"wrr"}
+	div		$tmp124 $tmp120 $tmp123 	%argrw{"wrr"}
+	compassign	___674_weight $const3 $tmp124 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:154
+#  * Unless required by applicable law or agreed to in writing, software
+	compref		$tmp126 ___674_weight $const3 	%line{154} %argrw{"wrr"}
+	sub		$tmp127 $const5 ___674_blend 	%argrw{"wrr"}
+	mul		$tmp128 $const23 $tmp127 	%argrw{"wrr"}
+	sub		$tmp129 $tmp126 $tmp128 	%argrw{"wrr"}
+	div		$tmp130 $tmp129 ___674_blend 	%argrw{"wrr"}
+	functioncall	$const24 201 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp131 $tmp130 $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp125 $tmp131 $const10 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:154
+#  * Unless required by applicable law or agreed to in writing, software
+	compassign	___674_weight $const3 $tmp125 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{154} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:155
+#  * distributed under the License is distributed on an "AS IS" BASIS,
+	compref		$tmp132 ___674_weight $const3 	%line{155} %argrw{"wrr"}
+	sub		$tmp133 $const5 $tmp132 	%argrw{"wrr"}
+	compassign	___674_weight $const18 $tmp133 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:157
+#  * See the License for the specific language governing permissions and
+	compref		$tmp134 ___674_Nob $const3 	%line{157} %argrw{"wrr"}
+	sub		$tmp135 $const5 ___674_limit 	%argrw{"wrr"}
+	compref		$tmp136 ___674_Nob $const2 	%argrw{"wrr"}
+	compref		$tmp137 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp138 $tmp136 $tmp137 	%argrw{"wrr"}
+	mul		$tmp139 $tmp135 $tmp138 	%argrw{"wrr"}
+	lt		$tmp140 $tmp134 $tmp139 	%argrw{"wrr"}
+	if		$tmp140 231 258 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:158
+#  * limitations under the License.
+	compref		$tmp141 ___674_Nob $const2 	%line{158} %argrw{"wrr"}
+	compref		$tmp142 ___674_Nob $const2 	%argrw{"wrr"}
+	compref		$tmp143 ___674_Nob $const18 	%argrw{"wrr"}
+	add		$tmp144 $tmp142 $tmp143 	%argrw{"wrr"}
+	div		$tmp145 $tmp141 $tmp144 	%argrw{"wrr"}
+	compassign	___674_weight $const2 $tmp145 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:159
+#  */
+	compref		$tmp147 ___674_weight $const2 	%line{159} %argrw{"wrr"}
+	sub		$tmp148 $const5 ___674_blend 	%argrw{"wrr"}
+	mul		$tmp149 $const23 $tmp148 	%argrw{"wrr"}
+	sub		$tmp150 $tmp147 $tmp149 	%argrw{"wrr"}
+	div		$tmp151 $tmp150 ___674_blend 	%argrw{"wrr"}
+	functioncall	$const24 227 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp152 $tmp151 $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp146 $tmp152 $const10 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:159
+#  */
+	compassign	___674_weight $const2 $tmp146 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{159} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:160
+# 
+	compref		$tmp153 ___674_weight $const2 	%line{160} %argrw{"wrr"}
+	sub		$tmp154 $const5 $tmp153 	%argrw{"wrr"}
+	compassign	___674_weight $const18 $tmp154 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:164
+# point texco_remap_square(point co)
+	sub		$tmp155 $const25 ___674_limit 	%line{164} %argrw{"wrr"}
+	compref		$tmp156 ___674_Nob $const2 	%argrw{"wrr"}
+	mul		$tmp157 $tmp155 $tmp156 	%argrw{"wrr"}
+	sub		$tmp158 ___674_limit $const5 	%argrw{"wrr"}
+	add		$tmp159 $tmp157 $tmp158 	%argrw{"wrr"}
+	mul		$tmp160 $const25 ___674_limit 	%argrw{"wrr"}
+	sub		$tmp161 $tmp160 $const5 	%argrw{"wrr"}
+	div		$tmp162 $tmp159 $tmp161 	%argrw{"wrr"}
+	compassign	___674_weight $const2 $tmp162 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:165
+# {
+	sub		$tmp163 $const25 ___674_limit 	%line{165} %argrw{"wrr"}
+	compref		$tmp164 ___674_Nob $const3 	%argrw{"wrr"}
+	mul		$tmp165 $tmp163 $tmp164 	%argrw{"wrr"}
+	sub		$tmp166 ___674_limit $const5 	%argrw{"wrr"}
+	add		$tmp167 $tmp165 $tmp166 	%argrw{"wrr"}
+	mul		$tmp168 $const25 ___674_limit 	%argrw{"wrr"}
+	sub		$tmp169 $tmp168 $const5 	%argrw{"wrr"}
+	div		$tmp170 $tmp167 $tmp169 	%argrw{"wrr"}
+	compassign	___674_weight $const3 $tmp170 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:166
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	sub		$tmp171 $const25 ___674_limit 	%line{166} %argrw{"wrr"}
+	compref		$tmp172 ___674_Nob $const18 	%argrw{"wrr"}
+	mul		$tmp173 $tmp171 $tmp172 	%argrw{"wrr"}
+	sub		$tmp174 ___674_limit $const5 	%argrw{"wrr"}
+	add		$tmp175 $tmp173 $tmp174 	%argrw{"wrr"}
+	mul		$tmp176 $const25 ___674_limit 	%argrw{"wrr"}
+	sub		$tmp177 $tmp176 $const5 	%argrw{"wrr"}
+	div		$tmp178 $tmp175 $tmp177 	%argrw{"wrr"}
+	compassign	___674_weight $const18 $tmp178 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:171
+# 	float u, v;
+	compassign	___674_weight $const2 $const5 	%line{171} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:174
+# 	if (len > 0.0) {
+	assign		Color $const26 	%line{174} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:175
+# 		u = (1.0 - (atan2(dir[0] / len, dir[1] / len) / M_PI)) * 0.5;
+	assign		Alpha $const10 	%line{175} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:179
+# 	}
+	compref		$tmp179 ___674_weight $const2 	%line{179} %argrw{"wrr"}
+	gt		$tmp180 $tmp179 $const10 	%argrw{"wrr"}
+	if		$tmp180 341 341 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:180
+# 	return point(u, v, 0.0);
+	compref		$tmp181 ___674_weight $const2 	%line{180} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:182
+# 
+	compref		$tmp183 p $const3 	%line{182} %argrw{"wrr"}
+	compref		$tmp184 p $const18 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:187
+# 	if (len > 0.0) {
+	functioncall	$const4 336 	%line{187} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:67
+# 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
+	sub		$tmp185 $const5 $tmp184 	%line{67} %argrw{"wrr"}
+	texture		___670_rgb filename $tmp183 $tmp185 $const6 extension $const7 interpolation $const8 ___674_tmp_alpha 	%argrw{"wrrrrrrrrw"} %argderivs{2,3}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:69
+# 	if (use_alpha) {
+	if		use_alpha 286 286 	%line{69} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:70
+# 		rgb = color_unpremultiply(rgb, Alpha);
+	functioncall	$const9 282 	%line{70} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:51
+# 	if (alpha != 1.0 && alpha != 0.0)
+	neq		$tmp186 ___674_tmp_alpha $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{51} %argrw{"wrr"}
+	neq		$tmp187 $tmp186 $const2 	%argrw{"wrr"}
+	if		$tmp187 278 278 	%argrw{"r"}
+	neq		$tmp188 ___674_tmp_alpha $const10 	%argrw{"wrr"}
+	neq		$tmp189 $tmp188 $const2 	%argrw{"wrr"}
+	assign		$tmp187 $tmp189 	%argrw{"wr"}
+	if		$tmp187 281 281 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:52
+# 		return c / alpha;
+	div		___670_rgb ___670_rgb ___674_tmp_alpha 	%line{52} %argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:54
+# 	return c;
+	assign		___670_rgb ___670_rgb 	%line{54} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:72
+# #include "node_color.h"
+	eq		$tmp190 is_float $const2 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{72} %argrw{"wrr"}
+	if		$tmp190 286 286 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:73
+# 
+	assign		$tmp191 $const5 	%line{73} %argrw{"wr"}
+	min		___670_rgb ___670_rgb $tmp191 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:76
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	eq		$tmp192 color_space $const11 	%line{76} %argrw{"wrr"}
+	if		$tmp192 335 335 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:77
+# }
+	functioncall	$const12 335 	%line{77} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:36
+# 		color_srgb_to_scene_linear(c[0]),
+	compref		$tmp194 ___670_rgb $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{36} %argrw{"wrr"}
+	functioncall	$const12 304 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp195 $tmp194 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp195 299 304 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp196 $tmp194 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp196 296 298 	%argrw{"r"}
+	assign		$tmp193 $const10 	%argrw{"wr"}
+	div		$tmp197 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp193 $tmp194 $tmp197 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp198 $tmp194 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp199 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp200 $tmp198 $tmp199 	%argrw{"wrr"}
+	pow		$tmp193 $tmp200 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:37
+# 		color_srgb_to_scene_linear(c[1]),
+	compref		$tmp202 ___670_rgb $const3 	%line{37} %argrw{"wrr"}
+	functioncall	$const12 319 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp203 $tmp202 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp203 314 319 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp204 $tmp202 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp204 311 313 	%argrw{"r"}
+	assign		$tmp201 $const10 	%argrw{"wr"}
+	div		$tmp205 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp201 $tmp202 $tmp205 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp206 $tmp202 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp207 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp208 $tmp206 $tmp207 	%argrw{"wrr"}
+	pow		$tmp201 $tmp208 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	compref		$tmp210 ___670_rgb $const18 	%line{38} %argrw{"wrr"}
+	functioncall	$const12 334 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp211 $tmp210 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp211 329 334 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp212 $tmp210 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp212 326 328 	%argrw{"r"}
+	assign		$tmp209 $const10 	%argrw{"wr"}
+	div		$tmp213 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp209 $tmp210 $tmp213 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp214 $tmp210 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp215 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp216 $tmp214 $tmp215 	%argrw{"wrr"}
+	pow		$tmp209 $tmp216 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	color		___670_rgb $tmp193 $tmp201 $tmp209 	%line{38} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:80
+# 	float v, u;
+	assign		$tmp182 ___670_rgb 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{80} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:187
+# 				weight[0] = clamp((weight[0] - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
+	mul		$tmp217 $tmp181 $tmp182 	%line{187} %argrw{"wrr"}
+	add		Color Color $tmp217 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:188
+# 				weight[1] = 1.0 - weight[0];
+	compref		$tmp218 ___674_weight $const2 	%line{188} %argrw{"wrr"}
+	mul		$tmp219 $tmp218 ___674_tmp_alpha 	%argrw{"wrr"}
+	add		Alpha Alpha $tmp219 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:190
+# 			else if (Nob[0] < (1.0 - limit) * (Nob[1] + Nob[2])) {
+	compref		$tmp220 ___674_weight $const3 	%line{190} %argrw{"wrr"}
+	gt		$tmp221 $tmp220 $const10 	%argrw{"wrr"}
+	if		$tmp221 421 421 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:191
+# 				weight[1] = Nob[1] / (Nob[1] + Nob[2]);
+	compref		$tmp222 ___674_weight $const3 	%line{191} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:193
+# 				weight[2] = 1.0 - weight[1];
+	compref		$tmp224 p $const2 	%line{193} %argrw{"wrr"}
+	compref		$tmp225 p $const18 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:198
+# 				weight[2] = 1.0 - weight[0];
+	functioncall	$const4 416 	%line{198} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:67
+# 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
+	sub		$tmp226 $const5 $tmp225 	%line{67} %argrw{"wrr"}
+	texture		___670_rgb filename $tmp224 $tmp226 $const6 extension $const7 interpolation $const8 ___674_tmp_alpha 	%argrw{"wrrrrrrrrw"} %argderivs{2,3}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:69
+# 	if (use_alpha) {
+	if		use_alpha 366 366 	%line{69} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:70
+# 		rgb = color_unpremultiply(rgb, Alpha);
+	functioncall	$const9 362 	%line{70} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:51
+# 	if (alpha != 1.0 && alpha != 0.0)
+	neq		$tmp227 ___674_tmp_alpha $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{51} %argrw{"wrr"}
+	neq		$tmp228 $tmp227 $const2 	%argrw{"wrr"}
+	if		$tmp228 358 358 	%argrw{"r"}
+	neq		$tmp229 ___674_tmp_alpha $const10 	%argrw{"wrr"}
+	neq		$tmp230 $tmp229 $const2 	%argrw{"wrr"}
+	assign		$tmp228 $tmp230 	%argrw{"wr"}
+	if		$tmp228 361 361 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:52
+# 		return c / alpha;
+	div		___670_rgb ___670_rgb ___674_tmp_alpha 	%line{52} %argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:54
+# 	return c;
+	assign		___670_rgb ___670_rgb 	%line{54} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:72
+# #include "node_color.h"
+	eq		$tmp231 is_float $const2 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{72} %argrw{"wrr"}
+	if		$tmp231 366 366 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:73
+# 
+	assign		$tmp232 $const5 	%line{73} %argrw{"wr"}
+	min		___670_rgb ___670_rgb $tmp232 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:76
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	eq		$tmp233 color_space $const11 	%line{76} %argrw{"wrr"}
+	if		$tmp233 415 415 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:77
+# }
+	functioncall	$const12 415 	%line{77} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:36
+# 		color_srgb_to_scene_linear(c[0]),
+	compref		$tmp235 ___670_rgb $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{36} %argrw{"wrr"}
+	functioncall	$const12 384 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp236 $tmp235 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp236 379 384 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp237 $tmp235 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp237 376 378 	%argrw{"r"}
+	assign		$tmp234 $const10 	%argrw{"wr"}
+	div		$tmp238 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp234 $tmp235 $tmp238 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp239 $tmp235 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp240 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp241 $tmp239 $tmp240 	%argrw{"wrr"}
+	pow		$tmp234 $tmp241 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:37
+# 		color_srgb_to_scene_linear(c[1]),
+	compref		$tmp243 ___670_rgb $const3 	%line{37} %argrw{"wrr"}
+	functioncall	$const12 399 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp244 $tmp243 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp244 394 399 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp245 $tmp243 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp245 391 393 	%argrw{"r"}
+	assign		$tmp242 $const10 	%argrw{"wr"}
+	div		$tmp246 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp242 $tmp243 $tmp246 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp247 $tmp243 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp248 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp249 $tmp247 $tmp248 	%argrw{"wrr"}
+	pow		$tmp242 $tmp249 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	compref		$tmp251 ___670_rgb $const18 	%line{38} %argrw{"wrr"}
+	functioncall	$const12 414 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp252 $tmp251 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp252 409 414 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp253 $tmp251 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp253 406 408 	%argrw{"r"}
+	assign		$tmp250 $const10 	%argrw{"wr"}
+	div		$tmp254 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp250 $tmp251 $tmp254 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp255 $tmp251 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp256 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp257 $tmp255 $tmp256 	%argrw{"wrr"}
+	pow		$tmp250 $tmp257 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	color		___670_rgb $tmp234 $tmp242 $tmp250 	%line{38} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:80
+# 	float v, u;
+	assign		$tmp223 ___670_rgb 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{80} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:198
+# 				weight[2] = 1.0 - weight[0];
+	mul		$tmp258 $tmp222 $tmp223 	%line{198} %argrw{"wrr"}
+	add		Color Color $tmp258 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:199
+# 			}
+	compref		$tmp259 ___674_weight $const3 	%line{199} %argrw{"wrr"}
+	mul		$tmp260 $tmp259 ___674_tmp_alpha 	%argrw{"wrr"}
+	add		Alpha Alpha $tmp260 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:201
+# 				/* last case, we have a mix between three */
+	compref		$tmp261 ___674_weight $const18 	%line{201} %argrw{"wrr"}
+	gt		$tmp262 $tmp261 $const10 	%argrw{"wrr"}
+	if		$tmp262 501 501 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:202
+# 				weight[0] = ((2.0 - limit) * Nob[0] + (limit - 1.0)) / (2.0 * limit - 1.0);
+	compref		$tmp263 ___674_weight $const18 	%line{202} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:204
+# 				weight[2] = ((2.0 - limit) * Nob[2] + (limit - 1.0)) / (2.0 * limit - 1.0);
+	compref		$tmp265 p $const3 	%line{204} %argrw{"wrr"}
+	compref		$tmp266 p $const2 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:209
+# 			weight[0] = 1.0;
+	functioncall	$const4 496 	%line{209} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:67
+# 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
+	sub		$tmp267 $const5 $tmp266 	%line{67} %argrw{"wrr"}
+	texture		___670_rgb filename $tmp265 $tmp267 $const6 extension $const7 interpolation $const8 ___674_tmp_alpha 	%argrw{"wrrrrrrrrw"} %argderivs{2,3}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:69
+# 	if (use_alpha) {
+	if		use_alpha 446 446 	%line{69} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:70
+# 		rgb = color_unpremultiply(rgb, Alpha);
+	functioncall	$const9 442 	%line{70} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:51
+# 	if (alpha != 1.0 && alpha != 0.0)
+	neq		$tmp268 ___674_tmp_alpha $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{51} %argrw{"wrr"}
+	neq		$tmp269 $tmp268 $const2 	%argrw{"wrr"}
+	if		$tmp269 438 438 	%argrw{"r"}
+	neq		$tmp270 ___674_tmp_alpha $const10 	%argrw{"wrr"}
+	neq		$tmp271 $tmp270 $const2 	%argrw{"wrr"}
+	assign		$tmp269 $tmp271 	%argrw{"wr"}
+	if		$tmp269 441 441 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:52
+# 		return c / alpha;
+	div		___670_rgb ___670_rgb ___674_tmp_alpha 	%line{52} %argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:54
+# 	return c;
+	assign		___670_rgb ___670_rgb 	%line{54} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:72
+# #include "node_color.h"
+	eq		$tmp272 is_float $const2 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{72} %argrw{"wrr"}
+	if		$tmp272 446 446 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:73
+# 
+	assign		$tmp273 $const5 	%line{73} %argrw{"wr"}
+	min		___670_rgb ___670_rgb $tmp273 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:76
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	eq		$tmp274 color_space $const11 	%line{76} %argrw{"wrr"}
+	if		$tmp274 495 495 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:77
+# }
+	functioncall	$const12 495 	%line{77} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:36
+# 		color_srgb_to_scene_linear(c[0]),
+	compref		$tmp276 ___670_rgb $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{36} %argrw{"wrr"}
+	functioncall	$const12 464 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp277 $tmp276 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp277 459 464 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp278 $tmp276 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp278 456 458 	%argrw{"r"}
+	assign		$tmp275 $const10 	%argrw{"wr"}
+	div		$tmp279 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp275 $tmp276 $tmp279 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp280 $tmp276 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp281 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp282 $tmp280 $tmp281 	%argrw{"wrr"}
+	pow		$tmp275 $tmp282 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:37
+# 		color_srgb_to_scene_linear(c[1]),
+	compref		$tmp284 ___670_rgb $const3 	%line{37} %argrw{"wrr"}
+	functioncall	$const12 479 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp285 $tmp284 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp285 474 479 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp286 $tmp284 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp286 471 473 	%argrw{"r"}
+	assign		$tmp283 $const10 	%argrw{"wr"}
+	div		$tmp287 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp283 $tmp284 $tmp287 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp288 $tmp284 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp289 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp290 $tmp288 $tmp289 	%argrw{"wrr"}
+	pow		$tmp283 $tmp290 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	compref		$tmp292 ___670_rgb $const18 	%line{38} %argrw{"wrr"}
+	functioncall	$const12 494 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp293 $tmp292 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp293 489 494 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp294 $tmp292 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp294 486 488 	%argrw{"r"}
+	assign		$tmp291 $const10 	%argrw{"wr"}
+	div		$tmp295 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp291 $tmp292 $tmp295 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp296 $tmp292 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp297 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp298 $tmp296 $tmp297 	%argrw{"wrr"}
+	pow		$tmp291 $tmp298 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	color		___670_rgb $tmp275 $tmp283 $tmp291 	%line{38} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:80
+# 	float v, u;
+	assign		$tmp264 ___670_rgb 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{80} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:209
+# 			weight[0] = 1.0;
+	mul		$tmp299 $tmp263 $tmp264 	%line{209} %argrw{"wrr"}
+	add		Color Color $tmp299 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:210
+# 		}
+	compref		$tmp300 ___674_weight $const18 	%line{210} %argrw{"wrr"}
+	mul		$tmp301 $tmp300 ___674_tmp_alpha 	%argrw{"wrr"}
+	add		Alpha Alpha $tmp301 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:213
+# 		Alpha = 0.0;
+	eq		$tmp302 projection $const27 	%line{213} %argrw{"wrr"}
+	if		$tmp302 605 706 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:214
+# 
+	functioncall	$const28 506 	%line{214} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:22
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	sub		$tmp305 p $const29 	%line{22} %argrw{"wrr"}
+	mul		$tmp303 $tmp305 $const25 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:214
+# 		point projected = map_to_sphere(texco_remap_square(p));
+	functioncall	$const30 534 	%line{214} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:41
+# 	float len = length(dir);
+	length		___665_len $tmp303 	%line{41} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:43
+# 	if (len > 0.0) {
+	gt		$tmp306 ___665_len $const10 	%line{43} %argrw{"wrr"}
+	if		$tmp306 531 533 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:44
+# 		if (dir[0] == 0.0 && dir[1] == 0.0) {
+	compref		$tmp307 $tmp303 $const2 	%line{44} %argrw{"wrr"}
+	eq		$tmp308 $tmp307 $const10 	%argrw{"wrr"}
+	neq		$tmp309 $tmp308 $const2 	%argrw{"wrr"}
+	if		$tmp309 518 518 	%argrw{"r"}
+	compref		$tmp310 $tmp303 $const3 	%argrw{"wrr"}
+	eq		$tmp311 $tmp310 $const10 	%argrw{"wrr"}
+	neq		$tmp312 $tmp311 $const2 	%argrw{"wrr"}
+	assign		$tmp309 $tmp312 	%argrw{"wr"}
+	if		$tmp309 520 526 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:45
+# 			u = 0.0;  /* Othwise domain error. */
+	assign		___665_u $const10 	%line{45} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:48
+# 			u = (1.0 - atan2(dir[0], dir[1]) / M_PI) / 2.0;
+	compref		$tmp314 $tmp303 $const2 	%line{48} %argrw{"wrr"}
+	compref		$tmp315 $tmp303 $const3 	%argrw{"wrr"}
+	atan2		$tmp313 $tmp314 $tmp315 	%argrw{"wrr"}
+	div		$tmp316 $tmp313 $const31 	%argrw{"wrr"}
+	sub		$tmp317 $const5 $tmp316 	%argrw{"wrr"}
+	div		___665_u $tmp317 $const25 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:50
+# 		v = 1.0 - acos(dir[2] / len) / M_PI;
+	compref		$tmp319 $tmp303 $const18 	%line{50} %argrw{"wrr"}
+	div		$tmp320 $tmp319 ___665_len 	%argrw{"wrr"}
+	acos		$tmp318 $tmp320 	%argrw{"wr"}
+	div		$tmp321 $tmp318 $const31 	%argrw{"wrr"}
+	sub		___665_v $const5 $tmp321 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:53
+# 		v = u = 0.0;  /* To avoid un-initialized variables. */
+	assign		___665_u $const10 	%line{53} %argrw{"wr"}
+	assign		___665_v ___665_u 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:55
+# 	return point(u, v, 0.0);
+	point		___687_projected ___665_u ___665_v $const10 	%line{55} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:217
+# 		                             projected[0], projected[1],
+	compref		$tmp322 ___687_projected $const2 	%line{217} %argrw{"wrr"}
+	compref		$tmp323 ___687_projected $const3 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:222
+# 		                             extension);
+	functioncall	$const4 605 	%line{222} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:67
+# 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
+	sub		$tmp324 $const5 $tmp323 	%line{67} %argrw{"wrr"}
+	texture		___670_rgb filename $tmp322 $tmp324 $const6 extension $const7 interpolation $const8 Alpha 	%argrw{"wrrrrrrrrw"} %argderivs{2,3}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:69
+# 	if (use_alpha) {
+	if		use_alpha 555 555 	%line{69} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:70
+# 		rgb = color_unpremultiply(rgb, Alpha);
+	functioncall	$const9 551 	%line{70} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:51
+# 	if (alpha != 1.0 && alpha != 0.0)
+	neq		$tmp325 Alpha $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{51} %argrw{"wrr"}
+	neq		$tmp326 $tmp325 $const2 	%argrw{"wrr"}
+	if		$tmp326 547 547 	%argrw{"r"}
+	neq		$tmp327 Alpha $const10 	%argrw{"wrr"}
+	neq		$tmp328 $tmp327 $const2 	%argrw{"wrr"}
+	assign		$tmp326 $tmp328 	%argrw{"wr"}
+	if		$tmp326 550 550 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:52
+# 		return c / alpha;
+	div		___670_rgb ___670_rgb Alpha 	%line{52} %argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:54
+# 	return c;
+	assign		___670_rgb ___670_rgb 	%line{54} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:72
+# #include "node_color.h"
+	eq		$tmp329 is_float $const2 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{72} %argrw{"wrr"}
+	if		$tmp329 555 555 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:73
+# 
+	assign		$tmp330 $const5 	%line{73} %argrw{"wr"}
+	min		___670_rgb ___670_rgb $tmp330 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:76
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	eq		$tmp331 color_space $const11 	%line{76} %argrw{"wrr"}
+	if		$tmp331 604 604 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:77
+# }
+	functioncall	$const12 604 	%line{77} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:36
+# 		color_srgb_to_scene_linear(c[0]),
+	compref		$tmp333 ___670_rgb $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{36} %argrw{"wrr"}
+	functioncall	$const12 573 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp334 $tmp333 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp334 568 573 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp335 $tmp333 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp335 565 567 	%argrw{"r"}
+	assign		$tmp332 $const10 	%argrw{"wr"}
+	div		$tmp336 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp332 $tmp333 $tmp336 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp337 $tmp333 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp338 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp339 $tmp337 $tmp338 	%argrw{"wrr"}
+	pow		$tmp332 $tmp339 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:37
+# 		color_srgb_to_scene_linear(c[1]),
+	compref		$tmp341 ___670_rgb $const3 	%line{37} %argrw{"wrr"}
+	functioncall	$const12 588 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp342 $tmp341 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp342 583 588 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp343 $tmp341 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp343 580 582 	%argrw{"r"}
+	assign		$tmp340 $const10 	%argrw{"wr"}
+	div		$tmp344 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp340 $tmp341 $tmp344 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp345 $tmp341 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp346 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp347 $tmp345 $tmp346 	%argrw{"wrr"}
+	pow		$tmp340 $tmp347 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	compref		$tmp349 ___670_rgb $const18 	%line{38} %argrw{"wrr"}
+	functioncall	$const12 603 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp350 $tmp349 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp350 598 603 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp351 $tmp349 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp351 595 597 	%argrw{"r"}
+	assign		$tmp348 $const10 	%argrw{"wr"}
+	div		$tmp352 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp348 $tmp349 $tmp352 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp353 $tmp349 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp354 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp355 $tmp353 $tmp354 	%argrw{"wrr"}
+	pow		$tmp348 $tmp355 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	color		___670_rgb $tmp332 $tmp340 $tmp348 	%line{38} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:80
+# 	float v, u;
+	assign		Color ___670_rgb 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{80} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:224
+# 			                                          interpolation,
+	eq		$tmp356 projection $const32 	%line{224} %argrw{"wrr"}
+	if		$tmp356 706 706 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:225
+# 			                                          extension);
+	functioncall	$const28 610 	%line{225} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:22
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	sub		$tmp359 p $const29 	%line{22} %argrw{"wrr"}
+	mul		$tmp357 $tmp359 $const25 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:225
+# 		point projected = map_to_tube(texco_remap_square(p));
+	functioncall	$const33 635 	%line{225} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:28
+# 	v = (dir[2] + 1.0) * 0.5;
+	compref		$tmp360 $tmp357 $const18 	%line{28} %argrw{"wrr"}
+	add		$tmp361 $tmp360 $const5 	%argrw{"wrr"}
+	mul		___662_v $tmp361 $const23 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:29
+# 	float len = sqrt(dir[0] * dir[0] + dir[1] * dir[1]);
+	compref		$tmp362 $tmp357 $const2 	%line{29} %argrw{"wrr"}
+	compref		$tmp363 $tmp357 $const2 	%argrw{"wrr"}
+	mul		$tmp364 $tmp362 $tmp363 	%argrw{"wrr"}
+	compref		$tmp365 $tmp357 $const3 	%argrw{"wrr"}
+	compref		$tmp366 $tmp357 $const3 	%argrw{"wrr"}
+	mul		$tmp367 $tmp365 $tmp366 	%argrw{"wrr"}
+	add		$tmp368 $tmp364 $tmp367 	%argrw{"wrr"}
+	sqrt		___662_len $tmp368 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:30
+# 	if (len > 0.0) {
+	gt		$tmp369 ___662_len $const10 	%line{30} %argrw{"wrr"}
+	if		$tmp369 632 634 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:31
+# 		u = (1.0 - (atan2(dir[0] / len, dir[1] / len) / M_PI)) * 0.5;
+	compref		$tmp371 $tmp357 $const2 	%line{31} %argrw{"wrr"}
+	div		$tmp372 $tmp371 ___662_len 	%argrw{"wrr"}
+	compref		$tmp373 $tmp357 $const3 	%argrw{"wrr"}
+	div		$tmp374 $tmp373 ___662_len 	%argrw{"wrr"}
+	atan2		$tmp370 $tmp372 $tmp374 	%argrw{"wrr"}
+	div		$tmp375 $tmp370 $const31 	%argrw{"wrr"}
+	sub		$tmp376 $const5 $tmp375 	%argrw{"wrr"}
+	mul		___662_u $tmp376 $const23 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:34
+# 		v = u = 0.0; /* To avoid un-initialized variables. */
+	assign		___662_u $const10 	%line{34} %argrw{"wr"}
+	assign		___662_v ___662_u 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:36
+# 	return point(u, v, 0.0);
+	point		___688_projected ___662_u ___662_v $const10 	%line{36} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:228
+# 		                             projected[0], projected[1],
+	compref		$tmp377 ___688_projected $const2 	%line{228} %argrw{"wrr"}
+	compref		$tmp378 ___688_projected $const3 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:233
+# 		                             extension);
+	functioncall	$const4 706 	%line{233} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:67
+# 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
+	sub		$tmp379 $const5 $tmp378 	%line{67} %argrw{"wrr"}
+	texture		___670_rgb filename $tmp377 $tmp379 $const6 extension $const7 interpolation $const8 Alpha 	%argrw{"wrrrrrrrrw"} %argderivs{2,3}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:69
+# 	if (use_alpha) {
+	if		use_alpha 656 656 	%line{69} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:70
+# 		rgb = color_unpremultiply(rgb, Alpha);
+	functioncall	$const9 652 	%line{70} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:51
+# 	if (alpha != 1.0 && alpha != 0.0)
+	neq		$tmp380 Alpha $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{51} %argrw{"wrr"}
+	neq		$tmp381 $tmp380 $const2 	%argrw{"wrr"}
+	if		$tmp381 648 648 	%argrw{"r"}
+	neq		$tmp382 Alpha $const10 	%argrw{"wrr"}
+	neq		$tmp383 $tmp382 $const2 	%argrw{"wrr"}
+	assign		$tmp381 $tmp383 	%argrw{"wr"}
+	if		$tmp381 651 651 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:52
+# 		return c / alpha;
+	div		___670_rgb ___670_rgb Alpha 	%line{52} %argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:54
+# 	return c;
+	assign		___670_rgb ___670_rgb 	%line{54} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:72
+# #include "node_color.h"
+	eq		$tmp384 is_float $const2 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{72} %argrw{"wrr"}
+	if		$tmp384 656 656 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:73
+# 
+	assign		$tmp385 $const5 	%line{73} %argrw{"wr"}
+	min		___670_rgb ___670_rgb $tmp385 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:76
+# 	return (co - point(0.5, 0.5, 0.5)) * 2.0;
+	eq		$tmp386 color_space $const11 	%line{76} %argrw{"wrr"}
+	if		$tmp386 705 705 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:77
+# }
+	functioncall	$const12 705 	%line{77} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:36
+# 		color_srgb_to_scene_linear(c[0]),
+	compref		$tmp388 ___670_rgb $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h"} %line{36} %argrw{"wrr"}
+	functioncall	$const12 674 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp389 $tmp388 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp389 669 674 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp390 $tmp388 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp390 666 668 	%argrw{"r"}
+	assign		$tmp387 $const10 	%argrw{"wr"}
+	div		$tmp391 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp387 $tmp388 $tmp391 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp392 $tmp388 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp393 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp394 $tmp392 $tmp393 	%argrw{"wrr"}
+	pow		$tmp387 $tmp394 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:37
+# 		color_srgb_to_scene_linear(c[1]),
+	compref		$tmp396 ___670_rgb $const3 	%line{37} %argrw{"wrr"}
+	functioncall	$const12 689 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp397 $tmp396 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp397 684 689 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp398 $tmp396 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp398 681 683 	%argrw{"r"}
+	assign		$tmp395 $const10 	%argrw{"wr"}
+	div		$tmp399 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp395 $tmp396 $tmp399 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp400 $tmp396 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp401 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp402 $tmp400 $tmp401 	%argrw{"wrr"}
+	pow		$tmp395 $tmp402 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	compref		$tmp404 ___670_rgb $const18 	%line{38} %argrw{"wrr"}
+	functioncall	$const12 704 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:19
+# 	if (c < 0.04045)
+	lt		$tmp405 $tmp404 $const13 	%line{19} %argrw{"wrr"}
+	if		$tmp405 699 704 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:20
+# 		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	lt		$tmp406 $tmp404 $const10 	%line{20} %argrw{"wrr"}
+	if		$tmp406 696 698 	%argrw{"r"}
+	assign		$tmp403 $const10 	%argrw{"wr"}
+	div		$tmp407 $const5 $const14 	%argrw{"wrr"}
+	mul		$tmp403 $tmp404 $tmp407 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:22
+# 		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+	add		$tmp408 $tmp404 $const15 	%line{22} %argrw{"wrr"}
+	div		$tmp409 $const5 $const16 	%argrw{"wrr"}
+	mul		$tmp410 $tmp408 $tmp409 	%argrw{"wrr"}
+	pow		$tmp403 $tmp410 $const17 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_color.h:38
+# 		color_srgb_to_scene_linear(c[2]));
+	color		___670_rgb $tmp387 $tmp395 $tmp403 	%line{38} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl:80
+# 	float v, u;
+	assign		Color ___670_rgb 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_image_texture.osl"} %line{80} %argrw{"wr"}
+	end

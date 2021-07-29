@@ -1,0 +1,44 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+shader node_light_falloff(
+	float Strength = 0.0,
+	float Smooth = 0.0,
+	output float Quadratic = 0.0,
+	output float Linear = 0.0,
+	output float Constant = 0.0)
+{
+	float ray_length = 0.0;
+	float strength = Strength;
+	getattribute("path:ray_length", ray_length);
+
+	if (Smooth > 0.0) {
+		float squared = ray_length * ray_length;
+		strength *= squared / (Smooth + squared);
+	}
+
+	/* Quadratic */ 
+	Quadratic = strength;
+	
+	/* Linear */
+	Linear = (strength * ray_length);
+
+	/* Constant */
+	Constant = (strength * ray_length * ray_length);
+}
+

@@ -1,0 +1,331 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_magic_texture.oso
+shader node_magic_texture
+param	int	use_mapping	0		%read{2,2} %write{2147483647,-1}
+param	matrix	mapping	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0		%read{3,3} %write{2147483647,-1}
+param	int	depth	2		%read{31,98} %write{2147483647,-1}
+param	float	Distortion	5		%read{6,6} %write{2147483647,-1}
+param	float	Scale	5		%read{4,4} %write{2147483647,-1}
+param	point	Vector	0 0 0		%read{1,1} %write{0,0} %initexpr
+oparam	float	Fac	0		%read{2147483647,-1} %write{121,121}
+oparam	color	Color	0 0 0		%read{115,118} %write{114,114}
+global	point	P	%read{0,0} %write{2147483647,-1}
+local	float	___665_dist	%read{33,110} %write{6,107}
+local	float	___665_x	%read{33,111} %write{13,108}
+local	float	___665_y	%read{34,112} %write{21,109}
+local	float	___665_z	%read{35,113} %write{30,110}
+local	point	p	%read{3,4} %write{1,3}
+temp	point	$tmp1	%read{7,26} %write{4,4}
+const	string	$const1	"magic"		%read{5,5} %write{2147483647,-1}
+const	int	$const2	0		%read{7,115} %write{2147483647,-1}
+temp	float	$tmp2	%read{9,9} %write{7,7}
+const	int	$const3	1		%read{8,116} %write{2147483647,-1}
+temp	float	$tmp3	%read{9,9} %write{8,8}
+temp	float	$tmp4	%read{11,11} %write{9,9}
+const	int	$const4	2		%read{10,118} %write{2147483647,-1}
+temp	float	$tmp5	%read{11,11} %write{10,10}
+temp	float	$tmp6	%read{12,12} %write{11,11}
+const	float	$const5	5		%read{12,28} %write{2147483647,-1}
+temp	float	$tmp7	%read{13,13} %write{12,12}
+temp	float	$tmp8	%read{15,15} %write{14,14}
+temp	float	$tmp9	%read{17,17} %write{15,15}
+temp	float	$tmp10	%read{17,17} %write{16,16}
+temp	float	$tmp11	%read{19,19} %write{17,17}
+temp	float	$tmp12	%read{19,19} %write{18,18}
+temp	float	$tmp13	%read{20,20} %write{19,19}
+temp	float	$tmp14	%read{21,21} %write{20,20}
+temp	float	$tmp15	%read{30,30} %write{29,29}
+temp	float	$tmp16	%read{23,23} %write{22,22}
+temp	float	$tmp17	%read{25,25} %write{23,23}
+temp	float	$tmp18	%read{25,25} %write{24,24}
+temp	float	$tmp19	%read{27,27} %write{25,25}
+temp	float	$tmp20	%read{27,27} %write{26,26}
+temp	float	$tmp21	%read{28,28} %write{27,27}
+temp	float	$tmp22	%read{29,29} %write{28,28}
+temp	int	$tmp23	%read{32,32} %write{31,31}
+temp	float	$tmp24	%read{39,39} %write{38,38}
+temp	float	$tmp25	%read{37,37} %write{36,36}
+temp	float	$tmp26	%read{38,38} %write{37,37}
+temp	int	$tmp27	%read{42,42} %write{41,41}
+temp	float	$tmp28	%read{44,44} %write{43,43}
+temp	float	$tmp29	%read{45,45} %write{44,44}
+temp	int	$tmp30	%read{48,48} %write{47,47}
+temp	float	$tmp31	%read{50,50} %write{49,49}
+temp	float	$tmp32	%read{51,51} %write{50,50}
+temp	float	$tmp33	%read{52,52} %write{51,51}
+const	int	$const6	3		%read{54,54} %write{2147483647,-1}
+temp	int	$tmp34	%read{55,55} %write{54,54}
+temp	float	$tmp35	%read{60,60} %write{59,59}
+temp	float	$tmp36	%read{57,57} %write{56,56}
+temp	float	$tmp37	%read{58,58} %write{57,57}
+temp	float	$tmp38	%read{59,59} %write{58,58}
+const	int	$const7	4		%read{62,62} %write{2147483647,-1}
+temp	int	$tmp39	%read{63,63} %write{62,62}
+temp	float	$tmp40	%read{68,68} %write{67,67}
+temp	float	$tmp41	%read{65,65} %write{64,64}
+temp	float	$tmp42	%read{66,66} %write{65,65}
+temp	float	$tmp43	%read{67,67} %write{66,66}
+const	int	$const8	5		%read{70,70} %write{2147483647,-1}
+temp	int	$tmp44	%read{71,71} %write{70,70}
+temp	float	$tmp45	%read{76,76} %write{75,75}
+temp	float	$tmp46	%read{73,73} %write{72,72}
+temp	float	$tmp47	%read{74,74} %write{73,73}
+temp	float	$tmp48	%read{75,75} %write{74,74}
+const	int	$const9	6		%read{78,78} %write{2147483647,-1}
+temp	int	$tmp49	%read{79,79} %write{78,78}
+temp	float	$tmp50	%read{81,81} %write{80,80}
+temp	float	$tmp51	%read{82,82} %write{81,81}
+const	int	$const10	7		%read{84,84} %write{2147483647,-1}
+temp	int	$tmp52	%read{85,85} %write{84,84}
+temp	float	$tmp53	%read{87,87} %write{86,86}
+temp	float	$tmp54	%read{88,88} %write{87,87}
+const	int	$const11	8		%read{90,90} %write{2147483647,-1}
+temp	int	$tmp55	%read{91,91} %write{90,90}
+temp	float	$tmp56	%read{96,96} %write{95,95}
+temp	float	$tmp57	%read{93,93} %write{92,92}
+temp	float	$tmp58	%read{94,94} %write{93,93}
+temp	float	$tmp59	%read{95,95} %write{94,94}
+const	int	$const12	9		%read{98,98} %write{2147483647,-1}
+temp	int	$tmp60	%read{99,99} %write{98,98}
+temp	float	$tmp61	%read{103,103} %write{102,102}
+temp	float	$tmp62	%read{101,101} %write{100,100}
+temp	float	$tmp63	%read{102,102} %write{101,101}
+const	float	$const13	0		%read{105,105} %write{2147483647,-1}
+temp	int	$tmp64	%read{106,106} %write{105,105}
+const	float	$const14	2		%read{107,107} %write{2147483647,-1}
+const	float	$const15	0.5		%read{111,113} %write{2147483647,-1}
+temp	float	$tmp65	%read{114,114} %write{111,111}
+temp	float	$tmp66	%read{114,114} %write{112,112}
+temp	float	$tmp67	%read{114,114} %write{113,113}
+temp	float	$tmp68	%read{117,117} %write{115,115}
+temp	float	$tmp69	%read{117,117} %write{116,116}
+temp	float	$tmp70	%read{119,119} %write{117,117}
+temp	float	$tmp71	%read{119,119} %write{118,118}
+temp	float	$tmp72	%read{121,121} %write{119,119}
+const	float	$const16	1		%read{120,120} %write{2147483647,-1}
+const	float	$const17	3		%read{120,120} %write{2147483647,-1}
+temp	float	$tmp73	%read{121,121} %write{120,120}
+code Vector
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:99
+# 	point Vector = P,
+	assign		Vector P 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl"} %line{99} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:103
+# 	point p = Vector;
+	assign		p Vector 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl"} %line{103} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:105
+# 	if (use_mapping)
+	if		use_mapping 4 4 	%line{105} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:106
+# 		p = transform(mapping, p);
+	transform	p mapping p 	%line{106} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:108
+# 	Color = magic(p * Scale, depth, Distortion);
+	mul		$tmp1 p Scale 	%line{108} %argrw{"wrr"}
+	functioncall	$const1 115 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:24
+# 	float dist = distortion;
+	assign		___665_dist Distortion 	%line{24} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:26
+# 	float x =  sin(( p[0] + p[1] + p[2]) * 5.0);
+	compref		$tmp2 $tmp1 $const2 	%line{26} %argrw{"wrr"}
+	compref		$tmp3 $tmp1 $const3 	%argrw{"wrr"}
+	add		$tmp4 $tmp2 $tmp3 	%argrw{"wrr"}
+	compref		$tmp5 $tmp1 $const4 	%argrw{"wrr"}
+	add		$tmp6 $tmp4 $tmp5 	%argrw{"wrr"}
+	mul		$tmp7 $tmp6 $const5 	%argrw{"wrr"}
+	sin		___665_x $tmp7 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:27
+# 	float y =  cos((-p[0] + p[1] - p[2]) * 5.0);
+	compref		$tmp8 $tmp1 $const2 	%line{27} %argrw{"wrr"}
+	neg		$tmp9 $tmp8 	%argrw{"wr"}
+	compref		$tmp10 $tmp1 $const3 	%argrw{"wrr"}
+	add		$tmp11 $tmp9 $tmp10 	%argrw{"wrr"}
+	compref		$tmp12 $tmp1 $const4 	%argrw{"wrr"}
+	sub		$tmp13 $tmp11 $tmp12 	%argrw{"wrr"}
+	mul		$tmp14 $tmp13 $const5 	%argrw{"wrr"}
+	cos		___665_y $tmp14 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:28
+# 	float z = -cos((-p[0] - p[1] + p[2]) * 5.0);
+	compref		$tmp16 $tmp1 $const2 	%line{28} %argrw{"wrr"}
+	neg		$tmp17 $tmp16 	%argrw{"wr"}
+	compref		$tmp18 $tmp1 $const3 	%argrw{"wrr"}
+	sub		$tmp19 $tmp17 $tmp18 	%argrw{"wrr"}
+	compref		$tmp20 $tmp1 $const4 	%argrw{"wrr"}
+	add		$tmp21 $tmp19 $tmp20 	%argrw{"wrr"}
+	mul		$tmp22 $tmp21 $const5 	%argrw{"wrr"}
+	cos		$tmp15 $tmp22 	%argrw{"wr"}
+	neg		___665_z $tmp15 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:30
+# 	if (n > 0) {
+	gt		$tmp23 depth $const2 	%line{30} %argrw{"wrr"}
+	if		$tmp23 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:31
+# 		x *= dist;
+	mul		___665_x ___665_x ___665_dist 	%line{31} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:32
+# 		y *= dist;
+	mul		___665_y ___665_y ___665_dist 	%line{32} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:33
+# 		z *= dist;
+	mul		___665_z ___665_z ___665_dist 	%line{33} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:34
+# 		y = -cos(x - y + z);
+	sub		$tmp25 ___665_x ___665_y 	%line{34} %argrw{"wrr"}
+	add		$tmp26 $tmp25 ___665_z 	%argrw{"wrr"}
+	cos		$tmp24 $tmp26 	%argrw{"wr"}
+	neg		___665_y $tmp24 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:35
+# 		y *= dist;
+	mul		___665_y ___665_y ___665_dist 	%line{35} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:37
+# 		if (n > 1) {
+	gt		$tmp27 depth $const3 	%line{37} %argrw{"wrr"}
+	if		$tmp27 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:38
+# 			x = cos(x - y - z);
+	sub		$tmp28 ___665_x ___665_y 	%line{38} %argrw{"wrr"}
+	sub		$tmp29 $tmp28 ___665_z 	%argrw{"wrr"}
+	cos		___665_x $tmp29 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:39
+# 			x *= dist;
+	mul		___665_x ___665_x ___665_dist 	%line{39} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:41
+# 			if (n > 2) {
+	gt		$tmp30 depth $const4 	%line{41} %argrw{"wrr"}
+	if		$tmp30 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:42
+# 				z = sin(-x - y - z);
+	neg		$tmp31 ___665_x 	%line{42} %argrw{"wr"}
+	sub		$tmp32 $tmp31 ___665_y 	%argrw{"wrr"}
+	sub		$tmp33 $tmp32 ___665_z 	%argrw{"wrr"}
+	sin		___665_z $tmp33 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:43
+# 				z *= dist;
+	mul		___665_z ___665_z ___665_dist 	%line{43} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:45
+# 				if (n > 3) {
+	gt		$tmp34 depth $const6 	%line{45} %argrw{"wrr"}
+	if		$tmp34 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:46
+# 					x = -cos(-x + y - z);
+	neg		$tmp36 ___665_x 	%line{46} %argrw{"wr"}
+	add		$tmp37 $tmp36 ___665_y 	%argrw{"wrr"}
+	sub		$tmp38 $tmp37 ___665_z 	%argrw{"wrr"}
+	cos		$tmp35 $tmp38 	%argrw{"wr"}
+	neg		___665_x $tmp35 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:47
+# 					x *= dist;
+	mul		___665_x ___665_x ___665_dist 	%line{47} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:49
+# 					if (n > 4) {
+	gt		$tmp39 depth $const7 	%line{49} %argrw{"wrr"}
+	if		$tmp39 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:50
+# 						y = -sin(-x + y + z);
+	neg		$tmp41 ___665_x 	%line{50} %argrw{"wr"}
+	add		$tmp42 $tmp41 ___665_y 	%argrw{"wrr"}
+	add		$tmp43 $tmp42 ___665_z 	%argrw{"wrr"}
+	sin		$tmp40 $tmp43 	%argrw{"wr"}
+	neg		___665_y $tmp40 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:51
+# 						y *= dist;
+	mul		___665_y ___665_y ___665_dist 	%line{51} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:53
+# 						if (n > 5) {
+	gt		$tmp44 depth $const8 	%line{53} %argrw{"wrr"}
+	if		$tmp44 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:54
+# 							y = -cos(-x + y + z);
+	neg		$tmp46 ___665_x 	%line{54} %argrw{"wr"}
+	add		$tmp47 $tmp46 ___665_y 	%argrw{"wrr"}
+	add		$tmp48 $tmp47 ___665_z 	%argrw{"wrr"}
+	cos		$tmp45 $tmp48 	%argrw{"wr"}
+	neg		___665_y $tmp45 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:55
+# 							y *= dist;
+	mul		___665_y ___665_y ___665_dist 	%line{55} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:57
+# 							if (n > 6) {
+	gt		$tmp49 depth $const9 	%line{57} %argrw{"wrr"}
+	if		$tmp49 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:58
+# 								x = cos(x + y + z);
+	add		$tmp50 ___665_x ___665_y 	%line{58} %argrw{"wrr"}
+	add		$tmp51 $tmp50 ___665_z 	%argrw{"wrr"}
+	cos		___665_x $tmp51 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:59
+# 								x *= dist;
+	mul		___665_x ___665_x ___665_dist 	%line{59} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:61
+# 								if (n > 7) {
+	gt		$tmp52 depth $const10 	%line{61} %argrw{"wrr"}
+	if		$tmp52 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:62
+# 									z = sin(x + y - z);
+	add		$tmp53 ___665_x ___665_y 	%line{62} %argrw{"wrr"}
+	sub		$tmp54 $tmp53 ___665_z 	%argrw{"wrr"}
+	sin		___665_z $tmp54 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:63
+# 									z *= dist;
+	mul		___665_z ___665_z ___665_dist 	%line{63} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:65
+# 									if (n > 8) {
+	gt		$tmp55 depth $const11 	%line{65} %argrw{"wrr"}
+	if		$tmp55 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:66
+# 										x = -cos(-x - y + z);
+	neg		$tmp57 ___665_x 	%line{66} %argrw{"wr"}
+	sub		$tmp58 $tmp57 ___665_y 	%argrw{"wrr"}
+	add		$tmp59 $tmp58 ___665_z 	%argrw{"wrr"}
+	cos		$tmp56 $tmp59 	%argrw{"wr"}
+	neg		___665_x $tmp56 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:67
+# 										x *= dist;
+	mul		___665_x ___665_x ___665_dist 	%line{67} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:69
+# 										if (n > 9) {
+	gt		$tmp60 depth $const12 	%line{69} %argrw{"wrr"}
+	if		$tmp60 105 105 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:70
+# 											y = -sin(x - y + z);
+	sub		$tmp62 ___665_x ___665_y 	%line{70} %argrw{"wrr"}
+	add		$tmp63 $tmp62 ___665_z 	%argrw{"wrr"}
+	sin		$tmp61 $tmp63 	%argrw{"wr"}
+	neg		___665_y $tmp61 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:71
+# 											y *= dist;
+	mul		___665_y ___665_y ___665_dist 	%line{71} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:83
+# 	if (dist != 0.0) {
+	neq		$tmp64 ___665_dist $const13 	%line{83} %argrw{"wrr"}
+	if		$tmp64 111 111 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:84
+# 		dist *= 2.0;
+	mul		___665_dist ___665_dist $const14 	%line{84} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:85
+# 		x /= dist;
+	div		___665_x ___665_x ___665_dist 	%line{85} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:86
+# 		y /= dist;
+	div		___665_y ___665_y ___665_dist 	%line{86} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:87
+# 		z /= dist;
+	div		___665_z ___665_z ___665_dist 	%line{87} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:90
+# 	return color(0.5 - x, 0.5 - y, 0.5 - z);
+	sub		$tmp65 $const15 ___665_x 	%line{90} %argrw{"wrr"}
+	sub		$tmp66 $const15 ___665_y 	%argrw{"wrr"}
+	sub		$tmp67 $const15 ___665_z 	%argrw{"wrr"}
+	color		Color $tmp65 $tmp66 $tmp67 	%argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_magic_texture.osl:109
+# 	Fac = (Color[0] + Color[1] + Color[2]) * (1.0 / 3.0);
+	compref		$tmp68 Color $const2 	%line{109} %argrw{"wrr"}
+	compref		$tmp69 Color $const3 	%argrw{"wrr"}
+	add		$tmp70 $tmp68 $tmp69 	%argrw{"wrr"}
+	compref		$tmp71 Color $const4 	%argrw{"wrr"}
+	add		$tmp72 $tmp70 $tmp71 	%argrw{"wrr"}
+	div		$tmp73 $const16 $const17 	%argrw{"wrr"}
+	mul		Fac $tmp72 $tmp73 	%argrw{"wrr"}
+	end

@@ -1,0 +1,52 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_light_falloff.oso
+shader node_light_falloff
+param	float	Strength	0		%read{1,1} %write{2147483647,-1}
+param	float	Smooth	0		%read{3,6} %write{2147483647,-1}
+oparam	float	Quadratic	0		%read{2147483647,-1} %write{9,9}
+oparam	float	Linear	0		%read{2147483647,-1} %write{10,10}
+oparam	float	Constant	0		%read{2147483647,-1} %write{12,12}
+local	float	ray_length	%read{5,12} %write{0,2}
+local	float	strength	%read{8,11} %write{1,8}
+local	float	___646_squared	%read{6,7} %write{5,5}
+const	float	$const1	0		%read{0,3} %write{2147483647,-1}
+temp	int	$tmp1	%read{2147483647,-1} %write{2,2}
+const	string	$const2	"path:ray_length"		%read{2,2} %write{2147483647,-1}
+temp	int	$tmp2	%read{4,4} %write{3,3}
+temp	float	$tmp3	%read{7,7} %write{6,6}
+temp	float	$tmp4	%read{8,8} %write{7,7}
+temp	float	$tmp5	%read{12,12} %write{11,11}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:26
+# 	float ray_length = 0.0;
+	assign		ray_length $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl"} %line{26} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:27
+# 	float strength = Strength;
+	assign		strength Strength 	%line{27} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:28
+# 	getattribute("path:ray_length", ray_length);
+	getattribute	$tmp1 $const2 ray_length 	%line{28} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:30
+# 	if (Smooth > 0.0) {
+	gt		$tmp2 Smooth $const1 	%line{30} %argrw{"wrr"}
+	if		$tmp2 9 9 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:31
+# 		float squared = ray_length * ray_length;
+	mul		___646_squared ray_length ray_length 	%line{31} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:32
+# 		strength *= squared / (Smooth + squared);
+	add		$tmp3 Smooth ___646_squared 	%line{32} %argrw{"wrr"}
+	div		$tmp4 ___646_squared $tmp3 	%argrw{"wrr"}
+	mul		strength strength $tmp4 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:36
+# 	Quadratic = strength;
+	assign		Quadratic strength 	%line{36} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:39
+# 	Linear = (strength * ray_length);
+	mul		Linear strength ray_length 	%line{39} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_light_falloff.osl:42
+# 	Constant = (strength * ray_length * ray_length);
+	mul		$tmp5 strength ray_length 	%line{42} %argrw{"wrr"}
+	mul		Constant $tmp5 ray_length 	%argrw{"wrr"}
+	end

@@ -1,0 +1,28 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_blackbody.oso
+shader node_blackbody
+param	float	Temperature	1200		%read{0,0} %write{2147483647,-1}
+oparam	color	Color	0 0 0		%read{2147483647,-1} %write{5,5}
+local	color	rgb	%read{1,5} %write{0,4}
+local	float	l	%read{2,4} %write{1,1}
+const	float	$const1	0		%read{2,2} %write{2147483647,-1}
+temp	int	$tmp1	%read{3,3} %write{2,2}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_blackbody.osl:23
+# 	color rgb = blackbody(Temperature);
+	blackbody	rgb Temperature 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_blackbody.osl"} %line{23} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_blackbody.osl:26
+# 	float l = luminance(rgb);
+	luminance	l rgb 	%line{26} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_blackbody.osl:27
+# 	if (l != 0.0)
+	neq		$tmp1 l $const1 	%line{27} %argrw{"wrr"}
+	if		$tmp1 5 5 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_blackbody.osl:28
+# 		rgb /= l;
+	div		rgb rgb l 	%line{28} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_blackbody.osl:29
+# 	Color = rgb;
+	assign		Color rgb 	%line{29} %argrw{"wr"}
+	end

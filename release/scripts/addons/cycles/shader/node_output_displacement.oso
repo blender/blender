@@ -1,0 +1,35 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_output_displacement.oso
+displacement node_output_displacement
+param	float	Displacement	0		%read{3,3} %write{2147483647,-1}
+global	point	P	%read{6,6} %write{6,6}
+global	normal	N	%read{1,1} %write{2147483647,-1}
+local	vector	dP	%read{4,5} %write{2,4}
+temp	normal	$tmp1	%read{2,2} %write{1,1}
+const	string	$const1	"object"		%read{1,5} %write{2147483647,-1}
+const	string	$const2	"transform"		%read{0,0} %write{2147483647,-1}
+const	string	$const3	"common"		%read{1,1} %write{2147483647,-1}
+const	float	$const4	0.1		%read{3,3} %write{2147483647,-1}
+temp	float	$tmp2	%read{4,4} %write{3,3}
+temp	vector	$tmp3	%read{6,6} %write{5,5}
+const	string	$const5	"world"		%read{5,5} %write{2147483647,-1}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_output_displacement.osl:21
+# 	vector dP = normalize(transform("object", N));
+	functioncall	$const2 2 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_output_displacement.osl"} %line{21} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:241
+#         // total internal reflection
+	transformn	$tmp1 $const3 $const1 N 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{241} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_output_displacement.osl:21
+# 	vector dP = normalize(transform("object", N));
+	normalize	dP $tmp1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_output_displacement.osl"} %line{21} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_output_displacement.osl:22
+# 	dP *= Displacement * 0.1; /* todo: get rid of this factor */
+	mul		$tmp2 Displacement $const4 	%line{22} %argrw{"wrr"}
+	mul		dP dP $tmp2 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_output_displacement.osl:23
+# 	P += transform("object", "world", dP);
+	transformv	$tmp3 $const1 $const5 dP 	%line{23} %argrw{"wrrr"}
+	add		P P $tmp3 	%argrw{"wrr"}
+	end

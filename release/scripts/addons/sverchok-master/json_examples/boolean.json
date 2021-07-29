@@ -1,0 +1,138 @@
+{
+  "export_version": "0.055",
+  "framed_nodes": {},
+  "groups": {},
+  "nodes": {
+    "Bmesh Viewer Draw 2": {
+      "bl_idname": "SvBmeshViewerNodeMK2",
+      "color": [
+        1.0,
+        0.30000001192092896,
+        0.0
+      ],
+      "height": 100.0,
+      "hide": true,
+      "label": "",
+      "location": [
+        444.4183044433594,
+        427.49603271484375
+      ],
+      "params": {
+        "lp": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "width": 140.0
+    },
+    "Box": {
+      "bl_idname": "SvBoxNode",
+      "color": [
+        0.0,
+        0.5,
+        0.5
+      ],
+      "height": 100.0,
+      "hide": false,
+      "label": "",
+      "location": [
+        -150.82498168945312,
+        427.3623352050781
+      ],
+      "params": {},
+      "width": 140.0
+    },
+    "CSG BooleanNode": {
+      "bl_idname": "SvCSGBooleanNode",
+      "color": [
+        0.6079999804496765,
+        0.6079999804496765,
+        0.6079999804496765
+      ],
+      "height": 100.0,
+      "hide": false,
+      "label": "",
+      "location": [
+        122.53494262695312,
+        413.0456237792969
+      ],
+      "params": {},
+      "width": 140.0
+    },
+    "Sphere": {
+      "bl_idname": "SphereNode",
+      "color": [
+        0.0,
+        0.5,
+        0.5
+      ],
+      "height": 100.0,
+      "hide": false,
+      "label": "",
+      "location": [
+        -143.5413818359375,
+        221.02978515625
+      ],
+      "params": {
+        "rad_": 0.75
+      },
+      "width": 140.0
+    }
+  },
+  "update_lists": [
+    [
+      "Box",
+      "Vers",
+      "CSG BooleanNode",
+      "Verts A"
+    ],
+    [
+      "Box",
+      "Pols",
+      "CSG BooleanNode",
+      "Polys A"
+    ],
+    [
+      "Sphere",
+      "Vertices",
+      "CSG BooleanNode",
+      "Verts B"
+    ],
+    [
+      "Sphere",
+      "Polygons",
+      "CSG BooleanNode",
+      "Polys B"
+    ],
+    [
+      "CSG BooleanNode",
+      "Vertices",
+      "Bmesh Viewer Draw 2",
+      "vertices"
+    ],
+    [
+      "CSG BooleanNode",
+      "Polygons",
+      "Bmesh Viewer Draw 2",
+      "faces"
+    ]
+  ]
+}

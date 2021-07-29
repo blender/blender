@@ -1,0 +1,1780 @@
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The Original Code is Copyright (C) 2006, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Jacques Beaurain.
+#
+# ***** END GPL LICENSE BLOCK *****
+
+#-----------------------------------------------------------------------------
+# We don't allow in-source builds. This causes no end of troubles because
+# all out-of-source builds will use the CMakeCache.txt file there and even
+# build the libs and objects in it.
+
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+	if(NOT DEFINED WITH_IN_SOURCE_BUILD)
+		message(FATAL_ERROR
+			"CMake generation for blender is not allowed within the source directory!"
+			"\n Remove \"${CMAKE_SOURCE_DIR}/CMakeCache.txt\" and try again from another folder, e.g.:"
+			"\n "
+			"\n rm CMakeCache.txt"
+			"\n cd .."
+			"\n mkdir cmake-make"
+			"\n cd cmake-make"
+			"\n cmake ../blender"
+			"\n "
+			"\n Alternately define WITH_IN_SOURCE_BUILD to force this option (not recommended!)"
+		)
+	endif()
+endif()
+
+cmake_minimum_required(VERSION 2.8)
+
+if(NOT EXECUTABLE_OUTPUT_PATH)
+	set(FIRST_RUN TRUE)
+else()
+	set(FIRST_RUN FALSE)
+endif()
+
+# this starts out unset
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/platform")
+
+# avoid having empty buildtype
+if(NOT DEFINED CMAKE_BUILD_TYPE_INIT)
+	set(CMAKE_BUILD_TYPE_INIT "Release")
+endif()
+
+# quiet output for Makefiles, 'make -s' helps too
+# set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
+
+# global compile definitions since add_definitions() adds for all.
+
+if(NOT (${CMAKE_VERSION} VERSION_LESS 3.0))
+	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
+		$<$<CONFIG:Debug>:DEBUG;_DEBUG>
+		$<$<CONFIG:Release>:NDEBUG>
+		$<$<CONFIG:MinSizeRel>:NDEBUG>
+		$<$<CONFIG:RelWithDebInfo>:NDEBUG>
+	)
+else()
+	# keep until CMake-3.0 is min requirement
+	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG           DEBUG _DEBUG)
+	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELEASE         NDEBUG)
+	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_MINSIZEREL      NDEBUG)
+	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELWITHDEBINFO  NDEBUG)
+endif()
+
+#-----------------------------------------------------------------------------
+# Set policy
+
+# see "cmake --help-policy CMP0003"
+# So library linking is more sane
+cmake_policy(SET CMP0003 NEW)
+
+# So BUILDINFO and BLENDERPATH strings are automatically quoted
+cmake_policy(SET CMP0005 NEW)
+
+# So syntax problems are errors
+cmake_policy(SET CMP0010 NEW)
+
+# Input directories must have CMakeLists.txt
+cmake_policy(SET CMP0014 NEW)
+
+#-----------------------------------------------------------------------------
+# Load some macros.
+include(build_files/cmake/macros.cmake)
+
+
+#-----------------------------------------------------------------------------
+# Initialize project.
+
+blender_project_hack_pre()
+
+project(Blender)
+
+blender_project_hack_post()
+
+enable_testing()
+
+#-----------------------------------------------------------------------------
+# Redirect output files
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE)
+set(TESTS_OUTPUT_DIR ${EXECUTABLE_OUTPUT_PATH}/tests CACHE INTERNAL "" FORCE)
+
+#-----------------------------------------------------------------------------
+# Set default config options
+
+get_blender_version()
+
+
+#-----------------------------------------------------------------------------
+# Platform Specific Defaults
+
+# list of var-names
+set(_init_vars)
+
+# initialize to ON
+macro(option_defaults_init)
+	foreach(_var ${ARGV})
+		set(${_var} ON)
+		list(APPEND _init_vars "${_var}")
+	endforeach()
+	unset(_var)
+endmacro()
+
+# remove from namespace
+macro(option_defaults_clear)
+	foreach(_var ${_init_vars})
+		unset(${_var})
+	endforeach()
+	unset(_var)
+	unset(_init_vars)
+endmacro()
+
+
+# values to initialize WITH_****
+option_defaults_init(
+	_init_BUILDINFO
+	_init_CODEC_FFMPEG
+	_init_CYCLES_OSL
+	_init_CYCLES_OPENSUBDIV
+	_init_IMAGE_OPENEXR
+	_init_INPUT_NDOF
+	_init_JACK
+	_init_OPENCOLLADA
+	_init_OPENCOLORIO
+	_init_SDL
+	_init_FFTW3
+	_init_GAMEENGINE
+	_init_OPENSUBDIV
+)
+
+# customize...
+if(UNIX AND NOT APPLE)
+	# some of these libraries are problematic on Linux
+	# disable less important dependencies by default
+	set(_init_CODEC_FFMPEG                   OFF)
+	set(_init_CYCLES_OSL                     OFF)
+	set(_init_CYCLES_OPENSUBDIV              OFF)
+	set(_init_IMAGE_OPENEXR                  OFF)
+	set(_init_JACK                           OFF)
+	set(_init_OPENCOLLADA                    OFF)
+	set(_init_OPENCOLORIO                    OFF)
+	set(_init_SDL                            OFF)
+	set(_init_FFTW3                          OFF)
+	set(_init_OPENSUBDIV                     OFF)
+elseif(WIN32)
+	set(_init_JACK                           OFF)
+elseif(APPLE)
+	set(_init_JACK                           OFF)
+	set(_init_OPENSUBDIV                     OFF)
+endif()
+
+
+#-----------------------------------------------------------------------------
+# Options
+
+# First platform specific non-cached vars
+if(UNIX AND NOT APPLE)
+	set(WITH_X11 ON)
+endif()
+
+# Blender internal features
+option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
+mark_as_advanced(WITH_BLENDER)
+
+option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
+
+option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
+option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON) 
+mark_as_advanced(WITH_PYTHON)  # dont want people disabling this unless they really know what they are doing.
+mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a security issue, rather than have them patch it, make a build option.
+
+option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
+mark_as_advanced(WITH_PYTHON_SAFETY)
+option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development), installs to PYTHON_SITE_PACKAGES (or CMAKE_INSTALL_PREFIX if WITH_INSTALL_PORTABLE is enabled)." OFF)
+if(APPLE)
+	option(WITH_PYTHON_FRAMEWORK "Enable building using the Python available in the framework (OSX only)" OFF)
+endif()
+
+option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ${_init_BUILDINFO})
+if(${CMAKE_VERSION} VERSION_LESS 2.8.8)
+	# add_library OBJECT arg unsupported
+	set(WITH_BUILDINFO OFF)
+endif()
+set(BUILDINFO_OVERRIDE_DATE "" CACHE STRING "Use instead of the current date for reproducable builds (empty string disables this option)")
+set(BUILDINFO_OVERRIDE_TIME "" CACHE STRING "Use instead of the current time for reproducable builds (empty string disables this option)")
+set(CPACK_OVERRIDE_PACKAGENAME "" CACHE STRING "Use instead of the standard packagename (empty string disables this option)")
+mark_as_advanced(CPACK_OVERRIDE_PACKAGENAME)
+mark_as_advanced(BUILDINFO_OVERRIDE_DATE)
+mark_as_advanced(BUILDINFO_OVERRIDE_TIME)
+
+option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
+option(WITH_IK_SOLVER     "Enable Legacy IK solver (only disable for development)" ON)
+option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke, ocean sim, and audio effects)" ${_init_FFTW3})
+option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
+option(WITH_SYSTEM_BULLET "Use the systems bullet library (currently unsupported due to missing features in upstream!)" )
+mark_as_advanced(WITH_SYSTEM_BULLET)
+option(WITH_GAMEENGINE    "Enable Game Engine" ${_init_GAMEENGINE})
+if(APPLE)
+	set(WITH_GAMEENGINE_DECKLINK OFF)
+else()
+	option(WITH_GAMEENGINE_DECKLINK "Support BlackMagicDesign DeckLink cards in the Game Engine" ON)
+endif()
+option(WITH_PLAYER        "Build Player" OFF)
+option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ${_init_OPENCOLORIO})
+
+# Compositor
+option(WITH_COMPOSITOR         "Enable the tile based nodal compositor" ON)
+
+option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" _init_OPENSUBDIV)
+
+option(WITH_OPENVDB       "Enable features relying on OpenVDB" OFF)
+option(WITH_OPENVDB_BLOSC "Enable blosc compression for OpenVDB, only enable if OpenVDB was built with blosc support" OFF)
+
+# GHOST Windowing Library Options
+option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
+mark_as_advanced(WITH_GHOST_DEBUG)
+
+option(WITH_GHOST_SDL    "Enable building Blender against SDL for windowing rather than the native APIs" OFF)
+mark_as_advanced(WITH_GHOST_SDL)
+
+if(WITH_X11)
+	option(WITH_GHOST_XDND    "Enable drag'n'drop support on X11 using XDND protocol" ON)
+endif()
+
+# Misc...
+option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
+mark_as_advanced(WITH_HEADLESS)
+
+option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what you're doing!)" ON)
+option(WITH_SYSTEM_AUDASPACE "Build with external audaspace library installed on the system (only enable if you know what you're doing!)" OFF)
+mark_as_advanced(WITH_AUDASPACE)
+mark_as_advanced(WITH_SYSTEM_AUDASPACE)
+
+if(NOT WITH_AUDASPACE)
+	set(WITH_SYSTEM_AUDASPACE OFF)
+endif()
+
+option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+if(UNIX AND NOT APPLE)
+	option(WITH_OPENMP_STATIC "Link OpenMP statically (only used by the release environment)" OFF)
+	mark_as_advanced(WITH_OPENMP_STATIC)
+endif()
+
+if(WITH_X11)
+	option(WITH_X11_XINPUT    "Enable X11 Xinput (tablet support and unicode input)"  ON)
+	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"                       ON)
+	option(WITH_X11_XFIXES    "Enable X11 XWayland cursor warping workaround"         ON)
+	option(WITH_X11_ALPHA     "Enable X11 transparent background"                     ON)
+endif()
+
+if(UNIX AND NOT APPLE)
+	option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library provided by the operating system" ON)
+	option(WITH_SYSTEM_GLES "Use OpenGL ES library provided by the operating system"           ON)
+else()
+	# not an option for other OS's
+	set(WITH_SYSTEM_GLEW OFF)
+	set(WITH_SYSTEM_GLES OFF)
+endif()
+
+
+# (unix defaults to System OpenJPEG On)
+option(WITH_SYSTEM_OPENJPEG "Use the operating systems OpenJPEG library" OFF)
+
+if(UNIX AND NOT APPLE)
+	option(WITH_SYSTEM_EIGEN3 "Use the systems Eigen3 library" OFF)
+endif()
+
+
+# Modifiers
+option(WITH_MOD_FLUID           "Enable Elbeem Modifier (Fluid Simulation)" ON)
+option(WITH_MOD_SMOKE           "Enable Smoke Modifier (Smoke Simulation)" ON)
+option(WITH_MOD_BOOLEAN         "Enable Boolean Modifier" ON)
+option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
+# option(WITH_MOD_CLOTH_ELTOPO    "Enable Experimental cloth solver" OFF)  # this is now only available in a branch
+# mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
+option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
+
+# Image format support
+option(WITH_OPENIMAGEIO         "Enable OpenImageIO Support (http://www.openimageio.org)" ON)
+option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ${_init_IMAGE_OPENEXR})
+option(WITH_IMAGE_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
+option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
+option(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
+option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
+option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
+option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering" ON)
+
+# Audio/Video format support
+option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)" ON)
+option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" ${_init_CODEC_FFMPEG})
+option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
+
+# Alembic support
+option(WITH_ALEMBIC             "Enable Alembic Support" OFF)
+option(WITH_ALEMBIC_HDF5        "Enable Legacy Alembic Support (not officially supported)" OFF)
+
+if(APPLE)
+	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
+endif()
+
+# 3D format support
+# Disable opencollada when we don't have precompiled libs
+option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ${_init_OPENCOLLADA})
+
+# Sound output
+option(WITH_SDL           "Enable SDL for sound and joystick support" ${_init_SDL})
+option(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
+option(WITH_JACK          "Enable JACK Support (http://www.jackaudio.org)" ${_init_JACK})
+if(UNIX AND NOT APPLE)
+	option(WITH_JACK_DYNLOAD  "Enable runtime dynamic JACK libraries loading" OFF)
+endif()
+if(UNIX AND NOT APPLE)
+	option(WITH_SDL_DYNLOAD  "Enable runtime dynamic SDL libraries loading" OFF)
+endif()
+
+# Compression
+option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
+option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
+if(UNIX AND NOT APPLE)
+	option(WITH_SYSTEM_LZO    "Use the system LZO library" OFF)
+endif()
+
+# Camera/motion tracking
+option(WITH_LIBMV         "Enable Libmv structure from motion library" ON)
+option(WITH_LIBMV_SCHUR_SPECIALIZATIONS "Enable fixed-size schur specializations." OFF)
+mark_as_advanced(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
+
+# Logging/unbit test libraries.
+option(WITH_SYSTEM_GFLAGS   "Use system-wide Gflags instead of a bundled one" OFF)
+option(WITH_SYSTEM_GLOG     "Use system-wide Glog instead of a bundled one" OFF)
+mark_as_advanced(WITH_SYSTEM_GFLAGS)
+mark_as_advanced(WITH_SYSTEM_GLOG)
+
+# Freestyle
+option(WITH_FREESTYLE     "Enable Freestyle (advanced edges rendering)" ON)
+
+# Misc
+if(WIN32)
+	option(WITH_INPUT_IME "Enable Input Method Editor (IME) for complex Asian character input" ON)
+endif()
+option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ${_init_INPUT_NDOF})
+option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON)
+if(UNIX AND NOT APPLE)
+	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
+	option(WITH_STATIC_LIBS "Try to link with static libraries, as much as possible, to make blender more portable across distributions" OFF)
+	if(WITH_STATIC_LIBS)
+		option(WITH_BOOST_ICU "Boost uses ICU library (required for linking with static Boost built with libicu)." OFF)
+		mark_as_advanced(WITH_BOOST_ICU)
+	endif()
+endif()
+
+option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
+if(WITH_PYTHON_INSTALL)
+	option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install folder"  ON)
+	set(PYTHON_NUMPY_PATH            "" CACHE PATH "Path to python site-packages or dist-packages containing 'numpy' module")
+	mark_as_advanced(PYTHON_NUMPY_PATH)
+
+	if(UNIX AND NOT APPLE)
+		option(WITH_PYTHON_INSTALL_REQUESTS "Copy system requests into the blender install folder" ON)
+		set(PYTHON_REQUESTS_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'requests' module")
+		mark_as_advanced(PYTHON_REQUESTS_PATH)
+	endif()
+endif()
+
+option(WITH_CPU_SSE              "Enable SIMD instruction if they're detected on the host machine" ON)
+mark_as_advanced(WITH_CPU_SSE)
+
+# Cycles
+option(WITH_CYCLES					"Enable Cycles Render Engine" ON)
+option(WITH_CYCLES_STANDALONE		"Build Cycles standalone application" OFF)
+option(WITH_CYCLES_STANDALONE_GUI	"Build Cycles standalone with GUI" OFF)
+option(WITH_CYCLES_OSL				"Build Cycles with OSL support" ${_init_CYCLES_OSL})
+option(WITH_CYCLES_OPENSUBDIV		"Build Cycles with OpenSubdiv support" ${_init_CYCLES_OPENSUBDIV})
+option(WITH_CYCLES_CUDA_BINARIES	"Build Cycles CUDA binaries" OFF)
+set(CYCLES_CUDA_BINARIES_ARCH sm_20 sm_21 sm_30 sm_35 sm_37 sm_50 sm_52 sm_60 sm_61 CACHE STRING "CUDA architectures to build binaries for")
+mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
+unset(PLATFORM_DEFAULT)
+option(WITH_CYCLES_LOGGING	"Build Cycles with logging support" ON)
+option(WITH_CYCLES_DEBUG	"Build Cycles with extra debug capabilities" OFF)
+option(WITH_CYCLES_NATIVE_ONLY	"Build Cycles with native kernel only (which fits current CPU, use for development only)" OFF)
+mark_as_advanced(WITH_CYCLES_LOGGING)
+mark_as_advanced(WITH_CYCLES_DEBUG)
+mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
+
+option(WITH_CUDA_DYNLOAD "Dynamically load CUDA libraries at runtime" ON)
+mark_as_advanced(WITH_CUDA_DYNLOAD)
+
+# LLVM
+option(WITH_LLVM					"Use LLVM" OFF)
+if(APPLE)
+	option(LLVM_STATIC					"Link with LLVM static libraries" ON) # we prefer static llvm build on Apple, dyn build possible though
+else()
+	option(LLVM_STATIC					"Link with LLVM static libraries" OFF)
+endif()
+mark_as_advanced(LLVM_STATIC)
+
+# disable for now, but plan to support on all platforms eventually
+option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" ON)
+mark_as_advanced(WITH_MEM_JEMALLOC)
+
+# currently only used for BLI_mempool
+option(WITH_MEM_VALGRIND "Enable extended valgrind support for better reporting" OFF)
+mark_as_advanced(WITH_MEM_VALGRIND)
+
+# Debug
+option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
+mark_as_advanced(WITH_CXX_GUARDEDALLOC)
+
+option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" OFF)
+mark_as_advanced(WITH_ASSERT_ABORT)
+
+option(WITH_BOOST					"Enable features depending on boost" ON)
+
+# Unit testsing
+option(WITH_GTESTS "Enable GTest unit testing" OFF)
+option(WITH_OPENGL_TESTS "Enable OpenGL related unit testing (Experimental)" OFF)
+
+
+# Documentation
+if(UNIX AND NOT APPLE)
+	option(WITH_DOC_MANPAGE "Create a manual page (Unix manpage)" OFF)
+endif()
+
+
+# OpenGL
+
+option(WITH_GLEW_MX             "Support multiple GLEW contexts (experimental)"                                                                     OFF )
+option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
+option(WITH_GL_EGL              "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, glX, or WGL)"       OFF)
+option(WITH_GL_PROFILE_COMPAT   "Support using the OpenGL 'compatibility' profile. (deprecated)"                                                    ON )
+option(WITH_GL_PROFILE_CORE     "Support using the OpenGL 3.2+ 'core' profile."                                                                     OFF)
+option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (thru either EGL or the AGL/WGL/XGL 'es20' profile)"                                  OFF)
+
+mark_as_advanced(
+	WITH_GLEW_MX
+	WITH_GLEW_ES
+	WITH_GL_EGL
+	WITH_GL_PROFILE_COMPAT
+	WITH_GL_PROFILE_CORE
+	WITH_GL_PROFILE_ES20
+)
+
+if(WITH_GL_PROFILE_COMPAT)
+	set(WITH_GLU ON)
+else()
+	set(WITH_GLU OFF)
+endif()
+
+if(WIN32)
+	option(WITH_GL_ANGLE "Link with the ANGLE library, an OpenGL ES 2.0 implementation based on Direct3D, instead of the system OpenGL library." OFF)
+	mark_as_advanced(WITH_GL_ANGLE)
+endif()
+
+if(WITH_GLEW_ES AND WITH_SYSTEM_GLEW)
+	message(WARNING Ignoring WITH_SYSTEM_GLEW and using WITH_GLEW_ES)
+	set(WITH_SYSTEM_GLEW OFF)
+endif()
+
+if(WIN32)
+	getDefaultWindowsPrefixBase(CMAKE_GENERIC_PROGRAM_FILES)
+	set(CPACK_INSTALL_PREFIX ${CMAKE_GENERIC_PROGRAM_FILES}/${})
+endif()
+
+# Experimental support of C11 and C++11
+#
+# We default options to whatever default standard in the current compiler.
+if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
+	set(_c11_init ON)
+	set(_cxx11_init ON)
+else()
+	set(_c11_init OFF)
+	set(_cxx11_init OFF)
+endif()
+
+option(WITH_C11 "Build with C11 standard enabled, for development use only!" ${_c11_init})
+mark_as_advanced(WITH_C11)
+option(WITH_CXX11 "Build with C++11 standard enabled, for development use only!" ${_cxx11_init})
+mark_as_advanced(WITH_CXX11)
+
+# Compiler toolchain
+if(CMAKE_COMPILER_IS_GNUCC)
+	option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
+	mark_as_advanced(WITH_LINKER_GOLD)
+endif()
+
+# Dependency graph
+option(WITH_LEGACY_DEPSGRAPH "Build Blender with legacy dependency graph" ON)
+mark_as_advanced(WITH_LEGACY_DEPSGRAPH)
+
+if(WIN32)
+	# Use hardcoded paths or find_package to find externals
+	option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
+	mark_as_advanced(WITH_WINDOWS_FIND_MODULES)
+
+	option(WITH_WINDOWS_CODESIGN "Use signtool to sign the final binary." OFF)
+	mark_as_advanced(WITH_WINDOWS_CODESIGN)
+
+	set(WINDOWS_CODESIGN_PFX CACHE FILEPATH  "Path to pfx file to use for codesigning.")
+	mark_as_advanced(WINDOWS_CODESIGN_PFX)
+
+	set(WINDOWS_CODESIGN_PFX_PASSWORD CACHE STRING  "password for pfx file used for codesigning.")
+	mark_as_advanced(WINDOWS_CODESIGN_PFX_PASSWORD)
+
+	option(WINDOWS_USE_VISUAL_STUDIO_FOLDERS "Organize the visual studio project according to source folders." ON)
+	mark_as_advanced(WINDOWS_USE_VISUAL_STUDIO_FOLDERS)
+
+	option(WINDOWS_PYTHON_DEBUG "Include the files needed for debugging python scripts with visual studio 2017+." OFF)
+	mark_as_advanced(WINDOWS_PYTHON_DEBUG)
+endif()
+
+# avoid using again
+option_defaults_clear()
+
+# end option(...)
+
+
+
+# By default we want to install to the directory we are compiling our executables
+# unless specified otherwise, which we currently do not allow
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	if(WIN32)
+		set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE)
+	elseif(APPLE)
+		set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE)
+	else()
+		if(WITH_INSTALL_PORTABLE)
+			set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} CACHE PATH "default install path" FORCE)
+		endif()
+	endif()
+endif()
+
+
+
+# Apple
+
+if(APPLE)
+	include(platform_apple_xcode)
+endif()
+
+
+#-----------------------------------------------------------------------------
+# Check for conflicting/unsupported configurations
+
+if(NOT WITH_BLENDER AND NOT WITH_PLAYER AND NOT WITH_CYCLES_STANDALONE)
+	message(FATAL_ERROR
+		"At least one of WITH_BLENDER or WITH_PLAYER or "
+		"WITH_CYCLES_STANDALONE must be enabled, nothing to do!"
+	)
+endif()
+
+if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
+	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
+endif()
+
+if(NOT WITH_AUDASPACE)
+	if(WITH_OPENAL)
+		message(FATAL_ERROR "WITH_OPENAL requires WITH_AUDASPACE")
+	endif()
+	if(WITH_JACK)
+		message(FATAL_ERROR "WITH_JACK requires WITH_AUDASPACE")
+	endif()
+	if(WITH_GAMEENGINE)
+		message(FATAL_ERROR "WITH_GAMEENGINE requires WITH_AUDASPACE")
+	endif()
+endif()
+
+if(NOT WITH_SDL AND WITH_GHOST_SDL)
+	message(FATAL_ERROR "WITH_GHOST_SDL requires WITH_SDL")
+endif()
+
+# python module, needs some different options
+if(WITH_PYTHON_MODULE AND WITH_PLAYER)
+	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PLAYER to be OFF")
+endif()
+
+if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
+	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
+endif()
+
+
+# may as well build python module without a UI
+if(WITH_PYTHON_MODULE)
+	set(WITH_HEADLESS ON)
+endif()
+
+if(NOT WITH_PYTHON)
+	set(WITH_CYCLES OFF)
+endif()
+
+# enable boost for cycles, audaspace or i18n
+# otherwise if the user disabled
+if(NOT WITH_BOOST)
+	# Explicitly disabled. so disable all deps.
+	macro(set_and_warn
+		_setting _val)
+		if(${${_setting}})
+			message(STATUS "'WITH_BOOST' is disabled: forcing 'set(${_setting} ${_val})'")
+		endif()
+		set(${_setting} ${_val})
+	endmacro()
+
+	set_and_warn(WITH_CYCLES         OFF)
+	set_and_warn(WITH_AUDASPACE      OFF)
+	set_and_warn(WITH_INTERNATIONAL  OFF)
+	set_and_warn(WITH_OPENVDB        OFF)
+	set_and_warn(WITH_OPENCOLORIO    OFF)
+	set_and_warn(WITH_MOD_BOOLEAN    OFF)
+
+	set_and_warn(WITH_OPENAL         OFF)  # depends on AUDASPACE
+	set_and_warn(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
+	set_and_warn(WITH_PLAYER         OFF)  # depends on GAMEENGINE
+elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL OR
+       WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_MOD_BOOLEAN)
+	# Keep enabled
+else()
+	# New dependency graph needs either Boost or C++11 for function bindings.
+	if(NOT WITH_CXX11)
+		# Enabled but we don't need it
+		set(WITH_BOOST OFF)
+	endif()
+endif()
+
+# auto enable openimageio for cycles
+if(WITH_CYCLES)
+	set(WITH_OPENIMAGEIO ON)
+
+	# auto enable llvm for cycles_osl
+	if(WITH_CYCLES_OSL)
+		set(WITH_LLVM ON CACHE BOOL "" FORCE)
+	endif()
+else()
+	set(WITH_CYCLES_OSL OFF)
+endif()
+
+# auto enable openimageio linking dependencies
+if(WITH_OPENIMAGEIO)
+	set(WITH_IMAGE_OPENEXR ON)
+	set(WITH_IMAGE_TIFF ON)
+endif()
+
+# auto enable alembic linking dependencies
+if(WITH_ALEMBIC)
+	set(WITH_IMAGE_OPENEXR ON)
+endif()
+
+# don't store paths to libs for portable distribution
+if(WITH_INSTALL_PORTABLE)
+	set(CMAKE_SKIP_BUILD_RPATH TRUE)
+endif()
+
+if(WITH_GHOST_SDL OR WITH_HEADLESS)
+	set(WITH_X11           OFF)
+	set(WITH_X11_XINPUT    OFF)
+	set(WITH_X11_XF86VMODE OFF)
+	set(WITH_X11_XFIXES    OFF)
+	set(WITH_X11_ALPHA     OFF)
+	set(WITH_GHOST_XDND    OFF)
+	set(WITH_INPUT_IME     OFF)
+endif()
+
+if(WITH_CPU_SSE)
+	TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
+else()
+	message(STATUS "SSE and SSE2 optimizations are DISABLED!")
+	set(COMPILER_SSE_FLAG)
+	set(COMPILER_SSE2_FLAG)
+endif()
+
+if(WITH_BUILDINFO)
+	find_package(Git)
+	if(NOT GIT_FOUND)
+		message(WARNING "Git was not found, disabling WITH_BUILDINFO")
+		set(WITH_BUILDINFO OFF)
+	endif()
+endif()
+
+TEST_SHARED_PTR_SUPPORT()
+TEST_UNORDERED_MAP_SUPPORT()
+
+if(WITH_AUDASPACE)
+	if(WITH_SYSTEM_AUDASPACE)
+		set(AUDASPACE_DEFINITIONS
+			-DWITH_AUDASPACE
+			-DWITH_SYSTEM_AUDASPACE
+			"-DAUD_DEVICE_H=<AUD_Device.h>"
+			"-DAUD_SPECIAL_H=<AUD_Special.h>"
+			"-DAUD_SOUND_H=<AUD_Sound.h>"
+			"-DAUD_HANDLE_H=<AUD_Handle.h>"
+			"-DAUD_SEQUENCE_H=<AUD_Sequence.h>"
+			"-DAUD_TYPES_H=<AUD_Types.h>"
+			"-DAUD_PYTHON_H=<python/PyAPI.h>"
+		)
+	else()
+		set(AUDASPACE_C_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/intern/audaspace/intern")
+		set(AUDASPACE_PY_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/intern/audaspace/intern")
+		set(AUDASPACE_DEFINITIONS
+			-DWITH_AUDASPACE
+			"-DAUD_DEVICE_H=<AUD_C-API.h>"
+			"-DAUD_SPECIAL_H=<AUD_C-API.h>"
+			"-DAUD_SOUND_H=<AUD_C-API.h>"
+			"-DAUD_HANDLE_H=<AUD_C-API.h>"
+			"-DAUD_SEQUENCE_H=<AUD_C-API.h>"
+			"-DAUD_TYPES_H=<AUD_Space.h>"
+		)
+	endif()
+endif()
+
+if(APPLE)
+	apple_check_quicktime()
+endif()
+
+#-----------------------------------------------------------------------------
+# Check for valid directories
+# ... a partial checkout may cause this.
+#
+# note: we need to check for a known subdir in both cases.
+#       since uninitialized git submodules will give blank dirs
+
+if(WITH_INTERNATIONAL)
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale/languages")
+		message(WARNING
+			"Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
+			"This is a 'git submodule', which are known not to work with bridges to other version "
+			"control systems, disabling 'WITH_INTERNATIONAL'."
+		)
+		set(WITH_INTERNATIONAL OFF)
+	endif()
+endif()
+
+if(WITH_PYTHON)
+	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons/modules")
+		message(WARNING
+			"Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
+			"This is a 'git submodule', which are known not to work with bridges to other version "
+			"control systems: * CONTINUING WITHOUT ADDONS *"
+		)
+	endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# Initialize un-cached vars, avoid unused warning
+
+# linux only, not cached
+set(WITH_BINRELOC OFF)
+
+# MACOSX only, set to avoid uninitialized
+set(EXETYPE "")
+
+# C/C++ flags
+set(PLATFORM_CFLAGS)
+
+# these are added to later on.
+set(C_WARNINGS)
+set(CXX_WARNINGS)
+
+# for gcc -Wno-blah-blah
+set(CC_REMOVE_STRICT_FLAGS)
+
+# libraries to link the binary with passed to target_link_libraries()
+# known as LLIBS to scons
+set(PLATFORM_LINKLIBS "")
+
+# Added to linker flags in setup_liblinks
+# - CMAKE_EXE_LINKER_FLAGS
+# - CMAKE_EXE_LINKER_FLAGS_DEBUG
+set(PLATFORM_LINKFLAGS "")
+set(PLATFORM_LINKFLAGS_DEBUG "")
+
+
+#-----------------------------------------------------------------------------
+#Platform specifics
+
+if(WITH_X11)
+	find_package(X11 REQUIRED)
+
+	find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
+	mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
+
+	list(APPEND PLATFORM_LINKLIBS ${X11_X11_LIB})
+
+	if(WITH_X11_XINPUT)
+		if(X11_Xinput_LIB)
+			list(APPEND PLATFORM_LINKLIBS ${X11_Xinput_LIB})
+		else()
+			set(WITH_X11_XINPUT OFF)
+		endif()
+	endif()
+
+	if(WITH_X11_XF86VMODE)
+		# XXX, why dont cmake make this available?
+		find_library(X11_Xxf86vmode_LIB Xxf86vm   ${X11_LIB_SEARCH_PATH})
+		mark_as_advanced(X11_Xxf86vmode_LIB)
+		if(X11_Xxf86vmode_LIB)
+			list(APPEND PLATFORM_LINKLIBS ${X11_Xxf86vmode_LIB})
+		else()
+			set(WITH_X11_XF86VMODE OFF)
+		endif()
+	endif()
+
+	if(WITH_X11_XFIXES)
+		if(X11_Xfixes_LIB)
+			list(APPEND PLATFORM_LINKLIBS ${X11_Xfixes_LIB})
+		else()
+			set(WITH_X11_XFIXES OFF)
+		endif()
+	endif()
+
+	if(WITH_X11_ALPHA)
+		find_library(X11_Xrender_LIB Xrender  ${X11_LIB_SEARCH_PATH})
+		mark_as_advanced(X11_Xrender_LIB)
+		if(X11_Xrender_LIB)
+			list(APPEND PLATFORM_LINKLIBS ${X11_Xrender_LIB})
+		else()
+			set(WITH_X11_ALPHA OFF)
+		endif()
+	endif()
+
+endif()
+
+
+# ----------------------------------------------------------------------------
+# Main Platform Checks
+#
+# - UNIX
+# - WIN32
+# - APPLE
+
+if(UNIX AND NOT APPLE)
+	include(platform_unix)
+elseif(WIN32)
+	include(platform_win32)
+elseif(APPLE)
+	include(platform_apple)
+endif()
+
+#-----------------------------------------------------------------------------
+# Common.
+
+if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
+	message(FATAL_ERROR "WITH_MOD_OCEANSIM requires WITH_FFTW3 to be ON")
+endif()
+
+if(WITH_CYCLES)
+	if(NOT WITH_OPENIMAGEIO)
+		message(FATAL_ERROR
+			"Cycles requires WITH_OPENIMAGEIO, the library may not have been found. "
+			"Configure OIIO or disable WITH_CYCLES"
+		)
+	endif()
+	if(NOT WITH_BOOST)
+		message(FATAL_ERROR
+			"Cycles requires WITH_BOOST, the library may not have been found. "
+			"Configure BOOST or disable WITH_CYCLES"
+		)
+	endif()
+
+	if(WITH_CYCLES_OSL)
+		if(NOT WITH_LLVM)
+			message(FATAL_ERROR
+				"Cycles OSL requires WITH_LLVM, the library may not have been found. "
+				"Configure LLVM or disable WITH_CYCLES_OSL"
+			)
+		endif()
+	endif()
+endif()
+
+if(WITH_INTERNATIONAL)
+	if(NOT WITH_BOOST)
+		message(FATAL_ERROR
+			"Internationalization requires WITH_BOOST, the library may not have been found. "
+			"Configure BOOST or disable WITH_INTERNATIONAL"
+		)
+	endif()
+endif()
+
+# See TEST_SSE_SUPPORT() for how this is defined.
+
+# Do it globally, SSE2 is required for quite some time now.
+# Doing it now allows to use SSE/SSE2 in inline headers.
+if(SUPPORT_SSE_BUILD)
+	set(PLATFORM_CFLAGS " ${COMPILER_SSE_FLAG} ${PLATFORM_CFLAGS}")
+	add_definitions(-D__SSE__ -D__MMX__)
+endif()
+if(SUPPORT_SSE2_BUILD)
+	set(PLATFORM_CFLAGS " ${PLATFORM_CFLAGS} ${COMPILER_SSE2_FLAG}")
+	add_definitions(-D__SSE2__)
+	if(NOT SUPPORT_SSE_BUILD) # dont double up
+		add_definitions(-D__MMX__)
+	endif()
+endif()
+
+
+# set the endian define
+if(MSVC)
+	# for some reason this fails on msvc
+	add_definitions(-D__LITTLE_ENDIAN__)
+
+# OSX-Note: as we do cross-compiling with specific set architecture,
+# endianess-detection and auto-setting is counterproductive
+# so we just set endianess according CMAKE_OSX_ARCHITECTURES
+
+elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR CMAKE_OSX_ARCHITECTURES MATCHES x86_64)
+	add_definitions(-D__LITTLE_ENDIAN__)
+elseif(CMAKE_OSX_ARCHITECTURES MATCHES ppc OR CMAKE_OSX_ARCHITECTURES MATCHES ppc64)
+	add_definitions(-D__BIG_ENDIAN__)
+
+else()
+	include(TestBigEndian)
+	test_big_endian(_SYSTEM_BIG_ENDIAN)
+	if(_SYSTEM_BIG_ENDIAN)
+		add_definitions(-D__BIG_ENDIAN__)
+	else()
+		add_definitions(-D__LITTLE_ENDIAN__)
+	endif()
+	unset(_SYSTEM_BIG_ENDIAN)
+endif()
+if(WITH_IMAGE_OPENJPEG)
+	if(WITH_SYSTEM_OPENJPEG)
+		# dealt with above
+		set(OPENJPEG_DEFINES "")
+	else()
+		set(OPENJPEG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/libopenjpeg")
+		set(OPENJPEG_DEFINES "-DOPJ_STATIC")
+	endif()
+	# Special handling of Windows platform where openjpeg is always static.
+	if(WIN32)
+		set(OPENJPEG_DEFINES "-DOPJ_STATIC")
+	endif()
+endif()
+
+if(NOT WITH_SYSTEM_EIGEN3)
+	set(EIGEN3_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/Eigen3)
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure OpenGL.
+
+find_package(OpenGL)
+blender_include_dirs_sys("${OPENGL_INCLUDE_DIR}")
+
+if(WITH_GLU)
+	list(APPEND BLENDER_GL_LIBRARIES "${OPENGL_glu_LIBRARY}")
+	list(APPEND GL_DEFINITIONS -DWITH_GLU)
+endif()
+
+if(WITH_SYSTEM_GLES)
+	find_package_wrapper(OpenGLES)
+endif()
+
+if(WITH_GL_PROFILE_COMPAT OR WITH_GL_PROFILE_CORE)
+	list(APPEND BLENDER_GL_LIBRARIES "${OPENGL_gl_LIBRARY}")
+
+elseif(WITH_GL_PROFILE_ES20)
+	if(WITH_SYSTEM_GLES)
+		if(NOT OPENGLES_LIBRARY)
+			message(FATAL_ERROR
+				"Unable to find OpenGL ES libraries. "
+				"Install them or disable WITH_SYSTEM_GLES."
+			)
+		endif()
+
+		list(APPEND BLENDER_GL_LIBRARIES OPENGLES_LIBRARY)
+
+	else()
+		set(OPENGLES_LIBRARY "" CACHE FILEPATH "OpenGL ES 2.0 library file")
+		mark_as_advanced(OPENGLES_LIBRARY)
+
+		list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}")
+
+		if(NOT OPENGLES_LIBRARY)
+			message(FATAL_ERROR
+				"To compile WITH_GL_EGL you need to set OPENGLES_LIBRARY "
+				"to the file path of an OpenGL ES 2.0 library."
+			)
+		endif()
+
+	endif()
+
+	if(WIN32)
+		# Setup paths to files needed to install and redistribute Windows Blender with OpenGL ES
+
+		set(OPENGLES_DLL "" CACHE FILEPATH "OpenGL ES 2.0 redistributable DLL file")
+		mark_as_advanced(OPENGLES_DLL)
+
+		if(NOT OPENGLES_DLL)
+			message(FATAL_ERROR
+				"To compile WITH_GL_PROFILE_ES20 you need to set OPENGLES_DLL to the file "
+				"path of an OpenGL ES 2.0 runtime dynamic link library (DLL)."
+			)
+		endif()
+
+		if(WITH_GL_ANGLE)
+			list(APPEND GL_DEFINITIONS -DWITH_ANGLE)
+
+			set(D3DCOMPILER_DLL "" CACHE FILEPATH "Direct3D Compiler redistributable DLL file (needed by ANGLE)")
+
+			get_filename_component(D3DCOMPILER_FILENAME "${D3DCOMPILER_DLL}" NAME)
+			list(APPEND GL_DEFINITIONS "-DD3DCOMPILER=\"\\\"${D3DCOMPILER_FILENAME}\\\"\"")
+
+			mark_as_advanced(D3DCOMPILER_DLL)
+
+			if(D3DCOMPILER_DLL STREQUAL "")
+				message(FATAL_ERROR
+					"To compile WITH_GL_ANGLE you need to set D3DCOMPILER_DLL to the file "
+					"path of a copy of the DirectX redistributable DLL file: D3DCompiler_46.dll"
+				)
+			endif()
+
+		endif()
+
+	endif()
+
+endif()
+
+if(WITH_GL_EGL)
+	list(APPEND GL_DEFINITIONS -DWITH_GL_EGL)
+
+	if(WITH_SYSTEM_GLES)
+		if(NOT OPENGLES_EGL_LIBRARY)
+			message(FATAL_ERROR
+				"Unable to find OpenGL ES libraries. "
+				"Install them or disable WITH_SYSTEM_GLES."
+			)
+		endif()
+
+		list(APPEND BLENDER_GL_LIBRARIES OPENGLES_EGL_LIBRARY)
+
+	else()
+		set(OPENGLES_EGL_LIBRARY "" CACHE FILEPATH "EGL library file")
+		mark_as_advanced(OPENGLES_EGL_LIBRARY)
+
+		list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}" "${OPENGLES_EGL_LIBRARY}")
+
+		if(NOT OPENGLES_EGL_LIBRARY)
+			message(FATAL_ERROR
+				"To compile WITH_GL_EGL you need to set OPENGLES_EGL_LIBRARY "
+				"to the file path of an EGL library."
+			)
+		endif()
+
+	endif()
+
+	if(WIN32)
+		# Setup paths to files needed to install and redistribute Windows Blender with OpenGL ES
+
+		set(OPENGLES_EGL_DLL "" CACHE FILEPATH "EGL redistributable DLL file")
+		mark_as_advanced(OPENGLES_EGL_DLL)
+
+		if(NOT OPENGLES_EGL_DLL)
+			message(FATAL_ERROR
+				"To compile WITH_GL_EGL you need to set OPENGLES_EGL_DLL "
+				"to the file path of an EGL runtime dynamic link library (DLL)."
+			)
+		endif()
+
+	endif()
+
+endif()
+
+if(WITH_GL_PROFILE_COMPAT)
+	list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_COMPAT)
+endif()
+
+if(WITH_GL_PROFILE_CORE)
+	list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_CORE)
+endif()
+
+if(WITH_GL_PROFILE_ES20)
+	list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_ES20)
+endif()
+
+if(WITH_GL_EGL)
+	list(APPEND GL_DEFINITIONS -DWITH_EGL)
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure OpenMP.
+if(WITH_OPENMP)
+	find_package(OpenMP)
+	if(OPENMP_FOUND)
+		if(NOT WITH_OPENMP_STATIC)
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+		else()
+			# Typically avoid adding flags as defines but we can't
+			# pass OpenMP flags to the linker for static builds, meaning
+			# we can't add any OpenMP related flags to CFLAGS variables
+			# since they're passed to the linker as well.
+			add_definitions("${OpenMP_C_FLAGS}")
+
+			find_library_static(OpenMP_LIBRARIES gomp ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
+		endif()
+	else()
+		set(WITH_OPENMP OFF)
+	endif()
+
+	mark_as_advanced(
+		OpenMP_C_FLAGS
+		OpenMP_CXX_FLAGS
+	)
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure GLEW
+
+if(WITH_GLEW_MX)
+	list(APPEND GL_DEFINITIONS -DWITH_GLEW_MX)
+endif()
+
+if(WITH_SYSTEM_GLEW)
+	find_package(GLEW)
+
+	# Note: There is an assumption here that the system GLEW is not a static library.
+
+	if(NOT GLEW_FOUND)
+		message(FATAL_ERROR "GLEW is required to build Blender. Install it or disable WITH_SYSTEM_GLEW.")
+	endif()
+
+	if(WITH_GLEW_MX)
+		set(BLENDER_GLEW_LIBRARIES ${GLEW_MX_LIBRARY})
+	else()
+		set(BLENDER_GLEW_LIBRARIES ${GLEW_LIBRARY})
+	endif()
+else()
+	if(WITH_GLEW_ES)
+		set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew-es/include")
+
+		list(APPEND GL_DEFINITIONS -DGLEW_STATIC -DWITH_GLEW_ES)
+
+		# These definitions remove APIs from glew.h, making GLEW smaller, and catching unguarded API usage
+		if(NOT WITH_GL_PROFILE_ES20)
+			# No ES functions are needed
+			list(APPEND GL_DEFINITIONS -DGLEW_NO_ES)
+		elseif(NOT (WITH_GL_PROFILE_CORE OR WITH_GL_PROFILE_COMPAT))
+			# ES is enabled, but the other functions are all disabled
+			list(APPEND GL_DEFINITIONS -DGLEW_ES_ONLY)
+		endif()
+
+		if(WITH_GL_PROFILE_ES20)
+			if(WITH_GL_EGL)
+				list(APPEND GL_DEFINITIONS -DGLEW_USE_LIB_ES20)
+			endif()
+
+			# ToDo: This is an experiment to eliminate ES 1 symbols,
+			# GLEW doesn't really properly provide this level of control
+			# (for example, without modification it eliminates too many symbols)
+			# so there are lots of modifications to GLEW to make this work,
+			# and no attempt to make it work beyond Blender at this point.
+			list(APPEND GL_DEFINITIONS -DGL_ES_VERSION_1_0=0 -DGL_ES_VERSION_CL_1_1=0 -DGL_ES_VERSION_CM_1_1=0)
+		endif()
+
+		if(WITH_GL_EGL)
+			list(APPEND GL_DEFINITIONS -DGLEW_INC_EGL)
+		endif()
+
+		set(BLENDER_GLEW_LIBRARIES extern_glew_es bf_intern_glew_mx)
+
+	else()
+		set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
+
+		list(APPEND GL_DEFINITIONS -DGLEW_STATIC)
+
+		# This won't affect the non-experimental glew library, 
+		# but is used for conditional compilation elsewhere.
+		list(APPEND GL_DEFINITIONS -DGLEW_NO_ES)
+
+		set(BLENDER_GLEW_LIBRARIES extern_glew)
+
+	endif()
+
+endif()
+
+if(NOT WITH_GLU)
+	list(APPEND GL_DEFINITIONS -DGLEW_NO_GLU)
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure Bullet
+
+if(WITH_BULLET AND WITH_SYSTEM_BULLET)
+	find_package(Bullet)
+	if(NOT BULLET_FOUND)
+		set(WITH_BULLET OFF)
+	endif()
+else()
+	ADD_DEFINITIONS( -DBT_USE_DOUBLE_PRECISION)
+	set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
+	# set(BULLET_LIBRARIES "")
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure Python.
+
+if(WITH_PYTHON_MODULE)
+	add_definitions(-DPy_ENABLE_SHARED)
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure GLog/GFlags
+
+if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
+	if(WITH_SYSTEM_GFLAGS)
+		find_package(Gflags)
+		if(NOT GFLAGS_FOUND)
+			message(FATAL_ERROR "System wide Gflags is requested but was not found")
+		endif()
+		# FindGflags does not define this, and we are not even sure what to use here.
+		set(GFLAGS_DEFINES)
+	else()
+		set(GFLAGS_DEFINES
+			-DGFLAGS_DLL_DEFINE_FLAG=
+			-DGFLAGS_DLL_DECLARE_FLAG=
+			-DGFLAGS_DLL_DECL=
+		)
+		set(GFLAGS_NAMESPACE "gflags")
+		set(GFLAGS_LIBRARIES extern_gflags)
+		set(GFLAGS_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/extern/gflags/src")
+	endif()
+
+	if(WITH_SYSTEM_GLOG)
+		find_package(Glog)
+		if(NOT GLOG_FOUND)
+			message(FATAL_ERROR "System wide Glog is requested but was not found")
+		endif()
+		# FindGlog does not define this, and we are not even sure what to use here.
+		set(GLOG_DEFINES)
+	else()
+		set(GLOG_DEFINES
+			-DGOOGLE_GLOG_DLL_DECL=
+		)
+		set(GLOG_LIBRARIES extern_glog)
+		if(WIN32)
+			set(GLOG_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/glog/src/windows)
+		else()
+			set(GLOG_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/glog/src)
+		endif()
+	endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure Ceres
+
+if(WITH_LIBMV)
+	set(CERES_DEFINES)
+
+	if(WITH_CXX11)
+		# nothing to be done
+	elseif(SHARED_PTR_FOUND)
+		if(SHARED_PTR_TR1_MEMORY_HEADER)
+			list(APPEND CERES_DEFINES -DCERES_TR1_MEMORY_HEADER)
+		endif()
+		if(SHARED_PTR_TR1_NAMESPACE)
+			list(APPEND CERES_DEFINES -DCERES_TR1_SHARED_PTR)
+		endif()
+	else()
+		message(FATAL_ERROR "Ceres: Unable to find shared_ptr.")
+	endif()
+
+	if(WITH_CXX11)
+		list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
+	elseif(HAVE_STD_UNORDERED_MAP_HEADER)
+		if(HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
+			list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
+		else()
+			if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+				list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
+			else()
+				list(APPEND CERES_DEFINES -DCERES_NO_UNORDERED_MAP)
+				message(STATUS "Ceres: Replacing unordered_map/set with map/set (warning: slower!)")
+			endif()
+		endif()
+	else()
+		if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+			list(APPEND CERES_DEFINES -DCERES_TR1_UNORDERED_MAP)
+		else()
+			list(APPEND CERES_DEFINES -DCERES_NO_UNORDERED_MAP)
+			message(STATUS "Ceres: Replacing unordered_map/set with map/set (warning: slower!)")
+		endif()
+	endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# Extra compile flags
+
+if(CMAKE_COMPILER_IS_GNUCC)
+
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_CAST_ALIGN -Wcast-align)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_VLA -Werror=vla)
+	# system headers sometimes do this, disable for now, was: -Werror=strict-prototypes
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_LOGICAL_OP -Wlogical-op)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEF -Wundef)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_NULL -Wnonnull)  # C only
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_TYPE_LIMITS -Wtype-limits)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_FORMAT_SIGN -Wformat-signedness)
+
+	# gcc 4.2 gives annoying warnings on every file with this
+	if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")
+		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
+	endif()
+
+	# versions before gcc4.6 give many BLI_math warnings
+	if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.6")
+		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_REDUNDANT_DECLS       -Wredundant-decls)
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_REDUNDANT_DECLS -Wredundant-decls)
+	endif()
+
+	# versions before gcc4.8 include global name-space.
+	if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.8")
+		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_SHADOW -Wshadow)
+	endif()
+
+	# disable because it gives warnings for printf() & friends.
+	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
+
+	if(NOT APPLE)
+		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
+	endif()
+
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_LOGICAL_OP -Wlogical-op)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_TYPE_LIMITS -Wtype-limits)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_POINTER_ARITH -Wpointer-arith)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNUSED_PARAMETER -Wunused-parameter)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_WRITE_STRINGS -Wwrite-strings)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_FORMAT_SIGN -Wformat-signedness)
+
+	# gcc 4.2 gives annoying warnings on every file with this
+	if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
+	endif()
+
+	# causes too many warnings
+	if(NOT APPLE)
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_DECLARATIONS -Wmissing-declarations)
+	endif()
+
+	# Use 'ATTR_FALLTHROUGH' macro to suppress.
+	if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "7.0"))
+		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
+	endif()
+
+	# flags to undo strict flags
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER        -Wno-unused-parameter)
+
+	if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "7.0"))
+		ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_IMPLICIT_FALLTHROUGH    -Wno-implicit-fallthrough)
+	endif()
+
+	if(NOT APPLE)
+		ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
+	endif()
+
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+
+	if(APPLE AND WITH_OPENMP) # we need the Intel omp lib linked here to not fail all tests due presence of -fopenmp !
+		set(CMAKE_REQUIRED_FLAGS "-L${LIBDIR}/openmp/lib -liomp5") # these are only used for the checks
+	endif()
+
+	# strange, clang complains these are not supported, but then yses them.
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
+
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS     -Wno-unknown-pragmas)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS     -Wno-char-subscripts)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_OVERLOADED_VIRTUAL  -Wno-overloaded-virtual)  # we get a lot of these, if its a problem a dev needs to look into it.
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE        -Wno-sign-compare)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF    -Wno-invalid-offsetof)
+
+	# gives too many unfixable warnings
+	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
+	# ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNUSED_MACROS          -Wunused-macros)
+
+	# flags to undo strict flags
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER -Wno-unused-parameter)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_MACROS    -Wno-unused-macros)
+
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_VARIABLE_DECLARATIONS -Wno-missing-variable-declarations)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_INCOMPAT_PTR_DISCARD_QUAL -Wno-incompatible-pointer-types-discards-qualifiers)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_FUNCTION -Wno-unused-function)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_INT_TO_VOID_POINTER_CAST -Wno-int-to-void-pointer-cast)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_PROTOTYPES -Wno-missing-prototypes)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_DUPLICATE_ENUM -Wno-duplicate-enum)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_UNDEF -Wno-undef)
+	ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_MISSING_NORETURN -Wno-missing-noreturn)
+
+	ADD_CHECK_CXX_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_PRIVATE_FIELD -Wno-unused-private-field)
+	ADD_CHECK_CXX_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS CXX_WARN_NO_CXX11_NARROWING -Wno-c++11-narrowing)
+	ADD_CHECK_CXX_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS CXX_WARN_NO_NON_VIRTUAL_DTOR -Wno-non-virtual-dtor)
+	ADD_CHECK_CXX_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_MACROS -Wno-unused-macros)
+	ADD_CHECK_CXX_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS CXX_WARN_NO_REORDER -Wno-reorder)
+
+elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
+
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
+
+	# disable numbered, false positives
+	set(C_WARNINGS "${C_WARNINGS} -wd188,186,144,913,556")
+	set(CXX_WARNINGS "${CXX_WARNINGS} -wd188,186,144,913,556")
+elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+	# most msvc warnings are C & C++
+	set(_WARNINGS
+		# warning level:
+		"/W3"
+		"/w34062"  # switch statement contains 'default' but no 'case' labels
+		# disable:
+		"/wd4018"  # signed/unsigned mismatch
+		"/wd4146"  # unary minus operator applied to unsigned type, result still unsigned
+		"/wd4065"  # switch statement contains 'default' but no 'case' labels
+		"/wd4127"  # conditional expression is constant
+		"/wd4181"  # qualifier applied to reference type; ignored
+		"/wd4200"  # zero-sized array in struct/union
+		"/wd4244"  # conversion from 'type1' to 'type2', possible loss of data
+		"/wd4267"  # conversion from 'size_t' to 'type', possible loss of data
+		"/wd4305"  # truncation from 'type1' to 'type2'
+		"/wd4800"  # forcing value to bool 'true' or 'false'
+		# errors:
+		"/we4013"  # 'function' undefined; assuming extern returning int
+		"/we4431"  # missing type specifier - int assumed
+	)
+
+	string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
+	set(C_WARNINGS "${_WARNINGS}")
+	set(CXX_WARNINGS "${_WARNINGS}")
+	unset(_WARNINGS)
+endif()
+
+# ensure python header is found since detection can fail, this could happen
+# with _any_ library but since we used a fixed python version this tends to
+# be most problematic.
+if(WITH_PYTHON)
+	if(NOT EXISTS "${PYTHON_INCLUDE_DIR}/Python.h")
+		message(FATAL_ERROR
+			"Missing: \"${PYTHON_INCLUDE_DIR}/Python.h\",\n"
+			"Set the cache entry 'PYTHON_INCLUDE_DIR' to point "
+			"to a valid python include path. Containing "
+			"Python.h for python version \"${PYTHON_VERSION}\""
+		)
+	endif()
+
+	if(WIN32 OR APPLE)
+		# pass, we have this in an archive to extract
+	elseif(WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY)
+		find_python_package(numpy)
+	endif()
+
+	if(WIN32 OR APPLE)
+		# pass, we have this in lib/python/site-packages
+	elseif(WITH_PYTHON_INSTALL_REQUESTS)
+		find_python_package(requests)
+	endif()
+endif()
+
+if(WITH_CXX11)
+	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+		# TODO(sergey): Do we want c++11 or gnu-c++11 here?
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	elseif(MSVC)
+		# Nothing special is needed, C++11 features are available by default.
+	else()
+		message(FATAL_ERROR "Compiler ${CMAKE_C_COMPILER_ID} is not supported for C++11 build yet")
+	endif()
+else()
+	# GCC-6 switched to C++11 by default, which would break linking with existing libraries
+	# by default. So we explicitly disable C++11 for a new GCC so no linking issues happens.
+	if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0"))
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
+		# We also disable any of C++11 ABI from usage, so we wouldn't even try to
+		# link to stuff from std::__cxx11 namespace.
+		add_definitions("-D_GLIBCXX_USE_CXX11_ABI=0")
+	endif()
+endif()
+
+# Visual Studio has all standards it supports available by default
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "Intel")
+	# Use C99 + GNU extensions, works with GCC, Clang, ICC
+	if(WITH_C11)
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+	else()
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+	endif()
+endif()
+
+# Include warnings first, so its possible to disable them with user defined flags
+# eg: -Wno-uninitialized
+set(CMAKE_C_FLAGS "${C_WARNINGS} ${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS}")
+set(CMAKE_CXX_FLAGS "${CXX_WARNINGS} ${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS}")
+
+# defined above, platform specific but shared names
+mark_as_advanced(
+	CYCLES_OSL
+	OSL_LIB_EXEC
+	OSL_COMPILER
+	OSL_LIB_COMP
+	OSL_LIB_QUERY
+	OSL_INCLUDE_DIR
+)
+
+mark_as_advanced(
+	LLVM_CONFIG
+	LLVM_ROOT_DIR
+	LLVM_LIBRARY
+	LLVM_VERSION
+)
+
+#-------------------------------------------------------------------------------
+# Global Defines
+
+# better not set includes here but this debugging option is off by default.
+if(WITH_CXX_GUARDEDALLOC)
+	include_directories(${CMAKE_SOURCE_DIR}/intern/guardedalloc)
+	add_definitions(-DWITH_CXX_GUARDEDALLOC)
+endif()
+
+if(WITH_ASSERT_ABORT)
+	add_definitions(-DWITH_ASSERT_ABORT)
+endif()
+
+# message(STATUS "Using CFLAGS: ${CMAKE_C_FLAGS}")
+# message(STATUS "Using CXXFLAGS: ${CMAKE_CXX_FLAGS}")
+
+#-----------------------------------------------------------------------------
+# Libraries
+
+if(WITH_GTESTS)
+	include(GTestTesting)
+endif()
+
+if(WITH_BLENDER OR WITH_PLAYER)
+	add_subdirectory(intern)
+	add_subdirectory(extern)
+
+	# source after intern and extern to gather all
+	# internal and external library information first, for test linking
+	add_subdirectory(source)
+elseif(WITH_CYCLES_STANDALONE)
+	add_subdirectory(intern/cycles)
+	add_subdirectory(extern/clew)
+	if(WITH_CUDA_DYNLOAD)
+		add_subdirectory(extern/cuew)
+	endif()
+	if(NOT WITH_SYSTEM_GLEW)
+		add_subdirectory(extern/glew)
+	endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# Blender Application
+if(WITH_BLENDER)
+	add_subdirectory(source/creator)
+endif()
+
+
+#-----------------------------------------------------------------------------
+# Blender Player
+if(WITH_PLAYER)
+	add_subdirectory(source/blenderplayer)
+endif()
+
+
+#-----------------------------------------------------------------------------
+# Testing
+add_subdirectory(tests)
+
+
+#-----------------------------------------------------------------------------
+# CPack for generating packages
+include(build_files/cmake/packaging.cmake)
+
+#-----------------------------------------------------------------------------
+# Use dynamic loading for OpenMP
+if(WITH_BLENDER)
+	openmp_delayload(blender)
+endif(WITH_BLENDER)
+if(WITH_PLAYER)
+	openmp_delayload(blenderplayer)
+endif(WITH_PLAYER)
+
+#-----------------------------------------------------------------------------
+# Print Final Configuration
+
+if(FIRST_RUN)
+
+	set(_config_msg "\nBlender Configuration\n=====================")
+
+	function(info_cfg_option
+		_setting
+		)
+
+		set(_msg "  - ${_setting}")
+		string(LENGTH "${_msg}" _len)
+		while("32" GREATER "${_len}")
+			set(_msg "${_msg} ")
+			math(EXPR _len "${_len} + 1")
+		endwhile()
+
+		set(_config_msg "${_config_msg}\n${_msg}${${_setting}}" PARENT_SCOPE)
+	endfunction()
+
+	function(info_cfg_text
+		_text
+		)
+
+		set(_config_msg "${_config_msg}\n\n  ${_text}" PARENT_SCOPE)
+	endfunction()
+
+	message(STATUS "C Compiler:   \"${CMAKE_C_COMPILER_ID}\"")
+	message(STATUS "C++ Compiler: \"${CMAKE_CXX_COMPILER_ID}\"")
+
+	info_cfg_text("Build Options:")
+	info_cfg_option(WITH_GAMEENGINE)
+	info_cfg_option(WITH_PLAYER)
+	info_cfg_option(WITH_BULLET)
+	info_cfg_option(WITH_IK_SOLVER)
+	info_cfg_option(WITH_IK_ITASC)
+	info_cfg_option(WITH_OPENCOLLADA)
+	info_cfg_option(WITH_FFTW3)
+	info_cfg_option(WITH_INTERNATIONAL)
+	info_cfg_option(WITH_INPUT_NDOF)
+	info_cfg_option(WITH_CYCLES)
+	info_cfg_option(WITH_FREESTYLE)
+	info_cfg_option(WITH_OPENCOLORIO)
+	info_cfg_option(WITH_OPENVDB)
+	info_cfg_option(WITH_ALEMBIC)
+
+	info_cfg_text("Compiler Options:")
+	info_cfg_option(WITH_BUILDINFO)
+	info_cfg_option(WITH_OPENMP)
+	info_cfg_option(WITH_RAYOPTIMIZATION)
+
+	info_cfg_text("System Options:")
+	info_cfg_option(WITH_INSTALL_PORTABLE)
+	info_cfg_option(WITH_X11_ALPHA)
+	info_cfg_option(WITH_X11_XF86VMODE)
+	info_cfg_option(WITH_X11_XFIXES)
+	info_cfg_option(WITH_X11_XINPUT)
+	info_cfg_option(WITH_MEM_JEMALLOC)
+	info_cfg_option(WITH_MEM_VALGRIND)
+	info_cfg_option(WITH_SYSTEM_GLEW)
+	info_cfg_option(WITH_SYSTEM_OPENJPEG)
+
+	info_cfg_text("Image Formats:")
+	info_cfg_option(WITH_OPENIMAGEIO)
+	info_cfg_option(WITH_IMAGE_CINEON)
+	info_cfg_option(WITH_IMAGE_DDS)
+	info_cfg_option(WITH_IMAGE_HDR)
+	info_cfg_option(WITH_IMAGE_OPENEXR)
+	info_cfg_option(WITH_IMAGE_OPENJPEG)
+	info_cfg_option(WITH_IMAGE_TIFF)
+
+	info_cfg_text("Audio:")
+	info_cfg_option(WITH_OPENAL)
+	info_cfg_option(WITH_SDL)
+	info_cfg_option(WITH_SDL_DYNLOAD)
+	info_cfg_option(WITH_JACK)
+	info_cfg_option(WITH_JACK_DYNLOAD)
+	info_cfg_option(WITH_CODEC_AVI)
+	info_cfg_option(WITH_CODEC_FFMPEG)
+	info_cfg_option(WITH_CODEC_SNDFILE)
+
+	info_cfg_text("Compression:")
+	info_cfg_option(WITH_LZMA)
+	info_cfg_option(WITH_LZO)
+
+	info_cfg_text("Python:")
+	info_cfg_option(WITH_PYTHON_INSTALL)
+	info_cfg_option(WITH_PYTHON_INSTALL_NUMPY)
+	info_cfg_option(WITH_PYTHON_MODULE)
+	info_cfg_option(WITH_PYTHON_SAFETY)
+	if(APPLE)
+		info_cfg_option(WITH_PYTHON_FRAMEWORK)
+	endif()
+
+	info_cfg_text("Modifiers:")
+	info_cfg_option(WITH_MOD_BOOLEAN)
+	info_cfg_option(WITH_MOD_REMESH)
+	info_cfg_option(WITH_MOD_FLUID)
+	info_cfg_option(WITH_MOD_OCEANSIM)
+
+	info_cfg_text("OpenGL:")
+	info_cfg_option(WITH_GLEW_ES)
+	info_cfg_option(WITH_GLU)
+	info_cfg_option(WITH_GL_EGL)
+	info_cfg_option(WITH_GL_PROFILE_COMPAT)
+	info_cfg_option(WITH_GL_PROFILE_CORE)
+	info_cfg_option(WITH_GL_PROFILE_ES20)
+	if(WIN32)
+		info_cfg_option(WITH_GL_ANGLE)
+	endif()
+
+	info_cfg_text("")
+
+	message("${_config_msg}")
+endif()
+
+if(0)
+	print_all_vars()
+endif()
+

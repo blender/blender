@@ -1,0 +1,403 @@
+<?xml version="1.0" ?>
+<!DOCTYPE settings [
+<!ELEMENT settings (default,preset*)>
+<!ELEMENT default (title,size,shape,material,random)>
+<!ELEMENT preset (title,size,shape,material,random)>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT size (scale+,skew+,use_scale_dis,scale_fac)>
+<!ELEMENT scale (axis,lower,upper)>
+<!ELEMENT axis (#PCDATA)>
+<!ELEMENT lower (#PCDATA)>
+<!ELEMENT upper (#PCDATA)>
+<!ELEMENT skew (axis,value)>
+<!ELEMENT value (#PCDATA)>
+<!ELEMENT use_scale_dis (#PCDATA)>
+<!ELEMENT scale_fac (#PCDATA)>
+<!ELEMENT shape (deform,rough,detail,display_detail,smooth_fac,smooth_it)>
+<!ELEMENT deform (#PCDATA)>
+<!ELEMENT rough (#PCDATA)>
+<!ELEMENT detail (#PCDATA)>
+<!ELEMENT display_detail (#PCDATA)>
+<!ELEMENT smooth_fac (#PCDATA)>
+<!ELEMENT smooth_it (#PCDATA)>
+<!ELEMENT material (mat_enable,mat_color,mat_bright,mat_rough,mat_spec,mat_hard,mat_use_trans,mat_alpha,mat_cloudy,mat_IOR,mat_mossy)>
+<!ELEMENT mat_enable (#PCDATA)>
+<!ELEMENT mat_color (#PCDATA)>
+<!ELEMENT mat_bright (#PCDATA)>
+<!ELEMENT mat_rough (#PCDATA)>
+<!ELEMENT mat_spec (#PCDATA)>
+<!ELEMENT mat_hard (#PCDATA)>
+<!ELEMENT mat_use_trans (#PCDATA)>
+<!ELEMENT mat_alpha (#PCDATA)>
+<!ELEMENT mat_cloudy (#PCDATA)>
+<!ELEMENT mat_IOR (#PCDATA)>
+<!ELEMENT mat_mossy (#PCDATA)>
+<!ELEMENT random (use_random_seed,user_seed)>
+<!ELEMENT use_generate (#PCDATA)>
+<!ELEMENT use_random_seed (#PCDATA)>
+<!ELEMENT user_seed (#PCDATA)>
+
+<!ATTLIST preset id ID #REQUIRED>
+]>
+<settings>
+	<default>
+		<title>Default</title>
+		<size>
+			<scale>
+				<axis>X</axis>
+				<lower>1.0</lower>
+				<upper>1.0</upper>
+			</scale>
+			<scale>
+				<axis>Y</axis>
+				<lower>1.0</lower>
+				<upper>1.0</upper>
+			</scale>
+			<scale>
+				<axis>Z</axis>
+				<lower>1.0</lower>
+				<upper>1.0</upper>
+			</scale>
+			<skew>
+				<axis>X</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Y</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Z</axis>
+				<value>0.0</value>
+			</skew>
+			<use_scale_dis>False</use_scale_dis>
+			<scale_fac>[1.0, 1.0, 1.0]</scale_fac>
+		</size>
+		<shape>
+			<deform>5.0</deform>
+			<rough>2.5</rough>
+			<detail>3</detail>
+			<display_detail>2</display_detail>
+			<smooth_fac>0.0</smooth_fac>
+			<smooth_it>0</smooth_it>
+		</shape>
+		<material>
+			<mat_enable>False</mat_enable>
+			<mat_color>[0.5, 0.5, 0.5]</mat_color>
+			<mat_bright>0.85</mat_bright>
+			<mat_rough>1.0</mat_rough>
+			<mat_spec>0.2</mat_spec>
+			<mat_hard>50</mat_hard>
+			<mat_use_trans>False</mat_use_trans>
+			<mat_alpha>0.0</mat_alpha>
+			<mat_cloudy>0.0</mat_cloudy>
+			<mat_IOR>1.0</mat_IOR>
+			<mat_mossy>0.0</mat_mossy>
+		</material>
+		<random>
+			<use_generate>True</use_generate>
+			<use_random_seed>True</use_random_seed>
+			<user_seed>1</user_seed>
+		</random>
+	</default>
+	<preset id="1">
+		<title>River Rock</title>
+		<size>
+			<scale>
+				<axis>X</axis>
+				<lower>0.5</lower>
+				<upper>1.25</upper>
+			</scale>
+			<scale>
+				<axis>Y</axis>
+				<lower>0.5</lower>
+				<upper>1.25</upper>
+			</scale>
+			<scale>
+				<axis>Z</axis>
+				<lower>0.5</lower>
+				<upper>1.25</upper>
+			</scale>
+			<skew>
+				<axis>X</axis>
+				<value>-0.5</value>
+			</skew>
+			<skew>
+				<axis>Y</axis>
+				<value>-0.5</value>
+			</skew>
+			<skew>
+				<axis>Z</axis>
+				<value>-0.5</value>
+			</skew>
+			<use_scale_dis>False</use_scale_dis>
+			<scale_fac>[1.0, 1.0, 1.0]</scale_fac>
+		</size>
+		<shape>
+			<deform>3.0</deform>
+			<rough>2.0</rough>
+			<detail>2</detail>
+			<display_detail>2</display_detail>
+			<smooth_fac>2.0</smooth_fac>
+			<smooth_it>2</smooth_it>
+		</shape>
+		<material>
+			<mat_enable>True</mat_enable>
+			<mat_color>[0.5, 0.5, 0.5]</mat_color>
+			<mat_bright>0.85</mat_bright>
+			<mat_rough>0.125</mat_rough>
+			<mat_spec>0.5</mat_spec>
+			<mat_hard>50</mat_hard>
+			<mat_use_trans>False</mat_use_trans>
+			<mat_alpha>0.0</mat_alpha>
+			<mat_cloudy>0.0</mat_cloudy>
+			<mat_IOR>1.0</mat_IOR>
+			<mat_mossy>0.0</mat_mossy>
+		</material>
+		<random>
+			<use_generate>True</use_generate>
+			<use_random_seed>True</use_random_seed>
+			<user_seed>1</user_seed>
+		</random>
+	</preset>
+	<preset id="2">
+		<title>Asteroid</title>
+		<size>
+			<scale>
+				<axis>X</axis>
+				<lower>1.0</lower>
+				<upper>5.0</upper>
+			</scale>
+			<scale>
+				<axis>Y</axis>
+				<lower>1.0</lower>
+				<upper>5.0</upper>
+			</scale>
+			<scale>
+				<axis>Z</axis>
+				<lower>1.0</lower>
+				<upper>5.0</upper>
+			</scale>
+			<skew>
+				<axis>X</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Y</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Z</axis>
+				<value>0.0</value>
+			</skew>
+			<use_scale_dis>False</use_scale_dis>
+			<scale_fac>[1.0, 1.0, 1.0]</scale_fac>
+		</size>
+		<shape>
+			<deform>7.5</deform>
+			<rough>3.0</rough>
+			<detail>4</detail>
+			<display_detail>3</display_detail>
+			<smooth_fac>0.0</smooth_fac>
+			<smooth_it>0</smooth_it>
+		</shape>
+		<material>
+			<mat_enable>True</mat_enable>
+			<mat_color>[0.3, 0.25, 0.2]</mat_color>
+			<mat_bright>0.85</mat_bright>
+			<mat_rough>1.5</mat_rough>
+			<mat_spec>0.25</mat_spec>
+			<mat_hard>30</mat_hard>
+			<mat_use_trans>False</mat_use_trans>
+			<mat_alpha>0.0</mat_alpha>
+			<mat_cloudy>0.0</mat_cloudy>
+			<mat_IOR>1.0</mat_IOR>
+			<mat_mossy>0.0</mat_mossy>
+		</material>
+		<random>
+			<use_generate>True</use_generate>
+			<use_random_seed>True</use_random_seed>
+			<user_seed>1</user_seed>
+		</random>
+	</preset>
+	<preset id="3">
+		<title>Sandstone</title>
+		<size>
+			<scale>
+				<axis>X</axis>
+				<lower>1.0</lower>
+				<upper>1.0</upper>
+			</scale>
+			<scale>
+				<axis>Y</axis>
+				<lower>1.0</lower>
+				<upper>1.0</upper>
+			</scale>
+			<scale>
+				<axis>Z</axis>
+				<lower>1.0</lower>
+				<upper>1.0</upper>
+			</scale>
+			<skew>
+				<axis>X</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Y</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Z</axis>
+				<value>0.0</value>
+			</skew>
+			<use_scale_dis>True</use_scale_dis>
+			<scale_fac>[5.0, 5.0, 0.1]</scale_fac>
+		</size>
+		<shape>
+			<deform>0.5</deform>
+			<rough>1.0</rough>
+			<detail>3</detail>
+			<display_detail>3</display_detail>
+			<smooth_fac>2.0</smooth_fac>
+			<smooth_it>2</smooth_it>
+		</shape>
+		<material>
+			<mat_enable>True</mat_enable>
+			<mat_color>[0.5, 0.4, 0.35]</mat_color>
+			<mat_bright>0.85</mat_bright>
+			<mat_rough>0.1</mat_rough>
+			<mat_spec>0.2</mat_spec>
+			<mat_hard>50</mat_hard>
+			<mat_use_trans>False</mat_use_trans>
+			<mat_alpha>0.0</mat_alpha>
+			<mat_cloudy>0.0</mat_cloudy>
+			<mat_IOR>1.0</mat_IOR>
+			<mat_mossy>0.0</mat_mossy>
+		</material>
+		<random>
+			<use_generate>True</use_generate>
+			<use_random_seed>True</use_random_seed>
+			<user_seed>1</user_seed>
+		</random>
+	</preset>
+	<preset id="4">
+		<title>Ice</title>
+		<size>
+			<scale>
+				<axis>X</axis>
+				<lower>0.0</lower>
+				<upper>2.0</upper>
+			</scale>
+			<scale>
+				<axis>Y</axis>
+				<lower>0.0</lower>
+				<upper>2.0</upper>
+			</scale>
+			<scale>
+				<axis>Z</axis>
+				<lower>0.0</lower>
+				<upper>2.0</upper>
+			</scale>
+			<skew>
+				<axis>X</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Y</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Z</axis>
+				<value>0.0</value>
+			</skew>
+			<use_scale_dis>False</use_scale_dis>
+			<scale_fac>[1.0, 1.0, 1.0]</scale_fac>
+		</size>
+		<shape>
+			<deform>5.0</deform>
+			<rough>1.0</rough>
+			<detail>3</detail>
+			<display_detail>2</display_detail>
+			<smooth_fac>2.0</smooth_fac>
+			<smooth_it>1</smooth_it>
+		</shape>
+		<material>
+			<mat_enable>True</mat_enable>
+			<mat_color>[0.9, 0.95, 1.0]</mat_color>
+			<mat_bright>0.85</mat_bright>
+			<mat_rough>0.25</mat_rough>
+			<mat_spec>0.2</mat_spec>
+			<mat_hard>50</mat_hard>
+			<mat_use_trans>True</mat_use_trans>
+			<mat_alpha>0.9</mat_alpha>
+			<mat_cloudy>0.1</mat_cloudy>
+			<mat_IOR>1.31</mat_IOR>
+			<mat_mossy>0.0</mat_mossy>
+		</material>
+		<random>
+			<use_generate>True</use_generate>
+			<use_random_seed>True</use_random_seed>
+			<user_seed>1</user_seed>
+		</random>
+	</preset>
+	<preset id="5">
+		<title>Fake Ocean</title>
+		<size>
+			<scale>
+				<axis>X</axis>
+				<lower>10.0</lower>
+				<upper>10.0</upper>
+			</scale>
+			<scale>
+				<axis>Y</axis>
+				<lower>10.0</lower>
+				<upper>10.0</upper>
+			</scale>
+			<scale>
+				<axis>Z</axis>
+				<lower>0.0</lower>
+				<upper>0.0</upper>
+			</scale>
+			<skew>
+				<axis>X</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Y</axis>
+				<value>0.0</value>
+			</skew>
+			<skew>
+				<axis>Z</axis>
+				<value>0.0</value>
+			</skew>
+			<use_scale_dis>False</use_scale_dis>
+			<scale_fac>[1.0, 1.0, 1.0]</scale_fac>
+		</size>
+		<shape>
+			<deform>7.5</deform>
+			<rough>3.0</rough>
+			<detail>4</detail>
+			<display_detail>3</display_detail>
+			<smooth_fac>0.0</smooth_fac>
+			<smooth_it>0</smooth_it>
+		</shape>
+		<material>
+			<mat_enable>True</mat_enable>
+			<mat_color>[0.1, 0.12, 0.125]</mat_color>
+			<mat_bright>0.85</mat_bright>
+			<mat_rough>1.5</mat_rough>
+			<mat_spec>0.25</mat_spec>
+			<mat_hard>30</mat_hard>
+			<mat_use_trans>True</mat_use_trans>
+			<mat_alpha>0.5</mat_alpha>
+			<mat_cloudy>0.5</mat_cloudy>
+			<mat_IOR>1.333</mat_IOR>
+			<mat_mossy>0.0</mat_mossy>
+		</material>
+		<random>
+			<use_generate>True</use_generate>
+			<use_random_seed>True</use_random_seed>
+			<user_seed>1</user_seed>
+		</random>
+	</preset>
+</settings>

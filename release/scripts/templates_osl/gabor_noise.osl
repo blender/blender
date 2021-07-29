@@ -1,0 +1,17 @@
+
+shader gabor_noise(
+	point Point = P,
+	vector Direction = vector(1, 0, 0),
+	int Anisotropic = 0,
+	float Bandwidth = 1.0,
+	float Impulses = 16,
+	output float Gabor = 0.8)
+{
+	Gabor = noise("gabor", Point,
+	              "direction", Direction,
+	              "anisotropic", Anisotropic,
+	              "do_filter", 1, // Set to 0 to disable filtering/anti-aliasing 
+	              "bandwidth", Bandwidth,
+	              "impulses", Impulses);
+}
+

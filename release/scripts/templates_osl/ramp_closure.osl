@@ -1,0 +1,20 @@
+
+shader node_ramp_bsdf(
+	float Exponent = 10.0,
+	color Color1 = color(0.8, 0.0, 0.0),
+	color Color2 = color(0.0, 0.8, 0.0),
+	color Color3 = color(0.0, 0.0, 0.8),
+	color Color4 = 0.1,
+	color Color5 = 0.2,
+	color Color6 = 0.3,
+	color Color7 = 0.4,
+	color Color8 = 0.5,
+	normal Normal = N,
+	output closure color Phong = 0,
+	output closure color Diffuse = 0)
+{
+	color Color[8] = {Color1, Color2, Color3, Color4, Color5, Color6, Color7, Color8};
+
+	Phong = phong_ramp(Normal, Exponent, Color);
+	Diffuse = diffuse_ramp(Normal, Color);
+}

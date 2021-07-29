@@ -1,0 +1,12 @@
+diff -r e82d852e4fb0 include/carve/interpolator.hpp
+--- a/include/carve/interpolator.hpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/include/carve/interpolator.hpp	Fri Jan 31 18:55:05 2014 +0600
+@@ -219,7 +219,7 @@
+           interpolator->edgeDivision(csg, orig_edge, orig_edge_idx, v1, v2);
+         }
+ 
+-        Hook(Interpolator *_interpolator, const carve::csg::CSG &_csg) : interpolator(_interpolator), csg(_csg) {
++        Hook(Interpolator *_interpolator, const carve::csg::CSG &_csg) : csg(_csg), interpolator(_interpolator) {
+         }
+ 
+         virtual ~Hook() {

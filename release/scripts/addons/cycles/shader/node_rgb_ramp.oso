@@ -1,0 +1,307 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_rgb_ramp.oso
+shader node_rgb_ramp
+param	color[]	ramp_color	0 0 0		%read{2,57} %write{2147483647,-1}
+param	float[]	ramp_alpha	0		%read{63,118} %write{2147483647,-1}
+param	int	interpolate	1		%read{48,109} %write{2147483647,-1}
+param	float	Fac	0		%read{1,94} %write{2147483647,-1}
+oparam	color	Color	0 0 0		%read{2147483647,-1} %write{30,60}
+oparam	float	Alpha	1		%read{2147483647,-1} %write{91,121}
+local	float	___646_f	%read{3,46} %write{1,37}
+local	int	___646_table_size	%read{20,44} %write{2,2}
+local	color	___647_t0	%read{18,30} %write{16,21}
+local	color	___647_dy	%read{26,26} %write{18,24}
+local	int	___646_i	%read{39,56} %write{38,44}
+local	float	___646_t	%read{50,58} %write{46,46}
+local	color	___646_result	%read{55,60} %write{47,59}
+local	float	___650_f	%read{64,107} %write{62,98}
+local	int	___650_table_size	%read{81,105} %write{63,63}
+local	float	___651_t0	%read{79,91} %write{77,82}
+local	float	___651_dy	%read{87,87} %write{79,85}
+local	int	___650_i	%read{100,117} %write{99,105}
+local	float	___650_t	%read{111,119} %write{107,107}
+local	float	___650_result	%read{116,121} %write{108,120}
+const	int	$const1	0		%read{4,112} %write{2147483647,-1}
+const	string	$const2	"rgb_ramp_lookup"		%read{0,61} %write{2147483647,-1}
+const	float	$const3	0		%read{3,111} %write{2147483647,-1}
+temp	int	$tmp1	%read{4,4} %write{3,3}
+temp	int	$tmp2	%read{5,9} %write{4,8}
+const	float	$const4	1		%read{6,115} %write{2147483647,-1}
+temp	int	$tmp3	%read{7,7} %write{6,6}
+temp	int	$tmp4	%read{8,8} %write{7,7}
+temp	int	$tmp5	%read{10,13} %write{9,12}
+temp	int	$tmp6	%read{12,12} %write{11,11}
+temp	int	$tmp7	%read{15,15} %write{14,14}
+const	int	$const5	1		%read{17,117} %write{2147483647,-1}
+temp	color	$tmp8	%read{18,18} %write{17,17}
+temp	int	$tmp9	%read{21,21} %write{20,20}
+const	int	$const6	2		%read{22,83} %write{2147483647,-1}
+temp	int	$tmp10	%read{23,23} %write{22,22}
+temp	color	$tmp11	%read{24,24} %write{23,23}
+temp	color	$tmp12	%read{29,29} %write{26,26}
+temp	int	$tmp13	%read{28,28} %write{27,27}
+temp	color	$tmp14	%read{30,30} %write{29,29}
+temp	color	$tmp15	%read{29,29} %write{28,28}
+temp	float	$tmp16	%read{37,37} %write{34,34}
+const	string	$const7	"clamp"		%read{32,93} %write{2147483647,-1}
+temp	float	$tmp17	%read{34,34} %write{33,33}
+temp	int	$tmp18	%read{36,36} %write{35,35}
+temp	float	$tmp19	%read{37,37} %write{36,36}
+temp	int	$tmp20	%read{40,40} %write{39,39}
+temp	int	$tmp21	%read{43,43} %write{42,42}
+temp	float	$tmp22	%read{46,46} %write{45,45}
+temp	int	$tmp23	%read{49,53} %write{48,52}
+temp	int	$tmp24	%read{51,51} %write{50,50}
+temp	int	$tmp25	%read{52,52} %write{51,51}
+temp	float	$tmp26	%read{55,55} %write{54,54}
+temp	color	$tmp27	%read{59,59} %write{55,55}
+temp	int	$tmp28	%read{57,57} %write{56,56}
+temp	color	$tmp29	%read{58,58} %write{57,57}
+temp	color	$tmp30	%read{59,59} %write{58,58}
+temp	int	$tmp31	%read{65,65} %write{64,64}
+temp	int	$tmp32	%read{66,70} %write{65,69}
+temp	int	$tmp33	%read{68,68} %write{67,67}
+temp	int	$tmp34	%read{69,69} %write{68,68}
+temp	int	$tmp35	%read{71,74} %write{70,73}
+temp	int	$tmp36	%read{73,73} %write{72,72}
+temp	int	$tmp37	%read{76,76} %write{75,75}
+temp	float	$tmp38	%read{79,79} %write{78,78}
+temp	int	$tmp39	%read{82,82} %write{81,81}
+temp	int	$tmp40	%read{84,84} %write{83,83}
+temp	float	$tmp41	%read{85,85} %write{84,84}
+temp	float	$tmp42	%read{90,90} %write{87,87}
+temp	int	$tmp43	%read{89,89} %write{88,88}
+temp	float	$tmp44	%read{91,91} %write{90,90}
+temp	float	$tmp45	%read{90,90} %write{89,89}
+temp	float	$tmp46	%read{98,98} %write{95,95}
+temp	float	$tmp47	%read{95,95} %write{94,94}
+temp	int	$tmp48	%read{97,97} %write{96,96}
+temp	float	$tmp49	%read{98,98} %write{97,97}
+temp	int	$tmp50	%read{101,101} %write{100,100}
+temp	int	$tmp51	%read{104,104} %write{103,103}
+temp	float	$tmp52	%read{107,107} %write{106,106}
+temp	int	$tmp53	%read{110,114} %write{109,113}
+temp	int	$tmp54	%read{112,112} %write{111,111}
+temp	int	$tmp55	%read{113,113} %write{112,112}
+temp	float	$tmp56	%read{116,116} %write{115,115}
+temp	float	$tmp57	%read{120,120} %write{116,116}
+temp	int	$tmp58	%read{118,118} %write{117,117}
+temp	float	$tmp59	%read{119,119} %write{118,118}
+temp	float	$tmp60	%read{120,120} %write{119,119}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_rgb_ramp.osl:29
+# 	Color = rgb_ramp_lookup(ramp_color, Fac, interpolate, 0);
+	functioncall	$const2 61 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_rgb_ramp.osl"} %line{29} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:21
+# 	float f = at;
+	assign		___646_f Fac 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h"} %line{21} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:22
+# 	int table_size = arraylength(ramp);
+	arraylength	___646_table_size ramp_color 	%line{22} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:24
+# 	if ((f < 0.0 || f > 1.0) && extrapolate) {
+	lt		$tmp1 ___646_f $const3 	%line{24} %argrw{"wrr"}
+	neq		$tmp2 $tmp1 $const1 	%argrw{"wrr"}
+	if		$tmp2 6 9 	%argrw{"r"}
+	gt		$tmp3 ___646_f $const4 	%argrw{"wrr"}
+	neq		$tmp4 $tmp3 $const1 	%argrw{"wrr"}
+	assign		$tmp2 $tmp4 	%argrw{"wr"}
+	neq		$tmp5 $tmp2 $const1 	%argrw{"wrr"}
+	if		$tmp5 13 13 	%argrw{"r"}
+	neq		$tmp6 $const1 $const1 	%argrw{"wrr"}
+	assign		$tmp5 $tmp6 	%argrw{"wr"}
+	if		$tmp5 32 32 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:26
+# 		if (f < 0.0) {
+	lt		$tmp7 ___646_f $const3 	%line{26} %argrw{"wrr"}
+	if		$tmp7 20 26 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:27
+# 			t0 = ramp[0];
+	aref		___647_t0 ramp_color $const1 	%line{27} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:28
+# 			dy = t0 - ramp[1];
+	aref		$tmp8 ramp_color $const5 	%line{28} %argrw{"wrr"}
+	sub		___647_dy ___647_t0 $tmp8 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:29
+# 			f = -f;
+	neg		___646_f ___646_f 	%line{29} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:32
+# 			t0 = ramp[table_size - 1];
+	sub		$tmp9 ___646_table_size $const5 	%line{32} %argrw{"wrr"}
+	aref		___647_t0 ramp_color $tmp9 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:33
+# 			dy = t0 - ramp[table_size - 2];
+	sub		$tmp10 ___646_table_size $const6 	%line{33} %argrw{"wrr"}
+	aref		$tmp11 ramp_color $tmp10 	%argrw{"wrr"}
+	sub		___647_dy ___647_t0 $tmp11 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:34
+# 			f = f - 1.0;
+	sub		___646_f ___646_f $const4 	%line{34} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:36
+# 		return t0 + dy * f * (table_size - 1);
+	mul		$tmp12 ___647_dy ___646_f 	%line{36} %argrw{"wrr"}
+	sub		$tmp13 ___646_table_size $const5 	%argrw{"wrr"}
+	assign		$tmp15 $tmp13 	%argrw{"wr"}
+	mul		$tmp14 $tmp12 $tmp15 	%argrw{"wrr"}
+	add		Color ___647_t0 $tmp14 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:39
+# 	f = clamp(at, 0.0, 1.0) * (table_size - 1);
+	functioncall	$const7 35 	%line{39} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# vector log (vector a, float b) { return log(a)/log(b); }
+	min		$tmp17 Fac $const4 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp16 $tmp17 $const3 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:39
+# 	f = clamp(at, 0.0, 1.0) * (table_size - 1);
+	sub		$tmp18 ___646_table_size $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h"} %line{39} %argrw{"wrr"}
+	assign		$tmp19 $tmp18 	%argrw{"wr"}
+	mul		___646_f $tmp16 $tmp19 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:42
+# 	int i = (int)f;
+	assign		___646_i ___646_f 	%line{42} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:43
+# 	if (i < 0) i = 0;
+	lt		$tmp20 ___646_i $const1 	%line{43} %argrw{"wrr"}
+	if		$tmp20 42 42 	%argrw{"r"}
+	assign		___646_i $const1 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:44
+# 	if (i >= table_size) i = table_size - 1;
+	ge		$tmp21 ___646_i ___646_table_size 	%line{44} %argrw{"wrr"}
+	if		$tmp21 45 45 	%argrw{"r"}
+	sub		___646_i ___646_table_size $const5 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:45
+# 	float t = f - (float)i;
+	assign		$tmp22 ___646_i 	%line{45} %argrw{"wr"}
+	sub		___646_t ___646_f $tmp22 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:47
+# 	color result = ramp[i];
+	aref		___646_result ramp_color ___646_i 	%line{47} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:49
+# 	if (interpolate && t > 0.0)
+	neq		$tmp23 interpolate $const1 	%line{49} %argrw{"wrr"}
+	if		$tmp23 53 53 	%argrw{"r"}
+	gt		$tmp24 ___646_t $const3 	%argrw{"wrr"}
+	neq		$tmp25 $tmp24 $const1 	%argrw{"wrr"}
+	assign		$tmp23 $tmp25 	%argrw{"wr"}
+	if		$tmp23 60 60 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:50
+# 		result = (1.0 - t) * result + t * ramp[i + 1];
+	sub		$tmp26 $const4 ___646_t 	%line{50} %argrw{"wrr"}
+	mul		$tmp27 $tmp26 ___646_result 	%argrw{"wrr"}
+	add		$tmp28 ___646_i $const5 	%argrw{"wrr"}
+	aref		$tmp29 ramp_color $tmp28 	%argrw{"wrr"}
+	mul		$tmp30 ___646_t $tmp29 	%argrw{"wrr"}
+	add		___646_result $tmp27 $tmp30 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:52
+# 	return result;
+	assign		Color ___646_result 	%line{52} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_rgb_ramp.osl:30
+# 	Alpha = rgb_ramp_lookup(ramp_alpha, Fac, interpolate, 0);
+	functioncall	$const2 122 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_rgb_ramp.osl"} %line{30} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:57
+# 			t0 = ramp[0];
+	assign		___650_f Fac 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h"} %line{57} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:58
+# 			dy = t0 - ramp[1];
+	arraylength	___650_table_size ramp_alpha 	%line{58} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:60
+# 		}
+	lt		$tmp31 ___650_f $const3 	%line{60} %argrw{"wrr"}
+	neq		$tmp32 $tmp31 $const1 	%argrw{"wrr"}
+	if		$tmp32 67 70 	%argrw{"r"}
+	gt		$tmp33 ___650_f $const4 	%argrw{"wrr"}
+	neq		$tmp34 $tmp33 $const1 	%argrw{"wrr"}
+	assign		$tmp32 $tmp34 	%argrw{"wr"}
+	neq		$tmp35 $tmp32 $const1 	%argrw{"wrr"}
+	if		$tmp35 74 74 	%argrw{"r"}
+	neq		$tmp36 $const1 $const1 	%argrw{"wrr"}
+	assign		$tmp35 $tmp36 	%argrw{"wr"}
+	if		$tmp35 93 93 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:62
+# 			t0 = ramp[table_size - 1];
+	lt		$tmp37 ___650_f $const3 	%line{62} %argrw{"wrr"}
+	if		$tmp37 81 87 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:63
+# 			dy = t0 - ramp[table_size - 2];
+	aref		___651_t0 ramp_alpha $const1 	%line{63} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:64
+# 			f = f - 1.0;
+	aref		$tmp38 ramp_alpha $const5 	%line{64} %argrw{"wrr"}
+	sub		___651_dy ___651_t0 $tmp38 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:65
+# 		}
+	neg		___650_f ___650_f 	%line{65} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:68
+# 
+	sub		$tmp39 ___650_table_size $const5 	%line{68} %argrw{"wrr"}
+	aref		___651_t0 ramp_alpha $tmp39 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:69
+# 	f = clamp(at, 0.0, 1.0) * (table_size - 1);
+	sub		$tmp40 ___650_table_size $const6 	%line{69} %argrw{"wrr"}
+	aref		$tmp41 ramp_alpha $tmp40 	%argrw{"wrr"}
+	sub		___651_dy ___651_t0 $tmp41 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:70
+# 
+	sub		___650_f ___650_f $const4 	%line{70} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:72
+# 	int i = (int)f;
+	mul		$tmp42 ___651_dy ___650_f 	%line{72} %argrw{"wrr"}
+	sub		$tmp43 ___650_table_size $const5 	%argrw{"wrr"}
+	assign		$tmp45 $tmp43 	%argrw{"wr"}
+	mul		$tmp44 $tmp42 $tmp45 	%argrw{"wrr"}
+	add		Alpha ___651_t0 $tmp44 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:75
+# 	float t = f - (float)i;
+	functioncall	$const7 96 	%line{75} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# 
+	min		$tmp47 Fac $const4 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp46 $tmp47 $const3 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:75
+# 	f = clamp(at, 0.0, 1.0) * (table_size - 1);
+	sub		$tmp48 ___650_table_size $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h"} %line{75} %argrw{"wrr"}
+	assign		$tmp49 $tmp48 	%argrw{"wr"}
+	mul		___650_f $tmp46 $tmp49 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:78
+# 	int i = (int)f;
+	assign		___650_i ___650_f 	%line{78} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:79
+# 	if (i < 0) i = 0;
+	lt		$tmp50 ___650_i $const1 	%line{79} %argrw{"wrr"}
+	if		$tmp50 103 103 	%argrw{"r"}
+	assign		___650_i $const1 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:80
+# 	if (i >= table_size) i = table_size - 1;
+	ge		$tmp51 ___650_i ___650_table_size 	%line{80} %argrw{"wrr"}
+	if		$tmp51 106 106 	%argrw{"r"}
+	sub		___650_i ___650_table_size $const5 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:81
+# 	float t = f - (float)i;
+	assign		$tmp52 ___650_i 	%line{81} %argrw{"wr"}
+	sub		___650_t ___650_f $tmp52 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:83
+# 	float result = ramp[i];
+	aref		___650_result ramp_alpha ___650_i 	%line{83} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:85
+# 	if (interpolate && t > 0.0)
+	neq		$tmp53 interpolate $const1 	%line{85} %argrw{"wrr"}
+	if		$tmp53 114 114 	%argrw{"r"}
+	gt		$tmp54 ___650_t $const3 	%argrw{"wrr"}
+	neq		$tmp55 $tmp54 $const1 	%argrw{"wrr"}
+	assign		$tmp53 $tmp55 	%argrw{"wr"}
+	if		$tmp53 121 121 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:86
+# 		result = (1.0 - t) * result + t * ramp[i + 1];
+	sub		$tmp56 $const4 ___650_t 	%line{86} %argrw{"wrr"}
+	mul		$tmp57 $tmp56 ___650_result 	%argrw{"wrr"}
+	add		$tmp58 ___650_i $const5 	%argrw{"wrr"}
+	aref		$tmp59 ramp_alpha $tmp58 	%argrw{"wrr"}
+	mul		$tmp60 ___650_t $tmp59 	%argrw{"wrr"}
+	add		___650_result $tmp57 $tmp60 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_ramp_util.h:88
+# 	return result;
+	assign		Alpha ___650_result 	%line{88} %argrw{"wr"}
+	end

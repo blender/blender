@@ -1,0 +1,361 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_wave_texture.oso
+shader node_wave_texture
+param	int	use_mapping	0		%read{2,2} %write{2147483647,-1}
+param	matrix	mapping	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0		%read{3,3} %write{2147483647,-1}
+param	string	type	"bands"		%read{7,15} %write{2147483647,-1}
+param	string	profile	"sine"		%read{113,113} %write{2147483647,-1}
+param	float	Scale	5		%read{4,4} %write{2147483647,-1}
+param	float	Distortion	0		%read{19,111} %write{2147483647,-1}
+param	float	Detail	2		%read{27,27} %write{2147483647,-1}
+param	float	DetailScale	1		%read{21,21} %write{2147483647,-1}
+param	point	Vector	0 0 0		%read{1,1} %write{0,0} %initexpr
+oparam	float	Fac	0		%read{128,128} %write{117,126}
+oparam	color	Color	0 0 0		%read{2147483647,-1} %write{128,128}
+global	point	P	%read{0,0} %write{2147483647,-1}
+local	float	___658_f	%read{32,72} %write{32,66}
+local	float	___659_fscale	%read{32,60} %write{23,55}
+local	float	___659_amp	%read{32,77} %write{24,55}
+local	float	___659_sum	%read{32,109} %write{25,108}
+local	int	___659_i	%read{32,55} %write{31,55}
+local	int	___659_n	%read{32,103} %write{29,29}
+local	float	___659_octaves	%read{29,57} %write{28,28}
+local	float	___661_t	%read{32,55} %write{32,55}
+local	float	___659_rmd	%read{58,98} %write{57,57}
+local	float	___662_t	%read{74,77} %write{70,76}
+local	float	___662_sum2	%read{95,98} %write{78,95}
+local	float	___665_n	%read{112,126} %write{6,122}
+local	point	p	%read{3,4} %write{1,3}
+temp	point	$tmp1	%read{9,21} %write{4,4}
+const	string	$const1	"wave"		%read{5,5} %write{2147483647,-1}
+const	float	$const2	0		%read{6,123} %write{2147483647,-1}
+const	string	$const3	"bands"		%read{7,7} %write{2147483647,-1}
+temp	int	$tmp2	%read{8,8} %write{7,7}
+const	int	$const4	0		%read{9,73} %write{2147483647,-1}
+temp	float	$tmp3	%read{11,11} %write{9,9}
+const	int	$const5	1		%read{10,105} %write{2147483647,-1}
+temp	float	$tmp4	%read{11,11} %write{10,10}
+temp	float	$tmp5	%read{13,13} %write{11,11}
+const	int	$const6	2		%read{12,90} %write{2147483647,-1}
+temp	float	$tmp6	%read{13,13} %write{12,12}
+temp	float	$tmp7	%read{14,14} %write{13,13}
+const	float	$const7	10		%read{14,14} %write{2147483647,-1}
+const	string	$const8	"rings"		%read{15,15} %write{2147483647,-1}
+temp	int	$tmp8	%read{16,16} %write{15,15}
+temp	float	$tmp9	%read{18,18} %write{17,17}
+const	float	$const9	20		%read{18,18} %write{2147483647,-1}
+temp	int	$tmp10	%read{20,20} %write{19,19}
+temp	float	$tmp11	%read{111,111} %write{99,109}
+temp	point	$tmp12	%read{32,60} %write{21,21}
+const	string	$const10	"noise_turbulence"		%read{22,22} %write{2147483647,-1}
+const	float	$const11	1		%read{23,125} %write{2147483647,-1}
+const	float	$const12	16		%read{27,27} %write{2147483647,-1}
+const	string	$const13	"clamp"		%read{26,26} %write{2147483647,-1}
+temp	float	$tmp13	%read{28,28} %write{27,27}
+temp	int	$tmp14	%read{30,55} %write{31,55}
+temp	point	$tmp15	%read{32,55} %write{32,55}
+const	string	$const14	"unsigned"		%read{36,63} %write{2147483647,-1}
+const	string	$const15	"safe_noise"		%read{34,61} %write{2147483647,-1}
+const	string	$const16	"signed"		%read{36,63} %write{2147483647,-1}
+temp	int	$tmp16	%read{32,55} %write{32,55}
+const	string	$const17	"perlin"		%read{38,65} %write{2147483647,-1}
+temp	int	$tmp17	%read{32,55} %write{32,55}
+temp	int	$tmp18	%read{32,55} %write{32,55}
+const	float	$const18	0.5		%read{43,117} %write{2147483647,-1}
+const	float	$const19	2		%read{47,74} %write{2147483647,-1}
+temp	float	$tmp19	%read{32,55} %write{32,55}
+temp	float	$tmp20	%read{32,55} %write{32,55}
+temp	float	$tmp21	%read{32,55} %write{32,55}
+temp	int	$tmp22	%read{2147483647,-1} %write{32,55}
+temp	float	$tmp23	%read{57,57} %write{56,56}
+temp	int	$tmp24	%read{59,59} %write{58,58}
+temp	point	$tmp25	%read{65,66} %write{60,60}
+temp	int	$tmp26	%read{64,64} %write{63,63}
+temp	int	$tmp27	%read{68,68} %write{67,67}
+temp	int	$tmp28	%read{69,69} %write{68,68}
+temp	float	$tmp29	%read{75,75} %write{74,74}
+temp	float	$tmp30	%read{76,76} %write{75,75}
+temp	float	$tmp31	%read{78,78} %write{77,77}
+temp	int	$tmp32	%read{80,80} %write{79,79}
+temp	float	$tmp33	%read{85,85} %write{80,80}
+temp	int	$tmp34	%read{82,82} %write{81,81}
+temp	int	$tmp35	%read{83,83} %write{82,82}
+temp	int	$tmp36	%read{84,84} %write{83,83}
+temp	float	$tmp37	%read{85,85} %write{84,84}
+temp	float	$tmp38	%read{86,86} %write{85,85}
+temp	int	$tmp39	%read{88,88} %write{87,87}
+temp	int	$tmp40	%read{89,89} %write{88,88}
+temp	float	$tmp41	%read{94,94} %write{89,89}
+temp	int	$tmp42	%read{91,91} %write{90,90}
+temp	int	$tmp43	%read{92,92} %write{91,91}
+temp	int	$tmp44	%read{93,93} %write{92,92}
+temp	float	$tmp45	%read{94,94} %write{93,93}
+temp	float	$tmp46	%read{95,95} %write{94,94}
+temp	float	$tmp47	%read{97,97} %write{96,96}
+temp	float	$tmp48	%read{99,99} %write{97,97}
+temp	float	$tmp49	%read{99,99} %write{98,98}
+temp	int	$tmp50	%read{102,102} %write{101,101}
+temp	float	$tmp51	%read{107,107} %write{102,102}
+temp	int	$tmp52	%read{104,104} %write{103,103}
+temp	int	$tmp53	%read{105,105} %write{104,104}
+temp	int	$tmp54	%read{106,106} %write{105,105}
+temp	float	$tmp55	%read{107,107} %write{106,106}
+temp	float	$tmp56	%read{108,108} %write{107,107}
+temp	float	$tmp57	%read{112,112} %write{111,111}
+const	string	$const20	"sine"		%read{113,113} %write{2147483647,-1}
+temp	int	$tmp58	%read{114,114} %write{113,113}
+temp	float	$tmp59	%read{116,116} %write{115,115}
+temp	float	$tmp60	%read{117,117} %write{116,116}
+const	float	$const21	6.2831855		%read{119,119} %write{2147483647,-1}
+temp	int	$tmp61	%read{121,121} %write{120,120}
+temp	float	$tmp62	%read{122,122} %write{121,121}
+temp	int	$tmp63	%read{124,124} %write{123,123}
+code Vector
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:57
+# 	point Vector = P,
+	assign		Vector P 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl"} %line{57} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:61
+# 	point p = Vector;
+	assign		p Vector 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl"} %line{61} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:63
+# 	if (use_mapping)
+	if		use_mapping 4 4 	%line{63} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:64
+# 		p = transform(mapping, p);
+	transform	p mapping p 	%line{64} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:66
+# 	Fac = wave(p * Scale, type, profile, Detail, Distortion, DetailScale);
+	mul		$tmp1 p Scale 	%line{66} %argrw{"wrr"}
+	functioncall	$const1 128 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:24
+# 	float n = 0.0;
+	assign		___665_n $const2 	%line{24} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:26
+# 	if (type == "bands") {
+	eq		$tmp2 type $const3 	%line{26} %argrw{"wrr"}
+	if		$tmp2 15 19 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:27
+# 		n = (p[0] + p[1] + p[2]) * 10.0;
+	compref		$tmp3 $tmp1 $const4 	%line{27} %argrw{"wrr"}
+	compref		$tmp4 $tmp1 $const5 	%argrw{"wrr"}
+	add		$tmp5 $tmp3 $tmp4 	%argrw{"wrr"}
+	compref		$tmp6 $tmp1 $const6 	%argrw{"wrr"}
+	add		$tmp7 $tmp5 $tmp6 	%argrw{"wrr"}
+	mul		___665_n $tmp7 $const7 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:29
+# 	else if (type == "rings") {
+	eq		$tmp8 type $const8 	%line{29} %argrw{"wrr"}
+	if		$tmp8 19 19 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:30
+# 		n = length(p) * 20.0;
+	length		$tmp9 $tmp1 	%line{30} %argrw{"wr"}
+	mul		___665_n $tmp9 $const9 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:33
+# 	if (distortion != 0.0) {
+	neq		$tmp10 Distortion $const2 	%line{33} %argrw{"wrr"}
+	if		$tmp10 113 113 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:34
+# 		n = n + (distortion * noise_turbulence(p * dscale, detail, 0));
+	mul		$tmp12 $tmp1 DetailScale 	%line{34} %argrw{"wrr"}
+	functioncall	$const10 111 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:113
+# 				else if (d < da[3]) {
+	assign		___659_fscale $const11 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{113} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:114
+# 					da[3] = d;
+	assign		___659_amp $const11 	%line{114} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:115
+# 					pa[3] = vp;
+	assign		___659_sum $const2 	%line{115} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:118
+# 		}
+	functioncall	$const13 29 	%line{118} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# /////////////////////////////////////////////////////////////////////////////
+	min		$tmp13 Detail $const12 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		___659_octaves $tmp13 $const2 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:119
+# 	n = (int)octaves;
+	assign		___659_n ___659_octaves 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{119} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:121
+# 	for (i = 0; i <= n; i++) {
+	for		$tmp14 32 33 54 56 	%line{121} %argrw{"r"}
+	assign		___659_i $const4 	%argrw{"wr"}
+	le		$tmp14 ___659_i ___659_n 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:122
+# 		float t = safe_noise(fscale * p, "unsigned");
+	mul		$tmp15 ___659_fscale $tmp12 	%line{122} %argrw{"wrr"}
+	functioncall	$const15 46 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:92
+# 	float f = 0.0;
+	assign		___658_f $const2 	%line{92} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:95
+# 	if (type == "signed")
+	eq		$tmp16 $const14 $const16 	%line{95} %argrw{"wrr"}
+	if		$tmp16 39 40 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:96
+# 		f = noise("perlin", p);
+	noise		___658_f $const17 $tmp15 	%line{96} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:100
+# 		f = noise(p);
+	noise		___658_f $tmp15 	%line{100} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:103
+# 	if (!isfinite(f))
+	isfinite	$tmp17 ___658_f 	%line{103} %argrw{"wr"}
+	eq		$tmp18 $tmp17 $const4 	%argrw{"wrr"}
+	if		$tmp18 45 45 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:104
+# 		return 0.5;
+	assign		___661_t $const18 	%line{104} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:106
+# 	return f;
+	assign		___661_t ___658_f 	%line{106} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:124
+# 		if (hard)
+	if		$const4 50 50 	%line{124} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:125
+# 			t = fabs(2.0 * t - 1.0);
+	mul		$tmp19 $const19 ___661_t 	%line{125} %argrw{"wrr"}
+	sub		$tmp20 $tmp19 $const11 	%argrw{"wrr"}
+	fabs		___661_t $tmp20 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:127
+# 		sum += t * amp;
+	mul		$tmp21 ___661_t ___659_amp 	%line{127} %argrw{"wrr"}
+	add		___659_sum ___659_sum $tmp21 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:128
+# 		amp *= 0.5;
+	mul		___659_amp ___659_amp $const18 	%line{128} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:129
+# 		fscale *= 2.0;
+	mul		___659_fscale ___659_fscale $const19 	%line{129} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:121
+# 	for (i = 0; i <= n; i++) {
+	assign		$tmp22 ___659_i 	%line{121} %argrw{"wr"}
+	add		___659_i ___659_i $const5 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:132
+# 	float rmd = octaves - floor(octaves);
+	floor		$tmp23 ___659_octaves 	%line{132} %argrw{"wr"}
+	sub		___659_rmd ___659_octaves $tmp23 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:134
+# 	if (rmd != 0.0) {
+	neq		$tmp24 ___659_rmd $const2 	%line{134} %argrw{"wrr"}
+	if		$tmp24 101 111 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:135
+# 		float t = safe_noise(fscale * p, "unsigned");
+	mul		$tmp25 ___659_fscale $tmp12 	%line{135} %argrw{"wrr"}
+	functioncall	$const15 73 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:92
+# 	float f = 0.0;
+	assign		___658_f $const2 	%line{92} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:95
+# 	if (type == "signed")
+	eq		$tmp26 $const14 $const16 	%line{95} %argrw{"wrr"}
+	if		$tmp26 66 67 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:96
+# 		f = noise("perlin", p);
+	noise		___658_f $const17 $tmp25 	%line{96} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:100
+# 		f = noise(p);
+	noise		___658_f $tmp25 	%line{100} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:103
+# 	if (!isfinite(f))
+	isfinite	$tmp27 ___658_f 	%line{103} %argrw{"wr"}
+	eq		$tmp28 $tmp27 $const4 	%argrw{"wrr"}
+	if		$tmp28 72 72 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:104
+# 		return 0.5;
+	assign		___662_t $const18 	%line{104} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:106
+# 	return f;
+	assign		___662_t ___658_f 	%line{106} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:137
+# 		if (hard)
+	if		$const4 77 77 	%line{137} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:138
+# 			t = fabs(2.0 * t - 1.0);
+	mul		$tmp29 $const19 ___662_t 	%line{138} %argrw{"wrr"}
+	sub		$tmp30 $tmp29 $const11 	%argrw{"wrr"}
+	fabs		___662_t $tmp30 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:140
+# 		float sum2 = sum + t * amp;
+	mul		$tmp31 ___662_t ___659_amp 	%line{140} %argrw{"wrr"}
+	add		___662_sum2 ___659_sum $tmp31 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:142
+# 		sum *= ((float)(1 << n) / (float)((1 << (n + 1)) - 1));
+	shl		$tmp32 $const5 ___659_n 	%line{142} %argrw{"wrr"}
+	assign		$tmp33 $tmp32 	%argrw{"wr"}
+	add		$tmp34 ___659_n $const5 	%argrw{"wrr"}
+	shl		$tmp35 $const5 $tmp34 	%argrw{"wrr"}
+	sub		$tmp36 $tmp35 $const5 	%argrw{"wrr"}
+	assign		$tmp37 $tmp36 	%argrw{"wr"}
+	div		$tmp38 $tmp33 $tmp37 	%argrw{"wrr"}
+	mul		___659_sum ___659_sum $tmp38 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:143
+# 		sum2 *= ((float)(1 << (n + 1)) / (float)((1 << (n + 2)) - 1));
+	add		$tmp39 ___659_n $const5 	%line{143} %argrw{"wrr"}
+	shl		$tmp40 $const5 $tmp39 	%argrw{"wrr"}
+	assign		$tmp41 $tmp40 	%argrw{"wr"}
+	add		$tmp42 ___659_n $const6 	%argrw{"wrr"}
+	shl		$tmp43 $const5 $tmp42 	%argrw{"wrr"}
+	sub		$tmp44 $tmp43 $const5 	%argrw{"wrr"}
+	assign		$tmp45 $tmp44 	%argrw{"wr"}
+	div		$tmp46 $tmp41 $tmp45 	%argrw{"wrr"}
+	mul		___662_sum2 ___662_sum2 $tmp46 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:145
+# 		return (1.0 - rmd) * sum + rmd * sum2;
+	sub		$tmp47 $const11 ___659_rmd 	%line{145} %argrw{"wrr"}
+	mul		$tmp48 $tmp47 ___659_sum 	%argrw{"wrr"}
+	mul		$tmp49 ___659_rmd ___662_sum2 	%argrw{"wrr"}
+	add		$tmp11 $tmp48 $tmp49 	%argrw{"wrr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:148
+# 		sum *= ((float)(1 << n) / (float)((1 << (n + 1)) - 1));
+	shl		$tmp50 $const5 ___659_n 	%line{148} %argrw{"wrr"}
+	assign		$tmp51 $tmp50 	%argrw{"wr"}
+	add		$tmp52 ___659_n $const5 	%argrw{"wrr"}
+	shl		$tmp53 $const5 $tmp52 	%argrw{"wrr"}
+	sub		$tmp54 $tmp53 $const5 	%argrw{"wrr"}
+	assign		$tmp55 $tmp54 	%argrw{"wr"}
+	div		$tmp56 $tmp51 $tmp55 	%argrw{"wrr"}
+	mul		___659_sum ___659_sum $tmp56 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:149
+# 		return sum;
+	assign		$tmp11 ___659_sum 	%line{149} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:34
+# 		n = n + (distortion * noise_turbulence(p * dscale, detail, 0));
+	mul		$tmp57 Distortion $tmp11 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl"} %line{34} %argrw{"wrr"}
+	add		___665_n ___665_n $tmp57 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:37
+# 	if (profile == "sine") {
+	eq		$tmp58 profile $const20 	%line{37} %argrw{"wrr"}
+	if		$tmp58 119 128 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:38
+# 		return 0.5 + 0.5 * sin(n);
+	sin		$tmp59 ___665_n 	%line{38} %argrw{"wr"}
+	mul		$tmp60 $const18 $tmp59 	%argrw{"wrr"}
+	add		Fac $const18 $tmp60 	%argrw{"wrr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:42
+# 		n /= M_2PI;
+	div		___665_n ___665_n $const21 	%line{42} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:43
+# 		n -= (int) n;
+	assign		$tmp61 ___665_n 	%line{43} %argrw{"wr"}
+	assign		$tmp62 $tmp61 	%argrw{"wr"}
+	sub		___665_n ___665_n $tmp62 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:44
+# 		return (n < 0.0) ? n + 1.0 : n;
+	lt		$tmp63 ___665_n $const2 	%line{44} %argrw{"wrr"}
+	if		$tmp63 126 127 	%argrw{"r"}
+	add		Fac ___665_n $const11 	%argrw{"wrr"}
+	assign		Fac ___665_n 	%argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wave_texture.osl:67
+# 	Color = Fac;
+	assign		Color Fac 	%line{67} %argrw{"wr"}
+	end

@@ -1,0 +1,261 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_math.oso
+shader node_math
+param	string	type	"add"		%read{0,79} %write{2147483647,-1}
+param	int	use_clamp	0		%read{82,82} %write{2147483647,-1}
+param	float	Value1	0		%read{2,81} %write{2147483647,-1}
+param	float	Value2	0		%read{2,77} %write{2147483647,-1}
+oparam	float	Value	0		%read{84,84} %write{2,85}
+local	float	___646_result	%read{16,16} %write{14,15}
+local	float	___647_result	%read{78,78} %write{76,77}
+const	string	$const1	"add"		%read{0,0} %write{2147483647,-1}
+temp	int	$tmp1	%read{1,1} %write{0,0}
+const	string	$const2	"subtract"		%read{3,3} %write{2147483647,-1}
+temp	int	$tmp2	%read{4,4} %write{3,3}
+const	string	$const3	"multiply"		%read{6,6} %write{2147483647,-1}
+temp	int	$tmp3	%read{7,7} %write{6,6}
+const	string	$const4	"divide"		%read{9,9} %write{2147483647,-1}
+temp	int	$tmp4	%read{10,10} %write{9,9}
+const	string	$const5	"safe_divide"		%read{11,11} %write{2147483647,-1}
+const	float	$const6	0		%read{12,85} %write{2147483647,-1}
+temp	int	$tmp5	%read{13,13} %write{12,12}
+const	string	$const7	"sine"		%read{17,17} %write{2147483647,-1}
+temp	int	$tmp6	%read{18,18} %write{17,17}
+const	string	$const8	"cosine"		%read{20,20} %write{2147483647,-1}
+temp	int	$tmp7	%read{21,21} %write{20,20}
+const	string	$const9	"tangent"		%read{23,23} %write{2147483647,-1}
+temp	int	$tmp8	%read{24,24} %write{23,23}
+const	string	$const10	"arcsine"		%read{26,26} %write{2147483647,-1}
+temp	int	$tmp9	%read{27,27} %write{26,26}
+const	string	$const11	"arccosine"		%read{29,29} %write{2147483647,-1}
+temp	int	$tmp10	%read{30,30} %write{29,29}
+const	string	$const12	"arctangent"		%read{32,32} %write{2147483647,-1}
+temp	int	$tmp11	%read{33,33} %write{32,32}
+const	string	$const13	"power"		%read{35,35} %write{2147483647,-1}
+temp	int	$tmp12	%read{36,36} %write{35,35}
+const	string	$const14	"logarithm"		%read{38,38} %write{2147483647,-1}
+temp	int	$tmp13	%read{39,39} %write{38,38}
+const	string	$const15	"safe_log"		%read{40,40} %write{2147483647,-1}
+temp	int	$tmp14	%read{42,42} %write{41,41}
+temp	int	$tmp15	%read{43,47} %write{42,46}
+const	int	$const16	0		%read{42,45} %write{2147483647,-1}
+temp	int	$tmp16	%read{45,45} %write{44,44}
+temp	int	$tmp17	%read{46,46} %write{45,45}
+temp	float	$tmp18	%read{52,52} %write{50,50}
+temp	float	$tmp19	%read{52,52} %write{51,51}
+const	string	$const17	"minimum"		%read{53,53} %write{2147483647,-1}
+temp	int	$tmp20	%read{54,54} %write{53,53}
+const	string	$const18	"maximum"		%read{56,56} %write{2147483647,-1}
+temp	int	$tmp21	%read{57,57} %write{56,56}
+const	string	$const19	"round"		%read{59,59} %write{2147483647,-1}
+temp	int	$tmp22	%read{60,60} %write{59,59}
+const	float	$const20	0.5		%read{61,61} %write{2147483647,-1}
+temp	float	$tmp23	%read{62,62} %write{61,61}
+const	string	$const21	"less_than"		%read{63,63} %write{2147483647,-1}
+temp	int	$tmp24	%read{64,64} %write{63,63}
+temp	int	$tmp25	%read{66,66} %write{65,65}
+const	string	$const22	"greater_than"		%read{67,67} %write{2147483647,-1}
+temp	int	$tmp26	%read{68,68} %write{67,67}
+temp	int	$tmp27	%read{70,70} %write{69,69}
+const	string	$const23	"modulo"		%read{71,71} %write{2147483647,-1}
+temp	int	$tmp28	%read{72,72} %write{71,71}
+const	string	$const24	"safe_modulo"		%read{73,73} %write{2147483647,-1}
+temp	int	$tmp29	%read{75,75} %write{74,74}
+const	string	$const25	"absolute"		%read{79,79} %write{2147483647,-1}
+temp	int	$tmp30	%read{80,80} %write{79,79}
+const	float	$const26	1		%read{84,84} %write{2147483647,-1}
+const	string	$const27	"clamp"		%read{83,83} %write{2147483647,-1}
+temp	float	$tmp31	%read{85,85} %write{84,84}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:60
+# 	if (type == "add")
+	eq		$tmp1 type $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl"} %line{60} %argrw{"wrr"}
+	if		$tmp1 3 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:61
+# 		Value = Value1 + Value2;
+	add		Value Value1 Value2 	%line{61} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:62
+# 	else if (type == "subtract")
+	eq		$tmp2 type $const2 	%line{62} %argrw{"wrr"}
+	if		$tmp2 6 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:63
+# 		Value = Value1 - Value2;
+	sub		Value Value1 Value2 	%line{63} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:64
+# 	else if (type == "multiply")
+	eq		$tmp3 type $const3 	%line{64} %argrw{"wrr"}
+	if		$tmp3 9 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:65
+# 		Value = Value1 * Value2;
+	mul		Value Value1 Value2 	%line{65} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:66
+# 	else if (type == "divide")
+	eq		$tmp4 type $const4 	%line{66} %argrw{"wrr"}
+	if		$tmp4 17 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:67
+# 		Value = safe_divide(Value1, Value2);
+	functioncall	$const5 17 	%line{67} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:23
+# 	if (b == 0.0)
+	eq		$tmp5 Value2 $const6 	%line{23} %argrw{"wrr"}
+	if		$tmp5 15 16 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:24
+# 		result = 0.0;
+	assign		___646_result $const6 	%line{24} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:26
+# 		result = a / b;
+	div		___646_result Value1 Value2 	%line{26} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:28
+# 	return result;
+	assign		Value ___646_result 	%line{28} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:68
+# 	else if (type == "sine")
+	eq		$tmp6 type $const7 	%line{68} %argrw{"wrr"}
+	if		$tmp6 20 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:69
+# 		Value = sin(Value1);
+	sin		Value Value1 	%line{69} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:70
+# 	else if (type == "cosine")
+	eq		$tmp7 type $const8 	%line{70} %argrw{"wrr"}
+	if		$tmp7 23 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:71
+# 		Value = cos(Value1);
+	cos		Value Value1 	%line{71} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:72
+# 	else if (type == "tangent")
+	eq		$tmp8 type $const9 	%line{72} %argrw{"wrr"}
+	if		$tmp8 26 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:73
+# 		Value = tan(Value1);
+	tan		Value Value1 	%line{73} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:74
+# 	else if (type == "arcsine")
+	eq		$tmp9 type $const10 	%line{74} %argrw{"wrr"}
+	if		$tmp9 29 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:75
+# 		Value = asin(Value1);
+	asin		Value Value1 	%line{75} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:76
+# 	else if (type == "arccosine")
+	eq		$tmp10 type $const11 	%line{76} %argrw{"wrr"}
+	if		$tmp10 32 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:77
+# 		Value = acos(Value1);
+	acos		Value Value1 	%line{77} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:78
+# 	else if (type == "arctangent")
+	eq		$tmp11 type $const12 	%line{78} %argrw{"wrr"}
+	if		$tmp11 35 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:79
+# 		Value = atan(Value1);
+	atan		Value Value1 	%line{79} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:80
+# 	else if (type == "power")
+	eq		$tmp12 type $const13 	%line{80} %argrw{"wrr"}
+	if		$tmp12 38 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:81
+# 		Value = pow(Value1, Value2);
+	pow		Value Value1 Value2 	%line{81} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:82
+# 	else if (type == "logarithm")
+	eq		$tmp13 type $const14 	%line{82} %argrw{"wrr"}
+	if		$tmp13 53 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:83
+# 		Value = safe_log(Value1, Value2);
+	functioncall	$const15 53 	%line{83} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:45
+# 	if (a < 0.0 || b < 0.0)
+	lt		$tmp14 Value1 $const6 	%line{45} %argrw{"wrr"}
+	neq		$tmp15 $tmp14 $const16 	%argrw{"wrr"}
+	if		$tmp15 44 47 	%argrw{"r"}
+	lt		$tmp16 Value2 $const6 	%argrw{"wrr"}
+	neq		$tmp17 $tmp16 $const16 	%argrw{"wrr"}
+	assign		$tmp15 $tmp17 	%argrw{"wr"}
+	if		$tmp15 50 50 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:46
+# 		return 0.0;
+	assign		Value $const6 	%line{46} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:48
+# 	return log(a) / log(b);
+	log		$tmp18 Value1 	%line{48} %argrw{"wr"}
+	log		$tmp19 Value2 	%argrw{"wr"}
+	div		Value $tmp18 $tmp19 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:84
+# 	else if (type == "minimum")
+	eq		$tmp20 type $const17 	%line{84} %argrw{"wrr"}
+	if		$tmp20 56 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:85
+# 		Value = min(Value1, Value2);
+	min		Value Value1 Value2 	%line{85} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:86
+# 	else if (type == "maximum")
+	eq		$tmp21 type $const18 	%line{86} %argrw{"wrr"}
+	if		$tmp21 59 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:87
+# 		Value = max(Value1, Value2);
+	max		Value Value1 Value2 	%line{87} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:88
+# 	else if (type == "round")
+	eq		$tmp22 type $const19 	%line{88} %argrw{"wrr"}
+	if		$tmp22 63 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:89
+# 		Value = floor(Value1 + 0.5);
+	add		$tmp23 Value1 $const20 	%line{89} %argrw{"wrr"}
+	floor		Value $tmp23 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:90
+# 	else if (type == "less_than")
+	eq		$tmp24 type $const21 	%line{90} %argrw{"wrr"}
+	if		$tmp24 67 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:91
+# 		Value = Value1 < Value2;
+	lt		$tmp25 Value1 Value2 	%line{91} %argrw{"wrr"}
+	assign		Value $tmp25 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:92
+# 	else if (type == "greater_than")
+	eq		$tmp26 type $const22 	%line{92} %argrw{"wrr"}
+	if		$tmp26 71 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:93
+# 		Value = Value1 > Value2;
+	gt		$tmp27 Value1 Value2 	%line{93} %argrw{"wrr"}
+	assign		Value $tmp27 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:94
+# 	else if (type == "modulo")
+	eq		$tmp28 type $const23 	%line{94} %argrw{"wrr"}
+	if		$tmp28 79 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:95
+# 		Value = safe_modulo(Value1, Value2);
+	functioncall	$const24 79 	%line{95} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:35
+# 	if (b == 0.0)
+	eq		$tmp29 Value2 $const6 	%line{35} %argrw{"wrr"}
+	if		$tmp29 77 78 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:36
+# 		result = 0.0;
+	assign		___647_result $const6 	%line{36} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:38
+# 		result = fmod(a, b);
+	fmod		___647_result Value1 Value2 	%line{38} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:40
+# 	return result;
+	assign		Value ___647_result 	%line{40} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:96
+# 	else if (type == "absolute")
+	eq		$tmp30 type $const25 	%line{96} %argrw{"wrr"}
+	if		$tmp30 82 82 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:97
+# 		Value = fabs(Value1);
+	fabs		Value Value1 	%line{97} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:99
+# 	if (use_clamp)
+	if		use_clamp 86 86 	%line{99} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_math.osl:100
+# 		Value = clamp(Value, 0.0, 1.0);
+	functioncall	$const27 86 	%line{100} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# #define M_LOG2E    1.4426950408889634        /* log_2(e) */
+	min		$tmp31 Value $const26 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		Value $tmp31 $const6 	%argrw{"wrr"}
+	end

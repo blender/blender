@@ -1,0 +1,629 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_principled_bsdf.oso
+shader node_principled_bsdf
+param	string	distribution	"Multiscatter GGX"		%read{125,197} %write{2147483647,-1}
+param	color	BaseColor	0.80000001 0.80000001 0.80000001		%read{23,215} %write{2147483647,-1}
+param	float	Subsurface	0		%read{85,91} %write{2147483647,-1}
+param	vector	SubsurfaceRadius	1 1 1		%read{91,91} %write{2147483647,-1}
+param	color	SubsurfaceColor	0.69999999 0.1 0.1		%read{87,92} %write{2147483647,-1}
+param	float	Metallic	0		%read{5,123} %write{2147483647,-1}
+param	float	Specular	0.5		%read{119,140} %write{2147483647,-1}
+param	float	SpecularTint	0		%read{115,151} %write{2147483647,-1}
+param	float	Roughness	0.5		%read{92,214} %write{2147483647,-1}
+param	float	Anisotropic	0		%read{109,109} %write{2147483647,-1}
+param	float	AnisotropicRotation	0		%read{28,30} %write{2147483647,-1}
+param	float	Sheen	0		%read{96,103} %write{2147483647,-1}
+param	float	SheenTint	0.5		%read{98,100} %write{2147483647,-1}
+param	float	Clearcoat	0		%read{218,221} %write{2147483647,-1}
+param	float	ClearcoatRoughness	0.029999999		%read{220,220} %write{2147483647,-1}
+param	float	IOR	1.45		%read{3,3} %write{2147483647,-1}
+param	float	Transmission	0		%read{9,14} %write{2147483647,-1}
+param	float	TransmissionRoughness	0		%read{200,200} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{32,215} %write{0,0} %initexpr
+param	normal	ClearcoatNormal	0 0 0		%read{221,221} %write{1,1} %initexpr
+param	normal	Tangent	0 0 0		%read{22,22} %write{2,2} %initexpr
+oparam	closure color	BSDF			%read{105,222} %write{93,222}
+global	vector	I	%read{165,165} %write{2147483647,-1}
+global	normal	N	%read{0,1} %write{2147483647,-1}
+global	vector	dPdu	%read{2,2} %write{2147483647,-1}
+local	vector	___537_axis	%read{37,39} %write{33,33}
+local	float	___537_cosang	%read{36,77} %write{35,35}
+local	float	___537_sinang	%read{47,72} %write{34,34}
+local	float	___537_cosang1	%read{46,71} %write{36,36}
+local	float	___537_x	%read{40,72} %write{37,37}
+local	float	___537_y	%read{45,70} %write{38,38}
+local	float	___537_z	%read{47,75} %write{39,39}
+local	matrix	___537_M	%read{81,81} %write{79,79}
+local	float	___646_c	%read{170,182} %write{167,167}
+local	float	___646_g	%read{172,181} %write{171,174}
+local	float	___646_result	%read{191,191} %write{189,190}
+local	float	___647_A	%read{185,186} %write{177,177}
+local	float	___647_B	%read{187,187} %write{184,184}
+local	float	f	%read{156,157} %write{3,3}
+local	float	diffuse_weight	%read{83,106} %write{12,12}
+local	float	final_transmission	%read{21,216} %write{20,20}
+local	float	specular_weight	%read{107,146} %write{21,21}
+local	vector	T	%read{80,145} %write{22,82}
+local	float	m_cdlum	%read{24,26} %write{23,23}
+local	color	m_ctint	%read{100,117} %write{26,27}
+local	color	___650_mixed_ss_base_color	%read{93,93} %write{90,90}
+local	color	___652_sheen_color	%read{103,103} %write{101,101}
+local	float	___653_aspect	%read{113,114} %write{111,111}
+local	float	___653_r2	%read{113,114} %write{112,112}
+local	float	___653_alpha_x	%read{137,145} %write{113,113}
+local	float	___653_alpha_y	%read{137,145} %write{114,114}
+local	color	___653_tmp_col	%read{120,120} %write{118,118}
+local	color	___653_Cspec0	%read{137,145} %write{124,124}
+local	color	___656_Cspec0	%read{204,215} %write{153,153}
+local	float	___656_eta	%read{168,215} %write{156,157}
+local	float	___657_cosNO	%read{167,167} %write{165,165}
+local	float	___657_Fr	%read{205,208} %write{191,191}
+local	float	___657_refl_roughness	%read{196,203} %write{192,195}
+local	float	___657_transmission_roughness	%read{206,206} %write{196,202}
+const	float	$const1	9.9999997e-006		%read{3,218} %write{2147483647,-1}
+const	float	$const2	1		%read{5,208} %write{2147483647,-1}
+temp	float	$tmp1	%read{7,7} %write{6,6}
+const	float	$const3	0		%read{6,195} %write{2147483647,-1}
+const	string	$const4	"clamp"		%read{4,16} %write{2147483647,-1}
+temp	float	$tmp2	%read{6,6} %write{5,5}
+temp	float	$tmp3	%read{12,12} %write{7,7}
+temp	float	$tmp4	%read{11,11} %write{10,10}
+temp	float	$tmp5	%read{10,10} %write{9,9}
+temp	float	$tmp6	%read{12,12} %write{11,11}
+temp	float	$tmp7	%read{20,20} %write{15,15}
+temp	float	$tmp8	%read{15,15} %write{14,14}
+temp	float	$tmp9	%read{19,19} %write{18,18}
+temp	float	$tmp10	%read{18,18} %write{17,17}
+temp	float	$tmp11	%read{20,20} %write{19,19}
+temp	int	$tmp12	%read{25,25} %write{24,24}
+const	color	$const5	0 0 0		%read{27,27} %write{2147483647,-1}
+temp	int	$tmp13	%read{29,29} %write{28,28}
+const	float	$const6	6.2831855		%read{30,30} %write{2147483647,-1}
+temp	float	$tmp14	%read{34,35} %write{30,30}
+const	point	$const7	0 0 0		%read{32,82} %write{2147483647,-1}
+const	string	$const8	"rotate"		%read{31,31} %write{2147483647,-1}
+temp	vector	$tmp16	%read{33,33} %write{32,32}
+const	int	$const9	0		%read{37,172} %write{2147483647,-1}
+const	int	$const10	1		%read{38,38} %write{2147483647,-1}
+const	int	$const11	2		%read{39,39} %write{2147483647,-1}
+temp	float	$tmp17	%read{44,44} %write{40,40}
+temp	float	$tmp18	%read{42,42} %write{41,41}
+temp	float	$tmp19	%read{43,43} %write{42,42}
+temp	float	$tmp20	%read{44,44} %write{43,43}
+temp	float	$tmp21	%read{79,79} %write{44,44}
+temp	float	$tmp22	%read{46,46} %write{45,45}
+temp	float	$tmp23	%read{48,48} %write{46,46}
+temp	float	$tmp24	%read{48,48} %write{47,47}
+temp	float	$tmp25	%read{79,79} %write{48,48}
+temp	float	$tmp26	%read{50,50} %write{49,49}
+temp	float	$tmp27	%read{52,52} %write{50,50}
+temp	float	$tmp28	%read{52,52} %write{51,51}
+temp	float	$tmp29	%read{79,79} %write{52,52}
+temp	float	$tmp30	%read{54,54} %write{53,53}
+temp	float	$tmp31	%read{56,56} %write{54,54}
+temp	float	$tmp32	%read{56,56} %write{55,55}
+temp	float	$tmp33	%read{79,79} %write{56,56}
+temp	float	$tmp34	%read{61,61} %write{57,57}
+temp	float	$tmp35	%read{59,59} %write{58,58}
+temp	float	$tmp36	%read{60,60} %write{59,59}
+temp	float	$tmp37	%read{61,61} %write{60,60}
+temp	float	$tmp38	%read{79,79} %write{61,61}
+temp	float	$tmp39	%read{63,63} %write{62,62}
+temp	float	$tmp40	%read{65,65} %write{63,63}
+temp	float	$tmp41	%read{65,65} %write{64,64}
+temp	float	$tmp42	%read{79,79} %write{65,65}
+temp	float	$tmp43	%read{67,67} %write{66,66}
+temp	float	$tmp44	%read{69,69} %write{67,67}
+temp	float	$tmp45	%read{69,69} %write{68,68}
+temp	float	$tmp46	%read{79,79} %write{69,69}
+temp	float	$tmp47	%read{71,71} %write{70,70}
+temp	float	$tmp48	%read{73,73} %write{71,71}
+temp	float	$tmp49	%read{73,73} %write{72,72}
+temp	float	$tmp50	%read{79,79} %write{73,73}
+temp	float	$tmp51	%read{78,78} %write{74,74}
+temp	float	$tmp52	%read{76,76} %write{75,75}
+temp	float	$tmp53	%read{77,77} %write{76,76}
+temp	float	$tmp54	%read{78,78} %write{77,77}
+temp	float	$tmp55	%read{79,79} %write{78,78}
+temp	vector	$tmp56	%read{82,82} %write{81,81}
+temp	vector	$tmp57	%read{81,81} %write{80,80}
+temp	int	$tmp58	%read{84,84} %write{83,83}
+temp	int	$tmp59	%read{86,86} %write{85,85}
+temp	color	$tmp60	%read{90,90} %write{87,87}
+temp	float	$tmp61	%read{89,89} %write{88,88}
+temp	color	$tmp62	%read{90,90} %write{89,89}
+temp	closure color	$tmp63	%read{93,93} %write{92,92}
+temp	vector	$tmp64	%read{92,92} %write{91,91}
+const	string	$const12	"bssrdf_principled"		%read{92,92} %write{2147483647,-1}
+temp	closure color	$tmp65	%read{95,95} %write{94,94}
+const	string	$const13	"principled_diffuse"		%read{94,94} %write{2147483647,-1}
+temp	int	$tmp66	%read{97,97} %write{96,96}
+const	color	$const14	1 1 1		%read{99,152} %write{2147483647,-1}
+temp	float	$tmp68	%read{99,99} %write{98,98}
+temp	color	$tmp69	%read{101,101} %write{99,99}
+temp	color	$tmp70	%read{101,101} %write{100,100}
+temp	closure color	$tmp71	%read{104,104} %write{102,102}
+const	string	$const15	"principled_sheen"		%read{102,102} %write{2147483647,-1}
+temp	color	$tmp72	%read{104,104} %write{103,103}
+temp	closure color	$tmp73	%read{105,105} %write{104,104}
+temp	int	$tmp74	%read{108,108} %write{107,107}
+const	float	$const16	0.89999998		%read{109,109} %write{2147483647,-1}
+temp	float	$tmp75	%read{110,110} %write{109,109}
+temp	float	$tmp76	%read{111,111} %write{110,110}
+temp	float	$tmp78	%read{116,116} %write{115,115}
+temp	color	$tmp79	%read{118,118} %write{116,116}
+temp	color	$tmp80	%read{118,118} %write{117,117}
+const	float	$const17	0.079999998		%read{119,140} %write{2147483647,-1}
+temp	float	$tmp81	%read{120,120} %write{119,119}
+temp	color	$tmp82	%read{122,122} %write{120,120}
+temp	float	$tmp83	%read{122,122} %write{121,121}
+temp	color	$tmp84	%read{124,124} %write{122,122}
+temp	color	$tmp85	%read{124,124} %write{123,123}
+const	string	$const18	"GGX"		%read{125,197} %write{2147483647,-1}
+temp	int	$tmp86	%read{126,126} %write{125,125}
+temp	int	$tmp87	%read{127,131} %write{126,130}
+const	float	$const19	0.075000003		%read{128,128} %write{2147483647,-1}
+temp	int	$tmp88	%read{129,129} %write{128,128}
+temp	int	$tmp89	%read{130,130} %write{129,129}
+temp	closure color	$tmp90	%read{138,138} %write{137,137}
+const	float	$const20	2		%read{135,143} %write{2147483647,-1}
+temp	float	$tmp91	%read{134,134} %write{133,133}
+temp	float	$tmp92	%read{133,133} %write{132,132}
+temp	float	$tmp93	%read{135,135} %write{134,134}
+temp	float	$tmp94	%read{136,136} %write{135,135}
+temp	float	$tmp95	%read{137,137} %write{136,136}
+const	string	$const21	"microfacet_ggx_aniso_fresnel"		%read{137,137} %write{2147483647,-1}
+temp	closure color	$tmp96	%read{139,139} %write{138,138}
+temp	closure color	$tmp97	%read{146,146} %write{145,145}
+temp	float	$tmp98	%read{142,142} %write{141,141}
+temp	float	$tmp99	%read{141,141} %write{140,140}
+temp	float	$tmp100	%read{143,143} %write{142,142}
+temp	float	$tmp101	%read{144,144} %write{143,143}
+temp	float	$tmp102	%read{145,145} %write{144,144}
+const	string	$const22	"microfacet_multi_ggx_aniso_fresnel"		%read{145,145} %write{2147483647,-1}
+temp	closure color	$tmp103	%read{147,147} %write{146,146}
+temp	int	$tmp104	%read{149,149} %write{148,148}
+temp	color	$tmp105	%read{153,153} %write{150,150}
+temp	float	$tmp107	%read{152,152} %write{151,151}
+temp	color	$tmp108	%read{153,153} %write{152,152}
+temp	int	$tmp109	%read{155,155} %write{154,154}
+temp	int	$tmp110	%read{159,159} %write{158,158}
+temp	int	$tmp111	%read{160,164} %write{159,163}
+const	float	$const23	0.050000001		%read{161,161} %write{2147483647,-1}
+temp	int	$tmp112	%read{162,162} %write{161,161}
+temp	int	$tmp113	%read{163,163} %write{162,162}
+const	string	$const24	"fresnel_dielectric_cos"		%read{166,166} %write{2147483647,-1}
+temp	float	$tmp114	%read{169,169} %write{168,168}
+temp	float	$tmp115	%read{171,171} %write{169,169}
+temp	float	$tmp116	%read{171,171} %write{170,170}
+temp	int	$tmp117	%read{173,173} %write{172,172}
+temp	float	$tmp118	%read{177,177} %write{175,175}
+temp	float	$tmp119	%read{177,177} %write{176,176}
+temp	float	$tmp120	%read{179,179} %write{178,178}
+temp	float	$tmp121	%read{180,180} %write{179,179}
+temp	float	$tmp122	%read{184,184} %write{180,180}
+temp	float	$tmp123	%read{182,182} %write{181,181}
+temp	float	$tmp124	%read{183,183} %write{182,182}
+temp	float	$tmp125	%read{184,184} %write{183,183}
+const	float	$const25	0.5		%read{185,185} %write{2147483647,-1}
+temp	float	$tmp126	%read{186,186} %write{185,185}
+temp	float	$tmp127	%read{189,189} %write{186,186}
+temp	float	$tmp128	%read{188,188} %write{187,187}
+temp	float	$tmp129	%read{189,189} %write{188,188}
+const	float	$const26	0.0099999998		%read{193,193} %write{2147483647,-1}
+temp	int	$tmp130	%read{194,194} %write{193,193}
+temp	int	$tmp131	%read{198,198} %write{197,197}
+temp	float	$tmp132	%read{201,201} %write{199,199}
+temp	float	$tmp133	%read{201,201} %write{200,200}
+temp	float	$tmp134	%read{202,202} %write{201,201}
+temp	closure color	$tmp135	%read{205,205} %write{204,204}
+temp	float	$tmp136	%read{204,204} %write{203,203}
+const	string	$const27	"microfacet_ggx_fresnel"		%read{204,204} %write{2147483647,-1}
+temp	closure color	$tmp137	%read{211,211} %write{205,205}
+temp	closure color	$tmp138	%read{210,210} %write{207,207}
+temp	float	$tmp139	%read{207,207} %write{206,206}
+const	string	$const28	"microfacet_ggx_refraction"		%read{207,207} %write{2147483647,-1}
+temp	float	$tmp140	%read{209,209} %write{208,208}
+temp	color	$tmp141	%read{210,210} %write{209,209}
+temp	closure color	$tmp142	%read{211,211} %write{210,210}
+temp	closure color	$tmp143	%read{212,212} %write{211,211}
+temp	closure color	$tmp144	%read{213,213} %write{212,212}
+temp	closure color	$tmp145	%read{216,216} %write{215,215}
+temp	float	$tmp146	%read{215,215} %write{214,214}
+const	string	$const29	"microfacet_multi_ggx_glass_fresnel"		%read{215,215} %write{2147483647,-1}
+temp	closure color	$tmp147	%read{217,217} %write{216,216}
+temp	int	$tmp148	%read{219,219} %write{218,218}
+temp	closure color	$tmp149	%read{222,222} %write{221,221}
+temp	float	$tmp150	%read{221,221} %write{220,220}
+const	string	$const30	"principled_clearcoat"		%read{221,221} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:39
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{39} %argrw{"wr"}
+code ClearcoatNormal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:40
+# 	normal ClearcoatNormal = N,
+	assign		ClearcoatNormal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{40} %argrw{"wr"}
+code Tangent
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:41
+# 	normal Tangent = normalize(dPdu),
+	normalize	Tangent dPdu 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{41} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:44
+# 	float f = max(IOR, 1e-5);
+	max		f IOR $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{44} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:45
+# 	float diffuse_weight = (1.0 - clamp(Metallic, 0.0, 1.0)) * (1.0 - clamp(Transmission, 0.0, 1.0));
+	functioncall	$const4 7 	%line{45} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# PERCOMP2F (pow)
+	min		$tmp2 Metallic $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp1 $tmp2 $const3 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:45
+# 	float diffuse_weight = (1.0 - clamp(Metallic, 0.0, 1.0)) * (1.0 - clamp(Transmission, 0.0, 1.0));
+	sub		$tmp3 $const2 $tmp1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{45} %argrw{"wrr"}
+	functioncall	$const4 11 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# PERCOMP2F (pow)
+	min		$tmp5 Transmission $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp4 $tmp5 $const3 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:45
+# 	float diffuse_weight = (1.0 - clamp(Metallic, 0.0, 1.0)) * (1.0 - clamp(Transmission, 0.0, 1.0));
+	sub		$tmp6 $const2 $tmp4 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{45} %argrw{"wrr"}
+	mul		diffuse_weight $tmp3 $tmp6 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:46
+# 	float final_transmission = clamp(Transmission, 0.0, 1.0) * (1.0 - clamp(Metallic, 0.0, 1.0));
+	functioncall	$const4 16 	%line{46} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# PERCOMP1 (tanh)
+	min		$tmp8 Transmission $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp7 $tmp8 $const3 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:46
+# 	float final_transmission = clamp(Transmission, 0.0, 1.0) * (1.0 - clamp(Metallic, 0.0, 1.0));
+	functioncall	$const4 19 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{46} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# PERCOMP1 (tanh)
+	min		$tmp10 Metallic $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		$tmp9 $tmp10 $const3 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:46
+# 	float final_transmission = clamp(Transmission, 0.0, 1.0) * (1.0 - clamp(Metallic, 0.0, 1.0));
+	sub		$tmp11 $const2 $tmp9 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{46} %argrw{"wrr"}
+	mul		final_transmission $tmp7 $tmp11 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:47
+# 	float specular_weight = (1.0 - final_transmission);
+	sub		specular_weight $const2 final_transmission 	%line{47} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:49
+# 	vector T = Tangent;
+	assign		T Tangent 	%line{49} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:51
+# 	float m_cdlum = luminance(BaseColor);
+	luminance	m_cdlum BaseColor 	%line{51} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:52
+# 	color m_ctint = m_cdlum > 0.0 ? BaseColor / m_cdlum : color(0.0, 0.0, 0.0); // normalize lum. to isolate hue+sat
+	gt		$tmp12 m_cdlum $const3 	%line{52} %argrw{"wrr"}
+	if		$tmp12 27 28 	%argrw{"r"}
+	div		m_ctint BaseColor m_cdlum 	%argrw{"wrr"}
+	assign		m_ctint $const5 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:55
+# 	if (AnisotropicRotation != 0.0)
+	neq		$tmp13 AnisotropicRotation $const3 	%line{55} %argrw{"wrr"}
+	if		$tmp13 83 83 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:56
+# 		T = rotate(T, AnisotropicRotation * M_2PI, point(0.0, 0.0, 0.0), Normal);
+	mul		$tmp14 AnisotropicRotation $const6 	%line{56} %argrw{"wrr"}
+	functioncall	$const8 83 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:250
+#     float IdotN = dot (I, N);
+	sub		$tmp16 Normal $const7 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{250} %argrw{"wrr"}
+	normalize	___537_axis $tmp16 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:264
+#     if (g >= 0.0) {
+	sin		___537_sinang $tmp14 	%line{264} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:265
+#         g = sqrt (g);
+	cos		___537_cosang $tmp14 	%line{265} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:266
+#         float beta = g - c;
+	sub		___537_cosang1 $const2 ___537_cosang 	%line{266} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:267
+#         float F = (c * (g+c) - 1.0) / (c * beta + 1.0);
+	compref		___537_x ___537_axis $const9 	%line{267} %argrw{"wrr"}
+	compref		___537_y ___537_axis $const10 	%argrw{"wrr"}
+	compref		___537_z ___537_axis $const11 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:268
+#         F = 0.5 * (1.0 + sqr(F));
+	mul		$tmp17 ___537_x ___537_x 	%line{268} %argrw{"wrr"}
+	mul		$tmp18 ___537_x ___537_x 	%argrw{"wrr"}
+	sub		$tmp19 $const2 $tmp18 	%argrw{"wrr"}
+	mul		$tmp20 $tmp19 ___537_cosang 	%argrw{"wrr"}
+	add		$tmp21 $tmp17 $tmp20 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:269
+#         F *= sqr (beta / (g+c));
+	mul		$tmp22 ___537_x ___537_y 	%line{269} %argrw{"wrr"}
+	mul		$tmp23 $tmp22 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp24 ___537_z ___537_sinang 	%argrw{"wrr"}
+	add		$tmp25 $tmp23 $tmp24 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:270
+#         Kr = F;
+	mul		$tmp26 ___537_x ___537_z 	%line{270} %argrw{"wrr"}
+	mul		$tmp27 $tmp26 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp28 ___537_y ___537_sinang 	%argrw{"wrr"}
+	sub		$tmp29 $tmp27 $tmp28 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:272
+#         // OPT: the following recomputes some of the above values, but it 
+	mul		$tmp30 ___537_x ___537_y 	%line{272} %argrw{"wrr"}
+	mul		$tmp31 $tmp30 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp32 ___537_z ___537_sinang 	%argrw{"wrr"}
+	sub		$tmp33 $tmp31 $tmp32 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:273
+#         // gives us the same result as if the shader-writer called refract()
+	mul		$tmp34 ___537_y ___537_y 	%line{273} %argrw{"wrr"}
+	mul		$tmp35 ___537_y ___537_y 	%argrw{"wrr"}
+	sub		$tmp36 $const2 $tmp35 	%argrw{"wrr"}
+	mul		$tmp37 $tmp36 ___537_cosang 	%argrw{"wrr"}
+	add		$tmp38 $tmp34 $tmp37 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:274
+#         T = refract(I, N, eta);
+	mul		$tmp39 ___537_y ___537_z 	%line{274} %argrw{"wrr"}
+	mul		$tmp40 $tmp39 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp41 ___537_x ___537_sinang 	%argrw{"wrr"}
+	add		$tmp42 $tmp40 $tmp41 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:276
+#         // total internal reflection
+	mul		$tmp43 ___537_x ___537_z 	%line{276} %argrw{"wrr"}
+	mul		$tmp44 $tmp43 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp45 ___537_y ___537_sinang 	%argrw{"wrr"}
+	add		$tmp46 $tmp44 $tmp45 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:277
+#         Kr = 1.0;
+	mul		$tmp47 ___537_y ___537_z 	%line{277} %argrw{"wrr"}
+	mul		$tmp48 $tmp47 ___537_cosang1 	%argrw{"wrr"}
+	mul		$tmp49 ___537_x ___537_sinang 	%argrw{"wrr"}
+	sub		$tmp50 $tmp48 $tmp49 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:278
+#         Kt = 0.0;
+	mul		$tmp51 ___537_z ___537_z 	%line{278} %argrw{"wrr"}
+	mul		$tmp52 ___537_z ___537_z 	%argrw{"wrr"}
+	sub		$tmp53 $const2 $tmp52 	%argrw{"wrr"}
+	mul		$tmp54 $tmp53 ___537_cosang 	%argrw{"wrr"}
+	add		$tmp55 $tmp51 $tmp54 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:280
+#     }
+	matrix		___537_M $tmp21 $tmp25 $tmp29 $const3 $tmp33 $tmp38 $tmp42 $const3 $tmp46 $tmp50 $tmp55 $const3 $const3 $const3 $const3 $const2 	%line{280} %argrw{"wrrrrrrrrrrrrrrrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:281
+# }
+	sub		$tmp57 T $const7 	%line{281} %argrw{"wrr"}
+	transformv	$tmp56 ___537_M $tmp57 	%argrw{"wrr"}
+	add		T $tmp56 $const7 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:58
+# 	if (diffuse_weight > 1e-5) {
+	gt		$tmp58 diffuse_weight $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{58} %argrw{"wrr"}
+	if		$tmp58 107 107 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:59
+# 		if (Subsurface > 1e-5) {
+	gt		$tmp59 Subsurface $const1 	%line{59} %argrw{"wrr"}
+	if		$tmp59 94 96 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:60
+# 			color mixed_ss_base_color = SubsurfaceColor * Subsurface + BaseColor * (1.0 - Subsurface);
+	mul		$tmp60 SubsurfaceColor Subsurface 	%line{60} %argrw{"wrr"}
+	sub		$tmp61 $const2 Subsurface 	%argrw{"wrr"}
+	mul		$tmp62 BaseColor $tmp61 	%argrw{"wrr"}
+	add		___650_mixed_ss_base_color $tmp60 $tmp62 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:61
+# 			BSDF = mixed_ss_base_color * bssrdf_principled(Normal, Subsurface * SubsurfaceRadius, 0.0, SubsurfaceColor, Roughness);
+	mul		$tmp64 Subsurface SubsurfaceRadius 	%line{61} %argrw{"wrr"}
+	closure		$tmp63 $const12 Normal $tmp64 $const3 SubsurfaceColor Roughness 	%argrw{"wrrrrrr"}
+	mul		BSDF $tmp63 ___650_mixed_ss_base_color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:63
+# 			BSDF = BaseColor * principled_diffuse(Normal, Roughness);
+	closure		$tmp65 $const13 Normal Roughness 	%line{63} %argrw{"wrrr"}
+	mul		BSDF $tmp65 BaseColor 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:66
+# 		if (Sheen > 1e-5) {
+	gt		$tmp66 Sheen $const1 	%line{66} %argrw{"wrr"}
+	if		$tmp66 106 106 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:67
+# 			color sheen_color = color(1.0, 1.0, 1.0) * (1.0 - SheenTint) + m_ctint * SheenTint;
+	sub		$tmp68 $const2 SheenTint 	%line{67} %argrw{"wrr"}
+	mul		$tmp69 $const14 $tmp68 	%argrw{"wrr"}
+	mul		$tmp70 m_ctint SheenTint 	%argrw{"wrr"}
+	add		___652_sheen_color $tmp69 $tmp70 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:69
+# 			BSDF = BSDF + sheen_color * Sheen * principled_sheen(Normal);
+	closure		$tmp71 $const15 Normal 	%line{69} %argrw{"wrr"}
+	mul		$tmp72 ___652_sheen_color Sheen 	%argrw{"wrr"}
+	mul		$tmp73 $tmp71 $tmp72 	%argrw{"wrr"}
+	add		BSDF BSDF $tmp73 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:72
+# 		BSDF = BSDF * diffuse_weight;
+	mul		BSDF BSDF diffuse_weight 	%line{72} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:75
+# 	if (specular_weight > 1e-5) {
+	gt		$tmp74 specular_weight $const1 	%line{75} %argrw{"wrr"}
+	if		$tmp74 148 148 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:76
+# 		float aspect = sqrt(1.0 - Anisotropic * 0.9);
+	mul		$tmp75 Anisotropic $const16 	%line{76} %argrw{"wrr"}
+	sub		$tmp76 $const2 $tmp75 	%argrw{"wrr"}
+	sqrt		___653_aspect $tmp76 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:77
+# 		float r2 = Roughness * Roughness;
+	mul		___653_r2 Roughness Roughness 	%line{77} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:79
+# 		float alpha_x = r2 / aspect;
+	div		___653_alpha_x ___653_r2 ___653_aspect 	%line{79} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:80
+# 		float alpha_y = r2 * aspect;
+	mul		___653_alpha_y ___653_r2 ___653_aspect 	%line{80} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:82
+# 		color tmp_col = color(1.0, 1.0, 1.0) * (1.0 - SpecularTint) + m_ctint * SpecularTint;
+	sub		$tmp78 $const2 SpecularTint 	%line{82} %argrw{"wrr"}
+	mul		$tmp79 $const14 $tmp78 	%argrw{"wrr"}
+	mul		$tmp80 m_ctint SpecularTint 	%argrw{"wrr"}
+	add		___653_tmp_col $tmp79 $tmp80 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:84
+# 		color Cspec0 = (Specular * 0.08 * tmp_col) * (1.0 - Metallic) + BaseColor * Metallic;
+	mul		$tmp81 Specular $const17 	%line{84} %argrw{"wrr"}
+	mul		$tmp82 $tmp81 ___653_tmp_col 	%argrw{"wrr"}
+	sub		$tmp83 $const2 Metallic 	%argrw{"wrr"}
+	mul		$tmp84 $tmp82 $tmp83 	%argrw{"wrr"}
+	mul		$tmp85 BaseColor Metallic 	%argrw{"wrr"}
+	add		___653_Cspec0 $tmp84 $tmp85 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:86
+# 		if (distribution == "GGX" || Roughness <= 0.075) {
+	eq		$tmp86 distribution $const18 	%line{86} %argrw{"wrr"}
+	neq		$tmp87 $tmp86 $const9 	%argrw{"wrr"}
+	if		$tmp87 128 131 	%argrw{"r"}
+	le		$tmp88 Roughness $const19 	%argrw{"wrr"}
+	neq		$tmp89 $tmp88 $const9 	%argrw{"wrr"}
+	assign		$tmp87 $tmp89 	%argrw{"wr"}
+	if		$tmp87 140 148 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:87
+# 			BSDF = BSDF  + specular_weight * microfacet_ggx_aniso_fresnel(Normal, T, alpha_x, alpha_y, (2.0 / (1.0 - sqrt(0.08 * Specular))) - 1.0, BaseColor, Cspec0);
+	mul		$tmp92 $const17 Specular 	%line{87} %argrw{"wrr"}
+	sqrt		$tmp91 $tmp92 	%argrw{"wr"}
+	sub		$tmp93 $const2 $tmp91 	%argrw{"wrr"}
+	div		$tmp94 $const20 $tmp93 	%argrw{"wrr"}
+	sub		$tmp95 $tmp94 $const2 	%argrw{"wrr"}
+	closure		$tmp90 $const21 Normal T ___653_alpha_x ___653_alpha_y $tmp95 BaseColor ___653_Cspec0 	%argrw{"wrrrrrrrr"}
+	mul		$tmp96 $tmp90 specular_weight 	%argrw{"wrr"}
+	add		BSDF BSDF $tmp96 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:89
+# 			BSDF = BSDF + specular_weight * microfacet_multi_ggx_aniso_fresnel(Normal, T, alpha_x, alpha_y, (2.0 / (1.0 - sqrt(0.08 * Specular))) - 1.0, BaseColor, Cspec0);
+	mul		$tmp99 $const17 Specular 	%line{89} %argrw{"wrr"}
+	sqrt		$tmp98 $tmp99 	%argrw{"wr"}
+	sub		$tmp100 $const2 $tmp98 	%argrw{"wrr"}
+	div		$tmp101 $const20 $tmp100 	%argrw{"wrr"}
+	sub		$tmp102 $tmp101 $const2 	%argrw{"wrr"}
+	closure		$tmp97 $const22 Normal T ___653_alpha_x ___653_alpha_y $tmp102 BaseColor ___653_Cspec0 	%argrw{"wrrrrrrrr"}
+	mul		$tmp103 $tmp97 specular_weight 	%argrw{"wrr"}
+	add		BSDF BSDF $tmp103 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:93
+# 	if (final_transmission > 1e-5) {
+	gt		$tmp104 final_transmission $const1 	%line{93} %argrw{"wrr"}
+	if		$tmp104 218 218 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:94
+# 		color Cspec0 = BaseColor * SpecularTint + color(1.0, 1.0, 1.0) * (1.0 - SpecularTint);
+	mul		$tmp105 BaseColor SpecularTint 	%line{94} %argrw{"wrr"}
+	sub		$tmp107 $const2 SpecularTint 	%argrw{"wrr"}
+	mul		$tmp108 $const14 $tmp107 	%argrw{"wrr"}
+	add		___656_Cspec0 $tmp105 $tmp108 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:95
+# 		float eta = backfacing() ? 1.0 / f : f;
+	backfacing	$tmp109 	%line{95} %argrw{"w"}
+	if		$tmp109 157 158 	%argrw{"r"}
+	div		___656_eta $const2 f 	%argrw{"wrr"}
+	assign		___656_eta f 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:97
+# 		if (distribution == "GGX" || Roughness <= 5e-2) {
+	eq		$tmp110 distribution $const18 	%line{97} %argrw{"wrr"}
+	neq		$tmp111 $tmp110 $const9 	%argrw{"wrr"}
+	if		$tmp111 161 164 	%argrw{"r"}
+	le		$tmp112 Roughness $const23 	%argrw{"wrr"}
+	neq		$tmp113 $tmp112 $const9 	%argrw{"wrr"}
+	assign		$tmp111 $tmp113 	%argrw{"wr"}
+	if		$tmp111 214 218 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:98
+# 			float cosNO = dot(Normal, I);
+	dot		___657_cosNO Normal I 	%line{98} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:99
+# 			float Fr = fresnel_dielectric_cos(cosNO, eta);
+	functioncall	$const24 192 	%line{99} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:21
+# 	float c = fabs(cosi);
+	fabs		___646_c ___657_cosNO 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h"} %line{21} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:22
+# 	float g = eta * eta - 1 + c * c;
+	mul		$tmp114 ___656_eta ___656_eta 	%line{22} %argrw{"wrr"}
+	sub		$tmp115 $tmp114 $const2 	%argrw{"wrr"}
+	mul		$tmp116 ___646_c ___646_c 	%argrw{"wrr"}
+	add		___646_g $tmp115 $tmp116 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:25
+# 	if (g > 0) {
+	gt		$tmp117 ___646_g $const9 	%line{25} %argrw{"wrr"}
+	if		$tmp117 190 191 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:26
+# 		g = sqrt(g);
+	sqrt		___646_g ___646_g 	%line{26} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:27
+# 		float A = (g - c) / (g + c);
+	sub		$tmp118 ___646_g ___646_c 	%line{27} %argrw{"wrr"}
+	add		$tmp119 ___646_g ___646_c 	%argrw{"wrr"}
+	div		___647_A $tmp118 $tmp119 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:28
+# 		float B = (c * (g + c) - 1) / (c * (g - c) + 1);
+	add		$tmp120 ___646_g ___646_c 	%line{28} %argrw{"wrr"}
+	mul		$tmp121 ___646_c $tmp120 	%argrw{"wrr"}
+	sub		$tmp122 $tmp121 $const2 	%argrw{"wrr"}
+	sub		$tmp123 ___646_g ___646_c 	%argrw{"wrr"}
+	mul		$tmp124 ___646_c $tmp123 	%argrw{"wrr"}
+	add		$tmp125 $tmp124 $const2 	%argrw{"wrr"}
+	div		___647_B $tmp122 $tmp125 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:29
+# 		result = 0.5 * A * A * (1 + B * B);
+	mul		$tmp126 $const25 ___647_A 	%line{29} %argrw{"wrr"}
+	mul		$tmp127 $tmp126 ___647_A 	%argrw{"wrr"}
+	mul		$tmp128 ___647_B ___647_B 	%argrw{"wrr"}
+	add		$tmp129 $const2 $tmp128 	%argrw{"wrr"}
+	mul		___646_result $tmp127 $tmp129 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:32
+# 		result = 1.0;  /* TIR (no refracted component) */
+	assign		___646_result $const2 	%line{32} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:34
+# 	return result;
+	assign		___657_Fr ___646_result 	%line{34} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:101
+# 			color sheen_color = color(1.0, 1.0, 1.0) * (1.0 - SheenTint) + m_ctint * SheenTint;
+	assign		___657_refl_roughness Roughness 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl"} %line{101} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:102
+# 
+	le		$tmp130 Roughness $const26 	%line{102} %argrw{"wrr"}
+	if		$tmp130 196 196 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:103
+# 			BSDF = BSDF + sheen_color * Sheen * principled_sheen(Normal);
+	assign		___657_refl_roughness $const3 	%line{103} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:105
+# 
+	assign		___657_transmission_roughness ___657_refl_roughness 	%line{105} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:106
+# 		BSDF = BSDF * diffuse_weight;
+	eq		$tmp131 distribution $const18 	%line{106} %argrw{"wrr"}
+	if		$tmp131 203 203 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:107
+# 	}
+	sub		$tmp132 $const2 ___657_refl_roughness 	%line{107} %argrw{"wrr"}
+	sub		$tmp133 $const2 TransmissionRoughness 	%argrw{"wrr"}
+	mul		$tmp134 $tmp132 $tmp133 	%argrw{"wrr"}
+	sub		___657_transmission_roughness $const2 $tmp134 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:109
+# 	if (specular_weight > 1e-5) {
+	mul		$tmp136 ___657_refl_roughness ___657_refl_roughness 	%line{109} %argrw{"wrr"}
+	closure		$tmp135 $const27 Normal $tmp136 ___656_eta BaseColor ___656_Cspec0 	%argrw{"wrrrrrr"}
+	mul		$tmp137 $tmp135 ___657_Fr 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:110
+# 		float aspect = sqrt(1.0 - Anisotropic * 0.9);
+	mul		$tmp139 ___657_transmission_roughness ___657_transmission_roughness 	%line{110} %argrw{"wrr"}
+	closure		$tmp138 $const28 Normal $tmp139 ___656_eta 	%argrw{"wrrrr"}
+	sub		$tmp140 $const2 ___657_Fr 	%argrw{"wrr"}
+	mul		$tmp141 $tmp140 BaseColor 	%argrw{"wrr"}
+	mul		$tmp142 $tmp138 $tmp141 	%argrw{"wrr"}
+	add		$tmp143 $tmp137 $tmp142 	%argrw{"wrr"}
+	mul		$tmp144 $tmp143 final_transmission 	%argrw{"wrr"}
+	add		BSDF BSDF $tmp144 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:112
+# 
+	mul		$tmp146 Roughness Roughness 	%line{112} %argrw{"wrr"}
+	closure		$tmp145 $const29 Normal $tmp146 ___656_eta BaseColor ___656_Cspec0 	%argrw{"wrrrrrr"}
+	mul		$tmp147 $tmp145 final_transmission 	%argrw{"wrr"}
+	add		BSDF BSDF $tmp147 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:116
+# 		color tmp_col = color(1.0, 1.0, 1.0) * (1.0 - SpecularTint) + m_ctint * SpecularTint;
+	gt		$tmp148 Clearcoat $const1 	%line{116} %argrw{"wrr"}
+	if		$tmp148 223 223 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_principled_bsdf.osl:117
+# 
+	mul		$tmp150 ClearcoatRoughness ClearcoatRoughness 	%line{117} %argrw{"wrr"}
+	closure		$tmp149 $const30 ClearcoatNormal Clearcoat $tmp150 	%argrw{"wrrrr"}
+	add		BSDF BSDF $tmp149 	%argrw{"wrr"}
+	end

@@ -1,0 +1,192 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_glass_bsdf.oso
+shader node_glass_bsdf
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{41,63} %write{2147483647,-1}
+param	string	distribution	"sharp"		%read{33,55} %write{2147483647,-1}
+param	float	Roughness	0.2		%read{44,59} %write{2147483647,-1}
+param	float	IOR	1.45		%read{1,1} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{6,59} %write{0,0} %initexpr
+oparam	closure color	BSDF			%read{2147483647,-1} %write{41,63}
+global	vector	I	%read{6,6} %write{2147483647,-1}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+local	float	___646_c	%read{11,23} %write{8,8}
+local	float	___646_g	%read{13,22} %write{12,15}
+local	float	___646_result	%read{32,32} %write{30,31}
+local	float	___647_A	%read{26,27} %write{18,18}
+local	float	___647_B	%read{28,28} %write{25,25}
+local	float	f	%read{4,5} %write{1,1}
+local	float	eta	%read{9,59} %write{4,5}
+local	float	cosi	%read{8,8} %write{6,6}
+local	float	Fr	%read{36,60} %write{32,32}
+const	float	$const1	9.9999997e-006		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp1	%read{3,3} %write{2,2}
+const	float	$const2	1		%read{4,60} %write{2147483647,-1}
+const	string	$const3	"fresnel_dielectric_cos"		%read{7,7} %write{2147483647,-1}
+temp	float	$tmp2	%read{10,10} %write{9,9}
+temp	float	$tmp3	%read{12,12} %write{10,10}
+temp	float	$tmp4	%read{12,12} %write{11,11}
+const	int	$const5	0		%read{13,13} %write{2147483647,-1}
+temp	int	$tmp5	%read{14,14} %write{13,13}
+temp	float	$tmp6	%read{18,18} %write{16,16}
+temp	float	$tmp7	%read{18,18} %write{17,17}
+temp	float	$tmp8	%read{20,20} %write{19,19}
+temp	float	$tmp9	%read{21,21} %write{20,20}
+temp	float	$tmp10	%read{25,25} %write{21,21}
+temp	float	$tmp11	%read{23,23} %write{22,22}
+temp	float	$tmp12	%read{24,24} %write{23,23}
+temp	float	$tmp13	%read{25,25} %write{24,24}
+const	float	$const6	0.5		%read{26,26} %write{2147483647,-1}
+temp	float	$tmp14	%read{27,27} %write{26,26}
+temp	float	$tmp15	%read{30,30} %write{27,27}
+temp	float	$tmp16	%read{29,29} %write{28,28}
+temp	float	$tmp17	%read{30,30} %write{29,29}
+const	string	$const7	"sharp"		%read{33,33} %write{2147483647,-1}
+temp	int	$tmp18	%read{34,34} %write{33,33}
+temp	closure color	$tmp19	%read{36,36} %write{35,35}
+const	string	$const8	"reflection"		%read{35,35} %write{2147483647,-1}
+temp	closure color	$tmp20	%read{40,40} %write{36,36}
+temp	closure color	$tmp21	%read{39,39} %write{37,37}
+const	string	$const9	"refraction"		%read{37,37} %write{2147483647,-1}
+temp	float	$tmp22	%read{39,39} %write{38,38}
+temp	closure color	$tmp23	%read{40,40} %write{39,39}
+temp	closure color	$tmp24	%read{41,41} %write{40,40}
+const	string	$const10	"beckmann"		%read{42,42} %write{2147483647,-1}
+temp	int	$tmp25	%read{43,43} %write{42,42}
+temp	closure color	$tmp26	%read{45,45} %write{44,44}
+const	string	$const11	"microfacet_beckmann"		%read{44,44} %write{2147483647,-1}
+temp	closure color	$tmp27	%read{49,49} %write{45,45}
+temp	closure color	$tmp28	%read{48,48} %write{46,46}
+const	string	$const12	"microfacet_beckmann_refraction"		%read{46,46} %write{2147483647,-1}
+temp	float	$tmp29	%read{48,48} %write{47,47}
+temp	closure color	$tmp30	%read{49,49} %write{48,48}
+temp	closure color	$tmp31	%read{50,50} %write{49,49}
+const	string	$const13	"Multiscatter GGX"		%read{51,51} %write{2147483647,-1}
+temp	int	$tmp32	%read{52,52} %write{51,51}
+temp	closure color	$tmp33	%read{54,54} %write{53,53}
+const	string	$const14	"microfacet_multi_ggx_glass"		%read{53,53} %write{2147483647,-1}
+const	string	$const15	"GGX"		%read{55,55} %write{2147483647,-1}
+temp	int	$tmp34	%read{56,56} %write{55,55}
+temp	closure color	$tmp35	%read{58,58} %write{57,57}
+const	string	$const16	"microfacet_ggx"		%read{57,57} %write{2147483647,-1}
+temp	closure color	$tmp36	%read{62,62} %write{58,58}
+temp	closure color	$tmp37	%read{61,61} %write{59,59}
+const	string	$const17	"microfacet_ggx_refraction"		%read{59,59} %write{2147483647,-1}
+temp	float	$tmp38	%read{61,61} %write{60,60}
+temp	closure color	$tmp39	%read{62,62} %write{61,61}
+temp	closure color	$tmp40	%read{63,63} %write{62,62}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:25
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl"} %line{25} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:28
+# 	float f = max(IOR, 1e-5);
+	max		f IOR $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl"} %line{28} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:29
+# 	float eta = backfacing() ? 1.0 / f : f;
+	backfacing	$tmp1 	%line{29} %argrw{"w"}
+	if		$tmp1 5 6 	%argrw{"r"}
+	div		eta $const2 f 	%argrw{"wrr"}
+	assign		eta f 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:30
+# 	float cosi = dot(I, Normal);
+	dot		cosi I Normal 	%line{30} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:31
+# 	float Fr = fresnel_dielectric_cos(cosi, eta);
+	functioncall	$const3 33 	%line{31} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:21
+# 	float c = fabs(cosi);
+	fabs		___646_c cosi 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h"} %line{21} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:22
+# 	float g = eta * eta - 1 + c * c;
+	mul		$tmp2 eta eta 	%line{22} %argrw{"wrr"}
+	sub		$tmp3 $tmp2 $const2 	%argrw{"wrr"}
+	mul		$tmp4 ___646_c ___646_c 	%argrw{"wrr"}
+	add		___646_g $tmp3 $tmp4 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:25
+# 	if (g > 0) {
+	gt		$tmp5 ___646_g $const5 	%line{25} %argrw{"wrr"}
+	if		$tmp5 31 32 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:26
+# 		g = sqrt(g);
+	sqrt		___646_g ___646_g 	%line{26} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:27
+# 		float A = (g - c) / (g + c);
+	sub		$tmp6 ___646_g ___646_c 	%line{27} %argrw{"wrr"}
+	add		$tmp7 ___646_g ___646_c 	%argrw{"wrr"}
+	div		___647_A $tmp6 $tmp7 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:28
+# 		float B = (c * (g + c) - 1) / (c * (g - c) + 1);
+	add		$tmp8 ___646_g ___646_c 	%line{28} %argrw{"wrr"}
+	mul		$tmp9 ___646_c $tmp8 	%argrw{"wrr"}
+	sub		$tmp10 $tmp9 $const2 	%argrw{"wrr"}
+	sub		$tmp11 ___646_g ___646_c 	%argrw{"wrr"}
+	mul		$tmp12 ___646_c $tmp11 	%argrw{"wrr"}
+	add		$tmp13 $tmp12 $const2 	%argrw{"wrr"}
+	div		___647_B $tmp10 $tmp13 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:29
+# 		result = 0.5 * A * A * (1 + B * B);
+	mul		$tmp14 $const6 ___647_A 	%line{29} %argrw{"wrr"}
+	mul		$tmp15 $tmp14 ___647_A 	%argrw{"wrr"}
+	mul		$tmp16 ___647_B ___647_B 	%argrw{"wrr"}
+	add		$tmp17 $const2 $tmp16 	%argrw{"wrr"}
+	mul		___646_result $tmp15 $tmp17 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:32
+# 		result = 1.0;  /* TIR (no refracted component) */
+	assign		___646_result $const2 	%line{32} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:34
+# 	return result;
+	assign		Fr ___646_result 	%line{34} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:33
+# 	if (distribution == "sharp")
+	eq		$tmp18 distribution $const7 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl"} %line{33} %argrw{"wrr"}
+	if		$tmp18 42 64 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:34
+# 		BSDF = Color * (Fr * reflection(Normal) + (1.0 - Fr) * refraction(Normal, eta));
+	closure		$tmp19 $const8 Normal 	%line{34} %argrw{"wrr"}
+	mul		$tmp20 $tmp19 Fr 	%argrw{"wrr"}
+	closure		$tmp21 $const9 Normal eta 	%argrw{"wrrr"}
+	sub		$tmp22 $const2 Fr 	%argrw{"wrr"}
+	mul		$tmp23 $tmp21 $tmp22 	%argrw{"wrr"}
+	add		$tmp24 $tmp20 $tmp23 	%argrw{"wrr"}
+	mul		BSDF $tmp24 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:35
+# 	else if (distribution == "beckmann")
+	eq		$tmp25 distribution $const10 	%line{35} %argrw{"wrr"}
+	if		$tmp25 51 64 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:36
+# 		BSDF = Color * (Fr * microfacet_beckmann(Normal, Roughness) +
+	closure		$tmp26 $const11 Normal Roughness 	%line{36} %argrw{"wrrr"}
+	mul		$tmp27 $tmp26 Fr 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:37
+# 		                (1.0 - Fr) * microfacet_beckmann_refraction(Normal, Roughness, eta));
+	closure		$tmp28 $const12 Normal Roughness eta 	%line{37} %argrw{"wrrrr"}
+	sub		$tmp29 $const2 Fr 	%argrw{"wrr"}
+	mul		$tmp30 $tmp28 $tmp29 	%argrw{"wrr"}
+	add		$tmp31 $tmp27 $tmp30 	%argrw{"wrr"}
+	mul		BSDF $tmp31 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:38
+# 	else if (distribution == "Multiscatter GGX")
+	eq		$tmp32 distribution $const13 	%line{38} %argrw{"wrr"}
+	if		$tmp32 55 64 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:39
+# 		BSDF = Color * microfacet_multi_ggx_glass(Normal, Roughness, eta, Color);
+	closure		$tmp33 $const14 Normal Roughness eta Color 	%line{39} %argrw{"wrrrrr"}
+	mul		BSDF $tmp33 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:40
+# 	else if (distribution == "GGX")
+	eq		$tmp34 distribution $const15 	%line{40} %argrw{"wrr"}
+	if		$tmp34 64 64 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:41
+# 		BSDF = Color * (Fr * microfacet_ggx(Normal, Roughness) +
+	closure		$tmp35 $const16 Normal Roughness 	%line{41} %argrw{"wrrr"}
+	mul		$tmp36 $tmp35 Fr 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glass_bsdf.osl:42
+# 		                (1.0 - Fr) * microfacet_ggx_refraction(Normal, Roughness, eta));
+	closure		$tmp37 $const17 Normal Roughness eta 	%line{42} %argrw{"wrrrr"}
+	sub		$tmp38 $const2 Fr 	%argrw{"wrr"}
+	mul		$tmp39 $tmp37 $tmp38 	%argrw{"wrr"}
+	add		$tmp40 $tmp36 $tmp39 	%argrw{"wrr"}
+	mul		BSDF $tmp40 Color 	%argrw{"wrr"}
+	end

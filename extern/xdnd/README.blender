@@ -1,0 +1,8 @@
+Project: X Drag and Drop
+URL: http://www.newplanetsoftware.com/xdnd/ (defunct)
+     https://freedesktop.org/wiki/Specifications/XDND/ (cache)
+License: GPLv2+
+Upstream version: 2000-08-08
+Local modifications:
+* Fix T33192
+  Opening Blender breaks drag-and-drop support on the KDE desktop.

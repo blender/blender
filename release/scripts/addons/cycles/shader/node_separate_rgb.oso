@@ -1,0 +1,22 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_separate_rgb.oso
+shader node_separate_rgb
+param	color	Image	0.80000001 0.80000001 0.80000001		%read{0,2} %write{2147483647,-1}
+oparam	float	R	0		%read{2147483647,-1} %write{0,0}
+oparam	float	G	0		%read{2147483647,-1} %write{1,1}
+oparam	float	B	0		%read{2147483647,-1} %write{2,2}
+const	int	$const1	0		%read{0,0} %write{2147483647,-1}
+const	int	$const2	1		%read{1,1} %write{2147483647,-1}
+const	int	$const3	2		%read{2,2} %write{2147483647,-1}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_rgb.osl:25
+# 	R = Image[0];
+	compref		R Image $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_rgb.osl"} %line{25} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_rgb.osl:26
+# 	G = Image[1];
+	compref		G Image $const2 	%line{26} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_separate_rgb.osl:27
+# 	B = Image[2];
+	compref		B Image $const3 	%line{27} %argrw{"wrr"}
+	end

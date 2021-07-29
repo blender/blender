@@ -1,0 +1,152 @@
+import re
+from textwrap import indent, dedent
+
+declarationTargetPath = changeFileName(__file__, "base_lists.pxd")
+declarationSourcePath = changeFileName(__file__, "__list_declaration.src")
+
+implementationTargetPath = changeFileName(__file__, "base_lists.pyx")
+implementationSourcePath = changeFileName(__file__, "__list_implementation.src")
+numericListFunctionsPath = changeFileName(__file__, "__numeric_list_functions.src")
+indicesListFunctionsPath = changeFileName(__file__, "__indices_list_functions.src")
+vectorListFunctionsPath = changeFileName(__file__, "__vector_list_functions.src")
+booleanListFunctionsPath = changeFileName(__file__, "__boolean_list_functions.src")
+eulerListFunctionsPath = changeFileName(__file__, "__euler_list_functions.src")
+matrixListFunctionsPath = changeFileName(__file__, "__matrix_list_functions.src")
+
+numericLists = [
+    ("FloatList", "float"),
+    ("DoubleList", "double"),
+    ("CharList", "char"),          ("UCharList", "unsigned char"),
+    ("LongList", "long"),          ("ULongList", "unsigned long"),
+    ("IntegerList", "int"),        ("UIntegerList", "unsigned int"),
+    ("ShortList", "short"),        ("UShortList", "unsigned short"),
+    ("LongLongList", "long long"), ("ULongLongList", "unsigned long long")
+]
+
+lists = []
+
+moreMethodsCode = readFile(numericListFunctionsPath)
+for listName, dataType in numericLists:
+    lists.append(dict(LISTNAME = listName,
+                      TYPE = dataType,
+                      MEMVIEW = dataType,
+                      EQUALS = r"\1 == \2",
+                      TRY_CONVERSION_CODE = "target[0] = value",
+                      TO_PYOBJECT_CODE = "return value[0]",
+                      MORE_METHODS = moreMethodsCode,
+                      DECLARATIONS = []))
+
+lists.append(dict(LISTNAME = "BooleanList",
+                  TYPE = "char",
+                  MEMVIEW = "char",
+                  EQUALS = r"(\1 == 0) == (\2 == 0)",
+                  TRY_CONVERSION_CODE = "target[0] = value",
+                  TO_PYOBJECT_CODE = "return bool(value[0])",
+                  MORE_METHODS = readFile(booleanListFunctionsPath),
+                  DECLARATIONS = []))
+
+lists.append(dict(LISTNAME = "Vector3DList",
+                  TYPE = "Vector3",
+                  MEMVIEW = "float",
+                  EQUALS = r"\1.x == \2.x and \1.y == \2.y and \1.z == \2.z",
+                  TRY_CONVERSION_CODE = "setVector3(target, value)",
+                  TO_PYOBJECT_CODE = "return toPyVector3(value)",
+                  MORE_METHODS = readFile(vectorListFunctionsPath),
+                  DECLARATIONS = ["from ... math.vector cimport Vector3",
+                                  "from ... math.conversion cimport setVector3, toPyVector3"]))
+
+lists.append(dict(LISTNAME = "EulerList",
+                  TYPE = "Euler3",
+                  MEMVIEW = "NotExistentType",
+                  EQUALS = r"\1.x == \2.x and \1.y == \2.y and \1.z == \2.z and \1.order == \2.order",
+                  TRY_CONVERSION_CODE = "setEuler3(target, value)",
+                  TO_PYOBJECT_CODE = "return toPyEuler3(value)",
+                  MORE_METHODS = readFile(eulerListFunctionsPath),
+                  DECLARATIONS = ["from ... math.euler cimport Euler3",
+                                  "from ... math.conversion cimport setEuler3, toPyEuler3"]))
+
+lists.append(dict(LISTNAME = "Matrix4x4List",
+                  TYPE = "Matrix4",
+                  MEMVIEW = "float",
+                  EQUALS = " and ".join(r"\1.a{0}{1} == \2.a{0}{1}".format(i+1, j+1)
+                                        for i in range(4) for j in range(4)),
+                  TRY_CONVERSION_CODE = "setMatrix4(target, value)",
+                  TO_PYOBJECT_CODE = "return toPyMatrix4(value)",
+                  MORE_METHODS = readFile(matrixListFunctionsPath),
+                  DECLARATIONS = ["from ... math.matrix cimport Matrix4, transposeMatrix_Inplace, multMatrix4",
+                                  "from ... math.conversion cimport setMatrix4, toPyMatrix4"]))
+
+lists.append(dict(LISTNAME = "QuaternionList",
+                  TYPE = "Quaternion",
+                  MEMVIEW = "float",
+                  EQUALS = r"\1.w == \2.w and \1.x == \2.x and \1.y == \2.y and \1.z == \2.z",
+                  TRY_CONVERSION_CODE = "setQuaternion(target, value)",
+                  TO_PYOBJECT_CODE = "return toPyQuaternion(value)",
+                  MORE_METHODS = "",
+                  DECLARATIONS = ["from ... math.quaternion cimport Quaternion",
+                                  "from ... math.conversion cimport setQuaternion, toPyQuaternion"]))
+
+lists.append(dict(LISTNAME = "EdgeIndicesList",
+                  TYPE = "EdgeIndices",
+                  MEMVIEW = "unsigned int",
+                  EQUALS = r"\1.v1 == \2.v1 and \1.v2 == \2.v2",
+                  TRY_CONVERSION_CODE = dedent('''\
+                       if len(value) == 2: target.v1, target.v2 = value[0], value[1]
+                       else: raise TypeError("length has to be 2")'''),
+                  TO_PYOBJECT_CODE = "return (value.v1, value.v2)",
+                  MORE_METHODS = readFile(indicesListFunctionsPath),
+                  DECLARATIONS = ["cdef struct EdgeIndices:\n    unsigned int v1, v2"]))
+
+
+
+# Create Declaration File
+#####################################################
+
+if dependenciesChanged(declarationTargetPath, dependencies = [declarationSourcePath, __file__]):
+    declaration = readFile(declarationSourcePath)
+
+    parts = []
+    parts.append("ctypedef fused list_or_tuple:\n    list\n    tuple")
+
+    fusedTypeCode = "ctypedef fused NumericList:\n"
+    for listName, _ in numericLists:
+        fusedTypeCode += "    " + listName + "\n"
+    parts.append(fusedTypeCode)
+
+    for listData in lists:
+        parts.extend(listData["DECLARATIONS"])
+        parts.append(multiReplace(declaration,
+            LISTNAME = listData["LISTNAME"],
+            TYPE = listData["TYPE"],
+            MEMVIEW = listData["MEMVIEW"]))
+
+    writeFile(declarationTargetPath, "\n\n".join(parts))
+
+
+# Create Implementation File
+#####################################################
+
+if dependenciesChanged(implementationTargetPath, dependencies = [implementationSourcePath,
+                                                                 numericListFunctionsPath,
+                                                                 indicesListFunctionsPath,
+                                                                 matrixListFunctionsPath,
+                                                                 vectorListFunctionsPath,
+                                                                 booleanListFunctionsPath,
+                                                                 eulerListFunctionsPath,
+                                                                 __file__]):
+    implementation = readFile(implementationSourcePath)
+
+    parts = []
+    parts.append("cdef struct NotExistentType:\n    char tmp")
+
+    for listData in lists:
+        listCode = implementation.replace("MORE_METHODS", indent(listData["MORE_METHODS"], "    "))
+        listCode = re.sub("EQUALS\((.*), (.*)\)", "({})".format(listData["EQUALS"]), listCode)
+        parts.append(multiReplace(listCode,
+           LISTNAME = listData["LISTNAME"],
+           TYPE = listData["TYPE"],
+           MEMVIEW = listData["MEMVIEW"],
+           TRY_CONVERSION_CODE = indent(listData["TRY_CONVERSION_CODE"], " " * 8),
+           TO_PYOBJECT_CODE = indent(listData["TO_PYOBJECT_CODE"], " " * 8)))
+
+    writeFile(implementationTargetPath, "\n\n".join(parts))

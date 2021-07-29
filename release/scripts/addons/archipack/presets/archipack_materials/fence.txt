@@ -1,0 +1,4 @@
+DEFAULT##|##Fence_wood
+DEFAULT##|##Fence_metal
+DEFAULT##|##Fence_glass
+DEFAULT##|##Fence_concrete

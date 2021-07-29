@@ -1,0 +1,33 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_diffuse_bsdf.oso
+shader node_diffuse_bsdf
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{4,6} %write{2147483647,-1}
+param	float	Roughness	0		%read{1,5} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{3,5} %write{0,0} %initexpr
+oparam	closure color	BSDF			%read{2147483647,-1} %write{4,6}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+const	float	$const1	0		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp1	%read{2,2} %write{1,1}
+temp	closure color	$tmp2	%read{4,4} %write{3,3}
+const	string	$const2	"diffuse"		%read{3,3} %write{2147483647,-1}
+temp	closure color	$tmp3	%read{6,6} %write{5,5}
+const	string	$const3	"oren_nayar"		%read{5,5} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_diffuse_bsdf.osl:22
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_diffuse_bsdf.osl"} %line{22} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_diffuse_bsdf.osl:25
+# 	if (Roughness == 0.0)
+	eq		$tmp1 Roughness $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_diffuse_bsdf.osl"} %line{25} %argrw{"wrr"}
+	if		$tmp1 5 7 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_diffuse_bsdf.osl:26
+# 		BSDF = Color * diffuse(Normal);
+	closure		$tmp2 $const2 Normal 	%line{26} %argrw{"wrr"}
+	mul		BSDF $tmp2 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_diffuse_bsdf.osl:28
+# 		BSDF = Color * oren_nayar(Normal, Roughness);
+	closure		$tmp3 $const3 Normal Roughness 	%line{28} %argrw{"wrrr"}
+	mul		BSDF $tmp3 Color 	%argrw{"wrr"}
+	end

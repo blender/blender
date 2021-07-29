@@ -1,0 +1,41 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_toon_bsdf.oso
+shader node_toon_bsdf
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{4,8} %write{2147483647,-1}
+param	string	component	"diffuse"		%read{1,5} %write{2147483647,-1}
+param	float	Size	0.5		%read{3,7} %write{2147483647,-1}
+param	float	Smooth	0		%read{3,7} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{3,7} %write{0,0} %initexpr
+oparam	closure color	BSDF			%read{2147483647,-1} %write{4,8}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+const	string	$const1	"diffuse"		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp1	%read{2,2} %write{1,1}
+temp	closure color	$tmp2	%read{4,4} %write{3,3}
+const	string	$const2	"diffuse_toon"		%read{3,3} %write{2147483647,-1}
+const	string	$const3	"glossy"		%read{5,5} %write{2147483647,-1}
+temp	int	$tmp3	%read{6,6} %write{5,5}
+temp	closure color	$tmp4	%read{8,8} %write{7,7}
+const	string	$const4	"glossy_toon"		%read{7,7} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_toon_bsdf.osl:24
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_toon_bsdf.osl"} %line{24} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_toon_bsdf.osl:27
+# 	if (component == "diffuse")
+	eq		$tmp1 component $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_toon_bsdf.osl"} %line{27} %argrw{"wrr"}
+	if		$tmp1 5 9 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_toon_bsdf.osl:28
+# 		BSDF = Color * diffuse_toon(Normal, Size, Smooth);
+	closure		$tmp2 $const2 Normal Size Smooth 	%line{28} %argrw{"wrrrr"}
+	mul		BSDF $tmp2 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_toon_bsdf.osl:29
+# 	else if (component == "glossy")
+	eq		$tmp3 component $const3 	%line{29} %argrw{"wrr"}
+	if		$tmp3 9 9 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_toon_bsdf.osl:30
+# 		BSDF = Color * glossy_toon(Normal, Size, Smooth);
+	closure		$tmp4 $const4 Normal Size Smooth 	%line{30} %argrw{"wrrrr"}
+	mul		BSDF $tmp4 Color 	%argrw{"wrr"}
+	end

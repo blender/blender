@@ -1,0 +1,27 @@
+
+shader noise(
+	float Time = 1.0,
+	point Point = P,
+	output float Cell = 0.0,
+	output color Perlin = 0.8,
+	output color UPerlin = 0.8,
+	output color Simplex = 0.8,
+	output color USimplex = 0.8)
+{   
+	/* Cell Noise */
+	Cell = noise("cell", Point);
+
+	/* Perlin 4D Noise */
+	Perlin = noise("perlin", Point, Time);
+
+	/* UPerlin 4D Noise */
+	UPerlin = noise("uperlin", Point, Time);
+	
+	/* Simplex 4D Noise */
+	Simplex = noise("simplex", Point, Time);
+	
+	/* USimplex 4D Noise */
+	USimplex = noise("usimplex", Point, Time);
+	
+}
+

@@ -1,0 +1,27 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_camera.oso
+shader node_camera
+oparam	vector	ViewVector	0 0 0		%read{1,4} %write{0,4}
+oparam	float	ViewZDepth	0		%read{2147483647,-1} %write{2,2}
+oparam	float	ViewDistance	0		%read{2147483647,-1} %write{3,3}
+global	point	P	%read{0,0} %write{2147483647,-1}
+const	string	$const1	"world"		%read{0,0} %write{2147483647,-1}
+const	string	$const2	"camera"		%read{0,0} %write{2147483647,-1}
+const	int	$const3	2		%read{1,1} %write{2147483647,-1}
+temp	float	$tmp1	%read{2,2} %write{1,1}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_camera.osl:24
+# 	ViewVector = (vector)transform("world", "camera", P);
+	transform	ViewVector $const1 $const2 P 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_camera.osl"} %line{24} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_camera.osl:26
+# 	ViewZDepth = fabs(ViewVector[2]);
+	compref		$tmp1 ViewVector $const3 	%line{26} %argrw{"wrr"}
+	fabs		ViewZDepth $tmp1 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_camera.osl:27
+# 	ViewDistance = length(ViewVector);
+	length		ViewDistance ViewVector 	%line{27} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_camera.osl:29
+# 	ViewVector = normalize(ViewVector);
+	normalize	ViewVector ViewVector 	%line{29} %argrw{"wr"}
+	end

@@ -1,0 +1,13 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_combine_xyz.oso
+shader node_combine_xyz
+param	float	X	0		%read{0,0} %write{2147483647,-1}
+param	float	Y	0		%read{0,0} %write{2147483647,-1}
+param	float	Z	0		%read{0,0} %write{2147483647,-1}
+oparam	vector	Vector	0.80000001 0.80000001 0.80000001		%read{2147483647,-1} %write{0,0}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_combine_xyz.osl:25
+# 	Vector = vector(X, Y, Z);
+	vector		Vector X Y Z 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_combine_xyz.osl"} %line{25} %argrw{"wrrr"}
+	end

@@ -1,0 +1,13 @@
+includes.patch
+win32.patch
+mesh_iterator.patch
+gcc46.patch
+clang_is_heap_fix.patch
+strict_flags.patch
+interpolator_reorder.patch
+mesh_simplify_dissolve_edges.patch
+mesh_simplify_uninitialized_var.patch
+memory_leak_fix.patch
+msvc_fix.patch
+face_hole_merge_workaround.patch
+random.patch

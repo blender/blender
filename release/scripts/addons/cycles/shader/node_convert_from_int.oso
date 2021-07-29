@@ -1,0 +1,32 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_convert_from_int.oso
+shader node_convert_from_int
+param	int	value_int	0		%read{0,0} %write{2147483647,-1}
+oparam	string	value_string	""		%read{2147483647,-1} %write{2147483647,-1}
+oparam	float	value_float	0		%read{2147483647,-1} %write{1,1}
+oparam	color	value_color	0 0 0		%read{2147483647,-1} %write{2,2}
+oparam	vector	value_vector	0 0 0		%read{2147483647,-1} %write{3,3}
+oparam	point	value_point	0 0 0		%read{2147483647,-1} %write{4,4}
+oparam	normal	value_normal	0 0 0		%read{2147483647,-1} %write{5,5}
+local	float	f	%read{1,5} %write{0,0}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_int.osl:28
+# 	float f = (float)value_int;
+	assign		f value_int 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_int.osl"} %line{28} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_int.osl:29
+# 	value_float = f;
+	assign		value_float f 	%line{29} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_int.osl:30
+# 	value_color = color(f, f, f);
+	color		value_color f f f 	%line{30} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_int.osl:31
+# 	value_vector = vector(f, f, f);
+	vector		value_vector f f f 	%line{31} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_int.osl:32
+# 	value_point = point(f, f, f);
+	point		value_point f f f 	%line{32} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_int.osl:33
+# 	value_normal = normal(f, f, f);
+	normal		value_normal f f f 	%line{33} %argrw{"wrrr"}
+	end

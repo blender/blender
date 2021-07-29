@@ -1,0 +1,90 @@
+Blender Mono I18n font includes glyphs imported from the following fonts:
+
+1. DejaVu Sans Mono
+2. M+ 1M Regular
+3. Wen Quan Yi Micro Hei Mono
+4. Droid Sans Hebrew Regular (with some edits)
+
+These were merged using FontForge in the above order.  For each glyph,
+a license of the font from which it was imported is applied.
+
+----------------------------------------------------------------------
+Summary of Copyrights and Licenses
+
+(1) DejaVu Sans Mono
+
+Copyright: 2003 Bitstream, Inc. (Bitstream font glyphs)
+           2006 Tavmjong Bah (Arev font glyphs)
+           DejaVu changes are in public domain
+
+License:
+ DejaVu font glyphs are same as bmonofont.ttf.  See LICENSE-bfont.ttf.txt.
+
+(2) M+ 1M Regular
+
+Copyright: 2002-2012 M+ FONTS PROJECT
+
+License:
+ These fonts are free software.
+ Unlimited permission is granted to use, copy, and distribute it, with or
+ without modification, either commercially and noncommercially.
+ THESE FONTS ARE PROVIDED "AS IS" WITHOUT WARRANTY.
+
+(3) Wen Quan Yi Micro Hei Mono
+
+Copyright: 2007 Google Corporation (Digitized data)
+           2008-2009 WenQuanYi Project Board of Trustees
+           2008-2009 mozbug and Qianqian Fang (Droid Sans Fallback extension interface)
+
+License: Apache-2.0 or GPL-3 with font embedding exception
+ See Appendices A and B.
+
+(4) Droid Sans Hebrew Regular
+
+Copyright: 2011 Google Corporation
+
+License: Apache-2.0
+ See Appendix A.
+
+----------------------------------------------------------------------
+Appendix A. Apache License Version 2.0
+
+ Licensed under the Apache License, Version 2.0 (the "License"); you
+ may not use this file except in compliance with the License. You may
+ obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ implied. See the License for the specific language governing
+ permissions and limitations under the License.
+
+----------------------------------------------------------------------
+Appendix B. GNU GPL Version 3 with font embedding exception
+
+GPL-3:
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Font embedding exception:
+ As a special exception, if you create a document which uses this
+ font, and embed this font or unaltered portions of this font into
+ the document, this font does not by itself cause the resulting
+ document to be covered by the GNU General Public License. This
+ exception does not however invalidate any other reasons why the
+ document might be covered by the GNU General Public License. If you
+ modify this font, you may extend this exception to your version of
+ the font, but you are not obligated to do so. If you do not wish to
+ do so, delete this exception statement from your version.

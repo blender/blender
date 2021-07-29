@@ -1,0 +1,69 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+#include "node_texture.h"
+
+/* Wave */
+
+float wave(point p, string type, string profile, float detail, float distortion, float dscale)
+{
+	float n = 0.0;
+
+	if (type == "bands") {
+		n = (p[0] + p[1] + p[2]) * 10.0;
+	}
+	else if (type == "rings") {
+		n = length(p) * 20.0;
+	}
+
+	if (distortion != 0.0) {
+		n = n + (distortion * noise_turbulence(p * dscale, detail, 0));
+	}
+
+	if (profile == "sine") {
+		return 0.5 + 0.5 * sin(n);
+	}
+	else {
+		/* Saw profile */
+		n /= M_2PI;
+		n -= (int) n;
+		return (n < 0.0) ? n + 1.0 : n;
+	}
+}
+
+shader node_wave_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+	string type = "bands",
+	string profile = "sine",
+	float Scale = 5.0,
+	float Distortion = 0.0,
+	float Detail = 2.0,
+	float DetailScale = 1.0,
+	point Vector = P,
+	output float Fac = 0.0,
+	output color Color = 0.0)
+{
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
+	Fac = wave(p * Scale, type, profile, Detail, Distortion, DetailScale);
+	Color = Fac;
+}
+

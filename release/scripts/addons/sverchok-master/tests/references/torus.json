@@ -1,0 +1,9 @@
+        {"framed_nodes": {}, "update_lists": [], "groups": {}, "nodes":
+        {"Torus": {"height": 100.0, "width": 140.0, "hide": false, "location":
+        [0.0, 0.0], "color": [0.0, 0.5, 0.5], "params": {"torus_r": 0.25,
+        "torus_sP": 0.029999999329447746, "torus_eR": 1.2799999713897705,
+        "torus_R": 1.0299999713897705, "torus_iR": 0.7799999713897705,
+        "torus_n1": 33, "torus_n2": 17, "torus_sT": 1, "mode": "MAJOR_MINOR",
+        "Separate": 0, "torus_rP": 0.029999999329447746}, "label": "",
+        "use_custom_color": true, "bl_idname": "SvTorusNode"}},
+        "export_version": "0.072"}

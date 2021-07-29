@@ -1,0 +1,571 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_wireframe.oso
+shader node_wireframe
+param	string	bump_offset	"center"		%read{74,156} %write{2147483647,-1}
+param	int	use_pixel_size	0		%read{33,193} %write{2147483647,-1}
+param	float	Size	0.0099999998		%read{48,208} %write{2147483647,-1}
+oparam	float	Fac	0		%read{152,237} %write{3,237}
+global	point	P	%read{34,231} %write{77,159} %derivs
+global	vector	I	%read{36,203} %write{2147483647,-1}
+local	int	___646_np	%read{23,231} %write{5,182}
+local	point[64]	___646_p	%read{53,231} %write{10,186}
+local	float	___646_pixelWidth	%read{49,231} %write{6,210}
+local	float	___649_pixelWidthX	%read{46,206} %write{39,199}
+local	float	___649_pixelWidthY	%read{46,206} %write{45,205}
+local	int	___650_i	%read{53,231} %write{52,231}
+local	int	___651_i2	%read{53,231} %write{53,231}
+local	vector	___651_dir	%read{53,231} %write{53,231}
+local	vector	___651_edge	%read{53,231} %write{53,231}
+local	vector	___651_crs	%read{53,231} %write{53,231}
+local	point	___655_dx	%read{77,153} %write{76,76} %derivs
+local	point	___656_dy	%read{159,235} %write{158,158} %derivs
+const	string	$const1	"triangles"		%read{7,178} %write{2147483647,-1}
+const	string	$const2	"wireframe"		%read{0,160} %write{2147483647,-1}
+temp	int	$tmp1	%read{2,2} %write{1,1}
+const	string	$const3	"path:diffuse"		%read{1,161} %write{2147483647,-1}
+const	float	$const4	0		%read{3,191} %write{2147483647,-1}
+const	int	$const5	0		%read{5,232} %write{2147483647,-1}
+const	int	$const6	1		%read{6,231} %write{2147483647,-1}
+temp	int	$tmp2	%read{8,8} %write{7,7}
+const	int	$const7	3		%read{9,183} %write{2147483647,-1}
+temp	int	$tmp3	%read{11,11} %write{10,10}
+const	string	$const8	"geom:trianglevertices"		%read{10,170} %write{2147483647,-1}
+temp	int	$tmp4	%read{12,12} %write{11,11}
+const	string	$const9	"polygons"		%read{15,175} %write{2147483647,-1}
+temp	int	$tmp5	%read{16,16} %write{15,15}
+temp	int	$tmp6	%read{17,21} %write{16,20}
+const	string	$const10	"patches"		%read{18,178} %write{2147483647,-1}
+temp	int	$tmp7	%read{19,19} %write{18,18}
+temp	int	$tmp8	%read{20,20} %write{19,19}
+temp	int	$tmp9	%read{2147483647,-1} %write{22,22}
+const	string	$const11	"geom:numpolyvertices"		%read{22,182} %write{2147483647,-1}
+temp	int	$tmp10	%read{24,24} %write{23,23}
+temp	int	$tmp11	%read{25,30} %write{24,29}
+temp	int	$tmp12	%read{27,27} %write{26,26}
+const	string	$const12	"geom:polyvertices"		%read{26,186} %write{2147483647,-1}
+temp	int	$tmp13	%read{28,28} %write{27,27}
+temp	int	$tmp14	%read{29,29} %write{28,28}
+temp	vector	$tmp15	%read{38,38} %write{34,34}
+temp	float	$tmp16	%read{37,37} %write{36,36}
+temp	vector	$tmp17	%read{36,36} %write{35,35}
+temp	vector	$tmp18	%read{38,38} %write{37,37}
+temp	vector	$tmp19	%read{39,39} %write{38,38}
+temp	vector	$tmp20	%read{44,44} %write{40,40}
+temp	float	$tmp21	%read{43,43} %write{42,42}
+temp	vector	$tmp22	%read{42,42} %write{41,41}
+temp	vector	$tmp23	%read{44,44} %write{43,43}
+temp	vector	$tmp24	%read{45,45} %write{44,44}
+temp	float	$tmp25	%read{47,47} %write{46,46}
+const	float	$const14	2		%read{47,207} %write{2147483647,-1}
+const	float	$const15	0.5		%read{48,208} %write{2147483647,-1}
+temp	float	$tmp26	%read{49,49} %write{48,48}
+temp	int	$tmp27	%read{51,71} %write{52,71}
+temp	point	$tmp28	%read{53,71} %write{53,71}
+temp	point	$tmp29	%read{53,71} %write{53,71}
+temp	point	$tmp30	%read{53,71} %write{53,71}
+temp	float	$tmp31	%read{53,71} %write{53,71}
+temp	float	$tmp32	%read{53,71} %write{53,71}
+temp	float	$tmp33	%read{53,71} %write{53,71}
+temp	int	$tmp34	%read{53,71} %write{53,71}
+temp	int	$tmp35	%read{2147483647,-1} %write{53,71}
+const	string	$const16	"dx"		%read{74,74} %write{2147483647,-1}
+temp	int	$tmp36	%read{75,75} %write{74,74}
+temp	float	$tmp37	%read{152,152} %write{81,150}
+temp	int	$tmp38	%read{80,80} %write{79,79}
+temp	int	$tmp39	%read{86,86} %write{85,85}
+temp	int	$tmp40	%read{89,89} %write{88,88}
+temp	int	$tmp41	%read{90,90} %write{89,89}
+temp	int	$tmp42	%read{94,94} %write{93,93}
+temp	int	$tmp43	%read{95,99} %write{94,98}
+temp	int	$tmp44	%read{97,97} %write{96,96}
+temp	int	$tmp45	%read{98,98} %write{97,97}
+temp	int	$tmp46	%read{2147483647,-1} %write{100,100}
+temp	int	$tmp47	%read{102,102} %write{101,101}
+temp	int	$tmp48	%read{103,108} %write{102,107}
+temp	int	$tmp49	%read{105,105} %write{104,104}
+temp	int	$tmp50	%read{106,106} %write{105,105}
+temp	int	$tmp51	%read{107,107} %write{106,106}
+temp	vector	$tmp52	%read{116,116} %write{112,112}
+temp	float	$tmp53	%read{115,115} %write{114,114}
+temp	vector	$tmp54	%read{114,114} %write{113,113}
+temp	vector	$tmp55	%read{116,116} %write{115,115}
+temp	vector	$tmp56	%read{117,117} %write{116,116}
+temp	vector	$tmp57	%read{122,122} %write{118,118}
+temp	float	$tmp58	%read{121,121} %write{120,120}
+temp	vector	$tmp59	%read{120,120} %write{119,119}
+temp	vector	$tmp60	%read{122,122} %write{121,121}
+temp	vector	$tmp61	%read{123,123} %write{122,122}
+temp	float	$tmp62	%read{125,125} %write{124,124}
+temp	float	$tmp63	%read{127,127} %write{126,126}
+temp	int	$tmp64	%read{129,149} %write{130,149}
+temp	point	$tmp65	%read{131,149} %write{131,149}
+temp	point	$tmp66	%read{131,149} %write{131,149}
+temp	point	$tmp67	%read{131,149} %write{131,149}
+temp	float	$tmp68	%read{131,149} %write{131,149}
+temp	float	$tmp69	%read{131,149} %write{131,149}
+temp	float	$tmp70	%read{131,149} %write{131,149}
+temp	int	$tmp71	%read{131,149} %write{131,149}
+temp	int	$tmp72	%read{2147483647,-1} %write{131,149}
+temp	float	$tmp73	%read{154,154} %write{152,152}
+temp	float	$tmp74	%read{154,154} %write{153,153}
+temp	float	$tmp75	%read{155,155} %write{154,154}
+const	string	$const17	"dy"		%read{156,156} %write{2147483647,-1}
+temp	int	$tmp76	%read{157,157} %write{156,156}
+temp	float	$tmp77	%read{234,234} %write{163,232}
+temp	int	$tmp78	%read{162,162} %write{161,161}
+temp	int	$tmp79	%read{168,168} %write{167,167}
+temp	int	$tmp80	%read{171,171} %write{170,170}
+temp	int	$tmp81	%read{172,172} %write{171,171}
+temp	int	$tmp82	%read{176,176} %write{175,175}
+temp	int	$tmp83	%read{177,181} %write{176,180}
+temp	int	$tmp84	%read{179,179} %write{178,178}
+temp	int	$tmp85	%read{180,180} %write{179,179}
+temp	int	$tmp86	%read{2147483647,-1} %write{182,182}
+temp	int	$tmp87	%read{184,184} %write{183,183}
+temp	int	$tmp88	%read{185,190} %write{184,189}
+temp	int	$tmp89	%read{187,187} %write{186,186}
+temp	int	$tmp90	%read{188,188} %write{187,187}
+temp	int	$tmp91	%read{189,189} %write{188,188}
+temp	vector	$tmp92	%read{198,198} %write{194,194}
+temp	float	$tmp93	%read{197,197} %write{196,196}
+temp	vector	$tmp94	%read{196,196} %write{195,195}
+temp	vector	$tmp95	%read{198,198} %write{197,197}
+temp	vector	$tmp96	%read{199,199} %write{198,198}
+temp	vector	$tmp97	%read{204,204} %write{200,200}
+temp	float	$tmp98	%read{203,203} %write{202,202}
+temp	vector	$tmp99	%read{202,202} %write{201,201}
+temp	vector	$tmp100	%read{204,204} %write{203,203}
+temp	vector	$tmp101	%read{205,205} %write{204,204}
+temp	float	$tmp102	%read{207,207} %write{206,206}
+temp	float	$tmp103	%read{209,209} %write{208,208}
+temp	int	$tmp104	%read{211,231} %write{212,231}
+temp	point	$tmp105	%read{213,231} %write{213,231}
+temp	point	$tmp106	%read{213,231} %write{213,231}
+temp	point	$tmp107	%read{213,231} %write{213,231}
+temp	float	$tmp108	%read{213,231} %write{213,231}
+temp	float	$tmp109	%read{213,231} %write{213,231}
+temp	float	$tmp110	%read{213,231} %write{213,231}
+temp	int	$tmp111	%read{213,231} %write{213,231}
+temp	int	$tmp112	%read{2147483647,-1} %write{213,231}
+temp	float	$tmp113	%read{236,236} %write{234,234}
+temp	float	$tmp114	%read{236,236} %write{235,235}
+temp	float	$tmp115	%read{237,237} %write{236,236}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:26
+# 	Fac = wireframe("triangles", Size, use_pixel_size);
+	functioncall	$const2 74 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl"} %line{26} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:43
+#  * * Neither the name of Sony Pictures Imageworks nor the names of its
+	raytype		$tmp1 $const3 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h"} %line{43} %argrw{"wr"}
+	if		$tmp1 5 5 	%argrw{"r"}
+	assign		Fac $const4 	%argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:45
+#  *   this software without specific prior written permission.
+	assign		___646_np $const5 	%line{45} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:47
+#  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+	assign		___646_pixelWidth $const6 	%line{47} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:49
+#  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+	eq		$tmp2 $const1 $const1 	%line{49} %argrw{"wrr"}
+	if		$tmp2 15 33 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:51
+#  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	assign		___646_np $const7 	%line{51} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:52
+#  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+	getattribute	$tmp3 $const8 ___646_p 	%line{52} %argrw{"wrw"}
+	eq		$tmp4 $tmp3 $const5 	%argrw{"wrr"}
+	if		$tmp4 15 15 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:53
+#  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+	assign		Fac $const4 	%line{53} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:55
+#  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+	eq		$tmp5 $const1 $const9 	%line{55} %argrw{"wrr"}
+	neq		$tmp6 $tmp5 $const5 	%argrw{"wrr"}
+	if		$tmp6 18 21 	%argrw{"r"}
+	eq		$tmp7 $const1 $const10 	%argrw{"wrr"}
+	neq		$tmp8 $tmp7 $const5 	%argrw{"wrr"}
+	assign		$tmp6 $tmp8 	%argrw{"wr"}
+	if		$tmp6 33 33 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:57
+#  */
+	getattribute	$tmp9 $const11 ___646_np 	%line{57} %argrw{"wrw"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:58
+# 
+	lt		$tmp10 ___646_np $const7 	%line{58} %argrw{"wrr"}
+	neq		$tmp11 $tmp10 $const5 	%argrw{"wrr"}
+	if		$tmp11 26 30 	%argrw{"r"}
+	getattribute	$tmp12 $const12 ___646_p 	%argrw{"wrw"}
+	eq		$tmp13 $tmp12 $const5 	%argrw{"wrr"}
+	neq		$tmp14 $tmp13 $const5 	%argrw{"wrr"}
+	assign		$tmp11 $tmp14 	%argrw{"wr"}
+	if		$tmp11 33 33 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:59
+# #ifndef CCL_OSLUTIL_H
+	assign		Fac $const4 	%line{59} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:62
+# // Return wireframe opacity factor [0, 1] given a geometry type in
+	if		use_pixel_size 48 48 	%line{62} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:66
+# float wireframe(string edge_type, float line_width, int raster)
+	Dx		$tmp15 P 	%line{66} %argrw{"wr"} %argderivs{1}
+	Dx		$tmp17 P 	%argrw{"wr"} %argderivs{1}
+	dot		$tmp16 $tmp17 I 	%argrw{"wrr"}
+	mul		$tmp18 $tmp16 I 	%argrw{"wrr"}
+	sub		$tmp19 $tmp15 $tmp18 	%argrw{"wrr"}
+	length		___649_pixelWidthX $tmp19 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:67
+# {
+	Dy		$tmp20 P 	%line{67} %argrw{"wr"} %argderivs{1}
+	Dy		$tmp22 P 	%argrw{"wr"} %argderivs{1}
+	dot		$tmp21 $tmp22 I 	%argrw{"wrr"}
+	mul		$tmp23 $tmp21 I 	%argrw{"wrr"}
+	sub		$tmp24 $tmp20 $tmp23 	%argrw{"wrr"}
+	length		___649_pixelWidthY $tmp24 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:69
+#    if (raytype("path:diffuse")) return 0.0;
+	add		$tmp25 ___649_pixelWidthX ___649_pixelWidthY 	%line{69} %argrw{"wrr"}
+	div		___646_pixelWidth $tmp25 $const14 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:74
+# 
+	mul		$tmp26 $const15 Size 	%line{74} %argrw{"wrr"}
+	mul		___646_pixelWidth ___646_pixelWidth $tmp26 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:75
+#    if (edge_type == "triangles")
+	mul		___646_pixelWidth ___646_pixelWidth ___646_pixelWidth 	%line{75} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:76
+#    {
+	for		$tmp27 53 54 70 72 	%line{76} %argrw{"r"}
+	assign		___650_i $const5 	%argrw{"wr"}
+	lt		$tmp27 ___650_i ___646_np 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:78
+#       if (!getattribute("geom:trianglevertices", p))
+	if		___650_i 56 57 	%line{78} %argrw{"r"}
+	sub		___651_i2 ___650_i $const6 	%argrw{"wrr"}
+	sub		___651_i2 ___646_np $const6 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:79
+#          return 0.0;
+	aref		$tmp28 ___646_p ___650_i 	%line{79} %argrw{"wrr"}
+	sub		___651_dir P $tmp28 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:80
+#    }
+	aref		$tmp29 ___646_p ___650_i 	%line{80} %argrw{"wrr"}
+	aref		$tmp30 ___646_p ___651_i2 	%argrw{"wrr"}
+	sub		___651_edge $tmp29 $tmp30 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:81
+#    else if (edge_type == "polygons" || edge_type == "patches")
+	cross		___651_crs ___651_edge ___651_dir 	%line{81} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:85
+#          return 0.0;
+	dot		$tmp31 ___651_crs ___651_crs 	%line{85} %argrw{"wrr"}
+	dot		$tmp32 ___651_edge ___651_edge 	%argrw{"wrr"}
+	mul		$tmp33 $tmp32 ___646_pixelWidth 	%argrw{"wrr"}
+	lt		$tmp34 $tmp31 $tmp33 	%argrw{"wrr"}
+	if		$tmp34 70 70 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:86
+#    }
+	assign		Fac $const6 	%line{86} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:76
+#    for (int i = 0; i < np; i++)
+	assign		$tmp35 ___650_i 	%line{76} %argrw{"wr"}
+	add		___650_i ___650_i $const6 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:88
+#    return 0;
+	assign		Fac $const5 	%line{88} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:31
+# 	if (bump_offset == "dx") {
+	eq		$tmp36 bump_offset $const16 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl"} %line{31} %argrw{"wrr"}
+	if		$tmp36 156 238 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:32
+# 		point dx = Dx(P);
+	Dx		___655_dx P 	%line{32} %argrw{"wr"} %argderivs{1}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:33
+# 		P -= dx;
+	sub		P P ___655_dx 	%line{33} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:34
+# 		Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dx);
+	functioncall	$const2 152 	%line{34} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:43
+#  * Redistribution and use in source and binary forms, with or without
+	raytype		$tmp38 $const3 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h"} %line{43} %argrw{"wr"}
+	if		$tmp38 83 83 	%argrw{"r"}
+	assign		$tmp37 $const4 	%argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:45
+#  * met:
+	assign		___646_np $const5 	%line{45} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:47
+#  *   notice, this list of conditions and the following disclaimer.
+	assign		___646_pixelWidth $const6 	%line{47} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:49
+#  *   notice, this list of conditions and the following disclaimer in the
+	eq		$tmp39 $const1 $const1 	%line{49} %argrw{"wrr"}
+	if		$tmp39 93 111 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:51
+#  * * Neither the name of Sony Pictures Imageworks nor the names of its
+	assign		___646_np $const7 	%line{51} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:52
+#  *   contributors may be used to endorse or promote products derived from
+	getattribute	$tmp40 $const8 ___646_p 	%line{52} %argrw{"wrw"}
+	eq		$tmp41 $tmp40 $const5 	%argrw{"wrr"}
+	if		$tmp41 93 93 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:53
+#  *   this software without specific prior written permission.
+	assign		$tmp37 $const4 	%line{53} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:55
+#  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+	eq		$tmp42 $const1 $const9 	%line{55} %argrw{"wrr"}
+	neq		$tmp43 $tmp42 $const5 	%argrw{"wrr"}
+	if		$tmp43 96 99 	%argrw{"r"}
+	eq		$tmp44 $const1 $const10 	%argrw{"wrr"}
+	neq		$tmp45 $tmp44 $const5 	%argrw{"wrr"}
+	assign		$tmp43 $tmp45 	%argrw{"wr"}
+	if		$tmp43 111 111 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:57
+#  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+	getattribute	$tmp46 $const11 ___646_np 	%line{57} %argrw{"wrw"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:58
+#  * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+	lt		$tmp47 ___646_np $const7 	%line{58} %argrw{"wrr"}
+	neq		$tmp48 $tmp47 $const5 	%argrw{"wrr"}
+	if		$tmp48 104 108 	%argrw{"r"}
+	getattribute	$tmp49 $const12 ___646_p 	%argrw{"wrw"}
+	eq		$tmp50 $tmp49 $const5 	%argrw{"wrr"}
+	neq		$tmp51 $tmp50 $const5 	%argrw{"wrr"}
+	assign		$tmp48 $tmp51 	%argrw{"wr"}
+	if		$tmp48 111 111 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:59
+#  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+	assign		$tmp37 $const4 	%line{59} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:62
+#  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+	if		use_pixel_size 126 126 	%line{62} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:66
+# 
+	Dx		$tmp52 P 	%line{66} %argrw{"wr"} %argderivs{1}
+	Dx		$tmp54 P 	%argrw{"wr"} %argderivs{1}
+	dot		$tmp53 $tmp54 I 	%argrw{"wrr"}
+	mul		$tmp55 $tmp53 I 	%argrw{"wrr"}
+	sub		$tmp56 $tmp52 $tmp55 	%argrw{"wrr"}
+	length		___649_pixelWidthX $tmp56 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:67
+# #ifndef CCL_OSLUTIL_H
+	Dy		$tmp57 P 	%line{67} %argrw{"wr"} %argderivs{1}
+	Dy		$tmp59 P 	%argrw{"wr"} %argderivs{1}
+	dot		$tmp58 $tmp59 I 	%argrw{"wrr"}
+	mul		$tmp60 $tmp58 I 	%argrw{"wrr"}
+	sub		$tmp61 $tmp57 $tmp60 	%argrw{"wrr"}
+	length		___649_pixelWidthY $tmp61 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:69
+# 
+	add		$tmp62 ___649_pixelWidthX ___649_pixelWidthY 	%line{69} %argrw{"wrr"}
+	div		___646_pixelWidth $tmp62 $const14 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:74
+# float wireframe(string edge_type, float line_width, int raster)
+	mul		$tmp63 $const15 Size 	%line{74} %argrw{"wrr"}
+	mul		___646_pixelWidth ___646_pixelWidth $tmp63 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:75
+# {
+	mul		___646_pixelWidth ___646_pixelWidth ___646_pixelWidth 	%line{75} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:76
+#    // ray differentials are so big in diffuse context that this function would always return "wire"
+	for		$tmp64 131 132 148 150 	%line{76} %argrw{"r"}
+	assign		___650_i $const5 	%argrw{"wr"}
+	lt		$tmp64 ___650_i ___646_np 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:78
+# 
+	if		___650_i 134 135 	%line{78} %argrw{"r"}
+	sub		___651_i2 ___650_i $const6 	%argrw{"wrr"}
+	sub		___651_i2 ___646_np $const6 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:79
+#    int np = 0;
+	aref		$tmp65 ___646_p ___650_i 	%line{79} %argrw{"wrr"}
+	sub		___651_dir P $tmp65 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:80
+#    point p[64];
+	aref		$tmp66 ___646_p ___650_i 	%line{80} %argrw{"wrr"}
+	aref		$tmp67 ___646_p ___651_i2 	%argrw{"wrr"}
+	sub		___651_edge $tmp66 $tmp67 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:81
+#    float pixelWidth = 1;
+	cross		___651_crs ___651_edge ___651_dir 	%line{81} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:85
+#       np = 3;
+	dot		$tmp68 ___651_crs ___651_crs 	%line{85} %argrw{"wrr"}
+	dot		$tmp69 ___651_edge ___651_edge 	%argrw{"wrr"}
+	mul		$tmp70 $tmp69 ___646_pixelWidth 	%argrw{"wrr"}
+	lt		$tmp71 $tmp68 $tmp70 	%argrw{"wrr"}
+	if		$tmp71 148 148 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:86
+#       if (!getattribute("geom:trianglevertices", p))
+	assign		$tmp37 $const6 	%line{86} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:76
+#    for (int i = 0; i < np; i++)
+	assign		$tmp72 ___650_i 	%line{76} %argrw{"wr"}
+	add		___650_i ___650_i $const6 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:88
+#    return 0;
+	assign		$tmp37 $const5 	%line{88} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:34
+# 		Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dx);
+	sub		$tmp73 Fac $tmp37 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl"} %line{34} %argrw{"wrr"}
+	length		$tmp74 ___655_dx 	%argrw{"wr"}
+	div		$tmp75 $tmp73 $tmp74 	%argrw{"wrr"}
+	add		Fac Fac $tmp75 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:36
+# 	else if (bump_offset == "dy") {
+	eq		$tmp76 bump_offset $const17 	%line{36} %argrw{"wrr"}
+	if		$tmp76 238 238 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:37
+# 		point dy = Dy(P);
+	Dy		___656_dy P 	%line{37} %argrw{"wr"} %argderivs{1}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:38
+# 		P -= dy;
+	sub		P P ___656_dy 	%line{38} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:39
+# 		Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dy);
+	functioncall	$const2 234 	%line{39} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:43
+#  * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
+	raytype		$tmp78 $const3 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h"} %line{43} %argrw{"wr"}
+	if		$tmp78 165 165 	%argrw{"r"}
+	assign		$tmp77 $const4 	%argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:45
+#  *
+	assign		___646_np $const5 	%line{45} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:47
+#  *
+	assign		___646_pixelWidth $const6 	%line{47} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:49
+#  * modification, are permitted provided that the following conditions are
+	eq		$tmp79 $const1 $const1 	%line{49} %argrw{"wrr"}
+	if		$tmp79 175 193 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:51
+#  * * Redistributions of source code must retain the above copyright
+	assign		___646_np $const7 	%line{51} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:52
+#  *   notice, this list of conditions and the following disclaimer.
+	getattribute	$tmp80 $const8 ___646_p 	%line{52} %argrw{"wrw"}
+	eq		$tmp81 $tmp80 $const5 	%argrw{"wrr"}
+	if		$tmp81 175 175 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:53
+#  * * Redistributions in binary form must reproduce the above copyright
+	assign		$tmp77 $const4 	%line{53} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:55
+#  *   documentation and/or other materials provided with the distribution.
+	eq		$tmp82 $const1 $const9 	%line{55} %argrw{"wrr"}
+	neq		$tmp83 $tmp82 $const5 	%argrw{"wrr"}
+	if		$tmp83 178 181 	%argrw{"r"}
+	eq		$tmp84 $const1 $const10 	%argrw{"wrr"}
+	neq		$tmp85 $tmp84 $const5 	%argrw{"wrr"}
+	assign		$tmp83 $tmp85 	%argrw{"wr"}
+	if		$tmp83 193 193 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:57
+#  *   contributors may be used to endorse or promote products derived from
+	getattribute	$tmp86 $const11 ___646_np 	%line{57} %argrw{"wrw"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:58
+#  *   this software without specific prior written permission.
+	lt		$tmp87 ___646_np $const7 	%line{58} %argrw{"wrr"}
+	neq		$tmp88 $tmp87 $const5 	%argrw{"wrr"}
+	if		$tmp88 186 190 	%argrw{"r"}
+	getattribute	$tmp89 $const12 ___646_p 	%argrw{"wrw"}
+	eq		$tmp90 $tmp89 $const5 	%argrw{"wrr"}
+	neq		$tmp91 $tmp90 $const5 	%argrw{"wrr"}
+	assign		$tmp88 $tmp91 	%argrw{"wr"}
+	if		$tmp88 193 193 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:59
+#  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+	assign		$tmp77 $const4 	%line{59} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:62
+#  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+	if		use_pixel_size 208 208 	%line{62} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:66
+#  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+	Dx		$tmp92 P 	%line{66} %argrw{"wr"} %argderivs{1}
+	Dx		$tmp94 P 	%argrw{"wr"} %argderivs{1}
+	dot		$tmp93 $tmp94 I 	%argrw{"wrr"}
+	mul		$tmp95 $tmp93 I 	%argrw{"wrr"}
+	sub		$tmp96 $tmp92 $tmp95 	%argrw{"wrr"}
+	length		___649_pixelWidthX $tmp96 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:67
+#  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+	Dy		$tmp97 P 	%line{67} %argrw{"wr"} %argderivs{1}
+	Dy		$tmp99 P 	%argrw{"wr"} %argderivs{1}
+	dot		$tmp98 $tmp99 I 	%argrw{"wrr"}
+	mul		$tmp100 $tmp98 I 	%argrw{"wrr"}
+	sub		$tmp101 $tmp97 $tmp100 	%argrw{"wrr"}
+	length		___649_pixelWidthY $tmp101 	%argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:69
+#  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	add		$tmp102 ___649_pixelWidthX ___649_pixelWidthY 	%line{69} %argrw{"wrr"}
+	div		___646_pixelWidth $tmp102 $const14 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:74
+# 
+	mul		$tmp103 $const15 Size 	%line{74} %argrw{"wrr"}
+	mul		___646_pixelWidth ___646_pixelWidth $tmp103 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:75
+# // Return wireframe opacity factor [0, 1] given a geometry type in
+	mul		___646_pixelWidth ___646_pixelWidth ___646_pixelWidth 	%line{75} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:76
+# // ("triangles", "polygons" or "patches"), and a line_width in raster
+	for		$tmp104 213 214 230 232 	%line{76} %argrw{"r"}
+	assign		___650_i $const5 	%argrw{"wr"}
+	lt		$tmp104 ___650_i ___646_np 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:78
+# //
+	if		___650_i 216 217 	%line{78} %argrw{"r"}
+	sub		___651_i2 ___650_i $const6 	%argrw{"wrr"}
+	sub		___651_i2 ___646_np $const6 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:79
+# float wireframe(string edge_type, float line_width, int raster)
+	aref		$tmp105 ___646_p ___650_i 	%line{79} %argrw{"wrr"}
+	sub		___651_dir P $tmp105 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:80
+# {
+	aref		$tmp106 ___646_p ___650_i 	%line{80} %argrw{"wrr"}
+	aref		$tmp107 ___646_p ___651_i2 	%argrw{"wrr"}
+	sub		___651_edge $tmp106 $tmp107 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:81
+#    // ray differentials are so big in diffuse context that this function would always return "wire"
+	cross		___651_crs ___651_edge ___651_dir 	%line{81} %argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:85
+#    point p[64];
+	dot		$tmp108 ___651_crs ___651_crs 	%line{85} %argrw{"wrr"}
+	dot		$tmp109 ___651_edge ___651_edge 	%argrw{"wrr"}
+	mul		$tmp110 $tmp109 ___646_pixelWidth 	%argrw{"wrr"}
+	lt		$tmp111 $tmp108 $tmp110 	%argrw{"wrr"}
+	if		$tmp111 230 230 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:86
+#    float pixelWidth = 1;
+	assign		$tmp77 $const6 	%line{86} %argrw{"wr"}
+	return
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:76
+#    for (int i = 0; i < np; i++)
+	assign		$tmp112 ___650_i 	%line{76} %argrw{"wr"}
+	add		___650_i ___650_i $const6 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\oslutil.h:88
+#    return 0;
+	assign		$tmp77 $const5 	%line{88} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl:39
+# 		Fac += (Fac - wireframe("triangles", Size, use_pixel_size)) / length(dy);
+	sub		$tmp113 Fac $tmp77 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_wireframe.osl"} %line{39} %argrw{"wrr"}
+	length		$tmp114 ___656_dy 	%argrw{"wr"}
+	div		$tmp115 $tmp113 $tmp114 	%argrw{"wrr"}
+	add		Fac Fac $tmp115 	%argrw{"wrr"}
+	end

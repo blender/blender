@@ -1,0 +1,68 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+/* "Bump Mapping Unparameterized Surfaces on the GPU"
+ * Morten S. Mikkelsen, 2010 */
+
+surface node_bump(
+	int invert = 0,
+	int use_object_space = 0,
+	normal NormalIn = N,
+	float Strength = 0.1,
+	float Distance = 1.0,
+	float SampleCenter = 0.0,
+	float SampleX = 0.0,
+	float SampleY = 0.0,
+	output normal NormalOut = N)
+{
+	point Ptmp = P;
+	normal Normal = NormalIn;
+
+	if (use_object_space) {
+		Ptmp = transform("object", Ptmp);
+		Normal = normalize(transform("object", Normal));
+	}
+
+	/* get surface tangents from normal */
+	vector dPdx = Dx(Ptmp);
+	vector dPdy = Dy(Ptmp);
+
+	vector Rx = cross(dPdy, Normal);
+	vector Ry = cross(Normal, dPdx);
+
+	/* compute surface gradient and determinant */
+	float det = dot(dPdx, Rx);
+	vector surfgrad = (SampleX - SampleCenter) * Rx + (SampleY - SampleCenter) * Ry;
+
+	float absdet = fabs(det);
+
+	float strength = max(Strength, 0.0);
+	float dist = Distance;
+
+	if (invert)
+		dist *= -1.0;
+	
+	/* compute and output perturbed normal */
+	NormalOut = normalize(absdet * Normal - dist * sign(det) * surfgrad);
+	NormalOut = normalize(strength * NormalOut + (1.0 - strength) * Normal);
+
+	if (use_object_space) {
+		NormalOut = normalize(transform("object", "world", NormalOut));
+	}
+}
+

@@ -1,0 +1,21 @@
+def getMinIndex(self):
+    if self.length == 0:
+        raise ValueError("Cannot find a min value in a list with zero elements")
+
+    cdef MEMVIEW* data = <MEMVIEW*>self.data
+    cdef MEMVIEW minValue = data[0]
+    for i in range(self.length * sizeof(TYPE) / sizeof(MEMVIEW)):
+        if data[i] < minValue:
+            minValue = data[i]
+    return minValue
+
+def getMaxIndex(self):
+    if self.length == 0:
+        raise ValueError("Cannot find a max value in a list with zero elements")
+
+    cdef MEMVIEW* data = <MEMVIEW*>self.data
+    cdef MEMVIEW maxValue = data[0]
+    for i in range(self.length * sizeof(TYPE) / sizeof(MEMVIEW)):
+        if data[i] > maxValue:
+            maxValue = data[i]
+    return maxValue

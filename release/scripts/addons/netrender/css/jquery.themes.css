@@ -1,0 +1,60 @@
+/* jQuery Themes styles */
+.themes_list {
+	list-style-type: none;
+	font-size: 80%;
+	margin: 0px;
+	padding: 0px;
+}
+@media screen and (-webkit-min-device-pixel-ratio:0) {  /* Safari3/Opera9 */
+	.themes_list {
+		font-size: 100%;
+	}
+}
+.themes_list {
+	float: left;
+}
+.themes_list li {
+	float: left;
+	width: 120px;
+	height: 22px;
+	padding: 2px;
+	border: 1px inset;
+	overflow: hidden;
+}
+.themes_list li a {
+	white-space: nowrap;
+}
+.themes_compact {
+	border: 1px inset;
+}
+.themes_compact li {
+	width: 24px;
+	height: 22px;
+	background-color: transparent;
+	border: none;
+}
+li.themes_current {
+	background-color: #ffffa0;
+}
+.themes_list span {
+	display: inline-block;
+	width: 23px;
+	height: 20px;
+	vertical-align: top;
+}
+.themes_list img {
+	border: none;
+	vertical-align: top;
+}
+.themes_preview {
+	display: none;
+	position: absolute;
+	z-index: 20;
+	padding: 2px;
+	border: 1px inset;
+	background: #fff;
+	text-align: center;
+}
+.themes_preview img {
+	align: top;
+}

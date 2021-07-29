@@ -1,0 +1,51 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+shader node_vector_math(
+	string type = "add",
+	vector Vector1 = vector(0.0, 0.0, 0.0),
+	vector Vector2 = vector(0.0, 0.0, 0.0),
+	output float Value = 0.0,
+	output vector Vector = vector(0.0, 0.0, 0.0))
+{
+	if (type == "add") {
+		Vector = Vector1 + Vector2;
+		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
+	}
+	else if (type == "subtract") {
+		Vector = Vector1 - Vector2;
+		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
+	}
+	else if (type == "average") {
+		Value = length(Vector1 + Vector2);
+		Vector = normalize(Vector1 + Vector2);
+	}
+	else if (type == "dot_product") {
+		Value = dot(Vector1, Vector2);
+	}
+	else if (type == "cross_product") {
+		vector c = cross(Vector1, Vector2);
+		Value = length(c);
+		Vector = normalize(c);
+	}
+	else if (type == "normalize") {
+		Value = length(Vector1);
+		Vector = normalize(Vector1);
+	}
+}
+

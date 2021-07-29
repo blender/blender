@@ -1,0 +1,77 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_convert_from_point.oso
+shader node_convert_from_point
+param	point	value_point	0 0 0		%read{0,25} %write{2147483647,-1}
+oparam	string	value_string	""		%read{2147483647,-1} %write{2147483647,-1}
+oparam	float	value_float	0		%read{2147483647,-1} %write{6,6}
+oparam	int	value_int	0		%read{2147483647,-1} %write{14,14}
+oparam	vector	value_vector	0 0 0		%read{2147483647,-1} %write{18,18}
+oparam	color	value_color	0 0 0		%read{2147483647,-1} %write{22,22}
+oparam	normal	value_normal	0 0 0		%read{7,10} %write{26,26}
+const	int	$const1	0		%read{0,23} %write{2147483647,-1}
+temp	float	$tmp1	%read{2,2} %write{0,0}
+const	int	$const2	1		%read{1,24} %write{2147483647,-1}
+temp	float	$tmp2	%read{2,2} %write{1,1}
+temp	float	$tmp3	%read{4,4} %write{2,2}
+const	int	$const3	2		%read{3,25} %write{2147483647,-1}
+temp	float	$tmp4	%read{4,4} %write{3,3}
+temp	float	$tmp5	%read{6,6} %write{4,4}
+const	float	$const4	1		%read{5,12} %write{2147483647,-1}
+const	float	$const5	3		%read{5,12} %write{2147483647,-1}
+temp	float	$tmp6	%read{6,6} %write{5,5}
+temp	float	$tmp7	%read{9,9} %write{7,7}
+temp	float	$tmp8	%read{9,9} %write{8,8}
+temp	float	$tmp9	%read{11,11} %write{9,9}
+temp	float	$tmp10	%read{11,11} %write{10,10}
+temp	float	$tmp11	%read{13,13} %write{11,11}
+temp	float	$tmp12	%read{13,13} %write{12,12}
+temp	float	$tmp13	%read{14,14} %write{13,13}
+temp	float	$tmp14	%read{18,18} %write{15,15}
+temp	float	$tmp15	%read{18,18} %write{16,16}
+temp	float	$tmp16	%read{18,18} %write{17,17}
+temp	float	$tmp17	%read{22,22} %write{19,19}
+temp	float	$tmp18	%read{22,22} %write{20,20}
+temp	float	$tmp19	%read{22,22} %write{21,21}
+temp	float	$tmp20	%read{26,26} %write{23,23}
+temp	float	$tmp21	%read{26,26} %write{24,24}
+temp	float	$tmp22	%read{26,26} %write{25,25}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_point.osl:28
+# 	value_float = (value_point[0] + value_point[1] + value_point[2]) * (1.0 / 3.0);
+	compref		$tmp1 value_point $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_point.osl"} %line{28} %argrw{"wrr"}
+	compref		$tmp2 value_point $const2 	%argrw{"wrr"}
+	add		$tmp3 $tmp1 $tmp2 	%argrw{"wrr"}
+	compref		$tmp4 value_point $const3 	%argrw{"wrr"}
+	add		$tmp5 $tmp3 $tmp4 	%argrw{"wrr"}
+	div		$tmp6 $const4 $const5 	%argrw{"wrr"}
+	mul		value_float $tmp5 $tmp6 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_point.osl:29
+# 	value_int = (int)((value_normal[0] + value_normal[1] + value_normal[2]) * (1.0 / 3.0));
+	compref		$tmp7 value_normal $const1 	%line{29} %argrw{"wrr"}
+	compref		$tmp8 value_normal $const2 	%argrw{"wrr"}
+	add		$tmp9 $tmp7 $tmp8 	%argrw{"wrr"}
+	compref		$tmp10 value_normal $const3 	%argrw{"wrr"}
+	add		$tmp11 $tmp9 $tmp10 	%argrw{"wrr"}
+	div		$tmp12 $const4 $const5 	%argrw{"wrr"}
+	mul		$tmp13 $tmp11 $tmp12 	%argrw{"wrr"}
+	assign		value_int $tmp13 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_point.osl:30
+# 	value_vector = vector(value_point[0], value_point[1], value_point[2]);
+	compref		$tmp14 value_point $const1 	%line{30} %argrw{"wrr"}
+	compref		$tmp15 value_point $const2 	%argrw{"wrr"}
+	compref		$tmp16 value_point $const3 	%argrw{"wrr"}
+	vector		value_vector $tmp14 $tmp15 $tmp16 	%argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_point.osl:31
+# 	value_color = color(value_point[0], value_point[1], value_point[2]);
+	compref		$tmp17 value_point $const1 	%line{31} %argrw{"wrr"}
+	compref		$tmp18 value_point $const2 	%argrw{"wrr"}
+	compref		$tmp19 value_point $const3 	%argrw{"wrr"}
+	color		value_color $tmp17 $tmp18 $tmp19 	%argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_convert_from_point.osl:32
+# 	value_normal = normal(value_point[0], value_point[1], value_point[2]);
+	compref		$tmp20 value_point $const1 	%line{32} %argrw{"wrr"}
+	compref		$tmp21 value_point $const2 	%argrw{"wrr"}
+	compref		$tmp22 value_point $const3 	%argrw{"wrr"}
+	normal		value_normal $tmp20 $tmp21 $tmp22 	%argrw{"wrrr"}
+	end

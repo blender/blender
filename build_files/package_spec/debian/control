@@ -1,0 +1,24 @@
+Source: blender
+Section: graphics
+Priority: extra
+Maintainer: Dan Eicher <dan@trollwerks.org>
+Build-Depends: debhelper (>= 7.0.50~), cmake, python3, python, libfreetype6-dev, libglu1-mesa-dev, libilmbase-dev, libopenexr-dev, libjpeg62-dev, libopenal-dev, libpng12-dev, libsdl-dev, libtiff4-dev, libx11-dev, libxi-dev, zlib1g-dev, python3.2-dev, libopenjpeg-dev
+Standards-Version: 3.9.1
+Homepage: http://blender.org/
+X-Python3-Version: >= 3.2, << 3.3
+
+Package: blender-snapshot
+Architecture: any
+Depends: ${shlibs:Depends}, ${python3:Depends}, ${misc:Depends}
+Provides: blender
+Conflicts: blender
+Replaces: blender
+Description: Very fast and versatile 3D modeller/renderer
+ Blender is an integrated 3d suite for modelling, animation, rendering,
+ post-production, interactive creation and playback (games). Blender has its
+ own particular user interface, which is implemented entirely in OpenGL and
+ designed with speed in mind. Python bindings are available for scripting;
+ import/export features for popular file formats like 3D Studio and Wavefront
+ Obj are implemented as scripts by the community. Stills, animations, models
+ for games or other third party engines and interactive content in the form of
+ a standalone binary and/or a web plug-in are common products of Blender use.

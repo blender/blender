@@ -1,0 +1,141 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_bump.oso
+surface node_bump
+param	int	invert	0		%read{23,23} %write{2147483647,-1}
+param	int	use_object_space	0		%read{4,36} %write{2147483647,-1}
+param	normal	NormalIn	0 0 0		%read{3,3} %write{0,0} %initexpr
+param	float	Strength	0.1		%read{21,21} %write{2147483647,-1}
+param	float	Distance	1		%read{22,22} %write{2147483647,-1}
+param	float	SampleCenter	0		%read{15,17} %write{2147483647,-1}
+param	float	SampleX	0		%read{15,15} %write{2147483647,-1}
+param	float	SampleY	0		%read{17,17} %write{2147483647,-1}
+oparam	normal	NormalOut	0 0 0		%read{31,37} %write{1,38} %initexpr
+global	point	P	%read{2,2} %write{2147483647,-1} %derivs
+global	normal	N	%read{0,1} %write{2147483647,-1}
+local	point	Ptmp	%read{6,11} %write{2,6} %derivs
+local	normal	Normal	%read{8,33} %write{3,9}
+local	vector	dPdx	%read{13,14} %write{10,10}
+local	vector	dPdy	%read{12,12} %write{11,11}
+local	vector	Rx	%read{14,16} %write{12,12}
+local	vector	Ry	%read{18,18} %write{13,13}
+local	float	det	%read{20,26} %write{14,14}
+local	vector	surfgrad	%read{28,28} %write{19,19}
+local	float	absdet	%read{25,25} %write{20,20}
+local	float	strength	%read{31,32} %write{21,21}
+local	float	dist	%read{24,27} %write{22,24}
+const	string	$const1	"object"		%read{6,37} %write{2147483647,-1}
+const	string	$const2	"transform"		%read{5,7} %write{2147483647,-1}
+const	string	$const3	"common"		%read{6,8} %write{2147483647,-1}
+temp	normal	$tmp1	%read{9,9} %write{8,8}
+temp	float	$tmp2	%read{16,16} %write{15,15}
+temp	vector	$tmp3	%read{19,19} %write{16,16}
+temp	float	$tmp4	%read{18,18} %write{17,17}
+temp	vector	$tmp5	%read{19,19} %write{18,18}
+const	float	$const4	0		%read{21,21} %write{2147483647,-1}
+const	float	$const5	-1		%read{24,24} %write{2147483647,-1}
+temp	normal	$tmp6	%read{29,29} %write{25,25}
+temp	float	$tmp7	%read{27,27} %write{26,26}
+temp	float	$tmp8	%read{28,28} %write{27,27}
+temp	vector	$tmp9	%read{29,29} %write{28,28}
+temp	normal	$tmp10	%read{30,30} %write{29,29}
+temp	normal	$tmp11	%read{34,34} %write{31,31}
+const	float	$const6	1		%read{32,32} %write{2147483647,-1}
+temp	float	$tmp12	%read{33,33} %write{32,32}
+temp	normal	$tmp13	%read{34,34} %write{33,33}
+temp	normal	$tmp14	%read{35,35} %write{34,34}
+temp	normal	$tmp15	%read{38,38} %write{37,37}
+const	string	$const7	"world"		%read{37,37} %write{2147483647,-1}
+code NormalIn
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:25
+# 	normal NormalIn = N,
+	assign		NormalIn N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl"} %line{25} %argrw{"wr"}
+code NormalOut
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:31
+# 	output normal NormalOut = N)
+	assign		NormalOut N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl"} %line{31} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:33
+# 	point Ptmp = P;
+	assign		Ptmp P 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl"} %line{33} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:34
+# 	normal Normal = NormalIn;
+	assign		Normal NormalIn 	%line{34} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:36
+# 	if (use_object_space) {
+	if		use_object_space 10 10 	%line{36} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:37
+# 		Ptmp = transform("object", Ptmp);
+	functioncall	$const2 7 	%line{37} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:243
+#     R = reflect(I, N);
+	transform	Ptmp $const3 $const1 Ptmp 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{243} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:38
+# 		Normal = normalize(transform("object", Normal));
+	functioncall	$const2 9 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl"} %line{38} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:241
+#     float c = dot(I, N);
+	transformn	$tmp1 $const3 $const1 Normal 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{241} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:38
+# 		Normal = normalize(transform("object", Normal));
+	normalize	Normal $tmp1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl"} %line{38} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:42
+# 	vector dPdx = Dx(Ptmp);
+	Dx		dPdx Ptmp 	%line{42} %argrw{"wr"} %argderivs{1}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:43
+# 	vector dPdy = Dy(Ptmp);
+	Dy		dPdy Ptmp 	%line{43} %argrw{"wr"} %argderivs{1}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:45
+# 	vector Rx = cross(dPdy, Normal);
+	cross		Rx dPdy Normal 	%line{45} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:46
+# 	vector Ry = cross(Normal, dPdx);
+	cross		Ry Normal dPdx 	%line{46} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:49
+# 	float det = dot(dPdx, Rx);
+	dot		det dPdx Rx 	%line{49} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:50
+# 	vector surfgrad = (SampleX - SampleCenter) * Rx + (SampleY - SampleCenter) * Ry;
+	sub		$tmp2 SampleX SampleCenter 	%line{50} %argrw{"wrr"}
+	mul		$tmp3 $tmp2 Rx 	%argrw{"wrr"}
+	sub		$tmp4 SampleY SampleCenter 	%argrw{"wrr"}
+	mul		$tmp5 $tmp4 Ry 	%argrw{"wrr"}
+	add		surfgrad $tmp3 $tmp5 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:52
+# 	float absdet = fabs(det);
+	fabs		absdet det 	%line{52} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:54
+# 	float strength = max(Strength, 0.0);
+	max		strength Strength $const4 	%line{54} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:55
+# 	float dist = Distance;
+	assign		dist Distance 	%line{55} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:57
+# 	if (invert)
+	if		invert 25 25 	%line{57} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:58
+# 		dist *= -1.0;
+	mul		dist dist $const5 	%line{58} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:61
+# 	NormalOut = normalize(absdet * Normal - dist * sign(det) * surfgrad);
+	mul		$tmp6 absdet Normal 	%line{61} %argrw{"wrr"}
+	sign		$tmp7 det 	%argrw{"wr"}
+	mul		$tmp8 dist $tmp7 	%argrw{"wrr"}
+	mul		$tmp9 $tmp8 surfgrad 	%argrw{"wrr"}
+	sub		$tmp10 $tmp6 $tmp9 	%argrw{"wrr"}
+	normalize	NormalOut $tmp10 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:62
+# 	NormalOut = normalize(strength * NormalOut + (1.0 - strength) * Normal);
+	mul		$tmp11 strength NormalOut 	%line{62} %argrw{"wrr"}
+	sub		$tmp12 $const6 strength 	%argrw{"wrr"}
+	mul		$tmp13 $tmp12 Normal 	%argrw{"wrr"}
+	add		$tmp14 $tmp11 $tmp13 	%argrw{"wrr"}
+	normalize	NormalOut $tmp14 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:64
+# 	if (use_object_space) {
+	if		use_object_space 39 39 	%line{64} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_bump.osl:65
+# 		NormalOut = normalize(transform("object", "world", NormalOut));
+	transformn	$tmp15 $const1 $const7 NormalOut 	%line{65} %argrw{"wrrr"}
+	normalize	NormalOut $tmp15 	%argrw{"wr"}
+	end

@@ -1,0 +1,131 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_checker_texture.oso
+shader node_checker_texture
+param	int	use_mapping	0		%read{2,2} %write{2147483647,-1}
+param	matrix	mapping	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0		%read{3,3} %write{2147483647,-1}
+param	float	Scale	5		%read{4,4} %write{2147483647,-1}
+param	point	Vector	0 0 0		%read{1,1} %write{0,0} %initexpr
+param	color	Color1	0.80000001 0.80000001 0.80000001		%read{42,42} %write{2147483647,-1}
+param	color	Color2	0.2 0.2 0.2		%read{43,43} %write{2147483647,-1}
+oparam	float	Fac	0		%read{40,40} %write{36,38}
+oparam	color	Color	0 0 0		%read{2147483647,-1} %write{42,43}
+global	point	P	%read{0,0} %write{2147483647,-1}
+local	int	___665_xi	%read{30,30} %write{21,21}
+local	int	___665_yi	%read{31,31} %write{25,25}
+local	int	___665_zi	%read{33,33} %write{29,29}
+local	point	p	%read{3,4} %write{1,3}
+temp	point	$tmp1	%read{6,26} %write{4,17}
+const	string	$const1	"checker"		%read{5,5} %write{2147483647,-1}
+const	int	$const2	0		%read{6,18} %write{2147483647,-1}
+temp	float	$tmp2	%read{7,7} %write{6,6}
+const	float	$const3	1e-006		%read{7,15} %write{2147483647,-1}
+temp	float	$tmp3	%read{8,8} %write{7,7}
+const	float	$const4	0.99999899		%read{8,16} %write{2147483647,-1}
+temp	float	$tmp4	%read{9,9} %write{8,8}
+const	int	$const5	1		%read{10,22} %write{2147483647,-1}
+temp	float	$tmp5	%read{11,11} %write{10,10}
+temp	float	$tmp6	%read{12,12} %write{11,11}
+temp	float	$tmp7	%read{13,13} %write{12,12}
+const	int	$const6	2		%read{14,33} %write{2147483647,-1}
+temp	float	$tmp8	%read{15,15} %write{14,14}
+temp	float	$tmp9	%read{16,16} %write{15,15}
+temp	float	$tmp10	%read{17,17} %write{16,16}
+temp	float	$tmp11	%read{21,21} %write{20,20}
+temp	float	$tmp12	%read{20,20} %write{19,19}
+temp	float	$tmp13	%read{19,19} %write{18,18}
+temp	float	$tmp14	%read{25,25} %write{24,24}
+temp	float	$tmp15	%read{24,24} %write{23,23}
+temp	float	$tmp16	%read{23,23} %write{22,22}
+temp	float	$tmp17	%read{29,29} %write{28,28}
+temp	float	$tmp18	%read{28,28} %write{27,27}
+temp	float	$tmp19	%read{27,27} %write{26,26}
+temp	int	$tmp20	%read{32,32} %write{30,30}
+temp	int	$tmp21	%read{32,32} %write{31,31}
+temp	int	$tmp22	%read{34,34} %write{32,32}
+temp	int	$tmp23	%read{34,34} %write{33,33}
+temp	int	$tmp24	%read{35,35} %write{34,34}
+const	float	$const7	1		%read{36,40} %write{2147483647,-1}
+const	float	$const8	0		%read{38,38} %write{2147483647,-1}
+temp	int	$tmp25	%read{41,41} %write{40,40}
+code Vector
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:44
+# 	point Vector = P,
+	assign		Vector P 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl"} %line{44} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:50
+# 	point p = Vector;
+	assign		p Vector 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl"} %line{50} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:52
+# 	if (use_mapping)
+	if		use_mapping 4 4 	%line{52} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:53
+# 		p = transform(mapping, p);
+	transform	p mapping p 	%line{53} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:55
+# 	Fac = checker(p * Scale);
+	mul		$tmp1 p Scale 	%line{55} %argrw{"wrr"}
+	functioncall	$const1 40 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:24
+# 	p[0] = (p[0] + 0.000001) * 0.999999;
+	compref		$tmp2 $tmp1 $const2 	%line{24} %argrw{"wrr"}
+	add		$tmp3 $tmp2 $const3 	%argrw{"wrr"}
+	mul		$tmp4 $tmp3 $const4 	%argrw{"wrr"}
+	compassign	$tmp1 $const2 $tmp4 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:25
+# 	p[1] = (p[1] + 0.000001) * 0.999999;
+	compref		$tmp5 $tmp1 $const5 	%line{25} %argrw{"wrr"}
+	add		$tmp6 $tmp5 $const3 	%argrw{"wrr"}
+	mul		$tmp7 $tmp6 $const4 	%argrw{"wrr"}
+	compassign	$tmp1 $const5 $tmp7 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:26
+# 	p[2] = (p[2] + 0.000001) * 0.999999;
+	compref		$tmp8 $tmp1 $const6 	%line{26} %argrw{"wrr"}
+	add		$tmp9 $tmp8 $const3 	%argrw{"wrr"}
+	mul		$tmp10 $tmp9 $const4 	%argrw{"wrr"}
+	compassign	$tmp1 $const6 $tmp10 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:28
+# 	int xi = (int)fabs(floor(p[0]));
+	compref		$tmp13 $tmp1 $const2 	%line{28} %argrw{"wrr"}
+	floor		$tmp12 $tmp13 	%argrw{"wr"}
+	fabs		$tmp11 $tmp12 	%argrw{"wr"}
+	assign		___665_xi $tmp11 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:29
+# 	int yi = (int)fabs(floor(p[1]));
+	compref		$tmp16 $tmp1 $const5 	%line{29} %argrw{"wrr"}
+	floor		$tmp15 $tmp16 	%argrw{"wr"}
+	fabs		$tmp14 $tmp15 	%argrw{"wr"}
+	assign		___665_yi $tmp14 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:30
+# 	int zi = (int)fabs(floor(p[2]));
+	compref		$tmp19 $tmp1 $const6 	%line{30} %argrw{"wrr"}
+	floor		$tmp18 $tmp19 	%argrw{"wr"}
+	fabs		$tmp17 $tmp18 	%argrw{"wr"}
+	assign		___665_zi $tmp17 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:32
+# 	if ((xi % 2 == yi % 2) == (zi % 2)) {
+	mod		$tmp20 ___665_xi $const6 	%line{32} %argrw{"wrr"}
+	mod		$tmp21 ___665_yi $const6 	%argrw{"wrr"}
+	eq		$tmp22 $tmp20 $tmp21 	%argrw{"wrr"}
+	mod		$tmp23 ___665_zi $const6 	%argrw{"wrr"}
+	eq		$tmp24 $tmp22 $tmp23 	%argrw{"wrr"}
+	if		$tmp24 38 40 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:33
+# 		return 1.0;
+	assign		Fac $const7 	%line{33} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:36
+# 		return 0.0;
+	assign		Fac $const8 	%line{36} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:56
+# 	if (Fac == 1.0) {
+	eq		$tmp25 Fac $const7 	%line{56} %argrw{"wrr"}
+	if		$tmp25 43 44 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:57
+# 		Color = Color1;
+	assign		Color Color1 	%line{57} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_checker_texture.osl:60
+# 		Color = Color2;
+	assign		Color Color2 	%line{60} %argrw{"wr"}
+	end

@@ -1,0 +1,6 @@
+DEFAULT##|##Stair_ceiling
+DEFAULT##|##Stair_white
+DEFAULT##|##Stair_concrete
+DEFAULT##|##Stair_wood
+DEFAULT##|##Stair_metal
+DEFAULT##|##Stair_glass

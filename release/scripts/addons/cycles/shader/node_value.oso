@@ -1,0 +1,21 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_value.oso
+shader node_value
+param	float	value_value	0		%read{0,0} %write{2147483647,-1}
+param	vector	vector_value	0 0 0		%read{1,1} %write{2147483647,-1}
+param	color	color_value	0 0 0		%read{2,2} %write{2147483647,-1}
+oparam	float	Value	0		%read{2147483647,-1} %write{0,0}
+oparam	vector	Vector	0 0 0		%read{2147483647,-1} %write{1,1}
+oparam	color	Color	0 0 0		%read{2147483647,-1} %write{2,2}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_value.osl:27
+# 	Value = value_value;
+	assign		Value value_value 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_value.osl"} %line{27} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_value.osl:28
+# 	Vector = vector_value;
+	assign		Vector vector_value 	%line{28} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_value.osl:29
+# 	Color = color_value;
+	assign		Color color_value 	%line{29} %argrw{"wr"}
+	end

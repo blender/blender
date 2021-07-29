@@ -1,0 +1,111 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+#include "node_texture.h"
+
+/* Magic */
+
+color magic(point p, int n, float distortion)
+{
+	float dist = distortion;
+
+	float x =  sin(( p[0] + p[1] + p[2]) * 5.0);
+	float y =  cos((-p[0] + p[1] - p[2]) * 5.0);
+	float z = -cos((-p[0] - p[1] + p[2]) * 5.0);
+
+	if (n > 0) {
+		x *= dist;
+		y *= dist;
+		z *= dist;
+		y = -cos(x - y + z);
+		y *= dist;
+
+		if (n > 1) {
+			x = cos(x - y - z);
+			x *= dist;
+
+			if (n > 2) {
+				z = sin(-x - y - z);
+				z *= dist;
+
+				if (n > 3) {
+					x = -cos(-x + y - z);
+					x *= dist;
+
+					if (n > 4) {
+						y = -sin(-x + y + z);
+						y *= dist;
+
+						if (n > 5) {
+							y = -cos(-x + y + z);
+							y *= dist;
+
+							if (n > 6) {
+								x = cos(x + y + z);
+								x *= dist;
+
+								if (n > 7) {
+									z = sin(x + y - z);
+									z *= dist;
+
+									if (n > 8) {
+										x = -cos(-x - y + z);
+										x *= dist;
+
+										if (n > 9) {
+											y = -sin(x - y + z);
+											y *= dist;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (dist != 0.0) {
+		dist *= 2.0;
+		x /= dist;
+		y /= dist;
+		z /= dist;
+	}
+
+	return color(0.5 - x, 0.5 - y, 0.5 - z);
+}
+
+shader node_magic_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+	int depth = 2,
+	float Distortion = 5.0,
+	float Scale = 5.0,
+	point Vector = P,
+	output float Fac = 0.0,
+	output color Color = 0.0)
+{
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
+	Color = magic(p * Scale, depth, Distortion);
+	Fac = (Color[0] + Color[1] + Color[2]) * (1.0 / 3.0);
+}
+

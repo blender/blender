@@ -1,0 +1,12 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_holdout.oso
+shader node_holdout
+oparam	closure color	Holdout			%read{2147483647,-1} %write{0,0} %initexpr
+const	string	$const1	"holdout"		%read{0,0} %write{2147483647,-1}
+code Holdout
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_holdout.osl:20
+# 	output closure color Holdout = holdout())
+	closure		Holdout $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_holdout.osl"} %line{20} %argrw{"wr"}
+code ___main___
+	end

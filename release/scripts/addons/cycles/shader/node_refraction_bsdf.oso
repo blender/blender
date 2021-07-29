@@ -1,0 +1,67 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_refraction_bsdf.oso
+shader node_refraction_bsdf
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{9,17} %write{2147483647,-1}
+param	string	distribution	"sharp"		%read{6,14} %write{2147483647,-1}
+param	float	Roughness	0.2		%read{12,16} %write{2147483647,-1}
+param	float	IOR	1.45		%read{1,1} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{8,16} %write{0,0} %initexpr
+oparam	closure color	BSDF			%read{2147483647,-1} %write{9,17}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+local	float	f	%read{4,5} %write{1,1}
+local	float	eta	%read{8,16} %write{4,5}
+const	float	$const1	9.9999997e-006		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp1	%read{3,3} %write{2,2}
+const	float	$const2	1		%read{4,4} %write{2147483647,-1}
+const	string	$const3	"sharp"		%read{6,6} %write{2147483647,-1}
+temp	int	$tmp2	%read{7,7} %write{6,6}
+temp	closure color	$tmp3	%read{9,9} %write{8,8}
+const	string	$const4	"refraction"		%read{8,8} %write{2147483647,-1}
+const	string	$const5	"beckmann"		%read{10,10} %write{2147483647,-1}
+temp	int	$tmp4	%read{11,11} %write{10,10}
+temp	closure color	$tmp5	%read{13,13} %write{12,12}
+const	string	$const6	"microfacet_beckmann_refraction"		%read{12,12} %write{2147483647,-1}
+const	string	$const7	"GGX"		%read{14,14} %write{2147483647,-1}
+temp	int	$tmp6	%read{15,15} %write{14,14}
+temp	closure color	$tmp7	%read{17,17} %write{16,16}
+const	string	$const8	"microfacet_ggx_refraction"		%read{16,16} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:24
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl"} %line{24} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:27
+# 	float f = max(IOR, 1e-5);
+	max		f IOR $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl"} %line{27} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:28
+# 	float eta = backfacing() ? 1.0 / f : f;
+	backfacing	$tmp1 	%line{28} %argrw{"w"}
+	if		$tmp1 5 6 	%argrw{"r"}
+	div		eta $const2 f 	%argrw{"wrr"}
+	assign		eta f 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:30
+# 	if (distribution == "sharp")
+	eq		$tmp2 distribution $const3 	%line{30} %argrw{"wrr"}
+	if		$tmp2 10 18 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:31
+# 		BSDF = Color * refraction(Normal, eta);
+	closure		$tmp3 $const4 Normal eta 	%line{31} %argrw{"wrrr"}
+	mul		BSDF $tmp3 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:32
+# 	else if (distribution == "beckmann")
+	eq		$tmp4 distribution $const5 	%line{32} %argrw{"wrr"}
+	if		$tmp4 14 18 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:33
+# 		BSDF = Color * microfacet_beckmann_refraction(Normal, Roughness, eta);
+	closure		$tmp5 $const6 Normal Roughness eta 	%line{33} %argrw{"wrrrr"}
+	mul		BSDF $tmp5 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:34
+# 	else if (distribution == "GGX")
+	eq		$tmp6 distribution $const7 	%line{34} %argrw{"wrr"}
+	if		$tmp6 18 18 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_refraction_bsdf.osl:35
+# 		BSDF = Color * microfacet_ggx_refraction(Normal, Roughness, eta);
+	closure		$tmp7 $const8 Normal Roughness eta 	%line{35} %argrw{"wrrrr"}
+	mul		BSDF $tmp7 Color 	%argrw{"wrr"}
+	end

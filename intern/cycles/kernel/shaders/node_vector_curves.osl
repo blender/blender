@@ -1,0 +1,41 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+#include "node_ramp_util.h"
+
+shader node_vector_curves(
+	color ramp[] = {0.0},
+	float min_x = 0.0,
+	float max_x = 1.0,
+
+	vector VectorIn = vector(0.0, 0.0, 0.0),
+	float Fac = 0.0,
+	output vector VectorOut = vector(0.0, 0.0, 0.0))
+{
+	vector c = (VectorIn - vector(min_x, min_x, min_x)) / (max_x - min_x);
+
+	color r = rgb_ramp_lookup(ramp, c[0], 1, 1);
+	color g = rgb_ramp_lookup(ramp, c[0], 1, 1);
+	color b = rgb_ramp_lookup(ramp, c[0], 1, 1);
+
+	VectorOut[0] = r[0];
+	VectorOut[1] = g[1];
+	VectorOut[2] = b[2];
+
+	VectorOut = mix(VectorIn, VectorOut, Fac);
+}
+

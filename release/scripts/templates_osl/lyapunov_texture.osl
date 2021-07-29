@@ -1,0 +1,159 @@
+/*
+ * Copyright 2013, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* 
+ * Lyapunov Shader - in memory of great mathematician Aleksandr Mikhailovich Lyapunov
+ * Original code: Sylvio Sell - maitag.de - Rostock Germany 2013
+ * OSL port by Thomas Dinges
+ * More information: https://developer.blender.org/T32305
+ */
+ 
+/* Fac_Type
+ * 0, SPREAD,	Spread indices for fac output
+ * 1, ABS,		Absolute values from indices
+ * 2, COLOR,	Get fac output from used colors
+ * 3, REAL,		Real indices
+ */
+
+/* Render_Type
+ * 0, NEG,	Negative Lyapunov indices only
+ * 1, POS,	Positive Lyapunov indices only
+ * 2, ALL,	Positive and negative indices
+ */
+
+float lyapunov(point p, float iteration_pre, float iteration_main, float p1, float p2)
+{
+	/* Coordinates */
+	float a = p[0];
+	float b = p[1];
+	float c = p[2];
+
+	int iter_pre =  (int)floor(iteration_pre);
+	int iter_main = (int)floor(iteration_main);
+	float nabla_pre = iteration_pre - (float)iter_pre;
+	float nabla_main = iteration_main - (float)iter_main;
+
+	float x = 0.0;
+	float index = 0.0;
+	float derivation = 0.0;
+	int iter = 0;
+
+	/* Pre-iteration */
+	for (int i = 0; i < iter_pre; i++) {
+		x = p1 * sin(x + a) * sin(x + a) + p2;
+		x = p1 * sin(x + b) * sin(x + b) + p2;
+		x = p1 * sin(x + c) * sin(x + c) + p2;
+	}
+
+	if (nabla_pre != 0.0) {
+		float x_pre = x;
+
+		x = p1 * sin(x + a) * sin(x + a) + p2;
+		x = p1 * sin(x + b) * sin(x + b) + p2;
+		x = p1 * sin(x + c) * sin(x + c) + p2;
+		x = x * nabla_pre + x_pre * (1.0 - nabla_pre);
+	}
+
+	/* Main-iteration */
+	for (int i = 0; i < iter_main; i++) {
+		x = p1 * sin(x + a) * sin(x + a) + p2;
+		derivation = 2.0 *p1 *sin(x + a) * cos(x + a);
+		if (derivation != 0.0) { index += log(fabs(derivation)); iter++; }
+
+		x = p1 * sin(x + b) * sin(x + b) + p2;
+		derivation = 2.0 *p1 *sin(x + b) * cos(x + b);
+		if (derivation != 0.0) { index += log(fabs(derivation)); iter++; }
+
+		x = p1 * sin(x + c) * sin(x + c) + p2;
+		derivation = 2.0 *p1 *sin(x + c) * cos(x + c);
+		if (derivation != 0.0) { index += log(fabs(derivation)); iter++; }
+	}
+
+	if (nabla_main == 0.0) {
+		index = (iter != 0) ? index / (float)(iter) : 0.0;
+	}
+	else {
+		float index_pre = (iter != 0) ? index / (float)(iter) : 0.0;
+
+		x = p1 * sin(x + a) * sin(x + a) + p2;
+		derivation = 2.0 *p1 *sin(x + a) * cos(x + a);
+		if (derivation != 0.0) { index += log(fabs(derivation)); iter++; }
+
+		x = p1 * sin(x + b) * sin(x + b) + p2;
+		derivation = 2.0 *p1 *sin(x + b) * cos(x + b);
+		if (derivation != 0.0) { index += log(fabs(derivation)); iter++; }
+
+		x = p1 * sin(x + c) * sin(x + c) + p2;
+		derivation = 2.0 *p1 *sin(x + c) * cos(x + c);
+		if (derivation != 0.0) { index += log(fabs(derivation)); iter++; }
+
+		index = (iter != 0) ? index / (float)(iter) : 0.0;
+		index = index * nabla_main + index_pre * (1.0 - nabla_main);
+	}
+
+	return index;
+}
+
+shader node_lyapunov(
+	color Pos_Color = color(1.0, 0.0, 0.0),
+	color Mid_Color = color(0.0, 0.0, 0.0),
+	color Neg_Color = color(0.0, 0.0, 1.0),
+	float Pre_Iteration = 0.0,
+	float Main_Iteration = 1.0,
+	float Pos_Scale = 0.5,
+	float Neg_Scale = 0.5,
+	float Param1 = 2.0,
+	float Param2 = 2.0,
+	int Fac_Type = 0,
+	int Render_Type = 2,
+	float Scale = 0.25,
+	point Pos = P,
+	output float Fac = 0.0,
+	output color Color = 0.0)
+{
+	/* Calculate Texture */
+	float index = lyapunov(Pos * Scale, Pre_Iteration, Main_Iteration, Param1, Param2);
+
+	/* Calculate Color */
+	if (index > 0.0 && (Render_Type != 0)) {
+		index *= Pos_Scale;
+		if (index > 1.0) { index = 1.0; }
+		Color = (Pos_Color - Mid_Color) * index + Mid_Color;
+	}
+	else if (index < 0.0 && (Render_Type != 1)) {
+		index *= Neg_Scale;
+		if (index < -1.0) { index = -1.0; }
+		Color = (Mid_Color - Neg_Color) * index + Mid_Color;
+	}
+	else {
+		Color = Mid_Color;
+	}
+
+	/* Adjust Index */
+	if (Fac_Type == 0) {
+		index = 0.5 + index * 0.5;
+	}
+	else if (Fac_Type == 1) {
+		index = fabs(index);
+	}
+	else if (Fac_Type == 2) {
+		index = (Color[0] + Color[1] + Color[2]) * (1.0 / 3.0);
+	}
+
+	Fac = index;
+}

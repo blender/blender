@@ -1,0 +1,22 @@
+#!/bin/sh
+BF_DIST_BIN=$(dirname "$0")
+BF_PROGRAM="blender" # BF_PROGRAM=$(basename "$0")-bin
+
+LD_LIBRARY_PATH=${BF_DIST_BIN}/lib:${LD_LIBRARY_PATH}
+
+if [ -n "$LD_LIBRARYN32_PATH" ]; then
+    LD_LIBRARYN32_PATH=${BF_DIST_BIN}/lib:${LD_LIBRARYN32_PATH}
+fi
+if [ -n "$LD_LIBRARYN64_PATH" ]; then
+    LD_LIBRARYN64_PATH=${BF_DIST_BIN}/lib:${LD_LIBRARYN64_PATH}
+fi
+if [ -n "$LD_LIBRARY_PATH_64" ]; then
+    LD_LIBRARY_PATH_64=${BF_DIST_BIN}/lib:${LD_LIBRARY_PATH_64}
+fi
+
+# Workaround for half-transparent windows when compiz is enabled
+XLIB_SKIP_ARGB_VISUALS=1
+
+export LD_LIBRARY_PATH LD_LIBRARYN32_PATH LD_LIBRARYN64_PATH LD_LIBRARY_PATH_64 LD_PRELOAD XLIB_SKIP_ARGB_VISUALS
+
+exec "$BF_DIST_BIN/$BF_PROGRAM" ${1+"$@"}

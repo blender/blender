@@ -1,0 +1,103 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_fresnel.oso
+shader node_fresnel
+param	float	IOR	1.45		%read{1,1} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{6,6} %write{0,0} %initexpr
+oparam	float	Fac	0		%read{2147483647,-1} %write{32,32}
+global	vector	I	%read{6,6} %write{2147483647,-1}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+local	float	___646_c	%read{11,23} %write{8,8}
+local	float	___646_g	%read{13,22} %write{12,15}
+local	float	___646_result	%read{32,32} %write{30,31}
+local	float	___647_A	%read{26,27} %write{18,18}
+local	float	___647_B	%read{28,28} %write{25,25}
+local	float	f	%read{4,5} %write{1,1}
+local	float	eta	%read{9,9} %write{4,5}
+local	float	cosi	%read{8,8} %write{6,6}
+const	float	$const1	9.9999997e-006		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp1	%read{3,3} %write{2,2}
+const	float	$const2	1		%read{4,31} %write{2147483647,-1}
+const	string	$const3	"fresnel_dielectric_cos"		%read{7,7} %write{2147483647,-1}
+temp	float	$tmp2	%read{10,10} %write{9,9}
+temp	float	$tmp3	%read{12,12} %write{10,10}
+temp	float	$tmp4	%read{12,12} %write{11,11}
+const	int	$const5	0		%read{13,13} %write{2147483647,-1}
+temp	int	$tmp5	%read{14,14} %write{13,13}
+temp	float	$tmp6	%read{18,18} %write{16,16}
+temp	float	$tmp7	%read{18,18} %write{17,17}
+temp	float	$tmp8	%read{20,20} %write{19,19}
+temp	float	$tmp9	%read{21,21} %write{20,20}
+temp	float	$tmp10	%read{25,25} %write{21,21}
+temp	float	$tmp11	%read{23,23} %write{22,22}
+temp	float	$tmp12	%read{24,24} %write{23,23}
+temp	float	$tmp13	%read{25,25} %write{24,24}
+const	float	$const6	0.5		%read{26,26} %write{2147483647,-1}
+temp	float	$tmp14	%read{27,27} %write{26,26}
+temp	float	$tmp15	%read{30,30} %write{27,27}
+temp	float	$tmp16	%read{29,29} %write{28,28}
+temp	float	$tmp17	%read{30,30} %write{29,29}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_fresnel.osl:22
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_fresnel.osl"} %line{22} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_fresnel.osl:25
+# 	float f = max(IOR, 1e-5);
+	max		f IOR $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_fresnel.osl"} %line{25} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_fresnel.osl:26
+# 	float eta = backfacing() ? 1.0 / f : f;
+	backfacing	$tmp1 	%line{26} %argrw{"w"}
+	if		$tmp1 5 6 	%argrw{"r"}
+	div		eta $const2 f 	%argrw{"wrr"}
+	assign		eta f 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_fresnel.osl:27
+# 	float cosi = dot(I, Normal);
+	dot		cosi I Normal 	%line{27} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_fresnel.osl:28
+# 	Fac = fresnel_dielectric_cos(cosi, eta);
+	functioncall	$const3 33 	%line{28} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:21
+# 	float c = fabs(cosi);
+	fabs		___646_c cosi 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h"} %line{21} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:22
+# 	float g = eta * eta - 1 + c * c;
+	mul		$tmp2 eta eta 	%line{22} %argrw{"wrr"}
+	sub		$tmp3 $tmp2 $const2 	%argrw{"wrr"}
+	mul		$tmp4 ___646_c ___646_c 	%argrw{"wrr"}
+	add		___646_g $tmp3 $tmp4 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:25
+# 	if (g > 0) {
+	gt		$tmp5 ___646_g $const5 	%line{25} %argrw{"wrr"}
+	if		$tmp5 31 32 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:26
+# 		g = sqrt(g);
+	sqrt		___646_g ___646_g 	%line{26} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:27
+# 		float A = (g - c) / (g + c);
+	sub		$tmp6 ___646_g ___646_c 	%line{27} %argrw{"wrr"}
+	add		$tmp7 ___646_g ___646_c 	%argrw{"wrr"}
+	div		___647_A $tmp6 $tmp7 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:28
+# 		float B = (c * (g + c) - 1) / (c * (g - c) + 1);
+	add		$tmp8 ___646_g ___646_c 	%line{28} %argrw{"wrr"}
+	mul		$tmp9 ___646_c $tmp8 	%argrw{"wrr"}
+	sub		$tmp10 $tmp9 $const2 	%argrw{"wrr"}
+	sub		$tmp11 ___646_g ___646_c 	%argrw{"wrr"}
+	mul		$tmp12 ___646_c $tmp11 	%argrw{"wrr"}
+	add		$tmp13 $tmp12 $const2 	%argrw{"wrr"}
+	div		___647_B $tmp10 $tmp13 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:29
+# 		result = 0.5 * A * A * (1 + B * B);
+	mul		$tmp14 $const6 ___647_A 	%line{29} %argrw{"wrr"}
+	mul		$tmp15 $tmp14 ___647_A 	%argrw{"wrr"}
+	mul		$tmp16 ___647_B ___647_B 	%argrw{"wrr"}
+	add		$tmp17 $const2 $tmp16 	%argrw{"wrr"}
+	mul		___646_result $tmp15 $tmp17 	%argrw{"wrr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:32
+# 		result = 1.0;  /* TIR (no refracted component) */
+	assign		___646_result $const2 	%line{32} %argrw{"wr"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\node_fresnel.h:34
+# 	return result;
+	assign		Fac ___646_result 	%line{34} %argrw{"wr"}
+	end

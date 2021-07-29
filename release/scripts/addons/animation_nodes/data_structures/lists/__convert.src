@@ -1,0 +1,6 @@
+cpdef TARGETLIST toTARGETLIST(NumericList sourceList):
+    cdef TARGETLIST newList = TARGETLIST(sourceList.length)
+    cdef unsigned long i
+    for i in range(len(sourceList)):
+            newList.data[i] = <TYPE>sourceList.data[i]
+    return newList

@@ -1,0 +1,4 @@
+DEFAULT##|##Door_inside
+DEFAULT##|##Door_outside
+DEFAULT##|##Door_glass
+DEFAULT##|##Door_metal

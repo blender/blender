@@ -1,0 +1,127 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_voxel_texture.oso
+shader node_voxel_texture
+param	string	filename	""		%read{44,44} %write{2147483647,-1}
+param	string	interpolation	"linear"		%read{44,44} %write{2147483647,-1}
+param	int	use_mapping	0		%read{2,2} %write{2147483647,-1}
+param	matrix	mapping	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0		%read{3,3} %write{2147483647,-1} %derivs
+param	point	Vector	0 0 0		%read{1,5} %write{0,0} %derivs %initexpr
+oparam	float	Density	0		%read{2147483647,-1} %write{42,44}
+oparam	color	Color	0 0 0		%read{2147483647,-1} %write{43,44}
+global	point	P	%read{0,0} %write{2147483647,-1} %derivs
+local	point	p	%read{3,44} %write{1,8} %derivs
+local	matrix	___647_tfm	%read{8,8} %write{6,6} %derivs
+const	string	$const1	"object"		%read{5,5} %write{2147483647,-1}
+const	string	$const2	"transform"		%read{4,4} %write{2147483647,-1}
+const	string	$const3	"common"		%read{5,5} %write{2147483647,-1}
+temp	int	$tmp1	%read{7,7} %write{6,6}
+const	string	$const4	"geom:generated_transform"		%read{6,6} %write{2147483647,-1}
+const	int	$const5	0		%read{9,42} %write{2147483647,-1}
+temp	float	$tmp2	%read{10,10} %write{9,9}
+const	float	$const6	0		%read{10,20} %write{2147483647,-1}
+temp	int	$tmp3	%read{11,11} %write{10,10}
+temp	int	$tmp4	%read{12,17} %write{11,16}
+const	int	$const7	1		%read{13,31} %write{2147483647,-1}
+temp	float	$tmp5	%read{14,14} %write{13,13}
+temp	int	$tmp6	%read{15,15} %write{14,14}
+temp	int	$tmp7	%read{16,16} %write{15,15}
+temp	int	$tmp8	%read{18,23} %write{17,22}
+const	int	$const8	2		%read{19,37} %write{2147483647,-1}
+temp	float	$tmp9	%read{20,20} %write{19,19}
+temp	int	$tmp10	%read{21,21} %write{20,20}
+temp	int	$tmp11	%read{22,22} %write{21,21}
+temp	int	$tmp12	%read{24,29} %write{23,28}
+temp	float	$tmp13	%read{26,26} %write{25,25}
+const	float	$const9	1		%read{26,38} %write{2147483647,-1}
+temp	int	$tmp14	%read{27,27} %write{26,26}
+temp	int	$tmp15	%read{28,28} %write{27,27}
+temp	int	$tmp16	%read{30,35} %write{29,34}
+temp	float	$tmp17	%read{32,32} %write{31,31}
+temp	int	$tmp18	%read{33,33} %write{32,32}
+temp	int	$tmp19	%read{34,34} %write{33,33}
+temp	int	$tmp20	%read{36,41} %write{35,40}
+temp	float	$tmp21	%read{38,38} %write{37,37}
+temp	int	$tmp22	%read{39,39} %write{38,38}
+temp	int	$tmp23	%read{40,40} %write{39,39}
+const	color	$const10	0 0 0		%read{43,43} %write{2147483647,-1}
+const	string	$const11	"wrap"		%read{44,44} %write{2147483647,-1}
+const	string	$const12	"periodic"		%read{44,44} %write{2147483647,-1}
+const	string	$const13	"interp"		%read{44,44} %write{2147483647,-1}
+const	string	$const14	"alpha"		%read{44,44} %write{2147483647,-1}
+code Vector
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:24
+# 	point Vector = P,
+	assign		Vector P 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl"} %line{24} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:28
+# 	point p = Vector;
+	assign		p Vector 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl"} %line{28} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:29
+# 	if (use_mapping) {
+	if		use_mapping 4 9 	%line{29} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:30
+# 		p = transform(mapping, p);
+	transform	p mapping p 	%line{30} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:33
+# 		p = transform("object", Vector);
+	functioncall	$const2 6 	%line{33} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:243
+#         float beta = g - c;
+	transform	p $const3 $const1 Vector 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{243} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:35
+# 		if (getattribute("geom:generated_transform", tfm))
+	getattribute	$tmp1 $const4 ___647_tfm 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl"} %line{35} %argrw{"wrw"}
+	if		$tmp1 9 9 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:36
+# 			p = transform(tfm, p);
+	transform	p ___647_tfm p 	%line{36} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:38
+# 	if (p[0] < 0.0 || p[1] < 0.0 || p[2] < 0.0 ||
+	compref		$tmp2 p $const5 	%line{38} %argrw{"wrr"}
+	lt		$tmp3 $tmp2 $const6 	%argrw{"wrr"}
+	neq		$tmp4 $tmp3 $const5 	%argrw{"wrr"}
+	if		$tmp4 13 17 	%argrw{"r"}
+	compref		$tmp5 p $const7 	%argrw{"wrr"}
+	lt		$tmp6 $tmp5 $const6 	%argrw{"wrr"}
+	neq		$tmp7 $tmp6 $const5 	%argrw{"wrr"}
+	assign		$tmp4 $tmp7 	%argrw{"wr"}
+	neq		$tmp8 $tmp4 $const5 	%argrw{"wrr"}
+	if		$tmp8 19 23 	%argrw{"r"}
+	compref		$tmp9 p $const8 	%argrw{"wrr"}
+	lt		$tmp10 $tmp9 $const6 	%argrw{"wrr"}
+	neq		$tmp11 $tmp10 $const5 	%argrw{"wrr"}
+	assign		$tmp8 $tmp11 	%argrw{"wr"}
+	neq		$tmp12 $tmp8 $const5 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:39
+# 	    p[0] > 1.0 || p[1] > 1.0 || p[2] > 1.0)
+	if		$tmp12 25 29 	%line{39} %argrw{"r"}
+	compref		$tmp13 p $const5 	%argrw{"wrr"}
+	gt		$tmp14 $tmp13 $const9 	%argrw{"wrr"}
+	neq		$tmp15 $tmp14 $const5 	%argrw{"wrr"}
+	assign		$tmp12 $tmp15 	%argrw{"wr"}
+	neq		$tmp16 $tmp12 $const5 	%argrw{"wrr"}
+	if		$tmp16 31 35 	%argrw{"r"}
+	compref		$tmp17 p $const7 	%argrw{"wrr"}
+	gt		$tmp18 $tmp17 $const9 	%argrw{"wrr"}
+	neq		$tmp19 $tmp18 $const5 	%argrw{"wrr"}
+	assign		$tmp16 $tmp19 	%argrw{"wr"}
+	neq		$tmp20 $tmp16 $const5 	%argrw{"wrr"}
+	if		$tmp20 37 41 	%argrw{"r"}
+	compref		$tmp21 p $const8 	%argrw{"wrr"}
+	gt		$tmp22 $tmp21 $const9 	%argrw{"wrr"}
+	neq		$tmp23 $tmp22 $const5 	%argrw{"wrr"}
+	assign		$tmp20 $tmp23 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:38
+# 	if (p[0] < 0.0 || p[1] < 0.0 || p[2] < 0.0 ||
+	if		$tmp20 44 45 	%line{38} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:41
+# 		Density = 0;
+	assign		Density $const5 	%line{41} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:42
+# 		Color = color(0, 0, 0);
+	assign		Color $const10 	%line{42} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_voxel_texture.osl:45
+# 		Color = (color)texture3d(filename, p, "wrap", "periodic", "interp", interpolation, "alpha", Density);
+	texture3d	Color filename p $const11 $const12 $const13 interpolation $const14 Density 	%line{45} %argrw{"wrrrrrrrw"} %argderivs{2}
+	end

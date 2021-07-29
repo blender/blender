@@ -1,0 +1,57 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_particle_info.oso
+shader node_particle_info
+oparam	float	Index	0		%read{2147483647,-1} %write{2,2}
+oparam	float	Age	0		%read{2147483647,-1} %write{3,3}
+oparam	float	Lifetime	0		%read{2147483647,-1} %write{4,4}
+oparam	point	Location	0 0 0		%read{2147483647,-1} %write{5,5}
+oparam	float	Size	0		%read{2147483647,-1} %write{6,6}
+oparam	vector	Velocity	0 0 0		%read{2147483647,-1} %write{0,7} %initexpr
+oparam	vector	AngularVelocity	0 0 0		%read{2147483647,-1} %write{1,8} %initexpr
+const	point	$const1	0 0 0		%read{0,1} %write{2147483647,-1}
+temp	int	$tmp1	%read{2147483647,-1} %write{2,2}
+const	string	$const2	"particle:index"		%read{2,2} %write{2147483647,-1}
+temp	int	$tmp2	%read{2147483647,-1} %write{3,3}
+const	string	$const3	"particle:age"		%read{3,3} %write{2147483647,-1}
+temp	int	$tmp3	%read{2147483647,-1} %write{4,4}
+const	string	$const4	"particle:lifetime"		%read{4,4} %write{2147483647,-1}
+temp	int	$tmp4	%read{2147483647,-1} %write{5,5}
+const	string	$const5	"particle:location"		%read{5,5} %write{2147483647,-1}
+temp	int	$tmp5	%read{2147483647,-1} %write{6,6}
+const	string	$const6	"particle:size"		%read{6,6} %write{2147483647,-1}
+temp	int	$tmp6	%read{2147483647,-1} %write{7,7}
+const	string	$const7	"particle:velocity"		%read{7,7} %write{2147483647,-1}
+temp	int	$tmp7	%read{2147483647,-1} %write{8,8}
+const	string	$const8	"particle:angular_velocity"		%read{8,8} %write{2147483647,-1}
+code Velocity
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:25
+#     output vector Velocity = point(0.0, 0.0, 0.0),
+	assign		Velocity $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl"} %line{25} %argrw{"wr"}
+code AngularVelocity
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:26
+#     output vector AngularVelocity = point(0.0, 0.0, 0.0))
+	assign		AngularVelocity $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl"} %line{26} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:28
+# 	getattribute("particle:index", Index);
+	getattribute	$tmp1 $const2 Index 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl"} %line{28} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:29
+# 	getattribute("particle:age", Age);
+	getattribute	$tmp2 $const3 Age 	%line{29} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:30
+# 	getattribute("particle:lifetime", Lifetime);
+	getattribute	$tmp3 $const4 Lifetime 	%line{30} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:31
+# 	getattribute("particle:location", Location);
+	getattribute	$tmp4 $const5 Location 	%line{31} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:32
+# 	getattribute("particle:size", Size);
+	getattribute	$tmp5 $const6 Size 	%line{32} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:33
+# 	getattribute("particle:velocity", Velocity);
+	getattribute	$tmp6 $const7 Velocity 	%line{33} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_particle_info.osl:34
+# 	getattribute("particle:angular_velocity", AngularVelocity);
+	getattribute	$tmp7 $const8 AngularVelocity 	%line{34} %argrw{"wrw"}
+	end

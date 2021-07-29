@@ -1,0 +1,55 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_subsurface_scattering.oso
+shader node_subsurface_scattering
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{5,13} %write{2147483647,-1}
+param	float	Scale	1		%read{3,11} %write{2147483647,-1}
+param	vector	Radius	0.1 0.1 0.1		%read{3,11} %write{2147483647,-1}
+param	float	TextureBlur	0		%read{4,12} %write{2147483647,-1}
+param	float	Sharpness	0		%read{9,9} %write{2147483647,-1}
+param	string	falloff	"cubic"		%read{1,6} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{4,12} %write{0,0} %initexpr
+oparam	closure color	BSSRDF			%read{2147483647,-1} %write{5,13}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+const	string	$const1	"gaussian"		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp1	%read{2,2} %write{1,1}
+temp	closure color	$tmp2	%read{5,5} %write{4,4}
+temp	vector	$tmp3	%read{4,4} %write{3,3}
+const	string	$const2	"bssrdf_gaussian"		%read{4,4} %write{2147483647,-1}
+const	string	$const3	"cubic"		%read{6,6} %write{2147483647,-1}
+temp	int	$tmp4	%read{7,7} %write{6,6}
+temp	closure color	$tmp5	%read{10,10} %write{9,9}
+temp	vector	$tmp6	%read{9,9} %write{8,8}
+const	string	$const4	"bssrdf_cubic"		%read{9,9} %write{2147483647,-1}
+temp	closure color	$tmp7	%read{13,13} %write{12,12}
+temp	vector	$tmp8	%read{12,12} %write{11,11}
+const	string	$const5	"bssrdf_burley"		%read{12,12} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_subsurface_scattering.osl:26
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_subsurface_scattering.osl"} %line{26} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_subsurface_scattering.osl:29
+# 	if (falloff == "gaussian")
+	eq		$tmp1 falloff $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_subsurface_scattering.osl"} %line{29} %argrw{"wrr"}
+	if		$tmp1 6 14 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_subsurface_scattering.osl:30
+# 		BSSRDF = Color * bssrdf_gaussian(Normal, Scale * Radius, TextureBlur);
+	mul		$tmp3 Scale Radius 	%line{30} %argrw{"wrr"}
+	closure		$tmp2 $const2 Normal $tmp3 TextureBlur 	%argrw{"wrrrr"}
+	mul		BSSRDF $tmp2 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_subsurface_scattering.osl:31
+# 	else if (falloff == "cubic")
+	eq		$tmp4 falloff $const3 	%line{31} %argrw{"wrr"}
+	if		$tmp4 11 14 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_subsurface_scattering.osl:32
+# 		BSSRDF = Color * bssrdf_cubic(Normal, Scale * Radius, TextureBlur, Sharpness);
+	mul		$tmp6 Scale Radius 	%line{32} %argrw{"wrr"}
+	closure		$tmp5 $const4 Normal $tmp6 TextureBlur Sharpness 	%argrw{"wrrrrr"}
+	mul		BSSRDF $tmp5 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_subsurface_scattering.osl:34
+# 		BSSRDF = Color * bssrdf_burley(Normal, Scale * Radius, TextureBlur, Color);
+	mul		$tmp8 Scale Radius 	%line{34} %argrw{"wrr"}
+	closure		$tmp7 $const5 Normal $tmp8 TextureBlur Color 	%argrw{"wrrrrr"}
+	mul		BSSRDF $tmp7 Color 	%argrw{"wrr"}
+	end

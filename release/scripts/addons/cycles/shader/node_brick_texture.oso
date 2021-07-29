@@ -1,0 +1,257 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_brick_texture.oso
+shader node_brick_texture
+param	int	use_mapping	0		%read{2,2} %write{2147483647,-1}
+param	matrix	mapping	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0		%read{3,3} %write{2147483647,-1}
+param	float	offset	0.5		%read{27,27} %write{2147483647,-1}
+param	int	offset_frequency	2		%read{14,24} %write{2147483647,-1}
+param	float	squash	1		%read{22,22} %write{2147483647,-1}
+param	int	squash_frequency	1		%read{16,19} %write{2147483647,-1}
+param	point	Vector	0 0 0		%read{1,1} %write{0,0} %initexpr
+param	color	Color1	0.2 0.2 0.2		%read{5,83} %write{2147483647,-1}
+param	color	Color2	0.80000001 0.80000001 0.80000001		%read{84,84} %write{2147483647,-1}
+param	color	Mortar	0 0 0		%read{86,86} %write{2147483647,-1}
+param	float	Scale	5		%read{6,6} %write{2147483647,-1}
+param	float	MortarSize	0.02		%read{68,76} %write{2147483647,-1}
+param	float	MortarSmooth	0		%read{72,78} %write{2147483647,-1}
+param	float	Bias	0		%read{59,59} %write{2147483647,-1}
+param	float	BrickWidth	0.5		%read{9,9} %write{2147483647,-1}
+param	float	RowHeight	0.25		%read{11,65} %write{2147483647,-1}
+oparam	float	Fac	0		%read{80,86} %write{70,78}
+oparam	color	Color	0.2 0.2 0.2		%read{2147483647,-1} %write{86,86}
+global	point	P	%read{0,0} %write{2147483647,-1}
+local	int	___665_nn	%read{56,56} %write{55,55}
+local	int	___666_bricknum	%read{35,43} %write{32,32}
+local	int	___666_rownum	%read{19,42} %write{13,13}
+local	float	___666_offset	%read{29,34} %write{8,27}
+local	float	___666_brick_width	%read{23,64} %write{9,23}
+local	float	___666_x	%read{63,64} %write{37,37}
+local	float	___666_y	%read{63,65} %write{41,41}
+local	float	___666_min_dist	%read{68,78} %write{67,77}
+local	point	p	%read{3,6} %write{1,3}
+local	float	tint	%read{82,84} %write{4,62}
+local	color	Col	%read{86,86} %write{5,85}
+local	float	___671_facm	%read{83,83} %write{82,82}
+const	float	$const1	0		%read{4,78} %write{2147483647,-1}
+temp	point	$tmp1	%read{10,38} %write{6,6}
+const	string	$const2	"brick"		%read{7,7} %write{2147483647,-1}
+temp	float	$tmp2	%read{13,13} %write{12,12}
+const	int	$const3	1		%read{10,38} %write{2147483647,-1}
+temp	float	$tmp3	%read{11,11} %write{10,10}
+temp	float	$tmp4	%read{12,12} %write{11,11}
+temp	int	$tmp5	%read{15,18} %write{14,17}
+const	int	$const4	0		%read{14,33} %write{2147483647,-1}
+temp	int	$tmp6	%read{17,17} %write{16,16}
+temp	float	$tmp7	%read{23,23} %write{21,22}
+temp	int	$tmp8	%read{20,20} %write{19,19}
+const	float	$const5	1		%read{21,82} %write{2147483647,-1}
+temp	int	$tmp9	%read{25,25} %write{24,24}
+temp	float	$tmp10	%read{32,32} %write{31,31}
+temp	float	$tmp11	%read{29,29} %write{28,28}
+temp	float	$tmp12	%read{30,30} %write{29,29}
+temp	float	$tmp13	%read{31,31} %write{30,30}
+temp	float	$tmp14	%read{34,34} %write{33,33}
+temp	float	$tmp15	%read{37,37} %write{34,34}
+temp	float	$tmp16	%read{37,37} %write{36,36}
+temp	float	$tmp17	%read{36,36} %write{35,35}
+temp	float	$tmp18	%read{41,41} %write{38,38}
+temp	float	$tmp19	%read{41,41} %write{40,40}
+temp	float	$tmp20	%read{40,40} %write{39,39}
+temp	float	$tmp21	%read{59,59} %write{58,58}
+const	int	$const6	16		%read{42,42} %write{2147483647,-1}
+temp	int	$tmp22	%read{44,44} %write{42,42}
+const	int	$const7	65535		%read{43,43} %write{2147483647,-1}
+temp	int	$tmp23	%read{44,44} %write{43,43}
+temp	int	$tmp24	%read{46,53} %write{44,49}
+const	string	$const8	"brick_noise"		%read{45,45} %write{2147483647,-1}
+const	int	$const9	1013		%read{46,46} %write{2147483647,-1}
+temp	int	$tmp25	%read{47,47} %write{46,46}
+const	int	$const10	2147483647		%read{47,55} %write{2147483647,-1}
+const	int	$const11	13		%read{48,48} %write{2147483647,-1}
+temp	int	$tmp26	%read{49,49} %write{48,48}
+temp	int	$tmp27	%read{51,51} %write{50,50}
+const	int	$const12	60493		%read{51,51} %write{2147483647,-1}
+temp	int	$tmp28	%read{52,52} %write{51,51}
+const	int	$const13	19990303		%read{52,52} %write{2147483647,-1}
+temp	int	$tmp29	%read{53,53} %write{52,52}
+temp	int	$tmp30	%read{54,54} %write{53,53}
+const	int	$const14	1376312589		%read{54,54} %write{2147483647,-1}
+temp	int	$tmp31	%read{55,55} %write{54,54}
+const	float	$const15	0.5		%read{58,58} %write{2147483647,-1}
+temp	float	$tmp32	%read{57,57} %write{56,56}
+const	float	$const16	1.0737418e+009		%read{57,57} %write{2147483647,-1}
+temp	float	$tmp33	%read{58,58} %write{57,57}
+temp	float	$tmp34	%read{61,61} %write{59,59}
+const	string	$const17	"clamp"		%read{60,60} %write{2147483647,-1}
+temp	float	$tmp35	%read{62,62} %write{61,61}
+temp	float	$tmp36	%read{67,67} %write{63,63}
+temp	float	$tmp37	%read{67,67} %write{66,66}
+temp	float	$tmp38	%read{66,66} %write{64,64}
+temp	float	$tmp39	%read{66,66} %write{65,65}
+temp	int	$tmp40	%read{69,69} %write{68,68}
+temp	int	$tmp41	%read{73,73} %write{72,72}
+temp	float	$tmp42	%read{77,77} %write{76,76}
+temp	int	$tmp43	%read{81,81} %write{80,80}
+temp	color	$tmp44	%read{85,85} %write{83,83}
+temp	color	$tmp45	%read{85,85} %write{84,84}
+code Vector
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:74
+# 	point Vector = P,
+	assign		Vector P 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl"} %line{74} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:87
+# 	point p = Vector;
+	assign		p Vector 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl"} %line{87} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:89
+# 	if (use_mapping)
+	if		use_mapping 4 4 	%line{89} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:90
+# 		p = transform(mapping, p);
+	transform	p mapping p 	%line{90} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:92
+# 	float tint = 0.0;
+	assign		tint $const1 	%line{92} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:93
+# 	color Col = Color1;
+	assign		Col Color1 	%line{93} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:95
+# 	Fac = brick(p * Scale, MortarSize, MortarSmooth, Bias, BrickWidth, RowHeight,
+	mul		$tmp1 p Scale 	%line{95} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:96
+# 		offset, offset_frequency, squash, squash_frequency, tint);
+	functioncall	$const2 80 	%line{96} %argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:36
+# 	float offset = 0.0;
+	assign		___666_offset $const1 	%line{36} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:37
+# 	float brick_width = BrickWidth;
+	assign		___666_brick_width BrickWidth 	%line{37} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:40
+# 	rownum = (int)floor(p[1] / row_height);
+	compref		$tmp3 $tmp1 $const3 	%line{40} %argrw{"wrr"}
+	div		$tmp4 $tmp3 RowHeight 	%argrw{"wrr"}
+	floor		$tmp2 $tmp4 	%argrw{"wr"}
+	assign		___666_rownum $tmp2 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:42
+# 	if (offset_frequency && squash_frequency) {
+	neq		$tmp5 offset_frequency $const4 	%line{42} %argrw{"wrr"}
+	if		$tmp5 18 18 	%argrw{"r"}
+	neq		$tmp6 squash_frequency $const4 	%argrw{"wrr"}
+	assign		$tmp5 $tmp6 	%argrw{"wr"}
+	if		$tmp5 28 28 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:43
+# 		brick_width *= (rownum % squash_frequency) ? 1.0 : squash_amount;                /* squash */
+	mod		$tmp8 ___666_rownum squash_frequency 	%line{43} %argrw{"wrr"}
+	if		$tmp8 22 23 	%argrw{"r"}
+	assign		$tmp7 $const5 	%argrw{"wr"}
+	assign		$tmp7 squash 	%argrw{"wr"}
+	mul		___666_brick_width ___666_brick_width $tmp7 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:44
+# 		offset       = (rownum % offset_frequency) ? 0.0 : (brick_width * offset_amount);  /* offset */
+	mod		$tmp9 ___666_rownum offset_frequency 	%line{44} %argrw{"wrr"}
+	if		$tmp9 27 28 	%argrw{"r"}
+	assign		___666_offset $const1 	%argrw{"wr"}
+	mul		___666_offset ___666_brick_width offset 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:47
+# 	bricknum = (int)floor((p[0] + offset) / brick_width);
+	compref		$tmp11 $tmp1 $const4 	%line{47} %argrw{"wrr"}
+	add		$tmp12 $tmp11 ___666_offset 	%argrw{"wrr"}
+	div		$tmp13 $tmp12 ___666_brick_width 	%argrw{"wrr"}
+	floor		$tmp10 $tmp13 	%argrw{"wr"}
+	assign		___666_bricknum $tmp10 	%argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:49
+# 	x = (p[0] + offset) - brick_width * bricknum;
+	compref		$tmp14 $tmp1 $const4 	%line{49} %argrw{"wrr"}
+	add		$tmp15 $tmp14 ___666_offset 	%argrw{"wrr"}
+	assign		$tmp17 ___666_bricknum 	%argrw{"wr"}
+	mul		$tmp16 ___666_brick_width $tmp17 	%argrw{"wrr"}
+	sub		___666_x $tmp15 $tmp16 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:50
+# 	y = p[1] - row_height * rownum;
+	compref		$tmp18 $tmp1 $const3 	%line{50} %argrw{"wrr"}
+	assign		$tmp20 ___666_rownum 	%argrw{"wr"}
+	mul		$tmp19 RowHeight $tmp20 	%argrw{"wrr"}
+	sub		___666_y $tmp18 $tmp19 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:52
+# 	tint = clamp((brick_noise((rownum << 16) + (bricknum & 65535)) + bias), 0.0, 1.0);
+	shl		$tmp22 ___666_rownum $const6 	%line{52} %argrw{"wrr"}
+	bitand		$tmp23 ___666_bricknum $const7 	%argrw{"wrr"}
+	add		$tmp24 $tmp22 $tmp23 	%argrw{"wrr"}
+	functioncall	$const8 59 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:25
+# 	n = (n + 1013) & 2147483647;
+	add		$tmp25 $tmp24 $const9 	%line{25} %argrw{"wrr"}
+	bitand		$tmp24 $tmp25 $const10 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:26
+# 	n = (n >> 13) ^ n;
+	shr		$tmp26 $tmp24 $const11 	%line{26} %argrw{"wrr"}
+	xor		$tmp24 $tmp26 $tmp24 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:27
+# 	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 2147483647;
+	mul		$tmp27 $tmp24 $tmp24 	%line{27} %argrw{"wrr"}
+	mul		$tmp28 $tmp27 $const12 	%argrw{"wrr"}
+	add		$tmp29 $tmp28 $const13 	%argrw{"wrr"}
+	mul		$tmp30 $tmp24 $tmp29 	%argrw{"wrr"}
+	add		$tmp31 $tmp30 $const14 	%argrw{"wrr"}
+	bitand		___665_nn $tmp31 $const10 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:28
+# 	return 0.5 * ((float)nn / 1073741824.0);
+	assign		$tmp32 ___665_nn 	%line{28} %argrw{"wr"}
+	div		$tmp33 $tmp32 $const16 	%argrw{"wrr"}
+	mul		$tmp21 $const15 $tmp33 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:52
+# 	tint = clamp((brick_noise((rownum << 16) + (bricknum & 65535)) + bias), 0.0, 1.0);
+	add		$tmp34 $tmp21 Bias 	%line{52} %argrw{"wrr"}
+	functioncall	$const17 63 	%argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# PERCOMP1 (acos)
+	min		$tmp35 $tmp34 $const5 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		tint $tmp35 $const1 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:54
+# 	float min_dist = min(min(x, y), min(brick_width - x, row_height - y));
+	min		$tmp36 ___666_x ___666_y 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl"} %line{54} %argrw{"wrr"}
+	sub		$tmp38 ___666_brick_width ___666_x 	%argrw{"wrr"}
+	sub		$tmp39 RowHeight ___666_y 	%argrw{"wrr"}
+	min		$tmp37 $tmp38 $tmp39 	%argrw{"wrr"}
+	min		___666_min_dist $tmp36 $tmp37 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:55
+# 	if(min_dist >= mortar_size) {
+	ge		$tmp40 ___666_min_dist MortarSize 	%line{55} %argrw{"wrr"}
+	if		$tmp40 72 80 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:56
+# 		return 0.0;
+	assign		Fac $const1 	%line{56} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:58
+# 	else if(mortar_smooth == 0.0) {
+	eq		$tmp41 MortarSmooth $const1 	%line{58} %argrw{"wrr"}
+	if		$tmp41 76 80 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:59
+# 		return 1.0;
+	assign		Fac $const5 	%line{59} %argrw{"wr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:62
+# 		min_dist = 1.0 - min_dist/mortar_size;
+	div		$tmp42 ___666_min_dist MortarSize 	%line{62} %argrw{"wrr"}
+	sub		___666_min_dist $const5 $tmp42 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:63
+# 		return smoothstep(0.0, mortar_smooth, min_dist);
+	smoothstep	Fac $const1 MortarSmooth ___666_min_dist 	%line{63} %argrw{"wrrr"}
+	return
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:98
+# 	if (Fac != 1.0) {
+	neq		$tmp43 Fac $const5 	%line{98} %argrw{"wrr"}
+	if		$tmp43 86 86 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:99
+# 		float facm = 1.0 - tint;
+	sub		___671_facm $const5 tint 	%line{99} %argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:100
+# 		Col = facm * Color1 + tint * Color2;
+	mul		$tmp44 ___671_facm Color1 	%line{100} %argrw{"wrr"}
+	mul		$tmp45 tint Color2 	%argrw{"wrr"}
+	add		Col $tmp44 $tmp45 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_brick_texture.osl:103
+# 	Color = mix(Col, Mortar, Fac);
+	mix		Color Col Mortar Fac 	%line{103} %argrw{"wrrr"}
+	end

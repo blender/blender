@@ -1,0 +1,51 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_vector_transform.oso
+shader node_vector_transform
+param	string	type	"vector"		%read{0,11} %write{2147483647,-1}
+param	string	convert_from	"world"		%read{7,14} %write{2147483647,-1}
+param	string	convert_to	"object"		%read{7,14} %write{2147483647,-1}
+param	vector	VectorIn	0 0 0		%read{7,13} %write{2147483647,-1}
+oparam	vector	VectorOut	0 0 0		%read{10,10} %write{7,14}
+local	point	___647_Point	%read{14,14} %write{13,13}
+const	string	$const1	"vector"		%read{0,0} %write{2147483647,-1}
+temp	int	$tmp1	%read{1,1} %write{0,0}
+temp	int	$tmp2	%read{2,6} %write{1,5}
+const	int	$const2	0		%read{1,4} %write{2147483647,-1}
+const	string	$const3	"normal"		%read{3,8} %write{2147483647,-1}
+temp	int	$tmp3	%read{4,4} %write{3,3}
+temp	int	$tmp4	%read{5,5} %write{4,4}
+temp	int	$tmp5	%read{9,9} %write{8,8}
+const	string	$const4	"point"		%read{11,11} %write{2147483647,-1}
+temp	int	$tmp6	%read{12,12} %write{11,11}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_transform.osl:26
+# 	if (type == "vector" || type == "normal") {
+	eq		$tmp1 type $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_transform.osl"} %line{26} %argrw{"wrr"}
+	neq		$tmp2 $tmp1 $const2 	%argrw{"wrr"}
+	if		$tmp2 3 6 	%argrw{"r"}
+	eq		$tmp3 type $const3 	%argrw{"wrr"}
+	neq		$tmp4 $tmp3 $const2 	%argrw{"wrr"}
+	assign		$tmp2 $tmp4 	%argrw{"wr"}
+	if		$tmp2 11 15 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_transform.osl:27
+# 		VectorOut = transform(convert_from, convert_to, VectorIn);
+	transformv	VectorOut convert_from convert_to VectorIn 	%line{27} %argrw{"wrrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_transform.osl:28
+# 		if (type == "normal")
+	eq		$tmp5 type $const3 	%line{28} %argrw{"wrr"}
+	if		$tmp5 11 11 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_transform.osl:29
+# 			VectorOut = normalize(VectorOut);
+	normalize	VectorOut VectorOut 	%line{29} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_transform.osl:31
+# 	else if (type == "point") {
+	eq		$tmp6 type $const4 	%line{31} %argrw{"wrr"}
+	if		$tmp6 15 15 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_transform.osl:32
+# 		point Point = (point)VectorIn;
+	assign		___647_Point VectorIn 	%line{32} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_vector_transform.osl:33
+# 		VectorOut = transform(convert_from, convert_to, Point);
+	transform	VectorOut convert_from convert_to ___647_Point 	%line{33} %argrw{"wrrr"}
+	end

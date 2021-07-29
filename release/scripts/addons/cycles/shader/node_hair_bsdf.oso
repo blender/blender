@@ -1,0 +1,108 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_hair_bsdf.oso
+shader node_hair_bsdf
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{27,29} %write{2147483647,-1}
+param	string	component	"reflection"		%read{24,24} %write{2147483647,-1}
+param	float	Offset	0		%read{6,6} %write{2147483647,-1}
+param	float	RoughnessU	0.1		%read{1,1} %write{2147483647,-1}
+param	float	RoughnessV	1		%read{4,4} %write{2147483647,-1}
+param	normal	Tangent	0 0 0		%read{9,11} %write{2147483647,-1}
+oparam	closure color	BSDF			%read{2147483647,-1} %write{23,29}
+global	normal	Ng	%read{26,28} %write{2147483647,-1}
+global	vector	dPdu	%read{16,16} %write{2147483647,-1}
+global	vector	dPdv	%read{14,14} %write{2147483647,-1}
+local	float	roughnessh	%read{26,28} %write{2,2}
+local	float	roughnessv	%read{26,28} %write{5,5}
+local	float	offset	%read{26,28} %write{6,15}
+local	normal	T	%read{26,28} %write{11,16}
+local	float	IsCurve	%read{12,20} %write{7,8}
+const	float	$const1	0.001		%read{2,5} %write{2147483647,-1}
+const	float	$const2	1		%read{1,4} %write{2147483647,-1}
+const	string	$const3	"clamp"		%read{0,3} %write{2147483647,-1}
+temp	float	$tmp1	%read{2,2} %write{1,1}
+temp	float	$tmp2	%read{5,5} %write{4,4}
+const	int	$const4	0		%read{7,18} %write{2147483647,-1}
+temp	int	$tmp3	%read{2147483647,-1} %write{8,8}
+const	string	$const5	"geom:is_curve"		%read{8,8} %write{2147483647,-1}
+temp	int	$tmp4	%read{10,10} %write{9,9}
+temp	int	$tmp5	%read{13,13} %write{12,12}
+const	float	$const6	0		%read{12,20} %write{2147483647,-1}
+temp	int	$tmp6	%read{18,18} %write{17,17}
+temp	int	$tmp7	%read{19,22} %write{18,21}
+temp	int	$tmp8	%read{21,21} %write{20,20}
+const	string	$const7	"transparent"		%read{23,23} %write{2147483647,-1}
+const	string	$const8	"reflection"		%read{24,24} %write{2147483647,-1}
+temp	int	$tmp9	%read{25,25} %write{24,24}
+temp	closure color	$tmp10	%read{27,27} %write{26,26}
+const	string	$const9	"hair_reflection"		%read{26,26} %write{2147483647,-1}
+temp	closure color	$tmp11	%read{29,29} %write{28,28}
+const	string	$const10	"hair_transmission"		%read{28,28} %write{2147483647,-1}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:30
+# 	float roughnessh = clamp(RoughnessU, 0.001, 1.0);
+	functioncall	$const3 3 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl"} %line{30} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# float hypot (float a, float b, float c) { return sqrt (a*a + b*b + c*c); }
+	min		$tmp1 RoughnessU $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		roughnessh $tmp1 $const1 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:31
+# 	float roughnessv = clamp(RoughnessV, 0.001, 1.0);
+	functioncall	$const3 6 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl"} %line{31} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# float hypot (float a, float b) { return sqrt (a*a + b*b); }
+	min		$tmp2 RoughnessV $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		roughnessv $tmp2 $const1 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:32
+# 	float offset = -Offset;
+	neg		offset Offset 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl"} %line{32} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:35
+# 	float IsCurve = 0;
+	assign		IsCurve $const4 	%line{35} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:36
+# 	getattribute("geom:is_curve", IsCurve);
+	getattribute	$tmp3 $const5 IsCurve 	%line{36} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:38
+# 	if (isconnected(Tangent)) {
+	isconnected	$tmp4 Tangent 	%line{38} %argrw{"wr"}
+	if		$tmp4 12 17 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:39
+# 		T = Tangent;
+	assign		T Tangent 	%line{39} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:41
+# 	else if(!IsCurve) {
+	eq		$tmp5 IsCurve $const6 	%line{41} %argrw{"wrr"}
+	if		$tmp5 16 17 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:42
+# 		T = normalize(dPdv);
+	normalize	T dPdv 	%line{42} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:43
+# 		offset = 0.0;
+	assign		offset $const6 	%line{43} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:46
+# 		T = normalize(dPdu);
+	normalize	T dPdu 	%line{46} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:49
+# 	if (backfacing() && IsCurve) {
+	backfacing	$tmp6 	%line{49} %argrw{"w"}
+	neq		$tmp7 $tmp6 $const4 	%argrw{"wrr"}
+	if		$tmp7 22 22 	%argrw{"r"}
+	neq		$tmp8 IsCurve $const6 	%argrw{"wrr"}
+	assign		$tmp7 $tmp8 	%argrw{"wr"}
+	if		$tmp7 24 30 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:50
+# 		BSDF = transparent();
+	closure		BSDF $const7 	%line{50} %argrw{"wr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:53
+# 		if (component == "reflection")
+	eq		$tmp9 component $const8 	%line{53} %argrw{"wrr"}
+	if		$tmp9 28 30 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:54
+# 			BSDF = Color * hair_reflection(Ng, roughnessh, roughnessv, T, offset);
+	closure		$tmp10 $const9 Ng roughnessh roughnessv T offset 	%line{54} %argrw{"wrrrrrr"}
+	mul		BSDF $tmp10 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_bsdf.osl:56
+# 			BSDF = Color * hair_transmission(Ng, roughnessh, roughnessv, T, offset);
+	closure		$tmp11 $const10 Ng roughnessh roughnessv T offset 	%line{56} %argrw{"wrrrrrr"}
+	mul		BSDF $tmp11 Color 	%argrw{"wrr"}
+	end

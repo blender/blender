@@ -1,0 +1,30 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_object_info.oso
+shader node_object_info
+oparam	point	Location	0 0 0		%read{2147483647,-1} %write{0,0}
+oparam	float	ObjectIndex	0		%read{2147483647,-1} %write{1,1}
+oparam	float	MaterialIndex	0		%read{2147483647,-1} %write{2,2}
+oparam	float	Random	0		%read{2147483647,-1} %write{3,3}
+temp	int	$tmp1	%read{2147483647,-1} %write{0,0}
+const	string	$const1	"object:location"		%read{0,0} %write{2147483647,-1}
+temp	int	$tmp2	%read{2147483647,-1} %write{1,1}
+const	string	$const2	"object:index"		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp3	%read{2147483647,-1} %write{2,2}
+const	string	$const3	"material:index"		%read{2,2} %write{2147483647,-1}
+temp	int	$tmp4	%read{2147483647,-1} %write{3,3}
+const	string	$const4	"object:random"		%read{3,3} %write{2147483647,-1}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_object_info.osl:25
+# 	getattribute("object:location", Location);
+	getattribute	$tmp1 $const1 Location 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_object_info.osl"} %line{25} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_object_info.osl:26
+# 	getattribute("object:index", ObjectIndex);
+	getattribute	$tmp2 $const2 ObjectIndex 	%line{26} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_object_info.osl:27
+# 	getattribute("material:index", MaterialIndex);
+	getattribute	$tmp3 $const3 MaterialIndex 	%line{27} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_object_info.osl:28
+# 	getattribute("object:random", Random);
+	getattribute	$tmp4 $const4 Random 	%line{28} %argrw{"wrw"}
+	end

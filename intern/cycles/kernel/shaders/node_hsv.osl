@@ -1,0 +1,45 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+#include "node_color.h"
+
+shader node_hsv(
+	float Hue = 0.5,
+	float Saturation = 1.0,
+	float Value = 1.0,
+	float Fac = 0.5,
+	color ColorIn = 0.0,
+	output color ColorOut = 0.0)
+{
+	color Color = rgb_to_hsv(ColorIn);
+
+	// remember: fmod doesn't work for negative numbers
+	Color[0] += Hue + 0.5;
+	Color[0] = fmod(Color[0], 1.0);
+	Color[1] *= Saturation;
+	Color[2] *= Value;
+
+	Color = hsv_to_rgb(Color);
+
+	// Clamp color to prevent negative values cauzed by oversaturation.
+	Color[0] = max(Color[0], 0.0);
+	Color[1] = max(Color[1], 0.0);
+	Color[2] = max(Color[2], 0.0);
+
+	ColorOut = mix(ColorIn, Color, Fac);
+}
+

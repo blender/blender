@@ -1,0 +1,40 @@
+#define BLENDERFILE 1
+#define IDR_VERSION1 1
+
+#ifdef WINDRES
+	#include "winresrc.h"
+	#define IDC_STATIC (-1)
+	#define STRINGIFY_(x) #x
+	#define STRINGIFY(x) STRINGIFY_(x)
+	#define BLEN_VER_RC_STR STRINGIFY(BLEN_VER_RC_STR_M)
+	1 RT_MANIFEST "blender.exe.manifest"
+#endif
+
+APPICON ICON DISCARDABLE "winblender.ico"
+BLENDERFILE ICON DISCARDABLE "winblenderfile.ico"
+
+IDR_VERSION1 VERSIONINFO
+FILEVERSION BLEN_VER_RC_1, BLEN_VER_RC_2, BLEN_VER_RC_3, BLEN_VER_RC_4
+PRODUCTVERSION BLEN_VER_RC_1, BLEN_VER_RC_2, BLEN_VER_RC_3, BLEN_VER_RC_4
+FILEOS 0x00000004
+FILETYPE 0x00000001
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "04090000"
+    BEGIN
+      VALUE "FileVersion", BLEN_VER_RC_STR
+      VALUE "ProductVersion", BLEN_VER_RC_STR
+      VALUE "CompanyName", "Blender Foundation"
+      VALUE "FileDescription", "Blender"
+      VALUE "LegalCopyright", "GPLv2 (Blender Foundation)"
+      VALUE "OriginalFilename", "blender.exe"
+      VALUE "ProductName", "Blender"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x0000
+  END
+END
+

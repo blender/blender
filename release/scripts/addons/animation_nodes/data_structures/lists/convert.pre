@@ -1,0 +1,44 @@
+from textwrap import dedent
+
+sourcePath = changeFileName(__file__, "__convert.src")
+targetPath = changeFileName(__file__, "convert.pyx")
+declarationPath = changeFileName(__file__, "convert.pxd")
+
+numericLists = [
+    ("FloatList", "float"),
+    ("DoubleList", "double"),
+    ("CharList", "char"),          ("UCharList", "unsigned char"),
+    ("LongList", "long"),          ("ULongList", "unsigned long"),
+    ("IntegerList", "int"),        ("UIntegerList", "unsigned int"),
+    ("ShortList", "short"),        ("UShortList", "unsigned short"),
+    ("LongLongList", "long long"), ("ULongLongList", "unsigned long long")
+]
+
+if dependenciesChanged(targetPath, dependencies = [sourcePath, __file__]):
+
+    # Generate implementation file
+    ######################################################
+
+    templateCode = readFile(sourcePath)
+
+    parts = []
+
+    for listName, listType in numericLists:
+        code = multiReplace(templateCode, TARGETLIST = listName, TYPE = listType)
+        parts.append(code)
+
+    writeFile(targetPath, "\n\n".join(parts))
+
+
+    # Generate declaration file
+    ######################################################
+
+    parts = []
+    listNames = ", ".join([listName for listName, _ in numericLists])
+    parts.append("from ... data_structures.lists.base_lists cimport NumericList")
+    parts.append("from ... data_structures.lists.base_lists cimport " + listNames)
+
+    for listName, listType in numericLists:
+        line = "cpdef {0} to{0}(NumericList sourceList)".format(listName)
+        parts.append(line)
+    writeFile(declarationPath, "\n".join(parts))

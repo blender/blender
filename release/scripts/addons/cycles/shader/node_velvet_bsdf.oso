@@ -1,0 +1,33 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_velvet_bsdf.oso
+shader node_velvet_bsdf
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{5,5} %write{2147483647,-1}
+param	float	Sigma	0		%read{2,2} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{4,4} %write{0,0} %initexpr
+oparam	closure color	BSDF			%read{2147483647,-1} %write{5,5}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+local	float	sigma	%read{4,4} %write{3,3}
+const	float	$const1	0		%read{3,3} %write{2147483647,-1}
+const	float	$const2	1		%read{2,2} %write{2147483647,-1}
+const	string	$const3	"clamp"		%read{1,1} %write{2147483647,-1}
+temp	float	$tmp1	%read{3,3} %write{2,2}
+temp	closure color	$tmp2	%read{5,5} %write{4,4}
+const	string	$const4	"ashikhmin_velvet"		%read{4,4} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_velvet_bsdf.osl:23
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_velvet_bsdf.osl"} %line{23} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_velvet_bsdf.osl:26
+# 	float sigma = clamp(Sigma, 0.0, 1.0);
+	functioncall	$const3 4 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_velvet_bsdf.osl"} %line{26} %argrw{"r"}
+# K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# int fabs (int x) BUILTIN;
+	min		$tmp1 Sigma $const2 	%filename{"K:/BlenderGit\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		sigma $tmp1 $const1 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_velvet_bsdf.osl:28
+# 	BSDF = Color * ashikhmin_velvet(Normal, sigma);
+	closure		$tmp2 $const4 Normal sigma 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_velvet_bsdf.osl"} %line{28} %argrw{"wrrr"}
+	mul		BSDF $tmp2 Color 	%argrw{"wrr"}
+	end

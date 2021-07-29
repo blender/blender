@@ -1,0 +1,25 @@
+def allTrue(self):
+    cdef Py_ssize_t i
+    for i in range(self.length):
+        if self.data[i] == 0: return False
+    return True
+
+def allFalse(self):
+    cdef Py_ssize_t i
+    for i in range(self.length):
+        if self.data[i] != 0: return False
+    return True
+
+def countTrue(self):
+    return self.length - self.countFalse()
+
+def countFalse(self):
+    cdef Py_ssize_t counter = 0
+    for i in range(self.length):
+        if self.data[i] == 0: counter += 1
+    return counter
+
+def invertAll(self):
+    cdef Py_ssize_t i
+    for i in range(self.length):
+        self.data[i] = not self.data[i]

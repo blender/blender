@@ -1,0 +1,64 @@
+diff -r e82d852e4fb0 include/carve/mesh_simplify.hpp
+--- a/include/carve/mesh_simplify.hpp	Wed Jan 15 13:16:14 2014 +1100
++++ b/include/carve/mesh_simplify.hpp	Fri Feb 28 19:09:02 2014 +0600
+@@ -32,8 +32,6 @@
+ #include <algorithm>
+ #include <vector>
+ 
+-#include "write_ply.hpp"
+-
+ 
+ namespace carve {
+   namespace mesh {
+@@ -1184,6 +1182,33 @@
+         return modifications;
+       }
+ 
++      void dissolveMeshEdges(mesh_t *mesh, std::unordered_set<edge_t *> dissolve_edges) {
++        while (dissolve_edges.size()) {
++            MeshSet<3>::edge_t *edge = *dissolve_edges.begin();
++            if (edge->face == edge->rev->face) {
++                dissolve_edges.erase(edge);
++                continue;
++            }
++
++            MeshSet<3>::edge_t *removed = edge->mergeFaces();
++            if (removed == NULL) {
++                dissolve_edges.erase(edge);
++            } else {
++                MeshSet<3>::edge_t *e = removed;
++                do {
++                    MeshSet<3>::edge_t *n = e->next;
++                    dissolve_edges.erase(std::min(e, e->rev));
++                    delete e->rev;
++                    delete e;
++                    e = n;
++                } while (e != removed);
++            }
++        }
++
++        removeRemnantFaces(mesh);
++        cleanFaceEdges(mesh);
++        mesh->cacheEdges();
++     }
+ 
+ 
+       size_t improveMesh(meshset_t *meshset,
+@@ -1445,7 +1470,7 @@
+         heapval_t last;
+         std::vector<heapval_t> heap;
+ 
+-        point_enumerator_t(vector_t _origin, int _base, int _n_dp) : origin(_origin), rounding_fac(pow(_base, _n_dp)), last(-1.0, _origin), heap() {
++        point_enumerator_t(vector_t _origin, int _base, int _n_dp) : origin(_origin), rounding_fac(pow((double)_base, _n_dp)), last(-1.0, _origin), heap() {
+           for (size_t i = 0; i < (1 << 3); ++i) {
+             vector_t t = origin;
+             for (size_t j = 0; j < 3; ++j) {
+@@ -1502,7 +1527,7 @@
+         }
+ 
+         aabb_t getAABB() const {
+-          std::set<face_t *>::iterator i = faces.begin();
++          std::set<face_t *>::const_iterator i = faces.begin();
+           aabb_t aabb = (*i)->getAABB();
+           while (++i != faces.end()) {
+             aabb.unionAABB((*i)->getAABB());

@@ -1,0 +1,35 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_hair_info.oso
+shader node_hair_info
+oparam	float	IsStrand	0		%read{2147483647,-1} %write{1,1}
+oparam	float	Intercept	0		%read{2147483647,-1} %write{2,2}
+oparam	float	Thickness	0		%read{2147483647,-1} %write{3,3}
+oparam	normal	TangentNormal	0 0 0		%read{2147483647,-1} %write{0,4} %initexpr
+global	normal	N	%read{0,0} %write{2147483647,-1}
+temp	int	$tmp1	%read{2147483647,-1} %write{1,1}
+const	string	$const1	"geom:is_curve"		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp2	%read{2147483647,-1} %write{2,2}
+const	string	$const2	"geom:curve_intercept"		%read{2,2} %write{2147483647,-1}
+temp	int	$tmp3	%read{2147483647,-1} %write{3,3}
+const	string	$const3	"geom:curve_thickness"		%read{3,3} %write{2147483647,-1}
+temp	int	$tmp4	%read{2147483647,-1} %write{4,4}
+const	string	$const4	"geom:curve_tangent_normal"		%read{4,4} %write{2147483647,-1}
+code TangentNormal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_info.osl:23
+# 	output normal TangentNormal = N)
+	assign		TangentNormal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_info.osl"} %line{23} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_info.osl:25
+# 	getattribute("geom:is_curve", IsStrand);
+	getattribute	$tmp1 $const1 IsStrand 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_info.osl"} %line{25} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_info.osl:26
+# 	getattribute("geom:curve_intercept", Intercept);
+	getattribute	$tmp2 $const2 Intercept 	%line{26} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_info.osl:27
+# 	getattribute("geom:curve_thickness", Thickness);
+	getattribute	$tmp3 $const3 Thickness 	%line{27} %argrw{"wrw"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_hair_info.osl:28
+# 	getattribute("geom:curve_tangent_normal", TangentNormal);
+	getattribute	$tmp4 $const4 TangentNormal 	%line{28} %argrw{"wrw"}
+	end

@@ -1,0 +1,66 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+shader node_light_path(
+	output float IsCameraRay = 0.0,
+	output float IsShadowRay = 0.0,
+	output float IsDiffuseRay = 0.0,
+	output float IsGlossyRay = 0.0,
+	output float IsSingularRay = 0.0,
+	output float IsReflectionRay = 0.0,
+	output float IsTransmissionRay = 0.0,
+	output float IsVolumeScatterRay = 0.0,
+	output float RayLength = 0.0,
+	output float RayDepth = 0.0,
+	output float DiffuseDepth = 0.0,
+	output float GlossyDepth = 0.0,
+	output float TransparentDepth = 0.0,
+	output float TransmissionDepth = 0.0)
+{
+	IsCameraRay = raytype("camera");
+	IsShadowRay = raytype("shadow");
+	IsDiffuseRay = raytype("diffuse");
+	IsGlossyRay = raytype("glossy");
+	IsSingularRay = raytype("singular");
+	IsReflectionRay = raytype("reflection");
+	IsTransmissionRay = raytype("refraction");
+	IsVolumeScatterRay = raytype("volume_scatter");
+
+	getattribute("path:ray_length", RayLength);
+
+	int ray_depth;
+	getattribute("path:ray_depth", ray_depth);
+	RayDepth = (float)ray_depth;
+
+	int diffuse_depth;
+	getattribute("path:diffuse_depth", diffuse_depth);
+	DiffuseDepth = (float)diffuse_depth;
+
+	int glossy_depth;
+	getattribute("path:glossy_depth", glossy_depth);
+	GlossyDepth = (float)glossy_depth;
+
+	int transparent_depth;
+	getattribute("path:transparent_depth", transparent_depth);
+	TransparentDepth = (float)transparent_depth;
+
+	int transmission_depth;
+	getattribute("path:transmission_depth", transmission_depth);
+	TransmissionDepth = (float)transmission_depth;
+}
+

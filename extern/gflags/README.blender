@@ -1,0 +1,25 @@
+Project: Google Flags
+URL: https://github.com/gflags/gflags
+License: New BSD
+Upstream version: 2.2.0 (9db82895)
+Local modifications:
+
+- Flattened the tree and only included files needed for libmv.
+
+- config.h was originally generated on linux machine with some
+  further tweaks:
+
+  * OS_WINDOWS need to be conditinally defined from inside #ifdef WIN32
+  * Same applies yo HAVE_SHLWAPI_H
+  * Disabeld HAVE_FNMATCH_H
+
+- Removed attribute(unused) from FlagSaver.
+
+- Applied some modifications from fork https://github.com/Nazg-Gul/gflags.git
+  (see https://github.com/gflags/gflags/pull/129)
+
+- Avoid attempt of acquiring mutex lock in FlagRegistry::GlobalRegistry when
+  doing static flags initialization. See d81dd2d in Blender repository.
+
+- Made `google::{anonymous}::FlagValue::ValueSize() const` inlined, so it does
+  not trigger strict compiler warning.

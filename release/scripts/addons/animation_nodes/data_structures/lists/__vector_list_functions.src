@@ -1,0 +1,27 @@
+@classmethod
+def fromFloatList(self, FloatList source):
+    if source.length % 3 != 0:
+        raise ValueError("length of float list has to be divisable by 3")
+    cdef Vector3DList newList = Vector3DList(length = source.length / 3)
+    memcpy(newList.data, source.data, source.length * sizeof(float))
+    return newList
+
+def transform(self, matrix, bint ignoreTranslation = False):
+    from ... math import transformVector3DList
+    transformVector3DList(self, matrix, ignoreTranslation)
+
+def getSumOfElements(self):
+    cdef Vector3 sum = {"x": 0, "y" : 0, "z" : 0}
+    cdef Py_ssize_t i
+    for i in range(self.length):
+        sum.x += self.data[i].x
+        sum.y += self.data[i].y
+        sum.z += self.data[i].z
+    return toPyVector3(&sum)
+
+def getAverageOfElements(self):
+    cdef Vector3 zero = {"x" : 0, "y" : 0, "z" : 0}
+    if self.length == 0:
+        return toPyVector3(&zero)
+    else:
+        return self.getSumOfElements() / self.length

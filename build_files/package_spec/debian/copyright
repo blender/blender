@@ -1,0 +1,41 @@
+This work was packaged for Debian by:
+
+    Dan Eicher <dan@trollwerks.org> on Tue, 08 Feb 2011 21:59:32 -0700
+
+It was downloaded from:
+
+    http://blender.org
+
+Copyright: 
+
+    Copyright (C) 2002-2011 Blender Foundation
+
+License:
+
+    This package is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This package is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>
+
+On Debian systems, the complete text of the GNU General
+Public License version 2 can be found in "/usr/share/common-licenses/GPL-2".
+
+
+The Debian packaging is:
+
+    Copyright (C) 2011 Dan Eicher <dan@trollwerks.org>
+
+you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+

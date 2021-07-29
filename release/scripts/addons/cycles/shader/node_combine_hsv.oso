@@ -1,0 +1,14 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_combine_hsv.oso
+shader node_combine_hsv
+param	float	H	0		%read{0,0} %write{2147483647,-1}
+param	float	S	0		%read{0,0} %write{2147483647,-1}
+param	float	V	0		%read{0,0} %write{2147483647,-1}
+oparam	color	Color	0.80000001 0.80000001 0.80000001		%read{2147483647,-1} %write{0,0}
+const	string	$const1	"hsv"		%read{0,0} %write{2147483647,-1}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_combine_hsv.osl:25
+# 	Color = color("hsv", H, S, V);	
+	color		Color $const1 H S V 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_combine_hsv.osl"} %line{25} %argrw{"wrrrr"}
+	end

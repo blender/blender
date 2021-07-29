@@ -1,0 +1,20 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_translucent_bsdf.oso
+shader node_translucent_bsdf
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{2,2} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{1,1} %write{0,0} %initexpr
+oparam	closure color	BSDF			%read{2147483647,-1} %write{2,2}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+temp	closure color	$tmp1	%read{2,2} %write{1,1}
+const	string	$const1	"translucent"		%read{1,1} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_translucent_bsdf.osl:21
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_translucent_bsdf.osl"} %line{21} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_translucent_bsdf.osl:24
+# 	BSDF = Color * translucent(Normal);
+	closure		$tmp1 $const1 Normal 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_translucent_bsdf.osl"} %line{24} %argrw{"wrr"}
+	mul		BSDF $tmp1 Color 	%argrw{"wrr"}
+	end

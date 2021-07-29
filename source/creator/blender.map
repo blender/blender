@@ -1,0 +1,24 @@
+
+/* on Linux we exclude LLVM symbols, they conflict with Mesa llvmpipe
+ * we also keep boost's symbols local, since some python modules could
+ * be using boost as well (mainly that's for lux render)
+ */
+
+{
+global:
+	*;
+	*_boost*;
+local:
+	*default_error_condition*;
+	*llvm*;
+	*LLVM*;
+	decodeInstruction;
+	ForceStackAlign;
+	_Jv_RegisterClasses;
+	Name;
+	NumNamedVarArgParams;
+	X86CompilationCallback*;
+	*boost*;
+	*SDL*;
+};
+

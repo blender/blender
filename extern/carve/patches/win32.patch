@@ -1,0 +1,37 @@
+diff -r e82d852e4fb0 include/carve/win32.h
+--- a/include/carve/win32.h	Wed Jan 15 13:16:14 2014 +1100
++++ b/include/carve/win32.h	Fri Jan 31 15:32:01 2014 +0600
+@@ -32,17 +32,27 @@
+ 
+ #  if _MSC_VER < 1600
+ // stdint.h is not available before VS2010
+-typedef char int8_t;
+-typedef short int16_t;
+-typedef long int32_t;
++#if defined(_WIN32)
++/* The __intXX are built-in types of the visual complier! So we don't
++   need to include anything else here.
++   This typedefs should be in sync with types from MEM_sys_types.h */
+ 
+-typedef unsigned char uint8_t;
+-typedef unsigned short uint16_t;
+-typedef unsigned long uint32_t;
++typedef signed __int8  int8_t;
++typedef signed __int16 int16_t;
++typedef signed __int32 int32_t;
+ 
++typedef unsigned __int8  uint8_t;
++typedef unsigned __int16 uint16_t;
++typedef unsigned __int32 uint32_t;
++#endif
+ typedef __int64 int64_t;
+ typedef unsigned __int64 uint64_t;
+ #  else
+ #    include <stdint.h>
+ #  endif
+ #endif
++
++#if defined(_MSC_VER)
++#  include <BaseTsd.h>
++typedef SSIZE_T ssize_t;
++#endif

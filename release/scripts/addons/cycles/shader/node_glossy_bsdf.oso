@@ -1,0 +1,71 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.5
+# options: -q -O2 -IK:/BlenderGit/blender/intern/cycles/kernel/shaders -o K:/BlenderGit/build_windows_Release_x64_vc12_Release/intern/cycles/kernel/shaders/node_glossy_bsdf.oso
+shader node_glossy_bsdf
+param	color	Color	0.80000001 0.80000001 0.80000001		%read{4,18} %write{2147483647,-1}
+param	string	distribution	"GGX"		%read{1,13} %write{2147483647,-1}
+param	float	Roughness	0.2		%read{7,17} %write{2147483647,-1}
+param	normal	Normal	0 0 0		%read{3,17} %write{0,0} %initexpr
+oparam	closure color	BSDF			%read{2147483647,-1} %write{4,18}
+global	normal	N	%read{0,0} %write{2147483647,-1}
+const	string	$const1	"sharp"		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp1	%read{2,2} %write{1,1}
+temp	closure color	$tmp2	%read{4,4} %write{3,3}
+const	string	$const2	"reflection"		%read{3,3} %write{2147483647,-1}
+const	string	$const3	"beckmann"		%read{5,5} %write{2147483647,-1}
+temp	int	$tmp3	%read{6,6} %write{5,5}
+temp	closure color	$tmp4	%read{8,8} %write{7,7}
+const	string	$const4	"microfacet_beckmann"		%read{7,7} %write{2147483647,-1}
+const	string	$const5	"GGX"		%read{9,9} %write{2147483647,-1}
+temp	int	$tmp5	%read{10,10} %write{9,9}
+temp	closure color	$tmp6	%read{12,12} %write{11,11}
+const	string	$const6	"microfacet_ggx"		%read{11,11} %write{2147483647,-1}
+const	string	$const7	"Multiscatter GGX"		%read{13,13} %write{2147483647,-1}
+temp	int	$tmp7	%read{14,14} %write{13,13}
+temp	closure color	$tmp8	%read{16,16} %write{15,15}
+const	string	$const8	"microfacet_multi_ggx"		%read{15,15} %write{2147483647,-1}
+temp	closure color	$tmp9	%read{18,18} %write{17,17}
+const	vector	$const9	0 0 0		%read{17,17} %write{2147483647,-1}
+const	string	$const10	"ashikhmin_shirley"		%read{17,17} %write{2147483647,-1}
+code Normal
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:24
+# 	normal Normal = N,
+	assign		Normal N 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl"} %line{24} %argrw{"wr"}
+code ___main___
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:27
+# 	if (distribution == "sharp")
+	eq		$tmp1 distribution $const1 	%filename{"K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl"} %line{27} %argrw{"wrr"}
+	if		$tmp1 5 19 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:28
+# 		BSDF = Color * reflection(Normal);
+	closure		$tmp2 $const2 Normal 	%line{28} %argrw{"wrr"}
+	mul		BSDF $tmp2 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:29
+# 	else if (distribution == "beckmann")
+	eq		$tmp3 distribution $const3 	%line{29} %argrw{"wrr"}
+	if		$tmp3 9 19 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:30
+# 		BSDF = Color * microfacet_beckmann(Normal, Roughness);
+	closure		$tmp4 $const4 Normal Roughness 	%line{30} %argrw{"wrrr"}
+	mul		BSDF $tmp4 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:31
+# 	else if (distribution == "GGX")
+	eq		$tmp5 distribution $const5 	%line{31} %argrw{"wrr"}
+	if		$tmp5 13 19 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:32
+# 		BSDF = Color * microfacet_ggx(Normal, Roughness);
+	closure		$tmp6 $const6 Normal Roughness 	%line{32} %argrw{"wrrr"}
+	mul		BSDF $tmp6 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:33
+# 	else if (distribution == "Multiscatter GGX")
+	eq		$tmp7 distribution $const7 	%line{33} %argrw{"wrr"}
+	if		$tmp7 17 19 	%argrw{"r"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:34
+# 		BSDF = Color * microfacet_multi_ggx(Normal, Roughness, Color);
+	closure		$tmp8 $const8 Normal Roughness Color 	%line{34} %argrw{"wrrrr"}
+	mul		BSDF $tmp8 Color 	%argrw{"wrr"}
+# K:/BlenderGit/blender/intern/cycles/kernel/shaders/node_glossy_bsdf.osl:36
+# 		BSDF = Color * ashikhmin_shirley(Normal, vector(0, 0, 0), Roughness, Roughness);
+	closure		$tmp9 $const10 Normal $const9 Roughness Roughness 	%line{36} %argrw{"wrrrrr"}
+	mul		BSDF $tmp9 Color 	%argrw{"wrr"}
+	end
