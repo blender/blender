@@ -318,6 +318,11 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Rename render layers. */
   BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "View Layer");
 
+  /* Disable Z pass by default. */
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    view_layer->passflag &= ~SCE_PASS_Z;
+  }
+
   /* New EEVEE defaults. */
   scene->eevee.bloom_intensity = 0.05f;
   scene->eevee.bloom_clamp = 0.0f;
