@@ -1216,7 +1216,7 @@ if(NOT WITH_GLU)
 endif()
 
 #-----------------------------------------------------------------------------
-# Configure Bullet
+# Configure Bullet & Enable Double_precision!important
 
 if(WITH_BULLET AND WITH_SYSTEM_BULLET)
 	find_package(Bullet)
