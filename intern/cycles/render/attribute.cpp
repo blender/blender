@@ -20,6 +20,7 @@
 #include "render/mesh.h"
 
 #include "util/util_foreach.h"
+#include "util/util_logging.h"
 #include "util/util_transform.h"
 
 CCL_NAMESPACE_BEGIN
@@ -208,6 +209,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
     case ATTR_ELEMENT_VERTEX_MOTION:
       if (geom->geometry_type == Geometry::MESH) {
         Mesh *mesh = static_cast<Mesh *>(geom);
+        DCHECK_GT(mesh->get_motion_steps(), 0);
         size = (mesh->get_verts().size() + mesh->get_num_ngons()) * (mesh->get_motion_steps() - 1);
         if (prim == ATTR_PRIM_SUBD) {
           size -= mesh->get_num_subd_verts() * (mesh->get_motion_steps() - 1);
@@ -252,6 +254,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
     case ATTR_ELEMENT_CURVE_KEY_MOTION:
       if (geom->geometry_type == Geometry::HAIR) {
         Hair *hair = static_cast<Hair *>(geom);
+        DCHECK_GT(hair->get_motion_steps(), 0);
         size = hair->get_curve_keys().size() * (hair->get_motion_steps() - 1);
       }
       break;
