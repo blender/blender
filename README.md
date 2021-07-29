@@ -11,7 +11,7 @@
 
 # Buiding Notation
 
-## Versions are important
+## 1 Versions are important
 Main sets are like,
 * Windows: 10 (A tip is [here](http://blog.reaticle.com/2020/06/22/system-language.html))
 * Visual Studio: 2013
