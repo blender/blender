@@ -16,15 +16,15 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-    .
-    ../include
-    ../../blenkernel
-    ../../blenlib
-    ../../blenloader
-    ../../makesdna
-    ../../makesrna
-    ../../windowmanager
-    ../../../../intern/guardedalloc
+  .
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blenloader
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
