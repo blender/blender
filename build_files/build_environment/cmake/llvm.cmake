@@ -66,7 +66,11 @@ ExternalProject_Add(ll
 
 if(MSVC)
   if(BUILD_MODE STREQUAL Release)
-    set(LLVM_HARVEST_COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/ ${HARVEST_TARGET}/llvm/ )
+    set(LLVM_HARVEST_COMMAND
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/lib ${HARVEST_TARGET}/llvm/lib &&
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/include ${HARVEST_TARGET}/llvm/include &&
+      ${CMAKE_COMMAND} -E copy ${LIBDIR}/llvm/bin/clang-format.exe ${HARVEST_TARGET}/llvm/bin/clang-format.exe
+    )
   else()
     set(LLVM_HARVEST_COMMAND
       ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
