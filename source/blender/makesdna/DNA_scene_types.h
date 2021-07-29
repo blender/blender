@@ -233,22 +233,24 @@ typedef struct SceneRenderLayer {
 
 /** #SceneRenderLayer.layflag */
 #define SCE_LAY_SOLID (1 << 0)
-#define SCE_LAY_ZTRA (1 << 1)
-#define SCE_LAY_HALO (1 << 2)
-#define SCE_LAY_EDGE (1 << 3)
+#define SCE_LAY_UNUSED_1 (1 << 1)
+#define SCE_LAY_UNUSED_2 (1 << 2)
+#define SCE_LAY_UNUSED_3 (1 << 3)
 #define SCE_LAY_SKY (1 << 4)
 #define SCE_LAY_STRAND (1 << 5)
 #define SCE_LAY_FRS (1 << 6)
 #define SCE_LAY_AO (1 << 7)
 #define SCE_LAY_VOLUMES (1 << 8)
 #define SCE_LAY_MOTION_BLUR (1 << 9)
-/* flags between (1 << 9) and (1 << 15) are set to 1 already, for future options */
 
-#define SCE_LAY_ALL_Z (1 << 15)
-/* #define SCE_LAY_XOR         (1 << 16) */ /* UNUSED */
+/* Flags between (1 << 9) and (1 << 15) are set to 1 already, for future options. */
+#define SCE_LAY_FLAG_DEFAULT ((1 << 15) - 1)
+
+#define SCE_LAY_UNUSED_4 (1 << 15)
+#define SCE_LAY_UNUSED_5 (1 << 16)
 #define SCE_LAY_DISABLE (1 << 17)
-#define SCE_LAY_ZMASK (1 << 18)
-#define SCE_LAY_NEG_ZMASK (1 << 19)
+#define SCE_LAY_UNUSED_6 (1 << 18)
+#define SCE_LAY_UNUSED_7 (1 << 19)
 
 /** #SceneRenderLayer.passflag */
 typedef enum eScenePassType {
@@ -267,7 +269,7 @@ typedef enum eScenePassType {
   SCE_PASS_UV = (1 << 12),
   SCE_PASS_UNUSED_6 = (1 << 13), /* INDIRECT */
   SCE_PASS_MIST = (1 << 14),
-  SCE_PASS_RAYHITS = (1 << 15),
+  SCE_PASS_UNUSED_7 = (1 << 15), /* RAYHITS */
   SCE_PASS_EMIT = (1 << 16),
   SCE_PASS_ENVIRONMENT = (1 << 17),
   SCE_PASS_INDEXMA = (1 << 18),
@@ -302,7 +304,6 @@ typedef enum eScenePassType {
 #define RE_PASSNAME_INDEXMA "IndexMA"
 #define RE_PASSNAME_MIST "Mist"
 
-#define RE_PASSNAME_RAYHITS "RayHits"
 #define RE_PASSNAME_DIFFUSE_DIRECT "DiffDir"
 #define RE_PASSNAME_DIFFUSE_INDIRECT "DiffInd"
 #define RE_PASSNAME_DIFFUSE_COLOR "DiffCol"

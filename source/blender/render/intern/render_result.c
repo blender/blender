@@ -332,7 +332,6 @@ RenderResult *render_result_new(
     BLI_strncpy(rl->name, view_layer->name, sizeof(rl->name));
     rl->layflag = view_layer->layflag;
 
-    /* for debugging: view_layer->passflag | SCE_PASS_RAYHITS; */
     rl->passflag = view_layer->passflag;
 
     rl->rectx = rectx;
@@ -398,9 +397,6 @@ RenderResult *render_result_new(
       }
       if (view_layer->passflag & SCE_PASS_MIST) {
         RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_MIST, view, "Z");
-      }
-      if (rl->passflag & SCE_PASS_RAYHITS) {
-        RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, RE_PASSNAME_RAYHITS, view, "RGB");
       }
       if (view_layer->passflag & SCE_PASS_DIFFUSE_DIRECT) {
         RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE_DIRECT, view, "RGB");
@@ -474,7 +470,7 @@ RenderResult *render_result_new(
     }
 
     /* NOTE: this has to be in sync with `scene.c`. */
-    rl->layflag = 0x7FFF; /* solid ztra halo strand */
+    rl->layflag = SCE_LAY_FLAG_DEFAULT;
     rl->passflag = SCE_PASS_COMBINED;
 
     re->active_view_layer = 0;
@@ -581,7 +577,6 @@ static int passtype_from_name(const char *name)
   CHECK_PASS(INDEXOB);
   CHECK_PASS(INDEXMA);
   CHECK_PASS(MIST);
-  CHECK_PASS(RAYHITS);
   CHECK_PASS(DIFFUSE_DIRECT);
   CHECK_PASS(DIFFUSE_INDIRECT);
   CHECK_PASS(DIFFUSE_COLOR);
