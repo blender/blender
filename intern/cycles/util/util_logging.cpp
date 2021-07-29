@@ -26,9 +26,9 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifdef WITH_CYCLES_LOGGING
 static bool is_verbosity_set()
 {
-#ifdef WITH_CYCLES_LOGGING
   using CYCLES_GFLAGS_NAMESPACE::GetCommandLineOption;
 
   std::string verbosity;
@@ -36,10 +36,8 @@ static bool is_verbosity_set()
     return false;
   }
   return verbosity != "0";
-#else
-  return false;
-#endif
 }
+#endif
 
 void util_logging_init(const char *argv0)
 {
