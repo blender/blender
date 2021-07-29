@@ -153,6 +153,12 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *arg
   int len = 1;
   if (PySequence_Check(py_size)) {
     len = PySequence_Size(py_size);
+    if ((len < 1) || (len > 3)) {
+      PyErr_Format(PyExc_ValueError,
+                   "GPUTexture.__new__: \"size\" must be between 1 and 3 in length (got %d)",
+                   len);
+      return NULL;
+    }
     if (PyC_AsArray(size, sizeof(*size), py_size, len, &PyLong_Type, "GPUTexture.__new__") == -1) {
       return NULL;
     }
