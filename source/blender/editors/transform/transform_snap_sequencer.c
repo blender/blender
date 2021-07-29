@@ -34,6 +34,7 @@
 
 #include "UI_view2d.h"
 
+#include "SEQ_effects.h"
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
 
@@ -104,11 +105,41 @@ static void seq_snap_source_points_build(const TransInfo *UNUSED(t),
 /** \name Snap targets
  * \{ */
 
-static SeqCollection *query_snap_targets(const TransInfo *t)
+/* Add effect strips directly or indirectly connected to `seq_reference` to `collection`. */
+static void query_strip_effects_fn(Sequence *seq_reference,
+                                   ListBase *seqbase,
+                                   SeqCollection *collection)
 {
-  const ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene, false));
+  if (!SEQ_collection_append_strip(seq_reference, collection)) {
+    return; /* Strip is already in set, so all effects connected to it are as well. */
+  }
+
+  /* Find all strips connected to `seq_reference`. */
+  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
+    if (seq_test->seq1 == seq_reference || seq_test->seq2 == seq_reference ||
+        seq_test->seq3 == seq_reference) {
+      query_strip_effects_fn(seq_test, seqbase, collection);
+    }
+  }
+}
+
+static SeqCollection *seq_collection_extract_effects(SeqCollection *collection)
+{
+  SeqCollection *effects = SEQ_collection_create(__func__);
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if (SEQ_effect_get_num_inputs(seq->type) > 0) {
+      SEQ_collection_append_strip(seq, effects);
+    }
+  }
+  return effects;
+}
+
+static SeqCollection *query_snap_targets(const TransInfo *t, SeqCollection *snap_sources)
+{
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene, false));
   const short snap_flag = SEQ_tool_settings_snap_flag_get(t->scene);
-  SeqCollection *collection = SEQ_collection_create(__func__);
+  SeqCollection *snap_targets = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->flag & SELECT)) {
       continue; /* Selected are being transformed. */
@@ -119,9 +150,18 @@ static SeqCollection *query_snap_targets(const TransInfo *t)
     if (seq->type == SEQ_TYPE_SOUND_RAM && (snap_flag & SEQ_SNAP_IGNORE_SOUND)) {
       continue;
     }
-    SEQ_collection_append_strip(seq, collection);
+    SEQ_collection_append_strip(seq, snap_targets);
   }
-  return collection;
+
+  /* Effects will always change position with strip to which they are connected and they don't have
+   * to be selected. Remove such strips from `snap_targets` collection. */
+  SeqCollection *snap_sources_temp = SEQ_collection_duplicate(snap_sources);
+  SEQ_collection_expand(seqbase, snap_sources_temp, query_strip_effects_fn);
+  SeqCollection *snap_sources_effects = seq_collection_extract_effects(snap_sources_temp);
+  SEQ_collection_exclude(snap_targets, snap_sources_effects);
+  SEQ_collection_free(snap_sources_temp);
+
+  return snap_targets;
 }
 
 static int seq_get_snap_target_points_count(const TransInfo *t,
@@ -178,11 +218,14 @@ static void seq_snap_target_points_build(const TransInfo *t,
     if (snap_mode & SEQ_SNAP_TO_STRIP_HOLD) {
       int content_start = min_ii(seq->enddisp, seq->start);
       int content_end = max_ii(seq->startdisp, seq->start + seq->len);
-      if (seq->anim_startofs == 0) {
-        content_start = seq->startdisp;
-      }
-      if (seq->anim_endofs == 0) {
-        content_end = seq->enddisp;
+      /* Effects and single image strips produce incorrect content length. Skip these strips. */
+      if ((seq->type & SEQ_TYPE_EFFECT) != 0 || seq->len == 1) {
+        if (seq->anim_startofs == 0 && seq->startstill == 0) {
+          content_start = seq->startdisp;
+        }
+        if (seq->anim_endofs == 0 && seq->endstill == 0) {
+          content_end = seq->enddisp;
+        }
       }
       snap_data->target_snap_points[i] = content_start;
       snap_data->target_snap_points[i + 1] = content_end;
@@ -214,16 +257,25 @@ TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
   TransSeqSnapData *snap_data = MEM_callocN(sizeof(TransSeqSnapData), __func__);
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene, false));
 
-  /* Build arrays of snap points. */
   SeqCollection *snap_sources = SEQ_query_selected_strips(seqbase);
+  SeqCollection *snap_targets = query_snap_targets(t, snap_sources);
+
+  if (SEQ_collection_len(snap_sources) == 0 || SEQ_collection_len(snap_targets) == 0) {
+    SEQ_collection_free(snap_targets);
+    SEQ_collection_free(snap_sources);
+    MEM_freeN(snap_data);
+    return NULL;
+  }
+
+  /* Build arrays of snap points. */
   seq_snap_source_points_alloc(snap_data, snap_sources);
   seq_snap_source_points_build(t, snap_data, snap_sources);
   SEQ_collection_free(snap_sources);
 
-  SeqCollection *snap_targets = query_snap_targets(t);
   seq_snap_target_points_alloc(t, snap_data, snap_targets);
   seq_snap_target_points_build(t, snap_data, snap_targets);
   SEQ_collection_free(snap_targets);
+
   return snap_data;
 }
 
@@ -236,12 +288,16 @@ void transform_snap_sequencer_data_free(TransSeqSnapData *data)
 
 bool transform_snap_sequencer_calc(TransInfo *t)
 {
+  const TransSeqSnapData *snap_data = t->tsnap.seq_context;
+  if (snap_data == NULL) {
+    return false;
+  }
+
   /* Prevent snapping when constrained to Y axis. */
   if (t->con.mode & CON_APPLY && t->con.mode & CON_AXIS1) {
     return false;
   }
 
-  const TransSeqSnapData *snap_data = t->tsnap.seq_context;
   int best_dist = MAXFRAME, best_target_frame = 0, best_source_frame = 0;
 
   for (int i = 0; i < snap_data->source_snap_point_count; i++) {

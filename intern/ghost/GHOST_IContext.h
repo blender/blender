@@ -29,8 +29,8 @@
 /**
  * Interface for GHOST context.
  *
- * You can create a offscreen context (windowless) with the system's
- * GHOST_ISystem::createOffscreenContext method.
+ * You can create a off-screen context (windowless) with the system's
+ * #GHOST_ISystem::createOffscreenContext method.
  * \see GHOST_ISystem#createOffscreenContext
  */
 class GHOST_IContext {

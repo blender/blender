@@ -10,7 +10,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
+ * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 by the Blender Foundation.
@@ -1131,6 +1131,18 @@ static void panel_draw(const bContext *C, Panel *panel)
     LISTBASE_FOREACH (bNodeSocket *, socket, &nmd->node_group->inputs) {
       draw_property_for_socket(layout, &bmain_ptr, ptr, nmd->settings.properties, *socket);
     }
+  }
+
+  /* Draw node warnings. */
+  if (nmd->runtime_eval_log != nullptr) {
+    const geo_log::ModifierLog &log = *static_cast<geo_log::ModifierLog *>(nmd->runtime_eval_log);
+    log.foreach_node_log([layout](const geo_log::NodeLog &node_log) {
+      for (const geo_log::NodeWarning &warning : node_log.warnings()) {
+        if (warning.type != geo_log::NodeWarningType::Info) {
+          uiItemL(layout, warning.message.c_str(), ICON_ERROR);
+        }
+      }
+    });
   }
 
   modifier_panel_end(layout, ptr);

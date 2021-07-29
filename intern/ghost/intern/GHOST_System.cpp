@@ -72,7 +72,7 @@ GHOST_ITimerTask *GHOST_System::installTimer(uint64_t delay,
   GHOST_TimerTask *timer = new GHOST_TimerTask(millis + delay, interval, timerProc, userData);
   if (timer) {
     if (m_timerManager->addTimer(timer) == GHOST_kSuccess) {
-      // Check to see whether we need to fire the timer right away
+      /* Check to see whether we need to fire the timer right away. */
       m_timerManager->fireTimers(millis);
     }
     else {
@@ -208,7 +208,7 @@ bool GHOST_System::getFullScreen(void)
 void GHOST_System::dispatchEvents()
 {
 #ifdef WITH_INPUT_NDOF
-  // NDOF Motion event is sent only once per dispatch, so do it now:
+  /* NDOF Motion event is sent only once per dispatch, so do it now: */
   if (m_ndofManager) {
     m_ndofManager->sendMotionEvent();
   }
@@ -260,10 +260,10 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent *event)
 GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bool &isDown) const
 {
   GHOST_ModifierKeys keys;
-  // Get the state of all modifier keys
+  /* Get the state of all modifier keys. */
   GHOST_TSuccess success = getModifierKeys(keys);
   if (success) {
-    // Isolate the state of the key requested
+    /* Isolate the state of the key requested. */
     isDown = keys.get(mask);
   }
   return success;
@@ -272,10 +272,10 @@ GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bo
 GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool &isDown) const
 {
   GHOST_Buttons buttons;
-  // Get the state of all mouse buttons
+  /* Get the state of all mouse buttons. */
   GHOST_TSuccess success = getButtons(buttons);
   if (success) {
-    // Isolate the state of the mouse button requested
+    /* Isolate the state of the mouse button requested. */
     isDown = buttons.get(mask);
   }
   return success;
@@ -311,7 +311,7 @@ GHOST_TSuccess GHOST_System::init()
     m_eventPrinter = new GHOST_EventPrinter();
     m_eventManager->addConsumer(m_eventPrinter);
   }
-#endif  // WITH_GHOST_DEBUG
+#endif /* WITH_GHOST_DEBUG */
 
   if (m_timerManager && m_windowManager && m_eventManager) {
     return GHOST_kSuccess;
@@ -359,7 +359,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
   if (alphaBackground)
     glSettings.flags |= GHOST_glAlphaBackground;
 
-  /* note: don't use getCurrentDisplaySetting() because on X11 we may
+  /* NOTE: don't use #getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger than the viewport. */
   GHOST_ASSERT(m_displayManager,
                "GHOST_System::createFullScreenWindow(): invalid display manager");

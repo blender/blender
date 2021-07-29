@@ -518,7 +518,7 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     NodeOperation *first = nullptr;
     ScaleOperation *scaleOperation = nullptr;
     if (doScale) {
-      scaleOperation = new ScaleOperation(fromSocket->getDataType());
+      scaleOperation = new ScaleRelativeOperation(fromSocket->getDataType());
       scaleOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
       scaleOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
       first = scaleOperation;

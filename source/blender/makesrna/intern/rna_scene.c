@@ -2834,7 +2834,18 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem annotation_stroke_placement_items[] = {
+  static const EnumPropertyItem annotation_stroke_placement_view2d_items[] = {
+      {GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR,
+       "IMAGE",
+       ICON_IMAGE_DATA,
+       "Image",
+       "Strick stroke to the image"},
+      /* Weird, GP_PROJECT_VIEWALIGN is inverted. */
+      {0, "VIEW", ICON_RESTRICT_VIEW_ON, "View", "Stick stroke to the view"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem annotation_stroke_placement_view3d_items[] = {
       {GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR,
        "CURSOR",
        ICON_PIVOT_CURSOR,
@@ -3338,30 +3349,15 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   /* Annotations - 2D Views Stroke Placement */
   prop = RNA_def_property(srna, "annotation_stroke_placement_view2d", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_v2d_align");
-  RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
+  RNA_def_property_enum_items(prop, annotation_stroke_placement_view2d_items);
   RNA_def_property_ui_text(prop, "Stroke Placement (2D View)", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-  /* Annotations - Sequencer Preview Stroke Placement */
-  prop = RNA_def_property(
-      srna, "annotation_stroke_placement_sequencer_preview", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_seq_align");
-  RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
-  RNA_def_property_ui_text(prop, "Stroke Placement (Sequencer Preview)", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-  /* Annotations - Image Editor Stroke Placement */
-  prop = RNA_def_property(srna, "annotation_stroke_placement_image_editor", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_ima_align");
-  RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
-  RNA_def_property_ui_text(prop, "Stroke Placement (Image Editor)", "");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
   /* Annotations - 3D View Stroke Placement */
   /* XXX: Do we need to decouple the stroke_endpoints setting too? */
   prop = RNA_def_property(srna, "annotation_stroke_placement_view3d", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "annotate_v3d_align");
-  RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
+  RNA_def_property_enum_items(prop, annotation_stroke_placement_view3d_items);
   RNA_def_property_enum_default(prop, GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR);
   RNA_def_property_ui_text(prop,
                            "Annotation Stroke Placement (3D View)",

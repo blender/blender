@@ -1735,6 +1735,9 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd,
       uint v1 = me->v1;
       uint v2 = me->v2;
 
+      if (wmd->flag & MOD_WELD_LOOSE_EDGES && (me->flag & ME_LOOSEEDGE) == 0) {
+        continue;
+      }
       while (v1 != vert_dest_map[v1]) {
         v1 = vert_dest_map[v1];
       }
@@ -2019,11 +2022,15 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
+  int weld_mode = RNA_enum_get(ptr, "mode");
 
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "merge_threshold", 0, IFACE_("Distance"), ICON_NONE);
+  if (weld_mode == MOD_WELD_MODE_CONNECTED) {
+    uiItemR(layout, ptr, "loose_edges", 0, NULL, ICON_NONE);
+  }
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
   modifier_panel_end(layout, ptr);

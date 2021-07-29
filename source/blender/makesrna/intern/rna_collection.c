@@ -170,7 +170,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
   Collection *coll_dst = (Collection *)ptr_dst->owner_id;
 
   if (ptr_item_dst->type == NULL || ptr_item_src->type == NULL) {
-    //    BLI_assert(0 && "invalid source or destination object.");
+    // BLI_assert_msg(0, "invalid source or destination object.");
     return false;
   }
 
@@ -185,7 +185,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
       &coll_dst->gobject, ob_dst, offsetof(CollectionObject, ob));
 
   if (cob_dst == NULL) {
-    BLI_assert(0 && "Could not find destination object in destination collection!");
+    BLI_assert_msg(0, "Could not find destination object in destination collection!");
     return false;
   }
 
@@ -288,7 +288,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
       &coll_dst->children, subcoll_dst, offsetof(CollectionChild, collection));
 
   if (collchild_dst == NULL) {
-    BLI_assert(0 && "Could not find destination sub-collection in destination collection!");
+    BLI_assert_msg(0, "Could not find destination sub-collection in destination collection!");
     return false;
   }
 

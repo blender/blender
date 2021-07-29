@@ -66,7 +66,7 @@
 /* Batching buffer for drawing. */
 BatchBLF g_batch;
 
-/* freetype2 handle ONLY for this file!. */
+/* freetype2 handle ONLY for this file! */
 static FT_Library ft_lib;
 static SpinLock ft_lib_mutex;
 static SpinLock blf_glyph_cache_mutex;
@@ -1464,4 +1464,12 @@ float blf_font_ascender(FontBLF *font)
 
   blf_glyph_cache_release(font);
   return ascender;
+}
+
+char *blf_display_name(FontBLF *font)
+{
+  if (!font->face->family_name) {
+    return NULL;
+  }
+  return BLI_sprintfN("%s %s", font->face->family_name, font->face->style_name);
 }

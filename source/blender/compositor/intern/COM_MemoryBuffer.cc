@@ -129,6 +129,20 @@ void MemoryBuffer::clear()
   memset(m_buffer, 0, buffer_len() * m_num_channels * sizeof(float));
 }
 
+BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs)
+{
+  return iterate_with(inputs, m_rect);
+}
+
+BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs, const rcti &area)
+{
+  BuffersIteratorBuilder<float> builder(m_buffer, m_rect, area, elem_stride);
+  for (MemoryBuffer *input : inputs) {
+    builder.add_input(input->getBuffer(), input->get_rect(), input->elem_stride);
+  }
+  return builder.build();
+}
+
 /**
  * Converts a single elem buffer to a full size buffer (allocates memory for all
  * elements in resolution).

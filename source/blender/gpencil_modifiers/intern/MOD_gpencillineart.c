@@ -320,13 +320,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetRedAlert(row, !material_valid);
-  uiItemPointerR(row,
-                 ptr,
-                 "target_material",
-                 &obj_data_ptr,
-                 "materials",
-                 NULL,
-                 material_valid ? ICON_SHADING_TEXTURE : ICON_ERROR);
+  uiItemPointerR(
+      row, ptr, "target_material", &obj_data_ptr, "materials", NULL, ICON_SHADING_TEXTURE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -385,6 +380,8 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
     return;
   }
 
+  uiItemR(layout, ptr, "overscan", 0, NULL, ICON_NONE);
+
   uiLayout *col = uiLayoutColumn(layout, true);
 
   uiItemR(col, ptr, "use_remove_doubles", 0, NULL, ICON_NONE);
@@ -432,6 +429,17 @@ static void occlusion_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 }
 
+static bool anything_showing_through(PointerRNA *ptr)
+{
+  const bool use_multiple_levels = RNA_boolean_get(ptr, "use_multiple_levels");
+  const int level_start = RNA_int_get(ptr, "level_start");
+  const int level_end = RNA_int_get(ptr, "level_end");
+  if (use_multiple_levels) {
+    return (MAX2(level_start, level_end) > 0);
+  }
+  return (level_start > 0);
+}
+
 static void material_mask_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -439,6 +447,7 @@ static void material_mask_panel_draw_header(const bContext *UNUSED(C), Panel *pa
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   uiLayoutSetEnabled(layout, !is_baked);
+  uiLayoutSetActive(layout, anything_showing_through(ptr));
 
   uiItemR(layout, ptr, "use_material_mask", 0, IFACE_("Material Mask"), ICON_NONE);
 }
@@ -450,24 +459,24 @@ static void material_mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   uiLayoutSetEnabled(layout, !is_baked);
+  uiLayoutSetActive(layout, anything_showing_through(ptr));
 
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetEnabled(layout, RNA_boolean_get(ptr, "use_material_mask"));
 
-  uiLayout *row = uiLayoutRow(layout, true);
-  uiLayoutSetPropDecorate(row, false);
-  uiLayout *sub = uiLayoutRowWithHeading(row, true, IFACE_("Masks"));
-  char text[2] = "0";
+  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayout *sub = uiLayoutRowWithHeading(col, true, IFACE_("Masks"));
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_material_mask_bits");
-  for (int i = 0; i < 8; i++, text[0]++) {
-    uiItemFullR(sub, ptr, prop, i, 0, UI_ITEM_R_TOGGLE, text, ICON_NONE);
+  for (int i = 0; i < 8; i++) {
+    uiItemFullR(sub, ptr, prop, i, 0, UI_ITEM_R_TOGGLE, " ", ICON_NONE);
+    if (i == 3) {
+      sub = uiLayoutRow(col, true);
+    }
   }
-  uiItemL(row, "", ICON_BLANK1); /* Space for decorator. */
 
-  uiLayout *col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_material_mask_match", 0, IFACE_("Match All Masks"), ICON_NONE);
+  uiItemR(layout, ptr, "use_material_mask_match", 0, IFACE_("Exact Match"), ICON_NONE);
 }
 
 static void intersection_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -482,19 +491,18 @@ static void intersection_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_intersection"));
 
-  uiLayout *row = uiLayoutRow(layout, true);
-  uiLayoutSetPropDecorate(row, false);
-  uiLayout *sub = uiLayoutRowWithHeading(row, true, IFACE_("Masks"));
-  char text[2] = "0";
+  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayout *sub = uiLayoutRowWithHeading(col, true, IFACE_("Collection Masks"));
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_intersection_mask");
-  for (int i = 0; i < 8; i++, text[0]++) {
-    uiItemFullR(sub, ptr, prop, i, 0, UI_ITEM_R_TOGGLE, text, ICON_NONE);
+  for (int i = 0; i < 8; i++) {
+    uiItemFullR(sub, ptr, prop, i, 0, UI_ITEM_R_TOGGLE, " ", ICON_NONE);
+    if (i == 3) {
+      sub = uiLayoutRow(col, true);
+    }
   }
-  uiItemL(row, "", ICON_BLANK1); /* Space for decorator. */
 
-  uiLayout *col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_intersection_match", 0, IFACE_("Match All Masks"), ICON_NONE);
+  uiItemR(layout, ptr, "use_intersection_match", 0, IFACE_("Exact Match"), ICON_NONE);
 }
 static void face_mark_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
 {
@@ -566,7 +574,7 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "use_fuzzy_all", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_loose_edge_chain", 0, IFACE_("Loose Edges"), ICON_NONE);
   uiItemR(col, ptr, "use_loose_as_contour", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "use_geometry_space_chain", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_geometry_space_chain", 0, IFACE_("Geometry Space"), ICON_NONE);
 
   uiItemR(layout,
           ptr,
@@ -613,7 +621,7 @@ static void vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 }
 
-static void baking_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void bake_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA ob_ptr;
@@ -669,7 +677,7 @@ static void panelRegister(ARegionType *region_type)
   gpencil_modifier_subpanel_register(
       region_type, "vgroup", "Vertex Weight Transfer", NULL, vgroup_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
-      region_type, "baking", "Baking", NULL, baking_panel_draw, panel_type);
+      region_type, "bake", "Bake", NULL, bake_panel_draw, panel_type);
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Lineart = {

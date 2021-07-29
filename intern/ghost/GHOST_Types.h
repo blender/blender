@@ -611,9 +611,9 @@ typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, uint64_
 struct GHOST_XrDrawViewInfo;
 struct GHOST_XrError;
 /**
- * The XR view (i.e. the OpenXR runtime) may require a different graphics library than OpenGL. An
- * offscreen texture of the viewport will then be drawn into using OpenGL, but the final texture
- * draw call will happen through another lib (say DirectX).
+ * The XR view (i.e. the OpenXR runtime) may require a different graphics library than OpenGL.
+ * An off-screen texture of the viewport will then be drawn into using OpenGL,
+ * but the final texture draw call will happen through another library (say DirectX).
  *
  * This enum defines the possible graphics bindings to attempt to enable.
  */
@@ -683,6 +683,10 @@ typedef struct GHOST_XrDrawViewInfo {
 
   /** Set if the buffer should be submitted with a SRGB transfer applied. */
   char expects_srgb_buffer;
+
+  /** The view that this info represents. Not necessarily the "eye index" (e.g. for quad view
+   * systems, etc). */
+  char view_idx;
 } GHOST_XrDrawViewInfo;
 
 typedef struct GHOST_XrError {

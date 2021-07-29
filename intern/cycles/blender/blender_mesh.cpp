@@ -1055,10 +1055,45 @@ static BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob)
   return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
 }
 
+/* Check whether some of "built-in" motion-related attributes are needed to be exported (includes
+ * things like velocity from cache modifier, fluid simulation).
+ *
+ * NOTE: This code is run prior to object motion blur initialization. so can not access properties
+ * set by `sync_object_motion_init()`. */
+static bool mesh_need_motion_attribute(BL::Object &b_ob, Scene *scene)
+{
+  const Scene::MotionType need_motion = scene->need_motion();
+  if (need_motion == Scene::MOTION_NONE) {
+    /* Simple case: neither motion pass nor motion blur is needed, no need in the motion related
+     * attributes. */
+    return false;
+  }
+
+  if (need_motion == Scene::MOTION_BLUR) {
+    /* A bit tricky and implicit case:
+     * - Motion blur is enabled in the scene, which implies specific number of time steps for
+     *   objects.
+     * - If the object has motion blur disabled on it, it will have 0 time steps.
+     * - Motion attribute expects non-zero time steps.
+     *
+     * Avoid adding motion attributes if the motion blur will enforce 0 motion steps. */
+    PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+    const bool use_motion = get_boolean(cobject, "use_motion_blur");
+    if (!use_motion) {
+      return false;
+    }
+  }
+
+  /* Motion pass which implies 3 motion steps, or motion blur which is not disabled on object
+   * level. */
+  return true;
+}
+
 static void sync_mesh_cached_velocities(BL::Object &b_ob, Scene *scene, Mesh *mesh)
 {
-  if (scene->need_motion() == Scene::MOTION_NONE)
+  if (!mesh_need_motion_attribute(b_ob, scene)) {
     return;
+  }
 
   BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob);
 
@@ -1102,8 +1137,9 @@ static void sync_mesh_cached_velocities(BL::Object &b_ob, Scene *scene, Mesh *me
 
 static void sync_mesh_fluid_motion(BL::Object &b_ob, Scene *scene, Mesh *mesh)
 {
-  if (scene->need_motion() == Scene::MOTION_NONE)
+  if (!mesh_need_motion_attribute(b_ob, scene)) {
     return;
+  }
 
   BL::FluidDomainSettings b_fluid_domain = object_fluid_liquid_domain_find(b_ob);
 

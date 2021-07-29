@@ -26,12 +26,8 @@
 #include <optional>
 #include <string>
 
-#include "BKE_asset.h"
 #include "BKE_context.h"
-#include "BKE_screen.h"
 
-#include "BLI_function_ref.hh"
-#include "BLI_hash.hh"
 #include "BLI_map.hh"
 #include "BLI_path_util.h"
 #include "BLI_utility_mixins.hh"
@@ -41,9 +37,7 @@
 
 #include "BKE_preferences.h"
 
-#include "ED_asset.h"
 #include "ED_fileselect.h"
-#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -51,48 +45,12 @@
 /* XXX uses private header of file-space. */
 #include "../space_file/filelist.h"
 
-using namespace blender;
+#include "ED_asset_handle.h"
+#include "ED_asset_list.h"
+#include "ED_asset_list.hh"
+#include "asset_library_reference.hh"
 
-/**
- * Wrapper to add logic to the AssetLibraryReference DNA struct.
- */
-class AssetLibraryReferenceWrapper {
-  const AssetLibraryReference reference_;
-
- public:
-  /* Intentionally not `explicit`, allow implicit conversion for convenience. Might have to be
-   * NOLINT */
-  AssetLibraryReferenceWrapper(const AssetLibraryReference &reference);
-  ~AssetLibraryReferenceWrapper() = default;
-
-  friend bool operator==(const AssetLibraryReferenceWrapper &a,
-                         const AssetLibraryReferenceWrapper &b);
-  uint64_t hash() const;
-};
-
-AssetLibraryReferenceWrapper::AssetLibraryReferenceWrapper(const AssetLibraryReference &reference)
-    : reference_(reference)
-{
-}
-
-bool operator==(const AssetLibraryReferenceWrapper &a, const AssetLibraryReferenceWrapper &b)
-{
-  return (a.reference_.type == b.reference_.type) && (a.reference_.type == ASSET_LIBRARY_CUSTOM) ?
-             (a.reference_.custom_library_index == b.reference_.custom_library_index) :
-             true;
-}
-
-uint64_t AssetLibraryReferenceWrapper::hash() const
-{
-  uint64_t hash1 = DefaultHash<decltype(reference_.type)>{}(reference_.type);
-  if (reference_.type != ASSET_LIBRARY_CUSTOM) {
-    return hash1;
-  }
-
-  uint64_t hash2 = DefaultHash<decltype(reference_.custom_library_index)>{}(
-      reference_.custom_library_index);
-  return hash1 ^ (hash2 * 33); /* Copied from DefaultHash for std::pair. */
-}
+namespace blender::ed::asset {
 
 /* -------------------------------------------------------------------- */
 /** \name Asset list API
@@ -187,11 +145,6 @@ void AssetList::setup(const AssetFilterSettings *filter_settings)
 {
   FileList *files = filelist_;
 
-  /* TODO there should only be one (FileSelectAssetLibraryUID vs. AssetLibraryReference). */
-  FileSelectAssetLibraryUID file_asset_lib_ref;
-  file_asset_lib_ref.type = library_ref_.type;
-  file_asset_lib_ref.custom_library_index = library_ref_.custom_library_index;
-
   bUserAssetLibrary *user_library = nullptr;
 
   /* Ensure valid repository, or fall-back to local one. */
@@ -206,7 +159,7 @@ void AssetList::setup(const AssetFilterSettings *filter_settings)
   /* TODO pass options properly. */
   filelist_setrecursion(files, 1);
   filelist_setsorting(files, FILE_SORT_ALPHA, false);
-  filelist_setlibrary(files, &file_asset_lib_ref);
+  filelist_setlibrary(files, &library_ref_);
   /* TODO different filtering settings require the list to be reread. That's a no-go for when we
    * want to allow showing the same asset library with different filter settings (as in,
    * different ID types). The filelist needs to be made smarter somehow, maybe goes together with
@@ -469,9 +422,13 @@ AssetListStorage::AssetListMap &AssetListStorage::global_storage()
 
 /** \} */
 
+}  // namespace blender::ed::asset
+
 /* -------------------------------------------------------------------- */
 /** \name C-API
  * \{ */
+
+using namespace blender::ed::asset;
 
 /**
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
@@ -506,7 +463,6 @@ bool ED_assetlist_storage_has_list_for_library(const AssetLibraryReference *libr
   return AssetListStorage::lookup_list(*library_reference) != nullptr;
 }
 
-/* TODO expose AssetList with an iterator? */
 void ED_assetlist_iterate(const AssetLibraryReference *library_reference, AssetListIterFn fn)
 {
   AssetList *list = AssetListStorage::lookup_list(*library_reference);
@@ -536,11 +492,12 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
                                             const AssetLibraryReference &library_reference,
                                             const AssetHandle &asset_handle)
 {
-  if (asset_handle.file_data->id || !asset_handle.file_data->asset_data) {
+  if (ED_asset_handle_get_local_id(&asset_handle) ||
+      !ED_asset_handle_get_metadata(&asset_handle)) {
     return {};
   }
   const char *library_path = ED_assetlist_library_path(&library_reference);
-  if (!library_path) {
+  if (!library_path && C) {
     library_path = assetlist_library_path_from_sfile_get_hack(C);
   }
   if (!library_path) {
@@ -552,11 +509,6 @@ std::string ED_assetlist_asset_filepath_get(const bContext *C,
   BLI_join_dirfile(path, sizeof(path), library_path, asset_relpath);
 
   return path;
-}
-
-ID *ED_assetlist_asset_local_id_get(const AssetHandle *asset_handle)
-{
-  return asset_handle->file_data->asset_data ? asset_handle->file_data->id : nullptr;
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)

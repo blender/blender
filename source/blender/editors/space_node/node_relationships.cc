@@ -299,7 +299,7 @@ static void pick_input_link_by_link_intersect(const bContext *C,
 
   /* If no linked was picked in this call, try using the one picked in the previous call.
    * Not essential for the basic behavior, but can make interaction feel a bit better if
-   * the  mouse moves to the right and loses the "selection." */
+   * the mouse moves to the right and loses the "selection." */
   if (!link_to_pick) {
     bNodeLink *last_picked_link = nldrag->last_picked_multi_input_socket_link;
     if (last_picked_link) {
@@ -664,9 +664,19 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
       nodeRemLink(snode->edittree, link);
 
       /* find a socket after the previously connected socket */
-      for (sock = sock->next; sock; sock = sock->next) {
-        if (!nodeSocketIsHidden(sock)) {
-          break;
+      if (ED_node_is_geometry(snode)) {
+        /* Geometry nodes viewer only supports geometry sockets for now. */
+        for (sock = sock->next; sock; sock = sock->next) {
+          if (sock->type == SOCK_GEOMETRY && !nodeSocketIsHidden(sock)) {
+            break;
+          }
+        }
+      }
+      else {
+        for (sock = sock->next; sock; sock = sock->next) {
+          if (!nodeSocketIsHidden(sock)) {
+            break;
+          }
         }
       }
     }
@@ -674,19 +684,40 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
 
   if (tonode) {
     /* Find a selected socket that overrides the socket to connect to */
-    LISTBASE_FOREACH (bNodeSocket *, sock2, &tonode->outputs) {
-      if (!nodeSocketIsHidden(sock2) && sock2->flag & SELECT) {
-        sock = sock2;
-        break;
+    if (ED_node_is_geometry(snode)) {
+      /* Geometry nodes viewer only supports geometry sockets for now. */
+      LISTBASE_FOREACH (bNodeSocket *, sock2, &tonode->outputs) {
+        if (sock2->type == SOCK_GEOMETRY && !nodeSocketIsHidden(sock2) && sock2->flag & SELECT) {
+          sock = sock2;
+          break;
+        }
+      }
+    }
+    else {
+      LISTBASE_FOREACH (bNodeSocket *, sock2, &tonode->outputs) {
+        if (!nodeSocketIsHidden(sock2) && sock2->flag & SELECT) {
+          sock = sock2;
+          break;
+        }
       }
     }
   }
 
   /* find a socket starting from the first socket */
   if (!sock) {
-    for (sock = (bNodeSocket *)tonode->outputs.first; sock; sock = sock->next) {
-      if (!nodeSocketIsHidden(sock)) {
-        break;
+    if (ED_node_is_geometry(snode)) {
+      /* Geometry nodes viewer only supports geometry sockets for now. */
+      for (sock = (bNodeSocket *)tonode->outputs.first; sock; sock = sock->next) {
+        if (sock->type == SOCK_GEOMETRY && !nodeSocketIsHidden(sock)) {
+          break;
+        }
+      }
+    }
+    else {
+      for (sock = (bNodeSocket *)tonode->outputs.first; sock; sock = sock->next) {
+        if (!nodeSocketIsHidden(sock)) {
+          break;
+        }
       }
     }
   }

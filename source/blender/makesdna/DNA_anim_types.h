@@ -51,7 +51,7 @@ typedef struct FModifier {
   /** Pointer to modifier data. */
   void *data;
 
-  /** User-defined description for the modifier - MAX_ID_NAME-2. */
+  /** User-defined description for the modifier - `MAX_ID_NAME - 2`. */
   char name[64];
   /** Type of f-curve modifier. */
   short type;
@@ -185,7 +185,7 @@ typedef enum eFMod_Generator_Functions {
 
 /* envelope modifier - envelope data */
 typedef struct FCM_EnvelopeData {
-  /** Min/max values for envelope at this point (absolute values) . */
+  /** Min/max values for envelope at this point (absolute values). */
   float min, max;
   /** Time for that this sample-point occurs. */
   float time;
@@ -198,7 +198,7 @@ typedef struct FCM_EnvelopeData {
 
 /* envelope-like adjustment to values (for fade in/out) */
 typedef struct FMod_Envelope {
-  /** Data-points defining envelope to apply (array) . */
+  /** Data-points defining envelope to apply (array). */
   FCM_EnvelopeData *data;
   /** Number of envelope points. */
   int totvert;
@@ -210,7 +210,7 @@ typedef struct FMod_Envelope {
 } FMod_Envelope;
 
 /* cycling/repetition modifier data */
-// TODO: we can only do complete cycles...
+/* TODO: we can only do complete cycles. */
 typedef struct FMod_Cycles {
   /** Extrapolation mode to use before first keyframe. */
   short before_mode;
@@ -321,7 +321,7 @@ typedef struct DriverTarget {
 
   /**
    * Name of the posebone to use
-   * (for vars where DTAR_FLAG_STRUCT_REF is used) - MAX_ID_NAME-2.
+   * (for vars where DTAR_FLAG_STRUCT_REF is used) - `MAX_ID_NAME - 2`.
    */
   char pchan_name[64];
   /** Transform channel index (for #DVAR_TYPE_TRANSFORM_CHAN). */
@@ -418,7 +418,7 @@ typedef struct DriverVar {
 
   /**
    * Name of the variable to use in py-expression
-   * (must be valid python identifier) - MAX_ID_NAME-2.
+   * (must be valid python identifier) - `MAX_ID_NAME - 2`.
    */
   char name[64];
 
@@ -734,7 +734,7 @@ typedef struct NlaStrip {
   /** F-Curve modifiers to be applied to the entire strip's referenced F-Curves. */
   ListBase modifiers;
 
-  /** User-Visible Identifier for Strip - MAX_ID_NAME-2. */
+  /** User-Visible Identifier for Strip - `MAX_ID_NAME - 2`. */
   char name[64];
 
   /** Influence of strip. */
@@ -873,7 +873,7 @@ typedef struct NlaTrack {
    * \note not really useful, but we need a '_pad' var anyways! */
   int index;
 
-  /** Short user-description of this track - MAX_ID_NAME-2. */
+  /** Short user-description of this track - `MAX_ID_NAME - 2`. */
   char name[64];
 } NlaTrack;
 
@@ -917,7 +917,7 @@ typedef struct KS_Path {
 
   /** ID block that keyframes are for. */
   ID *id;
-  /** Name of the group to add to - MAX_ID_NAME-2. */
+  /** Name of the group to add to - `MAX_ID_NAME - 2`. */
   char group[64];
 
   /** ID-type that path can be used on. */
@@ -977,13 +977,13 @@ typedef struct KeyingSet {
   /** (KS_Path) paths to keyframe to. */
   ListBase paths;
 
-  /** Unique name (for search, etc.) - MAX_ID_NAME-2 . */
+  /** Unique name (for search, etc.) - `MAX_ID_NAME - 2`. */
   char idname[64];
-  /** User-viewable name for KeyingSet (for menus, etc.) - MAX_ID_NAME-2. */
+  /** User-viewable name for KeyingSet (for menus, etc.) - `MAX_ID_NAME - 2`. */
   char name[64];
   /** (RNA_DYN_DESCR_MAX) short help text. */
   char description[240];
-  /** Name of the typeinfo data used for the relative paths - MAX_ID_NAME-2. */
+  /** Name of the typeinfo data used for the relative paths - `MAX_ID_NAME - 2`. */
   char typeinfo[64];
 
   /** Index of the active path. */

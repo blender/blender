@@ -86,7 +86,7 @@
 
 /**
  * CHECK_TYPE_ANY: handy macro, eg:
- * ``CHECK_TYPE_ANY(var, Foo *, Bar *, Baz *)``
+ * `CHECK_TYPE_ANY(var, Foo *, Bar *, Baz *)`
  *
  * excuse ridiculously long generated args.
  * \code{.py}

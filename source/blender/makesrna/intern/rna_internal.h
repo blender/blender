@@ -270,8 +270,6 @@ void rna_def_view_layer_common(struct BlenderRNA *brna, struct StructRNA *srna, 
 PropertyRNA *rna_def_asset_library_reference_common(struct StructRNA *srna,
                                                     const char *get,
                                                     const char *set);
-int rna_asset_library_reference_get(const struct AssetLibraryReference *library);
-void rna_asset_library_reference_set(struct AssetLibraryReference *library, int value);
 const EnumPropertyItem *rna_asset_library_reference_itemf(struct bContext *C,
                                                           struct PointerRNA *ptr,
                                                           struct PropertyRNA *prop,

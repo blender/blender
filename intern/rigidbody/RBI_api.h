@@ -64,7 +64,7 @@ typedef struct rbConstraint rbConstraint;
 /* Setup ---------------------------- */
 
 /* Create a new dynamics world instance */
-// TODO: add args to set the type of constraint solvers, etc.
+/* TODO: add args to set the type of constraint solvers, etc. */
 rbDynamicsWorld *RB_dworld_new(const float gravity[3]);
 
 /* Delete the given dynamics world, and free any extra data it may require */

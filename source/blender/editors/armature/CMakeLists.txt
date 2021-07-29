@@ -44,7 +44,7 @@ set(SRC
   armature_utils.c
   editarmature_undo.c
   meshlaplacian.c
-  pose_backup.c
+  pose_backup.cc
   pose_edit.c
   pose_group.c
   pose_lib.c

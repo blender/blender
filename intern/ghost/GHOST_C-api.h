@@ -188,8 +188,8 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              GHOST_GLSettings glSettings);
 
 /**
- * Create a new offscreen context.
- * Never explicitly delete the context, use disposeContext() instead.
+ * Create a new off-screen context.
+ * Never explicitly delete the context, use #disposeContext() instead.
  * \param systemhandle: The handle to the system.
  * \param platform_support_callback: An optional callback to check platform support.
  * \return A handle to the new context ( == NULL if creation failed).
@@ -628,7 +628,7 @@ extern void GHOST_ScreenToClient(
     GHOST_WindowHandle windowhandle, int32_t inX, int32_t inY, int32_t *outX, int32_t *outY);
 
 /**
- * Converts a point in screen coordinates to client rectangle coordinates
+ * Converts a point in client rectangle coordinates to screen coordinates.
  * \param windowhandle: The handle to the window.
  * \param inX: The x-coordinate in the client rectangle.
  * \param inY: The y-coordinate in the client rectangle.

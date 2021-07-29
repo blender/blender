@@ -1836,7 +1836,7 @@ static int BPy_IDArray_ass_slice(BPy_IDArray *self, int begin, int end, PyObject
   /* NOTE: we count on int/float being the same size here */
   vec = MEM_mallocN(alloc_len, "array assignment");
 
-  if (PyC_AsArray(vec, seq, size, py_type, is_double, "slice assignment: ") == -1) {
+  if (PyC_AsArray(vec, elem_size, seq, size, py_type, "slice assignment: ") == -1) {
     MEM_freeN(vec);
     return -1;
   }

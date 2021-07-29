@@ -231,7 +231,6 @@ static void scene_init_data(ID *id)
 
   /* Sequencer */
   scene->toolsettings->sequencer_tool_settings = SEQ_tool_settings_init();
-  scene->toolsettings->snap_flag |= SCE_SNAP_SEQ;
 
   for (size_t i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
     scene->orientation_slots[i].index_custom = -1;
@@ -2105,7 +2104,7 @@ Object *BKE_scene_object_find_by_name(const Scene *scene, const char *name)
 
 /**
  * Sets the active scene, mainly used when running in background mode
- * (``--scene`` command line argument).
+ * (`--scene` command line argument).
  * This is also called to set the scene directly, bypassing windowing code.
  * Otherwise #WM_window_set_active_scene is used when changing scenes by the user.
  */
@@ -3243,9 +3242,9 @@ void BKE_scene_multiview_filepath_get(SceneRenderView *srv, const char *filepath
 }
 
 /**
- * When multiview is not used the filepath is as usual (e.g., ``Image.jpg``).
+ * When multiview is not used the filepath is as usual (e.g., `Image.jpg`).
  * When multiview is on, even if only one view is enabled the view is incorporated
- * into the file name (e.g., ``Image_L.jpg``). That allows for the user to re-render
+ * into the file name (e.g., `Image_L.jpg`). That allows for the user to re-render
  * individual views.
  */
 void BKE_scene_multiview_view_filepath_get(const RenderData *rd,

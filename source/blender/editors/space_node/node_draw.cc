@@ -2125,7 +2125,7 @@ void node_draw_space(const bContext *C, ARegion *region)
   SpaceNode *snode = CTX_wm_space_node(C);
   View2D *v2d = &region->v2d;
 
-  /* Setup offscreen buffers. */
+  /* Setup off-screen buffers. */
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
 
   GPUFrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);

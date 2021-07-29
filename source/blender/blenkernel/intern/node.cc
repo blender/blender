@@ -1212,10 +1212,12 @@ static void update_typeinfo(Main *bmain,
   FOREACH_NODETREE_END;
 }
 
-/* Try to initialize all typeinfo in a node tree.
- * NB: In general undefined typeinfo is a perfectly valid case,
+/**
+ * Try to initialize all type-info in a node tree.
+ *
+ * \note In general undefined type-info is a perfectly valid case,
  * the type may just be registered later.
- * In that case the update_typeinfo function will set typeinfo on registration
+ * In that case the update_typeinfo function will set type-info on registration
  * and do necessary updates.
  */
 void ntreeSetTypes(const struct bContext *C, bNodeTree *ntree)
@@ -2502,6 +2504,22 @@ bool nodeLinkIsHidden(const bNodeLink *link)
   return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
 }
 
+/* Adjust the indices of links connected to the given multi input socket after deleting the link at
+ * `deleted_index`. This function also works if the link has not yet been deleted. */
+static void adjust_multi_input_indices_after_removed_link(bNodeTree *ntree,
+                                                          bNodeSocket *sock,
+                                                          int deleted_index)
+{
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    /* We only need to adjust those with a greater index, because the others will have the same
+     * index. */
+    if (link->tosock != sock || link->multi_input_socket_index <= deleted_index) {
+      continue;
+    }
+    link->multi_input_socket_index -= 1;
+  }
+}
+
 void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 {
   /* store link pointers in output sockets, for efficient lookup */
@@ -2535,10 +2553,18 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
           ntree->update |= NTREE_UPDATE_LINKS;
         }
         else {
+          if (link->tosock->flag & SOCK_MULTI_INPUT) {
+            adjust_multi_input_indices_after_removed_link(
+                ntree, link->tosock, link->multi_input_socket_index);
+          }
           nodeRemLink(ntree, link);
         }
       }
       else {
+        if (link->tosock->flag & SOCK_MULTI_INPUT) {
+          adjust_multi_input_indices_after_removed_link(
+              ntree, link->tosock, link->multi_input_socket_index);
+        };
         nodeRemLink(ntree, link);
       }
     }
@@ -2989,6 +3015,11 @@ void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
     }
 
     if (lb) {
+      /* Only bother adjusting if the socket is not on the node we're deleting. */
+      if (link->tonode != node && link->tosock->flag & SOCK_MULTI_INPUT) {
+        adjust_multi_input_indices_after_removed_link(
+            ntree, link->tosock, link->multi_input_socket_index);
+      }
       LISTBASE_FOREACH (bNodeSocket *, sock, lb) {
         if (link->fromsock == sock || link->tosock == sock) {
           nodeRemLink(ntree, link);
@@ -5117,9 +5148,11 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_primitive_star();
   register_node_type_geo_curve_resample();
   register_node_type_geo_curve_reverse();
+  register_node_type_geo_curve_set_handles();
   register_node_type_geo_curve_subdivide();
   register_node_type_geo_curve_to_mesh();
   register_node_type_geo_curve_to_points();
+  register_node_type_geo_curve_trim();
   register_node_type_geo_delete_geometry();
   register_node_type_geo_edge_split();
   register_node_type_geo_input_material();

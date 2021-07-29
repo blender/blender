@@ -613,9 +613,8 @@ void snode_set_context(const bContext *C)
   /* check the tree type */
   if (!treetype || (treetype->poll && !treetype->poll(C, treetype))) {
     /* invalid tree type, skip
-     * NB: not resetting the node path here, invalid bNodeTreeType
-     * may still be registered at a later point.
-     */
+     * NOTE: not resetting the node path here, invalid #bNodeTreeType
+     * may still be registered at a later point. */
     return;
   }
 
@@ -1303,9 +1302,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* copy links between selected nodes
-   * NB: this depends on correct node->new_node and sock->new_sock pointers from above copy!
-   */
+  /* Copy links between selected nodes.
+   * NOTE: this depends on correct node->new_node and sock->new_sock pointers from above copy! */
   bNodeLink *lastlink = (bNodeLink *)ntree->links.last;
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     /* This creates new links between copied nodes.
@@ -2163,9 +2161,9 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  /* copy links between selected nodes
-   * NB: this depends on correct node->new_node and sock->new_sock pointers from above copy!
-   */
+  /* Copy links between selected nodes.
+   * NOTE: this depends on correct node->new_node and sock->new_sock pointers from above copy! */
+
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     /* This creates new links between copied nodes. */
     if (link->tonode && (link->tonode->flag & NODE_SELECT) && link->fromnode &&

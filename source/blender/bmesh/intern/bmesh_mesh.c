@@ -163,7 +163,9 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
     bm->idmap.flag |= params->use_id_elem_mask * BM_HAS_ID_MAP;
     bm->idmap.flag |= params->use_id_elem_mask;
 
+#ifndef WITH_BM_ID_FREELIST
     bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+#endif
   }
 
   if (bm->idmap.flag & BM_HAS_ID_MAP) {
@@ -221,9 +223,17 @@ void BM_mesh_data_free(BMesh *bm)
   BMIter iter;
   BMIter itersub;
 
+#ifndef WITH_BM_ID_FREELIST
   if (bm->idmap.idtree) {
     range_tree_uint_free(bm->idmap.idtree);
   }
+#else
+  if (bm->idmap.free_ids) {
+    BLI_gset_free(bm->idmap.free_ids, NULL);
+  }
+
+  MEM_SAFE_FREE(bm->idmap.free_ids);
+#endif
 
   MEM_SAFE_FREE(bm->idmap.map);
 
@@ -337,7 +347,18 @@ void BM_mesh_clear(BMesh *bm)
   bm->idmap.flag = idmap_flags;
 
   if (bm->idmap.flag & BM_HAS_IDS) {
+#ifndef WITH_BM_ID_FREELIST
     bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+#else
+    if (bm->idmap.free_ids) {
+      BLI_gset_free(bm->idmap.free_ids, NULL);
+    }
+    MEM_SAFE_FREE(bm->idmap.freelist);
+
+    bm->idmap.freelist_len = bm->idmap.freelist_size = NULL;
+    bm->idmap.free_ids = NULL;
+    bm->idmap.freelist = NULL;
+#endif
     bm_init_idmap_cdlayers(bm);
   }
 }

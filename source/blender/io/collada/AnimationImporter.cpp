@@ -1090,7 +1090,7 @@ void AnimationImporter::translate_Animations(
           apply_matrix_curves(ob, animcurves, root, node, transform);
         }
         else {
-          /* calculate rnapaths and array index of fcurves according to transformation and
+          /* Calculate RNA-paths and array index of F-curves according to transformation and
            * animation class */
           Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path);
 

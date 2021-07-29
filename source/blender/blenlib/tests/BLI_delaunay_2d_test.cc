@@ -241,7 +241,7 @@ template<typename T> std::ostream &operator<<(std::ostream &os, const CDT_result
   for (int i : r.edge.index_range()) {
     os << "e" << i << " = (" << r.edge[i].first << ", " << r.edge[i].second << ")\n";
     os << "  orig: ";
-    for (int j : r.edge_orig[i].size()) {
+    for (int j : r.edge_orig[i].index_range()) {
       os << r.edge_orig[i][j] << " ";
     }
     os << "\n";
@@ -794,6 +794,55 @@ template<typename T> void crosssegs_test()
   }
   if (DO_DRAW) {
     graph_draw<T>("CrossSegs", out.vert, out.edge, out.face);
+  }
+}
+
+template<typename T> void cutacrosstri_test()
+{
+  /* Right triangle with horizontal segment exactly crossing in the middle. */
+  const char *spec = R"(5 1 1
+  0.0 0.0
+  1.0 0.0
+  0.0 1.0
+  0.0 0.5
+  0.5 0.5
+  3 4
+  0 1 2
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_FULL);
+  EXPECT_EQ(out.vert.size(), 5);
+  EXPECT_EQ(out.edge.size(), 7);
+  EXPECT_EQ(out.face.size(), 3);
+  int v0_out = get_orig_index(out.vert_orig, 0);
+  int v1_out = get_orig_index(out.vert_orig, 1);
+  int v2_out = get_orig_index(out.vert_orig, 2);
+  int v3_out = get_orig_index(out.vert_orig, 3);
+  int v4_out = get_orig_index(out.vert_orig, 4);
+  EXPECT_TRUE(v0_out != -1 && v1_out != -1 && v2_out != -1 && v3_out != -1 && v4_out != -1);
+  if (out.face.size() == 3) {
+    int e0_out = get_orig_index(out.edge_orig, 0);
+    EXPECT_NE(e0_out, -1);
+    int fe0_out = get_output_edge_index(out, v0_out, v1_out);
+    EXPECT_NE(fe0_out, -1);
+    int fe1a_out = get_output_edge_index(out, v1_out, v4_out);
+    EXPECT_NE(fe1a_out, -1);
+    int fe1b_out = get_output_edge_index(out, v4_out, v2_out);
+    EXPECT_NE(fe1b_out, -1);
+    if (fe1a_out != 0 && fe1b_out != 0) {
+      EXPECT_EQ(e0_out, get_orig_index(out.edge_orig, 0));
+      EXPECT_TRUE(out.edge_orig[fe1a_out].size() == 1 && out.edge_orig[fe1a_out][0] == 11);
+      EXPECT_TRUE(out.edge_orig[fe1b_out].size() == 1 && out.edge_orig[fe1b_out][0] == 11);
+    }
+    int e_diag = get_output_edge_index(out, v0_out, v4_out);
+    EXPECT_NE(e_diag, -1);
+    if (e_diag != -1) {
+      EXPECT_EQ(out.edge_orig[e_diag].size(), 0);
+    }
+  }
+  if (DO_DRAW) {
+    graph_draw<T>("CutAcrossTri", out.vert, out.edge, out.face);
   }
 }
 
@@ -1470,6 +1519,11 @@ TEST(delaunay_d, CrossSegs)
   crosssegs_test<double>();
 }
 
+TEST(delaunay_d, CutAcrossTri)
+{
+  cutacrosstri_test<double>();
+}
+
 TEST(delaunay_d, DiamondCross)
 {
   diamondcross_test<double>();
@@ -1610,6 +1664,11 @@ TEST(delaunay_m, CrossSegs)
   crosssegs_test<mpq_class>();
 }
 
+TEST(delaunay_m, CutAcrossTri)
+{
+  cutacrosstri_test<mpq_class>();
+}
+
 TEST(delaunay_m, DiamondCross)
 {
   diamondcross_test<mpq_class>();
@@ -1697,14 +1756,40 @@ TEST(delaunay_d, CintTwoFace)
   input.faces_len_table = faces_len;
   input.faces_start_table = faces_start;
   input.epsilon = 1e-5f;
+  input.need_ids = false;
   ::CDT_result *output = BLI_delaunay_2d_cdt_calc(&input, CDT_FULL);
   BLI_delaunay_2d_cdt_free(output);
 }
+
+TEST(delaunay_d, CintTwoFaceNoIds)
+{
+  float vert_coords[][2] = {
+      {0.0, 0.0}, {1.0, 0.0}, {0.5, 1.0}, {1.1, 1.0}, {1.1, 0.0}, {1.6, 1.0}};
+  int faces[] = {0, 1, 2, 3, 4, 5};
+  int faces_len[] = {3, 3};
+  int faces_start[] = {0, 3};
+
+  ::CDT_input input;
+  input.verts_len = 6;
+  input.edges_len = 0;
+  input.faces_len = 2;
+  input.vert_coords = vert_coords;
+  input.edges = nullptr;
+  input.faces = faces;
+  input.faces_len_table = faces_len;
+  input.faces_start_table = faces_start;
+  input.epsilon = 1e-5f;
+  input.need_ids = true;
+  ::CDT_result *output = BLI_delaunay_2d_cdt_calc(&input, CDT_FULL);
+  BLI_delaunay_2d_cdt_free(output);
+}
+
 #endif
 
 #if DO_TEXT_TESTS
 template<typename T>
-void text_test(int num_arc_points, int num_lets_per_line, int num_lines, CDT_output_type otype)
+void text_test(
+    int num_arc_points, int num_lets_per_line, int num_lines, CDT_output_type otype, bool need_ids)
 {
   constexpr bool print_timing = true;
   /*
@@ -1789,7 +1874,7 @@ void text_test(int num_arc_points, int num_lets_per_line, int num_lines, CDT_out
       vec2<T> start_co = b_vert[arc_origin_vert];
       vec2<T> end_co = b_vert[arc_terminal_vert];
       vec2<T> center_co = 0.5 * (start_co + end_co);
-      BLI_assert(start_co[0] == end_co[2]);
+      BLI_assert(start_co[0] == end_co[0]);
       double radius = abs(math_to_double<T>(end_co[1] - center_co[1]));
       double angle_delta = M_PI / (num_arc_points + 1);
       int start_vert = b_before_arcs_in.vert.size() + arc * num_arc_points;
@@ -1843,11 +1928,17 @@ void text_test(int num_arc_points, int num_lets_per_line, int num_lines, CDT_out
     }
   }
   in.epsilon = b_before_arcs_in.epsilon;
+  in.need_ids = need_ids;
   double tstart = PIL_check_seconds_timer();
   CDT_result<T> out = delaunay_2d_calc(in, otype);
   double tend = PIL_check_seconds_timer();
   if (print_timing) {
     std::cout << "time = " << tend - tstart << "\n";
+  }
+  if (!need_ids) {
+    EXPECT_EQ(out.vert_orig.size(), 0);
+    EXPECT_EQ(out.edge_orig.size(), 0);
+    EXPECT_EQ(out.face_orig.size(), 0);
   }
   if (DO_DRAW) {
     std::string label = "Text arcpts=" + std::to_string(num_arc_points);
@@ -1857,24 +1948,102 @@ void text_test(int num_arc_points, int num_lets_per_line, int num_lines, CDT_out
     if (num_lines > 1) {
       label += " lines=" + std::to_string(num_lines);
     }
+    if (!need_ids) {
+      label += " no_ids";
+    }
+    if (otype != CDT_INSIDE_WITH_HOLES) {
+      label += " otype=" + std::to_string(otype);
+    }
     graph_draw<T>(label, out.vert, out.edge, out.face);
   }
 }
 
 TEST(delaunay_d, TextB10)
 {
-  text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES);
+  text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES, true);
+}
+
+TEST(delaunay_d, TextB10_noids)
+{
+  text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES, false);
+}
+
+TEST(delaunay_d, TextB10_inside)
+{
+  text_test<double>(10, 1, 1, CDT_INSIDE, true);
+}
+
+TEST(delaunay_d, TextB10_inside_noids)
+{
+  text_test<double>(10, 1, 1, CDT_INSIDE, false);
+}
+
+TEST(delaunay_d, TextB10_constraints)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS, true);
+}
+
+TEST(delaunay_d, TextB10_constraints_noids)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS, false);
+}
+
+TEST(delaunay_d, TextB10_constraints_valid_bmesh)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS_VALID_BMESH, true);
+}
+
+TEST(delaunay_d, TextB10_constraints_valid_bmesh_noids)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS_VALID_BMESH, false);
+}
+
+TEST(delaunay_d, TextB10_constraints_valid_bmesh_with_holes)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES, true);
+}
+
+TEST(delaunay_d, TextB10_constraints_valid_bmesh_with_holes_noids)
+{
+  text_test<double>(10, 1, 1, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES, false);
 }
 
 TEST(delaunay_d, TextB200)
 {
-  text_test<double>(200, 1, 1, CDT_INSIDE_WITH_HOLES);
+  text_test<double>(200, 1, 1, CDT_INSIDE_WITH_HOLES, true);
 }
 
 TEST(delaunay_d, TextB10_10_10)
 {
-  text_test<double>(10, 10, 10, CDT_INSIDE_WITH_HOLES);
+  text_test<double>(10, 10, 10, CDT_INSIDE_WITH_HOLES, true);
 }
+
+TEST(delaunay_d, TextB10_10_10_noids)
+{
+  text_test<double>(10, 10, 10, CDT_INSIDE_WITH_HOLES, false);
+}
+
+#  ifdef WITH_GMP
+TEST(delaunay_m, TextB10)
+{
+  text_test<mpq_class>(10, 1, 1, CDT_INSIDE_WITH_HOLES, true);
+}
+
+TEST(delaunay_m, TextB200)
+{
+  text_test<mpq_class>(200, 1, 1, CDT_INSIDE_WITH_HOLES, true);
+}
+
+TEST(delaunay_m, TextB10_10_10)
+{
+  text_test<mpq_class>(10, 10, 10, CDT_INSIDE_WITH_HOLES, true);
+}
+
+TEST(delaunay_m, TextB10_10_10_noids)
+{
+  text_test<mpq_class>(10, 10, 10, CDT_INSIDE_WITH_HOLES, false);
+}
+#  endif
 
 #endif
 

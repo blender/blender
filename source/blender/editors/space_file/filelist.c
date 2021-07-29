@@ -37,6 +37,8 @@
 #endif
 #include "MEM_guardedalloc.h"
 
+#include "BLF_api.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
@@ -382,7 +384,7 @@ typedef struct FileList {
 
   eFileSelectType type;
   /* The library this list was created for. Stored here so we know when to re-read. */
-  FileSelectAssetLibraryUID *asset_library;
+  AssetLibraryReference *asset_library;
 
   short flags;
 
@@ -1045,8 +1047,8 @@ void filelist_setfilter_options(FileList *filelist,
  * Checks two libraries for equality.
  * \return True if the libraries match.
  */
-static bool filelist_compare_asset_libraries(const FileSelectAssetLibraryUID *library_a,
-                                             const FileSelectAssetLibraryUID *library_b)
+static bool filelist_compare_asset_libraries(const AssetLibraryReference *library_a,
+                                             const AssetLibraryReference *library_b)
 {
   if (library_a->type != library_b->type) {
     return false;
@@ -1065,7 +1067,7 @@ static bool filelist_compare_asset_libraries(const FileSelectAssetLibraryUID *li
 /**
  * \param asset_library: May be NULL to unset the library.
  */
-void filelist_setlibrary(FileList *filelist, const FileSelectAssetLibraryUID *asset_library)
+void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_library)
 {
   /* Unset if needed. */
   if (!asset_library) {
@@ -1812,12 +1814,22 @@ BlendHandle *filelist_lib(struct FileList *filelist)
   return filelist->libfiledata;
 }
 
-static const char *fileentry_uiname(const char *root,
-                                    const char *relpath,
-                                    const eFileSel_File_Types typeflag,
-                                    char *buff)
+static char *fileentry_uiname(const char *root,
+                              const char *relpath,
+                              const eFileSel_File_Types typeflag,
+                              char *buff)
 {
   char *name = NULL;
+
+  if (typeflag & FILE_TYPE_FTFONT && !(typeflag & FILE_TYPE_BLENDERLIB)) {
+    char abspath[FILE_MAX_LIBEXTRA];
+    BLI_join_dirfile(abspath, sizeof(abspath), root, relpath);
+    name = BLF_display_name_from_file(abspath);
+    if (name) {
+      /* Allocated string, so no need to BLI_strdup.*/
+      return name;
+    }
+  }
 
   if (typeflag & FILE_TYPE_BLENDERLIB) {
     char abspath[FILE_MAX_LIBEXTRA];
@@ -1840,7 +1852,7 @@ static const char *fileentry_uiname(const char *root,
   }
   BLI_assert(name);
 
-  return name;
+  return BLI_strdup(name);
 }
 
 const char *filelist_dir(struct FileList *filelist)
@@ -3203,7 +3215,7 @@ static void filelist_readjob_do(const bool do_lib,
       MEM_freeN(entry->relpath);
       entry->relpath = BLI_strdup(dir + 2); /* + 2 to remove '//'
                                              * added by BLI_path_rel to rel_subdir. */
-      entry->name = BLI_strdup(fileentry_uiname(root, entry->relpath, entry->typeflag, dir));
+      entry->name = fileentry_uiname(root, entry->relpath, entry->typeflag, dir);
       entry->free_name = true;
 
       /* Here we decide whether current filedirentry is to be listed too, or not. */

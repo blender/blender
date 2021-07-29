@@ -72,13 +72,12 @@ struct Scene *ED_render_job_get_current_scene(const struct bContext *C);
  * - PR_NODE_RENDER: preview is rendered for node editor
  * - PR_ICON_DEFERRED: No render, we just ensure deferred icon data gets generated.
  */
-
-enum {
+typedef enum ePreviewRenderMethod {
   PR_BUTS_RENDER = 0,
   PR_ICON_RENDER = 1,
   PR_NODE_RENDER = 2,
   PR_ICON_DEFERRED = 3,
-};
+} ePreviewRenderMethod;
 
 void ED_preview_ensure_dbase(void);
 void ED_preview_free_dbase(void);

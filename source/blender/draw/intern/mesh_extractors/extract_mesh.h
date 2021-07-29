@@ -101,10 +101,12 @@ typedef struct MeshRenderData {
   float (*loop_normals)[3];
   float (*poly_normals)[3];
   int *lverts, *ledges;
+
   struct {
-    int *tri;
+    int *tri_first_index;
+    int *mat_tri_len;
     int visible_tri_len;
-  } mat_offsets;
+  } poly_sorted;
 } MeshRenderData;
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData *mr, int idx)
@@ -240,20 +242,22 @@ typedef struct MeshExtract {
 
 /* draw_cache_extract_mesh_render_data.c */
 MeshRenderData *mesh_render_data_create(Mesh *me,
-                                        MeshBufferExtractionCache *cache,
                                         const bool is_editmode,
                                         const bool is_paint_mode,
                                         const bool is_mode_active,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
-                                        const ToolSettings *ts,
-                                        const eMRIterType iter_type);
+                                        const ToolSettings *ts);
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_flag);
-void mesh_render_data_update_mat_offsets(MeshRenderData *mr,
-                                         MeshBufferExtractionCache *cache,
-                                         const eMRDataType data_flag);
+void mesh_render_data_update_loose_geom(MeshRenderData *mr,
+                                        MeshBufferExtractionCache *cache,
+                                        const eMRIterType iter_type,
+                                        const eMRDataType data_flag);
+void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
+                                          MeshBufferExtractionCache *cache,
+                                          const eMRDataType data_flag);
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,
                                       const eMRDataType data_flag);

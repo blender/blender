@@ -228,6 +228,8 @@ typedef struct LineartRenderBuffer {
   double view_projection[4][4];
   double view[4][4];
 
+  float overscan;
+
   struct LineartBoundingArea *initial_bounding_areas;
   unsigned int bounding_area_count;
 
@@ -473,7 +475,8 @@ typedef struct LineartBoundingArea {
 BLI_INLINE int lineart_LineIntersectTest2d(
     const double *a1, const double *a2, const double *b1, const double *b2, double *aRatio)
 {
-#define USE_VECTOR_LINE_INTERSECTION
+/* Legacy intersection math aligns better with occlusion function quirks. */
+/* #define USE_VECTOR_LINE_INTERSECTION */
 #ifdef USE_VECTOR_LINE_INTERSECTION
 
   /* from isect_line_line_v2_point() */

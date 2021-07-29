@@ -20,7 +20,7 @@
  * \ingroup bli
  * \brief Single link-list utility macros. (header only api).
  *
- * Use this api when the structure defines its own ``next`` pointer
+ * Use this api when the structure defines its own `next` pointer
  * and a double linked list such as #ListBase isn't needed.
  */
 

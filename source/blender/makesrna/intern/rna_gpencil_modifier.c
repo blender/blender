@@ -656,6 +656,24 @@ static void rna_TextureGpencilModifier_material_set(PointerRNA *ptr,
   rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
 }
 
+static void rna_Lineart_start_level_set(PointerRNA *ptr, int value)
+{
+  LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)ptr->data;
+
+  CLAMP(value, 0, 128);
+  lmd->level_start = value;
+  lmd->level_end = MAX2(value, lmd->level_end);
+}
+
+static void rna_Lineart_end_level_set(PointerRNA *ptr, int value)
+{
+  LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)ptr->data;
+
+  CLAMP(value, 0, 128);
+  lmd->level_end = value;
+  lmd->level_start = MIN2(value, lmd->level_start);
+}
+
 #else
 
 static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
@@ -3015,15 +3033,14 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "source_object", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_struct_type(prop, "Object");
-  RNA_def_property_ui_text(
-      prop, "Source Object", "Source object that this modifier uses data from");
+  RNA_def_property_ui_text(prop, "Object", "Generate strokes from this object");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   prop = RNA_def_property(srna, "source_collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_struct_type(prop, "Collection");
   RNA_def_property_ui_text(
-      prop, "Source Collection", "Source collection that this modifier uses data from");
+      prop, "Collection", "Generate strokes from the objects in this collection");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   /* types */
@@ -3068,12 +3085,14 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Level Start", "Minimum number of occlusions for the generated strokes");
   RNA_def_property_range(prop, 0, 128);
+  RNA_def_property_int_funcs(prop, NULL, "rna_Lineart_start_level_set", NULL);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "level_end", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Level End", "Maximum number of occlusions for the generated strokes");
   RNA_def_property_range(prop, 0, 128);
+  RNA_def_property_int_funcs(prop, NULL, "rna_Lineart_end_level_set", NULL);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "target_material", PROP_POINTER, PROP_NONE);
@@ -3085,12 +3104,11 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
                                  NULL,
                                  "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(
-      prop, "Target Material", "Grease Pencil material assigned to the generated strokes");
+      prop, "Material", "Grease Pencil material assigned to the generated strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "target_layer", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(
-      prop, "Target Layer", "Grease Pencil layer assigned to the generated strokes");
+  RNA_def_property_ui_text(prop, "Layer", "Grease Pencil layer assigned to the generated strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "source_vertex_group", PROP_STRING, PROP_NONE);
@@ -3118,6 +3136,15 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
                            "Use cached scene data from the first line art modifier in the stack. "
                            "Certain settings will be unavailable");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "overscan", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Overscan",
+      "A margin to prevent strokes from ending abruptly at the edge of the image");
+  RNA_def_property_ui_range(prop, 0.0f, 0.5f, 0.01f, 3);
+  RNA_def_property_range(prop, 0.0f, 0.5f);
+  RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "thickness", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Thickness", "The thickness for the generated strokes");
@@ -3255,7 +3282,7 @@ void RNA_def_greasepencil_modifier(BlenderRNA *brna)
 
   /* data */
   srna = RNA_def_struct(brna, "GpencilModifier", NULL);
-  RNA_def_struct_ui_text(srna, "GpencilModifier", "Modifier affecting the grease pencil object");
+  RNA_def_struct_ui_text(srna, "GpencilModifier", "Modifier affecting the Grease Pencil object");
   RNA_def_struct_refine_func(srna, "rna_GpencilModifier_refine");
   RNA_def_struct_path_func(srna, "rna_GpencilModifier_path");
   RNA_def_struct_sdna(srna, "GpencilModifierData");

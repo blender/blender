@@ -390,21 +390,21 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
 }
 
 /**
- * Create a new offscreen context.
- * Never explicitly delete the context, use disposeContext() instead.
+ * Create a new off-screen context.
+ * Never explicitly delete the context, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
 GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSettings)
 {
-  // During development:
-  //   try 4.x compatibility profile
-  //   try 3.3 compatibility profile
-  //   fall back to 3.0 if needed
-  //
-  // Final Blender 2.8:
-  //   try 4.x core profile
-  //   try 3.3 core profile
-  //   no fallbacks
+  /* During development:
+   *   try 4.x compatibility profile
+   *   try 3.3 compatibility profile
+   *   fall back to 3.0 if needed
+   *
+   * Final Blender 2.8:
+   *   try 4.x core profile
+   *   try 3.3 core profile
+   *   no fall-backs. */
 
   const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
 
@@ -2014,7 +2014,7 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
         return;
       }
 
-      // not using INCR mechanism, just read the property
+      /* Not using INCR mechanism, just read the property. */
       XGetWindowProperty(m_display,
                          win,
                          m_atom.XCLIP_OUT,

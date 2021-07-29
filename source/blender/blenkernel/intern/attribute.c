@@ -39,6 +39,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
+#include "BKE_editmesh.h"
 #include "BKE_hair.h"
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
@@ -63,14 +64,28 @@ static void get_domains(ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
     }
     case ID_ME: {
       Mesh *mesh = (Mesh *)id;
-      info[ATTR_DOMAIN_POINT].customdata = &mesh->vdata;
-      info[ATTR_DOMAIN_POINT].length = mesh->totvert;
-      info[ATTR_DOMAIN_EDGE].customdata = &mesh->edata;
-      info[ATTR_DOMAIN_EDGE].length = mesh->totedge;
-      info[ATTR_DOMAIN_CORNER].customdata = &mesh->ldata;
-      info[ATTR_DOMAIN_CORNER].length = mesh->totloop;
-      info[ATTR_DOMAIN_FACE].customdata = &mesh->pdata;
-      info[ATTR_DOMAIN_FACE].length = mesh->totpoly;
+      BMEditMesh *em = mesh->edit_mesh;
+      if (em != NULL) {
+        BMesh *bm = em->bm;
+        info[ATTR_DOMAIN_POINT].customdata = &bm->vdata;
+        info[ATTR_DOMAIN_POINT].length = bm->totvert;
+        info[ATTR_DOMAIN_EDGE].customdata = &bm->edata;
+        info[ATTR_DOMAIN_EDGE].length = bm->totedge;
+        info[ATTR_DOMAIN_CORNER].customdata = &bm->ldata;
+        info[ATTR_DOMAIN_CORNER].length = bm->totloop;
+        info[ATTR_DOMAIN_FACE].customdata = &bm->pdata;
+        info[ATTR_DOMAIN_FACE].length = bm->totface;
+      }
+      else {
+        info[ATTR_DOMAIN_POINT].customdata = &mesh->vdata;
+        info[ATTR_DOMAIN_POINT].length = mesh->totvert;
+        info[ATTR_DOMAIN_EDGE].customdata = &mesh->edata;
+        info[ATTR_DOMAIN_EDGE].length = mesh->totedge;
+        info[ATTR_DOMAIN_CORNER].customdata = &mesh->ldata;
+        info[ATTR_DOMAIN_CORNER].length = mesh->totloop;
+        info[ATTR_DOMAIN_FACE].customdata = &mesh->pdata;
+        info[ATTR_DOMAIN_FACE].length = mesh->totpoly;
+      }
       break;
     }
     case ID_HA: {
@@ -146,7 +161,24 @@ CustomDataLayer *BKE_id_attribute_new(
     return NULL;
   }
 
-  CustomData_add_layer_named(customdata, type, CD_DEFAULT, NULL, info[domain].length, name);
+  switch (GS(id->name)) {
+    case ID_ME: {
+      Mesh *me = (Mesh *)id;
+      BMEditMesh *em = me->edit_mesh;
+      if (em != NULL) {
+        BM_data_layer_add_named(em->bm, customdata, type, name);
+      }
+      else {
+        CustomData_add_layer_named(customdata, type, CD_DEFAULT, NULL, info[domain].length, name);
+      }
+      break;
+    }
+    default: {
+      CustomData_add_layer_named(customdata, type, CD_DEFAULT, NULL, info[domain].length, name);
+      break;
+    }
+  }
+
   const int index = CustomData_get_named_layer_index(customdata, type, name);
   return (index == -1) ? NULL : &(customdata->layers[index]);
 }
@@ -168,8 +200,26 @@ bool BKE_id_attribute_remove(ID *id, CustomDataLayer *layer, ReportList *reports
     return false;
   }
 
-  const int length = BKE_id_attribute_data_length(id, layer);
-  CustomData_free_layer(customdata, layer->type, length, index);
+  switch (GS(id->name)) {
+    case ID_ME: {
+      Mesh *me = (Mesh *)id;
+      BMEditMesh *em = me->edit_mesh;
+      if (em != NULL) {
+        BM_data_layer_free(em->bm, customdata, layer->type);
+      }
+      else {
+        const int length = BKE_id_attribute_data_length(id, layer);
+        CustomData_free_layer(customdata, layer->type, length, index);
+      }
+      break;
+    }
+    default: {
+      const int length = BKE_id_attribute_data_length(id, layer);
+      CustomData_free_layer(customdata, layer->type, length, index);
+      break;
+    }
+  }
+
   return true;
 }
 
@@ -316,7 +366,7 @@ CustomData *BKE_id_attributes_iterator_next_domain(ID *id, CustomDataLayer *laye
 
   for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
     CustomData *customdata = info[domain].customdata;
-    if (customdata && customdata->layers) {
+    if (customdata && customdata->layers && customdata->totlayer) {
       if (customdata->layers == layers) {
         use_next = true;
       }

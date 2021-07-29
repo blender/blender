@@ -55,7 +55,7 @@ GHOST_TSuccess GHOST_TimerManager::addTimer(GHOST_TimerTask *timer)
 {
   GHOST_TSuccess success;
   if (!getTimerFound(timer)) {
-    // Add the timer task
+    /* Add the timer task. */
     m_timers.push_back(timer);
     success = GHOST_kSuccess;
   }
@@ -70,7 +70,7 @@ GHOST_TSuccess GHOST_TimerManager::removeTimer(GHOST_TimerTask *timer)
   GHOST_TSuccess success;
   TTimerVector::iterator iter = std::find(m_timers.begin(), m_timers.end(), timer);
   if (iter != m_timers.end()) {
-    // Remove the timer task
+    /* Remove the timer task. */
     m_timers.erase(iter);
     delete timer;
     success = GHOST_kSuccess;
@@ -113,14 +113,14 @@ bool GHOST_TimerManager::fireTimer(uint64_t time, GHOST_TimerTask *task)
 {
   uint64_t next = task->getNext();
 
-  // Check if the timer should be fired
+  /* Check if the timer should be fired. */
   if (time > next) {
-    // Fire the timer
+    /* Fire the timer. */
     GHOST_TimerProcPtr timerProc = task->getTimerProc();
     uint64_t start = task->getStart();
     timerProc(task, time - start);
 
-    // Update the time at which we will fire it again
+    /* Update the time at which we will fire it again. */
     uint64_t interval = task->getInterval();
     uint64_t numCalls = (next - start) / interval;
     numCalls++;

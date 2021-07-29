@@ -74,8 +74,8 @@ BLI_INLINE void DRW_ibo_request(GPUBatch *batch, GPUIndexBuf **ibo)
 
 BLI_INLINE bool DRW_ibo_requested(GPUIndexBuf *ibo)
 {
-  /* TODO: do not rely on data uploaded. This prevents multithreading.
-   * (need access to a gl context) */
+  /* TODO: do not rely on data uploaded. This prevents multi-threading.
+   * (need access to a OpenGL context). */
   return (ibo != NULL && !GPU_indexbuf_is_init(ibo));
 }
 
@@ -85,7 +85,7 @@ BLI_INLINE void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)
     *vbo = GPU_vertbuf_calloc();
   }
   if (batch != NULL) {
-    /* HACK we set vbos that may not yet be valid. */
+    /* HACK we set VBO's that may not yet be valid. */
     GPU_batch_vertbuf_add(batch, *vbo);
   }
 }

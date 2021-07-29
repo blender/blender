@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_sort_utils.h"
 
@@ -39,6 +40,70 @@
 #include "range_tree.h"
 
 #define SELECT 1
+
+#ifdef WITH_BM_ID_FREELIST
+static uint bm_id_freelist_pop(BMesh *bm)
+{
+  if (bm->idmap.freelist_len > 0) {
+    return bm->idmap.freelist[--bm->idmap.freelist_len];
+  }
+
+  return 0;
+}
+
+static void bm_id_freelist_take(BMesh *bm, uint id)
+{
+  if (!bm->idmap.free_ids || !BLI_gset_haskey(bm->idmap.free_ids, POINTER_FROM_UINT(id))) {
+    return;
+  }
+
+  for (int i = 0; i < bm->idmap.freelist_len; i++) {
+    if (bm->idmap.freelist[i] == id) {
+      // swap with end
+      bm->idmap.freelist[i] = bm->idmap.freelist[bm->idmap.freelist_len - 1];
+      bm->idmap.freelist_len--;
+    }
+  }
+}
+
+static bool bm_id_freelist_has(BMesh *bm, uint id)
+{
+  if (!bm->idmap.free_ids) {
+    return false;
+  }
+
+  return BLI_gset_haskey(bm->idmap.free_ids, POINTER_FROM_UINT(id));
+}
+
+void bm_id_freelist_push(BMesh *bm, uint id)
+{
+  bm->idmap.freelist_len++;
+
+  if (!bm->idmap.free_ids) {
+    bm->idmap.free_ids = BLI_gset_ptr_new("free_ids");
+  }
+
+  if (bm->idmap.freelist_len >= bm->idmap.freelist_size) {
+    int size = 2 + bm->idmap.freelist_size + (bm->idmap.freelist_size >> 1);
+
+    uint *newlist;
+
+    if (bm->idmap.freelist) {
+      newlist = MEM_reallocN(bm->idmap.freelist, size * sizeof(uint));
+      memcpy((void *)newlist, (void *)bm->idmap.freelist, bm->idmap.freelist_size);
+    }
+    else {
+      newlist = MEM_malloc_arrayN(size, sizeof(uint), "bm->idmap.freelist");
+    }
+
+    bm->idmap.freelist_size = size;
+    bm->idmap.freelist = newlist;
+  }
+
+  bm->idmap.freelist[bm->idmap.freelist_len - 1] = id;
+  BLI_gset_add(bm->idmap.free_ids, POINTER_FROM_UINT(id));
+}
+#endif
 
 static const int _typemap[] = {0, 0, 1, 0, 2, 0, 0, 0, 3};
 
@@ -71,7 +136,11 @@ static void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 
 void bm_assign_id(BMesh *bm, BMElem *elem, uint id)
 {
+#ifdef WITH_BM_ID_FREELIST
+  bm_id_freelist_take(bm, id);
+#else
   range_tree_uint_retake(bm->idmap.idtree, id);
+#endif
   bm_assign_id_intern(bm, elem, id);
 }
 
@@ -81,7 +150,19 @@ void bm_alloc_id(BMesh *bm, BMElem *elem)
     return;
   }
 
+#ifdef WITH_BM_ID_FREELIST
+  uint id;
+
+  if (bm->idmap.freelist_len > 0) {
+    id = bm_id_freelist_pop(bm);
+  }
+  else {
+    id = bm->idmap.maxid + 1;
+  }
+#else
   uint id = range_tree_uint_take_any(bm->idmap.idtree);
+#endif
+
   bm_assign_id_intern(bm, elem, id);
 }
 
@@ -91,10 +172,15 @@ void bm_free_id(BMesh *bm, BMElem *elem)
     return;
   }
 
-  uint id = BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[elem->head.htype]);
-  if (range_tree_uint_has(bm->idmap.idtree, id)) {
+  uint id = (uint)BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[elem->head.htype]);
+
+#ifndef WITH_BM_ID_FREELIST
+  if (!range_tree_uint_has(bm->idmap.idtree, id)) {
     range_tree_uint_release(bm->idmap.idtree, id);
   }
+#else
+
+#endif
 
   if ((bm->idmap.flag & BM_HAS_ID_MAP) && bm->idmap.map && id >= 0 && id < bm->idmap.map_size) {
     bm->idmap.map[id] = NULL;

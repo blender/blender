@@ -711,7 +711,7 @@ void RNA_api_sequence_strip(StructRNA *srna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_enum(func, "split_method", seq_split_method_items, 0, "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  /* Retirn type. */
+  /* Return type. */
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "Right side Sequence");
   RNA_def_function_return(func, parm);
 }

@@ -404,7 +404,7 @@ endif()
 
 # CMake FindOpenMP doesn't know about AppleClang before 3.12, so provide custom flags.
 if(WITH_OPENMP)
-  if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "7.0")
+  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
     # Use OpenMP from our precompiled libraries.
     message(STATUS "Using ${LIBDIR}/openmp for OpenMP")
     set(OPENMP_CUSTOM ON)
@@ -480,10 +480,8 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic")
 endif()
 
-if(${XCODE_VERSION} VERSION_EQUAL 5 OR ${XCODE_VERSION} VERSION_GREATER 5)
-  # Xcode 5 is always using CLANG, which has too low template depth of 128 for libmv
-  string(APPEND CMAKE_CXX_FLAGS " -ftemplate-depth=1024")
-endif()
+# Clang has too low template depth of 128 for libmv.
+string(APPEND CMAKE_CXX_FLAGS " -ftemplate-depth=1024")
 
 # Avoid conflicts with Luxrender, and other plug-ins that may use the same
 # libraries as Blender with a different version or build options.

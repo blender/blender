@@ -38,6 +38,7 @@ typedef struct BMLogCallbacks {
   void (*on_face_change)(struct BMFace *f, void *userdata, void *old_customdata);
 
   void (*on_full_mesh_load)(void *userdata);
+  void (*on_mesh_id_restore)(void *userdata);
   void *userdata;
 } BMLogCallbacks;
 
@@ -64,6 +65,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log);
 /* Start a new log entry and update the log entry list */
 BMLogEntry *BM_log_entry_add(BMesh *bm, BMLog *log);
 BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last);
+BMLogEntry *BM_log_all_ids(BMesh *bm, BMLog *log, BMLogEntry *entry);
 
 BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log);
 
@@ -123,6 +125,9 @@ void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const 
 
 /* For internal use only (unit testing) */
 BMLogEntry *BM_log_current_entry(BMLog *log);
+void BM_log_set_current_entry(BMLog *log, BMLogEntry *entry);
+BMLogEntry *BM_log_entry_prev(BMLogEntry *entry);
+BMLogEntry *BM_log_entry_next(BMLogEntry *entry);
 
 uint BM_log_vert_id_get(BMLog *log, BMVert *v);
 BMVert *BM_log_id_vert_get(BMLog *log, uint id);
@@ -130,3 +135,5 @@ uint BM_log_face_id_get(BMLog *log, BMFace *f);
 BMFace *BM_log_id_face_get(BMLog *log, uint id);
 
 void BM_log_print_entry(BMLog *log, BMLogEntry *entry);
+void BM_log_redo_skip(BMesh *bm, BMLog *log);
+void BM_log_undo_skip(BMesh *bm, BMLog *log);

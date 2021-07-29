@@ -30,6 +30,7 @@ class TestGraph:
 
         data = []
         for device_name, device_entries in devices.items():
+
             # Gather used categories.
             categories = {}
             for entry in device_entries:
@@ -57,6 +58,8 @@ class TestGraph:
         self.json = json.dumps(data, indent=2)
 
     def chart(self, device_name: str, chart_name: str, entries: List, chart_type: str, output: str) -> Dict:
+        entries = sorted(entries, key=lambda entry: entry.date)
+
         # Gather used tests.
         tests = {}
         for entry in entries:

@@ -538,7 +538,7 @@ static void get_loop_normals(struct Mesh *mesh,
 
   BKE_mesh_calc_normals_split(mesh);
   const float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
-  BLI_assert(lnors != nullptr || !"BKE_mesh_calc_normals_split() should have computed CD_NORMAL");
+  BLI_assert_msg(lnors != nullptr, "BKE_mesh_calc_normals_split() should have computed CD_NORMAL");
 
   normals.resize(mesh->totloop);
 

@@ -191,10 +191,11 @@ void ViewerOperation::initImage()
   BLI_thread_unlock(LOCK_DRAW_IMAGE);
 }
 
-void ViewerOperation::updateImage(rcti *rect)
+void ViewerOperation::updateImage(const rcti *rect)
 {
+  float *buffer = m_outputBuffer;
   IMB_partial_display_buffer_update(this->m_ibuf,
-                                    this->m_outputBuffer,
+                                    buffer,
                                     nullptr,
                                     getWidth(),
                                     0,
@@ -216,6 +217,46 @@ eCompositorPriority ViewerOperation::getRenderPriority() const
   }
 
   return eCompositorPriority::Low;
+}
+
+void ViewerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+                                                   const rcti &area,
+                                                   Span<MemoryBuffer *> inputs)
+{
+  if (!m_outputBuffer) {
+    return;
+  }
+
+  MemoryBuffer output_buffer(
+      m_outputBuffer, COM_DATA_TYPE_COLOR_CHANNELS, getWidth(), getHeight());
+  const MemoryBuffer *input_image = inputs[0];
+  output_buffer.copy_from(input_image, area);
+  if (this->m_useAlphaInput) {
+    const MemoryBuffer *input_alpha = inputs[1];
+    output_buffer.copy_from(input_alpha, area, 0, COM_DATA_TYPE_VALUE_CHANNELS, 3);
+  }
+
+  if (m_depthBuffer) {
+    MemoryBuffer depth_buffer(
+        m_depthBuffer, COM_DATA_TYPE_VALUE_CHANNELS, getWidth(), getHeight());
+    const MemoryBuffer *input_depth = inputs[2];
+    depth_buffer.copy_from(input_depth, area);
+  }
+
+  updateImage(&area);
+}
+
+void ViewerOperation::clear_display_buffer()
+{
+  BLI_assert(isActiveViewerOutput());
+  initImage();
+  size_t buf_bytes = (size_t)m_ibuf->y * m_ibuf->x * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float);
+  if (buf_bytes > 0) {
+    memset(m_outputBuffer, 0, buf_bytes);
+    rcti display_area;
+    BLI_rcti_init(&display_area, 0, m_ibuf->x, 0, m_ibuf->y);
+    updateImage(&display_area);
+  }
 }
 
 }  // namespace blender::compositor

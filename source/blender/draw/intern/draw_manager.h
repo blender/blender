@@ -110,8 +110,8 @@ typedef struct DRWCullingState {
 
 /* Minimum max UBO size is 64KiB. We take the largest
  * UBO struct and alloc the max number.
- * ((1 << 16) / sizeof(DRWObjectMatrix)) = 512
- * Keep in sync with common_view_lib.glsl */
+ * `((1 << 16) / sizeof(DRWObjectMatrix)) = 512`
+ * Keep in sync with `common_view_lib.glsl`. */
 #define DRW_RESOURCE_CHUNK_LEN 512
 
 /**

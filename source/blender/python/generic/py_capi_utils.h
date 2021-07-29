@@ -42,17 +42,33 @@ void PyC_Err_PrintWithFunc(PyObject *py_func);
 void PyC_FileAndNum(const char **r_filename, int *r_lineno);
 void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno); /* checks python is running */
 int PyC_AsArray_FAST(void *array,
+                     const size_t array_elem_size,
                      PyObject *value_fast,
                      const Py_ssize_t length,
                      const PyTypeObject *type,
-                     const bool is_double,
                      const char *error_prefix);
 int PyC_AsArray(void *array,
+                const size_t array_elem_size,
                 PyObject *value,
                 const Py_ssize_t length,
                 const PyTypeObject *type,
-                const bool is_double,
                 const char *error_prefix);
+
+int PyC_AsArray_Multi_FAST(void *array,
+                           const size_t array_item_size,
+                           PyObject *value_fast,
+                           const int *dims,
+                           const int dims_len,
+                           const PyTypeObject *type,
+                           const char *error_prefix);
+
+int PyC_AsArray_Multi(void *array,
+                      const size_t array_item_size,
+                      PyObject *value,
+                      const int *dims,
+                      const int dims_len,
+                      const PyTypeObject *type,
+                      const char *error_prefix);
 
 PyObject *PyC_Tuple_PackArray_F32(const float *array, uint len);
 PyObject *PyC_Tuple_PackArray_F64(const double *array, uint len);
@@ -70,6 +86,11 @@ PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
   PyC_Tuple_PackArray_I32FromBool(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_Bool(...) \
   PyC_Tuple_PackArray_Bool(((const bool[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+
+PyObject *PyC_Tuple_PackArray_Multi_F32(const float *array, const int dims[], const int dims_len);
+PyObject *PyC_Tuple_PackArray_Multi_F64(const double *array, const int dims[], const int dims_len);
+PyObject *PyC_Tuple_PackArray_Multi_I32(const int *array, const int dims[], const int dims_len);
+PyObject *PyC_Tuple_PackArray_Multi_Bool(const bool *array, const int dims[], const int dims_len);
 
 void PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
 void PyC_List_Fill(PyObject *list, PyObject *value);

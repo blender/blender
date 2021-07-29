@@ -60,17 +60,22 @@ class CopyRigidbodySettings(Operator):
 
     def execute(self, context):
         obj_act = context.object
-        view_layer = context.view_layer
 
-        # deselect all but mesh objects
+        # Deselect all non mesh objects and objects that
+        # already have a rigid body attached.
+        rb_objects = []
         for o in context.selected_objects:
-            if o.type != 'MESH':
+            if o.type != 'MESH' or o.rigid_body is not None:
                 o.select_set(False)
-            elif o.rigid_body is None:
-                # Add rigidbody to object!
-                view_layer.objects.active = o
-                bpy.ops.rigidbody.object_add()
-        view_layer.objects.active = obj_act
+                if o.rigid_body is not None:
+                    rb_objects.append(o)
+
+        bpy.ops.rigidbody.objects_add()
+
+        # Ensure that the rigid body objects
+        # we've de-selected are selected again.
+        for o in rb_objects:
+            o.select_set(True)
 
         objects = context.selected_objects
         if objects:

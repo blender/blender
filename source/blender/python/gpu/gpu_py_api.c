@@ -20,8 +20,8 @@
  * Experimental Python API, not considered public yet (called '_gpu'),
  * we may re-expose as public later.
  *
- * - Use ``bpygpu_`` for local API.
- * - Use ``BPyGPU`` for public API.
+ * - Use `bpygpu_` for local API.
+ * - Use `BPyGPU` for public API.
  */
 
 #include <Python.h>

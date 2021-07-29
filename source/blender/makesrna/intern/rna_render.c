@@ -72,9 +72,6 @@ const EnumPropertyItem rna_enum_render_pass_type_items[] = {
     {SCE_PASS_SUBSURFACE_DIRECT, "SUBSURFACE_DIRECT", 0, "Subsurface Direct", ""},
     {SCE_PASS_SUBSURFACE_INDIRECT, "SUBSURFACE_INDIRECT", 0, "Subsurface Indirect", ""},
     {SCE_PASS_SUBSURFACE_COLOR, "SUBSURFACE_COLOR", 0, "Subsurface Color", ""},
-#ifdef WITH_CYCLES_DEBUG
-    {SCE_PASS_DEBUG, "DEBUG", 0, "Pass used for render engine debugging", ""},
-#endif
     {0, NULL, 0, NULL, NULL},
 };
 

@@ -932,8 +932,8 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
 #endif
     /* `const int out =` */ ibuf_get_color_clip_bilerp(
         tc, ibuf, ibuf->x * u, ibuf->y * v, AFD->intpol, AFD->extflag);
-    /* TXF alpha: clip |= out;
-     * TXF alpha: cw += out ? 0.0f : wt; */
+    /* TXF alpha: `clip |= out;`
+     * TXF alpha: `cw += out ? 0.0f : wt;` */
     texr->tr += tc[0] * wt;
     texr->tg += tc[1] * wt;
     texr->tb += tc[2] * wt;

@@ -636,40 +636,12 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   SCULPT_pbvh_clear(ob);
 
-  if (unode) {
-    /* Free all existing custom data. */
-    CustomData_free(&me->vdata, me->totvert);
-    CustomData_free(&me->edata, me->totedge);
-    CustomData_free(&me->fdata, me->totface);
-    CustomData_free(&me->ldata, me->totloop);
-    CustomData_free(&me->pdata, me->totpoly);
+  BKE_sculptsession_bm_to_me(ob, true);
 
-    /* Copy over stored custom data. */
-    SculptUndoNodeGeometry *geometry = &unode->geometry_bmesh_enter;
-    me->totvert = geometry->totvert;
-    me->totloop = geometry->totloop;
-    me->totpoly = geometry->totpoly;
-    me->totedge = geometry->totedge;
-    me->totface = 0;
-    CustomData_copy(
-        &geometry->vdata, &me->vdata, CD_MASK_MESH.vmask, CD_DUPLICATE, geometry->totvert);
-    CustomData_copy(
-        &geometry->edata, &me->edata, CD_MASK_MESH.emask, CD_DUPLICATE, geometry->totedge);
-    CustomData_copy(
-        &geometry->ldata, &me->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, geometry->totloop);
-    CustomData_copy(
-        &geometry->pdata, &me->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
-
-    BKE_mesh_update_customdata_pointers(me, false);
-  }
-  else {
-    BKE_sculptsession_bm_to_me(ob, true);
-
-    /* Sync the visibility to vertices manually as the pmap is still not initialized. */
-    for (int i = 0; i < me->totvert; i++) {
-      me->mvert[i].flag &= ~ME_HIDE;
-      me->mvert[i].flag |= ME_VERT_PBVH_UPDATE;
-    }
+  /* Sync the visibility to vertices manually as the pmap is still not initialized. */
+  for (int i = 0; i < me->totvert; i++) {
+    me->mvert[i].flag &= ~ME_HIDE;
+    me->mvert[i].flag |= ME_VERT_PBVH_UPDATE;
   }
 
   /* Clear data. */

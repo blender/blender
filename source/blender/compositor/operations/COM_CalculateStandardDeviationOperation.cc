@@ -19,6 +19,7 @@
 #include "COM_CalculateStandardDeviationOperation.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "COM_ExecutionSystem.h"
 
 #include "IMB_colormanagement.h"
 
@@ -94,6 +95,52 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
   }
   unlockMutex();
   return nullptr;
+}
+
+void CalculateStandardDeviationOperation::update_memory_buffer_started(
+    MemoryBuffer *UNUSED(output), const rcti &UNUSED(area), Span<MemoryBuffer *> inputs)
+{
+  if (!this->m_iscalculated) {
+    const MemoryBuffer *input = inputs[0];
+    const float mean = CalculateMeanOperation::calc_mean(input);
+
+    PixelsSum total = {0};
+    exec_system_->execute_work<PixelsSum>(
+        input->get_rect(),
+        [=](const rcti &split) { return calc_area_sum(input, split, mean); },
+        total,
+        [](PixelsSum &join, const PixelsSum &chunk) {
+          join.sum += chunk.sum;
+          join.num_pixels += chunk.num_pixels;
+        });
+    this->m_standardDeviation = total.num_pixels <= 1 ?
+                                    0.0f :
+                                    sqrt(total.sum / (float)(total.num_pixels - 1));
+    this->m_iscalculated = true;
+  }
+}
+
+void CalculateStandardDeviationOperation::update_memory_buffer_partial(
+    MemoryBuffer *output, const rcti &area, Span<MemoryBuffer *> UNUSED(inputs))
+{
+  output->fill(area, &m_standardDeviation);
+}
+
+using PixelsSum = CalculateMeanOperation::PixelsSum;
+PixelsSum CalculateStandardDeviationOperation::calc_area_sum(const MemoryBuffer *input,
+                                                             const rcti &area,
+                                                             const float mean)
+{
+  PixelsSum result = {0};
+  for (const float *elem : input->get_buffer_area(area)) {
+    if (elem[3] <= 0.0f) {
+      continue;
+    }
+    const float value = setting_func_(elem);
+    result.sum += (value - mean) * (value - mean);
+    result.num_pixels++;
+  }
+  return result;
 }
 
 }  // namespace blender::compositor

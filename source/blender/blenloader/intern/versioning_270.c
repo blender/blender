@@ -1115,8 +1115,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "gpencil_v3d_align")) {
         ts->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
         ts->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
-        ts->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
-        ts->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
       }
     }
 

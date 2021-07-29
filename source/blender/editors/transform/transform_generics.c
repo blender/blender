@@ -343,9 +343,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else {
     if (region) {
-      /* XXX for now, get View2D  from the active region */
+      /* XXX: For now, get View2D from the active region. */
       t->view = &region->v2d;
-      /* XXX for now, the center point is the midpoint of the data */
+      /* XXX: For now, the center point is the midpoint of the data. */
     }
     else {
       t->view = NULL;

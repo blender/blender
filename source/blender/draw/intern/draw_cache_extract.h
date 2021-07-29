@@ -81,11 +81,12 @@ typedef enum eMRDataType {
   MR_DATA_POLY_NOR = 1 << 1,
   MR_DATA_LOOP_NOR = 1 << 2,
   MR_DATA_LOOPTRI = 1 << 3,
+  MR_DATA_LOOSE_GEOM = 1 << 4,
   /** Force loop normals calculation. */
-  MR_DATA_TAN_LOOP_NOR = 1 << 4,
-  MR_DATA_MAT_OFFSETS = 1 << 5,
+  MR_DATA_TAN_LOOP_NOR = 1 << 5,
+  MR_DATA_POLYS_SORTED = 1 << 6,
 } eMRDataType;
-ENUM_OPERATORS(eMRDataType, MR_DATA_MAT_OFFSETS)
+ENUM_OPERATORS(eMRDataType, MR_DATA_POLYS_SORTED)
 
 #ifdef __cplusplus
 extern "C" {
@@ -169,10 +170,10 @@ typedef struct MeshBufferExtractionCache {
   } loose_geom;
 
   struct {
-    int *tri;
+    int *tri_first_index;
+    int *mat_tri_len;
     int visible_tri_len;
-  } mat_offsets;
-
+  } poly_sorted;
 } MeshBufferExtractionCache;
 
 #define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbc) \

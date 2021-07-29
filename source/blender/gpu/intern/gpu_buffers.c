@@ -1749,19 +1749,19 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
 /* Creates a vertex buffer (coordinate, normal, color) and, if smooth
  * shading, an element index buffer.
  * Threaded - do not call any functions that use OpenGL calls! */
-ATTR_NO_OPT void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
-                                               BMesh *bm,
-                                               TableGSet *bm_faces,
-                                               TableGSet *bm_unique_verts,
-                                               TableGSet *bm_other_verts,
-                                               PBVHTriBuf *tribuf,
-                                               const int update_flags,
-                                               const int cd_vert_node_offset,
-                                               int face_sets_color_seed,
-                                               int face_sets_color_default,
-                                               bool flat_vcol,
-                                               bool active_vcol_only,
-                                               short mat_nr)
+void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
+                                   BMesh *bm,
+                                   TableGSet *bm_faces,
+                                   TableGSet *bm_unique_verts,
+                                   TableGSet *bm_other_verts,
+                                   PBVHTriBuf *tribuf,
+                                   const int update_flags,
+                                   const int cd_vert_node_offset,
+                                   int face_sets_color_seed,
+                                   int face_sets_color_default,
+                                   bool flat_vcol,
+                                   bool active_vcol_only,
+                                   short mat_nr)
 {
 
   if (flat_vcol && CustomData_has_layer(&bm->vdata, CD_PROP_COLOR)) {

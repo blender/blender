@@ -51,7 +51,7 @@ GHOST_TSuccess GHOST_DisplayManager::initialize(void)
 
 GHOST_TSuccess GHOST_DisplayManager::getNumDisplays(uint8_t & /*numDisplays*/) const
 {
-  // Don't know if we have a display...
+  /* Don't know if we have a display. */
   return GHOST_kFailure;
 }
 
@@ -120,18 +120,18 @@ GHOST_TSuccess GHOST_DisplayManager::findMatch(uint8_t display,
       (int)setting.xPixels, (int)setting.yPixels, (int)setting.bpp, (int)setting.frequency};
   int capabilities[4];
   double field, score;
-  double best = 1e12;  // A big number
+  double best = 1e12; /* A big number. */
   int found = 0;
 
-  // Look at all the display modes
+  /* Look at all the display modes. */
   for (int i = 0; (i < (int)m_settings[display].size()); i++) {
-    // Store the capabilities of the display device
+    /* Store the capabilities of the display device. */
     capabilities[0] = m_settings[display][i].xPixels;
     capabilities[1] = m_settings[display][i].yPixels;
     capabilities[2] = m_settings[display][i].bpp;
     capabilities[3] = m_settings[display][i].frequency;
 
-    // Match against all the fields of the display settings
+    /* Match against all the fields of the display settings. */
     score = 0;
     for (int j = 0; j < 4; j++) {
       field = capabilities[j] - criteria[j];

@@ -398,7 +398,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
             ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* Loop through filtered data and add keys between selected keyframes on every frame . */
+  /* Loop through filtered data and add keys between selected keyframes on every frame. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     FCurve *fcu = (FCurve *)ale->key_data;
     FCurve *gcu = BKE_fcurve_create();

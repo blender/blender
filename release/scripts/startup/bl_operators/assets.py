@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 from __future__ import annotations
-from pathlib import Path
 
 import bpy
 from bpy.types import Operator

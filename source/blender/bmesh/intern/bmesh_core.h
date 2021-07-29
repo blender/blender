@@ -131,3 +131,4 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
 BMVert *bmesh_kernel_unglue_region_make_vert_multi_isolated(BMesh *bm, BMLoop *l_sep);
 
 void BM_reassign_ids(BMesh *bm);
+void BM_clear_ids(BMesh *bm);

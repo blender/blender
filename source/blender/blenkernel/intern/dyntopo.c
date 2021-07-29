@@ -1445,7 +1445,7 @@ static void short_edge_queue_task_cb(void *__restrict userdata,
   TGSET_ITER_END
 }
 
-ATTR_NO_OPT static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
+static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 {
   if (f->len == 3) {
     return true;
@@ -1534,7 +1534,7 @@ ATTR_NO_OPT static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
   return false;
 }
 
-ATTR_NO_OPT static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
+static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
 {
   BMFace **fs = NULL;
   BLI_array_staticdeclare(fs, 32);
@@ -1869,12 +1869,12 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     }
 
     /**
-     * The 2 new faces created and assigned to ``f_new`` have their
+     * The 2 new faces created and assigned to `f_new` have their
      * verts & edges shuffled around.
      *
      * - faces wind anticlockwise in this example.
-     * - original edge is ``(v1, v2)``
-     * - original face is ``(v1, v2, v3)``
+     * - original edge is `(v1, v2)`
+     * - original face is `(v1, v2, v3)`
      *
      * <pre>
      *         + v3(v_opp)
@@ -1890,8 +1890,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
      *  (first) (second)
      * </pre>
      *
-     * - f_new (first):  ``v_tri=(v1, v4, v3), e_tri=(e1, e5, e4)``
-     * - f_new (second): ``v_tri=(v4, v2, v3), e_tri=(e2, e3, e5)``
+     * - f_new (first):  `v_tri=(v1, v4, v3), e_tri=(e1, e5, e4)`
+     * - f_new (second): `v_tri=(v4, v2, v3), e_tri=(e2, e3, e5)`
      */
 
     /* Create two new faces */
@@ -2503,13 +2503,18 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
   return any_collapsed;
 }
 
-// need to file a CLANG bug
-ATTR_NO_OPT static bool cleanup_valence_3_4(PBVH *pbvh,
-                                            const float center[3],
-                                            const float view_normal[3],
-                                            float radius,
-                                            const bool use_frontface,
-                                            const bool use_projected)
+// need to file a CLANG bug, getting weird behavior here
+#ifdef __clang__
+__attribute__((optnone))
+#endif
+
+static bool
+cleanup_valence_3_4(PBVH *pbvh,
+                    const float center[3],
+                    const float view_normal[3],
+                    float radius,
+                    const bool use_frontface,
+                    const bool use_projected)
 {
   bool modified = false;
 

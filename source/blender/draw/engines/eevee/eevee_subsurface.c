@@ -192,7 +192,7 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
       gpumat, stl->effects->sss_sample_count, &sss_tex_profile);
 
   if (!sss_profile) {
-    BLI_assert(0 && "SSS pass requested but no SSS data was found");
+    BLI_assert_msg(0, "SSS pass requested but no SSS data was found");
     return;
   }
 

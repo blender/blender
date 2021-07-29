@@ -4254,7 +4254,7 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 }
 
 PyDoc_STRVAR(pyrna_struct_id_properties_ensure_doc,
-             ".. method:: id_properties_ensure()\n"
+             ".. method:: id_properties_ensure()\n\n"
              "   :return: the parent group for an RNA struct's custom IDProperties.\n"
              "   :rtype: :class:`bpy.types.IDPropertyGroup`\n");
 static PyObject *pyrna_struct_id_properties_ensure(BPy_StructRNA *self)
@@ -4282,7 +4282,7 @@ static PyObject *pyrna_struct_id_properties_ensure(BPy_StructRNA *self)
 }
 
 PyDoc_STRVAR(pyrna_struct_id_properties_clear_doc,
-             ".. method:: id_properties_clear()\n"
+             ".. method:: id_properties_clear()\n\n"
              "   :return: Remove the parent group for an RNA struct's custom IDProperties.\n");
 static PyObject *pyrna_struct_id_properties_clear(BPy_StructRNA *self)
 {
@@ -7424,10 +7424,13 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
     PyObject *metaclass;
     const char *idname = RNA_struct_identifier(srna);
 
-    /* Remove __doc__ for now. */
-    // const char *descr = RNA_struct_ui_description(srna);
-    // if (!descr) descr = "(no docs)";
-    // "__doc__", descr
+    /* Remove `__doc__` for now because we don't need it to generate docs. */
+#if 0
+    const char *descr = RNA_struct_ui_description(srna);
+    if (!descr) {
+      descr = "(no docs)";
+    }
+#endif
 
     if (RNA_struct_idprops_check(srna) &&
         !PyObject_IsSubclass(py_base, (PyObject *)&pyrna_struct_meta_idprop_Type)) {

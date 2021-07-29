@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
@@ -31,7 +31,11 @@ class DoubleEdgeMaskOperation : public NodeOperation {
   SocketReader *m_inputInnerMask;
   bool m_adjacentOnly;
   bool m_keepInside;
+
+  /* TODO(manzanilla): To be removed with tiled implementation. */
   float *m_cachedInstance;
+
+  bool is_output_rendered_;
 
  public:
   DoubleEdgeMaskOperation();
@@ -66,6 +70,12 @@ class DoubleEdgeMaskOperation : public NodeOperation {
   {
     this->m_keepInside = keepInside;
   }
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+
+  void update_memory_buffer(MemoryBuffer *output,
+                            const rcti &area,
+                            Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

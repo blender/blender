@@ -156,7 +156,7 @@ DefNode(CompositorNode, CMP_NODE_HUE_SAT,        0,                      "HUE_SA
 DefNode(CompositorNode, CMP_NODE_IMAGE,          def_cmp_image,          "IMAGE",          Image,            "Image",             ""              )
 DefNode(CompositorNode, CMP_NODE_R_LAYERS,       def_cmp_render_layers,  "R_LAYERS",       RLayers,          "Render Layers",     ""              )
 DefNode(CompositorNode, CMP_NODE_COMPOSITE,      def_cmp_composite,      "COMPOSITE",      Composite,        "Composite",         ""              )
-/* NB: OutputFile node has special rna setup function called in rna_nodetree.c */
+/* NOTE: #OutputFile node has special RNA setup function called in rna_nodetree.c */
 DefNode(CompositorNode, CMP_NODE_OUTPUT_FILE,    0,                      "OUTPUT_FILE",    OutputFile,       "File Output",       ""              )
 DefNode(CompositorNode, CMP_NODE_TEXTURE,        def_texture,            "TEXTURE",        Texture,          "Texture",           ""              )
 DefNode(CompositorNode, CMP_NODE_TRANSLATE,      def_cmp_translate,      "TRANSLATE",      Translate,        "Translate",         ""              )
@@ -300,8 +300,10 @@ DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_QUADRATIC_BEZIER, 0, "CURVE_PRIMI
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_STAR, 0, "CURVE_PRIMITIVE_STAR", CurveStar, "Star", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_SPIRAL, 0, "CURVE_PRIMITIVE_SPIRAL", CurveSpiral, "Curve Spiral", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_RESAMPLE, def_geo_curve_resample, "CURVE_RESAMPLE", CurveResample, "Resample Curve", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_SET_HANDLES, def_geo_curve_set_handles, "CURVE_SET_HANDLES", CurveSetHandles, "Set Handle Type", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_SUBDIVIDE, def_geo_curve_subdivide, "CURVE_SUBDIVIDE", CurveSubdivide, "Curve Subdivide", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "Curve to Mesh", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_TRIM, def_geo_curve_trim, "CURVE_TRIM", CurveTrim, "Curve Trim", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_REVERSE, 0, "CURVE_REVERSE", CurveReverse, "Curve Reverse", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_POINTS, def_geo_curve_to_points, "CURVE_TO_POINTS", CurveToPoints, "Curve to Points", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_ENDPOINTS, 0, "CURVE_ENDPOINTS", CurveEndpoints, "Curve Endpoints", "")

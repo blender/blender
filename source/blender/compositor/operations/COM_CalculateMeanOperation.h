@@ -18,8 +18,9 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_node_types.h"
+#include <functional>
 
 namespace blender::compositor {
 
@@ -27,7 +28,13 @@ namespace blender::compositor {
  * \brief base class of CalculateMean, implementing the simple CalculateMean
  * \ingroup operation
  */
-class CalculateMeanOperation : public NodeOperation {
+class CalculateMeanOperation : public MultiThreadedOperation {
+ public:
+  struct PixelsSum {
+    float sum;
+    int num_pixels;
+  };
+
  protected:
   /**
    * \brief Cached reference to the reader
@@ -37,6 +44,7 @@ class CalculateMeanOperation : public NodeOperation {
   bool m_iscalculated;
   float m_result;
   int m_setting;
+  std::function<float(const float *elem)> setting_func_;
 
  public:
   CalculateMeanOperation();
@@ -61,13 +69,24 @@ class CalculateMeanOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
-  void setSetting(int setting)
-  {
-    this->m_setting = setting;
-  }
+  void setSetting(int setting);
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+
+  virtual void update_memory_buffer_started(MemoryBuffer *output,
+                                            const rcti &area,
+                                            Span<MemoryBuffer *> inputs) override;
+
+  virtual void update_memory_buffer_partial(MemoryBuffer *output,
+                                            const rcti &area,
+                                            Span<MemoryBuffer *> inputs) override;
 
  protected:
   void calculateMean(MemoryBuffer *tile);
+  float calc_mean(const MemoryBuffer *input);
+
+ private:
+  PixelsSum calc_area_sum(const MemoryBuffer *input, const rcti &area);
 };
 
 }  // namespace blender::compositor

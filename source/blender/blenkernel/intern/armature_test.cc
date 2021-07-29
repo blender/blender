@@ -17,9 +17,12 @@
  * All rights reserved.
  */
 
-#include "BKE_armature.h"
+#include "BKE_armature.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
+
+#include "DNA_armature_types.h"
 
 #include "testing/testing.h"
 
@@ -155,6 +158,82 @@ TEST(vec_roll_to_mat3_normalized, Rotationmatrix)
     vec_roll_to_mat3_normalized(normalized_vector, roll, roll_mat);
     EXPECT_M3_NEAR(roll_mat, expected_roll_mat, FLT_EPSILON);
   }
+}
+
+class BKE_armature_find_selected_bones_test : public testing::Test {
+ protected:
+  bArmature arm;
+  Bone bone1, bone2, bone3;
+
+  void SetUp() override
+  {
+    strcpy(bone1.name, "bone1");
+    strcpy(bone2.name, "bone2");
+    strcpy(bone3.name, "bone3");
+
+    arm.bonebase = {nullptr, nullptr};
+    bone1.childbase = {nullptr, nullptr};
+    bone2.childbase = {nullptr, nullptr};
+    bone3.childbase = {nullptr, nullptr};
+
+    BLI_addtail(&arm.bonebase, &bone1);     // bone1 is root bone
+    BLI_addtail(&arm.bonebase, &bone2);     // bone2 is root bone
+    BLI_addtail(&bone2.childbase, &bone3);  // bone3 has bone2 as parent
+
+    // Make sure the armature & its bones are visible, to make them selectable.
+    arm.layer = bone1.layer = bone2.layer = bone3.layer = 1;
+  }
+};
+
+TEST_F(BKE_armature_find_selected_bones_test, some_bones_selected)
+{
+  bone1.flag = BONE_SELECTED;
+  bone2.flag = 0;
+  bone3.flag = BONE_SELECTED;
+
+  std::vector<Bone *> seen_bones;
+  auto callback = [&](Bone *bone) { seen_bones.push_back(bone); };
+
+  SelectedBonesResult result = BKE_armature_find_selected_bones(&arm, callback);
+
+  ASSERT_EQ(seen_bones.size(), 2) << "Expected 2 selected bones, got " << seen_bones.size();
+  EXPECT_EQ(seen_bones[0], &bone1);
+  EXPECT_EQ(seen_bones[1], &bone3);
+
+  EXPECT_FALSE(result.all_bones_selected);  // Bone 2 was not selected.
+  EXPECT_FALSE(result.no_bones_selected);   // Bones 1 and 3 were selected.
+}
+
+TEST_F(BKE_armature_find_selected_bones_test, no_bones_selected)
+{
+  bone1.flag = bone2.flag = bone3.flag = 0;
+
+  std::vector<Bone *> seen_bones;
+  auto callback = [&](Bone *bone) { seen_bones.push_back(bone); };
+
+  SelectedBonesResult result = BKE_armature_find_selected_bones(&arm, callback);
+
+  EXPECT_TRUE(seen_bones.empty()) << "Expected no selected bones, got " << seen_bones.size();
+  EXPECT_FALSE(result.all_bones_selected);
+  EXPECT_TRUE(result.no_bones_selected);
+}
+
+TEST_F(BKE_armature_find_selected_bones_test, all_bones_selected)
+{
+  bone1.flag = bone2.flag = bone3.flag = BONE_SELECTED;
+
+  std::vector<Bone *> seen_bones;
+  auto callback = [&](Bone *bone) { seen_bones.push_back(bone); };
+
+  SelectedBonesResult result = BKE_armature_find_selected_bones(&arm, callback);
+
+  ASSERT_EQ(seen_bones.size(), 3) << "Expected 3 selected bones, got " << seen_bones.size();
+  EXPECT_EQ(seen_bones[0], &bone1);
+  EXPECT_EQ(seen_bones[1], &bone2);
+  EXPECT_EQ(seen_bones[2], &bone3);
+
+  EXPECT_TRUE(result.all_bones_selected);
+  EXPECT_FALSE(result.no_bones_selected);
 }
 
 }  // namespace blender::bke::tests

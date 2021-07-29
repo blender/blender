@@ -2149,7 +2149,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
-      /* NB: scene->nodetree is a local ID block, has been direct_link'ed */
+      /* NOTE: `scene->nodetree` is a local ID block, has been direct_link'ed. */
       if (scene->nodetree) {
         scene->nodetree->active_viewer_key = active_viewer_key;
       }

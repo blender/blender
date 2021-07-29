@@ -1968,10 +1968,6 @@ string OpenCLDevice::kernel_build_options(const string *debug_src)
     build_options += "-D__KERNEL_OPENCL_DEBUG__ ";
   }
 
-#  ifdef WITH_CYCLES_DEBUG
-  build_options += "-D__KERNEL_DEBUG__ ";
-#  endif
-
 #  ifdef WITH_NANOVDB
   if (info.has_nanovdb) {
     build_options += "-DWITH_NANOVDB ";

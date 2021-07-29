@@ -138,8 +138,8 @@ class GHOST_SystemWin32 : public GHOST_System {
                               const GHOST_IWindow *parentWindow = 0);
 
   /**
-   * Create a new offscreen context.
-   * Never explicitly delete the window, use disposeContext() instead.
+   * Create a new off-screen context.
+   * Never explicitly delete the window, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
   GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings);
@@ -152,8 +152,8 @@ class GHOST_SystemWin32 : public GHOST_System {
   GHOST_TSuccess disposeContext(GHOST_IContext *context);
 
   /**
-   * Create a new offscreen DirectX context.
-   * Never explicitly delete the context, use disposeContext() instead.
+   * Create a new off-screen DirectX context.
+   * Never explicitly delete the context, use #disposeContext() instead.
    * This is for GHOST internal, Win32 specific use, so it can be called statically.
    *
    * \return The new context (or 0 if creation failed).
@@ -360,8 +360,8 @@ class GHOST_SystemWin32 : public GHOST_System {
   static GHOST_EventKey *processKeyEvent(GHOST_WindowWin32 *window, RAWINPUT const &raw);
 
   /**
-   * Process special keys (VK_OEM_*), to see if current key layout
-   * gives us anything special, like ! on french AZERTY.
+   * Process special keys `VK_OEM_*`, to see if current key layout
+   * gives us anything special, like `!` on French AZERTY.
    * \param vKey: The virtual key from #hardKey.
    * \param scanCode: The ScanCode of pressed key (similar to PS/2 Set 1).
    */

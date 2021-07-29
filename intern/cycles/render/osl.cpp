@@ -993,7 +993,7 @@ void OSLCompiler::parameter_array(const char *name, const float f[], int arrayle
 
 void OSLCompiler::parameter_color_array(const char *name, const array<float3> &f)
 {
-  /* NB: cycles float3 type is actually 4 floats! need to use an explicit array */
+  /* NOTE: cycles float3 type is actually 4 floats! need to use an explicit array. */
   array<float[3]> table(f.size());
 
   for (int i = 0; i < f.size(); ++i) {

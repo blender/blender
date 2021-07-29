@@ -278,6 +278,44 @@ TEST(string_ref, DropSuffixLargeN)
   EXPECT_EQ(ref2, "");
 }
 
+TEST(string_ref, TrimArbitrary)
+{
+  StringRef ref1("test");
+  StringRef ref2("   test ");
+  StringRef ref3(" \t  Urož with spaces ");
+  StringRef ref4("žžžžleepyžžž");
+  EXPECT_EQ(ref1.trim("t"), "es");
+  EXPECT_EQ(ref1.trim("te"), "s");
+  EXPECT_EQ(ref1.trim("test"), "");
+  EXPECT_EQ(ref2.trim("t"), "   test ");
+  EXPECT_EQ(ref2.trim(""), "   test ");
+  EXPECT_EQ(ref3.trim(" "), "\t  Urož with spaces"); /* TAB should be kept. */
+  EXPECT_EQ(ref4.trim("ž"), "leepy");
+}
+
+TEST(string_ref, TrimWhitespace)
+{
+  StringRef ref1("test");
+  StringRef ref2("   test ");
+  StringRef ref3(" \t  Urož with spaces ");
+  StringRef ref4(" \t \n\r  \t ");
+  EXPECT_EQ(ref1.trim(), "test");
+  EXPECT_EQ(ref2.trim(), "test");
+  EXPECT_EQ(ref3.trim(), "Urož with spaces");
+  EXPECT_EQ(ref4.trim(), "");
+}
+
+TEST(string_ref, TrimCharacter)
+{
+  StringRef ref1("test");
+  StringRef ref2("   test ");
+  StringRef ref3("does this work?");
+  EXPECT_EQ(ref1.trim('t'), "es");
+  EXPECT_EQ(ref1.trim('p'), "test");
+  EXPECT_EQ(ref2.trim(' '), "test");
+  EXPECT_EQ(ref3.trim('\000'), "does this work?");
+}
+
 TEST(string_ref, Substr)
 {
   StringRef ref("hello world");

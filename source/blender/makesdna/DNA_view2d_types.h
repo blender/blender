@@ -50,7 +50,7 @@ typedef struct View2D {
   /** Scroll_ui - temp settings used for UI drawing of scrollers. */
   short scroll_ui;
 
-  /** Keeptot - 'cur' rect cannot move outside the 'tot' rect?. */
+  /** Keeptot - 'cur' rect cannot move outside the 'tot' rect? */
   short keeptot;
   /** Keepzoom - axes that zooming cannot occur on, and also clamp within zoom-limits. */
   short keepzoom;

@@ -21,13 +21,13 @@
  * \ingroup draw
  */
 
-#include "draw_cache_extract_mesh_private.h"
-
 #include "BLI_bitmap.h"
 #include "BLI_vector.hh"
 #include "atomic_ops.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "extract_mesh.h"
 
 namespace blender::draw {
 /* ---------------------------------------------------------------------- */

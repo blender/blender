@@ -380,11 +380,16 @@ if(WITH_CYCLES_CUDA_BINARIES)
   set(CUDA_VERSION "${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
 
   # warn for other versions
-  if((CUDA_VERSION MATCHES "101") OR (CUDA_VERSION MATCHES "102") OR (CUDA_VERSION MATCHES "111"))
+  if((CUDA_VERSION MATCHES "101") OR
+     (CUDA_VERSION MATCHES "102") OR
+     (CUDA_VERSION MATCHES "111") OR
+     (CUDA_VERSION MATCHES "112") OR
+     (CUDA_VERSION MATCHES "113") OR
+     (CUDA_VERSION MATCHES "114"))
   else()
     message(WARNING
       "CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, "
-      "build may succeed but only CUDA 10.1, 10.2 and 11.1 are officially supported")
+      "build may succeed but only CUDA 10.1 to 11.4 are officially supported")
   endif()
 
   # build for each arch
@@ -437,10 +442,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
     if(${experimental})
       set(cuda_flags ${cuda_flags} -D __KERNEL_EXPERIMENTAL__)
       set(name ${name}_experimental)
-    endif()
-
-    if(WITH_CYCLES_DEBUG)
-      set(cuda_flags ${cuda_flags} -D __KERNEL_DEBUG__)
     endif()
 
     if(WITH_NANOVDB)
@@ -556,11 +557,6 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       -I "${CMAKE_CURRENT_SOURCE_DIR}/kernels/cuda"
       --use_fast_math
       -o ${output})
-
-    if(WITH_CYCLES_DEBUG)
-      set(cuda_flags ${cuda_flags}
-        -D __KERNEL_DEBUG__)
-    endif()
 
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}

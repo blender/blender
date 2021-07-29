@@ -91,19 +91,20 @@ bool GpencilExporterPDF::write()
 {
   /* Support unicode character paths on Windows. */
   HPDF_STATUS res = 0;
-  /* TODO: It looks libharu does not support unicode. */
-  //#ifdef WIN32
-  //  char filename_cstr[FILE_MAX];
-  //  BLI_strncpy(filename_cstr, filename_, FILE_MAX);
-  //
-  //  UTF16_ENCODE(filename_cstr);
-  //  std::wstring wstr(filename_cstr_16);
-  //  res = HPDF_SaveToFile(pdf_, wstr.c_str());
-  //
-  //  UTF16_UN_ENCODE(filename_cstr);
-  //#else
+
+  /* TODO: It looks `libharu` does not support unicode. */
+#if 0 /* `ifdef WIN32` */
+  char filename_cstr[FILE_MAX];
+  BLI_strncpy(filename_cstr, filename_, FILE_MAX);
+
+  UTF16_ENCODE(filename_cstr);
+  std::wstring wstr(filename_cstr_16);
+  res = HPDF_SaveToFile(pdf_, wstr.c_str());
+
+  UTF16_UN_ENCODE(filename_cstr);
+#else
   res = HPDF_SaveToFile(pdf_, filename_);
-  //#endif
+#endif
 
   return (res == 0) ? true : false;
 }

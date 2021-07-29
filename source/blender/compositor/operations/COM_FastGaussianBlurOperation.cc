@@ -126,7 +126,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   float *buffer = src->getBuffer();
   const uint8_t num_channels = src->get_num_channels();
 
-  // <0.5 not valid, though can have a possibly useful sort of sharpening effect
+  /* <0.5 not valid, though can have a possibly useful sort of sharpening effect. */
   if (sigma < 0.5f) {
     return;
   }
@@ -135,8 +135,8 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
     xy = 3;
   }
 
-  // XXX The YVV macro defined below explicitly expects sources of at least 3x3 pixels,
-  //     so just skipping blur along faulty direction if src's def is below that limit!
+  /* XXX The YVV macro defined below explicitly expects sources of at least 3x3 pixels,
+   *     so just skipping blur along faulty direction if src's def is below that limit! */
   if (src_width < 3) {
     xy &= ~1;
   }
@@ -147,32 +147,32 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
     return;
   }
 
-  // see "Recursive Gabor Filtering" by Young/VanVliet
-  // all factors here in double.prec.
-  // Required, because for single.prec it seems to blow up if sigma > ~200
+  /* See "Recursive Gabor Filtering" by Young/VanVliet
+   * all factors here in double-precision.
+   * Required, because for single-precision floating point seems to blow up if `sigma > ~200`. */
   if (sigma >= 3.556f) {
     q = 0.9804f * (sigma - 3.556f) + 2.5091f;
   }
-  else {  // sigma >= 0.5
+  else { /* `sigma >= 0.5`. */
     q = (0.0561f * sigma + 0.5784f) * sigma - 0.2568f;
   }
   q2 = q * q;
   sc = (1.1668 + q) * (3.203729649 + (2.21566 + q) * q);
-  // no gabor filtering here, so no complex multiplies, just the regular coefs.
-  // all negated here, so as not to have to recalc Triggs/Sdika matrix
+  /* No gabor filtering here, so no complex multiplies, just the regular coefficients.
+   * all negated here, so as not to have to recalc Triggs/Sdika matrix. */
   cf[1] = q * (5.788961737 + (6.76492 + 3.0 * q) * q) / sc;
   cf[2] = -q2 * (3.38246 + 3.0 * q) / sc;
-  // 0 & 3 unchanged
+  /* 0 & 3 unchanged. */
   cf[3] = q2 * q / sc;
   cf[0] = 1.0 - cf[1] - cf[2] - cf[3];
 
-  // Triggs/Sdika border corrections,
-  // it seems to work, not entirely sure if it is actually totally correct,
-  // Besides J.M.Geusebroek's anigauss.c (see http://www.science.uva.nl/~mark),
-  // found one other implementation by Cristoph Lampert,
-  // but neither seem to be quite the same, result seems to be ok so far anyway.
-  // Extra scale factor here to not have to do it in filter,
-  // though maybe this had something to with the precision errors
+  /* Triggs/Sdika border corrections,
+   * it seems to work, not entirely sure if it is actually totally correct,
+   * Besides J.M.Geusebroek's `anigauss.c` (see http://www.science.uva.nl/~mark),
+   * found one other implementation by Cristoph Lampert,
+   * but neither seem to be quite the same, result seems to be ok so far anyway.
+   * Extra scale factor here to not have to do it in filter,
+   * though maybe this had something to with the precision errors */
   sc = cf[0] / ((1.0 + cf[1] - cf[2] + cf[3]) * (1.0 - cf[1] - cf[2] - cf[3]) *
                 (1.0 + cf[2] + (cf[1] - cf[3]) * cf[3]));
   tsM[0] = sc * (-cf[3] * cf[1] + 1.0 - cf[3] * cf[3] - cf[2]);
@@ -210,12 +210,12 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   } \
   (void)0
 
-  // intermediate buffers
+  /* Intermediate buffers. */
   sz = MAX2(src_width, src_height);
   X = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss X buf");
   Y = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss Y buf");
   W = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss W buf");
-  if (xy & 1) {  // H
+  if (xy & 1) { /* H. */
     int offset;
     for (y = 0; y < src_height; y++) {
       const int yx = y * src_width;
@@ -232,7 +232,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
       }
     }
   }
-  if (xy & 2) {  // V
+  if (xy & 2) { /* V. */
     int offset;
     const int add = src_width * num_channels;
 
@@ -257,7 +257,6 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
 #undef YVV
 }
 
-///
 FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -335,8 +334,6 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
         }
       }
     }
-
-    //      newBuf->
 
     this->m_iirgaus = copy;
   }

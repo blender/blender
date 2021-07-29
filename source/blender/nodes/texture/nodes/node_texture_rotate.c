@@ -47,7 +47,7 @@ static void rotate(float new_co[3], float a, const float ax[3], const float co[3
   float cos_a = cosf(a * (float)(2 * M_PI));
   float sin_a = sinf(a * (float)(2 * M_PI));
 
-  // x' = xcosa + n(n.x)(1-cosa) + (x*n)sina
+  /* `x' = xcosa + n(n.x)(1-cosa) + (x*n)sina`. */
 
   mul_v3_v3fl(perp, co, cos_a);
   mul_v3_v3fl(para, ax, dot_v3v3(co, ax) * (1 - cos_a));

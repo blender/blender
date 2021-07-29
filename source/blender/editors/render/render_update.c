@@ -65,7 +65,7 @@
 
 /***************************** Render Engines ********************************/
 
-/* Update 3D viewport render or draw engine on changes to the scene or view settings . */
+/* Update 3D viewport render or draw engine on changes to the scene or view settings. */
 void ED_render_view3d_update(Depsgraph *depsgraph,
                              wmWindow *window,
                              ScrArea *area,

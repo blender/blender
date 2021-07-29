@@ -327,7 +327,7 @@ typedef enum {
   /** Culling test */
   DRW_STATE_CULL_BACK = (1 << 7),
   DRW_STATE_CULL_FRONT = (1 << 8),
-  /** Stencil test . These options are mutually exclusive and packed into 2 bits. */
+  /** Stencil test. These options are mutually exclusive and packed into 2 bits. */
   DRW_STATE_STENCIL_ALWAYS = (1 << 9),
   DRW_STATE_STENCIL_EQUAL = (2 << 9),
   DRW_STATE_STENCIL_NEQUAL = (3 << 9),

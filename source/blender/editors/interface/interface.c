@@ -3391,7 +3391,7 @@ static void ui_but_free_type_specific(uiBut *but)
 #include "BLI_threads.h"
 
 /* can be called with C==NULL */
-ATTR_NO_OPT static void ui_but_free(const bContext *C, uiBut *but)
+static void ui_but_free(const bContext *C, uiBut *but)
 {
   if (!BLI_thread_is_main()) {
     printf("Evil!\n");
@@ -6210,10 +6210,12 @@ void UI_but_drag_set_id(uiBut *but, ID *id)
   but->dragpoin = (void *)id;
 }
 
+/**
+ * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
+ */
 void UI_but_drag_set_asset(uiBut *but,
-                           const char *name,
+                           const AssetHandle *asset,
                            const char *path,
-                           int id_type,
                            int import_type,
                            int icon,
                            struct ImBuf *imb,
@@ -6221,9 +6223,10 @@ void UI_but_drag_set_asset(uiBut *but,
 {
   wmDragAsset *asset_drag = MEM_mallocN(sizeof(*asset_drag), "wmDragAsset");
 
-  BLI_strncpy(asset_drag->name, name, sizeof(asset_drag->name));
+  asset_drag->asset_handle = MEM_mallocN(sizeof(asset_drag->asset_handle),
+                                         "wmDragAsset asset handle");
+  *asset_drag->asset_handle = *asset;
   asset_drag->path = path;
-  asset_drag->id_type = id_type;
   asset_drag->import_type = import_type;
 
   but->dragtype = WM_DRAG_ASSET;

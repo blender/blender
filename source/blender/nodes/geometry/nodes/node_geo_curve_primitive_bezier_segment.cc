@@ -74,7 +74,7 @@ static std::unique_ptr<CurveEval> create_bezier_segment_curve(
   if (mode == GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION) {
     spline->add_point(start,
                       BezierSpline::HandleType::Align,
-                      start - (start_handle_right - start) * -1.0f,
+                      2.0f * start - start_handle_right,
                       BezierSpline::HandleType::Align,
                       start_handle_right,
                       1.0f,
@@ -83,7 +83,7 @@ static std::unique_ptr<CurveEval> create_bezier_segment_curve(
                       BezierSpline::HandleType::Align,
                       end_handle_left,
                       BezierSpline::HandleType::Align,
-                      end - (end_handle_left - end) * -1.0f,
+                      2.0f * end - end_handle_left,
                       1.0f,
                       0.0f);
   }

@@ -63,9 +63,9 @@ typedef struct IpoDriver {
 typedef struct IpoCurve {
   struct IpoCurve *next, *prev;
 
-  /** Array of BPoints (sizeof(BPoint) * totvert) - i.e. baked/imported data. */
+  /** Array of #BPoints `(sizeof(BPoint) * totvert)` - i.e. baked/imported data. */
   struct BPoint *bp;
-  /** Array of BezTriples (sizeof(BezTriple) * totvert)  - i.e. user-editable keyframes . */
+  /** Array of #BezTriples `(sizeof(BezTriple) * totvert)` - i.e. user-editable keyframes. */
   struct BezTriple *bezt;
 
   /** Bounding boxes. */
@@ -75,14 +75,14 @@ typedef struct IpoCurve {
   short blocktype, adrcode, vartype;
   /** Total number of BezTriples (i.e. keyframes) on curve. */
   short totvert;
-  /** Interpolation and extrapolation modes . */
+  /** Interpolation and extrapolation modes. */
   short ipo, extrap;
   /** Flag= settings. */
   short flag;
   char _pad0[2];
   /** Minimum/maximum y-extents for curve. */
   float ymin, ymax;
-  /** ???. */
+  /** Unused since the first available revision. */
   unsigned int bitmask;
 
   /** Minimum/maximum values for sliders (in action editor). */
@@ -102,7 +102,7 @@ typedef struct Ipo {
 
   /** A list of IpoCurve structs in a linked list. */
   ListBase curve;
-  /** Rect defining extents of keyframes?. */
+  /** Rect defining extents of keyframes? */
   rctf cur;
 
   /** Blocktype: self-explanatory; showkey: either 0 or 1

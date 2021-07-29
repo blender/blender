@@ -1210,6 +1210,57 @@ static int sequencer_add_effect_strip_invoke(bContext *C,
   return sequencer_add_effect_strip_exec(C, op);
 }
 
+static char *sequencer_add_effect_strip_desc(bContext *UNUSED(C),
+                                             wmOperatorType *UNUSED(op),
+                                             PointerRNA *ptr)
+{
+  const int type = RNA_enum_get(ptr, "type");
+
+  switch (type) {
+    case SEQ_TYPE_CROSS:
+      return BLI_strdup(TIP_("Add a crossfade transition to the sequencer"));
+    case SEQ_TYPE_ADD:
+      return BLI_strdup(TIP_("Add an add effect strip to the sequencer"));
+    case SEQ_TYPE_SUB:
+      return BLI_strdup(TIP_("Add a subtract effect strip to the sequencer"));
+    case SEQ_TYPE_ALPHAOVER:
+      return BLI_strdup(TIP_("Add an alpha over effect strip to the sequencer"));
+    case SEQ_TYPE_ALPHAUNDER:
+      return BLI_strdup(TIP_("Add an alpha under effect strip to the sequencer"));
+    case SEQ_TYPE_GAMCROSS:
+      return BLI_strdup(TIP_("Add a gamma cross transition to the sequencer"));
+    case SEQ_TYPE_MUL:
+      return BLI_strdup(TIP_("Add a multiply effect strip to the sequencer"));
+    case SEQ_TYPE_OVERDROP:
+      return BLI_strdup(TIP_("Add an alpha over drop effect strip to the sequencer"));
+    case SEQ_TYPE_WIPE:
+      return BLI_strdup(TIP_("Add a wipe transition to the sequencer"));
+    case SEQ_TYPE_GLOW:
+      return BLI_strdup(TIP_("Add a glow effect strip to the sequencer"));
+    case SEQ_TYPE_TRANSFORM:
+      return BLI_strdup(TIP_("Add a transform effect strip to the sequencer"));
+    case SEQ_TYPE_COLOR:
+      return BLI_strdup(TIP_("Add a color strip to the sequencer"));
+    case SEQ_TYPE_SPEED:
+      return BLI_strdup(TIP_("Add a speed effect strip to the sequencer"));
+    case SEQ_TYPE_MULTICAM:
+      return BLI_strdup(TIP_("Add a multicam selector effect strip to the sequencer"));
+    case SEQ_TYPE_ADJUSTMENT:
+      return BLI_strdup(TIP_("Add an adjustment layer effect strip to the sequencer"));
+    case SEQ_TYPE_GAUSSIAN_BLUR:
+      return BLI_strdup(TIP_("Add a gaussian blur effect strip to the sequencer"));
+    case SEQ_TYPE_TEXT:
+      return BLI_strdup(TIP_("Add a text strip to the sequencer"));
+    case SEQ_TYPE_COLORMIX:
+      return BLI_strdup(TIP_("Add a color mix effect strip to the sequencer"));
+    default:
+      break;
+  }
+
+  /* Use default description. */
+  return NULL;
+}
+
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1224,6 +1275,7 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
   ot->exec = sequencer_add_effect_strip_exec;
   ot->poll = ED_operator_sequencer_active_editable;
   ot->poll_property = seq_effect_add_properties_poll;
+  ot->get_description = sequencer_add_effect_strip_desc;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

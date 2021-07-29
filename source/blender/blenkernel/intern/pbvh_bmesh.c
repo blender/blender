@@ -1203,13 +1203,13 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
 }
 
 /* Build a PBVH from a BMesh */
-ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                                      BMesh *bm,
-                                      bool smooth_shading,
-                                      BMLog *log,
-                                      const int cd_vert_node_offset,
-                                      const int cd_face_node_offset,
-                                      const int cd_dyn_vert)
+void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                          BMesh *bm,
+                          bool smooth_shading,
+                          BMLog *log,
+                          const int cd_vert_node_offset,
+                          const int cd_face_node_offset,
+                          const int cd_dyn_vert)
 {
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
@@ -1594,7 +1594,7 @@ BLI_INLINE void pbvh_tribuf_add_edge(PBVHTriBuf *tribuf, int v1, int v2)
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->bm;
 

@@ -374,8 +374,6 @@
     /* GP Stroke Placement */ \
     .gpencil_v3d_align = GP_PROJECT_VIEWSPACE, \
     .gpencil_v2d_align = GP_PROJECT_VIEWSPACE, \
-    .gpencil_seq_align = GP_PROJECT_VIEWSPACE, \
-    .gpencil_ima_align = GP_PROJECT_VIEWSPACE, \
   }
 
 /* clang-format off */

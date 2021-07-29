@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class BrightnessOperation : public NodeOperation {
+class BrightnessOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -52,6 +52,10 @@ class BrightnessOperation : public NodeOperation {
   void deinitExecution() override;
 
   void setUsePremultiply(bool use_premultiply);
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

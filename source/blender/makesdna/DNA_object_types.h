@@ -336,7 +336,7 @@ typedef struct Object {
   /** Deprecated, use 'matbits'. */
   short colbits DNA_DEPRECATED;
 
-  /** Transformation settings and transform locks . */
+  /** Transformation settings and transform locks. */
   short transflag, protectflag;
   short trackflag, upflag;
   /** Used for DopeSheet filtering settings (expanded/collapsed). */

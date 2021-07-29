@@ -93,7 +93,7 @@ typedef struct MaskSplinePointUW {
 } MaskSplinePointUW;
 
 typedef struct MaskSplinePoint {
-  /** Actual point coordinates and its handles . */
+  /** Actual point coordinates and its handles. */
   BezTriple bezt;
   char _pad[4];
   /** Number of uv feather values. */
@@ -173,7 +173,7 @@ typedef struct MaskLayer {
 
   /** For animation. */
   char flag;
-  /** Matching 'Object' flag of the same name - eventually use in the outliner . */
+  /** Matching 'Object' flag of the same name - eventually use in the outliner. */
   char restrictflag;
 } MaskLayer;
 

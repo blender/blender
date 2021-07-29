@@ -789,7 +789,12 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
   BLI_mempool_free(bm->vpool, v);
 }
 
-void BM_reassign_ids(BMesh *bm)
+#ifdef WITH_BM_ID_FREELIST
+void bm_id_freelist_push(BMesh *bm, uint id);
+#endif
+
+// does not modify actual element ids
+void BM_clear_ids(BMesh *bm)
 {
   if (!(bm->idmap.flag & BM_HAS_IDS)) {
     return;
@@ -799,11 +804,31 @@ void BM_reassign_ids(BMesh *bm)
     memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
   }
 
+#ifndef WITH_BM_ID_FREELIST
   if (bm->idmap.idtree) {
     range_tree_uint_free(bm->idmap.idtree);
   }
 
   bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
+#else
+  if (bm->idmap.freelist) {
+    MEM_freeN(bm->idmap.freelist);
+    bm->idmap.freelist = NULL;
+  }
+
+  if (bm->idmap.free_ids) {
+    BLI_gset_free(bm->idmap.free_ids, NULL);
+    bm->idmap.free_ids = NULL;
+  }
+
+  bm->idmap.freelist_len = 0;
+  bm->idmap.freelist_size = 0;
+#endif
+}
+
+void BM_reassign_ids(BMesh *bm)
+{
+  BM_clear_ids(bm);
 
   int iters[] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH, BM_FACES_OF_MESH};
 

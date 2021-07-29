@@ -138,8 +138,8 @@ size_t BLI_ghashutil_combine_hash(size_t hash_a, size_t hash_b)
  * This function implements the widely used "djb" hash apparently posted
  * by Daniel Bernstein to comp.lang.c some time ago.  The 32 bit
  * unsigned hash value starts at 5381 and for each byte 'c' in the
- * string, is updated: ``hash = hash * 33 + c``.  This
- * function uses the signed value of each byte.
+ * string, is updated: `hash = hash * 33 + c`.
+ * This function uses the signed value of each byte.
  *
  * NOTE: this is the same hash method that glib 2.34.0 uses.
  */

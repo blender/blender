@@ -67,10 +67,11 @@
 #include "ED_uvedit.h"
 
 #include "draw_cache_extract.h"
-#include "draw_cache_extract_mesh_private.h"
 #include "draw_cache_inline.h"
 
 #include "draw_cache_impl.h" /* own include */
+
+#include "mesh_extractors/extract_mesh.h"
 
 /* ---------------------------------------------------------------------- */
 /** \name Dependencies between buffer and batch
@@ -821,17 +822,6 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
       mesh_batch_cache_discard_shaded_tri(cache);
       mesh_batch_cache_discard_uvedit(cache);
       break;
-    case BKE_MESH_BATCH_DIRTY_DEFORM:
-      FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.pos_nor);
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.lnor);
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_pos);
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_nor);
-        GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.tris);
-      }
-      batch_map = MDEPS_CREATE_MAP(vbo.pos_nor, vbo.lnor, vbo.fdots_pos, vbo.fdots_nor, ibo.tris);
-      mesh_batch_cache_discard_batch(cache, batch_map);
-      break;
     case BKE_MESH_BATCH_DIRTY_UVEDIT_ALL:
       mesh_batch_cache_discard_uvedit(cache);
       break;
@@ -867,7 +857,9 @@ static void mesh_buffer_extraction_cache_clear(MeshBufferExtractionCache *extrac
   extraction_cache->loose_geom.edge_len = 0;
   extraction_cache->loose_geom.vert_len = 0;
 
-  MEM_SAFE_FREE(extraction_cache->mat_offsets.tri);
+  MEM_SAFE_FREE(extraction_cache->poly_sorted.tri_first_index);
+  MEM_SAFE_FREE(extraction_cache->poly_sorted.mat_tri_len);
+  extraction_cache->poly_sorted.visible_tri_len = 0;
 }
 
 static void mesh_batch_cache_clear(Mesh *me)

@@ -915,6 +915,17 @@ void BLF_draw_buffer(int fontid, const char *str, size_t len)
   BLF_draw_buffer_ex(fontid, str, len, NULL);
 }
 
+char *BLF_display_name_from_file(const char *filename)
+{
+  FontBLF *font = blf_font_new("font_name", filename);
+  if (!font) {
+    return NULL;
+  }
+  char *name = blf_display_name(font);
+  blf_font_free(font);
+  return name;
+}
+
 #ifdef DEBUG
 void BLF_state_print(int fontid)
 {

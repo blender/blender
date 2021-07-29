@@ -936,29 +936,6 @@ class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, ViewLayerCryptomattePan
     bl_parent_id = "CYCLES_RENDER_PT_passes"
 
 
-class CYCLES_RENDER_PT_passes_debug(CyclesButtonsPanel, Panel):
-    bl_label = "Debug"
-    bl_context = "view_layer"
-    bl_parent_id = "CYCLES_RENDER_PT_passes"
-
-    @classmethod
-    def poll(cls, context):
-        import _cycles
-        return _cycles.with_cycles_debug
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        cycles_view_layer = context.view_layer.cycles
-
-        layout.prop(cycles_view_layer, "pass_debug_bvh_traversed_nodes")
-        layout.prop(cycles_view_layer, "pass_debug_bvh_traversed_instances")
-        layout.prop(cycles_view_layer, "pass_debug_bvh_intersections")
-        layout.prop(cycles_view_layer, "pass_debug_ray_bounces")
-
-
 class CYCLES_RENDER_PT_passes_aov(CyclesButtonsPanel, ViewLayerAOVPanel):
     bl_label = "Shader AOV"
     bl_context = "view_layer"
@@ -1136,7 +1113,7 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ADD', text="")
             col.operator("object.material_slot_remove", icon='REMOVE', text="")
-
+            col.separator()
             col.menu("MATERIAL_MT_context_menu", icon='DOWNARROW_HLT', text="")
 
             if is_sortable:
@@ -1151,16 +1128,15 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
                 row.operator("object.material_slot_select", text="Select")
                 row.operator("object.material_slot_deselect", text="Deselect")
 
-        split = layout.split(factor=0.65)
+        row = layout.row()
 
         if ob:
-            split.template_ID(ob, "active_material", new="material.new")
-            row = split.row()
+            row.template_ID(ob, "active_material", new="material.new")
 
             if slot:
-                row.prop(slot, "link", text="")
-            else:
-                row.label()
+                icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
+                row.prop(slot, "link", text="", icon=icon_link, icon_only=True)
+
         elif mat:
             split.template_ID(space, "pin_id")
             split.separator()
@@ -2318,7 +2294,6 @@ classes = (
     CYCLES_RENDER_PT_passes_data,
     CYCLES_RENDER_PT_passes_light,
     CYCLES_RENDER_PT_passes_crypto,
-    CYCLES_RENDER_PT_passes_debug,
     CYCLES_RENDER_PT_passes_aov,
     CYCLES_RENDER_PT_filter,
     CYCLES_RENDER_PT_override,

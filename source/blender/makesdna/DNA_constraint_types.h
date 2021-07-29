@@ -425,7 +425,7 @@ typedef struct bRigidBodyJointConstraint {
 typedef struct bClampToConstraint {
   /** 'target' must be a curve. */
   struct Object *tar;
-  /** Which axis/plane to compare owner's location on . */
+  /** Which axis/plane to compare owner's location on. */
   int flag;
   /** For legacy reasons, this is flag2. used for any extra settings. */
   int flag2;
@@ -474,7 +474,7 @@ typedef struct bTransformConstraint {
   float from_min[3];
   /** To map on to to_min/max range. */
   float from_max[3];
-  /** Range of motion on owner caused by target . */
+  /** Range of motion on owner caused by target. */
   float to_min[3];
   float to_max[3];
 
@@ -482,7 +482,7 @@ typedef struct bTransformConstraint {
   float from_min_rot[3];
   /** To map on to to_min/max range. */
   float from_max_rot[3];
-  /** Range of motion on owner caused by target . */
+  /** Range of motion on owner caused by target. */
   float to_min_rot[3];
   float to_max_rot[3];
 
@@ -490,7 +490,7 @@ typedef struct bTransformConstraint {
   float from_min_scale[3];
   /** To map on to to_min/max range. */
   float from_max_scale[3];
-  /** Range of motion on owner caused by target . */
+  /** Range of motion on owner caused by target. */
   float to_min_scale[3];
   float to_max_scale[3];
 } bTransformConstraint;
@@ -1102,7 +1102,7 @@ typedef enum eRotLimit_Flags {
 /* distance limit constraint */
 /* bDistLimitConstraint->flag */
 typedef enum eDistLimit_Flag {
-  /* "soft" cushion effect when reaching the limit sphere */  // NOT IMPLEMENTED!
+  /* "soft" cushion effect when reaching the limit sphere */ /* NOT IMPLEMENTED! */
   LIMITDIST_USESOFT = (1 << 0),
   /* as for all Limit constraints - allow to be used during transform? */
   LIMITDIST_TRANSFORM = (1 << 1),

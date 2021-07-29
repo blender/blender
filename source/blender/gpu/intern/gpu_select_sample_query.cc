@@ -56,7 +56,7 @@ struct GPUSelectQueryState {
   Vector<uint> *ids;
   /* Cache on initialization. */
   uint (*buffer)[4];
-  /* Buffer size (stores number of integers, for actual size multiply by sizeof integer). */
+  /* Buffer size (stores number of integers, for actual size multiply by `sizeof(int)`). */
   uint bufsize;
   /* Mode of operation. */
   char mode;

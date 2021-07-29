@@ -36,6 +36,7 @@ struct BMFace;
 struct BMLoop;
 struct BMVert;
 struct BMesh;
+struct GSet;
 
 struct MLoopNorSpaceArray;
 
@@ -187,7 +188,7 @@ typedef struct BMLoop {
   struct BMFace *f;
 
   /**
-   * Other loops connected to this edge,.
+   * Other loops connected to this edge.
    *
    * This is typically use for accessing an edges faces,
    * however this is done by stepping over it's loops.
@@ -299,6 +300,8 @@ typedef struct BMFlagLayer {
 
 struct RangeTreeUInt;
 
+//#define WITH_BM_ID_FREELIST
+
 typedef struct BMesh {
   int totvert, totedge, totloop, totface;
   int totvertsel, totedgesel, totfacesel;
@@ -388,7 +391,13 @@ typedef struct BMesh {
 
   struct {
     int flag;
+#ifdef WITH_BM_ID_FREELIST
+    uint *freelist;
+    int freelist_len, freelist_size;
+    struct GSet *free_ids;
+#else
     struct RangeTreeUInt *idtree;
+#endif
     uint maxid;
     struct BMElem **map;
     int map_size;

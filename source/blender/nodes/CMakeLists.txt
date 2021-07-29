@@ -175,9 +175,11 @@ set(SRC
   geometry/nodes/node_geo_curve_primitive_star.cc
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_curve_reverse.cc
+  geometry/nodes/node_geo_curve_set_handles.cc
   geometry/nodes/node_geo_curve_subdivide.cc
   geometry/nodes/node_geo_curve_to_mesh.cc
   geometry/nodes/node_geo_curve_to_points.cc
+  geometry/nodes/node_geo_curve_trim.cc
   geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_material.cc

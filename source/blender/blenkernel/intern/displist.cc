@@ -903,6 +903,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
 
   Mesh *modified = nullptr;
   float(*vertCos)[3] = nullptr;
+  int totvert = 0;
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
@@ -929,7 +930,6 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
     if (mti->type == eModifierTypeType_OnlyDeform ||
         (mti->type == eModifierTypeType_DeformOrConstruct && !modified)) {
       if (modified) {
-        int totvert = 0;
         if (!vertCos) {
           vertCos = BKE_mesh_vert_coords_alloc(modified, &totvert);
         }
@@ -939,7 +939,6 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
         mti->deformVerts(md, &mectx_deform, modified, vertCos, totvert);
       }
       else {
-        int totvert = 0;
         if (!vertCos) {
           vertCos = displist_vert_coords_alloc(dispbase, &totvert);
         }
@@ -1668,7 +1667,7 @@ void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
   LISTBASE_FOREACH (const DispList *, dl, dispbase) {
     const int tot = (dl->type == DL_INDEX3) ? dl->nr : dl->nr * dl->parts;
     for (const int i : IndexRange(tot)) {
-      minmax_v3v3_v3(min, max, &dl->verts[i]);
+      minmax_v3v3_v3(min, max, &dl->verts[i * 3]);
     }
     if (tot != 0) {
       doit = true;

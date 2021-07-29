@@ -117,6 +117,7 @@ class GHOST_XrSession {
                 XrCompositionLayerProjectionView &r_proj_layer_view,
                 XrSpaceLocation &view_location,
                 XrView &view,
+                uint32_t view_idx,
                 void *draw_customdata);
   void beginFrameDrawing();
   void endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *> &layers);

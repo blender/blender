@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class BaseScaleOperation : public NodeOperation {
+class BaseScaleOperation : public MultiThreadedOperation {
  public:
   void setSampler(PixelSampler sampler)
   {
@@ -46,7 +46,7 @@ class BaseScaleOperation : public NodeOperation {
 };
 
 class ScaleOperation : public BaseScaleOperation {
- private:
+ protected:
   SocketReader *m_inputOperation;
   SocketReader *m_inputXOperation;
   SocketReader *m_inputYOperation;
@@ -56,31 +56,59 @@ class ScaleOperation : public BaseScaleOperation {
  public:
   ScaleOperation();
   ScaleOperation(DataType data_type);
-  bool determineDependingAreaOfInterest(rcti *input,
-                                        ReadBufferOperation *readOperation,
-                                        rcti *output) override;
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
+  void init_data() override;
   void initExecution() override;
   void deinitExecution() override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+
+ protected:
+  virtual float get_relative_scale_x_factor() = 0;
+  virtual float get_relative_scale_y_factor() = 0;
+
+ private:
+  float get_constant_scale(int input_op_idx, float factor);
+  float get_constant_scale_x();
+  float get_constant_scale_y();
+  void scale_area(rcti &rect, float scale_x, float scale_y);
 };
 
-class ScaleAbsoluteOperation : public BaseScaleOperation {
-  SocketReader *m_inputOperation;
-  SocketReader *m_inputXOperation;
-  SocketReader *m_inputYOperation;
-  float m_centerX;
-  float m_centerY;
-
+class ScaleRelativeOperation : public ScaleOperation {
  public:
-  ScaleAbsoluteOperation();
+  ScaleRelativeOperation();
+  ScaleRelativeOperation(DataType data_type);
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  float get_relative_scale_x_factor() override
+  {
+    return 1.0f;
+  }
+  float get_relative_scale_y_factor() override
+  {
+    return 1.0f;
+  }
+};
 
-  void initExecution() override;
-  void deinitExecution() override;
+class ScaleAbsoluteOperation : public ScaleOperation {
+ public:
+  bool determineDependingAreaOfInterest(rcti *input,
+                                        ReadBufferOperation *readOperation,
+                                        rcti *output) override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  float get_relative_scale_x_factor() override
+  {
+    return 1.0f / getWidth();
+  }
+  float get_relative_scale_y_factor() override
+  {
+    return 1.0f / getHeight();
+  }
 };
 
 class ScaleFixedSizeOperation : public BaseScaleOperation {
@@ -108,6 +136,7 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
                            unsigned int preferredResolution[2]) override;
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
+  void init_data() override;
   void initExecution() override;
   void deinitExecution() override;
   void setNewWidth(int width)
@@ -131,6 +160,11 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
     this->m_offsetX = x;
     this->m_offsetY = y;
   }
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

@@ -225,7 +225,7 @@ typedef enum wmXrSessionStateEvent {
   SESSION_STATE_EVENT_NONE = 0,
   SESSION_STATE_EVENT_START,
   SESSION_STATE_EVENT_RESET_TO_BASE_POSE,
-  SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE,
+  SESSION_STATE_EVENT_POSITION_TRACKING_TOGGLE,
 } wmXrSessionStateEvent;
 
 static bool wm_xr_session_draw_data_needs_reset_to_base_pose(const wmXrSessionState *state,
@@ -253,7 +253,7 @@ static wmXrSessionStateEvent wm_xr_session_state_to_event(const wmXrSessionState
                                            XR_SESSION_USE_POSITION_TRACKING) !=
                                           (settings->flag & XR_SESSION_USE_POSITION_TRACKING));
   if (position_tracking_toggled) {
-    return SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE;
+    return SESSION_STATE_EVENT_POSITION_TRACKING_TOGGLE;
   }
 
   return SESSION_STATE_EVENT_NONE;
@@ -288,7 +288,7 @@ void wm_xr_session_draw_data_update(const wmXrSessionState *state,
         copy_v3_fl(draw_data->eye_position_ofs, 0.0f);
       }
       break;
-    case SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE:
+    case SESSION_STATE_EVENT_POSITION_TRACKING_TOGGLE:
       if (use_position_tracking) {
         /* Keep the current position, and let the user move from there. */
         copy_v3_v3(draw_data->eye_position_ofs, state->prev_eye_position_ofs);
@@ -317,6 +317,7 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
 {
   GHOST_XrPose viewer_pose;
   const bool use_position_tracking = settings->flag & XR_SESSION_USE_POSITION_TRACKING;
+  const bool use_absolute_tracking = settings->flag & XR_SESSION_USE_ABSOLUTE_TRACKING;
 
   mul_qt_qtqt(viewer_pose.orientation_quat,
               draw_data->base_pose.orientation_quat,
@@ -324,13 +325,15 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
   copy_v3_v3(viewer_pose.position, draw_data->base_pose.position);
   /* The local pose and the eye pose (which is copied from an earlier local pose) both are view
    * space, so Y-up. In this case we need them in regular Z-up. */
-  viewer_pose.position[0] -= draw_data->eye_position_ofs[0];
-  viewer_pose.position[1] += draw_data->eye_position_ofs[2];
-  viewer_pose.position[2] -= draw_data->eye_position_ofs[1];
   if (use_position_tracking) {
     viewer_pose.position[0] += draw_view->local_pose.position[0];
     viewer_pose.position[1] -= draw_view->local_pose.position[2];
     viewer_pose.position[2] += draw_view->local_pose.position[1];
+  }
+  if (!use_absolute_tracking) {
+    viewer_pose.position[0] -= draw_data->eye_position_ofs[0];
+    viewer_pose.position[1] += draw_data->eye_position_ofs[2];
+    viewer_pose.position[2] -= draw_data->eye_position_ofs[1];
   }
 
   copy_v3_v3(state->viewer_pose.position, viewer_pose.position);
@@ -451,9 +454,14 @@ static void wm_xr_session_controller_mats_update(const XrSessionSettings *settin
   float base_inv[4][4];
   float tmp[4][4];
 
-  zero_v3(view_ofs);
   if ((settings->flag & XR_SESSION_USE_POSITION_TRACKING) == 0) {
-    add_v3_v3(view_ofs, state->prev_local_pose.position);
+    copy_v3_v3(view_ofs, state->prev_local_pose.position);
+  }
+  else {
+    zero_v3(view_ofs);
+  }
+  if ((settings->flag & XR_SESSION_USE_ABSOLUTE_TRACKING) == 0) {
+    add_v3_v3(view_ofs, state->prev_eye_position_ofs);
   }
 
   wm_xr_pose_to_viewmat(&state->prev_base_pose, base_inv);
@@ -538,7 +546,6 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
  */
 static void wm_xr_session_surface_draw(bContext *C)
 {
-  wmXrSurfaceData *surface_data = g_xr_surface->customdata;
   wmWindowManager *wm = CTX_wm_manager(C);
   Main *bmain = CTX_data_main(C);
   wmXrDrawData draw_data;
@@ -554,38 +561,50 @@ static void wm_xr_session_surface_draw(bContext *C)
 
   GHOST_XrSessionDrawViews(wm->xr.runtime->context, &draw_data);
 
-  GPU_offscreen_unbind(surface_data->offscreen, false);
+  GPU_framebuffer_restore();
 }
 
 bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
                                             const GHOST_XrDrawViewInfo *draw_view)
 {
-  const bool size_changed = surface_data->offscreen &&
-                            (GPU_offscreen_width(surface_data->offscreen) != draw_view->width) &&
-                            (GPU_offscreen_height(surface_data->offscreen) != draw_view->height);
+  wmXrViewportPair *vp = NULL;
+  if (draw_view->view_idx >= BLI_listbase_count(&surface_data->viewports)) {
+    vp = MEM_callocN(sizeof(*vp), __func__);
+    BLI_addtail(&surface_data->viewports, vp);
+  }
+  else {
+    vp = BLI_findlink(&surface_data->viewports, draw_view->view_idx);
+  }
+  BLI_assert(vp);
+
+  GPUOffScreen *offscreen = vp->offscreen;
+  GPUViewport *viewport = vp->viewport;
+  const bool size_changed = offscreen && (GPU_offscreen_width(offscreen) != draw_view->width) &&
+                            (GPU_offscreen_height(offscreen) != draw_view->height);
   char err_out[256] = "unknown";
   bool failure = false;
 
-  if (surface_data->offscreen) {
-    BLI_assert(surface_data->viewport);
+  if (offscreen) {
+    BLI_assert(viewport);
 
     if (!size_changed) {
       return true;
     }
-    GPU_viewport_free(surface_data->viewport);
-    GPU_offscreen_free(surface_data->offscreen);
+    GPU_viewport_free(viewport);
+    GPU_offscreen_free(offscreen);
   }
 
-  if (!(surface_data->offscreen = GPU_offscreen_create(
-            draw_view->width, draw_view->height, true, false, err_out))) {
-    failure = true;
+  offscreen = vp->offscreen = GPU_offscreen_create(
+      draw_view->width, draw_view->height, true, false, err_out);
+  if (offscreen) {
+    viewport = vp->viewport = GPU_viewport_create();
+    if (!viewport) {
+      GPU_offscreen_free(offscreen);
+      offscreen = vp->offscreen = NULL;
+      failure = true;
+    }
   }
-
-  if (failure) {
-    /* Pass. */
-  }
-  else if (!(surface_data->viewport = GPU_viewport_create())) {
-    GPU_offscreen_free(surface_data->offscreen);
+  else {
     failure = true;
   }
 
@@ -600,12 +619,17 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
 static void wm_xr_session_surface_free_data(wmSurface *surface)
 {
   wmXrSurfaceData *data = surface->customdata;
+  ListBase *lb = &data->viewports;
+  wmXrViewportPair *vp;
 
-  if (data->viewport) {
-    GPU_viewport_free(data->viewport);
-  }
-  if (data->offscreen) {
-    GPU_offscreen_free(data->offscreen);
+  while ((vp = BLI_pophead(lb))) {
+    if (vp->viewport) {
+      GPU_viewport_free(vp->viewport);
+    }
+    if (vp->offscreen) {
+      GPU_offscreen_free(vp->offscreen);
+    }
+    BLI_freelinkN(lb, vp);
   }
 
   MEM_freeN(surface->customdata);

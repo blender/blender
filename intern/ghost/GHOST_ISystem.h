@@ -261,8 +261,8 @@ class GHOST_ISystem {
   virtual GHOST_TSuccess disposeWindow(GHOST_IWindow *window) = 0;
 
   /**
-   * Create a new offscreen context.
-   * Never explicitly delete the context, use disposeContext() instead.
+   * Create a new off-screen context.
+   * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
   virtual GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) = 0;

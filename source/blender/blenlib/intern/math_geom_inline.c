@@ -272,7 +272,7 @@ MINLINE float shell_angle_to_dist(const float angle)
   return (UNLIKELY(angle < SMALL_NUMBER)) ? 1.0f : fabsf(1.0f / cosf(angle));
 }
 /**
- * equivalent to ``shell_angle_to_dist(angle_normalized_v3v3(a, b))``
+ * Equivalent to `shell_angle_to_dist(angle_normalized_v3v3(a, b))`.
  */
 MINLINE float shell_v3v3_normalized_to_dist(const float a[3], const float b[3])
 {
@@ -282,7 +282,7 @@ MINLINE float shell_v3v3_normalized_to_dist(const float a[3], const float b[3])
   return (UNLIKELY(angle_cos < SMALL_NUMBER)) ? 1.0f : (1.0f / angle_cos);
 }
 /**
- * equivalent to ``shell_angle_to_dist(angle_normalized_v2v2(a, b))``
+ * Equivalent to `shell_angle_to_dist(angle_normalized_v2v2(a, b))`.
  */
 MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2])
 {
@@ -293,7 +293,7 @@ MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2])
 }
 
 /**
- * equivalent to ``shell_angle_to_dist(angle_normalized_v3v3(a, b) / 2)``
+ * Equivalent to `shell_angle_to_dist(angle_normalized_v3v3(a, b) / 2)`.
  */
 MINLINE float shell_v3v3_mid_normalized_to_dist(const float a[3], const float b[3])
 {
@@ -307,7 +307,7 @@ MINLINE float shell_v3v3_mid_normalized_to_dist(const float a[3], const float b[
 }
 
 /**
- * equivalent to ``shell_angle_to_dist(angle_normalized_v2v2(a, b) / 2)``
+ * Equivalent to `shell_angle_to_dist(angle_normalized_v2v2(a, b) / 2)`.
  */
 MINLINE float shell_v2v2_mid_normalized_to_dist(const float a[2], const float b[2])
 {
