@@ -180,14 +180,9 @@ static void task_parallel_iterator_no_threads(const TaskParallelSettings *settin
 {
   /* Prepare user's TLS data. */
   void *userdata_chunk = settings->userdata_chunk;
-  const size_t userdata_chunk_size = settings->userdata_chunk_size;
-  void *userdata_chunk_local = NULL;
-  const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
-  if (use_userdata_chunk) {
-    userdata_chunk_local = MALLOCA(userdata_chunk_size);
-    memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+  if (userdata_chunk) {
     if (settings->func_init != NULL) {
-      settings->func_init(state->userdata, userdata_chunk_local);
+      settings->func_init(state->userdata, userdata_chunk);
     }
   }
 
@@ -196,12 +191,11 @@ static void task_parallel_iterator_no_threads(const TaskParallelSettings *settin
 
   parallel_iterator_func_do(state, userdata_chunk);
 
-  if (use_userdata_chunk) {
+  if (userdata_chunk) {
     if (settings->func_free != NULL) {
       /* `func_free` should only free data that was created during execution of `func`. */
-      settings->func_free(state->userdata, userdata_chunk_local);
+      settings->func_free(state->userdata, userdata_chunk);
     }
-    MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
   }
 }
 
@@ -415,19 +409,16 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
 
   void *userdata_chunk = settings->userdata_chunk;
   const size_t userdata_chunk_size = settings->userdata_chunk_size;
-  void *userdata_chunk_local = NULL;
   void *userdata_chunk_array = NULL;
   const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
 
   if (!settings->use_threading) {
     TaskParallelTLS tls = {NULL};
     if (use_userdata_chunk) {
-      userdata_chunk_local = MALLOCA(userdata_chunk_size);
-      memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
       if (settings->func_init != NULL) {
-        settings->func_init(userdata, userdata_chunk_local);
+        settings->func_init(userdata, userdata_chunk);
       }
-      tls.userdata_chunk = userdata_chunk_local;
+      tls.userdata_chunk = userdata_chunk;
     }
 
     BLI_mempool_iter iter;
@@ -438,12 +429,13 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
       func(userdata, item, &tls);
     }
 
-    if (settings->func_free != NULL) {
-      /* `func_free` should only free data that was created during execution of `func`. */
-      settings->func_free(userdata, userdata_chunk_local);
+    if (use_userdata_chunk) {
+      if (settings->func_free != NULL) {
+        /* `func_free` should only free data that was created during execution of `func`. */
+        settings->func_free(userdata, userdata_chunk);
+      }
     }
 
-    MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
     return;
   }
 
@@ -468,6 +460,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
       mempool, (size_t)num_tasks);
 
   for (int i = 0; i < num_tasks; i++) {
+    void *userdata_chunk_local = NULL;
     if (use_userdata_chunk) {
       userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
       memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
