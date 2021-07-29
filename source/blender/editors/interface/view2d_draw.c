@@ -343,7 +343,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
     return;
   }
 
-  const int start_index = abs(start / distance) % draw_frequency;
+  const int start_index = abs((int)(start / distance)) % draw_frequency;
   for (uint i = start_index; i < steps; i += draw_frequency) {
     const float xpos_view = start + i * distance;
     const float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
