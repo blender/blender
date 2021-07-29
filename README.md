@@ -19,5 +19,5 @@ Main sets are like,
 * Bullet3 : ```2.83```
 * TortoiseSVN :``` ~>1.10.1```
 * CMake:``` ~>3.9.6```
-* Building  libraries: /bf-blender/tags/blender-2.79-release/lib>>>```[link here]( https://svn.blender.org/svnroot/bf-blender/tags/blender-2.79-release/lib/win64_vc14/)```
+* Building  libraries: /bf-blender/tags/blender-2.79-release/lib>>>the link is [here]( https://svn.blender.org/svnroot/bf-blender/tags/blender-2.79-release/lib/win64_vc14/)
 
