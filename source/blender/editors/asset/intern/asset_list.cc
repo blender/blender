@@ -215,7 +215,13 @@ void AssetList::iterate(AssetListIterFn fn) const
 
   for (int i = 0; i < numfiles; i++) {
     FileDirEntry *file = filelist_file(files, i);
-    if (!fn(*file)) {
+    if ((file->typeflag & FILE_TYPE_ASSET) == 0) {
+      continue;
+    }
+
+    AssetHandle asset_handle = {file};
+    if (!fn(asset_handle)) {
+      /* If the callback returns false, we stop iterating. */
       break;
     }
   }

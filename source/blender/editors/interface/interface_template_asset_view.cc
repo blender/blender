@@ -170,11 +170,12 @@ static void asset_view_template_refresh_asset_collection(
 
   RNA_property_collection_clear(&assets_dataptr, assets_prop);
 
-  ED_assetlist_iterate(&asset_library, [&](FileDirEntry &file) {
+  ED_assetlist_iterate(&asset_library, [&](AssetHandle asset) {
     PointerRNA itemptr, fileptr;
     RNA_property_collection_add(&assets_dataptr, assets_prop, &itemptr);
 
-    RNA_pointer_create(nullptr, &RNA_FileSelectEntry, &file, &fileptr);
+    RNA_pointer_create(
+        nullptr, &RNA_FileSelectEntry, const_cast<FileDirEntry *>(asset.file_data), &fileptr);
     RNA_pointer_set(&itemptr, "file_data", fileptr);
 
     /* Copy name from file to asset-handle name ID-property. */
