@@ -122,7 +122,7 @@ class AssetList : NonCopyable {
   AssetList(AssetList &&other) = default;
   ~AssetList() = default;
 
-  void setup(const AssetFilterSettings *filter_settings = nullptr);
+  void setup();
   void fetch(const bContext &C);
   void ensurePreviewsJob(bContext *C);
   void clear(bContext *C);
@@ -141,7 +141,7 @@ AssetList::AssetList(eFileSelectType filesel_type, const AssetLibraryReference &
 {
 }
 
-void AssetList::setup(const AssetFilterSettings *filter_settings)
+void AssetList::setup()
 {
   FileList *files = filelist_;
 
@@ -160,17 +160,13 @@ void AssetList::setup(const AssetFilterSettings *filter_settings)
   filelist_setrecursion(files, 1);
   filelist_setsorting(files, FILE_SORT_ALPHA, false);
   filelist_setlibrary(files, &library_ref_);
-  /* TODO different filtering settings require the list to be reread. That's a no-go for when we
-   * want to allow showing the same asset library with different filter settings (as in,
-   * different ID types). The filelist needs to be made smarter somehow, maybe goes together with
-   * the plan to separate the view (preview caching, filtering, etc. ) from the data. */
   filelist_setfilter_options(
       files,
-      filter_settings != nullptr,
+      false,
       true,
       true, /* Just always hide parent, prefer to not add an extra user option for this. */
       FILE_TYPE_BLENDERLIB,
-      filter_settings ? filter_settings->id_types : FILTER_ID_ALL,
+      FILTER_ID_ALL,
       true,
       "",
       "");
@@ -333,9 +329,7 @@ class AssetListStorage {
   /* Purely static class, can't instantiate this. */
   AssetListStorage() = delete;
 
-  static void fetch_library(const AssetLibraryReference &library_reference,
-                            const bContext &C,
-                            const AssetFilterSettings *filter_settings = nullptr);
+  static void fetch_library(const AssetLibraryReference &library_reference, const bContext &C);
   static void destruct();
   static AssetList *lookup_list(const AssetLibraryReference &library_ref);
   static void tagMainDataDirty();
@@ -353,8 +347,7 @@ class AssetListStorage {
 };
 
 void AssetListStorage::fetch_library(const AssetLibraryReference &library_reference,
-                                     const bContext &C,
-                                     const AssetFilterSettings *filter_settings)
+                                     const bContext &C)
 {
   std::optional filesel_type = asset_library_reference_to_fileselect_type(library_reference);
   if (!filesel_type) {
@@ -363,7 +356,7 @@ void AssetListStorage::fetch_library(const AssetLibraryReference &library_refere
 
   auto [list, is_new] = ensure_list_storage(library_reference, *filesel_type);
   if (is_new || list.needsRefetch()) {
-    list.setup(filter_settings);
+    list.setup();
     list.fetch(C);
   }
 }
@@ -440,11 +433,9 @@ using namespace blender::ed::asset;
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
  * and may return earlier.
  */
-void ED_assetlist_storage_fetch(const AssetLibraryReference *library_reference,
-                                const AssetFilterSettings *filter_settings,
-                                const bContext *C)
+void ED_assetlist_storage_fetch(const AssetLibraryReference *library_reference, const bContext *C)
 {
-  AssetListStorage::fetch_library(*library_reference, *C, filter_settings);
+  AssetListStorage::fetch_library(*library_reference, *C);
 }
 
 void ED_assetlist_ensure_previews_job(const AssetLibraryReference *library_reference, bContext *C)

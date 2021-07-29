@@ -154,6 +154,7 @@ uiListType *UI_UL_asset_view()
 
 static void asset_view_template_refresh_asset_collection(
     const AssetLibraryReference &asset_library,
+    const AssetFilterSettings &filter_settings,
     PointerRNA &assets_dataptr,
     const char *assets_propname)
 {
@@ -175,6 +176,11 @@ static void asset_view_template_refresh_asset_collection(
   RNA_property_collection_clear(&assets_dataptr, assets_prop);
 
   ED_assetlist_iterate(&asset_library, [&](AssetHandle asset) {
+    if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+      /* Don't do anything else, but return true to continue iterating. */
+      return true;
+    }
+
     PointerRNA itemptr, fileptr;
     RNA_property_collection_add(&assets_dataptr, assets_prop, &itemptr);
 
@@ -219,11 +225,12 @@ void uiTemplateAssetView(uiLayout *layout,
     uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_list_refresh");
   }
 
-  ED_assetlist_storage_fetch(&asset_library, filter_settings, C);
+  ED_assetlist_storage_fetch(&asset_library, C);
   ED_assetlist_ensure_previews_job(&asset_library, C);
   const int tot_items = ED_assetlist_size(&asset_library);
 
-  asset_view_template_refresh_asset_collection(asset_library, *assets_dataptr, assets_propname);
+  asset_view_template_refresh_asset_collection(
+      asset_library, *filter_settings, *assets_dataptr, assets_propname);
 
   AssetViewListData *list_data = (AssetViewListData *)MEM_mallocN(sizeof(*list_data),
                                                                   "AssetViewListData");
