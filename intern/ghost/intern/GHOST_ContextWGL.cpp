@@ -480,10 +480,10 @@ int GHOST_ContextWGL::choose_pixel_format(bool stereoVisual, bool needAlpha)
               (stereoVisual ? PFD_STEREO : 0) | /* support stereo */
               (
 #ifdef WIN32_COMPOSITING
-                  needAlpha ? PFD_SUPPORT_COMPOSITION : /* support composition for transparent
-                                                             background */
+                  /* Support composition for transparent background. */
+                  needAlpha ? PFD_SUPPORT_COMPOSITION :
 #endif
-                      0)),
+                              0)),
       PFD_TYPE_RGBA,               /* color type */
       (BYTE)(needAlpha ? 32 : 24), /* preferred color depth */
       0,
