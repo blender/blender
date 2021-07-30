@@ -195,15 +195,12 @@ void DRW_texture_free(struct GPUTexture *tex);
 
 /* Shaders */
 
-#ifndef __GPU_MATERIAL_H__
-/* FIXME: Meh avoid including all GPUMaterial. */
 typedef void (*GPUMaterialEvalCallbackFn)(struct GPUMaterial *mat,
                                           int options,
                                           const char **vert_code,
                                           const char **geom_code,
                                           const char **frag_lib,
                                           const char **defines);
-#endif
 
 struct GPUShader *DRW_shader_create_ex(
     const char *vert, const char *geom, const char *frag, const char *defines, const char *name);
