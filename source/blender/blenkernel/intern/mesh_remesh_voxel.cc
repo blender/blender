@@ -435,11 +435,10 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
   BMesh *bm;
 
-  BMeshCreateParams bmesh_create_params;
-  bmesh_create_params.use_toolflags = true;
+  const BMeshCreateParams bmesh_create_params = {true};
   bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
-  BMeshFromMeshParams bmesh_from_mesh_params;
+  BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
   BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
 
@@ -528,7 +527,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
                BM_ELEM_TAG);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
-  BMeshToMeshParams bmesh_to_mesh_params;
+  BMeshToMeshParams bmesh_to_mesh_params{};
   bmesh_to_mesh_params.calc_object_remap = false;
   Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &bmesh_to_mesh_params, mesh);
 

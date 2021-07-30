@@ -89,7 +89,7 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 #  define BM_ITER_MESH_MUTABLE(ele, ele_next, iter, bm, itype) \
     for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_new(iter, bm, itype, NULL); \
          ele ? ((void)((iter)->count = BM_iter_mesh_count(itype, bm)), \
-                (void)(ele_next = BM_iter_step(iter)), \
+                (void)(BM_CHECK_TYPE_ELEM_ASSIGN(ele_next) = BM_iter_step(iter)), \
                 1) : \
                0; \
          BM_CHECK_TYPE_ELEM_ASSIGN(ele) = ele_next)
