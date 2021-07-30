@@ -30,7 +30,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_blenlib.h"
+#include "BLI_float3.hh"
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -56,6 +59,10 @@
 #  include "quadriflow_capi.hpp"
 #endif
 
+using blender::Array;
+using blender::float3;
+using blender::IndexRange;
+
 #ifdef WITH_OPENVDB
 struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
     Mesh *mesh, struct OpenVDBTransform *transform)
@@ -67,30 +74,26 @@ struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
   BKE_mesh_runtime_verttri_from_looptri(
       verttri, mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(mesh));
 
-  uint totfaces = BKE_mesh_runtime_looptri_len(mesh);
-  uint totverts = mesh->totvert;
-  float *verts = (float *)MEM_malloc_arrayN(totverts * 3, sizeof(float), "remesh_input_verts");
-  uint *faces = (uint *)MEM_malloc_arrayN(totfaces * 3, sizeof(uint), "remesh_input_faces");
+  const int totfaces = BKE_mesh_runtime_looptri_len(mesh);
+  const int totverts = mesh->totvert;
+  Array<float3> verts(totverts);
+  Array<int> faces(totfaces * 3);
 
-  for (uint i = 0; i < totverts; i++) {
-    MVert *mvert = &mesh->mvert[i];
-    verts[i * 3] = mvert->co[0];
-    verts[i * 3 + 1] = mvert->co[1];
-    verts[i * 3 + 2] = mvert->co[2];
+  for (const int i : IndexRange(totverts)) {
+    verts[i] = mesh->mvert[i].co;
   }
 
-  for (uint i = 0; i < totfaces; i++) {
-    MVertTri *vt = &verttri[i];
-    faces[i * 3] = vt->tri[0];
-    faces[i * 3 + 1] = vt->tri[1];
-    faces[i * 3 + 2] = vt->tri[2];
+  for (const int i : IndexRange(totfaces)) {
+    MVertTri &vt = verttri[i];
+    faces[i * 3] = vt.tri[0];
+    faces[i * 3 + 1] = vt.tri[1];
+    faces[i * 3 + 2] = vt.tri[2];
   }
 
   struct OpenVDBLevelSet *level_set = OpenVDBLevelSet_create(false, nullptr);
-  OpenVDBLevelSet_mesh_to_level_set(level_set, verts, faces, totverts, totfaces, transform);
+  OpenVDBLevelSet_mesh_to_level_set(
+      level_set, (const float *)verts.data(), faces.data(), totverts, totfaces, transform);
 
-  MEM_freeN(verts);
-  MEM_freeN(faces);
   MEM_freeN(verttri);
 
   return level_set;
@@ -111,29 +114,31 @@ Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *l
                                    (output_mesh.totquads * 4) + (output_mesh.tottriangles * 3),
                                    output_mesh.totquads + output_mesh.tottriangles);
 
-  for (int i = 0; i < output_mesh.totvertices; i++) {
+  for (const int i : IndexRange(output_mesh.totvertices)) {
     copy_v3_v3(mesh->mvert[i].co, &output_mesh.vertices[i * 3]);
   }
 
-  MPoly *mp = mesh->mpoly;
-  MLoop *ml = mesh->mloop;
-  for (int i = 0; i < output_mesh.totquads; i++, mp++, ml += 4) {
-    mp->loopstart = (int)(ml - mesh->mloop);
-    mp->totloop = 4;
-
-    ml[0].v = output_mesh.quads[i * 4 + 3];
-    ml[1].v = output_mesh.quads[i * 4 + 2];
-    ml[2].v = output_mesh.quads[i * 4 + 1];
-    ml[3].v = output_mesh.quads[i * 4];
+  for (const int i : IndexRange(output_mesh.totquads)) {
+    MPoly &poly = mesh->mpoly[i];
+    const int loopstart = i * 4;
+    poly.loopstart = loopstart;
+    poly.totloop = 4;
+    mesh->mloop[loopstart].v = output_mesh.quads[loopstart];
+    mesh->mloop[loopstart + 1].v = output_mesh.quads[loopstart + 1];
+    mesh->mloop[loopstart + 2].v = output_mesh.quads[loopstart + 2];
+    mesh->mloop[loopstart + 3].v = output_mesh.quads[loopstart + 3];
   }
 
-  for (int i = 0; i < output_mesh.tottriangles; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - mesh->mloop);
-    mp->totloop = 3;
-
-    ml[0].v = output_mesh.triangles[i * 3 + 2];
-    ml[1].v = output_mesh.triangles[i * 3 + 1];
-    ml[2].v = output_mesh.triangles[i * 3];
+  const int triangle_poly_start = output_mesh.totquads;
+  const int triangle_loop_start = output_mesh.totquads * 4;
+  for (const int i : IndexRange(output_mesh.tottriangles)) {
+    MPoly &poly = mesh->mpoly[triangle_poly_start + i];
+    const int loopstart = triangle_loop_start + i * 3;
+    poly.loopstart = loopstart;
+    poly.totloop = 3;
+    mesh->mloop[loopstart].v = output_mesh.triangles[i * 3 + 2];
+    mesh->mloop[loopstart + 1].v = output_mesh.triangles[i * 3 + 1];
+    mesh->mloop[loopstart + 2].v = output_mesh.triangles[i * 3];
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
@@ -170,23 +175,20 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
   BKE_mesh_runtime_verttri_from_looptri(
       verttri, input_mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(input_mesh));
 
-  uint totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
-  uint totverts = input_mesh->totvert;
-  float *verts = (float *)MEM_malloc_arrayN(totverts * 3, sizeof(float), "remesh_input_verts");
-  uint *faces = (uint *)MEM_malloc_arrayN(totfaces * 3, sizeof(uint), "remesh_input_faces");
+  const int totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
+  const int totverts = input_mesh->totvert;
+  Array<float3> verts(totverts);
+  Array<int> faces(totfaces * 3);
 
-  for (uint i = 0; i < totverts; i++) {
-    MVert *mvert = &input_mesh->mvert[i];
-    verts[i * 3] = mvert->co[0];
-    verts[i * 3 + 1] = mvert->co[1];
-    verts[i * 3 + 2] = mvert->co[2];
+  for (const int i : IndexRange(totverts)) {
+    verts[i] = input_mesh->mvert[i].co;
   }
 
-  for (uint i = 0; i < totfaces; i++) {
-    MVertTri *vt = &verttri[i];
-    faces[i * 3] = vt->tri[0];
-    faces[i * 3 + 1] = vt->tri[1];
-    faces[i * 3 + 2] = vt->tri[2];
+  for (const int i : IndexRange(totfaces)) {
+    MVertTri &vt = verttri[i];
+    faces[i * 3] = vt.tri[0];
+    faces[i * 3 + 1] = vt.tri[1];
+    faces[i * 3 + 2] = vt.tri[2];
   }
 
   /* Fill out the required input data */
@@ -194,8 +196,8 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
 
   qrd.totfaces = totfaces;
   qrd.totverts = totverts;
-  qrd.verts = verts;
-  qrd.faces = faces;
+  qrd.verts = (float *)verts.data();
+  qrd.faces = faces.data();
   qrd.target_faces = target_faces;
 
   qrd.preserve_sharp = preserve_sharp;
@@ -210,8 +212,6 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
   /* Run the remesher */
   QFLOW_quadriflow_remesh(&qrd, update_cb, update_cb_data);
 
-  MEM_freeN(verts);
-  MEM_freeN(faces);
   MEM_freeN(verttri);
 
   if (qrd.out_faces == nullptr) {
@@ -227,23 +227,21 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
   }
 
   /* Construct the new output mesh */
-  Mesh *mesh = BKE_mesh_new_nomain(
-      qrd.out_totverts, 0, 0, (qrd.out_totfaces * 4), qrd.out_totfaces);
+  Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
 
-  for (int i = 0; i < qrd.out_totverts; i++) {
+  for (const int i : IndexRange(qrd.out_totverts)) {
     copy_v3_v3(mesh->mvert[i].co, &qrd.out_verts[i * 3]);
   }
 
-  MPoly *mp = mesh->mpoly;
-  MLoop *ml = mesh->mloop;
-  for (int i = 0; i < qrd.out_totfaces; i++, mp++, ml += 4) {
-    mp->loopstart = (int)(ml - mesh->mloop);
-    mp->totloop = 4;
-
-    ml[0].v = qrd.out_faces[i * 4];
-    ml[1].v = qrd.out_faces[i * 4 + 1];
-    ml[2].v = qrd.out_faces[i * 4 + 2];
-    ml[3].v = qrd.out_faces[i * 4 + 3];
+  for (const int i : IndexRange(qrd.out_totfaces)) {
+    MPoly &poly = mesh->mpoly[i];
+    const int loopstart = i * 4;
+    poly.loopstart = loopstart;
+    poly.totloop = 4;
+    mesh->mloop[loopstart].v = qrd.out_faces[loopstart];
+    mesh->mloop[loopstart + 1].v = qrd.out_faces[loopstart + 1];
+    mesh->mloop[loopstart + 2].v = qrd.out_faces[loopstart + 2];
+    mesh->mloop[loopstart + 3].v = qrd.out_faces[loopstart + 3];
   }
 
   BKE_mesh_calc_edges(mesh, false, false);

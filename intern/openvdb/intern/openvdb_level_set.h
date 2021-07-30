@@ -39,9 +39,9 @@ struct OpenVDBLevelSet {
   void set_grid(const openvdb::FloatGrid::Ptr &grid);
 
   void mesh_to_level_set(const float *vertices,
-                         const unsigned int *faces,
-                         const unsigned int totvertices,
-                         const unsigned int totfaces,
+                         const int *faces,
+                         const int totvertices,
+                         const int totfaces,
                          const openvdb::math::Transform::Ptr &transform);
 
   void volume_to_mesh(struct OpenVDBVolumeToMeshData *mesh,

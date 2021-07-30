@@ -33,20 +33,20 @@ OpenVDBLevelSet::~OpenVDBLevelSet()
 }
 
 void OpenVDBLevelSet::mesh_to_level_set(const float *vertices,
-                                        const unsigned int *faces,
-                                        const unsigned int totvertices,
-                                        const unsigned int totfaces,
+                                        const int *faces,
+                                        const int totvertices,
+                                        const int totfaces,
                                         const openvdb::math::Transform::Ptr &xform)
 {
   std::vector<openvdb::Vec3s> points(totvertices);
   std::vector<openvdb::Vec3I> triangles(totfaces);
   std::vector<openvdb::Vec4I> quads;
 
-  for (unsigned int i = 0; i < totvertices; i++) {
+  for (int i = 0; i < totvertices; i++) {
     points[i] = openvdb::Vec3s(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]);
   }
 
-  for (unsigned int i = 0; i < totfaces; i++) {
+  for (int i = 0; i < totfaces; i++) {
     triangles[i] = openvdb::Vec3I(faces[i * 3], faces[i * 3 + 1], faces[i * 3 + 2]);
   }
 
@@ -69,14 +69,11 @@ void OpenVDBLevelSet::volume_to_mesh(OpenVDBVolumeToMeshData *mesh,
                                                    isovalue,
                                                    adaptivity,
                                                    relax_disoriented_triangles);
-  mesh->vertices = (float *)MEM_malloc_arrayN(
-      out_points.size(), 3 * sizeof(float), "openvdb remesher out verts");
-  mesh->quads = (unsigned int *)MEM_malloc_arrayN(
-      out_quads.size(), 4 * sizeof(unsigned int), "openvdb remesh out quads");
+  mesh->vertices = (float *)MEM_malloc_arrayN(out_points.size(), sizeof(float[3]), __func__);
+  mesh->quads = (int *)MEM_malloc_arrayN(out_quads.size(), sizeof(int[4]), __func__);
   mesh->triangles = NULL;
   if (out_tris.size() > 0) {
-    mesh->triangles = (unsigned int *)MEM_malloc_arrayN(
-        out_tris.size(), 3 * sizeof(unsigned int), "openvdb remesh out tris");
+    mesh->triangles = (int *)MEM_malloc_arrayN(out_tris.size(), sizeof(int[3]), __func__);
   }
 
   mesh->totvertices = out_points.size();
