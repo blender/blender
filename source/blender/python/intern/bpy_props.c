@@ -2651,11 +2651,15 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 
 /* -------------------------------------------------------------------- */
 /** \name Module Methods
+ *
+ * Functions that register RNA.
+ *
+ * \note The `self` argument is NULL when called from Python,
+ * but being abused from C so we can pass the `srna` along.
+ * This isn't incorrect since its a Python object - but be careful.
+ *
  * \{ */
 
-/* Function that sets RNA, NOTE - self is NULL when called from python,
- * but being abused from C so we can pass the srna along.
- * This isn't incorrect since its a python object - but be careful */
 PyDoc_STRVAR(BPy_BoolProperty_doc,
              ".. function:: BoolProperty(name=\"\", "
              "description=\"\", "

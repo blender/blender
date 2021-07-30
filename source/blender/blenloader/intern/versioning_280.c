@@ -1939,7 +1939,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         ViewLayer *view_layer;
         for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
           view_layer->flag |= VIEW_LAYER_FREESTYLE;
-          view_layer->layflag = 0x7FFF; /* solid ztra halo edge strand */
+          view_layer->layflag = 0x7FFF; /* solid Z-transparency halo edge strand. */
           view_layer->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
           view_layer->pass_alpha_threshold = 0.5f;
           BKE_freestyle_config_init(&view_layer->freestyle_config);

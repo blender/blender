@@ -59,6 +59,6 @@ bool ED_asset_filter_matches_asset(const AssetFilterSettings *filter, const Asse
     }
   }
 
-  /* Succesfully passed through all filters. */
+  /* Successfully passed through all filters. */
   return true;
 }
