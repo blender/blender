@@ -57,6 +57,8 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
+#include "ED_asset.h"
+
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
@@ -6189,10 +6191,9 @@ void UI_but_drag_set_asset(uiBut *but,
 {
   wmDragAsset *asset_drag = MEM_mallocN(sizeof(*asset_drag), "wmDragAsset");
 
-  asset_drag->asset_handle = MEM_mallocN(sizeof(asset_drag->asset_handle),
-                                         "wmDragAsset asset handle");
-  *asset_drag->asset_handle = *asset;
+  BLI_strncpy(asset_drag->name, ED_asset_handle_get_name(asset), sizeof(asset_drag->name));
   asset_drag->path = path;
+  asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_type = import_type;
 
   but->dragtype = WM_DRAG_ASSET;
