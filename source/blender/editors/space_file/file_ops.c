@@ -2784,33 +2784,30 @@ void FILE_OT_rename(struct wmOperatorType *ot)
 
 static bool file_delete_poll(bContext *C)
 {
-  bool poll = ED_operator_file_active(C);
+  if (!ED_operator_file_active(C)) {
+    return false;
+  }
+
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-
-  if (sfile && params) {
-    char dir[FILE_MAX_LIBEXTRA];
-    int numfiles = filelist_files_ensure(sfile->files);
-    int i;
-    int num_selected = 0;
-
-    if (filelist_islibrary(sfile->files, dir, NULL)) {
-      poll = 0;
-    }
-    for (i = 0; i < numfiles; i++) {
-      if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
-        num_selected++;
-      }
-    }
-    if (num_selected <= 0) {
-      poll = 0;
-    }
-  }
-  else {
-    poll = 0;
+  if (!sfile || !params) {
+    return false;
   }
 
-  return poll;
+  char dir[FILE_MAX_LIBEXTRA];
+  if (filelist_islibrary(sfile->files, dir, NULL)) {
+    return false;
+  }
+
+  int numfiles = filelist_files_ensure(sfile->files);
+  for (int i = 0; i < numfiles; i++) {
+    if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
+      /* Has a selected file -> the operator can run. */
+      return true;
+    }
+  }
+
+  return false;
 }
 
 static bool file_delete_single(const FileSelectParams *params,
