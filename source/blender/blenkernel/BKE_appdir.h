@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <stddef.h>
+
 /** \file
  * \ingroup bli
  */
