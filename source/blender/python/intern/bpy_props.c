@@ -2485,6 +2485,13 @@ static StructRNA *bpy_prop_deferred_data_or_srna(PyObject *self,
 struct BPy_PropIDParse {
   const char *value;
   StructRNA *srna;
+  /**
+   * In the case registering this properly replaces an existing dynamic property.
+   * Store a handle to the property for removal.
+   * This is needed so the property removal is deferred until all other arguments
+   * have been validated, otherwise failure elsewhere could leave the property un-registered.
+   */
+  void *prop_free_handle;
 };
 
 /**
@@ -2509,7 +2516,9 @@ static int bpy_prop_arg_parse_id(PyObject *o, void *p)
     return 0;
   }
 
-  if (UNLIKELY(RNA_def_property_free_identifier(srna, id) == -1)) {
+  parse_data->prop_free_handle = NULL;
+  if (UNLIKELY(RNA_def_property_free_identifier_deferred_prepare(
+                   srna, id, &parse_data->prop_free_handle) == -1)) {
     PyErr_Format(PyExc_TypeError,
                  "'%s' is defined as a non-dynamic type for '%s'",
                  id,
@@ -2749,7 +2758,11 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
     return NULL;
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_property(srna, id_data.value, PROP_BOOLEAN, subtype_enum.value);
+
   RNA_def_property_boolean_default(prop, default_value);
   RNA_def_property_ui_text(prop, name ? name : id_data.value, description);
 
@@ -2889,7 +2902,11 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
     return NULL;
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_property(srna, id_data.value, PROP_BOOLEAN, subtype_enum.value);
+
   if (array_len_info.dims_len == 0) {
     RNA_def_property_array(prop, array_len_info.len_total);
     if (default_py != NULL) {
@@ -3040,7 +3057,11 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
     return NULL;
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_property(srna, id_data.value, PROP_INT, subtype_enum.value);
+
   RNA_def_property_int_default(prop, default_value);
   RNA_def_property_ui_text(prop, name ? name : id_data.value, description);
   RNA_def_property_range(prop, min, max);
@@ -3202,7 +3223,11 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
     return NULL;
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_property(srna, id_data.value, PROP_INT, subtype_enum.value);
+
   if (array_len_info.dims_len == 0) {
     RNA_def_property_array(prop, array_len_info.len_total);
     if (default_py != NULL) {
@@ -3353,7 +3378,11 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
     return NULL;
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_property(srna, id_data.value, PROP_FLOAT, subtype_enum.value | unit_enum.value);
+
   RNA_def_property_float_default(prop, default_value);
   RNA_def_property_range(prop, min, max);
   RNA_def_property_ui_text(prop, name ? name : id_data.value, description);
@@ -3515,7 +3544,11 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
     return NULL;
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_property(srna, id_data.value, PROP_FLOAT, subtype_enum.value | unit_enum.value);
+
   if (array_len_info.dims_len == 0) {
     RNA_def_property_array(prop, array_len_info.len_total);
     if (default_py != NULL) {
@@ -3656,7 +3689,11 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
     return NULL;
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_property(srna, id_data.value, PROP_STRING, subtype_enum.value);
+
   if (maxlen != 0) {
     /* +1 since it includes null terminator. */
     RNA_def_property_string_maxlength(prop, maxlen + 1);
@@ -3868,6 +3905,9 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
     }
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   if (options_enum.value & PROP_ENUM_FLAG) {
     prop = RNA_def_enum_flag(
         srna, id_data.value, eitems, default_value, name ? name : id_data.value, description);
@@ -4022,8 +4062,13 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
   if (bpy_prop_callback_check(poll_fn, "poll", 2) == -1) {
     return NULL;
   }
+
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_pointer_runtime(
       srna, id_data.value, ptype, name ? name : id_data.value, description);
+
   if (tags_enum.base.is_set) {
     RNA_def_property_tags(prop, tags_enum.base.value);
   }
@@ -4130,8 +4175,12 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
     return NULL;
   }
 
+  if (id_data.prop_free_handle != NULL) {
+    RNA_def_property_free_identifier_deferred_finish(srna, id_data.prop_free_handle);
+  }
   prop = RNA_def_collection_runtime(
       srna, id_data.value, ptype, name ? name : id_data.value, description);
+
   if (tags_enum.base.is_set) {
     RNA_def_property_tags(prop, tags_enum.base.value);
   }
