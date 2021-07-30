@@ -380,7 +380,7 @@ static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *
           /* Ignore this triangle if an intersection line directly comes from it, */
           lineart_occlusion_is_adjacent_intersection(e, (LineartTriangle *)tri) ||
           /* Or if this triangle isn't effectively occluding anything nor it's providing a
-            material flag. */
+           * material flag. */
           ((!tri->base.mat_occlusion) && (!tri->base.material_mask_bits))) {
         continue;
       }
