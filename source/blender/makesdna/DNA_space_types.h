@@ -1025,7 +1025,6 @@ typedef struct FileDirEntry {
   /* Name needs freeing if FILE_ENTRY_NAME_FREE is set. Otherwise this is a direct pointer to a
    * name buffer. */
   char *name;
-  char *description;
 
   uint64_t size;
   int64_t time;

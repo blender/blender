@@ -1372,9 +1372,6 @@ static void filelist_entry_clear(FileDirEntry *entry)
   if (entry->name && ((entry->flags & FILE_ENTRY_NAME_FREE) != 0)) {
     MEM_freeN(entry->name);
   }
-  if (entry->description) {
-    MEM_freeN(entry->description);
-  }
   if (entry->relpath) {
     MEM_freeN(entry->relpath);
   }
@@ -1952,7 +1949,6 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   else {
     ret->name = entry->name;
   }
-  ret->description = BLI_strdupcat(filelist->filelist.root, entry->relpath);
   ret->uid = entry->uid;
   ret->blentype = entry->blentype;
   ret->typeflag = entry->typeflag;
