@@ -513,6 +513,7 @@ void FILE_OT_select_box(wmOperatorType *ot)
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = file_box_select_exec;
   ot->modal = file_box_select_modal;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
   ot->cancel = WM_gesture_box_cancel;
 
@@ -606,6 +607,7 @@ void FILE_OT_select(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_select_invoke;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   /* properties */
@@ -864,6 +866,7 @@ void FILE_OT_select_walk(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_walk_select_invoke;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   /* properties */
@@ -951,6 +954,7 @@ void FILE_OT_select_all(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_select_all_exec;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   /* properties */
@@ -1003,6 +1007,7 @@ void FILE_OT_view_selected(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_view_selected_exec;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 }
 
@@ -1014,7 +1019,6 @@ void FILE_OT_view_selected(wmOperatorType *ot)
 
 /* Note we could get rid of this one, but it's used by some addon so...
  * Does not hurt keeping it around for now. */
-/* TODO: disallow bookmark editing in assets mode? */
 static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1047,7 +1051,8 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_select_exec;
-  ot->poll = ED_operator_file_active;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   /* properties */
   prop = RNA_def_string(ot->srna, "dir", NULL, FILE_MAXDIR, "Directory", "");
@@ -1093,7 +1098,8 @@ void FILE_OT_bookmark_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_add_exec;
-  ot->poll = ED_operator_file_active;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 }
 
 /** \} */
@@ -1147,7 +1153,8 @@ void FILE_OT_bookmark_delete(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_delete_exec;
-  ot->poll = ED_operator_file_active;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   /* properties */
   prop = RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
@@ -1205,7 +1212,8 @@ void FILE_OT_bookmark_cleanup(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = bookmark_cleanup_exec;
-  ot->poll = ED_operator_file_active;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   /* properties */
 }
@@ -1293,8 +1301,9 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
   ot->description = "Move the active bookmark up/down in the list";
 
   /* api callbacks */
-  ot->poll = ED_operator_file_active;
   ot->exec = bookmark_move_exec;
+  /* Bookmarks are for file browsing only (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER; /* No undo! */
@@ -1341,7 +1350,8 @@ void FILE_OT_reset_recent(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = reset_recent_exec;
-  ot->poll = ED_operator_file_active;
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 }
 
 /** \} */
@@ -1414,6 +1424,7 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_highlight_invoke;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 }
 
@@ -1465,6 +1476,7 @@ void FILE_OT_sort_column_ui_context(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_column_sort_ui_context_invoke;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 
   ot->flag = OPTYPE_INTERNAL;
@@ -1478,7 +1490,7 @@ void FILE_OT_sort_column_ui_context(wmOperatorType *ot)
 
 static bool file_operator_poll(bContext *C)
 {
-  bool poll = ED_operator_file_active(C);
+  bool poll = ED_operator_file_browsing_active(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   if (!sfile || !sfile->op) {
@@ -1801,7 +1813,7 @@ void FILE_OT_execute(struct wmOperatorType *ot)
    *
    * Avoid using #file_operator_poll since this is also used for entering directories
    * which is used even when the file manager doesn't have an operator. */
-  ot->poll = ED_operator_file_active;
+  ot->poll = ED_operator_file_browsing_active;
 }
 
 /**
@@ -1856,7 +1868,7 @@ void FILE_OT_mouse_execute(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_execute_mouse_invoke;
-  ot->poll = ED_operator_file_active;
+  ot->poll = ED_operator_file_browsing_active;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -1895,6 +1907,7 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_refresh_exec;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
@@ -1935,7 +1948,8 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_parent_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 }
 
 /** \} */
@@ -1970,7 +1984,8 @@ void FILE_OT_previous(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_previous_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 }
 
 /** \} */
@@ -2006,7 +2021,8 @@ void FILE_OT_next(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_next_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 }
 
 /** \} */
@@ -2197,7 +2213,7 @@ void FILE_OT_smoothscroll(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = file_smoothscroll_invoke;
-
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 }
 
@@ -2241,7 +2257,8 @@ void FILE_OT_filepath_drop(wmOperatorType *ot)
   ot->idname = "FILE_OT_filepath_drop";
 
   ot->exec = filepath_drop_exec;
-  ot->poll = ED_operator_file_active;
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 
   RNA_def_string_file_path(ot->srna, "filepath", "Path", FILE_MAX, "", "");
 }
@@ -2375,7 +2392,8 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = file_directory_new_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 
   prop = RNA_def_string_dir_path(
       ot->srna, "directory", NULL, FILE_MAX, "Directory", "Name of new directory");
@@ -2618,7 +2636,8 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_hidedot_exec;
-  ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
 }
 
 /** \} */
@@ -2631,7 +2650,8 @@ static bool file_filenum_poll(bContext *C)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
 
-  if (!ED_operator_file_active(C)) {
+  /* File browsing only operator (not asset browsing). */
+  if (!ED_operator_file_browsing_active(C)) {
     return false;
   }
 
@@ -2758,11 +2778,6 @@ static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-static bool file_rename_poll(bContext *C)
-{
-  return ED_operator_file_active(C) && !ED_fileselect_is_asset_browser(CTX_wm_space_file(C));
-}
-
 void FILE_OT_rename(struct wmOperatorType *ot)
 {
   /* identifiers */
@@ -2773,7 +2788,8 @@ void FILE_OT_rename(struct wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = file_rename_invoke;
   ot->exec = file_rename_exec;
-  ot->poll = file_rename_poll;
+  /* File browsing only operator (not asset browsing). */
+  ot->poll = ED_operator_file_browsing_active;
 }
 
 /** \} */
@@ -2784,7 +2800,7 @@ void FILE_OT_rename(struct wmOperatorType *ot)
 
 static bool file_delete_poll(bContext *C)
 {
-  if (!ED_operator_file_active(C)) {
+  if (!ED_operator_file_browsing_active(C)) {
     return false;
   }
 
@@ -2920,6 +2936,7 @@ void FILE_OT_start_filter(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = file_start_filter_exec;
+  /* Operator works for file or asset browsing */
   ot->poll = ED_operator_file_active;
 }
 
