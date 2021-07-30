@@ -15,11 +15,11 @@
  */
 #pragma once
 
-#include <stddef.h>
-
 /** \file
  * \ingroup bli
  */
+
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -17,8 +17,8 @@
  * All rights reserved.
  */
 
-/** \file snap3d_gizmo.c
- *  \ingroup edgizmolib
+/** \file
+ * \ingroup edgizmolib
  *
  * \name Snap Gizmo
  *
