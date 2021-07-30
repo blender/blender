@@ -2241,7 +2241,7 @@ void FILE_OT_filepath_drop(wmOperatorType *ot)
   ot->idname = "FILE_OT_filepath_drop";
 
   ot->exec = filepath_drop_exec;
-  ot->poll = WM_operator_winactive;
+  ot->poll = ED_operator_file_active;
 
   RNA_def_string_file_path(ot->srna, "filepath", "Path", FILE_MAX, "", "");
 }
