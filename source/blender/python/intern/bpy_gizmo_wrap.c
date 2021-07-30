@@ -54,20 +54,23 @@ static bool bpy_gizmotype_target_property_def(wmGizmoType *gzt, PyObject *item)
 
   struct {
     char *id;
-    char *type_id;
-    int type;
+    struct BPy_EnumProperty_Parse type_enum;
     int array_length;
   } params = {
       .id = NULL, /* not optional */
-      .type = PROP_FLOAT,
-      .type_id = NULL,
+      .type_enum = {.items = rna_enum_property_type_items, .value = PROP_FLOAT},
       .array_length = 1,
   };
 
   static const char *const _keywords[] = {"id", "type", "array_length", NULL};
-  static _PyArg_Parser _parser = {"|$ssi:register_class", _keywords, 0};
-  if (!_PyArg_ParseTupleAndKeywordsFast(
-          empty_tuple, item, &_parser, &params.id, &params.type_id, &params.array_length)) {
+  static _PyArg_Parser _parser = {"|$sO&i:register_class", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(empty_tuple,
+                                        item,
+                                        &_parser,
+                                        &params.id,
+                                        pyrna_enum_value_parse_string,
+                                        &params.type_enum,
+                                        &params.array_length)) {
     goto fail;
   }
 
@@ -76,21 +79,12 @@ static bool bpy_gizmotype_target_property_def(wmGizmoType *gzt, PyObject *item)
     goto fail;
   }
 
-  if ((params.type_id != NULL) &&
-      pyrna_enum_value_from_id(
-          rna_enum_property_type_items, params.type_id, &params.type, "'type' enum value") == -1) {
-    goto fail;
-  }
-  else {
-    params.type = rna_enum_property_type_items[params.type].value;
-  }
-
   if ((params.array_length < 1 || params.array_length > RNA_MAX_ARRAY_LENGTH)) {
     PyErr_SetString(PyExc_ValueError, "'array_length' out of range");
     goto fail;
   }
 
-  WM_gizmotype_target_property_def(gzt, params.id, params.type, params.array_length);
+  WM_gizmotype_target_property_def(gzt, params.id, params.type_enum.value, params.array_length);
   Py_DECREF(empty_tuple);
   return true;
 

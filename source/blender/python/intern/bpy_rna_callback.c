@@ -288,76 +288,52 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
   /* class specific callbacks */
 
   if (srna == &RNA_WindowManager) {
-    const char *error_prefix = "WindowManager.draw_cursor_add";
     struct {
-      const char *space_type_str;
-      const char *region_type_str;
-
-      int space_type;
-      int region_type;
+      struct BPy_EnumProperty_Parse space_type_enum;
+      struct BPy_EnumProperty_Parse region_type_enum;
     } params = {
-        .space_type_str = NULL,
-        .region_type_str = NULL,
-        .space_type = SPACE_TYPE_ANY,
-        .region_type = RGN_TYPE_ANY,
+        .space_type_enum = {.items = rna_enum_space_type_items, .value = SPACE_TYPE_ANY},
+        .region_type_enum = {.items = rna_enum_region_type_items, .value = RGN_TYPE_ANY},
     };
 
     if (!PyArg_ParseTuple(args,
-                          "OOO!|ss:WindowManager.draw_cursor_add",
+                          "OOO!|O&O&:WindowManager.draw_cursor_add",
                           &cls,
                           &cb_func, /* already assigned, no matter */
                           &PyTuple_Type,
                           &cb_args,
-                          &params.space_type_str,
-                          &params.region_type_str)) {
+                          pyrna_enum_value_parse_string,
+                          &params.space_type_enum,
+                          pyrna_enum_value_parse_string,
+                          &params.region_type_enum)) {
       return NULL;
     }
 
-    if (params.space_type_str && pyrna_enum_value_from_id(rna_enum_space_type_items,
-                                                          params.space_type_str,
-                                                          &params.space_type,
-                                                          error_prefix) == -1) {
-      return NULL;
-    }
-    if (params.region_type_str && pyrna_enum_value_from_id(rna_enum_region_type_items,
-                                                           params.region_type_str,
-                                                           &params.region_type,
-                                                           error_prefix) == -1) {
-      return NULL;
-    }
-
-    handle = WM_paint_cursor_activate(
-        params.space_type, params.region_type, NULL, cb_wm_cursor_draw, (void *)args);
+    handle = WM_paint_cursor_activate(params.space_type_enum.value,
+                                      params.region_type_enum.value,
+                                      NULL,
+                                      cb_wm_cursor_draw,
+                                      (void *)args);
   }
   else if (RNA_struct_is_a(srna, &RNA_Space)) {
-    const char *error_prefix = "Space.draw_handler_add";
     struct {
-      const char *region_type_str;
-      const char *event_str;
-
-      int region_type;
-      int event;
-    } params;
+      struct BPy_EnumProperty_Parse region_type_enum;
+      struct BPy_EnumProperty_Parse event_enum;
+    } params = {
+        .region_type_enum = {.items = rna_enum_region_type_items},
+        .event_enum = {.items = region_draw_mode_items},
+    };
 
     if (!PyArg_ParseTuple(args,
-                          "OOO!ss:Space.draw_handler_add",
+                          "OOO!O&O&:Space.draw_handler_add",
                           &cls,
                           &cb_func, /* already assigned, no matter */
                           &PyTuple_Type,
                           &cb_args,
-                          &params.region_type_str,
-                          &params.event_str)) {
-      return NULL;
-    }
-
-    if (pyrna_enum_value_from_id(
-            region_draw_mode_items, params.event_str, &params.event, error_prefix) == -1) {
-      return NULL;
-    }
-    if (pyrna_enum_value_from_id(rna_enum_region_type_items,
-                                 params.region_type_str,
-                                 &params.region_type,
-                                 error_prefix) == -1) {
+                          pyrna_enum_value_parse_string,
+                          &params.region_type_enum,
+                          pyrna_enum_value_parse_string,
+                          &params.event_enum)) {
       return NULL;
     }
 
@@ -368,12 +344,14 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
     }
 
     SpaceType *st = BKE_spacetype_from_id(spaceid);
-    ARegionType *art = BKE_regiontype_from_id(st, params.region_type);
+    ARegionType *art = BKE_regiontype_from_id(st, params.region_type_enum.value);
     if (art == NULL) {
-      PyErr_Format(PyExc_TypeError, "region type '%.200s' not in space", params.region_type_str);
+      PyErr_Format(
+          PyExc_TypeError, "region type %R not in space", params.region_type_enum.value_orig);
       return NULL;
     }
-    handle = ED_region_draw_cb_activate(art, cb_region_draw, (void *)args, params.event);
+    handle = ED_region_draw_cb_activate(
+        art, cb_region_draw, (void *)args, params.event_enum.value);
   }
   else {
     PyErr_SetString(PyExc_TypeError, "callback_add(): type does not support callbacks");
@@ -430,37 +408,37 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
   else if (RNA_struct_is_a(srna, &RNA_Space)) {
     const char *error_prefix = "Space.draw_handler_remove";
     struct {
-      const char *region_type_str;
-
-      int region_type;
-    } params;
+      struct BPy_EnumProperty_Parse region_type_enum;
+    } params = {
+        .region_type_enum = {.items = rna_enum_region_type_items},
+    };
 
     if (!PyArg_ParseTuple(args,
-                          "OO!s:Space.draw_handler_remove",
+                          "OO!O&:Space.draw_handler_remove",
                           &cls,
                           &PyCapsule_Type,
                           &py_handle, /* already assigned, no matter */
-                          &params.region_type_str)) {
-      return NULL;
-    }
-
-    if (pyrna_enum_value_from_id(rna_enum_region_type_items,
-                                 params.region_type_str,
-                                 &params.region_type,
-                                 error_prefix) == -1) {
+                          pyrna_enum_value_parse_string,
+                          &params.region_type_enum)) {
       return NULL;
     }
 
     const eSpace_Type spaceid = rna_Space_refine_reverse(srna);
     if (spaceid == SPACE_EMPTY) {
-      PyErr_Format(PyExc_TypeError, "unknown space type '%.200s'", RNA_struct_identifier(srna));
+      PyErr_Format(PyExc_TypeError,
+                   "%s: unknown space type '%.200s'",
+                   error_prefix,
+                   RNA_struct_identifier(srna));
       return NULL;
     }
 
     SpaceType *st = BKE_spacetype_from_id(spaceid);
-    ARegionType *art = BKE_regiontype_from_id(st, params.region_type);
+    ARegionType *art = BKE_regiontype_from_id(st, params.region_type_enum.value);
     if (art == NULL) {
-      PyErr_Format(PyExc_TypeError, "region type '%.200s' not in space", params.region_type_str);
+      PyErr_Format(PyExc_TypeError,
+                   "%s: region type %R not in space",
+                   error_prefix,
+                   params.region_type_enum.value_orig);
       return NULL;
     }
     ED_region_draw_cb_exit(art, handle);
