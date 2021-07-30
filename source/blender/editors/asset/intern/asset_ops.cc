@@ -151,7 +151,7 @@ static int asset_mark_exec(bContext *C, wmOperator *op)
 
 static void ASSET_OT_mark(wmOperatorType *ot)
 {
-  ot->name = "Mark Asset";
+  ot->name = "Mark as Asset";
   ot->description =
       "Enable easier reuse of selected data-blocks through the Asset Browser, with the help of "
       "customizable metadata (like previews, descriptions and tags)";
