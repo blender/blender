@@ -912,10 +912,9 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
       .space_outliner = space_outliner,
   };
   bool clear = strstr(op->idname, "clear") != NULL;
-  int flag = strstr(op->idname, "holdout") ?
-                 LAYER_COLLECTION_HOLDOUT :
-                 strstr(op->idname, "indirect_only") ? LAYER_COLLECTION_INDIRECT_ONLY :
-                                                       LAYER_COLLECTION_EXCLUDE;
+  int flag = strstr(op->idname, "holdout")       ? LAYER_COLLECTION_HOLDOUT :
+             strstr(op->idname, "indirect_only") ? LAYER_COLLECTION_INDIRECT_ONLY :
+                                                   LAYER_COLLECTION_EXCLUDE;
 
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 

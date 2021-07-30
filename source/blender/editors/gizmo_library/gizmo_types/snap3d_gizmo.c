@@ -374,7 +374,7 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
 
     eSnapEditType edit_mode_type = (snap_gizmo->flag & ED_SNAPGIZMO_SNAP_EDIT_GEOM_FINAL) ?
                                        SNAP_GEOM_FINAL :
-                                       (snap_gizmo->flag & ED_SNAPGIZMO_SNAP_EDIT_GEOM_CAGE) ?
+                                   (snap_gizmo->flag & ED_SNAPGIZMO_SNAP_EDIT_GEOM_CAGE) ?
                                        SNAP_GEOM_CAGE :
                                        SNAP_GEOM_EDIT;
 

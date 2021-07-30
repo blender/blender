@@ -286,8 +286,9 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
   eCalcRollTypes type = RNA_enum_get(op->ptr, "type");
   const bool axis_only = RNA_boolean_get(op->ptr, "axis_only");
   /* axis_flip when matching the active bone never makes sense */
-  bool axis_flip = ((type >= CALC_ROLL_ACTIVE) ? RNA_boolean_get(op->ptr, "axis_flip") :
-                                                 (type >= CALC_ROLL_TAN_NEG_X) ? true : false);
+  bool axis_flip = ((type >= CALC_ROLL_ACTIVE)    ? RNA_boolean_get(op->ptr, "axis_flip") :
+                    (type >= CALC_ROLL_TAN_NEG_X) ? true :
+                                                    false);
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(

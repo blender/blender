@@ -749,8 +749,9 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 
       /* set the individual row-pointers to point at the correct offsets */
       for (int i = 0; i < ibuf->y; i++) {
-        row_pointers[ibuf->y - 1 - i] = (png_bytep)(
-            (unsigned char *)pixels + (((size_t)i) * ibuf->x) * channels * sizeof(unsigned char));
+        row_pointers[ibuf->y - 1 - i] = (png_bytep)((unsigned char *)pixels +
+                                                    (((size_t)i) * ibuf->x) * channels *
+                                                        sizeof(unsigned char));
       }
 
       png_read_image(png_ptr, row_pointers);

@@ -57,7 +57,7 @@ struct avxb {
       : m256(_mm256_insertf128_ps(_mm256_castps128_ps256(a), b, 1))
   {
   }
-  __forceinline operator const __m256 &(void)const
+  __forceinline operator const __m256 &(void) const
   {
     return m256;
   }
