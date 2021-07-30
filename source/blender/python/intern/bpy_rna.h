@@ -219,6 +219,13 @@ int pyrna_set_to_enum_bitfield(const struct EnumPropertyItem *items,
  */
 struct BPy_EnumProperty_Parse {
   const EnumPropertyItem *items;
+  /**
+   * Set when the value was successfully parsed.
+   * Useful if the input ever needs to be included in an error message.
+   * (if the value is not supported under certain conditions).
+   */
+  PyObject *value_orig;
+
   int value;
   bool is_set;
 };

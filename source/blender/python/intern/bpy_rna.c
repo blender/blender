@@ -832,6 +832,8 @@ int pyrna_enum_value_parse_string(PyObject *o, void *p)
           parse_data->items, identifier, &parse_data->value, "enum identifier") == -1) {
     return 0;
   }
+
+  parse_data->value_orig = o;
   parse_data->is_set = true;
   return 1;
 }
@@ -851,6 +853,7 @@ int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
           parse_data->items, o, &parse_data->value, "enum identifier set") == -1) {
     return 0;
   }
+  parse_data->value_orig = o;
   parse_data->is_set = true;
   return 1;
 }
