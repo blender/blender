@@ -197,6 +197,17 @@ static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
 /** \name Associate File Type Operator (Windows only)
  * \{ */
 
+static bool associate_blend_poll(bContext *C)
+{
+#ifdef WIN32
+  UNUSED_VARS(C);
+  return true;
+#else
+  CTX_wm_operator_poll_msg_set(C, "Windows-only operator");
+  return false;
+#endif
+}
+
 static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
 {
 #ifdef WIN32
@@ -212,7 +223,8 @@ static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 #else
-  BKE_report(op->reports, RPT_WARNING, "Operator Not supported");
+  UNUSED_VARS(op);
+  BLI_assert_unreachable();
   return OPERATOR_CANCELLED;
 #endif
 }
@@ -226,6 +238,7 @@ static void PREFERENCES_OT_associate_blend(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = associate_blend_exec;
+  ot->poll = associate_blend_poll;
 }
 
 /** \} */
