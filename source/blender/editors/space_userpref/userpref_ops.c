@@ -26,10 +26,15 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
+
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -188,6 +193,43 @@ static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Associate File Type Operator (Windows only)
+ * \{ */
+
+static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
+{
+#ifdef WIN32
+  WM_cursor_wait(true);
+  if (BLI_windows_register_blend_extension(true)) {
+    BKE_report(op->reports, RPT_INFO, "File association registered");
+    WM_cursor_wait(false);
+    return OPERATOR_FINISHED;
+  }
+  else {
+    BKE_report(op->reports, RPT_ERROR, "Unable to register file association");
+    WM_cursor_wait(false);
+    return OPERATOR_CANCELLED;
+  }
+#else
+  BKE_report(op->reports, RPT_WARNING, "Operator Not supported");
+  return OPERATOR_CANCELLED;
+#endif
+}
+
+static void PREFERENCES_OT_associate_blend(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Register File Association";
+  ot->description = "Use this installation for .blend files and to display thumbnails";
+  ot->idname = "PREFERENCES_OT_associate_blend";
+
+  /* api callbacks */
+  ot->exec = associate_blend_exec;
+}
+
+/** \} */
+
 void ED_operatortypes_userpref(void)
 {
   WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
@@ -197,4 +239,6 @@ void ED_operatortypes_userpref(void)
 
   WM_operatortype_append(PREFERENCES_OT_asset_library_add);
   WM_operatortype_append(PREFERENCES_OT_asset_library_remove);
+
+  WM_operatortype_append(PREFERENCES_OT_associate_blend);
 }

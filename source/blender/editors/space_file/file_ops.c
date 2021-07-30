@@ -2624,43 +2624,6 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Associate File Type Operator (Windows only)
- * \{ */
-
-static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
-{
-#ifdef WIN32
-  WM_cursor_wait(true);
-  if (BLI_windows_register_blend_extension(true)) {
-    BKE_report(op->reports, RPT_INFO, "File association registered");
-    WM_cursor_wait(false);
-    return OPERATOR_FINISHED;
-  }
-  else {
-    BKE_report(op->reports, RPT_ERROR, "Unable to register file association");
-    WM_cursor_wait(false);
-    return OPERATOR_CANCELLED;
-  }
-#else
-  BKE_report(op->reports, RPT_WARNING, "Operator Not supported");
-  return OPERATOR_CANCELLED;
-#endif
-}
-
-void FILE_OT_associate_blend(struct wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Register File Association";
-  ot->description = "Use this installation for .blend files and to display thumbnails";
-  ot->idname = "FILE_OT_associate_blend";
-
-  /* api callbacks */
-  ot->exec = associate_blend_exec;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Increment Filename Operator
  * \{ */
 
