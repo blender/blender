@@ -21,11 +21,11 @@
  * \ingroup edobj
  */
 
-#include <ctype.h>
-#include <float.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -99,7 +99,7 @@ static bool object_remesh_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (ob == NULL || ob->data == NULL) {
+  if (ob == nullptr || ob->data == nullptr) {
     return false;
   }
 
@@ -131,7 +131,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
 
-  Mesh *mesh = ob->data;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   Mesh *new_mesh;
 
   if (mesh->remesh_voxel_size <= 0.0f) {
@@ -193,7 +193,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
 
   if (smooth_normals) {
-    BKE_mesh_smooth_flag_set(ob->data, true);
+    BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
@@ -201,7 +201,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     ED_sculpt_undo_geometry_end(ob);
   }
 
-  BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+  BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
@@ -233,7 +233,7 @@ void OBJECT_OT_voxel_remesh(wmOperatorType *ot)
 #define VOXEL_SIZE_EDIT_MAX_GRIDS_LINES 500
 #define VOXEL_SIZE_EDIT_MAX_STR_LEN 20
 
-typedef struct VoxelSizeEditCustomData {
+struct VoxelSizeEditCustomData {
   void *draw_handle;
   Object *active_object;
 
@@ -249,7 +249,7 @@ typedef struct VoxelSizeEditCustomData {
   float preview_plane[4][3];
 
   float text_mat[4][4];
-} VoxelSizeEditCustomData;
+};
 
 static void voxel_size_parallel_lines_draw(uint pos3d,
                                            const float initial_co[3],
@@ -300,7 +300,7 @@ static void voxel_size_parallel_lines_draw(uint pos3d,
 
 static void voxel_size_edit_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
-  VoxelSizeEditCustomData *cd = arg;
+  VoxelSizeEditCustomData *cd = static_cast<VoxelSizeEditCustomData *>(arg);
 
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
@@ -378,19 +378,19 @@ static void voxel_size_edit_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar),
 static void voxel_size_edit_cancel(bContext *C, wmOperator *op)
 {
   ARegion *region = CTX_wm_region(C);
-  VoxelSizeEditCustomData *cd = op->customdata;
+  VoxelSizeEditCustomData *cd = static_cast<VoxelSizeEditCustomData *>(op->customdata);
 
   ED_region_draw_cb_exit(region->type, cd->draw_handle);
 
   MEM_freeN(op->customdata);
 
-  ED_workspace_status_text(C, NULL);
+  ED_workspace_status_text(C, nullptr);
 }
 
 static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-  VoxelSizeEditCustomData *cd = op->customdata;
+  VoxelSizeEditCustomData *cd = static_cast<VoxelSizeEditCustomData *>(op->customdata);
   Object *active_object = cd->active_object;
   Mesh *mesh = (Mesh *)active_object->data;
 
@@ -410,11 +410,11 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
     mesh->remesh_voxel_size = cd->voxel_size;
     MEM_freeN(op->customdata);
     ED_region_tag_redraw(region);
-    ED_workspace_status_text(C, NULL);
+    ED_workspace_status_text(C, nullptr);
     return OPERATOR_FINISHED;
   }
 
-  const float mval[2] = {event->mval[0], event->mval[1]};
+  const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
 
   float d = cd->init_mval[0] - mval[0];
 
@@ -461,8 +461,8 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   Object *active_object = CTX_data_active_object(C);
   Mesh *mesh = (Mesh *)active_object->data;
 
-  VoxelSizeEditCustomData *cd = MEM_callocN(sizeof(VoxelSizeEditCustomData),
-                                            "Voxel Size Edit OP Custom Data");
+  VoxelSizeEditCustomData *cd = (VoxelSizeEditCustomData *)MEM_callocN(
+      sizeof(VoxelSizeEditCustomData), "Voxel Size Edit OP Custom Data");
 
   /* Initial operator Custom Data setup. */
   cd->draw_handle = ED_region_draw_cb_activate(
@@ -641,13 +641,13 @@ enum {
   QUADRIFLOW_REMESH_FACES,
 };
 
-typedef enum eSymmetryAxes {
+enum eSymmetryAxes {
   SYMMETRY_AXES_X = (1 << 0),
   SYMMETRY_AXES_Y = (1 << 1),
   SYMMETRY_AXES_Z = (1 << 2),
-} eSymmetryAxes;
+};
 
-typedef struct QuadriFlowJob {
+struct QuadriFlowJob {
   /* from wmJob */
   struct Object *owner;
   short *stop, *do_update;
@@ -668,7 +668,7 @@ typedef struct QuadriFlowJob {
 
   int success;
   bool is_nonblocking_job;
-} QuadriFlowJob;
+};
 
 static bool mesh_is_manifold_consistent(Mesh *mesh)
 {
@@ -723,7 +723,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
 
 static void quadriflow_free_job(void *customdata)
 {
-  QuadriFlowJob *qj = customdata;
+  QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
   MEM_freeN(qj);
 }
 
@@ -748,7 +748,7 @@ static int quadriflow_break_job(void *customdata)
 /** Called by ocean-bake, #wmJob sends notifier. */
 static void quadriflow_update_job(void *customdata, float progress, int *cancel)
 {
-  QuadriFlowJob *qj = customdata;
+  QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
   if (quadriflow_break_job(qj)) {
     *cancel = 1;
@@ -763,7 +763,7 @@ static void quadriflow_update_job(void *customdata, float progress, int *cancel)
 
 static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
 {
-  MirrorModifierData mmd = {{0}};
+  MirrorModifierData mmd = {{nullptr}};
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
 
   Mesh *mesh_bisect, *mesh_bisect_temp;
@@ -785,19 +785,19 @@ static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
       mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(
           &mmd, mesh_bisect, axis, plane_co, plane_no);
       if (mesh_bisect_temp != mesh_bisect) {
-        BKE_id_free(NULL, mesh_bisect_temp);
+        BKE_id_free(nullptr, mesh_bisect_temp);
       }
     }
   }
 
-  BKE_id_free(NULL, mesh);
+  BKE_id_free(nullptr, mesh);
 
   return mesh_bisect;
 }
 
 static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmetry_axes)
 {
-  MirrorModifierData mmd = {{0}};
+  MirrorModifierData mmd = {{nullptr}};
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
   Mesh *mesh_mirror, *mesh_mirror_temp;
 
@@ -814,7 +814,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       mesh_mirror_temp = mesh_mirror;
       mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(&mmd, ob, mesh_mirror, axis);
       if (mesh_mirror_temp != mesh_mirror) {
-        BKE_id_free(NULL, mesh_mirror_temp);
+        BKE_id_free(nullptr, mesh_mirror_temp);
       }
     }
   }
@@ -824,7 +824,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
 
 static void quadriflow_start_job(void *customdata, short *stop, short *do_update, float *progress)
 {
-  QuadriFlowJob *qj = customdata;
+  QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
   qj->stop = stop;
   qj->do_update = do_update;
@@ -836,7 +836,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   }
 
   Object *ob = qj->owner;
-  Mesh *mesh = ob->data;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
   Mesh *new_mesh;
   Mesh *bisect_mesh;
 
@@ -867,9 +867,9 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
       quadriflow_update_job,
       (void *)qj);
 
-  BKE_id_free(NULL, bisect_mesh);
+  BKE_id_free(nullptr, bisect_mesh);
 
-  if (new_mesh == NULL) {
+  if (new_mesh == nullptr) {
     *do_update = true;
     *stop = 0;
     if (qj->success == 1) {
@@ -895,9 +895,9 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
 
   if (qj->smooth_normals) {
     if (qj->use_mesh_symmetry) {
-      BKE_mesh_calc_normals(ob->data);
+      BKE_mesh_calc_normals(static_cast<Mesh *>(ob->data));
     }
-    BKE_mesh_smooth_flag_set(ob->data, true);
+    BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
@@ -905,7 +905,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
     ED_sculpt_undo_geometry_end(ob);
   }
 
-  BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+  BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
 
   *do_update = true;
   *stop = 0;
@@ -913,12 +913,12 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
 
 static void quadriflow_end_job(void *customdata)
 {
-  QuadriFlowJob *qj = customdata;
+  QuadriFlowJob *qj = (QuadriFlowJob *)customdata;
 
   Object *ob = qj->owner;
 
   if (qj->is_nonblocking_job) {
-    WM_set_locked_interface(G_MAIN->wm.first, false);
+    WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
   }
 
   switch (qj->success) {
@@ -942,7 +942,7 @@ static void quadriflow_end_job(void *customdata)
 
 static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
 {
-  QuadriFlowJob *job = MEM_mallocN(sizeof(QuadriFlowJob), "QuadriFlowJob");
+  QuadriFlowJob *job = (QuadriFlowJob *)MEM_mallocN(sizeof(QuadriFlowJob), "QuadriFlowJob");
 
   job->owner = CTX_data_active_object(C);
   job->scene = CTX_data_scene(C);
@@ -976,7 +976,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   }
   else {
     job->use_mesh_symmetry = false;
-    job->symmetry_axes = 0;
+    job->symmetry_axes = (eSymmetryAxes)0;
   }
 
   if (op->flag == 0) {
@@ -1001,7 +1001,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
 
     WM_jobs_customdata_set(wm_job, job, quadriflow_free_job);
     WM_jobs_timer(wm_job, 0.1, NC_GEOM | ND_DATA, NC_GEOM | ND_DATA);
-    WM_jobs_callbacks(wm_job, quadriflow_start_job, NULL, NULL, quadriflow_end_job);
+    WM_jobs_callbacks(wm_job, quadriflow_start_job, nullptr, nullptr, quadriflow_end_job);
 
     WM_set_locked_interface(CTX_wm_manager(C), true);
 
@@ -1018,7 +1018,7 @@ static bool quadriflow_check(bContext *C, wmOperator *op)
     float area = RNA_float_get(op->ptr, "mesh_area");
     if (area < 0.0f) {
       Object *ob = CTX_data_active_object(C);
-      area = BKE_mesh_calc_area(ob->data);
+      area = BKE_mesh_calc_area(static_cast<const Mesh *>(ob->data));
       RNA_float_set(op->ptr, "mesh_area", area);
     }
     int num_faces;
@@ -1029,7 +1029,7 @@ static bool quadriflow_check(bContext *C, wmOperator *op)
   }
   else if (mode == QUADRIFLOW_REMESH_RATIO) {
     Object *ob = CTX_data_active_object(C);
-    Mesh *mesh = ob->data;
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
 
     int num_faces;
     float ratio = RNA_float_get(op->ptr, "target_ratio");
@@ -1091,7 +1091,7 @@ static const EnumPropertyItem mode_type_items[] = {
      "Edge Length",
      "Input target edge length in the new mesh"},
     {QUADRIFLOW_REMESH_FACES, "FACES", 0, "Faces", "Input target number of faces in the new mesh"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
@@ -1198,7 +1198,7 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
       "This property is only used to cache the object area for later calculations",
       0.0f,
       FLT_MAX);
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, static_cast<PropertyFlag>(PROP_HIDDEN | PROP_SKIP_SAVE));
 
   RNA_def_int(ot->srna,
               "seed",

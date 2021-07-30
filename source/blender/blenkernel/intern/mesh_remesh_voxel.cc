@@ -21,12 +21,12 @@
  * \ingroup bke
  */
 
-#include <ctype.h>
-#include <float.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cctype>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #include "MEM_guardedalloc.h"
 
@@ -62,8 +62,8 @@ struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
 {
   BKE_mesh_runtime_looptri_recalc(mesh);
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-  MVertTri *verttri = MEM_callocN(sizeof(*verttri) * BKE_mesh_runtime_looptri_len(mesh),
-                                  "remesh_looptri");
+  MVertTri *verttri = (MVertTri *)MEM_callocN(
+      sizeof(*verttri) * BKE_mesh_runtime_looptri_len(mesh), "remesh_looptri");
   BKE_mesh_runtime_verttri_from_looptri(
       verttri, mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(mesh));
 
@@ -86,7 +86,7 @@ struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
     faces[i * 3 + 2] = vt->tri[2];
   }
 
-  struct OpenVDBLevelSet *level_set = OpenVDBLevelSet_create(false, NULL);
+  struct OpenVDBLevelSet *level_set = OpenVDBLevelSet_create(false, nullptr);
   OpenVDBLevelSet_mesh_to_level_set(level_set, verts, faces, totverts, totfaces, transform);
 
   MEM_freeN(verts);
@@ -157,7 +157,7 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
                                         bool preserve_sharp,
                                         bool preserve_boundary,
                                         bool adaptive_scale,
-                                        void *update_cb,
+                                        void (*update_cb)(void *, float progress, int *cancel),
                                         void *update_cb_data)
 {
   /* Ensure that the triangulated mesh data is up to data */
@@ -165,8 +165,8 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
 
   /* Gather the required data for export to the internal quadiflow mesh format */
-  MVertTri *verttri = MEM_callocN(sizeof(*verttri) * BKE_mesh_runtime_looptri_len(input_mesh),
-                                  "remesh_looptri");
+  MVertTri *verttri = (MVertTri *)MEM_callocN(
+      sizeof(*verttri) * BKE_mesh_runtime_looptri_len(input_mesh), "remesh_looptri");
   BKE_mesh_runtime_verttri_from_looptri(
       verttri, input_mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(input_mesh));
 
@@ -201,11 +201,11 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
   qrd.preserve_sharp = preserve_sharp;
   qrd.preserve_boundary = preserve_boundary;
   qrd.adaptive_scale = adaptive_scale;
-  qrd.minimum_cost_flow = 0;
-  qrd.aggresive_sat = 0;
+  qrd.minimum_cost_flow = false;
+  qrd.aggresive_sat = false;
   qrd.rng_seed = seed;
 
-  qrd.out_faces = NULL;
+  qrd.out_faces = nullptr;
 
   /* Run the remesher */
   QFLOW_quadriflow_remesh(&qrd, update_cb, update_cb_data);
@@ -214,16 +214,16 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
   MEM_freeN(faces);
   MEM_freeN(verttri);
 
-  if (qrd.out_faces == NULL) {
+  if (qrd.out_faces == nullptr) {
     /* The remeshing was canceled */
-    return NULL;
+    return nullptr;
   }
 
   if (qrd.out_totfaces == 0) {
     /* Meshing failed */
     MEM_freeN(qrd.out_faces);
     MEM_freeN(qrd.out_verts);
-    return NULL;
+    return nullptr;
   }
 
   /* Construct the new output mesh */
@@ -262,10 +262,12 @@ Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(Mesh *mesh,
                                                 bool preserve_sharp,
                                                 bool preserve_boundary,
                                                 bool adaptive_scale,
-                                                void *update_cb,
+                                                void (*update_cb)(void *,
+                                                                  float progress,
+                                                                  int *cancel),
                                                 void *update_cb_data)
 {
-  Mesh *new_mesh = NULL;
+  Mesh *new_mesh = nullptr;
 #ifdef WITH_QUADRIFLOW
   if (target_faces <= 0) {
     target_faces = -1;
@@ -296,7 +298,7 @@ Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh,
                                            float adaptivity,
                                            float isovalue)
 {
-  Mesh *new_mesh = NULL;
+  Mesh *new_mesh = nullptr;
 #ifdef WITH_OPENVDB
   struct OpenVDBLevelSet *level_set;
   struct OpenVDBTransform *xform = OpenVDBTransform_create();
@@ -314,28 +316,26 @@ Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh,
 
 void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {
-      .nearest_callback = NULL,
-  };
+  BVHTreeFromMesh bvhtree = {{nullptr}};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
-  MVert *target_verts = CustomData_get_layer(&target->vdata, CD_MVERT);
+  MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
 
   float *target_mask;
   if (CustomData_has_layer(&target->vdata, CD_PAINT_MASK)) {
-    target_mask = CustomData_get_layer(&target->vdata, CD_PAINT_MASK);
+    target_mask = (float *)CustomData_get_layer(&target->vdata, CD_PAINT_MASK);
   }
   else {
-    target_mask = CustomData_add_layer(
-        &target->vdata, CD_PAINT_MASK, CD_CALLOC, NULL, target->totvert);
+    target_mask = (float *)CustomData_add_layer(
+        &target->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, target->totvert);
   }
 
   float *source_mask;
   if (CustomData_has_layer(&source->vdata, CD_PAINT_MASK)) {
-    source_mask = CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
+    source_mask = (float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
   }
   else {
-    source_mask = CustomData_add_layer(
-        &source->vdata, CD_PAINT_MASK, CD_CALLOC, NULL, source->totvert);
+    source_mask = (float *)CustomData_add_layer(
+        &source->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, source->totvert);
   }
 
   for (int i = 0; i < target->totvert; i++) {
@@ -354,30 +354,28 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
 
 void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {
-      .nearest_callback = NULL,
-  };
+  BVHTreeFromMesh bvhtree = {{nullptr}};
 
-  const MPoly *target_polys = CustomData_get_layer(&target->pdata, CD_MPOLY);
-  const MVert *target_verts = CustomData_get_layer(&target->vdata, CD_MVERT);
-  const MLoop *target_loops = CustomData_get_layer(&target->ldata, CD_MLOOP);
+  const MPoly *target_polys = (const MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
+  const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
+  const MLoop *target_loops = (const MLoop *)CustomData_get_layer(&target->ldata, CD_MLOOP);
 
   int *target_face_sets;
   if (CustomData_has_layer(&target->pdata, CD_SCULPT_FACE_SETS)) {
-    target_face_sets = CustomData_get_layer(&target->pdata, CD_SCULPT_FACE_SETS);
+    target_face_sets = (int *)CustomData_get_layer(&target->pdata, CD_SCULPT_FACE_SETS);
   }
   else {
-    target_face_sets = CustomData_add_layer(
-        &target->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, target->totpoly);
+    target_face_sets = (int *)CustomData_add_layer(
+        &target->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, target->totpoly);
   }
 
   int *source_face_sets;
   if (CustomData_has_layer(&source->pdata, CD_SCULPT_FACE_SETS)) {
-    source_face_sets = CustomData_get_layer(&source->pdata, CD_SCULPT_FACE_SETS);
+    source_face_sets = (int *)CustomData_get_layer(&source->pdata, CD_SCULPT_FACE_SETS);
   }
   else {
-    source_face_sets = CustomData_add_layer(
-        &source->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, source->totpoly);
+    source_face_sets = (int *)CustomData_add_layer(
+        &source->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, source->totpoly);
   }
 
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
@@ -403,9 +401,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
 
 void BKE_remesh_reproject_vertex_paint(Mesh *target, Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {
-      .nearest_callback = NULL,
-  };
+  BVHTreeFromMesh bvhtree = {{nullptr}};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
 
   int tot_color_layer = CustomData_number_of_layers(&source->vdata, CD_PROP_COLOR);
@@ -413,11 +409,13 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, Mesh *source)
   for (int layer_n = 0; layer_n < tot_color_layer; layer_n++) {
     const char *layer_name = CustomData_get_layer_name(&source->vdata, CD_PROP_COLOR, layer_n);
     CustomData_add_layer_named(
-        &target->vdata, CD_PROP_COLOR, CD_CALLOC, NULL, target->totvert, layer_name);
+        &target->vdata, CD_PROP_COLOR, CD_CALLOC, nullptr, target->totvert, layer_name);
 
-    MPropCol *target_color = CustomData_get_layer_n(&target->vdata, CD_PROP_COLOR, layer_n);
-    MVert *target_verts = CustomData_get_layer(&target->vdata, CD_MVERT);
-    MPropCol *source_color = CustomData_get_layer_n(&source->vdata, CD_PROP_COLOR, layer_n);
+    MPropCol *target_color = (MPropCol *)CustomData_get_layer_n(
+        &target->vdata, CD_PROP_COLOR, layer_n);
+    MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
+    MPropCol *source_color = (MPropCol *)CustomData_get_layer_n(
+        &source->vdata, CD_PROP_COLOR, layer_n);
     for (int i = 0; i < target->totvert; i++) {
       BVHTreeNearest nearest;
       nearest.index = -1;
@@ -436,16 +434,14 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
 {
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
   BMesh *bm;
-  bm = BM_mesh_create(&allocsize,
-                      &((struct BMeshCreateParams){
-                          .use_toolflags = true,
-                      }));
 
-  BM_mesh_bm_from_me(bm,
-                     mesh,
-                     (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                     }));
+  BMeshCreateParams bmesh_create_params;
+  bmesh_create_params.use_toolflags = true;
+  bm = BM_mesh_create(&allocsize, &bmesh_create_params);
+
+  BMeshFromMeshParams bmesh_from_mesh_params;
+  bmesh_from_mesh_params.calc_face_normal = true;
+  BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
 
   BMVert *v;
   BMEdge *ed, *ed_next;
@@ -456,8 +452,8 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
   BM_ITER_MESH_MUTABLE (f, f_next, &iter_a, bm, BM_FACES_OF_MESH) {
     BMVert *v1, *v2;
-    v1 = NULL;
-    v2 = NULL;
+    v1 = nullptr;
+    v2 = nullptr;
     BM_ITER_ELEM (v, &iter_b, f, BM_VERTS_OF_FACE) {
       if (BM_vert_edge_count(v) == 3) {
         if (v1) {
@@ -470,7 +466,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
     }
     if (v1 && v2 && (v1 != v2) && !BM_edge_exists(v1, v2)) {
       BM_face_kill(bm, f);
-      BMEdge *e = BM_edge_create(bm, v1, v2, NULL, BM_CREATE_NOP);
+      BMEdge *e = BM_edge_create(bm, v1, v2, nullptr, BM_CREATE_NOP);
       BM_elem_flag_set(e, BM_ELEM_TAG, true);
     }
   }
@@ -532,13 +528,11 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
                BM_ELEM_TAG);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
-  Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
-                                            (&(struct BMeshToMeshParams){
-                                                .calc_object_remap = false,
-                                            }),
-                                            mesh);
+  BMeshToMeshParams bmesh_to_mesh_params;
+  bmesh_to_mesh_params.calc_object_remap = false;
+  Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &bmesh_to_mesh_params, mesh);
 
-  BKE_id_free(NULL, mesh);
+  BKE_id_free(nullptr, mesh);
   BM_mesh_free(bm);
   return result;
 }

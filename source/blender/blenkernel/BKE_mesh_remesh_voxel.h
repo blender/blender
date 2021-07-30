@@ -54,7 +54,9 @@ struct Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(struct Mesh *mesh,
                                                        bool preserve_sharp,
                                                        bool preserve_boundary,
                                                        bool adaptive_scale,
-                                                       void *update_cb,
+                                                       void (*update_cb)(void *,
+                                                                         float progress,
+                                                                         int *cancel),
                                                        void *update_cb_data);
 
 /* Data reprojection functions */
