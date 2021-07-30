@@ -2671,7 +2671,7 @@ static void animsys_create_action_track_strip(const AnimData *adt,
 static bool is_nlatrack_evaluatable(const AnimData *adt, const NlaTrack *nlt)
 {
   /* Skip disabled tracks unless it contains the tweaked strip. */
-  const bool contains_tweak_strip = (adt->flag & ADT_NLA_EDIT_ON) &&
+  const bool contains_tweak_strip = (adt->flag & ADT_NLA_EDIT_ON) && adt->act_track &&
                                     (nlt->index == adt->act_track->index);
   if ((nlt->flag & NLATRACK_DISABLED) && !contains_tweak_strip) {
     return false;
