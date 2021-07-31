@@ -31,15 +31,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_blenlib.h"
 #include "BLI_float3.hh"
 #include "BLI_index_range.hh"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_customdata.h"
