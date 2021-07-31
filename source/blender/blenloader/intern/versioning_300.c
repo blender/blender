@@ -583,11 +583,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
                     sizeof(scene->master_collection->id.name) - 2);
       }
     }
-    LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
-      if (!(mat->lineart.flags & LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS)) {
-        mat->lineart.mat_occlusion = 1;
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 9)) {
@@ -616,6 +611,11 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (tool_settings->snap_uv_mode & (1 << 4)) {
         tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
         tool_settings->snap_uv_mode &= ~(1 << 4);
+      }
+    }
+    LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
+      if (!(mat->lineart.flags & LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS)) {
+        mat->lineart.mat_occlusion = 1;
       }
     }
   }
