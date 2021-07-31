@@ -60,7 +60,7 @@ using blender::float3;
 using blender::IndexRange;
 
 #ifdef WITH_QUADRIFLOW
-static Mesh *remesh_quadriflow(Mesh *input_mesh,
+static Mesh *remesh_quadriflow(const Mesh *input_mesh,
                                int target_faces,
                                int seed,
                                bool preserve_sharp,
@@ -70,7 +70,6 @@ static Mesh *remesh_quadriflow(Mesh *input_mesh,
                                void *update_cb_data)
 {
   /* Ensure that the triangulated mesh data is up to data */
-  BKE_mesh_runtime_looptri_recalc(input_mesh);
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
 
   /* Gather the required data for export to the internal quadiflow mesh format */
@@ -158,7 +157,7 @@ static Mesh *remesh_quadriflow(Mesh *input_mesh,
 }
 #endif
 
-Mesh *BKE_mesh_remesh_quadriflow(Mesh *mesh,
+Mesh *BKE_mesh_remesh_quadriflow(const Mesh *mesh,
                                  int target_faces,
                                  int seed,
                                  bool preserve_sharp,
@@ -193,10 +192,9 @@ Mesh *BKE_mesh_remesh_quadriflow(Mesh *mesh,
 }
 
 #ifdef WITH_OPENVDB
-static struct OpenVDBLevelSet *remesh_voxel_level_set_create(Mesh *mesh,
+static struct OpenVDBLevelSet *remesh_voxel_level_set_create(const Mesh *mesh,
                                                              struct OpenVDBTransform *transform)
 {
-  BKE_mesh_runtime_looptri_recalc(mesh);
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
   MVertTri *verttri = (MVertTri *)MEM_callocN(
       sizeof(*verttri) * BKE_mesh_runtime_looptri_len(mesh), "remesh_looptri");
@@ -284,7 +282,10 @@ static Mesh *remesh_voxel_volume_to_mesh(struct OpenVDBLevelSet *level_set,
 }
 #endif
 
-Mesh *BKE_mesh_remesh_voxel(Mesh *mesh, float voxel_size, float adaptivity, float isovalue)
+Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
+                            const float voxel_size,
+                            const float adaptivity,
+                            const float isovalue)
 {
 #ifdef WITH_OPENVDB
   struct OpenVDBTransform *xform = OpenVDBTransform_create();
@@ -356,12 +357,12 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
         &target->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, target->totpoly);
   }
 
-  int *source_face_sets;
+  const int *source_face_sets;
   if (CustomData_has_layer(&source->pdata, CD_SCULPT_FACE_SETS)) {
-    source_face_sets = (int *)CustomData_get_layer(&source->pdata, CD_SCULPT_FACE_SETS);
+    source_face_sets = (const int *)CustomData_get_layer(&source->pdata, CD_SCULPT_FACE_SETS);
   }
   else {
-    source_face_sets = (int *)CustomData_add_layer(
+    source_face_sets = (const int *)CustomData_add_layer(
         &source->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, source->totpoly);
   }
 
@@ -386,7 +387,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
   free_bvhtree_from_mesh(&bvhtree);
 }
 
-void BKE_remesh_reproject_vertex_paint(Mesh *target, Mesh *source)
+void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
 {
   BVHTreeFromMesh bvhtree = {{nullptr}};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
@@ -401,7 +402,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, Mesh *source)
     MPropCol *target_color = (MPropCol *)CustomData_get_layer_n(
         &target->vdata, CD_PROP_COLOR, layer_n);
     MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
-    MPropCol *source_color = (MPropCol *)CustomData_get_layer_n(
+    const MPropCol *source_color = (const MPropCol *)CustomData_get_layer_n(
         &source->vdata, CD_PROP_COLOR, layer_n);
     for (int i = 0; i < target->totvert; i++) {
       BVHTreeNearest nearest;
@@ -417,13 +418,12 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, Mesh *source)
   free_bvhtree_from_mesh(&bvhtree);
 }
 
-struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
+struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
 {
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-  BMesh *bm;
 
   const BMeshCreateParams bmesh_create_params = {true};
-  bm = BM_mesh_create(&allocsize, &bmesh_create_params);
+  BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
@@ -518,7 +518,6 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
   bmesh_to_mesh_params.calc_object_remap = false;
   Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &bmesh_to_mesh_params, mesh);
 
-  BKE_id_free(nullptr, mesh);
   BM_mesh_free(bm);
   return result;
 }

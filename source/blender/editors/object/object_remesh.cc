@@ -132,7 +132,6 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  Mesh *new_mesh;
 
   if (mesh->remesh_voxel_size <= 0.0f) {
     BKE_report(op->reports, RPT_ERROR, "Voxel remesher cannot run with a voxel size of 0.0");
@@ -151,7 +150,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     isovalue = mesh->remesh_voxel_size * 0.3f;
   }
 
-  new_mesh = BKE_mesh_remesh_voxel(
+  Mesh *new_mesh = BKE_mesh_remesh_voxel(
       mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue);
 
   if (!new_mesh) {
@@ -164,7 +163,9 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (mesh->flag & ME_REMESH_FIX_POLES && mesh->remesh_voxel_adaptivity <= 0.0f) {
-    new_mesh = BKE_mesh_remesh_voxel_fix_poles(new_mesh);
+    Mesh *mesh_fixed_poles = BKE_mesh_remesh_voxel_fix_poles(new_mesh);
+    BKE_id_free(nullptr, new_mesh);
+    new_mesh = mesh_fixed_poles;
     BKE_mesh_calc_normals(new_mesh);
   }
 
