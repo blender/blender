@@ -1953,7 +1953,7 @@ static uchar lineart_intersection_mask_check(Collection *c, Object *ob)
  * See if this object in such collection is used for generating line art,
  * Disabling a collection for line art will doable all objects inside.
  */
-static int lineart_usage_check(Collection *c, Object *ob)
+static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
 {
 
   if (!c) {
@@ -1966,8 +1966,12 @@ static int lineart_usage_check(Collection *c, Object *ob)
     return ob->lineart.usage;
   }
 
-  if (c->children.first == NULL) {
+  if (c->gobject.first) {
     if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
+      if ((is_render && (c->flag & COLLECTION_RESTRICT_RENDER)) ||
+          ((!is_render) && (c->flag & COLLECTION_RESTRICT_VIEWPORT))) {
+        return OBJECT_LRT_EXCLUDE;
+      }
       if (ob->lineart.usage == OBJECT_LRT_INHERIT) {
         switch (c->lineart_usage) {
           case COLLECTION_LRT_OCCLUSION_ONLY:
@@ -1986,7 +1990,7 @@ static int lineart_usage_check(Collection *c, Object *ob)
   }
 
   LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
-    int result = lineart_usage_check(cc->collection, ob);
+    int result = lineart_usage_check(cc->collection, ob, is_render);
     if (result > OBJECT_LRT_INHERIT) {
       return result;
     }
@@ -2115,9 +2119,11 @@ static void lineart_main_load_geometries(
   LineartObjectLoadTaskInfo *olti = lineart_mem_acquire(
       &rb->render_data_pool, sizeof(LineartObjectLoadTaskInfo) * thread_count);
 
+  bool is_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
+
   DEG_OBJECT_ITER_BEGIN (depsgraph, ob, flags) {
     LineartObjectInfo *obi = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartObjectInfo));
-    obi->usage = lineart_usage_check(scene->master_collection, ob);
+    obi->usage = lineart_usage_check(scene->master_collection, ob, is_render);
     obi->override_intersection_mask = lineart_intersection_mask_check(scene->master_collection,
                                                                       ob);
     Mesh *use_mesh;
