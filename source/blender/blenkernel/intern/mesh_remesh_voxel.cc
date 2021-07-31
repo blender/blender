@@ -63,98 +63,6 @@ using blender::Array;
 using blender::float3;
 using blender::IndexRange;
 
-#ifdef WITH_OPENVDB
-struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
-    Mesh *mesh, struct OpenVDBTransform *transform)
-{
-  BKE_mesh_runtime_looptri_recalc(mesh);
-  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-  MVertTri *verttri = (MVertTri *)MEM_callocN(
-      sizeof(*verttri) * BKE_mesh_runtime_looptri_len(mesh), "remesh_looptri");
-  BKE_mesh_runtime_verttri_from_looptri(
-      verttri, mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(mesh));
-
-  const int totfaces = BKE_mesh_runtime_looptri_len(mesh);
-  const int totverts = mesh->totvert;
-  Array<float3> verts(totverts);
-  Array<int> faces(totfaces * 3);
-
-  for (const int i : IndexRange(totverts)) {
-    verts[i] = mesh->mvert[i].co;
-  }
-
-  for (const int i : IndexRange(totfaces)) {
-    MVertTri &vt = verttri[i];
-    faces[i * 3] = vt.tri[0];
-    faces[i * 3 + 1] = vt.tri[1];
-    faces[i * 3 + 2] = vt.tri[2];
-  }
-
-  struct OpenVDBLevelSet *level_set = OpenVDBLevelSet_create(false, nullptr);
-  OpenVDBLevelSet_mesh_to_level_set(
-      level_set, (const float *)verts.data(), faces.data(), totverts, totfaces, transform);
-
-  MEM_freeN(verttri);
-
-  return level_set;
-}
-
-Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
-                                                       double isovalue,
-                                                       double adaptivity,
-                                                       bool relax_disoriented_triangles)
-{
-  struct OpenVDBVolumeToMeshData output_mesh;
-  OpenVDBLevelSet_volume_to_mesh(
-      level_set, &output_mesh, isovalue, adaptivity, relax_disoriented_triangles);
-
-  Mesh *mesh = BKE_mesh_new_nomain(output_mesh.totvertices,
-                                   0,
-                                   0,
-                                   (output_mesh.totquads * 4) + (output_mesh.tottriangles * 3),
-                                   output_mesh.totquads + output_mesh.tottriangles);
-
-  for (const int i : IndexRange(output_mesh.totvertices)) {
-    copy_v3_v3(mesh->mvert[i].co, &output_mesh.vertices[i * 3]);
-  }
-
-  for (const int i : IndexRange(output_mesh.totquads)) {
-    MPoly &poly = mesh->mpoly[i];
-    const int loopstart = i * 4;
-    poly.loopstart = loopstart;
-    poly.totloop = 4;
-    mesh->mloop[loopstart].v = output_mesh.quads[loopstart];
-    mesh->mloop[loopstart + 1].v = output_mesh.quads[loopstart + 1];
-    mesh->mloop[loopstart + 2].v = output_mesh.quads[loopstart + 2];
-    mesh->mloop[loopstart + 3].v = output_mesh.quads[loopstart + 3];
-  }
-
-  const int triangle_poly_start = output_mesh.totquads;
-  const int triangle_loop_start = output_mesh.totquads * 4;
-  for (const int i : IndexRange(output_mesh.tottriangles)) {
-    MPoly &poly = mesh->mpoly[triangle_poly_start + i];
-    const int loopstart = triangle_loop_start + i * 3;
-    poly.loopstart = loopstart;
-    poly.totloop = 3;
-    mesh->mloop[loopstart].v = output_mesh.triangles[i * 3 + 2];
-    mesh->mloop[loopstart + 1].v = output_mesh.triangles[i * 3 + 1];
-    mesh->mloop[loopstart + 2].v = output_mesh.triangles[i * 3];
-  }
-
-  BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_calc_normals(mesh);
-
-  MEM_freeN(output_mesh.quads);
-  MEM_freeN(output_mesh.vertices);
-
-  if (output_mesh.tottriangles > 0) {
-    MEM_freeN(output_mesh.triangles);
-  }
-
-  return mesh;
-}
-#endif
-
 #ifdef WITH_QUADRIFLOW
 static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
                                         int target_faces,
@@ -290,6 +198,98 @@ Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(Mesh *mesh,
 #endif
   return new_mesh;
 }
+
+#ifdef WITH_OPENVDB
+struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
+    Mesh *mesh, struct OpenVDBTransform *transform)
+{
+  BKE_mesh_runtime_looptri_recalc(mesh);
+  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+  MVertTri *verttri = (MVertTri *)MEM_callocN(
+      sizeof(*verttri) * BKE_mesh_runtime_looptri_len(mesh), "remesh_looptri");
+  BKE_mesh_runtime_verttri_from_looptri(
+      verttri, mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(mesh));
+
+  const int totfaces = BKE_mesh_runtime_looptri_len(mesh);
+  const int totverts = mesh->totvert;
+  Array<float3> verts(totverts);
+  Array<int> faces(totfaces * 3);
+
+  for (const int i : IndexRange(totverts)) {
+    verts[i] = mesh->mvert[i].co;
+  }
+
+  for (const int i : IndexRange(totfaces)) {
+    MVertTri &vt = verttri[i];
+    faces[i * 3] = vt.tri[0];
+    faces[i * 3 + 1] = vt.tri[1];
+    faces[i * 3 + 2] = vt.tri[2];
+  }
+
+  struct OpenVDBLevelSet *level_set = OpenVDBLevelSet_create(false, nullptr);
+  OpenVDBLevelSet_mesh_to_level_set(
+      level_set, (const float *)verts.data(), faces.data(), totverts, totfaces, transform);
+
+  MEM_freeN(verttri);
+
+  return level_set;
+}
+
+Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
+                                                       double isovalue,
+                                                       double adaptivity,
+                                                       bool relax_disoriented_triangles)
+{
+  struct OpenVDBVolumeToMeshData output_mesh;
+  OpenVDBLevelSet_volume_to_mesh(
+      level_set, &output_mesh, isovalue, adaptivity, relax_disoriented_triangles);
+
+  Mesh *mesh = BKE_mesh_new_nomain(output_mesh.totvertices,
+                                   0,
+                                   0,
+                                   (output_mesh.totquads * 4) + (output_mesh.tottriangles * 3),
+                                   output_mesh.totquads + output_mesh.tottriangles);
+
+  for (const int i : IndexRange(output_mesh.totvertices)) {
+    copy_v3_v3(mesh->mvert[i].co, &output_mesh.vertices[i * 3]);
+  }
+
+  for (const int i : IndexRange(output_mesh.totquads)) {
+    MPoly &poly = mesh->mpoly[i];
+    const int loopstart = i * 4;
+    poly.loopstart = loopstart;
+    poly.totloop = 4;
+    mesh->mloop[loopstart].v = output_mesh.quads[loopstart];
+    mesh->mloop[loopstart + 1].v = output_mesh.quads[loopstart + 1];
+    mesh->mloop[loopstart + 2].v = output_mesh.quads[loopstart + 2];
+    mesh->mloop[loopstart + 3].v = output_mesh.quads[loopstart + 3];
+  }
+
+  const int triangle_poly_start = output_mesh.totquads;
+  const int triangle_loop_start = output_mesh.totquads * 4;
+  for (const int i : IndexRange(output_mesh.tottriangles)) {
+    MPoly &poly = mesh->mpoly[triangle_poly_start + i];
+    const int loopstart = triangle_loop_start + i * 3;
+    poly.loopstart = loopstart;
+    poly.totloop = 3;
+    mesh->mloop[loopstart].v = output_mesh.triangles[i * 3 + 2];
+    mesh->mloop[loopstart + 1].v = output_mesh.triangles[i * 3 + 1];
+    mesh->mloop[loopstart + 2].v = output_mesh.triangles[i * 3];
+  }
+
+  BKE_mesh_calc_edges(mesh, false, false);
+  BKE_mesh_calc_normals(mesh);
+
+  MEM_freeN(output_mesh.quads);
+  MEM_freeN(output_mesh.vertices);
+
+  if (output_mesh.tottriangles > 0) {
+    MEM_freeN(output_mesh.triangles);
+  }
+
+  return mesh;
+}
+#endif
 
 Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh,
                                            float voxel_size,
