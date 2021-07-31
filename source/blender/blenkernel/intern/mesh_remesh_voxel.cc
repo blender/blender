@@ -64,14 +64,14 @@ using blender::float3;
 using blender::IndexRange;
 
 #ifdef WITH_QUADRIFLOW
-static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
-                                        int target_faces,
-                                        int seed,
-                                        bool preserve_sharp,
-                                        bool preserve_boundary,
-                                        bool adaptive_scale,
-                                        void (*update_cb)(void *, float progress, int *cancel),
-                                        void *update_cb_data)
+static Mesh *remesh_quadriflow(Mesh *input_mesh,
+                               int target_faces,
+                               int seed,
+                               bool preserve_sharp,
+                               bool preserve_boundary,
+                               bool adaptive_scale,
+                               void (*update_cb)(void *, float progress, int *cancel),
+                               void *update_cb_data)
 {
   /* Ensure that the triangulated mesh data is up to data */
   BKE_mesh_runtime_looptri_recalc(input_mesh);
@@ -162,30 +162,27 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
 }
 #endif
 
-Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(Mesh *mesh,
-                                                int target_faces,
-                                                int seed,
-                                                bool preserve_sharp,
-                                                bool preserve_boundary,
-                                                bool adaptive_scale,
-                                                void (*update_cb)(void *,
-                                                                  float progress,
-                                                                  int *cancel),
-                                                void *update_cb_data)
+Mesh *BKE_mesh_remesh_quadriflow(Mesh *mesh,
+                                 int target_faces,
+                                 int seed,
+                                 bool preserve_sharp,
+                                 bool preserve_boundary,
+                                 bool adaptive_scale,
+                                 void (*update_cb)(void *, float progress, int *cancel),
+                                 void *update_cb_data)
 {
-  Mesh *new_mesh = nullptr;
 #ifdef WITH_QUADRIFLOW
   if (target_faces <= 0) {
     target_faces = -1;
   }
-  new_mesh = BKE_mesh_remesh_quadriflow(mesh,
-                                        target_faces,
-                                        seed,
-                                        preserve_sharp,
-                                        preserve_boundary,
-                                        adaptive_scale,
-                                        update_cb,
-                                        update_cb_data);
+  return remesh_quadriflow(mesh,
+                           target_faces,
+                           seed,
+                           preserve_sharp,
+                           preserve_boundary,
+                           adaptive_scale,
+                           update_cb,
+                           update_cb_data);
 #else
   UNUSED_VARS(mesh,
               target_faces,
@@ -195,13 +192,13 @@ Mesh *BKE_mesh_remesh_quadriflow_to_mesh_nomain(Mesh *mesh,
               adaptive_scale,
               update_cb,
               update_cb_data);
+  return nullptr;
 #endif
-  return new_mesh;
 }
 
 #ifdef WITH_OPENVDB
-struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
-    Mesh *mesh, struct OpenVDBTransform *transform)
+static struct OpenVDBLevelSet *remesh_voxel_level_set_create(Mesh *mesh,
+                                                             struct OpenVDBTransform *transform)
 {
   BKE_mesh_runtime_looptri_recalc(mesh);
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
@@ -235,10 +232,10 @@ struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
   return level_set;
 }
 
-Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *level_set,
-                                                       double isovalue,
-                                                       double adaptivity,
-                                                       bool relax_disoriented_triangles)
+static Mesh *remesh_voxel_volume_to_mesh(struct OpenVDBLevelSet *level_set,
+                                         double isovalue,
+                                         double adaptivity,
+                                         bool relax_disoriented_triangles)
 {
   struct OpenVDBVolumeToMeshData output_mesh;
   OpenVDBLevelSet_volume_to_mesh(
@@ -291,25 +288,21 @@ Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *l
 }
 #endif
 
-Mesh *BKE_mesh_remesh_voxel_to_mesh_nomain(Mesh *mesh,
-                                           float voxel_size,
-                                           float adaptivity,
-                                           float isovalue)
+Mesh *BKE_mesh_remesh_voxel(Mesh *mesh, float voxel_size, float adaptivity, float isovalue)
 {
-  Mesh *new_mesh = nullptr;
 #ifdef WITH_OPENVDB
-  struct OpenVDBLevelSet *level_set;
   struct OpenVDBTransform *xform = OpenVDBTransform_create();
   OpenVDBTransform_create_linear_transform(xform, (double)voxel_size);
-  level_set = BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(mesh, xform);
-  new_mesh = BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(
+  struct OpenVDBLevelSet *level_set = remesh_voxel_level_set_create(mesh, xform);
+  Mesh *new_mesh = remesh_voxel_volume_to_mesh(
       level_set, (double)isovalue, (double)adaptivity, false);
   OpenVDBLevelSet_free(level_set);
   OpenVDBTransform_free(xform);
+  return new_mesh;
 #else
   UNUSED_VARS(mesh, voxel_size, adaptivity, isovalue);
+  return nullptr;
 #endif
-  return new_mesh;
 }
 
 void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)

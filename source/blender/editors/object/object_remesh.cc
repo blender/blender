@@ -151,7 +151,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     isovalue = mesh->remesh_voxel_size * 0.3f;
   }
 
-  new_mesh = BKE_mesh_remesh_voxel_to_mesh_nomain(
+  new_mesh = BKE_mesh_remesh_voxel(
       mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue);
 
   if (!new_mesh) {
@@ -853,19 +853,18 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   /* Bisect the input mesh using the paint symmetry settings */
   bisect_mesh = remesh_symmetry_bisect(bisect_mesh, qj->symmetry_axes);
 
-  new_mesh = BKE_mesh_remesh_quadriflow_to_mesh_nomain(
-      bisect_mesh,
-      qj->target_faces,
-      qj->seed,
-      qj->use_preserve_sharp,
-      (qj->use_preserve_boundary || qj->use_mesh_symmetry),
+  new_mesh = BKE_mesh_remesh_quadriflow(bisect_mesh,
+                                        qj->target_faces,
+                                        qj->seed,
+                                        qj->use_preserve_sharp,
+                                        (qj->use_preserve_boundary || qj->use_mesh_symmetry),
 #ifdef USE_MESH_CURVATURE
-      qj->use_mesh_curvature,
+                                        qj->use_mesh_curvature,
 #else
-      false,
+                                        false,
 #endif
-      quadriflow_update_job,
-      (void *)qj);
+                                        quadriflow_update_job,
+                                        (void *)qj);
 
   BKE_id_free(nullptr, bisect_mesh);
 
