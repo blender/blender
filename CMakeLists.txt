@@ -1216,7 +1216,7 @@ if(NOT WITH_GLU)
 endif()
 
 #-----------------------------------------------------------------------------
-# Configure Bullet
+# Configure Bullet & Enable Double_precision!important
 
 if(WITH_BULLET AND WITH_SYSTEM_BULLET)
 	find_package(Bullet)
@@ -1224,7 +1224,7 @@ if(WITH_BULLET AND WITH_SYSTEM_BULLET)
 		set(WITH_BULLET OFF)
 	endif()
 else()
-	ADD_DEFINITIONS( -DBT_USE_DOUBLE_PRECISION)
+	ADD_DEFINITIONS( -DBT_USE_DOUBLE_PRECISION) #important
 	set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
 	# set(BULLET_LIBRARIES "")
 endif()
