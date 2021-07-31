@@ -67,8 +67,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
   isect->prim = PRIM_NONE;
   isect->object = OBJECT_NONE;
 
-  BVH_DEBUG_INIT();
-
   /* traversal loop */
   do {
     do {
@@ -118,7 +116,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
             --stack_ptr;
           }
         }
-        BVH_DEBUG_NEXT_NODE();
       }
 
       /* if node is leaf, fetch triangle list */
@@ -138,7 +135,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
           switch (type & PRIMITIVE_ALL) {
             case PRIMITIVE_TRIANGLE: {
               for (; prim_addr < prim_addr2; prim_addr++) {
-                BVH_DEBUG_NEXT_INTERSECTION();
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
                 if (triangle_intersect(kg, isect, P, dir, visibility, object, prim_addr)) {
                   /* shadow ray early termination */
@@ -151,7 +147,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
             case PRIMITIVE_MOTION_TRIANGLE: {
               for (; prim_addr < prim_addr2; prim_addr++) {
-                BVH_DEBUG_NEXT_INTERSECTION();
                 kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
                 if (motion_triangle_intersect(
                         kg, isect, P, dir, ray->time, visibility, object, prim_addr)) {
@@ -169,7 +164,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
             case PRIMITIVE_CURVE_RIBBON:
             case PRIMITIVE_MOTION_CURVE_RIBBON: {
               for (; prim_addr < prim_addr2; prim_addr++) {
-                BVH_DEBUG_NEXT_INTERSECTION();
                 const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
                 kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
                 const bool hit = curve_intersect(
@@ -201,8 +195,6 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
           traversal_stack[stack_ptr] = ENTRYPOINT_SENTINEL;
 
           node_addr = kernel_tex_fetch(__object_node, object);
-
-          BVH_DEBUG_NEXT_INSTANCE();
         }
       }
     } while (node_addr != ENTRYPOINT_SENTINEL);

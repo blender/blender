@@ -817,6 +817,47 @@ int pyrna_enum_value_from_id(const EnumPropertyItem *item,
   return 0;
 }
 
+/**
+ * Use with #PyArg_ParseTuple's `O&` formatting.
+ */
+int pyrna_enum_value_parse_string(PyObject *o, void *p)
+{
+  const char *identifier = PyUnicode_AsUTF8(o);
+  if (identifier == NULL) {
+    PyErr_Format(PyExc_TypeError, "expected a string enum, not %.200s", Py_TYPE(o)->tp_name);
+    return 0;
+  }
+  struct BPy_EnumProperty_Parse *parse_data = p;
+  if (pyrna_enum_value_from_id(
+          parse_data->items, identifier, &parse_data->value, "enum identifier") == -1) {
+    return 0;
+  }
+
+  parse_data->value_orig = o;
+  parse_data->is_set = true;
+  return 1;
+}
+
+/**
+ * Use with #PyArg_ParseTuple's `O&` formatting.
+ */
+int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
+{
+  if (!PySet_Check(o)) {
+    PyErr_Format(PyExc_TypeError, "expected a set, not %.200s", Py_TYPE(o)->tp_name);
+    return 0;
+  }
+
+  struct BPy_EnumProperty_Parse *parse_data = p;
+  if (pyrna_set_to_enum_bitfield(
+          parse_data->items, o, &parse_data->value, "enum identifier set") == -1) {
+    return 0;
+  }
+  parse_data->value_orig = o;
+  parse_data->is_set = true;
+  return 1;
+}
+
 /* NOTE(campbell): Regarding comparison `__cmp__`:
  * checking the 'ptr->data' matches works in almost all cases,
  * however there are a few RNA properties that are fake sub-structs and
@@ -7999,14 +8040,21 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
   PyObject *py_kw = ((BPy_PropDeferred *)item)->kw;
   PyObject *py_srna_cobject, *py_ret;
 
-  PyObject *args_fake;
+  /* Show the function name in errors to help give context. */
+  BLI_assert(PyCFunction_CheckExact(py_func));
+  PyMethodDef *py_func_method_def = ((PyCFunctionObject *)py_func)->m_ml;
+  const char *func_name = py_func_method_def->ml_name;
 
-  if (*PyUnicode_AsUTF8(key) == '_') {
+  PyObject *args_fake;
+  const char *key_str = PyUnicode_AsUTF8(key);
+
+  if (*key_str == '_') {
     PyErr_Format(PyExc_ValueError,
                  "bpy_struct \"%.200s\" registration error: "
-                 "%.200s could not register because the property starts with an '_'\n",
+                 "'%.200s' %.200s could not register because it starts with an '_'",
                  RNA_struct_identifier(srna),
-                 PyUnicode_AsUTF8(key));
+                 key_str,
+                 func_name);
     return -1;
   }
   py_srna_cobject = PyCapsule_New(srna, NULL, NULL);
@@ -8025,8 +8073,12 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
          *(PyCFunctionWithKeywords)PyCFunction_GET_FUNCTION(py_func) == BPy_CollectionProperty) &&
         RNA_struct_idprops_contains_datablock(type_srna)) {
       PyErr_Format(PyExc_ValueError,
-                   "bpy_struct \"%.200s\" doesn't support datablock properties\n",
-                   RNA_struct_identifier(srna));
+                   "bpy_struct \"%.200s\" registration error: "
+                   "'%.200s' %.200s could not register because "
+                   "this type doesn't support data-block properties",
+                   RNA_struct_identifier(srna),
+                   key_str,
+                   func_name);
       return -1;
     }
   }
@@ -8044,12 +8096,12 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 
     Py_DECREF(args_fake); /* Free's py_srna_cobject too. */
 
-    // PyC_LineSpit();
     PyErr_Format(PyExc_ValueError,
                  "bpy_struct \"%.200s\" registration error: "
-                 "%.200s could not register\n",
+                 "'%.200s' %.200s could not register (see previous error)",
                  RNA_struct_identifier(srna),
-                 PyUnicode_AsUTF8(key));
+                 key_str,
+                 func_name);
     return -1;
   }
 

@@ -30,6 +30,7 @@ if(WIN32)
     --enable-w32threads
     --disable-pthreads
     --enable-libopenjpeg
+    --disable-mediafoundation
   )
   if("${CMAKE_SIZEOF_VOID_P}" EQUAL "4")
     set(FFMPEG_EXTRA_FLAGS

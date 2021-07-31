@@ -194,7 +194,7 @@ set(SRC
   intern/mesh_mirror.c
   intern/mesh_normals.cc
   intern/mesh_remap.c
-  intern/mesh_remesh_voxel.c
+  intern/mesh_remesh_voxel.cc
   intern/mesh_runtime.c
   intern/mesh_sample.cc
   intern/mesh_tangent.c

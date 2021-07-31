@@ -187,7 +187,8 @@ static void ringsel_finish(bContext *C, wmOperator *op)
       const bool is_edge_wire = BM_edge_is_wire(lcd->eed);
       const bool is_single = is_edge_wire || !BM_edge_is_any_face_len_test(lcd->eed, 4);
       const int seltype = is_edge_wire ? SUBDIV_SELECT_INNER :
-                                         is_single ? SUBDIV_SELECT_NONE : SUBDIV_SELECT_LOOPCUT;
+                          is_single    ? SUBDIV_SELECT_NONE :
+                                         SUBDIV_SELECT_LOOPCUT;
 
       /* Enable grid-fill, so that intersecting loop-cut works as one would expect.
        * Note though that it will break edge-slide in this specific case.

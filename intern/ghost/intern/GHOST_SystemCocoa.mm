@@ -1587,7 +1587,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         {
           NSTimeInterval timestamp = [event timestamp];
           if (timestamp < m_last_warp_timestamp) {
-            /* After warping we can still receive older unwarped mouse events,
+            /* After warping we can still receive older unwrapped mouse events,
              * ignore those. */
             break;
           }

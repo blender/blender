@@ -1,8 +1,11 @@
 Pipeline Config
 ===============
 
-This configuration file is used by buildbot new pipeline for the `update-code` step.
+This configuration file is used by buildbot new build pipeline for the `update-code` step.
 
-It will soon be used by the ../utils/make_update.py script.
+It will also be used by the `../utils/make_update.py` script in the near future.
 
-Both buildbot and developers will eventually use the same configuration file.
+NOTES:
+* Keep both `yaml` and `json` files in sync until deployment of build pipeline updates.
+* The `json` file  be removed once all branches are running with the `yaml` file.
+* Expected buildbot pipeline update is *Friday, July 30th* or *Monday August, 2nd*.

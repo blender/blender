@@ -57,7 +57,7 @@ struct sseb {
   __forceinline sseb(const __m128 input) : m128(input)
   {
   }
-  __forceinline operator const __m128 &(void)const
+  __forceinline operator const __m128 &(void) const
   {
     return m128;
   }

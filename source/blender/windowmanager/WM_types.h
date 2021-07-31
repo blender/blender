@@ -924,10 +924,13 @@ typedef struct wmDragID {
 } wmDragID;
 
 typedef struct wmDragAsset {
-  /* Owning pointer. Contains the file with all the asset data (name, local ID, etc.) */
-  struct AssetHandle *asset_handle;
+  /* Note: Can't store the AssetHandle here, since the FileDirEntry it wraps may be freed while
+   * dragging. So store necessary data here directly. */
+
+  char name[64]; /* MAX_NAME */
   /* Always freed. */
   const char *path;
+  int id_type;
   int import_type; /* eFileAssetImportType */
 } wmDragAsset;
 

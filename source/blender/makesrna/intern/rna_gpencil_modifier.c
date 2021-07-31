@@ -3137,6 +3137,15 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
                            "Certain settings will be unavailable");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "overscan", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Overscan",
+      "A margin to prevent strokes from ending abruptly at the edge of the image");
+  RNA_def_property_ui_range(prop, 0.0f, 0.5f, 0.01f, 3);
+  RNA_def_property_range(prop, 0.0f, 0.5f);
+  RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
+
   prop = RNA_def_property(srna, "thickness", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Thickness", "The thickness for the generated strokes");
   RNA_def_property_ui_range(prop, 1, 100, 1, 1);

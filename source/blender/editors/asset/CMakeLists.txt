@@ -16,21 +16,22 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-    .
-    ../include
-    ../../blenkernel
-    ../../blenlib
-    ../../blenloader
-    ../../makesdna
-    ../../makesrna
-    ../../windowmanager
-    ../../../../intern/guardedalloc
+  .
+  ../include
+  ../../blenkernel
+  ../../blenlib
+  ../../blenloader
+  ../../makesdna
+  ../../makesrna
+  ../../windowmanager
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
 )
 
 set(SRC
+  intern/asset_filter.cc
   intern/asset_handle.cc
   intern/asset_library_reference.cc
   intern/asset_library_reference_enum.cc
@@ -39,6 +40,7 @@ set(SRC
   intern/asset_ops.cc
   intern/asset_temp_id_consumer.cc
 
+  ED_asset_filter.h
   ED_asset_handle.h
   ED_asset_library.h
   ED_asset_list.h

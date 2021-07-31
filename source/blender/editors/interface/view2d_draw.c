@@ -326,20 +326,35 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   const float xmin = rect->xmin;
   const float xmax = rect->xmax;
 
-  for (uint i = 0; i < steps; i++) {
-    const float xpos_view = start + i * distance;
-    const float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
-    char text[32];
-    to_string(to_string_data, xpos_view, distance, sizeof(text), text);
-    const float text_width = BLF_width(font_id, text, strlen(text));
+  char text[32];
 
-    if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
-      BLF_draw_default_ascii(xpos_region - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
+  /* Calculate max_label_count and draw_frequency based on largest visible label. */
+  int draw_frequency;
+  {
+    to_string(to_string_data, start, 0, sizeof(text), text);
+    const float left_text_width = BLF_width(font_id, text, strlen(text));
+    to_string(to_string_data, start + steps * distance, 0, sizeof(text), text);
+    const float right_text_width = BLF_width(font_id, text, strlen(text));
+    const float max_text_width = max_ff(left_text_width, right_text_width);
+    const float max_label_count = BLI_rcti_size_x(&v2d->mask) / (max_text_width + 10.0f);
+    draw_frequency = ceil((float)steps / max_label_count);
+  }
+
+  if (draw_frequency != 0) {
+    const int start_index = abs((int)(start / distance)) % draw_frequency;
+    for (uint i = start_index; i < steps; i += draw_frequency) {
+      const float xpos_view = start + i * distance;
+      const float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
+      to_string(to_string_data, xpos_view, distance, sizeof(text), text);
+      const float text_width = BLF_width(font_id, text, strlen(text));
+
+      if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
+        BLF_draw_default_ascii(xpos_region - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
+      }
     }
   }
 
   BLF_batch_draw_end();
-
   GPU_matrix_pop_projection();
 }
 
@@ -413,11 +428,15 @@ static void view_to_string__frame_number(
 }
 
 static void view_to_string__time(
-    void *user_data, float v2d_pos, float UNUSED(v2d_step), uint max_len, char *r_str)
+    void *user_data, float v2d_pos, float v2d_step, uint max_len, char *r_str)
 {
   const Scene *scene = (const Scene *)user_data;
 
-  const int brevity_level = 0;
+  int brevity_level = 0;
+  if (U.timecode_style == USER_TIMECODE_MINIMAL && v2d_step >= FPS) {
+    brevity_level = 1;
+  }
+
   BLI_timecode_string_from_time(
       r_str, max_len, brevity_level, v2d_pos / (float)FPS, FPS, U.timecode_style);
 }
@@ -460,10 +479,11 @@ float UI_view2d_grid_resolution_y__values(const struct View2D *v2d)
 /* Line Drawing API
  **************************************************/
 
-void UI_view2d_draw_lines_x__discrete_values(const View2D *v2d)
+void UI_view2d_draw_lines_x__discrete_values(const View2D *v2d, bool display_minor_lines)
 {
   const uint major_line_distance = view2d_major_step_x__discrete(v2d);
-  view2d_draw_lines(v2d, major_line_distance, major_line_distance > 1, 'v');
+  view2d_draw_lines(
+      v2d, major_line_distance, display_minor_lines && (major_line_distance > 1), 'v');
 }
 
 void UI_view2d_draw_lines_x__values(const View2D *v2d)
@@ -478,21 +498,25 @@ void UI_view2d_draw_lines_y__values(const View2D *v2d)
   view2d_draw_lines(v2d, major_line_distance, true, 'h');
 }
 
-void UI_view2d_draw_lines_x__discrete_time(const View2D *v2d, const Scene *scene)
+void UI_view2d_draw_lines_x__discrete_time(const View2D *v2d,
+                                           const Scene *scene,
+                                           bool display_minor_lines)
 {
   const float major_line_distance = view2d_major_step_x__time(v2d, scene);
-  view2d_draw_lines(v2d, major_line_distance, major_line_distance > 1, 'v');
+  view2d_draw_lines(
+      v2d, major_line_distance, display_minor_lines && (major_line_distance > 1), 'v');
 }
 
 void UI_view2d_draw_lines_x__discrete_frames_or_seconds(const View2D *v2d,
                                                         const Scene *scene,
-                                                        bool display_seconds)
+                                                        bool display_seconds,
+                                                        bool display_minor_lines)
 {
   if (display_seconds) {
-    UI_view2d_draw_lines_x__discrete_time(v2d, scene);
+    UI_view2d_draw_lines_x__discrete_time(v2d, scene, display_minor_lines);
   }
   else {
-    UI_view2d_draw_lines_x__discrete_values(v2d);
+    UI_view2d_draw_lines_x__discrete_values(v2d, display_minor_lines);
   }
 }
 
@@ -501,7 +525,7 @@ void UI_view2d_draw_lines_x__frames_or_seconds(const View2D *v2d,
                                                bool display_seconds)
 {
   if (display_seconds) {
-    UI_view2d_draw_lines_x__discrete_time(v2d, scene);
+    UI_view2d_draw_lines_x__discrete_time(v2d, scene, true);
   }
   else {
     UI_view2d_draw_lines_x__values(v2d);

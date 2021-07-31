@@ -575,7 +575,7 @@ typedef struct FluidDomainSettings {
   float noise_time_anim;
   int res_noise[3];
   int noise_scale;
-  char _pad3[4];    /* Unused. */
+  char _pad3[4]; /* Unused. */
 
   /* Liquid domain options. */
   float particle_randomness;

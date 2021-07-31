@@ -52,15 +52,14 @@ typedef struct TileInfo {
         tile_buffer_6, tile_buffer_7, tile_buffer_8, tile_buffer_9
 #  define ccl_get_tile_buffer(id) \
     (id == 0 ? tile_buffer_1 : \
-               id == 1 ? \
-               tile_buffer_2 : \
-               id == 2 ? \
-               tile_buffer_3 : \
-               id == 3 ? tile_buffer_4 : \
-                         id == 4 ? tile_buffer_5 : \
-                                   id == 5 ? tile_buffer_6 : \
-                                             id == 6 ? tile_buffer_7 : \
-                                                       id == 7 ? tile_buffer_8 : tile_buffer_9)
+     id == 1 ? tile_buffer_2 : \
+     id == 2 ? tile_buffer_3 : \
+     id == 3 ? tile_buffer_4 : \
+     id == 4 ? tile_buffer_5 : \
+     id == 5 ? tile_buffer_6 : \
+     id == 6 ? tile_buffer_7 : \
+     id == 7 ? tile_buffer_8 : \
+               tile_buffer_9)
 #else
 #  ifdef __KERNEL_CUDA__
 #    define CCL_FILTER_TILE_INFO ccl_global TileInfo *tile_info

@@ -286,6 +286,11 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_spreadsheet.selected_highlight);
   }
 
+  if (!USER_VERSION_ATLEAST(300, 15)) {
+    copy_v4_uchar(btheme->space_sequencer.grid, 33);
+    btheme->space_sequencer.grid[3] = 255;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

@@ -394,10 +394,9 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
      * - Grid exists and texture was loaded -> use texture.
      * - Grid exists but has zero size or failed to load -> use zero.
      * - Grid does not exist -> use default value. */
-    GPUTexture *grid_tex = (drw_grid) ? drw_grid->texture :
-                                        (volume_grid) ?
-                                        e_data.dummy_zero :
-                                        eevee_volume_default_texture(gpu_grid->default_value);
+    GPUTexture *grid_tex = (drw_grid)    ? drw_grid->texture :
+                           (volume_grid) ? e_data.dummy_zero :
+                                           eevee_volume_default_texture(gpu_grid->default_value);
 
     DRW_shgroup_uniform_texture(grp, gpu_grid->sampler_name, grid_tex);
 

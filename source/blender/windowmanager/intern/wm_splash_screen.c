@@ -238,8 +238,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   if (!BLI_exists(userpref)) {
     mt = WM_menutype_find("WM_MT_splash_quick_setup", true);
 
-    /* The UI_BLOCK_QUICK_SETUP flag prevents the button text from being left-aligned,
-       as it is for all menus due to the UI_BLOCK_LOOP flag, see in 'ui_def_but'. */
+    /* The #UI_BLOCK_QUICK_SETUP flag prevents the button text from being left-aligned,
+     * as it is for all menus due to the #UI_BLOCK_LOOP flag, see in #ui_def_but. */
     UI_block_flag_enable(block, UI_BLOCK_QUICK_SETUP);
   }
   else {

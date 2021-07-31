@@ -143,17 +143,19 @@ void UI_view2d_view_orthoSpecial(struct ARegion *region, struct View2D *v2d, con
 void UI_view2d_view_restore(const struct bContext *C);
 
 /* grid drawing */
-void UI_view2d_constant_grid_draw(const struct View2D *v2d, float step);
 void UI_view2d_multi_grid_draw(
     const struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
 
 void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
 void UI_view2d_draw_lines_x__values(const struct View2D *v2d);
-void UI_view2d_draw_lines_x__discrete_values(const struct View2D *v2d);
-void UI_view2d_draw_lines_x__discrete_time(const struct View2D *v2d, const struct Scene *scene);
+void UI_view2d_draw_lines_x__discrete_values(const struct View2D *v2d, bool display_minor_lines);
+void UI_view2d_draw_lines_x__discrete_time(const struct View2D *v2d,
+                                           const struct Scene *scene,
+                                           bool display_minor_lines);
 void UI_view2d_draw_lines_x__discrete_frames_or_seconds(const struct View2D *v2d,
                                                         const struct Scene *scene,
-                                                        bool display_seconds);
+                                                        bool display_seconds,
+                                                        bool display_minor_lines);
 void UI_view2d_draw_lines_x__frames_or_seconds(const struct View2D *v2d,
                                                const struct Scene *scene,
                                                bool display_seconds);

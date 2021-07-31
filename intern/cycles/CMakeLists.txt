@@ -307,9 +307,9 @@ if(WITH_CYCLES_LOGGING)
   )
 endif()
 
-# Debugging capabilities (debug passes etc).
-if(WITH_CYCLES_DEBUG)
-  add_definitions(-DWITH_CYCLES_DEBUG)
+# NaN debugging
+if(WITH_CYCLES_DEBUG_NAN)
+  add_definitions(-DWITH_CYCLES_DEBUG_NAN)
 endif()
 
 if(NOT OPENIMAGEIO_PUGIXML_FOUND)

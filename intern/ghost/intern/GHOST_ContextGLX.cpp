@@ -32,7 +32,7 @@
 #include <cstdio>
 #include <cstring>
 
-/* needed for intel drivers (works w/ mesa-swrast & nvidia) */
+/* Needed for Intel drivers (works with MESA-software-rasterizer (`swrast`) & NVIDIA). */
 #define USE_GLXEW_INIT_WORKAROUND
 
 #ifdef USE_GLXEW_INIT_WORKAROUND

@@ -182,9 +182,8 @@ CCL_NAMESPACE_BEGIN
 #  undef __SHADER_RAYTRACE__
 #endif
 
-/* Features that enable others */
-#ifdef WITH_CYCLES_DEBUG
-#  define __KERNEL_DEBUG__
+#ifdef WITH_CYCLES_DEBUG_NAN
+#  define __KERNEL_DEBUG_NAN__
 #endif
 
 #if defined(__SUBSURFACE__) || defined(__SHADER_RAYTRACE__)
@@ -356,12 +355,6 @@ typedef enum PassType {
   PASS_MATERIAL_ID,
   PASS_MOTION,
   PASS_MOTION_WEIGHT,
-#ifdef __KERNEL_DEBUG__
-  PASS_BVH_TRAVERSED_NODES,
-  PASS_BVH_TRAVERSED_INSTANCES,
-  PASS_BVH_INTERSECTIONS,
-  PASS_RAY_BOUNCES,
-#endif
   PASS_RENDER_TIME,
   PASS_CRYPTOMATTE,
   PASS_AOV_COLOR,
@@ -465,18 +458,6 @@ typedef enum DenoiseFlag {
   DENOISING_CLEAN_ALL_PASSES = (1 << 6) - 1,
 } DenoiseFlag;
 
-#ifdef __KERNEL_DEBUG__
-/* NOTE: This is a runtime-only struct, alignment is not
- * really important here.
- */
-typedef struct DebugData {
-  int num_bvh_traversed_nodes;
-  int num_bvh_traversed_instances;
-  int num_bvh_intersections;
-  int num_ray_bounces;
-} DebugData;
-#endif
-
 typedef ccl_addr_space struct PathRadianceState {
 #ifdef __PASSES__
   float3 diffuse;
@@ -552,10 +533,6 @@ typedef ccl_addr_space struct PathRadiance {
   float3 denoising_albedo;
   float denoising_depth;
 #endif /* __DENOISING_FEATURES__ */
-
-#ifdef __KERNEL_DEBUG__
-  DebugData debug_data;
-#endif /* __KERNEL_DEBUG__ */
 } PathRadiance;
 
 typedef struct BsdfEval {
@@ -671,12 +648,6 @@ typedef struct Intersection {
   int prim;
   int object;
   int type;
-
-#ifdef __KERNEL_DEBUG__
-  int num_traversed_nodes;
-  int num_traversed_instances;
-  int num_intersections;
-#endif
 } Intersection;
 
 /* Primitives */
@@ -1264,13 +1235,6 @@ typedef struct KernelFilm {
   int pass_bake_primitive;
   int pass_bake_differential;
   int pad;
-
-#ifdef __KERNEL_DEBUG__
-  int pass_bvh_traversed_nodes;
-  int pass_bvh_traversed_instances;
-  int pass_bvh_intersections;
-  int pass_ray_bounces;
-#endif
 
   /* viewport rendering options */
   int display_pass_stride;

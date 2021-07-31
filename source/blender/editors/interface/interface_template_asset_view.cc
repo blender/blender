@@ -154,12 +154,17 @@ uiListType *UI_UL_asset_view()
 
 static void asset_view_template_refresh_asset_collection(
     const AssetLibraryReference &asset_library,
+    const AssetFilterSettings &filter_settings,
     PointerRNA &assets_dataptr,
     const char *assets_propname)
 {
   PropertyRNA *assets_prop = RNA_struct_find_property(&assets_dataptr, assets_propname);
   if (!assets_prop) {
     RNA_warning("Asset collection not found");
+    return;
+  }
+  if (RNA_property_type(assets_prop) != PROP_COLLECTION) {
+    RNA_warning("Expected a collection property");
     return;
   }
   if (!RNA_struct_is_a(RNA_property_pointer_type(&assets_dataptr, assets_prop),
@@ -170,19 +175,18 @@ static void asset_view_template_refresh_asset_collection(
 
   RNA_property_collection_clear(&assets_dataptr, assets_prop);
 
-  ED_assetlist_iterate(&asset_library, [&](FileDirEntry &file) {
+  ED_assetlist_iterate(&asset_library, [&](AssetHandle asset) {
+    if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+      /* Don't do anything else, but return true to continue iterating. */
+      return true;
+    }
+
     PointerRNA itemptr, fileptr;
     RNA_property_collection_add(&assets_dataptr, assets_prop, &itemptr);
 
-    RNA_pointer_create(nullptr, &RNA_FileSelectEntry, &file, &fileptr);
+    RNA_pointer_create(
+        nullptr, &RNA_FileSelectEntry, const_cast<FileDirEntry *>(asset.file_data), &fileptr);
     RNA_pointer_set(&itemptr, "file_data", fileptr);
-
-    /* Copy name from file to asset-handle name ID-property. */
-    char name[MAX_NAME];
-    PropertyRNA *file_name_prop = RNA_struct_name_property(fileptr.type);
-    RNA_property_string_get(&fileptr, file_name_prop, name);
-    PropertyRNA *asset_name_prop = RNA_struct_name_property(&RNA_AssetHandle);
-    RNA_property_string_set(&itemptr, asset_name_prop, name);
 
     return true;
   });
@@ -221,11 +225,12 @@ void uiTemplateAssetView(uiLayout *layout,
     uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_list_refresh");
   }
 
-  ED_assetlist_storage_fetch(&asset_library, filter_settings, C);
+  ED_assetlist_storage_fetch(&asset_library, C);
   ED_assetlist_ensure_previews_job(&asset_library, C);
   const int tot_items = ED_assetlist_size(&asset_library);
 
-  asset_view_template_refresh_asset_collection(asset_library, *assets_dataptr, assets_propname);
+  asset_view_template_refresh_asset_collection(
+      asset_library, *filter_settings, *assets_dataptr, assets_propname);
 
   AssetViewListData *list_data = (AssetViewListData *)MEM_mallocN(sizeof(*list_data),
                                                                   "AssetViewListData");

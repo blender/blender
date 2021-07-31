@@ -411,10 +411,9 @@ void MaterialNode::set_specular(COLLADAFW::ColorOrTexture &cot)
 
   if (!has_specularity) {
     /* If specularity is black or not defined reset the Specular value to 0
-       TODO: This is a solution only for a corner case. We must find a better
-       way to handle specularity in general. Also note that currently we
-       do not export specularity values, see EffectExporter::operator()
-    */
+     * TODO: This is a solution only for a corner case. We must find a better
+     * way to handle specularity in general. Also note that currently we
+     * do not export specularity values, see EffectExporter::operator() */
     bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Specular");
     ((bNodeSocketValueFloat *)socket->default_value)->value = 0.0f;
   }

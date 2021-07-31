@@ -20,12 +20,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "quadriflow_capi.hpp"
 #include "config.hpp"
 #include "field-math.hpp"
+#include "loader.hpp"
 #include "optimizer.hpp"
 #include "parametrizer.hpp"
-#include "loader.hpp"
+#include "quadriflow_capi.hpp"
 
 using namespace qflow;
 
@@ -217,10 +217,8 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
   qrd->out_totverts = field.O_compact.size();
   qrd->out_totfaces = field.F_compact.size();
 
-  qrd->out_verts = (float *)MEM_malloc_arrayN(
-      qrd->out_totverts, 3 * sizeof(float), "quadriflow remesher out verts");
-  qrd->out_faces = (unsigned int *)MEM_malloc_arrayN(
-      qrd->out_totfaces, 4 * sizeof(unsigned int), "quadriflow remesh out quads");
+  qrd->out_verts = (float *)MEM_malloc_arrayN(qrd->out_totverts, sizeof(float[3]), __func__);
+  qrd->out_faces = (int *)MEM_malloc_arrayN(qrd->out_totfaces, sizeof(int[4]), __func__);
 
   for (int i = 0; i < qrd->out_totverts; i++) {
     auto t = field.O_compact[i] * field.normalize_scale + field.normalize_offset;

@@ -475,16 +475,15 @@ int GHOST_ContextWGL::choose_pixel_format(bool stereoVisual, bool needAlpha)
   PIXELFORMATDESCRIPTOR preferredPFD = {
       sizeof(PIXELFORMATDESCRIPTOR), /* size */
       1,                             /* version */
-      (DWORD)(
-          PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW |
-          PFD_DOUBLEBUFFER |                /* support double-buffering */
-          (stereoVisual ? PFD_STEREO : 0) | /* support stereo */
-          (
+      (DWORD)(PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW |
+              PFD_DOUBLEBUFFER |                /* support double-buffering */
+              (stereoVisual ? PFD_STEREO : 0) | /* support stereo */
+              (
 #ifdef WIN32_COMPOSITING
-              needAlpha ?
-                  PFD_SUPPORT_COMPOSITION : /* support composition for transparent background */
+                  /* Support composition for transparent background. */
+                  needAlpha ? PFD_SUPPORT_COMPOSITION :
 #endif
-                  0)),
+                              0)),
       PFD_TYPE_RGBA,               /* color type */
       (BYTE)(needAlpha ? 32 : 24), /* preferred color depth */
       0,

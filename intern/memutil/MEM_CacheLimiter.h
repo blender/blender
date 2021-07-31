@@ -299,9 +299,9 @@ template<class T> class MEM_CacheLimiter {
         if (!can_destroy_element(elem))
           continue;
 
-        /* by default 0 means highest priority element */
-        /* casting a size type to int is questionable,
-           but unlikely to cause problems */
+        /* By default 0 means highest priority element. */
+        /* Casting a size type to int is questionable,
+         * but unlikely to cause problems. */
         int priority = -((int)(queue.size()) - i - 1);
         priority = item_priority_func(elem->get()->get_data(), priority);
 

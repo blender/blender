@@ -103,6 +103,8 @@ fail:
   PyErr_Print();
   PyErr_Clear();
 
+  Py_DECREF(ret);
+
   PyGILState_Release(gilstate);
 }
 
@@ -139,6 +141,7 @@ static void py_rna_gizmo_handler_set_cb(const wmGizmo *UNUSED(gz),
   if (ret == NULL) {
     goto fail;
   }
+  Py_DECREF(args);
   Py_DECREF(ret);
 
   PyGILState_Release(gilstate);
@@ -199,10 +202,10 @@ static void py_rna_gizmo_handler_range_get_cb(const wmGizmo *UNUSED(gz),
   return;
 
 fail:
-  Py_XDECREF(ret);
-
   PyErr_Print();
   PyErr_Clear();
+
+  Py_XDECREF(ret);
 
   PyGILState_Release(gilstate);
 }

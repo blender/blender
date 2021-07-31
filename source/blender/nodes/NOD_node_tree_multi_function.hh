@@ -233,7 +233,7 @@ class MFNetworkBuilderBase {
   /**
    * Constructs a new function that will live at least as long as the MFNetwork.
    */
-  template<typename T, typename... Args> T &construct_fn(Args &&... args)
+  template<typename T, typename... Args> T &construct_fn(Args &&...args)
   {
     BLI_STATIC_ASSERT((std::is_base_of_v<fn::MultiFunction, T>), "");
     void *buffer = common_.scope.linear_allocator().allocate(sizeof(T), alignof(T));
@@ -287,7 +287,7 @@ class SocketMFNetworkBuilder : public MFNetworkBuilderBase {
     this->construct_generator_fn<fn::CustomMF_GenericConstant>(type, value);
   }
 
-  template<typename T, typename... Args> void construct_generator_fn(Args &&... args)
+  template<typename T, typename... Args> void construct_generator_fn(Args &&...args)
   {
     const fn::MultiFunction &fn = this->construct_fn<T>(std::forward<Args>(args)...);
     this->set_generator_fn(fn);
@@ -334,7 +334,7 @@ class NodeMFNetworkBuilder : public MFNetworkBuilderBase {
    * Tells the builder to build a function that corresponds to the node that is being built. It
    * will try to match up sockets.
    */
-  template<typename T, typename... Args> T &construct_and_set_matching_fn(Args &&... args)
+  template<typename T, typename... Args> T &construct_and_set_matching_fn(Args &&...args)
   {
     T &function = this->construct_fn<T>(std::forward<Args>(args)...);
     this->set_matching_fn(function);

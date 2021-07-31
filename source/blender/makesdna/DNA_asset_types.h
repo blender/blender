@@ -41,8 +41,7 @@ typedef struct AssetTag {
 #
 typedef struct AssetFilterSettings {
   /** Tags to match against. These are newly allocated, and compared against the
-   * #AssetMetaData.tags.
-   * TODO not used and doesn't do anything yet. */
+   * #AssetMetaData.tags. */
   ListBase tags;     /* AssetTag */
   uint64_t id_types; /* rna_enum_id_type_filter_items */
 } AssetFilterSettings;

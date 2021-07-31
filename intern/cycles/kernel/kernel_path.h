@@ -70,15 +70,6 @@ ccl_device_forceinline bool kernel_path_scene_intersect(KernelGlobals *kg,
 
   bool hit = scene_intersect(kg, ray, visibility, isect);
 
-#ifdef __KERNEL_DEBUG__
-  if (state->flag & PATH_RAY_CAMERA) {
-    L->debug_data.num_bvh_traversed_nodes += isect->num_traversed_nodes;
-    L->debug_data.num_bvh_traversed_instances += isect->num_traversed_instances;
-    L->debug_data.num_bvh_intersections += isect->num_intersections;
-  }
-  L->debug_data.num_ray_bounces++;
-#endif /* __KERNEL_DEBUG__ */
-
   return hit;
 }
 

@@ -1436,8 +1436,8 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
   bs->info.accum_steps = BCHUNK_HASH_TABLE_ACCUMULATE_STEPS - 1;
   /* Triangle number, identifying now much read-ahead we need:
    * https://en.wikipedia.org/wiki/Triangular_number (+ 1) */
-  bs->info.accum_read_ahead_len = (uint)(
-      (((bs->info.accum_steps * (bs->info.accum_steps + 1))) / 2) + 1);
+  bs->info.accum_read_ahead_len =
+      (uint)((((bs->info.accum_steps * (bs->info.accum_steps + 1))) / 2) + 1);
   bs->info.accum_read_ahead_bytes = bs->info.accum_read_ahead_len * stride;
 #else
   bs->info.accum_read_ahead_bytes = BCHUNK_HASH_LEN * stride;

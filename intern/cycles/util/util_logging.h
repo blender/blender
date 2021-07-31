@@ -40,7 +40,7 @@ class LogMessageVoidify {
   LogMessageVoidify()
   {
   }
-  void operator&(StubStream &)
+  void operator&(const StubStream &)
   {
   }
 };
@@ -49,6 +49,36 @@ class LogMessageVoidify {
 #  define LOG(severity) LOG_SUPPRESS()
 #  define VLOG(severity) LOG_SUPPRESS()
 #  define VLOG_IF(severity, condition) LOG_SUPPRESS()
+
+#  define CHECK(expression) LOG_SUPPRESS()
+
+#  define CHECK_NOTNULL(expression) LOG_SUPPRESS()
+#  define CHECK_NULL(expression) LOG_SUPPRESS()
+
+#  define CHECK_NEAR(actual, expected, eps) LOG_SUPPRESS()
+
+#  define CHECK_GE(a, b) LOG_SUPPRESS()
+#  define CHECK_NE(a, b) LOG_SUPPRESS()
+#  define CHECK_EQ(a, b) LOG_SUPPRESS()
+#  define CHECK_GT(a, b) LOG_SUPPRESS()
+#  define CHECK_LT(a, b) LOG_SUPPRESS()
+#  define CHECK_LE(a, b) LOG_SUPPRESS()
+
+#  define DCHECK(expression) LOG_SUPPRESS()
+
+#  define DCHECK_NOTNULL(expression) LOG_SUPPRESS()
+#  define DCHECK_NULL(expression) LOG_SUPPRESS()
+
+#  define DCHECK_NEAR(actual, expected, eps) LOG_SUPPRESS()
+
+#  define DCHECK_GE(a, b) LOG_SUPPRESS()
+#  define DCHECK_NE(a, b) LOG_SUPPRESS()
+#  define DCHECK_EQ(a, b) LOG_SUPPRESS()
+#  define DCHECK_GT(a, b) LOG_SUPPRESS()
+#  define DCHECK_LT(a, b) LOG_SUPPRESS()
+#  define DCHECK_LE(a, b) LOG_SUPPRESS()
+
+#  define LOG_ASSERT(expression) LOG_SUPPRESS()
 #endif
 
 #define VLOG_ONCE(level, flag) \

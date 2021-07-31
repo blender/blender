@@ -1071,7 +1071,7 @@ void ui_draw_preview_item_stateless(const struct uiFontStyle *fstyle,
 #define UI_TEXT_MARGIN_X 0.4f
 #define UI_POPUP_MARGIN (UI_DPI_FAC * 12)
 /* Margin at top of screen for popups. Note this value must be sufficient
-   to draw a popover arrow to avoid cropping it. */
+ * to draw a popover arrow to avoid cropping it. */
 #define UI_POPUP_MENU_TOP (int)(10 * UI_DPI_FAC)
 
 #define UI_PIXEL_AA_JITTER 8

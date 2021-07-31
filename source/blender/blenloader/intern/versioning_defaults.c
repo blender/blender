@@ -183,7 +183,8 @@ static void blo_update_defaults_screen(bScreen *screen,
     else if (area->spacetype == SPACE_SEQ) {
       SpaceSeq *seq = area->spacedata.first;
       seq->flag |= SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES | SEQ_ZOOM_TO_FIT | SEQ_SHOW_STRIP_OVERLAY |
-                   SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_NAME | SEQ_SHOW_STRIP_DURATION;
+                   SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_NAME | SEQ_SHOW_STRIP_DURATION |
+                   SEQ_SHOW_GRID;
 
       seq->render_size = SEQ_RENDER_SIZE_PROXY_100;
       seq->flag |= SEQ_USE_PROXIES;
@@ -317,6 +318,11 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
   /* Rename render layers. */
   BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "View Layer");
+
+  /* Disable Z pass by default. */
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    view_layer->passflag &= ~SCE_PASS_Z;
+  }
 
   /* New EEVEE defaults. */
   scene->eevee.bloom_intensity = 0.05f;

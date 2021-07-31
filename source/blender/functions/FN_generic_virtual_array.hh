@@ -688,7 +688,7 @@ class GVArray_For_EmbeddedVArray : public GVArray_For_VArray<T> {
 
  public:
   template<typename... Args>
-  GVArray_For_EmbeddedVArray(const int64_t size, Args &&... args)
+  GVArray_For_EmbeddedVArray(const int64_t size, Args &&...args)
       : GVArray_For_VArray<T>(size), embedded_varray_(std::forward<Args>(args)...)
   {
     this->varray_ = &embedded_varray_;
@@ -703,7 +703,7 @@ class GVMutableArray_For_EmbeddedVMutableArray : public GVMutableArray_For_VMuta
 
  public:
   template<typename... Args>
-  GVMutableArray_For_EmbeddedVMutableArray(const int64_t size, Args &&... args)
+  GVMutableArray_For_EmbeddedVMutableArray(const int64_t size, Args &&...args)
       : GVMutableArray_For_VMutableArray<T>(size), embedded_varray_(std::forward<Args>(args)...)
   {
     this->varray_ = &embedded_varray_;

@@ -1189,9 +1189,9 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         else {
           printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
                  (unsigned int)key_sym,
-                 (status == XLookupNone ?
-                      "XLookupNone" :
-                      status == XLookupKeySym ? "XLookupKeySym" : "Unknown status"));
+                 (status == XLookupNone   ? "XLookupNone" :
+                  status == XLookupKeySym ? "XLookupKeySym" :
+                                            "Unknown status"));
 
           printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
         }

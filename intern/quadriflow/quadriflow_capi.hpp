@@ -25,12 +25,12 @@ extern "C" {
 
 typedef struct QuadriflowRemeshData {
   float *verts;
-  unsigned int *faces;
+  int *faces;
   int totfaces;
   int totverts;
 
   float *out_verts;
-  unsigned int *out_faces;
+  int *out_faces;
   int out_totverts;
   int out_totfaces;
 

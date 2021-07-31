@@ -37,6 +37,8 @@
 #endif
 #include "MEM_guardedalloc.h"
 
+#include "BLF_api.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
@@ -1370,9 +1372,6 @@ static void filelist_entry_clear(FileDirEntry *entry)
   if (entry->name && ((entry->flags & FILE_ENTRY_NAME_FREE) != 0)) {
     MEM_freeN(entry->name);
   }
-  if (entry->description) {
-    MEM_freeN(entry->description);
-  }
   if (entry->relpath) {
     MEM_freeN(entry->relpath);
   }
@@ -1812,12 +1811,22 @@ BlendHandle *filelist_lib(struct FileList *filelist)
   return filelist->libfiledata;
 }
 
-static const char *fileentry_uiname(const char *root,
-                                    const char *relpath,
-                                    const eFileSel_File_Types typeflag,
-                                    char *buff)
+static char *fileentry_uiname(const char *root,
+                              const char *relpath,
+                              const eFileSel_File_Types typeflag,
+                              char *buff)
 {
   char *name = NULL;
+
+  if (typeflag & FILE_TYPE_FTFONT && !(typeflag & FILE_TYPE_BLENDERLIB)) {
+    char abspath[FILE_MAX_LIBEXTRA];
+    BLI_join_dirfile(abspath, sizeof(abspath), root, relpath);
+    name = BLF_display_name_from_file(abspath);
+    if (name) {
+      /* Allocated string, so no need to BLI_strdup.*/
+      return name;
+    }
+  }
 
   if (typeflag & FILE_TYPE_BLENDERLIB) {
     char abspath[FILE_MAX_LIBEXTRA];
@@ -1840,7 +1849,7 @@ static const char *fileentry_uiname(const char *root,
   }
   BLI_assert(name);
 
-  return name;
+  return BLI_strdup(name);
 }
 
 const char *filelist_dir(struct FileList *filelist)
@@ -1940,7 +1949,6 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   else {
     ret->name = entry->name;
   }
-  ret->description = BLI_strdupcat(filelist->filelist.root, entry->relpath);
   ret->uid = entry->uid;
   ret->blentype = entry->blentype;
   ret->typeflag = entry->typeflag;
@@ -3203,7 +3211,7 @@ static void filelist_readjob_do(const bool do_lib,
       MEM_freeN(entry->relpath);
       entry->relpath = BLI_strdup(dir + 2); /* + 2 to remove '//'
                                              * added by BLI_path_rel to rel_subdir. */
-      entry->name = BLI_strdup(fileentry_uiname(root, entry->relpath, entry->typeflag, dir));
+      entry->name = fileentry_uiname(root, entry->relpath, entry->typeflag, dir);
       entry->free_name = true;
 
       /* Here we decide whether current filedirentry is to be listed too, or not. */

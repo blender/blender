@@ -2504,6 +2504,22 @@ bool nodeLinkIsHidden(const bNodeLink *link)
   return nodeSocketIsHidden(link->fromsock) || nodeSocketIsHidden(link->tosock);
 }
 
+/* Adjust the indices of links connected to the given multi input socket after deleting the link at
+ * `deleted_index`. This function also works if the link has not yet been deleted. */
+static void adjust_multi_input_indices_after_removed_link(bNodeTree *ntree,
+                                                          bNodeSocket *sock,
+                                                          int deleted_index)
+{
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    /* We only need to adjust those with a greater index, because the others will have the same
+     * index. */
+    if (link->tosock != sock || link->multi_input_socket_index <= deleted_index) {
+      continue;
+    }
+    link->multi_input_socket_index -= 1;
+  }
+}
+
 void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 {
   /* store link pointers in output sockets, for efficient lookup */
@@ -2537,10 +2553,18 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
           ntree->update |= NTREE_UPDATE_LINKS;
         }
         else {
+          if (link->tosock->flag & SOCK_MULTI_INPUT) {
+            adjust_multi_input_indices_after_removed_link(
+                ntree, link->tosock, link->multi_input_socket_index);
+          }
           nodeRemLink(ntree, link);
         }
       }
       else {
+        if (link->tosock->flag & SOCK_MULTI_INPUT) {
+          adjust_multi_input_indices_after_removed_link(
+              ntree, link->tosock, link->multi_input_socket_index);
+        };
         nodeRemLink(ntree, link);
       }
     }
@@ -2991,6 +3015,11 @@ void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
     }
 
     if (lb) {
+      /* Only bother adjusting if the socket is not on the node we're deleting. */
+      if (link->tonode != node && link->tosock->flag & SOCK_MULTI_INPUT) {
+        adjust_multi_input_indices_after_removed_link(
+            ntree, link->tosock, link->multi_input_socket_index);
+      }
       LISTBASE_FOREACH (bNodeSocket *, sock, lb) {
         if (link->fromsock == sock || link->tosock == sock) {
           nodeRemLink(ntree, link);

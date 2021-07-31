@@ -57,6 +57,8 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
+#include "ED_asset.h"
+
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
@@ -2650,7 +2652,7 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
   const int unit_type = UI_but_unit_type_get(but);
 
   /* Time unit is a bit special, not handled by BKE_scene_unit_scale() for now. */
-  if (unit_type == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
+  if (unit_type == PROP_UNIT_TIME) { /* WARNING: using evil_C :| */
     Scene *scene = CTX_data_scene(but->block->evil_C);
     return FRA2TIME(value);
   }
@@ -6189,10 +6191,9 @@ void UI_but_drag_set_asset(uiBut *but,
 {
   wmDragAsset *asset_drag = MEM_mallocN(sizeof(*asset_drag), "wmDragAsset");
 
-  asset_drag->asset_handle = MEM_mallocN(sizeof(asset_drag->asset_handle),
-                                         "wmDragAsset asset handle");
-  *asset_drag->asset_handle = *asset;
+  BLI_strncpy(asset_drag->name, ED_asset_handle_get_name(asset), sizeof(asset_drag->name));
   asset_drag->path = path;
+  asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_type = import_type;
 
   but->dragtype = WM_DRAG_ASSET;

@@ -4759,25 +4759,60 @@ static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
   }
 }
 
+static PropertyRNA *rna_def_property_find_py_id(ContainerRNA *cont, const char *identifier)
+{
+  for (PropertyRNA *prop = cont->properties.first; prop; prop = prop->next) {
+    if (STREQ(prop->identifier, identifier)) {
+      return prop;
+    }
+  }
+  return NULL;
+}
+
 /* NOTE: only intended for removing dynamic props. */
 int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *identifier)
 {
   ContainerRNA *cont = cont_;
-  PropertyRNA *prop;
-
-  for (prop = cont->properties.first; prop; prop = prop->next) {
-    if (STREQ(prop->identifier, identifier)) {
-      if (prop->flag_internal & PROP_INTERN_RUNTIME) {
-        rna_def_property_free(cont_, prop);
-        return 1;
-      }
-      else {
-        return -1;
-      }
+  PropertyRNA *prop = rna_def_property_find_py_id(cont, identifier);
+  if (prop != NULL) {
+    if (prop->flag_internal & PROP_INTERN_RUNTIME) {
+      rna_def_property_free(cont, prop);
+      return 1;
+    }
+    else {
+      return -1;
     }
   }
   return 0;
 }
+
+int RNA_def_property_free_identifier_deferred_prepare(StructOrFunctionRNA *cont_,
+                                                      const char *identifier,
+                                                      void **r_handle)
+{
+  ContainerRNA *cont = cont_;
+  PropertyRNA *prop = rna_def_property_find_py_id(cont, identifier);
+  if (prop != NULL) {
+    if (prop->flag_internal & PROP_INTERN_RUNTIME) {
+      *r_handle = prop;
+      return 1;
+    }
+    else {
+      return -1;
+    }
+  }
+  return 0;
+}
+
+void RNA_def_property_free_identifier_deferred_finish(StructOrFunctionRNA *cont_, void *handle)
+{
+  ContainerRNA *cont = cont_;
+  PropertyRNA *prop = handle;
+  BLI_assert(BLI_findindex(&cont->properties, prop) != -1);
+  BLI_assert(prop->flag_internal & PROP_INTERN_RUNTIME);
+  rna_def_property_free(cont, prop);
+}
+
 #endif /* RNA_RUNTIME */
 
 const char *RNA_property_typename(PropertyType type)

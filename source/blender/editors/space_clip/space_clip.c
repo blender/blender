@@ -1112,7 +1112,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, sc->flag & SC_SHOW_SECONDS);
+  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, sc->flag & SC_SHOW_SECONDS, true);
 
   /* data... */
   clip_draw_dopesheet_main(sc, region, scene);

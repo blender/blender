@@ -372,7 +372,7 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
     e = *itE;
 
     /* Since this vertex passed the tests in gts_vertex_mean_curvature_normal(),
-       this should be true. */
+     * this should be true. */
     // g_assert(gts_edge_face_number (e, s) == 2);
 
     /* Identify the two triangles bordering e in s. */

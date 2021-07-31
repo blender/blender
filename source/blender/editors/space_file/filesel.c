@@ -450,6 +450,11 @@ void fileselect_refresh_params(SpaceFile *sfile)
   }
 }
 
+bool ED_fileselect_is_file_browser(const SpaceFile *sfile)
+{
+  return (sfile->browse_mode == FILE_BROWSE_MODE_FILES);
+}
+
 bool ED_fileselect_is_asset_browser(const SpaceFile *sfile)
 {
   return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);

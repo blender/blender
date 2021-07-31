@@ -67,19 +67,19 @@ struct OpenVDBVolumeToMeshData {
   int totvertices;
 
   float *vertices;
-  unsigned int *quads;
-  unsigned int *triangles;
+  int *quads;
+  int *triangles;
 };
 
 struct OpenVDBRemeshData {
   float *verts;
-  unsigned int *faces;
+  int *faces;
   int totfaces;
   int totverts;
 
   float *out_verts;
-  unsigned int *out_faces;
-  unsigned int *out_tris;
+  int *out_faces;
+  int *out_tris;
   int out_totverts;
   int out_totfaces;
   int out_tottris;
@@ -112,15 +112,15 @@ struct OpenVDBLevelSet *OpenVDBLevelSet_create(bool initGrid, struct OpenVDBTran
 void OpenVDBLevelSet_free(struct OpenVDBLevelSet *level_set);
 void OpenVDBLevelSet_mesh_to_level_set(struct OpenVDBLevelSet *level_set,
                                        const float *vertices,
-                                       const unsigned int *faces,
-                                       const unsigned int totvertices,
-                                       const unsigned int totfaces,
+                                       const int *faces,
+                                       const int totvertices,
+                                       const int totfaces,
                                        struct OpenVDBTransform *xform);
 void OpenVDBLevelSet_mesh_to_level_set_transform(struct OpenVDBLevelSet *level_set,
                                                  const float *vertices,
-                                                 const unsigned int *faces,
-                                                 const unsigned int totvertices,
-                                                 const unsigned int totfaces,
+                                                 const int *faces,
+                                                 const int totvertices,
+                                                 const int totfaces,
                                                  struct OpenVDBTransform *transform);
 void OpenVDBLevelSet_volume_to_mesh(struct OpenVDBLevelSet *level_set,
                                     struct OpenVDBVolumeToMeshData *mesh,

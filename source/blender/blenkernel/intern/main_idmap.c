@@ -157,7 +157,7 @@ void BKE_main_idmap_insert_id(struct IDNameLib_Map *id_map, ID *id)
     const short id_type = GS(id->name);
     struct IDNameLib_TypeMap *type_map = main_idmap_from_idcode(id_map, id_type);
 
-    /* No need to do anything if map has not been lazyly created yet. */
+    /* No need to do anything if map has not been lazily created yet. */
     if (LIKELY(type_map != NULL) && type_map->map != NULL) {
       BLI_assert(id_map->type_maps_keys_pool != NULL);
 
@@ -187,7 +187,7 @@ void BKE_main_idmap_remove_id(struct IDNameLib_Map *id_map, ID *id)
     const short id_type = GS(id->name);
     struct IDNameLib_TypeMap *type_map = main_idmap_from_idcode(id_map, id_type);
 
-    /* No need to do anything if map has not been lazyly created yet. */
+    /* No need to do anything if map has not been lazily created yet. */
     if (LIKELY(type_map != NULL) && type_map->map != NULL) {
       BLI_assert(id_map->type_maps_keys_pool != NULL);
 

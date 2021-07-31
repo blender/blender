@@ -1294,10 +1294,9 @@ static void draw_axes(ArmatureDrawContext *ctx,
                       const bArmature *arm)
 {
   float final_col[4];
-  const float *col = (ctx->const_color) ?
-                         ctx->const_color :
-                         (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? G_draw.block.colorTextHi :
-                                                                     G_draw.block.colorText;
+  const float *col = (ctx->const_color)                        ? ctx->const_color :
+                     (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? G_draw.block.colorTextHi :
+                                                                 G_draw.block.colorText;
   copy_v4_v4(final_col, col);
   /* Mix with axes color. */
   final_col[3] = (ctx->const_color) ? 1.0 : (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? 0.1 : 0.65;

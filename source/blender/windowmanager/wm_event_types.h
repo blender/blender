@@ -351,7 +351,7 @@ enum {
 
 /* for event checks */
 /* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
-/* UNUSED - see wm_eventmatch - BUG T30479. */
+/* Unused, see #wm_eventmatch, see: T30479. */
 // #define ISTEXTINPUT(event_type)  ((event_type) >= ' ' && (event_type) <= 255)
 /* NOTE: an alternative could be to check `event->utf8_buf`. */
 

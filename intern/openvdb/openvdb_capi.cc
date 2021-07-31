@@ -63,9 +63,9 @@ void OpenVDBLevelSet_free(OpenVDBLevelSet *level_set)
 
 void OpenVDBLevelSet_mesh_to_level_set(struct OpenVDBLevelSet *level_set,
                                        const float *vertices,
-                                       const unsigned int *faces,
-                                       const unsigned int totvertices,
-                                       const unsigned int totfaces,
+                                       const int *faces,
+                                       const int totvertices,
+                                       const int totfaces,
                                        OpenVDBTransform *xform)
 {
   level_set->mesh_to_level_set(vertices, faces, totvertices, totfaces, xform->get_transform());
@@ -73,9 +73,9 @@ void OpenVDBLevelSet_mesh_to_level_set(struct OpenVDBLevelSet *level_set,
 
 void OpenVDBLevelSet_mesh_to_level_set_transform(struct OpenVDBLevelSet *level_set,
                                                  const float *vertices,
-                                                 const unsigned int *faces,
-                                                 const unsigned int totvertices,
-                                                 const unsigned int totfaces,
+                                                 const int *faces,
+                                                 const int totvertices,
+                                                 const int totfaces,
                                                  OpenVDBTransform *transform)
 {
   level_set->mesh_to_level_set(vertices, faces, totvertices, totfaces, transform->get_transform());

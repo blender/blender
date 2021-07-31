@@ -148,8 +148,11 @@ KeyingSet *BKE_keyingset_add(
   /* allocate new KeyingSet */
   ks = MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-  BLI_strncpy(
-      ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"), sizeof(ks->idname));
+  BLI_strncpy(ks->idname,
+              (idname) ? idname :
+              (name)   ? name :
+                         DATA_("KeyingSet"),
+              sizeof(ks->idname));
   BLI_strncpy(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"), sizeof(ks->name));
 
   ks->flag = flag;

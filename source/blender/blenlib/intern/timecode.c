@@ -115,7 +115,7 @@ size_t BLI_timecode_string_from_time(char *str,
               str, maxncpy, "%s%02d:%02d+%02d", neg, minutes, seconds, frames);
         }
         else {
-          rlen = BLI_snprintf_rlen(str, maxncpy, "%s%d+%02d", neg, seconds, frames);
+          rlen = BLI_snprintf_rlen(str, maxncpy, "%s00:%02d+%02d", neg, seconds, frames);
         }
       }
       else {

@@ -239,7 +239,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, snla->flag & SNLA_DRAWTIME);
+  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, snla->flag & SNLA_DRAWTIME, true);
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 

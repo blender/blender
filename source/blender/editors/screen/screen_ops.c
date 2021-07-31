@@ -70,6 +70,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_clip.h"
+#include "ED_fileselect.h"
 #include "ED_image.h"
 #include "ED_keyframes_keylist.h"
 #include "ED_mesh.h"
@@ -274,9 +275,35 @@ bool ED_operator_outliner_active_no_editobject(bContext *C)
   return false;
 }
 
+/**
+ * \note Will return true for file spaces in either file or asset browsing mode! See
+ *       #ED_operator_file_browsing_active() (file browsing only) and
+ *       #ED_operator_asset_browsing_active() (asset browsing only).
+ */
 bool ED_operator_file_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_FILE);
+}
+
+/**
+ * \note Will only return true if the file space is in file browsing mode, not asset browsing! See
+ *       #ED_operator_file_active() (file or asset browsing) and
+ *       #ED_operator_asset_browsing_active() (asset browsing only).
+ */
+bool ED_operator_file_browsing_active(bContext *C)
+{
+  if (ed_spacetype_test(C, SPACE_FILE)) {
+    return ED_fileselect_is_file_browser(CTX_wm_space_file(C));
+  }
+  return false;
+}
+
+bool ED_operator_asset_browsing_active(bContext *C)
+{
+  if (ed_spacetype_test(C, SPACE_FILE)) {
+    return ED_fileselect_is_asset_browser(CTX_wm_space_file(C));
+  }
+  return false;
 }
 
 bool ED_operator_spreadsheet_active(bContext *C)

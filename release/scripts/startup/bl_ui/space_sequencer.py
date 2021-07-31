@@ -263,6 +263,7 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
 
         layout.prop(st, "show_strip_offset", text="Offsets")
         layout.prop(st, "show_fcurves", text="F-Curves")
+        layout.prop(st, "show_grid", text="Grid")
 
         layout.separator()
 

@@ -1325,30 +1325,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
-    pass_debug_bvh_traversed_nodes: BoolProperty(
-        name="Debug BVH Traversed Nodes",
-        description="Store Debug BVH Traversed Nodes pass",
-        default=False,
-        update=update_render_passes,
-    )
-    pass_debug_bvh_traversed_instances: BoolProperty(
-        name="Debug BVH Traversed Instances",
-        description="Store Debug BVH Traversed Instances pass",
-        default=False,
-        update=update_render_passes,
-    )
-    pass_debug_bvh_intersections: BoolProperty(
-        name="Debug BVH Intersections",
-        description="Store Debug BVH Intersections",
-        default=False,
-        update=update_render_passes,
-    )
-    pass_debug_ray_bounces: BoolProperty(
-        name="Debug Ray Bounces",
-        description="Store Debug Ray Bounces pass",
-        default=False,
-        update=update_render_passes,
-    )
     pass_debug_render_time: BoolProperty(
         name="Debug Render Time",
         description="Render time in milliseconds per sample and pixel",
