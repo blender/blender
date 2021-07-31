@@ -40,8 +40,6 @@ using fn::GMutableSpan;
 using fn::GSpan;
 using fn::GVArray;
 
-Span<MLoopTri> get_mesh_looptris(const Mesh &mesh);
-
 void sample_point_attribute(const Mesh &mesh,
                             Span<int> looptri_indices,
                             Span<float3> bary_coords,
