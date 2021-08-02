@@ -82,7 +82,6 @@ set(SRC
   intern/armature_deform.c
   intern/armature_pose.cc
   intern/armature_update.c
-  intern/asset_catalog.cc
   intern/asset.cc
   intern/attribute.c
   intern/attribute_access.cc
@@ -299,7 +298,6 @@ set(SRC
   BKE_appdir.h
   BKE_armature.h
   BKE_armature.hh
-  BKE_asset_catalog.hh
   BKE_asset.h
   BKE_attribute.h
   BKE_attribute_access.hh
@@ -773,7 +771,6 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
     intern/armature_test.cc
-    intern/asset_catalog_test.cc
     intern/cryptomatte_test.cc
     intern/fcurve_test.cc
     intern/lattice_deform_test.cc
