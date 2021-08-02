@@ -52,14 +52,14 @@ class AssetCatalogService {
 
   /* TODO(@sybren): determine which properties should be private / get accessors. */
 
-  // These pointers are owned by this AssetCatalogService.
+  /* These pointers are owned by this AssetCatalogService. */
   Map<CatalogID, std::unique_ptr<AssetCatalog>> catalogs;
   std::unique_ptr<AssetCatalogDefinitionFile> catalog_definition_file;
 
  public:
   AssetCatalogService();
 
-  // Return nullptr if not found.
+  /* Return nullptr if not found. */
   AssetCatalog *find_catalog(const CatalogID &catalog_id);
 
   void load_from_disk(const CatalogFilePath &asset_library_root);
