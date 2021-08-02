@@ -27,10 +27,8 @@ namespace blender::nodes {
 using fn::CPPType;
 using fn::MFDataType;
 
-const CPPType *socket_cpp_type_get(const bNodeSocketType &stype);
 std::optional<MFDataType> socket_mf_type_get(const bNodeSocketType &stype);
 bool socket_is_mf_data_socket(const bNodeSocketType &stype);
-bool socket_cpp_value_get(const bNodeSocket &socket, void *r_value);
 void socket_expand_in_mf_network(SocketMFNetworkBuilder &builder);
 
 }  // namespace blender::nodes

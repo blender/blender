@@ -159,7 +159,7 @@ static Mesh *new_mesh_from_openvdb_data(Span<openvdb::Vec3s> verts,
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_calc_normals(mesh);
+  BKE_mesh_normals_tag_dirty(mesh);
   return mesh;
 }
 

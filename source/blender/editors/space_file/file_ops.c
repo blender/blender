@@ -2830,20 +2830,10 @@ static bool file_delete_single(const FileSelectParams *params,
                                FileDirEntry *file,
                                const char **r_error_message)
 {
-  if (file->typeflag & FILE_TYPE_ASSET) {
-    ID *id = filelist_file_get_id(file);
-    if (!id) {
-      *r_error_message = "File is not a local data-block asset.";
-      return false;
-    }
-    ED_asset_clear_id(id);
-  }
-  else {
-    char str[FILE_MAX];
-    BLI_join_dirfile(str, sizeof(str), params->dir, file->relpath);
-    if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
-      return false;
-    }
+  char str[FILE_MAX];
+  BLI_join_dirfile(str, sizeof(str), params->dir, file->relpath);
+  if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
+    return false;
   }
 
   return true;

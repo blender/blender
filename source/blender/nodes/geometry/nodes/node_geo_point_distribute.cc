@@ -81,13 +81,6 @@ static float3 normal_to_euler_rotation(const float3 normal)
   return rotation;
 }
 
-static Span<MLoopTri> get_mesh_looptris(const Mesh &mesh)
-{
-  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(&mesh);
-  const int looptris_len = BKE_mesh_runtime_looptri_len(&mesh);
-  return {looptris, looptris_len};
-}
-
 static void sample_mesh_surface(const Mesh &mesh,
                                 const float4x4 &transform,
                                 const float base_density,
@@ -97,7 +90,8 @@ static void sample_mesh_surface(const Mesh &mesh,
                                 Vector<float3> &r_bary_coords,
                                 Vector<int> &r_looptri_indices)
 {
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
 
   for (const int looptri_index : looptris.index_range()) {
     const MLoopTri &looptri = looptris[looptri_index];
@@ -208,7 +202,8 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     Span<int> looptri_indices,
     MutableSpan<bool> elimination_mask)
 {
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
   for (const int i : bary_coords.index_range()) {
     if (elimination_mask[i]) {
       continue;
@@ -365,7 +360,8 @@ BLI_NOINLINE static void compute_special_attributes(Span<GeometryInstanceGroup> 
     const GeometrySet &set = set_group.geometry_set;
     const MeshComponent &component = *set.get_component_for_read<MeshComponent>();
     const Mesh &mesh = *component.get_for_read();
-    Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+    const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                  BKE_mesh_runtime_looptri_len(&mesh)};
 
     for (const float4x4 &transform : set_group.transforms) {
       const int offset = instance_start_offsets[i_instance];

@@ -452,8 +452,8 @@ static void compute_sss_translucence_kernel(const GPUSssKernelData *kd,
     /* Distance from surface. */
     float d = kd->max_radius * ((float)i + 0.00001f) / ((float)resolution);
 
-    /* For each distance d we compute the radiance incoming from an hypothetic parallel plane. */
-    /* Compute radius of the footprint on the hypothetic plane */
+    /* For each distance d we compute the radiance incoming from an hypothetical parallel plane. */
+    /* Compute radius of the footprint on the hypothetical plane. */
     float r_fp = sqrtf(kd->max_radius * kd->max_radius - d * d);
     float r_step = r_fp / INTEGRAL_RESOLUTION;
     float area_accum = 0.0f;

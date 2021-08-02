@@ -63,6 +63,12 @@ static CLG_LogRef LOG = {"bke.mesh_normals"};
 /** \name Mesh Normal Calculation
  * \{ */
 
+void BKE_mesh_normals_tag_dirty(Mesh *mesh)
+{
+  mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+  mesh->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
+}
+
 /**
  * Call when there are no polygons.
  */

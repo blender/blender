@@ -2851,8 +2851,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
             if (event->custom == EVT_DATA_DRAGDROP) {
               ListBase *lb = (ListBase *)event->customdata;
               LISTBASE_FOREACH (wmDrag *, drag, lb) {
-                const char *tooltip = NULL;
-                if (drop->poll(C, drag, event, &tooltip)) {
+                if (drop->poll(C, drag, event)) {
                   /* Optionally copy drag information to operator properties. Don't call it if the
                    * operator fails anyway, it might do more than just set properties (e.g.
                    * typically import an asset). */

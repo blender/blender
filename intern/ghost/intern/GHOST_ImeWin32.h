@@ -156,6 +156,18 @@ class GHOST_ImeWin32 {
    */
   bool SetInputLanguage();
 
+  /* Returns the current input language id. */
+  WORD GetInputLanguage();
+
+  /* Saves the current conversion status. */
+  void UpdateConversionStatus(HWND window_handle);
+
+  /* Is the IME currently in conversion mode? */
+  bool IsEnglishMode();
+
+  /* Checks a key whether IME has to do handling. */
+  bool IsImeKeyEvent(char ascii);
+
   /**
    * Create the IME windows, and allocate required resources for them.
    * Parameters
@@ -370,6 +382,12 @@ class GHOST_ImeWin32 {
    * IME functions.
    */
   LANGID input_language_id_;
+
+  /* Current Conversion Mode Values. Retrieved with ImmGetConversionStatus. */
+  DWORD conversion_modes_;
+
+  /* Current Sentence Mode. Retrieved with ImmGetConversionStatus. */
+  DWORD sentence_mode_;
 
   /**
    * Represents whether or not the current input context has created a system

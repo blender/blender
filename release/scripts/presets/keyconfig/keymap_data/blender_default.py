@@ -2000,6 +2000,7 @@ def km_file_browser(params):
         ("file.filenum", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("increment", -100)]}),
         *_template_items_context_menu("FILEBROWSER_MT_context_menu", params.context_menu_event),
+        *_template_items_context_menu("ASSETBROWSER_MT_context_menu", params.context_menu_event),
     ])
 
     return keymap

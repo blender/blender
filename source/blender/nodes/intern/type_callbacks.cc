@@ -19,17 +19,9 @@
 
 namespace blender::nodes {
 
-const CPPType *socket_cpp_type_get(const bNodeSocketType &stype)
-{
-  if (stype.get_cpp_type != nullptr) {
-    return stype.get_cpp_type();
-  }
-  return nullptr;
-}
-
 std::optional<MFDataType> socket_mf_type_get(const bNodeSocketType &stype)
 {
-  const CPPType *cpp_type = socket_cpp_type_get(stype);
+  const CPPType *cpp_type = stype.get_base_cpp_type ? stype.get_base_cpp_type() : nullptr;
   if (cpp_type != nullptr) {
     return MFDataType::ForSingle(*cpp_type);
   }
@@ -41,19 +33,10 @@ bool socket_is_mf_data_socket(const bNodeSocketType &stype)
   if (!socket_mf_type_get(stype).has_value()) {
     return false;
   }
-  if (stype.expand_in_mf_network == nullptr && stype.get_cpp_value == nullptr) {
+  if (stype.expand_in_mf_network == nullptr && stype.get_base_cpp_value == nullptr) {
     return false;
   }
   return true;
-}
-
-bool socket_cpp_value_get(const bNodeSocket &socket, void *r_value)
-{
-  if (socket.typeinfo->get_cpp_value != nullptr) {
-    socket.typeinfo->get_cpp_value(socket, r_value);
-    return true;
-  }
-  return false;
 }
 
 void socket_expand_in_mf_network(SocketMFNetworkBuilder &builder)
@@ -62,11 +45,11 @@ void socket_expand_in_mf_network(SocketMFNetworkBuilder &builder)
   if (socket.typeinfo->expand_in_mf_network != nullptr) {
     socket.typeinfo->expand_in_mf_network(builder);
   }
-  else if (socket.typeinfo->get_cpp_value != nullptr) {
-    const CPPType &type = *socket_cpp_type_get(*socket.typeinfo);
+  else if (socket.typeinfo->get_base_cpp_value != nullptr) {
+    const CPPType &type = *socket.typeinfo->get_base_cpp_type();
     void *buffer = builder.resource_scope().linear_allocator().allocate(type.size(),
                                                                         type.alignment());
-    socket.typeinfo->get_cpp_value(socket, buffer);
+    socket.typeinfo->get_base_cpp_value(socket, buffer);
     builder.set_constant_value(type, buffer);
   }
   else {

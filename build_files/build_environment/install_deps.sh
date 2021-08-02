@@ -603,6 +603,9 @@ MP3LAME_DEV=""
 OPENJPEG_USE=false
 OPENJPEG_DEV=""
 
+# Whether to use system GLEW or not (OpenSubDiv needs recent glew to work).
+NO_SYSTEM_GLEW=false
+
 # Switch to english language, else some things (like check_package_DEB()) won't work!
 LANG_BACK=$LANG
 LANG=""
@@ -3982,9 +3985,13 @@ install_DEB() {
     version_ge $_glew "1.7.0"
     if [ $? -eq 1 ]; then
       WARNING "OpenSubdiv disabled because GLEW-$_glew is not enough"
+      WARNING "Blender will not use system GLEW library"
       OSD_SKIP=true
+      NO_SYSTEM_GLEW=true
     else
       WARNING "OpenSubdiv will compile with GLEW-$_glew but with limited capability"
+      WARNING "Blender will not use system GLEW library"
+      NO_SYSTEM_GLEW=true
     fi
   fi
 
@@ -5953,6 +5960,12 @@ print_info() {
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
+  fi
+
+  if [ "$NO_SYSTEM_GLEW" = true ]; then
+    _1="-D WITH_SYSTEM_GLEW=OFF"
+    PRINT "  $_1"
+    _buildargs="$_buildargs $_1"
   fi
 
   if [ "$FFMPEG_SKIP" = false ]; then

@@ -125,6 +125,9 @@ using NodeExpandInMFNetworkFunction = void (*)(blender::nodes::NodeMFNetworkBuil
 using NodeGeometryExecFunction = void (*)(blender::nodes::GeoNodeExecParams params);
 using SocketGetCPPTypeFunction = const blender::fn::CPPType *(*)();
 using SocketGetCPPValueFunction = void (*)(const struct bNodeSocket &socket, void *r_value);
+using SocketGetGeometryNodesCPPTypeFunction = const blender::fn::CPPType *(*)();
+using SocketGetGeometryNodesCPPValueFunction = void (*)(const struct bNodeSocket &socket,
+                                                        void *r_value);
 using SocketExpandInMFNetworkFunction = void (*)(blender::nodes::SocketMFNetworkBuilder &builder);
 
 #else
@@ -132,6 +135,8 @@ typedef void *NodeExpandInMFNetworkFunction;
 typedef void *SocketExpandInMFNetworkFunction;
 typedef void *NodeGeometryExecFunction;
 typedef void *SocketGetCPPTypeFunction;
+typedef void *SocketGetGeometryNodesCPPTypeFunction;
+typedef void *SocketGetGeometryNodesCPPValueFunction;
 typedef void *SocketGetCPPValueFunction;
 #endif
 
@@ -194,9 +199,13 @@ typedef struct bNodeSocketType {
   /* Expands the socket into a multi-function node that outputs the socket value. */
   SocketExpandInMFNetworkFunction expand_in_mf_network;
   /* Return the CPPType of this socket. */
-  SocketGetCPPTypeFunction get_cpp_type;
+  SocketGetCPPTypeFunction get_base_cpp_type;
   /* Get the value of this socket in a generic way. */
-  SocketGetCPPValueFunction get_cpp_value;
+  SocketGetCPPValueFunction get_base_cpp_value;
+  /* Get geometry nodes cpp type. */
+  SocketGetGeometryNodesCPPTypeFunction get_geometry_nodes_cpp_type;
+  /* Get geometry nodes cpp value. */
+  SocketGetGeometryNodesCPPValueFunction get_geometry_nodes_cpp_value;
 } bNodeSocketType;
 
 typedef void *(*NodeInitExecFunction)(struct bNodeExecContext *context,

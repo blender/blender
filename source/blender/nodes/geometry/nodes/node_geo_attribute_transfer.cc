@@ -204,7 +204,8 @@ static void get_closest_mesh_polygons(const Mesh &mesh,
   Array<int> looptri_indices(positions.size());
   get_closest_mesh_looptris(mesh, positions, looptri_indices, r_distances_sq, r_positions);
 
-  Span<MLoopTri> looptris = bke::mesh_surface_sample::get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
   for (const int i : positions.index_range()) {
     const MLoopTri &looptri = looptris[looptri_indices[i]];
     r_poly_indices[i] = looptri.poly;
