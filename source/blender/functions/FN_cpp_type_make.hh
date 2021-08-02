@@ -185,100 +185,80 @@ template<typename T> uint64_t hash_cb(const void *value)
 
 }  // namespace blender::fn::cpp_type_util
 
-/**
- * Different types support different features. Features like copy constructability can be detected
- * automatically easily. For some features this is harder as of C++17. Those have flags in this
- * enum and need to be determined by the programmer.
- */
-enum class CPPTypeFlags {
-  None = 0,
-  Hashable = 1 << 0,
-  Printable = 1 << 1,
-  EqualityComparable = 1 << 2,
-
-  BasicType = Hashable | Printable | EqualityComparable,
-};
-ENUM_OPERATORS(CPPTypeFlags, CPPTypeFlags::EqualityComparable)
-
 namespace blender::fn {
 
-template<typename T, CPPTypeFlags flags>
-inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name)
+template<typename T, CPPTypeFlags Flags>
+CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
 {
   using namespace cpp_type_util;
 
-  CPPTypeMembers m;
-  m.name = name;
-  m.size = (int64_t)sizeof(T);
-  m.alignment = (int64_t)alignof(T);
-  m.is_trivially_destructible = std::is_trivially_destructible_v<T>;
+  debug_name_ = debug_name;
+  size_ = (int64_t)sizeof(T);
+  alignment_ = (int64_t)alignof(T);
+  is_trivially_destructible_ = std::is_trivially_destructible_v<T>;
   if constexpr (std::is_default_constructible_v<T>) {
-    m.default_construct = default_construct_cb<T>;
-    m.default_construct_indices = default_construct_indices_cb<T>;
+    default_construct_ = default_construct_cb<T>;
+    default_construct_indices_ = default_construct_indices_cb<T>;
     static T default_value;
-    m.default_value = (void *)&default_value;
+    default_value_ = (void *)&default_value;
   }
   if constexpr (std::is_destructible_v<T>) {
-    m.destruct = destruct_cb<T>;
-    m.destruct_indices = destruct_indices_cb<T>;
+    destruct_ = destruct_cb<T>;
+    destruct_indices_ = destruct_indices_cb<T>;
   }
   if constexpr (std::is_copy_assignable_v<T>) {
-    m.copy_assign = copy_assign_cb<T>;
-    m.copy_assign_indices = copy_assign_indices_cb<T>;
+    copy_assign_ = copy_assign_cb<T>;
+    copy_assign_indices_ = copy_assign_indices_cb<T>;
   }
   if constexpr (std::is_copy_constructible_v<T>) {
-    m.copy_construct = copy_construct_cb<T>;
-    m.copy_construct_indices = copy_construct_indices_cb<T>;
+    copy_construct_ = copy_construct_cb<T>;
+    copy_construct_indices_ = copy_construct_indices_cb<T>;
   }
   if constexpr (std::is_move_assignable_v<T>) {
-    m.move_assign = move_assign_cb<T>;
-    m.move_assign_indices = move_assign_indices_cb<T>;
+    move_assign_ = move_assign_cb<T>;
+    move_assign_indices_ = move_assign_indices_cb<T>;
   }
   if constexpr (std::is_move_constructible_v<T>) {
-    m.move_construct = move_construct_cb<T>;
-    m.move_construct_indices = move_construct_indices_cb<T>;
+    move_construct_ = move_construct_cb<T>;
+    move_construct_indices_ = move_construct_indices_cb<T>;
   }
   if constexpr (std::is_destructible_v<T>) {
     if constexpr (std::is_move_assignable_v<T>) {
-      m.relocate_assign = relocate_assign_cb<T>;
-      m.relocate_assign_indices = relocate_assign_indices_cb<T>;
+      relocate_assign_ = relocate_assign_cb<T>;
+      relocate_assign_indices_ = relocate_assign_indices_cb<T>;
     }
     if constexpr (std::is_move_constructible_v<T>) {
-      m.relocate_construct = relocate_construct_cb<T>;
-      m.relocate_construct_indices = relocate_construct_indices_cb<T>;
+      relocate_construct_ = relocate_construct_cb<T>;
+      relocate_construct_indices_ = relocate_construct_indices_cb<T>;
     }
   }
   if constexpr (std::is_copy_assignable_v<T>) {
-    m.fill_assign_indices = fill_assign_indices_cb<T>;
+    fill_assign_indices_ = fill_assign_indices_cb<T>;
   }
   if constexpr (std::is_copy_constructible_v<T>) {
-    m.fill_construct_indices = fill_construct_indices_cb<T>;
+    fill_construct_indices_ = fill_construct_indices_cb<T>;
   }
-  if constexpr ((bool)(flags & CPPTypeFlags::Hashable)) {
-    m.hash = hash_cb<T>;
+  if constexpr ((bool)(Flags & CPPTypeFlags::Hashable)) {
+    hash_ = hash_cb<T>;
   }
-  if constexpr ((bool)(flags & CPPTypeFlags::Printable)) {
-    m.print = print_cb<T>;
+  if constexpr ((bool)(Flags & CPPTypeFlags::Printable)) {
+    print_ = print_cb<T>;
   }
-  if constexpr ((bool)(flags & CPPTypeFlags::EqualityComparable)) {
-    m.is_equal = is_equal_cb<T>;
+  if constexpr ((bool)(Flags & CPPTypeFlags::EqualityComparable)) {
+    is_equal_ = is_equal_cb<T>;
   }
 
-  const CPPType *type = new CPPType(std::move(m));
-  return std::unique_ptr<const CPPType>(type);
+  alignment_mask_ = (uintptr_t)alignment_ - (uintptr_t)1;
+  has_special_member_functions_ = (default_construct_ && copy_construct_ && copy_assign_ &&
+                                   move_construct_ && move_assign_ && destruct_);
 }
 
 }  // namespace blender::fn
 
 #define MAKE_CPP_TYPE(IDENTIFIER, TYPE_NAME, FLAGS) \
-  template<> const blender::fn::CPPType &blender::fn::CPPType::get<TYPE_NAME>() \
+  template<> const blender::fn::CPPType &blender::fn::CPPType::get_impl<TYPE_NAME>() \
   { \
-    static std::unique_ptr<const CPPType> cpp_type = \
-        blender::fn::create_cpp_type<TYPE_NAME, FLAGS>(STRINGIFY(IDENTIFIER)); \
-    return *cpp_type; \
-  } \
-  /* Support using `CPPType::get<const T>()`. Otherwise the caller would have to remove const. */ \
-  template<> const blender::fn::CPPType &blender::fn::CPPType::get<const TYPE_NAME>() \
-  { \
-    return blender::fn::CPPType::get<TYPE_NAME>(); \
+    static CPPType cpp_type{blender::fn::CPPTypeParam<TYPE_NAME, FLAGS>(), \
+                            STRINGIFY(IDENTIFIER)}; \
+    return cpp_type; \
   }
