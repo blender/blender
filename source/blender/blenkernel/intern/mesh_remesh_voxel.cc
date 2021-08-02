@@ -72,7 +72,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   /* Ensure that the triangulated mesh data is up to data */
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
 
-  /* Gather the required data for export to the internal quadiflow mesh format */
+  /* Gather the required data for export to the internal quadriflow mesh format. */
   MVertTri *verttri = (MVertTri *)MEM_callocN(
       sizeof(*verttri) * BKE_mesh_runtime_looptri_len(input_mesh), "remesh_looptri");
   BKE_mesh_runtime_verttri_from_looptri(

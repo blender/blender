@@ -2204,7 +2204,7 @@ bool SIM_mass_spring_force_spring_bending_hair(Implicit_Data *data,
   world_to_root_v3(data, j, goal, target);
 
   spring_hairbend_forces(data, i, j, k, goal, stiffness, damping, k, vecnull, vecnull, fk);
-  negate_v3_v3(fj, fk); /* counterforce */
+  negate_v3_v3(fj, fk); /* Counter-force. */
 
   spring_hairbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, i, dfk_dxi);
   spring_hairbend_estimate_dfdx(data, i, j, k, goal, stiffness, damping, j, dfk_dxj);

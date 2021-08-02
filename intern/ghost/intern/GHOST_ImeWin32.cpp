@@ -94,7 +94,7 @@ bool GHOST_ImeWin32::IsEnglishMode()
 bool GHOST_ImeWin32::IsImeKeyEvent(char ascii)
 {
   if (!(IsEnglishMode())) {
-    /* In Chinese, Japanese, Korena, all alpha keys are processed by IME. */
+    /* In Chinese, Japanese, Korean, all alpha keys are processed by IME. */
     if ((ascii >= 'A' && ascii <= 'Z') || (ascii >= 'a' && ascii <= 'z')) {
       return true;
     }
