@@ -280,6 +280,7 @@ void BKE_mesh_recalc_looptri_with_normals(const struct MLoop *mloop,
 
 /* *** mesh_normals.cc *** */
 
+void BKE_mesh_normals_tag_dirty(struct Mesh *mesh);
 void BKE_mesh_calc_normals_mapping_simple(struct Mesh *me);
 void BKE_mesh_calc_normals_mapping(struct MVert *mverts,
                                    int numVerts,

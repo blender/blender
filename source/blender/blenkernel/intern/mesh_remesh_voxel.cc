@@ -270,7 +270,7 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_calc_normals(mesh);
+  BKE_mesh_normals_tag_dirty(mesh);
 
   return mesh;
 }

@@ -299,7 +299,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
     mesh->medge[0].v1 = 0;
     mesh->medge[0].v2 = 1;
     mesh->medge[0].flag |= ME_LOOSEEDGE;
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return mesh;
   }
 
@@ -534,11 +534,9 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
     }
   }
 
-  BKE_mesh_calc_normals(mesh);
+  BKE_mesh_normals_tag_dirty(mesh);
 
   calculate_uvs(mesh, top_is_point, bottom_is_point, verts_num, fill_type);
-
-  BLI_assert(BKE_mesh_is_valid(mesh));
 
   return mesh;
 }
