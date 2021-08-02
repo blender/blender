@@ -52,16 +52,8 @@ class FILEBROWSER_HT_header(Header):
         layout.prop_with_popover(
             params,
             "display_type",
-            panel="FILEBROWSER_PT_display",
+            panel="ASSETBROWSER_PT_display",
             text="",
-            icon_only=True,
-        )
-        layout.prop_with_popover(
-            params,
-            "display_type",
-            panel="FILEBROWSER_PT_filter",
-            text="",
-            icon='FILTER',
             icon_only=True,
         )
 
@@ -96,16 +88,24 @@ class FILEBROWSER_HT_header(Header):
             layout.template_running_jobs()
 
 
-class FILEBROWSER_PT_display(Panel):
+class FileBrowserPanel:
     bl_space_type = 'FILE_BROWSER'
-    bl_region_type = 'HEADER'
-    bl_label = "Display Settings"  # Shows as tooltip in popover
-    bl_ui_units_x = 10
 
     @classmethod
     def poll(cls, context):
+        space_data = context.space_data
+
         # can be None when save/reload with a file selector open
-        return context.space_data.params is not None
+        if space_data.params is None:
+            return False
+
+        return space_data and space_data.type == 'FILE_BROWSER' and space_data.browse_mode == 'FILES'
+
+
+class FILEBROWSER_PT_display(FileBrowserPanel, Panel):
+    bl_region_type = 'HEADER'
+    bl_label = "Display Settings"  # Shows as tooltip in popover
+    bl_ui_units_x = 10
 
     def draw(self, context):
         layout = self.layout
@@ -129,16 +129,10 @@ class FILEBROWSER_PT_display(Panel):
         layout.prop(params, "use_sort_invert")
 
 
-class FILEBROWSER_PT_filter(Panel):
-    bl_space_type = 'FILE_BROWSER'
+class FILEBROWSER_PT_filter(FileBrowserPanel, Panel):
     bl_region_type = 'HEADER'
     bl_label = "Filter Settings"  # Shows as tooltip in popover
     bl_ui_units_x = 8
-
-    @classmethod
-    def poll(cls, context):
-        # can be None when save/reload with a file selector open
-        return context.space_data.params is not None
 
     def draw(self, context):
         layout = self.layout
@@ -579,6 +573,28 @@ class FILEBROWSER_MT_context_menu(Menu):
         layout.prop_menu_enum(params, "sort_method")
 
 
+class ASSETBROWSER_PT_display(asset_utils.AssetBrowserPanel, Panel):
+    bl_region_type = 'HEADER'
+    bl_label = "Display Settings"  # Shows as tooltip in popover
+    bl_ui_units_x = 10
+
+    def draw(self, context):
+        layout = self.layout
+
+        space = context.space_data
+        params = space.params
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        if params.display_type == 'THUMBNAIL':
+            layout.prop(params, "display_size", text="Size")
+        else:
+            col = layout.column(heading="Columns", align=True)
+            col.prop(params, "show_details_size", text="Size")
+            col.prop(params, "show_details_datetime", text="Date")
+
+
 class AssetBrowserMenu:
     @classmethod
     def poll(cls, context):
@@ -755,6 +771,7 @@ classes = (
     FILEBROWSER_MT_view,
     FILEBROWSER_MT_select,
     FILEBROWSER_MT_context_menu,
+    ASSETBROWSER_PT_display,
     ASSETBROWSER_MT_editor_menus,
     ASSETBROWSER_MT_view,
     ASSETBROWSER_MT_select,
