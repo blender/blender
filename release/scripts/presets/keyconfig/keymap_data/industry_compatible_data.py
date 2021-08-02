@@ -1249,6 +1249,7 @@ def km_file_browser(params):
         ("file.filenum", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("increment", -100)]}),
         *_template_items_context_menu("FILEBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        *_template_items_context_menu("ASSETBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
     ])
 
     return keymap

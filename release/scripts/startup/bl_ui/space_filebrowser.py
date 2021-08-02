@@ -296,7 +296,7 @@ class FILEBROWSER_MT_bookmarks_context_menu(Menu):
                         text="Move to Bottom").direction = 'BOTTOM'
 
 
-class FILEBROWSER_PT_bookmarks_favorites(Panel):
+class FILEBROWSER_PT_bookmarks_favorites(FileBrowserPanel, Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'TOOLS'
     bl_category = "Bookmarks"
@@ -526,7 +526,7 @@ class FILEBROWSER_MT_select(FileBrowserMenu, Menu):
         layout.operator("file.select_box")
 
 
-class FILEBROWSER_MT_context_menu(Menu):
+class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
     bl_label = "Files Context Menu"
 
     def draw(self, context):
@@ -552,10 +552,6 @@ class FILEBROWSER_MT_context_menu(Menu):
         sub = layout.row()
         sub.operator_context = 'EXEC_DEFAULT'
         sub.operator("file.delete", text="Delete")
-
-        active_asset = asset_utils.SpaceAssetInfo.get_active_asset(context)
-        if active_asset:
-            layout.operator("asset.open_containing_blend_file")
 
         layout.separator()
 
@@ -755,6 +751,32 @@ class ASSETBROWSER_UL_metadata_tags(UIList):
             row.prop(tag, "name", text="", emboss=False, icon_value=icon)
 
 
+class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
+    bl_label = "Assets Context Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        st = context.space_data
+        params = st.params
+
+        layout.operator("file.refresh", text="Refresh")
+
+        layout.separator()
+
+        sub = layout.row()
+        sub.operator_context = 'EXEC_DEFAULT'
+        sub.operator("asset.clear", text="Clear Asset")
+
+        layout.separator()
+
+        layout.operator("asset.open_containing_blend_file")
+
+        layout.separator()
+
+        if params.display_type == 'THUMBNAIL':
+            layout.prop_menu_enum(params, "display_size")
+
+
 classes = (
     FILEBROWSER_HT_header,
     FILEBROWSER_PT_display,
@@ -781,6 +803,7 @@ classes = (
     ASSETBROWSER_PT_metadata_details,
     ASSETBROWSER_PT_metadata_tags,
     ASSETBROWSER_UL_metadata_tags,
+    ASSETBROWSER_MT_context_menu,
 )
 
 if __name__ == "__main__":  # only for live edit.
