@@ -109,6 +109,7 @@ class Spline {
   SplinePtr copy() const;
   SplinePtr copy_only_settings() const;
   SplinePtr copy_without_attributes() const;
+  static void copy_base_settings(const Spline &src, Spline &dst);
 
   Spline::Type type() const;
 
@@ -209,8 +210,6 @@ class Spline {
   virtual void correct_end_tangents() const = 0;
   virtual void copy_settings(Spline &dst) const = 0;
   virtual void copy_data(Spline &dst) const = 0;
-
-  static void copy_base_settings(const Spline &src, Spline &dst);
 };
 
 /**
