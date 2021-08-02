@@ -189,7 +189,11 @@ static float3 direction_bisect(const float3 &prev, const float3 &middle, const f
   const float3 dir_prev = (middle - prev).normalized();
   const float3 dir_next = (next - middle).normalized();
 
-  return (dir_prev + dir_next).normalized();
+  const float3 result = (dir_prev + dir_next).normalized();
+  if (UNLIKELY(result.is_zero())) {
+    return float3(0.0f, 0.0f, 1.0f);
+  }
+  return result;
 }
 
 static void calculate_tangents(Span<float3> positions,
