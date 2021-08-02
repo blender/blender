@@ -31,6 +31,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
@@ -316,10 +317,7 @@ static bool allow_parenting_without_modifier_key(SpaceOutliner *space_outliner)
   }
 }
 
-static bool parent_drop_poll(bContext *C,
-                             wmDrag *drag,
-                             const wmEvent *event,
-                             const char **UNUSED(r_tooltip))
+static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
@@ -455,10 +453,7 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 
 /* ******************** Parent Clear Operator *********************** */
 
-static bool parent_clear_poll(bContext *C,
-                              wmDrag *drag,
-                              const wmEvent *event,
-                              const char **UNUSED(r_tooltip))
+static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
@@ -541,10 +536,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 
 /* ******************** Scene Drop Operator *********************** */
 
-static bool scene_drop_poll(bContext *C,
-                            wmDrag *drag,
-                            const wmEvent *event,
-                            const char **UNUSED(r_tooltip))
+static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   /* Ensure item under cursor is valid drop target */
   Object *ob = (Object *)WM_drag_get_local_ID(drag, ID_OB);
@@ -609,10 +601,7 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 
 /* ******************** Material Drop Operator *********************** */
 
-static bool material_drop_poll(bContext *C,
-                               wmDrag *drag,
-                               const wmEvent *event,
-                               const char **UNUSED(r_tooltip))
+static bool material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   /* Ensure item under cursor is valid drop target */
   Material *ma = (Material *)WM_drag_get_local_ID(drag, ID_MA);
@@ -833,10 +822,7 @@ static bool datastack_drop_are_types_valid(StackDropData *drop_data)
   return true;
 }
 
-static bool datastack_drop_poll(bContext *C,
-                                wmDrag *drag,
-                                const wmEvent *event,
-                                const char **r_tooltip)
+static bool datastack_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   if (drag->type != WM_DRAG_DATASTACK) {
     return false;
@@ -873,33 +859,40 @@ static bool datastack_drop_poll(bContext *C,
       break;
   }
 
-  switch (drop_data->drop_action) {
-    case DATA_STACK_DROP_REORDER:
-      *r_tooltip = TIP_("Reorder");
-      break;
-    case DATA_STACK_DROP_COPY:
-      if (drop_data->pchan_parent) {
-        *r_tooltip = TIP_("Copy to bone");
-      }
-      else {
-        *r_tooltip = TIP_("Copy to object");
-      }
-      break;
-    case DATA_STACK_DROP_LINK:
-      if (drop_data->pchan_parent) {
-        *r_tooltip = TIP_("Link all to bone");
-      }
-      else {
-        *r_tooltip = TIP_("Link all to object");
-      }
-      break;
-  }
-
   if (changed) {
     ED_region_tag_redraw_no_rebuild(region);
   }
 
   return true;
+}
+
+static char *datastack_drop_tooltip(bContext *UNUSED(C),
+                                    wmDrag *drag,
+                                    const wmEvent *UNUSED(event))
+{
+  StackDropData *drop_data = drag->poin;
+  switch (drop_data->drop_action) {
+    case DATA_STACK_DROP_REORDER:
+      return BLI_strdup(TIP_("Reorder"));
+      break;
+    case DATA_STACK_DROP_COPY:
+      if (drop_data->pchan_parent) {
+        return BLI_strdup(TIP_("Copy to bone"));
+      }
+      else {
+        return BLI_strdup(TIP_("Copy to object"));
+      }
+      break;
+    case DATA_STACK_DROP_LINK:
+      if (drop_data->pchan_parent) {
+        return BLI_strdup(TIP_("Link all to bone"));
+      }
+      else {
+        return BLI_strdup(TIP_("Link all to object"));
+      }
+      break;
+  }
+  return NULL;
 }
 
 static void datastack_drop_link(bContext *C, StackDropData *drop_data)
@@ -1155,10 +1148,7 @@ static bool collection_drop_init(bContext *C,
   return true;
 }
 
-static bool collection_drop_poll(bContext *C,
-                                 wmDrag *drag,
-                                 const wmEvent *event,
-                                 const char **r_tooltip)
+static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
@@ -1172,45 +1162,20 @@ static bool collection_drop_poll(bContext *C,
     if (!data.from || event->ctrl) {
       tselem->flag |= TSE_DRAG_INTO;
       changed = true;
-      *r_tooltip = TIP_("Link inside Collection");
     }
     else {
       switch (data.insert_type) {
         case TE_INSERT_BEFORE:
           tselem->flag |= TSE_DRAG_BEFORE;
           changed = true;
-          if (te->prev && outliner_is_collection_tree_element(te->prev)) {
-            *r_tooltip = TIP_("Move between collections");
-          }
-          else {
-            *r_tooltip = TIP_("Move before collection");
-          }
           break;
         case TE_INSERT_AFTER:
           tselem->flag |= TSE_DRAG_AFTER;
           changed = true;
-          if (te->next && outliner_is_collection_tree_element(te->next)) {
-            *r_tooltip = TIP_("Move between collections");
-          }
-          else {
-            *r_tooltip = TIP_("Move after collection");
-          }
           break;
         case TE_INSERT_INTO: {
           tselem->flag |= TSE_DRAG_INTO;
           changed = true;
-
-          /* Check the type of the drag IDs to avoid the incorrect "Shift to parent"
-           * for collections. Checking the type of the first ID works fine here since
-           * all drag IDs are the same type. */
-          wmDragID *drag_id = (wmDragID *)drag->ids.first;
-          const bool is_object = (GS(drag_id->id->name) == ID_OB);
-          if (is_object) {
-            *r_tooltip = TIP_("Move inside collection (Ctrl to link, Shift to parent)");
-          }
-          else {
-            *r_tooltip = TIP_("Move inside collection (Ctrl to link)");
-          }
           break;
         }
       }
@@ -1224,6 +1189,49 @@ static bool collection_drop_poll(bContext *C,
     ED_region_tag_redraw_no_rebuild(region);
   }
   return false;
+}
+
+static char *collection_drop_tooltip(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  CollectionDrop data;
+  if (!event->shift && collection_drop_init(C, drag, event, &data)) {
+    TreeElement *te = data.te;
+    if (!data.from || event->ctrl) {
+      return BLI_strdup(TIP_("Link inside Collection"));
+    }
+    switch (data.insert_type) {
+      case TE_INSERT_BEFORE:
+        if (te->prev && outliner_is_collection_tree_element(te->prev)) {
+          return BLI_strdup(TIP_("Move between collections"));
+        }
+        else {
+          return BLI_strdup(TIP_("Move before collection"));
+        }
+        break;
+      case TE_INSERT_AFTER:
+        if (te->next && outliner_is_collection_tree_element(te->next)) {
+          return BLI_strdup(TIP_("Move between collections"));
+        }
+        else {
+          return BLI_strdup(TIP_("Move after collection"));
+        }
+        break;
+      case TE_INSERT_INTO: {
+
+        /* Check the type of the drag IDs to avoid the incorrect "Shift to parent"
+         * for collections. Checking the type of the first ID works fine here since
+         * all drag IDs are the same type. */
+        wmDragID *drag_id = (wmDragID *)drag->ids.first;
+        const bool is_object = (GS(drag_id->id->name) == ID_OB);
+        if (is_object) {
+          return BLI_strdup(TIP_("Move inside collection (Ctrl to link, Shift to parent)"));
+        }
+        return BLI_strdup(TIP_("Move inside collection (Ctrl to link)"));
+        break;
+      }
+    }
+  }
+  return NULL;
 }
 
 static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
@@ -1499,10 +1507,16 @@ void outliner_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "OUTLINER_OT_parent_drop", parent_drop_poll, NULL, NULL);
-  WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", parent_clear_poll, NULL, NULL);
-  WM_dropbox_add(lb, "OUTLINER_OT_scene_drop", scene_drop_poll, NULL, NULL);
-  WM_dropbox_add(lb, "OUTLINER_OT_material_drop", material_drop_poll, NULL, NULL);
-  WM_dropbox_add(lb, "OUTLINER_OT_datastack_drop", datastack_drop_poll, NULL, NULL);
-  WM_dropbox_add(lb, "OUTLINER_OT_collection_drop", collection_drop_poll, NULL, NULL);
+  WM_dropbox_add(lb, "OUTLINER_OT_parent_drop", parent_drop_poll, NULL, NULL, NULL);
+  WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", parent_clear_poll, NULL, NULL, NULL);
+  WM_dropbox_add(lb, "OUTLINER_OT_scene_drop", scene_drop_poll, NULL, NULL, NULL);
+  WM_dropbox_add(lb, "OUTLINER_OT_material_drop", material_drop_poll, NULL, NULL, NULL);
+  WM_dropbox_add(
+      lb, "OUTLINER_OT_datastack_drop", datastack_drop_poll, NULL, NULL, datastack_drop_tooltip);
+  WM_dropbox_add(lb,
+                 "OUTLINER_OT_collection_drop",
+                 collection_drop_poll,
+                 NULL,
+                 NULL,
+                 collection_drop_tooltip);
 }

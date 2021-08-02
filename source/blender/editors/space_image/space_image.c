@@ -253,10 +253,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 }
 
 /* dropboxes */
-static bool image_drop_poll(bContext *C,
-                            wmDrag *drag,
-                            const wmEvent *event,
-                            const char **UNUSED(r_tooltip))
+static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   ScrArea *area = CTX_wm_area(C);
   if (ED_region_overlap_isect_any_xy(area, &event->x)) {
@@ -282,7 +279,7 @@ static void image_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
-  WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy, NULL);
+  WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy, NULL, NULL);
 }
 
 /**
