@@ -23,10 +23,6 @@
  * \ingroup bke
  */
 
-#ifdef WITH_OPENVDB
-#  include "openvdb_capi.h"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

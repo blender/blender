@@ -33,6 +33,7 @@
 #include "BLI_array.hh"
 #include "BLI_float3.hh"
 #include "BLI_index_range.hh"
+#include "BLI_span.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -48,7 +49,9 @@
 #include "bmesh_tools.h"
 
 #ifdef WITH_OPENVDB
-#  include "openvdb_capi.h"
+#  include <openvdb/openvdb.h>
+#  include <openvdb/tools/MeshToVolume.h>
+#  include <openvdb/tools/VolumeToMesh.h>
 #endif
 
 #ifdef WITH_QUADRIFLOW
@@ -58,6 +61,8 @@
 using blender::Array;
 using blender::float3;
 using blender::IndexRange;
+using blender::MutableSpan;
+using blender::Span;
 
 #ifdef WITH_QUADRIFLOW
 static Mesh *remesh_quadriflow(const Mesh *input_mesh,
@@ -192,91 +197,80 @@ Mesh *BKE_mesh_remesh_quadriflow(const Mesh *mesh,
 }
 
 #ifdef WITH_OPENVDB
-static struct OpenVDBLevelSet *remesh_voxel_level_set_create(const Mesh *mesh,
-                                                             struct OpenVDBTransform *transform)
+static openvdb::FloatGrid::Ptr remesh_voxel_level_set_create(const Mesh *mesh,
+                                                             const float voxel_size)
 {
-  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-  MVertTri *verttri = (MVertTri *)MEM_callocN(
-      sizeof(*verttri) * BKE_mesh_runtime_looptri_len(mesh), "remesh_looptri");
-  BKE_mesh_runtime_verttri_from_looptri(
-      verttri, mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(mesh));
+  Span<MLoop> mloop{mesh->mloop, mesh->totloop};
+  Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh),
+                          BKE_mesh_runtime_looptri_len(mesh)};
 
-  const int totfaces = BKE_mesh_runtime_looptri_len(mesh);
-  const int totverts = mesh->totvert;
-  Array<float3> verts(totverts);
-  Array<int> faces(totfaces * 3);
+  std::vector<openvdb::Vec3s> points(mesh->totvert);
+  std::vector<openvdb::Vec3I> triangles(looptris.size());
 
-  for (const int i : IndexRange(totverts)) {
-    verts[i] = mesh->mvert[i].co;
+  for (const int i : IndexRange(mesh->totvert)) {
+    const float3 co = mesh->mvert[i].co;
+    points[i] = openvdb::Vec3s(co.x, co.y, co.z);
   }
 
-  for (const int i : IndexRange(totfaces)) {
-    MVertTri &vt = verttri[i];
-    faces[i * 3] = vt.tri[0];
-    faces[i * 3 + 1] = vt.tri[1];
-    faces[i * 3 + 2] = vt.tri[2];
+  for (const int i : IndexRange(looptris.size())) {
+    const MLoopTri &loop_tri = looptris[i];
+    triangles[i] = openvdb::Vec3I(
+        mloop[loop_tri.tri[0]].v, mloop[loop_tri.tri[1]].v, mloop[loop_tri.tri[2]].v);
   }
 
-  struct OpenVDBLevelSet *level_set = OpenVDBLevelSet_create(false, nullptr);
-  OpenVDBLevelSet_mesh_to_level_set(
-      level_set, (const float *)verts.data(), faces.data(), totverts, totfaces, transform);
+  openvdb::math::Transform::Ptr transform = openvdb::math::Transform::createLinearTransform(
+      voxel_size);
+  openvdb::FloatGrid::Ptr grid = openvdb::tools::meshToLevelSet<openvdb::FloatGrid>(
+      *transform, points, triangles, 1.0f);
 
-  MEM_freeN(verttri);
-
-  return level_set;
+  return grid;
 }
 
-static Mesh *remesh_voxel_volume_to_mesh(struct OpenVDBLevelSet *level_set,
-                                         double isovalue,
-                                         double adaptivity,
-                                         bool relax_disoriented_triangles)
+static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set_grid,
+                                         const float isovalue,
+                                         const float adaptivity,
+                                         const bool relax_disoriented_triangles)
 {
-  struct OpenVDBVolumeToMeshData output_mesh;
-  OpenVDBLevelSet_volume_to_mesh(
-      level_set, &output_mesh, isovalue, adaptivity, relax_disoriented_triangles);
+  std::vector<openvdb::Vec3s> vertices;
+  std::vector<openvdb::Vec4I> quads;
+  std::vector<openvdb::Vec3I> tris;
+  openvdb::tools::volumeToMesh<openvdb::FloatGrid>(
+      *level_set_grid, vertices, tris, quads, isovalue, adaptivity, relax_disoriented_triangles);
 
-  Mesh *mesh = BKE_mesh_new_nomain(output_mesh.totvertices,
-                                   0,
-                                   0,
-                                   (output_mesh.totquads * 4) + (output_mesh.tottriangles * 3),
-                                   output_mesh.totquads + output_mesh.tottriangles);
+  Mesh *mesh = BKE_mesh_new_nomain(
+      vertices.size(), 0, 0, quads.size() * 4 + tris.size() * 3, quads.size() + tris.size());
+  MutableSpan<MVert> mverts{mesh->mvert, mesh->totvert};
+  MutableSpan<MLoop> mloops{mesh->mloop, mesh->totloop};
+  MutableSpan<MPoly> mpolys{mesh->mpoly, mesh->totpoly};
 
-  for (const int i : IndexRange(output_mesh.totvertices)) {
-    copy_v3_v3(mesh->mvert[i].co, &output_mesh.vertices[i * 3]);
+  for (const int i : mverts.index_range()) {
+    copy_v3_v3(mverts[i].co, float3(vertices[i].x(), vertices[i].y(), vertices[i].z()));
   }
 
-  for (const int i : IndexRange(output_mesh.totquads)) {
-    MPoly &poly = mesh->mpoly[i];
+  for (const int i : IndexRange(quads.size())) {
+    MPoly &poly = mpolys[i];
     const int loopstart = i * 4;
     poly.loopstart = loopstart;
     poly.totloop = 4;
-    mesh->mloop[loopstart].v = output_mesh.quads[loopstart];
-    mesh->mloop[loopstart + 1].v = output_mesh.quads[loopstart + 1];
-    mesh->mloop[loopstart + 2].v = output_mesh.quads[loopstart + 2];
-    mesh->mloop[loopstart + 3].v = output_mesh.quads[loopstart + 3];
+    mloops[loopstart].v = quads[i][0];
+    mloops[loopstart + 1].v = quads[i][3];
+    mloops[loopstart + 2].v = quads[i][2];
+    mloops[loopstart + 3].v = quads[i][1];
   }
 
-  const int triangle_poly_start = output_mesh.totquads;
-  const int triangle_loop_start = output_mesh.totquads * 4;
-  for (const int i : IndexRange(output_mesh.tottriangles)) {
-    MPoly &poly = mesh->mpoly[triangle_poly_start + i];
+  const int triangle_loop_start = quads.size() * 4;
+  for (const int i : IndexRange(tris.size())) {
+    MPoly &poly = mpolys[quads.size() + i];
     const int loopstart = triangle_loop_start + i * 3;
     poly.loopstart = loopstart;
     poly.totloop = 3;
-    mesh->mloop[loopstart].v = output_mesh.triangles[i * 3 + 2];
-    mesh->mloop[loopstart + 1].v = output_mesh.triangles[i * 3 + 1];
-    mesh->mloop[loopstart + 2].v = output_mesh.triangles[i * 3];
+    mloops[loopstart].v = tris[i][2];
+    mloops[loopstart + 1].v = tris[i][1];
+    mloops[loopstart + 2].v = tris[i][0];
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
   BKE_mesh_calc_normals(mesh);
-
-  MEM_freeN(output_mesh.quads);
-  MEM_freeN(output_mesh.vertices);
-
-  if (output_mesh.tottriangles > 0) {
-    MEM_freeN(output_mesh.triangles);
-  }
 
   return mesh;
 }
@@ -288,14 +282,8 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
                             const float isovalue)
 {
 #ifdef WITH_OPENVDB
-  struct OpenVDBTransform *xform = OpenVDBTransform_create();
-  OpenVDBTransform_create_linear_transform(xform, (double)voxel_size);
-  struct OpenVDBLevelSet *level_set = remesh_voxel_level_set_create(mesh, xform);
-  Mesh *new_mesh = remesh_voxel_volume_to_mesh(
-      level_set, (double)isovalue, (double)adaptivity, false);
-  OpenVDBLevelSet_free(level_set);
-  OpenVDBTransform_free(xform);
-  return new_mesh;
+  openvdb::FloatGrid::Ptr level_set = remesh_voxel_level_set_create(mesh, voxel_size);
+  return remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
 #else
   UNUSED_VARS(mesh, voxel_size, adaptivity, isovalue);
   return nullptr;
