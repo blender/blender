@@ -2982,6 +2982,16 @@ static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 
   if (VALID_CONS_TARGET(ct) || data->flag & ACTCON_USE_EVAL_TIME) {
     switch (data->mix_mode) {
+      /* Simple matrix multiplication. */
+      case ACTCON_MIX_BEFORE_FULL:
+        mul_m4_m4m4(cob->matrix, ct->matrix, cob->matrix);
+        break;
+
+      case ACTCON_MIX_AFTER_FULL:
+        mul_m4_m4m4(cob->matrix, cob->matrix, ct->matrix);
+        break;
+
+      /* Aligned Inherit Scale emulation. */
       case ACTCON_MIX_BEFORE:
         mul_m4_m4m4_aligned_scale(cob->matrix, ct->matrix, cob->matrix);
         break;
@@ -2990,8 +3000,13 @@ static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
         mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, ct->matrix);
         break;
 
-      case ACTCON_MIX_AFTER_FULL:
-        mul_m4_m4m4(cob->matrix, cob->matrix, ct->matrix);
+      /* Fully separate handling of channels. */
+      case ACTCON_MIX_BEFORE_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, ct->matrix, cob->matrix);
+        break;
+
+      case ACTCON_MIX_AFTER_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, cob->matrix, ct->matrix);
         break;
 
       default:
@@ -5764,6 +5779,17 @@ static bConstraint *add_new_constraint(Object *ob,
       if (pchan) {
         con->ownspace = CONSTRAINT_SPACE_POSE;
         con->flag |= CONSTRAINT_SPACEONCE;
+      }
+      break;
+    }
+    case CONSTRAINT_TYPE_ACTION: {
+      /* The Before or Split modes require computing in local space, but
+       * for objects the Local space doesn't make sense (T78462, D6095 etc).
+       * So only default to Before (Split) if the constraint is on a bone. */
+      if (pchan) {
+        bActionConstraint *data = con->data;
+        data->mix_mode = ACTCON_MIX_BEFORE_SPLIT;
+        con->ownspace = CONSTRAINT_SPACE_LOCAL;
       }
       break;
     }

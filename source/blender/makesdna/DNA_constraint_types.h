@@ -901,10 +901,16 @@ typedef enum eActionConstraint_Flags {
 typedef enum eActionConstraint_MixMode {
   /* Multiply the action transformation on the right. */
   ACTCON_MIX_AFTER_FULL = 0,
+  /* Multiply the action transformation on the left. */
+  ACTCON_MIX_BEFORE_FULL = 3,
   /* Multiply the action transformation on the right, with anti-shear scale handling. */
   ACTCON_MIX_AFTER = 1,
   /* Multiply the action transformation on the left, with anti-shear scale handling. */
   ACTCON_MIX_BEFORE = 2,
+  /* Separately combine Translation, Rotation and Scale, with rotation on the right. */
+  ACTCON_MIX_AFTER_SPLIT = 4,
+  /* Separately combine Translation, Rotation and Scale, with rotation on the left. */
+  ACTCON_MIX_BEFORE_SPLIT = 5,
 } eActionConstraint_MixMode;
 
 /* Locked-Axis Values (Locked Track) */

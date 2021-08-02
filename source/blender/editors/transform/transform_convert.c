@@ -861,8 +861,11 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           /* The Action constraint only does this in the Before mode. */
           bActionConstraint *data = (bActionConstraint *)con->data;
 
-          if (ELEM(data->mix_mode, ACTCON_MIX_BEFORE) &&
+          if (ELEM(data->mix_mode, ACTCON_MIX_BEFORE, ACTCON_MIX_BEFORE_FULL) &&
               ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION)) {
+            return true;
+          }
+          if (ELEM(data->mix_mode, ACTCON_MIX_BEFORE_SPLIT) && ELEM(t->mode, TFM_ROTATION)) {
             return true;
           }
         }
