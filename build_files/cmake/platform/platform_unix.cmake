@@ -581,6 +581,8 @@ if(WITH_GHOST_WAYLAND)
   pkg_check_modules(wayland-cursor REQUIRED wayland-cursor)
   pkg_check_modules(dbus REQUIRED dbus-1)
 
+  set(WITH_GL_EGL ON)
+
   list(APPEND PLATFORM_LINKLIBS
     ${wayland-client_LINK_LIBRARIES}
     ${wayland-egl_LINK_LIBRARIES}
