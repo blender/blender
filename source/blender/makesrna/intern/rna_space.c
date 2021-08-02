@@ -778,6 +778,19 @@ static void rna_Space_show_region_toolbar_update(bContext *C, PointerRNA *ptr)
   rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_TOOLS, RGN_FLAG_HIDDEN);
 }
 
+static bool rna_Space_show_region_tool_props_get(PointerRNA *ptr)
+{
+  return !rna_Space_bool_from_region_flag_get_by_type(ptr, RGN_TYPE_TOOL_PROPS, RGN_FLAG_HIDDEN);
+}
+static void rna_Space_show_region_tool_props_set(PointerRNA *ptr, bool value)
+{
+  rna_Space_bool_from_region_flag_set_by_type(ptr, RGN_TYPE_TOOL_PROPS, RGN_FLAG_HIDDEN, !value);
+}
+static void rna_Space_show_region_tool_props_update(bContext *C, PointerRNA *ptr)
+{
+  rna_Space_bool_from_region_flag_update_by_type(C, ptr, RGN_TYPE_TOOL_PROPS, RGN_FLAG_HIDDEN);
+}
+
 /* Channels Region. */
 static bool rna_Space_show_region_channels_get(PointerRNA *ptr)
 {
@@ -3195,6 +3208,10 @@ static void rna_def_space_generic_show_region_toggles(StructRNA *srna, int regio
   if (region_type_mask & (1 << RGN_TYPE_TOOLS)) {
     region_type_mask &= ~(1 << RGN_TYPE_TOOLS);
     DEF_SHOW_REGION_PROPERTY(show_region_toolbar, "Toolbar", "");
+  }
+  if (region_type_mask & (1 << RGN_TYPE_TOOL_PROPS)) {
+    region_type_mask &= ~(1 << RGN_TYPE_TOOL_PROPS);
+    DEF_SHOW_REGION_PROPERTY(show_region_tool_props, "Toolbar", "");
   }
   if (region_type_mask & (1 << RGN_TYPE_CHANNELS)) {
     region_type_mask &= ~(1 << RGN_TYPE_CHANNELS);
@@ -6546,7 +6563,8 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceFile");
   RNA_def_struct_ui_text(srna, "Space File Browser", "File browser space data");
 
-  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI));
+  rna_def_space_generic_show_region_toggles(
+      srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_TOOL_PROPS));
 
   prop = RNA_def_property(srna, "browse_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_space_file_browse_mode_items);

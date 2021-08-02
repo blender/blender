@@ -84,12 +84,12 @@ class FILEBROWSER_HT_header(Header):
         if space_data.active_operator is None:
             layout.template_header()
 
-        FILEBROWSER_MT_editor_menus.draw_collapsible(context, layout)
-
         if SpaceAssetInfo.is_asset_browser(space_data):
+            ASSETBROWSER_MT_editor_menus.draw_collapsible(context, layout)
             layout.separator()
             self.draw_asset_browser_buttons(context)
         else:
+            FILEBROWSER_MT_editor_menus.draw_collapsible(context, layout)
             layout.separator_spacer()
 
         if not context.screen.show_statusbar:
@@ -477,7 +477,14 @@ class FILEBROWSER_PT_directory_path(Panel):
             ).region_type = 'TOOL_PROPS'
 
 
-class FILEBROWSER_MT_editor_menus(Menu):
+class FileBrowserMenu:
+    @classmethod
+    def poll(cls, context):
+        space_data = context.space_data
+        return space_data and space_data.type == 'FILE_BROWSER' and space_data.browse_mode == 'FILES'
+
+
+class FILEBROWSER_MT_editor_menus(FileBrowserMenu, Menu):
     bl_idname = "FILEBROWSER_MT_editor_menus"
     bl_label = ""
 
@@ -488,7 +495,7 @@ class FILEBROWSER_MT_editor_menus(Menu):
         layout.menu("FILEBROWSER_MT_select")
 
 
-class FILEBROWSER_MT_view(Menu):
+class FILEBROWSER_MT_view(FileBrowserMenu, Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -510,7 +517,7 @@ class FILEBROWSER_MT_view(Menu):
         layout.menu("INFO_MT_area")
 
 
-class FILEBROWSER_MT_select(Menu):
+class FILEBROWSER_MT_select(FileBrowserMenu, Menu):
     bl_label = "Select"
 
     def draw(self, _context):
@@ -570,6 +577,60 @@ class FILEBROWSER_MT_context_menu(Menu):
             layout.prop_menu_enum(params, "display_size")
         layout.prop_menu_enum(params, "recursion_level", text="Recursions")
         layout.prop_menu_enum(params, "sort_method")
+
+
+class AssetBrowserMenu:
+    @classmethod
+    def poll(cls, context):
+        from bpy_extras.asset_utils import SpaceAssetInfo
+        return SpaceAssetInfo.is_asset_browser_poll(context)
+
+
+class ASSETBROWSER_MT_editor_menus(AssetBrowserMenu, Menu):
+    bl_idname = "ASSETBROWSER_MT_editor_menus"
+    bl_label = ""
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.menu("ASSETBROWSER_MT_view")
+        layout.menu("ASSETBROWSER_MT_select")
+
+
+class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+        st = context.space_data
+        params = st.params
+
+        layout.prop(st, "show_region_toolbar", text="Source List")
+        layout.prop(st, "show_region_tool_props", text="Asset Details")
+        layout.operator("file.view_selected")
+
+        layout.separator()
+
+        layout.prop_menu_enum(params, "display_size")
+
+        layout.separator()
+
+        layout.menu("INFO_MT_area")
+
+
+class ASSETBROWSER_MT_select(AssetBrowserMenu, Menu):
+    bl_label = "Select"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("file.select_all", text="All").action = 'SELECT'
+        layout.operator("file.select_all", text="None").action = 'DESELECT'
+        layout.operator("file.select_all", text="Inverse").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator("file.select_box")
 
 
 class ASSETBROWSER_PT_navigation_bar(asset_utils.AssetBrowserPanel, Panel):
@@ -694,6 +755,9 @@ classes = (
     FILEBROWSER_MT_view,
     FILEBROWSER_MT_select,
     FILEBROWSER_MT_context_menu,
+    ASSETBROWSER_MT_editor_menus,
+    ASSETBROWSER_MT_view,
+    ASSETBROWSER_MT_select,
     ASSETBROWSER_PT_navigation_bar,
     ASSETBROWSER_PT_metadata,
     ASSETBROWSER_PT_metadata_preview,
