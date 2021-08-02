@@ -294,7 +294,11 @@ class LockedNode : NonCopyable, NonMovable {
 
 static const CPPType *get_socket_cpp_type(const SocketRef &socket)
 {
-  const CPPType *type = nodes::socket_cpp_type_get(*socket.typeinfo());
+  const bNodeSocketType *typeinfo = socket.typeinfo();
+  if (typeinfo->get_geometry_nodes_cpp_type == nullptr) {
+    return nullptr;
+  }
+  const CPPType *type = typeinfo->get_geometry_nodes_cpp_type();
   if (type == nullptr) {
     return nullptr;
   }
@@ -308,6 +312,12 @@ static const CPPType *get_socket_cpp_type(const SocketRef &socket)
 static const CPPType *get_socket_cpp_type(const DSocket socket)
 {
   return get_socket_cpp_type(*socket.socket_ref());
+}
+
+static void get_socket_value(const SocketRef &socket, void *r_value)
+{
+  const bNodeSocketType *typeinfo = socket.typeinfo();
+  typeinfo->get_geometry_nodes_cpp_value(*socket.bsocket(), r_value);
 }
 
 static bool node_supports_laziness(const DNode node)
@@ -1363,10 +1373,9 @@ class GeometryNodesEvaluator {
   {
     LinearAllocator<> &allocator = local_allocators_.local();
 
-    bNodeSocket *bsocket = socket->bsocket();
     const CPPType &type = *get_socket_cpp_type(socket);
     void *buffer = allocator.allocate(type.size(), type.alignment());
-    blender::nodes::socket_cpp_value_get(*bsocket, buffer);
+    get_socket_value(*socket.socket_ref(), buffer);
 
     if (type == required_type) {
       return {type, buffer};
