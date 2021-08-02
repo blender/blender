@@ -244,6 +244,10 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
   UI_block_align_end(block);
   UI_block_layout_resolve(block, NULL, NULL);
 
+  /* Make sure the events are consumed from the search and dont reach other UI blocks since this is
+   * drawn on top of animchannels. */
+  UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
+  UI_block_bounds_set_normal(block, 0);
   UI_block_end(C, block);
   UI_block_draw(C, block);
 
