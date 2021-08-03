@@ -153,44 +153,44 @@ bool ED_keylist_frame_range(const struct AnimKeylist *keylist, struct Range2f *r
 /* F-Curve */
 void fcurve_to_keylist(struct AnimData *adt,
                        struct FCurve *fcu,
-                       struct AnimKeylist *keys,
+                       struct AnimKeylist *keylist,
                        int saction_flag);
 /* Action Group */
 void agroup_to_keylist(struct AnimData *adt,
                        struct bActionGroup *agrp,
-                       struct AnimKeylist *keys,
+                       struct AnimKeylist *keylist,
                        int saction_flag);
 /* Action */
 void action_to_keylist(struct AnimData *adt,
                        struct bAction *act,
-                       struct AnimKeylist *keys,
+                       struct AnimKeylist *keylist,
                        int saction_flag);
 /* Object */
 void ob_to_keylist(struct bDopeSheet *ads,
                    struct Object *ob,
-                   struct AnimKeylist *keys,
+                   struct AnimKeylist *keylist,
                    int saction_flag);
 /* Cache File */
 void cachefile_to_keylist(struct bDopeSheet *ads,
                           struct CacheFile *cache_file,
-                          struct AnimKeylist *keys,
+                          struct AnimKeylist *keylist,
                           int saction_flag);
 /* Scene */
 void scene_to_keylist(struct bDopeSheet *ads,
                       struct Scene *sce,
-                      struct AnimKeylist *keys,
+                      struct AnimKeylist *keylist,
                       int saction_flag);
 /* DopeSheet Summary */
-void summary_to_keylist(struct bAnimContext *ac, struct AnimKeylist *keys, int saction_flag);
+void summary_to_keylist(struct bAnimContext *ac, struct AnimKeylist *keylist, int saction_flag);
 /* Grease Pencil datablock summary */
 void gpencil_to_keylist(struct bDopeSheet *ads,
                         struct bGPdata *gpd,
-                        struct AnimKeylist *keys,
+                        struct AnimKeylist *keylist,
                         const bool active);
 /* Grease Pencil Layer */
-void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct AnimKeylist *keys);
+void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct AnimKeylist *keylist);
 /* Mask */
-void mask_to_keylist(struct bDopeSheet *ads, struct MaskLayer *masklay, struct AnimKeylist *keys);
+void mask_to_keylist(struct bDopeSheet *ads, struct MaskLayer *masklay, struct AnimKeylist *keylist);
 
 /* ActKeyColumn API ---------------- */
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */
