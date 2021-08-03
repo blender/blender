@@ -2736,7 +2736,11 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  BKE_object_material_assign(CTX_data_main(C), base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
+  Object *ob = base->object;
+  const short active_mat_slot = ob->actcol;
+
+  BKE_object_material_assign(
+      CTX_data_main(C), base->object, ma, active_mat_slot, BKE_MAT_ASSIGN_USERPREF);
 
   DEG_id_tag_update(&base->object->id, ID_RECALC_TRANSFORM);
 
