@@ -9538,18 +9538,11 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
     BKE_editmesh_ensure_autosmooth(em, obedit->data);
     BKE_editmesh_lnorspace_update(em, obedit->data);
 
-    float(*vnors)[3] = MEM_callocN(sizeof(*vnors) * bm->totvert, __func__);
-    BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        BM_ITER_ELEM (v, &viter, f, BM_VERTS_OF_FACE) {
-          const int v_index = BM_elem_index_get(v);
-          add_v3_v3(vnors[v_index], f->no);
-        }
-      }
-    }
-    for (int i = 0; i < bm->totvert; i++) {
-      if (!is_zero_v3(vnors[i]) && normalize_v3(vnors[i]) < CLNORS_VALID_VEC_LEN) {
-        zero_v3(vnors[i]);
+    float(*vnors)[3] = MEM_mallocN(sizeof(*vnors) * bm->totvert, __func__);
+    {
+      int v_index;
+      BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, v_index) {
+        BM_vert_calc_normal_ex(v, BM_ELEM_SELECT, vnors[v_index]);
       }
     }
 
