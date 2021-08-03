@@ -4666,7 +4666,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const int type = RNA_enum_get(op->ptr, "type");
-  int retval = 0;
+  bool changed_multi = false;
 
   if (ED_operator_editmesh(C)) {
     uint bases_len = 0;
@@ -4676,6 +4676,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
     for (uint bs_index = 0; bs_index < bases_len; bs_index++) {
       Base *base = bases[bs_index];
       BMEditMesh *em = BKE_editmesh_from_object(base->object);
+      bool changed = false;
 
       if (type == 0) {
         if ((em->bm->totvertsel == 0) && (em->bm->totedgesel == 0) && (em->bm->totfacesel == 0)) {
@@ -4690,20 +4691,20 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
       /* editmode separate */
       switch (type) {
         case MESH_SEPARATE_SELECTED:
-          retval = mesh_separate_selected(bmain, scene, view_layer, base, em->bm);
+          changed = mesh_separate_selected(bmain, scene, view_layer, base, em->bm);
           break;
         case MESH_SEPARATE_MATERIAL:
-          retval = mesh_separate_material(bmain, scene, view_layer, base, em->bm);
+          changed = mesh_separate_material(bmain, scene, view_layer, base, em->bm);
           break;
         case MESH_SEPARATE_LOOSE:
-          retval = mesh_separate_loose(bmain, scene, view_layer, base, em->bm);
+          changed = mesh_separate_loose(bmain, scene, view_layer, base, em->bm);
           break;
         default:
           BLI_assert(0);
           break;
       }
 
-      if (retval) {
+      if (changed) {
         EDBM_update(base->object->data,
                     &(const struct EDBMUpdate_Params){
                         .calc_looptri = true,
@@ -4711,6 +4712,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
                         .is_destructive = true,
                     });
       }
+      changed_multi |= changed;
     }
     MEM_freeN(bases);
   }
@@ -4727,7 +4729,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
         Mesh *me = ob->data;
         if (!ID_IS_LINKED(me)) {
           BMesh *bm_old = NULL;
-          int retval_iter = 0;
+          bool changed = false;
 
           bm_old = BM_mesh_create(&bm_mesh_allocsize_default,
                                   &((struct BMeshCreateParams){
@@ -4738,17 +4740,17 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
           switch (type) {
             case MESH_SEPARATE_MATERIAL:
-              retval_iter = mesh_separate_material(bmain, scene, view_layer, base_iter, bm_old);
+              changed = mesh_separate_material(bmain, scene, view_layer, base_iter, bm_old);
               break;
             case MESH_SEPARATE_LOOSE:
-              retval_iter = mesh_separate_loose(bmain, scene, view_layer, base_iter, bm_old);
+              changed = mesh_separate_loose(bmain, scene, view_layer, base_iter, bm_old);
               break;
             default:
               BLI_assert(0);
               break;
           }
 
-          if (retval_iter) {
+          if (changed) {
             BM_mesh_bm_to_me(bmain,
                              bm_old,
                              me,
@@ -4762,14 +4764,14 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
           BM_mesh_free(bm_old);
 
-          retval |= retval_iter;
+          changed_multi |= changed;
         }
       }
     }
     CTX_DATA_END;
   }
 
-  if (retval) {
+  if (changed_multi) {
     /* delay depsgraph recalc until all objects are duplicated */
     DEG_relations_tag_update(bmain);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
