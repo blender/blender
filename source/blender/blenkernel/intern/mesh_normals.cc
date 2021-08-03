@@ -987,7 +987,7 @@ void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
   /* Simple mapping from a loop to its polygon index. */
   int *loop_to_poly = (int *)MEM_malloc_arrayN((size_t)numLoops, sizeof(*loop_to_poly), __func__);
 
-  LoopSplitTaskDataCommon common_data;
+  LoopSplitTaskDataCommon common_data = {};
   common_data.mverts = mverts;
   common_data.medges = medges;
   common_data.mloops = mloops;
