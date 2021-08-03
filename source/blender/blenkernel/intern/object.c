@@ -144,6 +144,7 @@
 #include "DRW_engine.h"
 
 #include "BLO_read_write.h"
+#include "BLO_readfile.h"
 
 #include "SEQ_sequencer.h"
 
@@ -833,7 +834,7 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Object *ob = (Object *)id;
 
-  bool warn = false;
+  BlendFileReadReport *reports = BLO_read_lib_reports(reader);
 
   /* XXX deprecated - old animation system <<< */
   BLO_read_id_address(reader, ob->id.lib, &ob->ipo);
@@ -851,8 +852,8 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
   else {
     if (ob->instance_collection != NULL) {
       ID *new_id = BLO_read_get_new_id_address(reader, ob->id.lib, &ob->instance_collection->id);
-      BLO_reportf_wrap(BLO_read_lib_reports(reader),
-                       RPT_WARNING,
+      BLO_reportf_wrap(reports,
+                       RPT_INFO,
                        TIP_("Non-Empty object '%s' cannot duplicate collection '%s' "
                             "anymore in Blender 2.80, removed instancing"),
                        ob->id.name + 2,
@@ -870,11 +871,17 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
       ob->proxy = NULL;
 
       if (ob->id.lib) {
-        printf("Proxy lost from  object %s lib %s\n", ob->id.name + 2, ob->id.lib->filepath);
+        BLO_reportf_wrap(reports,
+                         RPT_INFO,
+                         TIP_("Proxy lost from  object %s lib %s\n"),
+                         ob->id.name + 2,
+                         ob->id.lib->filepath);
       }
       else {
-        printf("Proxy lost from  object %s lib <NONE>\n", ob->id.name + 2);
+        BLO_reportf_wrap(
+            reports, RPT_INFO, TIP_("Proxy lost from  object %s lib <NONE>\n"), ob->id.name + 2);
       }
+      reports->count.missing_obproxies++;
     }
     else {
       /* this triggers object_update to always use a copy */
@@ -887,15 +894,7 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, ob->id.lib, &ob->data);
 
   if (ob->data == NULL && poin != NULL) {
-    if (ob->id.lib) {
-      printf("Can't find obdata of %s lib %s\n", ob->id.name + 2, ob->id.lib->filepath);
-    }
-    else {
-      printf("Object %s lost data.\n", ob->id.name + 2);
-    }
-
     ob->type = OB_EMPTY;
-    warn = true;
 
     if (ob->pose) {
       /* we can't call #BKE_pose_free() here because of library linking
@@ -911,6 +910,18 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
       ob->pose = NULL;
       ob->mode &= ~OB_MODE_POSE;
     }
+
+    if (ob->id.lib) {
+      BLO_reportf_wrap(reports,
+                       RPT_INFO,
+                       TIP_("Can't find obdata of %s lib %s\n"),
+                       ob->id.name + 2,
+                       ob->id.lib->filepath);
+    }
+    else {
+      BLO_reportf_wrap(reports, RPT_INFO, TIP_("Object %s lost data\n"), ob->id.name + 2);
+    }
+    reports->count.missing_obdata++;
   }
   for (int a = 0; a < ob->totcol; a++) {
     BLO_read_id_address(reader, ob->id.lib, &ob->mat[a]);
@@ -991,10 +1002,6 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
   if (ob->rigidbody_constraint) {
     BLO_read_id_address(reader, ob->id.lib, &ob->rigidbody_constraint->ob1);
     BLO_read_id_address(reader, ob->id.lib, &ob->rigidbody_constraint->ob2);
-  }
-
-  if (warn) {
-    BLO_reportf_wrap(BLO_read_lib_reports(reader), RPT_WARNING, "Warning in console");
   }
 }
 
