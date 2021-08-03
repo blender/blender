@@ -371,25 +371,24 @@ static void transformops_exit(bContext *C, wmOperator *op)
   G.moving = 0;
 }
 
+static int transformops_mode(wmOperator *op)
+{
+  for (TransformModeItem *tmode = transform_modes; tmode->idname; tmode++) {
+    if (op->type->idname == tmode->idname) {
+      return tmode->mode;
+    }
+  }
+
+  return RNA_enum_get(op->ptr, "mode");
+}
+
 static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int retval = 1;
   if (op->customdata == NULL) {
     TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data2");
-    TransformModeItem *tmode;
-    int mode = -1;
 
-    for (tmode = transform_modes; tmode->idname; tmode++) {
-      if (op->type->idname == tmode->idname) {
-        mode = tmode->mode;
-        break;
-      }
-    }
-
-    if (mode == -1) {
-      mode = RNA_enum_get(op->ptr, "mode");
-    }
-
+    int mode = transformops_mode(op);
     retval = initTransform(C, t, op, event, mode);
 
     /* store data */
@@ -551,6 +550,16 @@ static bool transform_poll_property(const bContext *UNUSED(C),
           return true;
         }
 
+        return false;
+      }
+    }
+  }
+
+  /* Orientation Axis. */
+  {
+    if (STREQ(prop_id, "orient_axis")) {
+      eTfmMode mode = (eTfmMode)transformops_mode(op);
+      if (mode == TFM_ALIGN) {
         return false;
       }
     }
