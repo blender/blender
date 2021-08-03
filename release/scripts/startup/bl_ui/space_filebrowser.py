@@ -384,19 +384,17 @@ class FILEBROWSER_PT_advanced_filter(Panel):
         space = context.space_data
         params = space.params
 
-        if params and params.use_library_browsing:
-            layout.prop(params, "use_filter_blendid")
-            if params.use_filter_blendid:
-                layout.separator()
-                col = layout.column(align=True)
+        layout.prop(params, "use_filter_blendid")
+        if params.use_filter_blendid:
+            layout.separator()
+            col = layout.column(align=True)
 
-                if context.preferences.experimental.use_asset_browser:
-                    col.prop(params, "use_filter_asset_only")
+            col.prop(params, "use_filter_asset_only")
 
-                filter_id = params.filter_id
-                for identifier in dir(filter_id):
-                    if identifier.startswith("filter_"):
-                        col.prop(filter_id, identifier, toggle=True)
+            filter_id = params.filter_id
+            for identifier in dir(filter_id):
+                if identifier.startswith("filter_"):
+                    col.prop(filter_id, identifier, toggle=True)
 
 
 def is_option_region_visible(context, space):
