@@ -1268,6 +1268,14 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         default=0.1,
     )
 
+    ao_distance: FloatProperty(
+        name="AO Distance",
+        description="AO distance used for approximate global illumination (0 means use world setting)",
+        min=0.0,
+        default=0.0,
+        subtype='DISTANCE',
+    )
+
     is_shadow_catcher: BoolProperty(
         name="Shadow Catcher",
         description="Only render shadows on this object, for compositing renders into real footage",

@@ -58,7 +58,8 @@ ccl_device_forceinline bool kernel_path_scene_intersect(KernelGlobals *kg,
                                                         ccl_addr_space PathState *state,
                                                         Ray *ray,
                                                         Intersection *isect,
-                                                        PathRadiance *L)
+                                                        PathRadiance *L,
+                                                        const int last_object)
 {
   PROFILING_INIT(kg, PROFILING_SCENE_INTERSECT);
 
@@ -66,6 +67,12 @@ ccl_device_forceinline bool kernel_path_scene_intersect(KernelGlobals *kg,
 
   if (path_state_ao_bounce(kg, state)) {
     ray->t = kernel_data.background.ao_distance;
+    if (last_object != OBJECT_NONE) {
+      const float object_ao_distance = kernel_tex_fetch(__objects, last_object).ao_distance;
+      if (object_ao_distance != 0.0f) {
+        ray->t = object_ao_distance;
+      }
+    }
   }
 
   bool hit = scene_intersect(kg, ray, visibility, isect);
@@ -369,7 +376,8 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
                                      Ray *ray,
                                      float3 throughput,
                                      PathState *state,
-                                     PathRadiance *L)
+                                     PathRadiance *L,
+                                     const int last_object)
 {
 #    ifdef __SUBSURFACE__
   SubsurfaceIndirectRays ss_indirect;
@@ -382,7 +390,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
     for (;;) {
       /* Find intersection with objects in scene. */
       Intersection isect;
-      bool hit = kernel_path_scene_intersect(kg, state, ray, &isect, L);
+      bool hit = kernel_path_scene_intersect(kg, state, ray, &isect, L, last_object);
 
       /* Find intersection with lamps and compute emission for MIS. */
       kernel_path_lamp_emission(kg, state, ray, throughput, &isect, sd, L);
@@ -526,7 +534,7 @@ ccl_device_forceinline void kernel_path_integrate(KernelGlobals *kg,
     for (;;) {
       /* Find intersection with objects in scene. */
       Intersection isect;
-      bool hit = kernel_path_scene_intersect(kg, state, ray, &isect, L);
+      bool hit = kernel_path_scene_intersect(kg, state, ray, &isect, L, sd.object);
 
       /* Find intersection with lamps and compute emission for MIS. */
       kernel_path_lamp_emission(kg, state, ray, throughput, &isect, &sd, L);

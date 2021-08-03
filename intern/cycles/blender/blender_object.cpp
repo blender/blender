@@ -297,6 +297,13 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                                                       "shadow_terminator_geometry_offset");
   object->set_shadow_terminator_geometry_offset(shadow_terminator_geometry_offset);
 
+  float ao_distance = get_float(cobject, "ao_distance");
+  if (ao_distance == 0.0f && b_parent.ptr.data != b_ob.ptr.data) {
+    PointerRNA cparent = RNA_pointer_get(&b_parent.ptr, "cycles");
+    ao_distance = get_float(cparent, "ao_distance");
+  }
+  object->set_ao_distance(ao_distance);
+
   /* sync the asset name for Cryptomatte */
   BL::Object parent = b_ob.parent();
   ustring parent_name;
