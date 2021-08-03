@@ -861,7 +861,7 @@ static void get_effector_tot(
       int totpart = eff->psys->totpart;
       int amount = eff->psys->part->effector_amount;
 
-      *step = (totpart > amount) ? totpart / amount : 1;
+      *step = (totpart > amount) ? (int)ceil((float)totpart / (float)amount) : 1;
     }
   }
   else {
