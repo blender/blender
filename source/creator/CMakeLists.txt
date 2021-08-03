@@ -345,8 +345,13 @@ elseif(APPLE)
       set(TARGETDIR_VER "${PYTHON_LIBPATH}/Resources/${BLENDER_VERSION}")
       set(INSTALL_BPY_TO_SITE_PACKAGES ON)
     endif()
+    # Dylibs folder for bpy.so.
+    set(MAC_BLENDER_TARGET_DYLIBS_DIR "${TARGETDIR_VER}/lib")
   else()
     set(TARGETDIR_VER Blender.app/Contents/Resources/${BLENDER_VERSION})
+    # Dylibs folder for Blender executable. @executable_path is a default
+    # rpath, so dropping libraries next to Blender is enough.
+    set(MAC_BLENDER_TARGET_DYLIBS_DIR "$<TARGET_FILE_DIR:blender>")
   endif()
   # Skip relinking on cpack / install
   set_target_properties(blender PROPERTIES BUILD_WITH_INSTALL_RPATH true)
@@ -1041,23 +1046,16 @@ elseif(APPLE)
 
   if(WITH_OPENMP AND OPENMP_CUSTOM)
     install(
-      FILES ${LIBDIR}/openmp/lib/libomp.dylib
-      DESTINATION Blender.app/Contents/Resources/lib
+      FILES "${OpenMP_LIBRARY}"
+      DESTINATION "${MAC_BLENDER_TARGET_DYLIBS_DIR}"
     )
-    if(WITH_PYTHON_MODULE)
-      # Move the dylib in a Blender version folder to keep the corresponding OpenMP version.
-      install(
-        DIRECTORY   ${CMAKE_BINARY_DIR}/Resources/lib
-        DESTINATION ${TARGETDIR_VER}
-      )
-      add_custom_command(TARGET blender POST_BUILD
-        # The old `LC_LOAD_DYLIB` is the `LC_ID_DYLIB` of the LIBDIR OpenMP dylib.
-        # Change it to support multiple rpaths.
-        COMMAND xcrun install_name_tool -change "@executable_path/../Resources/lib/libomp.dylib" "@rpath/libomp.dylib" "$<TARGET_FILE:blender>"
-        # For installation into site-packages.
-        COMMAND xcrun install_name_tool -add_rpath "@loader_path/../Resources/${BLENDER_VERSION}/lib" "$<TARGET_FILE:blender>"
-      )
-    endif()
+  endif()
+
+  if(WITH_COMPILER_ASAN)
+    install(
+      FILES "${COMPILER_ASAN_LIBRARY}"
+      DESTINATION "${MAC_BLENDER_TARGET_DYLIBS_DIR}"
+    )
   endif()
 
   # python
