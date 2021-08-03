@@ -998,54 +998,68 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   /* if there is a valid property that is editable... */
-  if (ptr.data && prop) {
-    char *path = NULL;
-    bool use_path_from_id;
-    ListBase lb = {NULL};
-
-    if (UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path) &&
-        !BLI_listbase_is_empty(&lb)) {
-      LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
-        if (link->ptr.data != ptr.data) {
-          if (use_path_from_id) {
-            /* Path relative to ID. */
-            lprop = NULL;
-            RNA_id_pointer_create(link->ptr.owner_id, &idptr);
-            RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
-          }
-          else if (path) {
-            /* Path relative to elements from list. */
-            lprop = NULL;
-            RNA_path_resolve_property(&link->ptr, path, &lptr, &lprop);
-          }
-          else {
-            lptr = link->ptr;
-            lprop = prop;
-          }
-
-          if (lptr.data == ptr.data) {
-            /* lptr might not be the same as link->ptr! */
-            continue;
-          }
-
-          if (lprop == prop) {
-            if (RNA_property_editable(&lptr, lprop)) {
-              if (poll) {
-                success = true;
-                break;
-              }
-              if (RNA_property_copy(bmain, &lptr, &ptr, prop, (all) ? -1 : index)) {
-                RNA_property_update(C, &lptr, prop);
-                success = true;
-              }
-            }
-          }
-        }
-      }
-    }
-    MEM_SAFE_FREE(path);
-    BLI_freelistN(&lb);
+  if (ptr.data == NULL || prop == NULL) {
+    return false;
   }
+
+  char *path = NULL;
+  bool use_path_from_id;
+  ListBase lb = {NULL};
+
+  if (!UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path)) {
+    return false;
+  }
+  if (BLI_listbase_is_empty(&lb)) {
+    MEM_SAFE_FREE(path);
+    return false;
+  }
+
+  LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
+    if (link->ptr.data == ptr.data) {
+      continue;
+    }
+
+    if (use_path_from_id) {
+      /* Path relative to ID. */
+      lprop = NULL;
+      RNA_id_pointer_create(link->ptr.owner_id, &idptr);
+      RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
+    }
+    else if (path) {
+      /* Path relative to elements from list. */
+      lprop = NULL;
+      RNA_path_resolve_property(&link->ptr, path, &lptr, &lprop);
+    }
+    else {
+      lptr = link->ptr;
+      lprop = prop;
+    }
+
+    if (lptr.data == ptr.data) {
+      /* lptr might not be the same as link->ptr! */
+      continue;
+    }
+
+    if (lprop != prop) {
+      continue;
+    }
+
+    if (!RNA_property_editable(&lptr, lprop)) {
+      continue;
+    }
+
+    if (poll) {
+      success = true;
+      break;
+    }
+    if (RNA_property_copy(bmain, &lptr, &ptr, prop, (all) ? -1 : index)) {
+      RNA_property_update(C, &lptr, prop);
+      success = true;
+    }
+  }
+
+  MEM_SAFE_FREE(path);
+  BLI_freelistN(&lb);
 
   return success;
 }
