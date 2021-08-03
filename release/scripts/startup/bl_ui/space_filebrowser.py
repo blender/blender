@@ -373,6 +373,7 @@ class FILEBROWSER_PT_advanced_filter(Panel):
     def poll(cls, context):
         # only useful in append/link (library) context currently...
         return (
+            context.space_data.params and
             context.space_data.params.use_library_browsing and
             panel_poll_is_upper_region(context.region) and
             not panel_poll_is_asset_browsing(context)
@@ -422,6 +423,10 @@ class FILEBROWSER_PT_directory_path(Panel):
                 return False
 
         return True
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.params
 
     def draw(self, context):
         layout = self.layout

@@ -82,6 +82,9 @@ void ED_file_path_button(bScreen *screen,
   PointerRNA params_rna_ptr;
   uiBut *but;
 
+  BLI_assert_msg(params != NULL,
+                 "File select parameters not set. The caller is expected to check this.");
+
   RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &params_rna_ptr);
 
   /* callbacks for operator check functions */
