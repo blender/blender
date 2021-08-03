@@ -265,6 +265,7 @@ set(SRC
   BLI_quadric.h
   BLI_rand.h
   BLI_rand.hh
+  BLI_range.h
   BLI_rect.h
   BLI_resource_scope.hh
   BLI_scanfill.h

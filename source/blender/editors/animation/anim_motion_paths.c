@@ -55,7 +55,7 @@ typedef struct MPathTarget {
 
   bMotionPath *mpath; /* motion path in question */
 
-  DLRBT_Tree keys; /* temp, to know where the keyframes are */
+  struct AnimKeylist *keylist; /* temp, to know where the keyframes are */
 
   /* Original (Source Objects) */
   Object *ob;          /* source object */
@@ -187,7 +187,7 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
     float mframe = (float)(cframe);
 
     /* Tag if it's a keyframe */
-    if (BLI_dlrbTree_search_exact(&mpt->keys, compare_ak_cfraPtr, &mframe)) {
+    if (ED_keylist_find_exact(mpt->keylist, mframe)) {
       mpv->flag |= MOTIONPATH_VERT_KEY;
     }
     else {
@@ -234,52 +234,54 @@ static void motionpath_get_global_framerange(ListBase *targets, int *r_sfra, int
   }
 }
 
-static int motionpath_get_prev_keyframe(MPathTarget *mpt, DLRBT_Tree *fcu_keys, int current_frame)
+static int motionpath_get_prev_keyframe(MPathTarget *mpt,
+                                        struct AnimKeylist *keylist,
+                                        int current_frame)
 {
   if (current_frame <= mpt->mpath->start_frame) {
     return mpt->mpath->start_frame;
   }
 
   float current_frame_float = current_frame;
-  DLRBT_Node *node = BLI_dlrbTree_search_prev(fcu_keys, compare_ak_cfraPtr, &current_frame_float);
-  if (node == NULL) {
+  const ActKeyColumn *ak = ED_keylist_find_prev(keylist, current_frame_float);
+  if (ak == NULL) {
     return mpt->mpath->start_frame;
   }
 
-  ActKeyColumn *key_data = (ActKeyColumn *)node;
-  return key_data->cfra;
+  return ak->cfra;
 }
 
 static int motionpath_get_prev_prev_keyframe(MPathTarget *mpt,
-                                             DLRBT_Tree *fcu_keys,
+                                             struct AnimKeylist *keylist,
                                              int current_frame)
 {
-  int frame = motionpath_get_prev_keyframe(mpt, fcu_keys, current_frame);
-  return motionpath_get_prev_keyframe(mpt, fcu_keys, frame);
+  int frame = motionpath_get_prev_keyframe(mpt, keylist, current_frame);
+  return motionpath_get_prev_keyframe(mpt, keylist, frame);
 }
 
-static int motionpath_get_next_keyframe(MPathTarget *mpt, DLRBT_Tree *fcu_keys, int current_frame)
+static int motionpath_get_next_keyframe(MPathTarget *mpt,
+                                        struct AnimKeylist *keylist,
+                                        int current_frame)
 {
   if (current_frame >= mpt->mpath->end_frame) {
     return mpt->mpath->end_frame;
   }
 
   float current_frame_float = current_frame;
-  DLRBT_Node *node = BLI_dlrbTree_search_next(fcu_keys, compare_ak_cfraPtr, &current_frame_float);
-  if (node == NULL) {
+  const ActKeyColumn *ak = ED_keylist_find_next(keylist, current_frame_float);
+  if (ak == NULL) {
     return mpt->mpath->end_frame;
   }
 
-  ActKeyColumn *key_data = (ActKeyColumn *)node;
-  return key_data->cfra;
+  return ak->cfra;
 }
 
 static int motionpath_get_next_next_keyframe(MPathTarget *mpt,
-                                             DLRBT_Tree *fcu_keys,
+                                             struct AnimKeylist *keylist,
                                              int current_frame)
 {
-  int frame = motionpath_get_next_keyframe(mpt, fcu_keys, current_frame);
-  return motionpath_get_next_keyframe(mpt, fcu_keys, frame);
+  int frame = motionpath_get_next_keyframe(mpt, keylist, current_frame);
+  return motionpath_get_next_keyframe(mpt, keylist, frame);
 }
 
 static bool motionpath_check_can_use_keyframe_range(MPathTarget *UNUSED(mpt),
@@ -324,17 +326,16 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
    * Could be optimized further by storing some flags about which channels has been modified so
    * we ignore all others (which can potentially make an update range unnecessary wide). */
   for (FCurve *fcu = fcurve_list->first; fcu != NULL; fcu = fcu->next) {
-    DLRBT_Tree fcu_keys;
-    BLI_dlrbTree_init(&fcu_keys);
-    fcurve_to_keylist(adt, fcu, &fcu_keys, 0);
+    struct AnimKeylist *keylist = ED_keylist_create();
+    fcurve_to_keylist(adt, fcu, keylist, 0);
 
-    int fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, &fcu_keys, current_frame);
-    int fcu_efra = motionpath_get_next_next_keyframe(mpt, &fcu_keys, current_frame);
+    int fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, keylist, current_frame);
+    int fcu_efra = motionpath_get_next_next_keyframe(mpt, keylist, current_frame);
 
     /* Extend range further, since acceleration compensation propagates even further away. */
     if (fcu->auto_smoothing != FCURVE_SMOOTH_NONE) {
-      fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, &fcu_keys, fcu_sfra);
-      fcu_efra = motionpath_get_next_next_keyframe(mpt, &fcu_keys, fcu_efra);
+      fcu_sfra = motionpath_get_prev_prev_keyframe(mpt, keylist, fcu_sfra);
+      fcu_efra = motionpath_get_next_next_keyframe(mpt, keylist, fcu_efra);
     }
 
     if (fcu_sfra <= fcu_efra) {
@@ -342,14 +343,14 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
       *r_efra = max_ii(*r_efra, fcu_efra);
     }
 
-    BLI_dlrbTree_free(&fcu_keys);
+    ED_keylist_free(keylist);
   }
 }
 
 static void motionpath_free_free_tree_data(ListBase *targets)
 {
   LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
-    BLI_dlrbTree_free(&mpt->keys);
+    ED_keylist_free(mpt->keylist);
   }
 }
 
@@ -418,7 +419,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     AnimData *adt = BKE_animdata_from_id(&mpt->ob_eval->id);
 
     /* build list of all keyframes in active action for object or pchan */
-    BLI_dlrbTree_init(&mpt->keys);
+    mpt->keylist = ED_keylist_create();
 
     ListBase *fcurve_list = NULL;
     if (adt) {
@@ -433,12 +434,12 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 
         if (agrp) {
           fcurve_list = &agrp->channels;
-          agroup_to_keylist(adt, agrp, &mpt->keys, 0);
+          agroup_to_keylist(adt, agrp, mpt->keylist, 0);
         }
       }
       else {
         fcurve_list = &adt->action->curves;
-        action_to_keylist(adt, adt->action, &mpt->keys, 0);
+        action_to_keylist(adt, adt->action, mpt->keylist, 0);
       }
     }
 
@@ -502,7 +503,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     avs->recalc &= ~ANIMVIZ_RECALC_PATHS;
 
     /* Clean temp data */
-    BLI_dlrbTree_free(&mpt->keys);
+    ED_keylist_free(mpt->keylist);
 
     /* Free previous batches to force update. */
     GPU_VERTBUF_DISCARD_SAFE(mpath->points_vbo);

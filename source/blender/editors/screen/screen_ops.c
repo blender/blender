@@ -3057,8 +3057,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   float cfra = (float)(CFRA);
 
   /* init binarytree-list for getting keyframes */
-  DLRBT_Tree keys;
-  BLI_dlrbTree_init(&keys);
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   /* seed up dummy dopesheet context with flags to perform necessary filtering */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
@@ -3067,14 +3066,14 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   /* populate tree with keyframe nodes */
-  scene_to_keylist(&ads, scene, &keys, 0);
+  scene_to_keylist(&ads, scene, keylist, 0);
 
   if (ob) {
-    ob_to_keylist(&ads, ob, &keys, 0);
+    ob_to_keylist(&ads, ob, keylist, 0);
 
     if (ob->type == OB_GPENCIL) {
       const bool active = !(scene->flag & SCE_KEYS_NO_SELONLY);
-      gpencil_to_keylist(&ads, ob->data, &keys, active);
+      gpencil_to_keylist(&ads, ob->data, keylist, active);
     }
   }
 
@@ -3082,17 +3081,17 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
     Mask *mask = CTX_data_edit_mask(C);
     if (mask) {
       MaskLayer *masklay = BKE_mask_layer_active(mask);
-      mask_to_keylist(&ads, masklay, &keys);
+      mask_to_keylist(&ads, masklay, keylist);
     }
   }
 
   /* find matching keyframe in the right direction */
   ActKeyColumn *ak;
   if (next) {
-    ak = (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
+    ak = ED_keylist_find_next(keylist, cfra);
   }
   else {
-    ak = (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
+    ak = ED_keylist_find_prev(keylist, cfra);
   }
 
   while ((ak != NULL) && (done == false)) {
@@ -3113,7 +3112,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   /* free temp stuff */
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 
   /* any success? */
   if (done == false) {

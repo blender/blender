@@ -494,16 +494,13 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
   Object *ob = CTX_data_active_object(C);
   Mask *mask = CTX_data_edit_mask(C);
   bDopeSheet ads = {NULL};
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
   ActKeyColumn *aknext, *akprev;
   float cfranext, cfraprev;
   bool donenext = false, doneprev = false;
   int nextcount = 0, prevcount = 0;
 
   cfranext = cfraprev = (float)(CFRA);
-
-  /* init binarytree-list for getting keyframes */
-  BLI_dlrbTree_init(&keys);
 
   /* seed up dummy dopesheet context with flags to perform necessary filtering */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
@@ -512,22 +509,22 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
   }
 
   /* populate tree with keyframe nodes */
-  scene_to_keylist(&ads, scene, &keys, 0);
-  gpencil_to_keylist(&ads, scene->gpd, &keys, false);
+  scene_to_keylist(&ads, scene, keylist, 0);
+  gpencil_to_keylist(&ads, scene->gpd, keylist, false);
 
   if (ob) {
-    ob_to_keylist(&ads, ob, &keys, 0);
-    gpencil_to_keylist(&ads, ob->data, &keys, false);
+    ob_to_keylist(&ads, ob, keylist, 0);
+    gpencil_to_keylist(&ads, ob->data, keylist, false);
   }
 
   if (mask) {
     MaskLayer *masklay = BKE_mask_layer_active(mask);
-    mask_to_keylist(&ads, masklay, &keys);
+    mask_to_keylist(&ads, masklay, keylist);
   }
 
   /* find matching keyframe in the right direction */
   do {
-    aknext = (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfranext);
+    aknext = ED_keylist_find_next(keylist, cfranext);
 
     if (aknext) {
       if (CFRA == (int)aknext->cfra) {
@@ -545,7 +542,7 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
   } while ((aknext != NULL) && (donenext == false));
 
   do {
-    akprev = (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfraprev);
+    akprev = ED_keylist_find_prev(keylist, cfraprev);
 
     if (akprev) {
       if (CFRA == (int)akprev->cfra) {
@@ -562,7 +559,7 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
   } while ((akprev != NULL) && (doneprev == false));
 
   /* free temp stuff */
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 
   /* any success? */
   if (doneprev || donenext) {

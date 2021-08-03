@@ -184,16 +184,12 @@ void draw_keyframe_shape(float x,
 }
 
 static void draw_keylist(View2D *v2d,
-                         DLRBT_Tree *keys,
+                         const struct AnimKeylist *keylist,
                          float ypos,
                          float yscale_fac,
                          bool channelLocked,
                          int saction_flag)
 {
-  if (keys == NULL) {
-    return;
-  }
-
   const float icon_sz = U.widget_unit * 0.5f * yscale_fac;
   const float half_icon_sz = 0.5f * icon_sz;
   const float smaller_sz = 0.35f * icon_sz;
@@ -227,6 +223,8 @@ static void draw_keylist(View2D *v2d,
   unsel_mhcol[3] *= 0.8f;
   copy_v4_v4(ipo_color_mix, ipo_color);
   ipo_color_mix[3] *= 0.5f;
+
+  const ListBase *keys = ED_keylist_listbase(keylist);
 
   LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
     /* Draw grease pencil bars between keyframes. */
@@ -378,134 +376,118 @@ static void draw_keylist(View2D *v2d,
 void draw_summary_channel(
     View2D *v2d, bAnimContext *ac, float ypos, float yscale_fac, int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
-  BLI_dlrbTree_init(&keys);
+  summary_to_keylist(ac, keylist, saction_flag);
 
-  summary_to_keylist(ac, &keys, saction_flag);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, false, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, false, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 void draw_scene_channel(
     View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos, float yscale_fac, int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
-  BLI_dlrbTree_init(&keys);
+  scene_to_keylist(ads, sce, keylist, saction_flag);
 
-  scene_to_keylist(ads, sce, &keys, saction_flag);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, false, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, false, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 void draw_object_channel(
     View2D *v2d, bDopeSheet *ads, Object *ob, float ypos, float yscale_fac, int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
-  BLI_dlrbTree_init(&keys);
+  ob_to_keylist(ads, ob, keylist, saction_flag);
 
-  ob_to_keylist(ads, ob, &keys, saction_flag);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, false, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, false, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 void draw_fcurve_channel(
     View2D *v2d, AnimData *adt, FCurve *fcu, float ypos, float yscale_fac, int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   bool locked = (fcu->flag & FCURVE_PROTECTED) ||
                 ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
                 ((adt && adt->action) && ID_IS_LINKED(adt->action));
 
-  BLI_dlrbTree_init(&keys);
+  fcurve_to_keylist(adt, fcu, keylist, saction_flag);
 
-  fcurve_to_keylist(adt, fcu, &keys, saction_flag);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 void draw_agroup_channel(
     View2D *v2d, AnimData *adt, bActionGroup *agrp, float ypos, float yscale_fac, int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   bool locked = (agrp->flag & AGRP_PROTECTED) ||
                 ((adt && adt->action) && ID_IS_LINKED(adt->action));
 
-  BLI_dlrbTree_init(&keys);
+  agroup_to_keylist(adt, agrp, keylist, saction_flag);
 
-  agroup_to_keylist(adt, agrp, &keys, saction_flag);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 void draw_action_channel(
     View2D *v2d, AnimData *adt, bAction *act, float ypos, float yscale_fac, int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   bool locked = (act && ID_IS_LINKED(act));
 
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
-  BLI_dlrbTree_init(&keys);
+  action_to_keylist(adt, act, keylist, saction_flag);
 
-  action_to_keylist(adt, act, &keys, saction_flag);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 void draw_gpencil_channel(
     View2D *v2d, bDopeSheet *ads, bGPdata *gpd, float ypos, float yscale_fac, int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
-  BLI_dlrbTree_init(&keys);
+  gpencil_to_keylist(ads, gpd, keylist, false);
 
-  gpencil_to_keylist(ads, gpd, &keys, false);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, false, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, false, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 void draw_gpl_channel(
     View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos, float yscale_fac, int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   bool locked = (gpl->flag & GP_LAYER_LOCKED) != 0;
 
-  BLI_dlrbTree_init(&keys);
+  gpl_to_keylist(ads, gpl, keylist);
 
-  gpl_to_keylist(ads, gpl, &keys);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 void draw_masklay_channel(View2D *v2d,
@@ -515,15 +497,13 @@ void draw_masklay_channel(View2D *v2d,
                           float yscale_fac,
                           int saction_flag)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   bool locked = (masklay->flag & MASK_LAYERFLAG_LOCKED) != 0;
 
-  BLI_dlrbTree_init(&keys);
+  mask_to_keylist(ads, masklay, keylist);
 
-  mask_to_keylist(ads, masklay, &keys);
+  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
 
-  draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
-
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }

@@ -32,6 +32,7 @@
 
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
+#include "BLI_range.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -48,6 +49,83 @@
 
 /* *************************** Keyframe Processing *************************** */
 
+typedef struct AnimKeylist {
+  DLRBT_Tree keys;
+} AnimKeylist;
+
+static void ED_keylist_init(AnimKeylist *keylist)
+{
+  BLI_dlrbTree_init(&keylist->keys);
+}
+
+AnimKeylist *ED_keylist_create(void)
+{
+  AnimKeylist *keylist = MEM_callocN(sizeof(AnimKeylist), __func__);
+  ED_keylist_init(keylist);
+  return keylist;
+}
+
+void ED_keylist_free(AnimKeylist *keylist)
+{
+  BLI_assert(keylist);
+  BLI_dlrbTree_free(&keylist->keys);
+  MEM_freeN(keylist);
+}
+
+ActKeyColumn *ED_keylist_find_exact(const AnimKeylist *keylist, float cfra)
+{
+  return (ActKeyColumn *)BLI_dlrbTree_search_exact(&keylist->keys, compare_ak_cfraPtr, &cfra);
+}
+
+ActKeyColumn *ED_keylist_find_next(const AnimKeylist *keylist, float cfra)
+{
+  return (ActKeyColumn *)BLI_dlrbTree_search_next(&keylist->keys, compare_ak_cfraPtr, &cfra);
+}
+
+ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, float cfra)
+{
+  return (ActKeyColumn *)BLI_dlrbTree_search_prev(&keylist->keys, compare_ak_cfraPtr, &cfra);
+}
+
+/* TODO(jbakker): Should we change this to use `ED_keylist_find_next(keys, min_fra)` and only check
+ * boundary of `max_fra`. */
+ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist, float min_fra, float max_fra)
+{
+  for (ActKeyColumn *ak = keylist->keys.root; ak;
+       ak = (ak->cfra < min_fra) ? ak->right : ak->left) {
+    if (IN_RANGE(ak->cfra, min_fra, max_fra)) {
+      return ak;
+    }
+  }
+  return NULL;
+}
+
+bool ED_keylist_is_empty(const struct AnimKeylist *keylist)
+{
+  return keylist->keys.root == NULL;
+}
+
+const struct ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
+{
+  return (ListBase *)&keylist->keys;
+}
+
+bool ED_keylist_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_range)
+{
+  BLI_assert(r_frame_range);
+
+  if (ED_keylist_is_empty(keylist)) {
+    return false;
+  }
+
+  const ActKeyColumn *first_column = (const ActKeyColumn *)keylist->keys.first;
+  r_frame_range->min = first_column->cfra;
+
+  const ActKeyColumn *last_column = (const ActKeyColumn *)keylist->keys.last;
+  r_frame_range->max = last_column->cfra;
+
+  return true;
+}
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
 
 BLI_INLINE bool is_cfra_eq(float a, float b)
@@ -323,33 +401,33 @@ static void nupdate_ak_masklayshape(void *node, void *data)
 /* --------------- */
 
 /* Add the given BezTriple to the given 'list' of Keyframes */
-static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTripleChain *bezt)
+static void add_bezt_to_keycolumns_list(AnimKeylist *keylist, BezTripleChain *bezt)
 {
-  if (ELEM(NULL, keys, bezt)) {
+  if (ELEM(NULL, keylist, bezt)) {
     return;
   }
 
-  BLI_dlrbTree_add(keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
+  BLI_dlrbTree_add(&keylist->keys, compare_ak_bezt, nalloc_ak_bezt, nupdate_ak_bezt, bezt);
 }
 
 /* Add the given GPencil Frame to the given 'list' of Keyframes */
-static void add_gpframe_to_keycolumns_list(DLRBT_Tree *keys, bGPDframe *gpf)
+static void add_gpframe_to_keycolumns_list(AnimKeylist *keylist, bGPDframe *gpf)
 {
-  if (ELEM(NULL, keys, gpf)) {
+  if (ELEM(NULL, keylist, gpf)) {
     return;
   }
 
-  BLI_dlrbTree_add(keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
+  BLI_dlrbTree_add(&keylist->keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
 }
 
 /* Add the given MaskLayerShape Frame to the given 'list' of Keyframes */
-static void add_masklay_to_keycolumns_list(DLRBT_Tree *keys, MaskLayerShape *masklay_shape)
+static void add_masklay_to_keycolumns_list(AnimKeylist *keylist, MaskLayerShape *masklay_shape)
 {
-  if (ELEM(NULL, keys, masklay_shape)) {
+  if (ELEM(NULL, keylist, masklay_shape)) {
     return;
   }
 
-  BLI_dlrbTree_add(keys,
+  BLI_dlrbTree_add(&keylist->keys,
                    compare_ak_masklayshape,
                    nalloc_ak_masklayshape,
                    nupdate_ak_masklayshape,
@@ -423,9 +501,9 @@ static void add_keyblock_info(ActKeyColumn *col, const ActKeyBlockInfo *block)
   }
 }
 
-static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int bezt_len)
+static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, int bezt_len)
 {
-  ActKeyColumn *col = keys->first;
+  ActKeyColumn *col = keylist->keys.first;
 
   if (bezt && bezt_len >= 2) {
     ActKeyBlockInfo block;
@@ -444,7 +522,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int be
         /* Backtrack to find the right location. */
         if (is_cfra_lt(bezt[1].vec[1][0], col->cfra)) {
           ActKeyColumn *newcol = (ActKeyColumn *)BLI_dlrbTree_search_exact(
-              keys, compare_ak_cfraPtr, &bezt[1].vec[1][0]);
+              &keylist->keys, compare_ak_cfraPtr, &bezt[1].vec[1][0]);
 
           if (newcol != NULL) {
             col = newcol;
@@ -486,22 +564,22 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int be
  * This must be called even by animation sources that don't generate
  * keyblocks to keep the data structure consistent after adding columns.
  */
-static void update_keyblocks(DLRBT_Tree *keys, BezTriple *bezt, int bezt_len)
+static void update_keyblocks(AnimKeylist *keylist, BezTriple *bezt, int bezt_len)
 {
   /* Recompute the prev/next linked list. */
-  BLI_dlrbTree_linkedlist_sync(keys);
+  BLI_dlrbTree_linkedlist_sync(&keylist->keys);
 
   /* Find the curve count */
   int max_curve = 0;
 
-  LISTBASE_FOREACH (ActKeyColumn *, col, keys) {
+  LISTBASE_FOREACH (ActKeyColumn *, col, &keylist->keys) {
     max_curve = MAX2(max_curve, col->totcurve);
   }
 
   /* Propagate blocks to inserted keys */
   ActKeyColumn *prev_ready = NULL;
 
-  LISTBASE_FOREACH (ActKeyColumn *, col, keys) {
+  LISTBASE_FOREACH (ActKeyColumn *, col, &keylist->keys) {
     /* Pre-existing column. */
     if (col->totcurve > 0) {
       prev_ready = col;
@@ -516,7 +594,7 @@ static void update_keyblocks(DLRBT_Tree *keys, BezTriple *bezt, int bezt_len)
   }
 
   /* Add blocks on top */
-  add_bezt_to_keyblocks_list(keys, bezt, bezt_len);
+  add_bezt_to_keyblocks_list(keylist, bezt, bezt_len);
 }
 
 /* --------- */
@@ -540,7 +618,7 @@ int actkeyblock_get_valid_hold(ActKeyColumn *ac)
 
 /* *************************** Keyframe List Conversions *************************** */
 
-void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, int saction_flag)
+void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, int saction_flag)
 {
   if (ac) {
     ListBase anim_data = {NULL, NULL};
@@ -561,13 +639,13 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, int saction_flag)
 
       switch (ale->datatype) {
         case ALE_FCURVE:
-          fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
+          fcurve_to_keylist(ale->adt, ale->data, keylist, saction_flag);
           break;
         case ALE_MASKLAY:
-          mask_to_keylist(ac->ads, ale->data, keys);
+          mask_to_keylist(ac->ads, ale->data, keylist);
           break;
         case ALE_GPFRAME:
-          gpl_to_keylist(ac->ads, ale->data, keys);
+          gpl_to_keylist(ac->ads, ale->data, keylist);
           break;
         default:
           // printf("%s: datatype %d unhandled\n", __func__, ale->datatype);
@@ -579,7 +657,7 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, int saction_flag)
   }
 }
 
-void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, int saction_flag)
+void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, int saction_flag)
 {
   bAnimContext ac = {NULL};
   ListBase anim_data = {NULL, NULL};
@@ -608,13 +686,13 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, int saction
 
   /* loop through each F-Curve, grabbing the keyframes */
   for (ale = anim_data.first; ale; ale = ale->next) {
-    fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
+    fcurve_to_keylist(ale->adt, ale->data, keylist, saction_flag);
   }
 
   ANIM_animdata_freelist(&anim_data);
 }
 
-void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, int saction_flag)
+void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int saction_flag)
 {
   bAnimContext ac = {NULL};
   ListBase anim_data = {NULL, NULL};
@@ -646,7 +724,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, int saction_fl
 
   /* loop through each F-Curve, grabbing the keyframes */
   for (ale = anim_data.first; ale; ale = ale->next) {
-    fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
+    fcurve_to_keylist(ale->adt, ale->data, keylist, saction_flag);
   }
 
   ANIM_animdata_freelist(&anim_data);
@@ -654,7 +732,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, int saction_fl
 
 void cachefile_to_keylist(bDopeSheet *ads,
                           CacheFile *cache_file,
-                          DLRBT_Tree *keys,
+                          AnimKeylist *keylist,
                           int saction_flag)
 {
   if (cache_file == NULL) {
@@ -680,13 +758,13 @@ void cachefile_to_keylist(bDopeSheet *ads,
 
   /* loop through each F-Curve, grabbing the keyframes */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
+    fcurve_to_keylist(ale->adt, ale->data, keylist, saction_flag);
   }
 
   ANIM_animdata_freelist(&anim_data);
 }
 
-void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, int saction_flag)
+void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, int saction_flag)
 {
   if (fcu && fcu->totvert && fcu->bezt) {
     /* apply NLA-mapping (if applicable) */
@@ -710,11 +788,11 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, int saction
         chain.next = (v + 1 < fcu->totvert) ? &fcu->bezt[v + 1] : is_cyclic ? &fcu->bezt[1] : NULL;
       }
 
-      add_bezt_to_keycolumns_list(keys, &chain);
+      add_bezt_to_keycolumns_list(keylist, &chain);
     }
 
     /* Update keyblocks. */
-    update_keyblocks(keys, fcu->bezt, fcu->totvert);
+    update_keyblocks(keylist, fcu->bezt, fcu->totvert);
 
     /* unapply NLA-mapping if applicable */
     if (adt) {
@@ -723,71 +801,71 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, int saction
   }
 }
 
-void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, DLRBT_Tree *keys, int saction_flag)
+void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, AnimKeylist *keylist, int saction_flag)
 {
   FCurve *fcu;
 
   if (agrp) {
     /* loop through F-Curves */
     for (fcu = agrp->channels.first; fcu && fcu->grp == agrp; fcu = fcu->next) {
-      fcurve_to_keylist(adt, fcu, keys, saction_flag);
+      fcurve_to_keylist(adt, fcu, keylist, saction_flag);
     }
   }
 }
 
-void action_to_keylist(AnimData *adt, bAction *act, DLRBT_Tree *keys, int saction_flag)
+void action_to_keylist(AnimData *adt, bAction *act, AnimKeylist *keylist, int saction_flag)
 {
   FCurve *fcu;
 
   if (act) {
     /* loop through F-Curves */
     for (fcu = act->curves.first; fcu; fcu = fcu->next) {
-      fcurve_to_keylist(adt, fcu, keys, saction_flag);
+      fcurve_to_keylist(adt, fcu, keylist, saction_flag);
     }
   }
 }
 
-void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, DLRBT_Tree *keys, const bool active)
+void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, const bool active)
 {
   bGPDlayer *gpl;
 
-  if (gpd && keys) {
+  if (gpd && keylist) {
     /* for now, just aggregate out all the frames, but only for visible layers */
     for (gpl = gpd->layers.last; gpl; gpl = gpl->prev) {
       if ((gpl->flag & GP_LAYER_HIDE) == 0) {
         if ((!active) || ((active) && (gpl->flag & GP_LAYER_SELECT))) {
-          gpl_to_keylist(ads, gpl, keys);
+          gpl_to_keylist(ads, gpl, keylist);
         }
       }
     }
   }
 }
 
-void gpl_to_keylist(bDopeSheet *UNUSED(ads), bGPDlayer *gpl, DLRBT_Tree *keys)
+void gpl_to_keylist(bDopeSheet *UNUSED(ads), bGPDlayer *gpl, AnimKeylist *keylist)
 {
   bGPDframe *gpf;
 
-  if (gpl && keys) {
+  if (gpl && keylist) {
     /* Although the frames should already be in an ordered list,
      * they are not suitable for displaying yet. */
     for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-      add_gpframe_to_keycolumns_list(keys, gpf);
+      add_gpframe_to_keycolumns_list(keylist, gpf);
     }
 
-    update_keyblocks(keys, NULL, 0);
+    update_keyblocks(keylist, NULL, 0);
   }
 }
 
-void mask_to_keylist(bDopeSheet *UNUSED(ads), MaskLayer *masklay, DLRBT_Tree *keys)
+void mask_to_keylist(bDopeSheet *UNUSED(ads), MaskLayer *masklay, AnimKeylist *keylist)
 {
   MaskLayerShape *masklay_shape;
 
-  if (masklay && keys) {
+  if (masklay && keylist) {
     for (masklay_shape = masklay->splines_shapes.first; masklay_shape;
          masklay_shape = masklay_shape->next) {
-      add_masklay_to_keycolumns_list(keys, masklay_shape);
+      add_masklay_to_keycolumns_list(keylist, masklay_shape);
     }
 
-    update_keyblocks(keys, NULL, 0);
+    update_keyblocks(keylist, NULL, 0);
   }
 }
