@@ -764,6 +764,7 @@ void ED_info_draw_stats(
     FRAMES,
     STROKES,
     POINTS,
+    LIGHTS,
     MAX_LABELS_COUNT
   };
   char labels[MAX_LABELS_COUNT][64];
@@ -779,6 +780,7 @@ void ED_info_draw_stats(
   STRNCPY(labels[FRAMES], IFACE_("Frames"));
   STRNCPY(labels[STROKES], IFACE_("Strokes"));
   STRNCPY(labels[POINTS], IFACE_("Points"));
+  STRNCPY(labels[LIGHTS], IFACE_("Lights"));
 
   int longest_label = 0;
   int i;
@@ -831,6 +833,9 @@ void ED_info_draw_stats(
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, stats_fmt.totvert, y, height);
       stats_row(col1, labels[FACES], col2, stats_fmt.totfacesculpt, stats_fmt.totface, y, height);
     }
+  }
+  else if ((ob) && (ob->type == OB_LAMP)) {
+    stats_row(col1, labels[LIGHTS], col2, stats_fmt.totlampsel, stats_fmt.totlamp, y, height);
   }
   else {
     stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, NULL, y, height);
