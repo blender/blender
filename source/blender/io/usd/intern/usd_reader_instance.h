@@ -13,18 +13,35 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
+ * The Original Code is Copyright (C) 2021 Blender Foundation.
  * All rights reserved.
  */
-
 #pragma once
 
-/** \file
- * \ingroup editor/io
- */
+#include "usd_reader_xform.h"
 
-struct wmOperatorType;
+#include <pxr/usd/usdGeom/xform.h>
 
-void WM_OT_usd_export(struct wmOperatorType *ot);
+struct Collection;
 
-void WM_OT_usd_import(struct wmOperatorType *ot);
+namespace blender::io::usd {
+
+/* Wraps the UsdGeomXform schema. Creates a Blender Empty object. */
+
+class USDInstanceReader : public USDXformReader {
+
+ public:
+  USDInstanceReader(const pxr::UsdPrim &prim,
+                    const USDImportParams &import_params,
+                    const ImportSettings &settings);
+
+  bool valid() const override;
+
+  void create_object(Main *bmain, double motionSampleTime) override;
+
+  void set_instance_collection(Collection *coll);
+
+  pxr::SdfPath proto_path() const;
+};
+
+}  // namespace blender::io::usd

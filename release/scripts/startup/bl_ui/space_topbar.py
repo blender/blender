@@ -468,6 +468,9 @@ class TOPBAR_MT_file_import(Menu):
                                  text="Collada (Default) (.dae)")
         if bpy.app.build_options.alembic:
             self.layout.operator("wm.alembic_import", text="Alembic (.abc)")
+        if bpy.app.build_options.usd:
+            self.layout.operator(
+                "wm.usd_import", text="Universal Scene Description (.usd, .usdc, .usda)")
 
         self.layout.operator("wm.gpencil_import_svg", text="SVG as Grease Pencil")
 

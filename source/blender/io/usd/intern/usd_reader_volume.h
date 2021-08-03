@@ -13,18 +13,37 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
+ * The Original Code is Copyright (C) 2021 Tangent Animation.
  * All rights reserved.
  */
-
 #pragma once
 
-/** \file
- * \ingroup editor/io
- */
+#include "usd.h"
+#include "usd_reader_xform.h"
 
-struct wmOperatorType;
+#include "pxr/usd/usdVol/volume.h"
 
-void WM_OT_usd_export(struct wmOperatorType *ot);
+namespace blender::io::usd {
 
-void WM_OT_usd_import(struct wmOperatorType *ot);
+class USDVolumeReader : public USDXformReader {
+ private:
+  pxr::UsdVolVolume volume_;
+
+ public:
+  USDVolumeReader(const pxr::UsdPrim &prim,
+                  const USDImportParams &import_params,
+                  const ImportSettings &settings)
+      : USDXformReader(prim, import_params, settings), volume_(prim)
+  {
+  }
+
+  bool valid() const override
+  {
+    return static_cast<bool>(volume_);
+  }
+
+  void create_object(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, double motionSampleTime) override;
+};
+
+}  // namespace blender::io::usd

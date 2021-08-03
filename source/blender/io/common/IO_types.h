@@ -12,36 +12,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2021 Blender Foundation.
+ * All rights reserved.
  */
-
-/** \file
- * \ingroup DNA
- */
-
 #pragma once
 
-/* Struct members on own line. */
-/* clang-format off */
+/* The CacheArchiveHandle struct is only used for anonymous pointers,
+ * to interface between C and C++ code. This is currently used
+ * to hide pointers to alembic ArchiveReader and USDStageReader. */
+struct CacheArchiveHandle {
+  int unused;
+};
 
-/* -------------------------------------------------------------------- */
-/** \name CacheFile Struct
- * \{ */
-
-#define _DNA_DEFAULT_CacheFile \
-  { \
-    .filepath[0] = '\0', \
-    .override_frame = false, \
-    .frame = 0.0f, \
-    .is_sequence = false, \
-    .scale = 1.0f, \
-    .object_paths ={NULL, NULL}, \
- \
-    .type = 0, \
-    .handle = NULL, \
-    .handle_filepath[0] = '\0', \
-    .handle_readers = NULL, \
-  }
-
-/** \} */
-
-/* clang-format on */
+/* The CacheReader struct is only used for anonymous pointers,
+ * to interface between C and C++ code. This is currently used
+ * to hide pointers to AbcObjectReader and USDPrimReader
+ * (or subclasses thereof). */
+struct CacheReader {
+  int unused;
+};

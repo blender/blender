@@ -22,15 +22,6 @@
 #include <Alembic/Abc/All.h>
 #include <Alembic/AbcGeom/All.h>
 
-/**
- * \brief The CacheReader struct is only used for anonymous pointers,
- * to interface between C and C++ code. This library only creates
- * pointers to AbcObjectReader (or subclasses thereof).
- */
-struct CacheReader {
-  int unused;
-};
-
 using Alembic::Abc::chrono_t;
 
 struct ID;

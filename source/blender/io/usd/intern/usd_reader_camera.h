@@ -12,36 +12,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Adapted from the Blender Alembic importer implementation.
+ *
+ * Modifications Copyright (C) 2021 Tangent Animation.
+ * All rights reserved.
  */
-
-/** \file
- * \ingroup DNA
- */
-
 #pragma once
 
-/* Struct members on own line. */
-/* clang-format off */
+#include "usd.h"
+#include "usd_reader_xform.h"
 
-/* -------------------------------------------------------------------- */
-/** \name CacheFile Struct
- * \{ */
+namespace blender::io::usd {
 
-#define _DNA_DEFAULT_CacheFile \
-  { \
-    .filepath[0] = '\0', \
-    .override_frame = false, \
-    .frame = 0.0f, \
-    .is_sequence = false, \
-    .scale = 1.0f, \
-    .object_paths ={NULL, NULL}, \
- \
-    .type = 0, \
-    .handle = NULL, \
-    .handle_filepath[0] = '\0', \
-    .handle_readers = NULL, \
+class USDCameraReader : public USDXformReader {
+
+ public:
+  USDCameraReader(const pxr::UsdPrim &object,
+                  const USDImportParams &import_params,
+                  const ImportSettings &settings)
+      : USDXformReader(object, import_params, settings)
+  {
   }
 
-/** \} */
+  void create_object(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, double motionSampleTime) override;
+};
 
-/* clang-format on */
+}  // namespace blender::io::usd

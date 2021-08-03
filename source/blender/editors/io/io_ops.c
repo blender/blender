@@ -52,6 +52,7 @@ void ED_operatortypes_io(void)
   WM_operatortype_append(WM_OT_alembic_export);
 #endif
 #ifdef WITH_USD
+  WM_operatortype_append(WM_OT_usd_import);
   WM_operatortype_append(WM_OT_usd_export);
 #endif
 
