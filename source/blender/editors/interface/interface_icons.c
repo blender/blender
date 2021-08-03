@@ -2425,6 +2425,7 @@ void UI_icon_draw_ex(float x,
 ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon)
 {
 #ifdef WITH_HEADLESS
+  UNUSED_VARS(icon);
   return NULL;
 #else
   const int ALERT_IMG_SIZE = 256;
