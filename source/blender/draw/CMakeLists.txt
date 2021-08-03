@@ -483,6 +483,13 @@ data_to_c_simple(engines/image/shaders/engine_image_vert.glsl SRC)
 list(APPEND INC
 )
 
+if(WITH_DRAW_DEBUG)
+  list(APPEND SRC
+    engines/select/select_debug_engine.c
+  )
+  add_definitions(-DWITH_DRAW_DEBUG)
+endif()
+
 if(WITH_MOD_FLUID)
   list(APPEND INC
     ../../../intern/mantaflow/extern

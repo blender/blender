@@ -1281,6 +1281,12 @@ static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
     use_drw_engine(&draw_engine_gpencil_type);
   }
   drw_engines_enable_overlays();
+
+#ifdef WITH_DRAW_DEBUG
+  if (G.debug_value == 31) {
+    use_drw_engine(&draw_engine_debug_select_type);
+  }
+#endif
 }
 
 static void drw_engines_disable(void)
@@ -2940,6 +2946,9 @@ void DRW_engines_register(void)
   DRW_engine_register(&draw_engine_overlay_type);
   DRW_engine_register(&draw_engine_select_type);
   DRW_engine_register(&draw_engine_basic_type);
+#ifdef WITH_DRAW_DEBUG
+  DRW_engine_register(&draw_engine_debug_select_type);
+#endif
 
   DRW_engine_register(&draw_engine_image_type);
   DRW_engine_register(DRW_engine_viewport_external_type.draw_engine);
