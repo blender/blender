@@ -1557,7 +1557,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
   }
   /* Try to find a valid po file for current language... */
   edittranslation_find_po_file(root, uilng, popath, FILE_MAX);
-  /* printf("po path: %s\n", popath); */
+  // printf("po path: %s\n", popath);
   if (popath[0] == '\0') {
     BKE_reportf(
         op->reports, RPT_ERROR, "No valid po found for language '%s' under %s", uilng, root);

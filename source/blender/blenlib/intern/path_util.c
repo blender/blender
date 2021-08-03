@@ -1897,7 +1897,7 @@ bool BLI_path_name_at_index(const char *__restrict path,
           if (index_step == index) {
             *r_offset = prev;
             *r_len = i - prev;
-            /* printf("!!! %d %d\n", start, end); */
+            // printf("!!! %d %d\n", start, end);
             return true;
           }
           index_step += 1;

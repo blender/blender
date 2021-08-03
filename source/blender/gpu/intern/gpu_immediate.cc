@@ -313,7 +313,7 @@ void immAttr1f(uint attr_id, float x)
   setAttrValueBit(attr_id);
 
   float *data = (float *)(imm->vertex_data + attr->offset);
-  /*  printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data); */
+  // printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data);
 
   data[0] = x;
 }
@@ -329,7 +329,7 @@ void immAttr2f(uint attr_id, float x, float y)
   setAttrValueBit(attr_id);
 
   float *data = (float *)(imm->vertex_data + attr->offset);
-  /*  printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data); */
+  // printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data);
 
   data[0] = x;
   data[1] = y;
@@ -346,7 +346,7 @@ void immAttr3f(uint attr_id, float x, float y, float z)
   setAttrValueBit(attr_id);
 
   float *data = (float *)(imm->vertex_data + attr->offset);
-  /*  printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data); */
+  // printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data);
 
   data[0] = x;
   data[1] = y;
@@ -364,7 +364,7 @@ void immAttr4f(uint attr_id, float x, float y, float z, float w)
   setAttrValueBit(attr_id);
 
   float *data = (float *)(imm->vertex_data + attr->offset);
-  /*  printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data); */
+  // printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm->buffer_data, data);
 
   data[0] = x;
   data[1] = y;
@@ -445,7 +445,7 @@ void immAttr3ub(uint attr_id, uchar r, uchar g, uchar b)
   setAttrValueBit(attr_id);
 
   uchar *data = imm->vertex_data + attr->offset;
-  /*  printf("%s %td %p\n", __FUNCTION__, data - imm->buffer_data, data); */
+  // printf("%s %td %p\n", __FUNCTION__, data - imm->buffer_data, data);
 
   data[0] = r;
   data[1] = g;
@@ -463,7 +463,7 @@ void immAttr4ub(uint attr_id, uchar r, uchar g, uchar b, uchar a)
   setAttrValueBit(attr_id);
 
   uchar *data = imm->vertex_data + attr->offset;
-  /*  printf("%s %td %p\n", __FUNCTION__, data - imm->buffer_data, data); */
+  // printf("%s %td %p\n", __FUNCTION__, data - imm->buffer_data, data);
 
   data[0] = r;
   data[1] = g;

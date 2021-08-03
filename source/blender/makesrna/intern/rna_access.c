@@ -6723,7 +6723,7 @@ bool RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, bool
     return RNA_property_is_set_ex(ptr, prop, use_ghost);
   }
   /* python raises an error */
-  /* printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name); */
+  // printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
   return 0;
 }
 
@@ -6735,7 +6735,7 @@ bool RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier)
     return RNA_property_is_set(ptr, prop);
   }
   /* python raises an error */
-  /* printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name); */
+  // printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
   return 0;
 }
 

@@ -1416,7 +1416,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
         wm_event_add(win, &event);
 
-        /* printf("Drop detected\n"); */
+        // printf("Drop detected\n");
 
         /* add drag data to wm for paths: */
 

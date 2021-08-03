@@ -922,7 +922,7 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
     const short *totcol_data = BKE_object_material_len_p(ob);
     /* Only expand so as not to lose any object materials that might be set. */
     if (totcol_data && (*totcol_data > ob->totcol)) {
-      /* printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data); */
+      // printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data);
       BKE_object_material_resize(BLO_read_lib_get_main(reader), ob, *totcol_data, false);
     }
   }

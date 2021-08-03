@@ -756,7 +756,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
             /* Fix/update all clnors of this fan with computed average value. */
 
             /* Prints continuously when merge custom normals, so commenting. */
-            /* printf("Invalid clnors in this fan!\n"); */
+            // printf("Invalid clnors in this fan!\n");
 
             while ((clnor = BLI_SMALLSTACK_POP(clnors))) {
               // print_v2("org clnor", clnor);
@@ -1834,8 +1834,8 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
   /* When we affect a given vertex, we may affect following smooth fans:
-   *     - all smooth fans of said vertex;
-   *     - all smooth fans of all immediate loop-neighbors vertices;
+   * - all smooth fans of said vertex;
+   * - all smooth fans of all immediate loop-neighbors vertices;
    * This can be simplified as 'all loops of selected vertices and their immediate neighbors'
    * need to be tagged for update.
    */

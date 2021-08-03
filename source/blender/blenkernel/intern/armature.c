@@ -2663,7 +2663,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
     }
   }
 
-  /* printf("rebuild pose %s, %d bones\n", ob->id.name, counter); */
+  // printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
 
   /* synchronize protected layers with proxy */
   /* HACK! To preserve 2.7x behavior that you always can pose even locked bones,

@@ -403,7 +403,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     }
 
     if (natom) {
-      /* printf("Register atoms: %d\n", natom); */
+      // printf("Register atoms: %d\n", natom);
       XSetWMProtocols(m_display, m_window, atoms, natom);
     }
   }

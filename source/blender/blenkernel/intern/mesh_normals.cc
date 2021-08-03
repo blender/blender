@@ -1195,7 +1195,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
     }
   }
 
-  //  printf("FAN: vert %d, start edge %d\n", mv_pivot_index, ml_curr->e);
+  // printf("FAN: vert %d, start edge %d\n", mv_pivot_index, ml_curr->e);
 
   while (true) {
     const MEdge *me_curr = &medges[mlfan_curr->e];
@@ -1212,7 +1212,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
       normalize_v3(vec_curr);
     }
 
-    //      printf("\thandling edge %d / loop %d\n", mlfan_curr->e, mlfan_curr_index);
+    // printf("\thandling edge %d / loop %d\n", mlfan_curr->e, mlfan_curr_index);
 
     {
       /* Code similar to accumulate_vertex_normals_poly_v3. */
@@ -1252,9 +1252,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 
     if (IS_EDGE_SHARP(e2lfan_curr) || (me_curr == me_org)) {
       /* Current edge is sharp and we have finished with this fan of faces around this vert,
-       * or this vert is smooth, and we have completed a full turn around it.
-       */
-      //          printf("FAN: Finished!\n");
+       * or this vert is smooth, and we have completed a full turn around it. */
+      // printf("FAN: Finished!\n");
       break;
     }
 
@@ -1537,12 +1536,12 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
                                                                                      ml_curr_index,
                                                                                      ml_prev_index,
                                                                                      mp_index))) {
-        //              printf("SKIPPING!\n");
+        // printf("SKIPPING!\n");
       }
       else {
         LoopSplitTaskData *data, data_local;
 
-        //              printf("PROCESSING!\n");
+        // printf("PROCESSING!\n");
 
         if (pool) {
           if (data_idx == 0) {

@@ -766,7 +766,7 @@ void BKE_screen_remove_double_scrverts(bScreen *screen)
       while (v1) {
         if (v1->newv == NULL) { /* !?! */
           if (v1->vec.x == verg->vec.x && v1->vec.y == verg->vec.y) {
-            /* printf("doublevert\n"); */
+            // printf("doublevert\n");
             v1->newv = verg;
           }
         }

@@ -1507,7 +1507,7 @@ static void annotation_session_cleanup(tGPsdata *p)
 
   /* free stroke buffer */
   if (gpd->runtime.sbuffer) {
-    /* printf("\t\tGP - free sbuffer\n"); */
+    // printf("\t\tGP - free sbuffer\n");
     MEM_freeN(gpd->runtime.sbuffer);
     gpd->runtime.sbuffer = NULL;
   }
@@ -2221,20 +2221,20 @@ static int annotation_draw_exec(bContext *C, wmOperator *op)
   tGPsdata *p = NULL;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  /* printf("GPencil - Starting Re-Drawing\n"); */
+  // printf("GPencil - Starting Re-Drawing\n");
 
   /* try to initialize context data needed while drawing */
   if (!annotation_draw_init(C, op, NULL)) {
     if (op->customdata) {
       MEM_freeN(op->customdata);
     }
-    /* printf("\tGP - no valid data\n"); */
+    // printf("\tGP - no valid data\n");
     return OPERATOR_CANCELLED;
   }
 
   p = op->customdata;
 
-  /* printf("\tGP - Start redrawing stroke\n"); */
+  // printf("\tGP - Start redrawing stroke\n");
 
   /* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
    * setting the relevant values in context at each step, then applying
@@ -2242,7 +2242,7 @@ static int annotation_draw_exec(bContext *C, wmOperator *op)
   RNA_BEGIN (op->ptr, itemptr, "stroke") {
     float mousef[2];
 
-    /* printf("\t\tGP - stroke elem\n"); */
+    // printf("\t\tGP - stroke elem\n");
 
     /* get relevant data for this point from stroke */
     RNA_float_get_array(&itemptr, "mouse", mousef);
@@ -2277,7 +2277,7 @@ static int annotation_draw_exec(bContext *C, wmOperator *op)
   }
   RNA_END;
 
-  /* printf("\tGP - done\n"); */
+  // printf("\tGP - done\n");
 
   /* cleanup */
   annotation_draw_exit(C, op);
@@ -2361,7 +2361,7 @@ static int annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   /* only start drawing immediately if we're allowed to do so... */
   if (RNA_boolean_get(op->ptr, "wait_for_input") == false) {
     /* hotkey invoked - start drawing */
-    /* printf("\tGP - set first spot\n"); */
+    // printf("\tGP - set first spot\n");
     p->status = GP_STATUS_PAINTING;
 
     /* handle the initial drawing - i.e. for just doing a simple dot */
@@ -2370,7 +2370,7 @@ static int annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   }
   else {
     /* toolbar invoked - don't start drawing yet... */
-    /* printf("\tGP - hotkey invoked... waiting for click-drag\n"); */
+    // printf("\tGP - hotkey invoked... waiting for click-drag\n");
     op->flag |= OP_IS_MODAL_CURSOR_REGION;
   }
 
@@ -2399,7 +2399,7 @@ static tGPsdata *annotation_stroke_begin(bContext *C, wmOperator *op)
     p->status = GP_STATUS_ERROR;
   }
 
-  /* printf("\t\tGP - start stroke\n"); */
+  // printf("\t\tGP - start stroke\n");
 
   /* we may need to set up paint env again if we're resuming */
   /* XXX: watch it with the paintmode! in future,
@@ -2547,7 +2547,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
   if (event->val == KM_PRESS &&
       ELEM(event->type, EVT_RETKEY, EVT_PADENTER, EVT_ESCKEY, EVT_SPACEKEY, EVT_EKEY)) {
     /* exit() ends the current stroke before cleaning up */
-    /* printf("\t\tGP - end of paint op + end of stroke\n"); */
+    // printf("\t\tGP - end of paint op + end of stroke\n");
     p->status = GP_STATUS_DONE;
     estate = OPERATOR_FINISHED;
   }
@@ -2571,7 +2571,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
       if (sketch) {
         /* end stroke only, and then wait to resume painting soon */
-        /* printf("\t\tGP - end stroke only\n"); */
+        // printf("\t\tGP - end stroke only\n");
         annotation_stroke_end(op);
 
         /* If eraser mode is on, turn it off after the stroke finishes
@@ -2602,7 +2602,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
         WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
       }
       else {
-        /* printf("\t\tGP - end of stroke + op\n"); */
+        // printf("\t\tGP - end of stroke + op\n");
         p->status = GP_STATUS_DONE;
         estate = OPERATOR_FINISHED;
       }
@@ -2719,7 +2719,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
       }
       else {
         /* event handled, so just tag as running modal */
-        /* printf("\t\t\t\tGP - add point handled!\n"); */
+        // printf("\t\t\t\tGP - add point handled!\n");
         estate = OPERATOR_RUNNING_MODAL;
       }
     }
@@ -2729,7 +2729,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
       /* just resize the brush (local version)
        * TODO: fix the hardcoded size jumps (set to make a visible difference) and hardcoded keys
        */
-      /* printf("\t\tGP - resize eraser\n"); */
+      // printf("\t\tGP - resize eraser\n");
       switch (event->type) {
         case WHEELDOWNMOUSE: /* larger */
         case EVT_PADPLUSKEY:

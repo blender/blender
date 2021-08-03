@@ -2511,7 +2511,7 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
           pnorm = lnext->f->no;
         }
         else {
-          /* printf("unexpected harden case (edge)\n"); */
+          // printf("unexpected harden case (edge)\n");
         }
       }
       else if (fkind == F_VERT) {
@@ -2554,7 +2554,7 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
             pnorm = norm;
           }
           else {
-            /* printf("unexpected harden case (vert)\n"); */
+            // printf("unexpected harden case (vert)\n");
           }
         }
       }
