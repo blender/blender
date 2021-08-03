@@ -108,7 +108,7 @@ struct Mesh *USD_read_mesh(struct CacheReader *reader,
                            struct Mesh *existing_mesh,
                            const float time,
                            const char **err_str,
-                           int flags);
+                           int read_flag);
 
 bool USD_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,
