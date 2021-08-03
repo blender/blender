@@ -349,8 +349,7 @@ elseif(APPLE)
     set(MAC_BLENDER_TARGET_DYLIBS_DIR "${TARGETDIR_VER}/lib")
   else()
     set(TARGETDIR_VER Blender.app/Contents/Resources/${BLENDER_VERSION})
-    # Dylibs folder for Blender executable. @executable_path is a default
-    # rpath, so dropping libraries next to Blender is enough.
+    # Dylibs folder for Blender executable. @executable_path is an rpath.
     set(MAC_BLENDER_TARGET_DYLIBS_DIR "$<TARGET_FILE_DIR:blender>")
   endif()
   # Skip relinking on cpack / install
