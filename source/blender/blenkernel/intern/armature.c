@@ -1882,7 +1882,7 @@ void BKE_bone_parent_transform_invert(struct BoneParentTransform *bpt)
 {
   invert_m4(bpt->rotscale_mat);
   invert_m4(bpt->loc_mat);
-  invert_v3(bpt->post_scale);
+  invert_v3_safe(bpt->post_scale);
 }
 
 void BKE_bone_parent_transform_combine(const struct BoneParentTransform *in1,

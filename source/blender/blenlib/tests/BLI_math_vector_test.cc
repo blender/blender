@@ -45,3 +45,21 @@ TEST(math_vector, ClampVecWithVecs)
   EXPECT_FLOAT_EQ(1.0f, c[0]);
   EXPECT_FLOAT_EQ(3.0f, c[1]);
 }
+
+TEST(math_vector, test_invert_v3_safe)
+{
+  float v3_with_zeroes[3] = {0.0f, 2.0f, 3.0f};
+  invert_v3_safe(v3_with_zeroes);
+  EXPECT_FLOAT_EQ(0.0f, v3_with_zeroes[0]);
+  EXPECT_FLOAT_EQ(0.5f, v3_with_zeroes[1]);
+  EXPECT_FLOAT_EQ(0.33333333333f, v3_with_zeroes[2]);
+
+  float v3_without_zeroes[3] = {1.0f, 2.0f, 3.0f};
+  float inverted_unsafe[3] = {1.0f, 2.0f, 3.0f};
+  invert_v3_safe(v3_without_zeroes);
+  invert_v3(inverted_unsafe);
+
+  EXPECT_FLOAT_EQ(inverted_unsafe[0], v3_without_zeroes[0]);
+  EXPECT_FLOAT_EQ(inverted_unsafe[1], v3_without_zeroes[1]);
+  EXPECT_FLOAT_EQ(inverted_unsafe[2], v3_without_zeroes[2]);
+}

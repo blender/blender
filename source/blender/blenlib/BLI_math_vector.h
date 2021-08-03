@@ -185,6 +185,7 @@ MINLINE void negate_v3_db(double r[3]);
 
 MINLINE void invert_v2(float r[2]);
 MINLINE void invert_v3(float r[3]);
+MINLINE void invert_v3_safe(float r[3]); /* Invert the vector, but leaves zero values as zero. */
 
 MINLINE void abs_v2(float r[2]);
 MINLINE void abs_v2_v2(float r[2], const float a[2]);
