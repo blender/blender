@@ -40,6 +40,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vfontdata.h"
 
@@ -286,7 +287,6 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
   const FT_ULong charcode_reserve = 256;
   FT_ULong charcode = 0, lcode;
   FT_UInt glyph_index;
-  const char *fontname;
   VFontData *vfd;
 
   /* load the freetype font */
@@ -299,9 +299,11 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
   /* allocate blender font */
   vfd = MEM_callocN(sizeof(*vfd), "FTVFontData");
 
-  /* get the name */
-  fontname = FT_Get_Postscript_Name(face);
-  BLI_strncpy(vfd->name, (fontname == NULL) ? "" : fontname, sizeof(vfd->name));
+  /* Get the name. */
+  if (face->family_name) {
+    BLI_snprintf(vfd->name, sizeof(vfd->name), "%s %s", face->family_name, face->style_name);
+    BLI_utf8_invalid_strip(vfd->name, strlen(vfd->name));
+  }
 
   /* Extract the first 256 character from TTF */
   lcode = charcode = FT_Get_First_Char(face, &glyph_index);
