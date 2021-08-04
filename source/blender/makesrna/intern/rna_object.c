@@ -2963,6 +2963,59 @@ static void rna_def_object_visibility(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Display Instancer", "Make instancer visible in the viewport");
   RNA_def_property_update(
       prop, NC_OBJECT | ND_DRAW, "rna_Object_duplicator_visibility_flag_update");
+
+  /* Ray visibility. */
+  prop = RNA_def_property(srna, "visible_camera", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_CAMERA);
+  RNA_def_property_ui_text(prop, "Camera Visibility", "Object visibility to camera rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_diffuse", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_DIFFUSE);
+  RNA_def_property_ui_text(prop, "Diffuse Visibility", "Object visibility to diffuse rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_glossy", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_GLOSSY);
+  RNA_def_property_ui_text(prop, "Glossy Visibility", "Object visibility to glossy rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_transmission", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_TRANSMISSION);
+  RNA_def_property_ui_text(
+      prop, "Transmission Visibility", "Object visibility to transmission rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_volume_scatter", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_VOLUME_SCATTER);
+  RNA_def_property_ui_text(
+      prop, "Volume Scatter Visibility", "Object visibility to volume scattering rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  prop = RNA_def_property(srna, "visible_shadow", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "visibility_flag", OB_HIDE_SHADOW);
+  RNA_def_property_ui_text(prop, "Shadow Visibility", "Object visibility to shadow rays");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
+  /* Holdout and shadow catcher. */
+  prop = RNA_def_property(srna, "is_holdout", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", OB_HOLDOUT);
+  RNA_def_property_ui_text(
+      prop,
+      "Holdout",
+      "Render objects as a holdout or matte, creating a hole in the image with zero alpha, to "
+      "fill out in compositing with real footage or another render");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
+
+  prop = RNA_def_property(srna, "is_shadow_catcher", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", OB_SHADOW_CATCHER);
+  RNA_def_property_ui_text(
+      prop,
+      "Shadow Catcher",
+      "Only render shadows and reflections on this object, for compositing renders into real "
+      "footage. Objects with this setting are considered to already exist in the footage, "
+      "objects without it are synthetic objects being composited into it");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 }
 
 static void rna_def_object(BlenderRNA *brna)

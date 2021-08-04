@@ -1020,7 +1020,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
     }
 
     /* Holdout and indirect only */
-    if (layer->flag & LAYER_COLLECTION_HOLDOUT) {
+    if ((layer->flag & LAYER_COLLECTION_HOLDOUT) || (base->object->visibility_flag & OB_HOLDOUT)) {
       base->flag_from_collection |= BASE_HOLDOUT;
     }
     if (layer->flag & LAYER_COLLECTION_INDIRECT_ONLY) {

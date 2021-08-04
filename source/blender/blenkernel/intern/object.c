@@ -2081,6 +2081,12 @@ static void object_init(Object *ob, const short ob_type)
   if (ob->type == OB_GPENCIL) {
     ob->dtx |= OB_USE_GPENCIL_LIGHTS;
   }
+
+  if (ob->type == OB_LAMP) {
+    /* Lights are invisible to camera rays and are assumed to be a
+     * shadow catcher by default. */
+    ob->visibility_flag |= OB_HIDE_CAMERA | OB_SHADOW_CATCHER;
+  }
 }
 
 void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
