@@ -190,6 +190,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       }
       /* Disable Curve Normals. */
       v3d->overlay.edit_flag &= ~V3D_OVERLAY_EDIT_CU_NORMALS;
+      v3d->overlay.normals_constant_screen_size = 7.0f;
     }
     else if (area->spacetype == SPACE_CLIP) {
       SpaceClip *sclip = area->spacedata.first;

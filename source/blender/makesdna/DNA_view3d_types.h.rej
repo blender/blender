@@ -1,0 +1,9 @@
+diff a/source/blender/makesdna/DNA_view3d_types.h b/source/blender/makesdna/DNA_view3d_types.h	(rejected hunks)
+@@ -550,6 +553,7 @@
+   /* V3D_OVERLAY_EDIT_CU_HANDLES = (1 << 20),  */
+ 
+   V3D_OVERLAY_EDIT_CU_NORMALS = (1 << 21),
++  V3D_OVERLAY_EDIT_CONSTANT_SCREEN_SIZE_NORMALS = (1 << 22),
+ };
+ 
+ /** #View3DOverlay.paint_flag */

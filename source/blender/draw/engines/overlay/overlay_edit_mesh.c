@@ -132,6 +132,11 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_float_copy(grp, "normalSize", v3d->overlay.normals_length);
     DRW_shgroup_uniform_float_copy(grp, "alpha", backwire_opacity);
     DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tex);
+    DRW_shgroup_uniform_bool_copy(grp,
+                                  "isConstantScreenSizeNormals",
+                                  (flag & V3D_OVERLAY_EDIT_CONSTANT_SCREEN_SIZE_NORMALS) != 0);
+    DRW_shgroup_uniform_float_copy(
+        grp, "normalScreenSize", v3d->overlay.normals_constant_screen_size);
   }
   {
     /* Mesh Analysis Pass */
