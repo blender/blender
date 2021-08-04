@@ -71,6 +71,16 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         # Setting location.y overridded all elements in the location array. -1 is a wildcard.
         assert(override_operation.subitem_local_index == -1)
 
+        local_id.override_library.reset()
+
+        assert(len(local_id.override_library.properties) == 0)
+        assert(local_id.location == local_id.override_library.reference.location)
+
+        local_id_name = local_id.name
+        assert(bpy.data.objects.get((local_id_name, None), None) == local_id)
+        local_id.override_library.destroy()
+        assert(bpy.data.objects.get((local_id_name, None), None) == None)
+
     def test_link_permissive(self):
         """
         Linked assets with a permissive template.

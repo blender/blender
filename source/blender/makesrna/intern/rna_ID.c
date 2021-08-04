@@ -747,11 +747,50 @@ static void rna_ID_override_library_operations_update(ID *id,
                                                       ReportList *reports)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    BKE_report(reports, RPT_ERROR, "ID isn't an override");
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
     return;
   }
 
   BKE_lib_override_library_operations_create(bmain, id);
+}
+
+static void rna_ID_override_library_reset(ID *id,
+                                          IDOverrideLibrary *UNUSED(override_library),
+                                          Main *bmain,
+                                          ReportList *reports,
+                                          bool do_hierarchy)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
+    return;
+  }
+
+  if (do_hierarchy) {
+    BKE_lib_override_library_id_hierarchy_reset(bmain, id);
+  }
+  else {
+    BKE_lib_override_library_id_reset(bmain, id);
+  }
+}
+
+static void rna_ID_override_library_destroy(ID *id,
+                                            IDOverrideLibrary *UNUSED(override_library),
+                                            Main *bmain,
+                                            ReportList *reports,
+                                            bool do_hierarchy)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
+    return;
+  }
+
+  if (do_hierarchy) {
+    BKE_lib_override_library_delete(bmain, id);
+  }
+  else {
+    BKE_libblock_remap(bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
+    BKE_id_delete(bmain, id);
+  }
 }
 
 static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
@@ -1730,6 +1769,28 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
   RNA_def_function_ui_description(func,
                                   "Update the library override operations based on the "
                                   "differences between this override ID and its reference");
+
+  func = RNA_def_function(srna, "reset", "rna_ID_override_library_reset");
+  RNA_def_function_ui_description(func,
+                                  "Reset this override to match again its linked reference ID");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_boolean(
+      func,
+      "do_hierarchy",
+      true,
+      "",
+      "Also reset all the dependencies of this override to match their reference linked IDs");
+
+  func = RNA_def_function(srna, "destroy", "rna_ID_override_library_destroy");
+  RNA_def_function_ui_description(
+      func, "Delete this override ID and remap its usages to its linked reference ID instead");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_boolean(func,
+                  "do_hierarchy",
+                  true,
+                  "",
+                  "Also delete all the dependencies of this override and remap their usages to "
+                  "their reference linked IDs");
 
   rna_def_ID_override_library_property(brna);
 }
