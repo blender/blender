@@ -44,7 +44,7 @@ void IMB_metadata_ensure(struct IDProperty **metadata)
     return;
   }
 
-  IDPropertyTemplate val;
+  IDPropertyTemplate val = {0};
   *metadata = IDP_New(IDP_GROUP, &val, "metadata");
 }
 
