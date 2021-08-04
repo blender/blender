@@ -650,6 +650,14 @@ static void ocean_compute_normal_z(TaskPool *__restrict pool, void *UNUSED(taskd
   fftw_execute(o->_N_z_plan);
 }
 
+/**
+ * Return true if the ocean is valid and can be used.
+ */
+bool BKE_ocean_is_valid(const struct Ocean *o)
+{
+  return o->_k != NULL;
+}
+
 void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount)
 {
   TaskPool *pool;
@@ -769,7 +777,10 @@ bool BKE_ocean_ensure(struct OceanModifierData *omd, const int resolution)
   return true;
 }
 
-void BKE_ocean_init_from_modifier(struct Ocean *ocean,
+/**
+ * Return true if the ocean data is valid and can be used.
+ */
+bool BKE_ocean_init_from_modifier(struct Ocean *ocean,
                                   struct OceanModifierData const *omd,
                                   const int resolution)
 {
@@ -783,31 +794,34 @@ void BKE_ocean_init_from_modifier(struct Ocean *ocean,
 
   BKE_ocean_free_data(ocean);
 
-  BKE_ocean_init(ocean,
-                 resolution * resolution,
-                 resolution * resolution,
-                 omd->spatial_size,
-                 omd->spatial_size,
-                 omd->wind_velocity,
-                 omd->smallest_wave,
-                 1.0,
-                 omd->wave_direction,
-                 omd->damp,
-                 omd->wave_alignment,
-                 omd->depth,
-                 omd->time,
-                 omd->spectrum,
-                 omd->fetch_jonswap,
-                 omd->sharpen_peak_jonswap,
-                 do_heightfield,
-                 do_chop,
-                 do_spray,
-                 do_normals,
-                 do_jacobian,
-                 omd->seed);
+  return BKE_ocean_init(ocean,
+                        resolution * resolution,
+                        resolution * resolution,
+                        omd->spatial_size,
+                        omd->spatial_size,
+                        omd->wind_velocity,
+                        omd->smallest_wave,
+                        1.0,
+                        omd->wave_direction,
+                        omd->damp,
+                        omd->wave_alignment,
+                        omd->depth,
+                        omd->time,
+                        omd->spectrum,
+                        omd->fetch_jonswap,
+                        omd->sharpen_peak_jonswap,
+                        do_heightfield,
+                        do_chop,
+                        do_spray,
+                        do_normals,
+                        do_jacobian,
+                        omd->seed);
 }
 
-void BKE_ocean_init(struct Ocean *o,
+/**
+ * Return true if the ocean data is valid and can be used.
+ */
+bool BKE_ocean_init(struct Ocean *o,
                     int M,
                     int N,
                     float Lx,
@@ -830,7 +844,6 @@ void BKE_ocean_init(struct Ocean *o,
                     short do_jacobian,
                     int seed)
 {
-  RNG *rng;
   int i, j, ii;
 
   BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
@@ -858,17 +871,33 @@ void BKE_ocean_init(struct Ocean *o,
   o->_fetch_jonswap = fetch_jonswap;
   o->_sharpen_peak_jonswap = sharpen_peak_jonswap * 10.0f;
 
+  /* NOTE: most modifiers don't account for failure to allocate.
+   * In this case however a large resolution can easily perform large allocations that fail,
+   * support early exiting in this case. */
+  if ((o->_k = (float *)MEM_mallocN(sizeof(float) * (size_t)M * (1 + N / 2), "ocean_k")) &&
+      (o->_h0 = (fftw_complex *)MEM_mallocN(sizeof(fftw_complex) * (size_t)M * N, "ocean_h0")) &&
+      (o->_h0_minus = (fftw_complex *)MEM_mallocN(sizeof(fftw_complex) * (size_t)M * N,
+                                                  "ocean_h0_minus")) &&
+      (o->_kx = (float *)MEM_mallocN(sizeof(float) * o->_M, "ocean_kx")) &&
+      (o->_kz = (float *)MEM_mallocN(sizeof(float) * o->_N, "ocean_kz"))) {
+    /* Success. */
+  }
+  else {
+    MEM_SAFE_FREE(o->_k);
+    MEM_SAFE_FREE(o->_h0);
+    MEM_SAFE_FREE(o->_h0_minus);
+    MEM_SAFE_FREE(o->_kx);
+    MEM_SAFE_FREE(o->_kz);
+
+    BLI_rw_mutex_unlock(&o->oceanmutex);
+    return false;
+  }
+
   o->_do_disp_y = do_height_field;
   o->_do_normals = do_normals;
   o->_do_spray = do_spray;
   o->_do_chop = do_chop;
   o->_do_jacobian = do_jacobian;
-
-  o->_k = (float *)MEM_mallocN(M * (1 + N / 2) * sizeof(float), "ocean_k");
-  o->_h0 = (fftw_complex *)MEM_mallocN(M * N * sizeof(fftw_complex), "ocean_h0");
-  o->_h0_minus = (fftw_complex *)MEM_mallocN(M * N * sizeof(fftw_complex), "ocean_h0_minus");
-  o->_kx = (float *)MEM_mallocN(o->_M * sizeof(float), "ocean_kx");
-  o->_kz = (float *)MEM_mallocN(o->_N * sizeof(float), "ocean_kz");
 
   /* make this robust in the face of erroneous usage */
   if (o->_Lx == 0.0f) {
@@ -902,11 +931,11 @@ void BKE_ocean_init(struct Ocean *o,
   /* pre-calculate the k matrix */
   for (i = 0; i < o->_M; i++) {
     for (j = 0; j <= o->_N / 2; j++) {
-      o->_k[i * (1 + o->_N / 2) + j] = sqrt(o->_kx[i] * o->_kx[i] + o->_kz[j] * o->_kz[j]);
+      o->_k[(size_t)i * (1 + o->_N / 2) + j] = sqrt(o->_kx[i] * o->_kx[i] + o->_kz[j] * o->_kz[j]);
     }
   }
 
-  rng = BLI_rng_new(seed);
+  RNG *rng = BLI_rng_new(seed);
 
   for (i = 0; i < o->_M; i++) {
     for (j = 0; j < o->_N; j++) {
@@ -1029,6 +1058,8 @@ void BKE_ocean_init(struct Ocean *o,
   set_height_normalize_factor(o);
 
   BLI_rng_free(rng);
+
+  return true;
 }
 
 void BKE_ocean_free_data(struct Ocean *oc)
@@ -1700,10 +1731,11 @@ void BKE_ocean_bake(struct Ocean *UNUSED(o),
   (void)update_cb;
 }
 
-void BKE_ocean_init_from_modifier(struct Ocean *UNUSED(ocean),
+bool BKE_ocean_init_from_modifier(struct Ocean *UNUSED(ocean),
                                   struct OceanModifierData const *UNUSED(omd),
                                   int UNUSED(resolution))
 {
+  return true;
 }
 
 #endif /* WITH_OCEANSIM */
