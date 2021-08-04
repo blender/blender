@@ -37,6 +37,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -1464,6 +1465,103 @@ static void paint_draw_3D_view_inactive_brush_cursor(PaintCursorContext *pcontex
                           80);
 }
 
+static void sculpt_cursor_draw_active_face_set_color_set(PaintCursorContext *pcontext) {
+
+  SculptSession *ss = pcontext->ss;
+
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return;
+  }
+
+  const int active_face_set = SCULPT_active_face_set_get(ss);
+  uchar color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+  Object *ob = CTX_data_active_object(pcontext->C);
+  Mesh *mesh = ob->data;
+  if (active_face_set != mesh->face_sets_color_default) {
+    BKE_paint_face_set_overlay_color_get(active_face_set, mesh->face_sets_color_seed, color);
+    color[3] = UCHAR_MAX;
+  }
+  else {
+    color[3] /= 2;
+  }
+
+
+  immUniformColor4ubv(color);
+}
+
+static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
+{
+
+  SculptSession *ss = pcontext->ss;
+
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    return;
+  }
+
+  GPU_line_width(1.0f);
+  sculpt_cursor_draw_active_face_set_color_set(pcontext);
+
+  MPoly *poly = &ss->mpoly[ss->active_face_index];
+  MLoop *loops = ss->mloop;
+  const int totpoints = poly->totloop;
+
+  /*
+  immBegin(GPU_PRIM_LINE_STRIP, totpoints + 1);
+  for (int i = 0; i < totpoints; i++) {
+    float co[3];
+    copy_v3_v3(co, SCULPT_vertex_co_get(ss, loops[poly->loopstart + i].v));
+    immVertex3fv(pcontext->pos, co);
+  }
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart].v));
+  immEnd();
+  */
+
+
+  /*
+  int v_in_poly = 0;
+  for (int i = 0; i < totpoints; i++) {
+    if (ss->active_vertex_index == loops[poly->loopstart + i].v) {
+      v_in_poly = i;
+    }
+  }
+  const int next_v = v_in_poly == poly->totloop - 1? 0 : v_in_poly + 1;
+  const int prev_v = v_in_poly == 0? poly->totloop - 1 : v_in_poly  - 1;
+
+
+  immBegin(GPU_PRIM_LINES, 4);
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ss->active_vertex_index));
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart + next_v].v));
+
+
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ss->active_vertex_index));
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart + prev_v].v));
+
+  immEnd();
+  */
+
+  if (!ss->pmap) {
+    return;
+  }
+
+  int total = 0;
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex_index, ni) {
+    total++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+
+
+
+  immBegin(GPU_PRIM_LINES, total * 2);
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex_index, ni) {
+    immVertex3fv(pcontext->pos, SCULPT_active_vertex_co_get(ss));
+    immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ni.index));
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  immEnd();
+}
+
 static void paint_cursor_update_object_space_radius(PaintCursorContext *pcontext)
 {
   if (!BKE_brush_use_locked_size(pcontext->scene, pcontext->brush)) {
@@ -1609,6 +1707,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
   }
   if (len_v3v3(active_vertex_co, pcontext->location) < pcontext->radius) {
     immUniformColor3fvAlpha(pcontext->outline_col, pcontext->outline_alpha);
+    sculpt_cursor_draw_active_face_set_color_set(pcontext);
     cursor_draw_point_with_symmetry(pcontext->pos,
                                     pcontext->region,
                                     active_vertex_co,
@@ -1654,6 +1753,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
         2);
   }
 
+
   /* Transform Pivot. */
   if (pcontext->paint && pcontext->paint->flags & PAINT_SCULPT_SHOW_PIVOT) {
     cursor_draw_point_screen_space(
@@ -1697,6 +1797,9 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
         pcontext->pos, pcontext->ss, pcontext->outline_col, pcontext->outline_alpha);
     SCULPT_boundary_pivot_line_preview_draw(pcontext->pos, pcontext->ss);
   }
+
+  /* Face Set Preview. */
+  sculpt_cursor_draw_3D_face_set_preview(pcontext);
 
   GPU_matrix_pop();
 

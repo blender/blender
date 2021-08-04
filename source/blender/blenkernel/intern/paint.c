@@ -1827,7 +1827,7 @@ void BKE_sculpt_update_object_for_edit(
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   BLI_assert(me_eval != NULL);
 
-  sculpt_update_object(depsgraph, ob_orig, me_eval, need_pmap, need_mask, need_colors);
+  sculpt_update_object(depsgraph, ob_orig, me_eval, true, need_mask, need_colors);
 }
 
 int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
