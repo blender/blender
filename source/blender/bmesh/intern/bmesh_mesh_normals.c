@@ -1156,10 +1156,6 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
     edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
   }
 
-  if (split_angle_cos != -1.0f) {
-    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, false);
-  }
-
   /* Clear all loops' tags (means none are to be skipped for now). */
   int index_face, index_loop = 0;
   BM_ITER_MESH_INDEX (f_curr, &fiter, bm, BM_FACES_OF_MESH, index_face) {
@@ -1171,9 +1167,15 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
     do {
       BM_elem_index_set(l_curr, index_loop++); /* set_inline */
       BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
+      /* Needed for when #bm_mesh_edges_sharp_tag doesn't run. */
+      BM_elem_flag_disable(l_curr->e, BM_ELEM_TAG);
     } while ((l_curr = l_curr->next) != l_first);
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
+
+  if (split_angle_cos != -1.0f) {
+    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, false);
+  }
 
   /* We now know edges that can be smoothed (they are tagged),
    * and edges that will be hard (they aren't).
