@@ -91,7 +91,7 @@ void register_node_type_sh_eevee_specular(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_EEVEE_SPECULAR, "Specular", NODE_CLASS_SHADER, 0);
+  sh_node_type_base(&ntype, SH_NODE_EEVEE_SPECULAR, "Specular BSDF", NODE_CLASS_SHADER, 0);
   node_type_socket_templates(&ntype, sh_node_eevee_specular_in, sh_node_eevee_specular_out);
   node_type_init(&ntype, NULL);
   node_type_storage(&ntype, "", NULL, NULL);
