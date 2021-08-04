@@ -337,13 +337,9 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 
     vfd = BLI_vfontdata_from_freetypefont(pf);
     if (vfd) {
-      vfont = BKE_libblock_alloc(bmain, ID_VF, filename, 0);
+      /* If there's a font name, use it for the ID name. */
+      vfont = BKE_libblock_alloc(bmain, ID_VF, vfd->name[0] ? vfd->name : filename, 0);
       vfont->data = vfd;
-
-      /* if there's a font name, use it for the ID name */
-      if (vfd->name[0] != '\0') {
-        BLI_strncpy(vfont->id.name + 2, vfd->name, sizeof(vfont->id.name) - 2);
-      }
       BLI_strncpy(vfont->filepath, filepath, sizeof(vfont->filepath));
 
       /* if autopack is on store the packedfile in de font structure */

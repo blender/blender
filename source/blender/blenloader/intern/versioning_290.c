@@ -2087,6 +2087,11 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 20)) {
+    ListBase *lb = which_libbase(bmain, ID_VF);
+    BKE_main_id_repair_duplicate_names_listbase(lb);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
