@@ -60,7 +60,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         assert(len(local_id.override_library.properties) == 0)
 
         local_id.location.y = 1.0
-        local_id.override_library.update_operations()
+        local_id.override_library.operations_update()
 
         assert(len(local_id.override_library.properties) == 1)
         override_prop = local_id.override_library.properties[0]
@@ -104,7 +104,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         assert(local_id.scale.x == 0.5)
         assert(local_id.location.y == 1.0)
 
-        local_id.override_library.update_operations()
+        local_id.override_library.operations_update()
         assert(local_id.scale.x == 1.0)
         assert(local_id.location.y == 1.0)
 
