@@ -283,7 +283,8 @@ static void detect_workarounds()
   }
   /* We have issues with this specific renderer. (see T74024) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
-      strstr(renderer, "AMD VERDE")) {
+      (strstr(renderer, "AMD VERDE") || strstr(renderer, "AMD KAVERI") ||
+       strstr(renderer, "AMD TAHITI"))) {
     GLContext::unused_fb_slot_workaround = true;
     GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
