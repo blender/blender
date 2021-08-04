@@ -305,31 +305,22 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
     BLI_utf8_invalid_strip(vfd->name, strlen(vfd->name));
   }
 
+  /* Select a character map. */
+  err = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+  if (err) {
+    err = FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
+  }
+  if (err && face->num_charmaps > 0) {
+    err = FT_Select_Charmap(face, face->charmaps[0]->encoding);
+  }
+  if (err) {
+    FT_Done_Face(face);
+    MEM_freeN(vfd);
+    return NULL;
+  }
+
   /* Extract the first 256 character from TTF */
   lcode = charcode = FT_Get_First_Char(face, &glyph_index);
-
-  /* No `charmap` found from the TTF so we need to figure it out. */
-  if (glyph_index == 0) {
-    FT_CharMap found = NULL;
-    FT_CharMap charmap;
-    int n;
-
-    for (n = 0; n < face->num_charmaps; n++) {
-      charmap = face->charmaps[n];
-      if (charmap->encoding == FT_ENCODING_APPLE_ROMAN) {
-        found = charmap;
-        break;
-      }
-    }
-
-    err = FT_Set_Charmap(face, found);
-
-    if (err) {
-      return NULL;
-    }
-
-    lcode = charcode = FT_Get_First_Char(face, &glyph_index);
-  }
 
   /* Blender default BFont is not "complete". */
   const bool complete_font = (face->ascender != 0) && (face->descender != 0) &&
