@@ -807,6 +807,18 @@ static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
   return result;
 }
 
+static void rna_ID_override_library_properties_remove(IDOverrideLibrary *override_library,
+                                                      ReportList *reports,
+                                                      IDOverrideLibraryProperty *override_property)
+{
+  if (BLI_findindex(&override_library->properties, override_property) == -1) {
+    BKE_report(reports, RPT_ERROR, "Override property cannot be removed");
+    return;
+  }
+
+  BKE_lib_override_library_property_delete(override_library, override_property);
+}
+
 static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_operations_add(
     IDOverrideLibraryProperty *override_property,
     ReportList *reports,
@@ -832,6 +844,19 @@ static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_oper
     BKE_report(reports, RPT_DEBUG, "No new override operation created, operation already exists");
   }
   return result;
+}
+
+static void rna_ID_override_library_property_operations_remove(
+    IDOverrideLibraryProperty *override_property,
+    ReportList *reports,
+    IDOverrideLibraryPropertyOperation *override_operation)
+{
+  if (BLI_findindex(&override_property->operations, override_operation) == -1) {
+    BKE_report(reports, RPT_ERROR, "Override operation cannot be removed");
+    return;
+  }
+
+  BKE_lib_override_library_property_operation_delete(override_property, override_operation);
 }
 
 static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag)
@@ -1685,6 +1710,16 @@ static void rna_def_ID_override_library_property_operations(BlenderRNA *brna, Pr
                          "New Operation",
                          "Created operation");
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_ID_override_library_property_operations_remove");
+  RNA_def_function_ui_description(func, "Remove and delete an operation");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func,
+                         "operation",
+                         "IDOverrideLibraryPropertyOperation",
+                         "Operation",
+                         "Override operation to be deleted");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 static void rna_def_ID_override_library_property(BlenderRNA *brna)
@@ -1740,6 +1775,16 @@ static void rna_def_ID_override_library_properties(BlenderRNA *brna, PropertyRNA
   RNA_def_function_return(func, parm);
   parm = RNA_def_string(
       func, "rna_path", NULL, 256, "RNA Path", "RNA-Path of the property to add");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "remove", "rna_ID_override_library_properties_remove");
+  RNA_def_function_ui_description(func, "Remove and delete a property");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func,
+                         "property",
+                         "IDOverrideLibraryProperty",
+                         "Property",
+                         "Override property to be deleted");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
