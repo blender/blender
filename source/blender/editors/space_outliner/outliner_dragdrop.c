@@ -1104,10 +1104,6 @@ static bool collection_drop_init(bContext *C,
   if (ID_IS_LINKED(to_collection)) {
     return false;
   }
-  /* Currently this should not be allowed (might be supported in the future though...). */
-  if (ID_IS_OVERRIDE_LIBRARY(to_collection)) {
-    return false;
-  }
 
   /* Get drag datablocks. */
   if (drag->type != WM_DRAG_ID) {
@@ -1131,6 +1127,11 @@ static bool collection_drop_init(bContext *C,
     from_collection = NULL;
   }
 
+  /* Currently this should not be allowed, cannot edit items in an override of a Collection. */
+  if (from_collection != NULL && ID_IS_OVERRIDE_LIBRARY(from_collection)) {
+    return false;
+  }
+
   /* Get collections. */
   if (GS(id->name) == ID_GR) {
     if (id == &to_collection->id) {
@@ -1139,6 +1140,12 @@ static bool collection_drop_init(bContext *C,
   }
   else {
     insert_type = TE_INSERT_INTO;
+  }
+
+  /* Currently this should not be allowed, cannot edit items in an override of a Collection. */
+  if (ID_IS_OVERRIDE_LIBRARY(to_collection) &&
+      !ELEM(insert_type, TE_INSERT_AFTER, TE_INSERT_BEFORE)) {
+    return false;
   }
 
   data->from = from_collection;
