@@ -1281,6 +1281,12 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static EnumPropertyItem rna_enum_gpencil_brush_caps_types_items[] = {
+      {GP_STROKE_CAP_ROUND, "ROUND", ICON_HANDLETYPE_AUTO_CLAMP_VEC, "Round", ""},
+      {GP_STROKE_CAP_FLAT, "FLAT", ICON_HANDLETYPE_VECTOR_VEC, "Flat", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "BrushGpencilSettings", NULL);
   RNA_def_struct_sdna(srna, "BrushGpencilSettings");
   RNA_def_struct_path_func(srna, "rna_BrushGpencilSettings_path");
@@ -1749,6 +1755,12 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(
       prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_eraser_mode_update");
+
+  prop = RNA_def_property(srna, "caps_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "caps_type");
+  RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_caps_types_items);
+  RNA_def_property_ui_text(prop, "Caps Type", "The shape of the start and end of the stroke");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "fill_draw_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "fill_draw_mode");

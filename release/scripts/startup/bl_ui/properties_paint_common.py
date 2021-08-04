@@ -1252,6 +1252,12 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         if brush.gpencil_tool == 'TINT':
             row = layout.row(align=True)
             row.prop(gp_settings, "vertex_mode", text="Mode")
+        else:
+            row = layout.row(align=True)
+            if context.region.type == 'TOOL_HEADER':
+                row.prop(gp_settings, "caps_type", text="", expand=True)
+            else:
+                row.prop(gp_settings, "caps_type", text="Caps Type")
 
     # FIXME: tools must use their own UI drawing!
     if tool.idname in {
