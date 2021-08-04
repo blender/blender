@@ -170,7 +170,7 @@ static void seq_convert_transform_crop(const Scene *scene,
   int image_size_x = scene->r.xsch;
   int image_size_y = scene->r.ysch;
 
-  /* Hardcoded legacy bit-flags which has been removed. */
+  /* Hard-coded legacy bit-flags which has been removed. */
   const uint32_t use_transform_flag = (1 << 16);
   const uint32_t use_crop_flag = (1 << 17);
 

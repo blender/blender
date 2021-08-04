@@ -1058,7 +1058,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   if (win != wm->windrawable && win->ghostwin) {
-    //      win->lmbut = 0; /* keeps hanging when mousepressed while other window opened */
+    // win->lmbut = 0; /* Keeps hanging when mouse-pressed while other window opened. */
     wm_window_clear_drawable(wm);
 
     if (G.debug & G_DEBUG_EVENTS) {

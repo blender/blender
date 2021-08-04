@@ -180,7 +180,7 @@ class BKE_armature_find_selected_bones_test : public testing::Test {
     BLI_addtail(&arm.bonebase, &bone2);     // bone2 is root bone
     BLI_addtail(&bone2.childbase, &bone3);  // bone3 has bone2 as parent
 
-    // Make sure the armature & its bones are visible, to make them selectable.
+    /* Make sure the armature & its bones are visible, to make them selectable. */
     arm.layer = bone1.layer = bone2.layer = bone3.layer = 1;
   }
 };
@@ -200,8 +200,8 @@ TEST_F(BKE_armature_find_selected_bones_test, some_bones_selected)
   EXPECT_EQ(seen_bones[0], &bone1);
   EXPECT_EQ(seen_bones[1], &bone3);
 
-  EXPECT_FALSE(result.all_bones_selected);  // Bone 2 was not selected.
-  EXPECT_FALSE(result.no_bones_selected);   // Bones 1 and 3 were selected.
+  EXPECT_FALSE(result.all_bones_selected); /* Bone 2 was not selected. */
+  EXPECT_FALSE(result.no_bones_selected);  /* Bones 1 and 3 were selected. */
 }
 
 TEST_F(BKE_armature_find_selected_bones_test, no_bones_selected)

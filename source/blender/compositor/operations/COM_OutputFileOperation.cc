@@ -160,7 +160,7 @@ int get_datatype_size(DataType datatype)
 
 static float *init_buffer(unsigned int width, unsigned int height, DataType datatype)
 {
-  // When initializing the tree during initial load the width and height can be zero.
+  /* When initializing the tree during initial load the width and height can be zero. */
   if (width != 0 && height != 0) {
     int size = get_datatype_size(datatype);
     return (float *)MEM_callocN(width * height * size * sizeof(float), "OutputFile buffer");
