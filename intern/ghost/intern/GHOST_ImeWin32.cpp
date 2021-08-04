@@ -32,7 +32,6 @@
 
 GHOST_ImeWin32::GHOST_ImeWin32()
     : is_composing_(false),
-      ime_status_(false),
       input_language_id_(LANG_USER_DEFAULT),
       conversion_modes_(IME_CMODE_ALPHANUMERIC),
       sentence_mode_(IME_SMODE_NONE),
@@ -47,18 +46,13 @@ GHOST_ImeWin32::~GHOST_ImeWin32()
 {
 }
 
-bool GHOST_ImeWin32::SetInputLanguage()
+void GHOST_ImeWin32::SetInputLanguage()
 {
   /**
-   * Retrieve the current keyboard layout from Windows and determine whether
-   * or not the current input context has IMEs.
-   * Also save its input language for language-specific operations required
-   * while composing a text.
+   * Retrieve the current input language.
    */
   HKL keyboard_layout = ::GetKeyboardLayout(0);
   input_language_id_ = LOWORD(keyboard_layout);
-  ime_status_ = ::ImmIsIME(keyboard_layout);
-  return ime_status_;
 }
 
 WORD GHOST_ImeWin32::GetInputLanguage()
