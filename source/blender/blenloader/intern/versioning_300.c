@@ -691,6 +691,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  /* Font names were copied directly into ID names, see: T90417. */
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 16)) {
     ListBase *lb = which_libbase(bmain, ID_VF);
     BKE_main_id_repair_duplicate_names_listbase(lb);
