@@ -88,7 +88,7 @@ class GHOST_EventIME : public GHOST_Event {
  *      An application CAN call ::DefWindowProc().
  * 2.5. WM_INPUTLANGCHANGE (0x0051)
  *      Call the functions listed below:
- *      - GHOST_ImeWin32::SetInputLanguage().
+ *      - GHOST_ImeWin32::UpdateInputLanguage().
  *      An application CAN call ::DefWindowProc().
  */
 
@@ -149,7 +149,7 @@ class GHOST_ImeWin32 {
   /**
    * Retrieves the input language from Windows and update it.
    */
-  void SetInputLanguage();
+  void UpdateInputLanguage();
 
   /* Returns the current input language id. */
   WORD GetInputLanguage();

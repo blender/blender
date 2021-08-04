@@ -46,13 +46,13 @@ GHOST_ImeWin32::~GHOST_ImeWin32()
 {
 }
 
-void GHOST_ImeWin32::SetInputLanguage()
+void GHOST_ImeWin32::UpdateInputLanguage()
 {
   /**
-   * Retrieve the current input language.
+   * Store the current input language.
    */
-  HKL keyboard_layout = ::GetKeyboardLayout(0);
-  input_language_id_ = LOWORD(keyboard_layout);
+  HKL input_locale = ::GetKeyboardLayout(0);
+  input_language_id_ = LOWORD(input_locale);
 }
 
 WORD GHOST_ImeWin32::GetInputLanguage()
