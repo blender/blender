@@ -1639,7 +1639,7 @@ struct Ocean *BKE_ocean_add(void)
   return oc;
 }
 
-void BKE_ocean_init(struct Ocean *UNUSED(o),
+bool BKE_ocean_init(struct Ocean *UNUSED(o),
                     int UNUSED(M),
                     int UNUSED(N),
                     float UNUSED(Lx),
@@ -1662,6 +1662,7 @@ void BKE_ocean_init(struct Ocean *UNUSED(o),
                     short UNUSED(do_jacobian),
                     int UNUSED(seed))
 {
+  return false;
 }
 
 void BKE_ocean_free_data(struct Ocean *UNUSED(oc))
