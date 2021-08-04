@@ -385,7 +385,7 @@ typedef struct Object {
   short softflag;
 
   /** For restricting view, select, render etc. accessible in outliner. */
-  char restrictflag;
+  char visibility_flag;
 
   /** Flag for pinning. */
   char shapeflag;
@@ -670,11 +670,11 @@ enum {
 #  define OB_FLAG_UNUSED_12 (1 << 12) /* cleared */
 #endif
 
-/* ob->restrictflag */
+/* ob->visibility_flag */
 enum {
-  OB_RESTRICT_VIEWPORT = 1 << 0,
-  OB_RESTRICT_SELECT = 1 << 1,
-  OB_RESTRICT_RENDER = 1 << 2,
+  OB_HIDE_VIEWPORT = 1 << 0,
+  OB_HIDE_SELECT = 1 << 1,
+  OB_HIDE_RENDER = 1 << 2,
 };
 
 /* ob->shapeflag */

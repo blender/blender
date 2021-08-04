@@ -619,7 +619,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
     unsigned int tot_boundary_found = 0;
 #endif
 
-    if (masklay->restrictflag & MASK_RESTRICT_RENDER) {
+    if (masklay->visibility_flag & MASK_HIDE_RENDER) {
       /* skip the layer */
       mr_handle->layers_tot--;
       masklay_index--;

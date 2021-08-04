@@ -2305,7 +2305,7 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
   Object *first_camera = NULL;
 
   LISTBASE_FOREACH (TimeMarker *, m, &scene->markers) {
-    if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0) {
+    if (m->camera && (m->camera->visibility_flag & OB_HIDE_RENDER) == 0) {
       if ((m->frame <= ctime) && (m->frame > frame)) {
         camera = m->camera;
         frame = m->frame;

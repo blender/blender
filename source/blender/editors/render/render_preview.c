@@ -273,10 +273,10 @@ static void switch_preview_collection_visibilty(ViewLayer *view_layer, const ePr
 
   for (lc = lc->layer_collections.first; lc; lc = lc->next) {
     if (STREQ(lc->collection->id.name + 2, collection_name)) {
-      lc->collection->flag &= ~COLLECTION_RESTRICT_RENDER;
+      lc->collection->flag &= ~COLLECTION_HIDE_RENDER;
     }
     else {
-      lc->collection->flag |= COLLECTION_RESTRICT_RENDER;
+      lc->collection->flag |= COLLECTION_HIDE_RENDER;
     }
   }
 }
@@ -288,10 +288,10 @@ static void switch_preview_floor_visibility(ViewLayer *view_layer,
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (STREQ(base->object->id.name + 2, "Floor")) {
       if (pr_method == PR_ICON_RENDER) {
-        base->object->restrictflag |= OB_RESTRICT_RENDER;
+        base->object->visibility_flag |= OB_HIDE_RENDER;
       }
       else {
-        base->object->restrictflag &= ~OB_RESTRICT_RENDER;
+        base->object->visibility_flag &= ~OB_HIDE_RENDER;
       }
     }
   }

@@ -1263,22 +1263,22 @@ static bool collection_flag_poll(bContext *C, bool clear, int flag)
 
 static bool collection_enable_poll(bContext *C)
 {
-  return collection_flag_poll(C, true, COLLECTION_RESTRICT_VIEWPORT);
+  return collection_flag_poll(C, true, COLLECTION_HIDE_VIEWPORT);
 }
 
 static bool collection_disable_poll(bContext *C)
 {
-  return collection_flag_poll(C, false, COLLECTION_RESTRICT_VIEWPORT);
+  return collection_flag_poll(C, false, COLLECTION_HIDE_VIEWPORT);
 }
 
 static bool collection_enable_render_poll(bContext *C)
 {
-  return collection_flag_poll(C, true, COLLECTION_RESTRICT_RENDER);
+  return collection_flag_poll(C, true, COLLECTION_HIDE_RENDER);
 }
 
 static bool collection_disable_render_poll(bContext *C)
 {
-  return collection_flag_poll(C, false, COLLECTION_RESTRICT_RENDER);
+  return collection_flag_poll(C, false, COLLECTION_HIDE_RENDER);
 }
 
 static int collection_flag_exec(bContext *C, wmOperator *op)
@@ -1288,7 +1288,7 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   const bool is_render = strstr(op->idname, "render");
   const bool clear = strstr(op->idname, "show") || strstr(op->idname, "enable");
-  int flag = is_render ? COLLECTION_RESTRICT_RENDER : COLLECTION_RESTRICT_VIEWPORT;
+  int flag = is_render ? COLLECTION_HIDE_RENDER : COLLECTION_HIDE_VIEWPORT;
   struct CollectionEditData data = {
       .scene = scene,
       .space_outliner = space_outliner,

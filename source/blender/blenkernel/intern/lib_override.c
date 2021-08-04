@@ -855,8 +855,8 @@ static void lib_override_library_create_post_process(Main *bmain,
             default_instantiating_collection = BKE_collection_add(
                 bmain, (Collection *)id_root, "OVERRIDE_HIDDEN");
             /* Hide the collection from viewport and render. */
-            default_instantiating_collection->flag |= COLLECTION_RESTRICT_VIEWPORT |
-                                                      COLLECTION_RESTRICT_RENDER;
+            default_instantiating_collection->flag |= COLLECTION_HIDE_VIEWPORT |
+                                                      COLLECTION_HIDE_RENDER;
             break;
           }
           case ID_OB: {
@@ -1731,8 +1731,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
     override_resync_residual_storage = BKE_collection_add(
         bmain, scene->master_collection, OVERRIDE_RESYNC_RESIDUAL_STORAGE_NAME);
     /* Hide the collection from viewport and render. */
-    override_resync_residual_storage->flag |= COLLECTION_RESTRICT_VIEWPORT |
-                                              COLLECTION_RESTRICT_RENDER;
+    override_resync_residual_storage->flag |= COLLECTION_HIDE_VIEWPORT | COLLECTION_HIDE_RENDER;
   }
 
   /* Necessary to improve performances, and prevent layers matching override sub-collections to be
