@@ -365,8 +365,7 @@ bool USD_import(struct bContext *C,
 {
   blender::io::usd::ensure_usd_plugin_path_registered();
 
-  /* Using new here since MEM_* funcs do not call ctor to properly initialize
-   * data. */
+  /* Using new here since `MEM_*` functions do not call constructor to properly initialize data. */
   ImportJobData *job = new ImportJobData();
   job->bmain = CTX_data_main(C);
   job->scene = CTX_data_scene(C);
@@ -496,7 +495,7 @@ CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,
   USDPrimReader *usd_reader = archive->create_reader(prim);
 
   if (usd_reader == nullptr) {
-    /* This object is not supported */
+    /* This object is not supported. */
     return nullptr;
   }
   usd_reader->object(object);

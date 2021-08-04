@@ -164,8 +164,8 @@ void ED_mask_select_flush_all(Mask *mask)
     LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
       spline->flag &= ~SELECT;
 
-      /* intentionally _dont_ do this in the mask layer loop
-       * so we clear flags on all splines */
+      /* Intentionally *don't* do this in the mask layer loop
+       * so we clear flags on all splines. */
       if (mask_layer->restrictflag & MASK_RESTRICT_VIEW) {
         continue;
       }

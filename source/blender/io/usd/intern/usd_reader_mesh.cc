@@ -61,7 +61,7 @@ static const pxr::TfToken normalsPrimvar("normals", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 namespace utils {
-/* Very similar to abc mesh utils. */
+/* Very similar to #blender::io::alembic::utils. */
 static void build_mat_map(const Main *bmain, std::map<std::string, Material *> *r_mat_map)
 {
   if (r_mat_map == nullptr) {
@@ -71,7 +71,7 @@ static void build_mat_map(const Main *bmain, std::map<std::string, Material *> *
   Material *material = static_cast<Material *>(bmain->materials.first);
 
   for (; material; material = static_cast<Material *>(material->id.next)) {
-    /* We have to do this because the stored material name is coming directly from usd. */
+    /* We have to do this because the stored material name is coming directly from USD. */
     (*r_mat_map)[pxr::TfMakeValidIdentifier(material->id.name + 2)] = material;
   }
 }
@@ -212,7 +212,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
   is_initial_load_ = false;
   if (read_mesh != mesh) {
-    /* XXX fixme after 2.80; mesh->flag isn't copied by BKE_mesh_nomain_to_mesh() */
+    /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
     /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
     short autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_, &CD_MASK_MESH, true);
@@ -334,7 +334,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
       pxr::TfToken uv_token;
 
-      /* If first time seeing uv token, store in map of <layer->uid, TfToken> */
+      /* If first time seeing uv token, store in map of `<layer->uid, TfToken>`. */
       if (uv_token_map_.find(layer_name) == uv_token_map_.end()) {
         uv_token = pxr::TfToken(layer_name);
         uv_token_map_.insert(std::make_pair(layer_name, uv_token));
@@ -347,7 +347,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
       if (uv_token.IsEmpty()) {
         continue;
       }
-      /* Early out if not first load and uvs arent animated. */
+      /* Early out if not first load and UVs aren't animated. */
       if (!load_uvs && primvar_varying_map_.find(uv_token) != primvar_varying_map_.end() &&
           !primvar_varying_map_.at(uv_token)) {
         continue;
@@ -630,7 +630,7 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
                                      const bool new_mesh)
 {
   /* Note that for new meshes we always want to read verts and polys,
-   * regradless of the value of the read_flag, to avoid a crash downstream
+   * regardless of the value of the read_flag, to avoid a crash downstream
    * in code that expect this data to be there. */
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0) {
@@ -684,7 +684,7 @@ void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
   }
 
   /* Find the geom subsets that have bound materials.
-   * We don't call pxr::UsdShadeMaterialBindingAPI::GetMaterialBindSubsets()
+   * We don't call #pxr::UsdShadeMaterialBindingAPI::GetMaterialBindSubsets()
    * because this function returns only those subsets that are in the 'materialBind'
    * family, but, in practice, applications (like Houdini) might export subsets
    * in different families that are bound to materials.
@@ -780,7 +780,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
 
       bool is_uv = false;
 
-      /* Assume all uvs are stored in one of these primvar types */
+      /* Assume all UVs are stored in one of these primvar types */
       if (type == pxr::SdfValueTypeNames->TexCoord2hArray ||
           type == pxr::SdfValueTypeNames->TexCoord2fArray ||
           type == pxr::SdfValueTypeNames->TexCoord2dArray) {
@@ -817,7 +817,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
   Mesh *active_mesh = existing_mesh;
   bool new_mesh = false;
 
-  /* TODO(makowalski): inmplement the optimization of only updating the mesh points when
+  /* TODO(makowalski): implement the optimization of only updating the mesh points when
    * the topology is consistent, as in the Alembic importer. */
 
   ImportSettings settings;

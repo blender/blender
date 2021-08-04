@@ -55,28 +55,29 @@ struct NodePlacementContext {
 
 /* Converts USD materials to Blender representation. */
 
-/* By default, the USDMaterialReader creates a Blender material with
+/**
+   By default, the #USDMaterialReader creates a Blender material with
  * the same name as the USD material.  If the USD material has a
- * UsdPreviewSurface source, the Blender material's viewport display
+ * #UsdPreviewSurface source, the Blender material's viewport display
  * color, roughness and metallic properties are set to the corresponding
- * UsdPreoviewSurface inputs.
+ * #UsdPreoviewSurface inputs.
  *
  * If the Import USD Preview option is enabled, the current implementation
- * converts UsdPreviewSurface to Blender nodes as follows:
+ * converts #UsdPreviewSurface to Blender nodes as follows:
  *
- * UsdPreviewSurface -> Pricipled BSDF
- * UsdUVTexture -> Texture Image + Normal Map
- * UsdPrimvarReader_float2 -> UV Map
+ * - #UsdPreviewSurface -> Principled BSDF
+ * - #UsdUVTexture -> Texture Image + Normal Map
+ * - UsdPrimvarReader_float2 -> UV Map
  *
  * Limitations: arbitrary primvar readers or UsdTransform2d not yet
- * supported. For UsdUVTexture, only the file, st and sourceColorSpace
+ * supported. For #UsdUVTexture, only the file, st and #sourceColorSpace
  * inputs are handled.
  *
  * TODO(makowalski):  Investigate adding support for converting additional
  * shaders and inputs.  Supporting certain types of inputs, such as texture
  * scale and bias, will probably require creating Blender Group nodes with
- * the corresponding inputs. */
-
+ * the corresponding inputs.
+ */
 class USDMaterialReader {
  protected:
   USDImportParams params_;

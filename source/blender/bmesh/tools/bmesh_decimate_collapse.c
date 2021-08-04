@@ -935,9 +935,9 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 }
 
 /**
- * special, highly limited edge collapse function
+ * Special, highly limited edge collapse function
  * intended for speed over flexibility.
- * can only collapse edges connected to (1, 2) tris.
+ * can only collapse edges connected to (1, 2) triangles.
  *
  * Important - don't add vert/edge/face data on collapsing!
  *
