@@ -234,6 +234,7 @@ static void motionpath_get_global_framerange(ListBase *targets, int *r_sfra, int
   }
 }
 
+/* TODO(jbakker): Remove complexity, keylists are ordered. */
 static int motionpath_get_prev_keyframe(MPathTarget *mpt,
                                         struct AnimKeylist *keylist,
                                         int current_frame)
