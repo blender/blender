@@ -56,8 +56,7 @@ void main()
   if (gl_VertexID == 0) {
     if (isConstantScreenSizeNormals) {
       bool is_persp = (ProjectionMatrix[3][3] == 0.0);
-      if (is_persp)
-      {
+      if (is_persp) {
         float dist_fac = length(cameraPos - world_pos);
         float cos_fac = dot(cameraForward, cameraVec(world_pos));
         world_pos += n * normalScreenSize * dist_fac * cos_fac * pixelFac * sizePixel;

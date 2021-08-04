@@ -279,7 +279,8 @@ static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void *
 
 PyDoc_STRVAR(
     pygpu_offscreen_draw_view3d_doc,
-    ".. method:: draw_view3d(scene, view_layer, view3d, region, view_matrix, projection_matrix, do_color_management=False)\n"
+    ".. method:: draw_view3d(scene, view_layer, view3d, region, view_matrix, projection_matrix, "
+    "do_color_management=False)\n"
     "\n"
     "   Draw the 3d viewport in the offscreen object.\n"
     "\n"
@@ -312,8 +313,14 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
 
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
 
-  static const char *_keywords[] = {
-      "scene", "view_layer", "view3d", "region", "view_matrix", "projection_matrix", "do_color_management", NULL};
+  static const char *_keywords[] = {"scene",
+                                    "view_layer",
+                                    "view3d",
+                                    "region",
+                                    "view_matrix",
+                                    "projection_matrix",
+                                    "do_color_management",
+                                    NULL};
 
   static _PyArg_Parser _parser = {"OOOOO&O&|$O&:draw_view3d", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
@@ -327,7 +334,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
                                         &py_mat_view,
                                         Matrix_Parse4x4,
                                         &py_mat_projection,
-                                        PyC_ParseBool, 
+                                        PyC_ParseBool,
                                         &do_color_management) ||
       (!(scene = PyC_RNA_AsPointer(py_scene, "Scene")) ||
        !(view_layer = PyC_RNA_AsPointer(py_view_layer, "ViewLayer")) ||

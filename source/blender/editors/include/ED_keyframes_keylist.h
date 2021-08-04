@@ -190,7 +190,9 @@ void gpencil_to_keylist(struct bDopeSheet *ads,
 /* Grease Pencil Layer */
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct AnimKeylist *keylist);
 /* Mask */
-void mask_to_keylist(struct bDopeSheet *ads, struct MaskLayer *masklay, struct AnimKeylist *keylist);
+void mask_to_keylist(struct bDopeSheet *ads,
+                     struct MaskLayer *masklay,
+                     struct AnimKeylist *keylist);
 
 /* ActKeyColumn API ---------------- */
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */
