@@ -139,8 +139,10 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile)
   ImBuf *ibuf;
 
   if (sima && sima->image) {
+    const Image *image = sima->image;
+
 #if 0
-    if (sima->image->type == IMA_TYPE_R_RESULT && BIF_show_render_spare()) {
+    if (image->type == IMA_TYPE_R_RESULT && BIF_show_render_spare()) {
       return BIF_render_spare_imbuf();
     }
     else
@@ -152,6 +154,12 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile)
     }
 
     if (ibuf) {
+      if (image->type == IMA_TYPE_R_RESULT && ibuf->x != 0 && ibuf->y != 0) {
+        /* Render result might be lazily allocated. Return ibuf without buffers to indicate that
+         * there is image buffer but it has no data yet. */
+        return ibuf;
+      }
+
       if (ibuf->rect || ibuf->rect_float) {
         return ibuf;
       }

@@ -212,6 +212,8 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
   RenderPass *primitive_pass = render_layer_add_pass(rr, rl, 4, "BakePrimitive", "", "RGBA");
   RenderPass *differential_pass = render_layer_add_pass(rr, rl, 4, "BakeDifferential", "", "RGBA");
 
+  render_result_passes_allocated_ensure(rr);
+
   /* Fill render passes from bake pixel array, to be read by the render engine. */
   for (int ty = 0; ty < h; ty++) {
     size_t offset = ty * w * 4;
@@ -328,6 +330,7 @@ RenderResult *RE_engine_begin_result(
   /* can be NULL if we CLAMP the width or height to 0 */
   if (result) {
     render_result_clone_passes(re, result, viewname);
+    render_result_passes_allocated_ensure(result);
 
     RenderPart *pa;
 
@@ -398,6 +401,14 @@ void RE_engine_end_result(
     BLI_remlink(&engine->fullresult, result);
     render_result_free(result);
     return;
+  }
+
+  if (!re->result->passes_allocated) {
+    BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+    if (!re->result->passes_allocated) {
+      render_result_passes_allocated_ensure(re->result);
+    }
+    BLI_rw_mutex_unlock(&re->resultmutex);
   }
 
   /* merge. on break, don't merge in result for preview renders, looks nicer */

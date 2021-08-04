@@ -354,6 +354,7 @@ RenderResult *RE_AcquireResultWrite(Render *re)
 {
   if (re) {
     BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+    render_result_passes_allocated_ensure(re->result);
     return re->result;
   }
 
