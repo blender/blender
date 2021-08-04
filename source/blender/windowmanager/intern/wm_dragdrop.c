@@ -220,14 +220,11 @@ void WM_drag_free_list(struct ListBase *lb)
   }
 }
 
-static char *dropbox_tooltip(bContext *C,
-                             wmDrag *drag,
-                             const wmEvent *event,
-                             const wmDropBox *drop)
+static char *dropbox_tooltip(bContext *C, wmDrag *drag, const wmEvent *event, wmDropBox *drop)
 {
   char *tooltip = NULL;
   if (drop->tooltip) {
-    tooltip = drop->tooltip(C, drag, event);
+    tooltip = drop->tooltip(C, drag, event, drop);
   }
   if (!tooltip) {
     tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr));

@@ -2723,6 +2723,35 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 /** \name Drop Named Material on Object Operator
  * \{ */
 
+char *ED_object_ot_drop_named_material_tooltip(bContext *C,
+                                               PointerRNA *properties,
+                                               const wmEvent *event)
+{
+  Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
+
+  char name[MAX_ID_NAME - 2];
+  RNA_string_get(properties, "name", name);
+
+  if (base == NULL) {
+    return BLI_strdup("");
+  }
+
+  Object *ob = base->object;
+  int active_mat_slot = max_ii(ob->actcol, 1);
+  Material *prev_mat = BKE_object_material_get(ob, active_mat_slot);
+
+  char *result;
+  if (prev_mat) {
+    const char *tooltip = TIP_("Drop %s on %s (slot %d, replacing %s).");
+    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, active_mat_slot, prev_mat->id.name + 2);
+  }
+  else {
+    const char *tooltip = TIP_("Drop %s on %s (slot %d).");
+    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, active_mat_slot);
+  }
+  return result;
+}
+
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);

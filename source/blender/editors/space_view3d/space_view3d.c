@@ -53,6 +53,7 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
+#include "ED_object.h"
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -528,6 +529,16 @@ static bool view3d_mat_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_MA);
 }
 
+static char *view3d_mat_drop_tooltip(bContext *C,
+                                     wmDrag *drag,
+                                     const wmEvent *event,
+                                     struct wmDropBox *drop)
+{
+  wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, ID_MA);
+  RNA_string_set(drop->ptr, "name", asset_drag->name);
+  return ED_object_ot_drop_named_material_tooltip(C, drop->ptr, event);
+}
+
 static bool view3d_object_data_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   ID_Type id_type = view3d_drop_id_in_main_region_poll_get_id_type(C, drag, event);
@@ -539,7 +550,8 @@ static bool view3d_object_data_drop_poll(bContext *C, wmDrag *drag, const wmEven
 
 static char *view3d_object_data_drop_tooltip(bContext *UNUSED(C),
                                              wmDrag *UNUSED(drag),
-                                             const wmEvent *UNUSED(event))
+                                             const wmEvent *UNUSED(event),
+                                             wmDropBox *UNUSED(drop))
 {
   return BLI_strdup(TIP_("Create object instance from object-data"));
 }
@@ -689,7 +701,7 @@ static void view3d_dropboxes(void)
                  view3d_mat_drop_poll,
                  view3d_id_drop_copy,
                  WM_drag_free_imported_drag_ID,
-                 NULL);
+                 view3d_mat_drop_tooltip);
   WM_dropbox_add(lb,
                  "VIEW3D_OT_background_image_add",
                  view3d_ima_bg_drop_poll,

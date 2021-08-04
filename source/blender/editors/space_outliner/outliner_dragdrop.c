@@ -868,7 +868,8 @@ static bool datastack_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 
 static char *datastack_drop_tooltip(bContext *UNUSED(C),
                                     wmDrag *drag,
-                                    const wmEvent *UNUSED(event))
+                                    const wmEvent *UNUSED(event),
+                                    struct wmDropBox *UNUSED(drop))
 {
   StackDropData *drop_data = drag->poin;
   switch (drop_data->drop_action) {
@@ -1191,7 +1192,10 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
   return false;
 }
 
-static char *collection_drop_tooltip(bContext *C, wmDrag *drag, const wmEvent *event)
+static char *collection_drop_tooltip(bContext *C,
+                                     wmDrag *drag,
+                                     const wmEvent *event,
+                                     wmDropBox *UNUSED(drop))
 {
   CollectionDrop data;
   if (!event->shift && collection_drop_init(C, drag, event, &data)) {
