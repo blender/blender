@@ -528,8 +528,10 @@ INKSCAPE_BIN?="inkscape"
 icons: .FORCE
 	BLENDER_BIN=$(BLENDER_BIN) INKSCAPE_BIN=$(INKSCAPE_BIN) \
 		"$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
-	BLENDER_BIN=$(BLENDER_BIN) INKSCAPE_BIN=$(INKSCAPE_BIN) \
+	INKSCAPE_BIN=$(INKSCAPE_BIN) \
 		"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
+	INKSCAPE_BIN=$(INKSCAPE_BIN) \
+		"$(BLENDER_DIR)/release/datafiles/alert_icons_update.py"
 
 icons_geom: .FORCE
 	BLENDER_BIN=$(BLENDER_BIN) \

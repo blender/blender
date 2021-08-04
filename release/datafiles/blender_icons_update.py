@@ -6,12 +6,16 @@ import subprocess
 import sys
 
 
-def run(cmd):
+def run(cmd, *, env=None):
     print("   ", " ".join(cmd))
-    subprocess.check_call(cmd)
+    subprocess.check_call(cmd, env=env)
 
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
+
+env = {}
+# Developers may have ASAN enabled, avoid non-zero exit codes.
+env["ASAN_OPTIONS"] = "exitcode=0:" + os.environ.get("ASAN_OPTIONS", "")
 
 inkscape_bin = os.environ.get("INKSCAPE_BIN", "inkscape")
 blender_bin = os.environ.get("BLENDER_BIN", "blender")
@@ -32,7 +36,7 @@ cmd = (
     "--export-type=png",
     "--export-filename=" + os.path.join(BASEDIR, "blender_icons16.png"),
 )
-run(cmd)
+run(cmd, env=env)
 
 cmd = (
     inkscape_bin,
@@ -42,7 +46,7 @@ cmd = (
     "--export-type=png",
     "--export-filename=" + os.path.join(BASEDIR, "blender_icons32.png"),
 )
-run(cmd)
+run(cmd, env=env)
 
 
 # For testing it can be good to clear all old
@@ -64,7 +68,7 @@ cmd = (
     "--minx_icon", "2", "--maxx_icon", "2", "--miny_icon", "2", "--maxy_icon", "2",
     "--spacex_icon", "1", "--spacey_icon", "1",
 )
-run(cmd)
+run(cmd, env=env)
 
 cmd = (
     blender_bin, "--background", "--factory-startup", "-noaudio",
@@ -78,7 +82,7 @@ cmd = (
     "--minx_icon", "4", "--maxx_icon", "4", "--miny_icon", "4", "--maxy_icon", "4",
     "--spacex_icon", "2", "--spacey_icon", "2",
 )
-run(cmd)
+run(cmd, env=env)
 
 os.remove(os.path.join(BASEDIR, "blender_icons16.png"))
 os.remove(os.path.join(BASEDIR, "blender_icons32.png"))
