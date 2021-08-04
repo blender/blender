@@ -20,6 +20,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_userdef_types.h"
+
 #include "BLI_math.h"
 #include "BLI_stack.h"
 
@@ -160,16 +162,21 @@ void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const fl
   }
 
   GPU_depth_test(GPU_DEPTH_NONE);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   GPU_matrix_push();
   GPU_matrix_mul(matrix);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-  immUniformThemeColor3(TH_GIZMO_PRIMARY);
-
   if (psel->edges_len > 0) {
+    float viewport[4];
+    GPU_viewport_size_get_f(viewport);
+
+    immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+    immUniform2fv("viewportSize", &viewport[2]);
+    immUniformThemeColor3(TH_GIZMO_PRIMARY);
+    immUniform1f("lineWidth", U.pixelsize);
     immBegin(GPU_PRIM_LINES, psel->edges_len * 2);
 
     for (int i = 0; i < psel->edges_len; i++) {
@@ -178,10 +185,18 @@ void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const fl
     }
 
     immEnd();
+    immUnbindProgram();
   }
 
   if (psel->verts_len > 0) {
-    GPU_point_size(3.0f);
+    GPU_program_point_size(true);
+    immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+    immUniformThemeColor3(TH_GIZMO_PRIMARY);
+
+    /* Same size as an edit mode vertex */
+    immUniform1f("size",
+                 2.0 * U.pixelsize *
+                     (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f)));
 
     immBegin(GPU_PRIM_POINTS, psel->verts_len);
 
@@ -190,14 +205,15 @@ void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const fl
     }
 
     immEnd();
+    immUnbindProgram();
+    GPU_program_point_size(false);
   }
-
-  immUnbindProgram();
 
   GPU_matrix_pop();
 
   /* Reset default */
   GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void view3d_preselect_mesh_edgering_update_verts_from_edge(
