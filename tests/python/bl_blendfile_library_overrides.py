@@ -45,10 +45,6 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
 
         bpy.ops.wm.save_as_mainfile(filepath=str(self.output_path), check_existing=False, compress=False)
 
-    def __ensure_override_library_updated(self):
-        # During save the override_library is updated.
-        bpy.ops.wm.save_as_mainfile(filepath=str(self.test_output_path), check_existing=False, compress=False)
-
     def test_link_and_override_property(self):
         bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
         bpy.data.orphans_purge()
@@ -64,8 +60,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         assert(len(local_id.override_library.properties) == 0)
 
         local_id.location.y = 1.0
-
-        self.__ensure_override_library_updated()
+        local_id.override_library.update_operations()
 
         assert(len(local_id.override_library.properties) == 1)
         override_prop = local_id.override_library.properties[0]
@@ -101,7 +96,6 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         override_operation = override_prop.operations[0]
         assert(override_operation.operation == 'NOOP')
         assert(override_operation.subitem_local_index == -1)
-
         local_id.location.y = 1.0
         local_id.scale.x = 0.5
         # `scale.x` will apply, but will be reverted when the library overrides
@@ -110,7 +104,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         assert(local_id.scale.x == 0.5)
         assert(local_id.location.y == 1.0)
 
-        self.__ensure_override_library_updated()
+        local_id.override_library.update_operations()
         assert(local_id.scale.x == 1.0)
         assert(local_id.location.y == 1.0)
 

@@ -741,6 +741,19 @@ static void rna_ID_override_template_create(ID *id, ReportList *reports)
   BKE_lib_override_library_template_create(id);
 }
 
+static void rna_ID_override_library_update_operations(ID *id,
+                                                      IDOverrideLibrary *UNUSED(override_library),
+                                                      Main *bmain,
+                                                      ReportList *reports)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BKE_report(reports, RPT_ERROR, "ID isn't an override");
+    return;
+  }
+
+  BKE_lib_override_library_operations_create(bmain, id);
+}
+
 static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
     IDOverrideLibrary *override_library, ReportList *reports, const char rna_path[])
 {
@@ -1695,6 +1708,7 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+  FunctionRNA *func;
 
   srna = RNA_def_struct(brna, "IDOverrideLibrary", NULL);
   RNA_def_struct_ui_text(
@@ -1709,6 +1723,13 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                             "Properties",
                             "List of overridden properties");
   rna_def_ID_override_library_properties(brna, prop);
+
+  /* Update function. */
+  func = RNA_def_function(srna, "update_operations", "rna_ID_override_library_update_operations");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func,
+                                  "Update the library override operations based on the "
+                                  "differences between this override ID and its reference");
 
   rna_def_ID_override_library_property(brna);
 }
