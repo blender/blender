@@ -34,20 +34,29 @@
 class GHOST_XrActionSpace {
  public:
   GHOST_XrActionSpace() = delete; /* Default constructor for map storage. */
-  GHOST_XrActionSpace(XrInstance instance,
-                      XrSession session,
+  GHOST_XrActionSpace(XrSession session,
                       XrAction action,
-                      const GHOST_XrActionSpaceInfo &info,
-                      uint32_t subaction_idx);
+                      const char *action_name,
+                      const char *profile_path,
+                      XrPath subaction_path,
+                      const char *subaction_path_str,
+                      const GHOST_XrPose &pose);
   ~GHOST_XrActionSpace();
 
   XrSpace getSpace() const;
-  const XrPath &getSubactionPath() const;
 
  private:
   XrSpace m_space = XR_NULL_HANDLE;
-  XrPath m_subaction_path = XR_NULL_PATH;
 };
+
+/* -------------------------------------------------------------------- */
+
+typedef struct GHOST_XrSubactionData {
+  XrPath subaction_path = XR_NULL_PATH;
+  float float_threshold;
+  int16_t axis_flag;
+  std::unique_ptr<GHOST_XrActionSpace> space = nullptr;
+} GHOST_XrSubactionData;
 
 /* -------------------------------------------------------------------- */
 
@@ -55,17 +64,23 @@ class GHOST_XrActionProfile {
  public:
   GHOST_XrActionProfile() = delete; /* Default constructor for map storage. */
   GHOST_XrActionProfile(XrInstance instance,
+                        XrSession session,
                         XrAction action,
-                        const char *profile_path,
-                        const GHOST_XrActionBindingInfo &info);
+                        GHOST_XrActionType type,
+                        const GHOST_XrActionProfileInfo &info);
   ~GHOST_XrActionProfile() = default;
 
+  XrPath getProfile() const;
+  const GHOST_XrSubactionData *getSubaction(XrPath subaction_path) const;
   void getBindings(XrAction action,
                    std::map<XrPath, std::vector<XrActionSuggestedBinding>> &r_bindings) const;
 
  private:
   XrPath m_profile = XR_NULL_PATH;
-  /* Bindings identified by interaction (user (subaction) + component) path. */
+
+  /** Subaction data identified by user (subaction) path. */
+  std::map<std::string, GHOST_XrSubactionData> m_subaction_data;
+  /** Bindings identified by interaction (user (subaction) + component) path. */
   std::map<std::string, XrPath> m_bindings;
 };
 
@@ -77,12 +92,9 @@ class GHOST_XrAction {
   GHOST_XrAction(XrInstance instance, XrActionSet action_set, const GHOST_XrActionInfo &info);
   ~GHOST_XrAction();
 
-  bool createSpace(XrInstance instance, XrSession session, const GHOST_XrActionSpaceInfo &info);
-  void destroySpace(const char *subaction_path);
-
   bool createBinding(XrInstance instance,
-                     const char *profile_path,
-                     const GHOST_XrActionBindingInfo &info);
+                     XrSession session,
+                     const GHOST_XrActionProfileInfo &info);
   void destroyBinding(const char *profile_path);
 
   void updateState(XrSession session,
@@ -105,12 +117,13 @@ class GHOST_XrAction {
   std::vector<XrPath> m_subaction_paths;
   /** States for each subaction path. */
   void *m_states;
+  /** Input thresholds/regions for each subaction path. */
+  float *m_float_thresholds;
+  int16_t *m_axis_flags;
 
   std::unique_ptr<GHOST_C_CustomDataWrapper> m_custom_data_ = nullptr; /* wmXrAction */
 
-  /* Spaces identified by user (subaction) path. */
-  std::map<std::string, GHOST_XrActionSpace> m_spaces;
-  /* Profiles identified by interaction profile path. */
+  /** Profiles identified by interaction profile path. */
   std::map<std::string, GHOST_XrActionProfile> m_profiles;
 };
 

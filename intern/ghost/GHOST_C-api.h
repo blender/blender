@@ -1067,22 +1067,6 @@ void GHOST_XrDestroyActions(GHOST_XrContextHandle xr_context,
                             const char *const *action_names);
 
 /**
- * Create spaces for pose-based OpenXR actions.
- */
-int GHOST_XrCreateActionSpaces(GHOST_XrContextHandle xr_context,
-                               const char *action_set_name,
-                               uint32_t count,
-                               const GHOST_XrActionSpaceInfo *infos);
-
-/**
- * Destroy previously created spaces for OpenXR actions.
- */
-void GHOST_XrDestroyActionSpaces(GHOST_XrContextHandle xr_context,
-                                 const char *action_set_name,
-                                 uint32_t count,
-                                 const GHOST_XrActionSpaceInfo *infos);
-
-/**
  * Create input/output path bindings for OpenXR actions.
  */
 int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_context,
@@ -1096,7 +1080,8 @@ int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_context,
 void GHOST_XrDestroyActionBindings(GHOST_XrContextHandle xr_context,
                                    const char *action_set_name,
                                    uint32_t count,
-                                   const GHOST_XrActionProfileInfo *infos);
+                                   const char *const *action_names,
+                                   const char *const *profile_paths);
 
 /**
  * Attach all created action sets to the current OpenXR session.

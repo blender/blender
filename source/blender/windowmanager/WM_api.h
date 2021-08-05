@@ -978,34 +978,24 @@ bool WM_xr_action_create(wmXrData *xr,
                          eXrActionType type,
                          unsigned int count_subaction_paths,
                          const char **subaction_paths,
-                         const float *float_threshold,
                          struct wmOperatorType *ot,
                          struct IDProperty *op_properties,
                          eXrOpFlag op_flag);
 void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char *action_name);
-bool WM_xr_action_space_create(wmXrData *xr,
-                               const char *action_set_name,
-                               const char *action_name,
-                               unsigned int count_subaction_paths,
-                               const char **subaction_paths,
-                               const struct wmXrPose *poses);
-void WM_xr_action_space_destroy(wmXrData *xr,
-                                const char *action_set_name,
-                                const char *action_name,
-                                unsigned int count_subaction_paths,
-                                const char **subaction_paths);
 bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *action_set_name,
-                                 const char *profile_path,
                                  const char *action_name,
-                                 unsigned int count_interaction_paths,
-                                 const char **interaction_paths);
+                                 const char *profile_path,
+                                 unsigned int count_subaction_paths,
+                                 const char **subaction_paths,
+                                 const char **component_paths,
+                                 const float *float_thresholds,
+                                 const eXrAxisFlag *axis_flags,
+                                 const struct wmXrPose *poses);
 void WM_xr_action_binding_destroy(wmXrData *xr,
                                   const char *action_set_name,
-                                  const char *profile_path,
                                   const char *action_name,
-                                  unsigned int count_interaction_paths,
-                                  const char **interaction_paths);
+                                  const char *profile_path);
 
 /* If action_set_name is NULL, then all action sets will be treated as active. */
 bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name);

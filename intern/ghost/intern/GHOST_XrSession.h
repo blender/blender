@@ -60,18 +60,13 @@ class GHOST_XrSession {
   void destroyActions(const char *action_set_name,
                       uint32_t count,
                       const char *const *action_names);
-  bool createActionSpaces(const char *action_set_name,
-                          uint32_t count,
-                          const GHOST_XrActionSpaceInfo *infos);
-  void destroyActionSpaces(const char *action_set_name,
-                           uint32_t count,
-                           const GHOST_XrActionSpaceInfo *infos);
   bool createActionBindings(const char *action_set_name,
                             uint32_t count,
                             const GHOST_XrActionProfileInfo *infos);
   void destroyActionBindings(const char *action_set_name,
                              uint32_t count,
-                             const GHOST_XrActionProfileInfo *infos);
+                             const char *const *action_names,
+                             const char *const *profile_paths);
   bool attachActionSets();
 
   /**

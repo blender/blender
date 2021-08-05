@@ -74,6 +74,15 @@ typedef enum eXrOpFlag {
   XR_OP_MODAL = 2,
 } eXrOpFlag;
 
+typedef enum eXrAxisFlag {
+  /** For axis-based inputs (thumbstick/trackpad/etc). Determines the region for action execution
+     (mutually exclusive per axis). */
+  XR_AXIS0_POS = (1 << 0),
+  XR_AXIS0_NEG = (1 << 1),
+  XR_AXIS1_POS = (1 << 2),
+  XR_AXIS1_NEG = (1 << 3),
+} eXrAxisFlag;
+
 #ifdef __cplusplus
 }
 #endif

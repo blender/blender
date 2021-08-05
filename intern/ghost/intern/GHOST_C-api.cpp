@@ -961,28 +961,6 @@ void GHOST_XrDestroyActions(GHOST_XrContextHandle xr_contexthandle,
   GHOST_XR_CAPI_CALL(xr_session->destroyActions(action_set_name, count, action_names), xr_context);
 }
 
-int GHOST_XrCreateActionSpaces(GHOST_XrContextHandle xr_contexthandle,
-                               const char *action_set_name,
-                               uint32_t count,
-                               const GHOST_XrActionSpaceInfo *infos)
-{
-  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
-  GHOST_XrSession *xr_session = xr_context->getSession();
-  GHOST_XR_CAPI_CALL_RET(xr_session->createActionSpaces(action_set_name, count, infos),
-                         xr_context);
-  return 0;
-}
-
-void GHOST_XrDestroyActionSpaces(GHOST_XrContextHandle xr_contexthandle,
-                                 const char *action_set_name,
-                                 uint32_t count,
-                                 const GHOST_XrActionSpaceInfo *infos)
-{
-  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
-  GHOST_XrSession *xr_session = xr_context->getSession();
-  GHOST_XR_CAPI_CALL(xr_session->destroyActionSpaces(action_set_name, count, infos), xr_context);
-}
-
 int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_contexthandle,
                                  const char *action_set_name,
                                  uint32_t count,
@@ -998,11 +976,14 @@ int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_contexthandle,
 void GHOST_XrDestroyActionBindings(GHOST_XrContextHandle xr_contexthandle,
                                    const char *action_set_name,
                                    uint32_t count,
-                                   const GHOST_XrActionProfileInfo *infos)
+                                   const char *const *action_names,
+                                   const char *const *profile_paths)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
   GHOST_XrSession *xr_session = xr_context->getSession();
-  GHOST_XR_CAPI_CALL(xr_session->destroyActionBindings(action_set_name, count, infos), xr_context);
+  GHOST_XR_CAPI_CALL(
+      xr_session->destroyActionBindings(action_set_name, count, action_names, profile_paths),
+      xr_context);
 }
 
 int GHOST_XrAttachActionSets(GHOST_XrContextHandle xr_contexthandle)

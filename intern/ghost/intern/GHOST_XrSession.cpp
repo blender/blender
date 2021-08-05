@@ -610,57 +610,6 @@ void GHOST_XrSession::destroyActions(const char *action_set_name,
   }
 }
 
-bool GHOST_XrSession::createActionSpaces(const char *action_set_name,
-                                         uint32_t count,
-                                         const GHOST_XrActionSpaceInfo *infos)
-{
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
-  if (action_set == nullptr) {
-    return false;
-  }
-
-  XrInstance instance = m_context->getInstance();
-  XrSession session = m_oxr->session;
-
-  for (uint32_t action_idx = 0; action_idx < count; ++action_idx) {
-    const GHOST_XrActionSpaceInfo &info = infos[action_idx];
-
-    GHOST_XrAction *action = action_set->findAction(info.action_name);
-    if (action == nullptr) {
-      continue;
-    }
-
-    if (!action->createSpace(instance, session, info)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-void GHOST_XrSession::destroyActionSpaces(const char *action_set_name,
-                                          uint32_t count,
-                                          const GHOST_XrActionSpaceInfo *infos)
-{
-  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
-  if (action_set == nullptr) {
-    return;
-  }
-
-  for (uint32_t action_idx = 0; action_idx < count; ++action_idx) {
-    const GHOST_XrActionSpaceInfo &info = infos[action_idx];
-
-    GHOST_XrAction *action = action_set->findAction(info.action_name);
-    if (action == nullptr) {
-      continue;
-    }
-
-    for (uint32_t subaction_idx = 0; subaction_idx < info.count_subaction_paths; ++subaction_idx) {
-      action->destroySpace(info.subaction_paths[subaction_idx]);
-    }
-  }
-}
-
 bool GHOST_XrSession::createActionBindings(const char *action_set_name,
                                            uint32_t count,
                                            const GHOST_XrActionProfileInfo *infos)
@@ -671,21 +620,17 @@ bool GHOST_XrSession::createActionBindings(const char *action_set_name,
   }
 
   XrInstance instance = m_context->getInstance();
+  XrSession session = m_oxr->session;
 
   for (uint32_t profile_idx = 0; profile_idx < count; ++profile_idx) {
     const GHOST_XrActionProfileInfo &info = infos[profile_idx];
-    const char *profile_path = info.profile_path;
 
-    for (uint32_t binding_idx = 0; binding_idx < info.count_bindings; ++binding_idx) {
-      const GHOST_XrActionBindingInfo &binding = info.bindings[binding_idx];
-
-      GHOST_XrAction *action = action_set->findAction(binding.action_name);
-      if (action == nullptr) {
-        continue;
-      }
-
-      action->createBinding(instance, profile_path, binding);
+    GHOST_XrAction *action = action_set->findAction(info.action_name);
+    if (action == nullptr) {
+      continue;
     }
+
+    action->createBinding(instance, session, info);
   }
 
   return true;
@@ -693,27 +638,21 @@ bool GHOST_XrSession::createActionBindings(const char *action_set_name,
 
 void GHOST_XrSession::destroyActionBindings(const char *action_set_name,
                                             uint32_t count,
-                                            const GHOST_XrActionProfileInfo *infos)
+                                            const char *const *action_names,
+                                            const char *const *profile_paths)
 {
   GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
   if (action_set == nullptr) {
     return;
   }
 
-  for (uint32_t profile_idx = 0; profile_idx < count; ++profile_idx) {
-    const GHOST_XrActionProfileInfo &info = infos[profile_idx];
-    const char *profile_path = info.profile_path;
-
-    for (uint32_t binding_idx = 0; binding_idx < info.count_bindings; ++binding_idx) {
-      const GHOST_XrActionBindingInfo &binding = info.bindings[binding_idx];
-
-      GHOST_XrAction *action = action_set->findAction(binding.action_name);
-      if (action == nullptr) {
-        continue;
-      }
-
-      action->destroyBinding(profile_path);
+  for (uint32_t i = 0; i < count; ++i) {
+    GHOST_XrAction *action = action_set->findAction(action_names[i]);
+    if (action == nullptr) {
+      continue;
     }
+
+    action->destroyBinding(profile_paths[i]);
   }
 }
 

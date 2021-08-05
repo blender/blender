@@ -122,8 +122,9 @@ typedef struct wmXrAction {
   /** Previous states, stored to determine XR events. */
   void *states_prev;
 
-  /** Input threshold for float/vector2f actions. */
-  float float_threshold;
+  /** Input thresholds/regions for each subaction path. */
+  float *float_thresholds;
+  eXrAxisFlag *axis_flags;
 
   /** The currently active subaction path (if any) for modal actions. */
   char **active_modal_path;
