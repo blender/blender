@@ -1787,7 +1787,7 @@ bool isect_ray_tri_v3(const float ray_origin[3],
   }
 
   *r_lambda = f * dot_v3v3(e2, q);
-  if ((*r_lambda < 0.0f)) {
+  if (*r_lambda < 0.0f) {
     return false;
   }
 
@@ -1864,7 +1864,7 @@ bool isect_ray_tri_epsilon_v3(const float ray_origin[3],
   }
 
   *r_lambda = f * dot_v3v3(e2, q);
-  if ((*r_lambda < 0.0f)) {
+  if (*r_lambda < 0.0f) {
     return false;
   }
 
@@ -2024,7 +2024,7 @@ bool isect_ray_tri_threshold_v3(const float ray_origin[3],
 
   cross_v3_v3v3(q, s, e1);
   *r_lambda = f * dot_v3v3(e2, q);
-  if ((*r_lambda < 0.0f)) {
+  if (*r_lambda < 0.0f) {
     return false;
   }
 
@@ -3325,7 +3325,7 @@ bool isect_ray_aabb_v3_simple(const float orig[3],
   t[5] = (double)(bb_max[2] - orig[2]) * invdirz;
   hit_dist[0] = (float)fmax(fmax(fmin(t[0], t[1]), fmin(t[2], t[3])), fmin(t[4], t[5]));
   hit_dist[1] = (float)fmin(fmin(fmax(t[0], t[1]), fmax(t[2], t[3])), fmax(t[4], t[5]));
-  if ((hit_dist[1] < 0.0f || hit_dist[0] > hit_dist[1])) {
+  if ((hit_dist[1] < 0.0f) || (hit_dist[0] > hit_dist[1])) {
     return false;
   }
 

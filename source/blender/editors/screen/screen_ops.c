@@ -2906,7 +2906,7 @@ static void areas_do_frame_follow(bContext *C, bool middle)
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         /* do follow here if editor type supports it */
-        if ((screen_ctx->redraws_flag & TIME_FOLLOW)) {
+        if (screen_ctx->redraws_flag & TIME_FOLLOW) {
           if ((region->regiontype == RGN_TYPE_WINDOW &&
                ELEM(area->spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
               (area->spacetype == SPACE_CLIP && region->regiontype == RGN_TYPE_PREVIEW)) {

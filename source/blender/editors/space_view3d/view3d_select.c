@@ -2156,7 +2156,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
         for (a = 0; a < hits; a++) {
           if (has_bones) {
             /* skip non-bone objects */
-            if ((buffer[4 * a + 3] & 0xFFFF0000)) {
+            if (buffer[4 * a + 3] & 0xFFFF0000) {
               if (base->object->runtime.select_id == (buffer[(4 * a) + 3] & 0xFFFF)) {
                 basact = base;
               }

@@ -1026,7 +1026,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[n];
   float(*vnors)[3] = data->vnors;
 
-  if ((node->flag & PBVH_UpdateNormals)) {
+  if (node->flag & PBVH_UpdateNormals) {
     unsigned int mpoly_prev = UINT_MAX;
     float fn[3];
 

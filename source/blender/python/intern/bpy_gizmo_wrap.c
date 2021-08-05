@@ -79,7 +79,7 @@ static bool bpy_gizmotype_target_property_def(wmGizmoType *gzt, PyObject *item)
     goto fail;
   }
 
-  if ((params.array_length < 1 || params.array_length > RNA_MAX_ARRAY_LENGTH)) {
+  if ((params.array_length < 1) || (params.array_length > RNA_MAX_ARRAY_LENGTH)) {
     PyErr_SetString(PyExc_ValueError, "'array_length' out of range");
     goto fail;
   }

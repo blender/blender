@@ -322,7 +322,7 @@ static bool tracking_check_marker_margin(const libmv_Marker *libmv_marker,
 
 static bool autotrack_is_marker_usable(const MovieTrackingMarker *marker)
 {
-  if ((marker->flag & MARKER_DISABLED)) {
+  if (marker->flag & MARKER_DISABLED) {
     return false;
   }
   return true;
@@ -797,7 +797,7 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
         clip, context->start_scene_frame);
 
     LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
-      if ((plane_track->flag & PLANE_TRACK_AUTOKEY)) {
+      if (plane_track->flag & PLANE_TRACK_AUTOKEY) {
         continue;
       }
       for (int track_index = 0; track_index < context->num_all_tracks; track_index++) {

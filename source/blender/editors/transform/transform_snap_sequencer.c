@@ -141,7 +141,7 @@ static SeqCollection *query_snap_targets(const TransInfo *t, SeqCollection *snap
   const short snap_flag = SEQ_tool_settings_snap_flag_get(t->scene);
   SeqCollection *snap_targets = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if ((seq->flag & SELECT)) {
+    if (seq->flag & SELECT) {
       continue; /* Selected are being transformed. */
     }
     if ((seq->flag & SEQ_MUTE) && (snap_flag & SEQ_SNAP_IGNORE_MUTED)) {

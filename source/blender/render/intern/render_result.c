@@ -784,7 +784,7 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
   render_result_views_free(rr);
 
   /* check renderdata for amount of views */
-  if ((rd->scemode & R_MULTIVIEW)) {
+  if (rd->scemode & R_MULTIVIEW) {
     for (srv = rd->views.first; srv; srv = srv->next) {
       if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
         continue;

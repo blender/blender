@@ -1335,7 +1335,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           ME_OPT_EDGES = (1 << 8),
         };
 
-        if ((me->flag & ME_SUBSURF)) {
+        if (me->flag & ME_SUBSURF) {
           SubsurfModifierData *smd = (SubsurfModifierData *)BKE_modifier_new(
               eModifierType_Subsurf);
 

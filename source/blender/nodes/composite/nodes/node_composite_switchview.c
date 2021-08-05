@@ -132,7 +132,7 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
     for (nr = 0, srv = rd->views.first; srv; srv = srv->next, nr++) {
       sock = ntreeCompositSwitchViewAddSocket(ntree, node, srv->name);
 
-      if ((srv->viewflag & SCE_VIEW_DISABLE)) {
+      if (srv->viewflag & SCE_VIEW_DISABLE) {
         sock->flag |= SOCK_HIDDEN;
       }
     }

@@ -512,7 +512,7 @@ static void drw_context_state_init(void)
   if (DST.draw_ctx.object_mode & OB_MODE_POSE) {
     DST.draw_ctx.object_pose = DST.draw_ctx.obact;
   }
-  else if ((DST.draw_ctx.object_mode & OB_MODE_ALL_WEIGHT_PAINT)) {
+  else if (DST.draw_ctx.object_mode & OB_MODE_ALL_WEIGHT_PAINT) {
     DST.draw_ctx.object_pose = BKE_object_pose_armature_get(DST.draw_ctx.obact);
   }
   else {

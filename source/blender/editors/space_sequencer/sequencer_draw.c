@@ -1139,7 +1139,7 @@ static void draw_seq_strip(const bContext *C,
   }
 
   /* Draw strip offsets when flag is enabled or during "solo preview". */
-  if ((sseq->flag & SEQ_SHOW_STRIP_OVERLAY)) {
+  if (sseq->flag & SEQ_SHOW_STRIP_OVERLAY) {
     if (!is_single_image && (seq->startofs || seq->endofs) && pixely > 0) {
       if ((sseq->draw_flag & SEQ_DRAW_OFFSET_EXT) || (seq == special_seq_update)) {
         draw_sequence_extensions_overlay(scene, seq, pos, pixely);

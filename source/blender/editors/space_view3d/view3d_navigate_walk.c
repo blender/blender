@@ -548,7 +548,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->teleport.duration = U.walk_navigation.teleport_time;
   walk->mouse_speed = U.walk_navigation.mouse_speed;
 
-  if ((U.walk_navigation.flag & USER_WALK_GRAVITY)) {
+  if (U.walk_navigation.flag & USER_WALK_GRAVITY) {
     walk_navigation_mode_set(walk, WALK_MODE_GRAVITY);
   }
   else {
@@ -563,7 +563,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 
   walk->gravity_state = WALK_GRAVITY_STATE_OFF;
 
-  if ((walk->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY)) {
+  if (walk->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
     walk->gravity = fabsf(walk->scene->physics_settings.gravity[2]);
   }
   else {
@@ -1199,11 +1199,11 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
           direction = 0;
 
-          if ((walk->active_directions & WALK_BIT_FORWARD)) {
+          if (walk->active_directions & WALK_BIT_FORWARD) {
             direction += 1;
           }
 
-          if ((walk->active_directions & WALK_BIT_BACKWARD)) {
+          if (walk->active_directions & WALK_BIT_BACKWARD) {
             direction -= 1;
           }
 
@@ -1223,11 +1223,11 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
           direction = 0;
 
-          if ((walk->active_directions & WALK_BIT_LEFT)) {
+          if (walk->active_directions & WALK_BIT_LEFT) {
             direction += 1;
           }
 
-          if ((walk->active_directions & WALK_BIT_RIGHT)) {
+          if (walk->active_directions & WALK_BIT_RIGHT) {
             direction -= 1;
           }
 
@@ -1245,11 +1245,11 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
             direction = 0;
 
-            if ((walk->active_directions & WALK_BIT_UP)) {
+            if (walk->active_directions & WALK_BIT_UP) {
               direction -= 1;
             }
 
-            if ((walk->active_directions & WALK_BIT_DOWN)) {
+            if (walk->active_directions & WALK_BIT_DOWN) {
               direction = 1;
             }
 

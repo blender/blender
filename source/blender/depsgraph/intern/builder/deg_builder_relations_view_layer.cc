@@ -65,7 +65,7 @@ void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
                                                                     COLLECTION_HIDE_RENDER;
 
   for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
-    if ((lc->collection->flag & visibility_flag)) {
+    if (lc->collection->flag & visibility_flag) {
       continue;
     }
     if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {

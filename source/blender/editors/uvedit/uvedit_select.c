@@ -3912,7 +3912,7 @@ BMLoop **ED_uvedit_selected_verts(Scene *scene, BMesh *bm, int len_max, int *r_v
       BM_ITER_ELEM (l_iter, &liter, f, BM_LOOPS_OF_FACE) {
         if (!BM_elem_flag_test(l_iter, BM_ELEM_TAG)) {
           const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-          if ((luv->flag & MLOOPUV_VERTSEL)) {
+          if (luv->flag & MLOOPUV_VERTSEL) {
             BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
 
             verts[verts_len++] = l_iter;

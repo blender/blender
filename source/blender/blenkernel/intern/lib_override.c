@@ -571,7 +571,7 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
      * would use one of those.
      * NOTE: missing IDs (aka placeholders) are never overridden. */
     if (ELEM(GS(to_id->name), ID_OB, ID_GR)) {
-      if ((to_id->tag & LIB_TAG_MISSING)) {
+      if (to_id->tag & LIB_TAG_MISSING) {
         to_id->tag |= missing_tag;
       }
       else {
@@ -604,7 +604,7 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
   const bool is_resync = data->is_resync;
   BLI_assert(!data->is_override);
 
-  if ((id_root->tag & LIB_TAG_MISSING)) {
+  if (id_root->tag & LIB_TAG_MISSING) {
     id_root->tag |= data->missing_tag;
   }
   else {
@@ -654,7 +654,7 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
 
         if (instantiating_collection == NULL &&
             instantiating_collection_override_candidate != NULL) {
-          if ((instantiating_collection_override_candidate->id.tag & LIB_TAG_MISSING)) {
+          if (instantiating_collection_override_candidate->id.tag & LIB_TAG_MISSING) {
             instantiating_collection_override_candidate->id.tag |= data->missing_tag;
           }
           else {
@@ -730,7 +730,7 @@ static void lib_override_overrides_group_tag(LibOverrideGroupTagData *data)
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
   BLI_assert(data->is_override);
 
-  if ((id_root->override_library->reference->tag & LIB_TAG_MISSING)) {
+  if (id_root->override_library->reference->tag & LIB_TAG_MISSING) {
     id_root->tag |= data->missing_tag;
   }
   else {

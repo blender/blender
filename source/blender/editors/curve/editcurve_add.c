@@ -431,7 +431,7 @@ Nurb *ED_curve_add_nurbs_primitive(
         if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
           ed_editnurb_spin(umat, NULL, obedit, tmp_vec, tmp_cent);
         }
-        else if ((U.flag & USER_ADD_VIEWALIGNED)) {
+        else if (U.flag & USER_ADD_VIEWALIGNED) {
           ed_editnurb_spin(viewmat, NULL, obedit, zvec, mat[3]);
         }
         else {
@@ -466,7 +466,7 @@ Nurb *ED_curve_add_nurbs_primitive(
         if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
           ed_editnurb_spin(umat, NULL, obedit, tmp_vec, tmp_cent);
         }
-        else if ((U.flag & USER_ADD_VIEWALIGNED)) {
+        else if (U.flag & USER_ADD_VIEWALIGNED) {
           ed_editnurb_spin(viewmat, NULL, obedit, zvec, mat[3]);
         }
         else {

@@ -4153,7 +4153,7 @@ static void BKE_fluid_modifier_process(
 {
   const int scene_framenr = (int)DEG_get_ctime(depsgraph);
 
-  if ((fmd->type & MOD_FLUID_TYPE_FLOW)) {
+  if (fmd->type & MOD_FLUID_TYPE_FLOW) {
     BKE_fluid_modifier_processFlow(fmd, depsgraph, scene, ob, me, scene_framenr);
   }
   else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {

@@ -6779,7 +6779,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
 
   ui_color_picker_hsv_to_rgb(hsv, rgb);
 
-  if ((cpicker->use_luminosity_lock)) {
+  if (cpicker->use_luminosity_lock) {
     if (!is_zero_v3(rgb)) {
       normalize_v3_length(rgb, cpicker->luminosity_lock_value);
     }

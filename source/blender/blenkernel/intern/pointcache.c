@@ -3369,7 +3369,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
     }
 
     /* NOTE: breaking baking should leave calculated frames in cache, not clear it */
-    if ((cancel || G.is_break)) {
+    if (cancel || G.is_break) {
       break;
     }
 
