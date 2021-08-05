@@ -44,7 +44,7 @@ struct BLaplacianSystem {
   int numEdges;         /* Number of edges. */
   int numFaces;         /* Number of faces. */
   int numVerts;         /* Number of verts. */
-  short *zerola;        /* Is zero area or length. */
+  bool *zerola;         /* Is zero area or length. */
 
   /* Pointers to data. */
   BMesh *bm;
@@ -98,7 +98,7 @@ static void memset_laplacian_system(LaplacianSystem *sys, int val)
   memset(sys->ring_areas, val, sizeof(float) * sys->numVerts);
   memset(sys->vlengths, val, sizeof(float) * sys->numVerts);
   memset(sys->vweights, val, sizeof(float) * sys->numVerts);
-  memset(sys->zerola, val, sizeof(short) * sys->numVerts);
+  memset(sys->zerola, val, sizeof(bool) * sys->numVerts);
 }
 
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts)
@@ -139,7 +139,7 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, in
     return NULL;
   }
 
-  sys->zerola = MEM_callocN(sizeof(short) * sys->numVerts, "ModLaplSmoothZeloa");
+  sys->zerola = MEM_callocN(sizeof(bool) * sys->numVerts, "ModLaplSmoothZeloa");
   if (!sys->zerola) {
     delete_laplacian_system(sys);
     return NULL;
@@ -181,104 +181,107 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
   BMVert *vf[4];
 
   BM_ITER_MESH_INDEX (e, &eiter, sys->bm, BM_EDGES_OF_MESH, i) {
-    if (!BM_elem_flag_test(e, BM_ELEM_SELECT) && BM_edge_is_boundary(e)) {
-      v1 = e->v1->co;
-      v2 = e->v2->co;
-      idv1 = BM_elem_index_get(e->v1);
-      idv2 = BM_elem_index_get(e->v2);
+    if (BM_elem_flag_test(e, BM_ELEM_SELECT) || !BM_edge_is_boundary(e)) {
+      continue;
+    }
 
-      w1 = len_v3v3(v1, v2);
-      if (w1 > sys->min_area) {
-        w1 = 1.0f / w1;
-        sys->eweights[i] = w1;
-        sys->vlengths[idv1] += w1;
-        sys->vlengths[idv2] += w1;
-      }
-      else {
-        sys->zerola[idv1] = 1;
-        sys->zerola[idv2] = 1;
-      }
+    v1 = e->v1->co;
+    v2 = e->v2->co;
+    idv1 = BM_elem_index_get(e->v1);
+    idv2 = BM_elem_index_get(e->v2);
+
+    w1 = len_v3v3(v1, v2);
+    if (w1 > sys->min_area) {
+      w1 = 1.0f / w1;
+      sys->eweights[i] = w1;
+      sys->vlengths[idv1] += w1;
+      sys->vlengths[idv2] += w1;
+    }
+    else {
+      sys->zerola[idv1] = true;
+      sys->zerola[idv2] = true;
     }
   }
 
   BM_ITER_MESH_INDEX (f, &fiter, sys->bm, BM_FACES_OF_MESH, i) {
-    if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+    if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+      continue;
+    }
 
-      BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, j) {
-        vf[j] = vn;
-      }
-      has_4_vert = (j == 4) ? 1 : 0;
-      idv1 = BM_elem_index_get(vf[0]);
-      idv2 = BM_elem_index_get(vf[1]);
-      idv3 = BM_elem_index_get(vf[2]);
-      idv4 = has_4_vert ? BM_elem_index_get(vf[3]) : 0;
+    BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, j) {
+      vf[j] = vn;
+    }
+    has_4_vert = (j == 4) ? 1 : 0;
+    idv1 = BM_elem_index_get(vf[0]);
+    idv2 = BM_elem_index_get(vf[1]);
+    idv3 = BM_elem_index_get(vf[2]);
+    idv4 = has_4_vert ? BM_elem_index_get(vf[3]) : 0;
 
-      v1 = vf[0]->co;
-      v2 = vf[1]->co;
-      v3 = vf[2]->co;
-      v4 = has_4_vert ? vf[3]->co : NULL;
+    v1 = vf[0]->co;
+    v2 = vf[1]->co;
+    v3 = vf[2]->co;
+    v4 = has_4_vert ? vf[3]->co : NULL;
 
+    if (has_4_vert) {
+      areaf = area_quad_v3(v1, v2, v3, v4);
+    }
+    else {
+      areaf = area_tri_v3(v1, v2, v3);
+    }
+
+    if (areaf < sys->min_area) {
+      sys->zerola[idv1] = true;
+      sys->zerola[idv2] = true;
+      sys->zerola[idv3] = true;
       if (has_4_vert) {
-        areaf = area_quad_v3(v1, v2, v3, v4);
+        sys->zerola[idv4] = true;
       }
-      else {
-        areaf = area_tri_v3(v1, v2, v3);
+    }
+
+    sys->ring_areas[idv1] += areaf;
+    sys->ring_areas[idv2] += areaf;
+    sys->ring_areas[idv3] += areaf;
+    if (has_4_vert) {
+      sys->ring_areas[idv4] += areaf;
+    }
+
+    if (has_4_vert) {
+
+      idv[0] = idv1;
+      idv[1] = idv2;
+      idv[2] = idv3;
+      idv[3] = idv4;
+
+      for (j = 0; j < 4; j++) {
+        idv1 = idv[j];
+        idv2 = idv[(j + 1) % 4];
+        idv3 = idv[(j + 2) % 4];
+        idv4 = idv[(j + 3) % 4];
+
+        v1 = vf[j]->co;
+        v2 = vf[(j + 1) % 4]->co;
+        v3 = vf[(j + 2) % 4]->co;
+        v4 = vf[(j + 3) % 4]->co;
+
+        w2 = cotangent_tri_weight_v3(v4, v1, v2) + cotangent_tri_weight_v3(v3, v1, v2);
+        w3 = cotangent_tri_weight_v3(v2, v3, v1) + cotangent_tri_weight_v3(v4, v1, v3);
+        w4 = cotangent_tri_weight_v3(v2, v4, v1) + cotangent_tri_weight_v3(v3, v4, v1);
+
+        sys->vweights[idv1] += (w2 + w3 + w4) / 4.0f;
       }
+    }
+    else {
+      w1 = cotangent_tri_weight_v3(v1, v2, v3);
+      w2 = cotangent_tri_weight_v3(v2, v3, v1);
+      w3 = cotangent_tri_weight_v3(v3, v1, v2);
 
-      if (fabsf(areaf) < sys->min_area) {
-        sys->zerola[idv1] = 1;
-        sys->zerola[idv2] = 1;
-        sys->zerola[idv3] = 1;
-        if (has_4_vert) {
-          sys->zerola[idv4] = 1;
-        }
-      }
+      sys->fweights[i][0] += w1;
+      sys->fweights[i][1] += w2;
+      sys->fweights[i][2] += w3;
 
-      sys->ring_areas[idv1] += areaf;
-      sys->ring_areas[idv2] += areaf;
-      sys->ring_areas[idv3] += areaf;
-      if (has_4_vert) {
-        sys->ring_areas[idv4] += areaf;
-      }
-
-      if (has_4_vert) {
-
-        idv[0] = idv1;
-        idv[1] = idv2;
-        idv[2] = idv3;
-        idv[3] = idv4;
-
-        for (j = 0; j < 4; j++) {
-          idv1 = idv[j];
-          idv2 = idv[(j + 1) % 4];
-          idv3 = idv[(j + 2) % 4];
-          idv4 = idv[(j + 3) % 4];
-
-          v1 = vf[j]->co;
-          v2 = vf[(j + 1) % 4]->co;
-          v3 = vf[(j + 2) % 4]->co;
-          v4 = vf[(j + 3) % 4]->co;
-
-          w2 = cotangent_tri_weight_v3(v4, v1, v2) + cotangent_tri_weight_v3(v3, v1, v2);
-          w3 = cotangent_tri_weight_v3(v2, v3, v1) + cotangent_tri_weight_v3(v4, v1, v3);
-          w4 = cotangent_tri_weight_v3(v2, v4, v1) + cotangent_tri_weight_v3(v3, v4, v1);
-
-          sys->vweights[idv1] += (w2 + w3 + w4) / 4.0f;
-        }
-      }
-      else {
-        w1 = cotangent_tri_weight_v3(v1, v2, v3);
-        w2 = cotangent_tri_weight_v3(v2, v3, v1);
-        w3 = cotangent_tri_weight_v3(v3, v1, v2);
-
-        sys->fweights[i][0] += w1;
-        sys->fweights[i][1] += w2;
-        sys->fweights[i][2] += w3;
-
-        sys->vweights[idv1] += w2 + w3;
-        sys->vweights[idv2] += w1 + w3;
-        sys->vweights[idv3] += w1 + w2;
-      }
+      sys->vweights[idv1] += w2 + w3;
+      sys->vweights[idv2] += w1 + w3;
+      sys->vweights[idv3] += w1 + w2;
     }
   }
 }
@@ -300,80 +303,81 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   BMVert *vf[4];
 
   BM_ITER_MESH_INDEX (f, &fiter, sys->bm, BM_FACES_OF_MESH, i) {
-    if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-      BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, j) {
-        vf[j] = vn;
-      }
-      has_4_vert = (j == 4) ? 1 : 0;
-      if (has_4_vert) {
-        idv[0] = BM_elem_index_get(vf[0]);
-        idv[1] = BM_elem_index_get(vf[1]);
-        idv[2] = BM_elem_index_get(vf[2]);
-        idv[3] = BM_elem_index_get(vf[3]);
-        for (j = 0; j < 4; j++) {
-          idv1 = idv[j];
-          idv2 = idv[(j + 1) % 4];
-          idv3 = idv[(j + 2) % 4];
-          idv4 = idv[(j + 3) % 4];
+    if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+      continue;
+    }
 
-          v1 = vf[j]->co;
-          v2 = vf[(j + 1) % 4]->co;
-          v3 = vf[(j + 2) % 4]->co;
-          v4 = vf[(j + 3) % 4]->co;
+    BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, j) {
+      vf[j] = vn;
+    }
+    has_4_vert = (j == 4) ? 1 : 0;
+    if (has_4_vert) {
+      idv[0] = BM_elem_index_get(vf[0]);
+      idv[1] = BM_elem_index_get(vf[1]);
+      idv[2] = BM_elem_index_get(vf[2]);
+      idv[3] = BM_elem_index_get(vf[3]);
+      for (j = 0; j < 4; j++) {
+        idv1 = idv[j];
+        idv2 = idv[(j + 1) % 4];
+        idv3 = idv[(j + 2) % 4];
+        idv4 = idv[(j + 3) % 4];
 
-          w2 = cotangent_tri_weight_v3(v4, v1, v2) + cotangent_tri_weight_v3(v3, v1, v2);
-          w3 = cotangent_tri_weight_v3(v2, v3, v1) + cotangent_tri_weight_v3(v4, v1, v3);
-          w4 = cotangent_tri_weight_v3(v2, v4, v1) + cotangent_tri_weight_v3(v3, v4, v1);
+        v1 = vf[j]->co;
+        v2 = vf[(j + 1) % 4]->co;
+        v3 = vf[(j + 2) % 4]->co;
+        v4 = vf[(j + 3) % 4]->co;
 
-          w2 = w2 / 4.0f;
-          w3 = w3 / 4.0f;
-          w4 = w4 / 4.0f;
+        w2 = cotangent_tri_weight_v3(v4, v1, v2) + cotangent_tri_weight_v3(v3, v1, v2);
+        w3 = cotangent_tri_weight_v3(v2, v3, v1) + cotangent_tri_weight_v3(v4, v1, v3);
+        w4 = cotangent_tri_weight_v3(v2, v4, v1) + cotangent_tri_weight_v3(v3, v4, v1);
 
-          if (!vert_is_boundary(vf[j]) && sys->zerola[idv1] == 0) {
-            EIG_linear_solver_matrix_add(sys->context, idv1, idv2, w2 * sys->vweights[idv1]);
-            EIG_linear_solver_matrix_add(sys->context, idv1, idv3, w3 * sys->vweights[idv1]);
-            EIG_linear_solver_matrix_add(sys->context, idv1, idv4, w4 * sys->vweights[idv1]);
-          }
+        w2 = w2 / 4.0f;
+        w3 = w3 / 4.0f;
+        w4 = w4 / 4.0f;
+
+        if (!vert_is_boundary(vf[j]) && sys->zerola[idv1] == false) {
+          EIG_linear_solver_matrix_add(sys->context, idv1, idv2, w2 * sys->vweights[idv1]);
+          EIG_linear_solver_matrix_add(sys->context, idv1, idv3, w3 * sys->vweights[idv1]);
+          EIG_linear_solver_matrix_add(sys->context, idv1, idv4, w4 * sys->vweights[idv1]);
         }
       }
-      else {
-        idv1 = BM_elem_index_get(vf[0]);
-        idv2 = BM_elem_index_get(vf[1]);
-        idv3 = BM_elem_index_get(vf[2]);
-        /* Is ring if number of faces == number of edges around vertice. */
-        if (!vert_is_boundary(vf[0]) && sys->zerola[idv1] == 0) {
-          EIG_linear_solver_matrix_add(
-              sys->context, idv1, idv2, sys->fweights[i][2] * sys->vweights[idv1]);
-          EIG_linear_solver_matrix_add(
-              sys->context, idv1, idv3, sys->fweights[i][1] * sys->vweights[idv1]);
-        }
-        if (!vert_is_boundary(vf[1]) && sys->zerola[idv2] == 0) {
-          EIG_linear_solver_matrix_add(
-              sys->context, idv2, idv1, sys->fweights[i][2] * sys->vweights[idv2]);
-          EIG_linear_solver_matrix_add(
-              sys->context, idv2, idv3, sys->fweights[i][0] * sys->vweights[idv2]);
-        }
-        if (!vert_is_boundary(vf[2]) && sys->zerola[idv3] == 0) {
-          EIG_linear_solver_matrix_add(
-              sys->context, idv3, idv1, sys->fweights[i][1] * sys->vweights[idv3]);
-          EIG_linear_solver_matrix_add(
-              sys->context, idv3, idv2, sys->fweights[i][0] * sys->vweights[idv3]);
-        }
+    }
+    else {
+      idv1 = BM_elem_index_get(vf[0]);
+      idv2 = BM_elem_index_get(vf[1]);
+      idv3 = BM_elem_index_get(vf[2]);
+      /* Is ring if number of faces == number of edges around vertice. */
+      if (!vert_is_boundary(vf[0]) && sys->zerola[idv1] == false) {
+        EIG_linear_solver_matrix_add(
+            sys->context, idv1, idv2, sys->fweights[i][2] * sys->vweights[idv1]);
+        EIG_linear_solver_matrix_add(
+            sys->context, idv1, idv3, sys->fweights[i][1] * sys->vweights[idv1]);
+      }
+      if (!vert_is_boundary(vf[1]) && sys->zerola[idv2] == false) {
+        EIG_linear_solver_matrix_add(
+            sys->context, idv2, idv1, sys->fweights[i][2] * sys->vweights[idv2]);
+        EIG_linear_solver_matrix_add(
+            sys->context, idv2, idv3, sys->fweights[i][0] * sys->vweights[idv2]);
+      }
+      if (!vert_is_boundary(vf[2]) && sys->zerola[idv3] == false) {
+        EIG_linear_solver_matrix_add(
+            sys->context, idv3, idv1, sys->fweights[i][1] * sys->vweights[idv3]);
+        EIG_linear_solver_matrix_add(
+            sys->context, idv3, idv2, sys->fweights[i][0] * sys->vweights[idv3]);
       }
     }
   }
   BM_ITER_MESH_INDEX (e, &eiter, sys->bm, BM_EDGES_OF_MESH, i) {
-    if (!BM_elem_flag_test(e, BM_ELEM_SELECT) && BM_edge_is_boundary(e)) {
-      v1 = e->v1->co;
-      v2 = e->v2->co;
-      idv1 = BM_elem_index_get(e->v1);
-      idv2 = BM_elem_index_get(e->v2);
-      if (sys->zerola[idv1] == 0 && sys->zerola[idv2] == 0) {
-        EIG_linear_solver_matrix_add(
-            sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
-        EIG_linear_solver_matrix_add(
-            sys->context, idv2, idv1, sys->eweights[i] * sys->vlengths[idv2]);
-      }
+    if (BM_elem_flag_test(e, BM_ELEM_SELECT) || !BM_edge_is_boundary(e)) {
+      continue;
+    }
+    idv1 = BM_elem_index_get(e->v1);
+    idv2 = BM_elem_index_get(e->v2);
+    if (sys->zerola[idv1] == false && sys->zerola[idv2] == false) {
+      EIG_linear_solver_matrix_add(
+          sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
+      EIG_linear_solver_matrix_add(
+          sys->context, idv2, idv1, sys->eweights[i] * sys->vlengths[idv2]);
     }
   }
 }
@@ -448,8 +452,8 @@ static void validate_solution(
     lene = len_v3v3(ve1, ve2);
     if (lene > leni * SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE ||
         lene < leni * SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE) {
-      sys->zerola[idv1] = 1;
-      sys->zerola[idv2] = 1;
+      sys->zerola[idv1] = true;
+      sys->zerola[idv2] = true;
     }
   }
 
@@ -458,7 +462,7 @@ static void validate_solution(
   }
   BMO_ITER (v, &siter, sys->op->slots_in, "verts", BM_VERT) {
     m_vertex_id = BM_elem_index_get(v);
-    if (sys->zerola[m_vertex_id] == 0) {
+    if (sys->zerola[m_vertex_id] == false) {
       if (usex) {
         v->co[0] = EIG_linear_solver_variable_get(sys->context, 0, m_vertex_id);
       }
@@ -528,7 +532,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
     EIG_linear_solver_right_hand_side_add(sys->context, 1, m_vertex_id, v->co[1]);
     EIG_linear_solver_right_hand_side_add(sys->context, 2, m_vertex_id, v->co[2]);
     i = m_vertex_id;
-    if ((sys->zerola[i] == 0) &&
+    if ((sys->zerola[i] == false) &&
         /* Non zero check is to account for vertices that aren't connected to a selected face.
          * Without this wire edges become `nan`, see T89214. */
         (sys->ring_areas[i] != 0.0f)) {
