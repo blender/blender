@@ -103,17 +103,21 @@ class GHOST_XrAction {
                    const XrTime &predicted_display_time);
   void applyHapticFeedback(XrSession session,
                            const char *action_name,
+                           const char **subaction_path,
                            const int64_t &duration,
                            const float &frequency,
                            const float &amplitude);
-  void stopHapticFeedback(XrSession session, const char *action_name);
+  void stopHapticFeedback(XrSession session, const char *action_name, const char **subaction_path);
 
   void *getCustomdata();
   void getBindings(std::map<XrPath, std::vector<XrActionSuggestedBinding>> &r_bindings) const;
 
  private:
+  using SubactionIndexMap = std::map<std::string, uint32_t>;
+
   XrAction m_action = XR_NULL_HANDLE;
   GHOST_XrActionType m_type;
+  SubactionIndexMap m_subaction_indices;
   std::vector<XrPath> m_subaction_paths;
   /** States for each subaction path. */
   void *m_states;
@@ -145,6 +149,8 @@ class GHOST_XrActionSet {
 
   XrActionSet getActionSet() const;
   void *getCustomdata();
+  uint32_t getActionCount() const;
+  void getActionCustomdataArray(void **r_customdata_array);
   void getBindings(std::map<XrPath, std::vector<XrActionSuggestedBinding>> &r_bindings) const;
 
  private:

@@ -204,6 +204,7 @@ if(WITH_XR_OPENXR)
   list(APPEND SRC
     xr/intern/wm_xr.c
     xr/intern/wm_xr_action.c
+    xr/intern/wm_xr_actionmap.c
     xr/intern/wm_xr_draw.c
     xr/intern/wm_xr_session.c
 

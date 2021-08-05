@@ -754,6 +754,7 @@ bool GHOST_XrSession::syncActions(const char *action_set_name)
 
 bool GHOST_XrSession::applyHapticAction(const char *action_set_name,
                                         const char *action_name,
+                                        const char **subaction_path,
                                         const int64_t &duration,
                                         const float &frequency,
                                         const float &amplitude)
@@ -768,12 +769,15 @@ bool GHOST_XrSession::applyHapticAction(const char *action_set_name,
     return false;
   }
 
-  action->applyHapticFeedback(m_oxr->session, action_name, duration, frequency, amplitude);
+  action->applyHapticFeedback(
+      m_oxr->session, action_name, subaction_path, duration, frequency, amplitude);
 
   return true;
 }
 
-void GHOST_XrSession::stopHapticAction(const char *action_set_name, const char *action_name)
+void GHOST_XrSession::stopHapticAction(const char *action_set_name,
+                                       const char *action_name,
+                                       const char **subaction_path)
 {
   GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
   if (action_set == nullptr) {
@@ -785,7 +789,7 @@ void GHOST_XrSession::stopHapticAction(const char *action_set_name, const char *
     return;
   }
 
-  action->stopHapticFeedback(m_oxr->session, action_name);
+  action->stopHapticFeedback(m_oxr->session, action_name, subaction_path);
 }
 
 void *GHOST_XrSession::getActionSetCustomdata(const char *action_set_name)
@@ -811,6 +815,27 @@ void *GHOST_XrSession::getActionCustomdata(const char *action_set_name, const ch
   }
 
   return action->getCustomdata();
+}
+
+uint32_t GHOST_XrSession::getActionCount(const char *action_set_name)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return 0;
+  }
+
+  return action_set->getActionCount();
+}
+
+void GHOST_XrSession::getActionCustomdataArray(const char *action_set_name,
+                                               void **r_customdata_array)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return;
+  }
+
+  action_set->getActionCustomdataArray(r_customdata_array);
 }
 
 /** \} */ /* Actions */

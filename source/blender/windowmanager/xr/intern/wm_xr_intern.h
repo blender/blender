@@ -70,6 +70,10 @@ typedef struct wmXrRuntimeData {
   /** Although this struct is internal, RNA gets a handle to this for state information queries. */
   wmXrSessionState session_state;
   wmXrSessionExitFn exit_fn;
+
+  ListBase actionmaps; /* XrActionMap */
+  short actactionmap;
+  short selactionmap;
 } wmXrRuntimeData;
 
 typedef struct wmXrViewportPair {
@@ -99,6 +103,22 @@ typedef struct wmXrDrawData {
   float eye_position_ofs[3]; /* Local/view space. */
 } wmXrDrawData;
 
+typedef struct wmXrController {
+  struct wmXrController *next, *prev;
+  /** OpenXR path identifier. Length is dependent on OpenXR's XR_MAX_PATH_LENGTH (256).
+  This subaction path will later be combined with a component path, and that combined path should
+  also have a max of XR_MAX_PATH_LENGTH (e.g. subaction_path = /user/hand/left, component_path =
+  /input/trigger/value, interaction_path = /user/hand/left/input/trigger/value).
+  */
+  char subaction_path[64];
+  /* Pose (in world space) that represents the user's hand when holding the controller.*/
+  GHOST_XrPose grip_pose;
+  float grip_mat[4][4];
+  /* Pose (in world space) that represents the controller's aiming source. */
+  GHOST_XrPose aim_pose;
+  float aim_mat[4][4];
+} wmXrController;
+
 typedef struct wmXrAction {
   char *name;
   eXrActionType type;
@@ -119,32 +139,37 @@ typedef struct wmXrAction {
   /** Operator to be called on XR events. */
   struct wmOperatorType *ot;
   IDProperty *op_properties;
+
+  /** Haptics. */
+  char *haptic_name;
+  int64_t haptic_duration;
+  float haptic_frequency;
+  float haptic_amplitude;
+
+  /** Flags. */
   eXrOpFlag op_flag;
+  eXrActionFlag action_flag;
+  eXrHapticFlag haptic_flag;
 } wmXrAction;
 
-typedef struct wmXrController {
-  struct wmXrController *next, *prev;
-  /** OpenXR path identifier. Length is dependent on OpenXR's XR_MAX_PATH_LENGTH (256).
-  This subaction path will later be combined with a component path, and that combined path should
-  also have a max of XR_MAX_PATH_LENGTH (e.g. subaction_path = /user/hand/left, component_path =
-  /input/trigger/value, interaction_path = /user/hand/left/input/trigger/value).
-  */
-  char subaction_path[64];
-  /* Pose (in world space) that represents the user's hand when holding the controller.*/
-  GHOST_XrPose grip_pose;
-  float grip_mat[4][4];
-  /* Pose (in world space) that represents the controller's aiming source. */
-  GHOST_XrPose aim_pose;
-  float aim_mat[4][4];
-} wmXrController;
+typedef struct wmXrHapticAction {
+  struct wmXrHapticAction *next, *prev;
+  wmXrAction *action;
+  const char **subaction_path;
+  int64_t time_start;
+} wmXrHapticAction;
 
 typedef struct wmXrActionSet {
   char *name;
+
   /** XR pose actions that determine the controller grip/aim transforms. */
   wmXrAction *controller_grip_action;
   wmXrAction *controller_aim_action;
-  /** The currently active modal action (if any). */
-  wmXrAction *active_modal_action;
+
+  /** Currently active modal actions. */
+  ListBase active_modal_actions;
+  /** Currently active haptic actions. */
+  ListBase active_haptic_actions;
 } wmXrActionSet;
 
 wmXrRuntimeData *wm_xr_runtime_data_create(void);

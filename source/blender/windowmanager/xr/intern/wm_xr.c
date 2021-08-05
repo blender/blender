@@ -115,6 +115,7 @@ bool wm_xr_init(wmWindowManager *wm)
 void wm_xr_exit(wmWindowManager *wm)
 {
   if (wm->xr.runtime != NULL) {
+    WM_xr_actionmaps_clear(wm->xr.runtime);
     wm_xr_runtime_data_free(&wm->xr.runtime);
   }
   if (wm->xr.session_settings.shading.prop) {

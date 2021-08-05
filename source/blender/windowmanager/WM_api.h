@@ -74,8 +74,7 @@ struct wmNDOFMotionData;
 #endif
 
 #ifdef WITH_XR_OPENXR
-struct wmXrActionState;
-struct wmXrPose;
+struct wmXrRuntimeData;
 #endif
 
 typedef struct wmGizmo wmGizmo;
@@ -988,7 +987,13 @@ bool WM_xr_action_create(wmXrData *xr,
                          const char **subaction_paths,
                          struct wmOperatorType *ot,
                          struct IDProperty *op_properties,
-                         eXrOpFlag op_flag);
+                         const char **haptic_name,
+                         const int64_t *haptic_duration,
+                         const float *haptic_frequency,
+                         const float *haptic_amplitude,
+                         eXrOpFlag op_flag,
+                         eXrActionFlag action_flag,
+                         eXrHapticFlag haptic_flag);
 void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char *action_name);
 bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *action_set_name,
@@ -1022,10 +1027,48 @@ bool WM_xr_action_state_get(const wmXrData *xr,
 bool WM_xr_haptic_action_apply(wmXrData *xr,
                                const char *action_set_name,
                                const char *action_name,
+                               const char **subaction_path,
                                const int64_t *duration,
                                const float *frequency,
                                const float *amplitude);
-void WM_xr_haptic_action_stop(wmXrData *xr, const char *action_set_name, const char *action_name);
+void WM_xr_haptic_action_stop(wmXrData *xr,
+                              const char *action_set_name,
+                              const char *action_name,
+                              const char **subaction_path);
+
+/* wm_xr_actionmap.c */
+XrActionMap *WM_xr_actionmap_new(struct wmXrRuntimeData *runtime,
+                                 const char *name,
+                                 bool replace_existing);
+void WM_xr_actionmap_ensure_unique(struct wmXrRuntimeData *runtime, XrActionMap *actionmap);
+XrActionMap *WM_xr_actionmap_add_copy(struct wmXrRuntimeData *runtime, XrActionMap *am_src);
+bool WM_xr_actionmap_remove(struct wmXrRuntimeData *runtime, XrActionMap *actionmap);
+XrActionMap *WM_xr_actionmap_find(struct wmXrRuntimeData *runtime, const char *name);
+void WM_xr_actionmap_clear(XrActionMap *actionmap);
+void WM_xr_actionmaps_clear(struct wmXrRuntimeData *runtime);
+ListBase *WM_xr_actionmaps_get(struct wmXrRuntimeData *runtime);
+short WM_xr_actionmap_active_index_get(const struct wmXrRuntimeData *runtime);
+void WM_xr_actionmap_active_index_set(struct wmXrRuntimeData *runtime, short idx);
+short WM_xr_actionmap_selected_index_get(const struct wmXrRuntimeData *runtime);
+void WM_xr_actionmap_selected_index_set(struct wmXrRuntimeData *runtime, short idx);
+
+XrActionMapItem *WM_xr_actionmap_item_new(XrActionMap *actionmap,
+                                          const char *name,
+                                          bool replace_existing);
+void WM_xr_actionmap_item_ensure_unique(XrActionMap *actionmap, XrActionMapItem *ami);
+XrActionMapItem *WM_xr_actionmap_item_add_copy(XrActionMap *actionmap, XrActionMapItem *ami_src);
+bool WM_xr_actionmap_item_remove(XrActionMap *actionmap, XrActionMapItem *ami);
+XrActionMapItem *WM_xr_actionmap_item_find(XrActionMap *actionmap, const char *name);
+void WM_xr_actionmap_item_properties_update_ot(XrActionMapItem *ami);
+
+XrActionMapBinding *WM_xr_actionmap_binding_new(XrActionMapItem *ami,
+                                                const char *name,
+                                                bool replace_existing);
+void WM_xr_actionmap_binding_ensure_unique(XrActionMapItem *ami, XrActionMapBinding *amb);
+XrActionMapBinding *WM_xr_actionmap_binding_add_copy(XrActionMapItem *ami,
+                                                     XrActionMapBinding *amb_src);
+bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *amb);
+XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const char *name);
 #endif /* WITH_XR_OPENXR */
 
 #ifdef __cplusplus

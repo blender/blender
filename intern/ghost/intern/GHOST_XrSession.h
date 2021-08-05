@@ -76,14 +76,19 @@ class GHOST_XrSession {
   bool syncActions(const char *action_set_name = nullptr);
   bool applyHapticAction(const char *action_set_name,
                          const char *action_name,
+                         const char **subaction_path,
                          const int64_t &duration,
                          const float &frequency,
                          const float &amplitude);
-  void stopHapticAction(const char *action_set_name, const char *action_name);
+  void stopHapticAction(const char *action_set_name,
+                        const char *action_name,
+                        const char **subaction_path);
 
   /* Custom data (owned by Blender, not GHOST) accessors. */
   void *getActionSetCustomdata(const char *action_set_name);
   void *getActionCustomdata(const char *action_set_name, const char *action_name);
+  uint32_t getActionCount(const char *action_set_name);
+  void getActionCustomdataArray(const char *action_set_name, void **r_customdata_array);
 
  private:
   /** Pointer back to context managing this session. Would be nice to avoid, but needed to access
