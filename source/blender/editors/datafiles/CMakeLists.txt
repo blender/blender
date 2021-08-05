@@ -583,6 +583,8 @@ set(ICON_NAMES
   uv_facesel
   uv_islandsel
   uv_sync_select
+  gp_caps_flat
+  gp_caps_round
   fixed_size
   transform_origins
   gizmo

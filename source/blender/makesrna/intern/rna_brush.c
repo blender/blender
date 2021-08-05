@@ -1282,8 +1282,8 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   };
 
   static EnumPropertyItem rna_enum_gpencil_brush_caps_types_items[] = {
-      {GP_STROKE_CAP_ROUND, "ROUND", ICON_HANDLETYPE_AUTO_CLAMP_VEC, "Round", ""},
-      {GP_STROKE_CAP_FLAT, "FLAT", ICON_HANDLETYPE_VECTOR_VEC, "Flat", ""},
+      {GP_STROKE_CAP_ROUND, "ROUND", ICON_GP_CAPS_ROUND, "Round", ""},
+      {GP_STROKE_CAP_FLAT, "FLAT", ICON_GP_CAPS_FLAT, "Flat", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
