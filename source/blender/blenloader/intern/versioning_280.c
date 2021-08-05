@@ -1778,6 +1778,19 @@ static void do_versions_seq_set_cache_defaults(Editing *ed)
   ed->recycle_max_cost = 10.0f;
 }
 
+static void do_version_constraints_spline_ik_joint_bindings(ListBase *lb)
+{
+  /* Binding array data could be freed without properly resetting its size data. */
+  LISTBASE_FOREACH (bConstraint *, con, lb) {
+    if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
+      bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
+      if (data->points == NULL) {
+        data->numpoints = 0;
+      }
+    }
+  }
+}
+
 void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   bool use_collection_compat_28 = true;
@@ -5090,6 +5103,17 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 283, 21)) {
     ListBase *lb = which_libbase(bmain, ID_VF);
     BKE_main_id_repair_duplicate_names_listbase(lb);
+
+    /* Fix SplineIK constraint's inconsistency between binding points array and its stored size. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      /* NOTE: Objects should never have SplineIK constraint, so no need to apply this fix on
+       * their constraints. */
+      if (ob->pose) {
+        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+          do_version_constraints_spline_ik_joint_bindings(&pchan->constraints);
+        }
+      }
+    }
   }
 
   /**
