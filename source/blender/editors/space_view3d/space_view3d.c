@@ -534,8 +534,8 @@ static char *view3d_mat_drop_tooltip(bContext *C,
                                      const wmEvent *event,
                                      struct wmDropBox *drop)
 {
-  wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, ID_MA);
-  RNA_string_set(drop->ptr, "name", asset_drag->name);
+  const char *name = WM_drag_get_item_name(drag);
+  RNA_string_set(drop->ptr, "name", name);
   return ED_object_ot_drop_named_material_tooltip(C, drop->ptr, event);
 }
 

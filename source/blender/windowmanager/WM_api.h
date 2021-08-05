@@ -728,6 +728,8 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain,
                                    struct wmDrag *drag,
                                    struct wmDropBox *drop);
 
+const char *WM_drag_get_item_name(struct wmDrag *drag);
+
 /* Set OpenGL viewport and scissor */
 void wmViewport(const struct rcti *winrct);
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);
