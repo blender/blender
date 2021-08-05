@@ -1533,13 +1533,6 @@ static void draw_frustum_boundbox_calc(const float (*viewinv)[4],
 
   projmat_dimensions(projmat, &left, &right, &bottom, &top, &near, &far);
 
-  if (is_persp) {
-    left *= near;
-    right *= near;
-    bottom *= near;
-    top *= near;
-  }
-
   r_bbox->vec[0][2] = r_bbox->vec[3][2] = r_bbox->vec[7][2] = r_bbox->vec[4][2] = -near;
   r_bbox->vec[0][0] = r_bbox->vec[3][0] = left;
   r_bbox->vec[4][0] = r_bbox->vec[7][0] = right;

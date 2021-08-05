@@ -521,7 +521,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
   MaskLayer *mask_layer = BKE_mask_layer_active(mask);
 
-  if (mask_layer && mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+  if (mask_layer && mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
     mask_layer = NULL;
   }
 

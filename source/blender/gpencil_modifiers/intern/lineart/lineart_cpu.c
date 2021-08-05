@@ -1968,8 +1968,8 @@ static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
 
   if (c->gobject.first) {
     if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
-      if ((is_render && (c->flag & COLLECTION_RESTRICT_RENDER)) ||
-          ((!is_render) && (c->flag & COLLECTION_RESTRICT_VIEWPORT))) {
+      if ((is_render && (c->flag & COLLECTION_HIDE_RENDER)) ||
+          ((!is_render) && (c->flag & COLLECTION_HIDE_VIEWPORT))) {
         return OBJECT_LRT_EXCLUDE;
       }
       if (ob->lineart.usage == OBJECT_LRT_INHERIT) {

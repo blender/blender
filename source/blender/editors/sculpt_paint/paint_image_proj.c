@@ -4512,7 +4512,7 @@ static void project_paint_begin(const bContext *C,
   ps->buckets_x = (int)(ps->screen_width / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
   ps->buckets_y = (int)(ps->screen_height / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
 
-  /* printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y); */
+  // printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y);
 
   if (ps->buckets_x > PROJ_BUCKET_RECT_MAX || ps->buckets_y > PROJ_BUCKET_RECT_MAX) {
     reset_threads = true;
@@ -5194,8 +5194,8 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
     softenArena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "paint soften arena");
   }
 
-  /* printf("brush bounds %d %d %d %d\n",
-   *        bucketMin[0], bucketMin[1], bucketMax[0], bucketMax[1]); */
+  // printf("brush bounds %d %d %d %d\n",
+  //        bucketMin[0], bucketMin[1], bucketMax[0], bucketMax[1]);
 
   while (project_bucket_iter_next(ps, &bucket_index, &bucket_bounds, pos)) {
 

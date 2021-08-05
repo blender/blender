@@ -57,8 +57,8 @@ void CryptomatteOperation::executePixel(float output[4], int x, int y, void *dat
       ::memcpy(&m3hash, &input[0], sizeof(uint32_t));
       /* Since the red channel is likely to be out of display range,
        * setting green and blue gives more meaningful images. */
-      output[1] = ((float)((m3hash << 8)) / (float)UINT32_MAX);
-      output[2] = ((float)((m3hash << 16)) / (float)UINT32_MAX);
+      output[1] = ((float)(m3hash << 8) / (float)UINT32_MAX);
+      output[2] = ((float)(m3hash << 16) / (float)UINT32_MAX);
     }
     for (float hash : m_objectIndex) {
       if (input[0] == hash) {

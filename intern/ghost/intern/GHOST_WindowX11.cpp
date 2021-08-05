@@ -403,7 +403,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     }
 
     if (natom) {
-      /* printf("Register atoms: %d\n", natom); */
+      // printf("Register atoms: %d\n", natom);
       XSetWMProtocols(m_display, m_window, atoms, natom);
     }
   }
@@ -1275,15 +1275,15 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 {
   if (type == GHOST_kDrawingContextTypeOpenGL) {
 
-    // During development:
-    //   try 4.x compatibility profile
-    //   try 3.3 compatibility profile
-    //   fall back to 3.0 if needed
-    //
-    // Final Blender 2.8:
-    //   try 4.x core profile
-    //   try 3.3 core profile
-    //   no fallbacks
+    /* During development:
+     * - Try 4.x compatibility profile.
+     * - Try 3.3 compatibility profile.
+     * - Fall back to 3.0 if needed.
+     *
+     * Final Blender 2.8:
+     * - Try 4.x core profile
+     * - Try 3.3 core profile
+     * - No fall-backs. */
 
 #if defined(WITH_GL_PROFILE_CORE)
     {

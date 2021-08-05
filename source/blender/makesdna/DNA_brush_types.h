@@ -76,7 +76,9 @@ typedef struct BrushGpencilSettings {
   float fill_threshold;
   /** Number of pixel to consider the leak is too small (x 2). */
   short fill_leak;
-  char _pad2[2];
+  /* Type of caps: eGPDstroke_Caps. */
+  int8_t caps_type;
+  char _pad;
 
   int flag2;
 

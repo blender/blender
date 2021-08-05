@@ -292,7 +292,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((seq->flag & SELECT)) {
+    if (seq->flag & SELECT) {
       xmin = min_ii(xmin, seq->startdisp);
       xmax = max_ii(xmax, seq->enddisp);
 

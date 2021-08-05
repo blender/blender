@@ -37,6 +37,7 @@ set(SRC
 
   IO_abstract_hierarchy_iterator.h
   IO_dupli_persistent_id.hh
+  IO_types.h
   intern/dupli_parent_finder.hh
 )
 

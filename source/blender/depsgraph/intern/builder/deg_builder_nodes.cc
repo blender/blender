@@ -648,9 +648,9 @@ void DepsgraphNodeBuilder::build_idproperties(IDProperty *id_property)
 void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collection,
                                             Collection *collection)
 {
-  const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_RESTRICT_VIEWPORT :
-                                                                  COLLECTION_RESTRICT_RENDER;
-  const bool is_collection_restricted = (collection->flag & restrict_flag);
+  const int visibility_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_HIDE_VIEWPORT :
+                                                                    COLLECTION_HIDE_RENDER;
+  const bool is_collection_restricted = (collection->flag & visibility_flag);
   const bool is_collection_visible = !is_collection_restricted && is_parent_collection_visible_;
   IDNode *id_node;
   if (built_map_.checkIsBuiltAndTag(collection)) {

@@ -1682,7 +1682,8 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
   ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
 
   PropertyRNA *prop;
-  RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
+  prop = RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "extend_range", false, "Extend Range", "Select a range from active element");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

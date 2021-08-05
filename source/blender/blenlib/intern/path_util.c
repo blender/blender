@@ -1102,12 +1102,9 @@ bool BLI_path_abs(char *path, const char *basepath)
   }
 
 #ifdef WIN32
-  /* skip first two chars, which in case of
-   * absolute path will be drive:/blabla and
-   * in case of relpath //blabla/. So relpath
-   * // will be retained, rest will be nice and
-   * shiny win32 backward slashes :) -jesterKing
-   */
+  /* NOTE(@jesterking): Skip first two chars, which in case of absolute path will
+   * be `drive:/blabla` and in case of `relpath` `//blabla/`.
+   * So `relpath` `//` will be retained, rest will be nice and shiny WIN32 backward slashes. */
   BLI_str_replace_char(path + 2, '/', '\\');
 #endif
 
@@ -1897,7 +1894,7 @@ bool BLI_path_name_at_index(const char *__restrict path,
           if (index_step == index) {
             *r_offset = prev;
             *r_len = i - prev;
-            /* printf("!!! %d %d\n", start, end); */
+            // printf("!!! %d %d\n", start, end);
             return true;
           }
           index_step += 1;

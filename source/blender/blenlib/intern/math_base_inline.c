@@ -199,6 +199,13 @@ MINLINE float scalenorm(float a, float b, float x)
   return (x * (b - a)) + a;
 }
 
+/* Map a normalized value, i.e. from interval [0, 1] to interval [a, b]. */
+MINLINE double scalenormd(double a, double b, double x)
+{
+  BLI_assert(x <= 1 && x >= 0);
+  return (x * (b - a)) + a;
+}
+
 /* Used for zoom values. */
 MINLINE float power_of_2(float val)
 {

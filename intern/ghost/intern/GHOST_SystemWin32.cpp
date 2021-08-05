@@ -1424,7 +1424,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_INPUTLANGCHANGE: {
           system->handleKeyboardChange();
 #ifdef WITH_INPUT_IME
-          window->getImeInput()->SetInputLanguage();
+          window->getImeInput()->UpdateInputLanguage();
           window->getImeInput()->UpdateConversionStatus(hwnd);
 #endif
           break;
@@ -1471,7 +1471,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         }
         case WM_IME_SETCONTEXT: {
           GHOST_ImeWin32 *ime = window->getImeInput();
-          ime->SetInputLanguage();
+          ime->UpdateInputLanguage();
           ime->CreateImeWindow(hwnd);
           ime->CleanupComposition(hwnd);
           ime->CheckFirst(hwnd);

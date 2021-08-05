@@ -847,6 +847,19 @@ MINLINE void invert_v3(float r[3])
   r[2] = 1.0f / r[2];
 }
 
+MINLINE void invert_v3_safe(float r[3])
+{
+  if (r[0] != 0.0f) {
+    r[0] = 1.0f / r[0];
+  }
+  if (r[1] != 0.0f) {
+    r[1] = 1.0f / r[1];
+  }
+  if (r[2] != 0.0f) {
+    r[2] = 1.0f / r[2];
+  }
+}
+
 MINLINE void abs_v2(float r[2])
 {
   r[0] = fabsf(r[0]);

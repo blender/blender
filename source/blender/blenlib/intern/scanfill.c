@@ -430,7 +430,7 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
               /* new edge */
               ed1 = BLI_scanfill_edge_add(sf_ctx, eed->v1, eve);
 
-              /* printf("fill: vertex near edge %x\n", eve); */
+              // printf("fill: vertex near edge %x\n", eve);
               ed1->poly_nr = eed->poly_nr;
               eed->v1 = eve;
               eve->edge_tot = 3;
@@ -608,7 +608,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 
   sc = scdata;
   for (a = 0; a < verts; a++) {
-    /* printf("VERTEX %d index %d\n", a, sc->vert->tmp.u); */
+    // printf("VERTEX %d index %d\n", a, sc->vert->tmp.u);
     /* Set connect-flags. */
     for (ed1 = sc->edge_first; ed1; ed1 = eed_next) {
       eed_next = ed1->next;
@@ -634,13 +634,13 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
        * (and doesn't work during grab). */
       /* if (callLocalInterruptCallBack()) break; */
       if (totface >= maxface) {
-        /* printf("Fill error: endless loop. Escaped at vert %d,  tot: %d.\n", a, verts); */
+        // printf("Fill error: endless loop. Escaped at vert %d,  tot: %d.\n", a, verts);
         a = verts;
         break;
       }
       if (ed2 == NULL) {
         sc->edge_first = sc->edge_last = NULL;
-        /* printf("just 1 edge to vert\n"); */
+        // printf("just 1 edge to vert\n");
         BLI_addtail(&sf_ctx->filledgebase, ed1);
         ed1->v2->f = SF_VERT_NEW;
         ed1->v1->edge_tot--;
@@ -662,7 +662,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
           break;
         }
 
-        /* printf("test verts %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u); */
+        // printf("test verts %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u);
         miny = min_ff(v1->xy[1], v3->xy[1]);
         sc1 = sc + 1;
 
@@ -705,7 +705,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 
         if (best_sc) {
           /* make new edge, and start over */
-          /* printf("add new edge %d %d and start again\n", v2->tmp.u, best_sc->vert->tmp.u); */
+          // printf("add new edge %d %d and start again\n", v2->tmp.u, best_sc->vert->tmp.u);
 
           ed3 = BLI_scanfill_edge_add(sf_ctx, v2, best_sc->vert);
           BLI_remlink(&sf_ctx->filledgebase, ed3);
@@ -717,7 +717,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
         }
         else {
           /* new triangle */
-          /* printf("add face %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u); */
+          // printf("add face %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u);
           addfillface(sf_ctx, v1, v2, v3);
           totface++;
           BLI_remlink((ListBase *)&(sc->edge_first), ed1);
@@ -741,11 +741,11 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
           ed3->v1->edge_tot++;
           ed3->v2->edge_tot++;
 
-          /* printf("add new edge %x %x\n", v1, v3); */
+          // printf("add new edge %x %x\n", v1, v3);
           sc1 = addedgetoscanlist(scdata, ed3, verts);
 
           if (sc1) { /* ed3 already exists: remove if a boundary */
-            /* printf("Edge exists\n"); */
+            // printf("Edge exists\n");
             ed3->v1->edge_tot--;
             ed3->v2->edge_tot--;
 
@@ -954,7 +954,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
         poly++;
       }
     }
-    /* printf("amount of poly's: %d\n", poly); */
+    // printf("amount of poly's: %d\n", poly);
   }
   else if (poly) {
     /* we pre-calculated poly_nr */
@@ -1020,7 +1020,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
       }
     }
     if (BLI_listbase_is_empty(&sf_ctx->filledgebase)) {
-      /* printf("All edges removed\n"); */
+      // printf("All edges removed\n");
       return 0;
     }
   }

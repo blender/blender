@@ -110,6 +110,10 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+# Install CODE|SCRIPT allow the use of generator expressions.
+if(POLICY CMP0087)
+  cmake_policy(SET CMP0087 NEW)
+endif()
 #-----------------------------------------------------------------------------
 # Load some macros.
 include(build_files/cmake/macros.cmake)
@@ -423,6 +427,10 @@ mark_as_advanced(WITH_CYCLES_NETWORK)
 
 option(WITH_CUDA_DYNLOAD "Dynamically load CUDA libraries at runtime" ON)
 mark_as_advanced(WITH_CUDA_DYNLOAD)
+
+# Draw Manager
+option(WITH_DRAW_DEBUG "Add extra debug capabilities to Draw Manager" OFF)
+mark_as_advanced(WITH_DRAW_DEBUG)
 
 # LLVM
 option(WITH_LLVM                    "Use LLVM" OFF)

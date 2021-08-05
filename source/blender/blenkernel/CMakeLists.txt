@@ -698,6 +698,13 @@ if(WITH_ALEMBIC)
   add_definitions(-DWITH_ALEMBIC)
 endif()
 
+if(WITH_USD)
+  list(APPEND INC
+    ../io/usd
+  )
+  add_definitions(-DWITH_USD)
+endif()
+
 if(WITH_OPENSUBDIV)
   list(APPEND INC_SYS
     ${OPENSUBDIV_INCLUDE_DIRS}

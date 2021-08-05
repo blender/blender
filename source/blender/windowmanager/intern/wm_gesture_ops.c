@@ -585,7 +585,7 @@ void wm_tweakevent_test(bContext *C, const wmEvent *event, int action)
   }
   else {
     /* no tweaks if event was handled */
-    if ((action & WM_HANDLER_BREAK)) {
+    if (action & WM_HANDLER_BREAK) {
       WM_gesture_end(win, win->tweak);
     }
     else {

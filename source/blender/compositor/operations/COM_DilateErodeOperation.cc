@@ -24,7 +24,7 @@
 
 namespace blender::compositor {
 
-// DilateErode Distance Threshold
+/* DilateErode Distance Threshold */
 DilateErodeThresholdOperation::DilateErodeThresholdOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -258,7 +258,7 @@ void DilateDistanceOperation::executeOpenCL(OpenCLDevice *device,
   device->COM_clEnqueueRange(dilateKernel, outputMemoryBuffer, 7, this);
 }
 
-// Erode Distance
+/* Erode Distance */
 ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation()
 {
   /* pass */
@@ -318,7 +318,7 @@ void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
   device->COM_clEnqueueRange(erodeKernel, outputMemoryBuffer, 7, this);
 }
 
-// Dilate step
+/* Dilate step */
 DilateStepOperation::DilateStepOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -331,7 +331,7 @@ void DilateStepOperation::initExecution()
   this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-// small helper to pass data from initializeTileData to executePixel
+/* Small helper to pass data from initializeTileData to executePixel. */
 struct tile_info {
   rcti rect;
   int width;
@@ -370,21 +370,21 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
   int bwidth = rect->xmax - rect->xmin;
   int bheight = rect->ymax - rect->ymin;
 
-  // NOTE: Cache buffer has original tilesize width, but new height.
-  // We have to calculate the additional rows in the first pass,
-  // to have valid data available for the second pass.
+  /* NOTE: Cache buffer has original tile-size width, but new height.
+   * We have to calculate the additional rows in the first pass,
+   * to have valid data available for the second pass. */
   tile_info *result = create_cache(rect->xmin, rect->xmax, ymin, ymax);
   float *rectf = result->buffer;
 
-  // temp holds maxima for every step in the algorithm, buf holds a
-  // single row or column of input values, padded with FLT_MAX's to
-  // simplify the logic.
+  /* temp holds maxima for every step in the algorithm, buf holds a
+   * single row or column of input values, padded with FLT_MAX's to
+   * simplify the logic. */
   float *temp = (float *)MEM_mallocN(sizeof(float) * (2 * window - 1), "dilate erode temp");
   float *buf = (float *)MEM_mallocN(sizeof(float) * (MAX2(bwidth, bheight) + 5 * half_window),
                                     "dilate erode buf");
 
-  // The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
-  // first pass, horizontal dilate/erode
+  /* The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
+   * first pass, horizontal dilate/erode. */
   for (y = ymin; y < ymax; y++) {
     for (x = 0; x < bwidth + 5 * half_window; x++) {
       buf[x] = -FLT_MAX;
@@ -409,7 +409,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
     }
   }
 
-  // second pass, vertical dilate/erode
+  /* Second pass, vertical dilate/erode. */
   for (x = 0; x < bwidth; x++) {
     for (y = 0; y < bheight + 5 * half_window; y++) {
       buf[y] = -FLT_MAX;
@@ -475,7 +475,7 @@ bool DilateStepOperation::determineDependingAreaOfInterest(rcti *input,
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-// Erode step
+/* Erode step */
 ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 {
   /* pass */
@@ -500,21 +500,21 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
   int bwidth = rect->xmax - rect->xmin;
   int bheight = rect->ymax - rect->ymin;
 
-  // NOTE: Cache buffer has original tilesize width, but new height.
-  // We have to calculate the additional rows in the first pass,
-  // to have valid data available for the second pass.
+  /* NOTE: Cache buffer has original tilesize width, but new height.
+   * We have to calculate the additional rows in the first pass,
+   * to have valid data available for the second pass. */
   tile_info *result = create_cache(rect->xmin, rect->xmax, ymin, ymax);
   float *rectf = result->buffer;
 
-  // temp holds maxima for every step in the algorithm, buf holds a
-  // single row or column of input values, padded with FLT_MAX's to
-  // simplify the logic.
+  /* temp holds maxima for every step in the algorithm, buf holds a
+   * single row or column of input values, padded with FLT_MAX's to
+   * simplify the logic. */
   float *temp = (float *)MEM_mallocN(sizeof(float) * (2 * window - 1), "dilate erode temp");
   float *buf = (float *)MEM_mallocN(sizeof(float) * (MAX2(bwidth, bheight) + 5 * half_window),
                                     "dilate erode buf");
 
-  // The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
-  // first pass, horizontal dilate/erode
+  /* The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
+   * first pass, horizontal dilate/erode */
   for (y = ymin; y < ymax; y++) {
     for (x = 0; x < bwidth + 5 * half_window; x++) {
       buf[x] = FLT_MAX;
@@ -539,7 +539,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
     }
   }
 
-  // second pass, vertical dilate/erode
+  /* Second pass, vertical dilate/erode. */
   for (x = 0; x < bwidth; x++) {
     for (y = 0; y < bheight + 5 * half_window; y++) {
       buf[y] = FLT_MAX;

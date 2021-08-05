@@ -1515,7 +1515,7 @@ int transform_convert_pose_transflags_update(Object *ob,
   for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
     bone = pchan->bone;
     if (PBONE_VISIBLE(arm, bone)) {
-      if ((bone->flag & BONE_SELECTED)) {
+      if (bone->flag & BONE_SELECTED) {
         bone->flag |= BONE_TRANSFORM;
       }
       else {

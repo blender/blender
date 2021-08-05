@@ -110,7 +110,7 @@ void AssetMarkHelper::reportResults(ReportList &reports) const
 {
   /* User feedback on failure. */
   if (!wasSuccessful()) {
-    if ((stats.tot_already_asset > 0)) {
+    if (stats.tot_already_asset > 0) {
       BKE_report(&reports,
                  RPT_ERROR,
                  "Selected data-blocks are already assets (or do not support use as assets)");

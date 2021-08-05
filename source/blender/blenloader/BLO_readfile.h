@@ -108,6 +108,9 @@ typedef struct BlendFileReadReport {
      * during this file read. */
     int missing_libraries;
     int missing_linked_id;
+    /* Some sub-categories of the above `missing_linked_id` counter. */
+    int missing_obdata;
+    int missing_obproxies;
     /* Number of root override IDs that were resynced. */
     int resynced_lib_overrides;
   } count;

@@ -174,7 +174,7 @@ typedef struct MaskLayer {
   /** For animation. */
   char flag;
   /** Matching 'Object' flag of the same name - eventually use in the outliner. */
-  char restrictflag;
+  char visibility_flag;
 } MaskLayer;
 
 /* MaskParent->flag */
@@ -206,10 +206,10 @@ enum {
   MASK_SPLINE_OFFSET_SMOOTH = 1,
 };
 
-/* ob->restrictflag */
-#define MASK_RESTRICT_VIEW (1 << 0)
-#define MASK_RESTRICT_SELECT (1 << 1)
-#define MASK_RESTRICT_RENDER (1 << 2)
+/* MaskLayer->visibility_flag */
+#define MASK_HIDE_VIEW (1 << 0)
+#define MASK_HIDE_SELECT (1 << 1)
+#define MASK_HIDE_RENDER (1 << 2)
 
 /* SpaceClip->mask_draw_flag */
 #define MASK_DRAWFLAG_SMOOTH (1 << 0)

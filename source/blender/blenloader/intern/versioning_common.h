@@ -22,6 +22,7 @@
 
 struct ARegion;
 struct ListBase;
+struct Main;
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +32,11 @@ struct ARegion *do_versions_add_region_if_not_found(struct ListBase *regionbase,
                                                     int region_type,
                                                     const char *name,
                                                     int link_after_region_type);
+
+ID *do_versions_rename_id(Main *bmain,
+                          const short id_type,
+                          const char *name_src,
+                          const char *name_dst);
 
 #ifdef __cplusplus
 }

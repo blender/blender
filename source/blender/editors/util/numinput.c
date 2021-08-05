@@ -309,7 +309,7 @@ bool user_string_to_number(bContext *C,
   return success;
 
 #else
-  UNUSED_VARS(C, unit, type);
+  UNUSED_VARS(C, unit, type, use_single_line_error, r_error);
   *r_value = atof(str);
   return true;
 #endif

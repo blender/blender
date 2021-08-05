@@ -220,14 +220,11 @@ void WM_drag_free_list(struct ListBase *lb)
   }
 }
 
-static char *dropbox_tooltip(bContext *C,
-                             wmDrag *drag,
-                             const wmEvent *event,
-                             const wmDropBox *drop)
+static char *dropbox_tooltip(bContext *C, wmDrag *drag, const wmEvent *event, wmDropBox *drop)
 {
   char *tooltip = NULL;
   if (drop->tooltip) {
-    tooltip = drop->tooltip(C, drag, event);
+    tooltip = drop->tooltip(C, drag, event, drop);
   }
   if (!tooltip) {
     tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr));
@@ -472,7 +469,7 @@ static void wm_drop_operator_draw(const char *name, int x, int y)
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }
 
-static const char *wm_drag_name(wmDrag *drag)
+const char *WM_drag_get_item_name(wmDrag *drag)
 {
   switch (drag->type) {
     case WM_DRAG_ID: {
@@ -586,11 +583,11 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
     }
 
     if (rect) {
-      int w = UI_fontstyle_string_width(fstyle, wm_drag_name(drag));
+      int w = UI_fontstyle_string_width(fstyle, WM_drag_get_item_name(drag));
       drag_rect_minmax(rect, x, y, x + w, y + iconsize);
     }
     else {
-      UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag), text_col);
+      UI_fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
     }
 
     /* operator name with roundbox */
@@ -617,7 +614,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
       }
 
       if (rect) {
-        int w = UI_fontstyle_string_width(fstyle, wm_drag_name(drag));
+        int w = UI_fontstyle_string_width(fstyle, WM_drag_get_item_name(drag));
         drag_rect_minmax(rect, x, y, x + w, y + iconsize);
       }
       else {

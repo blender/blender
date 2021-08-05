@@ -2748,9 +2748,6 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 
 static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 {
-  BMIter fiter;
-  BMFace *f;
-  int tot_invalid = 0;
   int tot_unselected = 0;
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -2777,22 +2774,6 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 
     if (em->bm->totvertsel == 0) {
       tot_unselected++;
-      tot_invalid++;
-      continue;
-    }
-
-    bool is_invalid = false;
-    /* Check if select faces are triangles. */
-    BM_ITER_MESH (f, &fiter, em->bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        if (f->len > 4) {
-          tot_invalid++;
-          is_invalid = true;
-          break;
-        }
-      }
-    }
-    if (is_invalid) {
       continue;
     }
 
@@ -2839,10 +2820,6 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 
   if (tot_unselected == objects_len) {
     BKE_report(op->reports, RPT_WARNING, "No selected vertex");
-    return OPERATOR_CANCELLED;
-  }
-  if (tot_invalid == objects_len) {
-    BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
     return OPERATOR_CANCELLED;
   }
 
@@ -4666,7 +4643,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const int type = RNA_enum_get(op->ptr, "type");
-  int retval = 0;
+  bool changed_multi = false;
 
   if (ED_operator_editmesh(C)) {
     uint bases_len = 0;
@@ -4676,6 +4653,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
     for (uint bs_index = 0; bs_index < bases_len; bs_index++) {
       Base *base = bases[bs_index];
       BMEditMesh *em = BKE_editmesh_from_object(base->object);
+      bool changed = false;
 
       if (type == 0) {
         if ((em->bm->totvertsel == 0) && (em->bm->totedgesel == 0) && (em->bm->totfacesel == 0)) {
@@ -4690,20 +4668,20 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
       /* editmode separate */
       switch (type) {
         case MESH_SEPARATE_SELECTED:
-          retval = mesh_separate_selected(bmain, scene, view_layer, base, em->bm);
+          changed = mesh_separate_selected(bmain, scene, view_layer, base, em->bm);
           break;
         case MESH_SEPARATE_MATERIAL:
-          retval = mesh_separate_material(bmain, scene, view_layer, base, em->bm);
+          changed = mesh_separate_material(bmain, scene, view_layer, base, em->bm);
           break;
         case MESH_SEPARATE_LOOSE:
-          retval = mesh_separate_loose(bmain, scene, view_layer, base, em->bm);
+          changed = mesh_separate_loose(bmain, scene, view_layer, base, em->bm);
           break;
         default:
           BLI_assert(0);
           break;
       }
 
-      if (retval) {
+      if (changed) {
         EDBM_update(base->object->data,
                     &(const struct EDBMUpdate_Params){
                         .calc_looptri = true,
@@ -4711,6 +4689,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
                         .is_destructive = true,
                     });
       }
+      changed_multi |= changed;
     }
     MEM_freeN(bases);
   }
@@ -4727,7 +4706,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
         Mesh *me = ob->data;
         if (!ID_IS_LINKED(me)) {
           BMesh *bm_old = NULL;
-          int retval_iter = 0;
+          bool changed = false;
 
           bm_old = BM_mesh_create(&bm_mesh_allocsize_default,
                                   &((struct BMeshCreateParams){
@@ -4738,17 +4717,17 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
           switch (type) {
             case MESH_SEPARATE_MATERIAL:
-              retval_iter = mesh_separate_material(bmain, scene, view_layer, base_iter, bm_old);
+              changed = mesh_separate_material(bmain, scene, view_layer, base_iter, bm_old);
               break;
             case MESH_SEPARATE_LOOSE:
-              retval_iter = mesh_separate_loose(bmain, scene, view_layer, base_iter, bm_old);
+              changed = mesh_separate_loose(bmain, scene, view_layer, base_iter, bm_old);
               break;
             default:
               BLI_assert(0);
               break;
           }
 
-          if (retval_iter) {
+          if (changed) {
             BM_mesh_bm_to_me(bmain,
                              bm_old,
                              me,
@@ -4762,14 +4741,14 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
           BM_mesh_free(bm_old);
 
-          retval |= retval_iter;
+          changed_multi |= changed;
         }
       }
     }
     CTX_DATA_END;
   }
 
-  if (retval) {
+  if (changed_multi) {
     /* delay depsgraph recalc until all objects are duplicated */
     DEG_relations_tag_update(bmain);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
@@ -9538,18 +9517,11 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
     BKE_editmesh_ensure_autosmooth(em, obedit->data);
     BKE_editmesh_lnorspace_update(em, obedit->data);
 
-    float(*vnors)[3] = MEM_callocN(sizeof(*vnors) * bm->totvert, __func__);
-    BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        BM_ITER_ELEM (v, &viter, f, BM_VERTS_OF_FACE) {
-          const int v_index = BM_elem_index_get(v);
-          add_v3_v3(vnors[v_index], f->no);
-        }
-      }
-    }
-    for (int i = 0; i < bm->totvert; i++) {
-      if (!is_zero_v3(vnors[i]) && normalize_v3(vnors[i]) < CLNORS_VALID_VEC_LEN) {
-        zero_v3(vnors[i]);
+    float(*vnors)[3] = MEM_mallocN(sizeof(*vnors) * bm->totvert, __func__);
+    {
+      int v_index;
+      BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, v_index) {
+        BM_vert_calc_normal_ex(v, BM_ELEM_SELECT, vnors[v_index]);
       }
     }
 

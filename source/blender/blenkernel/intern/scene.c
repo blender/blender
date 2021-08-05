@@ -2178,7 +2178,7 @@ int BKE_scene_base_iter_next(
           /* exception: empty scene layer */
           while ((*scene)->set) {
             (*scene) = (*scene)->set;
-            ViewLayer *view_layer_set = BKE_view_layer_default_render((*scene));
+            ViewLayer *view_layer_set = BKE_view_layer_default_render(*scene);
             if (view_layer_set->object_bases.first) {
               *base = view_layer_set->object_bases.first;
               *ob = (*base)->object;
@@ -2199,7 +2199,7 @@ int BKE_scene_base_iter_next(
               /* (*scene) is finished, now do the set */
               while ((*scene)->set) {
                 (*scene) = (*scene)->set;
-                ViewLayer *view_layer_set = BKE_view_layer_default_render((*scene));
+                ViewLayer *view_layer_set = BKE_view_layer_default_render(*scene);
                 if (view_layer_set->object_bases.first) {
                   *base = view_layer_set->object_bases.first;
                   *ob = (*base)->object;
@@ -2305,7 +2305,7 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
   Object *first_camera = NULL;
 
   LISTBASE_FOREACH (TimeMarker *, m, &scene->markers) {
-    if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0) {
+    if (m->camera && (m->camera->visibility_flag & OB_HIDE_RENDER) == 0) {
       if ((m->frame <= ctime) && (m->frame > frame)) {
         camera = m->camera;
         frame = m->frame;
@@ -2898,7 +2898,7 @@ Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
   next_set:
     /* Reached the end, get the next base in the set. */
     while ((*sce_iter = (*sce_iter)->set)) {
-      ViewLayer *view_layer_set = BKE_view_layer_default_render((*sce_iter));
+      ViewLayer *view_layer_set = BKE_view_layer_default_render(*sce_iter);
       base = (Base *)view_layer_set->object_bases.first;
 
       if (base) {
@@ -3118,7 +3118,7 @@ bool BKE_scene_multiview_is_render_view_active(const RenderData *rd, const Scene
     return false;
   }
 
-  if ((srv->viewflag & SCE_VIEW_DISABLE)) {
+  if (srv->viewflag & SCE_VIEW_DISABLE) {
     return false;
   }
 

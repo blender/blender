@@ -809,7 +809,7 @@ static int rna_FModifierGenerator_coefficients_get_length(PointerRNA *ptr,
     length[0] = gen->arraysize;
   }
   else {
-    length[0] = 100; /* for raw_access, untested */
+    length[0] = 0;
   }
 
   return length[0];

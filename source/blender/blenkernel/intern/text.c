@@ -2331,7 +2331,7 @@ int txt_setcurr_tab_spaces(Text *text, int space)
   }
 
   while (text->curl->line[i] == indent) {
-    // we only count those tabs/spaces that are before any text or before the curs;
+    /* We only count those tabs/spaces that are before any text or before the curs; */
     if (i == text->curc) {
       return i;
     }

@@ -443,7 +443,7 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
     }
 
     if (value) {
-      /* dvert[group_index] = 0.5 */
+      /* Handle `dvert[group_index] = 0.5`. */
       if (i < 0) {
         PyErr_SetString(PyExc_KeyError,
                         "BMDeformVert[key] = x: "
@@ -453,7 +453,7 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
 
       MDeformWeight *dw = BKE_defvert_ensure_index(self->data, i);
       const float f = PyFloat_AsDouble(value);
-      if (f == -1 && PyErr_Occurred()) {  // parsed key not a number
+      if (f == -1 && PyErr_Occurred()) { /* Parsed key not a number. */
         PyErr_SetString(PyExc_TypeError,
                         "BMDeformVert[key] = x: "
                         "assigned value not a number");
@@ -463,7 +463,7 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
       dw->weight = clamp_f(f, 0.0f, 1.0f);
     }
     else {
-      /* del dvert[group_index] */
+      /* Handle `del dvert[group_index]`. */
       MDeformWeight *dw = BKE_defvert_find_index(self->data, i);
 
       if (dw == NULL) {

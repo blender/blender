@@ -845,8 +845,20 @@ static void id_override_library_create_fn(bContext *C,
         if (!ID_IS_LINKED(te->store_elem->id)) {
           break;
         }
+        /* If we'd need to override that arent ID, but it is not overridable, abort. */
+        if (!ID_IS_OVERRIDABLE_LIBRARY(te->store_elem->id)) {
+          BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+          BKE_reportf(reports,
+                      RPT_WARNING,
+                      "Could not create library override from data-block '%s', one of its parents "
+                      "is not overridable ('%s')",
+                      id_root->name,
+                      te->store_elem->id->name);
+          return;
+        }
         te->store_elem->id->tag |= LIB_TAG_DOIT;
       }
+
       success = BKE_lib_override_library_create(
           bmain, CTX_data_scene(C), CTX_data_view_layer(C), id_root, id_reference, NULL);
     }

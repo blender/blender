@@ -38,18 +38,18 @@
 #include "wm_surface.h"
 #include "wm_xr_intern.h"
 
-void wm_xr_pose_to_viewmat(const GHOST_XrPose *pose, float r_viewmat[4][4])
-{
-  float iquat[4];
-  invert_qt_qt_normalized(iquat, pose->orientation_quat);
-  quat_to_mat4(r_viewmat, iquat);
-  translate_m4(r_viewmat, -pose->position[0], -pose->position[1], -pose->position[2]);
-}
-
-void wm_xr_controller_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4])
+void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4])
 {
   quat_to_mat4(r_mat, pose->orientation_quat);
   copy_v3_v3(r_mat[3], pose->position);
+}
+
+void wm_xr_pose_to_imat(const GHOST_XrPose *pose, float r_imat[4][4])
+{
+  float iquat[4];
+  invert_qt_qt_normalized(iquat, pose->orientation_quat);
+  quat_to_mat4(r_imat, iquat);
+  translate_m4(r_imat, -pose->position[0], -pose->position[1], -pose->position[2]);
 }
 
 static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
@@ -59,6 +59,7 @@ static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
                                        float r_proj_mat[4][4])
 {
   GHOST_XrPose eye_pose;
+  float eye_inv[4][4], base_inv[4][4];
 
   copy_qt_qt(eye_pose.orientation_quat, draw_view->eye_pose.orientation_quat);
   copy_v3_v3(eye_pose.position, draw_view->eye_pose.position);
@@ -69,6 +70,12 @@ static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
     sub_v3_v3(eye_pose.position, draw_data->eye_position_ofs);
   }
 
+  wm_xr_pose_to_imat(&eye_pose, eye_inv);
+  /* Calculate the base pose matrix (in world space!). */
+  wm_xr_pose_to_imat(&draw_data->base_pose, base_inv);
+
+  mul_m4_m4m4(r_view_mat, eye_inv, base_inv);
+
   perspective_m4_fov(r_proj_mat,
                      draw_view->fov.angle_left,
                      draw_view->fov.angle_right,
@@ -76,15 +83,6 @@ static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
                      draw_view->fov.angle_down,
                      session_settings->clip_start,
                      session_settings->clip_end);
-
-  float eye_mat[4][4];
-  float base_mat[4][4];
-
-  wm_xr_pose_to_viewmat(&eye_pose, eye_mat);
-  /* Calculate the base pose matrix (in world space!). */
-  wm_xr_pose_to_viewmat(&draw_data->base_pose, base_mat);
-
-  mul_m4_m4m4(r_view_mat, eye_mat, base_mat);
 }
 
 static void wm_xr_draw_viewport_buffers_to_active_framebuffer(

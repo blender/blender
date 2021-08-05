@@ -1102,7 +1102,7 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
 
         if ob:
             is_sortable = len(ob.material_slots) > 1
-            rows = 1
+            rows = 3
             if (is_sortable):
                 rows = 4
 
@@ -1228,6 +1228,26 @@ class CYCLES_OBJECT_PT_shading_shadow_terminator(CyclesButtonsPanel, Panel):
         flow.prop(cob, "shadow_terminator_offset", text="Shading Offset")
 
 
+class CYCLES_OBJECT_PT_shading_gi_approximation(CyclesButtonsPanel, Panel):
+    bl_label = "Fast GI Approximation"
+    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_context = "object"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        ob = context.object
+
+        cob = ob.cycles
+        cscene = scene.cycles
+
+        col = layout.column()
+        col.active = cscene.use_fast_gi
+        col.prop(cob, "ao_distance")
+
+
 class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
     bl_label = "Visibility"
     bl_context = "object"
@@ -1250,10 +1270,9 @@ class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
         col.prop(ob, "hide_render", text="Renders", invert_checkbox=True, toggle=False)
 
         if has_geometry_visibility(ob):
-            cob = ob.cycles
             col = layout.column(heading="Mask")
-            col.prop(cob, "is_shadow_catcher")
-            col.prop(cob, "is_holdout")
+            col.prop(ob, "is_shadow_catcher")
+            col.prop(ob, "is_holdout")
 
 
 class CYCLES_OBJECT_PT_visibility_ray_visibility(CyclesButtonsPanel, Panel):
@@ -1273,19 +1292,17 @@ class CYCLES_OBJECT_PT_visibility_ray_visibility(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         ob = context.object
-        cob = ob.cycles
-        visibility = ob.cycles_visibility
 
         col = layout.column()
-        col.prop(visibility, "camera")
-        col.prop(visibility, "diffuse")
-        col.prop(visibility, "glossy")
-        col.prop(visibility, "transmission")
-        col.prop(visibility, "scatter")
+        col.prop(ob, "visible_camera", text="Camera")
+        col.prop(ob, "visible_diffuse", text="Diffuse")
+        col.prop(ob, "visible_glossy", text="Glossy")
+        col.prop(ob, "visible_transmission", text="Transmission")
+        col.prop(ob, "visible_volume_scatter", text="Volume Scatter")
 
         if ob.type != 'LIGHT':
             sub = col.column()
-            sub.prop(visibility, "shadow")
+            sub.prop(ob, "visible_shadow", text="Shadow")
 
 
 class CYCLES_OBJECT_PT_visibility_culling(CyclesButtonsPanel, Panel):
@@ -2305,6 +2322,7 @@ classes = (
     CYCLES_OBJECT_PT_motion_blur,
     CYCLES_OBJECT_PT_shading,
     CYCLES_OBJECT_PT_shading_shadow_terminator,
+    CYCLES_OBJECT_PT_shading_gi_approximation,
     CYCLES_OBJECT_PT_visibility,
     CYCLES_OBJECT_PT_visibility_ray_visibility,
     CYCLES_OBJECT_PT_visibility_culling,

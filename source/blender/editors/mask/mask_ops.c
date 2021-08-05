@@ -287,7 +287,7 @@ static bool spline_under_mouse_get(const bContext *C,
   }
   for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer != NULL;
        mask_layer = mask_layer->next) {
-    if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
+    if (mask_layer->visibility_flag & MASK_HIDE_SELECT) {
       continue;
     }
 
@@ -1322,7 +1322,7 @@ static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
   Mask *mask = CTX_data_edit_mask(C);
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
@@ -1403,7 +1403,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
     MaskSpline *spline;
     int mask_layer_shape_ofs = 0;
 
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
@@ -1523,7 +1523,7 @@ static int mask_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     bool changed_layer = false;
 
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
@@ -1581,7 +1581,7 @@ static int mask_normals_make_consistent_exec(bContext *C, wmOperator *UNUSED(op)
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     bool changed_layer = false;
 
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
@@ -1642,7 +1642,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
@@ -1724,9 +1724,9 @@ static int mask_hide_view_clear_exec(bContext *C, wmOperator *op)
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
 
-    if (mask_layer->restrictflag & OB_RESTRICT_VIEWPORT) {
+    if (mask_layer->visibility_flag & OB_HIDE_VIEWPORT) {
       ED_mask_layer_select_set(mask_layer, select);
-      mask_layer->restrictflag &= ~OB_RESTRICT_VIEWPORT;
+      mask_layer->visibility_flag &= ~OB_HIDE_VIEWPORT;
       changed = true;
     }
   }
@@ -1766,7 +1766,7 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
 
-    if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
+    if (mask_layer->visibility_flag & MASK_HIDE_SELECT) {
       continue;
     }
 
@@ -1774,7 +1774,7 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
       if (ED_mask_layer_select_check(mask_layer)) {
         ED_mask_layer_select_set(mask_layer, false);
 
-        mask_layer->restrictflag |= OB_RESTRICT_VIEWPORT;
+        mask_layer->visibility_flag |= OB_HIDE_VIEWPORT;
         changed = true;
         if (mask_layer == BKE_mask_layer_active(mask)) {
           BKE_mask_layer_active_set(mask, NULL);
@@ -1783,7 +1783,7 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
     }
     else {
       if (!ED_mask_layer_select_check(mask_layer)) {
-        mask_layer->restrictflag |= OB_RESTRICT_VIEWPORT;
+        mask_layer->visibility_flag |= OB_HIDE_VIEWPORT;
         changed = true;
         if (mask_layer == BKE_mask_layer_active(mask)) {
           BKE_mask_layer_active_set(mask, NULL);
@@ -1825,7 +1825,7 @@ static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
   bool changed = false;
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->restrictflag & (MASK_RESTRICT_SELECT | MASK_RESTRICT_VIEW)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_SELECT | MASK_HIDE_VIEW)) {
       continue;
     }
 

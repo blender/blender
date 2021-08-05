@@ -492,7 +492,7 @@ static bool mask_has_selection(const bContext *C)
   }
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
     LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {

@@ -65,7 +65,10 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
   PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 
   Intersection isect;
-  bool hit = kernel_path_scene_intersect(kg, state, &ray, &isect, L);
+  const int last_object = state->bounce > 0 ?
+                              intersection_get_object(kg, &kernel_split_state.isect[ray_index]) :
+                              OBJECT_NONE;
+  bool hit = kernel_path_scene_intersect(kg, state, &ray, &isect, L, last_object);
   kernel_split_state.isect[ray_index] = isect;
 
   if (!hit) {

@@ -162,6 +162,12 @@ static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
   const int verts_x = params.extract_input<int>("Vertices X");
   const int verts_y = params.extract_input<int>("Vertices Y");
   if (verts_x < 2 || verts_y < 2) {
+    if (verts_x < 2) {
+      params.error_message_add(NodeWarningType::Info, TIP_("Vertices X must be at least 2"));
+    }
+    if (verts_y < 2) {
+      params.error_message_add(NodeWarningType::Info, TIP_("Vertices Y must be at least 2"));
+    }
     params.set_output("Geometry", GeometrySet());
     return;
   }

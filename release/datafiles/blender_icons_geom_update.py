@@ -1,15 +1,34 @@
 #!/usr/bin/env python3
 
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 # This script updates icons from the BLEND file
 import os
 import subprocess
 import sys
 
 
-def run(cmd):
+def run(cmd, *, env=None):
     print("   ", " ".join(cmd))
-    # Don't use check_call because asan causes nonzero exitcode :S
-    subprocess.call(cmd)
+    subprocess.check_call(cmd, env=env)
 
 
 def edit_text_file(filename, marker_begin, marker_end, content):
@@ -73,7 +92,17 @@ for blend in icons_blend:
         "--group", "Export",
         "--output-dir", output_dir,
     )
-    run(cmd)
+
+    env = {}
+    # Developers may have ASAN enabled, avoid non-zero exit codes.
+    env["ASAN_OPTIONS"] = "exitcode=0:" + os.environ.get("ASAN_OPTIONS", "")
+    # These NEED to be set on windows for python to initialize properly.
+    if sys.platform[:3] == "win":
+        env["PATHEXT"] = os.environ.get("PATHEXT", "")
+        env["SystemDrive"] = os.environ.get("SystemDrive", "")
+        env["SystemRoot"] = os.environ.get("SystemRoot", "")
+
+    run(cmd, env=env)
     files_new = set(names_and_time_from_path(output_dir))
 
     icon_files.extend([

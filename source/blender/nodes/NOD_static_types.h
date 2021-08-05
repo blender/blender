@@ -61,7 +61,7 @@ DefNode(ShaderNode,     SH_NODE_COMBRGB,         0,                      "COMBRG
 DefNode(ShaderNode,     SH_NODE_HUE_SAT,         0,                      "HUE_SAT",        HueSaturation,    "Hue/Saturation",    ""              )
 
 DefNode(ShaderNode,     SH_NODE_OUTPUT_MATERIAL,    def_sh_output,          "OUTPUT_MATERIAL",    OutputMaterial,   "Material Output",   ""       )
-DefNode(ShaderNode,     SH_NODE_EEVEE_SPECULAR,     0,                      "EEVEE_SPECULAR",     EeveeSpecular,    "Specular",          ""       )
+DefNode(ShaderNode,     SH_NODE_EEVEE_SPECULAR,     0,                      "EEVEE_SPECULAR",     EeveeSpecular,    "Specular BSDF",     ""       )
 DefNode(ShaderNode,     SH_NODE_OUTPUT_LIGHT,       def_sh_output,          "OUTPUT_LIGHT",       OutputLight,      "Light Output",      ""       )
 DefNode(ShaderNode,     SH_NODE_OUTPUT_WORLD,       def_sh_output,          "OUTPUT_WORLD",       OutputWorld,      "World Output",      ""       )
 DefNode(ShaderNode,     SH_NODE_OUTPUT_LINESTYLE,   def_sh_output_linestyle,"OUTPUT_LINESTYLE",   OutputLineStyle,  "Line Style Output", ""       )
@@ -303,6 +303,7 @@ DefNode(GeometryNode, GEO_NODE_CURVE_PRIMITIVE_STAR, 0, "CURVE_PRIMITIVE_STAR", 
 DefNode(GeometryNode, GEO_NODE_CURVE_RESAMPLE, def_geo_curve_resample, "CURVE_RESAMPLE", CurveResample, "Resample Curve", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_REVERSE, 0, "CURVE_REVERSE", CurveReverse, "Curve Reverse", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_SET_HANDLES, def_geo_curve_set_handles, "CURVE_SET_HANDLES", CurveSetHandles, "Set Handle Type", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_SPLINE_TYPE, def_geo_curve_spline_type, "CURVE_SPLINE_TYPE", CurveSplineType, "Set Spline Type", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_SUBDIVIDE, def_geo_curve_subdivide, "CURVE_SUBDIVIDE", CurveSubdivide, "Curve Subdivide", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "Curve to Mesh", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_POINTS, def_geo_curve_to_points, "CURVE_TO_POINTS", CurveToPoints, "Curve to Points", "")

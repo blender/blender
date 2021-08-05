@@ -1447,7 +1447,10 @@ typedef struct KernelObject {
 
   float shadow_terminator_shading_offset;
   float shadow_terminator_geometry_offset;
-  float pad1, pad2, pad3;
+
+  float ao_distance;
+
+  float pad1, pad2;
 } KernelObject;
 static_assert_align(KernelObject, 16);
 

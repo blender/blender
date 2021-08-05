@@ -1164,12 +1164,6 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
 
     @classmethod
     def register(cls):
-        bpy.types.Object.cycles_visibility = PointerProperty(
-            name="Cycles Visibility Settings",
-            description="Cycles visibility settings",
-            type=cls,
-        )
-
         bpy.types.World.cycles_visibility = PointerProperty(
             name="Cycles Visibility Settings",
             description="Cycles visibility settings",
@@ -1178,7 +1172,6 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
 
     @classmethod
     def unregister(cls):
-        del bpy.types.Object.cycles_visibility
         del bpy.types.World.cycles_visibility
 
 
@@ -1268,18 +1261,12 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         default=0.1,
     )
 
-    is_shadow_catcher: BoolProperty(
-        name="Shadow Catcher",
-        description="Only render shadows on this object, for compositing renders into real footage",
-        default=False,
-    )
-
-    is_holdout: BoolProperty(
-        name="Holdout",
-        description="Render objects as a holdout or matte, creating a "
-        "hole in the image with zero alpha, to fill out in "
-        "compositing with real footage or another render",
-        default=False,
+    ao_distance: FloatProperty(
+        name="AO Distance",
+        description="AO distance used for approximate global illumination (0 means use world setting)",
+        min=0.0,
+        default=0.0,
+        subtype='DISTANCE',
     )
 
     @classmethod

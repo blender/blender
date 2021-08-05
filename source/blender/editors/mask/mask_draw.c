@@ -191,7 +191,7 @@ static void draw_spline_points(const bContext *C,
                                const char draw_type)
 {
   const bool is_spline_sel = (spline->flag & SELECT) &&
-                             (mask_layer->restrictflag & MASK_RESTRICT_SELECT) == 0;
+                             (mask_layer->visibility_flag & MASK_HIDE_SELECT) == 0;
   const bool is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH) != 0;
 
   uchar rgb_spline[4];
@@ -529,7 +529,7 @@ static void draw_spline_curve(const bContext *C,
   uchar rgb_tmp[4];
 
   const bool is_spline_sel = (spline->flag & SELECT) &&
-                             (mask_layer->restrictflag & MASK_RESTRICT_SELECT) == 0;
+                             (mask_layer->visibility_flag & MASK_HIDE_SELECT) == 0;
   const bool is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH) != 0;
   const bool is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
@@ -604,7 +604,7 @@ static void draw_mask_layers(const bContext *C,
        mask_layer = mask_layer->next, i++) {
     const bool is_active = (i == mask->masklay_act);
 
-    if (mask_layer->restrictflag & MASK_RESTRICT_VIEW) {
+    if (mask_layer->visibility_flag & MASK_HIDE_VIEW) {
       continue;
     }
 
@@ -613,7 +613,7 @@ static void draw_mask_layers(const bContext *C,
       /* draw curve itself first... */
       draw_spline_curve(C, mask_layer, spline, draw_flag, draw_type, is_active, width, height);
 
-      if (!(mask_layer->restrictflag & MASK_RESTRICT_SELECT)) {
+      if (!(mask_layer->visibility_flag & MASK_HIDE_SELECT)) {
         /* ...and then handles over the curve so they're nicely visible */
         draw_spline_points(C, mask_layer, spline, draw_flag, draw_type);
       }

@@ -85,7 +85,7 @@ extern "C" {
 // Get main depsgraph instance from context!
 
 /* Create new Depsgraph instance */
-// TODO: what args are needed here? What's the building-graph entry point?
+/* TODO: what args are needed here? What's the building-graph entry point? */
 Depsgraph *DEG_graph_new(struct Main *bmain,
                          struct Scene *scene,
                          struct ViewLayer *view_layer,

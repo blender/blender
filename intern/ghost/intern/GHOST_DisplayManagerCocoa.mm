@@ -141,22 +141,26 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
   printf("  setting.frequency=%d\n", setting.frequency);
 #endif  // GHOST_DEBUG
 
-  // Display configuration is no more available in 10.6
+  /* Display configuration is no more available in 10.6. */
 
-  /*  CFDictionaryRef displayModeValues = ::CGDisplayBestModeForParametersAndRefreshRate(
-    m_displayIDs[display],
-    (size_t)setting.bpp,
-    (size_t)setting.xPixels,
-    (size_t)setting.yPixels,
-    (CGRefreshRate)setting.frequency,
-    NULL);*/
+#if 0
+  CFDictionaryRef displayModeValues = ::CGDisplayBestModeForParametersAndRefreshRate(
+      m_displayIDs[display],
+      (size_t)setting.bpp,
+      (size_t)setting.xPixels,
+      (size_t)setting.yPixels,
+      (CGRefreshRate)setting.frequency,
+      NULL);
+#endif
 
 #ifdef GHOST_DEBUG
-/*  printf("GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(): switching to:\n");
+#  if 0
+  printf("GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(): switching to:\n");
   printf("  setting.xPixels=%d\n", getValue(displayModeValues, kCGDisplayWidth));
   printf("  setting.yPixels=%d\n", getValue(displayModeValues, kCGDisplayHeight));
   printf("  setting.bpp=%d\n", getValue(displayModeValues, kCGDisplayBitsPerPixel));
-  printf("  setting.frequency=%d\n", getValue(displayModeValues, kCGDisplayRefreshRate)); */
+  printf("  setting.frequency=%d\n", getValue(displayModeValues, kCGDisplayRefreshRate));
+#  endif
 #endif  // GHOST_DEBUG
 
   // CGDisplayErr err = ::CGDisplaySwitchToMode(m_displayIDs[display], displayModeValues);

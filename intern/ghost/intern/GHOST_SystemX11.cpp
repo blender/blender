@@ -802,8 +802,7 @@ static bool checkTabletProximity(Display *display, XDevice *device)
 
   if (state) {
     XInputClass *cls = state->data;
-    // printf("%d class%s :\n", state->num_classes,
-    //       (state->num_classes > 1) ? "es" : "");
+    // printf("%d class%s :\n", state->num_classes, (state->num_classes > 1) ? "es" : "");
     for (int loop = 0; loop < state->num_classes; loop++) {
       switch (cls->c_class) {
         case ValuatorClass:

@@ -1359,9 +1359,15 @@ FontBLF *blf_font_new(const char *name, const char *filename)
     return NULL;
   }
 
-  err = FT_Select_Charmap(font->face, ft_encoding_unicode);
+  err = FT_Select_Charmap(font->face, FT_ENCODING_UNICODE);
   if (err) {
-    printf("Can't set the unicode character map!\n");
+    err = FT_Select_Charmap(font->face, FT_ENCODING_APPLE_ROMAN);
+  }
+  if (err && font->face->num_charmaps > 0) {
+    err = FT_Select_Charmap(font->face, font->face->charmaps[0]->encoding);
+  }
+  if (err) {
+    printf("Can't set a character map!\n");
     FT_Done_Face(font->face);
     MEM_freeN(font);
     return NULL;

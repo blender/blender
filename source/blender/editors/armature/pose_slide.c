@@ -146,7 +146,7 @@ typedef struct tPoseSlideOp {
   /** links between posechannels and f-curves for all the pose objects. */
   ListBase pfLinks;
   /** binary tree for quicker searching for keyframes (when applicable) */
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist;
 
   /** current frame number - global time */
   int cframe;
@@ -277,7 +277,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   /* Do basic initialize of RB-BST used for finding keyframes, but leave the filling of it up
    * to the caller of this (usually only invoke() will do it, to make things more efficient). */
-  BLI_dlrbTree_init(&pso->keys);
+  pso->keylist = ED_keylist_create();
 
   /* Initialize numeric input. */
   initNumInput(&pso->num);
@@ -306,7 +306,7 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
   poseAnim_mapping_free(&pso->pfLinks);
 
   /* Free RB-BST for keyframes (if it contained data). */
-  BLI_dlrbTree_free(&pso->keys);
+  ED_keylist_free(pso->keylist);
 
   if (pso->ob_data_array != NULL) {
     MEM_freeN(pso->ob_data_array);
@@ -971,58 +971,54 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *
     /* Do this for each F-Curve. */
     for (ld = pfl->fcurves.first; ld; ld = ld->next) {
       FCurve *fcu = (FCurve *)ld->data;
-      fcurve_to_keylist(pfl->ob->adt, fcu, &pso->keys, 0);
+      fcurve_to_keylist(pfl->ob->adt, fcu, pso->keylist, 0);
     }
   }
 
   /* Cancel if no keyframes found. */
-  if (pso->keys.root) {
-    ActKeyColumn *ak;
-    float cframe = (float)pso->cframe;
-
-    /* Firstly, check if the current frame is a keyframe. */
-    ak = (ActKeyColumn *)BLI_dlrbTree_search_exact(&pso->keys, compare_ak_cfraPtr, &cframe);
-
-    if (ak == NULL) {
-      /* Current frame is not a keyframe, so search. */
-      ActKeyColumn *pk = (ActKeyColumn *)BLI_dlrbTree_search_prev(
-          &pso->keys, compare_ak_cfraPtr, &cframe);
-      ActKeyColumn *nk = (ActKeyColumn *)BLI_dlrbTree_search_next(
-          &pso->keys, compare_ak_cfraPtr, &cframe);
-
-      /* New set the frames. */
-      /* Prev frame. */
-      pso->prevFrame = (pk) ? (pk->cfra) : (pso->cframe - 1);
-      RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
-      /* Next frame. */
-      pso->nextFrame = (nk) ? (nk->cfra) : (pso->cframe + 1);
-      RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
-    }
-    else {
-      /* Current frame itself is a keyframe, so just take keyframes on either side. */
-      /* Prev frame. */
-      pso->prevFrame = (ak->prev) ? (ak->prev->cfra) : (pso->cframe - 1);
-      RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
-      /* Next frame. */
-      pso->nextFrame = (ak->next) ? (ak->next->cfra) : (pso->cframe + 1);
-      RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
-    }
-
-    /* Apply NLA mapping corrections so the frame look-ups work. */
-    for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
-      tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
-      if (ob_data->valid) {
-        ob_data->prevFrameF = BKE_nla_tweakedit_remap(
-            ob_data->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
-        ob_data->nextFrameF = BKE_nla_tweakedit_remap(
-            ob_data->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
-      }
-    }
-  }
-  else {
+  if (ED_keylist_is_empty(pso->keylist)) {
     BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between");
     pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
+  }
+
+  float cframe = (float)pso->cframe;
+
+  /* Firstly, check if the current frame is a keyframe. */
+  const ActKeyColumn *ak = ED_keylist_find_exact(pso->keylist, cframe);
+
+  if (ak == NULL) {
+    /* Current frame is not a keyframe, so search. */
+    const ActKeyColumn *pk = ED_keylist_find_prev(pso->keylist, cframe);
+    const ActKeyColumn *nk = ED_keylist_find_next(pso->keylist, cframe);
+
+    /* New set the frames. */
+    /* Prev frame. */
+    pso->prevFrame = (pk) ? (pk->cfra) : (pso->cframe - 1);
+    RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
+    /* Next frame. */
+    pso->nextFrame = (nk) ? (nk->cfra) : (pso->cframe + 1);
+    RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
+  }
+  else {
+    /* Current frame itself is a keyframe, so just take keyframes on either side. */
+    /* Prev frame. */
+    pso->prevFrame = (ak->prev) ? (ak->prev->cfra) : (pso->cframe - 1);
+    RNA_int_set(op->ptr, "prev_frame", pso->prevFrame);
+    /* Next frame. */
+    pso->nextFrame = (ak->next) ? (ak->next->cfra) : (pso->cframe + 1);
+    RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
+  }
+
+  /* Apply NLA mapping corrections so the frame look-ups work. */
+  for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
+    tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
+    if (ob_data->valid) {
+      ob_data->prevFrameF = BKE_nla_tweakedit_remap(
+          ob_data->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
+      ob_data->nextFrameF = BKE_nla_tweakedit_remap(
+          ob_data->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
+    }
   }
 
   /* Initial apply for operator. */
@@ -1705,26 +1701,22 @@ typedef union tPosePropagate_ModeData {
  */
 static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float startFrame)
 {
-  DLRBT_Tree keys;
+  struct AnimKeylist *keylist = ED_keylist_create();
 
   Object *ob = pfl->ob;
   AnimData *adt = ob->adt;
   LinkData *ld;
   float endFrame = startFrame;
 
-  /* Set up optimized data-structures for searching for relevant keyframes + holds. */
-  BLI_dlrbTree_init(&keys);
-
   for (ld = pfl->fcurves.first; ld; ld = ld->next) {
     FCurve *fcu = (FCurve *)ld->data;
-    fcurve_to_keylist(adt, fcu, &keys, 0);
+    fcurve_to_keylist(adt, fcu, keylist, 0);
   }
 
   /* Find the long keyframe (i.e. hold), and hence obtain the endFrame value
    * - the best case would be one that starts on the frame itself
    */
-  ActKeyColumn *ab = (ActKeyColumn *)BLI_dlrbTree_search_exact(
-      &keys, compare_ak_cfraPtr, &startFrame);
+  ActKeyColumn *ab = ED_keylist_find_exact(keylist, startFrame);
 
   /* There are only two cases for no-exact match:
    *  1) the current frame is just before another key but not on a key itself
@@ -1735,11 +1727,11 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
    */
   if (ab == NULL) {
     /* We've got case 1, so try the one after. */
-    ab = (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &startFrame);
+    ab = ED_keylist_find_next(keylist, startFrame);
 
     if ((actkeyblock_get_valid_hold(ab) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
       /* Try the block before this frame then as last resort. */
-      ab = (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &startFrame);
+      ab = ED_keylist_find_prev(keylist, startFrame);
     }
   }
 
@@ -1774,7 +1766,7 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
   }
 
   /* Free temp memory. */
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 
   /* Return the end frame we've found. */
   return endFrame;

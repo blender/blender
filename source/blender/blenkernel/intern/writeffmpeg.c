@@ -741,7 +741,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     }
   }
 
-  if ((of->oformat->flags & AVFMT_GLOBALHEADER)) {
+  if (of->oformat->flags & AVFMT_GLOBALHEADER) {
     PRINT("Using global header\n");
     c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
   }

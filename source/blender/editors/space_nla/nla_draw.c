@@ -35,6 +35,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_range.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -95,12 +96,16 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 static void nla_action_draw_keyframes(
     View2D *v2d, AnimData *adt, bAction *act, float y, float ymin, float ymax)
 {
-  /* get a list of the keyframes with NLA-scaling applied */
-  DLRBT_Tree keys;
-  BLI_dlrbTree_init(&keys);
-  action_to_keylist(adt, act, &keys, 0);
+  if (act == NULL) {
+    return;
+  }
 
-  if (ELEM(NULL, act, keys.first)) {
+  /* get a list of the keyframes with NLA-scaling applied */
+  struct AnimKeylist *keylist = ED_keylist_create();
+  action_to_keylist(adt, act, keylist, 0);
+
+  if (ED_keylist_is_empty(keylist)) {
+    ED_keylist_free(keylist);
     return;
   }
 
@@ -122,15 +127,16 @@ static void nla_action_draw_keyframes(
   /* - draw a rect from the first to the last frame (no extra overlaps for now)
    *   that is slightly stumpier than the track background (hardcoded 2-units here)
    */
-  float f1 = ((ActKeyColumn *)keys.first)->cfra;
-  float f2 = ((ActKeyColumn *)keys.last)->cfra;
 
-  immRectf(pos_id, f1, ymin + 2, f2, ymax - 2);
+  Range2f frame_range;
+  ED_keylist_frame_range(keylist, &frame_range);
+  immRectf(pos_id, frame_range.min, ymin + 2, frame_range.max, ymax - 2);
   immUnbindProgram();
 
   /* Count keys before drawing. */
   /* NOTE: It's safe to cast #DLRBT_Tree, as it's designed to degrade down to a #ListBase. */
-  uint key_len = BLI_listbase_count((ListBase *)&keys);
+  const ListBase *keys = ED_keylist_listbase(keylist);
+  uint key_len = BLI_listbase_count(keys);
 
   if (key_len > 0) {
     format = immVertexFormat();
@@ -151,7 +157,7 @@ static void nla_action_draw_keyframes(
     /* - disregard the selection status of keyframes so they draw a certain way
      * - size is 6.0f which is smaller than the editable keyframes, so that there is a distinction
      */
-    LISTBASE_FOREACH (ActKeyColumn *, ak, &keys) {
+    LISTBASE_FOREACH (const ActKeyColumn *, ak, keys) {
       draw_keyframe_shape(ak->cfra,
                           y,
                           6.0f,
@@ -174,7 +180,7 @@ static void nla_action_draw_keyframes(
   }
 
   /* free icons */
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 }
 
 /* Strip Markers ------------------------ */

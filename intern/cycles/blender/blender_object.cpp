@@ -199,8 +199,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   /* Visibility flags for both parent and child. */
   PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
-  bool use_holdout = get_boolean(cobject, "is_holdout") ||
-                     b_parent.holdout_get(PointerRNA_NULL, b_view_layer);
+  bool use_holdout = b_parent.holdout_get(PointerRNA_NULL, b_view_layer);
   uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 
   if (b_parent.ptr.data != b_ob.ptr.data) {
@@ -287,8 +286,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   object->set_visibility(visibility);
 
-  bool is_shadow_catcher = get_boolean(cobject, "is_shadow_catcher");
-  object->set_is_shadow_catcher(is_shadow_catcher);
+  object->set_is_shadow_catcher(b_ob.is_shadow_catcher());
 
   float shadow_terminator_shading_offset = get_float(cobject, "shadow_terminator_offset");
   object->set_shadow_terminator_shading_offset(shadow_terminator_shading_offset);
@@ -296,6 +294,13 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   float shadow_terminator_geometry_offset = get_float(cobject,
                                                       "shadow_terminator_geometry_offset");
   object->set_shadow_terminator_geometry_offset(shadow_terminator_geometry_offset);
+
+  float ao_distance = get_float(cobject, "ao_distance");
+  if (ao_distance == 0.0f && b_parent.ptr.data != b_ob.ptr.data) {
+    PointerRNA cparent = RNA_pointer_get(&b_parent.ptr, "cycles");
+    ao_distance = get_float(cparent, "ao_distance");
+  }
+  object->set_ao_distance(ao_distance);
 
   /* sync the asset name for Cryptomatte */
   BL::Object parent = b_ob.parent();

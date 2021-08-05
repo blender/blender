@@ -58,6 +58,16 @@ if "%BUILD_UPDATE%" == "1" (
 
 call "%BLENDER_DIR%\build_files\windows\set_build_dir.cmd"
 
+if "%ICONS%" == "1" (
+	call "%BLENDER_DIR%\build_files\windows\icons.cmd"
+	goto EOF
+)
+
+if "%ICONS_GEOM%" == "1" (
+	call "%BLENDER_DIR%\build_files\windows\icons_geom.cmd"
+	goto EOF
+)
+
 echo Building blender with VS%BUILD_VS_YEAR% for %BUILD_ARCH% in %BUILD_DIR%
 
 call "%BLENDER_DIR%\build_files\windows\check_libraries.cmd"

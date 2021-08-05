@@ -2524,7 +2524,7 @@ void RE_RenderAnim(Render *re,
       if (G.is_break == true) {
         /* remove touched file */
         if (is_movie == false && do_write_file) {
-          if ((rd.mode & R_TOUCH)) {
+          if (rd.mode & R_TOUCH) {
             if (!is_multiview_name) {
               if ((BLI_file_size(name) == 0)) {
                 /* BLI_exists(name) is implicit */
