@@ -126,6 +126,7 @@
 #include "BKE_world.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 
@@ -231,6 +232,8 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
   if (key != NULL) {
     lib_id_clear_library_data_ex(bmain, &key->id);
   }
+
+  DEG_relations_tag_update(bmain);
 }
 
 void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
