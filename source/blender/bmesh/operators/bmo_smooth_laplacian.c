@@ -533,7 +533,10 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
     EIG_linear_solver_right_hand_side_add(sys->context, 1, m_vertex_id, v->co[1]);
     EIG_linear_solver_right_hand_side_add(sys->context, 2, m_vertex_id, v->co[2]);
     i = m_vertex_id;
-    if (sys->zerola[i] == 0) {
+    if ((sys->zerola[i] == 0) &&
+        /* Non zero check is to account for vertices that aren't connected to a selected face.
+         * Without this wire edges become `nan`, see T89214. */
+        (sys->ring_areas[i] != 0.0f)) {
       w = sys->vweights[i] * sys->ring_areas[i];
       sys->vweights[i] = (w == 0.0f) ? 0.0f : -lambda_factor / (4.0f * w);
       w = sys->vlengths[i];
