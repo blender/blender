@@ -754,13 +754,7 @@ typedef struct FileSelectParams {
   /** Max number of levels in dirtree to show at once, 0 to disable recursion. */
   short recursion_level;
 
-  /* XXX --- still unused -- */
-  /** Show font preview. */
-  short f_fp;
-  /** String to use for font preview. */
-  char fp_str[8];
-
-  /* XXX --- end unused -- */
+  char _pad4[2];
 } FileSelectParams;
 
 /**
