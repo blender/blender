@@ -292,7 +292,7 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
 
 void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {{nullptr}};
+  BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
   MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
 
@@ -330,7 +330,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
 
 void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {{nullptr}};
+  BVHTreeFromMesh bvhtree = {nullptr};
 
   const MPoly *target_polys = (const MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
   const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
@@ -377,7 +377,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
 
 void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {{nullptr}};
+  BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
 
   int tot_color_layer = CustomData_number_of_layers(&source->vdata, CD_PROP_COLOR);
