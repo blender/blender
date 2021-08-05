@@ -63,7 +63,7 @@ Package Targets
 
    * package_debian:    Build a debian package.
    * package_pacman:    Build an arch linux pacman package.
-   * package_archive:	Build an archive package.
+   * package_archive:   Build an archive package.
 
 Testing Targets
    Not associated with building Blender.
@@ -167,7 +167,7 @@ endef
 
 # This makefile is not meant for Windows
 ifeq ($(OS),Windows_NT)
-    $(error On Windows, use "cmd //c make.bat" instead of "make")
+	$(error On Windows, use "cmd //c make.bat" instead of "make")
 endif
 
 # System Vars
@@ -379,7 +379,7 @@ deps: .FORCE
 
 	@cmake -H"$(DEPS_SOURCE_DIR)" \
 	       -B"$(DEPS_BUILD_DIR)" \
-		   -DHARVEST_TARGET=$(DEPS_INSTALL_DIR)
+	       -DHARVEST_TARGET=$(DEPS_INSTALL_DIR)
 
 	@echo
 	@echo Building dependencies ...
@@ -456,7 +456,8 @@ project_eclipse: .FORCE
 check_cppcheck: .FORCE
 	$(CMAKE_CONFIG)
 	cd "$(BUILD_DIR)" ; \
-	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py" 2> \
+	$(PYTHON) \
+	    "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py" 2> \
 	    "$(BLENDER_DIR)/check_cppcheck.txt"
 	@echo "written: check_cppcheck.txt"
 
@@ -518,8 +519,9 @@ source_archive: .FORCE
 	python3 ./build_files/utils/make_source_archive.py
 
 source_archive_complete: .FORCE
-	cmake -S "$(BLENDER_DIR)/build_files/build_environment" -B"$(BUILD_DIR)/source_archive" \
-		-DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
+	cmake \
+	    -S "$(BLENDER_DIR)/build_files/build_environment" -B"$(BUILD_DIR)/source_archive" \
+	    -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
 # This assumes CMake is still using a default `PACKAGE_DIR` variable:
 	python3 ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
 
@@ -527,11 +529,11 @@ source_archive_complete: .FORCE
 INKSCAPE_BIN?="inkscape"
 icons: .FORCE
 	BLENDER_BIN=$(BLENDER_BIN) INKSCAPE_BIN=$(INKSCAPE_BIN) \
-		"$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
+	    "$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
 	INKSCAPE_BIN=$(INKSCAPE_BIN) \
-		"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
+	    "$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
 	INKSCAPE_BIN=$(INKSCAPE_BIN) \
-		"$(BLENDER_DIR)/release/datafiles/alert_icons_update.py"
+	    "$(BLENDER_DIR)/release/datafiles/alert_icons_update.py"
 
 icons_geom: .FORCE
 	BLENDER_BIN=$(BLENDER_BIN) \
@@ -545,7 +547,7 @@ update_code: .FORCE
 
 format: .FORCE
 	PATH="../lib/${OS_NCASE}_${CPU}/llvm/bin/:../lib/${OS_NCASE}_centos7_${CPU}/llvm/bin/:../lib/${OS_NCASE}/llvm/bin/:$(PATH)" \
-		$(PYTHON) source/tools/utils_maintenance/clang_format_paths.py $(PATHS)
+	    $(PYTHON) source/tools/utils_maintenance/clang_format_paths.py $(PATHS)
 
 
 # -----------------------------------------------------------------------------
@@ -555,8 +557,9 @@ format: .FORCE
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py: .FORCE
 	ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
-	$(BLENDER_BIN) --background -noaudio --factory-startup \
-		--python doc/python_api/sphinx_doc_gen.py
+	$(BLENDER_BIN) \
+	    --background -noaudio --factory-startup \
+	    --python doc/python_api/sphinx_doc_gen.py
 	sphinx-build -b html -j $(NPROCS) doc/python_api/sphinx-in doc/python_api/sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/index.html'"
 
@@ -565,8 +568,9 @@ doc_doxy: .FORCE
 	@echo "docs written into: '$(BLENDER_DIR)/doc/doxygen/html/index.html'"
 
 doc_dna: .FORCE
-	$(BLENDER_BIN) --background -noaudio --factory-startup \
-		--python doc/blender_file_format/BlendFileDnaExporter_25.py
+	$(BLENDER_BIN) \
+	    --background -noaudio --factory-startup \
+	    --python doc/blender_file_format/BlendFileDnaExporter_25.py
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 
 doc_man: .FORCE

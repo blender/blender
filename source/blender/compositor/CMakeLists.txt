@@ -597,16 +597,16 @@ add_definitions(-DCL_USE_DEPRECATED_OPENCL_1_1_APIS)
 set(GENSRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/operations)
 set(GENSRC ${GENSRC_DIR}/COM_SMAAAreaTexture.h)
 add_custom_command(
-	OUTPUT ${GENSRC}
-	COMMAND ${CMAKE_COMMAND} -E make_directory ${GENSRC_DIR}
-	COMMAND "$<TARGET_FILE:smaa_areatex>" ${GENSRC}
-	DEPENDS smaa_areatex
+  OUTPUT ${GENSRC}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${GENSRC_DIR}
+  COMMAND "$<TARGET_FILE:smaa_areatex>" ${GENSRC}
+  DEPENDS smaa_areatex
 )
 add_custom_target(smaa_areatex_header
-	SOURCES ${GENSRC}
+  SOURCES ${GENSRC}
 )
 list(APPEND SRC
-	${GENSRC}
+  ${GENSRC}
 )
 unset(GENSRC)
 unset(GENSRC_DIR)
@@ -650,4 +650,3 @@ if(WITH_GTESTS)
   include(GTestTesting)
   blender_add_test_lib(bf_compositor_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()
-
