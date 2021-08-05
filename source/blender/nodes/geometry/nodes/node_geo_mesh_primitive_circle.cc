@@ -126,11 +126,11 @@ static Mesh *create_circle_mesh(const float radius,
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
   MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
 
-  float angle = 0.0f;
-  const float angle_delta = 2.0f * M_PI / static_cast<float>(verts_num);
-  for (MVert &vert : verts) {
-    copy_v3_v3(vert.co, float3(std::cos(angle) * radius, std::sin(angle) * radius, 0.0f));
-    angle += angle_delta;
+  /* Assign vertex coordinates. */
+  const float angle_delta = 2.0f * (M_PI / static_cast<float>(verts_num));
+  for (const int i : IndexRange(verts_num)) {
+    const float angle = i * angle_delta;
+    copy_v3_v3(verts[i].co, float3(std::cos(angle) * radius, std::sin(angle) * radius, 0.0f));
   }
   if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
     copy_v3_v3(verts.last().co, float3(0));

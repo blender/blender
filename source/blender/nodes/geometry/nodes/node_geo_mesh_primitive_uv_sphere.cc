@@ -69,26 +69,24 @@ static void calculate_sphere_vertex_data(MutableSpan<MVert> verts,
                                          const int rings)
 {
   const float delta_theta = M_PI / rings;
-  const float delta_phi = (2 * M_PI) / segments;
+  const float delta_phi = (2.0f * M_PI) / segments;
 
   copy_v3_v3(verts[0].co, float3(0.0f, 0.0f, radius));
   normal_float_to_short_v3(verts[0].no, float3(0.0f, 0.0f, 1.0f));
 
   int vert_index = 1;
-  float theta = delta_theta;
-  for (const int UNUSED(ring) : IndexRange(rings - 1)) {
-    float phi = 0.0f;
-    const float z = cosf(theta);
-    for (const int UNUSED(segment) : IndexRange(segments)) {
+  for (const int ring : IndexRange(1, rings - 1)) {
+    const float theta = ring * delta_theta;
+    const float z = std::cos(theta);
+    for (const int segment : IndexRange(1, segments)) {
+      const float phi = segment * delta_phi;
       const float sin_theta = std::sin(theta);
       const float x = sin_theta * std::cos(phi);
       const float y = sin_theta * std::sin(phi);
       copy_v3_v3(verts[vert_index].co, float3(x, y, z) * radius);
       normal_float_to_short_v3(verts[vert_index].no, float3(x, y, z));
-      phi += delta_phi;
       vert_index++;
     }
-    theta += delta_theta;
   }
 
   copy_v3_v3(verts.last().co, float3(0.0f, 0.0f, -radius));
