@@ -4616,9 +4616,7 @@ static void splineik_free(bConstraint *con)
   bSplineIKConstraint *data = con->data;
 
   /* binding array */
-  if (data->points) {
-    MEM_freeN(data->points);
-  }
+  MEM_SAFE_FREE(data->points);
 }
 
 static void splineik_copy(bConstraint *con, bConstraint *srccon)
