@@ -180,7 +180,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
   BMVert *vn;
   BMVert *vf[4];
 
-  BM_ITER_MESH_INDEX (e, &eiter, sys->bm, BM_EDGES_OF_MESH, j) {
+  BM_ITER_MESH_INDEX (e, &eiter, sys->bm, BM_EDGES_OF_MESH, i) {
     if (!BM_elem_flag_test(e, BM_ELEM_SELECT) && BM_edge_is_boundary(e)) {
       v1 = e->v1->co;
       v2 = e->v2->co;
@@ -190,7 +190,6 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
       w1 = len_v3v3(v1, v2);
       if (w1 > sys->min_area) {
         w1 = 1.0f / w1;
-        i = BM_elem_index_get(e);
         sys->eweights[i] = w1;
         sys->vlengths[idv1] += w1;
         sys->vlengths[idv2] += w1;
@@ -202,13 +201,13 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
     }
   }
 
-  BM_ITER_MESH (f, &fiter, sys->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH_INDEX (f, &fiter, sys->bm, BM_FACES_OF_MESH, i) {
     if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 
-      BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, i) {
-        vf[i] = vn;
+      BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, j) {
+        vf[j] = vn;
       }
-      has_4_vert = (i == 4) ? 1 : 0;
+      has_4_vert = (j == 4) ? 1 : 0;
       idv1 = BM_elem_index_get(vf[0]);
       idv2 = BM_elem_index_get(vf[1]);
       idv3 = BM_elem_index_get(vf[2]);
@@ -268,8 +267,6 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
         }
       }
       else {
-        i = BM_elem_index_get(f);
-
         w1 = cotangent_tri_weight_v3(v1, v2, v3);
         w2 = cotangent_tri_weight_v3(v2, v3, v1);
         w3 = cotangent_tri_weight_v3(v3, v1, v2);
@@ -302,12 +299,12 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
   BMVert *vn;
   BMVert *vf[4];
 
-  BM_ITER_MESH (f, &fiter, sys->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH_INDEX (f, &fiter, sys->bm, BM_FACES_OF_MESH, i) {
     if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-      BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, i) {
-        vf[i] = vn;
+      BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, j) {
+        vf[j] = vn;
       }
-      has_4_vert = (i == 4) ? 1 : 0;
+      has_4_vert = (j == 4) ? 1 : 0;
       if (has_4_vert) {
         idv[0] = BM_elem_index_get(vf[0]);
         idv[1] = BM_elem_index_get(vf[1]);
@@ -344,7 +341,6 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
         idv2 = BM_elem_index_get(vf[1]);
         idv3 = BM_elem_index_get(vf[2]);
         /* Is ring if number of faces == number of edges around vertice. */
-        i = BM_elem_index_get(f);
         if (!vert_is_boundary(vf[0]) && sys->zerola[idv1] == 0) {
           EIG_linear_solver_matrix_add(
               sys->context, idv1, idv2, sys->fweights[i][2] * sys->vweights[idv1]);
@@ -366,14 +362,13 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
       }
     }
   }
-  BM_ITER_MESH (e, &eiter, sys->bm, BM_EDGES_OF_MESH) {
+  BM_ITER_MESH_INDEX (e, &eiter, sys->bm, BM_EDGES_OF_MESH, i) {
     if (!BM_elem_flag_test(e, BM_ELEM_SELECT) && BM_edge_is_boundary(e)) {
       v1 = e->v1->co;
       v2 = e->v2->co;
       idv1 = BM_elem_index_get(e->v1);
       idv2 = BM_elem_index_get(e->v2);
       if (sys->zerola[idv1] == 0 && sys->zerola[idv2] == 0) {
-        i = BM_elem_index_get(e);
         EIG_linear_solver_matrix_add(
             sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
         EIG_linear_solver_matrix_add(
