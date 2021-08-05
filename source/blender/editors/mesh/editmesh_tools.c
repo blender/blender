@@ -2748,9 +2748,6 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 
 static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 {
-  BMIter fiter;
-  BMFace *f;
-  int tot_invalid = 0;
   int tot_unselected = 0;
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -2777,22 +2774,6 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 
     if (em->bm->totvertsel == 0) {
       tot_unselected++;
-      tot_invalid++;
-      continue;
-    }
-
-    bool is_invalid = false;
-    /* Check if select faces are triangles. */
-    BM_ITER_MESH (f, &fiter, em->bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        if (f->len > 4) {
-          tot_invalid++;
-          is_invalid = true;
-          break;
-        }
-      }
-    }
-    if (is_invalid) {
       continue;
     }
 
@@ -2839,10 +2820,6 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 
   if (tot_unselected == objects_len) {
     BKE_report(op->reports, RPT_WARNING, "No selected vertex");
-    return OPERATOR_CANCELLED;
-  }
-  if (tot_invalid == objects_len) {
-    BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
     return OPERATOR_CANCELLED;
   }
 
