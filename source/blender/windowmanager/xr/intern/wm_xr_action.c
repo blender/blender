@@ -112,11 +112,11 @@ static wmXrAction *action_create(const char *action_name,
   const bool is_button_action = (is_float_action || type == XR_BOOLEAN_INPUT);
   if (is_float_action) {
     action->float_thresholds = MEM_calloc_arrayN(
-      count, sizeof(*action->float_thresholds), "XrAction_FloatThresholds");
+        count, sizeof(*action->float_thresholds), "XrAction_FloatThresholds");
   }
   if (is_button_action) {
     action->axis_flags = MEM_calloc_arrayN(
-      count, sizeof(*action->axis_flags), "XrAction_AxisFlags");
+        count, sizeof(*action->axis_flags), "XrAction_AxisFlags");
   }
 
   action->ot = ot;
@@ -186,9 +186,9 @@ void WM_xr_action_set_destroy(wmXrData *xr, const char *action_set_name)
   wmXrSessionState *session_state = &xr->runtime->session_state;
 
   if (action_set == session_state->active_action_set) {
-    if (action_set->controller_pose_action) {
+    if (action_set->controller_grip_action || action_set->controller_aim_action) {
       wm_xr_session_controller_data_clear(session_state);
-      action_set->controller_pose_action = NULL;
+      action_set->controller_grip_action = action_set->controller_aim_action = NULL;
     }
     if (action_set->active_modal_action) {
       action_set->active_modal_action = NULL;
@@ -213,13 +213,8 @@ bool WM_xr_action_create(wmXrData *xr,
     return false;
   }
 
-  wmXrAction *action = action_create(action_name,
-                                     type,
-                                     count_subaction_paths,
-                                     subaction_paths,
-                                     ot,
-                                     op_properties,
-                                     op_flag);
+  wmXrAction *action = action_create(
+      action_name, type, count_subaction_paths, subaction_paths, ot, op_properties, op_flag);
 
   GHOST_XrActionInfo info = {
       .name = action_name,
@@ -269,13 +264,16 @@ void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char 
     return;
   }
 
-  if (action_set->controller_pose_action &&
-      STREQ(action_set->controller_pose_action->name, action_name)) {
+  if ((action_set->controller_grip_action &&
+       STREQ(action_set->controller_grip_action->name, action_name)) ||
+      (action_set->controller_aim_action &&
+       STREQ(action_set->controller_aim_action->name, action_name))) {
     if (action_set == xr->runtime->session_state.active_action_set) {
       wm_xr_session_controller_data_clear(&xr->runtime->session_state);
     }
-    action_set->controller_pose_action = NULL;
+    action_set->controller_grip_action = action_set->controller_aim_action = NULL;
   }
+
   if (action_set->active_modal_action &&
       STREQ(action_set->active_modal_action->name, action_name)) {
     action_set->active_modal_action = NULL;
@@ -283,7 +281,6 @@ void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char 
 
   GHOST_XrDestroyActions(xr->runtime->context, action_set_name, 1, &action_name);
 }
-
 
 bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *action_set_name,
@@ -297,7 +294,7 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const struct wmXrPose *poses)
 {
   GHOST_XrActionBindingInfo *binding_infos = MEM_calloc_arrayN(
-    count_subaction_paths, sizeof(*binding_infos), __func__);
+      count_subaction_paths, sizeof(*binding_infos), __func__);
 
   for (unsigned int i = 0; i < count_subaction_paths; ++i) {
     GHOST_XrActionBindingInfo *binding_info = &binding_infos[i];
@@ -334,7 +331,7 @@ void WM_xr_action_binding_destroy(wmXrData *xr,
                                   const char *profile_path)
 {
   GHOST_XrDestroyActionBindings(
-    xr->runtime->context, action_set_name, 1, &action_name, &profile_path);
+      xr->runtime->context, action_set_name, 1, &action_name, &profile_path);
 }
 
 bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name)
@@ -360,31 +357,54 @@ bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name)
 
   xr->runtime->session_state.active_action_set = action_set;
 
-  if (action_set->controller_pose_action) {
-    wm_xr_session_controller_data_populate(action_set->controller_pose_action, xr);
+  if (action_set->controller_grip_action && action_set->controller_aim_action) {
+    wm_xr_session_controller_data_populate(
+        action_set->controller_grip_action, action_set->controller_aim_action, xr);
+  }
+  else {
+    wm_xr_session_controller_data_clear(&xr->runtime->session_state);
   }
 
   return true;
 }
 
-bool WM_xr_controller_pose_action_set(wmXrData *xr,
-                                      const char *action_set_name,
-                                      const char *action_name)
+bool WM_xr_controller_pose_actions_set(wmXrData *xr,
+                                       const char *action_set_name,
+                                       const char *grip_action_name,
+                                       const char *aim_action_name)
 {
   wmXrActionSet *action_set = action_set_find(xr, action_set_name);
   if (!action_set) {
     return false;
   }
 
-  wmXrAction *action = action_find(xr, action_set_name, action_name);
-  if (!action) {
+  wmXrAction *grip_action = action_find(xr, action_set_name, grip_action_name);
+  if (!grip_action) {
     return false;
   }
 
-  action_set->controller_pose_action = action;
+  wmXrAction *aim_action = action_find(xr, action_set_name, aim_action_name);
+  if (!aim_action) {
+    return false;
+  }
+
+  /* Ensure consistent subaction paths. */
+  const unsigned int count = grip_action->count_subaction_paths;
+  if (count != aim_action->count_subaction_paths) {
+    return false;
+  }
+
+  for (unsigned int i = 0; i < count; ++i) {
+    if (!STREQ(grip_action->subaction_paths[i], aim_action->subaction_paths[i])) {
+      return false;
+    }
+  }
+
+  action_set->controller_grip_action = grip_action;
+  action_set->controller_aim_action = aim_action;
 
   if (action_set == xr->runtime->session_state.active_action_set) {
-    wm_xr_session_controller_data_populate(action, xr);
+    wm_xr_session_controller_data_populate(grip_action, aim_action, xr);
   }
 
   return true;

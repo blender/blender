@@ -26,19 +26,6 @@
 
 struct wmXrActionSet;
 
-typedef struct wmXrControllerData {
-  /** OpenXR path identifier. Length is dependent on OpenXR's XR_MAX_PATH_LENGTH (256).
-  This subaction path will later be combined with a component path, and that combined path should
-  also have a max of XR_MAX_PATH_LENGTH (e.g. subaction_path = /user/hand/left, component_path =
-  /input/trigger/value, interaction_path = /user/hand/left/input/trigger/value).
-  */
-  char subaction_path[64];
-  /** Last known controller pose (in world space) stored for queries. */
-  GHOST_XrPose pose;
-  /** The last known controller matrix, calculated from above's controller pose. */
-  float mat[4][4];
-} wmXrControllerData;
-
 typedef struct wmXrSessionState {
   bool is_started;
 
@@ -65,7 +52,7 @@ typedef struct wmXrSessionState {
   bool is_view_data_set;
 
   /** Last known controller data. */
-  wmXrControllerData controllers[2];
+  ListBase controllers; /* wmXrController */
 
   /** The currently active action set that will be updated on calls to
    * wm_xr_session_actions_update(). If NULL, all action sets will be treated as active and
@@ -135,14 +122,27 @@ typedef struct wmXrAction {
   eXrOpFlag op_flag;
 } wmXrAction;
 
+typedef struct wmXrController {
+  struct wmXrController *next, *prev;
+  /** OpenXR path identifier. Length is dependent on OpenXR's XR_MAX_PATH_LENGTH (256).
+  This subaction path will later be combined with a component path, and that combined path should
+  also have a max of XR_MAX_PATH_LENGTH (e.g. subaction_path = /user/hand/left, component_path =
+  /input/trigger/value, interaction_path = /user/hand/left/input/trigger/value).
+  */
+  char subaction_path[64];
+  /* Pose (in world space) that represents the user's hand when holding the controller.*/
+  GHOST_XrPose grip_pose;
+  float grip_mat[4][4];
+  /* Pose (in world space) that represents the controller's aiming source. */
+  GHOST_XrPose aim_pose;
+  float aim_mat[4][4];
+} wmXrController;
+
 typedef struct wmXrActionSet {
   char *name;
-
-  /** The XR pose action that determines the controller
-   * transforms. This is usually identified by the OpenXR path "/grip/pose" or "/aim/pose",
-   * although it could differ depending on the specification and hardware. */
-  wmXrAction *controller_pose_action;
-
+  /** XR pose actions that determine the controller grip/aim transforms. */
+  wmXrAction *controller_grip_action;
+  wmXrAction *controller_aim_action;
   /** The currently active modal action (if any). */
   wmXrAction *active_modal_action;
 } wmXrActionSet;
@@ -165,10 +165,11 @@ void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle context);
 
 void wm_xr_session_actions_init(wmXrData *xr);
 void wm_xr_session_actions_update(wmXrData *xr);
-void wm_xr_session_controller_data_populate(const wmXrAction *controller_pose_action,
+void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
+                                            const wmXrAction *aim_action,
                                             wmXrData *xr);
 void wm_xr_session_controller_data_clear(wmXrSessionState *state);
 
-void wm_xr_pose_to_viewmat(const GHOST_XrPose *pose, float r_viewmat[4][4]);
-void wm_xr_controller_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4]);
+void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4]);
+void wm_xr_pose_to_imat(const GHOST_XrPose *pose, float r_imat[4][4]);
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
