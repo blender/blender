@@ -1599,6 +1599,17 @@ static void lib_override_library_main_resync_on_library_indirect_level(
             (!ID_IS_LINKED(id) && library_indirect_level != 0)) {
           continue;
         }
+
+        /* We cannot resync a scene that is currently active. */
+        if (id == &scene->id) {
+          id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+          BKE_reportf(reports->reports,
+                      RPT_WARNING,
+                      "Scene '%s' was not resynced as it is the currently active one",
+                      scene->id.name + 2);
+          continue;
+        }
+
         Library *library = id->lib;
 
         int level = 0;
