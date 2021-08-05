@@ -715,7 +715,7 @@ static int rna_SplineIKConstraint_joint_bindings_get_length(PointerRNA *ptr,
     length[0] = ikData->numpoints;
   }
   else {
-    length[0] = 256; /* for raw_access, untested */
+    length[0] = 0;
   }
 
   return length[0];
