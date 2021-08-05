@@ -439,6 +439,34 @@ static const EnumPropertyItem rna_node_geometry_attribute_randomize_operation_it
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_node_geometry_curve_handle_type_items[] = {
+    {GEO_NODE_CURVE_HANDLE_FREE,
+     "FREE",
+     ICON_HANDLE_FREE,
+     "Free",
+     "The handle can be moved anywhere, and doesn't influence the point's other handle"},
+    {GEO_NODE_CURVE_HANDLE_AUTO,
+     "AUTO",
+     ICON_HANDLE_AUTO,
+     "Auto",
+     "The location is automatically calculated to be smooth"},
+    {GEO_NODE_CURVE_HANDLE_VECTOR,
+     "VECTOR",
+     ICON_HANDLE_VECTOR,
+     "Vector",
+     "The location is calculated to point to the next/previous control point"},
+    {GEO_NODE_CURVE_HANDLE_ALIGN,
+     "ALIGN",
+     ICON_HANDLE_ALIGNED,
+     "Align",
+     "The location is constrained to point in the opposite direction as the other handle"},
+    {0, NULL, 0, NULL, NULL}};
+
+static const EnumPropertyItem rna_node_geometry_curve_handle_side_items[] = {
+    {GEO_NODE_CURVE_HANDLE_LEFT, "LEFT", ICON_NONE, "Left", "Use the left handles"},
+    {GEO_NODE_CURVE_HANDLE_RIGHT, "RIGHT", ICON_NONE, "Right", "Use the right handles"},
+    {0, NULL, 0, NULL, NULL}};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem node_sampler_type_items[] = {
     {0, "NEAREST", 0, "Nearest", ""},
@@ -9460,46 +9488,36 @@ static void def_geo_curve_spline_type(StructRNA *srna)
 
 static void def_geo_curve_set_handles(StructRNA *srna)
 {
-  static const EnumPropertyItem type_items[] = {
-      {GEO_NODE_CURVE_HANDLE_FREE,
-       "FREE",
-       ICON_HANDLE_FREE,
-       "Free",
-       "The handle can be moved anywhere, and doesn't influence the point's other handle"},
-      {GEO_NODE_CURVE_HANDLE_AUTO,
-       "AUTO",
-       ICON_HANDLE_AUTO,
-       "Auto",
-       "The location is automatically calculated to be smooth"},
-      {GEO_NODE_CURVE_HANDLE_VECTOR,
-       "VECTOR",
-       ICON_HANDLE_VECTOR,
-       "Vector",
-       "The location is calculated to point to the next/previous control point"},
-      {GEO_NODE_CURVE_HANDLE_ALIGN,
-       "ALIGN",
-       ICON_HANDLE_ALIGNED,
-       "Align",
-       "The location is constrained to point in the opposite direction as the other handle"},
-      {0, NULL, 0, NULL, NULL}};
-
-  static const EnumPropertyItem mode_items[] = {
-      {GEO_NODE_CURVE_HANDLE_LEFT, "LEFT", ICON_NONE, "Left", "Update the left handles"},
-      {GEO_NODE_CURVE_HANDLE_RIGHT, "RIGHT", ICON_NONE, "Right", "Update the right handles"},
-      {0, NULL, 0, NULL, NULL}};
-
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryCurveSetHandles", "storage");
 
   prop = RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "handle_type");
-  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_type_items);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_side_items);
   RNA_def_property_ui_text(prop, "Mode", "Whether to update left and right handles");
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_curve_select_handles(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCurveSelectHandles", "storage");
+
+  prop = RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "handle_type");
+  RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_type_items);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_curve_handle_side_items);
+  RNA_def_property_ui_text(prop, "Mode", "Whether to check the type of left and right handles");
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }

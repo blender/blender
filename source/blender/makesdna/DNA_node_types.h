@@ -1367,6 +1367,13 @@ typedef struct NodeGeometryCurveSetHandles {
   uint8_t mode;
 } NodeGeometryCurveSetHandles;
 
+typedef struct NodeGeometryCurveSelectHandles {
+  /* GeometryNodeCurveHandleType. */
+  uint8_t handle_type;
+  /* GeometryNodeCurveHandleMode. */
+  uint8_t mode;
+} NodeGeometryCurveSelectHandles;
+
 typedef struct NodeGeometryCurvePrimitiveLine {
   /* GeometryNodeCurvePrimitiveLineMode. */
   uint8_t mode;
