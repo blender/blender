@@ -291,6 +291,12 @@ static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
   const int segments_num = params.extract_input<int>("Segments");
   const int rings_num = params.extract_input<int>("Rings");
   if (segments_num < 3 || rings_num < 2) {
+    if (segments_num < 3) {
+      params.error_message_add(NodeWarningType::Info, TIP_("Segments must be at least 3"));
+    }
+    if (rings_num < 3) {
+      params.error_message_add(NodeWarningType::Info, TIP_("Rings must be at least 3"));
+    }
     params.set_output("Geometry", GeometrySet());
     return;
   }

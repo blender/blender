@@ -551,6 +551,7 @@ static void geo_node_mesh_primitive_cone_exec(GeoNodeExecParams params)
 
   const int verts_num = params.extract_input<int>("Vertices");
   if (verts_num < 3) {
+    params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
     params.set_output("Geometry", GeometrySet());
     return;
   }
