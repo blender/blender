@@ -829,7 +829,7 @@ void rna_XrSessionState_haptic_action_stop(bContext *C,
 
 static void rna_XrSessionState_controller_grip_location_get(bContext *C,
                                                             int *index,
-                                                            float *r_values)
+                                                            float r_values[3])
 {
 #  ifdef WITH_XR_OPENXR
   const wmWindowManager *wm = CTX_wm_manager(C);
@@ -842,7 +842,7 @@ static void rna_XrSessionState_controller_grip_location_get(bContext *C,
 
 static void rna_XrSessionState_controller_grip_rotation_get(bContext *C,
                                                             int index,
-                                                            float *r_values)
+                                                            float r_values[4])
 {
 #  ifdef WITH_XR_OPENXR
   const wmWindowManager *wm = CTX_wm_manager(C);
@@ -855,7 +855,7 @@ static void rna_XrSessionState_controller_grip_rotation_get(bContext *C,
 
 static void rna_XrSessionState_controller_aim_location_get(bContext *C,
                                                            int *index,
-                                                           float *r_values)
+                                                           float r_values[3])
 {
 #  ifdef WITH_XR_OPENXR
   const wmWindowManager *wm = CTX_wm_manager(C);
@@ -866,7 +866,9 @@ static void rna_XrSessionState_controller_aim_location_get(bContext *C,
 #  endif
 }
 
-static void rna_XrSessionState_controller_aim_rotation_get(bContext *C, int index, float *r_values)
+static void rna_XrSessionState_controller_aim_rotation_get(bContext *C,
+                                                           int index,
+                                                           float r_values[4])
 {
 #  ifdef WITH_XR_OPENXR
   const wmWindowManager *wm = CTX_wm_manager(C);
