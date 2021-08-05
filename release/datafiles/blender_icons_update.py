@@ -37,6 +37,12 @@ env = {}
 # Developers may have ASAN enabled, avoid non-zero exit codes.
 env["ASAN_OPTIONS"] = "exitcode=0:" + os.environ.get("ASAN_OPTIONS", "")
 
+# These NEED to be set on windows for python to initialize properly.
+if sys.platform[:3] == "win":
+    env["PATHEXT"] = os.environ.get("PATHEXT", "")
+    env["SystemDrive"] = os.environ.get("SystemDrive", "")
+    env["SystemRoot"] = os.environ.get("SystemRoot", "")
+
 inkscape_bin = os.environ.get("INKSCAPE_BIN", "inkscape")
 blender_bin = os.environ.get("BLENDER_BIN", "blender")
 
