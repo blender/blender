@@ -50,8 +50,6 @@ static void bm_edge_tag_from_smooth(const float (*fnos)[3],
                                     BMEdge *e,
                                     const float split_angle_cos);
 
-static void bm_edge_tag_clear(BMEdge *e);
-
 /* -------------------------------------------------------------------- */
 /** \name Update Vertex & Face Normals
  * \{ */
@@ -866,13 +864,6 @@ static void bm_edge_tag_from_smooth(const float (*fnos)[3], BMEdge *e, const flo
   }
 }
 
-static void bm_edge_tag_clear(BMEdge *e)
-{
-  /* No need for atomics here as this is a single byte. */
-  char *hflag_p = &e->head.hflag;
-  *hflag_p = *hflag_p & ~BM_ELEM_TAG;
-}
-
 /**
  * A version of #bm_edge_tag_from_smooth that sets sharp edges
  * when they would be considered smooth but exceed the split angle .
@@ -941,6 +932,7 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
   const bool has_clnors = true;
   LinkNode *loops_of_vert = NULL;
   int loops_of_vert_count = 0;
+  /* When false the caller must have already tagged the edges. */
   const bool do_edge_tag = (split_angle_cos != EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS);
 
   /* The loop with the lowest index. */
@@ -954,12 +946,8 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
         continue;
       }
 
-      /* Always set as #bm_mesh_loops_calc_normals_for_loop checks the tag. */
       if (do_edge_tag) {
         bm_edge_tag_from_smooth(fnos, e_curr_iter, split_angle_cos);
-      }
-      else {
-        bm_edge_tag_clear(e_curr_iter);
       }
 
       do { /* Radial loops. */
@@ -1053,6 +1041,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
 {
   const bool has_clnors = false;
   const short(*clnors_data)[2] = NULL;
+  /* When false the caller must have already tagged the edges. */
   const bool do_edge_tag = (split_angle_cos != EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS);
   const int cd_loop_clnors_offset = -1;
 
@@ -1066,12 +1055,8 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
       continue;
     }
 
-    /* Always set as #bm_mesh_loops_calc_normals_for_loop checks the tag. */
     if (do_edge_tag) {
       bm_edge_tag_from_smooth(fnos, e_curr_iter, split_angle_cos);
-    }
-    else {
-      bm_edge_tag_clear(e_curr_iter);
     }
 
     do { /* Radial loops. */
@@ -1167,8 +1152,9 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
     do {
       BM_elem_index_set(l_curr, index_loop++); /* set_inline */
       BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
-      /* Needed for when #bm_mesh_edges_sharp_tag doesn't run. */
-      BM_elem_flag_disable(l_curr->e, BM_ELEM_TAG);
+      /* Needed for when #bm_mesh_edges_sharp_tag doesn't run.
+       * Mark smooth if there is no smoothing angle. */
+      BM_elem_flag_enable(l_curr->e, BM_ELEM_TAG);
     } while ((l_curr = l_curr->next) != l_first);
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
