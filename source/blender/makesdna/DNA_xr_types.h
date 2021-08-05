@@ -34,7 +34,7 @@ typedef struct XrSessionSettings {
 
   char _pad[7];
 
-  char base_pose_type; /* eXRSessionBasePoseType */
+  char base_pose_type; /* #eXRSessionBasePoseType */
   /** Object to take the location and rotation as base position from. */
   Object *base_pose_object;
   float base_pose_location[3];
@@ -78,22 +78,26 @@ typedef enum eXrOpFlag {
 } eXrOpFlag;
 
 typedef enum eXrActionFlag {
-  /** Action depends on two subaction paths (i.e. two-handed/bimanual action). */
+  /** Action depends on two sub-action paths (i.e. two-handed/bi-manual action). */
   XR_ACTION_BIMANUAL = (1 << 0),
 } eXrActionFlag;
 
 typedef enum eXrHapticFlag {
   /** Whether to apply haptics to corresponding user paths for an action and its haptic action. */
   XR_HAPTIC_MATCHUSERPATHS = (1 << 0),
-  /** Determines how haptics will be applied ("repeat" is mutually exclusive with
-     "press"/"release"). */
+  /**
+   * Determines how haptics will be applied
+   * ("repeat" is mutually exclusive with "press"/"release").
+   */
   XR_HAPTIC_PRESS = (1 << 1),
   XR_HAPTIC_RELEASE = (1 << 2),
   XR_HAPTIC_REPEAT = (1 << 3),
 } eXrHapticFlag;
 
-/** For axis-based inputs (thumbstick/trackpad/etc). Determines the region for action execution
- * (mutually exclusive per axis). */
+/**
+ * For axis-based inputs (thumb-stick/track-pad/etc).
+ * Determines the region for action execution (mutually exclusive per axis).
+ */
 typedef enum eXrAxisFlag {
   XR_AXIS0_POS = (1 << 0),
   XR_AXIS0_NEG = (1 << 1),

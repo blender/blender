@@ -18,8 +18,8 @@
  * \ingroup GHOST
  */
 
-/* Note: Requires OpenXR headers to be included before this one for OpenXR types (XrSpace, XrPath,
- * etc.). */
+/* NOTE: Requires OpenXR headers to be included before this one for OpenXR types
+ * (XrSpace, XrPath, etc.). */
 
 #pragma once
 
@@ -78,9 +78,9 @@ class GHOST_XrActionProfile {
  private:
   XrPath m_profile = XR_NULL_PATH;
 
-  /** Subaction data identified by user (subaction) path. */
+  /** Sub-action data identified by user `subaction` path. */
   std::map<std::string, GHOST_XrSubactionData> m_subaction_data;
-  /** Bindings identified by interaction (user (subaction) + component) path. */
+  /** Bindings identified by interaction (user `subaction` + component) path. */
   std::map<std::string, XrPath> m_bindings;
 };
 
