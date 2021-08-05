@@ -432,11 +432,8 @@ static void test_constraint(
      * free the points array and request a rebind...
      */
     if ((data->points == NULL) || (data->numpoints != data->chainlen + 1)) {
-      /* free the points array */
-      if (data->points) {
-        MEM_freeN(data->points);
-        data->points = NULL;
-      }
+      MEM_SAFE_FREE(data->points);
+      data->numpoints = 0;
 
       /* clear the bound flag, forcing a rebind next time this is evaluated */
       data->flag &= ~CONSTRAINT_SPLINEIK_BOUND;

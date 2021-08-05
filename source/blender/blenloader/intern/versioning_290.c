@@ -881,6 +881,19 @@ static ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
   return new_region;
 }
 
+static void do_version_constraints_spline_ik_joint_bindings(ListBase *lb)
+{
+  /* Binding array data could be freed without properly resetting its size data. */
+  LISTBASE_FOREACH (bConstraint *, con, lb) {
+    if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
+      bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
+      if (data->points == NULL) {
+        data->numpoints = 0;
+      }
+    }
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -1086,7 +1099,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 291, 1)) {
 
     /* Initialize additional parameter of the Nishita sky model and change altitude unit. */
@@ -2090,6 +2102,17 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 20)) {
     ListBase *lb = which_libbase(bmain, ID_VF);
     BKE_main_id_repair_duplicate_names_listbase(lb);
+
+    /* Fix SplineIK constraint's inconsistency between binding points array and its stored size. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      /* NOTE: Objects should never have SplineIK constraint, so no need to apply this fix on
+       * their constraints. */
+      if (ob->pose) {
+        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+          do_version_constraints_spline_ik_joint_bindings(&pchan->constraints);
+        }
+      }
+    }
   }
 
   /**
