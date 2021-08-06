@@ -1968,8 +1968,8 @@ def km_file_browser(params):
         *_template_space_region_type_toggle(
             toolbar_key={"type": 'T', "value": 'PRESS'},
         ),
-        ("screen.region_toggle", {"type": 'N', "value": 'PRESS'},
-         {"properties": [("region_type", 'TOOL_PROPS')]}),
+        ("wm.context_toggle", {"type": 'N', "value": 'PRESS'},
+          {"properties": [("data_path", 'space_data.show_region_tool_props')]}),
         ("file.parent", {"type": 'UP_ARROW', "value": 'PRESS', "alt": True}, None),
         ("file.previous", {"type": 'LEFT_ARROW', "value": 'PRESS', "alt": True}, None),
         ("file.next", {"type": 'RIGHT_ARROW', "value": 'PRESS', "alt": True}, None),
