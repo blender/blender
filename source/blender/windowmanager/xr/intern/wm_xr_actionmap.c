@@ -256,6 +256,7 @@ XrActionMapItem *WM_xr_actionmap_item_new(XrActionMap *actionmap,
   if (ami_prev) {
     WM_xr_actionmap_item_ensure_unique(actionmap, ami);
   }
+  ami->selbinding = -1;
 
   BLI_addtail(&actionmap->items, ami);
 
@@ -398,6 +399,7 @@ XrActionMap *WM_xr_actionmap_new(wmXrRuntimeData *runtime, const char *name, boo
   if (am_prev) {
     WM_xr_actionmap_ensure_unique(runtime, am);
   }
+  am->selitem = -1;
 
   BLI_addtail(&runtime->actionmaps, am);
 
