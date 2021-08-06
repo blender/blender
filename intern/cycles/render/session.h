@@ -174,7 +174,7 @@ class Session {
     bool do_reset;
     BufferParams params;
     int samples;
-  } delayed_reset;
+  } delayed_reset_;
 
   void run();
 
@@ -207,38 +207,38 @@ class Session {
   void map_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device);
   void unmap_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device);
 
-  bool device_use_gl;
+  bool device_use_gl_;
 
-  thread *session_thread;
+  thread *session_thread_;
 
-  volatile bool display_outdated;
+  volatile bool display_outdated_;
 
-  volatile bool gpu_draw_ready;
-  volatile bool gpu_need_display_buffer_update;
-  thread_condition_variable gpu_need_display_buffer_update_cond;
+  volatile bool gpu_draw_ready_;
+  volatile bool gpu_need_display_buffer_update_;
+  thread_condition_variable gpu_need_display_buffer_update_cond_;
 
-  bool pause;
-  thread_condition_variable pause_cond;
-  thread_mutex pause_mutex;
-  thread_mutex tile_mutex;
-  thread_mutex buffers_mutex;
-  thread_mutex display_mutex;
-  thread_condition_variable denoising_cond;
-  thread_condition_variable tile_steal_cond;
+  bool pause_;
+  thread_condition_variable pause_cond_;
+  thread_mutex pause_mutex_;
+  thread_mutex tile_mutex_;
+  thread_mutex buffers_mutex_;
+  thread_mutex display_mutex_;
+  thread_condition_variable denoising_cond_;
+  thread_condition_variable tile_steal_cond_;
 
-  double reset_time;
-  double last_update_time;
-  double last_display_time;
+  double reset_time_;
+  double last_update_time_;
+  double last_display_time_;
 
-  RenderTile stolen_tile;
+  RenderTile stolen_tile_;
   typedef enum {
     NOT_STEALING,     /* There currently is no tile stealing in progress. */
     WAITING_FOR_TILE, /* A device is waiting for another device to release a tile. */
     RELEASING_TILE,   /* A device has releasing a stealable tile. */
     GOT_TILE /* A device has released a stealable tile, which is now stored in stolen_tile. */
   } TileStealingState;
-  std::atomic<TileStealingState> tile_stealing_state;
-  int stealable_tiles;
+  std::atomic<TileStealingState> tile_stealing_state_;
+  int stealable_tiles_;
 
   /* progressive refine */
   bool update_progressive_refine(bool cancel);

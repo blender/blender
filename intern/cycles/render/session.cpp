@@ -57,23 +57,23 @@ Session::Session(const SessionParams &params_)
       stats(),
       profiler()
 {
-  device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);
+  device_use_gl_ = ((params.device.type != DEVICE_CPU) && !params.background);
 
   TaskScheduler::init(params.threads);
 
-  session_thread = NULL;
+  session_thread_ = NULL;
   scene = NULL;
 
-  reset_time = 0.0;
-  last_update_time = 0.0;
+  reset_time_ = 0.0;
+  last_update_time_ = 0.0;
 
-  delayed_reset.do_reset = false;
-  delayed_reset.samples = 0;
+  delayed_reset_.do_reset = false;
+  delayed_reset_.samples = 0;
 
-  display_outdated = false;
-  gpu_draw_ready = false;
-  gpu_need_display_buffer_update = false;
-  pause = false;
+  display_outdated_ = false;
+  gpu_draw_ready_ = false;
+  gpu_need_display_buffer_update_ = false;
+  pause_ = false;
 
   buffers = NULL;
   display = NULL;
@@ -127,25 +127,25 @@ Session::~Session()
 
 void Session::start()
 {
-  if (!session_thread) {
-    session_thread = new thread(function_bind(&Session::run, this));
+  if (!session_thread_) {
+    session_thread_ = new thread(function_bind(&Session::run, this));
   }
 }
 
 void Session::cancel()
 {
-  if (session_thread) {
+  if (session_thread_) {
     /* wait for session thread to end */
     progress.set_cancel("Exiting");
 
-    gpu_need_display_buffer_update = false;
-    gpu_need_display_buffer_update_cond.notify_all();
+    gpu_need_display_buffer_update_ = false;
+    gpu_need_display_buffer_update_cond_.notify_all();
 
     {
-      thread_scoped_lock pause_lock(pause_mutex);
-      pause = false;
+      thread_scoped_lock pause_lock(pause_mutex_);
+      pause_ = false;
     }
-    pause_cond.notify_all();
+    pause_cond_.notify_all();
 
     wait();
   }
@@ -153,9 +153,9 @@ void Session::cancel()
 
 bool Session::ready_to_reset()
 {
-  double dt = time_dt() - reset_time;
+  double dt = time_dt() - reset_time_;
 
-  if (!display_outdated)
+  if (!display_outdated_)
     return (dt > params.reset_timeout);
   else
     return (dt > params.cancel_timeout);
@@ -165,48 +165,48 @@ bool Session::ready_to_reset()
 
 void Session::reset_gpu(BufferParams &buffer_params, int samples)
 {
-  thread_scoped_lock pause_lock(pause_mutex);
+  thread_scoped_lock pause_lock(pause_mutex_);
 
   /* block for buffer access and reset immediately. we can't do this
    * in the thread, because we need to allocate an OpenGL buffer, and
    * that only works in the main thread */
-  thread_scoped_lock display_lock(display_mutex);
-  thread_scoped_lock buffers_lock(buffers_mutex);
+  thread_scoped_lock display_lock(display_mutex_);
+  thread_scoped_lock buffers_lock(buffers_mutex_);
 
-  display_outdated = true;
-  reset_time = time_dt();
+  display_outdated_ = true;
+  reset_time_ = time_dt();
 
   reset_(buffer_params, samples);
 
-  gpu_need_display_buffer_update = false;
-  gpu_need_display_buffer_update_cond.notify_all();
+  gpu_need_display_buffer_update_ = false;
+  gpu_need_display_buffer_update_cond_.notify_all();
 
-  pause_cond.notify_all();
+  pause_cond_.notify_all();
 }
 
 bool Session::draw_gpu(BufferParams &buffer_params, DeviceDrawParams &draw_params)
 {
   /* block for buffer access */
-  thread_scoped_lock display_lock(display_mutex);
+  thread_scoped_lock display_lock(display_mutex_);
 
   /* first check we already rendered something */
-  if (gpu_draw_ready) {
+  if (gpu_draw_ready_) {
     /* then verify the buffers have the expected size, so we don't
      * draw previous results in a resized window */
     if (buffer_params.width == display->params.width &&
         buffer_params.height == display->params.height) {
       /* for CUDA we need to do tone-mapping still, since we can
        * only access GL buffers from the main thread. */
-      if (gpu_need_display_buffer_update) {
-        thread_scoped_lock buffers_lock(buffers_mutex);
+      if (gpu_need_display_buffer_update_) {
+        thread_scoped_lock buffers_lock(buffers_mutex_);
         copy_to_display_buffer(tile_manager.state.sample);
-        gpu_need_display_buffer_update = false;
-        gpu_need_display_buffer_update_cond.notify_all();
+        gpu_need_display_buffer_update_ = false;
+        gpu_need_display_buffer_update_cond_.notify_all();
       }
 
       display->draw(device, draw_params);
 
-      if (display_outdated && (time_dt() - reset_time) > params.text_timeout)
+      if (display_outdated_ && (time_dt() - reset_time_) > params.text_timeout)
         return false;
 
       return true;
@@ -220,9 +220,9 @@ void Session::run_gpu()
 {
   bool tiles_written = false;
 
-  reset_time = time_dt();
-  last_update_time = time_dt();
-  last_display_time = last_update_time;
+  reset_time_ = time_dt();
+  last_update_time_ = time_dt();
+  last_display_time_ = last_update_time_;
 
   progress.set_render_start_time();
 
@@ -255,7 +255,7 @@ void Session::run_gpu()
       /* buffers mutex is locked entirely while rendering each
        * sample, and released/reacquired on each iteration to allow
        * reset and draw in between */
-      thread_scoped_lock buffers_lock(buffers_mutex);
+      thread_scoped_lock buffers_lock(buffers_mutex_);
 
       /* update status and timing */
       update_status_time();
@@ -273,17 +273,17 @@ void Session::run_gpu()
       /* update status and timing */
       update_status_time();
 
-      gpu_need_display_buffer_update = !delayed_denoise;
-      gpu_draw_ready = true;
+      gpu_need_display_buffer_update_ = !delayed_denoise;
+      gpu_draw_ready_ = true;
       progress.set_update();
 
       /* wait for until display buffer is updated */
       if (!params.background) {
-        while (gpu_need_display_buffer_update) {
+        while (gpu_need_display_buffer_update_) {
           if (progress.get_cancel())
             break;
 
-          gpu_need_display_buffer_update_cond.wait(buffers_lock);
+          gpu_need_display_buffer_update_cond_.wait(buffers_lock);
         }
       }
 
@@ -305,23 +305,23 @@ void Session::run_gpu()
 
 void Session::reset_cpu(BufferParams &buffer_params, int samples)
 {
-  thread_scoped_lock reset_lock(delayed_reset.mutex);
-  thread_scoped_lock pause_lock(pause_mutex);
+  thread_scoped_lock reset_lock(delayed_reset_.mutex);
+  thread_scoped_lock pause_lock(pause_mutex_);
 
-  display_outdated = true;
-  reset_time = time_dt();
+  display_outdated_ = true;
+  reset_time_ = time_dt();
 
-  delayed_reset.params = buffer_params;
-  delayed_reset.samples = samples;
-  delayed_reset.do_reset = true;
+  delayed_reset_.params = buffer_params;
+  delayed_reset_.samples = samples;
+  delayed_reset_.do_reset = true;
   device->task_cancel();
 
-  pause_cond.notify_all();
+  pause_cond_.notify_all();
 }
 
 bool Session::draw_cpu(BufferParams &buffer_params, DeviceDrawParams &draw_params)
 {
-  thread_scoped_lock display_lock(display_mutex);
+  thread_scoped_lock display_lock(display_mutex_);
 
   /* first check we already rendered something */
   if (display->draw_ready()) {
@@ -331,7 +331,7 @@ bool Session::draw_cpu(BufferParams &buffer_params, DeviceDrawParams &draw_param
         buffer_params.height == display->params.height) {
       display->draw(device, draw_params);
 
-      if (display_outdated && (time_dt() - reset_time) > params.text_timeout)
+      if (display_outdated_ && (time_dt() - reset_time_) > params.text_timeout)
         return false;
 
       return true;
@@ -345,46 +345,46 @@ bool Session::steal_tile(RenderTile &rtile, Device *tile_device, thread_scoped_l
 {
   /* Devices that can get their tiles stolen don't steal tiles themselves.
    * Additionally, if there are no stealable tiles in flight, give up here. */
-  if (tile_device->info.type == DEVICE_CPU || stealable_tiles == 0) {
+  if (tile_device->info.type == DEVICE_CPU || stealable_tiles_ == 0) {
     return false;
   }
 
   /* Wait until no other thread is trying to steal a tile. */
-  while (tile_stealing_state != NOT_STEALING && stealable_tiles > 0) {
+  while (tile_stealing_state_ != NOT_STEALING && stealable_tiles_ > 0) {
     /* Someone else is currently trying to get a tile.
      * Wait on the condition variable and try later. */
-    tile_steal_cond.wait(tile_lock);
+    tile_steal_cond_.wait(tile_lock);
   }
   /* If another thread stole the last stealable tile in the meantime, give up. */
-  if (stealable_tiles == 0) {
+  if (stealable_tiles_ == 0) {
     return false;
   }
 
   /* There are stealable tiles in flight, so signal that one should be released. */
-  tile_stealing_state = WAITING_FOR_TILE;
+  tile_stealing_state_ = WAITING_FOR_TILE;
 
   /* Wait until a device notices the signal and releases its tile. */
-  while (tile_stealing_state != GOT_TILE && stealable_tiles > 0) {
-    tile_steal_cond.wait(tile_lock);
+  while (tile_stealing_state_ != GOT_TILE && stealable_tiles_ > 0) {
+    tile_steal_cond_.wait(tile_lock);
   }
   /* If the last stealable tile finished on its own, give up. */
-  if (tile_stealing_state != GOT_TILE) {
-    tile_stealing_state = NOT_STEALING;
+  if (tile_stealing_state_ != GOT_TILE) {
+    tile_stealing_state_ = NOT_STEALING;
     return false;
   }
 
   /* Successfully stole a tile, now move it to the new device. */
-  rtile = stolen_tile;
+  rtile = stolen_tile_;
   rtile.buffers->buffer.move_device(tile_device);
   rtile.buffer = rtile.buffers->buffer.device_pointer;
   rtile.stealing_state = RenderTile::NO_STEALING;
   rtile.num_samples -= (rtile.sample - rtile.start_sample);
   rtile.start_sample = rtile.sample;
 
-  tile_stealing_state = NOT_STEALING;
+  tile_stealing_state_ = NOT_STEALING;
 
   /* Poke any threads which might be waiting for NOT_STEALING above. */
-  tile_steal_cond.notify_one();
+  tile_steal_cond_.notify_one();
 
   return true;
 }
@@ -394,7 +394,7 @@ bool Session::get_tile_stolen()
   /* If tile_stealing_state is WAITING_FOR_TILE, atomically set it to RELEASING_TILE
    * and return true. */
   TileStealingState expected = WAITING_FOR_TILE;
-  return tile_stealing_state.compare_exchange_weak(expected, RELEASING_TILE);
+  return tile_stealing_state_.compare_exchange_weak(expected, RELEASING_TILE);
 }
 
 bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_types)
@@ -406,7 +406,7 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
     }
   }
 
-  thread_scoped_lock tile_lock(tile_mutex);
+  thread_scoped_lock tile_lock(tile_mutex_);
 
   /* get next tile from manager */
   Tile *tile;
@@ -423,7 +423,7 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
 
     /* Wait for denoising tiles to become available */
     if ((tile_types & RenderTile::DENOISE) && !progress.get_cancel() && tile_manager.has_tiles()) {
-      denoising_cond.wait(tile_lock);
+      denoising_cond_.wait(tile_lock);
       continue;
     }
 
@@ -446,7 +446,7 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
   }
   else {
     if (tile_device->info.type == DEVICE_CPU) {
-      stealable_tiles++;
+      stealable_tiles_++;
       rtile.stealing_state = RenderTile::CAN_BE_STOLEN;
     }
 
@@ -515,7 +515,7 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
     /* This will read any passes needed as input for baking. */
     if (tile_manager.state.sample == tile_manager.range_start_sample) {
       {
-        thread_scoped_lock tile_lock(tile_mutex);
+        thread_scoped_lock tile_lock(tile_mutex_);
         read_bake_tile_cb(rtile);
       }
       rtile.buffers->buffer.copy_to_device();
@@ -533,7 +533,7 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
 
 void Session::update_tile_sample(RenderTile &rtile)
 {
-  thread_scoped_lock tile_lock(tile_mutex);
+  thread_scoped_lock tile_lock(tile_mutex_);
 
   if (update_render_tile_cb) {
     if (params.progressive_refine == false) {
@@ -548,25 +548,25 @@ void Session::update_tile_sample(RenderTile &rtile)
 
 void Session::release_tile(RenderTile &rtile, const bool need_denoise)
 {
-  thread_scoped_lock tile_lock(tile_mutex);
+  thread_scoped_lock tile_lock(tile_mutex_);
 
   if (rtile.stealing_state != RenderTile::NO_STEALING) {
-    stealable_tiles--;
+    stealable_tiles_--;
     if (rtile.stealing_state == RenderTile::WAS_STOLEN) {
       /* If the tile is being stolen, don't release it here - the new device will pick up where
        * the old one left off. */
 
-      assert(tile_stealing_state == RELEASING_TILE);
+      assert(tile_stealing_state_ == RELEASING_TILE);
       assert(rtile.sample < rtile.start_sample + rtile.num_samples);
 
-      tile_stealing_state = GOT_TILE;
-      stolen_tile = rtile;
-      tile_steal_cond.notify_all();
+      tile_stealing_state_ = GOT_TILE;
+      stolen_tile_ = rtile;
+      tile_steal_cond_.notify_all();
       return;
     }
-    else if (stealable_tiles == 0) {
+    else if (stealable_tiles_ == 0) {
       /* If this was the last stealable tile, wake up any threads still waiting for one. */
-      tile_steal_cond.notify_all();
+      tile_steal_cond_.notify_all();
     }
   }
 
@@ -595,12 +595,12 @@ void Session::release_tile(RenderTile &rtile, const bool need_denoise)
   update_status_time();
 
   /* Notify denoising thread that a tile was finished. */
-  denoising_cond.notify_all();
+  denoising_cond_.notify_all();
 }
 
 void Session::map_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device)
 {
-  thread_scoped_lock tile_lock(tile_mutex);
+  thread_scoped_lock tile_lock(tile_mutex_);
 
   const int4 image_region = make_int4(
       tile_manager.state.buffer.full_x,
@@ -677,7 +677,7 @@ void Session::map_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_de
 
 void Session::unmap_neighbor_tiles(RenderTileNeighbors &neighbors, Device *tile_device)
 {
-  thread_scoped_lock tile_lock(tile_mutex);
+  thread_scoped_lock tile_lock(tile_mutex_);
   device->unmap_neighbor_tiles(tile_device, neighbors);
 }
 
@@ -685,8 +685,8 @@ void Session::run_cpu()
 {
   bool tiles_written = false;
 
-  last_update_time = time_dt();
-  last_display_time = last_update_time;
+  last_update_time_ = time_dt();
+  last_display_time_ = last_update_time_;
 
   while (!progress.get_cancel()) {
     const bool no_tiles = !run_update_for_next_iteration();
@@ -718,7 +718,7 @@ void Session::run_cpu()
       /* buffers mutex is locked entirely while rendering each
        * sample, and released/reacquired on each iteration to allow
        * reset and draw in between */
-      thread_scoped_lock buffers_lock(buffers_mutex);
+      thread_scoped_lock buffers_lock(buffers_mutex_);
 
       /* update status and timing */
       update_status_time();
@@ -741,14 +741,14 @@ void Session::run_cpu()
     device->task_wait();
 
     {
-      thread_scoped_lock reset_lock(delayed_reset.mutex);
-      thread_scoped_lock buffers_lock(buffers_mutex);
-      thread_scoped_lock display_lock(display_mutex);
+      thread_scoped_lock reset_lock(delayed_reset_.mutex);
+      thread_scoped_lock buffers_lock(buffers_mutex_);
+      thread_scoped_lock display_lock(display_mutex_);
 
-      if (delayed_reset.do_reset) {
+      if (delayed_reset_.do_reset) {
         /* reset rendering if request from main thread */
-        delayed_reset.do_reset = false;
-        reset_(delayed_reset.params, delayed_reset.samples);
+        delayed_reset_.do_reset = false;
+        reset_(delayed_reset_.params, delayed_reset_.samples);
       }
       else if (need_copy_to_display_buffer) {
         /* Only copy to display_buffer if we do not reset, we don't
@@ -783,7 +783,7 @@ void Session::run()
     /* reset number of rendered samples */
     progress.reset_sample();
 
-    if (device_use_gl)
+    if (device_use_gl_)
       run_gpu();
     else
       run_cpu();
@@ -801,12 +801,12 @@ void Session::run()
 bool Session::run_update_for_next_iteration()
 {
   thread_scoped_lock scene_lock(scene->mutex);
-  thread_scoped_lock reset_lock(delayed_reset.mutex);
+  thread_scoped_lock reset_lock(delayed_reset_.mutex);
 
-  if (delayed_reset.do_reset) {
-    thread_scoped_lock buffers_lock(buffers_mutex);
-    reset_(delayed_reset.params, delayed_reset.samples);
-    delayed_reset.do_reset = false;
+  if (delayed_reset_.do_reset) {
+    thread_scoped_lock buffers_lock(buffers_mutex_);
+    reset_(delayed_reset_.params, delayed_reset_.samples);
+    delayed_reset_.do_reset = false;
   }
 
   const bool have_tiles = tile_manager.next();
@@ -829,25 +829,25 @@ bool Session::run_wait_for_work(bool no_tiles)
     return false;
   }
 
-  thread_scoped_lock pause_lock(pause_mutex);
+  thread_scoped_lock pause_lock(pause_mutex_);
 
-  if (!pause && !no_tiles) {
+  if (!pause_ && !no_tiles) {
     return false;
   }
 
-  update_status_time(pause, no_tiles);
+  update_status_time(pause_, no_tiles);
 
   while (true) {
     scoped_timer pause_timer;
-    pause_cond.wait(pause_lock);
-    if (pause) {
+    pause_cond_.wait(pause_lock);
+    if (pause_) {
       progress.add_skip_time(pause_timer, params.background);
     }
 
-    update_status_time(pause, no_tiles);
+    update_status_time(pause_, no_tiles);
     progress.set_update();
 
-    if (!pause) {
+    if (!pause_) {
       break;
     }
   }
@@ -857,7 +857,7 @@ bool Session::run_wait_for_work(bool no_tiles)
 
 bool Session::draw(BufferParams &buffer_params, DeviceDrawParams &draw_params)
 {
-  if (device_use_gl)
+  if (device_use_gl_)
     return draw_gpu(buffer_params, draw_params);
   else
     return draw_cpu(buffer_params, draw_params);
@@ -866,7 +866,7 @@ bool Session::draw(BufferParams &buffer_params, DeviceDrawParams &draw_params)
 void Session::reset_(BufferParams &buffer_params, int samples)
 {
   if (buffers && buffer_params.modified(tile_manager.params)) {
-    gpu_draw_ready = false;
+    gpu_draw_ready_ = false;
     buffers->reset(buffer_params);
     if (display) {
       display->reset(buffer_params);
@@ -874,8 +874,8 @@ void Session::reset_(BufferParams &buffer_params, int samples)
   }
 
   tile_manager.reset(buffer_params, samples);
-  stealable_tiles = 0;
-  tile_stealing_state = NOT_STEALING;
+  stealable_tiles_ = 0;
+  tile_stealing_state_ = NOT_STEALING;
   progress.reset_sample();
 
   bool show_progress = params.background || tile_manager.get_num_effective_samples() != INT_MAX;
@@ -888,7 +888,7 @@ void Session::reset_(BufferParams &buffer_params, int samples)
 
 void Session::reset(BufferParams &buffer_params, int samples)
 {
-  if (device_use_gl)
+  if (device_use_gl_)
     reset_gpu(buffer_params, samples);
   else
     reset_cpu(buffer_params, samples);
@@ -900,26 +900,26 @@ void Session::set_samples(int samples)
     params.samples = samples;
     tile_manager.set_samples(samples);
 
-    pause_cond.notify_all();
+    pause_cond_.notify_all();
   }
 }
 
-void Session::set_pause(bool pause_)
+void Session::set_pause(bool pause)
 {
   bool notify = false;
 
   {
-    thread_scoped_lock pause_lock(pause_mutex);
+    thread_scoped_lock pause_lock(pause_mutex_);
 
     if (pause != pause_) {
-      pause = pause_;
+      pause_ = pause;
       notify = true;
     }
   }
 
-  if (session_thread) {
+  if (session_thread_) {
     if (notify) {
-      pause_cond.notify_all();
+      pause_cond_.notify_all();
     }
   }
   else if (pause_) {
@@ -932,7 +932,7 @@ void Session::set_denoising(const DenoiseParams &denoising)
   bool need_denoise = denoising.need_denoising_task();
 
   /* Lock buffers so no denoising operation is triggered while the settings are changed here. */
-  thread_scoped_lock buffers_lock(buffers_mutex);
+  thread_scoped_lock buffers_lock(buffers_mutex_);
   params.denoising = denoising;
 
   if (!(params.device.denoisers & denoising.type)) {
@@ -957,18 +957,18 @@ void Session::set_denoising_start_sample(int sample)
   if (sample != params.denoising.start_sample) {
     params.denoising.start_sample = sample;
 
-    pause_cond.notify_all();
+    pause_cond_.notify_all();
   }
 }
 
 void Session::wait()
 {
-  if (session_thread) {
-    session_thread->join();
-    delete session_thread;
+  if (session_thread_) {
+    session_thread_->join();
+    delete session_thread_;
   }
 
-  session_thread = NULL;
+  session_thread_ = NULL;
 }
 
 bool Session::update_scene()
@@ -1099,7 +1099,7 @@ bool Session::render_need_denoise(bool &delayed)
 
   /* Avoid excessive denoising in viewport after reaching a certain amount of samples. */
   delayed = (tile_manager.state.sample >= 20 &&
-             (time_dt() - last_display_time) < params.progressive_update_timeout);
+             (time_dt() - last_display_time_) < params.progressive_update_timeout);
   return !delayed;
 }
 
@@ -1197,10 +1197,10 @@ void Session::copy_to_display_buffer(int sample)
     /* set display to new size */
     display->draw_set(task.w, task.h);
 
-    last_display_time = time_dt();
+    last_display_time_ = time_dt();
   }
 
-  display_outdated = false;
+  display_outdated_ = false;
 }
 
 bool Session::update_progressive_refine(bool cancel)
@@ -1210,7 +1210,7 @@ bool Session::update_progressive_refine(bool cancel)
 
   double current_time = time_dt();
 
-  if (current_time - last_update_time < params.progressive_update_timeout) {
+  if (current_time - last_update_time_ < params.progressive_update_timeout) {
     /* If last sample was processed, we need to write buffers anyway. */
     if (!write && sample != 1)
       return false;
@@ -1241,7 +1241,7 @@ bool Session::update_progressive_refine(bool cancel)
     }
   }
 
-  last_update_time = current_time;
+  last_update_time_ = current_time;
 
   return write;
 }
