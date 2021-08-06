@@ -96,7 +96,7 @@ static XrActionMapBinding *rna_XrActionMapBinding_find(XrActionMapItem *ami, con
 #  endif
 }
 
-static int rna_XrActionMapBinding_axis0_flag_get(PointerRNA *ptr)
+static int rna_XrActionMapBinding_axis0_region_get(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = ptr->data;
@@ -112,7 +112,7 @@ static int rna_XrActionMapBinding_axis0_flag_get(PointerRNA *ptr)
   return 0;
 }
 
-static void rna_XrActionMapBinding_axis0_flag_set(PointerRNA *ptr, int value)
+static void rna_XrActionMapBinding_axis0_region_set(PointerRNA *ptr, int value)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = ptr->data;
@@ -123,7 +123,7 @@ static void rna_XrActionMapBinding_axis0_flag_set(PointerRNA *ptr, int value)
 #  endif
 }
 
-static int rna_XrActionMapBinding_axis1_flag_get(PointerRNA *ptr)
+static int rna_XrActionMapBinding_axis1_region_get(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = ptr->data;
@@ -139,7 +139,7 @@ static int rna_XrActionMapBinding_axis1_flag_get(PointerRNA *ptr)
   return 0;
 }
 
-static void rna_XrActionMapBinding_axis1_flag_set(PointerRNA *ptr, int value)
+static void rna_XrActionMapBinding_axis1_region_set(PointerRNA *ptr, int value)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = ptr->data;
@@ -289,12 +289,7 @@ static void rna_XrActionMapItem_bimanual_set(PointerRNA *ptr, bool value)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = ptr->data;
-  if (value) {
-    ami->action_flag |= XR_ACTION_BIMANUAL;
-  }
-  else {
-    ami->action_flag &= ~XR_ACTION_BIMANUAL;
-  }
+  SET_FLAG_FROM_TEST(ami->action_flag, value, XR_ACTION_BIMANUAL);
 #  else
   UNUSED_VARS(ptr, value);
 #  endif
@@ -317,18 +312,13 @@ static void rna_XrActionMapItem_haptic_match_user_paths_set(PointerRNA *ptr, boo
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = ptr->data;
-  if (value) {
-    ami->haptic_flag |= XR_HAPTIC_MATCHUSERPATHS;
-  }
-  else {
-    ami->haptic_flag &= ~XR_HAPTIC_MATCHUSERPATHS;
-  }
+  SET_FLAG_FROM_TEST(ami->haptic_flag, value, XR_HAPTIC_MATCHUSERPATHS);
 #  else
   UNUSED_VARS(ptr, value);
 #  endif
 }
 
-static int rna_XrActionMapItem_haptic_flag_get(PointerRNA *ptr)
+static int rna_XrActionMapItem_haptic_mode_get(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = ptr->data;
@@ -345,7 +335,7 @@ static int rna_XrActionMapItem_haptic_flag_get(PointerRNA *ptr)
   return XR_HAPTIC_PRESS;
 }
 
-static void rna_XrActionMapItem_haptic_flag_set(PointerRNA *ptr, int value)
+static void rna_XrActionMapItem_haptic_mode_set(PointerRNA *ptr, int value)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = ptr->data;
@@ -1061,7 +1051,7 @@ static void rna_def_xr_actionmap_bindings(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "XR Action Map Bindings", "Collection of XR action map bindings");
 
   func = RNA_def_function(srna, "new", "rna_XrActionMapBinding_new");
-  parm = RNA_def_string(func, "name", NULL, 0, "Name of the action map binding", "");
+  parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name of the action map binding", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func,
                          "replace_existing",
@@ -1110,7 +1100,7 @@ static void rna_def_xr_actionmap_items(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "XR Action Map Items", "Collection of XR action map items");
 
   func = RNA_def_function(srna, "new", "rna_XrActionMapItem_new");
-  parm = RNA_def_string(func, "name", NULL, 0, "Name of the action map item", "");
+  parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name of the action map item", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func,
                          "replace_existing",
@@ -1314,7 +1304,7 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "haptic_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_xr_haptic_flags);
   RNA_def_property_enum_funcs(
-      prop, "rna_XrActionMapItem_haptic_flag_get", "rna_XrActionMapItem_haptic_flag_set", NULL);
+      prop, "rna_XrActionMapItem_haptic_mode_get", "rna_XrActionMapItem_haptic_mode_set", NULL);
   RNA_def_property_ui_text(prop, "Haptic mode", "Haptic application mode");
 
   prop = RNA_def_property(srna, "bindings", PROP_COLLECTION, PROP_NONE);
@@ -1357,8 +1347,8 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "axis0_region", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_xr_axis0_flags);
   RNA_def_property_enum_funcs(prop,
-                              "rna_XrActionMapBinding_axis0_flag_get",
-                              "rna_XrActionMapBinding_axis0_flag_set",
+                              "rna_XrActionMapBinding_axis0_region_get",
+                              "rna_XrActionMapBinding_axis0_region_set",
                               NULL);
   RNA_def_property_ui_text(
       prop, "Axis 0 Region", "Action execution region for the first input axis");
@@ -1366,8 +1356,8 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "axis1_region", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_xr_axis1_flags);
   RNA_def_property_enum_funcs(prop,
-                              "rna_XrActionMapBinding_axis1_flag_get",
-                              "rna_XrActionMapBinding_axis1_flag_set",
+                              "rna_XrActionMapBinding_axis1_region_get",
+                              "rna_XrActionMapBinding_axis1_region_set",
                               NULL);
   RNA_def_property_ui_text(
       prop, "Axis 1 Region", "Action execution region for the second input axis");
