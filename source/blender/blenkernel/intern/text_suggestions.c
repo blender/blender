@@ -57,10 +57,7 @@ static void txttl_free_suggest(void)
 
 static void txttl_free_docs(void)
 {
-  if (documentation) {
-    MEM_freeN(documentation);
-    documentation = NULL;
-  }
+  MEM_SAFE_FREE(documentation);
 }
 
 /**************************/
@@ -240,10 +237,7 @@ void texttool_docs_show(const char *docs)
 
   len = strlen(docs);
 
-  if (documentation) {
-    MEM_freeN(documentation);
-    documentation = NULL;
-  }
+  MEM_SAFE_FREE(documentation);
 
   /* Ensure documentation ends with a '\n' */
   if (docs[len - 1] != '\n') {

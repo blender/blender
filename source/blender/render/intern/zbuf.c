@@ -56,13 +56,8 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
 void zbuf_free_span(ZSpan *zspan)
 {
   if (zspan) {
-    if (zspan->span1) {
-      MEM_freeN(zspan->span1);
-    }
-    if (zspan->span2) {
-      MEM_freeN(zspan->span2);
-    }
-    zspan->span1 = zspan->span2 = NULL;
+    MEM_SAFE_FREE(zspan->span1);
+    MEM_SAFE_FREE(zspan->span2);
   }
 }
 

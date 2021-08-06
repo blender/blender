@@ -92,10 +92,7 @@ void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
   fcu->totvert--;
 
   if (fcu->totvert == 0) {
-    if (fcu->bezt) {
-      MEM_freeN(fcu->bezt);
-    }
-    fcu->bezt = NULL;
+    MEM_SAFE_FREE(fcu->bezt);
   }
 
   /* recalc handles - only if it won't cause problems */
@@ -136,10 +133,7 @@ bool delete_fcurve_keys(FCurve *fcu)
 
 void clear_fcurve_keys(FCurve *fcu)
 {
-  if (fcu->bezt) {
-    MEM_freeN(fcu->bezt);
-  }
-  fcu->bezt = NULL;
+  MEM_SAFE_FREE(fcu->bezt);
 
   fcu->totvert = 0;
 }

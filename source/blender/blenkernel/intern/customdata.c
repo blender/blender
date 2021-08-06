@@ -724,10 +724,7 @@ static void layerFree_grid_paint_mask(void *data, int count, int UNUSED(size))
   GridPaintMask *gpm = data;
 
   for (int i = 0; i < count; i++) {
-    if (gpm[i].data) {
-      MEM_freeN(gpm[i].data);
-    }
-    gpm[i].data = NULL;
+    MEM_SAFE_FREE(gpm[i].data);
     gpm[i].level = 0;
   }
 }

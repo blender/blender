@@ -6560,10 +6560,7 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
   Brush *brush = BKE_paint_brush(&sd->paint);
   const int radius = BKE_brush_size_get(scene, brush);
 
-  if (ss->texcache) {
-    MEM_freeN(ss->texcache);
-    ss->texcache = NULL;
-  }
+  MEM_SAFE_FREE(ss->texcache);
 
   if (ss->tex_pool) {
     BKE_image_pool_free(ss->tex_pool);

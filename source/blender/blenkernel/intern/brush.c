@@ -660,10 +660,7 @@ static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
       break;
   }
 
-  if (cuma->table) {
-    MEM_freeN(cuma->table);
-    cuma->table = NULL;
-  }
+  MEM_SAFE_FREE(cuma->table);
 }
 
 void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)

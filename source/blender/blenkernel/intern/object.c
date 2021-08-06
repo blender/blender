@@ -4047,10 +4047,7 @@ void BKE_object_empty_draw_type_set(Object *ob, const int value)
     }
   }
   else {
-    if (ob->iuser) {
-      MEM_freeN(ob->iuser);
-      ob->iuser = NULL;
-    }
+    MEM_SAFE_FREE(ob->iuser);
   }
 }
 

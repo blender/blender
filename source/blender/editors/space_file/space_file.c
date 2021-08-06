@@ -176,10 +176,7 @@ static void file_free(SpaceLink *sl)
   MEM_SAFE_FREE(sfile->asset_params);
   MEM_SAFE_FREE(sfile->runtime);
 
-  if (sfile->layout) {
-    MEM_freeN(sfile->layout);
-    sfile->layout = NULL;
-  }
+  MEM_SAFE_FREE(sfile->layout);
 }
 
 /* spacetype; init callback, area size changes, screen set, etc */

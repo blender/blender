@@ -236,10 +236,7 @@ void text_update_line_edited(TextLine *line)
   }
 
   /* we just free format here, and let it rebuild during draw */
-  if (line->format) {
-    MEM_freeN(line->format);
-    line->format = NULL;
-  }
+  MEM_SAFE_FREE(line->format);
 }
 
 void text_update_edited(Text *text)

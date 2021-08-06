@@ -1848,10 +1848,7 @@ static void ed_surf_delete_selected(Object *obedit)
             nu->pntsv = 1;
             SWAP(short, nu->orderu, nu->orderv);
             BKE_nurb_order_clamp_u(nu);
-            if (nu->knotsv) {
-              MEM_freeN(nu->knotsv);
-            }
-            nu->knotsv = NULL;
+            MEM_SAFE_FREE(nu->knotsv);
           }
           else {
             nu->pntsu = newu;
@@ -4650,10 +4647,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 
           /* now join the knots */
           if (nu1->type == CU_NURBS) {
-            if (nu1->knotsu != NULL) {
-              MEM_freeN(nu1->knotsu);
-              nu1->knotsu = NULL;
-            }
+            MEM_SAFE_FREE(nu1->knotsu);
 
             BKE_nurb_knot_calc_u(nu1);
           }

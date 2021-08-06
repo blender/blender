@@ -307,10 +307,7 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
   MEM_freeN(sys->faces);
   sys->faces = NULL;
 
-  if (sys->varea) {
-    MEM_freeN(sys->varea);
-    sys->varea = NULL;
-  }
+  MEM_SAFE_FREE(sys->varea);
 
   BLI_edgehash_free(sys->edgehash, NULL);
   sys->edgehash = NULL;

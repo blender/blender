@@ -342,10 +342,7 @@ static bool rule_avoid_collision(BoidRule *rule,
       }
     }
   }
-  if (ptn) {
-    MEM_freeN(ptn);
-    ptn = NULL;
-  }
+  MEM_SAFE_FREE(ptn);
 
   /* check boids in other systems */
   for (pt = bbd->sim->psys->targets.first; pt; pt = pt->next) {
@@ -401,10 +398,7 @@ static bool rule_avoid_collision(BoidRule *rule,
         }
       }
 
-      if (ptn) {
-        MEM_freeN(ptn);
-        ptn = NULL;
-      }
+      MEM_SAFE_FREE(ptn);
     }
   }
 
@@ -435,10 +429,7 @@ static bool rule_separate(BoidRule *UNUSED(rule),
     len = ptn[1].dist;
     ret = 1;
   }
-  if (ptn) {
-    MEM_freeN(ptn);
-    ptn = NULL;
-  }
+  MEM_SAFE_FREE(ptn);
 
   /* check other boid systems */
   for (pt = bbd->sim->psys->targets.first; pt; pt = pt->next) {
@@ -457,10 +448,7 @@ static bool rule_separate(BoidRule *UNUSED(rule),
         ret = true;
       }
 
-      if (ptn) {
-        MEM_freeN(ptn);
-        ptn = NULL;
-      }
+      MEM_SAFE_FREE(ptn);
     }
   }
   return ret;
@@ -723,10 +711,7 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
 
   f_strength += bbd->part->boids->strength * health;
 
-  if (ptn) {
-    MEM_freeN(ptn);
-    ptn = NULL;
-  }
+  MEM_SAFE_FREE(ptn);
 
   /* add other friendlies and calculate enemy strength and find closest enemy */
   for (pt = bbd->sim->psys->targets.first; pt; pt = pt->next) {
@@ -755,10 +740,7 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
         f_strength += epsys->part->boids->strength * health;
       }
 
-      if (ptn) {
-        MEM_freeN(ptn);
-        ptn = NULL;
-      }
+      MEM_SAFE_FREE(ptn);
     }
   }
   /* decide action if enemy presence found */

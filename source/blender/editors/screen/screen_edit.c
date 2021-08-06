@@ -722,10 +722,7 @@ void ED_region_exit(bContext *C, ARegion *region)
   WM_event_modal_handler_region_replace(win, region, NULL);
   WM_draw_region_free(region, true);
 
-  if (region->headerstr) {
-    MEM_freeN(region->headerstr);
-    region->headerstr = NULL;
-  }
+  MEM_SAFE_FREE(region->headerstr);
 
   if (region->regiontimer) {
     WM_event_remove_timer(wm, win, region->regiontimer);
@@ -1653,10 +1650,7 @@ void ED_refresh_viewport_fps(bContext *C)
   }
   else {
     /* playback stopped or shouldn't be running */
-    if (scene->fps_info) {
-      MEM_freeN(scene->fps_info);
-    }
-    scene->fps_info = NULL;
+    MEM_SAFE_FREE(scene->fps_info);
   }
 }
 

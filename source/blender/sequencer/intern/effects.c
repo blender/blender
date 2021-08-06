@@ -2164,11 +2164,7 @@ static int num_inputs_wipe(void)
 
 static void free_wipe_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_wipe_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -2382,10 +2378,7 @@ static int num_inputs_transform(void)
 
 static void free_transform_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_transform_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -2723,11 +2716,7 @@ static int num_inputs_glow(void)
 
 static void free_glow_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_glow_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -2853,11 +2842,7 @@ static int num_inputs_color(void)
 
 static void free_solid_color(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_solid_color(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -3111,10 +3096,7 @@ static void free_speed_effect(Sequence *seq, const bool UNUSED(do_id_user))
   if (v->frameMap) {
     MEM_freeN(v->frameMap);
   }
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_speed_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -3394,11 +3376,7 @@ static int num_inputs_gaussian_blur(void)
 
 static void free_gaussian_blur_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static void copy_gaussian_blur_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
@@ -4052,11 +4030,7 @@ static void copy_effect_default(Sequence *dst, Sequence *src, const int UNUSED(f
 
 static void free_effect_default(Sequence *seq, const bool UNUSED(do_id_user))
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
-  }
-
-  seq->effectdata = NULL;
+  MEM_SAFE_FREE(seq->effectdata);
 }
 
 static int early_out_noop(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))

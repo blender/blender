@@ -447,11 +447,7 @@ void cloth_free_modifier(ClothModifierData *clmd)
     SIM_cloth_solver_free(clmd);
 
     /* Free the verts. */
-    if (cloth->verts != NULL) {
-      MEM_freeN(cloth->verts);
-    }
-
-    cloth->verts = NULL;
+    MEM_SAFE_FREE(cloth->verts);
     cloth->mvert_num = 0;
 
     /* Free the springs. */
@@ -529,11 +525,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
     SIM_cloth_solver_free(clmd);
 
     /* Free the verts. */
-    if (cloth->verts != NULL) {
-      MEM_freeN(cloth->verts);
-    }
-
-    cloth->verts = NULL;
+    MEM_SAFE_FREE(cloth->verts);
     cloth->mvert_num = 0;
 
     /* Free the springs. */

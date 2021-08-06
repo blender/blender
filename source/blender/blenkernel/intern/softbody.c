@@ -891,11 +891,7 @@ static void free_softbody_baked(SoftBody *sb)
       MEM_freeN(key);
     }
   }
-  if (sb->keys) {
-    MEM_freeN(sb->keys);
-  }
-
-  sb->keys = NULL;
+  MEM_SAFE_FREE(sb->keys);
   sb->totkey = 0;
 }
 static void free_scratch(SoftBody *sb)

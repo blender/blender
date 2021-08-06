@@ -179,10 +179,7 @@ static void IMB_moviecache_destructor(void *p)
     item->c_handle = NULL;
 
     /* force cached segments to be updated */
-    if (cache->points) {
-      MEM_freeN(cache->points);
-      cache->points = NULL;
-    }
+    MEM_SAFE_FREE(cache->points);
   }
 }
 
@@ -355,10 +352,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
   /* cache limiter can't remove unused keys which points to destroyed values */
   check_unused_keys(cache);
 
-  if (cache->points) {
-    MEM_freeN(cache->points);
-    cache->points = NULL;
-  }
+  MEM_SAFE_FREE(cache->points);
 }
 
 void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
@@ -488,11 +482,7 @@ void IMB_moviecache_get_cache_segments(
   }
 
   if (cache->proxy != proxy || cache->render_flags != render_flags) {
-    if (cache->points) {
-      MEM_freeN(cache->points);
-    }
-
-    cache->points = NULL;
+    MEM_SAFE_FREE(cache->points);
   }
 
   if (cache->points) {

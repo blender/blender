@@ -2766,10 +2766,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   ScrArea *area = CTX_wm_area(C);
 
-  if (rc->dial) {
-    MEM_freeN(rc->dial);
-    rc->dial = NULL;
-  }
+  MEM_SAFE_FREE(rc->dial);
 
   ED_area_status_text(area, NULL);
 
@@ -2959,10 +2956,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (event->val == KM_RELEASE) {
         rc->slow_mode = false;
         handled = true;
-        if (rc->dial) {
-          MEM_freeN(rc->dial);
-          rc->dial = NULL;
-        }
+        MEM_SAFE_FREE(rc->dial);
       }
       break;
     }

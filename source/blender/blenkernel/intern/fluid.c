@@ -4766,20 +4766,14 @@ static void BKE_fluid_modifier_freeDomain(FluidModifierData *fmd)
       BLI_rw_mutex_free(fmd->domain->fluid_mutex);
     }
 
-    if (fmd->domain->effector_weights) {
-      MEM_freeN(fmd->domain->effector_weights);
-    }
-    fmd->domain->effector_weights = NULL;
+    MEM_SAFE_FREE(fmd->domain->effector_weights);
 
     if (!(fmd->modifier.flag & eModifierFlag_SharedCaches)) {
       BKE_ptcache_free_list(&(fmd->domain->ptcaches[0]));
       fmd->domain->point_cache[0] = NULL;
     }
 
-    if (fmd->domain->mesh_velocities) {
-      MEM_freeN(fmd->domain->mesh_velocities);
-    }
-    fmd->domain->mesh_velocities = NULL;
+    MEM_SAFE_FREE(fmd->domain->mesh_velocities);
 
     if (fmd->domain->coba) {
       MEM_freeN(fmd->domain->coba);
@@ -4798,10 +4792,7 @@ static void BKE_fluid_modifier_freeFlow(FluidModifierData *fmd)
     }
     fmd->flow->mesh = NULL;
 
-    if (fmd->flow->verts_old) {
-      MEM_freeN(fmd->flow->verts_old);
-    }
-    fmd->flow->verts_old = NULL;
+    MEM_SAFE_FREE(fmd->flow->verts_old);
     fmd->flow->numverts = 0;
     fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
 
@@ -4818,10 +4809,7 @@ static void BKE_fluid_modifier_freeEffector(FluidModifierData *fmd)
     }
     fmd->effector->mesh = NULL;
 
-    if (fmd->effector->verts_old) {
-      MEM_freeN(fmd->effector->verts_old);
-    }
-    fmd->effector->verts_old = NULL;
+    MEM_SAFE_FREE(fmd->effector->verts_old);
     fmd->effector->numverts = 0;
     fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
 
@@ -4857,18 +4845,12 @@ static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need
     fmd->domain->active_fields = 0;
   }
   else if (fmd->flow) {
-    if (fmd->flow->verts_old) {
-      MEM_freeN(fmd->flow->verts_old);
-    }
-    fmd->flow->verts_old = NULL;
+    MEM_SAFE_FREE(fmd->flow->verts_old);
     fmd->flow->numverts = 0;
     fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
   }
   else if (fmd->effector) {
-    if (fmd->effector->verts_old) {
-      MEM_freeN(fmd->effector->verts_old);
-    }
-    fmd->effector->verts_old = NULL;
+    MEM_SAFE_FREE(fmd->effector->verts_old);
     fmd->effector->numverts = 0;
     fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
   }
