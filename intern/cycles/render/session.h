@@ -218,6 +218,9 @@ class Session {
   thread_condition_variable gpu_need_display_buffer_update_cond_;
 
   bool pause_;
+  bool cancel_;
+  bool new_work_added_;
+
   thread_condition_variable pause_cond_;
   thread_mutex pause_mutex_;
   thread_mutex tile_mutex_;

@@ -73,7 +73,10 @@ Session::Session(const SessionParams &params_)
   display_outdated_ = false;
   gpu_draw_ready_ = false;
   gpu_need_display_buffer_update_ = false;
+
   pause_ = false;
+  cancel_ = false;
+  new_work_added_ = false;
 
   buffers = NULL;
   display = NULL;
@@ -144,6 +147,7 @@ void Session::cancel()
     {
       thread_scoped_lock pause_lock(pause_mutex_);
       pause_ = false;
+      cancel_ = true;
     }
     pause_cond_.notify_all();
 
@@ -832,25 +836,33 @@ bool Session::run_wait_for_work(bool no_tiles)
   thread_scoped_lock pause_lock(pause_mutex_);
 
   if (!pause_ && !no_tiles) {
+    /* Rendering is not paused and there is work to be done. No need to wait for anything. */
     return false;
   }
 
   update_status_time(pause_, no_tiles);
 
-  while (true) {
+  /* Only leave the loop when rendering is not paused. But even if the current render is un-paused
+   * but there is nothing to render keep waiting until new work is added. */
+  while (!cancel_) {
     scoped_timer pause_timer;
+
+    if (!pause_ && (!no_tiles || new_work_added_ || delayed_reset_.do_reset)) {
+      break;
+    }
+
+    /* Wait for either pause state changed, or extra samples added to render. */
     pause_cond_.wait(pause_lock);
+
     if (pause_) {
       progress.add_skip_time(pause_timer, params.background);
     }
 
     update_status_time(pause_, no_tiles);
     progress.set_update();
-
-    if (!pause_) {
-      break;
-    }
   }
+
+  new_work_added_ = false;
 
   return no_tiles;
 }
@@ -896,12 +908,19 @@ void Session::reset(BufferParams &buffer_params, int samples)
 
 void Session::set_samples(int samples)
 {
-  if (samples != params.samples) {
-    params.samples = samples;
-    tile_manager.set_samples(samples);
-
-    pause_cond_.notify_all();
+  if (samples == params.samples) {
+    return;
   }
+
+  params.samples = samples;
+  tile_manager.set_samples(samples);
+
+  {
+    thread_scoped_lock pause_lock(pause_mutex_);
+    new_work_added_ = true;
+  }
+
+  pause_cond_.notify_all();
 }
 
 void Session::set_pause(bool pause)
