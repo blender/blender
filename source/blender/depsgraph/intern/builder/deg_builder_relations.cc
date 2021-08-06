@@ -2224,6 +2224,11 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
   OperationKey obdata_geom_eval_key(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
   OperationKey obdata_geom_done_key(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE);
   add_relation(obdata_geom_eval_key, obdata_geom_done_key, "ObData Geom Eval Done");
+
+  /* Link object data evaluation to parameter evaluation. */
+  ComponentKey parameters_key(obdata, NodeType::PARAMETERS);
+  add_relation(parameters_key, obdata_geom_eval_key, "ObData Geom Params");
+
   /* Type-specific links. */
   const ID_Type id_type = GS(obdata->name);
   switch (id_type) {
