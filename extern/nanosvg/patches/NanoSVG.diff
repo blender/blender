@@ -1,0 +1,86 @@
+diff --git a/c:/tmp/nanosvg_original.h b/c:/tmp/nanosvg_modif.h
+index 24a01a86d3d..eca0d07e79d 100644
+--- a/c:/tmp/nanosvg_original.h
++++ b/c:/tmp/nanosvg_modif.h
+@@ -24,7 +24,8 @@
+  *
+  * Bounding box calculation based on http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
+  *
+- */
++ * This is a modified version for Blender used by importers.
++ **/
+ 
+ #ifndef NANOSVG_H
+ #define NANOSVG_H
+@@ -148,6 +149,8 @@ extern "C" {
+ 	typedef struct NSVGshape
+ 	{
+ 		char id[64];				// Optional 'id' attr of the shape or its group
++		/* Blender: Parent ID used for layer creation. */
++  		char id_parent[64];		
+ 		NSVGpaint fill;				// Fill paint
+ 		NSVGpaint stroke;			// Stroke paint
+ 		float opacity;				// Opacity of the shape.
+@@ -370,6 +373,7 @@ int nsvg__parseXML(char* input,
+ /* Simple SVG parser. */
+ 
+ #define NSVG_MAX_ATTR 128
++#define NSVG_MAX_BREADCRUMB 5
+ 
+ enum NSVGgradientUnits
+ {
+@@ -471,6 +475,10 @@ typedef struct NSVGparser
+ 	float dpi;
+ 	char pathFlag;
+ 	char defsFlag;
++	/** Blender breadcrumb for layers. */
++  	char breadcrumb[NSVG_MAX_BREADCRUMB][64];
++  	/** Blender number of elements in breadcrumb. */
++  	int breadcrumb_len;
+ } NSVGparser;
+ 
+ static void nsvg__xformIdentity(float* t)
+@@ -980,6 +988,14 @@ static void nsvg__addShape(NSVGparser* p)
+ 	memset(shape, 0, sizeof(NSVGshape));
+ 
+ 	memcpy(shape->id, attr->id, sizeof shape->id);
++	/* Copy parent id from breadcrumb. */
++	if (p->breadcrumb_len > 0) {
++		memcpy(shape->id_parent, p->breadcrumb[0], sizeof shape->id_parent);
++	}
++	else {
++		memcpy(shape->id_parent, attr->id, sizeof shape->id_parent);
++	}
++
+ 	scale = nsvg__getAverageScale(attr->xform);
+ 	shape->strokeWidth = attr->strokeWidth * scale;
+ 	shape->strokeDashOffset = attr->strokeDashOffset * scale;
+@@ -2814,6 +2830,14 @@ static void nsvg__startElement(void* ud, const char* el, const char** attr)
+ 	if (strcmp(el, "g") == 0) {
+ 		nsvg__pushAttr(p);
+ 		nsvg__parseAttribs(p, attr);
++
++		/* Save the breadcrumb of groups. */
++		if (p->breadcrumb_len < NSVG_MAX_BREADCRUMB) {
++		NSVGattrib *attr_id = nsvg__getAttr(p);
++		memcpy(
++			p->breadcrumb[p->breadcrumb_len], attr_id->id, sizeof(p->breadcrumb[p->breadcrumb_len]));
++		p->breadcrumb_len++;
++		}
+ 	}
+ 	else if (strcmp(el, "path") == 0) {
+ 		if (p->pathFlag)	// Do not allow nested paths.
+@@ -2874,7 +2898,12 @@ static void nsvg__endElement(void* ud, const char* el)
+ 	NSVGparser* p = (NSVGparser*)ud;
+ 
+ 	if (strcmp(el, "g") == 0) {
+-		nsvg__popAttr(p);
++  		/* Remove the breadcrumb level. */
++    	if (p->breadcrumb_len > 0) {
++      		p->breadcrumb[p->breadcrumb_len - 1][0] = '\0';
++      		p->breadcrumb_len--;
++		}
++	  nsvg__popAttr(p);
+ 	}
+ 	else if (strcmp(el, "path") == 0) {
+ 		p->pathFlag = 0;

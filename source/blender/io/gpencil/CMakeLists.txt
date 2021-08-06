@@ -33,6 +33,7 @@ set(INC
   ../../../../intern/clog
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
+  ../../../../extern/nanosvg
 )
 
 set(INC_SYS
@@ -43,9 +44,6 @@ set(SRC
   intern/gpencil_io_capi.cc
   intern/gpencil_io_import_base.cc
   intern/gpencil_io_import_svg.cc
-
-  # This line must be removed if NanoSVG is moved to extern
-  nanosvg/nanosvg.h
 
   gpencil_io.h
   intern/gpencil_io_base.hh
