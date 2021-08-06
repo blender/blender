@@ -89,7 +89,10 @@ ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, float cfra)
 
 /* TODO(jbakker): Should we change this to use `ED_keylist_find_next(keys, min_fra)` and only check
  * boundary of `max_fra`. */
-ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist, float min_fra, float max_fra)
+/* TODO(jbakker): Use const Range2f. */
+ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
+                                          const float min_fra,
+                                          const float max_fra)
 {
   for (ActKeyColumn *ak = keylist->keys.root; ak;
        ak = (ak->cfra < min_fra) ? ak->right : ak->left) {
@@ -128,12 +131,12 @@ bool ED_keylist_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_
 }
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
 
-BLI_INLINE bool is_cfra_eq(float a, float b)
+BLI_INLINE bool is_cfra_eq(const float a, const float b)
 {
   return IS_EQT(a, b, BEZT_BINARYSEARCH_THRESH);
 }
 
-BLI_INLINE bool is_cfra_lt(float a, float b)
+BLI_INLINE bool is_cfra_lt(const float a, const float b)
 {
   return (b - a) > BEZT_BINARYSEARCH_THRESH;
 }
@@ -144,7 +147,7 @@ short compare_ak_cfraPtr(void *node, void *data)
 {
   ActKeyColumn *ak = (ActKeyColumn *)node;
   const float *cframe = data;
-  float val = *cframe;
+  const float val = *cframe;
 
   if (is_cfra_eq(val, ak->cfra)) {
     return 0;
@@ -168,7 +171,7 @@ typedef struct BezTripleChain {
 } BezTripleChain;
 
 /* Categorize the interpolation & handle type of the keyframe. */
-static eKeyframeHandleDrawOpts bezt_handle_type(BezTriple *bezt)
+static eKeyframeHandleDrawOpts bezt_handle_type(const BezTriple *bezt)
 {
   if (bezt->h1 == HD_AUTO_ANIM && bezt->h2 == HD_AUTO_ANIM) {
     return KEYFRAME_HANDLE_AUTO_CLAMP;
@@ -188,14 +191,14 @@ static eKeyframeHandleDrawOpts bezt_handle_type(BezTriple *bezt)
 /* Determine if the keyframe is an extreme by comparing with neighbors.
  * Ends of fixed-value sections and of the whole curve are also marked.
  */
-static eKeyframeExtremeDrawOpts bezt_extreme_type(BezTripleChain *chain)
+static eKeyframeExtremeDrawOpts bezt_extreme_type(const BezTripleChain *chain)
 {
   if (chain->prev == NULL && chain->next == NULL) {
     return KEYFRAME_EXTREME_NONE;
   }
 
   /* Keyframe values for the current one and neighbors. */
-  float cur_y = chain->cur->vec[1][1];
+  const float cur_y = chain->cur->vec[1][1];
   float prev_y = cur_y, next_y = cur_y;
 
   if (chain->prev && !IS_EQF(cur_y, chain->prev->vec[1][1])) {
@@ -216,20 +219,20 @@ static eKeyframeExtremeDrawOpts bezt_extreme_type(BezTripleChain *chain)
   }
 
   /* Bezier handle values for the overshoot check. */
-  bool l_bezier = chain->prev && chain->prev->ipo == BEZT_IPO_BEZ;
-  bool r_bezier = chain->next && chain->cur->ipo == BEZT_IPO_BEZ;
-  float handle_l = l_bezier ? chain->cur->vec[0][1] : cur_y;
-  float handle_r = r_bezier ? chain->cur->vec[2][1] : cur_y;
+  const bool l_bezier = chain->prev && chain->prev->ipo == BEZT_IPO_BEZ;
+  const bool r_bezier = chain->next && chain->cur->ipo == BEZT_IPO_BEZ;
+  const float handle_l = l_bezier ? chain->cur->vec[0][1] : cur_y;
+  const float handle_r = r_bezier ? chain->cur->vec[2][1] : cur_y;
 
   /* Detect extremes. One of the neighbors is allowed to be equal to current. */
   if (prev_y < cur_y || next_y < cur_y) {
-    bool is_overshoot = (handle_l > cur_y || handle_r > cur_y);
+    const bool is_overshoot = (handle_l > cur_y || handle_r > cur_y);
 
     return KEYFRAME_EXTREME_MAX | (is_overshoot ? KEYFRAME_EXTREME_MIXED : 0);
   }
 
   if (prev_y > cur_y || next_y > cur_y) {
-    bool is_overshoot = (handle_l < cur_y || handle_r < cur_y);
+    const bool is_overshoot = (handle_l < cur_y || handle_r < cur_y);
 
     return KEYFRAME_EXTREME_MIN | (is_overshoot ? KEYFRAME_EXTREME_MIXED : 0);
   }
@@ -249,8 +252,8 @@ static short compare_ak_bezt(void *node, void *data)
 static DLRBT_Node *nalloc_ak_bezt(void *data)
 {
   ActKeyColumn *ak = MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
-  BezTripleChain *chain = data;
-  BezTriple *bezt = chain->cur;
+  const BezTripleChain *chain = data;
+  const BezTriple *bezt = chain->cur;
 
   /* store settings based on state of BezTriple */
   ak->cfra = bezt->vec[1][0];
@@ -269,8 +272,8 @@ static DLRBT_Node *nalloc_ak_bezt(void *data)
 static void nupdate_ak_bezt(void *node, void *data)
 {
   ActKeyColumn *ak = node;
-  BezTripleChain *chain = data;
-  BezTriple *bezt = chain->cur;
+  const BezTripleChain *chain = data;
+  const BezTriple *bezt = chain->cur;
 
   /* set selection status and 'touched' status */
   if (BEZT_ISSEL_ANY(bezt)) {
@@ -290,7 +293,7 @@ static void nupdate_ak_bezt(void *node, void *data)
   ak->handle_type = MAX2(ak->handle_type, bezt_handle_type(bezt));
 
   /* For extremes, detect when combining different states. */
-  char new_extreme = bezt_extreme_type(chain);
+  const char new_extreme = bezt_extreme_type(chain);
 
   if (new_extreme != ak->extreme_type) {
     /* Replace the flat status without adding mixed. */
@@ -308,7 +311,7 @@ static void nupdate_ak_bezt(void *node, void *data)
 /* Comparator callback used for ActKeyColumns and GPencil frame */
 static short compare_ak_gpframe(void *node, void *data)
 {
-  bGPDframe *gpf = (bGPDframe *)data;
+  const bGPDframe *gpf = (bGPDframe *)data;
 
   float frame = gpf->framenum;
   return compare_ak_cfraPtr(node, &frame);
@@ -318,7 +321,7 @@ static short compare_ak_gpframe(void *node, void *data)
 static DLRBT_Node *nalloc_ak_gpframe(void *data)
 {
   ActKeyColumn *ak = MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnGPF");
-  bGPDframe *gpf = (bGPDframe *)data;
+  const bGPDframe *gpf = (bGPDframe *)data;
 
   /* store settings based on state of BezTriple */
   ak->cfra = gpf->framenum;
@@ -339,7 +342,7 @@ static DLRBT_Node *nalloc_ak_gpframe(void *data)
 static void nupdate_ak_gpframe(void *node, void *data)
 {
   ActKeyColumn *ak = (ActKeyColumn *)node;
-  bGPDframe *gpf = (bGPDframe *)data;
+  const bGPDframe *gpf = (bGPDframe *)data;
 
   /* set selection status and 'touched' status */
   if (gpf->flag & GP_FRAME_SELECT) {
@@ -361,7 +364,7 @@ static void nupdate_ak_gpframe(void *node, void *data)
 /* Comparator callback used for ActKeyColumns and GPencil frame */
 static short compare_ak_masklayshape(void *node, void *data)
 {
-  MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
+  const MaskLayerShape *masklay_shape = (const MaskLayerShape *)data;
 
   float frame = masklay_shape->frame;
   return compare_ak_cfraPtr(node, &frame);
@@ -371,7 +374,7 @@ static short compare_ak_masklayshape(void *node, void *data)
 static DLRBT_Node *nalloc_ak_masklayshape(void *data)
 {
   ActKeyColumn *ak = MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnGPF");
-  MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
+  const MaskLayerShape *masklay_shape = (const MaskLayerShape *)data;
 
   /* store settings based on state of BezTriple */
   ak->cfra = masklay_shape->frame;
@@ -387,7 +390,7 @@ static DLRBT_Node *nalloc_ak_masklayshape(void *data)
 static void nupdate_ak_masklayshape(void *node, void *data)
 {
   ActKeyColumn *ak = (ActKeyColumn *)node;
-  MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
+  const MaskLayerShape *masklay_shape = (const MaskLayerShape *)data;
 
   /* set selection status and 'touched' status */
   if (masklay_shape->flag & MASK_SHAPE_SELECT) {
@@ -438,7 +441,9 @@ static void add_masklay_to_keycolumns_list(AnimKeylist *keylist, MaskLayerShape 
 
 static const ActKeyBlockInfo dummy_keyblock = {0};
 
-static void compute_keyblock_data(ActKeyBlockInfo *info, BezTriple *prev, BezTriple *beztn)
+static void compute_keyblock_data(ActKeyBlockInfo *info,
+                                  const BezTriple *prev,
+                                  const BezTriple *beztn)
 {
   memset(info, 0, sizeof(ActKeyBlockInfo));
 
@@ -501,7 +506,7 @@ static void add_keyblock_info(ActKeyColumn *col, const ActKeyBlockInfo *block)
   }
 }
 
-static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, int bezt_len)
+static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, const int bezt_len)
 {
   ActKeyColumn *col = keylist->keys.first;
 
@@ -564,7 +569,7 @@ static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, in
  * This must be called even by animation sources that don't generate
  * keyblocks to keep the data structure consistent after adding columns.
  */
-static void update_keyblocks(AnimKeylist *keylist, BezTriple *bezt, int bezt_len)
+static void update_keyblocks(AnimKeylist *keylist, BezTriple *bezt, const int bezt_len)
 {
   /* Recompute the prev/next linked list. */
   BLI_dlrbTree_linkedlist_sync(&keylist->keys);
@@ -599,13 +604,13 @@ static void update_keyblocks(AnimKeylist *keylist, BezTriple *bezt, int bezt_len
 
 /* --------- */
 
-bool actkeyblock_is_valid(ActKeyColumn *ac)
+bool actkeyblock_is_valid(const ActKeyColumn *ac)
 {
   return ac != NULL && ac->next != NULL && ac->totblock > 0;
 }
 
 /* Checks if ActKeyBlock should exist... */
-int actkeyblock_get_valid_hold(ActKeyColumn *ac)
+int actkeyblock_get_valid_hold(const ActKeyColumn *ac)
 {
   /* check that block is valid */
   if (!actkeyblock_is_valid(ac)) {
@@ -618,19 +623,17 @@ int actkeyblock_get_valid_hold(ActKeyColumn *ac)
 
 /* *************************** Keyframe List Conversions *************************** */
 
-void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, int saction_flag)
+void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, const int saction_flag)
 {
   if (ac) {
     ListBase anim_data = {NULL, NULL};
-    bAnimListElem *ale;
-    int filter;
 
     /* get F-Curves to take keyframes from */
-    filter = ANIMFILTER_DATA_VISIBLE;
+    const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE;
     ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
     /* loop through each F-Curve, grabbing the keyframes */
-    for (ale = anim_data.first; ale; ale = ale->next) {
+    for (const bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
       /* Why not use all #eAnim_KeyType here?
        * All of the other key types are actually "summaries" themselves,
        * and will just end up duplicating stuff that comes up through
@@ -657,12 +660,10 @@ void summary_to_keylist(bAnimContext *ac, AnimKeylist *keylist, int saction_flag
   }
 }
 
-void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, int saction_flag)
+void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const int saction_flag)
 {
   bAnimContext ac = {NULL};
   ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
 
   bAnimListElem dummychan = {NULL};
 
@@ -681,23 +682,21 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, int sac
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
-  filter = ANIMFILTER_DATA_VISIBLE; /* curves only */
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE; /* curves only */
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* loop through each F-Curve, grabbing the keyframes */
-  for (ale = anim_data.first; ale; ale = ale->next) {
+  for (const bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
     fcurve_to_keylist(ale->adt, ale->data, keylist, saction_flag);
   }
 
   ANIM_animdata_freelist(&anim_data);
 }
 
-void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int saction_flag)
+void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int saction_flag)
 {
   bAnimContext ac = {NULL};
   ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
 
   bAnimListElem dummychan = {NULL};
   Base dummybase = {NULL};
@@ -719,11 +718,11 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int sactio
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
-  filter = ANIMFILTER_DATA_VISIBLE; /* curves only */
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE; /* curves only */
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* loop through each F-Curve, grabbing the keyframes */
-  for (ale = anim_data.first; ale; ale = ale->next) {
+  for (const bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
     fcurve_to_keylist(ale->adt, ale->data, keylist, saction_flag);
   }
 
@@ -733,7 +732,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int sactio
 void cachefile_to_keylist(bDopeSheet *ads,
                           CacheFile *cache_file,
                           AnimKeylist *keylist,
-                          int saction_flag)
+                          const int saction_flag)
 {
   if (cache_file == NULL) {
     return;
@@ -753,18 +752,18 @@ void cachefile_to_keylist(bDopeSheet *ads,
 
   /* get F-Curves to take keyframes from */
   ListBase anim_data = {NULL, NULL};
-  int filter = ANIMFILTER_DATA_VISIBLE; /* curves only */
+  const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE; /* curves only */
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* loop through each F-Curve, grabbing the keyframes */
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  LISTBASE_FOREACH (const bAnimListElem *, ale, &anim_data) {
     fcurve_to_keylist(ale->adt, ale->data, keylist, saction_flag);
   }
 
   ANIM_animdata_freelist(&anim_data);
 }
 
-void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, int saction_flag)
+void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, const int saction_flag)
 {
   if (fcu && fcu->totvert && fcu->bezt) {
     /* apply NLA-mapping (if applicable) */
@@ -801,7 +800,10 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, AnimKeylist *keylist, int sac
   }
 }
 
-void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, AnimKeylist *keylist, int saction_flag)
+void agroup_to_keylist(AnimData *adt,
+                       bActionGroup *agrp,
+                       AnimKeylist *keylist,
+                       const int saction_flag)
 {
   FCurve *fcu;
 
@@ -813,7 +815,7 @@ void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, AnimKeylist *keylist, 
   }
 }
 
-void action_to_keylist(AnimData *adt, bAction *act, AnimKeylist *keylist, int saction_flag)
+void action_to_keylist(AnimData *adt, bAction *act, AnimKeylist *keylist, const int saction_flag)
 {
   FCurve *fcu;
 

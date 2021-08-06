@@ -154,34 +154,36 @@ bool ED_keylist_frame_range(const struct AnimKeylist *keylist, struct Range2f *r
 void fcurve_to_keylist(struct AnimData *adt,
                        struct FCurve *fcu,
                        struct AnimKeylist *keylist,
-                       int saction_flag);
+                       const int saction_flag);
 /* Action Group */
 void agroup_to_keylist(struct AnimData *adt,
                        struct bActionGroup *agrp,
                        struct AnimKeylist *keylist,
-                       int saction_flag);
+                       const int saction_flag);
 /* Action */
 void action_to_keylist(struct AnimData *adt,
                        struct bAction *act,
                        struct AnimKeylist *keylist,
-                       int saction_flag);
+                       const int saction_flag);
 /* Object */
 void ob_to_keylist(struct bDopeSheet *ads,
                    struct Object *ob,
                    struct AnimKeylist *keylist,
-                   int saction_flag);
+                   const int saction_flag);
 /* Cache File */
 void cachefile_to_keylist(struct bDopeSheet *ads,
                           struct CacheFile *cache_file,
                           struct AnimKeylist *keylist,
-                          int saction_flag);
+                          const int saction_flag);
 /* Scene */
 void scene_to_keylist(struct bDopeSheet *ads,
                       struct Scene *sce,
                       struct AnimKeylist *keylist,
-                      int saction_flag);
+                      const int saction_flag);
 /* DopeSheet Summary */
-void summary_to_keylist(struct bAnimContext *ac, struct AnimKeylist *keylist, int saction_flag);
+void summary_to_keylist(struct bAnimContext *ac,
+                        struct AnimKeylist *keylist,
+                        const int saction_flag);
 /* Grease Pencil datablock summary */
 void gpencil_to_keylist(struct bDopeSheet *ads,
                         struct bGPdata *gpd,
@@ -199,10 +201,10 @@ void mask_to_keylist(struct bDopeSheet *ads,
 short compare_ak_cfraPtr(void *node, void *data);
 
 /* Checks if ActKeyColumn has any block data */
-bool actkeyblock_is_valid(ActKeyColumn *ac);
+bool actkeyblock_is_valid(const ActKeyColumn *ac);
 
 /* Checks if ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds") */
-int actkeyblock_get_valid_hold(ActKeyColumn *ac);
+int actkeyblock_get_valid_hold(const ActKeyColumn *ac);
 
 #ifdef __cplusplus
 }
