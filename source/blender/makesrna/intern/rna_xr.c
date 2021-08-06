@@ -828,12 +828,12 @@ void rna_XrSessionState_haptic_action_stop(bContext *C,
 }
 
 static void rna_XrSessionState_controller_grip_location_get(bContext *C,
-                                                            int *index,
+                                                            int index,
                                                             float r_values[3])
 {
 #  ifdef WITH_XR_OPENXR
   const wmWindowManager *wm = CTX_wm_manager(C);
-  WM_xr_session_state_controller_grip_location_get(&wm->xr, *index, r_values);
+  WM_xr_session_state_controller_grip_location_get(&wm->xr, index, r_values);
 #  else
   UNUSED_VARS(C, index);
   zero_v3(r_values);
@@ -854,12 +854,12 @@ static void rna_XrSessionState_controller_grip_rotation_get(bContext *C,
 }
 
 static void rna_XrSessionState_controller_aim_location_get(bContext *C,
-                                                           int *index,
+                                                           int index,
                                                            float r_values[3])
 {
 #  ifdef WITH_XR_OPENXR
   const wmWindowManager *wm = CTX_wm_manager(C);
-  WM_xr_session_state_controller_aim_location_get(&wm->xr, *index, r_values);
+  WM_xr_session_state_controller_aim_location_get(&wm->xr, index, r_values);
 #  else
   UNUSED_VARS(C, index);
   zero_v3(r_values);
@@ -1695,16 +1695,16 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_int(func, "index", 0, 0, 255, "Index", "Controller index", 0, 255);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  RNA_def_float_translation(func,
-                            "location",
-                            3,
-                            NULL,
-                            -FLT_MAX,
-                            FLT_MAX,
-                            "Location",
-                            "Controller grip location",
-                            -FLT_MAX,
-                            FLT_MAX);
+  parm = RNA_def_float_translation(func,
+                                   "location",
+                                   3,
+                                   NULL,
+                                   -FLT_MAX,
+                                   FLT_MAX,
+                                   "Location",
+                                   "Controller grip location",
+                                   -FLT_MAX,
+                                   FLT_MAX);
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_OUTPUT);
 
   func = RNA_def_function(
@@ -1739,16 +1739,16 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_int(func, "index", 0, 0, 255, "Index", "Controller index", 0, 255);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  RNA_def_float_translation(func,
-                            "location",
-                            3,
-                            NULL,
-                            -FLT_MAX,
-                            FLT_MAX,
-                            "Location",
-                            "Controller aim location",
-                            -FLT_MAX,
-                            FLT_MAX);
+  parm = RNA_def_float_translation(func,
+                                   "location",
+                                   3,
+                                   NULL,
+                                   -FLT_MAX,
+                                   FLT_MAX,
+                                   "Location",
+                                   "Controller aim location",
+                                   -FLT_MAX,
+                                   FLT_MAX);
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_OUTPUT);
 
   func = RNA_def_function(
