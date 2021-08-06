@@ -1666,6 +1666,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
   /* skip the listbase */
   MEMCPY_STRUCT_AFTER(mesh_dst, &tmp, id.prev);
 
+  BLI_freelistN(&mesh_dst->vertex_group_names);
   BKE_defgroup_copy_list(&mesh_dst->vertex_group_names, &mesh_src->vertex_group_names);
   mesh_dst->vertex_group_active_index = mesh_src->vertex_group_active_index;
 
