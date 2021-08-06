@@ -13,6 +13,14 @@ if errorlevel 1 goto EOF
 call "%BLENDER_DIR%\build_files\windows\parse_arguments.cmd" %*
 if errorlevel 1 goto EOF
 
+REM if it is one of the convenience targets and BLENDER_BIN is set
+REM skip compiler detection 
+if "%ICONS%%ICONS_GEOM%%DOC_PY%" == "1" (
+	if EXIST "%BLENDER_BIN%" (
+		goto convenience_targets
+	)
+)
+
 call "%BLENDER_DIR%\build_files\windows\find_dependencies.cmd"
 if errorlevel 1 goto EOF
 
@@ -58,6 +66,8 @@ if "%BUILD_UPDATE%" == "1" (
 
 call "%BLENDER_DIR%\build_files\windows\set_build_dir.cmd"
 
+:convenience_targets
+
 if "%ICONS%" == "1" (
 	call "%BLENDER_DIR%\build_files\windows\icons.cmd"
 	goto EOF
@@ -65,6 +75,11 @@ if "%ICONS%" == "1" (
 
 if "%ICONS_GEOM%" == "1" (
 	call "%BLENDER_DIR%\build_files\windows\icons_geom.cmd"
+	goto EOF
+)
+
+if "%DOC_PY%" == "1" (
+	call "%BLENDER_DIR%\build_files\windows\doc_py.cmd"
 	goto EOF
 )
 
