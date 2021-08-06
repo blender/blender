@@ -1161,6 +1161,52 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
   if (fptr_map) {
     BLI_ghash_free(fptr_map, NULL, NULL);
   }
+
+  // regenerate idmap
+  if ((bm->idmap.flag & BM_HAS_IDS) && (bm->idmap.flag & BM_HAS_ID_MAP) && bm->idmap.map) {
+    memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
+
+    char iters[4] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, 0, BM_FACES_OF_MESH};
+    CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+    const bool have_loop = bm->idmap.flag & BM_LOOP;
+
+    for (int i = 0; i < 4; i++) {
+      int type = 1 << i;
+
+      if (type == BM_LOOP) {  // handle loops with faces
+        continue;
+      }
+
+      int cd_id = CustomData_get_offset(cdatas[i], CD_MESH_ID);
+      int cd_loop_id = CustomData_get_offset(&bm->ldata, CD_MESH_ID);
+
+      BMIter iter;
+      BMElem *elem;
+
+      if (cd_id < 0 && !(type == BM_FACE && have_loop)) {
+        continue;
+      }
+
+      BM_ITER_MESH (elem, &iter, bm, iters[i]) {
+        if (type == BM_FACE && have_loop) {
+          BMFace *f = (BMFace *)elem;
+          BMLoop *l = f->l_first;
+
+          do {
+            int id_loop = BM_ELEM_CD_GET_INT(l, cd_loop_id);
+            bm->idmap.map[id_loop] = (BMElem *)l;
+          } while ((l = l->next) != f->l_first);
+        }
+
+        if (cd_id < 0) {
+          continue;
+        }
+
+        int id = BM_ELEM_CD_GET_INT(elem, cd_id);
+        bm->idmap.map[id] = elem;
+      }
+    }
+  }
 }
 
 /**

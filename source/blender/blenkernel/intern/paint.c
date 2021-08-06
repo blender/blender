@@ -82,7 +82,6 @@
 // XXX todo: work our bad module cross ref
 void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
-void SCULPT_reorder_bmesh(SculptSession *ss);
 
 static void palette_init_data(ID *id)
 {

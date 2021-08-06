@@ -2410,7 +2410,7 @@ static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
   BLI_array_free(fmap);
 }
 
-BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
+BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
 {
   if (BKE_pbvh_type(pbvh) != PBVH_BMESH || pbvh->totnode == 0) {
     return pbvh->bm;
@@ -2644,4 +2644,211 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   pbvh->bm = bm2;
 
   return bm2;
+}
+
+typedef struct SortElem {
+  BMElem *elem;
+  int index;
+  int cd_node_off;
+} SortElem;
+
+static int sort_verts_faces(const void *va, const void *vb)
+{
+  SortElem *a = (SortElem *)va;
+  SortElem *b = (SortElem *)vb;
+  int ni1 = BM_ELEM_CD_GET_INT(a->elem, a->cd_node_off);
+  int ni2 = BM_ELEM_CD_GET_INT(b->elem, b->cd_node_off);
+
+  return ni1 - ni2;
+}
+
+static int sort_edges(const void *va, const void *vb)
+{
+  SortElem *a = (SortElem *)va;
+  SortElem *b = (SortElem *)vb;
+
+  BMEdge *e1 = (BMEdge *)a->elem;
+  BMEdge *e2 = (BMEdge *)b->elem;
+
+  int ni1 = BM_ELEM_CD_GET_INT(e1->v1, a->cd_node_off);
+  int ni2 = BM_ELEM_CD_GET_INT(e1->v2, a->cd_node_off);
+  int ni3 = BM_ELEM_CD_GET_INT(e2->v1, b->cd_node_off);
+  int ni4 = BM_ELEM_CD_GET_INT(e2->v2, b->cd_node_off);
+
+  return (ni1 + ni2) - (ni3 + ni4);
+}
+
+BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
+{
+  BMesh *bm = pbvh->bm;
+
+  int **save_other_vs = MEM_calloc_arrayN(pbvh->totnode, sizeof(int *), __func__);
+  int **save_unique_vs = MEM_calloc_arrayN(pbvh->totnode, sizeof(int *), __func__);
+  int **save_fs = MEM_calloc_arrayN(pbvh->totnode, sizeof(int *), __func__);
+
+  SortElem *verts = MEM_malloc_arrayN(bm->totvert, sizeof(SortElem), __func__);
+  SortElem *edges = MEM_malloc_arrayN(bm->totedge, sizeof(SortElem), __func__);
+  SortElem *faces = MEM_malloc_arrayN(bm->totface, sizeof(SortElem), __func__);
+
+  BMIter iter;
+  BMVert *v;
+  BMEdge *e;
+  BMFace *f;
+
+  int i = 0;
+
+  BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+    verts[i].elem = (BMElem *)v;
+    verts[i].cd_node_off = pbvh->cd_vert_node_offset;
+    verts[i].index = i;
+    v->head.index = i;
+  }
+  BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
+    edges[i].elem = (BMElem *)e;
+    edges[i].cd_node_off = pbvh->cd_vert_node_offset;
+    edges[i].index = i;
+    e->head.index = i;
+  }
+  BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+    faces[i].elem = (BMElem *)f;
+    faces[i].cd_node_off = pbvh->cd_face_node_offset;
+    faces[i].index = i;
+    f->head.index = i;
+  }
+
+  for (i = 0; i < pbvh->totnode; i++) {
+    int *other_vs = NULL;
+    int *unique_vs = NULL;
+    int *fs = NULL;
+
+    BLI_array_declare(other_vs);
+    BLI_array_declare(unique_vs);
+    BLI_array_declare(fs);
+
+    PBVHNode *node = pbvh->nodes + i;
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    BMVert *v;
+    BMFace *f;
+
+    TGSET_ITER (v, node->bm_unique_verts) {
+      BLI_array_append(unique_vs, v->head.index);
+    }
+    TGSET_ITER_END;
+    TGSET_ITER (v, node->bm_other_verts) {
+      BLI_array_append(other_vs, v->head.index);
+    }
+    TGSET_ITER_END;
+    TGSET_ITER (f, node->bm_faces) {
+      BLI_array_append(fs, f->head.index);
+    }
+    TGSET_ITER_END;
+
+    save_unique_vs[i] = unique_vs;
+    save_other_vs[i] = other_vs;
+    save_fs[i] = fs;
+  }
+
+  qsort(verts, bm->totvert, sizeof(SortElem), sort_verts_faces);
+  qsort(edges, bm->totedge, sizeof(SortElem), sort_edges);
+  qsort(faces, bm->totface, sizeof(SortElem), sort_verts_faces);
+
+  uint *vs = MEM_malloc_arrayN(bm->totvert, sizeof(int), __func__);
+  uint *es = MEM_malloc_arrayN(bm->totedge, sizeof(int), __func__);
+  uint *fs = MEM_malloc_arrayN(bm->totface, sizeof(int), __func__);
+
+  for (i = 0; i < bm->totvert; i++) {
+    vs[i] = (uint)verts[i].index;
+    verts[i].elem->head.index = verts[i].index;
+  }
+  for (i = 0; i < bm->totedge; i++) {
+    es[i] = (uint)edges[i].index;
+    edges[i].elem->head.index = edges[i].index;
+  }
+  for (i = 0; i < bm->totface; i++) {
+    fs[i] = (uint)faces[i].index;
+    faces[i].elem->head.index = faces[i].index;
+  }
+
+  BM_mesh_remap(bm, vs, es, fs);
+
+  // create new mappings
+  BMVert **mapvs = MEM_malloc_arrayN(bm->totvert, sizeof(BMVert *), __func__);
+  BMEdge **mapes = MEM_malloc_arrayN(bm->totedge, sizeof(BMEdge *), __func__);
+  BMFace **mapfs = MEM_malloc_arrayN(bm->totface, sizeof(BMFace *), __func__);
+
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    mapvs[v->head.index] = v;
+  }
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    mapes[e->head.index] = e;
+  }
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    mapfs[f->head.index] = f;
+  }
+
+  // rebuild bm_unique_verts bm_other_verts and bm_faces in pbvh nodes
+  for (i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    int tot_unique_vs = BLI_table_gset_len(node->bm_unique_verts);
+    int tot_other_vs = BLI_table_gset_len(node->bm_other_verts);
+    int tot_fs = BLI_table_gset_len(node->bm_faces);
+
+    BLI_table_gset_free(node->bm_unique_verts, NULL);
+    BLI_table_gset_free(node->bm_other_verts, NULL);
+    BLI_table_gset_free(node->bm_faces, NULL);
+
+    node->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
+    node->bm_other_verts = BLI_table_gset_new("bm_other_verts");
+    node->bm_faces = BLI_table_gset_new("bm_faces");
+
+    int *unique_vs = save_unique_vs[i];
+    int *other_vs = save_other_vs[i];
+    int *fs = save_fs[i];
+
+    for (int j = 0; j < tot_unique_vs; j++) {
+      BLI_table_gset_add(node->bm_unique_verts, mapvs[unique_vs[j]]);
+    }
+    for (int j = 0; j < tot_other_vs; j++) {
+      BLI_table_gset_add(node->bm_other_verts, mapvs[other_vs[j]]);
+    }
+
+    for (int j = 0; j < tot_fs; j++) {
+      BLI_table_gset_add(node->bm_faces, mapfs[fs[j]]);
+    }
+
+    MEM_SAFE_FREE(save_unique_vs[i]);
+    MEM_SAFE_FREE(save_other_vs[i]);
+    MEM_SAFE_FREE(save_fs[i]);
+
+    node->flag |= PBVH_UpdateTris;
+  }
+
+  MEM_SAFE_FREE(mapvs);
+  MEM_SAFE_FREE(mapes);
+  MEM_SAFE_FREE(mapfs);
+
+  bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+
+  MEM_SAFE_FREE(vs);
+  MEM_SAFE_FREE(es);
+  MEM_SAFE_FREE(fs);
+
+  MEM_SAFE_FREE(verts);
+  MEM_SAFE_FREE(edges);
+  MEM_SAFE_FREE(faces);
+
+  MEM_SAFE_FREE(save_other_vs);
+  MEM_SAFE_FREE(save_unique_vs);
+  MEM_SAFE_FREE(save_fs);
+
+  return pbvh->bm;
 }

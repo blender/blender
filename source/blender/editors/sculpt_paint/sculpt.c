@@ -9429,6 +9429,67 @@ static bool sculpt_no_multires_poll(bContext *C)
   return false;
 }
 
+static bool sculpt_only_bmesh_poll(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+  if (SCULPT_mode_poll(C) && ob->sculpt && ob->sculpt->pbvh) {
+    return BKE_pbvh_type(ob->sculpt->pbvh) == PBVH_BMESH;
+  }
+  return false;
+}
+
+static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Object *ob = CTX_data_active_object(C);
+  const Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ss->pbvh;
+
+  if (!pbvh) {
+    return OPERATOR_CANCELLED;
+  }
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_BMESH:
+      SCULPT_undo_push_begin(ob, "Dynamic topology symmetrize");
+      SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+
+      BKE_pbvh_reorder_bmesh(ss->pbvh);
+
+      BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
+      BM_log_full_mesh(ss->bm, ss->bm_log);
+
+      ss->active_vertex_index.i = 0;
+      ss->active_face_index.i = 0;
+
+      /* Finish undo. */
+      SCULPT_undo_push_end();
+
+      break;
+    case PBVH_FACES:
+      return OPERATOR_CANCELLED;
+    case PBVH_GRIDS:
+      return OPERATOR_CANCELLED;
+  }
+
+  /* Redraw. */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+  return OPERATOR_FINISHED;
+}
+static void SCULPT_OT_spatial_sort_mesh(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Spatially Sort Mesh";
+  ot->idname = "SCULPT_OT_spatial_sort_mesh";
+  ot->description = "Spatially sort mesh to improve memory coherency";
+
+  /* API callbacks. */
+  ot->exec = sculpt_spatial_sort_exec;
+  ot->poll = sculpt_only_bmesh_poll;
+}
+
 static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -11026,6 +11087,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_mask_by_color);
   WM_operatortype_append(SCULPT_OT_dyntopo_detail_size_edit);
   WM_operatortype_append(SCULPT_OT_mask_init);
-
+  WM_operatortype_append(SCULPT_OT_spatial_sort_mesh);
   WM_operatortype_append(SCULPT_OT_expand);
 }
