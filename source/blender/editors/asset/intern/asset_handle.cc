@@ -60,13 +60,13 @@ int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset)
 }
 
 void ED_asset_handle_get_full_library_path(const bContext *C,
-                                           const AssetLibraryReference *asset_library,
+                                           const AssetLibraryReference *asset_library_ref,
                                            const AssetHandle *asset,
                                            char r_full_lib_path[FILE_MAX_LIBEXTRA])
 {
   *r_full_lib_path = '\0';
 
-  std::string asset_path = ED_assetlist_asset_filepath_get(C, *asset_library, *asset);
+  std::string asset_path = ED_assetlist_asset_filepath_get(C, *asset_library_ref, *asset);
   if (asset_path.empty()) {
     return;
   }

@@ -118,8 +118,8 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
     asset_params = sfile->asset_params = MEM_callocN(sizeof(*asset_params),
                                                      "FileAssetSelectParams");
     asset_params->base_params.details_flags = U_default.file_space_data.details_flags;
-    asset_params->asset_library.type = ASSET_LIBRARY_LOCAL;
-    asset_params->asset_library.custom_library_index = -1;
+    asset_params->asset_library_ref.type = ASSET_LIBRARY_LOCAL;
+    asset_params->asset_library_ref.custom_library_index = -1;
     asset_params->import_type = FILE_ASSET_IMPORT_APPEND;
   }
 
@@ -415,7 +415,7 @@ FileAssetSelectParams *ED_fileselect_get_asset_params(const SpaceFile *sfile)
 
 static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 {
-  AssetLibraryReference *library = &asset_params->asset_library;
+  AssetLibraryReference *library = &asset_params->asset_library_ref;
   FileSelectParams *base_params = &asset_params->base_params;
   bUserAssetLibrary *user_library = NULL;
 

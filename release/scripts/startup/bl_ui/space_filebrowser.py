@@ -37,9 +37,9 @@ class FILEBROWSER_HT_header(Header):
         params = space_data.params
 
         row = layout.row(align=True)
-        row.prop(params, "asset_library", text="")
+        row.prop(params, "asset_library_ref", text="")
         # External libraries don't auto-refresh, add refresh button.
-        if params.asset_library != 'LOCAL':
+        if params.asset_library_ref != 'LOCAL':
             row.operator("file.refresh", text="", icon='FILE_REFRESH')
 
         layout.separator_spacer()
@@ -678,8 +678,8 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
             layout.label(text="No asset selected", icon='INFO')
             return
 
-        asset_library = context.asset_library
-        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library)
+        asset_library_ref = context.asset_library_ref
+        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset_file_handle, asset_library_ref)
 
         if asset_file_handle.local_id:
             # If the active file is an ID, use its name directly so renaming is possible from right here.

@@ -299,16 +299,16 @@ static void poselib_tempload_exit(PoseBlendData *pbd)
 static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
 {
   bool asset_handle_valid;
-  const AssetLibraryReference *asset_library = CTX_wm_asset_library(C);
+  const AssetLibraryReference *asset_library_ref = CTX_wm_asset_library_ref(C);
   const AssetHandle asset_handle = CTX_wm_asset_handle(C, &asset_handle_valid);
   /* Poll callback should check. */
-  BLI_assert((asset_library != NULL) && asset_handle_valid);
+  BLI_assert((asset_library_ref != NULL) && asset_handle_valid);
 
   PoseBlendData *pbd = op->customdata;
 
   pbd->temp_id_consumer = ED_asset_temp_id_consumer_create(&asset_handle);
   return (bAction *)ED_asset_temp_id_consumer_ensure_local_id(
-      pbd->temp_id_consumer, C, asset_library, ID_AC, CTX_data_main(C), op->reports);
+      pbd->temp_id_consumer, C, asset_library_ref, ID_AC, CTX_data_main(C), op->reports);
 }
 
 static bAction *flip_pose(bContext *C, Object *ob, bAction *action)
@@ -540,10 +540,10 @@ static bool poselib_asset_in_context(bContext *C)
 {
   bool asset_handle_valid;
   /* Check whether the context provides the asset data needed to add a pose. */
-  const AssetLibraryReference *asset_library = CTX_wm_asset_library(C);
+  const AssetLibraryReference *asset_library_ref = CTX_wm_asset_library_ref(C);
   AssetHandle asset_handle = CTX_wm_asset_handle(C, &asset_handle_valid);
 
-  return (asset_library != NULL) && asset_handle_valid &&
+  return (asset_library_ref != NULL) && asset_handle_valid &&
          (ED_asset_handle_get_id_type(&asset_handle) == ID_AC);
 }
 

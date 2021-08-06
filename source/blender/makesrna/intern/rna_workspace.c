@@ -112,13 +112,13 @@ static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
 static int rna_WorkSpace_asset_library_get(PointerRNA *ptr)
 {
   const WorkSpace *workspace = ptr->data;
-  return ED_asset_library_reference_to_enum_value(&workspace->asset_library);
+  return ED_asset_library_reference_to_enum_value(&workspace->asset_library_ref);
 }
 
 static void rna_WorkSpace_asset_library_set(PointerRNA *ptr, int value)
 {
   WorkSpace *workspace = ptr->data;
-  workspace->asset_library = ED_asset_library_reference_from_enum_value(value);
+  workspace->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
 }
 
 static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace,

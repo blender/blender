@@ -44,7 +44,7 @@
 #include "interface_intern.h"
 
 struct AssetViewListData {
-  AssetLibraryReference asset_library;
+  AssetLibraryReference asset_library_ref;
   bScreen *screen;
 };
 
@@ -62,7 +62,7 @@ static void asset_view_item_but_drag_set(uiBut *but,
   /* Context can be null here, it's only needed for a File Browser specific hack that should go
    * away before too long. */
   ED_asset_handle_get_full_library_path(
-      nullptr, &list_data->asset_library, asset_handle, blend_path);
+      nullptr, &list_data->asset_library_ref, asset_handle, blend_path);
 
   if (blend_path[0]) {
     ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
@@ -136,7 +136,7 @@ static void asset_view_listener(uiList *ui_list, wmRegionListenerParams *params)
     }
   }
 
-  if (ED_assetlist_listen(&list_data->asset_library, params->notifier)) {
+  if (ED_assetlist_listen(&list_data->asset_library_ref, params->notifier)) {
     ED_region_tag_redraw(params->region);
   }
 }
@@ -153,7 +153,7 @@ uiListType *UI_UL_asset_view()
 }
 
 static void asset_view_template_refresh_asset_collection(
-    const AssetLibraryReference &asset_library,
+    const AssetLibraryReference &asset_library_ref,
     const AssetFilterSettings &filter_settings,
     PointerRNA &assets_dataptr,
     const char *assets_propname)
@@ -175,7 +175,7 @@ static void asset_view_template_refresh_asset_collection(
 
   RNA_property_collection_clear(&assets_dataptr, assets_prop);
 
-  ED_assetlist_iterate(&asset_library, [&](AssetHandle asset) {
+  ED_assetlist_iterate(&asset_library_ref, [&](AssetHandle asset) {
     if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
       /* Don't do anything else, but return true to continue iterating. */
       return true;
@@ -216,25 +216,25 @@ void uiTemplateAssetView(uiLayout *layout,
 
   PropertyRNA *asset_library_prop = RNA_struct_find_property(asset_library_dataptr,
                                                              asset_library_propname);
-  AssetLibraryReference asset_library = ED_asset_library_reference_from_enum_value(
+  AssetLibraryReference asset_library_ref = ED_asset_library_reference_from_enum_value(
       RNA_property_enum_get(asset_library_dataptr, asset_library_prop));
 
   uiLayout *row = uiLayoutRow(col, true);
   uiItemFullR(row, asset_library_dataptr, asset_library_prop, RNA_NO_INDEX, 0, 0, "", 0);
-  if (asset_library.type != ASSET_LIBRARY_LOCAL) {
+  if (asset_library_ref.type != ASSET_LIBRARY_LOCAL) {
     uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_list_refresh");
   }
 
-  ED_assetlist_storage_fetch(&asset_library, C);
-  ED_assetlist_ensure_previews_job(&asset_library, C);
-  const int tot_items = ED_assetlist_size(&asset_library);
+  ED_assetlist_storage_fetch(&asset_library_ref, C);
+  ED_assetlist_ensure_previews_job(&asset_library_ref, C);
+  const int tot_items = ED_assetlist_size(&asset_library_ref);
 
   asset_view_template_refresh_asset_collection(
-      asset_library, *filter_settings, *assets_dataptr, assets_propname);
+      asset_library_ref, *filter_settings, *assets_dataptr, assets_propname);
 
   AssetViewListData *list_data = (AssetViewListData *)MEM_mallocN(sizeof(*list_data),
                                                                   "AssetViewListData");
-  list_data->asset_library = asset_library;
+  list_data->asset_library_ref = asset_library_ref;
   list_data->screen = CTX_wm_screen(C);
 
   /* TODO can we have some kind of model-view API to handle referencing, filtering and lazy loading

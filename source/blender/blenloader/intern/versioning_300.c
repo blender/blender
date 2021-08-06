@@ -657,12 +657,12 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (!DNA_struct_elem_find(
             fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library")) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
-        BKE_asset_library_reference_init_default(&workspace->asset_library);
+        BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
       }
     }
 
     if (!DNA_struct_elem_find(
-            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library")) {
+            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
@@ -671,7 +671,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
               if (sfile->browse_mode != FILE_BROWSE_MODE_ASSETS) {
                 continue;
               }
-              BKE_asset_library_reference_init_default(&sfile->asset_params->asset_library);
+              BKE_asset_library_reference_init_default(&sfile->asset_params->asset_library_ref);
             }
           }
         }
@@ -749,5 +749,31 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library_ref")) {
+      LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+        BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
+      }
+    }
+
+    if (!DNA_struct_elem_find(
+            fd->filesdna, "FileAssetSelectParams", "AssetLibraryReference", "asset_library_ref")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+            if (space->spacetype != SPACE_FILE) {
+              continue;
+            }
+
+            SpaceFile *sfile = (SpaceFile *)space;
+            if (sfile->browse_mode != FILE_BROWSE_MODE_ASSETS) {
+              continue;
+            }
+            BKE_asset_library_reference_init_default(&sfile->asset_params->asset_library_ref);
+          }
+        }
+      }
+    }
   }
 }

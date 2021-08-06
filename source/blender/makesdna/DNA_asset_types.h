@@ -81,7 +81,7 @@ typedef enum eAssetLibraryType {
   // ASSET_LIBRARY_PROJECT = 2,
 
   /** Display assets from custom asset libraries, as defined in the preferences
-   * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library.idname
+   * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library_ref.idname
    * then.
    * In RNA, we add the index of the custom library to this to identify it by index. So keep
    * this last! */

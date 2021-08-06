@@ -139,7 +139,7 @@ typedef struct WorkSpace {
 
   /** Workspace-wide active asset library, for asset UIs to use (e.g. asset view UI template). The
    * Asset Browser has its own and doesn't use this. */
-  AssetLibraryReference asset_library;
+  AssetLibraryReference asset_library_ref;
 } WorkSpace;
 
 /**

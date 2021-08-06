@@ -266,7 +266,7 @@ static void ASSET_OT_clear(wmOperatorType *ot)
 
 static bool asset_list_refresh_poll(bContext *C)
 {
-  const AssetLibraryReference *library = CTX_wm_asset_library(C);
+  const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
   if (!library) {
     return false;
   }
@@ -276,7 +276,7 @@ static bool asset_list_refresh_poll(bContext *C)
 
 static int asset_list_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 {
-  const AssetLibraryReference *library = CTX_wm_asset_library(C);
+  const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
   ED_assetlist_clear(library, C);
   return OPERATOR_FINISHED;
 }

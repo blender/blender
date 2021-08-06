@@ -2582,13 +2582,13 @@ static int rna_FileAssetSelectParams_asset_library_get(PointerRNA *ptr)
   /* Just an extra sanity check to ensure this isn't somehow called for RNA_FileSelectParams. */
   BLI_assert(ptr->type == &RNA_FileAssetSelectParams);
 
-  return ED_asset_library_reference_to_enum_value(&params->asset_library);
+  return ED_asset_library_reference_to_enum_value(&params->asset_library_ref);
 }
 
 static void rna_FileAssetSelectParams_asset_library_set(PointerRNA *ptr, int value)
 {
   FileAssetSelectParams *params = ptr->data;
-  params->asset_library = ED_asset_library_reference_from_enum_value(value);
+  params->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
 }
 
 static void rna_FileAssetSelectParams_asset_category_set(PointerRNA *ptr, uint64_t value)

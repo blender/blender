@@ -384,7 +384,7 @@ typedef struct FileList {
 
   eFileSelectType type;
   /* The library this list was created for. Stored here so we know when to re-read. */
-  AssetLibraryReference *asset_library;
+  AssetLibraryReference *asset_library_ref;
 
   short flags;
 
@@ -1065,28 +1065,28 @@ static bool filelist_compare_asset_libraries(const AssetLibraryReference *librar
 }
 
 /**
- * \param asset_library: May be NULL to unset the library.
+ * \param asset_library_ref: May be NULL to unset the library.
  */
-void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_library)
+void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_library_ref)
 {
   /* Unset if needed. */
-  if (!asset_library) {
-    if (filelist->asset_library) {
-      MEM_SAFE_FREE(filelist->asset_library);
+  if (!asset_library_ref) {
+    if (filelist->asset_library_ref) {
+      MEM_SAFE_FREE(filelist->asset_library_ref);
       filelist->flags |= FL_FORCE_RESET;
     }
     return;
   }
 
-  if (!filelist->asset_library) {
-    filelist->asset_library = MEM_mallocN(sizeof(*filelist->asset_library),
-                                          "filelist asset library");
-    *filelist->asset_library = *asset_library;
+  if (!filelist->asset_library_ref) {
+    filelist->asset_library_ref = MEM_mallocN(sizeof(*filelist->asset_library_ref),
+                                              "filelist asset library");
+    *filelist->asset_library_ref = *asset_library_ref;
 
     filelist->flags |= FL_FORCE_RESET;
   }
-  else if (!filelist_compare_asset_libraries(filelist->asset_library, asset_library)) {
-    *filelist->asset_library = *asset_library;
+  else if (!filelist_compare_asset_libraries(filelist->asset_library_ref, asset_library_ref)) {
+    *filelist->asset_library_ref = *asset_library_ref;
     filelist->flags |= FL_FORCE_RESET;
   }
 }
@@ -1791,7 +1791,7 @@ void filelist_free(struct FileList *filelist)
     filelist->selection_state = NULL;
   }
 
-  MEM_SAFE_FREE(filelist->asset_library);
+  MEM_SAFE_FREE(filelist->asset_library_ref);
 
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
 
@@ -1867,7 +1867,7 @@ bool filelist_is_dir(struct FileList *filelist, const char *path)
  */
 void filelist_setdir(struct FileList *filelist, char *r_dir)
 {
-  const bool allow_invalid = filelist->asset_library != NULL;
+  const bool allow_invalid = filelist->asset_library_ref != NULL;
   BLI_assert(strlen(r_dir) < FILE_MAX_LIBEXTRA);
 
   BLI_path_normalize_dir(BKE_main_blendfile_path_from_global(), r_dir);
@@ -3381,7 +3381,7 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
   flrj->tmp_filelist->libfiledata = NULL;
   memset(&flrj->tmp_filelist->filelist_cache, 0, sizeof(flrj->tmp_filelist->filelist_cache));
   flrj->tmp_filelist->selection_state = NULL;
-  flrj->tmp_filelist->asset_library = NULL;
+  flrj->tmp_filelist->asset_library_ref = NULL;
 
   BLI_mutex_unlock(&flrj->lock);
 

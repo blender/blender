@@ -338,7 +338,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   filelist_setdir(sfile->files, params->dir);
   filelist_setrecursion(sfile->files, params->recursion_level);
   filelist_setsorting(sfile->files, params->sort, params->flag & FILE_SORT_INVERT);
-  filelist_setlibrary(sfile->files, asset_params ? &asset_params->asset_library : NULL);
+  filelist_setlibrary(sfile->files, asset_params ? &asset_params->asset_library_ref : NULL);
   filelist_setfilter_options(
       sfile->files,
       (params->flag & FILE_FILTER) != 0,
@@ -863,7 +863,7 @@ static void file_space_subtype_item_extend(bContext *UNUSED(C),
 
 static const char *file_context_dir[] = {
     "active_file",
-    "asset_library",
+    "asset_library_ref",
     "id",
     NULL,
 };
@@ -897,14 +897,14 @@ static int /*eContextResult*/ file_context(const bContext *C,
     CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
     return CTX_RESULT_OK;
   }
-  if (CTX_data_equals(member, "asset_library")) {
+  if (CTX_data_equals(member, "asset_library_ref")) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
     if (!asset_params) {
       return CTX_RESULT_NO_DATA;
     }
 
     CTX_data_pointer_set(
-        result, &screen->id, &RNA_AssetLibraryReference, &asset_params->asset_library);
+        result, &screen->id, &RNA_AssetLibraryReference, &asset_params->asset_library_ref);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "id")) {
