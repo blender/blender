@@ -38,6 +38,7 @@
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_fcurve.h"
@@ -88,9 +90,11 @@
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
 #include "BKE_volume.h"
+#include "BKE_paint.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -113,6 +117,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_view3d.h"
 
 #include "object_intern.h"
@@ -2752,6 +2757,63 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C,
   return result;
 }
 
+static void drop_named_material_face_set_slots_update(bContext *C, Object *ob, const wmEvent *event) {
+    Main *bmain = CTX_data_main(C);
+    Mesh *mesh = BKE_mesh_from_object(ob);
+
+    bScreen *screen = CTX_wm_screen(C);
+    ARegion *region = BKE_screen_find_main_region_at_xy(
+            screen, SPACE_VIEW3D, event->x, event->y);
+
+    const float mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+    const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
+
+    int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+
+    short face_set_nr = -1;
+    for (int i = 0; i < mesh->totpoly; i++) {
+      if (face_sets[i] != face_set_id) {
+        continue;
+      } 
+      face_set_nr = mesh->mpoly[i].mat_nr;
+      break;
+    }
+
+    bool create_new_slot = false;
+    for (int i = 0; i < mesh->totpoly; i++) {
+      if (face_sets[i] == face_set_id) {
+        if (mesh->mpoly[i].mat_nr != face_set_nr) {
+          create_new_slot = true;
+          break;
+        }
+      } 
+      else {
+        if (mesh->mpoly[i].mat_nr == face_set_nr) {
+          create_new_slot = true;
+          break;
+        }
+      }
+    }
+
+
+    if (create_new_slot) {
+      BKE_object_material_slot_add(bmain, ob);
+    }
+    else {
+      ob->actcol = face_set_nr + 1;
+    }
+
+    const short active_mat_slot = ob->actcol;
+    const short material_nr = active_mat_slot - 1;
+    for (int i = 0; i < mesh->totpoly; i++) {
+      if (face_sets[i] != face_set_id) {
+        continue;
+      } 
+      mesh->mpoly[i].mat_nr = material_nr;
+    }
+
+}
+
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
@@ -2766,10 +2828,14 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
   }
 
   Object *ob = base->object;
+  if (ob->mode == OB_MODE_SCULPT) {
+    drop_named_material_face_set_slots_update(C, ob, event);
+  }
+
   const short active_mat_slot = ob->actcol;
 
   BKE_object_material_assign(
-      CTX_data_main(C), base->object, ma, active_mat_slot, BKE_MAT_ASSIGN_USERPREF);
+    CTX_data_main(C), base->object, ma, active_mat_slot, BKE_MAT_ASSIGN_USERPREF);
 
   DEG_id_tag_update(&base->object->id, ID_RECALC_TRANSFORM);
 
@@ -2778,6 +2844,25 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 
   return OPERATOR_FINISHED;
+}
+
+bool ED_operator_drop_material_poll(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  Object *obact = CTX_data_active_object(C);
+
+  if (scene == NULL || ID_IS_LINKED(scene)) {
+    return false;
+  }
+  if (CTX_data_edit_object(C)) {
+    return false;
+  }
+
+  if (obact && !ELEM(obact->mode, OB_MODE_OBJECT, OB_MODE_SCULPT)) {
+    return false;
+  }
+
+  return true;
 }
 
 /* used for dropbox */
@@ -2790,7 +2875,7 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = drop_named_material_invoke;
-  ot->poll = ED_operator_objectmode;
+  ot->poll = ED_operator_drop_material_poll;
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
