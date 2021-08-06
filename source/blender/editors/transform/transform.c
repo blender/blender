@@ -78,6 +78,9 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2]);
 
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
+  if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
+    return false;
+  }
   return ((around == V3D_AROUND_LOCAL_ORIGINS) && (ELEM(t->obedit_type, OB_MESH, OB_GPENCIL)));
 }
 

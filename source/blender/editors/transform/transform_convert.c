@@ -1072,7 +1072,8 @@ static void init_proportional_edit(TransInfo *t)
     else if (convert_type == TC_MESH_UV && t->flag & T_PROP_CONNECTED) {
       /* Already calculated by uv_set_connectivity_distance. */
     }
-    else if (convert_type == TC_CURVE_VERTS && t->obedit_type == OB_CURVE) {
+    else if (convert_type == TC_CURVE_VERTS) {
+      BLI_assert(t->obedit_type == OB_CURVE);
       set_prop_dist(t, false);
     }
     else {
@@ -1371,7 +1372,6 @@ void createTransData(bContext *C, TransInfo *t)
 
   switch (t->data_type) {
     case TC_ACTION_DATA:
-      t->obedit_type = -1;
       createTransActionData(C, t);
       break;
     case TC_POSE:
@@ -1394,7 +1394,6 @@ void createTransData(bContext *C, TransInfo *t)
       createTransCurveVerts(t);
       break;
     case TC_GRAPH_EDIT_DATA:
-      t->obedit_type = -1;
       createTransGraphEditData(C, t);
       break;
     case TC_GPENCIL:
@@ -1404,9 +1403,6 @@ void createTransData(bContext *C, TransInfo *t)
       createTransLatticeVerts(t);
       break;
     case TC_MASKING_DATA:
-      if (t->spacetype == SPACE_CLIP) {
-        t->obedit_type = -1;
-      }
       createTransMaskingData(C, t);
       break;
     case TC_MBALL_VERTS:
@@ -1425,11 +1421,9 @@ void createTransData(bContext *C, TransInfo *t)
       createTransUVs(C, t);
       break;
     case TC_NLA_DATA:
-      t->obedit_type = -1;
       createTransNlaData(C, t);
       break;
     case TC_NODE_DATA:
-      t->obedit_type = -1;
       createTransNodeData(t);
       break;
     case TC_OBJECT:
@@ -1473,12 +1467,10 @@ void createTransData(bContext *C, TransInfo *t)
       createTransSculpt(C, t);
       break;
     case TC_SEQ_DATA:
-      t->obedit_type = -1;
       t->num.flag |= NUM_NO_FRACTION; /* sequencer has no use for floating point transform. */
       createTransSeqData(t);
       break;
     case TC_TRACKING_DATA:
-      t->obedit_type = -1;
       createTransTrackingData(C, t);
       break;
     case TC_NONE:
@@ -1492,8 +1484,6 @@ void createTransData(bContext *C, TransInfo *t)
   countAndCleanTransDataContainer(t);
 
   init_proportional_edit(t);
-
-  BLI_assert((!(t->flag & T_EDIT)) == (!(t->obedit_type != -1)));
 }
 
 /** \} */

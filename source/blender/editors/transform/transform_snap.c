@@ -575,7 +575,7 @@ static void initSnappingMode(TransInfo *t)
 {
   ToolSettings *ts = t->settings;
   /* All obedit types will match. */
-  const int obedit_type = t->data_container->obedit ? t->data_container->obedit->type : -1;
+  const int obedit_type = t->obedit_type;
   ViewLayer *view_layer = t->view_layer;
   Base *base_act = view_layer->basact;
 
@@ -609,15 +609,22 @@ static void initSnappingMode(TransInfo *t)
     }
   }
 
-  if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) &&
-      (t->options & CTX_CAMERA) == 0) {
+  if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
     /* Only 3D view or UV. */
     /* Not with camera selected in camera view. */
 
     setSnappingCallback(t);
 
-    if ((obedit_type != -1) &&
-        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
+    if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) {
+      /* In "Edit Strokes" mode,
+       * snap tool can perform snap to selected or active objects (see T49632)
+       * TODO: perform self snap in gpencil_strokes.
+       *
+       * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
+      t->tsnap.modeSelect = SNAP_ALL;
+    }
+    else if ((obedit_type != -1) &&
+             ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE, OB_MBALL)) {
       /* Edit mode */
       /* Temporary limited to edit mode meshes, armature, curves, metaballs. */
 
@@ -636,17 +643,7 @@ static void initSnappingMode(TransInfo *t)
     }
     else if (obedit_type == -1) {
       /* Object mode */
-      if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) {
-        /* In "Edit Strokes" mode,
-         * snap tool can perform snap to selected or active objects (see T49632)
-         * TODO: perform self snap in gpencil_strokes.
-         *
-         * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
-        t->tsnap.modeSelect = SNAP_ALL;
-      }
-      else {
-        t->tsnap.modeSelect = SNAP_NOT_SELECTED;
-      }
+      t->tsnap.modeSelect = SNAP_NOT_SELECTED;
     }
     else {
       /* Increment if snap is not possible */
