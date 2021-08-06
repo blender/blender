@@ -203,9 +203,9 @@ static void *bmw_VertShellWalker_step(BMWalker *walker)
   curedge = shellWalk.curedge;
   do {
     if (!BLI_gset_haskey(walker->visit_set, curedge)) {
-      if (!walker->restrictflag ||
-          (walker->restrictflag &&
-           BMO_edge_flag_test(walker->bm, curedge, walker->restrictflag))) {
+      if (!walker->visibility_flag ||
+          (walker->visibility_flag &&
+           BMO_edge_flag_test(walker->bm, curedge, walker->visibility_flag))) {
         BMwShellWalker *newstate;
 
         v_old = BM_edge_other_vert(curedge, shellWalk.base);
@@ -714,7 +714,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
   iwalk->base = owalk.base;
 
 #if 0
-  if (!BMO_face_flag_test(walker->bm, l->f, walker->restrictflag)) {
+  if (!BMO_face_flag_test(walker->bm, l->f, walker->visibility_flag)) {
     iwalk->curloop = l->radial_next;
   }
   else {

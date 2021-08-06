@@ -736,10 +736,12 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
 
     if (ok_write) {
       printf("ok\n");
+      BKE_report(reports, RPT_INFO, "Preferences saved");
     }
     else {
       printf("fail\n");
       ok = false;
+      BKE_report(reports, RPT_ERROR, "Saving preferences failed");
     }
   }
   else {

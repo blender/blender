@@ -76,26 +76,41 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
     BMVert *v;
     BMFace *f;
 
+    // delete nodes should
+    if (node->flag & PBVH_Delete) {
+      printf("orphaned delete node\n");
+    }
+
     if (!(node->flag & PBVH_Leaf)) {
+      if (node->bm_unique_verts || node->bm_other_verts || node->bm_faces) {
+        printf("dangling leaf pointers in non-leaf node\n");
+      }
+
       continue;
     }
 
     TGSET_ITER (v, node->bm_unique_verts) {
-      if (v->head.htype > 8) {
+      if (!v || v->head.htype != BM_VERT) {
         printf("corruption in pbvh! bm_unique_verts\n");
+      }
+      else if (BLI_table_gset_haskey(node->bm_other_verts, v)) {
+        printf("v in both unique and other verts\n");
       }
     }
     TGSET_ITER_END;
 
     TGSET_ITER (v, node->bm_other_verts) {
-      if (v->head.htype > 8) {
+      if (!v || v->head.htype != BM_VERT) {
         printf("corruption in pbvh! bm_other_verts\n");
+      }
+      else if (BLI_table_gset_haskey(node->bm_unique_verts, v)) {
+        printf("v in both unique and other verts\n");
       }
     }
     TGSET_ITER_END;
 
     TGSET_ITER (f, node->bm_faces) {
-      if (f->head.htype > 8) {
+      if (!f || f->head.htype != BM_FACE) {
         printf("corruption in pbvh! bm_faces\n");
       }
     }
@@ -330,7 +345,7 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   TableGSet *bm_faces = pbvh->nodes[node_index].bm_faces;
   const int bm_faces_size = BLI_table_gset_len(bm_faces);
 
-  pbvh_bmesh_check_nodes(pbvh);
+  // pbvh_bmesh_check_nodes(pbvh);
 
   if (bm_faces_size <= pbvh->leaf_limit) {
     /* Node limit not exceeded */
@@ -376,7 +391,7 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
 
   MEM_freeN(bbc_array);
 
-  pbvh_bmesh_check_nodes(pbvh);
+  // pbvh_bmesh_check_nodes(pbvh);
 
   return true;
 }
@@ -419,7 +434,9 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
     else {
       PBVHNode *node2 = pbvh->nodes + ni2;
 
-      BLI_table_gset_add(node->bm_other_verts, l->v);
+      if (ni != ni2) {
+        BLI_table_gset_add(node->bm_other_verts, l->v);
+      }
 
       node2->flag |= updateflag;
 

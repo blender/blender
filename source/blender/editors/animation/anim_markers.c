@@ -445,7 +445,7 @@ static void draw_marker_name(const uchar *text_color,
   if (marker->camera) {
     Object *camera = marker->camera;
     name = camera->id.name + 2;
-    if (camera->restrictflag & OB_RESTRICT_RENDER) {
+    if (camera->visibility_flag & OB_HIDE_RENDER) {
       final_text_color[3] = 100;
     }
   }
@@ -483,7 +483,8 @@ static int marker_get_icon_id(TimeMarker *marker, int flag)
 {
   if (flag & DRAW_MARKERS_LOCAL) {
     return (marker->flag & ACTIVE) ? ICON_PMARKER_ACT :
-                                     (marker->flag & SELECT) ? ICON_PMARKER_SEL : ICON_PMARKER;
+           (marker->flag & SELECT) ? ICON_PMARKER_SEL :
+                                     ICON_PMARKER;
   }
 #ifdef DURIAN_CAMERA_SWITCH
   if (marker->camera) {

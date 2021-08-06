@@ -121,7 +121,7 @@ static bool parse_int_relative(const char *str,
     *r_err_msg = msg;
     return false;
   }
-  if ((errno == ERANGE) || ((value < INT_MIN || value > INT_MAX))) {
+  if ((errno == ERANGE) || ((value < INT_MIN) || (value > INT_MAX))) {
     static const char *msg = "exceeds range";
     *r_err_msg = msg;
     return false;
@@ -225,7 +225,7 @@ static bool parse_int_strict_range(const char *str,
     *r_err_msg = msg;
     return false;
   }
-  if ((errno == ERANGE) || ((value < min || value > max))) {
+  if ((errno == ERANGE) || ((value < min) || (value > max))) {
     static const char *msg = "exceeds range";
     *r_err_msg = msg;
     return false;

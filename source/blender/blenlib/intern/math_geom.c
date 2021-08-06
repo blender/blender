@@ -1787,7 +1787,7 @@ bool isect_ray_tri_v3(const float ray_origin[3],
   }
 
   *r_lambda = f * dot_v3v3(e2, q);
-  if ((*r_lambda < 0.0f)) {
+  if (*r_lambda < 0.0f) {
     return false;
   }
 
@@ -1864,7 +1864,7 @@ bool isect_ray_tri_epsilon_v3(const float ray_origin[3],
   }
 
   *r_lambda = f * dot_v3v3(e2, q);
-  if ((*r_lambda < 0.0f)) {
+  if (*r_lambda < 0.0f) {
     return false;
   }
 
@@ -2024,7 +2024,7 @@ bool isect_ray_tri_threshold_v3(const float ray_origin[3],
 
   cross_v3_v3v3(q, s, e1);
   *r_lambda = f * dot_v3v3(e2, q);
-  if ((*r_lambda < 0.0f)) {
+  if (*r_lambda < 0.0f) {
     return false;
   }
 
@@ -3325,7 +3325,7 @@ bool isect_ray_aabb_v3_simple(const float orig[3],
   t[5] = (double)(bb_max[2] - orig[2]) * invdirz;
   hit_dist[0] = (float)fmax(fmax(fmin(t[0], t[1]), fmin(t[2], t[3])), fmin(t[4], t[5]));
   hit_dist[1] = (float)fmin(fmin(fmax(t[0], t[1]), fmax(t[2], t[3])), fmax(t[4], t[5]));
-  if ((hit_dist[1] < 0.0f || hit_dist[0] > hit_dist[1])) {
+  if ((hit_dist[1] < 0.0f) || (hit_dist[0] > hit_dist[1])) {
     return false;
   }
 
@@ -4962,7 +4962,7 @@ void planes_from_projmat(const float mat[4][4],
   }
 }
 
-void projmat_dimensions(const float projmat[4][4],
+void projmat_dimensions(const float winmat[4][4],
                         float *r_left,
                         float *r_right,
                         float *r_bottom,
@@ -4970,27 +4970,27 @@ void projmat_dimensions(const float projmat[4][4],
                         float *r_near,
                         float *r_far)
 {
-  bool is_persp = projmat[3][3] == 0.0f;
-
+  const bool is_persp = winmat[3][3] == 0.0f;
   if (is_persp) {
-    *r_left = (projmat[2][0] - 1.0f) / projmat[0][0];
-    *r_right = (projmat[2][0] + 1.0f) / projmat[0][0];
-    *r_bottom = (projmat[2][1] - 1.0f) / projmat[1][1];
-    *r_top = (projmat[2][1] + 1.0f) / projmat[1][1];
-    *r_near = projmat[3][2] / (projmat[2][2] - 1.0f);
-    *r_far = projmat[3][2] / (projmat[2][2] + 1.0f);
+    const float near = winmat[3][2] / (winmat[2][2] - 1.0f);
+    *r_left = near * ((winmat[2][0] - 1.0f) / winmat[0][0]);
+    *r_right = near * ((winmat[2][0] + 1.0f) / winmat[0][0]);
+    *r_bottom = near * ((winmat[2][1] - 1.0f) / winmat[1][1]);
+    *r_top = near * ((winmat[2][1] + 1.0f) / winmat[1][1]);
+    *r_near = near;
+    *r_far = winmat[3][2] / (winmat[2][2] + 1.0f);
   }
   else {
-    *r_left = (-projmat[3][0] - 1.0f) / projmat[0][0];
-    *r_right = (-projmat[3][0] + 1.0f) / projmat[0][0];
-    *r_bottom = (-projmat[3][1] - 1.0f) / projmat[1][1];
-    *r_top = (-projmat[3][1] + 1.0f) / projmat[1][1];
-    *r_near = (projmat[3][2] + 1.0f) / projmat[2][2];
-    *r_far = (projmat[3][2] - 1.0f) / projmat[2][2];
+    *r_left = (-winmat[3][0] - 1.0f) / winmat[0][0];
+    *r_right = (-winmat[3][0] + 1.0f) / winmat[0][0];
+    *r_bottom = (-winmat[3][1] - 1.0f) / winmat[1][1];
+    *r_top = (-winmat[3][1] + 1.0f) / winmat[1][1];
+    *r_near = (winmat[3][2] + 1.0f) / winmat[2][2];
+    *r_far = (winmat[3][2] - 1.0f) / winmat[2][2];
   }
 }
 
-void projmat_dimensions_db(const float projmat_fl[4][4],
+void projmat_dimensions_db(const float winmat_fl[4][4],
                            double *r_left,
                            double *r_right,
                            double *r_bottom,
@@ -4998,26 +4998,26 @@ void projmat_dimensions_db(const float projmat_fl[4][4],
                            double *r_near,
                            double *r_far)
 {
-  double projmat[4][4];
-  copy_m4d_m4(projmat, projmat_fl);
+  double winmat[4][4];
+  copy_m4d_m4(winmat, winmat_fl);
 
-  bool is_persp = projmat[3][3] == 0.0f;
-
+  const bool is_persp = winmat[3][3] == 0.0f;
   if (is_persp) {
-    *r_left = (projmat[2][0] - 1.0) / projmat[0][0];
-    *r_right = (projmat[2][0] + 1.0) / projmat[0][0];
-    *r_bottom = (projmat[2][1] - 1.0) / projmat[1][1];
-    *r_top = (projmat[2][1] + 1.0) / projmat[1][1];
-    *r_near = projmat[3][2] / (projmat[2][2] - 1.0);
-    *r_far = projmat[3][2] / (projmat[2][2] + 1.0);
+    const double near = winmat[3][2] / (winmat[2][2] - 1.0);
+    *r_left = near * ((winmat[2][0] - 1.0) / winmat[0][0]);
+    *r_right = near * ((winmat[2][0] + 1.0) / winmat[0][0]);
+    *r_bottom = near * ((winmat[2][1] - 1.0) / winmat[1][1]);
+    *r_top = near * ((winmat[2][1] + 1.0) / winmat[1][1]);
+    *r_near = near;
+    *r_far = winmat[3][2] / (winmat[2][2] + 1.0);
   }
   else {
-    *r_left = (-projmat[3][0] - 1.0) / projmat[0][0];
-    *r_right = (-projmat[3][0] + 1.0) / projmat[0][0];
-    *r_bottom = (-projmat[3][1] - 1.0) / projmat[1][1];
-    *r_top = (-projmat[3][1] + 1.0) / projmat[1][1];
-    *r_near = (projmat[3][2] + 1.0) / projmat[2][2];
-    *r_far = (projmat[3][2] - 1.0) / projmat[2][2];
+    *r_left = (-winmat[3][0] - 1.0) / winmat[0][0];
+    *r_right = (-winmat[3][0] + 1.0) / winmat[0][0];
+    *r_bottom = (-winmat[3][1] - 1.0) / winmat[1][1];
+    *r_top = (-winmat[3][1] + 1.0) / winmat[1][1];
+    *r_near = (winmat[3][2] + 1.0) / winmat[2][2];
+    *r_far = (winmat[3][2] - 1.0) / winmat[2][2];
   }
 }
 

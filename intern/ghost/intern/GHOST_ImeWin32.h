@@ -88,7 +88,7 @@ class GHOST_EventIME : public GHOST_Event {
  *      An application CAN call ::DefWindowProc().
  * 2.5. WM_INPUTLANGCHANGE (0x0051)
  *      Call the functions listed below:
- *      - GHOST_ImeWin32::SetInputLanguage().
+ *      - GHOST_ImeWin32::UpdateInputLanguage().
  *      An application CAN call ::DefWindowProc().
  */
 
@@ -148,13 +148,20 @@ class GHOST_ImeWin32 {
 
   /**
    * Retrieves the input language from Windows and update it.
-   * Return values
-   *   * true
-   *     The given input language has IMEs.
-   *   * false
-   *     The given input language does not have IMEs.
    */
-  bool SetInputLanguage();
+  void UpdateInputLanguage();
+
+  /* Returns the current input language id. */
+  WORD GetInputLanguage();
+
+  /* Saves the current conversion status. */
+  void UpdateConversionStatus(HWND window_handle);
+
+  /* Is the IME currently in conversion mode? */
+  bool IsEnglishMode();
+
+  /* Checks a key whether IME has to do handling. */
+  bool IsImeKeyEvent(char ascii);
 
   /**
    * Create the IME windows, and allocate required resources for them.
@@ -339,15 +346,6 @@ class GHOST_ImeWin32 {
   bool is_composing_;
 
   /**
-   * This value represents whether or not the current input context has IMEs.
-   * The following table shows the list of IME status:
-   *   Value  Description
-   *   false  The current input language does not have IMEs.
-   *   true   The current input language has IMEs.
-   */
-  bool ime_status_;
-
-  /**
    * The current input Language ID retrieved from Windows, which consists of:
    *   * Primary Language ID (bit 0 to bit 9), which shows a natural language
    *     (English, Korean, Chinese, Japanese, etc.) and;
@@ -370,6 +368,12 @@ class GHOST_ImeWin32 {
    * IME functions.
    */
   LANGID input_language_id_;
+
+  /* Current Conversion Mode Values. Retrieved with ImmGetConversionStatus. */
+  DWORD conversion_modes_;
+
+  /* Current Sentence Mode. Retrieved with ImmGetConversionStatus. */
+  DWORD sentence_mode_;
 
   /**
    * Represents whether or not the current input context has created a system

@@ -837,10 +837,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
 
     if (diameter != cache->lastdiameter || (mask_rotation != cache->last_mask_rotation) ||
         renew_maxmask) {
-      if (cache->tex_mask) {
-        MEM_freeN(cache->tex_mask);
-        cache->tex_mask = NULL;
-      }
+      MEM_SAFE_FREE(cache->tex_mask);
 
       brush_painter_2d_tex_mapping(s,
                                    tile->canvas,
@@ -862,10 +859,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
   }
 
   /* curve mask can only change if the size changes */
-  if (cache->curve_mask) {
-    MEM_freeN(cache->curve_mask);
-    cache->curve_mask = NULL;
-  }
+  MEM_SAFE_FREE(cache->curve_mask);
 
   cache->curve_mask = brush_painter_curve_mask_new(painter, diameter, size, pos);
 

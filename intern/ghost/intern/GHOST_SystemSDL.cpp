@@ -473,7 +473,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       GHOST_TKey gkey = convertSDLKey(sdl_sub_evt.keysym.scancode);
       /* NOTE: the `sdl_sub_evt.keysym.sym` is truncated,
        * for unicode support ghost has to be modified. */
-      /* printf("%d\n", sym); */
+      // printf("%d\n", sym);
       if (sym > 127) {
         switch (sym) {
           case SDLK_KP_DIVIDE:

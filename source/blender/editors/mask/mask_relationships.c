@@ -46,7 +46,7 @@ static int mask_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
   Mask *mask = CTX_data_edit_mask(C);
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
@@ -138,7 +138,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 

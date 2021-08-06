@@ -532,17 +532,17 @@ static void gpu_mul_invert_projmat_m4_unmapped_v3_with_precalc(
     const struct GPUMatrixUnproject_Precalc *precalc, float co[3])
 {
   /* 'precalc->dims' is the result of 'projmat_dimensions(proj, ...)'. */
-  co[0] = precalc->dims.xmin + co[0] * (precalc->dims.xmax - precalc->dims.xmin);
-  co[1] = precalc->dims.ymin + co[1] * (precalc->dims.ymax - precalc->dims.ymin);
+  co[0] = (float)scalenormd(precalc->dims.xmin, precalc->dims.xmax, co[0]);
+  co[1] = (float)scalenormd(precalc->dims.ymin, precalc->dims.ymax, co[1]);
 
   if (precalc->is_persp) {
-    co[2] = precalc->dims.zmax * precalc->dims.zmin /
+    co[2] = (precalc->dims.zmax * precalc->dims.zmin) /
             (precalc->dims.zmax + co[2] * (precalc->dims.zmin - precalc->dims.zmax));
-    co[0] *= co[2];
-    co[1] *= co[2];
+    co[0] *= co[2] / precalc->dims.zmin;
+    co[1] *= co[2] / precalc->dims.zmin;
   }
   else {
-    co[2] = precalc->dims.zmin + co[2] * (precalc->dims.zmax - precalc->dims.zmin);
+    co[2] = (float)scalenormd(precalc->dims.zmin, precalc->dims.zmax, co[2]);
   }
   co[2] *= -1;
 }

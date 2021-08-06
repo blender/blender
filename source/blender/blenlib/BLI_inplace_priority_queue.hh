@@ -33,8 +33,8 @@ namespace blender {
 template<
     /* Type of the elements in the underlying array. */
     typename T,
-    /* Binary function that takes two `const T &` inputs and returns true, when the first input has
-       greater priority than the second. */
+    /* Binary function that takes two `const T &` inputs and returns true,
+     * when the first input has greater priority than the second. */
     typename FirstHasHigherPriority = std::greater<T>>
 class InplacePriorityQueue {
  private:

@@ -128,10 +128,7 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
   if (edit->points) {
     MEM_freeN(edit->points);
   }
-  if (edit->mirror_cache) {
-    MEM_freeN(edit->mirror_cache);
-    edit->mirror_cache = NULL;
-  }
+  MEM_SAFE_FREE(edit->mirror_cache);
 
   edit->points = MEM_dupallocN(undo->points);
   edit->totpoint = undo->totpoint;

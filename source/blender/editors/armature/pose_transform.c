@@ -908,7 +908,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
   /* Recalculate paths if any of the bones have paths... */
-  if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
+  if (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
     ED_pose_recalculate_paths(C, scene, ob, POSE_PATH_CALC_RANGE_FULL);
   }
 
@@ -1219,7 +1219,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
         ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 
         /* now recalculate paths */
-        if ((ob_iter->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
+        if (ob_iter->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
           ED_pose_recalculate_paths(C, scene, ob_iter, POSE_PATH_CALC_RANGE_FULL);
         }
 

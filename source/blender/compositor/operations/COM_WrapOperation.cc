@@ -57,20 +57,20 @@ void WrapOperation::executePixelSampled(float output[4], float x, float y, Pixel
   MemoryBufferExtend extend_x = MemoryBufferExtend::Clip, extend_y = MemoryBufferExtend::Clip;
   switch (m_wrappingType) {
     case CMP_NODE_WRAP_NONE:
-      // Intentionally empty, originalXPos and originalYPos have been set before
+      /* Intentionally empty, originalXPos and originalYPos have been set before. */
       break;
     case CMP_NODE_WRAP_X:
-      // wrap only on the x-axis
+      /* Wrap only on the x-axis. */
       nx = this->getWrappedOriginalXPos(x);
       extend_x = MemoryBufferExtend::Repeat;
       break;
     case CMP_NODE_WRAP_Y:
-      // wrap only on the y-axis
+      /* Wrap only on the y-axis. */
       ny = this->getWrappedOriginalYPos(y);
       extend_y = MemoryBufferExtend::Repeat;
       break;
     case CMP_NODE_WRAP_XY:
-      // wrap on both
+      /* Wrap on both. */
       nx = this->getWrappedOriginalXPos(x);
       ny = this->getWrappedOriginalYPos(y);
       extend_x = MemoryBufferExtend::Repeat;
@@ -92,7 +92,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
   newInput.ymax = input->ymax;
 
   if (ELEM(m_wrappingType, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY)) {
-    // wrap only on the x-axis if tile is wrapping
+    /* Wrap only on the x-axis if tile is wrapping. */
     newInput.xmin = getWrappedOriginalXPos(input->xmin);
     newInput.xmax = roundf(getWrappedOriginalXPos(input->xmax));
     if (newInput.xmin >= newInput.xmax) {
@@ -101,7 +101,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
     }
   }
   if (ELEM(m_wrappingType, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY)) {
-    // wrap only on the y-axis if tile is wrapping
+    /* Wrap only on the y-axis if tile is wrapping. */
     newInput.ymin = getWrappedOriginalYPos(input->ymin);
     newInput.ymax = roundf(getWrappedOriginalYPos(input->ymax));
     if (newInput.ymin >= newInput.ymax) {

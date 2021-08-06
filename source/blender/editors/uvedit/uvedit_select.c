@@ -2140,11 +2140,12 @@ void UV_OT_select(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop;
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  0,
-                  "Extend",
-                  "Extend selection rather than clearing the existing selection");
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         0,
+                         "Extend",
+                         "Extend selection rather than clearing the existing selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "deselect_all",
                          false,
@@ -2152,7 +2153,7 @@ void UV_OT_select(wmOperatorType *ot)
                          "Deselect all when nothing under the cursor");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  RNA_def_float_vector(
+  prop = RNA_def_float_vector(
       ot->srna,
       "location",
       2,
@@ -2163,6 +2164,7 @@ void UV_OT_select(wmOperatorType *ot)
       "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds",
       -100.0f,
       100.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2296,12 +2298,14 @@ void UV_OT_select_loop(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit; /* requires space image */
 
   /* properties */
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  0,
-                  "Extend",
-                  "Extend selection rather than clearing the existing selection");
-  RNA_def_float_vector(
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         0,
+                         "Extend",
+                         "Extend selection rather than clearing the existing selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_float_vector(
       ot->srna,
       "location",
       2,
@@ -2312,6 +2316,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
       "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds",
       -100.0f,
       100.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2494,17 +2499,20 @@ void UV_OT_select_linked_pick(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit; /* requires space image */
 
   /* properties */
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  0,
-                  "Extend",
-                  "Extend selection rather than clearing the existing selection");
-  RNA_def_boolean(ot->srna,
-                  "deselect",
-                  0,
-                  "Deselect",
-                  "Deselect linked UV vertices rather than selecting them");
-  RNA_def_float_vector(
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         0,
+                         "Extend",
+                         "Extend selection rather than clearing the existing selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "deselect",
+                         0,
+                         "Deselect",
+                         "Deselect linked UV vertices rather than selecting them");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_float_vector(
       ot->srna,
       "location",
       2,
@@ -2515,6 +2523,7 @@ void UV_OT_select_linked_pick(wmOperatorType *ot)
       "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds",
       -100.0f,
       100.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -3903,7 +3912,7 @@ BMLoop **ED_uvedit_selected_verts(Scene *scene, BMesh *bm, int len_max, int *r_v
       BM_ITER_ELEM (l_iter, &liter, f, BM_LOOPS_OF_FACE) {
         if (!BM_elem_flag_test(l_iter, BM_ELEM_TAG)) {
           const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
-          if ((luv->flag & MLOOPUV_VERTSEL)) {
+          if (luv->flag & MLOOPUV_VERTSEL) {
             BM_elem_flag_enable(l_iter->v, BM_ELEM_TAG);
 
             verts[verts_len++] = l_iter;

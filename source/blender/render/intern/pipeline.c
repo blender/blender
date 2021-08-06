@@ -2524,7 +2524,7 @@ void RE_RenderAnim(Render *re,
       if (G.is_break == true) {
         /* remove touched file */
         if (is_movie == false && do_write_file) {
-          if ((rd.mode & R_TOUCH)) {
+          if (rd.mode & R_TOUCH) {
             if (!is_multiview_name) {
               if ((BLI_file_size(name) == 0)) {
                 /* BLI_exists(name) is implicit */
@@ -2806,7 +2806,6 @@ RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const c
   CHECK_PASS(INDEXOB);
   CHECK_PASS(INDEXMA);
   CHECK_PASS(MIST);
-  CHECK_PASS(RAYHITS);
   CHECK_PASS(DIFFUSE_DIRECT);
   CHECK_PASS(DIFFUSE_INDIRECT);
   CHECK_PASS(DIFFUSE_COLOR);

@@ -156,7 +156,7 @@ void _bli_array_grow_func(void **arr_p,
  * \{ */
 
 /**
- * not part of the 'API' but handy funcs,
+ * Not part of the 'API' but handy functions,
  * same purpose as #BLI_array_staticdeclare()
  * but use when the max size is known ahead of time */
 #define BLI_array_fixedstack_declare(arr, maxstatic, realsize, allocstr) \

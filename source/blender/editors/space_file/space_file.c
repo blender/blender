@@ -176,10 +176,7 @@ static void file_free(SpaceLink *sl)
   MEM_SAFE_FREE(sfile->asset_params);
   MEM_SAFE_FREE(sfile->runtime);
 
-  if (sfile->layout) {
-    MEM_freeN(sfile->layout);
-    sfile->layout = NULL;
-  }
+  MEM_SAFE_FREE(sfile->layout);
 }
 
 /* spacetype; init callback, area size changes, screen set, etc */
@@ -341,7 +338,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   filelist_setdir(sfile->files, params->dir);
   filelist_setrecursion(sfile->files, params->recursion_level);
   filelist_setsorting(sfile->files, params->sort, params->flag & FILE_SORT_INVERT);
-  filelist_setlibrary(sfile->files, asset_params ? &asset_params->asset_library : NULL);
+  filelist_setlibrary(sfile->files, asset_params ? &asset_params->asset_library_ref : NULL);
   filelist_setfilter_options(
       sfile->files,
       (params->flag & FILE_FILTER) != 0,
@@ -685,7 +682,6 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_bookmark_move);
   WM_operatortype_append(FILE_OT_reset_recent);
   WM_operatortype_append(FILE_OT_hidedot);
-  WM_operatortype_append(FILE_OT_associate_blend);
   WM_operatortype_append(FILE_OT_filenum);
   WM_operatortype_append(FILE_OT_directory_new);
   WM_operatortype_append(FILE_OT_delete);
@@ -816,10 +812,7 @@ static void file_ui_region_listener(const wmRegionListenerParams *listener_param
   }
 }
 
-static bool filepath_drop_poll(bContext *C,
-                               wmDrag *drag,
-                               const wmEvent *UNUSED(event),
-                               const char **UNUSED(r_tooltip))
+static bool filepath_drop_poll(bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
     SpaceFile *sfile = CTX_wm_space_file(C);
@@ -840,7 +833,7 @@ static void file_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "FILE_OT_filepath_drop", filepath_drop_poll, filepath_drop_copy, NULL);
+  WM_dropbox_add(lb, "FILE_OT_filepath_drop", filepath_drop_poll, filepath_drop_copy, NULL, NULL);
 }
 
 static int file_space_subtype_get(ScrArea *area)
@@ -870,7 +863,7 @@ static void file_space_subtype_item_extend(bContext *UNUSED(C),
 
 static const char *file_context_dir[] = {
     "active_file",
-    "asset_library",
+    "asset_library_ref",
     "id",
     NULL,
 };
@@ -904,14 +897,14 @@ static int /*eContextResult*/ file_context(const bContext *C,
     CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
     return CTX_RESULT_OK;
   }
-  if (CTX_data_equals(member, "asset_library")) {
+  if (CTX_data_equals(member, "asset_library_ref")) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
     if (!asset_params) {
       return CTX_RESULT_NO_DATA;
     }
 
     CTX_data_pointer_set(
-        result, &screen->id, &RNA_AssetLibraryReference, &asset_params->asset_library);
+        result, &screen->id, &RNA_AssetLibraryReference, &asset_params->asset_library_ref);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "id")) {

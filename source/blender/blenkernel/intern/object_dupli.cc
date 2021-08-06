@@ -1554,15 +1554,15 @@ static const DupliGenerator gen_dupli_particles = {
 static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 {
   int transflag = ctx->object->transflag;
-  int restrictflag = ctx->object->restrictflag;
+  int visibility_flag = ctx->object->visibility_flag;
 
   if ((transflag & OB_DUPLI) == 0 && ctx->object->runtime.geometry_set_eval == nullptr) {
     return nullptr;
   }
 
   /* Should the dupli's be generated for this object? - Respect restrict flags. */
-  if (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER ? (restrictflag & OB_RESTRICT_RENDER) :
-                                                        (restrictflag & OB_RESTRICT_VIEWPORT)) {
+  if (DEG_get_mode(ctx->depsgraph) == DAG_EVAL_RENDER ? (visibility_flag & OB_HIDE_RENDER) :
+                                                        (visibility_flag & OB_HIDE_VIEWPORT)) {
     return nullptr;
   }
 

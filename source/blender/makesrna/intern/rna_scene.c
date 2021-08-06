@@ -4120,41 +4120,6 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
   }
 
-  /* layer options */
-  prop = RNA_def_property(srna, "use_zmask", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZMASK);
-  RNA_def_property_ui_text(prop, "Zmask", "Only render what's in front of the solid z values");
-  if (scene) {
-    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-  }
-  else {
-    RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  }
-
-  prop = RNA_def_property(srna, "invert_zmask", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_NEG_ZMASK);
-  RNA_def_property_ui_text(
-      prop,
-      "Zmask Negate",
-      "For Zmask, only render what is behind solid z values instead of in front");
-  if (scene) {
-    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-  }
-  else {
-    RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  }
-
-  prop = RNA_def_property(srna, "use_all_z", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ALL_Z);
-  RNA_def_property_ui_text(
-      prop, "All Z", "Fill in Z values for solid faces in invisible layers, for masking");
-  if (scene) {
-    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  }
-  else {
-    RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  }
-
   prop = RNA_def_property(srna, "use_solid", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SOLID);
   RNA_def_property_ui_text(prop, "Solid", "Render Solid faces in this Layer");
@@ -4164,29 +4129,6 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
   else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   }
-
-  prop = RNA_def_property(srna, "use_halo", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_HALO);
-  RNA_def_property_ui_text(prop, "Halo", "Render Halos in this Layer (on top of Solid)");
-  if (scene) {
-    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  }
-  else {
-    RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  }
-
-  prop = RNA_def_property(srna, "use_ztransp", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZTRA);
-  RNA_def_property_ui_text(prop,
-                           "Z-Transparent",
-                           "Render Z-transparent faces in this layer (on top of Solid and Halos)");
-  if (scene) {
-    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-  }
-  else {
-    RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  }
-
   prop = RNA_def_property(srna, "use_sky", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SKY);
   RNA_def_property_ui_text(prop, "Sky", "Render Sky in this Layer");
@@ -4202,17 +4144,6 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
   RNA_def_property_ui_text(prop, "Ambient Occlusion", "Render Ambient Occlusion in this Layer");
   if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-  }
-  else {
-    RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  }
-
-  prop = RNA_def_property(srna, "use_edge_enhance", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_EDGE);
-  RNA_def_property_ui_text(
-      prop, "Edge", "Render edge-enhance in this layer (only works for solid faces)");
-  if (scene) {
-    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
   }
   else {
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);

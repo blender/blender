@@ -41,8 +41,7 @@ typedef struct AssetTag {
 #
 typedef struct AssetFilterSettings {
   /** Tags to match against. These are newly allocated, and compared against the
-   * #AssetMetaData.tags.
-   * TODO not used and doesn't do anything yet. */
+   * #AssetMetaData.tags. */
   ListBase tags;     /* AssetTag */
   uint64_t id_types; /* rna_enum_id_type_filter_items */
 } AssetFilterSettings;
@@ -82,7 +81,7 @@ typedef enum eAssetLibraryType {
   // ASSET_LIBRARY_PROJECT = 2,
 
   /** Display assets from custom asset libraries, as defined in the preferences
-   * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library.idname
+   * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library_ref.idname
    * then.
    * In RNA, we add the index of the custom library to this to identify it by index. So keep
    * this last! */

@@ -7649,10 +7649,7 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
   Brush *brush = BKE_paint_brush(&sd->paint);
   const int radius = BKE_brush_size_get(scene, brush);
 
-  if (ss->texcache) {
-    MEM_freeN(ss->texcache);
-    ss->texcache = NULL;
-  }
+  MEM_SAFE_FREE(ss->texcache);
 
   if (ss->tex_pool) {
     BKE_image_pool_free(ss->tex_pool);
@@ -9034,6 +9031,9 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     // increment stroke_id to flag origdata update
     ss->stroke_id++;
     sculpt_update_cache_invariants(C, sd, ss, op, mouse);
+
+    SculptCursorGeometryInfo sgi;
+    SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
 
     SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));
 

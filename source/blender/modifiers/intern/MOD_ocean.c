@@ -95,8 +95,9 @@ static void initData(ModifierData *md)
   BKE_modifier_path_init(omd->cachepath, sizeof(omd->cachepath), "cache_ocean");
 
   omd->ocean = BKE_ocean_add();
-  BKE_ocean_init_from_modifier(omd->ocean, omd, omd->viewport_resolution);
-  simulate_ocean_modifier(omd);
+  if (BKE_ocean_init_from_modifier(omd->ocean, omd, omd->viewport_resolution)) {
+    simulate_ocean_modifier(omd);
+  }
 #else  /* WITH_OCEANSIM */
   UNUSED_VARS(md);
 #endif /* WITH_OCEANSIM */
@@ -132,8 +133,9 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tomd->oceancache = NULL;
 
   tomd->ocean = BKE_ocean_add();
-  BKE_ocean_init_from_modifier(tomd->ocean, tomd, tomd->viewport_resolution);
-  simulate_ocean_modifier(tomd);
+  if (BKE_ocean_init_from_modifier(tomd->ocean, tomd, tomd->viewport_resolution)) {
+    simulate_ocean_modifier(tomd);
+  }
 #else  /* WITH_OCEANSIM */
   /* unused */
   (void)md;
@@ -323,6 +325,10 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
 static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   OceanModifierData *omd = (OceanModifierData *)md;
+  if (omd->ocean && !BKE_ocean_is_valid(omd->ocean)) {
+    BKE_modifier_set_error(ctx->object, md, "Failed to allocate memory");
+    return mesh;
+  }
   int cfra_scene = (int)DEG_get_ctime(ctx->depsgraph);
   Object *ob = ctx->object;
   bool allocated_ocean = false;

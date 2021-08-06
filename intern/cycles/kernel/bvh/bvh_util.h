@@ -239,4 +239,14 @@ ccl_device_forceinline int intersection_get_shader(KernelGlobals *ccl_restrict k
   return shader & SHADER_MASK;
 }
 
+ccl_device_forceinline int intersection_get_object(KernelGlobals *ccl_restrict kg,
+                                                   const Intersection *ccl_restrict isect)
+{
+  if (isect->object != OBJECT_NONE) {
+    return isect->object;
+  }
+
+  return kernel_tex_fetch(__prim_object, isect->prim);
+}
+
 CCL_NAMESPACE_END

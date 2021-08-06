@@ -65,37 +65,10 @@
 
 #include "BLO_readfile.h"
 
+#include "versioning_common.h"
+
 /* Make preferences read-only, use versioning_userdef.c. */
 #define U (*((const UserDef *)&U))
-
-/**
- * Rename if the ID doesn't exist.
- */
-static ID *rename_id_for_versioning(Main *bmain,
-                                    const short id_type,
-                                    const char *name_src,
-                                    const char *name_dst)
-{
-  /* We can ignore libraries */
-  ListBase *lb = which_libbase(bmain, id_type);
-  ID *id = NULL;
-  LISTBASE_FOREACH (ID *, idtest, lb) {
-    if (idtest->lib == NULL) {
-      if (STREQ(idtest->name + 2, name_src)) {
-        id = idtest;
-      }
-      if (STREQ(idtest->name + 2, name_dst)) {
-        return NULL;
-      }
-    }
-  }
-  if (id != NULL) {
-    BLI_strncpy(id->name + 2, name_dst, sizeof(id->name) - 2);
-    /* We know it's unique, this just sorts. */
-    BLI_libblock_ensure_unique_name(bmain, id->name);
-  }
-  return id;
-}
 
 static bool blo_is_builtin_template(const char *app_template)
 {
@@ -183,7 +156,8 @@ static void blo_update_defaults_screen(bScreen *screen,
     else if (area->spacetype == SPACE_SEQ) {
       SpaceSeq *seq = area->spacedata.first;
       seq->flag |= SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES | SEQ_ZOOM_TO_FIT | SEQ_SHOW_STRIP_OVERLAY |
-                   SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_NAME | SEQ_SHOW_STRIP_DURATION | SEQ_SHOW_GRID;
+                   SEQ_SHOW_STRIP_SOURCE | SEQ_SHOW_STRIP_NAME | SEQ_SHOW_STRIP_DURATION |
+                   SEQ_SHOW_GRID;
 
       seq->render_size = SEQ_RENDER_SIZE_PROXY_100;
       seq->flag |= SEQ_USE_PROXIES;
@@ -216,6 +190,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       }
       /* Disable Curve Normals. */
       v3d->overlay.edit_flag &= ~V3D_OVERLAY_EDIT_CU_NORMALS;
+      v3d->overlay.normals_constant_screen_size = 7.0f;
     }
     else if (area->spacetype == SPACE_CLIP) {
       SpaceClip *sclip = area->spacedata.first;
@@ -318,6 +293,11 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Rename render layers. */
   BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "View Layer");
 
+  /* Disable Z pass by default. */
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    view_layer->passflag &= ~SCE_PASS_Z;
+  }
+
   /* New EEVEE defaults. */
   scene->eevee.bloom_intensity = 0.05f;
   scene->eevee.bloom_clamp = 0.0f;
@@ -400,28 +380,28 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     Brush *brush;
 
     /* Pencil brush. */
-    rename_id_for_versioning(bmain, ID_BR, "Draw Pencil", "Pencil");
+    do_versions_rename_id(bmain, ID_BR, "Draw Pencil", "Pencil");
 
     /* Pen brush. */
-    rename_id_for_versioning(bmain, ID_BR, "Draw Pen", "Pen");
+    do_versions_rename_id(bmain, ID_BR, "Draw Pen", "Pen");
 
     /* Pen Soft brush. */
-    brush = (Brush *)rename_id_for_versioning(bmain, ID_BR, "Draw Soft", "Pencil Soft");
+    brush = (Brush *)do_versions_rename_id(bmain, ID_BR, "Draw Soft", "Pencil Soft");
     if (brush) {
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
     }
 
     /* Ink Pen brush. */
-    rename_id_for_versioning(bmain, ID_BR, "Draw Ink", "Ink Pen");
+    do_versions_rename_id(bmain, ID_BR, "Draw Ink", "Ink Pen");
 
     /* Ink Pen Rough brush. */
-    rename_id_for_versioning(bmain, ID_BR, "Draw Noise", "Ink Pen Rough");
+    do_versions_rename_id(bmain, ID_BR, "Draw Noise", "Ink Pen Rough");
 
     /* Marker Bold brush. */
-    rename_id_for_versioning(bmain, ID_BR, "Draw Marker", "Marker Bold");
+    do_versions_rename_id(bmain, ID_BR, "Draw Marker", "Marker Bold");
 
     /* Marker Chisel brush. */
-    rename_id_for_versioning(bmain, ID_BR, "Draw Block", "Marker Chisel");
+    do_versions_rename_id(bmain, ID_BR, "Draw Block", "Marker Chisel");
 
     /* Remove useless Fill Area.001 brush. */
     brush = BLI_findstring(&bmain->brushes, "Fill Area.001", offsetof(ID, name) + 2);
@@ -432,10 +412,10 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     /* Rename and fix materials and enable default object lights on. */
     if (app_template && STREQ(app_template, "2D_Animation")) {
       Material *ma = NULL;
-      rename_id_for_versioning(bmain, ID_MA, "Black", "Solid Stroke");
-      rename_id_for_versioning(bmain, ID_MA, "Red", "Squares Stroke");
-      rename_id_for_versioning(bmain, ID_MA, "Grey", "Solid Fill");
-      rename_id_for_versioning(bmain, ID_MA, "Black Dots", "Dots Stroke");
+      do_versions_rename_id(bmain, ID_MA, "Black", "Solid Stroke");
+      do_versions_rename_id(bmain, ID_MA, "Red", "Squares Stroke");
+      do_versions_rename_id(bmain, ID_MA, "Grey", "Solid Fill");
+      do_versions_rename_id(bmain, ID_MA, "Black Dots", "Dots Stroke");
 
       /* Dots Stroke. */
       ma = BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2);
@@ -547,8 +527,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   /* Objects */
-  rename_id_for_versioning(bmain, ID_OB, "Lamp", "Light");
-  rename_id_for_versioning(bmain, ID_LA, "Lamp", "Light");
+  do_versions_rename_id(bmain, ID_OB, "Lamp", "Light");
+  do_versions_rename_id(bmain, ID_LA, "Lamp", "Light");
 
   if (app_template && STREQ(app_template, "2D_Animation")) {
     for (Object *object = bmain->objects.first; object; object = object->id.next) {

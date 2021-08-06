@@ -512,7 +512,7 @@ static void drw_context_state_init(void)
   if (DST.draw_ctx.object_mode & OB_MODE_POSE) {
     DST.draw_ctx.object_pose = DST.draw_ctx.obact;
   }
-  else if ((DST.draw_ctx.object_mode & OB_MODE_ALL_WEIGHT_PAINT)) {
+  else if (DST.draw_ctx.object_mode & OB_MODE_ALL_WEIGHT_PAINT) {
     DST.draw_ctx.object_pose = BKE_object_pose_armature_get(DST.draw_ctx.obact);
   }
   else {
@@ -1281,6 +1281,12 @@ static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
     use_drw_engine(&draw_engine_gpencil_type);
   }
   drw_engines_enable_overlays();
+
+#ifdef WITH_DRAW_DEBUG
+  if (G.debug_value == 31) {
+    use_drw_engine(&draw_engine_debug_select_type);
+  }
+#endif
 }
 
 static void drw_engines_disable(void)
@@ -2682,6 +2688,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
   drw_viewport_var_init();
 
   /* Update UBO's */
+  UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
   DRW_globals_update();
 
   /* Init Select Engine */
@@ -2939,6 +2946,9 @@ void DRW_engines_register(void)
   DRW_engine_register(&draw_engine_overlay_type);
   DRW_engine_register(&draw_engine_select_type);
   DRW_engine_register(&draw_engine_basic_type);
+#ifdef WITH_DRAW_DEBUG
+  DRW_engine_register(&draw_engine_debug_select_type);
+#endif
 
   DRW_engine_register(&draw_engine_image_type);
   DRW_engine_register(DRW_engine_viewport_external_type.draw_engine);

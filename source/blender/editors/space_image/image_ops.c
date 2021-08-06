@@ -2508,10 +2508,7 @@ static ImageNewData *image_new_init(bContext *C, wmOperator *op)
 
 static void image_new_free(wmOperator *op)
 {
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-    op->customdata = NULL;
-  }
+  MEM_SAFE_FREE(op->customdata);
 }
 
 static int image_new_exec(bContext *C, wmOperator *op)

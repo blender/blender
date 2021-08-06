@@ -685,10 +685,12 @@ static void blackbody_temperature_to_rgb(float rgb[3], float t)
     rgb[2] = 0.0f;
   }
   else {
-    int i = (t >= 6365.0f) ?
-                5 :
-                (t >= 3315.0f) ? 4 :
-                                 (t >= 1902.0f) ? 3 : (t >= 1449.0f) ? 2 : (t >= 1167.0f) ? 1 : 0;
+    int i = (t >= 6365.0f) ? 5 :
+            (t >= 3315.0f) ? 4 :
+            (t >= 1902.0f) ? 3 :
+            (t >= 1449.0f) ? 2 :
+            (t >= 1167.0f) ? 1 :
+                             0;
 
     const float *r = blackbody_table_r[i];
     const float *g = blackbody_table_g[i];

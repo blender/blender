@@ -686,10 +686,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
     }
   }
   else {
-    if (drawcache->line_height) {
-      MEM_freeN(drawcache->line_height);
-      drawcache->line_height = NULL;
-    }
+    MEM_SAFE_FREE(drawcache->line_height);
 
     if (full_update || drawcache->update_flag) {
       nlines = BLI_listbase_count(&txt->lines);

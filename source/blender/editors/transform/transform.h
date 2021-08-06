@@ -582,7 +582,7 @@ typedef struct TransInfo {
   short around;
   /** space-type where transforming is. */
   char spacetype;
-  /** Avoid looking inside #TransDataContainer.obedit. */
+  /** Type of active object being edited. */
   short obedit_type;
 
   /** translation, to show for widget. */

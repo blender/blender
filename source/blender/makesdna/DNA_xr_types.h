@@ -26,13 +26,15 @@
 extern "C" {
 #endif
 
+/* -------------------------------------------------------------------- */
+
 typedef struct XrSessionSettings {
   /** Shading settings, struct shared with 3D-View so settings are the same. */
   struct View3DShading shading;
 
   char _pad[7];
 
-  char base_pose_type; /* eXRSessionBasePoseType */
+  char base_pose_type; /* #eXRSessionBasePoseType */
   /** Object to take the location and rotation as base position from. */
   Object *base_pose_object;
   float base_pose_location[3];
@@ -68,11 +70,125 @@ typedef enum eXrActionType {
   XR_VIBRATION_OUTPUT = 100,
 } eXrActionType;
 
+/** Determines how XR action operators are executed. */
 typedef enum eXrOpFlag {
   XR_OP_PRESS = 0,
   XR_OP_RELEASE = 1,
   XR_OP_MODAL = 2,
 } eXrOpFlag;
+
+typedef enum eXrActionFlag {
+  /** Action depends on two sub-action paths (i.e. two-handed/bi-manual action). */
+  XR_ACTION_BIMANUAL = (1 << 0),
+} eXrActionFlag;
+
+typedef enum eXrHapticFlag {
+  /** Whether to apply haptics to corresponding user paths for an action and its haptic action. */
+  XR_HAPTIC_MATCHUSERPATHS = (1 << 0),
+  /**
+   * Determines how haptics will be applied
+   * ("repeat" is mutually exclusive with "press"/"release").
+   */
+  XR_HAPTIC_PRESS = (1 << 1),
+  XR_HAPTIC_RELEASE = (1 << 2),
+  XR_HAPTIC_REPEAT = (1 << 3),
+} eXrHapticFlag;
+
+/**
+ * For axis-based inputs (thumb-stick/track-pad/etc).
+ * Determines the region for action execution (mutually exclusive per axis).
+ */
+typedef enum eXrAxisFlag {
+  XR_AXIS0_POS = (1 << 0),
+  XR_AXIS0_NEG = (1 << 1),
+  XR_AXIS1_POS = (1 << 2),
+  XR_AXIS1_NEG = (1 << 3),
+} eXrAxisFlag;
+
+typedef enum eXrPoseFlag {
+  /* Pose represents controller grip/aim. */
+  XR_POSE_GRIP = (1 << 0),
+  XR_POSE_AIM = (1 << 1),
+} eXrPoseFlag;
+
+/* -------------------------------------------------------------------- */
+
+typedef struct XrActionMapBinding {
+  struct XrActionMapBinding *next, *prev;
+
+  /** Unique name. */
+  char name[64]; /* MAX_NAME */
+
+  /** OpenXR interaction profile path. */
+  char profile[256];
+  /** OpenXR component paths. */
+  char component_path0[192];
+  char component_path1[192];
+
+  /** Input threshold/region. */
+  float float_threshold;
+  short axis_flag; /* eXrAxisFlag */
+  char _pad[2];
+
+  /** Pose action properties. */
+  float pose_location[3];
+  float pose_rotation[3];
+} XrActionMapBinding;
+
+/* -------------------------------------------------------------------- */
+
+typedef struct XrActionMapItem {
+  struct XrActionMapItem *next, *prev;
+
+  /** Unique name. */
+  char name[64]; /* MAX_NAME */
+  /** Type. */
+  char type; /** eXrActionType */
+  char _pad[7];
+
+  /** OpenXR user paths. */
+  char user_path0[64];
+  char user_path1[64];
+
+  /** Operator to be called on XR events. */
+  char op[64]; /* OP_MAX_TYPENAME */
+  /** Operator properties, assigned to ptr->data and can be written to a file. */
+  IDProperty *op_properties;
+  /** RNA pointer to access properties. */
+  struct PointerRNA *op_properties_ptr;
+
+  short op_flag;     /* eXrOpFlag */
+  short action_flag; /* eXrActionFlag */
+  short haptic_flag; /* eXrHapticFlag */
+
+  /** Pose action properties. */
+  short pose_flag; /* eXrPoseFlag */
+
+  /** Haptic properties. */
+  char haptic_name[64]; /* MAX_NAME */
+  float haptic_duration;
+  float haptic_frequency;
+  float haptic_amplitude;
+
+  short selbinding;
+  char _pad3[2];
+  ListBase bindings; /* XrActionMapBinding */
+} XrActionMapItem;
+
+/* -------------------------------------------------------------------- */
+
+typedef struct XrActionMap {
+  struct XrActionMap *next, *prev;
+
+  /** Unique name. */
+  char name[64]; /* MAX_NAME */
+
+  ListBase items; /* XrActionMapItem */
+  short selitem;
+  char _pad[6];
+} XrActionMap;
+
+/* -------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 }

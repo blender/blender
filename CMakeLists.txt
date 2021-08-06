@@ -110,6 +110,10 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+# Install CODE|SCRIPT allow the use of generator expressions.
+if(POLICY CMP0087)
+  cmake_policy(SET CMP0087 NEW)
+endif()
 #-----------------------------------------------------------------------------
 # Load some macros.
 include(build_files/cmake/macros.cmake)
@@ -424,6 +428,10 @@ mark_as_advanced(WITH_CYCLES_NETWORK)
 option(WITH_CUDA_DYNLOAD "Dynamically load CUDA libraries at runtime" ON)
 mark_as_advanced(WITH_CUDA_DYNLOAD)
 
+# Draw Manager
+option(WITH_DRAW_DEBUG "Add extra debug capabilities to Draw Manager" OFF)
+mark_as_advanced(WITH_DRAW_DEBUG)
+
 # LLVM
 option(WITH_LLVM                    "Use LLVM" OFF)
 if(APPLE)
@@ -611,12 +619,6 @@ if(WIN32)
   option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
   mark_as_advanced(WITH_WINDOWS_FIND_MODULES)
 
-  option(WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS "Organize the visual studio projects according to source folder structure." ON)
-  mark_as_advanced(WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS)
-
-  option(WINDOWS_USE_VISUAL_STUDIO_SOURCE_FOLDERS "Organize the source files in filters matching the source folders." ON)
-  mark_as_advanced(WINDOWS_USE_VISUAL_STUDIO_SOURCE_FOLDERS)
-
   option(WINDOWS_PYTHON_DEBUG "Include the files needed for debugging python scripts with visual studio 2017+." OFF)
   mark_as_advanced(WINDOWS_PYTHON_DEBUG)
 
@@ -632,6 +634,18 @@ if(WIN32)
   option(WITH_WINDOWS_STRIPPED_PDB "Use a stripped PDB file" On)
   mark_as_advanced(WITH_WINDOWS_STRIPPED_PDB)
 
+endif()
+
+if(WIN32 OR XCODE)
+  option(IDE_GROUP_SOURCES_IN_FOLDERS "Organize the source files in filters matching the source folders." ON)
+  mark_as_advanced(IDE_GROUP_SOURCES_IN_FOLDERS)
+
+  option(IDE_GROUP_PROJECTS_IN_FOLDERS "Organize the projects according to source folder structure." ON)
+  mark_as_advanced(IDE_GROUP_PROJECTS_IN_FOLDERS)
+
+  if (IDE_GROUP_PROJECTS_IN_FOLDERS)
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+  endif()
 endif()
 
 if(UNIX)

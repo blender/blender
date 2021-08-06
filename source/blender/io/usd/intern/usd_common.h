@@ -13,31 +13,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2015 Blender Foundation.
+ * The Original Code is Copyright (C) 2021 Blender Foundation.
  * All rights reserved.
  */
+#pragma once
 
-#include "openvdb_transform.h"
+namespace blender::io::usd {
 
-OpenVDBTransform::OpenVDBTransform()
-{
-}
+void ensure_usd_plugin_path_registered();
 
-OpenVDBTransform::~OpenVDBTransform()
-{
-}
-
-void OpenVDBTransform::create_linear_transform(double voxel_size)
-{
-  this->transform = openvdb::math::Transform::createLinearTransform(voxel_size);
-}
-
-const openvdb::math::Transform::Ptr &OpenVDBTransform::get_transform()
-{
-  return this->transform;
-}
-
-void OpenVDBTransform::set_transform(const openvdb::math::Transform::Ptr &transform)
-{
-  this->transform = transform;
-}
+}  // namespace blender::io::usd

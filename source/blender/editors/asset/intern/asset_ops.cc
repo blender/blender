@@ -110,7 +110,7 @@ void AssetMarkHelper::reportResults(ReportList &reports) const
 {
   /* User feedback on failure. */
   if (!wasSuccessful()) {
-    if ((stats.tot_already_asset > 0)) {
+    if (stats.tot_already_asset > 0) {
       BKE_report(&reports,
                  RPT_ERROR,
                  "Selected data-blocks are already assets (or do not support use as assets)");
@@ -151,7 +151,7 @@ static int asset_mark_exec(bContext *C, wmOperator *op)
 
 static void ASSET_OT_mark(wmOperatorType *ot)
 {
-  ot->name = "Mark Asset";
+  ot->name = "Mark as Asset";
   ot->description =
       "Enable easier reuse of selected data-blocks through the Asset Browser, with the help of "
       "customizable metadata (like previews, descriptions and tags)";
@@ -266,7 +266,7 @@ static void ASSET_OT_clear(wmOperatorType *ot)
 
 static bool asset_list_refresh_poll(bContext *C)
 {
-  const AssetLibraryReference *library = CTX_wm_asset_library(C);
+  const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
   if (!library) {
     return false;
   }
@@ -276,7 +276,7 @@ static bool asset_list_refresh_poll(bContext *C)
 
 static int asset_list_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 {
-  const AssetLibraryReference *library = CTX_wm_asset_library(C);
+  const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
   ED_assetlist_clear(library, C);
   return OPERATOR_FINISHED;
 }

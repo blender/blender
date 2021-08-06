@@ -148,8 +148,11 @@ KeyingSet *BKE_keyingset_add(
   /* allocate new KeyingSet */
   ks = MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-  BLI_strncpy(
-      ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"), sizeof(ks->idname));
+  BLI_strncpy(ks->idname,
+              (idname) ? idname :
+              (name)   ? name :
+                         DATA_("KeyingSet"),
+              sizeof(ks->idname));
   BLI_strncpy(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"), sizeof(ks->name));
 
   ks->flag = flag;
@@ -423,7 +426,7 @@ bool BKE_animsys_rna_path_resolve(PointerRNA *ptr,
 }
 
 /* less than 1.0 evaluates to false, use epsilon to avoid float error */
-#define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > ((1.0f - FLT_EPSILON)))
+#define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > (1.0f - FLT_EPSILON))
 
 bool BKE_animsys_read_from_rna_path(PathResolvedRNA *anim_rna, float *r_value)
 {
@@ -2622,7 +2625,7 @@ static void animsys_create_action_track_strip(const AnimData *adt,
 
   bAction *action = adt->action;
 
-  if ((adt->flag & ADT_NLA_EDIT_ON)) {
+  if (adt->flag & ADT_NLA_EDIT_ON) {
     action = adt->tmpact;
   }
 

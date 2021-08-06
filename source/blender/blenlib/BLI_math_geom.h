@@ -682,14 +682,14 @@ void planes_from_projmat(const float mat[4][4],
                          float near[4],
                          float far[4]);
 
-void projmat_dimensions(const float projmat[4][4],
+void projmat_dimensions(const float winmat[4][4],
                         float *r_left,
                         float *r_right,
                         float *r_bottom,
                         float *r_top,
                         float *r_near,
                         float *r_far);
-void projmat_dimensions_db(const float projmat[4][4],
+void projmat_dimensions_db(const float winmat[4][4],
                            double *r_left,
                            double *r_right,
                            double *r_bottom,

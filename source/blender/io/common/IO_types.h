@@ -13,39 +13,22 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2015 Blender Foundation.
+ * The Original Code is Copyright (C) 2021 Blender Foundation.
  * All rights reserved.
  */
+#pragma once
 
-#ifndef __OPENVDB_UTIL_H__
-#define __OPENVDB_UTIL_H__
-
-#include <openvdb/openvdb.h>
-#include <openvdb/util/CpuTimer.h>
-
-#define CATCH_KEYERROR \
-  catch (const openvdb::KeyError &e) \
-  { \
-    std::cerr << e.what() << '\n'; \
-  }
-
-//#define DEBUG_TIME
-
-/* A utility class which prints the time elapsed during its lifetime, useful for
- * e.g. timing the overall execution time of a function */
-class ScopeTimer {
-  std::string m_message;
-  openvdb::util::CpuTimer m_timer;
-
- public:
-  ScopeTimer(const std::string &message);
-  ~ScopeTimer();
+/* The CacheArchiveHandle struct is only used for anonymous pointers,
+ * to interface between C and C++ code. This is currently used
+ * to hide pointers to alembic ArchiveReader and USDStageReader. */
+struct CacheArchiveHandle {
+  int unused;
 };
 
-#ifdef DEBUG_TIME
-#  define Timer(x) ScopeTimer prof(x);
-#else
-#  define Timer(x)
-#endif
-
-#endif /* __OPENVDB_UTIL_H__ */
+/* The CacheReader struct is only used for anonymous pointers,
+ * to interface between C and C++ code. This is currently used
+ * to hide pointers to AbcObjectReader and USDPrimReader
+ * (or subclasses thereof). */
+struct CacheReader {
+  int unused;
+};

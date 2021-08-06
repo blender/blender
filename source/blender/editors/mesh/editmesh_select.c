@@ -1860,10 +1860,16 @@ void MESH_OT_loop_select(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "Extend the selection");
-  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from the selection");
-  RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Select", "Toggle the selection");
-  RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "Select ring");
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "Extend the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Select", "Toggle the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "Select ring");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 void MESH_OT_edgering_select(wmOperatorType *ot)
@@ -1880,10 +1886,16 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
-  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from the selection");
-  RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Select", "Toggle the selection");
-  RNA_def_boolean(ot->srna, "ring", 1, "Select Ring", "Select ring");
+  /* Properties. */
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Select", "Toggle the selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "ring", 1, "Select Ring", "Select ring");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */

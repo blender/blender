@@ -754,7 +754,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
             /* Fix/update all clnors of this fan with computed average value. */
 
             /* Prints continuously when merge custom normals, so commenting. */
-            /* printf("Invalid clnors in this fan!\n"); */
+            // printf("Invalid clnors in this fan!\n");
 
             while ((clnor = BLI_SMALLSTACK_POP(clnors))) {
               // print_v2("org clnor", clnor);
@@ -820,9 +820,10 @@ BLI_INLINE bool bm_edge_is_smooth_no_angle_test(const BMEdge *e,
                                                 const BMLoop *l_a,
                                                 const BMLoop *l_b)
 {
+  BLI_assert(l_a->radial_next == l_b);
   return (
       /* The face is manifold. */
-      (l_a->radial_next == l_b) &&
+      (l_b->radial_next == l_a) &&
       /* Faces have winding that faces the same way. */
       (l_a->v != l_b->v) &&
       /* The edge is smooth. */
@@ -931,6 +932,7 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
   const bool has_clnors = true;
   LinkNode *loops_of_vert = NULL;
   int loops_of_vert_count = 0;
+  /* When false the caller must have already tagged the edges. */
   const bool do_edge_tag = (split_angle_cos != EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS);
 
   /* The loop with the lowest index. */
@@ -1039,6 +1041,7 @@ static void bm_mesh_loops_calc_normals_for_vert_without_clnors(
 {
   const bool has_clnors = false;
   const short(*clnors_data)[2] = NULL;
+  /* When false the caller must have already tagged the edges. */
   const bool do_edge_tag = (split_angle_cos != EDGE_TAG_FROM_SPLIT_ANGLE_BYPASS);
   const int cd_loop_clnors_offset = -1;
 
@@ -1138,10 +1141,6 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
     edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
   }
 
-  if (split_angle_cos != -1.0f) {
-    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, false);
-  }
-
   /* Clear all loops' tags (means none are to be skipped for now). */
   int index_face, index_loop = 0;
   BM_ITER_MESH_INDEX (f_curr, &fiter, bm, BM_FACES_OF_MESH, index_face) {
@@ -1153,9 +1152,16 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
     do {
       BM_elem_index_set(l_curr, index_loop++); /* set_inline */
       BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
+      /* Needed for when #bm_mesh_edges_sharp_tag doesn't run.
+       * Mark smooth if there is no smoothing angle. */
+      BM_elem_flag_enable(l_curr->e, BM_ELEM_TAG);
     } while ((l_curr = l_curr->next) != l_first);
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
+
+  if (split_angle_cos != -1.0f) {
+    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, false);
+  }
 
   /* We now know edges that can be smoothed (they are tagged),
    * and edges that will be hard (they aren't).
@@ -1816,8 +1822,8 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
   /* When we affect a given vertex, we may affect following smooth fans:
-   *     - all smooth fans of said vertex;
-   *     - all smooth fans of all immediate loop-neighbors vertices;
+   * - all smooth fans of said vertex;
+   * - all smooth fans of all immediate loop-neighbors vertices;
    * This can be simplified as 'all loops of selected vertices and their immediate neighbors'
    * need to be tagged for update.
    */

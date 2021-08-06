@@ -845,8 +845,20 @@ static void id_override_library_create_fn(bContext *C,
         if (!ID_IS_LINKED(te->store_elem->id)) {
           break;
         }
+        /* If we'd need to override that arent ID, but it is not overridable, abort. */
+        if (!ID_IS_OVERRIDABLE_LIBRARY(te->store_elem->id)) {
+          BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+          BKE_reportf(reports,
+                      RPT_WARNING,
+                      "Could not create library override from data-block '%s', one of its parents "
+                      "is not overridable ('%s')",
+                      id_root->name,
+                      te->store_elem->id->name);
+          return;
+        }
         te->store_elem->id->tag |= LIB_TAG_DOIT;
       }
+
       success = BKE_lib_override_library_create(
           bmain, CTX_data_scene(C), CTX_data_view_layer(C), id_root, id_reference, NULL);
     }
@@ -1747,8 +1759,6 @@ typedef enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_INVALID = 0,
 
   OUTLINER_IDOP_UNLINK,
-  OUTLINER_IDOP_MARK_ASSET,
-  OUTLINER_IDOP_CLEAR_ASSET,
   OUTLINER_IDOP_LOCAL,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
@@ -1775,8 +1785,6 @@ typedef enum eOutlinerIdOpTypes {
 /* TODO: implement support for changing the ID-block used. */
 static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
-    {OUTLINER_IDOP_MARK_ASSET, "MARK_ASSET", 0, "Mark Asset", ""},
-    {OUTLINER_IDOP_CLEAR_ASSET, "CLEAR_ASSET", 0, "Clear Asset", ""},
     {OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
     {OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
     {OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", ""},
@@ -1859,9 +1867,6 @@ static bool outliner_id_operation_item_poll(bContext *C,
   }
 
   switch (enum_value) {
-    case OUTLINER_IDOP_MARK_ASSET:
-    case OUTLINER_IDOP_CLEAR_ASSET:
-      return U.experimental.use_asset_browser;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE:
       if (ID_IS_OVERRIDABLE_LIBRARY(tselem->id)) {
         return true;
@@ -2014,14 +2019,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
           BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
           break;
       }
-      break;
-    }
-    case OUTLINER_IDOP_MARK_ASSET: {
-      WM_operator_name_call(C, "ASSET_OT_mark", WM_OP_EXEC_DEFAULT, NULL);
-      break;
-    }
-    case OUTLINER_IDOP_CLEAR_ASSET: {
-      WM_operator_name_call(C, "ASSET_OT_clear", WM_OP_EXEC_DEFAULT, NULL);
       break;
     }
     case OUTLINER_IDOP_LOCAL: {

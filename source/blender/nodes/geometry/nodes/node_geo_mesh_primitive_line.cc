@@ -118,11 +118,9 @@ static Mesh *create_line_mesh(const float3 start, const float3 delta, const int 
   short normal[3];
   normal_float_to_short_v3(normal, delta.normalized());
 
-  float3 co = start;
   for (const int i : verts.index_range()) {
-    copy_v3_v3(verts[i].co, co);
+    copy_v3_v3(verts[i].co, start + delta * i);
     copy_v3_v3_short(verts[i].no, normal);
-    co += delta;
   }
 
   fill_edge_data(edges);

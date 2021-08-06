@@ -5965,8 +5965,8 @@ uiLayout *uiItemsAlertBox(uiBlock *block, const int size, const eAlertIcon icon)
   const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
   const int dialog_width = icon_size + (text_points_max * size * U.dpi_fac);
   /* By default, the space between icon and text/buttons will be equal to the 'columnspace',
-     this extra padding will add some space by increasing the left column width,
-     making the icon placement more symmetrical, between the block edge and the text. */
+   * this extra padding will add some space by increasing the left column width,
+   * making the icon placement more symmetrical, between the block edge and the text. */
   const float icon_padding = 5.0f * U.dpi_fac;
   /* Calculate the factor of the fixed icon column depending on the block width. */
   const float split_factor = ((float)icon_size + icon_padding) /

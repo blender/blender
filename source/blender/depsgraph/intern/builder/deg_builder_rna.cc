@@ -400,8 +400,8 @@ RNANodeQueryIDData *RNANodeQuery::ensure_id_data(const ID *id)
 bool rna_prop_affects_parameters_node(const PointerRNA *ptr, const PropertyRNA *prop)
 {
   return prop != nullptr && RNA_property_is_idprop(prop) &&
-         /* ID properties in the geometry nodes modifier don't affect that parameters node. Instead
-            they affect the modifier and therefore the geometry node directly. */
+         /* ID properties in the geometry nodes modifier don't affect that parameters node.
+          * Instead they affect the modifier and therefore the geometry node directly. */
          !RNA_struct_is_a(ptr->type, &RNA_NodesModifier);
 }
 

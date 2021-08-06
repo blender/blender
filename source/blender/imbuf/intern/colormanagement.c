@@ -759,11 +759,7 @@ static bool colormanage_use_look(const char *look, const char *view_name)
 
 void colormanage_cache_free(ImBuf *ibuf)
 {
-  if (ibuf->display_buffer_flags) {
-    MEM_freeN(ibuf->display_buffer_flags);
-
-    ibuf->display_buffer_flags = NULL;
-  }
+  MEM_SAFE_FREE(ibuf->display_buffer_flags);
 
   if (ibuf->colormanage_cache) {
     ColormanageCacheData *cache_data = colormanage_cachedata_get(ibuf);

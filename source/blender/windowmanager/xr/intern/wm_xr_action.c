@@ -23,6 +23,7 @@
  * All functions are designed to be usable by RNA / the Python API.
  */
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "GHOST_C-api.h"
@@ -56,6 +57,9 @@ static void action_set_destroy(void *val)
 
   MEM_SAFE_FREE(action_set->name);
 
+  BLI_freelistN(&action_set->active_modal_actions);
+  BLI_freelistN(&action_set->active_haptic_actions);
+
   MEM_freeN(action_set);
 }
 
@@ -68,10 +72,15 @@ static wmXrAction *action_create(const char *action_name,
                                  eXrActionType type,
                                  unsigned int count_subaction_paths,
                                  const char **subaction_paths,
-                                 const float *float_threshold,
                                  wmOperatorType *ot,
                                  IDProperty *op_properties,
-                                 eXrOpFlag op_flag)
+                                 const char **haptic_name,
+                                 const int64_t *haptic_duration,
+                                 const float *haptic_frequency,
+                                 const float *haptic_amplitude,
+                                 eXrOpFlag op_flag,
+                                 eXrActionFlag action_flag,
+                                 eXrHapticFlag haptic_flag)
 {
   wmXrAction *action = MEM_callocN(sizeof(*action), __func__);
   action->name = MEM_mallocN(strlen(action_name) + 1, "XrAction_Name");
@@ -109,15 +118,32 @@ static wmXrAction *action_create(const char *action_name,
   action->states = MEM_calloc_arrayN(count, size, "XrAction_States");
   action->states_prev = MEM_calloc_arrayN(count, size, "XrAction_StatesPrev");
 
-  if (float_threshold) {
-    BLI_assert(type == XR_FLOAT_INPUT || type == XR_VECTOR2F_INPUT);
-    action->float_threshold = *float_threshold;
-    CLAMP(action->float_threshold, 0.0f, 1.0f);
+  const bool is_float_action = (type == XR_FLOAT_INPUT || type == XR_VECTOR2F_INPUT);
+  const bool is_button_action = (is_float_action || type == XR_BOOLEAN_INPUT);
+  if (is_float_action) {
+    action->float_thresholds = MEM_calloc_arrayN(
+        count, sizeof(*action->float_thresholds), "XrAction_FloatThresholds");
+  }
+  if (is_button_action) {
+    action->axis_flags = MEM_calloc_arrayN(
+        count, sizeof(*action->axis_flags), "XrAction_AxisFlags");
   }
 
   action->ot = ot;
   action->op_properties = op_properties;
+
+  if (haptic_name) {
+    BLI_assert(is_button_action);
+    action->haptic_name = MEM_mallocN(strlen(*haptic_name) + 1, "XrAction_HapticName");
+    strcpy(action->haptic_name, *haptic_name);
+    action->haptic_duration = *haptic_duration;
+    action->haptic_frequency = *haptic_frequency;
+    action->haptic_amplitude = *haptic_amplitude;
+  }
+
   action->op_flag = op_flag;
+  action->action_flag = action_flag;
+  action->haptic_flag = haptic_flag;
 
   return action;
 }
@@ -139,6 +165,11 @@ static void action_destroy(void *val)
 
   MEM_SAFE_FREE(action->states);
   MEM_SAFE_FREE(action->states_prev);
+
+  MEM_SAFE_FREE(action->float_thresholds);
+  MEM_SAFE_FREE(action->axis_flags);
+
+  MEM_SAFE_FREE(action->haptic_name);
 
   MEM_freeN(action);
 }
@@ -179,13 +210,14 @@ void WM_xr_action_set_destroy(wmXrData *xr, const char *action_set_name)
   wmXrSessionState *session_state = &xr->runtime->session_state;
 
   if (action_set == session_state->active_action_set) {
-    if (action_set->controller_pose_action) {
+    if (action_set->controller_grip_action || action_set->controller_aim_action) {
       wm_xr_session_controller_data_clear(session_state);
-      action_set->controller_pose_action = NULL;
+      action_set->controller_grip_action = action_set->controller_aim_action = NULL;
     }
-    if (action_set->active_modal_action) {
-      action_set->active_modal_action = NULL;
-    }
+
+    BLI_freelistN(&action_set->active_modal_actions);
+    BLI_freelistN(&action_set->active_haptic_actions);
+
     session_state->active_action_set = NULL;
   }
 
@@ -198,10 +230,15 @@ bool WM_xr_action_create(wmXrData *xr,
                          eXrActionType type,
                          unsigned int count_subaction_paths,
                          const char **subaction_paths,
-                         const float *float_threshold,
                          wmOperatorType *ot,
                          IDProperty *op_properties,
-                         eXrOpFlag op_flag)
+                         const char **haptic_name,
+                         const int64_t *haptic_duration,
+                         const float *haptic_frequency,
+                         const float *haptic_amplitude,
+                         eXrOpFlag op_flag,
+                         eXrActionFlag action_flag,
+                         eXrHapticFlag haptic_flag)
 {
   if (action_find(xr, action_set_name, action_name)) {
     return false;
@@ -211,16 +248,23 @@ bool WM_xr_action_create(wmXrData *xr,
                                      type,
                                      count_subaction_paths,
                                      subaction_paths,
-                                     float_threshold,
                                      ot,
                                      op_properties,
-                                     op_flag);
+                                     haptic_name,
+                                     haptic_duration,
+                                     haptic_frequency,
+                                     haptic_amplitude,
+                                     op_flag,
+                                     action_flag,
+                                     haptic_flag);
 
   GHOST_XrActionInfo info = {
       .name = action_name,
       .count_subaction_paths = count_subaction_paths,
       .subaction_paths = subaction_paths,
       .states = action->states,
+      .float_thresholds = action->float_thresholds,
+      .axis_flags = (int16_t *)action->axis_flags,
       .customdata_free_fn = action_destroy,
       .customdata = action,
   };
@@ -257,110 +301,88 @@ void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char 
     return;
   }
 
-  if (action_set->controller_pose_action &&
-      STREQ(action_set->controller_pose_action->name, action_name)) {
-    if (action_set == xr->runtime->session_state.active_action_set) {
-      wm_xr_session_controller_data_clear(&xr->runtime->session_state);
-    }
-    action_set->controller_pose_action = NULL;
-  }
-  if (action_set->active_modal_action &&
-      STREQ(action_set->active_modal_action->name, action_name)) {
-    action_set->active_modal_action = NULL;
-  }
-
   wmXrAction *action = action_find(xr, action_set_name, action_name);
   if (!action) {
     return;
   }
-}
 
-bool WM_xr_action_space_create(wmXrData *xr,
-                               const char *action_set_name,
-                               const char *action_name,
-                               unsigned int count_subaction_paths,
-                               const char **subaction_paths,
-                               const wmXrPose *poses)
-{
-  GHOST_XrActionSpaceInfo info = {
-      .action_name = action_name,
-      .count_subaction_paths = count_subaction_paths,
-      .subaction_paths = subaction_paths,
-  };
-
-  GHOST_XrPose *ghost_poses = MEM_malloc_arrayN(
-      count_subaction_paths, sizeof(*ghost_poses), __func__);
-  for (unsigned int i = 0; i < count_subaction_paths; ++i) {
-    const wmXrPose *pose = &poses[i];
-    GHOST_XrPose *ghost_pose = &ghost_poses[i];
-    copy_v3_v3(ghost_pose->position, pose->position);
-    copy_qt_qt(ghost_pose->orientation_quat, pose->orientation_quat);
+  if ((action_set->controller_grip_action &&
+       STREQ(action_set->controller_grip_action->name, action_name)) ||
+      (action_set->controller_aim_action &&
+       STREQ(action_set->controller_aim_action->name, action_name))) {
+    if (action_set == xr->runtime->session_state.active_action_set) {
+      wm_xr_session_controller_data_clear(&xr->runtime->session_state);
+    }
+    action_set->controller_grip_action = action_set->controller_aim_action = NULL;
   }
-  info.poses = ghost_poses;
 
-  bool ret = GHOST_XrCreateActionSpaces(xr->runtime->context, action_set_name, 1, &info) ? true :
-                                                                                           false;
-  MEM_freeN(ghost_poses);
-  return ret;
-}
+  LISTBASE_FOREACH (LinkData *, ld, &action_set->active_modal_actions) {
+    wmXrAction *active_modal_action = ld->data;
+    if (STREQ(active_modal_action->name, action_name)) {
+      BLI_freelinkN(&action_set->active_modal_actions, ld);
+      break;
+    }
+  }
 
-void WM_xr_action_space_destroy(wmXrData *xr,
-                                const char *action_set_name,
-                                const char *action_name,
-                                unsigned int count_subaction_paths,
-                                const char **subaction_paths)
-{
-  GHOST_XrActionSpaceInfo info = {
-      .action_name = action_name,
-      .count_subaction_paths = count_subaction_paths,
-      .subaction_paths = subaction_paths,
-  };
+  LISTBASE_FOREACH_MUTABLE (wmXrHapticAction *, ha, &action_set->active_haptic_actions) {
+    if (STREQ(ha->action->name, action_name)) {
+      BLI_freelinkN(&action_set->active_haptic_actions, ha);
+    }
+  }
 
-  GHOST_XrDestroyActionSpaces(xr->runtime->context, action_set_name, 1, &info);
+  GHOST_XrDestroyActions(xr->runtime->context, action_set_name, 1, &action_name);
 }
 
 bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *action_set_name,
-                                 const char *profile_path,
                                  const char *action_name,
-                                 unsigned int count_interaction_paths,
-                                 const char **interaction_paths)
+                                 const char *profile_path,
+                                 unsigned int count_subaction_paths,
+                                 const char **subaction_paths,
+                                 const char **component_paths,
+                                 const float *float_thresholds,
+                                 const eXrAxisFlag *axis_flags,
+                                 const struct wmXrPose *poses)
 {
-  GHOST_XrActionBindingInfo binding_info = {
-      .action_name = action_name,
-      .count_interaction_paths = count_interaction_paths,
-      .interaction_paths = interaction_paths,
-  };
+  GHOST_XrActionBindingInfo *binding_infos = MEM_calloc_arrayN(
+      count_subaction_paths, sizeof(*binding_infos), __func__);
+
+  for (unsigned int i = 0; i < count_subaction_paths; ++i) {
+    GHOST_XrActionBindingInfo *binding_info = &binding_infos[i];
+    binding_info->component_path = component_paths[i];
+    if (float_thresholds) {
+      binding_info->float_threshold = float_thresholds[i];
+    }
+    if (axis_flags) {
+      binding_info->axis_flag = axis_flags[i];
+    }
+    if (poses) {
+      copy_v3_v3(binding_info->pose.position, poses[i].position);
+      copy_qt_qt(binding_info->pose.orientation_quat, poses[i].orientation_quat);
+    }
+  }
 
   GHOST_XrActionProfileInfo profile_info = {
+      .action_name = action_name,
       .profile_path = profile_path,
-      .count_bindings = 1,
-      .bindings = &binding_info,
+      .count_subaction_paths = count_subaction_paths,
+      .subaction_paths = subaction_paths,
+      .bindings = binding_infos,
   };
 
-  return GHOST_XrCreateActionBindings(xr->runtime->context, action_set_name, 1, &profile_info);
+  bool ret = GHOST_XrCreateActionBindings(xr->runtime->context, action_set_name, 1, &profile_info);
+
+  MEM_freeN(binding_infos);
+  return ret;
 }
 
 void WM_xr_action_binding_destroy(wmXrData *xr,
                                   const char *action_set_name,
-                                  const char *profile_path,
                                   const char *action_name,
-                                  unsigned int count_interaction_paths,
-                                  const char **interaction_paths)
+                                  const char *profile_path)
 {
-  GHOST_XrActionBindingInfo binding_info = {
-      .action_name = action_name,
-      .count_interaction_paths = count_interaction_paths,
-      .interaction_paths = interaction_paths,
-  };
-
-  GHOST_XrActionProfileInfo profile_info = {
-      .profile_path = profile_path,
-      .count_bindings = 1,
-      .bindings = &binding_info,
-  };
-
-  GHOST_XrDestroyActionBindings(xr->runtime->context, action_set_name, 1, &profile_info);
+  GHOST_XrDestroyActionBindings(
+      xr->runtime->context, action_set_name, 1, &action_name, &profile_path);
 }
 
 bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name)
@@ -371,46 +393,64 @@ bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name)
   }
 
   {
-    /* Unset active modal action (if any). */
+    /* Clear any active modal/haptic actions. */
     wmXrActionSet *active_action_set = xr->runtime->session_state.active_action_set;
     if (active_action_set) {
-      wmXrAction *active_modal_action = active_action_set->active_modal_action;
-      if (active_modal_action) {
-        if (active_modal_action->active_modal_path) {
-          active_modal_action->active_modal_path = NULL;
-        }
-        active_action_set->active_modal_action = NULL;
-      }
+      BLI_freelistN(&active_action_set->active_modal_actions);
+      BLI_freelistN(&active_action_set->active_haptic_actions);
     }
   }
 
   xr->runtime->session_state.active_action_set = action_set;
 
-  if (action_set->controller_pose_action) {
-    wm_xr_session_controller_data_populate(action_set->controller_pose_action, xr);
+  if (action_set->controller_grip_action && action_set->controller_aim_action) {
+    wm_xr_session_controller_data_populate(
+        action_set->controller_grip_action, action_set->controller_aim_action, xr);
+  }
+  else {
+    wm_xr_session_controller_data_clear(&xr->runtime->session_state);
   }
 
   return true;
 }
 
-bool WM_xr_controller_pose_action_set(wmXrData *xr,
-                                      const char *action_set_name,
-                                      const char *action_name)
+bool WM_xr_controller_pose_actions_set(wmXrData *xr,
+                                       const char *action_set_name,
+                                       const char *grip_action_name,
+                                       const char *aim_action_name)
 {
   wmXrActionSet *action_set = action_set_find(xr, action_set_name);
   if (!action_set) {
     return false;
   }
 
-  wmXrAction *action = action_find(xr, action_set_name, action_name);
-  if (!action) {
+  wmXrAction *grip_action = action_find(xr, action_set_name, grip_action_name);
+  if (!grip_action) {
     return false;
   }
 
-  action_set->controller_pose_action = action;
+  wmXrAction *aim_action = action_find(xr, action_set_name, aim_action_name);
+  if (!aim_action) {
+    return false;
+  }
+
+  /* Ensure consistent subaction paths. */
+  const unsigned int count = grip_action->count_subaction_paths;
+  if (count != aim_action->count_subaction_paths) {
+    return false;
+  }
+
+  for (unsigned int i = 0; i < count; ++i) {
+    if (!STREQ(grip_action->subaction_paths[i], aim_action->subaction_paths[i])) {
+      return false;
+    }
+  }
+
+  action_set->controller_grip_action = grip_action;
+  action_set->controller_aim_action = aim_action;
 
   if (action_set == xr->runtime->session_state.active_action_set) {
-    wm_xr_session_controller_data_populate(action, xr);
+    wm_xr_session_controller_data_populate(grip_action, aim_action, xr);
   }
 
   return true;
@@ -427,12 +467,12 @@ bool WM_xr_action_state_get(const wmXrData *xr,
     return false;
   }
 
-  BLI_assert(action->type == (eXrActionType)r_state->type);
+  r_state->type = (int)action->type;
 
   /* Find the action state corresponding to the subaction path. */
   for (unsigned int i = 0; i < action->count_subaction_paths; ++i) {
     if (STREQ(subaction_path, action->subaction_paths[i])) {
-      switch ((eXrActionType)r_state->type) {
+      switch (action->type) {
         case XR_BOOLEAN_INPUT:
           r_state->state_boolean = ((bool *)action->states)[i];
           break;
@@ -462,19 +502,28 @@ bool WM_xr_action_state_get(const wmXrData *xr,
 bool WM_xr_haptic_action_apply(wmXrData *xr,
                                const char *action_set_name,
                                const char *action_name,
+                               const char **subaction_path,
                                const int64_t *duration,
                                const float *frequency,
                                const float *amplitude)
 {
-  return GHOST_XrApplyHapticAction(
-             xr->runtime->context, action_set_name, action_name, duration, frequency, amplitude) ?
+  return GHOST_XrApplyHapticAction(xr->runtime->context,
+                                   action_set_name,
+                                   action_name,
+                                   subaction_path,
+                                   duration,
+                                   frequency,
+                                   amplitude) ?
              true :
              false;
 }
 
-void WM_xr_haptic_action_stop(wmXrData *xr, const char *action_set_name, const char *action_name)
+void WM_xr_haptic_action_stop(wmXrData *xr,
+                              const char *action_set_name,
+                              const char *action_name,
+                              const char **subaction_path)
 {
-  GHOST_XrStopHapticAction(xr->runtime->context, action_set_name, action_name);
+  GHOST_XrStopHapticAction(xr->runtime->context, action_set_name, action_name, subaction_path);
 }
 
 /** \} */ /* XR-Action API */

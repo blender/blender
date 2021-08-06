@@ -42,8 +42,6 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 
-#include "ED_asset.h"
-
 #include "GPU_shader.h"
 #include "GPU_state.h"
 #include "GPU_viewport.h"
@@ -98,14 +96,16 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 
 wmDropBox *WM_dropbox_add(ListBase *lb,
                           const char *idname,
-                          bool (*poll)(bContext *, wmDrag *, const wmEvent *, const char **),
+                          bool (*poll)(bContext *, wmDrag *, const wmEvent *),
                           void (*copy)(wmDrag *, wmDropBox *),
-                          void (*cancel)(struct Main *, wmDrag *, wmDropBox *))
+                          void (*cancel)(struct Main *, wmDrag *, wmDropBox *),
+                          WMDropboxTooltipFunc tooltip)
 {
   wmDropBox *drop = MEM_callocN(sizeof(wmDropBox), "wmDropBox");
   drop->poll = poll;
   drop->copy = copy;
   drop->cancel = cancel;
+  drop->tooltip = tooltip;
   drop->ot = WM_operatortype_find(idname, 0);
   drop->opcontext = WM_OP_INVOKE_DEFAULT;
 
@@ -198,7 +198,6 @@ void WM_drag_data_free(int dragtype, void *poin)
   /* Not too nice, could become a callback. */
   if (dragtype == WM_DRAG_ASSET) {
     wmDragAsset *asset_drag = poin;
-    MEM_SAFE_FREE(asset_drag->asset_handle);
     MEM_freeN((void *)asset_drag->path);
   }
   MEM_freeN(poin);
@@ -221,22 +220,33 @@ void WM_drag_free_list(struct ListBase *lb)
   }
 }
 
-static const char *dropbox_active(bContext *C,
-                                  ListBase *handlers,
-                                  wmDrag *drag,
-                                  const wmEvent *event)
+static char *dropbox_tooltip(bContext *C, wmDrag *drag, const wmEvent *event, wmDropBox *drop)
+{
+  char *tooltip = NULL;
+  if (drop->tooltip) {
+    tooltip = drop->tooltip(C, drag, event, drop);
+  }
+  if (!tooltip) {
+    tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr));
+  }
+  /* XXX Doing translation here might not be ideal, but later we have no more
+   *     access to ot (and hence op context)... */
+  return tooltip;
+}
+
+static wmDropBox *dropbox_active(bContext *C,
+                                 ListBase *handlers,
+                                 wmDrag *drag,
+                                 const wmEvent *event)
 {
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
       wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
       if (handler->dropboxes) {
         LISTBASE_FOREACH (wmDropBox *, drop, handler->dropboxes) {
-          const char *tooltip = NULL;
-          if (drop->poll(C, drag, event, &tooltip) &&
+          if (drop->poll(C, drag, event) &&
               WM_operator_poll_context(C, drop->ot, drop->opcontext)) {
-            /* XXX Doing translation here might not be ideal, but later we have no more
-             *     access to ot (and hence op context)... */
-            return (tooltip) ? tooltip : WM_operatortype_name(drop->ot, drop->ptr);
+            return drop;
           }
         }
       }
@@ -245,29 +255,22 @@ static const char *dropbox_active(bContext *C,
   return NULL;
 }
 
-/* return active operator name when mouse is in box */
-static const char *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
+/* return active operator tooltip/name when mouse is in box */
+static char *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  const char *name;
-
-  name = dropbox_active(C, &win->handlers, drag, event);
-  if (name) {
-    return name;
+  wmDropBox *drop = dropbox_active(C, &win->handlers, drag, event);
+  if (!drop) {
+    ScrArea *area = CTX_wm_area(C);
+    drop = dropbox_active(C, &area->handlers, drag, event);
   }
-
-  name = dropbox_active(C, &area->handlers, drag, event);
-  if (name) {
-    return name;
+  if (!drop) {
+    ARegion *region = CTX_wm_region(C);
+    drop = dropbox_active(C, &region->handlers, drag, event);
   }
-
-  name = dropbox_active(C, &region->handlers, drag, event);
-  if (name) {
-    return name;
+  if (drop) {
+    return dropbox_tooltip(C, drag, event, drop);
   }
-
   return NULL;
 }
 
@@ -282,17 +285,18 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *e
     return;
   }
 
-  drag->opname[0] = 0;
+  drag->tooltip[0] = 0;
 
   /* check buttons (XXX todo rna and value) */
   if (UI_but_active_drop_name(C)) {
-    BLI_strncpy(drag->opname, IFACE_("Paste name"), sizeof(drag->opname));
+    BLI_strncpy(drag->tooltip, IFACE_("Paste name"), sizeof(drag->tooltip));
   }
   else {
-    const char *opname = wm_dropbox_active(C, drag, event);
+    char *tooltip = wm_dropbox_active(C, drag, event);
 
-    if (opname) {
-      BLI_strncpy(drag->opname, opname, sizeof(drag->opname));
+    if (tooltip) {
+      BLI_strncpy(drag->tooltip, tooltip, sizeof(drag->tooltip));
+      MEM_freeN(tooltip);
       // WM_cursor_modal_set(win, WM_CURSOR_COPY);
     }
     // else
@@ -376,14 +380,13 @@ wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)
   }
 
   wmDragAsset *asset_drag = drag->poin;
-  ID_Type idtype = ED_asset_handle_get_id_type(asset_drag->asset_handle);
-  return (ELEM(idcode, 0, (int)idtype)) ? asset_drag : NULL;
+  return (ELEM(idcode, 0, asset_drag->id_type)) ? asset_drag : NULL;
 }
 
 static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
 {
-  const char *name = ED_asset_handle_get_name(asset_drag->asset_handle);
-  ID_Type idtype = ED_asset_handle_get_id_type(asset_drag->asset_handle);
+  const char *name = asset_drag->name;
+  ID_Type idtype = asset_drag->id_type;
 
   switch ((eFileAssetImportType)asset_drag->import_type) {
     case FILE_ASSET_IMPORT_LINK:
@@ -449,8 +452,7 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
     return;
   }
 
-  ID_Type idtype = ED_asset_handle_get_id_type(asset_drag->asset_handle);
-  ID *id = BKE_libblock_find_name(bmain, idtype, name);
+  ID *id = BKE_libblock_find_name(bmain, asset_drag->id_type, name);
   if (id) {
     BKE_id_delete(bmain, id);
   }
@@ -467,7 +469,7 @@ static void wm_drop_operator_draw(const char *name, int x, int y)
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }
 
-static const char *wm_drag_name(wmDrag *drag)
+const char *WM_drag_get_item_name(wmDrag *drag)
 {
   switch (drag->type) {
     case WM_DRAG_ID: {
@@ -484,7 +486,7 @@ static const char *wm_drag_name(wmDrag *drag)
     }
     case WM_DRAG_ASSET: {
       const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
-      return ED_asset_handle_get_name(asset_drag->asset_handle);
+      return asset_drag->name;
     }
     case WM_DRAG_PATH:
     case WM_DRAG_NAME:
@@ -581,15 +583,15 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
     }
 
     if (rect) {
-      int w = UI_fontstyle_string_width(fstyle, wm_drag_name(drag));
+      int w = UI_fontstyle_string_width(fstyle, WM_drag_get_item_name(drag));
       drag_rect_minmax(rect, x, y, x + w, y + iconsize);
     }
     else {
-      UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag), text_col);
+      UI_fontstyle_draw_simple(fstyle, x, y, WM_drag_get_item_name(drag), text_col);
     }
 
     /* operator name with roundbox */
-    if (drag->opname[0]) {
+    if (drag->tooltip[0]) {
       if (drag->imb) {
         x = cursorx - drag->sx / 2;
 
@@ -612,11 +614,11 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
       }
 
       if (rect) {
-        int w = UI_fontstyle_string_width(fstyle, wm_drag_name(drag));
+        int w = UI_fontstyle_string_width(fstyle, WM_drag_get_item_name(drag));
         drag_rect_minmax(rect, x, y, x + w, y + iconsize);
       }
       else {
-        wm_drop_operator_draw(drag->opname, x, y);
+        wm_drop_operator_draw(drag->tooltip, x, y);
       }
     }
   }

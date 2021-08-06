@@ -475,7 +475,7 @@ static void studiolight_load_equirect_image(StudioLight *sl)
           NULL, (failed || (specular_ibuf == NULL)) ? magenta : black, 1, 1, 4);
     }
 
-    if ((sl->flag & STUDIOLIGHT_TYPE_MATCAP)) {
+    if (sl->flag & STUDIOLIGHT_TYPE_MATCAP) {
       sl->matcap_diffuse.ibuf = diffuse_ibuf;
       sl->matcap_specular.ibuf = specular_ibuf;
       if (specular_ibuf != NULL) {
@@ -1192,7 +1192,7 @@ static void studiolight_add_files_from_datafolder(const int folder_id,
     uint totfile = BLI_filelist_dir_contents(folder, &dir);
     int i;
     for (i = 0; i < totfile; i++) {
-      if ((dir[i].type & S_IFREG)) {
+      if (dir[i].type & S_IFREG) {
         studiolight_add_file(dir[i].path, flag);
       }
     }
@@ -1473,7 +1473,7 @@ struct StudioLight *BKE_studiolight_find_default(int flag)
   }
 
   LISTBASE_FOREACH (StudioLight *, sl, &studiolights) {
-    if ((sl->flag & flag)) {
+    if (sl->flag & flag) {
       return sl;
     }
   }
@@ -1484,7 +1484,7 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
 {
   LISTBASE_FOREACH (StudioLight *, sl, &studiolights) {
     if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
-      if ((sl->flag & flag)) {
+      if (sl->flag & flag) {
         return sl;
       }
 
@@ -1542,32 +1542,32 @@ void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
     return;
   }
 
-  if ((flag & STUDIOLIGHT_EXTERNAL_IMAGE_LOADED)) {
+  if (flag & STUDIOLIGHT_EXTERNAL_IMAGE_LOADED) {
     studiolight_load_equirect_image(sl);
   }
-  if ((flag & STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED)) {
+  if (flag & STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED) {
     studiolight_calculate_radiance_cubemap_buffers(sl);
   }
-  if ((flag & STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED)) {
+  if (flag & STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED) {
     if (!studiolight_load_spherical_harmonics_coefficients(sl)) {
       studiolight_calculate_diffuse_light(sl);
     }
   }
-  if ((flag & STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE)) {
+  if (flag & STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE) {
     studiolight_create_equirect_radiance_gputexture(sl);
   }
-  if ((flag & STUDIOLIGHT_EQUIRECT_IRRADIANCE_GPUTEXTURE)) {
+  if (flag & STUDIOLIGHT_EQUIRECT_IRRADIANCE_GPUTEXTURE) {
     studiolight_create_equirect_irradiance_gputexture(sl);
   }
-  if ((flag & STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED)) {
+  if (flag & STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED) {
     if (!studiolight_load_irradiance_equirect_image(sl)) {
       studiolight_calculate_irradiance_equirect_image(sl);
     }
   }
-  if ((flag & STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE)) {
+  if (flag & STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE) {
     studiolight_create_matcap_diffuse_gputexture(sl);
   }
-  if ((flag & STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE)) {
+  if (flag & STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE) {
     studiolight_create_matcap_specular_gputexture(sl);
   }
 }

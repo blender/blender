@@ -679,7 +679,7 @@ static void rna_ActionConstraint_mix_mode_set(PointerRNA *ptr, int value)
   acon->mix_mode = value;
 
   /* The After mode can be computed in world space for efficiency
-   * and backward compatibility, while Before requires Local. */
+   * and backward compatibility, while Before or Split requires Local. */
   if (ELEM(value, ACTCON_MIX_AFTER, ACTCON_MIX_AFTER_FULL)) {
     con->ownspace = CONSTRAINT_SPACE_WORLD;
   }
@@ -715,7 +715,7 @@ static int rna_SplineIKConstraint_joint_bindings_get_length(PointerRNA *ptr,
     length[0] = ikData->numpoints;
   }
   else {
-    length[0] = 256; /* for raw_access, untested */
+    length[0] = 0;
   }
 
   return length[0];
@@ -1773,25 +1773,47 @@ static void rna_def_constraint_action(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem mix_mode_items[] = {
+      {ACTCON_MIX_BEFORE_FULL,
+       "BEFORE_FULL",
+       0,
+       "Before Original (Full)",
+       "Apply the action channels before the original transformation, as if applied to an "
+       "imaginary parent in Full Inherit Scale mode. Will create shear when combining rotation "
+       "and non-uniform scale"},
       {ACTCON_MIX_BEFORE,
        "BEFORE",
        0,
-       "Before Original",
-       "Apply the action channels before the original transformation, "
-       "as if applied to an imaginary parent with Aligned Inherit Scale"},
-      {ACTCON_MIX_AFTER,
-       "AFTER",
+       "Before Original (Aligned)",
+       "Apply the action channels before the original transformation, as if applied to an "
+       "imaginary parent in Aligned Inherit Scale mode. This effectively uses Full for location "
+       "and Split Channels for rotation and scale"},
+      {ACTCON_MIX_BEFORE_SPLIT,
+       "BEFORE_SPLIT",
        0,
-       "After Original",
-       "Apply the action channels after the original transformation, "
-       "as if applied to an imaginary child with Aligned Inherit Scale"},
+       "Before Original (Split Channels)",
+       "Apply the action channels before the original transformation, handling location, rotation "
+       "and scale separately"},
+      {0, "", 0, NULL, NULL},
       {ACTCON_MIX_AFTER_FULL,
        "AFTER_FULL",
        0,
-       "After Original (Full Scale)",
-       "Apply the action channels after the original transformation, as if "
-       "applied to an imaginary child with Full Inherit Scale. This mode "
-       "can create shear and is provided only for backward compatibility"},
+       "After Original (Full)",
+       "Apply the action channels after the original transformation, as if applied to an "
+       "imaginary child in Full Inherit Scale mode. Will create shear when combining rotation "
+       "and non-uniform scale"},
+      {ACTCON_MIX_AFTER,
+       "AFTER",
+       0,
+       "After Original (Aligned)",
+       "Apply the action channels after the original transformation, as if applied to an "
+       "imaginary child in Aligned Inherit Scale mode. This effectively uses Full for location "
+       "and Split Channels for rotation and scale"},
+      {ACTCON_MIX_AFTER_SPLIT,
+       "AFTER_SPLIT",
+       0,
+       "After Original (Split Channels)",
+       "Apply the action channels after the original transformation, handling location, rotation "
+       "and scale separately"},
       {0, NULL, 0, NULL, NULL},
   };
 

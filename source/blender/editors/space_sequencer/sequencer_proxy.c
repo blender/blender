@@ -131,7 +131,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
   file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
 
   LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
-    if ((seq->flag & SELECT)) {
+    if (seq->flag & SELECT) {
       ListBase queue = {NULL, NULL};
       LinkData *link;
       short stop = 0, do_update;
@@ -197,7 +197,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
   }
 
   LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
-    if ((seq->flag & SELECT)) {
+    if (seq->flag & SELECT) {
       if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
         SEQ_proxy_set(seq, turnon);
         if (seq->strip->proxy == NULL) {

@@ -106,7 +106,7 @@
 
 /* for debugging add... */
 #ifndef NDEBUG
-/* printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]); \ */
+// printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]);
 #  define FACE_ASSERT(face, vert_max) \
     { \
       unsigned int *_t = face; \
@@ -619,7 +619,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
     unsigned int tot_boundary_found = 0;
 #endif
 
-    if (masklay->restrictflag & MASK_RESTRICT_RENDER) {
+    if (masklay->visibility_flag & MASK_HIDE_RENDER) {
       /* skip the layer */
       mr_handle->layers_tot--;
       masklay_index--;
@@ -1213,7 +1213,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         layer->falloff = masklay->falloff;
       }
 
-      /* printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads); */
+      // printf("tris %d, feather tris %d\n", sf_tri_tot, tot_feather_quads);
     }
 
     /* add trianges */

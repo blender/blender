@@ -13,25 +13,37 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2015 Blender Foundation.
+ * The Original Code is Copyright (C) 2021 Tangent Animation.
  * All rights reserved.
  */
+#pragma once
 
-#ifndef OPENVDB_TRANSFORM_H
-#define OPENVDB_TRANSFORM_H
+#include "usd.h"
+#include "usd_reader_xform.h"
 
-#include <openvdb/openvdb.h>
+#include "pxr/usd/usdVol/volume.h"
 
-struct OpenVDBTransform {
+namespace blender::io::usd {
+
+class USDVolumeReader : public USDXformReader {
  private:
-  openvdb::math::Transform::Ptr transform;
+  pxr::UsdVolVolume volume_;
 
  public:
-  OpenVDBTransform();
-  ~OpenVDBTransform();
-  void create_linear_transform(double voxel_size);
-  const openvdb::math::Transform::Ptr &get_transform();
-  void set_transform(const openvdb::math::Transform::Ptr &transform);
+  USDVolumeReader(const pxr::UsdPrim &prim,
+                  const USDImportParams &import_params,
+                  const ImportSettings &settings)
+      : USDXformReader(prim, import_params, settings), volume_(prim)
+  {
+  }
+
+  bool valid() const override
+  {
+    return static_cast<bool>(volume_);
+  }
+
+  void create_object(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, double motionSampleTime) override;
 };
 
-#endif  // OPENVDB_TRANSFORM_H
+}  // namespace blender::io::usd

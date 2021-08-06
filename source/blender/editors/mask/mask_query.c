@@ -85,7 +85,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
                  *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
-    if (mask_layer_orig->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
@@ -245,7 +245,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
        mask_layer_orig != NULL;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
 
-    if (mask_layer_orig->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
@@ -409,7 +409,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
       int i, tot_feather_point;
       float(*feather_points)[2], (*fp)[2];
 
-      if (mask_layer_orig->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+      if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
         continue;
       }
 
@@ -638,7 +638,7 @@ bool ED_mask_selected_minmax(const bContext *C,
   INIT_MINMAX2(min, max);
   for (MaskLayer *mask_layer = mask_eval->masklayers.first; mask_layer != NULL;
        mask_layer = mask_layer->next) {
-    if (mask_layer->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
     for (MaskSpline *spline = mask_layer->splines.first; spline != NULL; spline = spline->next) {

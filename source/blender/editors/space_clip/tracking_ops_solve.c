@@ -299,10 +299,7 @@ static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
     track->flag &= ~TRACK_HAS_BUNDLE;
   }
 
-  if (reconstruction->cameras != NULL) {
-    MEM_freeN(reconstruction->cameras);
-    reconstruction->cameras = NULL;
-  }
+  MEM_SAFE_FREE(reconstruction->cameras);
 
   reconstruction->camnr = 0;
   reconstruction->flag &= ~TRACKING_RECONSTRUCTED;

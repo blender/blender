@@ -73,6 +73,8 @@ class Object : public Node {
   NODE_SOCKET_API(ParticleSystem *, particle_system);
   NODE_SOCKET_API(int, particle_index);
 
+  NODE_SOCKET_API(float, ao_distance)
+
   Object();
   ~Object();
 

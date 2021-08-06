@@ -302,7 +302,7 @@ void BKE_ptcache_remove(void);
 
 /************ ID specific functions ************************/
 void BKE_ptcache_id_clear(PTCacheID *id, int mode, unsigned int cfra);
-int BKE_ptcache_id_exist(PTCacheID *id, int cfra);
+bool BKE_ptcache_id_exist(PTCacheID *id, int cfra);
 int BKE_ptcache_id_reset(struct Scene *scene, PTCacheID *id, int mode);
 void BKE_ptcache_id_time(PTCacheID *pid,
                          struct Scene *scene,

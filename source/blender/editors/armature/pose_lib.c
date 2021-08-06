@@ -304,8 +304,6 @@ static int poselib_sanitize_exec(bContext *C, wmOperator *op)
 {
   Object *ob = get_poselib_object(C);
   bAction *act = (ob) ? ob->poselib : NULL;
-  DLRBT_Tree keys;
-  ActKeyColumn *ak;
   TimeMarker *marker, *markern;
 
   /* validate action */
@@ -315,11 +313,11 @@ static int poselib_sanitize_exec(bContext *C, wmOperator *op)
   }
 
   /* determine which frames have keys */
-  BLI_dlrbTree_init(&keys);
-  action_to_keylist(NULL, act, &keys, 0);
+  struct AnimKeylist *keylist = ED_keylist_create();
+  action_to_keylist(NULL, act, keylist, 0);
 
   /* for each key, make sure there is a corresponding pose */
-  for (ak = keys.first; ak; ak = ak->next) {
+  LISTBASE_FOREACH (const ActKeyColumn *, ak, ED_keylist_listbase(keylist)) {
     /* check if any pose matches this */
     /* TODO: don't go looking through the list like this every time... */
     for (marker = act->markers.first; marker; marker = marker->next) {
@@ -356,7 +354,7 @@ static int poselib_sanitize_exec(bContext *C, wmOperator *op)
   }
 
   /* free temp memory */
-  BLI_dlrbTree_free(&keys);
+  ED_keylist_free(keylist);
 
   /* send notifiers for this - using keyframe editing notifiers, since action
    * may be being shown in anim editors as active action

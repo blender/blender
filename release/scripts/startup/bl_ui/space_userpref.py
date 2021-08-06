@@ -619,7 +619,7 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
         split = layout.split(factor=0.4)
         split.alignment = 'RIGHT'
         split.label(text="")
-        split.operator("file.associate_blend", text="Make Default")
+        split.operator("preferences.associate_blend", text="Make Default")
 
 
 class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):

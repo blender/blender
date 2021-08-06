@@ -102,6 +102,8 @@ NODE_DEFINE(Object)
   SOCKET_NODE(particle_system, "Particle System", ParticleSystem::get_node_type());
   SOCKET_INT(particle_index, "Particle Index", 0);
 
+  SOCKET_FLOAT(ao_distance, "AO Distance", 0.0f);
+
   return type;
 }
 
@@ -428,6 +430,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.random_number = random_number;
   kobject.particle_index = particle_index;
   kobject.motion_offset = 0;
+  kobject.ao_distance = ob->ao_distance;
 
   if (geom->get_use_motion_blur()) {
     state->have_motion = true;

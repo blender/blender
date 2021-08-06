@@ -1,3 +1,4 @@
+
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -124,7 +125,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   /* Do not modify corner vertices. */
-  if (neighbor_count <= 2) {
+  if (neighbor_count <= 2 && is_boundary) {
     copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
     return;
   }

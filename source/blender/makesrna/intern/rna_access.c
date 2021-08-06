@@ -36,6 +36,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.h"
@@ -3676,6 +3677,8 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
   IDProperty *idprop;
 
+  static ThreadMutex lock = BLI_MUTEX_INITIALIZER;
+
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
@@ -3695,9 +3698,14 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
     return pprop->get(ptr);
   }
   if (prop->flag & PROP_IDPROPERTY) {
-    /* XXX temporary hack to add it automatically, reading should
-     * never do any write ops, to ensure thread safety etc. */
+    /* NOTE: While creating/writing data in an accessor is really bad design-wise, this is
+     * currently very difficult to avoid in that case. So a global mutex is used to keep ensuring
+     * thread safety. */
+    BLI_mutex_lock(&lock);
+    /* NOTE: We do not need to check again for existence of the pointer after locking here, since
+     * this is also done in #RNA_property_pointer_add itself. */
     RNA_property_pointer_add(ptr, prop);
+    BLI_mutex_unlock(&lock);
     return RNA_property_pointer_get(ptr, prop);
   }
   return PointerRNA_NULL;
@@ -4972,10 +4980,7 @@ void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
   ArrayIterator *internal = &iter->internal.array;
 
-  if (internal->free_ptr) {
-    MEM_freeN(internal->free_ptr);
-    internal->free_ptr = NULL;
-  }
+  MEM_SAFE_FREE(internal->free_ptr);
 }
 
 PointerRNA rna_array_lookup_int(
@@ -6723,7 +6728,7 @@ bool RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, bool
     return RNA_property_is_set_ex(ptr, prop, use_ghost);
   }
   /* python raises an error */
-  /* printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name); */
+  // printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
   return 0;
 }
 
@@ -6735,7 +6740,7 @@ bool RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier)
     return RNA_property_is_set(ptr, prop);
   }
   /* python raises an error */
-  /* printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name); */
+  // printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
   return 0;
 }
 

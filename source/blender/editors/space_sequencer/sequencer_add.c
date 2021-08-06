@@ -565,10 +565,7 @@ static void sequencer_add_init(bContext *UNUSED(C), wmOperator *op)
 
 static void sequencer_add_cancel(bContext *UNUSED(C), wmOperator *op)
 {
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
-  op->customdata = NULL;
+  MEM_SAFE_FREE(op->customdata);
 }
 
 static bool sequencer_add_draw_check_fn(PointerRNA *UNUSED(ptr),

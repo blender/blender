@@ -42,7 +42,7 @@
 static void invert(int *val)
 {
   int tval = *val;
-  *val = ((tval >> 24)) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | ((tval << 24));
+  *val = (tval >> 24) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | (tval << 24);
 }
 
 static void sinvert(short int *val)

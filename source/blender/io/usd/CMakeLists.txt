@@ -56,7 +56,9 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/usd_capi.cc
+  intern/usd_capi_export.cc
+  intern/usd_capi_import.cc
+  intern/usd_common.cc
   intern/usd_hierarchy_iterator.cc
   intern/usd_writer_abstract.cc
   intern/usd_writer_camera.cc
@@ -66,7 +68,21 @@ set(SRC
   intern/usd_writer_metaball.cc
   intern/usd_writer_transform.cc
 
+  intern/usd_reader_camera.cc
+  intern/usd_reader_curve.cc
+  intern/usd_reader_geom.cc
+  intern/usd_reader_light.cc
+  intern/usd_reader_material.cc
+  intern/usd_reader_mesh.cc
+  intern/usd_reader_nurbs.cc
+  intern/usd_reader_prim.cc
+  intern/usd_reader_stage.cc
+  intern/usd_reader_xform.cc
+  intern/usd_reader_volume.cc
+
   usd.h
+
+  intern/usd_common.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
   intern/usd_writer_abstract.h
@@ -76,6 +92,18 @@ set(SRC
   intern/usd_writer_mesh.h
   intern/usd_writer_metaball.h
   intern/usd_writer_transform.h
+
+  intern/usd_reader_camera.h
+  intern/usd_reader_curve.h
+  intern/usd_reader_geom.h
+  intern/usd_reader_light.h
+  intern/usd_reader_material.h
+  intern/usd_reader_mesh.h
+  intern/usd_reader_nurbs.h
+  intern/usd_reader_prim.h
+  intern/usd_reader_stage.h
+  intern/usd_reader_xform.h
+  intern/usd_reader_volume.h
 )
 
 set(LIB

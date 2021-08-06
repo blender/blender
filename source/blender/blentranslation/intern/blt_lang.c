@@ -74,10 +74,7 @@ static void free_locales(void)
     MEM_freeN((void *)locales);
     locales = NULL;
   }
-  if (locales_menu) {
-    MEM_freeN(locales_menu);
-    locales_menu = NULL;
-  }
+  MEM_SAFE_FREE(locales_menu);
   num_locales = num_locales_menu = 0;
 }
 

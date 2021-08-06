@@ -17,12 +17,11 @@
  * All rights reserved.
  */
 
-#ifndef __IO_GPENCIL_H__
-#define __IO_GPENCIL_H__
-
 /** \file
  * \ingroup editor/io
  */
+
+#pragma once
 
 struct ARegion;
 struct View3D;
@@ -40,5 +39,3 @@ void WM_OT_gpencil_export_pdf(struct wmOperatorType *ot);
 
 struct ARegion *get_invoke_region(struct bContext *C);
 struct View3D *get_invoke_view3d(struct bContext *C);
-
-#endif /* __IO_GPENCIL_H__ */

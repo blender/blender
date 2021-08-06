@@ -32,7 +32,6 @@ struct ID;
 struct wmNotifier;
 
 void ED_assetlist_storage_fetch(const struct AssetLibraryReference *library_reference,
-                                const struct AssetFilterSettings *filter_settings,
                                 const struct bContext *C);
 void ED_assetlist_ensure_previews_job(const struct AssetLibraryReference *library_reference,
                                       struct bContext *C);

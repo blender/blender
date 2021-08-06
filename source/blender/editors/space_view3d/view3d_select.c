@@ -1589,9 +1589,12 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
 
-  RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
-  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
-  RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static Base *object_mouse_select_menu(bContext *C,
@@ -1764,9 +1767,12 @@ void VIEW3D_OT_bone_select_menu(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
 
-  RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
-  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
-  RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 static bool bone_mouse_select_menu(bContext *C,
                                    const uint *buffer,
@@ -2150,7 +2156,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
         for (a = 0; a < hits; a++) {
           if (has_bones) {
             /* skip non-bone objects */
-            if ((buffer[4 * a + 3] & 0xFFFF0000)) {
+            if (buffer[4 * a + 3] & 0xFFFF0000) {
               if (base->object->runtime.select_id == (buffer[(4 * a) + 3] & 0xFFFF)) {
                 basact = base;
               }

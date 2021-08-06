@@ -2957,10 +2957,7 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
     }
     edit->points = new_points;
 
-    if (edit->mirror_cache) {
-      MEM_freeN(edit->mirror_cache);
-      edit->mirror_cache = NULL;
-    }
+    MEM_SAFE_FREE(edit->mirror_cache);
 
     if (psys->child) {
       MEM_freeN(psys->child);
@@ -3576,10 +3573,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
     }
     edit->points = new_points;
 
-    if (edit->mirror_cache) {
-      MEM_freeN(edit->mirror_cache);
-      edit->mirror_cache = NULL;
-    }
+    MEM_SAFE_FREE(edit->mirror_cache);
 
     edit->totpoint = psys->totpart = newtotpart;
 
@@ -4497,10 +4491,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
     }
     edit->points = new_points;
 
-    if (edit->mirror_cache) {
-      MEM_freeN(edit->mirror_cache);
-      edit->mirror_cache = NULL;
-    }
+    MEM_SAFE_FREE(edit->mirror_cache);
 
     /* create tree for interpolation */
     if (pset->flag & PE_INTERPOLATE_ADDED && psys->totpart) {

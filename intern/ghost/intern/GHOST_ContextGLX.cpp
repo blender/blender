@@ -32,7 +32,7 @@
 #include <cstdio>
 #include <cstring>
 
-/* needed for intel drivers (works w/ mesa-swrast & nvidia) */
+/* Needed for Intel drivers (works with MESA-software-rasterizer (`swrast`) & NVIDIA). */
 #define USE_GLXEW_INIT_WORKAROUND
 
 #ifdef USE_GLXEW_INIT_WORKAROUND
@@ -295,8 +295,8 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 
     glXMakeCurrent(m_display, m_window, m_context);
 
-    // Seems that this has to be called after MakeCurrent,
-    // which means we cannot use glX extensions until after we create a context
+    /* Seems that this has to be called after #glXMakeCurrent,
+     * which means we cannot use `glX` extensions until after we create a context. */
     initContextGLXEW();
 
     if (m_window) {

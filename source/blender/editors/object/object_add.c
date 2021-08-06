@@ -3530,7 +3530,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  basen->object->restrictflag &= ~OB_RESTRICT_VIEWPORT;
+  basen->object->visibility_flag &= ~OB_HIDE_VIEWPORT;
 
   int mval[2];
   if (object_add_drop_xy_get(C, op, &mval)) {

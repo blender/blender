@@ -106,14 +106,30 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
       .color_inner1[1] = inner1 ? inner1[1] : 0.0f,
       .color_inner1[2] = inner1 ? inner1[2] : 0.0f,
       .color_inner1[3] = inner1 ? inner1[3] : 0.0f,
-      .color_inner2[0] = inner2 ? inner2[0] : inner1 ? inner1[0] : 0.0f,
-      .color_inner2[1] = inner2 ? inner2[1] : inner1 ? inner1[1] : 0.0f,
-      .color_inner2[2] = inner2 ? inner2[2] : inner1 ? inner1[2] : 0.0f,
-      .color_inner2[3] = inner2 ? inner2[3] : inner1 ? inner1[3] : 0.0f,
-      .color_outline[0] = outline ? outline[0] : inner1 ? inner1[0] : 0.0f,
-      .color_outline[1] = outline ? outline[1] : inner1 ? inner1[1] : 0.0f,
-      .color_outline[2] = outline ? outline[2] : inner1 ? inner1[2] : 0.0f,
-      .color_outline[3] = outline ? outline[3] : inner1 ? inner1[3] : 0.0f,
+      .color_inner2[0] = inner2 ? inner2[0] :
+                         inner1 ? inner1[0] :
+                                  0.0f,
+      .color_inner2[1] = inner2 ? inner2[1] :
+                         inner1 ? inner1[1] :
+                                  0.0f,
+      .color_inner2[2] = inner2 ? inner2[2] :
+                         inner1 ? inner1[2] :
+                                  0.0f,
+      .color_inner2[3] = inner2 ? inner2[3] :
+                         inner1 ? inner1[3] :
+                                  0.0f,
+      .color_outline[0] = outline ? outline[0] :
+                          inner1  ? inner1[0] :
+                                    0.0f,
+      .color_outline[1] = outline ? outline[1] :
+                          inner1  ? inner1[1] :
+                                    0.0f,
+      .color_outline[2] = outline ? outline[2] :
+                          inner1  ? inner1[2] :
+                                    0.0f,
+      .color_outline[3] = outline ? outline[3] :
+                          inner1  ? inner1[3] :
+                                    0.0f,
       .shade_dir = shade_dir,
       .alpha_discard = 1.0f,
   };

@@ -73,6 +73,7 @@
 #include "BKE_rigidbody.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 
@@ -141,7 +142,8 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
 {
   ID *id = cb_data->user_data;
   if (*cb_data->id_pointer == id) {
-    DEG_id_tag_update_ex(cb_data->bmain, cb_data->id_owner, ID_RECALC_TAG_FOR_UNDO);
+    DEG_id_tag_update_ex(
+        cb_data->bmain, cb_data->id_owner, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_COPY_ON_WRITE);
     return IDWALK_RET_STOP_ITER;
   }
   return IDWALK_RET_NOP;
@@ -193,6 +195,8 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
   if (key != NULL) {
     lib_id_clear_library_data_ex(bmain, &key->id);
   }
+
+  DEG_relations_tag_update(bmain);
 }
 
 void BKE_lib_id_clear_library_data(Main *bmain, ID *id)

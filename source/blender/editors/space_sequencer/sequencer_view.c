@@ -275,7 +275,6 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
   View2D *v2d = UI_view2d_fromcontext(C);
   ARegion *region = CTX_wm_region(C);
   Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *last_seq = SEQ_select_active_get(scene);
   Sequence *seq;
   rctf cur_new = v2d->cur;
 
@@ -293,7 +292,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((seq->flag & SELECT) || (seq == last_seq)) {
+    if (seq->flag & SELECT) {
       xmin = min_ii(xmin, seq->startdisp);
       xmax = max_ii(xmax, seq->enddisp);
 

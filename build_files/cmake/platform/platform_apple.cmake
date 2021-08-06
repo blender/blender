@@ -411,25 +411,9 @@ if(WITH_OPENMP)
     set(OPENMP_FOUND ON)
     set(OpenMP_C_FLAGS "-Xclang -fopenmp -I'${LIBDIR}/openmp/include'")
     set(OpenMP_CXX_FLAGS "-Xclang -fopenmp -I'${LIBDIR}/openmp/include'")
-    set(OpenMP_LINKER_FLAGS "-L'${LIBDIR}/openmp/lib' -lomp")
-
-    # Copy libomp.dylib to allow executables like datatoc and tests to work.
-    # `@executable_path/../Resources/lib/` `LC_ID_DYLIB` is added by the deps builder.
-    # For single config generator datatoc, tests etc.
-    execute_process(
-      COMMAND mkdir -p ${CMAKE_BINARY_DIR}/Resources/lib
-      COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/Resources/lib/libomp.dylib
-    )
-    # For multi-config generator datatoc, etc.
-    execute_process(
-      COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bin/Resources/lib
-      COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/bin/Resources/lib/libomp.dylib
-    )
-    # For multi-config generator tests.
-    execute_process(
-      COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bin/tests/Resources/lib
-      COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/bin/tests/Resources/lib/libomp.dylib
-    )
+    set(OpenMP_LIBRARY_DIR "${LIBDIR}/openmp/lib/")
+    set(OpenMP_LINKER_FLAGS "-L'${OpenMP_LIBRARY_DIR}' -lomp")
+    set(OpenMP_LIBRARY "${OpenMP_LIBRARY_DIR}/libomp.dylib")
   endif()
 endif()
 
@@ -510,4 +494,23 @@ if(WITH_COMPILER_CCACHE)
       set(WITH_COMPILER_CCACHE OFF)
     endif()
   endif()
+endif()
+
+# For binaries that are built but not installed (also not distributed) (datatoc,
+# makesdna, tests, etc.), we add an rpath to the OpenMP library dir through
+# CMAKE_BUILD_RPATH. This avoids having to make many copies of the dylib next to each binary.
+#
+# For the installed Blender executable, CMAKE_INSTALL_RPATH will be used
+# to locate the dylibs at @executable_path, next to the Blender executable.
+#
+# For the installed Python module, CMAKE_INSTALL_RPATH is modified to find the
+# dylib in an adjacent folder.
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+list(APPEND CMAKE_BUILD_RPATH "${OpenMP_LIBRARY_DIR}")
+
+set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+list(APPEND CMAKE_INSTALL_RPATH "@executable_path")
+
+if(WITH_PYTHON_MODULE)
+  list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../Resources/${BLENDER_VERSION}/lib")
 endif()

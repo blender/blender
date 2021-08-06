@@ -10,7 +10,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
+ * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
@@ -294,7 +294,11 @@ class LockedNode : NonCopyable, NonMovable {
 
 static const CPPType *get_socket_cpp_type(const SocketRef &socket)
 {
-  const CPPType *type = nodes::socket_cpp_type_get(*socket.typeinfo());
+  const bNodeSocketType *typeinfo = socket.typeinfo();
+  if (typeinfo->get_geometry_nodes_cpp_type == nullptr) {
+    return nullptr;
+  }
+  const CPPType *type = typeinfo->get_geometry_nodes_cpp_type();
   if (type == nullptr) {
     return nullptr;
   }
@@ -308,6 +312,12 @@ static const CPPType *get_socket_cpp_type(const SocketRef &socket)
 static const CPPType *get_socket_cpp_type(const DSocket socket)
 {
   return get_socket_cpp_type(*socket.socket_ref());
+}
+
+static void get_socket_value(const SocketRef &socket, void *r_value)
+{
+  const bNodeSocketType *typeinfo = socket.typeinfo();
+  typeinfo->get_geometry_nodes_cpp_value(*socket.bsocket(), r_value);
 }
 
 static bool node_supports_laziness(const DNode node)
@@ -1235,14 +1245,8 @@ class GeometryNodesEvaluator {
     void *buffer = allocator.allocate(to_type.size(), to_type.alignment());
     GMutablePointer value{to_type, buffer};
 
-    if (conversions_.is_convertible(from_type, to_type)) {
-      /* Do the conversion if possible. */
-      conversions_.convert_to_uninitialized(from_type, to_type, value_to_forward.get(), buffer);
-    }
-    else {
-      /* Cannot convert, use default value instead. */
-      to_type.copy_construct(to_type.default_value(), buffer);
-    }
+    this->convert_value(from_type, to_type, value_to_forward.get(), buffer);
+
     /* Multi input socket values are logged once all values are available. */
     if (!to_socket->is_multi_input_socket()) {
       this->log_socket_value({to_socket}, value);
@@ -1363,25 +1367,36 @@ class GeometryNodesEvaluator {
   {
     LinearAllocator<> &allocator = local_allocators_.local();
 
-    bNodeSocket *bsocket = socket->bsocket();
     const CPPType &type = *get_socket_cpp_type(socket);
     void *buffer = allocator.allocate(type.size(), type.alignment());
-    blender::nodes::socket_cpp_value_get(*bsocket, buffer);
+    get_socket_value(*socket.socket_ref(), buffer);
 
     if (type == required_type) {
       return {type, buffer};
     }
-    if (conversions_.is_convertible(type, required_type)) {
-      /* Convert the loaded value to the required type if possible. */
-      void *converted_buffer = allocator.allocate(required_type.size(), required_type.alignment());
-      conversions_.convert_to_uninitialized(type, required_type, buffer, converted_buffer);
-      type.destruct(buffer);
-      return {required_type, converted_buffer};
+    void *converted_buffer = allocator.allocate(required_type.size(), required_type.alignment());
+    this->convert_value(type, required_type, buffer, converted_buffer);
+    return {required_type, converted_buffer};
+  }
+
+  void convert_value(const CPPType &from_type,
+                     const CPPType &to_type,
+                     const void *from_value,
+                     void *to_value)
+  {
+    if (from_type == to_type) {
+      from_type.copy_construct(from_value, to_value);
+      return;
     }
-    /* Use a default fallback value when the loaded type is not compatible. */
-    void *default_buffer = allocator.allocate(required_type.size(), required_type.alignment());
-    required_type.copy_construct(required_type.default_value(), default_buffer);
-    return {required_type, default_buffer};
+
+    if (conversions_.is_convertible(from_type, to_type)) {
+      /* Do the conversion if possible. */
+      conversions_.convert_to_uninitialized(from_type, to_type, from_value, to_value);
+    }
+    else {
+      /* Cannot convert, use default value instead. */
+      to_type.copy_construct(to_type.default_value(), to_value);
+    }
   }
 
   NodeState &get_node_state(const DNode node)

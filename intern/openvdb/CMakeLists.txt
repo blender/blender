@@ -20,7 +20,6 @@
 
 set(INC
   .
-  intern
   ../guardedalloc
 )
 
@@ -42,14 +41,7 @@ if(WITH_OPENVDB)
   )
 
   list(APPEND SRC
-    intern/openvdb_level_set.cc
-    intern/openvdb_transform.cc
     openvdb_capi.cc
-    openvdb_util.cc
-
-    intern/openvdb_level_set.h
-    intern/openvdb_transform.h
-    openvdb_util.h
   )
 
   list(APPEND LIB

@@ -95,6 +95,10 @@
 #  include "ABC_alembic.h"
 #endif
 
+#ifdef WITH_USD
+#  include "usd.h"
+#endif
+
 /* ---------------------------------------------------------------------------- */
 /* Useful macros for testing various common flag combinations */
 
@@ -2978,6 +2982,16 @@ static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 
   if (VALID_CONS_TARGET(ct) || data->flag & ACTCON_USE_EVAL_TIME) {
     switch (data->mix_mode) {
+      /* Simple matrix multiplication. */
+      case ACTCON_MIX_BEFORE_FULL:
+        mul_m4_m4m4(cob->matrix, ct->matrix, cob->matrix);
+        break;
+
+      case ACTCON_MIX_AFTER_FULL:
+        mul_m4_m4m4(cob->matrix, cob->matrix, ct->matrix);
+        break;
+
+      /* Aligned Inherit Scale emulation. */
       case ACTCON_MIX_BEFORE:
         mul_m4_m4m4_aligned_scale(cob->matrix, ct->matrix, cob->matrix);
         break;
@@ -2986,8 +3000,13 @@ static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
         mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, ct->matrix);
         break;
 
-      case ACTCON_MIX_AFTER_FULL:
-        mul_m4_m4m4(cob->matrix, cob->matrix, ct->matrix);
+      /* Fully separate handling of channels. */
+      case ACTCON_MIX_BEFORE_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, ct->matrix, cob->matrix);
+        break;
+
+      case ACTCON_MIX_AFTER_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, cob->matrix, ct->matrix);
         break;
 
       default:
@@ -4612,9 +4631,7 @@ static void splineik_free(bConstraint *con)
   bSplineIKConstraint *data = con->data;
 
   /* binding array */
-  if (data->points) {
-    MEM_freeN(data->points);
-  }
+  MEM_SAFE_FREE(data->points);
 }
 
 static void splineik_copy(bConstraint *con, bConstraint *srccon)
@@ -5403,7 +5420,7 @@ static void transformcache_id_looper(bConstraint *con, ConstraintIDFunc func, vo
 
 static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
-#ifdef WITH_ALEMBIC
+#if defined(WITH_ALEMBIC) || defined(WITH_USD)
   bTransformCacheConstraint *data = con->data;
   Scene *scene = cob->scene;
 
@@ -5421,7 +5438,20 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
     BKE_cachefile_reader_open(cache_file, &data->reader, cob->ob, data->object_path);
   }
 
-  ABC_get_transform(data->reader, cob->matrix, time, cache_file->scale);
+  switch (cache_file->type) {
+    case CACHEFILE_TYPE_ALEMBIC:
+#  ifdef WITH_ALEMBIC
+      ABC_get_transform(data->reader, cob->matrix, time, cache_file->scale);
+#  endif
+      break;
+    case CACHEFILE_TYPE_USD:
+#  ifdef WITH_USD
+      USD_get_transform(data->reader, cob->matrix, time * FPS, cache_file->scale);
+#  endif
+      break;
+    case CACHE_FILE_TYPE_INVALID:
+      break;
+  }
 #else
   UNUSED_VARS(con, cob);
 #endif
@@ -5749,6 +5779,17 @@ static bConstraint *add_new_constraint(Object *ob,
       if (pchan) {
         con->ownspace = CONSTRAINT_SPACE_POSE;
         con->flag |= CONSTRAINT_SPACEONCE;
+      }
+      break;
+    }
+    case CONSTRAINT_TYPE_ACTION: {
+      /* The Before or Split modes require computing in local space, but
+       * for objects the Local space doesn't make sense (T78462, D6095 etc).
+       * So only default to Before (Split) if the constraint is on a bone. */
+      if (pchan) {
+        bActionConstraint *data = con->data;
+        data->mix_mode = ACTCON_MIX_BEFORE_SPLIT;
+        con->ownspace = CONSTRAINT_SPACE_LOCAL;
       }
       break;
     }

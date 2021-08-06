@@ -150,7 +150,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
 
   plConvexHullDelete(hull);
 
-  BKE_mesh_calc_normals(result);
+  BKE_mesh_normals_tag_dirty(result);
   return result;
 }
 

@@ -120,6 +120,9 @@ MINLINE double interpd(double a, double b, double t);
 MINLINE float ratiof(float min, float max, float pos);
 MINLINE double ratiod(double min, double max, double pos);
 
+MINLINE float scalenorm(float a, float b, float x);
+MINLINE double scalenormd(double a, double b, double x);
+
 /* NOTE: Compilers will upcast all types smaller than int to int when performing arithmetic
  * operation. */
 MINLINE int square_s(short a);

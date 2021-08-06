@@ -56,7 +56,7 @@ set(SRC
   object_ops.c
   object_random.c
   object_relations.c
-  object_remesh.c
+  object_remesh.cc
   object_select.c
   object_shader_fx.c
   object_shapekey.c

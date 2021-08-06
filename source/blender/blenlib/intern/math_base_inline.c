@@ -199,6 +199,13 @@ MINLINE float scalenorm(float a, float b, float x)
   return (x * (b - a)) + a;
 }
 
+/* Map a normalized value, i.e. from interval [0, 1] to interval [a, b]. */
+MINLINE double scalenormd(double a, double b, double x)
+{
+  BLI_assert(x <= 1 && x >= 0);
+  return (x * (b - a)) + a;
+}
+
 /* Used for zoom values. */
 MINLINE float power_of_2(float val)
 {
@@ -807,9 +814,9 @@ MINLINE unsigned char unit_float_to_uchar_clamp(float val)
 
 MINLINE unsigned short unit_float_to_ushort_clamp(float val)
 {
-  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ?
-                              65535 :
-                              (val <= 0.0f) ? 0 : (val * 65535.0f + 0.5f));
+  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ? 65535 :
+                          (val <= 0.0f)                ? 0 :
+                                                         (val * 65535.0f + 0.5f));
 }
 #define unit_float_to_ushort_clamp(val) \
   ((CHECK_TYPE_INLINE(val, float)), unit_float_to_ushort_clamp(val))

@@ -24,14 +24,6 @@
 
 namespace blender::bke::mesh_surface_sample {
 
-Span<MLoopTri> get_mesh_looptris(const Mesh &mesh)
-{
-  /* This only updates a cache and can be considered to be logically const. */
-  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(const_cast<Mesh *>(&mesh));
-  const int looptris_len = BKE_mesh_runtime_looptri_len(&mesh);
-  return {looptris, looptris_len};
-}
-
 template<typename T>
 BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
                                                 const Span<int> looptri_indices,
@@ -39,7 +31,8 @@ BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
                                                 const VArray<T> &data_in,
                                                 const MutableSpan<T> data_out)
 {
-  const Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
 
   for (const int i : bary_coords.index_range()) {
     const int looptri_index = looptri_indices[i];
@@ -85,7 +78,8 @@ BLI_NOINLINE static void sample_corner_attribute(const Mesh &mesh,
                                                  const VArray<T> &data_in,
                                                  const MutableSpan<T> data_out)
 {
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
 
   for (const int i : bary_coords.index_range()) {
     const int looptri_index = looptri_indices[i];
@@ -130,7 +124,8 @@ void sample_face_attribute(const Mesh &mesh,
                            const VArray<T> &data_in,
                            const MutableSpan<T> data_out)
 {
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
+                                BKE_mesh_runtime_looptri_len(&mesh)};
 
   for (const int i : data_out.index_range()) {
     const int looptri_index = looptri_indices[i];
@@ -172,7 +167,8 @@ Span<float3> MeshAttributeInterpolator::ensure_barycentric_coords()
   }
   bary_coords_.reinitialize(positions_.size());
 
-  Span<MLoopTri> looptris = get_mesh_looptris(*mesh_);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh_),
+                                BKE_mesh_runtime_looptri_len(mesh_)};
 
   for (const int i : bary_coords_.index_range()) {
     const int looptri_index = looptri_indices_[i];
@@ -199,7 +195,8 @@ Span<float3> MeshAttributeInterpolator::ensure_nearest_weights()
   }
   nearest_weights_.reinitialize(positions_.size());
 
-  Span<MLoopTri> looptris = get_mesh_looptris(*mesh_);
+  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh_),
+                                BKE_mesh_runtime_looptri_len(mesh_)};
 
   for (const int i : nearest_weights_.index_range()) {
     const int looptri_index = looptri_indices_[i];

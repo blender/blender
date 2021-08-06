@@ -329,29 +329,28 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   char text[32];
 
   /* Calculate max_label_count and draw_frequency based on largest visible label. */
-  to_string(to_string_data, start, 0, sizeof(text), text);
-  const float left_text_width = BLF_width(font_id, text, strlen(text));
-  to_string(to_string_data, start + steps * distance, 0, sizeof(text), text);
-  const float right_text_width = BLF_width(font_id, text, strlen(text));
-  const float max_text_width = max_ff(left_text_width, right_text_width);
-  const float max_label_count = BLI_rcti_size_x(&v2d->mask) / (max_text_width + 10.0f);
-  const int draw_frequency = ceil((float)steps / max_label_count);
-
-  if (draw_frequency == 0) {
-    BLF_batch_draw_end();
-    GPU_matrix_pop_projection();
-    return;
+  int draw_frequency;
+  {
+    to_string(to_string_data, start, 0, sizeof(text), text);
+    const float left_text_width = BLF_width(font_id, text, strlen(text));
+    to_string(to_string_data, start + steps * distance, 0, sizeof(text), text);
+    const float right_text_width = BLF_width(font_id, text, strlen(text));
+    const float max_text_width = max_ff(left_text_width, right_text_width);
+    const float max_label_count = BLI_rcti_size_x(&v2d->mask) / (max_text_width + 10.0f);
+    draw_frequency = ceil((float)steps / max_label_count);
   }
 
-  const int start_index = abs((int)(start / distance)) % draw_frequency;
-  for (uint i = start_index; i < steps; i += draw_frequency) {
-    const float xpos_view = start + i * distance;
-    const float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
-    to_string(to_string_data, xpos_view, distance, sizeof(text), text);
-    const float text_width = BLF_width(font_id, text, strlen(text));
+  if (draw_frequency != 0) {
+    const int start_index = abs((int)(start / distance)) % draw_frequency;
+    for (uint i = start_index; i < steps; i += draw_frequency) {
+      const float xpos_view = start + i * distance;
+      const float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
+      to_string(to_string_data, xpos_view, distance, sizeof(text), text);
+      const float text_width = BLF_width(font_id, text, strlen(text));
 
-    if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
-      BLF_draw_default_ascii(xpos_region - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
+      if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
+        BLF_draw_default_ascii(xpos_region - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
+      }
     }
   }
 

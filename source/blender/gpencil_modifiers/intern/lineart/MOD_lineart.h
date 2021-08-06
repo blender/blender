@@ -552,7 +552,7 @@ BLI_INLINE int lineart_LineIntersectTest2d(
       k1 = (a2[1] - a1[1]) / x_diff;
       k2 = (b2[1] - b1[1]) / x_diff2;
 
-      if ((k1 == k2))
+      if (k1 == k2)
         return 0;
 
       x = (a1[1] - b1[1] - k1 * a1[0] + k2 * b1[0]) / (k2 - k1);

@@ -335,6 +335,9 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   gps->uv_scale = 1.0f;
   gps->inittime = 0.0f;
 
+  /* Set stroke caps. */
+  gps->caps[0] = gps->caps[1] = (short)brush->gpencil_settings->caps_type;
+
   /* Apply the vertex color to fill. */
   ED_gpencil_fill_vertex_color_set(ts, brush, gps);
 

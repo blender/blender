@@ -2292,7 +2292,7 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
   const float icon_size = ICON_SIZE_FROM_BUTRECT(rect);
 
   /* Offset of icons from the right edge. Keep in sync
-     with 'ui_but_extra_operator_icon_mouse_over_get'. */
+   * with 'ui_but_extra_operator_icon_mouse_over_get'. */
   if (!BLI_listbase_is_empty(&but->extra_op_icons)) {
     /* Eyeballed. */
     rect->xmax -= 0.2 * icon_size;
@@ -2481,8 +2481,8 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   }
   else {
     /* In case a separate text label and some other button are placed under each other,
-       and the outline of the button does not contrast with the background.
-       Add an offset (thickness of the outline) so that the text does not stick out visually. */
+     * and the outline of the button does not contrast with the background.
+     * Add an offset (thickness of the outline) so that the text does not stick out visually. */
     if (but->drawflag & UI_BUT_TEXT_LEFT) {
       rect->xmin += U.pixelsize;
     }

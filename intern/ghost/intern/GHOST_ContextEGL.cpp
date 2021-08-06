@@ -402,7 +402,9 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   if (!EGL_CHK(::eglInitialize(m_display, &egl_major, &egl_minor)))
     goto error;
 
+#ifdef WITH_GHOST_DEBUG
   fprintf(stderr, "EGL Version %d.%d\n", egl_major, egl_minor);
+#endif
 
   if (!EGL_CHK(::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT)))
     goto error;

@@ -113,7 +113,7 @@ const char *screen_context_dir[] = {
     "active_editable_fcurve",
     "selected_editable_keyframes",
     "ui_list",
-    "asset_library",
+    "asset_library_ref",
     NULL,
 };
 
@@ -1031,7 +1031,7 @@ static eContextResult screen_ctx_asset_library(const bContext *C, bContextDataRe
 {
   WorkSpace *workspace = CTX_wm_workspace(C);
   CTX_data_pointer_set(
-      result, &workspace->id, &RNA_AssetLibraryReference, &workspace->asset_library);
+      result, &workspace->id, &RNA_AssetLibraryReference, &workspace->asset_library_ref);
   return CTX_RESULT_OK;
 }
 
@@ -1118,7 +1118,7 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("selected_visible_fcurves", screen_ctx_selected_visible_fcurves);
   register_context_function("active_editable_fcurve", screen_ctx_active_editable_fcurve);
   register_context_function("selected_editable_keyframes", screen_ctx_selected_editable_keyframes);
-  register_context_function("asset_library", screen_ctx_asset_library);
+  register_context_function("asset_library_ref", screen_ctx_asset_library);
   register_context_function("ui_list", screen_ctx_ui_list);
 }
 

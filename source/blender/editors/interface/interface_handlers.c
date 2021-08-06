@@ -3438,10 +3438,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
   const bool is_num_but = ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER);
   bool no_zero_strip = false;
 
-  if (data->str) {
-    MEM_freeN(data->str);
-    data->str = NULL;
-  }
+  MEM_SAFE_FREE(data->str);
 
 #ifdef USE_DRAG_MULTINUM
   /* this can happen from multi-drag */
@@ -6779,7 +6776,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
 
   ui_color_picker_hsv_to_rgb(hsv, rgb);
 
-  if ((cpicker->use_luminosity_lock)) {
+  if (cpicker->use_luminosity_lock) {
     if (!is_zero_v3(rgb)) {
       normalize_v3_length(rgb, cpicker->luminosity_lock_value);
     }
@@ -8639,10 +8636,7 @@ static void button_activate_exit(
   }
 
   /* clean up button */
-  if (but->active) {
-    MEM_freeN(but->active);
-    but->active = NULL;
-  }
+  MEM_SAFE_FREE(but->active);
 
   but->flag &= ~(UI_ACTIVE | UI_SELECT);
   but->flag |= UI_BUT_LAST_ACTIVE;

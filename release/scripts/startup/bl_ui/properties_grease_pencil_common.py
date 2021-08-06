@@ -54,7 +54,7 @@ class AnnotationDrawingToolsPanel:
         col.label(text="Stroke Placement:")
         row = col.row(align=True)
         row.prop_enum(tool_settings, "annotation_stroke_placement_view2d", 'VIEW')
-        row.prop_enum(tool_settings, "annotation_stroke_placement_view2d", 'CURSOR', text="Cursor")
+        row.prop_enum(tool_settings, "annotation_stroke_placement_view2d", 'IMAGE', text="Image")
 
 
 class GreasePencilSculptOptionsPanel:

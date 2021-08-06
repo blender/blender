@@ -114,7 +114,7 @@ static PyObject *py_structseq_from_strings(PyTypeObject *py_type,
   BLI_assert(py_struct_seq != NULL);
 
   for (str_iter = str_items; *str_iter; str_iter++) {
-    PyStructSequence_SET_ITEM(py_struct_seq, pos++, PyUnicode_FromString((*str_iter)));
+    PyStructSequence_SET_ITEM(py_struct_seq, pos++, PyUnicode_FromString(*str_iter));
   }
 
   return py_struct_seq;

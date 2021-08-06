@@ -429,7 +429,7 @@ MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
   masklay_new->blend_flag = masklay->blend_flag;
   masklay_new->flag = masklay->flag;
   masklay_new->falloff = masklay->falloff;
-  masklay_new->restrictflag = masklay->restrictflag;
+  masklay_new->visibility_flag = masklay->visibility_flag;
 
   for (spline = masklay->splines.first; spline; spline = spline->next) {
     MaskSpline *spline_new = BKE_mask_spline_copy(spline);
@@ -2092,7 +2092,7 @@ void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
   MaskSpline *spline;
 
   /* Nothing to do if selection if disabled for the given layer. */
-  if (mask_layer->restrictflag & MASK_RESTRICT_SELECT) {
+  if (mask_layer->visibility_flag & MASK_HIDE_SELECT) {
     return;
   }
 

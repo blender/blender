@@ -41,7 +41,7 @@ void MaskNode::convertToOperations(NodeConverter &converter,
   NodeMask *data = (NodeMask *)editorNode->storage;
   Mask *mask = (Mask *)editorNode->id;
 
-  // always connect the output image
+  /* Always connect the output image. */
   MaskOperation *operation = new MaskOperation();
 
   if (editorNode->custom1 & CMP_NODEFLAG_MASK_FIXED) {

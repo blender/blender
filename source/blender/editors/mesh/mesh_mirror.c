@@ -365,10 +365,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
 
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store)
 {
-  if (mesh_topo_store->index_lookup) {
-    MEM_freeN(mesh_topo_store->index_lookup);
-  }
-  mesh_topo_store->index_lookup = NULL;
+  MEM_SAFE_FREE(mesh_topo_store->index_lookup);
   mesh_topo_store->prev_vert_tot = -1;
   mesh_topo_store->prev_edge_tot = -1;
 }

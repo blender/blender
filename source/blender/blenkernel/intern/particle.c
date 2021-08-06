@@ -928,10 +928,7 @@ void free_hair(Object *object, ParticleSystem *psys, int dynamics)
 
   LOOP_PARTICLES
   {
-    if (pa->hair) {
-      MEM_freeN(pa->hair);
-    }
-    pa->hair = NULL;
+    MEM_SAFE_FREE(pa->hair);
     pa->totkey = 0;
   }
 
@@ -1044,25 +1041,13 @@ void psys_free_particles(ParticleSystem *psys)
 void psys_free_pdd(ParticleSystem *psys)
 {
   if (psys->pdd) {
-    if (psys->pdd->cdata) {
-      MEM_freeN(psys->pdd->cdata);
-    }
-    psys->pdd->cdata = NULL;
+    MEM_SAFE_FREE(psys->pdd->cdata);
 
-    if (psys->pdd->vdata) {
-      MEM_freeN(psys->pdd->vdata);
-    }
-    psys->pdd->vdata = NULL;
+    MEM_SAFE_FREE(psys->pdd->vdata);
 
-    if (psys->pdd->ndata) {
-      MEM_freeN(psys->pdd->ndata);
-    }
-    psys->pdd->ndata = NULL;
+    MEM_SAFE_FREE(psys->pdd->ndata);
 
-    if (psys->pdd->vedata) {
-      MEM_freeN(psys->pdd->vedata);
-    }
-    psys->pdd->vedata = NULL;
+    MEM_SAFE_FREE(psys->pdd->vedata);
 
     psys->pdd->totpoint = 0;
     psys->pdd->totpart = 0;

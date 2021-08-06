@@ -490,9 +490,8 @@ void set_current_linestyle_texture(FreestyleLineStyle *linestyle, Tex *newtex)
     linestyle->mtex[act]->tex = newtex;
     id_us_plus(&newtex->id);
   }
-  else if (linestyle->mtex[act]) {
-    MEM_freeN(linestyle->mtex[act]);
-    linestyle->mtex[act] = NULL;
+  else {
+    MEM_SAFE_FREE(linestyle->mtex[act]);
   }
 }
 
@@ -595,9 +594,8 @@ void set_current_particle_texture(ParticleSettings *part, Tex *newtex)
     part->mtex[act]->tex = newtex;
     id_us_plus(&newtex->id);
   }
-  else if (part->mtex[act]) {
-    MEM_freeN(part->mtex[act]);
-    part->mtex[act] = NULL;
+  else {
+    MEM_SAFE_FREE(part->mtex[act]);
   }
 }
 
@@ -660,14 +658,8 @@ void BKE_texture_pointdensity_free_data(PointDensity *pd)
     BLI_bvhtree_free(pd->point_tree);
     pd->point_tree = NULL;
   }
-  if (pd->point_data) {
-    MEM_freeN(pd->point_data);
-    pd->point_data = NULL;
-  }
-  if (pd->coba) {
-    MEM_freeN(pd->coba);
-    pd->coba = NULL;
-  }
+  MEM_SAFE_FREE(pd->point_data);
+  MEM_SAFE_FREE(pd->coba);
 
   BKE_curvemapping_free(pd->falloff_curve); /* can be NULL */
 }

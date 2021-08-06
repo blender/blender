@@ -409,8 +409,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
 
     for (i = 0; i < verts_pack_len && isect; i++) {
       vert = &vs_ctx.vertarray[vertex_pack_indices[i]];
-      /* printf("\ttesting vert %i %i %i %f %f\n", i,
-       *        vert->free, verts_pack_len, vert->x, vert->y); */
+      // printf("\ttesting vert %i %i %i %f %f\n", i,
+      //        vert->free, verts_pack_len, vert->x, vert->y);
 
       /* This vert has a free quadrant
        * Test if we can place the box here

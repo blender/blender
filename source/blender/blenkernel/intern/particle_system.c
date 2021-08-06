@@ -169,10 +169,7 @@ void psys_reset(ParticleSystem *psys, int mode)
   }
 
   /* reset children */
-  if (psys->child) {
-    MEM_freeN(psys->child);
-    psys->child = NULL;
-  }
+  MEM_SAFE_FREE(psys->child);
 
   psys->totchild = 0;
 
@@ -182,10 +179,7 @@ void psys_reset(ParticleSystem *psys, int mode)
   /* reset point cache */
   BKE_ptcache_invalidate(psys->pointcache);
 
-  if (psys->fluid_springs) {
-    MEM_freeN(psys->fluid_springs);
-    psys->fluid_springs = NULL;
-  }
+  MEM_SAFE_FREE(psys->fluid_springs);
 
   psys->tot_fluidsprings = psys->alloc_fluidsprings = 0;
 }
@@ -3112,7 +3106,7 @@ static void collision_fail(ParticleData *pa, ParticleCollision *col)
   copy_v3_v3(pa->state.vel, col->pce.vel);
   mul_v3_fl(pa->state.vel, col->inv_timestep);
 
-  /* printf("max iterations\n"); */
+  // printf("max iterations\n");
 }
 
 /* Particle - Mesh collision detection and response
@@ -4516,10 +4510,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
     reset_all_particles(sim, 0.0, cfra, oldtotpart);
     free_unexisting_particles(sim);
 
-    if (psys->fluid_springs) {
-      MEM_freeN(psys->fluid_springs);
-      psys->fluid_springs = NULL;
-    }
+    MEM_SAFE_FREE(psys->fluid_springs);
 
     psys->tot_fluidsprings = psys->alloc_fluidsprings = 0;
 

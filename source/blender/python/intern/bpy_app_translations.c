@@ -746,7 +746,7 @@ static PyObject *app_translations_new(PyTypeObject *type,
                                       PyObject *UNUSED(args),
                                       PyObject *UNUSED(kw))
 {
-  /*  printf("%s (%p)\n", __func__, _translations); */
+  // printf("%s (%p)\n", __func__, _translations);
 
   if (!_translations) {
     _translations = (BlenderAppTranslations *)type->tp_alloc(type, 0);

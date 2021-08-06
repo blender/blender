@@ -78,6 +78,9 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2]);
 
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
+  if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
+    return false;
+  }
   return ((around == V3D_AROUND_LOCAL_ORIGINS) && (ELEM(t->obedit_type, OB_MESH, OB_GPENCIL)));
 }
 
@@ -1828,7 +1831,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
 
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        if ((((Mesh *)(tc->obedit->data))->flag & ME_AUTOSMOOTH)) {
+        if (((Mesh *)(tc->obedit->data))->flag & ME_AUTOSMOOTH) {
           BMEditMesh *em = NULL; /* BKE_editmesh_from_object(t->obedit); */
           bool do_skip = false;
 

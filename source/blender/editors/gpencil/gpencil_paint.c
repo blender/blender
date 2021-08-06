@@ -996,6 +996,9 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   gps->inittime = p->inittime;
   gps->uv_scale = 1.0f;
 
+  /* Set stroke caps. */
+  gps->caps[0] = gps->caps[1] = brush->gpencil_settings->caps_type;
+
   /* allocate enough memory for a continuous array for storage points */
   const int subdivide = brush->gpencil_settings->draw_subdivide;
 

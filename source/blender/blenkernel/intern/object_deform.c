@@ -307,10 +307,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
-      if (lt->dvert) {
-        MEM_freeN(lt->dvert);
-        lt->dvert = NULL;
-      }
+      MEM_SAFE_FREE(lt->dvert);
     }
   }
   else if (BKE_object_defgroup_active_index_get(ob) < 1) {
@@ -465,10 +462,7 @@ void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
-      if (lt->dvert) {
-        MEM_freeN(lt->dvert);
-        lt->dvert = NULL;
-      }
+      MEM_SAFE_FREE(lt->dvert);
     }
     /* Fix counters/indices */
     BKE_object_defgroup_active_index_set(ob, 0);

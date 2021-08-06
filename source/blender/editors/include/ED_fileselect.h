@@ -140,6 +140,7 @@ void ED_fileselect_clear(struct wmWindowManager *wm, struct SpaceFile *sfile);
 
 void ED_fileselect_exit(struct wmWindowManager *wm, struct SpaceFile *sfile);
 
+bool ED_fileselect_is_file_browser(const struct SpaceFile *sfile);
 bool ED_fileselect_is_asset_browser(const struct SpaceFile *sfile);
 struct ID *ED_fileselect_active_asset_get(const struct SpaceFile *sfile);
 

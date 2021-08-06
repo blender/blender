@@ -32,8 +32,9 @@
 
 GHOST_ImeWin32::GHOST_ImeWin32()
     : is_composing_(false),
-      ime_status_(false),
       input_language_id_(LANG_USER_DEFAULT),
+      conversion_modes_(IME_CMODE_ALPHANUMERIC),
+      sentence_mode_(IME_SMODE_NONE),
       system_caret_(false),
       caret_rect_(-1, -1, 0, 0),
       is_first(true),
@@ -45,18 +46,70 @@ GHOST_ImeWin32::~GHOST_ImeWin32()
 {
 }
 
-bool GHOST_ImeWin32::SetInputLanguage()
+void GHOST_ImeWin32::UpdateInputLanguage()
 {
   /**
-   * Retrieve the current keyboard layout from Windows and determine whether
-   * or not the current input context has IMEs.
-   * Also save its input language for language-specific operations required
-   * while composing a text.
+   * Store the current input language.
    */
-  HKL keyboard_layout = ::GetKeyboardLayout(0);
-  input_language_id_ = LOWORD(keyboard_layout);
-  ime_status_ = ::ImmIsIME(keyboard_layout);
-  return ime_status_;
+  HKL input_locale = ::GetKeyboardLayout(0);
+  input_language_id_ = LOWORD(input_locale);
+}
+
+WORD GHOST_ImeWin32::GetInputLanguage()
+{
+  return input_language_id_;
+}
+
+void GHOST_ImeWin32::UpdateConversionStatus(HWND window_handle)
+{
+  HIMC imm_context = ::ImmGetContext(window_handle);
+  if (imm_context) {
+    if (::ImmGetOpenStatus(imm_context)) {
+      ::ImmGetConversionStatus(imm_context, &conversion_modes_, &sentence_mode_);
+    }
+    else {
+      conversion_modes_ = IME_CMODE_ALPHANUMERIC;
+      sentence_mode_ = IME_SMODE_NONE;
+    }
+    ::ImmReleaseContext(window_handle, imm_context);
+  }
+  else {
+    conversion_modes_ = IME_CMODE_ALPHANUMERIC;
+    sentence_mode_ = IME_SMODE_NONE;
+  }
+}
+
+bool GHOST_ImeWin32::IsEnglishMode()
+{
+  return (conversion_modes_ & IME_CMODE_NOCONVERSION) ||
+         !(conversion_modes_ & (IME_CMODE_NATIVE | IME_CMODE_FULLSHAPE));
+}
+
+bool GHOST_ImeWin32::IsImeKeyEvent(char ascii)
+{
+  if (!(IsEnglishMode())) {
+    /* In Chinese, Japanese, Korean, all alpha keys are processed by IME. */
+    if ((ascii >= 'A' && ascii <= 'Z') || (ascii >= 'a' && ascii <= 'z')) {
+      return true;
+    }
+    switch (PRIMARYLANGID(GetInputLanguage())) {
+      /* In Japanese, all symbolic characters are also processed by IME. */
+      case LANG_JAPANESE: {
+        if (ascii >= ' ' && ascii <= '~') {
+          return true;
+        }
+        break;
+      }
+      /* In Chinese, some symbolic characters are also processed by IME. */
+      case LANG_CHINESE: {
+        if (ascii && strchr("!\"$'(),.:;<>?[\\]^_`", ascii)) {
+          return true;
+        }
+        break;
+      }
+    }
+  }
+  return false;
 }
 
 void GHOST_ImeWin32::CreateImeWindow(HWND window_handle)

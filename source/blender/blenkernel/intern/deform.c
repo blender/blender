@@ -894,10 +894,7 @@ void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 
 void BKE_defvert_clear(MDeformVert *dvert)
 {
-  if (dvert->dw) {
-    MEM_freeN(dvert->dw);
-    dvert->dw = NULL;
-  }
+  MEM_SAFE_FREE(dvert->dw);
 
   dvert->totweight = 0;
 }

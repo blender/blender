@@ -2447,7 +2447,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
       float unit_scale = ANIM_unit_mapping_get_factor(
           ac->scene, ale->id, ale->key_data, mapping_flag | ANIM_UNITCONV_ONLYKEYS, &offset);
 
-      ked.f1 = (cursor_value + offset) * unit_scale;
+      ked.f1 = (cursor_value - offset) / unit_scale;
     }
 
     /* Perform actual mirroring. */

@@ -70,6 +70,7 @@ typedef struct Global {
    *   * -16384 and below: Reserved for python (add-ons) usage.
    *   *     -1: Disable faster motion paths computation (since 08/2018).
    *   * 1 - 30: EEVEE debug/stats values (01/2018).
+   *   *     31: Enable the Select Debug Engine. Only available with #WITH_DRAW_DEBUG (08/2021).
    *   *    101: Enable UI debug drawing of fullscreen area's corner widget (10/2014).
    *   *    666: Use quicker batch delete for outliners' delete hierarchy (01/2019).
    *   *    777: Enable UI node panel's sockets polling (11/2011).

@@ -13,24 +13,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2015 Blender Foundation.
+ * Adapted from the Blender Alembic importer implementation.
+ *
+ * Modifications Copyright (C) 2021 Tangent Animation.
  * All rights reserved.
  */
+#pragma once
 
-#include "openvdb_util.h"
+#include "usd.h"
+#include "usd_reader_xform.h"
 
-#include <cstdio>
+namespace blender::io::usd {
 
-ScopeTimer::ScopeTimer(const std::string &message) : m_message(message), m_timer()
-{
-}
+class USDCameraReader : public USDXformReader {
 
-ScopeTimer::~ScopeTimer()
-{
-#if OPENVDB_LIBRARY_MAJOR_VERSION_NUMBER >= 7
-  double delta = m_timer.milliseconds();
-#else
-  double delta = m_timer.delta(); /* Deprecated in OpenVDB 7. */
-#endif
-  std::printf("%s: %fms\n", m_message.c_str(), delta);
-}
+ public:
+  USDCameraReader(const pxr::UsdPrim &object,
+                  const USDImportParams &import_params,
+                  const ImportSettings &settings)
+      : USDXformReader(object, import_params, settings)
+  {
+  }
+
+  void create_object(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, double motionSampleTime) override;
+};
+
+}  // namespace blender::io::usd

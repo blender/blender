@@ -61,11 +61,11 @@ namespace blender::deg {
 
 void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
 {
-  const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_RESTRICT_VIEWPORT :
-                                                                  COLLECTION_RESTRICT_RENDER;
+  const int visibility_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_HIDE_VIEWPORT :
+                                                                    COLLECTION_HIDE_RENDER;
 
   for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
-    if ((lc->collection->flag & restrict_flag)) {
+    if (lc->collection->flag & visibility_flag) {
       continue;
     }
     if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {

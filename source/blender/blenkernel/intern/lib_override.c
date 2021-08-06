@@ -571,7 +571,7 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
      * would use one of those.
      * NOTE: missing IDs (aka placeholders) are never overridden. */
     if (ELEM(GS(to_id->name), ID_OB, ID_GR)) {
-      if ((to_id->tag & LIB_TAG_MISSING)) {
+      if (to_id->tag & LIB_TAG_MISSING) {
         to_id->tag |= missing_tag;
       }
       else {
@@ -604,7 +604,7 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
   const bool is_resync = data->is_resync;
   BLI_assert(!data->is_override);
 
-  if ((id_root->tag & LIB_TAG_MISSING)) {
+  if (id_root->tag & LIB_TAG_MISSING) {
     id_root->tag |= data->missing_tag;
   }
   else {
@@ -654,7 +654,7 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
 
         if (instantiating_collection == NULL &&
             instantiating_collection_override_candidate != NULL) {
-          if ((instantiating_collection_override_candidate->id.tag & LIB_TAG_MISSING)) {
+          if (instantiating_collection_override_candidate->id.tag & LIB_TAG_MISSING) {
             instantiating_collection_override_candidate->id.tag |= data->missing_tag;
           }
           else {
@@ -730,7 +730,7 @@ static void lib_override_overrides_group_tag(LibOverrideGroupTagData *data)
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
   BLI_assert(data->is_override);
 
-  if ((id_root->override_library->reference->tag & LIB_TAG_MISSING)) {
+  if (id_root->override_library->reference->tag & LIB_TAG_MISSING) {
     id_root->tag |= data->missing_tag;
   }
   else {
@@ -855,8 +855,8 @@ static void lib_override_library_create_post_process(Main *bmain,
             default_instantiating_collection = BKE_collection_add(
                 bmain, (Collection *)id_root, "OVERRIDE_HIDDEN");
             /* Hide the collection from viewport and render. */
-            default_instantiating_collection->flag |= COLLECTION_RESTRICT_VIEWPORT |
-                                                      COLLECTION_RESTRICT_RENDER;
+            default_instantiating_collection->flag |= COLLECTION_HIDE_VIEWPORT |
+                                                      COLLECTION_HIDE_RENDER;
             break;
           }
           case ID_OB: {
@@ -1599,6 +1599,17 @@ static void lib_override_library_main_resync_on_library_indirect_level(
             (!ID_IS_LINKED(id) && library_indirect_level != 0)) {
           continue;
         }
+
+        /* We cannot resync a scene that is currently active. */
+        if (id == &scene->id) {
+          id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+          BKE_reportf(reports->reports,
+                      RPT_WARNING,
+                      "Scene '%s' was not resynced as it is the currently active one",
+                      scene->id.name + 2);
+          continue;
+        }
+
         Library *library = id->lib;
 
         int level = 0;
@@ -1731,8 +1742,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
     override_resync_residual_storage = BKE_collection_add(
         bmain, scene->master_collection, OVERRIDE_RESYNC_RESIDUAL_STORAGE_NAME);
     /* Hide the collection from viewport and render. */
-    override_resync_residual_storage->flag |= COLLECTION_RESTRICT_VIEWPORT |
-                                              COLLECTION_RESTRICT_RENDER;
+    override_resync_residual_storage->flag |= COLLECTION_HIDE_VIEWPORT | COLLECTION_HIDE_RENDER;
   }
 
   /* Necessary to improve performances, and prevent layers matching override sub-collections to be
