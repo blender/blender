@@ -3077,7 +3077,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   /* find matching keyframe in the right direction */
-  ActKeyColumn *ak;
+  const ActKeyColumn *ak;
   if (next) {
     ak = ED_keylist_find_next(keylist, cfra);
   }

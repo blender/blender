@@ -139,11 +139,11 @@ typedef enum eKeyframeExtremeDrawOpts {
 
 struct AnimKeylist *ED_keylist_create(void);
 void ED_keylist_free(struct AnimKeylist *keylist);
-struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist, float cfra);
-struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist, float cfra);
-struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist, float cfra);
-struct ActKeyColumn *ED_keylist_find_any_between(const struct AnimKeylist *keylist,
-                                                 const Range2f frame_range);
+const struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_any_between(const struct AnimKeylist *keylist,
+                                                       const Range2f frame_range);
 bool ED_keylist_is_empty(const struct AnimKeylist *keylist);
 const struct ListBase /* ActKeyColumn */ *ED_keylist_listbase(const struct AnimKeylist *keylist);
 bool ED_keylist_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_range);

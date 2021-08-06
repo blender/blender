@@ -72,26 +72,28 @@ void ED_keylist_free(AnimKeylist *keylist)
   MEM_freeN(keylist);
 }
 
-ActKeyColumn *ED_keylist_find_exact(const AnimKeylist *keylist, float cfra)
+const ActKeyColumn *ED_keylist_find_exact(const AnimKeylist *keylist, float cfra)
 {
-  return (ActKeyColumn *)BLI_dlrbTree_search_exact(&keylist->keys, compare_ak_cfraPtr, &cfra);
+  return (const ActKeyColumn *)BLI_dlrbTree_search_exact(
+      &keylist->keys, compare_ak_cfraPtr, &cfra);
 }
 
-ActKeyColumn *ED_keylist_find_next(const AnimKeylist *keylist, float cfra)
+const ActKeyColumn *ED_keylist_find_next(const AnimKeylist *keylist, float cfra)
 {
-  return (ActKeyColumn *)BLI_dlrbTree_search_next(&keylist->keys, compare_ak_cfraPtr, &cfra);
+  return (const ActKeyColumn *)BLI_dlrbTree_search_next(&keylist->keys, compare_ak_cfraPtr, &cfra);
 }
 
-ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, float cfra)
+const ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, float cfra)
 {
-  return (ActKeyColumn *)BLI_dlrbTree_search_prev(&keylist->keys, compare_ak_cfraPtr, &cfra);
+  return (const ActKeyColumn *)BLI_dlrbTree_search_prev(&keylist->keys, compare_ak_cfraPtr, &cfra);
 }
 
 /* TODO(jbakker): Should we change this to use `ED_keylist_find_next(keys, min_fra)` and only check
  * boundary of `max_fra`. */
-ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist, const Range2f frame_range)
+const ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
+                                                const Range2f frame_range)
 {
-  for (ActKeyColumn *ak = keylist->keys.root; ak;
+  for (const ActKeyColumn *ak = keylist->keys.root; ak;
        ak = (ak->cfra < frame_range.min) ? ak->right : ak->left) {
     if (range2f_in_range(&frame_range, ak->cfra)) {
       return ak;
