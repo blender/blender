@@ -89,14 +89,11 @@ ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, float cfra)
 
 /* TODO(jbakker): Should we change this to use `ED_keylist_find_next(keys, min_fra)` and only check
  * boundary of `max_fra`. */
-/* TODO(jbakker): Use const Range2f. */
-ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
-                                          const float min_fra,
-                                          const float max_fra)
+ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist, const Range2f frame_range)
 {
   for (ActKeyColumn *ak = keylist->keys.root; ak;
-       ak = (ak->cfra < min_fra) ? ak->right : ak->left) {
-    if (IN_RANGE(ak->cfra, min_fra, max_fra)) {
+       ak = (ak->cfra < frame_range.min) ? ak->right : ak->left) {
+    if (range2f_in_range(&frame_range, ak->cfra)) {
       return ak;
     }
   }
