@@ -2737,7 +2737,7 @@ cleanup_valence_3_4(PBVH *pbvh,
 
       BMFace *f1 = NULL;
       if (vs[0] != vs[1] && vs[1] != vs[2] && vs[0] != vs[2]) {
-        f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f, false, false);
+        f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f, true, false);
         normal_tri_v3(
             f1->no, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->prev->v->co);
       }
@@ -2755,7 +2755,7 @@ cleanup_valence_3_4(PBVH *pbvh,
           example = v->e->l->f;
         }
 
-        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, example, false, false);
+        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, example, true, false);
 
         CustomData_bmesh_swap_data_simple(
             &pbvh->bm->ldata, &f2->l_first->prev->head.data, &ls[3]->head.data);
