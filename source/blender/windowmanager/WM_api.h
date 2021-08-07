@@ -987,7 +987,7 @@ bool WM_xr_action_create(wmXrData *xr,
                          const char **subaction_paths,
                          struct wmOperatorType *ot,
                          struct IDProperty *op_properties,
-                         const char **haptic_name,
+                         const char *haptic_name,
                          const int64_t *haptic_duration,
                          const float *haptic_frequency,
                          const float *haptic_amplitude,
@@ -1027,14 +1027,14 @@ bool WM_xr_action_state_get(const wmXrData *xr,
 bool WM_xr_haptic_action_apply(wmXrData *xr,
                                const char *action_set_name,
                                const char *action_name,
-                               const char **subaction_path,
+                               const char *subaction_path,
                                const int64_t *duration,
                                const float *frequency,
                                const float *amplitude);
 void WM_xr_haptic_action_stop(wmXrData *xr,
                               const char *action_set_name,
                               const char *action_name,
-                              const char **subaction_path);
+                              const char *subaction_path);
 
 /* wm_xr_actionmap.c */
 XrActionMap *WM_xr_actionmap_new(struct wmXrRuntimeData *runtime,
