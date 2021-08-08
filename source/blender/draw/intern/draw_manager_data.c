@@ -924,7 +924,6 @@ typedef struct DRWSculptCallbackData {
   bool fast_mode; /* Set by draw manager. Do not init. */
 
   int debug_node_nr;
-  bool active_vcol_only;
 } DRWSculptCallbackData;
 
 #define SCULPT_DEBUG_COLOR(id) (sculpt_debug_colors[id % 9])
@@ -1092,8 +1091,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    &update_frustum,
                    &draw_frustum,
                    (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb,
-                   scd,
-                   scd->active_vcol_only);
+                   scd);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;
@@ -1113,8 +1111,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup, Object *ob, bool use_wire
                                .num_shading_groups = 1,
                                .use_wire = use_wire,
                                .use_mats = false,
-                               .use_mask = use_mask,
-                               .active_vcol_only = true};
+                               .use_mask = use_mask};
   drw_sculpt_generate_calls(&scd);
 }
 
@@ -1127,8 +1124,8 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                .num_shading_groups = num_shgroups,
                                .use_wire = false,
                                .use_mats = true,
-                               .use_mask = false,
-                               .active_vcol_only = false};
+                               .use_mask = false};
+
   drw_sculpt_generate_calls(&scd);
 }
 

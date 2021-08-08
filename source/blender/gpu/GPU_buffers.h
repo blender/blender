@@ -87,11 +87,9 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MPropCol *vtcol,
                                   const int update_flags);
 
-/** if active_vcol_only is true, only the active (not render!) layer will
-    be uploaded to GPU*/
 void GPU_pbvh_update_attribute_names(struct CustomData *vdata,
                                      struct CustomData *ldata,
-                                     bool active_vcol_only);
+                                     bool need_full_render);
 
 void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct BMesh *bm,
@@ -104,7 +102,6 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    int face_sets_color_seed,
                                    int face_sets_color_default,
                                    bool flat_vcol,
-                                   bool active_vcol_only,
                                    short mat_nr);
 
 void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
@@ -131,6 +128,12 @@ struct GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast
 short GPU_pbvh_buffers_material_index_get(GPU_PBVH_Buffers *buffers);
 bool GPU_pbvh_buffers_has_overlays(GPU_PBVH_Buffers *buffers);
 float *GPU_pbvh_get_extra_matrix(GPU_PBVH_Buffers *buffers);
+
+/** if need_full_render is false, only the active (not render!) vcol layer will
+    be uploaded to GPU*/
+
+void GPU_pbvh_need_full_render_set(bool state);
+bool GPU_pbvh_need_full_render_get(void);
 
 #ifdef __cplusplus
 }

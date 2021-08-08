@@ -1045,7 +1045,6 @@ typedef struct PBVHUpdateData {
   int flag;
   bool show_sculpt_face_sets;
   bool flat_vcol_shading;
-  bool active_vcol_only;
 } PBVHUpdateData;
 
 static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
@@ -1401,7 +1400,6 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                         pbvh->face_sets_color_seed,
                                         pbvh->face_sets_color_default,
                                         data->flat_vcol_shading,
-                                        data->active_vcol_only,
                                         node->tri_buffers[i].mat_nr);
         }
         break;
@@ -1456,8 +1454,7 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_update_draw_buffers(
-    PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag, bool active_vcol_only)
+static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
 {
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */
@@ -1489,13 +1486,11 @@ static void pbvh_update_draw_buffers(
     ldata = pbvh->ldata;
   }
 
-  GPU_pbvh_update_attribute_names(vdata, ldata, active_vcol_only);
+  GPU_pbvh_update_attribute_names(vdata, ldata, GPU_pbvh_need_full_render_get());
 
   /* Parallel creation and update of draw buffers. */
-  PBVHUpdateData data = {.pbvh = pbvh,
-                         .nodes = nodes,
-                         .flat_vcol_shading = pbvh->flat_vcol_shading,
-                         .active_vcol_only = active_vcol_only};
+  PBVHUpdateData data = {
+      .pbvh = pbvh, .nodes = nodes, .flat_vcol_shading = pbvh->flat_vcol_shading};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -2926,8 +2921,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
-                      void *user_data,
-                      bool active_vcol_only)
+                      void *user_data)
 {
   PBVHNode **nodes;
   int totnode;
@@ -2950,7 +2944,28 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
 
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
-    pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag, active_vcol_only);
+    // check that need_full_render is set to GPU_pbvh_need_full_render_get(),
+    // but only if nodes need updating
+
+    if (pbvh->type == PBVH_BMESH && pbvh->need_full_render != GPU_pbvh_need_full_render_get()) {
+      // update all nodes
+      MEM_SAFE_FREE(nodes);
+
+      printf("Rebuilding PBVH draw buffers...\n");
+
+      for (int i = 0; i < pbvh->totnode; i++) {
+        PBVHNode *node = pbvh->nodes + i;
+
+        node->flag |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers;
+      }
+
+      pbvh->need_full_render = GPU_pbvh_need_full_render_get();
+      BKE_pbvh_draw_cb(
+          pbvh, update_only_visible, update_frustum, draw_frustum, draw_fn, user_data);
+      return;
+    }
+
+    pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag);
   }
   MEM_SAFE_FREE(nodes);
 

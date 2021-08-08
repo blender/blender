@@ -205,6 +205,7 @@ struct PBVH {
   struct SubdivCCG *subdiv_ccg;
 
   bool flat_vcol_shading;
+  bool need_full_render;  // used by pbvh drawing for PBVH_BMESH
 };
 
 /* pbvh.c */
