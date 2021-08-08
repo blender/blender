@@ -594,7 +594,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
         const unsigned int j = BLI_rng_get_uint(rng) % gps->totpoints;
         bool select_stroke = ((gps->totpoints * randfac) <= j) ? true : false;
         select_stroke ^= select;
-        /* Curve function has select paremter inverted. */
+        /* Curve function has select parameter inverted. */
         select_all_curve_points(gpd, gps, gps->editcurve, !select_stroke);
         changed = true;
         BLI_rng_free(rng);
