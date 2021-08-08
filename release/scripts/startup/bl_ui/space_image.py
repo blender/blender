@@ -826,12 +826,6 @@ class IMAGE_HT_header(Header):
             row = layout.row()
             row.prop(sima, "display_channels", icon_only=True)
 
-            row = layout.row(align=True)
-            if ima.type == 'COMPOSITE':
-                row.operator("image.record_composite", icon='REC')
-            if ima.type == 'COMPOSITE' and ima.source in {'MOVIE', 'SEQUENCE'}:
-                row.operator("image.play_composite", icon='PLAY')
-
 
 class IMAGE_MT_editor_menus(Menu):
     bl_idname = "IMAGE_MT_editor_menus"
