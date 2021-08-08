@@ -1156,12 +1156,6 @@ class CLIP_PT_mask_layers(MASK_PT_layers, Panel):
     bl_category = "Mask"
 
 
-class CLIP_PT_mask_display(MASK_PT_display, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'HEADER'
-    bl_category = "Mask"
-
-
 class CLIP_PT_active_mask_spline(MASK_PT_spline, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
@@ -1190,6 +1184,11 @@ class CLIP_PT_tools_mask_tools(MASK_PT_tools, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_category = "Mask"
+
+
+class CLIP_PT_mask_display(MASK_PT_display, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'HEADER'
 
 # --- end mask ---
 

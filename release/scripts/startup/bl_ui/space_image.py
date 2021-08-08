@@ -817,7 +817,7 @@ class IMAGE_HT_header(Header):
                 row.prop(sima, "show_stereo_3d", text="")
             if show_maskedit:
                 row = layout.row()
-                row.popover(panel='CLIP_PT_mask_display')
+                row.popover(panel='IMAGE_PT_mask_display')
 
             # layers.
             layout.template_image_layers(ima, iuser)
@@ -911,8 +911,7 @@ class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
 
 class IMAGE_PT_mask_display(MASK_PT_display, Panel):
     bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "Mask"
+    bl_region_type = 'HEADER'
 
 
 # --- end mask ---
