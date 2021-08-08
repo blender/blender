@@ -147,7 +147,7 @@ struct BMLog {
 
 typedef struct {
   float co[3];
-  short no[3];
+  float no[3];
   char hflag;
   float mask;
   void *customdata;
@@ -399,7 +399,8 @@ static void bm_log_vert_bmvert_copy(BMLog *log,
                                     bool copy_customdata)
 {
   copy_v3_v3(lv->co, v->co);
-  normal_float_to_short_v3(lv->no, v->no);
+  copy_v3_v3(lv->no, v->no);
+
   lv->mask = vert_mask_get(v, cd_vert_mask_offset);
   lv->hflag = v->head.hflag;
 
@@ -583,10 +584,13 @@ static void bm_log_verts_restore(
   GHASH_ITER (gh_iter, verts) {
     void *key = BLI_ghashIterator_getKey(&gh_iter);
     BMLogVert *lv = BLI_ghashIterator_getValue(&gh_iter);
+
     BMVert *v = BM_vert_create(bm, lv->co, NULL, BM_CREATE_SKIP_ID);
+
     vert_mask_set(v, lv->mask, cd_vert_mask_offset);
+
     v->head.hflag = lv->hflag;
-    normal_short_to_float_v3(v->no, lv->no);
+    copy_v3_v3(v->no, lv->no);
 
 #ifdef CUSTOMDATA
     if (lv->customdata) {
@@ -698,13 +702,13 @@ static void bm_log_vert_values_swap(
     uint id = POINTER_AS_UINT(key);
     BMVert *v = bm_log_vert_from_id(log, id);
     float mask;
-    short normal[3];
 
     swap_v3_v3(v->co, lv->co);
-    copy_v3_v3_short(normal, lv->no);
-    normal_float_to_short_v3(lv->no, v->no);
-    normal_short_to_float_v3(v->no, normal);
+    swap_v3_v3(v->no, lv->no);
+
     SWAP(char, v->head.hflag, lv->hflag);
+
+    // TODO: probably don't need to deal with mask explicitly anymore
     mask = lv->mask;
     lv->mask = vert_mask_get(v, cd_vert_mask_offset);
     vert_mask_set(v, mask, cd_vert_mask_offset);
@@ -2120,7 +2124,7 @@ const float *BM_log_original_vert_co(BMLog *log, BMVert *v)
 /* Get the logged normal of a vertex
  *
  * Does not modify the log or the vertex */
-const short *BM_log_original_vert_no(BMLog *log, BMVert *v)
+const float *BM_log_original_vert_no(BMLog *log, BMVert *v)
 {
   BMLogEntry *entry = log->current_entry;
   const BMLogVert *lv;
@@ -2153,7 +2157,7 @@ float BM_log_original_mask(BMLog *log, BMVert *v)
   return lv->mask;
 }
 
-void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const short **r_no)
+void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const float **r_no)
 {
   BMLogEntry *entry = log->current_entry;
   const BMLogVert *lv;

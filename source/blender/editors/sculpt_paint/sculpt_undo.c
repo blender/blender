@@ -423,6 +423,7 @@ static void sculpt_undo_bmesh_restore_generic_task_cb(
   PBVHNode **nodes = userdata;
 
   BKE_pbvh_node_mark_redraw(nodes[n]);
+  BKE_pbvh_node_mark_normals_update(nodes[n]);
 }
 
 extern const char dyntopop_node_idx_layer_id[];
