@@ -33,6 +33,7 @@
 #include "BLI_ghash.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_vector.h"
+#include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_types.h"
@@ -191,6 +192,28 @@ static void deselect_all_selected(bContext *C)
     }
   }
   CTX_DATA_END;
+}
+
+static void select_all_stroke_points(bGPdata *gpd, bGPDstroke *gps, bool select)
+{
+  for (int i = 0; i < gps->totpoints; i++) {
+    bGPDspoint *pt = &gps->points[i];
+    if (select) {
+      pt->flag |= GP_SPOINT_SELECT;
+    }
+    else {
+      pt->flag &= ~GP_SPOINT_SELECT;
+    }
+  }
+
+  if (select) {
+    gps->flag |= GP_STROKE_SELECT;
+    BKE_gpencil_stroke_select_index_set(gpd, gps);
+  }
+  else {
+    gps->flag &= ~GP_STROKE_SELECT;
+    BKE_gpencil_stroke_select_index_reset(gps);
+  }
 }
 
 static void select_all_curve_points(bGPdata *gpd, bGPDstroke *gps, bGPDcurve *gpc, bool deselect)
@@ -503,6 +526,216 @@ void GPENCIL_OT_select_alternate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
+  RNA_def_boolean(ot->srna,
+                  "unselect_ends",
+                  false,
+                  "Unselect Ends",
+                  "Do not select the first and last point of the stroke");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Random Operator
+ * \{ */
+
+static int gpencil_select_random_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  if ((gpd == NULL) || (GPENCIL_NONE_EDIT_MODE(gpd))) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool unselect_ends = RNA_boolean_get(op->ptr, "unselect_ends");
+  const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
+  const float randfac = RNA_float_get(op->ptr, "ratio");
+  const int seed = WM_operator_properties_select_random_seed_increment_get(op);
+  const int start = (unselect_ends) ? 1 : 0;
+  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+
+  int selectmode;
+  if (ob && ob->mode == OB_MODE_SCULPT_GPENCIL) {
+    selectmode = gpencil_select_mode_from_sculpt(ts->gpencil_selectmode_sculpt);
+  }
+  else if (ob && ob->mode == OB_MODE_VERTEX_GPENCIL) {
+    selectmode = gpencil_select_mode_from_vertex(ts->gpencil_selectmode_vertex);
+  }
+  else {
+    selectmode = ts->gpencil_selectmode_edit;
+  }
+
+  bool changed = false;
+  int seed_iter = seed;
+  int stroke_idx = 0;
+
+  if (is_curve_edit) {
+    GP_EDITABLE_CURVES_BEGIN(gps_iter, C, gpl, gps, gpc)
+    {
+      /* Only apply to unselected strokes (if select). */
+      if (select) {
+        if ((gps->flag & GP_STROKE_SELECT) || (gps->totpoints == 0)) {
+          continue;
+        }
+      }
+      else {
+        if (((gps->flag & GP_STROKE_SELECT) == 0) || (gps->totpoints == 0)) {
+          continue;
+        }
+      }
+
+      /* Different seed by stroke. */
+      seed_iter += gps->totpoints + stroke_idx;
+      stroke_idx++;
+
+      if (selectmode == GP_SELECTMODE_STROKE) {
+        RNG *rng = BLI_rng_new(seed_iter);
+        const unsigned int j = BLI_rng_get_uint(rng) % gps->totpoints;
+        bool select_stroke = ((gps->totpoints * randfac) <= j) ? true : false;
+        select_stroke ^= select;
+        /* Curve function has select paremter inverted. */
+        select_all_curve_points(gpd, gps, gps->editcurve, !select_stroke);
+        changed = true;
+      }
+      else {
+        int elem_map_len = 0;
+        bGPDcurve_point **elem_map = MEM_mallocN(sizeof(*elem_map) * gpc->tot_curve_points,
+                                                 __func__);
+        bGPDcurve_point *ptc;
+        for (int i = start; i < gpc->tot_curve_points; i++) {
+          bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
+          elem_map[elem_map_len++] = gpc_pt;
+        }
+
+        BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed_iter);
+        const int count_select = elem_map_len * randfac;
+        for (int i = 0; i < count_select; i++) {
+          ptc = elem_map[i];
+          if (select) {
+            ptc->flag |= GP_SPOINT_SELECT;
+            BEZT_SEL_ALL(&ptc->bezt);
+          }
+          else {
+            ptc->flag &= ~GP_SPOINT_SELECT;
+            BEZT_DESEL_ALL(&ptc->bezt);
+          }
+        }
+        MEM_freeN(elem_map);
+
+        /* unselect start and end points */
+        if (unselect_ends) {
+          bGPDcurve_point *gpc_pt = &gpc->curve_points[0];
+          gpc_pt->flag &= ~GP_SPOINT_SELECT;
+          BEZT_DESEL_ALL(&gpc_pt->bezt);
+
+          gpc_pt = &gpc->curve_points[gpc->tot_curve_points - 1];
+          gpc_pt->flag &= ~GP_SPOINT_SELECT;
+          BEZT_DESEL_ALL(&gpc_pt->bezt);
+        }
+
+        BKE_gpencil_curve_sync_selection(gpd, gps);
+      }
+
+      changed = true;
+    }
+    GP_EDITABLE_CURVES_END(gps_iter);
+  }
+  else {
+    CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+      /* Only apply to unselected strokes (if select). */
+      if (select) {
+        if ((gps->flag & GP_STROKE_SELECT) || (gps->totpoints == 0)) {
+          continue;
+        }
+      }
+      else {
+        if (((gps->flag & GP_STROKE_SELECT) == 0) || (gps->totpoints == 0)) {
+          continue;
+        }
+      }
+
+      /* Different seed by stroke. */
+      seed_iter += gps->totpoints + stroke_idx;
+      stroke_idx++;
+
+      if (selectmode == GP_SELECTMODE_STROKE) {
+        RNG *rng = BLI_rng_new(seed_iter);
+        const unsigned int j = BLI_rng_get_uint(rng) % gps->totpoints;
+        bool select_stroke = ((gps->totpoints * randfac) <= j) ? true : false;
+        select_stroke ^= select;
+        select_all_stroke_points(gpd, gps, select_stroke);
+        changed = true;
+      }
+      else {
+        int elem_map_len = 0;
+        bGPDspoint **elem_map = MEM_mallocN(sizeof(*elem_map) * gps->totpoints, __func__);
+        bGPDspoint *pt;
+        for (int i = start; i < gps->totpoints; i++) {
+          pt = &gps->points[i];
+          elem_map[elem_map_len++] = pt;
+        }
+
+        BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed_iter);
+        const int count_select = elem_map_len * randfac;
+        for (int i = 0; i < count_select; i++) {
+          pt = elem_map[i];
+          if (select) {
+            pt->flag |= GP_SPOINT_SELECT;
+          }
+          else {
+            pt->flag &= ~GP_SPOINT_SELECT;
+          }
+        }
+        MEM_freeN(elem_map);
+
+        /* unselect start and end points */
+        if (unselect_ends) {
+          pt = &gps->points[0];
+          pt->flag &= ~GP_SPOINT_SELECT;
+
+          pt = &gps->points[gps->totpoints - 1];
+          pt->flag &= ~GP_SPOINT_SELECT;
+        }
+
+        BKE_gpencil_stroke_sync_selection(gpd, gps);
+      }
+
+      changed = true;
+    }
+    CTX_DATA_END;
+  }
+
+  if (changed) {
+    /* updates */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
+
+    /* copy on write tag is needed, or else no refresh happens */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+
+    WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_select_random(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Random";
+  ot->idname = "GPENCIL_OT_select_random";
+  ot->description = "Select random points for non selected strokes";
+
+  /* callbacks */
+  ot->exec = gpencil_select_random_exec;
+  ot->poll = gpencil_select_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  WM_operator_properties_select_random(ot);
   RNA_def_boolean(ot->srna,
                   "unselect_ends",
                   false,
