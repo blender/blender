@@ -597,6 +597,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
         /* Curve function has select paremter inverted. */
         select_all_curve_points(gpd, gps, gps->editcurve, !select_stroke);
         changed = true;
+        BLI_rng_free(rng);
       }
       else {
         int elem_map_len = 0;
@@ -666,6 +667,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
         select_stroke ^= select;
         select_all_stroke_points(gpd, gps, select_stroke);
         changed = true;
+        BLI_rng_free(rng);
       }
       else {
         int elem_map_len = 0;
