@@ -33,6 +33,9 @@ add_definitions(-DPXR_STATIC)
 # USD headers use deprecated TBB headers, silence warning.
 add_definitions(-DTBB_SUPPRESS_DEPRECATED_MESSAGES=1)
 
+# Python is always required
+add_definitions(-DWITH_PYTHON)
+
 set(INC
   .
   ../common
@@ -44,37 +47,90 @@ set(INC
   ../../editors/include
   ../../makesdna
   ../../makesrna
+  ../../python
   ../../windowmanager
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna/intern
 )
 
 set(INC_SYS
   ${USD_INCLUDE_DIRS}
   ${BOOST_INCLUDE_DIR}
   ${TBB_INCLUDE_DIR}
+  ${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC
-  intern/usd_capi.cc
+  intern/usd_capi_export.cc
+  intern/usd_capi_import.cc
+  intern/usd_common.cc
   intern/usd_hierarchy_iterator.cc
+  intern/usd_light_convert.cc
+  
+  intern/usd_reader_camera.cc
+  intern/usd_reader_curve.cc
+  intern/usd_reader_geom.cc
+  intern/usd_reader_instance.cc
+  intern/usd_reader_light.cc
+  intern/usd_reader_material.cc
+  intern/usd_reader_mesh.cc
+  intern/usd_reader_nurbs.cc
+  intern/usd_reader_prim.cc
+  intern/usd_reader_stage.cc
+  intern/usd_reader_volume.cc
+  intern/usd_reader_xform.cc
+
+  intern/usd_umm.cc
+
   intern/usd_writer_abstract.cc
+  intern/usd_writer_armature.cc
   intern/usd_writer_camera.cc
+  intern/usd_writer_curve.cc
   intern/usd_writer_hair.cc
   intern/usd_writer_light.cc
+  intern/usd_writer_material.cc
   intern/usd_writer_mesh.cc
   intern/usd_writer_metaball.cc
+  intern/usd_writer_particle.cc
+  intern/usd_writer_skel_root.cc
+  intern/usd_writer_skinned_mesh.cc
   intern/usd_writer_transform.cc
 
   usd.h
+
+  intern/usd_common.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
+  intern/usd_light_convert.h
+
+  intern/usd_reader_camera.h
+  intern/usd_reader_curve.h
+  intern/usd_reader_geom.h
+  intern/usd_reader_instance.h
+  intern/usd_reader_light.h
+  intern/usd_reader_material.h
+  intern/usd_reader_mesh.h
+  intern/usd_reader_nurbs.h
+  intern/usd_reader_prim.h
+  intern/usd_reader_stage.h
+  intern/usd_reader_volume.h 
+  intern/usd_reader_xform.h
+  
+  intern/usd_umm.h
+  
   intern/usd_writer_abstract.h
+  intern/usd_writer_armature.h
   intern/usd_writer_camera.h
+  intern/usd_writer_curve.h
   intern/usd_writer_hair.h
   intern/usd_writer_light.h
+  intern/usd_writer_material.h
   intern/usd_writer_mesh.h
   intern/usd_writer_metaball.h
+  intern/usd_writer_particle.h
+  intern/usd_writer_skel_root.h
+  intern/usd_writer_skinned_mesh.h
   intern/usd_writer_transform.h
 )
 
@@ -86,6 +142,8 @@ set(LIB
 
 list(APPEND LIB
   ${BOOST_LIBRARIES}
+  ${PYTHON_LINKFLAGS}
+  ${PYTHON_LIBRARIES}
 )
 
 list(APPEND LIB

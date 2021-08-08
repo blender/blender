@@ -32,6 +32,7 @@
 
 #include "DNA_material_types.h"
 
+struct Main;
 struct Material;
 
 namespace blender::io::usd {
@@ -65,9 +66,17 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
 
  protected:
   virtual void do_write(HierarchyContext &context) = 0;
+  virtual bool check_is_animated(const HierarchyContext &context) const;
   pxr::UsdTimeCode get_export_time_code() const;
 
-  pxr::UsdShadeMaterial ensure_usd_material(Material *material);
+  pxr::UsdShadeMaterial ensure_usd_material(Material *material, const HierarchyContext &context);
+
+  void write_id_properties(pxr::UsdPrim &prim,
+                           const ID &id,
+                           pxr::UsdTimeCode = pxr::UsdTimeCode::Default());
+  void write_user_properties(pxr::UsdPrim &prim,
+                             IDProperty *properties,
+                             pxr::UsdTimeCode = pxr::UsdTimeCode::Default());
 
   void write_visibility(const HierarchyContext &context,
                         const pxr::UsdTimeCode timecode,

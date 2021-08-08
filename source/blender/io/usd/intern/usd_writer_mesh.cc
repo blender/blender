@@ -20,6 +20,7 @@
 #include "usd_hierarchy_iterator.h"
 
 #include <pxr/usd/usdGeom/mesh.h>
+#include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
@@ -28,8 +29,10 @@
 
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
+#include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -40,11 +43,50 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim_types.h"
+#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
 #include <iostream>
 
 namespace blender::io::usd {
+
+/* TfToken objects are not cheap to construct, so we do it once. */
+namespace usdtokens {
+static const pxr::TfToken blenderName("userProperties:blenderName", pxr::TfToken::Immortal);
+static const pxr::TfToken blenderNameNS("userProperties:blenderName:", pxr::TfToken::Immortal);
+static const pxr::TfToken blenderObject("object", pxr::TfToken::Immortal);
+static const pxr::TfToken blenderObjectNS("object:", pxr::TfToken::Immortal);
+static const pxr::TfToken blenderData("data", pxr::TfToken::Immortal);
+static const pxr::TfToken blenderDataNS("data:", pxr::TfToken::Immortal);
+}  // namespace usdtokens
+
+/* check if the mesh is a subsurf, ignoring disabled modifiers and
+ * displace if it's after subsurf. */
+static ModifierData *get_subsurf_modifier(Scene *scene, Object *ob)
+{
+  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
+
+  for (; md; md = md->prev) {
+    if (BKE_modifier_is_enabled(scene, md, eModifierMode_Render)) {
+      continue;
+    }
+
+    if (md->type == eModifierType_Subsurf) {
+      SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
+
+      if (smd->subdivType == ME_CC_SUBSURF) {
+        return md;
+      }
+    }
+
+    /* mesh is not a subsurf. break */
+    if ((md->type != eModifierType_Displace) && (md->type != eModifierType_ParticleSystem)) {
+      return NULL;
+    }
+  }
+
+  return NULL;
+}
 
 USDGenericMeshWriter::USDGenericMeshWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
 {
@@ -52,15 +94,50 @@ USDGenericMeshWriter::USDGenericMeshWriter(const USDExporterContext &ctx) : USDA
 
 bool USDGenericMeshWriter::is_supported(const HierarchyContext *context) const
 {
-  if (usd_export_context_.export_params.visible_objects_only) {
-    return context->is_object_visible(usd_export_context_.export_params.evaluation_mode);
+  // TODO(makowalski) -- Check if we should be calling is_object_visible() below.
+  // if (usd_export_context_.export_params.visible_objects_only) {
+  // return context->is_object_visible(usd_export_context_.export_params.evaluation_mode);
+  // }
+
+  if (!usd_export_context_.export_params.visible_objects_only) {
+    // We can skip the visibility test.
+    return true;
   }
-  return true;
+
+  Object *object = context->object;
+  bool is_dupli = context->duplicator != nullptr;
+  int base_flag;
+
+  if (is_dupli) {
+    /* Construct the object's base flags from its dupliparent, just like is done in
+     * deg_objects_dupli_iterator_next(). Without this, the visiblity check below will fail. Doing
+     * this here, instead of a more suitable location in AbstractHierarchyIterator, prevents
+     * copying the Object for every dupli. */
+    base_flag = object->base_flag;
+    object->base_flag = context->duplicator->base_flag | BASE_FROM_DUPLI;
+  }
+
+  int visibility = BKE_object_visibility(object,
+                                         usd_export_context_.export_params.evaluation_mode);
+
+  if (is_dupli) {
+    object->base_flag = base_flag;
+  }
+
+  return (visibility & OB_VISIBLE_SELF) != 0;
 }
 
 void USDGenericMeshWriter::do_write(HierarchyContext &context)
 {
   Object *object_eval = context.object;
+
+  m_subsurf_mod = get_subsurf_modifier(DEG_get_evaluated_scene(usd_export_context_.depsgraph),
+                                       context.object);
+
+  if (m_subsurf_mod && !usd_export_context_.export_params.apply_subdiv) {
+    m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
+  }
+
   bool needsfree = false;
   Mesh *mesh = get_export_mesh(object_eval, needsfree);
 
@@ -80,6 +157,17 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
       free_export_mesh(mesh);
     }
     throw;
+  }
+
+  auto prim = usd_export_context_.stage->GetPrimAtPath(usd_export_context_.usd_path);
+  if (prim.IsValid() && object_eval)
+    prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
+
+  if (usd_export_context_.export_params.export_custom_properties && mesh)
+    write_id_properties(prim, mesh->id, get_export_time_code());
+
+  if (m_subsurf_mod && !usd_export_context_.export_params.apply_subdiv) {
+    m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
   }
 }
 
@@ -111,111 +199,329 @@ struct USDMeshData {
   pxr::VtFloatArray crease_sharpnesses;
 };
 
-void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
+void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
 {
-  pxr::UsdTimeCode timecode = get_export_time_code();
-
   const CustomData *ldata = &mesh->ldata;
   for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
     const CustomDataLayer *layer = &ldata->layers[layer_idx];
-    if (layer->type != CD_MLOOPUV) {
+    if (layer->type == CD_MLOOPUV && usd_export_context_.export_params.export_uvmaps) {
+      write_uv_maps(mesh, usd_mesh, layer);
+    }
+    else if (layer->type == CD_MLOOPCOL &&
+             usd_export_context_.export_params.export_vertex_colors) {
+      write_vertex_colors(mesh, usd_mesh, layer);
+    }
+  }
+}
+
+void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh,
+                                         pxr::UsdGeomMesh usd_mesh,
+                                         const CustomDataLayer *layer)
+{
+  pxr::UsdTimeCode timecode = get_export_time_code();
+
+  /* UV coordinates are stored in a Primvar on the Mesh, and can be referenced from materials.
+   * The primvar name is the same as the UV Map name. This is to allow the standard name "st"
+   * for texture coordinates by naming the UV Map as such, without having to guess which UV Map
+   * is the "standard" one. */
+  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(layer->name));
+
+  if (usd_export_context_.export_params.author_blender_name) {
+    // Store original layer name in blender
+    usd_mesh.GetPrim()
+        .CreateAttribute(pxr::TfToken(usdtokens::blenderNameNS.GetString() +
+                                      usdtokens::blenderDataNS.GetString() +
+                                      primvar_name.GetString()),
+                         pxr::SdfValueTypeNames->String,
+                         true)
+        .Set(std::string(layer->name), pxr::UsdTimeCode::Default());
+  }
+
+  if (usd_export_context_.export_params.convert_uv_to_st)
+    primvar_name = pxr::TfToken("st");
+
+  pxr::UsdGeomPrimvar uv_coords_primvar = usd_mesh.CreatePrimvar(
+      primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
+
+  MLoopUV *mloopuv = static_cast<MLoopUV *>(layer->data);
+  pxr::VtArray<pxr::GfVec2f> uv_coords;
+  for (int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
+    uv_coords.push_back(pxr::GfVec2f(mloopuv[loop_idx].uv));
+  }
+
+  // NOTE (Marcelo Sercheli): Code to set values at default time was removed since
+  // `timecode` will be default time in case of non-animation exports. For animated
+  // exports, USD will inter/extrapolate values linearly.
+  const pxr::UsdAttribute &uv_coords_attr = uv_coords_primvar.GetAttr();
+  usd_value_writer_.SetAttribute(uv_coords_attr, pxr::VtValue(uv_coords), timecode);
+}
+
+void USDGenericMeshWriter::write_vertex_colors(const Mesh *mesh,
+                                               pxr::UsdGeomMesh usd_mesh,
+                                               const CustomDataLayer *layer)
+{
+  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(layer->name));
+
+  const float cscale = 1.0f / 255.0f;
+
+  if (usd_export_context_.export_params.author_blender_name) {
+    // Store original layer name in blender
+    usd_mesh.GetPrim()
+        .CreateAttribute(pxr::TfToken(usdtokens::blenderNameNS.GetString() +
+                                      usdtokens::blenderDataNS.GetString() +
+                                      primvar_name.GetString()),
+                         pxr::SdfValueTypeNames->String,
+                         true)
+        .Set(std::string(layer->name), pxr::UsdTimeCode::Default());
+  }
+
+  pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
+
+  // TODO: Allow option of vertex varying primvar
+  pxr::UsdGeomPrimvar vertex_colors_pv = pvApi.CreatePrimvar(
+      primvar_name, pxr::SdfValueTypeNames->Color3fArray, pxr::UsdGeomTokens->faceVarying);
+
+  MCol *vertCol = static_cast<MCol *>(layer->data);
+  pxr::VtArray<pxr::GfVec3f> vertex_colors;
+
+  for (int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
+    pxr::GfVec3f col = pxr::GfVec3f((int)vertCol[loop_idx].b * cscale,
+                                    (int)vertCol[loop_idx].g * cscale,
+                                    (int)vertCol[loop_idx].r * cscale);
+    vertex_colors.push_back(col);
+  }
+
+  vertex_colors_pv.Set(vertex_colors, timecode);
+
+  const pxr::UsdAttribute &vertex_colors_attr = vertex_colors_pv.GetAttr();
+  usd_value_writer_.SetAttribute(vertex_colors_attr, pxr::VtValue(vertex_colors), timecode);
+}
+
+void USDGenericMeshWriter::write_vertex_groups(const Object *ob,
+                                               const Mesh *mesh,
+                                               pxr::UsdGeomMesh usd_mesh,
+                                               bool as_point_groups)
+{
+  if (!ob)
+    return;
+
+  pxr::UsdTimeCode timecode = get_export_time_code();
+
+  int i, j;
+  bDeformGroup *def;
+  std::vector<pxr::UsdGeomPrimvar> pv_groups;
+  std::vector<pxr::VtArray<float>> pv_data;
+
+  // Create vertex groups primvars
+  for (def = (bDeformGroup *)ob->defbase.first, i = 0, j = 0; def; def = def->next, i++) {
+    if (!def)
       continue;
-    }
+    pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(def->name));
+    pxr::TfToken primvar_interpolation = (as_point_groups) ? pxr::UsdGeomTokens->vertex :
+                                                             pxr::UsdGeomTokens->faceVarying;
+    pv_groups.push_back(usd_mesh.CreatePrimvar(
+        primvar_name, pxr::SdfValueTypeNames->FloatArray, primvar_interpolation));
 
-    /* UV coordinates are stored in a Primvar on the Mesh, and can be referenced from materials.
-     * The primvar name is the same as the UV Map name. This is to allow the standard name "st"
-     * for texture coordinates by naming the UV Map as such, without having to guess which UV Map
-     * is the "standard" one. */
-    pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(layer->name));
-    pxr::UsdGeomPrimvar uv_coords_primvar = usd_mesh.CreatePrimvar(
-        primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
+    size_t primvar_size = 0;
 
-    MLoopUV *mloopuv = static_cast<MLoopUV *>(layer->data);
-    pxr::VtArray<pxr::GfVec2f> uv_coords;
-    for (int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
-      uv_coords.push_back(pxr::GfVec2f(mloopuv[loop_idx].uv));
+    if (as_point_groups) {
+      primvar_size = mesh->totvert;
     }
+    else {
+      MPoly *mpoly = mesh->mpoly;
+      for (int poly_idx = 0, totpoly = mesh->totpoly; poly_idx < totpoly; ++poly_idx, ++mpoly) {
+        primvar_size += mpoly->totloop;
+      }
+    }
+    pv_data.push_back(pxr::VtArray<float>(primvar_size));
+  }
 
-    if (!uv_coords_primvar.HasValue()) {
-      uv_coords_primvar.Set(uv_coords, pxr::UsdTimeCode::Default());
+  size_t num_groups = pv_groups.size();
+
+  if (num_groups == 0)
+    return;
+
+  // Extract vertex groups
+  if (as_point_groups) {
+    for (i = 0; i < mesh->totvert; i++) {
+      // Init to zero
+      for (j = 0; j < num_groups; j++) {
+        pv_data[j][i] = 0.0f;
+      }
+
+      MDeformVert *vert = &mesh->dvert[i];
+      if (vert) {
+        for (j = 0; j < vert->totweight; j++) {
+          uint idx = vert->dw[j].def_nr;
+          float w = vert->dw[j].weight;
+          /* This out of bounds check is necessary because MDeformVert.totweight can be
+          larger than the number of bDeformGroup structs in Object.defbase. It appears to be
+          a Blender bug that can cause this scenario.*/
+          if (idx < num_groups) {
+            pv_data[idx][i] = w;
+          }
+        }
+      }
     }
-    const pxr::UsdAttribute &uv_coords_attr = uv_coords_primvar.GetAttr();
-    usd_value_writer_.SetAttribute(uv_coords_attr, pxr::VtValue(uv_coords), timecode);
+  }
+  else {
+    MPoly *mpoly = mesh->mpoly;
+    for (i = 0; i < mesh->totvert; i++) {
+      // Init to zero
+      for (j = 0; j < num_groups; j++) {
+        pv_data[j][i] = 0.0f;
+      }
+    }
+    // const MVert *mvert = mesh->mvert;
+    int p_idx = 0;
+    for (int poly_idx = 0, totpoly = mesh->totpoly; poly_idx < totpoly; ++poly_idx, ++mpoly) {
+      MLoop *mloop = mesh->mloop + mpoly->loopstart;
+      for (int loop_idx = 0; loop_idx < mpoly->totloop; ++loop_idx, ++mloop) {
+        MDeformVert *vert = &mesh->dvert[mloop->v];
+
+        if (vert) {
+          for (j = 0; j < vert->totweight; j++) {
+            uint idx = vert->dw[j].def_nr;
+            float w = vert->dw[j].weight;
+            /* This out of bounds check is necessary because MDeformVert.totweight can be
+            larger than the number of bDeformGroup structs in Object.defbase. Appears to be
+            a Blender bug that can cause this scenario.*/
+            if (idx < num_groups) {
+              pv_data[idx][p_idx] = w;
+            }
+          }
+        }
+        p_idx++;
+      }
+    }
+  }
+
+  // Store data in usd
+  for (i = 0; i < num_groups; i++) {
+    pv_groups[i].Set(pv_data[i], timecode);
+
+    const pxr::UsdAttribute &vertex_colors_attr = pv_groups[i].GetAttr();
+    usd_value_writer_.SetAttribute(vertex_colors_attr, pxr::VtValue(pv_data[i]), timecode);
+  }
+}
+
+void USDGenericMeshWriter::write_face_maps(const Object *ob,
+                                           const Mesh *mesh,
+                                           pxr::UsdGeomMesh usd_mesh)
+{
+  if (!ob)
+    return;
+
+  pxr::UsdTimeCode timecode = get_export_time_code();
+
+  std::vector<pxr::UsdGeomPrimvar> pv_groups;
+  std::vector<pxr::VtArray<float>> pv_data;
+
+  int i;
+  size_t mpoly_len = mesh->totpoly;
+
+  for (bFaceMap *fmap = (bFaceMap *)ob->fmaps.first; fmap; fmap = fmap->next) {
+    if (!fmap)
+      continue;
+    pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(fmap->name));
+    pxr::TfToken primvar_interpolation = pxr::UsdGeomTokens->uniform;
+    pv_groups.push_back(usd_mesh.CreatePrimvar(
+        primvar_name, pxr::SdfValueTypeNames->FloatArray, primvar_interpolation));
+
+    pv_data.push_back(pxr::VtArray<float>(mpoly_len));
+
+    // Init data
+    for (i = 0; i < mpoly_len; i++) {
+      pv_data[pv_data.size() - 1][i] = 0.0f;
+    }
+  }
+
+  size_t num_groups = pv_groups.size();
+
+  if (num_groups == 0)
+    return;
+
+  const int *facemap_data = (int *)CustomData_get_layer(&mesh->pdata, CD_FACEMAP);
+
+  if (facemap_data) {
+    for (i = 0; i < mpoly_len; i++) {
+      if (facemap_data[i] >= 0) {
+        pv_data[facemap_data[i]][i] = 1.0f;
+      }
+    }
+  }
+
+  // Store data in usd
+  for (i = 0; i < num_groups; i++) {
+    pv_groups[i].Set(pv_data[i], timecode);
+
+    const pxr::UsdAttribute &vertex_colors_attr = pv_groups[i].GetAttr();
+    usd_value_writer_.SetAttribute(vertex_colors_attr, pxr::VtValue(pv_data[i]), timecode);
   }
 }
 
 void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
-  pxr::UsdTimeCode defaultTime = pxr::UsdTimeCode::Default();
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
-  const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
 
-  pxr::UsdGeomMesh usd_mesh = pxr::UsdGeomMesh::Define(stage, usd_path);
+  pxr::UsdGeomMesh usd_mesh =
+      (usd_export_context_.export_params.export_as_overs) ?
+          pxr::UsdGeomMesh(usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
+          pxr::UsdGeomMesh::Define(usd_export_context_.stage, usd_export_context_.usd_path);
+
   write_visibility(context, timecode, usd_mesh);
 
   USDMeshData usd_mesh_data;
   get_geometry_data(mesh, usd_mesh_data);
 
-  if (usd_export_context_.export_params.use_instancing && context.is_instance()) {
-    if (!mark_as_instance(context, usd_mesh.GetPrim())) {
-      return;
-    }
-
-    /* The material path will be of the form </_materials/{material name}>, which is outside the
-     * sub-tree pointed to by ref_path. As a result, the referenced data is not allowed to point
-     * out of its own sub-tree. It does work when we override the material with exactly the same
-     * path, though. */
-    if (usd_export_context_.export_params.export_materials) {
-      assign_materials(context, usd_mesh, usd_mesh_data.face_groups);
-    }
-
-    return;
-  }
-
-  pxr::UsdAttribute attr_points = usd_mesh.CreatePointsAttr(pxr::VtValue(), true);
-  pxr::UsdAttribute attr_face_vertex_counts = usd_mesh.CreateFaceVertexCountsAttr(pxr::VtValue(),
-                                                                                  true);
-  pxr::UsdAttribute attr_face_vertex_indices = usd_mesh.CreateFaceVertexIndicesAttr(pxr::VtValue(),
+  if (usd_export_context_.export_params.export_vertices) {
+    pxr::UsdAttribute attr_points = usd_mesh.CreatePointsAttr(pxr::VtValue(), true);
+    pxr::UsdAttribute attr_face_vertex_counts = usd_mesh.CreateFaceVertexCountsAttr(pxr::VtValue(),
                                                                                     true);
 
-  if (!attr_points.HasValue()) {
-    /* Provide the initial value as default. This makes USD write the value as constant if they
-     * don't change over time. */
-    attr_points.Set(usd_mesh_data.points, defaultTime);
-    attr_face_vertex_counts.Set(usd_mesh_data.face_vertex_counts, defaultTime);
-    attr_face_vertex_indices.Set(usd_mesh_data.face_indices, defaultTime);
-  }
+    pxr::UsdAttribute attr_face_vertex_indices = usd_mesh.CreateFaceVertexIndicesAttr(
+        pxr::VtValue(), true);
 
-  usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(usd_mesh_data.points), timecode);
-  usd_value_writer_.SetAttribute(
-      attr_face_vertex_counts, pxr::VtValue(usd_mesh_data.face_vertex_counts), timecode);
-  usd_value_writer_.SetAttribute(
-      attr_face_vertex_indices, pxr::VtValue(usd_mesh_data.face_indices), timecode);
+    // NOTE (Marcelo Sercheli): Code to set values at default time was removed since
+    // `timecode` will be default time in case of non-animation exports. For animated
+    // exports, USD will inter/extrapolate values linearly.
+    usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(usd_mesh_data.points), timecode);
+    usd_value_writer_.SetAttribute(
+        attr_face_vertex_counts, pxr::VtValue(usd_mesh_data.face_vertex_counts), timecode);
+    usd_value_writer_.SetAttribute(
+        attr_face_vertex_indices, pxr::VtValue(usd_mesh_data.face_indices), timecode);
 
-  if (!usd_mesh_data.crease_lengths.empty()) {
-    pxr::UsdAttribute attr_crease_lengths = usd_mesh.CreateCreaseLengthsAttr(pxr::VtValue(), true);
-    pxr::UsdAttribute attr_crease_indices = usd_mesh.CreateCreaseIndicesAttr(pxr::VtValue(), true);
-    pxr::UsdAttribute attr_crease_sharpness = usd_mesh.CreateCreaseSharpnessesAttr(pxr::VtValue(),
-                                                                                   true);
+    if (!usd_mesh_data.crease_lengths.empty()) {
+      pxr::UsdAttribute attr_crease_lengths = usd_mesh.CreateCreaseLengthsAttr(pxr::VtValue(),
+                                                                               true);
+      pxr::UsdAttribute attr_crease_indices = usd_mesh.CreateCreaseIndicesAttr(pxr::VtValue(),
+                                                                               true);
+      pxr::UsdAttribute attr_crease_sharpness = usd_mesh.CreateCreaseSharpnessesAttr(
+          pxr::VtValue(), true);
 
-    if (!attr_crease_lengths.HasValue()) {
-      attr_crease_lengths.Set(usd_mesh_data.crease_lengths, defaultTime);
-      attr_crease_indices.Set(usd_mesh_data.crease_vertex_indices, defaultTime);
-      attr_crease_sharpness.Set(usd_mesh_data.crease_sharpnesses, defaultTime);
+      // NOTE (Marcelo Sercheli): Code to set values at default time was removed since
+      // `timecode` will be default time in case of non-animation exports. For animated
+      // exports, USD will inter/extrapolate values linearly.
+      usd_value_writer_.SetAttribute(
+          attr_crease_lengths, pxr::VtValue(usd_mesh_data.crease_lengths), timecode);
+      usd_value_writer_.SetAttribute(
+          attr_crease_indices, pxr::VtValue(usd_mesh_data.crease_vertex_indices), timecode);
+      usd_value_writer_.SetAttribute(
+          attr_crease_sharpness, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
     }
+  }
+  write_custom_data(mesh, usd_mesh);
 
-    usd_value_writer_.SetAttribute(
-        attr_crease_lengths, pxr::VtValue(usd_mesh_data.crease_lengths), timecode);
-    usd_value_writer_.SetAttribute(
-        attr_crease_indices, pxr::VtValue(usd_mesh_data.crease_vertex_indices), timecode);
-    usd_value_writer_.SetAttribute(
-        attr_crease_sharpness, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
+  if (usd_export_context_.export_params.export_vertex_groups) {
+    write_vertex_groups(context.object,
+                        mesh,
+                        usd_mesh,
+                        !usd_export_context_.export_params.vertex_data_as_face_varying);
+    write_face_maps(context.object, mesh, usd_mesh);
   }
 
-  if (usd_export_context_.export_params.export_uvmaps) {
-    write_uv_maps(mesh, usd_mesh);
-  }
   if (usd_export_context_.export_params.export_normals) {
     write_normals(mesh, usd_mesh);
   }
@@ -226,7 +532,10 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
     return;
   }
 
-  usd_mesh.CreateSubdivisionSchemeAttr().Set(pxr::UsdGeomTokens->none);
+  if (usd_export_context_.export_params.export_vertices) {
+    usd_mesh.CreateSubdivisionSchemeAttr().Set(
+        (m_subsurf_mod == NULL) ? pxr::UsdGeomTokens->none : pxr::UsdGeomTokens->catmullClark);
+  }
 
   if (usd_export_context_.export_params.export_materials) {
     assign_materials(context, usd_mesh, usd_mesh_data.face_groups);
@@ -318,8 +627,9 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
       continue;
     }
 
-    pxr::UsdShadeMaterial usd_material = ensure_usd_material(material);
-    material_binding_api.Bind(usd_material);
+    pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(usd_mesh.GetPrim());
+    pxr::UsdShadeMaterial usd_material = ensure_usd_material(material, context);
+    api.Bind(usd_material);
 
     /* USD seems to support neither per-material nor per-face-group double-sidedness, so we just
      * use the flag from the first non-empty material slot. */
@@ -352,11 +662,11 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
       continue;
     }
 
-    pxr::UsdShadeMaterial usd_material = ensure_usd_material(material);
+    pxr::UsdShadeMaterial usd_material = ensure_usd_material(material, context);
     pxr::TfToken material_name = usd_material.GetPath().GetNameToken();
 
-    pxr::UsdGeomSubset usd_face_subset = material_binding_api.CreateMaterialBindSubset(
-        material_name, face_indices);
+    pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(usd_mesh.GetPrim());
+    pxr::UsdGeomSubset usd_face_subset = api.CreateMaterialBindSubset(material_name, face_indices);
     pxr::UsdShadeMaterialBindingAPI(usd_face_subset.GetPrim()).Bind(usd_material);
   }
 }
@@ -402,9 +712,10 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   }
 
   pxr::UsdAttribute attr_normals = usd_mesh.CreateNormalsAttr(pxr::VtValue(), true);
-  if (!attr_normals.HasValue()) {
-    attr_normals.Set(loop_normals, pxr::UsdTimeCode::Default());
-  }
+
+  // NOTE (Marcelo Sercheli): Code to set values at default time was removed since
+  // `timecode` will be default time in case of non-animation exports. For animated
+  // exports, USD will inter/extrapolate values linearly.
   usd_value_writer_.SetAttribute(attr_normals, pxr::VtValue(loop_normals), timecode);
   usd_mesh.SetNormalsInterpolation(pxr::UsdGeomTokens->faceVarying);
 }
@@ -457,7 +768,10 @@ USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx) : USDGenericMeshWrit
 
 Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/)
 {
-  return BKE_object_get_evaluated_mesh(object_eval);
+  Scene *scene = DEG_get_evaluated_scene(usd_export_context_.depsgraph);
+  // Assumed safe because the original depsgraph was nonconst in usd_capi...
+  Depsgraph *dg = const_cast<Depsgraph *>(usd_export_context_.depsgraph);
+  return mesh_get_eval_final(dg, scene, object_eval, &CD_MASK_MESH);
 }
 
 }  // namespace blender::io::usd

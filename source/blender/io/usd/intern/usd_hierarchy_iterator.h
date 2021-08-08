@@ -64,8 +64,12 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
   virtual void release_writer(AbstractHierarchyWriter *writer) override;
 
+  virtual bool include_data_writers(const HierarchyContext *context) const override;
+  virtual bool include_child_writers(const HierarchyContext *context) const override;
+
  private:
-  USDExporterContext create_usd_export_context(const HierarchyContext *context);
+  USDExporterContext create_usd_export_context(const HierarchyContext *context,
+                                               bool mergeTransformAndShape = false);
 };
 
 }  // namespace blender::io::usd

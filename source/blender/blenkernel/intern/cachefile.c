@@ -55,6 +55,10 @@
 #  include "ABC_alembic.h"
 #endif
 
+#ifdef WITH_USD
+#  include "usd.h"
+#endif
+
 static void cachefile_handle_free(CacheFile *cache_file);
 
 static void cache_file_init_data(ID *id)
@@ -166,15 +170,30 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
                                Object *object,
                                const char *object_path)
 {
-#ifdef WITH_ALEMBIC
+#if defined(WITH_ALEMBIC) || defined(WITH_USD)
+
   BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   if (cache_file->handle == NULL) {
     return;
   }
 
-  /* Open Alembic cache reader. */
-  *reader = CacheReader_open_alembic_object(cache_file->handle, *reader, object, object_path);
+  switch (cache_file->type) {
+    case CACHEFILE_TYPE_ALEMBIC:
+#  ifdef WITH_ALEMBIC
+      /* Open Alembic cache reader. */
+      *reader = CacheReader_open_alembic_object(cache_file->handle, *reader, object, object_path);
+#  endif
+      break;
+    case CACHEFILE_TYPE_USD:
+#  ifdef WITH_USD
+      /* Open USD cache reader. */
+      *reader = CacheReader_open_usd_object(cache_file->handle, *reader, object, object_path);
+#  endif
+      break;
+    case CACHE_FILE_TYPE_INVALID:
+      break;
+  }
 
   /* Multiple modifiers and constraints can call this function concurrently. */
   BLI_spin_lock(&spin);
@@ -197,16 +216,30 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
 
 void BKE_cachefile_reader_free(CacheFile *cache_file, struct CacheReader **reader)
 {
-#ifdef WITH_ALEMBIC
+#if defined(WITH_ALEMBIC) || defined(WITH_USD)
   /* Multiple modifiers and constraints can call this function concurrently, and
    * cachefile_handle_free() can also be called at the same time. */
   BLI_spin_lock(&spin);
   if (*reader != NULL) {
     if (cache_file) {
       BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
+
+      switch (cache_file->type) {
+        case CACHEFILE_TYPE_ALEMBIC:
+#  ifdef WITH_ALEMBIC
+          ABC_CacheReader_free(*reader);
+#  endif
+          break;
+        case CACHEFILE_TYPE_USD:
+#  ifdef WITH_USD
+          USD_CacheReader_free(*reader);
+#  endif
+          break;
+        case CACHE_FILE_TYPE_INVALID:
+          break;
+      }
     }
 
-    CacheReader_free(*reader);
     *reader = NULL;
 
     if (cache_file && cache_file->handle_readers) {
@@ -221,7 +254,8 @@ void BKE_cachefile_reader_free(CacheFile *cache_file, struct CacheReader **reade
 
 static void cachefile_handle_free(CacheFile *cache_file)
 {
-#ifdef WITH_ALEMBIC
+#if defined(WITH_ALEMBIC) || defined(WITH_USD)
+
   /* Free readers in all modifiers and constraints that use the handle, before
    * we free the handle itself. */
   BLI_spin_lock(&spin);
@@ -230,7 +264,21 @@ static void cachefile_handle_free(CacheFile *cache_file)
     GSET_ITER (gs_iter, cache_file->handle_readers) {
       struct CacheReader **reader = BLI_gsetIterator_getKey(&gs_iter);
       if (*reader != NULL) {
-        CacheReader_free(*reader);
+        switch (cache_file->type) {
+          case CACHEFILE_TYPE_ALEMBIC:
+#  ifdef WITH_ALEMBIC
+            ABC_CacheReader_free(*reader);
+#  endif
+            break;
+          case CACHEFILE_TYPE_USD:
+#  ifdef WITH_USD
+            USD_CacheReader_free(*reader);
+#  endif
+            break;
+          case CACHE_FILE_TYPE_INVALID:
+            break;
+        }
+
         *reader = NULL;
       }
     }
@@ -242,7 +290,22 @@ static void cachefile_handle_free(CacheFile *cache_file)
 
   /* Free handle. */
   if (cache_file->handle) {
-    ABC_free_handle(cache_file->handle);
+
+    switch (cache_file->type) {
+      case CACHEFILE_TYPE_ALEMBIC:
+#  ifdef WITH_ALEMBIC
+        ABC_free_handle(cache_file->handle);
+#  endif
+        break;
+      case CACHEFILE_TYPE_USD:
+#  ifdef WITH_USD
+        USD_free_handle(cache_file->handle);
+#  endif
+        break;
+      case CACHE_FILE_TYPE_INVALID:
+        break;
+    }
+
     cache_file->handle = NULL;
   }
 
@@ -289,8 +352,18 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
   BLI_freelistN(&cache_file->object_paths);
 
 #ifdef WITH_ALEMBIC
-  cache_file->handle = ABC_create_handle(bmain, filepath, &cache_file->object_paths);
-  BLI_strncpy(cache_file->handle_filepath, filepath, FILE_MAX);
+  if (BLI_path_extension_check_glob(filepath, "*abc")) {
+    cache_file->type = CACHEFILE_TYPE_ALEMBIC;
+    cache_file->handle = ABC_create_handle(bmain, filepath, &cache_file->object_paths);
+    BLI_strncpy(cache_file->handle_filepath, filepath, FILE_MAX);
+  }
+#endif
+#ifdef WITH_USD
+  if (BLI_path_extension_check_glob(filepath, "*.usd;*.usda;*.usdc")) {
+    cache_file->type = CACHEFILE_TYPE_USD;
+    cache_file->handle = USD_create_handle(bmain, filepath, &cache_file->object_paths);
+    BLI_strncpy(cache_file->handle_filepath, filepath, FILE_MAX);
+  }
 #endif
 
   if (DEG_is_active(depsgraph)) {

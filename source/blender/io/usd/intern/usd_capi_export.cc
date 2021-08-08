@@ -18,12 +18,19 @@
  */
 
 #include "usd.h"
+#include "usd_common.h"
 #include "usd_hierarchy_iterator.h"
+#include "usd_light_convert.h"
+#include "usd_umm.h"
+#include "usd_writer_material.h"
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/stage.h>
+#include <pxr/usd/usdGeom/metrics.h>
+#include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/tokens.h>
+#include <pxr/usd/usdGeom/xformCommonAPI.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -37,9 +44,13 @@
 #include "BKE_blender_version.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_scene.h"
 
 #include "BLI_fileops.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
@@ -49,6 +60,7 @@
 namespace blender::io::usd {
 
 struct ExportJobData {
+  ViewLayer *view_layer;
   Main *bmain;
   Depsgraph *depsgraph;
   wmWindowManager *wm;
@@ -56,22 +68,56 @@ struct ExportJobData {
   char filename[FILE_MAX];
   USDExportParams params;
 
+  short *stop;
+  short *do_update;
+  float *progress;
+
+  bool was_canceled;
   bool export_ok;
 };
 
-static void ensure_usd_plugin_path_registered()
+/* Create root prim if defined. */
+static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 {
-  static bool plugin_path_registered = false;
-  if (plugin_path_registered) {
+  if (strlen(params.root_prim_path) == 0) {
     return;
   }
-  plugin_path_registered = true;
 
-  /* Tell USD which directory to search for its JSON files. If 'datafiles/usd'
-   * does not exist, the USD library will not be able to read or write any files. */
-  const std::string blender_usd_datafiles = BKE_appdir_folder_id(BLENDER_DATAFILES, "usd");
-  /* The trailing slash indicates to the USD library that the path is a directory. */
-  pxr::PlugRegistry::GetInstance().RegisterPlugins(blender_usd_datafiles + "/");
+  pxr::UsdPrim root_prim = stage->DefinePrim(pxr::SdfPath(params.root_prim_path),
+                                             pxr::TfToken("Xform"));
+
+  if (!(params.convert_orientation || params.convert_to_cm)) {
+    return;
+  }
+
+  if (!root_prim) {
+    return;
+  }
+
+  pxr::UsdGeomXformCommonAPI xf_api(root_prim);
+
+  if (!xf_api) {
+    return;
+  }
+
+  if (params.convert_to_cm) {
+    xf_api.SetScale(pxr::GfVec3f(100.0f));
+  }
+
+  if (params.convert_orientation) {
+    float mrot[3][3];
+    mat3_from_axis_conversion(
+        USD_GLOBAL_FORWARD_Y, USD_GLOBAL_UP_Z, params.forward_axis, params.up_axis, mrot);
+    transpose_m3(mrot);
+
+    float eul[3];
+    mat3_to_eul(eul, mrot);
+
+    /* Convert radians to degrees. */
+    mul_v3_fl(eul, 180.0f / M_PI);
+
+    xf_api.SetRotate(pxr::GfVec3f(eul[0], eul[1], eul[2]));
+  }
 }
 
 static void export_startjob(void *customdata,
@@ -82,7 +128,11 @@ static void export_startjob(void *customdata,
                             float *progress)
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
-  data->export_ok = false;
+
+  data->stop = stop;
+  data->do_update = do_update;
+  data->progress = progress;
+  data->was_canceled = false;
 
   G.is_rendering = true;
   WM_set_locked_interface(data->wm, true);
@@ -104,36 +154,74 @@ static void export_startjob(void *customdata,
   /* For restoring the current frame after exporting animation is done. */
   const int orig_frame = CFRA;
 
+  if (!BLI_path_extension_check_glob(data->filename, "*.usd;*.usda;*.usdc"))
+    BLI_path_extension_ensure(data->filename, FILE_MAX, ".usd");
+
   pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->filename);
   if (!usd_stage) {
-    /* This happens when the USD JSON files cannot be found. When that happens,
+    /* This may happen when the USD JSON files cannot be found. When that happens,
      * the USD library doesn't know it has the functionality to write USDA and
      * USDC files, and creating a new UsdStage fails. */
-    WM_reportf(
-        RPT_ERROR, "USD Export: unable to find suitable USD plugin to write %s", data->filename);
+    WM_reportf(RPT_ERROR, "USD Export: unable to create a stage for writing %s", data->filename);
+
+    pxr::SdfLayerRefPtr existing_layer = pxr::SdfLayer::FindOrOpen(data->filename);
+    if (existing_layer) {
+      WM_reportf(RPT_ERROR,
+                 "USD Export: layer %s is currently open in the scene, "
+                 "possibly because it's referenced by modifiers, "
+                 "and can't be overwritten",
+                 data->filename);
+    }
+
+    data->export_ok = false;
     return;
   }
 
-  usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
+  if (data->params.export_lights && !data->params.selected_objects_only &&
+      data->params.convert_world_material) {
+    world_material_to_dome_light(data->params, scene, usd_stage);
+  }
+
+  // Define material prim path as a scope
+  if (data->params.export_materials)
+    blender::io::usd::usd_define_or_over<pxr::UsdGeomScope>(
+        usd_stage, pxr::SdfPath(data->params.material_prim_path), data->params.export_as_overs);
+
+  pxr::VtValue upAxis = pxr::VtValue(pxr::UsdGeomTokens->z);
+  if (data->params.convert_orientation) {
+    if (data->params.up_axis == USD_GLOBAL_UP_X)
+      upAxis = pxr::VtValue(pxr::UsdGeomTokens->x);
+    else if (data->params.up_axis == USD_GLOBAL_UP_Y)
+      upAxis = pxr::VtValue(pxr::UsdGeomTokens->y);
+  }
+
+  usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, upAxis);
   usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit,
                          pxr::VtValue(scene->unit.scale_length));
-  usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
+  usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender ") +
                                               BKE_blender_version_string());
 
   /* Set up the stage for animated data. */
   if (data->params.export_animation) {
     usd_stage->SetTimeCodesPerSecond(FPS);
-    usd_stage->SetStartTimeCode(scene->r.sfra);
-    usd_stage->SetEndTimeCode(scene->r.efra);
+    usd_stage->SetStartTimeCode(data->params.frame_start);
+    usd_stage->SetEndTimeCode(data->params.frame_end);
   }
+
+  ensure_root_prim(usd_stage, data->params);
 
   USDHierarchyIterator iter(data->depsgraph, usd_stage, data->params);
 
   if (data->params.export_animation) {
-    /* Writing the animated frames is not 100% of the work, but it's our best guess. */
-    float progress_per_frame = 1.0f / std::max(1, (scene->r.efra - scene->r.sfra + 1));
 
-    for (float frame = scene->r.sfra; frame <= scene->r.efra; frame++) {
+    // Writing the animated frames is not 100% of the work, but it's our best guess.
+    float progress_per_frame = 1.0f / std::max(1.0f,
+                                               (float)(data->params.frame_end -
+                                                       data->params.frame_start + 1.0) /
+                                                   data->params.frame_step);
+
+    for (float frame = data->params.frame_start; frame <= data->params.frame_end;
+         frame += data->params.frame_step) {
       if (G.is_break || (stop != nullptr && *stop)) {
         break;
       }
@@ -156,6 +244,32 @@ static void export_startjob(void *customdata,
   }
 
   iter.release_writers();
+
+  // Set Stage Default Prim Path
+  if (strlen(data->params.default_prim_path) > 0) {
+    std::string valid_default_prim_path = pxr::TfMakeValidIdentifier(
+        data->params.default_prim_path);
+
+    if (valid_default_prim_path[0] == '_') {
+      valid_default_prim_path[0] = '/';
+    }
+    if (valid_default_prim_path[0] != '/') {
+      valid_default_prim_path = "/" + valid_default_prim_path;
+    }
+
+    pxr::UsdPrim defaultPrim = usd_stage->GetPrimAtPath(pxr::SdfPath(valid_default_prim_path));
+
+    if (defaultPrim.IsValid()) {
+      WM_reportf(RPT_INFO, "Set default prim path: %s", valid_default_prim_path);
+      usd_stage->SetDefaultPrim(defaultPrim);
+    }
+  }
+
+  // Set Scale
+  double meters_per_unit = data->params.convert_to_cm ? pxr::UsdGeomLinearUnits::centimeters :
+                                                        pxr::UsdGeomLinearUnits::meters;
+  pxr::UsdGeomSetStageMetersPerUnit(usd_stage, meters_per_unit);
+
   usd_stage->GetRootLayer()->Save();
 
   /* Finish up by going back to the keyframe that was current before we started. */
@@ -164,7 +278,8 @@ static void export_startjob(void *customdata,
     BKE_scene_graph_update_for_newframe(data->depsgraph);
   }
 
-  data->export_ok = true;
+  data->export_ok = !data->was_canceled;
+
   *progress = 1.0f;
   *do_update = true;
 }
@@ -175,7 +290,11 @@ static void export_endjob(void *customdata)
 
   DEG_graph_free(data->depsgraph);
 
-  if (!data->export_ok && BLI_exists(data->filename)) {
+  MEM_freeN(data->params.default_prim_path);
+  MEM_freeN(data->params.root_prim_path);
+  MEM_freeN(data->params.material_prim_path);
+
+  if (data->was_canceled && BLI_exists(data->filename)) {
     BLI_delete(data->filename, false, false);
   }
 
@@ -249,4 +368,13 @@ int USD_get_version(void)
    * So the major version is implicit/invisible in the public version number.
    */
   return PXR_VERSION;
+}
+
+bool USD_umm_module_loaded(void)
+{
+#ifdef WITH_PYTHON
+  return blender::io::usd::umm_module_loaded();
+#else
+  return fasle;
+#endif
 }

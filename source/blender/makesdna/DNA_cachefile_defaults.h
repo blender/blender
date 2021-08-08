@@ -36,6 +36,7 @@
     .scale = 1.0f, \
     .object_paths ={NULL, NULL}, \
  \
+    .type = 0, \
     .handle = NULL, \
     .handle_filepath[0] = '\0', \
     .handle_readers = NULL, \

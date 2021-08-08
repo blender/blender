@@ -20,6 +20,8 @@
 
 #include "usd_writer_abstract.h"
 
+#include <pxr/usd/usdGeom/basisCurves.h>
+
 namespace blender::io::usd {
 
 /* Writer for writing hair particle data as USD curves. */
@@ -30,6 +32,7 @@ class USDHairWriter : public USDAbstractWriter {
  protected:
   virtual void do_write(HierarchyContext &context) override;
   virtual bool check_is_animated(const HierarchyContext &context) const override;
+  void assign_material(const HierarchyContext &context, pxr::UsdGeomBasisCurves usd_curve);
 };
 
 }  // namespace blender::io::usd

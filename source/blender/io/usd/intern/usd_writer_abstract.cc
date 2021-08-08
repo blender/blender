@@ -18,10 +18,20 @@
  */
 #include "usd_writer_abstract.h"
 #include "usd_hierarchy_iterator.h"
+#include "usd_writer_material.h"
 
 #include <pxr/base/tf/stringUtils.h>
 
 #include "BLI_assert.h"
+
+extern "C" {
+#include "BKE_anim_data.h"
+#include "BKE_key.h"
+
+#include "BLI_utildefines.h"
+
+#include "DNA_modifier_types.h"
+}
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -32,6 +42,7 @@ static const pxr::TfToken preview_shader("previewShader", pxr::TfToken::Immortal
 static const pxr::TfToken preview_surface("UsdPreviewSurface", pxr::TfToken::Immortal);
 static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
 static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
+static const pxr::TfToken blenderName("userProperties:blenderName", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 namespace blender::io::usd {
@@ -73,14 +84,60 @@ void USDAbstractWriter::write(HierarchyContext &context)
   frame_has_been_written_ = true;
 }
 
+bool USDAbstractWriter::check_is_animated(const HierarchyContext &context) const
+{
+  const Object *object = context.object;
+
+  if (BKE_animdata_id_is_animated(static_cast<ID *>(object->data))) {
+    return true;
+  }
+  if (BKE_key_from_object(object) != nullptr) {
+    return true;
+  }
+
+  /* Test modifiers. */
+  /* TODO(Sybren): replace this with a check on the depsgraph to properly check for dependency on
+   * time. */
+  ModifierData *md = static_cast<ModifierData *>(object->modifiers.first);
+  while (md) {
+    if (md->type != eModifierType_Subsurf) {
+      return true;
+    }
+    md = md->next;
+  }
+
+  return false;
+}
+
 const pxr::SdfPath &USDAbstractWriter::usd_path() const
 {
   return usd_export_context_.usd_path;
 }
 
-pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
+pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material,
+                                                             const HierarchyContext &context)
 {
-  static pxr::SdfPath material_library_path("/_materials");
+  std::string material_prim_path_str;
+
+  /* For instance prototypes, create the material beneath the prototyp prim. */
+  if (usd_export_context_.export_params.use_instancing && !context.is_instance() &&
+      usd_export_context_.hierarchy_iterator->is_prototype(context.object)) {
+
+    material_prim_path_str += std::string(usd_export_context_.export_params.root_prim_path);
+    if (context.object->data) {
+      material_prim_path_str += context.higher_up_export_path;
+    }
+    else {
+      material_prim_path_str += context.export_path;
+    }
+    material_prim_path_str += "/Looks";
+  }
+
+  if (material_prim_path_str.empty()) {
+    material_prim_path_str = this->usd_export_context_.export_params.material_prim_path;
+  }
+
+  pxr::SdfPath material_library_path(material_prim_path_str);
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   /* Construct the material. */
@@ -90,19 +147,35 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
   if (usd_material) {
     return usd_material;
   }
-  usd_material = pxr::UsdShadeMaterial::Define(stage, usd_path);
 
-  /* Construct the shader. */
-  pxr::SdfPath shader_path = usd_path.AppendChild(usdtokens::preview_shader);
-  pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(stage, shader_path);
-  shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
-  shader.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f)
-      .Set(pxr::GfVec3f(material->r, material->g, material->b));
-  shader.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float).Set(material->roughness);
-  shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
+  usd_material = (usd_export_context_.export_params.export_as_overs) ?
+                     pxr::UsdShadeMaterial(usd_export_context_.stage->OverridePrim(usd_path)) :
+                     pxr::UsdShadeMaterial::Define(usd_export_context_.stage, usd_path);
 
-  /* Connect the shader and the material together. */
-  usd_material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
+  // TODO(bskinner) maybe always export viewport material as variant...
+  if (material->use_nodes && this->usd_export_context_.export_params.generate_cycles_shaders) {
+    create_usd_cycles_material(this->usd_export_context_.stage,
+                               material,
+                               usd_material,
+                               this->usd_export_context_.export_params);
+  }
+  if (material->use_nodes && this->usd_export_context_.export_params.generate_mdl) {
+    create_mdl_material(this->usd_export_context_, material, usd_material);
+    if (this->usd_export_context_.export_params.export_textures) {
+      export_textures(material, this->usd_export_context_.stage);
+    }
+  }
+  if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {
+    create_usd_preview_surface_material(this->usd_export_context_, material, usd_material);
+  }
+  else {
+    create_usd_viewport_material(this->usd_export_context_, material, usd_material);
+  }
+
+  if (usd_export_context_.export_params.export_custom_properties && material) {
+    auto prim = usd_material.GetPrim();
+    write_id_properties(prim, material->id, get_export_time_code());
+  }
 
   return usd_material;
 }
@@ -132,7 +205,14 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
     return false;
   }
 
-  pxr::SdfPath ref_path(context.original_export_path);
+  std::string ref_path_str(usd_export_context_.export_params.root_prim_path);
+  ref_path_str += context.original_export_path;
+
+  pxr::SdfPath ref_path(ref_path_str);
+
+  /* To avoid USD errors, make sure the referenced path exists. */
+  usd_export_context_.stage->DefinePrim(ref_path);
+
   if (!prim.GetReferences().AddInternalReference(ref_path)) {
     /* See this URL for a description fo why referencing may fail"
      * https://graphics.pixar.com/usd/docs/api/class_usd_references.html#Usd_Failing_References
@@ -143,7 +223,97 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
     return false;
   }
 
+  prim.SetInstanceable(true);
+
   return true;
+}
+
+void USDAbstractWriter::write_id_properties(pxr::UsdPrim &prim,
+                                            const ID &id,
+                                            pxr::UsdTimeCode timecode)
+{
+  if (usd_export_context_.export_params.author_blender_name) {
+    if (GS(id.name) == ID_OB) {
+      // Author property of original blenderName
+      prim.CreateAttribute(pxr::TfToken(usdtokens::blenderName.GetString() + ":object"),
+                           pxr::SdfValueTypeNames->String,
+                           true)
+          .Set<std::string>(std::string(id.name + 2));
+    }
+    else {
+      prim.CreateAttribute(pxr::TfToken(usdtokens::blenderName.GetString() + ":data"),
+                           pxr::SdfValueTypeNames->String,
+                           true)
+          .Set<std::string>(std::string(id.name + 2));
+    }
+  }
+
+  if (id.properties)
+    write_user_properties(prim, (IDProperty *)id.properties, timecode);
+}
+
+void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
+                                              IDProperty *properties,
+                                              pxr::UsdTimeCode timecode)
+{
+  if (properties == nullptr)
+    return;
+  if (properties->type != IDP_GROUP)
+    return;
+
+  IDProperty *prop;
+  for (prop = (IDProperty *)properties->data.group.first; prop; prop = prop->next) {
+    std::string prop_name = pxr::TfMakeValidIdentifier(prop->name);
+    pxr::TfToken prop_token;
+    pxr::UsdAttribute prop_attr;
+
+    bool is_usd_attribute = false;
+
+    // If starts with USD_ treat as usd property
+    if (prop_name.rfind("USD_", 0) == 0) {
+      std::string usd_prop_name = prop_name;
+      usd_prop_name.erase(0, 4);
+      prop_token = pxr::TfToken(usd_prop_name);
+      prop_attr = prim.GetAttribute(prop_token);
+      if (prop_attr)
+        is_usd_attribute = true;
+    }
+
+    if (!is_usd_attribute) {
+      prop_token = pxr::TfToken("userProperties:" + prop_name);
+      switch (prop->type) {
+        case IDP_INT:
+          prop_attr = prim.CreateAttribute(prop_token, pxr::SdfValueTypeNames->Int, true);
+          break;
+        case IDP_FLOAT:
+          prop_attr = prim.CreateAttribute(prop_token, pxr::SdfValueTypeNames->Float, true);
+          break;
+        case IDP_DOUBLE:
+          prop_attr = prim.CreateAttribute(prop_token, pxr::SdfValueTypeNames->Double, true);
+          break;
+        case IDP_STRING:
+          prop_attr = prim.CreateAttribute(prop_token, pxr::SdfValueTypeNames->String, true);
+          break;
+      }
+    }
+
+    if (prop_attr) {
+      if (prop_attr.GetTypeName() == pxr::SdfValueTypeNames->Int)
+        prop_attr.Set<int>(prop->data.val, timecode);
+
+      else if (prop_attr.GetTypeName() == pxr::SdfValueTypeNames->Float)
+        prop_attr.Set<float>(*(float *)&prop->data.val, timecode);
+
+      else if (prop_attr.GetTypeName() == pxr::SdfValueTypeNames->Double)
+        prop_attr.Set<double>(*(double *)&prop->data.val, timecode);
+
+      else if (prop_attr.GetTypeName() == pxr::SdfValueTypeNames->String)
+        prop_attr.Set<std::string>((char *)prop->data.pointer, timecode);
+
+      else if (prop_attr.GetTypeName() == pxr::SdfValueTypeNames->Token)
+        prop_attr.Set<pxr::TfToken>(pxr::TfToken((char *)prop->data.pointer), timecode);
+    }
+  }
 }
 
 }  // namespace blender::io::usd

@@ -215,7 +215,9 @@ class AbstractHierarchyIterator {
   typedef std::map<ObjectIdentifier, ExportChildren> ExportGraph;
   /* Mapping from ID to its export path. This is used for instancing; given an
    * instanced datablock, the export path of the original can be looked up. */
-  typedef std::map<ID *, std::string> ExportPathMap;
+  typedef std::map<const ID *, std::string> ExportPathMap;
+  /* Set of IDs of objects that are the originals of instances. */
+  typedef std::set<const ID *> PrototypeObjects;
 
  protected:
   ExportGraph export_graph_;
@@ -223,6 +225,7 @@ class AbstractHierarchyIterator {
   Depsgraph *depsgraph_;
   WriterMap writers_;
   ExportSubset export_subset_;
+  PrototypeObjects prototypes_;
 
  public:
   explicit AbstractHierarchyIterator(Depsgraph *depsgraph);
@@ -258,6 +261,19 @@ class AbstractHierarchyIterator {
    * object->data. Overriding is necessary when the exported format does NOT expect the object's
    * data to be a child of the object. */
   virtual std::string get_object_data_path(const HierarchyContext *context) const;
+
+  /* Returns the export path computed for the object with the given ID.
+   * This should be called after only all writers have been created for the
+   * dependency graph. This currently works for non-instanced objects only. */
+  std::string get_object_export_path(const ID *id) const;
+
+  /* Return true if the object with the given id is a prototype object
+   * for instancing.  Returns false otherwise. */
+  bool is_prototype(const ID *id) const;
+
+  /* Return true if the object is a prototype object
+   * for instancing.  Returns false otherwise. */
+  bool is_prototype(const Object *obj) const;
 
  private:
   void debug_print_export_graph(const ExportGraph &graph) const;
@@ -345,6 +361,18 @@ class AbstractHierarchyIterator {
 
   /* Called by release_writers() to free what the create_XXX_writer() functions allocated. */
   virtual void release_writer(AbstractHierarchyWriter *writer) = 0;
+
+  /* Return true if data writers should be created for this context. */
+  virtual bool include_data_writers(const HierarchyContext *context) const
+  {
+    return true;
+  }
+
+  /* Return true if children of the context should be converted to writers. */
+  virtual bool include_child_writers(const HierarchyContext *context) const
+  {
+    return true;
+  }
 
   AbstractHierarchyWriter *get_writer(const std::string &export_path) const;
   ExportChildren &graph_children(const HierarchyContext *parent_context);

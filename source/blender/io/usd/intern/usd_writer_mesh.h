@@ -22,6 +22,8 @@
 
 #include <pxr/usd/usdGeom/mesh.h>
 
+struct ModifierData;
+
 namespace blender::io::usd {
 
 struct USDMeshData;
@@ -47,9 +49,21 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void assign_materials(const HierarchyContext &context,
                         pxr::UsdGeomMesh usd_mesh,
                         const MaterialFaceGroups &usd_face_groups);
-  void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh, const CustomDataLayer *layer);
+  void write_vertex_colors(const Mesh *mesh,
+                           pxr::UsdGeomMesh usd_mesh,
+                           const CustomDataLayer *layer);
+  void write_vertex_groups(const Object *ob,
+                           const Mesh *mesh,
+                           pxr::UsdGeomMesh usd_mesh,
+                           bool as_point_groups);
+  void write_face_maps(const Object *ob, const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_surface_velocity(Object *object, const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+
+ protected:
+  ModifierData *m_subsurf_mod;
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {
