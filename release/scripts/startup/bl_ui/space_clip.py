@@ -1239,7 +1239,7 @@ class CLIP_PT_tools_scenesetup(Panel):
 class CLIP_PT_annotation(AnnotationDataPanel, CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Annotation"
+    bl_category = "View"
     bl_options = set()
 
     # NOTE: this is just a wrapper around the generic GP Panel
