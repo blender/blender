@@ -185,6 +185,8 @@ void Session::reset_gpu(BufferParams &buffer_params, int samples)
   gpu_need_display_buffer_update_ = false;
   gpu_need_display_buffer_update_cond_.notify_all();
 
+  new_work_added_ = true;
+
   pause_cond_.notify_all();
 }
 
