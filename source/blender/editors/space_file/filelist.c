@@ -3354,7 +3354,14 @@ typedef struct FileListReadJob {
   char main_name[FILE_MAX];
   Main *current_main;
   struct FileList *filelist;
-  /** XXX We may use a simpler struct here... just a linked list and root path? */
+
+  /** Shallow copy of #filelist for thread-safe access.
+   *
+   * The job system calls #filelist_readjob_update which moves any read file from #tmp_filelist
+   * into #filelist in a thread-safe way.
+   *
+   * NOTE: #tmp_filelist is freed in #filelist_readjob_free, so any copied pointers need to be set
+   * to NULL to avoid double-freeing them. */
   struct FileList *tmp_filelist;
 } FileListReadJob;
 
