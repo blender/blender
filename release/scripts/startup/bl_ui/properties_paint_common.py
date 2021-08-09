@@ -1141,7 +1141,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props)
     if not gp_settings.use_material_pin:
         ma = context.object.active_material
     icon_id = 0
-    if ma:
+    if ma and ma.id_data.preview:
         icon_id = ma.id_data.preview.icon_id
         txt_ma = ma.name
         maxw = 25
