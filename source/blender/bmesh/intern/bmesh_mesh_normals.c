@@ -1116,8 +1116,6 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
   BMIter fiter;
   BMFace *f_curr;
   const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
-  const bool check_angle = (split_angle < (float)M_PI);
-  const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
   MLoopNorSpaceArray _lnors_spacearr = {NULL};
 
@@ -1152,16 +1150,13 @@ static void bm_mesh_loops_calc_normals__single_threaded(BMesh *bm,
     do {
       BM_elem_index_set(l_curr, index_loop++); /* set_inline */
       BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
-      /* Needed for when #bm_mesh_edges_sharp_tag doesn't run.
-       * Mark smooth if there is no smoothing angle. */
-      BM_elem_flag_enable(l_curr->e, BM_ELEM_TAG);
     } while ((l_curr = l_curr->next) != l_first);
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
-  if (split_angle_cos != -1.0f) {
-    bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, false);
-  }
+  /* Always tag edges based on winding & sharp edge flag
+   * (even when the auto-smooth angle doesn't need to be calculated). */
+  bm_mesh_edges_sharp_tag(bm, fnos, has_clnors ? (float)M_PI : split_angle, false);
 
   /* We now know edges that can be smoothed (they are tagged),
    * and edges that will be hard (they aren't).
