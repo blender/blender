@@ -155,7 +155,7 @@ void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
   }
   else if (py_call_level == 0) {
     /* XXX: Calling classes currently won't store the context :\,
-     * can't set NULL because of this. but this is very flakey still. */
+     * can't set NULL because of this. but this is very flaky still. */
 #if 0
     BPY_context_set(NULL);
 #endif

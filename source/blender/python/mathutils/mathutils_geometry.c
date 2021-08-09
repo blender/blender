@@ -201,7 +201,7 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
   }
 
   if (result == 0) {
-    /* collinear */
+    /* Co-linear. */
     Py_RETURN_NONE;
   }
 

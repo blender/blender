@@ -1926,7 +1926,7 @@ static PyObject *Vector_imatmul(PyObject *v1, PyObject *v2)
   return NULL;
 }
 
-/* divid: obj / obj */
+/* divide: obj / obj */
 static PyObject *Vector_div(PyObject *v1, PyObject *v2)
 {
   float *vec = NULL, scalar;
@@ -2939,7 +2939,7 @@ static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS],
   memcpy(vec_cpy, vec->vec, vec_size * sizeof(float));
 
   r_vec[3] = 1.0f;
-  /* muliplication */
+  /* Multiplication. */
   for (col = 0; col < mat->num_col; col++) {
     double dot = 0.0;
     for (row = 0; row < mat->num_row; row++) {
