@@ -20,15 +20,18 @@ import bpy
 from bpy.app.handlers import persistent
 
 
-@persistent
-def load_handler(_):
-    from bpy import context
-    screen = context.screen
+def do_version_file_browser():
+    screen = bpy.data.screens["Video Editing"]
     for area in screen.areas:
         if area.type == 'FILE_BROWSER':
             space = area.spaces.active
             params = space.params
             params.use_filter_folder = True
+
+
+@persistent
+def load_handler(_):
+    do_version_file_browser()
 
 
 def register():
