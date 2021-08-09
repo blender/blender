@@ -20,7 +20,7 @@ import bpy
 from bpy.app.handlers import persistent
 
 
-def do_version_file_browser():
+def update_factory_startup_screens():
     screen = bpy.data.screens["Video Editing"]
     for area in screen.areas:
         if area.type == 'FILE_BROWSER':
@@ -31,7 +31,7 @@ def do_version_file_browser():
 
 @persistent
 def load_handler(_):
-    do_version_file_browser()
+    update_factory_startup_screens()
 
 
 def register():

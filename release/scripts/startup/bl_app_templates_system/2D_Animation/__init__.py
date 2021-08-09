@@ -21,48 +21,43 @@
 import bpy
 from bpy.app.handlers import persistent
 
+def update_factory_startup_screens():
+    # 2D Animation.
+    screen = bpy.data.screens["2D Animation"]
+    for area in screen.areas:
+        if area.type == 'PROPERTIES':
+            # Set Tool settings as default in properties panel.
+            space = area.spaces.active
+            space.context = 'TOOL'
+        elif area.type == 'DOPESHEET_EDITOR':
+            # Open sidebar in Dopesheet.
+            space = area.spaces.active
+            space.show_region_ui = True
+
+    # 2D Full Canvas.
+    screen = bpy.data.screens["2D Full Canvas"]
+    for area in screen.areas:
+        if area.type == 'VIEW_3D':
+            space = area.spaces.active
+            space.shading.type = 'MATERIAL'
+            space.shading.use_scene_world = True
+
+
+def update_factory_startup_scenes():
+    for scene in bpy.data.scenes:
+        scene.tool_settings.use_keyframe_insert_auto = True
+
+
+def update_factory_startup_grease_pencils():
+    for gpd in bpy.data.grease_pencils:
+        gpd.onion_keyframe_type = 'ALL'
+
 
 @persistent
 def load_handler(_):
-    import bpy
-
-    # 2D Animation
-    screen = bpy.data.screens['2D Animation']
-    if screen:
-        for area in screen.areas:
-            # Set Tool settings as default in properties panel.
-            if area.type == 'PROPERTIES':
-                for space in area.spaces:
-                    if space.type != 'PROPERTIES':
-                        continue
-                    space.context = 'TOOL'
-
-            # Open sidebar in Dopesheet.
-            elif area.type == 'DOPESHEET_EDITOR':
-                for space in area.spaces:
-                    if space.type != 'DOPESHEET_EDITOR':
-                        continue
-                    space.show_region_ui = True
-
-    # 2D Full Canvas
-    screen = bpy.data.screens['2D Full Canvas']
-    if screen:
-        for area in screen.areas:
-            if area.type == 'VIEW_3D':
-                for space in area.spaces:
-                    if space.type != 'VIEW_3D':
-                        continue
-                    space.shading.type = 'MATERIAL'
-                    space.shading.use_scene_world = True
-
-    # Grease pencil object
-    scene = bpy.data.scenes[0]
-    if scene:
-        scene.tool_settings.use_keyframe_insert_auto = True
-        for ob in scene.objects:
-            if ob.type == 'GPENCIL':
-                gpd = ob.data
-                gpd.onion_keyframe_type = 'ALL'
+    update_factory_startup_screens()
+    update_factory_startup_scenes()
+    update_factory_startup_grease_pencils()
 
 
 def register():
