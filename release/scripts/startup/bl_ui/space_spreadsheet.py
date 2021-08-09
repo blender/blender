@@ -55,7 +55,7 @@ class SPREADSHEET_HT_header(bpy.types.Header):
         layout.operator("spreadsheet.toggle_pin", text="", icon=pin_icon, emboss=False)
 
         if space.object_eval_state == 'VIEWER_NODE' and len(context_path) < 3:
-            layout.label(text="No active viewer node.", icon='INFO')
+            layout.label(text="No active viewer node", icon='INFO')
 
         layout.separator_spacer()
 

@@ -159,7 +159,7 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
                                "set_view_transform",
                                true,
                                "Set View Transform",
-                               "Set appropriate view transform based on media colorspace");
+                               "Set appropriate view transform based on media color space");
   }
 }
 

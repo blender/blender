@@ -2742,11 +2742,11 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C,
 
   char *result;
   if (prev_mat) {
-    const char *tooltip = TIP_("Drop %s on %s (slot %d, replacing %s).");
+    const char *tooltip = TIP_("Drop %s on %s (slot %d, replacing %s)");
     result = BLI_sprintfN(tooltip, name, ob->id.name + 2, active_mat_slot, prev_mat->id.name + 2);
   }
   else {
-    const char *tooltip = TIP_("Drop %s on %s (slot %d).");
+    const char *tooltip = TIP_("Drop %s on %s (slot %d)");
     result = BLI_sprintfN(tooltip, name, ob->id.name + 2, active_mat_slot);
   }
   return result;

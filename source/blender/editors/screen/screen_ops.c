@@ -403,7 +403,7 @@ bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
   }
 
   if (ed_object_hidden(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit hidden obect");
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit hidden object");
     return false;
   }
 

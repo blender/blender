@@ -803,7 +803,7 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
          node_lib = node_lib->next) {
       Library *library = node_lib->link;
       BKE_reportf(
-          bf_reports->reports, RPT_INFO, "Library %s needs overrides resync.", library->filepath);
+          bf_reports->reports, RPT_INFO, "Library %s needs overrides resync", library->filepath);
     }
   }
 
@@ -3443,7 +3443,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     BLI_split_file_part(blendfile_pathpath, filename, sizeof(filename));
   }
   else {
-    STRNCPY(filename, IFACE_("untitled.blend"));
+    STRNCPY(filename, "untitled.blend");
   }
   uiItemL(layout, filename, ICON_NONE);
 
