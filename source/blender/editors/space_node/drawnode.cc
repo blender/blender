@@ -3596,8 +3596,26 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_TEXTURE: {
-      uiTemplateID(
-          layout, C, ptr, "default_value", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
+      if (text == "") {
+        uiTemplateID(layout,
+                     C,
+                     ptr,
+                     "default_value",
+                     "texture.new",
+                     nullptr,
+                     nullptr,
+                     0,
+                     ICON_NONE,
+                     nullptr);
+      }
+      else {
+        /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
+        uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
+        uiItemL(row, text, 0);
+        uiTemplateID(
+            row, C, ptr, "default_value", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
+      }
+
       break;
     }
     case SOCK_MATERIAL: {
