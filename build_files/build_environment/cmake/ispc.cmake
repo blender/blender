@@ -29,13 +29,13 @@ elseif(APPLE)
   if("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")
     set(ISPC_EXTRA_ARGS_APPLE
       -DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison
-      -DFLEX_EXECUTABLE=${LIBDIR}/flex/bin/flex
+      -DFLEX_EXECUTABLE=/opt/homebrew/opt/flex/bin/flex
       -DARM_ENABLED=On
     )
   else()
     set(ISPC_EXTRA_ARGS_APPLE
       -DBISON_EXECUTABLE=/usr/local/opt/bison/bin/bison
-      -DFLEX_EXECUTABLE=${LIBDIR}/flex/bin/flex
+      -DFLEX_EXECUTABLE=/usr/local/opt/flex/bin/flex
       -DARM_ENABLED=Off
     )
   endif()
@@ -84,7 +84,7 @@ if(WIN32)
     external_ispc
     external_flexbison
   )
-else()
+elseif(UNIX AND NOT APPLE)
   add_dependencies(
     external_ispc
     external_flex

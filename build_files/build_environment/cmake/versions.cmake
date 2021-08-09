@@ -158,10 +158,18 @@ set(LLVM_HASH 5a4fab4d7fc84aefffb118ac2c8a4fc0)
 set(LLVM_HASH_TYPE MD5)
 set(LLVM_FILE llvm-project-${LLVM_VERSION}.src.tar.xz)
 
-set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/openmp-${LLVM_VERSION}.src.tar.xz)
-set(OPENMP_HASH ac48ce3e4582ccb82f81ab59eb3fc9dc)
+if(APPLE)
+  # Cloth physics test is crashing due to this bug:
+  # https://bugs.llvm.org/show_bug.cgi?id=50579
+  set(OPENMP_VERSION 9.0.1)
+  set(OPENMP_HASH 6eade16057edbdecb3c4eef9daa2bfcf)
+else()
+  set(OPENMP_VERSION ${LLVM_VERSION})
+  set(OPENMP_HASH ac48ce3e4582ccb82f81ab59eb3fc9dc)
+endif()
+set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${OPENMP_VERSION}/openmp-${OPENMP_VERSION}.src.tar.xz)
 set(OPENMP_HASH_TYPE MD5)
-set(OPENMP_FILE openmp-${LLVM_VERSION}.src.tar.xz)
+set(OPENMP_FILE openmp-${OPENMP_VERSION}.src.tar.xz)
 
 set(OPENIMAGEIO_VERSION 2.2.15.1)
 set(OPENIMAGEIO_URI https://github.com/OpenImageIO/oiio/archive/Release-${OPENIMAGEIO_VERSION}.tar.gz)

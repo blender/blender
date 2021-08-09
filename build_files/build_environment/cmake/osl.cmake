@@ -96,7 +96,7 @@ if(WIN32)
     external_osl
     external_flexbison
   )
-else()
+elseif(UNIX AND NOT APPLE)
   add_dependencies(
     external_osl
     external_flex
