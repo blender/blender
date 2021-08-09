@@ -2477,18 +2477,6 @@ static void rna_SpaceClipEditor_mask_set(PointerRNA *ptr,
   ED_space_clip_set_mask(NULL, sc, (Mask *)value.data);
 }
 
-static void rna_SpaceClipEditor_cursor_location_get(PointerRNA *ptr, float *values)
-{
-  SpaceClip *sc = (SpaceClip *)(ptr->data);
-  copy_v2_v2(values, sc->cursor);
-}
-
-static void rna_SpaceClipEditor_cursor_location_set(PointerRNA *ptr, const float *values)
-{
-  SpaceClip *sc = (SpaceClip *)(ptr->data);
-  copy_v2_v2(sc->cursor, values);
-}
-
 static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain),
                                                  Scene *UNUSED(scene),
                                                  PointerRNA *ptr)
@@ -7344,11 +7332,8 @@ static void rna_def_space_clip(BlenderRNA *brna)
 
   /* transform */
   prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_float_sdna(prop, NULL, "cursor");
   RNA_def_property_array(prop, 2);
-  RNA_def_property_float_funcs(prop,
-                               "rna_SpaceClipEditor_cursor_location_get",
-                               "rna_SpaceClipEditor_cursor_location_set",
-                               NULL);
   RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
