@@ -139,12 +139,12 @@ def _template_items_basic_tools(*, connected=False):
     ]
 
 def _template_items_tool_select(params, operator, *, extend):
-        return [
-            (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
-             {"properties": [("deselect_all", True)]}),
-            (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-             {"properties": [(extend, True)]}),
-        ]
+    return [
+        (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("deselect_all", True)]}),
+        (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+         {"properties": [(extend, True)]}),
+    ]
 
 
 def _template_items_tool_select_actions(operator, *, type, value):
