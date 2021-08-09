@@ -761,9 +761,9 @@ class Macro(StructRNA):
     __slots__ = ()
 
     @classmethod
-    def define(self, opname):
+    def define(cls, opname):
         from _bpy import ops
-        return ops.macro_define(self, opname)
+        return ops.macro_define(cls, opname)
 
 
 class PropertyGroup(StructRNA, metaclass=RNAMetaPropGroup):
