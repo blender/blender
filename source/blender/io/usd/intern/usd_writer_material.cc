@@ -652,7 +652,7 @@ static std::string get_node_tex_image_filepath(bNode *node)
     unsigned short numlen;
 
     BLI_path_sequence_decode(filepath, head, tail, &numlen);
-    sprintf(filepath, "%s%s%s", head, "<UDIM>", tail);
+    return (std::string(head) + "<UDIM>" + std::string(tail));
   }
 
   return std::string(filepath);
@@ -668,8 +668,6 @@ static pxr::TfToken get_node_tex_image_color_space(bNode *node)
   if (node->id == nullptr) {
     return pxr::TfToken();
   }
-
-  NodeTexImage *tex_original = (NodeTexImage *)node->storage;
 
   Image *ima = reinterpret_cast<Image *>(node->id);
 
@@ -705,10 +703,10 @@ static const int HD_CYCLES_CURVE_EXPORT_RES = 256;
 // fallback will 'hide' missing future features, and 'may' work. However this code should be
 // considered 'live' and require tweaking with each new version until we can share this conversion
 // somehow. (Perhaps as mentioned above with rna_nodetree.c)
-bool usd_handle_shader_enum(pxr::TfToken a_token,
-                            const std::map<int, std::string> &a_conversion_table,
-                            pxr::UsdShadeShader &a_shader,
-                            int a_value)
+static bool usd_handle_shader_enum(pxr::TfToken a_token,
+                                   const std::map<int, std::string> &a_conversion_table,
+                                   pxr::UsdShadeShader &a_shader,
+                                   const int a_value)
 {
   std::map<int, std::string>::const_iterator it = a_conversion_table.find(a_value);
   if (it != a_conversion_table.end()) {
@@ -1023,17 +1021,17 @@ static const std::map<int, std::string> node_principled_subsurface_method_conver
     {SHD_SUBSURFACE_RANDOM_WALK, "random_walk"},
 };
 
-void to_lower(std::string &string)
+static void to_lower(std::string &string)
 {
   std::transform(string.begin(), string.end(), string.begin(), [](unsigned char c) {
     return std::tolower(c);
   });
 }
 
-void set_default(bNode *node,
-                 bNodeSocket *socketValue,
-                 bNodeSocket *socketName,
-                 pxr::UsdShadeShader usd_shader)
+static void set_default(bNode *node,
+                        bNodeSocket *socketValue,
+                        bNodeSocket *socketName,
+                        pxr::UsdShadeShader usd_shader)
 {
   std::string inputName = socketName->identifier;
 
@@ -1193,10 +1191,10 @@ pxr::UsdShadeShader create_usd_preview_shader_node(USDExporterContext const &usd
 }
 
 /* Creates a USDShadeShader based on given cycles shading node */
-pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage,
-                                              pxr::SdfPath &shaderPath,
-                                              bNode *node,
-                                              const USDExportParams &export_params)
+static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage,
+                                                     pxr::SdfPath &shaderPath,
+                                                     bNode *node,
+                                                     const USDExportParams &export_params)
 {
   pxr::SdfPath primpath = shaderPath.AppendChild(
       pxr::TfToken(pxr::TfMakeValidIdentifier(node->name)));
@@ -2034,11 +2032,11 @@ void create_usd_preview_surface_material(USDExporterContext const &usd_export_co
   return;
 }
 
-void store_cycles_nodes(pxr::UsdStageRefPtr a_stage,
-                        bNodeTree *ntree,
-                        pxr::SdfPath shader_path,
-                        bNode **material_out,
-                        const USDExportParams &export_params)
+static void store_cycles_nodes(pxr::UsdStageRefPtr a_stage,
+                               bNodeTree *ntree,
+                               pxr::SdfPath shader_path,
+                               bNode **material_out,
+                               const USDExportParams &export_params)
 {
   for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
 
@@ -2056,11 +2054,10 @@ void store_cycles_nodes(pxr::UsdStageRefPtr a_stage,
   }
 }
 
-void link_cycles_nodes(pxr::UsdStageRefPtr a_stage,
-                       pxr::UsdShadeMaterial &usd_material,
-                       bNodeTree *ntree,
-                       pxr::SdfPath shader_path,
-                       const USDExportParams &export_params)
+static void link_cycles_nodes(pxr::UsdStageRefPtr a_stage,
+                              pxr::UsdShadeMaterial &usd_material,
+                              bNodeTree *ntree,
+                              pxr::SdfPath shader_path)
 {
   // for all links
   for (bNodeLink *link = (bNodeLink *)ntree->links.first; link; link = link->next) {
@@ -2210,8 +2207,7 @@ void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
   link_cycles_nodes(a_stage,
                     usd_material,
                     localtree,
-                    usd_material.GetPath().AppendChild(cyclestokens::cycles),
-                    export_params);
+                    usd_material.GetPath().AppendChild(cyclestokens::cycles));
 
   ntreeFreeLocalTree(localtree);
   MEM_freeN(localtree);

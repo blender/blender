@@ -363,13 +363,13 @@ class AbstractHierarchyIterator {
   virtual void release_writer(AbstractHierarchyWriter *writer) = 0;
 
   /* Return true if data writers should be created for this context. */
-  virtual bool include_data_writers(const HierarchyContext *context) const
+  virtual bool include_data_writers(const HierarchyContext *) const
   {
     return true;
   }
 
   /* Return true if children of the context should be converted to writers. */
-  virtual bool include_child_writers(const HierarchyContext *context) const
+  virtual bool include_child_writers(const HierarchyContext *) const
   {
     return true;
   }

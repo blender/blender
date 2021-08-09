@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) NVIDIA Corporation.
+ * The Original Code is Copyright (C) 2021 NVIDIA Corporation.
  * All rights reserved.
  */
 
@@ -41,7 +41,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BlI_math.h"
+#include "BLI_math.h"
 #include "DNA_light_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"

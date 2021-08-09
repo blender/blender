@@ -97,7 +97,7 @@ class USDPrimReader {
   {
     return false;
   }
-  virtual void apply_cache_file(CacheFile *cache_file)
+  virtual void apply_cache_file(CacheFile * /* cache_file */)
   {
   }
 

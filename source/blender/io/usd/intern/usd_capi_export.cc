@@ -260,7 +260,7 @@ static void export_startjob(void *customdata,
     pxr::UsdPrim defaultPrim = usd_stage->GetPrimAtPath(pxr::SdfPath(valid_default_prim_path));
 
     if (defaultPrim.IsValid()) {
-      WM_reportf(RPT_INFO, "Set default prim path: %s", valid_default_prim_path);
+      WM_reportf(RPT_INFO, "Set default prim path: %s", valid_default_prim_path.c_str());
       usd_stage->SetDefaultPrim(defaultPrim);
     }
   }

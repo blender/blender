@@ -441,7 +441,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
   CacheFile *cache_file = nullptr;
 
   /* Handle instance prototypes.
-  /* TODO(makowalski): Move this logic inside USDReaderStage? */
+   * TODO(makowalski): Move this logic inside USDReaderStage? */
   for (const auto &pair : archive->proto_readers()) {
 
     for (USDPrimReader *reader : pair.second) {
@@ -466,7 +466,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
 
       ob->parent = parent_reader ? parent_reader->object() : nullptr;
 
-      // TODO(makowalski): Handle progress update.
+      /* TODO(makowalski): Handle progress update. */
     }
   }
 
