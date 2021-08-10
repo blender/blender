@@ -513,93 +513,55 @@ void GPU_matrix_project_2fv(const float world[3],
   win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
 }
 
-/**
- * The same result could be obtained as follows:
- *
- * \code{.c}
- * float projinv[4][4];
- * invert_m4_m4(projinv, projmat);
- * co[0] = 2 * co[0] - 1;
- * co[1] = 2 * co[1] - 1;
- * co[2] = 2 * co[2] - 1;
- * mul_project_m4_v3(projinv, co);
- * \endcode
- *
- * But that solution loses much precision.
- * Therefore, get the same result without inverting the matrix.
- */
-static void gpu_mul_invert_projmat_m4_unmapped_v3_with_precalc(
-    const struct GPUMatrixUnproject_Precalc *precalc, float co[3])
-{
-  /* 'precalc->dims' is the result of 'projmat_dimensions(proj, ...)'. */
-  co[0] = (float)scalenormd(precalc->dims.xmin, precalc->dims.xmax, co[0]);
-  co[1] = (float)scalenormd(precalc->dims.ymin, precalc->dims.ymax, co[1]);
-
-  if (precalc->is_persp) {
-    co[2] = (precalc->dims.zmax * precalc->dims.zmin) /
-            (precalc->dims.zmax + co[2] * (precalc->dims.zmin - precalc->dims.zmax));
-    co[0] *= co[2] / precalc->dims.zmin;
-    co[1] *= co[2] / precalc->dims.zmin;
-  }
-  else {
-    co[2] = (float)scalenormd(precalc->dims.zmin, precalc->dims.zmax, co[2]);
-  }
-  co[2] *= -1;
-}
-
-bool GPU_matrix_unproject_precalc(struct GPUMatrixUnproject_Precalc *precalc,
-                                  const float model[4][4],
-                                  const float proj[4][4],
-                                  const int view[4])
-{
-  precalc->is_persp = proj[3][3] == 0.0f;
-  projmat_dimensions_db(proj,
-                        &precalc->dims.xmin,
-                        &precalc->dims.xmax,
-                        &precalc->dims.ymin,
-                        &precalc->dims.ymax,
-                        &precalc->dims.zmin,
-                        &precalc->dims.zmax);
-  if (isinf(precalc->dims.zmax)) {
-    /* We cannot retrieve the actual value of the clip_end.
-     * Use `FLT_MAX` to avoid NAN's. */
-    precalc->dims.zmax = FLT_MAX;
-  }
-  for (int i = 0; i < 4; i++) {
-    precalc->view[i] = (float)view[i];
-  }
-  if (!invert_m4_m4(precalc->model_inverted, model)) {
-    unit_m4(precalc->model_inverted);
-    return false;
-  }
-  return true;
-}
-
-void GPU_matrix_unproject_3fv_with_precalc(const struct GPUMatrixUnproject_Precalc *precalc,
-                                           const float win[3],
-                                           float r_world[3])
-{
-  float in[3] = {
-      (win[0] - precalc->view[0]) / precalc->view[2],
-      (win[1] - precalc->view[1]) / precalc->view[3],
-      win[2],
-  };
-  gpu_mul_invert_projmat_m4_unmapped_v3_with_precalc(precalc, in);
-  mul_v3_m4v3(r_world, precalc->model_inverted, in);
-}
-
 bool GPU_matrix_unproject_3fv(const float win[3],
-                              const float model[4][4],
+                              const float model_inverted[4][4],
                               const float proj[4][4],
                               const int view[4],
                               float r_world[3])
 {
-  struct GPUMatrixUnproject_Precalc precalc;
-  if (!GPU_matrix_unproject_precalc(&precalc, model, proj, view)) {
-    zero_v3(r_world);
+  zero_v3(r_world);
+  float in[3] = {
+      2 * ((win[0] - view[0]) / view[2]) - 1.0f,
+      2 * ((win[1] - view[1]) / view[3]) - 1.0f,
+      2 * win[2] - 1.0f,
+  };
+
+  /**
+   * The same result could be obtained as follows:
+   *
+   * \code{.c}
+   * float projinv[4][4];
+   * invert_m4_m4(projinv, projview);
+   * copy_v3_v3(r_world, in);
+   * mul_project_m4_v3(projinv, r_world);
+   * \endcode
+   *
+   * But that solution loses much precision.
+   * Therefore, get the same result without inverting the project view matrix.
+   */
+
+  float out[3];
+  const bool is_persp = proj[3][3] == 0.0f;
+  if (is_persp) {
+    out[2] = proj[3][2] / (proj[2][2] + in[2]);
+    if (isinf(out[2])) {
+      out[2] = FLT_MAX;
+    }
+    out[0] = out[2] * ((proj[2][0] + in[0]) / proj[0][0]);
+    out[1] = out[2] * ((proj[2][1] + in[1]) / proj[1][1]);
+    out[2] *= -1;
+  }
+  else {
+    out[0] = (-proj[3][0] + in[0]) / proj[0][0];
+    out[1] = (-proj[3][1] + in[1]) / proj[1][1];
+    out[2] = (-proj[3][2] + in[2]) / proj[2][2];
+  }
+
+  if (!is_finite_v3(out)) {
     return false;
   }
-  GPU_matrix_unproject_3fv_with_precalc(&precalc, win, r_world);
+  
+  mul_v3_m4v3(r_world, model_inverted, out);
   return true;
 }
 
