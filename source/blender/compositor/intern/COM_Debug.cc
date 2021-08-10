@@ -178,21 +178,27 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
       }
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<OUT_%p>", socket);
       switch (socket->getDataType()) {
-        case DataType::Value:
-          if (typeid(*operation) == typeid(SetValueOperation)) {
-            const float value = ((SetValueOperation *)operation)->getValue();
+        case DataType::Value: {
+          ConstantOperation *constant = operation->get_flags().is_constant_operation ?
+                                            static_cast<ConstantOperation *>(operation) :
+                                            nullptr;
+          if (constant && constant->can_get_constant_elem()) {
+            const float value = *constant->get_constant_elem();
             len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value\\n%12.4g", value);
           }
           else {
             len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value");
           }
           break;
-        case DataType::Vector:
+        }
+        case DataType::Vector: {
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Vector");
           break;
-        case DataType::Color:
+        }
+        case DataType::Color: {
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
           break;
+        }
       }
     }
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}");

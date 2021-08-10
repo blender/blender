@@ -22,7 +22,24 @@ namespace blender::compositor {
 
 ConstantOperation::ConstantOperation()
 {
+  needs_resolution_to_get_constant_ = false;
   flags.is_constant_operation = true;
+  flags.is_fullframe_operation = true;
+}
+
+bool ConstantOperation::can_get_constant_elem() const
+{
+  return !needs_resolution_to_get_constant_ || this->flags.is_resolution_set;
+}
+
+void ConstantOperation::update_memory_buffer(MemoryBuffer *output,
+                                             const rcti &area,
+                                             Span<MemoryBuffer *> UNUSED(inputs))
+{
+  BLI_assert(output->is_a_single_elem());
+  const float *constant = get_constant_elem();
+  float *out = output->get_elem(area.xmin, area.ymin);
+  memcpy(out, constant, output->get_elem_bytes_len());
 }
 
 }  // namespace blender::compositor

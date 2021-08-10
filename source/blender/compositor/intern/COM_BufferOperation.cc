@@ -32,6 +32,7 @@ BufferOperation::BufferOperation(MemoryBuffer *buffer, DataType data_type)
   setResolution(resolution);
   addOutputSocket(data_type);
   flags.is_constant_operation = buffer_->is_a_single_elem();
+  flags.is_fullframe_operation = false;
 }
 
 const float *BufferOperation::get_constant_elem()

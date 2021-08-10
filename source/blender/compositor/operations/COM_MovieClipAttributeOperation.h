@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "COM_ConstantOperation.h"
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
 
@@ -33,13 +34,14 @@ typedef enum MovieClipAttribute {
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-class MovieClipAttributeOperation : public NodeOperation {
+class MovieClipAttributeOperation : public ConstantOperation {
  private:
   MovieClip *m_clip;
   float m_value;
   int m_framenumber;
   bool m_invert;
   MovieClipAttribute m_attribute;
+  bool is_value_calculated_;
 
  public:
   /**
@@ -55,6 +57,8 @@ class MovieClipAttributeOperation : public NodeOperation {
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
+
+  const float *get_constant_elem() override;
 
   void setMovieClip(MovieClip *clip)
   {
@@ -72,6 +76,9 @@ class MovieClipAttributeOperation : public NodeOperation {
   {
     this->m_invert = invert;
   }
+
+ private:
+  void calc_value();
 };
 
 }  // namespace blender::compositor
