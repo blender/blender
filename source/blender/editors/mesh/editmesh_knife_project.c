@@ -32,6 +32,7 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
@@ -124,8 +125,6 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
 static int knifeproject_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Object *obedit = CTX_data_edit_object(C);
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
   const bool cut_through = RNA_boolean_get(op->ptr, "cut_through");
 
   LinkNode *polys = NULL;
@@ -134,13 +133,31 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
     if (BKE_object_is_in_editmode(ob)) {
       continue;
     }
-    BLI_assert(ob != obedit);
     polys = knifeproject_poly_from_object(C, scene, ob, polys);
   }
   CTX_DATA_END;
 
-  if (polys) {
-    EDBM_mesh_knife(C, polys, true, cut_through);
+  if (polys == NULL) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "No other selected objects have wire or boundary edges to use for projection");
+    return OPERATOR_CANCELLED;
+  }
+
+  ViewContext vc;
+  em_setup_viewcontext(C, &vc);
+
+  /* TODO: Ideally meshes would occlude each other, currently they don't
+   * since each knife-project runs as a separate operation. */
+  uint objects_len;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      vc.view_layer, vc.v3d, &objects_len);
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    ED_view3d_viewcontext_init_object(&vc, obedit);
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    EDBM_mesh_knife(&vc, polys, true, cut_through);
 
     /* select only tagged faces */
     BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
@@ -150,16 +167,12 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
     BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
 
     BM_mesh_select_mode_flush(em->bm);
-
-    BLI_linklist_freeN(polys);
-
-    return OPERATOR_FINISHED;
   }
+  MEM_freeN(objects);
 
-  BKE_report(op->reports,
-             RPT_ERROR,
-             "No other selected objects have wire or boundary edges to use for projection");
-  return OPERATOR_CANCELLED;
+  BLI_linklist_freeN(polys);
+
+  return OPERATOR_FINISHED;
 }
 
 void MESH_OT_knife_project(wmOperatorType *ot)
