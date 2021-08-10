@@ -1141,14 +1141,15 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props)
     if not gp_settings.use_material_pin:
         ma = context.object.active_material
     icon_id = 0
-    if ma and ma.id_data.preview:
-        icon_id = ma.id_data.preview.icon_id
-        txt_ma = ma.name
-        maxw = 25
-        if len(txt_ma) > maxw:
-            txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
-    else:
-        txt_ma = ""
+    txt_ma = ""
+    if ma:
+        ma.id_data.preview_ensure()
+        if ma.id_data.preview:
+            icon_id = ma.id_data.preview.icon_id
+            txt_ma = ma.name
+            maxw = 25
+            if len(txt_ma) > maxw:
+                txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
 
     sub = row.row()
     sub.ui_units_x = 8
