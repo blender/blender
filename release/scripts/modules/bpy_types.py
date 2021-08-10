@@ -477,29 +477,34 @@ class Mesh(bpy_types.ID):
 
         face_lengths = tuple(map(len, faces))
 
-        self.vertices.add(len(vertices))
-        self.edges.add(len(edges))
+        # NOTE: check non-empty lists by length because of how `numpy` handles truth tests, see: T90268.
+        vertices_len = len(vertices)
+        edges_len = len(edges)
+        faces_len = len(faces)
+
+        self.vertices.add(vertices_len)
+        self.edges.add(edges_len)
         self.loops.add(sum(face_lengths))
-        self.polygons.add(len(faces))
+        self.polygons.add(faces_len)
 
         self.vertices.foreach_set("co", tuple(chain.from_iterable(vertices)))
         self.edges.foreach_set("vertices", tuple(chain.from_iterable(edges)))
 
         vertex_indices = tuple(chain.from_iterable(faces))
-        loop_starts = tuple(islice(chain([0], accumulate(face_lengths)), len(faces)))
+        loop_starts = tuple(islice(chain([0], accumulate(face_lengths)), faces_len))
 
         self.polygons.foreach_set("loop_total", face_lengths)
         self.polygons.foreach_set("loop_start", loop_starts)
         self.polygons.foreach_set("vertices", vertex_indices)
 
-        if edges or faces:
+        if edges_len or faces_len:
             self.update(
                 # Needed to either:
                 # - Calculate edges that don't exist for polygons.
                 # - Assign edges to polygon loops.
-                calc_edges=bool(faces),
+                calc_edges=bool(faces_len),
                 # Flag loose edges.
-                calc_edges_loose=bool(edges),
+                calc_edges_loose=bool(edges_len),
             )
 
     @property
