@@ -3596,7 +3596,7 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_TEXTURE: {
-      if (text == "") {
+      if (text[0] == '\0') {
         uiTemplateID(layout,
                      C,
                      ptr,
