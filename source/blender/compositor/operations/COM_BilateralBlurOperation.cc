@@ -38,7 +38,6 @@ void BilateralBlurOperation::initExecution()
 {
   this->m_inputColorProgram = getInputSocketReader(0);
   this->m_inputDeterminatorProgram = getInputSocketReader(1);
-  this->m_space = this->m_data->sigma_space + this->m_data->iter;
   QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
@@ -113,6 +112,91 @@ bool BilateralBlurOperation::determineDependingAreaOfInterest(rcti *input,
   newInput.ymin = input->ymin - (add);
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+
+void BilateralBlurOperation::get_area_of_interest(const int UNUSED(input_idx),
+                                                  const rcti &output_area,
+                                                  rcti &r_input_area)
+{
+  const int add = ceil(this->m_space) + 1;
+
+  r_input_area.xmax = output_area.xmax + (add);
+  r_input_area.xmin = output_area.xmin - (add);
+  r_input_area.ymax = output_area.ymax + (add);
+  r_input_area.ymin = output_area.ymin - (add);
+}
+
+struct PixelCursor {
+  MemoryBuffer *input_determinator;
+  MemoryBuffer *input_color;
+  int step;
+  float sigma_color;
+  const float *determ_reference_color;
+  float temp_color[4];
+  float *out;
+  int min_x, max_x;
+  int min_y, max_y;
+};
+
+static void blur_pixel(PixelCursor &p)
+{
+  float blur_divider = 0.0f;
+  zero_v4(p.out);
+
+  /* TODO(sergey): This isn't really good bilateral filter, it should be
+   * using gaussian bell for weights. Also sigma_color doesn't seem to be
+   * used correct at all.
+   */
+  for (int yi = p.min_y; yi < p.max_y; yi += p.step) {
+    for (int xi = p.min_x; xi < p.max_x; xi += p.step) {
+      p.input_determinator->read(p.temp_color, xi, yi);
+      /* Do not take the alpha channel into account. */
+      const float delta_color = (fabsf(p.determ_reference_color[0] - p.temp_color[0]) +
+                                 fabsf(p.determ_reference_color[1] - p.temp_color[1]) +
+                                 fabsf(p.determ_reference_color[2] - p.temp_color[2]));
+      if (delta_color < p.sigma_color) {
+        /* Add this to the blur. */
+        p.input_color->read(p.temp_color, xi, yi);
+        add_v4_v4(p.out, p.temp_color);
+        blur_divider += 1.0f;
+      }
+    }
+  }
+
+  if (blur_divider > 0.0f) {
+    mul_v4_fl(p.out, 1.0f / blur_divider);
+  }
+  else {
+    copy_v4_v4(p.out, COM_COLOR_BLACK);
+  }
+}
+
+void BilateralBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                          const rcti &area,
+                                                          Span<MemoryBuffer *> inputs)
+{
+  PixelCursor p = {};
+  p.step = QualityStepHelper::getStep();
+  p.sigma_color = this->m_data->sigma_color;
+  p.input_color = inputs[0];
+  p.input_determinator = inputs[1];
+  const float space = this->m_space;
+  for (int y = area.ymin; y < area.ymax; y++) {
+    p.out = output->get_elem(area.xmin, y);
+    /* This will be used as the reference color for the determinator. */
+    p.determ_reference_color = p.input_determinator->get_elem(area.xmin, y);
+    p.min_y = floor(y - space);
+    p.max_y = ceil(y + space);
+    for (int x = area.xmin; x < area.xmax; x++) {
+      p.min_x = floor(x - space);
+      p.max_x = ceil(x + space);
+
+      blur_pixel(p);
+
+      p.determ_reference_color += p.input_determinator->elem_stride;
+      p.out += output->elem_stride;
+    }
+  }
 }
 
 }  // namespace blender::compositor
