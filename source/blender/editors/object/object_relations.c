@@ -2727,16 +2727,14 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C,
                                                PointerRNA *properties,
                                                const wmEvent *event)
 {
-  Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
+  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+  if (ob == NULL) {
+    return BLI_strdup("");
+  }
 
   char name[MAX_ID_NAME - 2];
   RNA_string_get(properties, "name", name);
 
-  if (base == NULL) {
-    return BLI_strdup("");
-  }
-
-  Object *ob = base->object;
   int active_mat_slot = max_ii(ob->actcol, 1);
   Material *prev_mat = BKE_object_material_get(ob, active_mat_slot);
 
@@ -2755,25 +2753,23 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C,
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
-  Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
+  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
   Material *ma;
   char name[MAX_ID_NAME - 2];
 
   RNA_string_get(op->ptr, "name", name);
   ma = (Material *)BKE_libblock_find_name(bmain, ID_MA, name);
-  if (base == NULL || ma == NULL) {
+  if (ob == NULL || ma == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  Object *ob = base->object;
   const short active_mat_slot = ob->actcol;
 
-  BKE_object_material_assign(
-      CTX_data_main(C), base->object, ma, active_mat_slot, BKE_MAT_ASSIGN_USERPREF);
+  BKE_object_material_assign(CTX_data_main(C), ob, ma, active_mat_slot, BKE_MAT_ASSIGN_USERPREF);
 
-  DEG_id_tag_update(&base->object->id, ID_RECALC_TRANSFORM);
+  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, base->object);
+  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, ob);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 
