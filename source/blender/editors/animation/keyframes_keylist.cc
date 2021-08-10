@@ -821,6 +821,9 @@ void agroup_to_keylist(AnimData *adt,
   if (agrp) {
     /* loop through F-Curves */
     LISTBASE_FOREACH (FCurve *, fcu, &agrp->channels) {
+      if (fcu->grp != agrp) {
+        break;
+      }
       fcurve_to_keylist(adt, fcu, keylist, saction_flag);
     }
   }
