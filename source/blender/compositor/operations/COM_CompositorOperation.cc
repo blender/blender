@@ -220,6 +220,22 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   }
 }
 
+void CompositorOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+                                                       const rcti &area,
+                                                       Span<MemoryBuffer *> inputs)
+{
+  if (!m_outputBuffer) {
+    return;
+  }
+  MemoryBuffer output_buf(m_outputBuffer, COM_DATA_TYPE_COLOR_CHANNELS, getWidth(), getHeight());
+  output_buf.copy_from(inputs[0], area);
+  if (this->m_useAlphaInput) {
+    output_buf.copy_from(inputs[1], area, 0, COM_DATA_TYPE_VALUE_CHANNELS, 3);
+  }
+  MemoryBuffer depth_buf(m_depthBuffer, COM_DATA_TYPE_VALUE_CHANNELS, getWidth(), getHeight());
+  depth_buf.copy_from(inputs[2], area);
+}
+
 void CompositorOperation::determineResolution(unsigned int resolution[2],
                                               unsigned int preferredResolution[2])
 {

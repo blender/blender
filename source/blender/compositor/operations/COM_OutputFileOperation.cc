@@ -294,6 +294,22 @@ void OutputSingleLayerOperation::deinitExecution()
   this->m_imageInput = nullptr;
 }
 
+void OutputSingleLayerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+                                                              const rcti &area,
+                                                              Span<MemoryBuffer *> inputs)
+{
+  if (!m_outputBuffer) {
+    return;
+  }
+
+  MemoryBuffer output_buf(m_outputBuffer,
+                          COM_data_type_num_channels(this->m_datatype),
+                          this->getWidth(),
+                          this->getHeight());
+  const MemoryBuffer *input_image = inputs[0];
+  output_buf.copy_from(input_image, area);
+}
+
 /******************************* MultiLayer *******************************/
 
 OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bool use_layer_)
@@ -441,6 +457,23 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
       this->m_layers[i].imageInput = nullptr;
     }
     BKE_stamp_data_free(stamp_data);
+  }
+}
+
+void OutputOpenExrMultiLayerOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+                                                                    const rcti &area,
+                                                                    Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input_image = inputs[0];
+  for (int i = 0; i < this->m_layers.size(); i++) {
+    OutputOpenExrLayer &layer = this->m_layers[i];
+    if (layer.outputBuffer) {
+      MemoryBuffer output_buf(layer.outputBuffer,
+                              COM_data_type_num_channels(layer.datatype),
+                              this->getWidth(),
+                              this->getHeight());
+      output_buf.copy_from(input_image, area);
+    }
   }
 }
 
