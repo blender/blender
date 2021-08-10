@@ -1366,7 +1366,9 @@ int file_highlight_set(SpaceFile *sfile, ARegion *region, int mx, int my)
   FileSelectParams *params;
   int numfiles, origfile;
 
-  if (sfile == NULL || sfile->files == NULL) {
+  /* In case blender starts where the mouse is over a File broser, this operator can be invoked
+   * when the sfile or sfile->layout isn't initialized yet. */
+  if (sfile == NULL || sfile->files == NULL || sfile->layout == NULL) {
     return 0;
   }
 
