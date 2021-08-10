@@ -148,9 +148,9 @@ static void rna_Sequence_invalidate_preprocessed_update(Main *UNUSED(bmain),
   }
 }
 
-static void rna_Sequence_invalidate_composite_update(Main *UNUSED(bmain),
-                                                     Scene *UNUSED(scene),
-                                                     PointerRNA *ptr)
+static void UNUSED_FUNCTION(rna_Sequence_invalidate_composite_update)(Main *UNUSED(bmain),
+                                                                      Scene *UNUSED(scene),
+                                                                      PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene, false);
