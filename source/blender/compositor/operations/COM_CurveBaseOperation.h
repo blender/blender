@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_color_types.h"
 
 namespace blender::compositor {
 
-class CurveBaseOperation : public NodeOperation {
+class CurveBaseOperation : public MultiThreadedOperation {
  protected:
   /**
    * Cached reference to the inputProgram

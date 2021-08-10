@@ -51,6 +51,10 @@ class ColorCurveOperation : public CurveBaseOperation {
    * Deinitialize the execution
    */
   void deinitExecution() override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 class ConstantLevelColorCurveOperation : public CurveBaseOperation {
@@ -89,6 +93,10 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
   {
     copy_v3_v3(this->m_white, white);
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

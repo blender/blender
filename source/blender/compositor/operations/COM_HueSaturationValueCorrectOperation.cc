@@ -73,4 +73,31 @@ void HueSaturationValueCorrectOperation::deinitExecution()
   this->m_inputProgram = nullptr;
 }
 
+void HueSaturationValueCorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                                      const rcti &area,
+                                                                      Span<MemoryBuffer *> inputs)
+{
+  float hsv[4];
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    copy_v4_v4(hsv, it.in(0));
+
+    /* Adjust hue, scaling returned default 0.5 up to 1. */
+    float f = BKE_curvemapping_evaluateF(this->m_curveMapping, 0, hsv[0]);
+    hsv[0] += f - 0.5f;
+
+    /* Adjust saturation, scaling returned default 0.5 up to 1. */
+    f = BKE_curvemapping_evaluateF(this->m_curveMapping, 1, hsv[0]);
+    hsv[1] *= (f * 2.0f);
+
+    /* Adjust value, scaling returned default 0.5 up to 1. */
+    f = BKE_curvemapping_evaluateF(this->m_curveMapping, 2, hsv[0]);
+    hsv[2] *= (f * 2.0f);
+
+    hsv[0] = hsv[0] - floorf(hsv[0]); /* Mod 1.0. */
+    CLAMP(hsv[1], 0.0f, 1.0f);
+
+    copy_v4_v4(it.out, hsv);
+  }
+}
+
 }  // namespace blender::compositor
