@@ -563,13 +563,32 @@ enum {
   /**
    * The data-block is a copy-on-write/localized version.
    *
+   * RESET_NEVER
+   *
    * \warning This should not be cleared on existing data.
    * If support for this is needed, see T88026 as this flag controls memory ownership
    * of physics *shared* pointers.
    */
   LIB_TAG_COPIED_ON_WRITE = 1 << 12,
-
+  /**
+   * The data-block is not the original COW ID created by the depsgraph, but has be re-allocated
+   * during the evaluation process of another ID.
+   *
+   * RESET_NEVER
+   *
+   * Typical example is object data, when evaluating the object's modifier stack the final obdata
+   * can be different than the COW initial obdata ID.
+   */
   LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT = 1 << 13,
+
+  /**
+   * The data-block is fully outside of any ID management area, and should be considered as a
+   * purely independent data.
+   *
+   * RESET_NEVER
+   *
+   * NOTE: Only used by nodegroups currently.
+   */
   LIB_TAG_LOCALIZED = 1 << 14,
 
   /* RESET_NEVER tag data-block for freeing etc. behavior
