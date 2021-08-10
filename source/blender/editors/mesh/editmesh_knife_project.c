@@ -130,9 +130,11 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
   LinkNode *polys = NULL;
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
-    if (ob != obedit) {
-      polys = knifeproject_poly_from_object(C, scene, ob, polys);
+    if (BKE_object_is_in_editmode(ob)) {
+      continue;
     }
+    BLI_assert(ob != obedit);
+    polys = knifeproject_poly_from_object(C, scene, ob, polys);
   }
   CTX_DATA_END;
 
