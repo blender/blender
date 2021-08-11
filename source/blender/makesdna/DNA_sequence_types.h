@@ -296,6 +296,7 @@ typedef struct Editing {
   int64_t disk_cache_timestamp;
 
   EditingRuntime runtime;
+  void *_pad1;
 } Editing;
 
 /* ************* Effect Variable Structs ********* */

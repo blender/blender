@@ -433,6 +433,7 @@ typedef struct Object {
   ObjectLineArt lineart;
 
   /** Runtime evaluation data (keep last). */
+  void *_pad9;
   Object_Runtime runtime;
 } Object;
 
