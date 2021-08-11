@@ -521,6 +521,7 @@ void BKE_gpencil_eval_delete(bGPdata *gpd_eval)
 {
   BKE_gpencil_free(gpd_eval, true);
   BKE_libblock_free_data(&gpd_eval->id, false);
+  BLI_assert(!gpd_eval->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
   MEM_freeN(gpd_eval);
 }
 

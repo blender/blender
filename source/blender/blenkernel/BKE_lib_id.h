@@ -201,6 +201,8 @@ enum {
 void BKE_libblock_free_datablock(struct ID *id, const int flag) ATTR_NONNULL();
 void BKE_libblock_free_data(struct ID *id, const bool do_id_user) ATTR_NONNULL();
 
+void BKE_libblock_free_data_py(struct ID *id);
+
 void BKE_id_free_ex(struct Main *bmain, void *idv, int flag, const bool use_flag_from_idtag);
 void BKE_id_free(struct Main *bmain, void *idv);
 
