@@ -560,7 +560,7 @@ bool GPU_matrix_unproject_3fv(const float win[3],
   if (!is_finite_v3(out)) {
     return false;
   }
-  
+
   mul_v3_m4v3(r_world, model_inverted, out);
   return true;
 }

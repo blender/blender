@@ -14,7 +14,7 @@ call "%BLENDER_DIR%\build_files\windows\parse_arguments.cmd" %*
 if errorlevel 1 goto EOF
 
 REM if it is one of the convenience targets and BLENDER_BIN is set
-REM skip compiler detection 
+REM skip compiler detection
 if "%ICONS%%ICONS_GEOM%%DOC_PY%" == "1" (
 	if EXIST "%BLENDER_BIN%" (
 		goto convenience_targets
