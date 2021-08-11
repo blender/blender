@@ -645,7 +645,7 @@ typedef struct UserDef_Experimental {
   char use_full_frame_compositor;
   char use_sculpt_vertex_colors;
   char use_sculpt_tools_tilt;
-  char use_asset_browser;
+  char use_extended_asset_browser;
   char use_override_templates;
   char _pad[5];
   /** `makesdna` does not allow empty structs. */

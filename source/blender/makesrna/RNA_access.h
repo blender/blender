@@ -499,6 +499,7 @@ extern StructRNA RNA_Pose;
 extern StructRNA RNA_PoseBone;
 extern StructRNA RNA_Preferences;
 extern StructRNA RNA_PreferencesEdit;
+extern StructRNA RNA_PreferencesExperimental;
 extern StructRNA RNA_PreferencesFilePaths;
 extern StructRNA RNA_PreferencesInput;
 extern StructRNA RNA_PreferencesKeymap;

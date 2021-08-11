@@ -1366,11 +1366,6 @@ class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
 class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
     bl_label = "Asset Libraries"
 
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return prefs.experimental.use_asset_browser
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = False
@@ -2258,7 +2253,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
             context, (
                 ({"property": "use_sculpt_vertex_colors"}, "T71947"),
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
-                ({"property": "use_asset_browser"}, ("project/profile/124/", "Milestone 1")),
+                ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
             ),
         )
