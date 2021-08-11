@@ -152,8 +152,6 @@ void BKE_libblock_copy_ex(struct Main *bmain,
                           const int orig_flag);
 void *BKE_libblock_copy(struct Main *bmain, const struct ID *id) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-/* Special version: used by data-block localization. */
-void *BKE_libblock_copy_for_localize(const struct ID *id);
 
 void BKE_libblock_rename(struct Main *bmain, struct ID *id, const char *name) ATTR_NONNULL();
 void BLI_libblock_ensure_unique_name(struct Main *bmain, const char *name) ATTR_NONNULL();
