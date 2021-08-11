@@ -209,6 +209,7 @@ typedef struct Object_Runtime {
 
   unsigned short local_collections_bits;
   short _pad2[3];
+  void *_pad3;
 } Object_Runtime;
 
 typedef struct ObjectLineArt {
@@ -443,6 +444,7 @@ typedef struct Object {
   ObjectLineArt lineart;
 
   /** Runtime evaluation data (keep last). */
+  void *_pad9;
   Object_Runtime runtime;
 } Object;
 

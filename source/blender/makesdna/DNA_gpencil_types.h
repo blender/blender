@@ -322,6 +322,7 @@ typedef struct bGPDstroke {
   struct bGPDcurve *editcurve;
 
   bGPDstroke_Runtime runtime;
+  void *_pad5;
 } bGPDstroke;
 
 /** #bGPDstroke.flag */
