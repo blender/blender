@@ -502,7 +502,10 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
   }
 #endif
 
-  /* bpy.* and lets us import it */
+  /* Run first, initializes RNA types. */
+  BPY_rna_init();
+
+  /* Defines `bpy.*` and lets us import it. */
   BPy_init_modules(C);
 
   pyrna_alloc_types();
@@ -540,6 +543,8 @@ void BPY_python_end(void)
 
   /* free other python data. */
   pyrna_free_types();
+
+  BPY_rna_exit();
 
   /* clear all python data from structs */
 
