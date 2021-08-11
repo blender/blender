@@ -1037,6 +1037,7 @@ static void prefetch_freejob(void *pjv)
   if (clip_local != NULL) {
     BKE_libblock_free_datablock(&clip_local->id, 0);
     BKE_libblock_free_data(&clip_local->id, false);
+    BLI_assert(!clip_local->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
     MEM_freeN(clip_local);
   }
 
