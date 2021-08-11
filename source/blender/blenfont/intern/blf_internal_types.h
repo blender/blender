@@ -71,7 +71,7 @@ typedef struct GlyphCacheBLF {
   ListBase bucket[257];
 
   /* fast ascii lookup */
-  struct GlyphBLF *glyph_ascii_table[256];
+  struct GlyphBLF *glyph_ascii_table[128];
 
   /* texture array, to draw the glyphs. */
   GPUTexture *texture;
