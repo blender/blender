@@ -183,141 +183,210 @@ void draw_keyframe_shape(float x,
   immVertex2f(pos_id, x, y);
 }
 
-static void draw_keylist(View2D *v2d,
-                         const struct AnimKeylist *keylist,
-                         float ypos,
-                         float yscale_fac,
-                         bool channelLocked,
-                         int saction_flag)
-{
-  const float icon_sz = U.widget_unit * 0.5f * yscale_fac;
-  const float half_icon_sz = 0.5f * icon_sz;
-  const float smaller_sz = 0.35f * icon_sz;
-  const float ipo_sz = 0.1f * icon_sz;
-  const float gpencil_sz = smaller_sz * 0.8f;
-  const float screenspace_margin = (0.35f * (float)UI_UNIT_X) / UI_view2d_scale_get_x(v2d);
-
-  /* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
-  /* TODO: allow this opacity factor to be themed? */
-  float alpha = channelLocked ? 0.25f : 1.0f;
+/* Common attributes shared between the draw calls. */
+typedef struct DrawKeylistUIData {
+  float alpha;
+  float icon_sz;
+  float half_icon_sz;
+  float smaller_sz;
+  float ipo_sz;
+  float gpencil_sz;
+  float screenspace_margin;
+  float sel_color[4];
+  float unsel_color[4];
+  float sel_mhcol[4];
+  float unsel_mhcol[4];
+  float ipo_color[4];
+  float ipo_color_mix[4];
 
   /* Show interpolation and handle type? */
-  bool show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
-  /* draw keyblocks */
-  float sel_color[4], unsel_color[4];
-  float sel_mhcol[4], unsel_mhcol[4];
-  float ipo_color[4], ipo_color_mix[4];
+  bool show_ipo;
+} DrawKeylistUIData;
 
-  /* cache colors first */
-  UI_GetThemeColor4fv(TH_STRIP_SELECT, sel_color);
-  UI_GetThemeColor4fv(TH_STRIP, unsel_color);
-  UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ipo_color);
+static void draw_keylist_ui_data_init(DrawKeylistUIData *ctx,
+                                      View2D *v2d,
+                                      float yscale_fac,
+                                      bool channel_locked,
+                                      eSAction_Flag saction_flag)
+{
+  /* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
+  /* TODO: allow this opacity factor to be themed? */
+  ctx->alpha = channel_locked ? 0.25f : 1.0f;
 
-  sel_color[3] *= alpha;
-  unsel_color[3] *= alpha;
-  ipo_color[3] *= alpha;
+  ctx->icon_sz = U.widget_unit * 0.5f * yscale_fac;
+  ctx->half_icon_sz = 0.5f * ctx->icon_sz;
+  ctx->smaller_sz = 0.35f * ctx->icon_sz;
+  ctx->ipo_sz = 0.1f * ctx->icon_sz;
+  ctx->gpencil_sz = ctx->smaller_sz * 0.8f;
+  ctx->screenspace_margin = (0.35f * (float)UI_UNIT_X) / UI_view2d_scale_get_x(v2d);
 
-  copy_v4_v4(sel_mhcol, sel_color);
-  sel_mhcol[3] *= 0.8f;
-  copy_v4_v4(unsel_mhcol, unsel_color);
-  unsel_mhcol[3] *= 0.8f;
-  copy_v4_v4(ipo_color_mix, ipo_color);
-  ipo_color_mix[3] *= 0.5f;
+  ctx->show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
 
-  const ListBase *keys = ED_keylist_listbase(keylist);
+  UI_GetThemeColor4fv(TH_STRIP_SELECT, ctx->sel_color);
+  UI_GetThemeColor4fv(TH_STRIP, ctx->unsel_color);
+  UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ctx->ipo_color);
 
-  LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
-    /* Draw grease pencil bars between keyframes. */
-    if ((ab->next != NULL) && (ab->block.flag & ACTKEYBLOCK_FLAG_GPENCIL)) {
-      UI_draw_roundbox_corner_set(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
-      float size = 1.0f;
-      switch (ab->next->key_type) {
-        case BEZT_KEYTYPE_BREAKDOWN:
-        case BEZT_KEYTYPE_MOVEHOLD:
-        case BEZT_KEYTYPE_JITTER:
-          size *= 0.5f;
-          break;
-        case BEZT_KEYTYPE_KEYFRAME:
-          size *= 0.8f;
-          break;
-        default:
-          break;
+  ctx->sel_color[3] *= ctx->alpha;
+  ctx->unsel_color[3] *= ctx->alpha;
+  ctx->ipo_color[3] *= ctx->alpha;
+
+  copy_v4_v4(ctx->sel_mhcol, ctx->sel_color);
+  ctx->sel_mhcol[3] *= 0.8f;
+  copy_v4_v4(ctx->unsel_mhcol, ctx->unsel_color);
+  ctx->unsel_mhcol[3] *= 0.8f;
+  copy_v4_v4(ctx->ipo_color_mix, ctx->ipo_color);
+  ctx->ipo_color_mix[3] *= 0.5f;
+}
+
+static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
+                                       const ActKeyColumn *ab,
+                                       float ypos)
+{
+  UI_draw_roundbox_corner_set(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+  float size = 1.0f;
+  switch (ab->next->key_type) {
+    case BEZT_KEYTYPE_BREAKDOWN:
+    case BEZT_KEYTYPE_MOVEHOLD:
+    case BEZT_KEYTYPE_JITTER:
+      size *= 0.5f;
+      break;
+    case BEZT_KEYTYPE_KEYFRAME:
+      size *= 0.8f;
+      break;
+    default:
+      break;
+  }
+  UI_draw_roundbox_4fv(
+      &(const rctf){
+          .xmin = ab->cfra,
+          .xmax = min_ff(ab->next->cfra - (ctx->screenspace_margin * size), ab->next->cfra),
+          .ymin = ypos - ctx->gpencil_sz,
+          .ymax = ypos + ctx->gpencil_sz,
+      },
+      true,
+      0.25f * (float)UI_UNIT_X,
+      (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
+}
+
+static void draw_keylist_block_moving_hold(const DrawKeylistUIData *ctx,
+                                           const ActKeyColumn *ab,
+                                           float ypos)
+{
+
+  UI_draw_roundbox_4fv(
+      &(const rctf){
+          .xmin = ab->cfra,
+          .xmax = ab->next->cfra,
+          .ymin = ypos - ctx->smaller_sz,
+          .ymax = ypos + ctx->smaller_sz,
+      },
+      true,
+      3.0f,
+      (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
+}
+
+static void draw_keylist_block_standard(const DrawKeylistUIData *ctx,
+                                        const ActKeyColumn *ab,
+                                        float ypos)
+{
+  UI_draw_roundbox_4fv(
+      &(const rctf){
+          .xmin = ab->cfra,
+          .xmax = ab->next->cfra,
+          .ymin = ypos - ctx->half_icon_sz,
+          .ymax = ypos + ctx->half_icon_sz,
+      },
+      true,
+      3.0f,
+      (ab->block.sel) ? ctx->sel_color : ctx->unsel_color);
+}
+
+static void draw_keylist_block_interpolation_line(const DrawKeylistUIData *ctx,
+                                                  const ActKeyColumn *ab,
+                                                  float ypos)
+{
+  UI_draw_roundbox_4fv(
+      &(const rctf){
+          .xmin = ab->cfra,
+          .xmax = ab->next->cfra,
+          .ymin = ypos - ctx->ipo_sz,
+          .ymax = ypos + ctx->ipo_sz,
+      },
+      true,
+      3.0f,
+      (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ctx->ipo_color_mix : ctx->ipo_color);
+}
+
+static void draw_keylist_block(const DrawKeylistUIData *ctx, const ActKeyColumn *ab, float ypos)
+{
+
+  /* Draw grease pencil bars between keyframes. */
+  if ((ab->next != NULL) && (ab->block.flag & ACTKEYBLOCK_FLAG_GPENCIL)) {
+    draw_keylist_block_gpencil(ctx, ab, ypos);
+  }
+  else {
+    /* Draw other types. */
+    UI_draw_roundbox_corner_set(UI_CNR_NONE);
+
+    int valid_hold = actkeyblock_get_valid_hold(ab);
+    if (valid_hold != 0) {
+      if ((valid_hold & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
+        /* draw "moving hold" long-keyframe block - slightly smaller */
+        draw_keylist_block_moving_hold(ctx, ab, ypos);
       }
-      UI_draw_roundbox_4fv(
-          &(const rctf){
-              .xmin = ab->cfra,
-              .xmax = min_ff(ab->next->cfra - (screenspace_margin * size), ab->next->cfra),
-              .ymin = ypos - gpencil_sz,
-              .ymax = ypos + gpencil_sz,
-          },
-          true,
-          0.25f * (float)UI_UNIT_X,
-          (ab->block.sel) ? sel_mhcol : unsel_mhcol);
+      else {
+        /* draw standard long-keyframe block */
+        draw_keylist_block_standard(ctx, ab, ypos);
+      }
     }
-    else {
-      /* Draw other types. */
-      UI_draw_roundbox_corner_set(UI_CNR_NONE);
-
-      int valid_hold = actkeyblock_get_valid_hold(ab);
-      if (valid_hold != 0) {
-        if ((valid_hold & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
-          /* draw "moving hold" long-keyframe block - slightly smaller */
-          UI_draw_roundbox_4fv(
-              &(const rctf){
-                  .xmin = ab->cfra,
-                  .xmax = ab->next->cfra,
-                  .ymin = ypos - smaller_sz,
-                  .ymax = ypos + smaller_sz,
-              },
-              true,
-              3.0f,
-              (ab->block.sel) ? sel_mhcol : unsel_mhcol);
-        }
-        else {
-          /* draw standard long-keyframe block */
-          UI_draw_roundbox_4fv(
-              &(const rctf){
-                  .xmin = ab->cfra,
-                  .xmax = ab->next->cfra,
-                  .ymin = ypos - half_icon_sz,
-                  .ymax = ypos + half_icon_sz,
-              },
-              true,
-              3.0f,
-              (ab->block.sel) ? sel_color : unsel_color);
-        }
-      }
-      if (show_ipo && actkeyblock_is_valid(ab) && (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
-        /* draw an interpolation line */
-        UI_draw_roundbox_4fv(
-            &(const rctf){
-                .xmin = ab->cfra,
-                .xmax = ab->next->cfra,
-                .ymin = ypos - ipo_sz,
-                .ymax = ypos + ipo_sz,
-            },
-            true,
-            3.0f,
-            (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ipo_color_mix : ipo_color);
-      }
+    if (ctx->show_ipo && actkeyblock_is_valid(ab) &&
+        (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
+      /* draw an interpolation line */
+      draw_keylist_block_interpolation_line(ctx, ab, ypos);
     }
   }
+}
 
-  GPU_blend(GPU_BLEND_ALPHA);
+static void draw_keylist_blocks(const DrawKeylistUIData *ctx,
+                                const ListBase * /*ActKeyColumn*/ columns,
+                                float ypos)
+{
+  LISTBASE_FOREACH (ActKeyColumn *, ab, columns) {
+    draw_keylist_block(ctx, ab, ypos);
+  }
+}
 
+static bool draw_keylist_is_visible_key(const View2D *v2d, const ActKeyColumn *ak)
+{
+  return IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax);
+}
+
+static int draw_keylist_visible_key_len(View2D *v2d, const ListBase * /*ActKeyColumn*/ keys)
+{
   /* count keys */
-  uint key_len = 0;
+  uint len = 0;
+
   LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
     /* Optimization: if keyframe doesn't appear within 5 units (screenspace)
      * in visible area, don't draw.
      * This might give some improvements,
      * since we current have to flip between view/region matrices.
      */
-    if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax)) {
-      key_len++;
+    if (draw_keylist_is_visible_key(v2d, ak)) {
+      len++;
     }
   }
+  return len;
+}
 
+static void draw_keylist_keys(const DrawKeylistUIData *ctx,
+                              View2D *v2d,
+                              const ListBase * /*ActKeyColumn*/ keys,
+                              float ypos,
+                              eSAction_Flag saction_flag)
+{
+  GPU_blend(GPU_BLEND_ALPHA);
+  const int key_len = draw_keylist_visible_key_len(v2d, keys);
   if (key_len > 0) {
     /* draw keys */
     GPUVertFormat *format = immVertexFormat();
@@ -338,8 +407,8 @@ static void draw_keylist(View2D *v2d,
     short handle_type = KEYFRAME_HANDLE_NONE, extreme_type = KEYFRAME_EXTREME_NONE;
 
     LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
-      if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax)) {
-        if (show_ipo) {
+      if (draw_keylist_is_visible_key(v2d, ak)) {
+        if (ctx->show_ipo) {
           handle_type = ak->handle_type;
         }
         if (saction_flag & SACTION_SHOW_EXTREMES) {
@@ -348,11 +417,11 @@ static void draw_keylist(View2D *v2d,
 
         draw_keyframe_shape(ak->cfra,
                             ypos,
-                            icon_sz,
+                            ctx->icon_sz,
                             (ak->sel & SELECT),
                             ak->key_type,
                             KEYFRAME_SHAPE_BOTH,
-                            alpha,
+                            ctx->alpha,
                             pos_id,
                             size_id,
                             color_id,
@@ -369,6 +438,21 @@ static void draw_keylist(View2D *v2d,
   }
 
   GPU_blend(GPU_BLEND_NONE);
+}
+
+static void draw_keylist(View2D *v2d,
+                         const struct AnimKeylist *keylist,
+                         float ypos,
+                         float yscale_fac,
+                         bool channelLocked,
+                         eSAction_Flag saction_flag)
+{
+  DrawKeylistUIData ctx;
+  draw_keylist_ui_data_init(&ctx, v2d, yscale_fac, channelLocked, saction_flag);
+
+  const ListBase *columns = ED_keylist_listbase(keylist);
+  draw_keylist_blocks(&ctx, columns, ypos);
+  draw_keylist_keys(&ctx, v2d, columns, ypos, saction_flag);
 }
 
 /* *************************** Channel Drawing Funcs *************************** */
