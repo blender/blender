@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 struct AnimData;
+struct AnimKeylistDrawList;
 struct FCurve;
 struct MaskLayer;
 struct Object;
@@ -61,43 +62,46 @@ void draw_keyframe_shape(float x,
 
 /* Channel Drawing ------------------ */
 /* F-Curve */
-void draw_fcurve_channel(struct View2D *v2d,
+void draw_fcurve_channel(struct AnimKeylistDrawList *draw_list,
                          struct AnimData *adt,
                          struct FCurve *fcu,
                          float ypos,
                          float yscale_fac,
                          int saction_flag);
 /* Action Group Summary */
-void draw_agroup_channel(struct View2D *v2d,
+void draw_agroup_channel(struct AnimKeylistDrawList *draw_list,
                          struct AnimData *adt,
                          struct bActionGroup *agrp,
                          float ypos,
                          float yscale_fac,
                          int saction_flag);
 /* Action Summary */
-void draw_action_channel(struct View2D *v2d,
+void draw_action_channel(struct AnimKeylistDrawList *draw_list,
                          struct AnimData *adt,
                          struct bAction *act,
                          float ypos,
                          float yscale_fac,
                          int saction_flag);
 /* Object Summary */
-void draw_object_channel(struct View2D *v2d,
+void draw_object_channel(struct AnimKeylistDrawList *draw_list,
                          struct bDopeSheet *ads,
                          struct Object *ob,
                          float ypos,
                          float yscale_fac,
                          int saction_flag);
 /* Scene Summary */
-void draw_scene_channel(struct View2D *v2d,
+void draw_scene_channel(struct AnimKeylistDrawList *draw_list,
                         struct bDopeSheet *ads,
                         struct Scene *sce,
                         float ypos,
                         float yscale_fac,
                         int saction_flag);
 /* DopeSheet Summary */
-void draw_summary_channel(
-    struct View2D *v2d, struct bAnimContext *ac, float ypos, float yscale_fac, int saction_flag);
+void draw_summary_channel(struct AnimKeylistDrawList *draw_list,
+                          struct bAnimContext *ac,
+                          float ypos,
+                          float yscale_fac,
+                          int saction_flag);
 /* Grease Pencil datablock summary */
 void draw_gpencil_channel(struct View2D *v2d,
                           struct bDopeSheet *ads,
@@ -106,19 +110,23 @@ void draw_gpencil_channel(struct View2D *v2d,
                           float yscale_fac,
                           int saction_flag);
 /* Grease Pencil Layer */
-void draw_gpl_channel(struct View2D *v2d,
+void draw_gpl_channel(struct AnimKeylistDrawList *draw_list,
                       struct bDopeSheet *ads,
                       struct bGPDlayer *gpl,
                       float ypos,
                       float yscale_fac,
                       int saction_flag);
 /* Mask Layer */
-void draw_masklay_channel(struct View2D *v2d,
+void draw_masklay_channel(struct AnimKeylistDrawList *draw_list,
                           struct bDopeSheet *ads,
                           struct MaskLayer *masklay,
                           float ypos,
                           float yscale_fac,
                           int saction_flag);
+
+struct AnimKeylistDrawList *ED_keylist_draw_list_create(void);
+void ED_keylist_draw_list_flush(struct AnimKeylistDrawList *draw_list, struct View2D *v2d);
+void ED_keylist_draw_list_free(struct AnimKeylistDrawList *draw_list);
 
 #ifdef __cplusplus
 }

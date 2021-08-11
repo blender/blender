@@ -25,6 +25,8 @@
 
 #include <float.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
@@ -455,95 +457,232 @@ static void draw_keylist(View2D *v2d,
   draw_keylist_keys(&ctx, v2d, columns, ypos, saction_flag);
 }
 
+/* *************************** Drawing Stack *************************** */
+typedef enum eAnimKeylistDrawListElemType {
+  ANIM_KEYLIST_SUMMARY,
+  ANIM_KEYLIST_SCENE,
+  ANIM_KEYLIST_OBJECT,
+  ANIM_KEYLIST_FCURVE,
+  ANIM_KEYLIST_ACTION,
+  ANIM_KEYLIST_AGROUP,
+  ANIM_KEYLIST_GP_LAYER,
+  ANIM_KEYLIST_MASK_LAYER,
+} eAnimKeylistDrawListElemType;
+
+typedef struct AnimKeylistDrawListElem {
+  struct AnimKeylistDrawListElem *next, *prev;
+  struct AnimKeylist *keylist;
+  eAnimKeylistDrawListElemType type;
+
+  float yscale_fac;
+  float ypos;
+  eSAction_Flag saction_flag;
+  bool channel_locked;
+
+  bAnimContext *ac;
+  bDopeSheet *ads;
+  Scene *sce;
+  Object *ob;
+  AnimData *adt;
+  FCurve *fcu;
+  bAction *act;
+  bActionGroup *agrp;
+  bGPDlayer *gpl;
+  MaskLayer *masklay;
+
+} AnimKeylistDrawListElem;
+
+static void ED_keylist_draw_list_elem_build_keylist(AnimKeylistDrawListElem *elem)
+{
+  switch (elem->type) {
+    case ANIM_KEYLIST_SUMMARY: {
+      summary_to_keylist(elem->ac, elem->keylist, elem->saction_flag);
+      break;
+    }
+    case ANIM_KEYLIST_SCENE: {
+      scene_to_keylist(elem->ads, elem->sce, elem->keylist, elem->saction_flag);
+      break;
+    }
+    case ANIM_KEYLIST_OBJECT: {
+      ob_to_keylist(elem->ads, elem->ob, elem->keylist, elem->saction_flag);
+      break;
+    }
+    case ANIM_KEYLIST_FCURVE: {
+      fcurve_to_keylist(elem->adt, elem->fcu, elem->keylist, elem->saction_flag);
+      break;
+    }
+    case ANIM_KEYLIST_ACTION: {
+      action_to_keylist(elem->adt, elem->act, elem->keylist, elem->saction_flag);
+      break;
+    }
+    case ANIM_KEYLIST_AGROUP: {
+      agroup_to_keylist(elem->adt, elem->agrp, elem->keylist, elem->saction_flag);
+      break;
+    }
+    case ANIM_KEYLIST_GP_LAYER: {
+      gpl_to_keylist(elem->ads, elem->gpl, elem->keylist);
+      break;
+    }
+    case ANIM_KEYLIST_MASK_LAYER: {
+      mask_to_keylist(elem->ads, elem->masklay, elem->keylist);
+      break;
+    }
+  }
+}
+
+static void ED_keylist_draw_list_elem_draw(AnimKeylistDrawListElem *elem, View2D *v2d)
+{
+  draw_keylist(
+      v2d, elem->keylist, elem->ypos, elem->yscale_fac, elem->channel_locked, elem->saction_flag);
+}
+
+typedef struct AnimKeylistDrawList {
+  ListBase /* AnimKeylistDrawListElem*/ channels;
+} AnimKeylistDrawList;
+
+AnimKeylistDrawList *ED_keylist_draw_list_create(void)
+{
+  return MEM_callocN(sizeof(AnimKeylistDrawList), __func__);
+}
+
+static void ED_keylist_draw_list_build_keylists(AnimKeylistDrawList *draw_list)
+{
+  LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
+    ED_keylist_draw_list_elem_build_keylist(elem);
+  }
+}
+
+static void ED_keylist_draw_list_draw(AnimKeylistDrawList *draw_list, View2D *v2d)
+{
+  LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
+    ED_keylist_draw_list_elem_draw(elem, v2d);
+  }
+}
+
+void ED_keylist_draw_list_flush(AnimKeylistDrawList *draw_list, View2D *v2d)
+{
+  ED_keylist_draw_list_build_keylists(draw_list);
+  ED_keylist_draw_list_draw(draw_list, v2d);
+}
+
+void ED_keylist_draw_list_free(AnimKeylistDrawList *draw_list)
+{
+  LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
+    ED_keylist_free(elem->keylist);
+  }
+  BLI_freelistN(&draw_list->channels);
+  MEM_freeN(draw_list);
+}
+
+static AnimKeylistDrawListElem *ed_keylist_draw_list_add_elem(
+    AnimKeylistDrawList *draw_list,
+    eAnimKeylistDrawListElemType elem_type,
+    float ypos,
+    float yscale_fac,
+    eSAction_Flag saction_flag)
+{
+  AnimKeylistDrawListElem *draw_elem = MEM_callocN(sizeof(AnimKeylistDrawListElem), __func__);
+  BLI_addtail(&draw_list->channels, draw_elem);
+  draw_elem->type = elem_type;
+  draw_elem->keylist = ED_keylist_create();
+  draw_elem->ypos = ypos;
+  draw_elem->yscale_fac = yscale_fac;
+  draw_elem->saction_flag = saction_flag;
+  return draw_elem;
+}
+
 /* *************************** Channel Drawing Funcs *************************** */
 
-void draw_summary_channel(
-    View2D *v2d, bAnimContext *ac, float ypos, float yscale_fac, int saction_flag)
+void draw_summary_channel(struct AnimKeylistDrawList *draw_list,
+                          bAnimContext *ac,
+                          float ypos,
+                          float yscale_fac,
+                          int saction_flag)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
-
   saction_flag &= ~SACTION_SHOW_EXTREMES;
-
-  summary_to_keylist(ac, keylist, saction_flag);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, false, saction_flag);
-
-  ED_keylist_free(keylist);
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_SUMMARY, ypos, yscale_fac, saction_flag);
+  draw_elem->ac = ac;
 }
 
-void draw_scene_channel(
-    View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos, float yscale_fac, int saction_flag)
+void draw_scene_channel(AnimKeylistDrawList *draw_list,
+                        bDopeSheet *ads,
+                        Scene *sce,
+                        float ypos,
+                        float yscale_fac,
+                        int saction_flag)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
-
   saction_flag &= ~SACTION_SHOW_EXTREMES;
-
-  scene_to_keylist(ads, sce, keylist, saction_flag);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, false, saction_flag);
-
-  ED_keylist_free(keylist);
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_SCENE, ypos, yscale_fac, saction_flag);
+  draw_elem->ads = ads;
+  draw_elem->sce = sce;
 }
 
-void draw_object_channel(
-    View2D *v2d, bDopeSheet *ads, Object *ob, float ypos, float yscale_fac, int saction_flag)
+void draw_object_channel(AnimKeylistDrawList *draw_list,
+                         bDopeSheet *ads,
+                         Object *ob,
+                         float ypos,
+                         float yscale_fac,
+                         int saction_flag)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
-
   saction_flag &= ~SACTION_SHOW_EXTREMES;
-
-  ob_to_keylist(ads, ob, keylist, saction_flag);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, false, saction_flag);
-
-  ED_keylist_free(keylist);
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_OBJECT, ypos, yscale_fac, saction_flag);
+  draw_elem->ads = ads;
+  draw_elem->ob = ob;
 }
 
-void draw_fcurve_channel(
-    View2D *v2d, AnimData *adt, FCurve *fcu, float ypos, float yscale_fac, int saction_flag)
+void draw_fcurve_channel(AnimKeylistDrawList *draw_list,
+                         AnimData *adt,
+                         FCurve *fcu,
+                         float ypos,
+                         float yscale_fac,
+                         int saction_flag)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
+  const bool locked = (fcu->flag & FCURVE_PROTECTED) ||
+                      ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
+                      ((adt && adt->action) && ID_IS_LINKED(adt->action));
 
-  bool locked = (fcu->flag & FCURVE_PROTECTED) ||
-                ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
-                ((adt && adt->action) && ID_IS_LINKED(adt->action));
-
-  fcurve_to_keylist(adt, fcu, keylist, saction_flag);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
-
-  ED_keylist_free(keylist);
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_FCURVE, ypos, yscale_fac, saction_flag);
+  draw_elem->adt = adt;
+  draw_elem->fcu = fcu;
+  draw_elem->channel_locked = locked;
 }
 
-void draw_agroup_channel(
-    View2D *v2d, AnimData *adt, bActionGroup *agrp, float ypos, float yscale_fac, int saction_flag)
+void draw_agroup_channel(AnimKeylistDrawList *draw_list,
+                         AnimData *adt,
+                         bActionGroup *agrp,
+                         float ypos,
+                         float yscale_fac,
+                         int saction_flag)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
-
   bool locked = (agrp->flag & AGRP_PROTECTED) ||
                 ((adt && adt->action) && ID_IS_LINKED(adt->action));
 
-  agroup_to_keylist(adt, agrp, keylist, saction_flag);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
-
-  ED_keylist_free(keylist);
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_AGROUP, ypos, yscale_fac, saction_flag);
+  draw_elem->adt = adt;
+  draw_elem->agrp = agrp;
+  draw_elem->channel_locked = locked;
 }
 
-void draw_action_channel(
-    View2D *v2d, AnimData *adt, bAction *act, float ypos, float yscale_fac, int saction_flag)
+void draw_action_channel(AnimKeylistDrawList *draw_list,
+                         AnimData *adt,
+                         bAction *act,
+                         float ypos,
+                         float yscale_fac,
+                         int saction_flag)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
-
-  bool locked = (act && ID_IS_LINKED(act));
-
+  const bool locked = (act && ID_IS_LINKED(act));
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
-  action_to_keylist(adt, act, keylist, saction_flag);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
-
-  ED_keylist_free(keylist);
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_ACTION, ypos, yscale_fac, saction_flag);
+  draw_elem->adt = adt;
+  draw_elem->act = act;
+  draw_elem->channel_locked = locked;
 }
 
 void draw_gpencil_channel(
@@ -560,34 +699,32 @@ void draw_gpencil_channel(
   ED_keylist_free(keylist);
 }
 
-void draw_gpl_channel(
-    View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos, float yscale_fac, int saction_flag)
+void draw_gpl_channel(AnimKeylistDrawList *draw_list,
+                      bDopeSheet *ads,
+                      bGPDlayer *gpl,
+                      float ypos,
+                      float yscale_fac,
+                      int saction_flag)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
-
   bool locked = (gpl->flag & GP_LAYER_LOCKED) != 0;
-
-  gpl_to_keylist(ads, gpl, keylist);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
-
-  ED_keylist_free(keylist);
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_GP_LAYER, ypos, yscale_fac, saction_flag);
+  draw_elem->ads = ads;
+  draw_elem->gpl = gpl;
+  draw_elem->channel_locked = locked;
 }
 
-void draw_masklay_channel(View2D *v2d,
+void draw_masklay_channel(AnimKeylistDrawList *draw_list,
                           bDopeSheet *ads,
                           MaskLayer *masklay,
                           float ypos,
                           float yscale_fac,
                           int saction_flag)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
-
   bool locked = (masklay->flag & MASK_LAYERFLAG_LOCKED) != 0;
-
-  mask_to_keylist(ads, masklay, keylist);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, locked, saction_flag);
-
-  ED_keylist_free(keylist);
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_MASK_LAYER, ypos, yscale_fac, saction_flag);
+  draw_elem->ads = ads;
+  draw_elem->masklay = masklay;
+  draw_elem->channel_locked = locked;
 }
