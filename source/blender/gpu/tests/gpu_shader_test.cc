@@ -108,7 +108,8 @@ void main() {
   EXPECT_NE(shader, nullptr);
 
   /* Construct Texture. */
-  GPUTexture *texture = GPU_texture_create_1d("gpu_shader_compute_1d", SIZE, 0, GPU_RGBA32F, nullptr);
+  GPUTexture *texture = GPU_texture_create_1d(
+      "gpu_shader_compute_1d", SIZE, 0, GPU_RGBA32F, nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
