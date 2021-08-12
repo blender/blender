@@ -491,6 +491,10 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
     }
   }
 
+  /* A possible optimization is to only tag the normals dirty when there are transforms that change
+   * normals. */
+  BKE_mesh_normals_tag_dirty(new_mesh);
+
   return new_mesh;
 }
 
