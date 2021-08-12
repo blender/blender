@@ -222,7 +222,10 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
   }
 }
 
-/* only called once, for startup */
+/**
+ * Initialize Blender and load the startup file & preferences
+ * (only called once).
+ */
 void WM_init(bContext *C, int argc, const char **argv)
 {
 
@@ -248,24 +251,22 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   ED_undosys_type_init();
 
-  BKE_library_callback_free_notifier_reference_set(
-      WM_main_remove_notifier_reference);                    /* lib_id.c */
-  BKE_region_callback_free_gizmomap_set(wm_gizmomap_remove); /* screen.c */
+  BKE_library_callback_free_notifier_reference_set(WM_main_remove_notifier_reference);
+  BKE_region_callback_free_gizmomap_set(wm_gizmomap_remove);
   BKE_region_callback_refresh_tag_gizmomap_set(WM_gizmomap_tag_refresh);
-  BKE_library_callback_remap_editor_id_reference_set(
-      WM_main_remap_editor_id_reference);                     /* lib_id.c */
-  BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap); /* screen.c */
+  BKE_library_callback_remap_editor_id_reference_set(WM_main_remap_editor_id_reference);
+  BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap);
   DEG_editors_set_update_cb(ED_render_id_flush_update, ED_render_scene_update);
 
-  ED_spacetypes_init(); /* editors/space_api/spacetype.c */
+  ED_spacetypes_init();
 
   ED_node_init_butfuncs();
 
   BLF_init();
 
   BLT_lang_init();
-  /* Must call first before doing any '.blend' file reading,
-   * since versioning code may create new IDs... See T57066. */
+  /* Must call first before doing any `.blend` file reading,
+   * since versioning code may create new IDs. See T57066. */
   BLT_lang_set(NULL);
 
   /* Init icons before reading .blend files for preview icons, which can
@@ -273,7 +274,7 @@ void WM_init(bContext *C, int argc, const char **argv)
    * for scripts that do background processing with preview icons. */
   BKE_icons_init(BIFICONID_LAST);
 
-  /* reports can't be initialized before the wm,
+  /* Reports can't be initialized before the window-manager,
    * but keep before file reading, since that may report errors */
   wm_init_reports(C);
 
@@ -316,10 +317,14 @@ void WM_init(bContext *C, int argc, const char **argv)
                       NULL,
                       &params_file_read_post);
 
-  /* Call again to set from userpreferences... */
+  /* NOTE: leave `G_MAIN->name` set to an empty string since this
+   * matches behavior after loading a new file. */
+  BLI_assert(G_MAIN->name[0] == '\0');
+
+  /* Call again to set from preferences. */
   BLT_lang_set(NULL);
 
-  /* For fsMenu. Called here so can include user preference paths if needed. */
+  /* For file-system. Called here so can include user preference paths if needed. */
   ED_file_init();
 
   /* That one is generated on demand, we need to be sure it's clear on init. */
@@ -328,12 +333,13 @@ void WM_init(bContext *C, int argc, const char **argv)
   if (!G.background) {
 
 #ifdef WITH_INPUT_NDOF
-    /* sets 3D mouse deadzone */
+    /* Sets 3D mouse dead-zone. */
     WM_ndof_deadzone_set(U.ndof_deadzone);
 #endif
     WM_init_opengl();
 
     if (!WM_platform_support_perform_checks()) {
+      /* No attempt to avoid memory leaks here. */
       exit(-1);
     }
 
@@ -348,8 +354,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   BPY_python_start(C, argc, argv);
   BPY_python_reset(C);
 #else
-  (void)argc; /* unused */
-  (void)argv; /* unused */
+  UNUSED_VARS(argc, argv);
 #endif
 
   if (!G.background) {
@@ -365,14 +370,6 @@ void WM_init(bContext *C, int argc, const char **argv)
   ED_render_clear_mtex_copybuf();
 
   wm_history_file_read();
-
-  /* allow a path of "", this is what happens when making a new file */
-#if 0
-  if (BKE_main_blendfile_path_from_global()[0] == '\0') {
-    BLI_join_dirfile(
-        G_MAIN->name, sizeof(G_MAIN->name), BKE_appdir_folder_default(), "untitled.blend");
-  }
-#endif
 
   BLI_strncpy(G.lib, BKE_main_blendfile_path_from_global(), sizeof(G.lib));
 
