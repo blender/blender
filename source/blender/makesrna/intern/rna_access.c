@@ -991,10 +991,9 @@ FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)
 {
 #if 1
   FunctionRNA *func;
-  StructRNA *type;
-  for (type = srna; type; type = type->base) {
+  for (; srna; srna = srna->base) {
     func = (FunctionRNA *)BLI_findstring_ptr(
-        &type->functions, identifier, offsetof(FunctionRNA, identifier));
+        &srna->functions, identifier, offsetof(FunctionRNA, identifier));
     if (func) {
       return func;
     }
