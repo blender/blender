@@ -1118,11 +1118,11 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
           types_align_32[structtype] = max_align_32;
           types_align_64[structtype] = max_align_64;
 
-          /* Santiy check 1: alignment should never be 0. */
+          /* Sanity check 1: alignment should never be 0. */
           BLI_assert(max_align_32);
           BLI_assert(max_align_64);
 
-          /* Santiy check 2: alignment should always be equal or smaller than the maximum
+          /* Sanity check 2: alignment should always be equal or smaller than the maximum
            * size of a build in type which is 8 bytes (ie int64_t or double). */
           BLI_assert(max_align_32 <= 8);
           BLI_assert(max_align_64 <= 8);

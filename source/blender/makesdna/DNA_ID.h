@@ -587,7 +587,7 @@ enum {
    *
    * RESET_NEVER
    *
-   * NOTE: Only used by nodegroups currently.
+   * NOTE: Only used by node-groups currently.
    */
   LIB_TAG_LOCALIZED = 1 << 14,
 
