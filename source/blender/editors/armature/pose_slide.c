@@ -204,7 +204,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   pso->mode = mode;
 
   /* set range info from property values - these may get overridden for the invoke() */
-  pso->percentage = RNA_float_get(op->ptr, "percentage");
+  pso->percentage = RNA_float_get(op->ptr, "factor");
   pso->prevFrame = RNA_int_get(op->ptr, "prev_frame");
   pso->nextFrame = RNA_int_get(op->ptr, "next_frame");
 
@@ -990,7 +990,7 @@ static void pose_slide_mouse_update_percentage(tPoseSlideOp *pso,
                                                const wmEvent *event)
 {
   pso->percentage = (event->x - pso->region->winrct.xmin) / ((float)pso->region->winx);
-  RNA_float_set(op->ptr, "percentage", pso->percentage);
+  RNA_float_set(op->ptr, "factor", pso->percentage);
 }
 
 /* handle an event to toggle channels mode */
@@ -1116,7 +1116,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         pso->percentage = value / 100.0f;
         CLAMP(pso->percentage, 0.0f, 1.0f);
-        RNA_float_set(op->ptr, "percentage", pso->percentage);
+        RNA_float_set(op->ptr, "factor", pso->percentage);
 
         /* Update pose to reflect the new values (see below) */
         do_pose_update = true;
