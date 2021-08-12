@@ -7505,7 +7505,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
     /* Newclass will now have 2 ref's, ???,
      * probably 1 is internal since #Py_DECREF here segfaults. */
 
-    /* PyC_ObSpit("new class ref", newclass); */
+    // PyC_ObSpit("new class ref", newclass);
 
     if (newclass) {
       /* srna owns one, and the other is owned by the caller. */

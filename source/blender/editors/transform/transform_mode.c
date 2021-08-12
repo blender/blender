@@ -968,9 +968,9 @@ void ElementResize(const TransInfo *t,
       float obsizemat[3][3];
       /* Reorient the size mat to fit the oriented object. */
       mul_m3_m3m3(obsizemat, tmat, td->axismtx);
-      /* print_m3("obsizemat", obsizemat); */
+      // print_m3("obsizemat", obsizemat);
       TransMat3ToSize(obsizemat, td->axismtx, fsize);
-      /* print_v3("fsize", fsize); */
+      // print_v3("fsize", fsize);
     }
     else {
       mat3_to_size(fsize, tmat);

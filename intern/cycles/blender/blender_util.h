@@ -145,7 +145,7 @@ static inline void curvemapping_minmax(/*const*/ BL::CurveMapping &cumap,
                                        float *min_x,
                                        float *max_x)
 {
-  /* const int num_curves = cumap.curves.length(); */ /* Gives linking error so far. */
+  // const int num_curves = cumap.curves.length(); /* Gives linking error so far. */
   const int num_curves = rgb_curve ? 4 : 3;
   *min_x = FLT_MAX;
   *max_x = -FLT_MAX;

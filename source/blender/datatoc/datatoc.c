@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     }
 #endif
 
-    /* fprintf (fpout, "\\x%02x", getc(fpin)); */
+    // fprintf(fpout, "\\x%02x", getc(fpin));
     fprintf(fpout, "%3d,", getc(fpin));
   }
 

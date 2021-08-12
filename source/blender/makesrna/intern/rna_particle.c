@@ -1851,20 +1851,20 @@ static void rna_def_particle(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "birth_time", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, NULL, "time");
-  /*  RNA_def_property_range(prop, lowerLimitf, upperLimitf); */
+  // RNA_def_property_range(prop, lowerLimitf, upperLimitf);
   RNA_def_property_ui_text(prop, "Birth Time", "");
 
   prop = RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_TIME);
-  /*  RNA_def_property_range(prop, lowerLimitf, upperLimitf); */
+  // RNA_def_property_range(prop, lowerLimitf, upperLimitf);
   RNA_def_property_ui_text(prop, "Lifetime", "");
 
   prop = RNA_def_property(srna, "die_time", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, NULL, "dietime");
-  /*  RNA_def_property_range(prop, lowerLimitf, upperLimitf); */
+  // RNA_def_property_range(prop, lowerLimitf, upperLimitf);
   RNA_def_property_ui_text(prop, "Die Time", "");
 
   prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
-  /*  RNA_def_property_range(prop, lowerLimitf, upperLimitf); */
+  // RNA_def_property_range(prop, lowerLimitf, upperLimitf);
   RNA_def_property_ui_text(prop, "Size", "");
 
   /* */
@@ -3658,7 +3658,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
   /* access to particle settings is redirected through functions */
   /* to allow proper id-buttons functionality */
   prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
-  /*RNA_def_property_pointer_sdna(prop, NULL, "part"); */
+  // RNA_def_property_pointer_sdna(prop, NULL, "part");
   RNA_def_property_struct_type(prop, "ParticleSettings");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
   RNA_def_property_pointer_funcs(

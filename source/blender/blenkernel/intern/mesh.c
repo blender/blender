@@ -262,7 +262,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
     CD_LAYERS_FREE(vlayers);
     CD_LAYERS_FREE(elayers);
-    /* CD_LAYER_FREE(flayers); */ /* Never allocated. */
+    // CD_LAYER_FREE(flayers); /* Never allocated. */
     CD_LAYERS_FREE(llayers);
     CD_LAYERS_FREE(players);
 
@@ -942,7 +942,7 @@ Mesh *BKE_mesh_new_nomain(
       NULL, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE);
   BKE_libblock_init_empty(&mesh->id);
 
-  /* Don't use CustomData_reset(...); because we don't want to touch custom-data. */
+  /* Don't use #CustomData_reset because we don't want to touch custom-data. */
   copy_vn_i(mesh->vdata.typemap, CD_NUMTYPES, -1);
   copy_vn_i(mesh->edata.typemap, CD_NUMTYPES, -1);
   copy_vn_i(mesh->fdata.typemap, CD_NUMTYPES, -1);

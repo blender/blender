@@ -485,11 +485,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   }
 
   /* XXX We'd need re-entrant locking on Main for this to work... */
-  /* BKE_main_lock(bmain); */
+  // BKE_main_lock(bmain);
 
   wm_link_do(lapp_data, op->reports, bmain, scene, view_layer, CTX_wm_view3d(C));
 
-  /* BKE_main_unlock(bmain); */
+  // BKE_main_unlock(bmain);
 
   /* mark all library linked objects to be updated */
   BKE_main_lib_objects_recalc_all(bmain);

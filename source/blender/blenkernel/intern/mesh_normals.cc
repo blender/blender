@@ -165,7 +165,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
     pnors = (float(*)[3])MEM_calloc_arrayN((size_t)numPolys, sizeof(float[3]), __func__);
   }
   /* NO NEED TO ALLOC YET */
-  /* if (!fnors) fnors = MEM_calloc_arrayN(numFaces, sizeof(float[3]), "face nors mesh.c"); */
+  // if (!fnors) {fnors = MEM_calloc_arrayN(numFaces, sizeof(float[3]), "face nors mesh.c"); }
 
   if (only_face_normals == false) {
     /* vertex normals are optional, they require some extra calculations,
@@ -200,7 +200,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
   if (pnors != r_polyNors) {
     MEM_freeN(pnors);
   }
-  /* if (fnors != r_faceNors) MEM_freeN(fnors); */ /* NO NEED TO ALLOC YET */
+  // if (fnors != r_faceNors) { MEM_freeN(fnors); } /* NO NEED TO ALLOC YET */
 
   fnors = pnors = nullptr;
 }

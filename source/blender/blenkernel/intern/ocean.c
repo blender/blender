@@ -530,7 +530,7 @@ static void ocean_compute_jacobian_jxx(TaskPool *__restrict pool, void *UNUSED(t
     for (j = 0; j <= o->_N / 2; j++) {
       fftw_complex mul_param;
 
-      /* init_complex(mul_param, -scale, 0); */
+      // init_complex(mul_param, -scale, 0);
       init_complex(mul_param, -1, 0);
 
       mul_complex_f(mul_param, mul_param, chop_amount);
@@ -563,7 +563,7 @@ static void ocean_compute_jacobian_jzz(TaskPool *__restrict pool, void *UNUSED(t
     for (j = 0; j <= o->_N / 2; j++) {
       fftw_complex mul_param;
 
-      /* init_complex(mul_param, -scale, 0); */
+      // init_complex(mul_param, -scale, 0);
       init_complex(mul_param, -1, 0);
 
       mul_complex_f(mul_param, mul_param, chop_amount);
@@ -596,7 +596,7 @@ static void ocean_compute_jacobian_jxz(TaskPool *__restrict pool, void *UNUSED(t
     for (j = 0; j <= o->_N / 2; j++) {
       fftw_complex mul_param;
 
-      /* init_complex(mul_param, -scale, 0); */
+      // init_complex(mul_param, -scale, 0);
       init_complex(mul_param, -1, 0);
 
       mul_complex_f(mul_param, mul_param, chop_amount);
@@ -1015,7 +1015,7 @@ bool BKE_ocean_init(struct Ocean *o,
                                                 "ocean_fft_in_nz");
 
     o->_N_x = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_N_x");
-    /* o->_N_y = (float *) fftwf_malloc(o->_M * o->_N * sizeof(float)); (MEM01) */
+    // o->_N_y = (float *) fftwf_malloc(o->_M * o->_N * sizeof(float)); /* (MEM01) */
     o->_N_z = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_N_z");
 
     o->_N_x_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_nx, o->_N_x, FFTW_ESTIMATE);
@@ -1083,7 +1083,7 @@ void BKE_ocean_free_data(struct Ocean *oc)
     fftw_destroy_plan(oc->_N_x_plan);
     fftw_destroy_plan(oc->_N_z_plan);
     MEM_freeN(oc->_N_x);
-    /* fftwf_free(oc->_N_y); (MEM01) */
+    // fftwf_free(oc->_N_y); /* (MEM01) */
     MEM_freeN(oc->_N_z);
   }
 

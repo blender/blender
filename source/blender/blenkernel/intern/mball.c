@@ -289,7 +289,7 @@ void BKE_mball_texspace_calc(Object *ob)
   bb = ob->runtime.bb;
 
   /* Weird one, this. */
-  /*      INIT_MINMAX(min, max); */
+  // INIT_MINMAX(min, max);
   (min)[0] = (min)[1] = (min)[2] = 1.0e30f;
   (max)[0] = (max)[1] = (max)[2] = -1.0e30f;
 

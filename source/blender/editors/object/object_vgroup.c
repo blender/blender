@@ -1582,7 +1582,7 @@ static void vgroup_fix(
           mag = normalize_v3(norm);
           if (mag) { /* zeros fix */
             d = -dot_v3v3(norm, coord);
-            /* dist = (dot_v3v3(norm, m.co) + d); */ /* UNUSED */
+            // dist = (dot_v3v3(norm, m.co) + d); /* UNUSED */
             moveCloserToDistanceFromPlane(
                 depsgraph, scene_eval, object_eval, me, i, norm, coord, d, distToBe, strength, cp);
           }

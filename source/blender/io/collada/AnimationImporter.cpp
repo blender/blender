@@ -1363,7 +1363,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
     calc_joint_parent_mat_rest(par, nullptr, root, node);
     mul_m4_m4m4(temp, par, matfra);
 
-    /* evaluate_joint_world_transform_at_frame(temp, NULL, node, fra); */
+    // evaluate_joint_world_transform_at_frame(temp, NULL, node, fra);
 
     /* calc special matrix */
     mul_m4_series(mat, irest, temp, irest_dae, rest);

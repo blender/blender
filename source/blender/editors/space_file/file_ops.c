@@ -2540,7 +2540,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 
       /* don't do for now because it selects entire text instead of
        * placing cursor at the end */
-      /* UI_textbutton_activate_but(C, but); */
+      // UI_textbutton_activate_but(C, but);
     }
 #if defined(WIN32)
     else if (!can_create_dir(params->dir)) {

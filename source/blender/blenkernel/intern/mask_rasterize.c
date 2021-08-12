@@ -292,10 +292,10 @@ static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather
     co_curr = diff_points[k_curr];
     co_next = diff_points[k_next];
 
-    /* sub_v2_v2v2(d_prev, co_prev, co_curr); */ /* precalc */
+    // sub_v2_v2v2(d_prev, co_prev, co_curr); /* precalc */
     sub_v2_v2v2(d_next, co_curr, co_next);
 
-    /* normalize_v2(d_prev); */ /* precalc */
+    // normalize_v2(d_prev); /* precalc */
     normalize_v2(d_next);
 
     if ((do_test == false) ||
