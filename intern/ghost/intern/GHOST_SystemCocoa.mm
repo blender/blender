@@ -1628,7 +1628,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
                                        y_accum + (y_mouse - warped_y_mouse));
 
             /* This is the current time that matches NSEvent timestamp. */
-            m_last_warp_timestamp = mach_absolute_time() * 1e-9;
+            m_last_warp_timestamp = [[NSProcessInfo processInfo] systemUptime];
           }
 
           // Generate event
