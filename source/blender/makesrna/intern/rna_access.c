@@ -967,9 +967,24 @@ const struct ListBase *RNA_struct_type_properties(StructRNA *srna)
   return &srna->cont.properties;
 }
 
-PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier)
+PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *identifier)
 {
   return BLI_findstring_ptr(&srna->cont.properties, identifier, offsetof(PropertyRNA, identifier));
+}
+
+/**
+ * \note #RNA_struct_find_property is a higher level alternative to this function
+ * which takes a #PointerRNA instead of a #StructRNA.
+ */
+PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier)
+{
+  for (; srna; srna = srna->base) {
+    PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, identifier);
+    if (prop != NULL) {
+      return prop;
+    }
+  }
+  return NULL;
 }
 
 FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)

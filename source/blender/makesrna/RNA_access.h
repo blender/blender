@@ -828,6 +828,7 @@ unsigned int RNA_struct_count_properties(StructRNA *srna);
 
 /* lower level functions for access to type properties */
 const struct ListBase *RNA_struct_type_properties(StructRNA *srna);
+PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *identifier);
 PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier);
 
 FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier);

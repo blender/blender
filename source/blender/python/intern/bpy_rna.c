@@ -4475,7 +4475,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
   if ((ret == NULL)  /* || BPy_PropDeferred_CheckTypeExact(ret) */ ) {
     StructRNA *srna = srna_from_self(cls, "StructRNA.__getattr__");
     if (srna) {
-      PropertyRNA *prop = RNA_struct_type_find_property(srna, PyUnicode_AsUTF8(attr));
+      PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, PyUnicode_AsUTF8(attr));
       if (prop) {
         PointerRNA tptr;
         PyErr_Clear(); /* Clear error from tp_getattro. */
@@ -4497,7 +4497,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
   const char *attr_str = PyUnicode_AsUTF8(attr);
 
   if (srna && !pyrna_write_check() &&
-      (is_deferred_prop || RNA_struct_type_find_property(srna, attr_str))) {
+      (is_deferred_prop || RNA_struct_type_find_property_no_base(srna, attr_str))) {
     PyErr_Format(PyExc_AttributeError,
                  "pyrna_struct_meta_idprop_setattro() "
                  "can't set in readonly state '%.200s.%S'",
