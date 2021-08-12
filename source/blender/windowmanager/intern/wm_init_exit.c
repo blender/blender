@@ -279,14 +279,31 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   WM_msgbus_types_init();
 
-  bool is_factory_startup = true;
-
   /* Studio-lights needs to be init before we read the home-file,
    * otherwise the versioning cannot find the default studio-light. */
   BKE_studiolight_init();
 
   BLI_assert((G.fileflags & G_FILE_NO_UI) == 0);
 
+  /**
+   * NOTE(@campbellbarton): Startup file and order of initialization.
+   *
+   * Loading #BLENDER_STARTUP_FILE, #BLENDER_USERPREF_FILE, starting Python and other sub-systems,
+   * have inter-dependencies, for example.
+   *
+   * - Some sub-systems depend on the preferences (initializing icons depend on the theme).
+   * - Add-ons depends on the preferences to know what has been enabled.
+   * - Add-ons depends on the window-manger to register their key-maps.
+   * - Evaluating the startup file depends on Python for animation-drivers (see T89046).
+   * - Starting Python depends on the startup file so key-maps can be added in the window-manger.
+   *
+   * Loading preferences early, then application subsystems and finally the startup data would
+   * simplify things if it weren't for key-maps being part of the window-manager
+   * which is blend file data.
+   * Creating a dummy window-manager early, or moving the key-maps into the preferences
+   * would resolve this and may be worth looking into long-term, see: D12184 for details.
+   */
+  struct wmFileReadPost_Params *params_file_read_post = NULL;
   wm_homefile_read_ex(C,
                       &(const struct wmHomeFileRead_Params){
                           .use_data = true,
@@ -297,7 +314,7 @@ void WM_init(bContext *C, int argc, const char **argv)
                           .app_template_override = WM_init_state_app_template_get(),
                       },
                       NULL,
-                      &is_factory_startup);
+                      &params_file_read_post);
 
   /* Call again to set from userpreferences... */
   BLT_lang_set(NULL);
@@ -326,14 +343,6 @@ void WM_init(bContext *C, int argc, const char **argv)
   BKE_subdiv_init();
 
   ED_spacemacros_init();
-
-  /* NOTE(campbell): there is a bug where python needs initializing before loading the
-   * startup.blend because it may contain PyDrivers. It also needs to be after
-   * initializing space types and other internal data.
-   *
-   * However can't redo this at the moment. Solution is to load python
-   * before wm_homefile_read() or make py-drivers check if python is running.
-   * Will try fix when the crash can be repeated. */
 
 #ifdef WITH_PYTHON
   BPY_python_start(C, argc, argv);
@@ -374,30 +383,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   }
 #endif
 
-  {
-    Main *bmain = CTX_data_main(C);
-    /* NOTE: logic here is from wm_file_read_post,
-     * call functions that depend on Python being initialized. */
-
-    /* normally 'wm_homefile_read' will do this,
-     * however python is not initialized when called from this function.
-     *
-     * unlikely any handlers are set but its possible,
-     * note that recovering the last session does its own callbacks. */
-    CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
-
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);
-    BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_POST);
-    if (is_factory_startup) {
-      BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
-    }
-
-    wm_file_read_report(C, bmain);
-
-    if (!G.background) {
-      CTX_wm_window_set(C, NULL);
-    }
-  }
+  wm_homefile_read_post(C, params_file_read_post);
 }
 
 void WM_init_splash(bContext *C)

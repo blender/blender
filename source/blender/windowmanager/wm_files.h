@@ -24,6 +24,7 @@
 #pragma once
 
 struct Main;
+struct wmFileReadPost_Params;
 struct wmGenericCallback;
 struct wmOperatorType;
 
@@ -64,10 +65,13 @@ struct wmHomeFileRead_Params {
 void wm_homefile_read_ex(struct bContext *C,
                          const struct wmHomeFileRead_Params *params_homefile,
                          struct ReportList *reports,
-                         bool *r_is_factory_startup);
+                         struct wmFileReadPost_Params **r_params_file_read_post);
 void wm_homefile_read(struct bContext *C,
                       const struct wmHomeFileRead_Params *params_homefile,
                       struct ReportList *reports);
+
+void wm_homefile_read_post(struct bContext *C,
+                           const struct wmFileReadPost_Params *params_file_read_post);
 
 void wm_file_read_report(bContext *C, struct Main *bmain);
 

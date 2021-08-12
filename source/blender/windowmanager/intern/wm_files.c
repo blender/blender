@@ -596,18 +596,32 @@ static void wm_file_read_pre(bContext *C, bool use_data, bool UNUSED(use_userdef
 }
 
 /**
+ * Parameters for #wm_file_read_post, also used for deferred initialization.
+ */
+struct wmFileReadPost_Params {
+  uint use_data : 1;
+  uint use_userdef : 1;
+
+  uint is_startup_file : 1;
+  uint is_factory_startup : 1;
+  uint reset_app_template : 1;
+};
+
+/**
  * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
-static void wm_file_read_post(bContext *C,
-                              const bool is_startup_file,
-                              const bool is_factory_startup,
-                              const bool use_data,
-                              const bool use_userdef,
-                              const bool reset_app_template)
+static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *params)
 {
-  bool addons_loaded = false;
   wmWindowManager *wm = CTX_wm_manager(C);
+
+  const bool use_data = params->use_data;
+  const bool use_userdef = params->use_userdef;
+  const bool is_startup_file = params->is_startup_file;
+  const bool is_factory_startup = params->is_factory_startup;
+  const bool reset_app_template = params->reset_app_template;
+
+  bool addons_loaded = false;
 
   if (use_data) {
     if (!G.background) {
@@ -910,7 +924,14 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
         wm_history_file_update();
       }
 
-      wm_file_read_post(C, false, false, use_data, use_userdef, false);
+      wm_file_read_post(C,
+                        &(const struct wmFileReadPost_Params){
+                            .use_data = use_data,
+                            .use_userdef = use_userdef,
+                            .is_startup_file = false,
+                            .is_factory_startup = false,
+                            .reset_app_template = false,
+                        });
 
       bf_reports.duration.whole = PIL_check_seconds_timer() - bf_reports.duration.whole;
       file_read_reports_finalize(&bf_reports);
@@ -994,11 +1015,17 @@ const char *WM_init_state_app_template_get(void)
 /**
  * Called on startup, (context entirely filled with NULLs)
  * or called for 'New File' both `startup.blend` and `userpref.blend` are checked.
+ *
+ * \param r_params_file_read_post: Support postponed initialization,
+ * needed for initial startup when only some sub-systems have been initialized.
+ * When non-null, #wm_file_read_post doesn't run, instead it's arguments are stored
+ * in this return argument.
+ * The caller is responsible for calling #wm_homefile_read_post with this return argument.
  */
 void wm_homefile_read_ex(bContext *C,
                          const struct wmHomeFileRead_Params *params_homefile,
                          ReportList *reports,
-                         bool *r_is_factory_startup)
+                         struct wmFileReadPost_Params **r_params_file_read_post)
 {
 #if 0 /* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
   /* Context does not always have valid main pointer here. */
@@ -1302,10 +1329,21 @@ void wm_homefile_read_ex(bContext *C,
     G.save_over = 0;
   }
 
-  wm_file_read_post(C, true, is_factory_startup, use_data, use_userdef, reset_app_template);
-
-  if (r_is_factory_startup) {
-    *r_is_factory_startup = is_factory_startup;
+  {
+    const struct wmFileReadPost_Params params_file_read_post = {
+        .use_data = use_data,
+        .use_userdef = use_userdef,
+        .is_startup_file = true,
+        .is_factory_startup = is_factory_startup,
+        .reset_app_template = reset_app_template,
+    };
+    if (r_params_file_read_post == NULL) {
+      wm_file_read_post(C, &params_file_read_post);
+    }
+    else {
+      *r_params_file_read_post = MEM_mallocN(sizeof(struct wmFileReadPost_Params), __func__);
+      **r_params_file_read_post = params_file_read_post;
+    }
   }
 }
 
@@ -1314,6 +1352,17 @@ void wm_homefile_read(bContext *C,
                       ReportList *reports)
 {
   wm_homefile_read_ex(C, params_homefile, reports, NULL);
+}
+
+/**
+ * Special case, support deferred execution of #wm_file_read_post,
+ * Needed when loading for the first time to workaround order of initialization bug, see T89046.
+ */
+void wm_homefile_read_post(struct bContext *C,
+                           const struct wmFileReadPost_Params *params_file_read_post)
+{
+  wm_file_read_post(C, params_file_read_post);
+  MEM_freeN((void *)params_file_read_post);
 }
 
 /* -------------------------------------------------------------------- */
