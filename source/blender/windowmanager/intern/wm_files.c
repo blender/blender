@@ -1343,6 +1343,9 @@ void wm_homefile_read_ex(bContext *C,
     else {
       *r_params_file_read_post = MEM_mallocN(sizeof(struct wmFileReadPost_Params), __func__);
       **r_params_file_read_post = params_file_read_post;
+
+      /* Match #wm_file_read_post which leaves the window cleared too. */
+      CTX_wm_window_set(C, NULL);
     }
   }
 }
