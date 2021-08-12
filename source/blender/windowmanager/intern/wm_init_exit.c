@@ -279,10 +279,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   WM_msgbus_types_init();
 
-  /* get the default database, plus a wm */
   bool is_factory_startup = true;
-  const bool use_data = true;
-  const bool use_userdef = true;
 
   /* Studio-lights needs to be init before we read the home-file,
    * otherwise the versioning cannot find the default studio-light. */
@@ -290,15 +287,17 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   BLI_assert((G.fileflags & G_FILE_NO_UI) == 0);
 
-  wm_homefile_read(C,
-                   NULL,
-                   G.factory_startup,
-                   false,
-                   use_data,
-                   use_userdef,
-                   NULL,
-                   WM_init_state_app_template_get(),
-                   &is_factory_startup);
+  wm_homefile_read_ex(C,
+                      &(const struct wmHomeFileRead_Params){
+                          .use_data = true,
+                          .use_userdef = true,
+                          .use_factory_settings = G.factory_startup,
+                          .use_empty_data = false,
+                          .filepath_startup_override = NULL,
+                          .app_template_override = WM_init_state_app_template_get(),
+                      },
+                      NULL,
+                      &is_factory_startup);
 
   /* Call again to set from userpreferences... */
   BLT_lang_set(NULL);

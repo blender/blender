@@ -993,31 +993,12 @@ const char *WM_init_state_app_template_get(void)
 
 /**
  * Called on startup, (context entirely filled with NULLs)
- * or called for 'New File' both startup.blend and userpref.blend are checked.
- *
- * \param use_factory_settings:
- * Ignore on-disk startup file, use bundled `datatoc_startup_blend` instead.
- * Used for "Restore Factory Settings".
- *
- * \param use_userdef: Load factory settings as well as startup file.
- * Disabled for "File New" we don't want to reload preferences.
- *
- * \param filepath_startup_override:
- * Optional path pointing to an alternative blend file (may be NULL).
- *
- * \param app_template_override:
- * Template to use instead of the template defined in user-preferences.
- * When not-null, this is written into the user preferences.
+ * or called for 'New File' both `startup.blend` and `userpref.blend` are checked.
  */
-void wm_homefile_read(bContext *C,
-                      ReportList *reports,
-                      bool use_factory_settings,
-                      bool use_empty_data,
-                      bool use_data,
-                      bool use_userdef,
-                      const char *filepath_startup_override,
-                      const char *app_template_override,
-                      bool *r_is_factory_startup)
+void wm_homefile_read_ex(bContext *C,
+                         const struct wmHomeFileRead_Params *params_homefile,
+                         ReportList *reports,
+                         bool *r_is_factory_startup)
 {
 #if 0 /* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
   /* Context does not always have valid main pointer here. */
@@ -1025,6 +1006,14 @@ void wm_homefile_read(bContext *C,
 #endif
   ListBase wmbase;
   bool success = false;
+
+  /* May be enabled, when the user configuration doesn't exist. */
+  const bool use_data = params_homefile->use_data;
+  const bool use_userdef = params_homefile->use_userdef;
+  bool use_factory_settings = params_homefile->use_factory_settings;
+  const bool use_empty_data = params_homefile->use_empty_data;
+  const char *filepath_startup_override = params_homefile->filepath_startup_override;
+  const char *app_template_override = params_homefile->app_template_override;
 
   bool filepath_startup_is_factory = true;
   char filepath_startup[FILE_MAX];
@@ -1318,6 +1307,13 @@ void wm_homefile_read(bContext *C,
   if (r_is_factory_startup) {
     *r_is_factory_startup = is_factory_startup;
   }
+}
+
+void wm_homefile_read(bContext *C,
+                      const struct wmHomeFileRead_Params *params_homefile,
+                      ReportList *reports)
+{
+  wm_homefile_read_ex(C, params_homefile, reports, NULL);
 }
 
 /* -------------------------------------------------------------------- */
@@ -2087,14 +2083,15 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
   UserDef U_backup = U;
 
   wm_homefile_read(C,
-                   op->reports,
-                   use_factory_settings,
-                   false,
-                   use_data,
-                   use_userdef,
-                   NULL,
-                   WM_init_state_app_template_get(),
-                   NULL);
+                   &(const struct wmHomeFileRead_Params){
+                       .use_data = use_data,
+                       .use_userdef = use_userdef,
+                       .use_factory_settings = use_factory_settings,
+                       .use_empty_data = false,
+                       .filepath_startup_override = NULL,
+                       .app_template_override = WM_init_state_app_template_get(),
+                   },
+                   op->reports);
 
   wm_userpref_read_exceptions(&U, &U_backup);
   SET_FLAG_FROM_TEST(G.f, use_factory_settings, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
@@ -2233,16 +2230,17 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     app_template = WM_init_state_app_template_get();
   }
 
-  bool use_data = true;
   wm_homefile_read(C,
-                   op->reports,
-                   use_factory_settings,
-                   use_empty_data,
-                   use_data,
-                   use_userdef,
-                   filepath,
-                   app_template,
-                   NULL);
+                   &(const struct wmHomeFileRead_Params){
+                       .use_data = true,
+                       .use_userdef = use_userdef,
+                       .use_factory_settings = use_factory_settings,
+                       .use_empty_data = use_empty_data,
+                       .filepath_startup_override = filepath,
+                       .app_template_override = app_template,
+                   },
+                   op->reports);
+
   if (use_splash) {
     WM_init_splash(C);
   }
