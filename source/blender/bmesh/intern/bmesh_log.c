@@ -826,22 +826,8 @@ static BMLogEntry *bm_log_entry_create(BMLogEntryType type)
 /* Free the data in a log entry
  *
  * NOTE: does not free the log entry itself. */
-static void bm_log_entry_free(BMLogEntry *entry)
+static void bm_log_entry_free_direct(BMLogEntry *entry)
 {
-  BMLog *log = entry->log;
-  bool kill_log = false;
-
-  if (log) {
-    log->refcount--;
-
-    if (log->refcount < 0) {
-      fprintf(stderr, "BMLog refcount error\n");
-      log->refcount = 0;
-    }
-
-    kill_log = !log->refcount;
-  }
-
   switch (entry->type) {
     case LOG_ENTRY_MESH_IDS:
       log_idmap_free(entry);
@@ -881,6 +867,28 @@ static void bm_log_entry_free(BMLogEntry *entry)
       CustomData_free(&entry->pdata, 0);
       break;
   }
+}
+
+/* Free the data in a log entry
+ * and handles bmlog ref counting
+ * NOTE: does not free the log entry itself. */
+static void bm_log_entry_free(BMLogEntry *entry)
+{
+  BMLog *log = entry->log;
+  bool kill_log = false;
+
+  if (log) {
+    log->refcount--;
+
+    if (log->refcount < 0) {
+      fprintf(stderr, "BMLog refcount error\n");
+      log->refcount = 0;
+    }
+
+    kill_log = !log->refcount;
+  }
+
+  bm_log_entry_free_direct(entry);
 
   if (kill_log) {
     bm_log_free_direct(log, true);
@@ -2064,14 +2072,26 @@ void BM_log_full_mesh(BMesh *bm, BMLog *log)
     entry = bm_log_entry_add_ex(bm, log, false, LOG_ENTRY_FULL_MESH, NULL);
   }
 
-  bool add = BLI_ghash_len(entry->added_faces) > 0;
-  add |= BLI_ghash_len(entry->modified_verts) > 0;
-  add |= BLI_ghash_len(entry->modified_faces) > 0;
-  add |= BLI_ghash_len(entry->deleted_verts) > 0;
-  add |= BLI_ghash_len(entry->deleted_faces) > 0;
+  // add an entry if current entry isn't empty or isn't LOG_ENTRY_PARTIAL
+  bool add = false;
+
+  if (entry->type == LOG_ENTRY_PARTIAL) {
+    add = BLI_ghash_len(entry->added_faces) > 0;
+    add |= BLI_ghash_len(entry->modified_verts) > 0;
+    add |= BLI_ghash_len(entry->modified_faces) > 0;
+    add |= BLI_ghash_len(entry->deleted_verts) > 0;
+    add |= BLI_ghash_len(entry->deleted_faces) > 0;
+  }
+  else {
+    add = true;
+  }
 
   if (add) {
     entry = bm_log_entry_add_ex(bm, log, true, LOG_ENTRY_FULL_MESH, NULL);
+  }
+  else {
+    bm_log_entry_free_direct(entry);
+    entry->type = LOG_ENTRY_FULL_MESH;
   }
 
   bm_log_full_mesh_intern(bm, log, entry);

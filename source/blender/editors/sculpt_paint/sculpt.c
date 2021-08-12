@@ -9535,7 +9535,6 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       // symmetrize is messing up ids, regenerate them from scratch
       BM_reassign_ids(ss->bm);
-
       BM_log_full_mesh(ss->bm, ss->bm_log);
 
       /* Finish undo. */
