@@ -2621,6 +2621,72 @@ static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
   ED_object_constraint_active_set(ob_v, con_v);
 }
 
+static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v)
+{
+  PointerRNA op_ptr;
+  uiLayout *row;
+  bConstraint *con = (bConstraint *)con_v;
+
+  PointerRNA ptr;
+  Object *ob = ED_object_active_context(C);
+
+  RNA_pointer_create(&ob->id, &RNA_Constraint, con, &ptr);
+  uiLayoutSetContextPointer(layout, "constraint", &ptr);
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+
+  uiLayoutSetUnitsX(layout, 4.0f);
+
+  /* Apply. */
+  uiItemO(layout,
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+          ICON_CHECKMARK,
+          "CONSTRAINT_OT_apply");
+
+  /* Duplicate. */
+  uiItemO(layout,
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
+          ICON_DUPLICATE,
+          "CONSTRAINT_OT_copy");
+
+  uiItemO(layout,
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
+          0,
+          "CONSTRAINT_OT_copy_to_selected");
+
+  uiItemS(layout);
+
+  /* Move to first. */
+  row = uiLayoutColumn(layout, false);
+  uiItemFullO(row,
+              "CONSTRAINT_OT_move_to_index",
+              IFACE_("Move to First"),
+              ICON_TRIA_UP,
+              NULL,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &op_ptr);
+  RNA_int_set(&op_ptr, "index", 0);
+  if (!con->prev) {
+    uiLayoutSetEnabled(row, false);
+  }
+
+  /* Move to last. */
+  row = uiLayoutColumn(layout, false);
+  uiItemFullO(row,
+              "CONSTRAINT_OT_move_to_index",
+              IFACE_("Move to Last"),
+              ICON_TRIA_DOWN,
+              NULL,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &op_ptr);
+  ListBase *constraint_list = ED_object_constraint_list_from_constraint(ob, con, NULL);
+  RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);
+  if (!con->next) {
+    uiLayoutSetEnabled(row, false);
+  }
+}
+
 static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *con)
 {
   bPoseChannel *pchan = BKE_pose_channel_active(ob);
@@ -2652,11 +2718,13 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
 
   UI_block_emboss_set(block, UI_EMBOSS);
 
+  uiLayout *row = uiLayoutRow(layout, true);
+
   if (proxy_protected == 0) {
-    uiItemR(layout, &ptr, "name", 0, "", ICON_NONE);
+    uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
   }
   else {
-    uiItemL(layout, con->name, ICON_NONE);
+    uiItemL(row, con->name, ICON_NONE);
   }
 
   /* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
@@ -2697,21 +2765,21 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
     UI_block_emboss_set(block, UI_EMBOSS);
   }
   else {
-    /* enabled */
-    UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
-    uiItemR(layout, &ptr, "mute", 0, "", 0);
-    UI_block_emboss_set(block, UI_EMBOSS);
+    /* Enabled eye icon. */
+    uiItemR(row, &ptr, "enabled", 0, "", ICON_NONE);
 
-    uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+    /* Extra operators menu. */
+    uiItemMenuF(row, "", ICON_DOWNARROW_HLT, constraint_ops_extra_draw, con);
 
     /* Close 'button' - emboss calls here disable drawing of 'button' behind X */
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
-    uiItemO(layout, "", ICON_X, "CONSTRAINT_OT_delete");
-    UI_block_emboss_set(block, UI_EMBOSS);
-
-    /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
-    uiItemS(layout);
+    sub = uiLayoutRow(row, false);
+    uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
+    uiLayoutSetOperatorContext(sub, WM_OP_INVOKE_DEFAULT);
+    uiItemO(sub, "", ICON_X, "CONSTRAINT_OT_delete");
   }
+
+  /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
+  uiItemS(layout);
 
   /* Set but-locks for protected settings (magic numbers are used here!) */
   if (proxy_protected) {

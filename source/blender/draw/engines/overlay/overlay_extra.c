@@ -1357,7 +1357,8 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
         }
       }
     }
-    BKE_constraints_clear_evalob(cob);
+    /* NOTE: Don't use BKE_constraints_clear_evalob here as that will reset ob->constinv. */
+    MEM_freeN(cob);
   }
 }
 
