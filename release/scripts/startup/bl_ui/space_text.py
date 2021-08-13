@@ -268,10 +268,7 @@ class TEXT_MT_text(Menu):
                 layout.operator("text.make_internal")
 
             layout.separator()
-            row = layout.row()
-            row.active = text.name.endswith(".py")
-            row.prop(text, "use_module")
-            row = layout.row()
+            layout.prop(text, "use_module")
 
             layout.prop(st, "use_live_edit")
 

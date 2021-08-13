@@ -655,7 +655,7 @@ void BPY_modules_load_user(bContext *C)
   bpy_context_set(C, &gilstate);
 
   for (text = bmain->texts.first; text; text = text->id.next) {
-    if (text->flags & TXT_ISSCRIPT && BLI_path_extension_check(text->id.name + 2, ".py")) {
+    if (text->flags & TXT_ISSCRIPT) {
       if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
