@@ -685,20 +685,6 @@ void draw_action_channel(AnimKeylistDrawList *draw_list,
   draw_elem->channel_locked = locked;
 }
 
-void draw_gpencil_channel(
-    View2D *v2d, bDopeSheet *ads, bGPdata *gpd, float ypos, float yscale_fac, int saction_flag)
-{
-  struct AnimKeylist *keylist = ED_keylist_create();
-
-  saction_flag &= ~SACTION_SHOW_EXTREMES;
-
-  gpencil_to_keylist(ads, gpd, keylist, false);
-
-  draw_keylist(v2d, keylist, ypos, yscale_fac, false, saction_flag);
-
-  ED_keylist_free(keylist);
-}
-
 void draw_gpl_channel(AnimKeylistDrawList *draw_list,
                       bDopeSheet *ads,
                       bGPDlayer *gpl,

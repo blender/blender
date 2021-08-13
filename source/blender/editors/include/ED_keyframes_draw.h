@@ -102,13 +102,6 @@ void draw_summary_channel(struct AnimKeylistDrawList *draw_list,
                           float ypos,
                           float yscale_fac,
                           int saction_flag);
-/* Grease Pencil datablock summary */
-void draw_gpencil_channel(struct View2D *v2d,
-                          struct bDopeSheet *ads,
-                          struct bGPdata *gpd,
-                          float ypos,
-                          float yscale_fac,
-                          int saction_flag);
 /* Grease Pencil Layer */
 void draw_gpl_channel(struct AnimKeylistDrawList *draw_list,
                       struct bDopeSheet *ads,
