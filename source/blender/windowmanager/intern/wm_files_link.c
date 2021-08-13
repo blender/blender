@@ -831,7 +831,7 @@ static void lib_relocate_do_remap(Main *bmain,
   }
 }
 
-static void lib_relocate_do(Main *bmain,
+static void lib_relocate_do(bContext *C,
                             Library *library,
                             WMLinkAppendData *lapp_data,
                             ReportList *reports,
@@ -842,6 +842,10 @@ static void lib_relocate_do(Main *bmain,
 
   LinkNode *itemlink;
   int item_idx;
+
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* Remove all IDs to be reloaded from Main. */
   lba_idx = set_listbasepointers(bmain, lbarray);
@@ -990,20 +994,30 @@ static void lib_relocate_do(Main *bmain,
     }
   }
 
-  /* Update overrides of reloaded linked data-blocks.
-   * Note that this will not necessarily fully update the override, it might need to be manually
-   * 're-generated' depending on changes in linked data. */
+  /* Update overrides of reloaded linked data-blocks. */
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
         (id->tag & LIB_TAG_PRE_EXISTING) == 0) {
       continue;
     }
-    if (id->override_library->reference->lib == library) {
+    if ((id->override_library->reference->tag & LIB_TAG_PRE_EXISTING) == 0) {
       BKE_lib_override_library_update(bmain, id);
     }
   }
   FOREACH_MAIN_ID_END;
+
+  /* Resync overrides if needed. */
+  if (!USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {
+    BKE_lib_override_library_main_resync(bmain,
+                                         scene,
+                                         view_layer,
+                                         &(struct BlendFileReadReport){
+                                             .reports = reports,
+                                         });
+    /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
+    BKE_lib_override_library_main_operations_create(bmain, true);
+  }
 
   BKE_main_collection_sync(bmain);
 
@@ -1039,7 +1053,7 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 
   wm_link_append_data_library_add(lapp_data, lib->filepath_abs);
 
-  lib_relocate_do(CTX_data_main(C), lib, lapp_data, reports, true);
+  lib_relocate_do(C, lib, lapp_data, reports, true);
 
   wm_link_append_data_free(lapp_data);
 
@@ -1162,7 +1176,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       lapp_data->flag |= BLO_LIBLINK_USE_PLACEHOLDERS | BLO_LIBLINK_FORCE_INDIRECT;
     }
 
-    lib_relocate_do(bmain, lib, lapp_data, op->reports, do_reload);
+    lib_relocate_do(C, lib, lapp_data, op->reports, do_reload);
 
     wm_link_append_data_free(lapp_data);
 
