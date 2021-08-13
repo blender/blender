@@ -1174,6 +1174,52 @@ static void layer_collection_sync(ViewLayer *view_layer,
                                 parent_local_collections_bits);
 }
 
+#ifndef NDEBUG
+static bool view_layer_objects_base_cache_validate(ViewLayer *view_layer, LayerCollection *layer)
+{
+  bool is_valid = true;
+
+  if (layer == NULL) {
+    layer = view_layer->layer_collections.first;
+  }
+
+  /* Only check for a collection's objects if its layer is not excluded. */
+  if ((layer->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
+    LISTBASE_FOREACH (CollectionObject *, cob, &layer->collection->gobject) {
+      if (cob->ob == NULL) {
+        continue;
+      }
+      if (BLI_ghash_lookup(view_layer->object_bases_hash, cob->ob) == NULL) {
+        CLOG_FATAL(
+            &LOG,
+            "Object '%s' from collection '%s' has no entry in view layer's object bases cache",
+            cob->ob->id.name + 2,
+            layer->collection->id.name + 2);
+        is_valid = false;
+        break;
+      }
+    }
+  }
+
+  if (is_valid) {
+    LISTBASE_FOREACH (LayerCollection *, layer_child, &layer->layer_collections) {
+      if (!view_layer_objects_base_cache_validate(view_layer, layer_child)) {
+        is_valid = false;
+        break;
+      }
+    }
+  }
+
+  return is_valid;
+}
+#else
+static bool view_layer_objects_base_cache_validate(ViewLayer *UNUSED(view_layer),
+                                                   LayerCollection *UNUSED(layer))
+{
+  return true;
+}
+#endif
+
 /**
  * Update view layer collection tree from collections used in the scene.
  * This is used when collections are removed or added, both while editing
@@ -1240,12 +1286,20 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
     }
 
     if (base->object) {
+      /* Those asserts are commented, since they are too expensive to perform even in debug, as
+       * this layer resync function currently gets called way too often. */
+#if 0
+      BLI_assert(BLI_findindex(&new_object_bases, base) == -1);
+      BLI_assert(BLI_findptr(&new_object_bases, base->object, offsetof(Base, object)) == NULL);
+#endif
       BLI_ghash_remove(view_layer->object_bases_hash, base->object, NULL, NULL);
     }
   }
 
   BLI_freelistN(&view_layer->object_bases);
   view_layer->object_bases = new_object_bases;
+
+  view_layer_objects_base_cache_validate(view_layer, NULL);
 
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     BKE_base_eval_flags(base);
