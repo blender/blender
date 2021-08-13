@@ -27,8 +27,6 @@
 
 #include <climits>
 
-#include "CLG_log.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -58,8 +56,6 @@
 #  include "PIL_time.h"
 #  include "PIL_time_utildefines.h"
 #endif
-
-static CLG_LogRef LOG = {"bke.mesh_normals"};
 
 /* -------------------------------------------------------------------- */
 /** \name Private Utility Functions
@@ -311,143 +307,6 @@ void BKE_mesh_calc_normals_poly_and_vertex(MVert *mvert,
 /* -------------------------------------------------------------------- */
 /** \name Mesh Normal Calculation
  * \{ */
-
-/**
- * Call when there are no polygons.
- */
-static void mesh_calc_normals_vert_fallback(MVert *mverts, int numVerts)
-{
-  for (int i = 0; i < numVerts; i++) {
-    MVert *mv = &mverts[i];
-    float no[3];
-
-    normalize_v3_v3(no, mv->co);
-    normal_float_to_short_v3(mv->no, no);
-  }
-}
-
-/* TODO(Sybren): we can probably rename this to BKE_mesh_calc_normals_mapping(),
- * and remove the function of the same name below, as that one doesn't seem to be
- * called anywhere. */
-void BKE_mesh_calc_normals_mapping_simple(struct Mesh *mesh)
-{
-  const bool only_face_normals = CustomData_is_referenced_layer(&mesh->vdata, CD_MVERT);
-
-  BKE_mesh_calc_normals_mapping_ex(mesh->mvert,
-                                   mesh->totvert,
-                                   mesh->mloop,
-                                   mesh->mpoly,
-                                   mesh->totloop,
-                                   mesh->totpoly,
-                                   nullptr,
-                                   mesh->mface,
-                                   mesh->totface,
-                                   nullptr,
-                                   nullptr,
-                                   only_face_normals);
-}
-
-/* Calculate vertex and face normals, face normals are returned in *r_faceNors if non-nullptr
- * and vertex normals are stored in actual mverts.
- */
-void BKE_mesh_calc_normals_mapping(MVert *mverts,
-                                   int numVerts,
-                                   const MLoop *mloop,
-                                   const MPoly *mpolys,
-                                   int numLoops,
-                                   int numPolys,
-                                   float (*r_polyNors)[3],
-                                   const MFace *mfaces,
-                                   int numFaces,
-                                   const int *origIndexFace,
-                                   float (*r_faceNors)[3])
-{
-  BKE_mesh_calc_normals_mapping_ex(mverts,
-                                   numVerts,
-                                   mloop,
-                                   mpolys,
-                                   numLoops,
-                                   numPolys,
-                                   r_polyNors,
-                                   mfaces,
-                                   numFaces,
-                                   origIndexFace,
-                                   r_faceNors,
-                                   false);
-}
-/**
- * Extended version of 'BKE_mesh_calc_normals_poly' with option not to calc vertex normals.
- */
-void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
-                                      int numVerts,
-                                      const MLoop *mloop,
-                                      const MPoly *mpolys,
-                                      int numLoops,
-                                      int numPolys,
-                                      float (*r_polyNors)[3],
-                                      const MFace *mfaces,
-                                      int numFaces,
-                                      const int *origIndexFace,
-                                      float (*r_faceNors)[3],
-                                      const bool only_face_normals)
-{
-  float(*pnors)[3] = r_polyNors, (*fnors)[3] = r_faceNors;
-
-  if (numPolys == 0) {
-    if (only_face_normals == false) {
-      mesh_calc_normals_vert_fallback(mverts, numVerts);
-    }
-    return;
-  }
-
-  /* If we are not calculating verts and no verts were passes then we have nothing to do. */
-  if ((only_face_normals == true) && (r_polyNors == nullptr) && (r_faceNors == nullptr)) {
-    CLOG_WARN(&LOG, "called with nothing to do");
-    return;
-  }
-
-  if (!pnors) {
-    pnors = (float(*)[3])MEM_calloc_arrayN((size_t)numPolys, sizeof(float[3]), __func__);
-  }
-  /* NO NEED TO ALLOC YET */
-  // if (!fnors) {fnors = MEM_calloc_arrayN(numFaces, sizeof(float[3]), "face nors mesh.c"); }
-
-  if (only_face_normals == false) {
-    /* Vertex normals are optional, they require some extra calculations, so make them optional. */
-    BKE_mesh_calc_normals_poly_and_vertex(
-        mverts, numVerts, mloop, numLoops, mpolys, numPolys, pnors, nullptr);
-  }
-  else {
-    /* Only calc poly normals. */
-    const MPoly *mp = mpolys;
-    for (int i = 0; i < numPolys; i++, mp++) {
-      BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
-    }
-  }
-
-  if (origIndexFace &&
-      /* `fnors == r_faceNors` */ /* NO NEED TO ALLOC YET */
-          fnors != nullptr &&
-      numFaces) {
-    const MFace *mf = mfaces;
-    for (int i = 0; i < numFaces; i++, mf++, origIndexFace++) {
-      if (*origIndexFace < numPolys) {
-        copy_v3_v3(fnors[i], pnors[*origIndexFace]);
-      }
-      else {
-        /* Yikes, we're not corresponding to polys. */
-        CLOG_ERROR(&LOG, "tessellation face indices are incorrect. Normals may look bad.");
-      }
-    }
-  }
-
-  if (pnors != r_polyNors) {
-    MEM_freeN(pnors);
-  }
-  // if (fnors != r_faceNors) { MEM_freeN(fnors); } /* NO NEED TO ALLOC YET */
-
-  fnors = pnors = nullptr;
-}
 
 void BKE_mesh_ensure_normals(Mesh *mesh)
 {
