@@ -187,25 +187,25 @@ unsigned int GPU_texture_memory_usage_get(void);
  * \a mips is the number of mip level to allocate. It must be >= 1.
  */
 GPUTexture *GPU_texture_create_1d(
-    const char *name, int w, int mips, eGPUTextureFormat format, const float *data);
+    const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_1d_array(
-    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data);
+    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_2d(
-    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data);
+    const char *name, int w, int h, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_2d_array(
-    const char *name, int w, int h, int d, int mips, eGPUTextureFormat format, const float *data);
+    const char *name, int w, int h, int d, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_3d(const char *name,
                                   int w,
                                   int h,
                                   int d,
-                                  int mips,
+                                  int mip_len,
                                   eGPUTextureFormat texture_format,
                                   eGPUDataFormat data_format,
                                   const void *data);
 GPUTexture *GPU_texture_create_cube(
-    const char *name, int w, int mips, eGPUTextureFormat format, const float *data);
+    const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_cube_array(
-    const char *name, int w, int d, int mips, eGPUTextureFormat format, const float *data);
+    const char *name, int w, int d, int mip_len, eGPUTextureFormat format, const float *data);
 
 /* Special textures. */
 GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vert);
