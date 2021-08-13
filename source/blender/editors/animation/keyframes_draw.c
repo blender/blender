@@ -57,11 +57,7 @@ void draw_keyframe_shape(float x,
                          short key_type,
                          short mode,
                          float alpha,
-                         uint pos_id,
-                         uint size_id,
-                         uint color_id,
-                         uint outline_color_id,
-                         uint flags_id,
+                         const KeyframeShaderBindings *sh_bindings,
                          short handle_type,
                          short extreme_type)
 {
@@ -178,11 +174,11 @@ void draw_keyframe_shape(float x,
     }
   }
 
-  immAttr1f(size_id, size);
-  immAttr4ubv(color_id, fill_col);
-  immAttr4ubv(outline_color_id, outline_col);
-  immAttr1u(flags_id, flags);
-  immVertex2f(pos_id, x, y);
+  immAttr1f(sh_bindings->size_id, size);
+  immAttr4ubv(sh_bindings->color_id, fill_col);
+  immAttr4ubv(sh_bindings->outline_color_id, outline_col);
+  immAttr1u(sh_bindings->flags_id, flags);
+  immVertex2f(sh_bindings->pos_id, x, y);
 }
 
 /* Common attributes shared between the draw calls. */
@@ -363,98 +359,36 @@ static bool draw_keylist_is_visible_key(const View2D *v2d, const ActKeyColumn *a
   return IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax);
 }
 
-static int draw_keylist_visible_key_len(View2D *v2d, const ListBase * /*ActKeyColumn*/ keys)
-{
-  /* count keys */
-  uint len = 0;
-
-  LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
-    /* Optimization: if keyframe doesn't appear within 5 units (screenspace)
-     * in visible area, don't draw.
-     * This might give some improvements,
-     * since we current have to flip between view/region matrices.
-     */
-    if (draw_keylist_is_visible_key(v2d, ak)) {
-      len++;
-    }
-  }
-  return len;
-}
-
 static void draw_keylist_keys(const DrawKeylistUIData *ctx,
                               View2D *v2d,
+                              const KeyframeShaderBindings *sh_bindings,
                               const ListBase * /*ActKeyColumn*/ keys,
                               float ypos,
                               eSAction_Flag saction_flag)
 {
-  GPU_blend(GPU_BLEND_ALPHA);
-  const int key_len = draw_keylist_visible_key_len(v2d, keys);
-  if (key_len > 0) {
-    /* draw keys */
-    GPUVertFormat *format = immVertexFormat();
-    uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    uint color_id = GPU_vertformat_attr_add(
-        format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    uint outline_color_id = GPU_vertformat_attr_add(
-        format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  short handle_type = KEYFRAME_HANDLE_NONE, extreme_type = KEYFRAME_EXTREME_NONE;
 
-    GPU_program_point_size(true);
-    immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
-    immUniform1f("outline_scale", 1.0f);
-    immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
-    immBegin(GPU_PRIM_POINTS, key_len);
-
-    short handle_type = KEYFRAME_HANDLE_NONE, extreme_type = KEYFRAME_EXTREME_NONE;
-
-    LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
-      if (draw_keylist_is_visible_key(v2d, ak)) {
-        if (ctx->show_ipo) {
-          handle_type = ak->handle_type;
-        }
-        if (saction_flag & SACTION_SHOW_EXTREMES) {
-          extreme_type = ak->extreme_type;
-        }
-
-        draw_keyframe_shape(ak->cfra,
-                            ypos,
-                            ctx->icon_sz,
-                            (ak->sel & SELECT),
-                            ak->key_type,
-                            KEYFRAME_SHAPE_BOTH,
-                            ctx->alpha,
-                            pos_id,
-                            size_id,
-                            color_id,
-                            outline_color_id,
-                            flags_id,
-                            handle_type,
-                            extreme_type);
+  LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
+    if (draw_keylist_is_visible_key(v2d, ak)) {
+      if (ctx->show_ipo) {
+        handle_type = ak->handle_type;
       }
+      if (saction_flag & SACTION_SHOW_EXTREMES) {
+        extreme_type = ak->extreme_type;
+      }
+
+      draw_keyframe_shape(ak->cfra,
+                          ypos,
+                          ctx->icon_sz,
+                          (ak->sel & SELECT),
+                          ak->key_type,
+                          KEYFRAME_SHAPE_BOTH,
+                          ctx->alpha,
+                          sh_bindings,
+                          handle_type,
+                          extreme_type);
     }
-
-    immEnd();
-    GPU_program_point_size(false);
-    immUnbindProgram();
   }
-
-  GPU_blend(GPU_BLEND_NONE);
-}
-
-static void draw_keylist(View2D *v2d,
-                         const struct AnimKeylist *keylist,
-                         float ypos,
-                         float yscale_fac,
-                         bool channelLocked,
-                         eSAction_Flag saction_flag)
-{
-  DrawKeylistUIData ctx;
-  draw_keylist_ui_data_init(&ctx, v2d, yscale_fac, channelLocked, saction_flag);
-
-  const ListBase *columns = ED_keylist_listbase(keylist);
-  draw_keylist_blocks(&ctx, columns, ypos);
-  draw_keylist_keys(&ctx, v2d, columns, ypos, saction_flag);
 }
 
 /* *************************** Drawing Stack *************************** */
@@ -530,10 +464,23 @@ static void ED_keylist_draw_list_elem_build_keylist(AnimKeylistDrawListElem *ele
   }
 }
 
-static void ED_keylist_draw_list_elem_draw(AnimKeylistDrawListElem *elem, View2D *v2d)
+static void ED_keylist_draw_list_elem_draw_blocks(AnimKeylistDrawListElem *elem, View2D *v2d)
 {
-  draw_keylist(
-      v2d, elem->keylist, elem->ypos, elem->yscale_fac, elem->channel_locked, elem->saction_flag);
+  DrawKeylistUIData ctx;
+  draw_keylist_ui_data_init(&ctx, v2d, elem->yscale_fac, elem->channel_locked, elem->saction_flag);
+
+  const ListBase *keys = ED_keylist_listbase(elem->keylist);
+  draw_keylist_blocks(&ctx, keys, elem->ypos);
+}
+
+static void ED_keylist_draw_list_elem_draw_keys(AnimKeylistDrawListElem *elem,
+                                                View2D *v2d,
+                                                const KeyframeShaderBindings *sh_bindings)
+{
+  DrawKeylistUIData ctx;
+  draw_keylist_ui_data_init(&ctx, v2d, elem->yscale_fac, elem->channel_locked, elem->saction_flag);
+  const ListBase *keys = ED_keylist_listbase(elem->keylist);
+  draw_keylist_keys(&ctx, v2d, sh_bindings, keys, elem->ypos, elem->saction_flag);
 }
 
 typedef struct AnimKeylistDrawList {
@@ -552,11 +499,84 @@ static void ED_keylist_draw_list_build_keylists(AnimKeylistDrawList *draw_list)
   }
 }
 
-static void ED_keylist_draw_list_draw(AnimKeylistDrawList *draw_list, View2D *v2d)
+static void ED_keylist_draw_list_draw_blocks(AnimKeylistDrawList *draw_list, View2D *v2d)
 {
   LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
-    ED_keylist_draw_list_elem_draw(elem, v2d);
+    ED_keylist_draw_list_elem_draw_blocks(elem, v2d);
   }
+}
+
+static int ED_keylist_draw_keylist_visible_key_len(const View2D *v2d,
+                                                   const ListBase * /*ActKeyColumn*/ keys)
+{
+  /* count keys */
+  uint len = 0;
+
+  LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
+    /* Optimization: if keyframe doesn't appear within 5 units (screenspace)
+     * in visible area, don't draw.
+     * This might give some improvements,
+     * since we current have to flip between view/region matrices.
+     */
+    if (draw_keylist_is_visible_key(v2d, ak)) {
+      len++;
+    }
+  }
+  return len;
+}
+
+static int ED_keylist_draw_list_visible_key_len(const AnimKeylistDrawList *draw_list,
+                                                const View2D *v2d)
+{
+  uint len = 0;
+  LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
+    const ListBase *keys = ED_keylist_listbase(elem->keylist);
+    len += ED_keylist_draw_keylist_visible_key_len(v2d, keys);
+  }
+  return len;
+}
+
+static void ED_keylist_draw_list_draw_keys(AnimKeylistDrawList *draw_list, View2D *v2d)
+{
+  const int visible_key_len = ED_keylist_draw_list_visible_key_len(draw_list, v2d);
+  if (visible_key_len == 0) {
+    return;
+  }
+
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  GPUVertFormat *format = immVertexFormat();
+  KeyframeShaderBindings sh_bindings;
+
+  sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  sh_bindings.size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  sh_bindings.color_id = GPU_vertformat_attr_add(
+      format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  sh_bindings.outline_color_id = GPU_vertformat_attr_add(
+      format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+
+  GPU_program_point_size(true);
+  immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+  immUniform1f("outline_scale", 1.0f);
+  immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
+  immBegin(GPU_PRIM_POINTS, visible_key_len);
+
+  LISTBASE_FOREACH (AnimKeylistDrawListElem *, elem, &draw_list->channels) {
+    ED_keylist_draw_list_elem_draw_keys(elem, v2d, &sh_bindings);
+  }
+
+  immEnd();
+  GPU_program_point_size(false);
+  immUnbindProgram();
+
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+static void ED_keylist_draw_list_draw(AnimKeylistDrawList *draw_list, View2D *v2d)
+{
+  ED_keylist_draw_list_draw_blocks(draw_list, v2d);
+  ED_keylist_draw_list_draw_keys(draw_list, v2d);
 }
 
 void ED_keylist_draw_list_flush(AnimKeylistDrawList *draw_list, View2D *v2d)

@@ -140,13 +140,16 @@ static void nla_action_draw_keyframes(
 
   if (key_len > 0) {
     format = immVertexFormat();
-    pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    uint color_id = GPU_vertformat_attr_add(
+    KeyframeShaderBindings sh_bindings;
+    sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    sh_bindings.size_id = GPU_vertformat_attr_add(
+        format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    sh_bindings.color_id = GPU_vertformat_attr_add(
         format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    uint outline_color_id = GPU_vertformat_attr_add(
+    sh_bindings.outline_color_id = GPU_vertformat_attr_add(
         format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+    sh_bindings.flags_id = GPU_vertformat_attr_add(
+        format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
     GPU_program_point_size(true);
     immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
@@ -165,11 +168,7 @@ static void nla_action_draw_keyframes(
                           ak->key_type,
                           KEYFRAME_SHAPE_FRAME,
                           1.0f,
-                          pos_id,
-                          size_id,
-                          color_id,
-                          outline_color_id,
-                          flags_id,
+                          &sh_bindings,
                           KEYFRAME_HANDLE_NONE,
                           KEYFRAME_EXTREME_NONE);
     }
