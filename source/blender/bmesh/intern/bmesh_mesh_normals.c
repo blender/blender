@@ -84,13 +84,11 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
   if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
     dotprod = -dotprod;
   }
-  /* Calculate angle between the two poly edges incident on this vertex.
-   * NOTE: no need for #saacos here as the input has been sanitized,
-   * `nan` values in coordinates normalize to zero which works for `acosf`. */
-  const float fac = acosf(-dotprod);
-  /* NAN values should never happen. */
-  BLI_assert(fac == fac);
-  madd_v3_v3fl(v_no, f_no, fac);
+  const float fac = saacos(-dotprod);
+  /* NAN detection, otherwise this is a degenerated case, ignore that vertex in this case. */
+  if (fac == fac) {
+    madd_v3_v3fl(v_no, f_no, fac);
+  }
 }
 
 static void bm_vert_calc_normals_impl(BMVert *v)
@@ -682,11 +680,9 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
       {
         /* Code similar to accumulate_vertex_normals_poly_v3. */
-        /* Calculate angle between the two poly edges incident on this vertex.
-         * NOTE: no need for #saacos here as the input has been sanitized,
-         * `nan` values in coordinates normalize to zero which works for `acosf`. */
+        /* Calculate angle between the two poly edges incident on this vertex. */
         const BMFace *f = lfan_pivot->f;
-        const float fac = acosf(dot_v3v3(vec_next, vec_curr));
+        const float fac = saacos(dot_v3v3(vec_next, vec_curr));
         const float *no = fnos ? fnos[BM_elem_index_get(f)] : f->no;
         /* Accumulate */
         madd_v3_v3fl(lnor, no, fac);

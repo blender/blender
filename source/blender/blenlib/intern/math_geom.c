@@ -5307,10 +5307,7 @@ void accumulate_vertex_normals_tri_v3(float n1[3],
 
     for (i = 0; i < nverts; i++) {
       const float *cur_edge = vdiffs[i];
-      /* Calculate angle between the two poly edges incident on this vertex.
-       * NOTE: no need for #saacos here as the input has been sanitized,
-       * `nan` values in coordinates normalize to zero which works for `acosf`. */
-      const float fac = acosf(-dot_v3v3(cur_edge, prev_edge));
+      const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
 
       /* accumulate */
       madd_v3_v3fl(vn[i], f_no, fac);
@@ -5389,10 +5386,9 @@ void accumulate_vertex_normals_poly_v3(float **vertnos,
     for (i = 0; i < nverts; i++) {
       const float *cur_edge = vdiffs[i];
 
-      /* Calculate angle between the two poly edges incident on this vertex.
-       * NOTE: no need for #saacos here as the input has been sanitized,
-       * `nan` values in coordinates normalize to zero which works for `acosf`. */
-      const float fac = acosf(-dot_v3v3(cur_edge, prev_edge));
+      /* calculate angle between the two poly edges incident on
+       * this vertex */
+      const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
 
       /* accumulate */
       madd_v3_v3fl(vertnos[i], polyno, fac);
