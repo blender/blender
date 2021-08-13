@@ -305,15 +305,21 @@ void BKE_mesh_calc_normals_mapping_ex(struct MVert *mverts,
                                       const int *origIndexFace,
                                       float (*r_faceNors)[3],
                                       const bool only_face_normals);
-void BKE_mesh_calc_normals_poly(struct MVert *mverts,
-                                float (*r_vertnors)[3],
-                                int numVerts,
+void BKE_mesh_calc_normals_poly(const struct MVert *mvert,
+                                int mvert_len,
                                 const struct MLoop *mloop,
-                                const struct MPoly *mpolys,
-                                int numLoops,
-                                int numPolys,
-                                float (*r_polyNors)[3],
-                                const bool only_face_normals);
+                                int mloop_len,
+                                const struct MPoly *mpoly,
+                                int mpoly_len,
+                                float (*r_poly_normals)[3]);
+void BKE_mesh_calc_normals_poly_and_vertex(struct MVert *mvert,
+                                           int mvert_len,
+                                           const struct MLoop *mloop,
+                                           int mloop_len,
+                                           const struct MPoly *mpolys,
+                                           int mpoly_len,
+                                           float (*r_poly_normals)[3],
+                                           float (*r_vert_normals)[3]);
 void BKE_mesh_calc_normals(struct Mesh *me);
 void BKE_mesh_ensure_normals(struct Mesh *me);
 void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);

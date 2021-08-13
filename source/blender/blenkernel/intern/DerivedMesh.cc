@@ -816,15 +816,14 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
     if (!CustomData_has_layer(&mesh_final->pdata, CD_NORMAL)) {
       float(*polynors)[3] = (float(*)[3])CustomData_add_layer(
           &mesh_final->pdata, CD_NORMAL, CD_CALLOC, nullptr, mesh_final->totpoly);
-      BKE_mesh_calc_normals_poly(mesh_final->mvert,
-                                 nullptr,
-                                 mesh_final->totvert,
-                                 mesh_final->mloop,
-                                 mesh_final->mpoly,
-                                 mesh_final->totloop,
-                                 mesh_final->totpoly,
-                                 polynors,
-                                 false);
+      BKE_mesh_calc_normals_poly_and_vertex(mesh_final->mvert,
+                                            mesh_final->totvert,
+                                            mesh_final->mloop,
+                                            mesh_final->totloop,
+                                            mesh_final->mpoly,
+                                            mesh_final->totpoly,
+                                            polynors,
+                                            nullptr);
     }
   }
 
@@ -1536,15 +1535,14 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
     if (!CustomData_has_layer(&mesh_final->pdata, CD_NORMAL)) {
       float(*polynors)[3] = (float(*)[3])CustomData_add_layer(
           &mesh_final->pdata, CD_NORMAL, CD_CALLOC, nullptr, mesh_final->totpoly);
-      BKE_mesh_calc_normals_poly(mesh_final->mvert,
-                                 nullptr,
-                                 mesh_final->totvert,
-                                 mesh_final->mloop,
-                                 mesh_final->mpoly,
-                                 mesh_final->totloop,
-                                 mesh_final->totpoly,
-                                 polynors,
-                                 false);
+      BKE_mesh_calc_normals_poly_and_vertex(mesh_final->mvert,
+                                            mesh_final->totvert,
+                                            mesh_final->mloop,
+                                            mesh_final->totloop,
+                                            mesh_final->mpoly,
+                                            mesh_final->totpoly,
+                                            polynors,
+                                            nullptr);
     }
   }
 

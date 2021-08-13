@@ -1890,15 +1890,14 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
   }
   else {
     polynors = MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__);
-    BKE_mesh_calc_normals_poly(mesh->mvert,
-                               NULL,
-                               mesh->totvert,
-                               mesh->mloop,
-                               mesh->mpoly,
-                               mesh->totloop,
-                               mesh->totpoly,
-                               polynors,
-                               false);
+    BKE_mesh_calc_normals_poly_and_vertex(mesh->mvert,
+                                          mesh->totvert,
+                                          mesh->mloop,
+                                          mesh->totloop,
+                                          mesh->mpoly,
+                                          mesh->totpoly,
+                                          polynors,
+                                          NULL);
     free_polynors = true;
   }
 
