@@ -78,8 +78,6 @@
 #include "ED_sequencer.h"
 #include "ED_undo.h"
 
-#include "SEQ_relations.h"
-
 #include "WM_api.h"
 #include "WM_message.h"
 #include "WM_types.h"
@@ -94,6 +92,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 
 #include "outliner_intern.h"
