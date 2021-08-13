@@ -28,6 +28,16 @@
 
 #define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */
 
+/* Number of characters in GlyphCacheBLF.glyph_ascii_table. */
+#define GLYPH_ASCII_TABLE_SIZE 128
+
+/* First and last characters (inclusive) of range to cache within GLYPH_ASCII_TABLE_SIZE. */
+#define GLYPH_ASCII_CACHE_MIN 32  /* Space */
+#define GLYPH_ASCII_CACHE_MAX 126 /* Tilde */
+
+/* Number of characters in KerningCacheBLF.table. */
+#define KERNING_CACHE_TABLE_SIZE 128
+
 typedef struct BatchBLF {
   struct FontBLF *font; /* can only batch glyph from the same font */
   struct GPUBatch *batch;
@@ -51,7 +61,7 @@ typedef struct KerningCacheBLF {
 
   /* only cache a ascii glyph pairs. Only store the x
    * offset we are interested in, instead of the full FT_Vector. */
-  int table[0x80][0x80];
+  int table[KERNING_CACHE_TABLE_SIZE][KERNING_CACHE_TABLE_SIZE];
 } KerningCacheBLF;
 
 typedef struct GlyphCacheBLF {
@@ -71,7 +81,7 @@ typedef struct GlyphCacheBLF {
   ListBase bucket[257];
 
   /* fast ascii lookup */
-  struct GlyphBLF *glyph_ascii_table[128];
+  struct GlyphBLF *glyph_ascii_table[GLYPH_ASCII_TABLE_SIZE];
 
   /* texture array, to draw the glyphs. */
   GPUTexture *texture;
@@ -84,12 +94,6 @@ typedef struct GlyphCacheBLF {
   int glyph_width_max;
   int glyph_height_max;
 
-  /* number of glyphs in the font. */
-  int glyphs_len_max;
-
-  /* number of glyphs not yet loaded (decreases every glyph loaded). */
-  int glyphs_len_free;
-
   /* ascender and descender value. */
   float ascender;
   float descender;
@@ -99,7 +103,7 @@ typedef struct GlyphBLF {
   struct GlyphBLF *next;
   struct GlyphBLF *prev;
 
-  /* and the character, as UTF8 */
+  /* and the character, as UTF-32 */
   unsigned int c;
 
   /* freetype2 index, to speed-up the search. */
