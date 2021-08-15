@@ -215,7 +215,7 @@ static const DRWBatchFlag g_buffer_deps[] = {
 };
 
 #ifndef NDEBUG
-static DRWBatchFlag g_buffer_deps_d[sizeof(g_buffer_deps)] = {0};
+static DRWBatchFlag g_buffer_deps_d[ARRAY_SIZE(g_buffer_deps)] = {0};
 #endif
 
 static void mesh_batch_cache_discard_surface_batches(MeshBatchCache *cache);
