@@ -1024,6 +1024,9 @@ static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::NodeSocket &b_
       if (string_endswith(name, "_001")) {
         string_replace(name, "_001", "2");
       }
+      else if (string_endswith(name, "_002")) {
+        string_replace(name, "_002", "3");
+      }
       else {
         name += "1";
       }
