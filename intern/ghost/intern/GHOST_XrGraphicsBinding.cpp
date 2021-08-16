@@ -341,8 +341,8 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
                                                bool &r_is_srgb_format) const override
   {
     std::vector<int64_t> gpu_binding_formats = {
-#  if 0 /* RGB10A2 doesn't seem to work with Oculus headsets, so move it after RGB16AF for the \
-           time being. */
+#  if 0 /* RGB10A2 doesn't seem to work with Oculus head-sets, \
+         * so move it after RGB16AF for the time being. */
         DXGI_FORMAT_R10G10B10A2_UNORM,
 #  endif
       DXGI_FORMAT_R16G16B16A16_UNORM,

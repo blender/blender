@@ -426,12 +426,11 @@ Sequence *SEQ_add_sound_strip(Main *bmain,
   seq->sound = sound;
   seq->scene_sound = NULL;
 
-  /* We round the frame duration as the audio sample lenghts usually does not
+  /* We round the frame duration as the audio sample lengths usually does not
    * line up with the video frames. Therefore we round this number to the
-   * nearsest frame as the audio track usually overshoots or undershoots the
-   * end frame ofthe video by a little bit.
-   * See T47135 for under shoot example.
-   */
+   * nearest frame as the audio track usually overshoots or undershoots the
+   * end frame of the video by a little bit.
+   * See T47135 for under shoot example. */
   seq->len = MAX2(1, round((info.length - sound->offset_time) * FPS));
 
   Strip *strip = seq->strip;

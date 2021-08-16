@@ -329,10 +329,10 @@ static void draw_seq_waveform_overlay(View2D *v2d,
 {
   if (seq->sound && ((sseq->flag & SEQ_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
     /* Make sure that the start drawing position is aligned to the pixels on the screen to avoid
-     * flickering whem moving around the strip.
+     * flickering when moving around the strip.
      * To do this we figure out the fractional offset in pixel space by checking where the
      * window starts.
-     * We then append this pixel offset to our strip start coordiate to ensure we are aligned to
+     * We then append this pixel offset to our strip start coordinate to ensure we are aligned to
      * the screen pixel grid. */
     float pixel_frac = v2d->cur.xmin / frames_per_pixel - floor(v2d->cur.xmin / frames_per_pixel);
     float x1_adj = clamp_frame_coord_to_pixel(x1, pixel_frac, frames_per_pixel);
@@ -386,7 +386,7 @@ static void draw_seq_waveform_overlay(View2D *v2d,
 
     /* The y coordinate for the middle of the strip. */
     float y_mid = (y1 + y2) / 2.0f;
-    /* The lenght from the middle of the strip to the top/bottom. */
+    /* The length from the middle of the strip to the top/bottom. */
     float y_scale = (y2 - y1) / 2.0f;
     float volume = seq->volume;
 
@@ -403,9 +403,9 @@ static void draw_seq_waveform_overlay(View2D *v2d,
 
     if (strip_start_offset != 0) {
       /* If start offset is not zero, we need to make sure that we pick the same start sample as if
-       * we simply scrolled the start of the strip offscreen. Otherwise we will get flickering when
-       * changing start offset as the pixel alignment will not be the same for the drawn samples.
-       */
+       * we simply scrolled the start of the strip off-screen. Otherwise we will get flickering
+       * when changing start offset as the pixel alignment will not be the same for the drawn
+       * samples. */
       strip_start_offset = clamp_frame_coord_to_pixel(
           x1 - strip_start_offset, pixel_frac, frames_per_pixel);
       start_sample = fabsf(strip_start_offset - x1_adj) * samples_per_frame;
@@ -470,8 +470,7 @@ static void draw_seq_waveform_overlay(View2D *v2d,
 
       if (was_line_strip != -1 && is_line_strip != was_line_strip) {
         /* If the previously added strip type isn't the same as the current one,
-         * add transision areas so they transistion smoothly between each other.
-         */
+         * add transition areas so they transition smoothly between each other. */
         if (is_line_strip) {
           /* This will be a line strip, end the tri strip. */
           tri_strip_iter->pos[0] = x1_offset + i * frames_per_pixel;

@@ -2943,7 +2943,7 @@ static int seq_cmp_time_startdisp_channel(const void *a, const void *b)
   int seq_a_start = SEQ_transform_get_left_handle_frame(seq_a);
   int seq_b_start = SEQ_transform_get_left_handle_frame(seq_b);
 
-  /** If strips have the same start frame favor the one with a higher channel. **/
+  /* If strips have the same start frame favor the one with a higher channel. */
   if (seq_a_start == seq_b_start) {
     return seq_a->machine > seq_b->machine;
   }
