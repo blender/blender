@@ -77,8 +77,14 @@
 #define SCULPT_GEODESIC_VERTEX_NONE -1
 
 /* Propagate distance from v1 and v2 to v0. */
-static bool sculpt_geodesic_mesh_test_dist_add(
-    MVert *mvert, const int v0, const int v1, const int v2, float *dists, GSet *initial_vertices)
+static bool sculpt_geodesic_mesh_test_dist_add(MVert *mvert,
+                                               const int v0,
+                                               const int v1,
+                                               const int v2,
+                                               float *dists,
+                                               GSet *initial_vertices,
+                                               SculptVertRef *r_closest_verts,
+                                               float (*cos)[3])
 {
   if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(v0))) {
     return false;
@@ -89,23 +95,49 @@ static bool sculpt_geodesic_mesh_test_dist_add(
     return false;
   }
 
+  float *co0 = cos ? cos[v0] : mvert[v0].co;
+  float *co1 = cos ? cos[v1] : mvert[v1].co;
+  float *co2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ? (cos ? cos[v2] : mvert[v2].co) : NULL;
+
   float dist0;
   if (v2 != SCULPT_GEODESIC_VERTEX_NONE) {
     BLI_assert(dists[v2] != FLT_MAX);
     if (dists[v0] <= dists[v2]) {
       return false;
     }
-    dist0 = geodesic_distance_propagate_across_triangle(
-        mvert[v0].co, mvert[v1].co, mvert[v2].co, dists[v1], dists[v2]);
+    dist0 = geodesic_distance_propagate_across_triangle(co0, co1, co2, dists[v1], dists[v2]);
   }
   else {
     float vec[3];
-    sub_v3_v3v3(vec, mvert[v1].co, mvert[v0].co);
+    sub_v3_v3v3(vec, co1, co0);
     dist0 = dists[v1] + len_v3(vec);
   }
 
   if (dist0 < dists[v0]) {
     dists[v0] = dist0;
+
+    if (r_closest_verts) {
+      bool tag1 = r_closest_verts[v1].i != -1LL;
+      bool tag2 = v2 != SCULPT_GEODESIC_VERTEX_NONE && r_closest_verts[v2].i != -1LL;
+
+      float l1 = len_v3v3(co0, co1);
+      float l2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ? len_v3v3(co0, co2) : 0.0f;
+
+      if (tag1 && tag2) {
+        if (l1 < l2) {
+          r_closest_verts[v0] = r_closest_verts[v1];
+        }
+        else {
+          r_closest_verts[v0] = r_closest_verts[v2];
+        }
+      }
+      else if (tag2) {
+        r_closest_verts[v0] = r_closest_verts[v2];
+      }
+      else if (tag1) {
+        r_closest_verts[v0] = r_closest_verts[v1];
+      }
+    }
     return true;
   }
 
@@ -114,12 +146,21 @@ static bool sculpt_geodesic_mesh_test_dist_add(
 
 #define BMESH_INITIAL_VERT_TAG BM_ELEM_TAG_ALT
 
-static bool sculpt_geodesic_mesh_test_dist_add_bmesh(
-    BMVert *v0, BMVert *v1, BMVert *v2, float *dists, GSet *initial_vertices)
+static bool sculpt_geodesic_mesh_test_dist_add_bmesh(BMVert *v0,
+                                                     BMVert *v1,
+                                                     BMVert *v2,
+                                                     float *dists,
+                                                     GSet *initial_vertices,
+                                                     SculptVertRef *r_closest_verts,
+                                                     float (*cos)[3])
 {
   const int v0_i = BM_elem_index_get(v0);
   const int v1_i = BM_elem_index_get(v1);
   const int v2_i = v2 ? BM_elem_index_get(v2) : SCULPT_GEODESIC_VERTEX_NONE;
+
+  const float *v0co = cos ? cos[BM_elem_index_get(v0)] : v0->co;
+  const float *v1co = cos ? cos[BM_elem_index_get(v1)] : v1->co;
+  const float *v2co = v2 ? (cos ? cos[BM_elem_index_get(v2)] : v2->co) : NULL;
 
   if (BM_elem_flag_test(v0, BMESH_INITIAL_VERT_TAG)) {
     return false;
@@ -138,16 +179,44 @@ static bool sculpt_geodesic_mesh_test_dist_add_bmesh(
     }
 
     dist0 = geodesic_distance_propagate_across_triangle(
-        v0->co, v1->co, v2->co, dists[v1_i], dists[v2_i]);
+        v0co, v1co, v2co, dists[v1_i], dists[v2_i]);
   }
   else {
     float vec[3];
-    sub_v3_v3v3(vec, v1->co, v0->co);
+    sub_v3_v3v3(vec, v1co, v0co);
     dist0 = dists[v1_i] + len_v3(vec);
   }
 
   if (dist0 < dists[v0_i]) {
     dists[v0_i] = dist0;
+
+    if (r_closest_verts) {
+      bool tag1 = r_closest_verts[v1_i].i != -1LL;
+      bool tag2 = v2 && r_closest_verts[v2_i].i != -1LL;
+
+      float l1 = len_v3v3(v0co, v1co);
+      float l2 = v2 ? len_v3v3(v0co, v2co) : 0.0f;
+
+      if (!tag1 && !tag2) {
+        printf("bad\n");
+      }
+
+      if (tag1 && tag2) {
+        if (l1 < l2) {  // dists[v1_i] < dists[v2_i]) {
+          r_closest_verts[v0_i] = r_closest_verts[v1_i];
+        }
+        else {
+          r_closest_verts[v0_i] = r_closest_verts[v2_i];
+        }
+      }
+      else if (tag2) {
+        r_closest_verts[v0_i] = r_closest_verts[v2_i];
+      }
+      else if (tag1) {
+        r_closest_verts[v0_i] = r_closest_verts[v1_i];
+      }
+    }
+
     return true;
   }
 
@@ -156,7 +225,9 @@ static bool sculpt_geodesic_mesh_test_dist_add_bmesh(
 
 static float *SCULPT_geodesic_mesh_create(Object *ob,
                                           GSet *initial_vertices,
-                                          const float limit_radius)
+                                          const float limit_radius,
+                                          SculptVertRef *r_closest_verts,
+                                          float (*cos)[3])
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -184,7 +255,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   }
   if (!ss->vemap) {
     BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
+        &ss->vemap, &ss->vemap_mem, mesh->mvert, mesh->medge, mesh->totvert, mesh->totedge, true);
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -196,9 +267,17 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 
   for (int i = 0; i < totvert; i++) {
     if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(i))) {
+      if (r_closest_verts) {
+        r_closest_verts[i] = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      }
+
       dists[i] = 0.0f;
     }
     else {
+      if (r_closest_verts) {
+        r_closest_verts[i].i = -1LL;
+      }
+
       dists[i] = FLT_MAX;
     }
   }
@@ -219,9 +298,10 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
      * number of vertices (usually just 1 or 2). */
     GSET_ITER (gs_iter, initial_vertices) {
       const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-      float *v_co = verts[v].co;
+      float *v_co = cos ? cos[v] : verts[v].co;
+
       for (int i = 0; i < totvert; i++) {
-        if (len_squared_v3v3(v_co, verts[i].co) <= limit_radius_sq) {
+        if (len_squared_v3v3(v_co, cos ? cos[i] : verts[i].co) <= limit_radius_sq) {
           BLI_BITMAP_ENABLE(affected_vertex, i);
         }
       }
@@ -250,8 +330,14 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
         if (dists[v1] > dists[v2]) {
           SWAP(int, v1, v2);
         }
-        sculpt_geodesic_mesh_test_dist_add(
-            verts, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_vertices);
+        sculpt_geodesic_mesh_test_dist_add(verts,
+                                           v2,
+                                           v1,
+                                           SCULPT_GEODESIC_VERTEX_NONE,
+                                           dists,
+                                           initial_vertices,
+                                           r_closest_verts,
+                                           cos);
       }
 
       if (ss->epmap[e].count != 0) {
@@ -269,7 +355,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
               continue;
             }
             if (sculpt_geodesic_mesh_test_dist_add(
-                    verts, v_other, v1, v2, dists, initial_vertices)) {
+                    verts, v_other, v1, v2, dists, initial_vertices, r_closest_verts, cos)) {
               for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].count;
                    edge_map_index++) {
                 const int e_other = ss->vemap[v_other].indices[edge_map_index];
@@ -315,7 +401,9 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 
 static float *SCULPT_geodesic_bmesh_create(Object *ob,
                                            GSet *initial_vertices,
-                                           const float limit_radius)
+                                           const float limit_radius,
+                                           SculptVertRef *r_closest_verts,
+                                           float (*cos)[3])
 {
   SculptSession *ss = ob->sculpt;
 
@@ -323,8 +411,16 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
     return NULL;
   }
 
+  BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
+
   const int totvert = ss->bm->totvert;
   const int totedge = ss->bm->totedge;
+
+  if (r_closest_verts) {
+    for (int i = 0; i < totvert; i++) {
+      r_closest_verts[i].i = -1LL;
+    }
+  }
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
@@ -340,6 +436,10 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
   for (int i = 0; i < totvert; i++) {
     if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(i))) {
       dists[i] = 0.0f;
+
+      if (r_closest_verts) {
+        r_closest_verts[i] = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      }
     }
     else {
       dists[i] = FLT_MAX;
@@ -350,8 +450,6 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
    * to define a distance to them the algorithm can stop earlier by skipping them. */
   BLI_bitmap *affected_vertex = BLI_BITMAP_NEW(totvert, "affected vertex");
   GSetIterator gs_iter;
-
-  SCULPT_vertex_random_access_ensure(ss);
 
   BMVert *v;
   BMIter iter;
@@ -372,13 +470,15 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
     GSET_ITER (gs_iter, initial_vertices) {
       const int v_i = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
       BMVert *v = (BMVert *)BKE_pbvh_table_index_to_vertex(ss->pbvh, v_i).i;
+      float *co1 = cos ? cos[BM_elem_index_get(v)] : v->co;
 
       BM_elem_flag_enable(v, BMESH_INITIAL_VERT_TAG);
 
       for (int i = 0; i < totvert; i++) {
         BMVert *v2 = (BMVert *)BKE_pbvh_table_index_to_vertex(ss->pbvh, i).i;
+        float *co2 = cos ? cos[BM_elem_index_get(v2)] : v2->co;
 
-        if (len_squared_v3v3(v->co, v2->co) <= limit_radius_sq) {
+        if (len_squared_v3v3(co1, co2) <= limit_radius_sq) {
           BLI_BITMAP_ENABLE(affected_vertex, i);
         }
       }
@@ -416,7 +516,8 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
           SWAP(BMVert *, v1, v2);
           SWAP(int, v1_i, v2_i);
         }
-        sculpt_geodesic_mesh_test_dist_add_bmesh(v2, v1, NULL, dists, initial_vertices);
+        sculpt_geodesic_mesh_test_dist_add_bmesh(
+            v2, v1, NULL, dists, initial_vertices, r_closest_verts, cos);
       }
 
       BMLoop *l = e->l;
@@ -441,7 +542,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
             const int v_other_i = BM_elem_index_get(v_other);
 
             if (sculpt_geodesic_mesh_test_dist_add_bmesh(
-                    v_other, v1, v2, dists, initial_vertices)) {
+                    v_other, v1, v2, dists, initial_vertices, r_closest_verts, cos)) {
               BMIter eiter;
               BMEdge *e_other;
 
@@ -533,14 +634,18 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
 
 float *SCULPT_geodesic_distances_create(Object *ob,
                                         GSet *initial_vertices,
-                                        const float limit_radius)
+                                        const float limit_radius,
+                                        SculptVertRef *r_closest_verts,
+                                        float (*vertco_override)[3])
 {
   SculptSession *ss = ob->sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return SCULPT_geodesic_mesh_create(ob, initial_vertices, limit_radius);
+      return SCULPT_geodesic_mesh_create(
+          ob, initial_vertices, limit_radius, r_closest_verts, vertco_override);
     case PBVH_BMESH:
-      return SCULPT_geodesic_bmesh_create(ob, initial_vertices, limit_radius);
+      return SCULPT_geodesic_bmesh_create(
+          ob, initial_vertices, limit_radius, r_closest_verts, vertco_override);
     case PBVH_GRIDS:
       return SCULPT_geodesic_fallback_create(ob, initial_vertices);
   }
@@ -578,7 +683,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
     }
   }
 
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius);
+  float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius, NULL, NULL);
   BLI_gset_free(initial_vertices, NULL);
   return dists;
 }
@@ -596,7 +701,7 @@ float *SCULPT_geodesic_from_vertex(Object *ob,
   BLI_gset_add(initial_vertices,
                POINTER_FROM_INT(BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex)));
 
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius);
+  float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius, NULL, NULL);
   BLI_gset_free(initial_vertices, NULL);
   return dists;
 }

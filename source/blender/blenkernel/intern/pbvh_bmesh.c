@@ -1255,7 +1255,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
 
-    mv->flag = 0;
+    mv->flag = DYNVERT_NEED_DISK_SORT;
 
     bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v);
 

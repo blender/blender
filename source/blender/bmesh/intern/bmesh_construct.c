@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_sort_utils.h"
@@ -556,6 +557,79 @@ void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
   for (int i = 0; i < len; i++) {
     vert_arr[i] = vert_arr_map[vang[i].data];
   }
+}
+
+void BM_sort_disk_cycle(BMVert *v)
+{
+  BMVert **vs = NULL;
+  BLI_array_staticdeclare(vs, 64);
+  BMEdge **es = NULL;
+  BLI_array_staticdeclare(es, 64);
+
+  if (!v->e) {
+    return;
+  }
+
+  BMEdge *e = v->e;
+  do {
+    BMVert *v2 = BM_edge_other_vert(e, v);
+
+    BLI_array_append(es, e);
+    BLI_array_append(vs, v2);
+
+    e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+  } while (e != v->e);
+
+  if (BLI_array_len(vs) < 2) {
+    return;
+  }
+
+  int totvert = BLI_array_len(vs);
+
+  struct SortIntByFloat *vang = BLI_array_alloca(vang, totvert);
+  BMVert **vert_arr_map = BLI_array_alloca(vert_arr_map, totvert);
+
+  float nor[3], cent[3];
+  int index_tangent = 0;
+  BM_verts_calc_normal_from_cloud_ex(vs, totvert, nor, cent, &index_tangent);
+  const float *far = vs[index_tangent]->co;
+
+  /* Now calculate every points angle around the normal (signed). */
+  for (int i = 0; i < totvert; i++) {
+    vang[i].sort_value = angle_signed_on_axis_v3v3v3_v3(far, cent, vs[i]->co, nor);
+    vang[i].data = i;
+    vert_arr_map[i] = vs[i];
+  }
+
+  /* sort by angle and magic! - we have our ngon */
+  qsort(vang, totvert, sizeof(*vang), BLI_sortutil_cmp_float);
+
+  BMEdge **es2 = BLI_array_alloca(es2, totvert);
+
+  /* --- */
+
+  for (int i = 0; i < totvert; i++) {
+    es2[i] = es[vang[i].data];
+  }
+
+  // rebuild disk cycle
+  for (int i = 0; i < totvert; i++) {
+    int prev = (i + totvert - 1) % totvert;
+    int next = (i + 1) % totvert;
+    BMEdge *e = es2[i];
+
+    if (e->v1 == v) {
+      e->v1_disk_link.prev = es2[prev];
+      e->v1_disk_link.next = es2[next];
+    }
+    else {
+      e->v2_disk_link.prev = es2[prev];
+      e->v2_disk_link.next = es2[next];
+    }
+  }
+
+  BLI_array_free(es);
+  BLI_array_free(vs);
 }
 
 /*************************************************************/

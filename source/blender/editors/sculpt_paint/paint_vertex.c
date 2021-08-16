@@ -1151,18 +1151,24 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
     gmap->vert_to_poly = NULL;
     BKE_mesh_vert_loop_map_create(&gmap->vert_to_loop,
                                   &gmap->vert_map_mem,
+                                  me->mvert,
+                                  me->medge,
                                   me->mpoly,
                                   me->mloop,
                                   me->totvert,
                                   me->totpoly,
-                                  me->totloop);
+                                  me->totloop,
+                                  false);
     BKE_mesh_vert_poly_map_create(&gmap->vert_to_poly,
                                   &gmap->poly_map_mem,
+                                  me->mvert,
+                                  me->medge,
                                   me->mpoly,
                                   me->mloop,
                                   me->totvert,
                                   me->totpoly,
-                                  me->totloop);
+                                  me->totloop,
+                                  false);
   }
 
   /* Create average brush arrays */

@@ -1936,8 +1936,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)(RNA_enum_get(
-      op->ptr, "mode"));
+  const eMultiresSubdivideModeType subdivide_mode = (eMultiresSubdivideModeType)(
+      RNA_enum_get(op->ptr, "mode"));
   multiresModifier_subdivide(object, mmd, subdivide_mode);
 
   ED_object_iter_other(
@@ -2607,7 +2607,8 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   MVertSkin *mvert_skin = CustomData_get_layer(&me->vdata, CD_MVERT_SKIN);
   int *emap_mem;
   MeshElemMap *emap;
-  BKE_mesh_vert_edge_map_create(&emap, &emap_mem, me->medge, me->totvert, me->totedge);
+  BKE_mesh_vert_edge_map_create(
+      &emap, &emap_mem, me->mvert, me->medge, me->totvert, me->totedge, false);
 
   BLI_bitmap *edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");
 

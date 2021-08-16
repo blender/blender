@@ -81,3 +81,4 @@ char BM_vert_flag_from_mflag(const char mflag);
 char BM_face_flag_to_mflag(BMFace *f);
 short BM_edge_flag_to_mflag(BMEdge *e);
 char BM_vert_flag_to_mflag(BMVert *v);
+void BM_sort_disk_cycle(BMVert *v);

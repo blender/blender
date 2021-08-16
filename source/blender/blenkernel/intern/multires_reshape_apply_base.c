@@ -87,11 +87,14 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   int *pmap_mem;
   BKE_mesh_vert_poly_map_create(&pmap,
                                 &pmap_mem,
+                                base_mesh->mvert,
+                                base_mesh->medge,
                                 base_mesh->mpoly,
                                 base_mesh->mloop,
                                 base_mesh->totvert,
                                 base_mesh->totpoly,
-                                base_mesh->totloop);
+                                base_mesh->totloop,
+                                false);
 
   float(*origco)[3] = MEM_calloc_arrayN(
       base_mesh->totvert, sizeof(float[3]), "multires apply base origco");

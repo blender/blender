@@ -548,7 +548,9 @@ enum {
   DYNVERT_VERT_FSET_HIDDEN = (1 << 1),
   DYNVERT_FSET_BOUNDARY = (1 << 2),
   DYNVERT_NEED_BOUNDARY = (1 << 3),
-  DYNVERT_NEED_TRIANGULATE = (1 << 4)
+  DYNVERT_NEED_TRIANGULATE = (1 << 4),
+  DYNVERT_NEED_DISK_SORT = (1 << 5)
+
 };
 
 #ifdef __cplusplus

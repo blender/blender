@@ -105,20 +105,28 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const struct MPoly *mpoly,
 UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);
 void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 
-void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   const struct MPoly *mpoly,
-                                   const struct MLoop *mloop,
-                                   int totvert,
-                                   int totpoly,
-                                   int totloop);
-void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   const struct MPoly *mpoly,
-                                   const struct MLoop *mloop,
-                                   int totvert,
-                                   int totpoly,
-                                   int totloop);
+void BKE_mesh_vert_poly_map_create(
+    MeshElemMap **r_map,
+    int **r_mem,
+    const struct MVert *mvert,  // only needed if sort_disk_cycles is true
+    const struct MEdge *medge,  // only needed if sort_disk_cycles is true
+    const struct MPoly *mpoly,
+    const struct MLoop *mloop,
+    int totvert,
+    int totpoly,
+    int totloop,
+    const bool sort_disk_cycles);  // put polys in sorted geometric order
+void BKE_mesh_vert_loop_map_create(
+    MeshElemMap **r_map,
+    int **r_mem,
+    const struct MVert *mvert,  // only needed if sort_disk_cycles is true
+    const struct MEdge *medge,  // only needed if sort_disk_cycles is true
+    const struct MPoly *mpoly,
+    const struct MLoop *mloop,
+    int totvert,
+    int totpoly,
+    int totloop,
+    const bool sort_disk_cycles);  // put loops in sorted geometric order
 void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       int **r_mem,
                                       const struct MVert *mvert,
@@ -128,7 +136,13 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       const struct MLoop *mloop,
                                       const int totloop);
 void BKE_mesh_vert_edge_map_create(
-    MeshElemMap **r_map, int **r_mem, const struct MEdge *medge, int totvert, int totedge);
+    MeshElemMap **r_map,
+    int **r_mem,
+    const struct MVert *mvert,  // only needed if sort_disk_cycles is true
+    const struct MEdge *medge,
+    int totvert,
+    int totedge,
+    bool sort_disk_cycles);  // sort verts in geometric order around edges
 void BKE_mesh_vert_edge_vert_map_create(
     MeshElemMap **r_map, int **r_mem, const struct MEdge *medge, int totvert, int totedge);
 void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,

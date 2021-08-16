@@ -434,6 +434,7 @@ typedef struct BmeshUndoData {
   bool do_full_recalc;
   bool balance_pbvh;
   int cd_face_node_offset, cd_vert_node_offset;
+  int cd_dyn_vert;
 } BmeshUndoData;
 
 static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
@@ -468,11 +469,14 @@ static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
 static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
-
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
   // data->do_full_recalc = true;
   data->balance_pbvh = true;
+
+  MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, v);
+  mv->flag |= DYNVERT_NEED_DISK_SORT;
 }
+
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
@@ -501,6 +505,13 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 
   BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, -1);
   BKE_pbvh_bmesh_add_face(data->pbvh, f, false, true);
+
+  BMLoop *l = f->l_first;
+  do {
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, l->v);
+    mv->flag |= DYNVERT_NEED_DISK_SORT;
+
+  } while ((l = l->next) != f->l_first);
 
   data->balance_pbvh = true;
 }
@@ -546,8 +557,13 @@ static void bmesh_undo_on_face_change(BMFace *f, void *userdata, void *old_custo
 
 static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)
 {
-  BmeshUndoData data = {
-      ss->pbvh, ss->bm, false, false, ss->cd_face_node_offset, ss->cd_vert_node_offset};
+  BmeshUndoData data = {ss->pbvh,
+                        ss->bm,
+                        false,
+                        false,
+                        ss->cd_face_node_offset,
+                        ss->cd_vert_node_offset,
+                        ss->cd_dyn_vert};
 
   BMLogCallbacks callbacks = {bmesh_undo_on_vert_add,
                               bmesh_undo_on_vert_kill,
@@ -625,6 +641,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
 
   SCULPT_dyntopo_node_layers_add(ss);
   SCULPT_dyntopo_node_layers_update_offsets(ss);
+  SCULT_dyntopo_flag_all_disk_sort(ss);
 
   if (!ss->bm_log) {
     /* Restore the BMLog using saved entries. */

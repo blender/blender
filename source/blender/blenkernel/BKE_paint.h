@@ -383,6 +383,14 @@ typedef struct SculptBoundaryPreviewEdge {
   SculptVertRef v2;
 } SculptBoundaryPreviewEdge;
 
+#define MAX_STORED_COTANGENTW_EDGES 7
+
+typedef struct StoredCotangentW {
+  float static_weights[MAX_STORED_COTANGENTW_EDGES];
+  float *weights;
+  int length;
+} StoredCotangentW;
+
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   SculptVertRef *vertices;
@@ -395,6 +403,14 @@ typedef struct SculptBoundary {
    * account the length of all edges between them. Any vertex that is not in the boundary will have
    * a distance of 0. */
   float *distance;
+
+  float (*smoothco)[3];
+  float *boundary_dist;  // distances from verts to boundary
+  float (*boundary_tangents)[3];
+
+  StoredCotangentW *boundary_cotangents;
+  SculptVertRef *boundary_closest;
+  int sculpt_totvert;
 
   /* Data for drawing the preview. */
   SculptBoundaryPreviewEdge *edges;
@@ -469,8 +485,9 @@ typedef struct SculptSession {
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   struct MVert *mvert;
-  struct MPoly *mpoly;
+  struct MEdge *medge;
   struct MLoop *mloop;
+  struct MPoly *mpoly;
 
   // only assigned in PBVH_FACES and PBVH_GRIDS
   CustomData *vdata, *edata, *ldata, *pdata;

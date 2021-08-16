@@ -1323,8 +1323,6 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
                                               SculptVertexNeighborIter *iter)
 {
   BMVert *v = (BMVert *)index.i;
-  BMIter liter;
-  BMLoop *l;
 
   iter->is_duplicate = false;
   iter->size = 0;
@@ -1341,9 +1339,6 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
     return;
   }
 
-  const bool have_facesets = ss->cd_faceset_offset >= 0;
-  const int cd_faceset_offset = ss->cd_faceset_offset;
-
   do {
     BMVert *v2;
     BMEdge *e2;
@@ -1357,30 +1352,10 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
       e2 = e->v2_disk_link.next;
     }
 
-    // TODO: cache this in MDynTopoVert to avoid excessive DRAM fetches
-    BMLoop *l = e->l;
-    bool ok = false;
-
-#if 0
-    if (l && have_facesets) {
-      do {
-        if (BM_ELEM_CD_GET_INT(l->f, cd_faceset_offset) > 0) {
-          ok = true;
-          break;
-        }
-
-        l = l->radial_next;
-      } while (l != e->l);
-    }
-    else {
-      ok = true;
-    }
-#else
-    ok = true;
-#endif
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v2);
 
     e = e2;
-    if (ok) {
+    if (!(mv->flag & DYNVERT_VERT_FSET_HIDDEN)) {
       sculpt_vertex_neighbor_add_nocheck(
           iter, BKE_pbvh_make_vref((intptr_t)v2), BM_elem_index_get(v2));
     }
@@ -1415,6 +1390,43 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
         }
       }
     }
+  }
+
+  if (ss->fake_neighbors.use_fake_neighbors) {
+    BLI_assert(ss->fake_neighbors.fake_neighbor_index != NULL);
+    if (ss->fake_neighbors.fake_neighbor_index[index].i != FAKE_NEIGHBOR_NONE) {
+      sculpt_vertex_neighbor_add(iter,
+                                 ss->fake_neighbors.fake_neighbor_index[index],
+                                 ss->fake_neighbors.fake_neighbor_index[index].i);
+    }
+  }
+}
+
+static void sculpt_vertex_neighbors_get_faces_vemap(SculptSession *ss,
+                                                    SculptVertRef vertex,
+                                                    SculptVertexNeighborIter *iter)
+{
+  int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
+
+  MeshElemMap *vert_map = &ss->vemap[index];
+  iter->size = 0;
+  iter->num_duplicates = 0;
+  iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
+  iter->neighbors = iter->neighbors_fixed;
+  iter->neighbor_indices = iter->neighbor_indices_fixed;
+  iter->is_duplicate = false;
+
+  for (int i = 0; i < vert_map->count; i++) {
+    const MEdge *me = &ss->medge[vert_map->indices[i]];
+
+    unsigned int v = me->v1 == (unsigned int)vertex.i ? me->v2 : me->v1;
+
+    if (ss->face_sets[v] < 0) {
+      /* Skip connectivity from hidden faces. */
+      continue;
+    }
+
+    sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(v), v);
   }
 
   if (ss->fake_neighbors.use_fake_neighbors) {
@@ -1484,7 +1496,13 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      sculpt_vertex_neighbors_get_faces(ss, vertex, iter);
+      // use vemap if it exists, so result is in disk cycle order
+      if (ss->vemap) {
+        sculpt_vertex_neighbors_get_faces_vemap(ss, vertex, iter);
+      }
+      else {
+        sculpt_vertex_neighbors_get_faces(ss, vertex, iter);
+      }
       return;
     case PBVH_BMESH:
       sculpt_vertex_neighbors_get_bmesh(ss, vertex, iter);
@@ -2709,10 +2727,6 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   /* When the mesh is edited we can't rely on original coords
    * (original mesh may not even have verts in brush radius). */
   if (use_original && data->has_bm_orco) {
-    float(*orco_coords)[3];
-    int(*orco_tris)[3];
-    int orco_tris_num;
-
     PBVHTriBuf *tribuf = BKE_pbvh_bmesh_get_tris(ss->pbvh, data->nodes[n]);
 
     for (int i = 0; i < tribuf->tottri; i++) {
@@ -3643,8 +3657,6 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   const bool use_curvature = ss->cache->brush->flag2 & BRUSH_CURVATURE_RAKE;
-  // const bool update_curvature = node->flag & PBVH_UpdateCurvatureDir;
-  const bool update_curvature = BKE_pbvh_curvature_update_get(node);
 
   if (use_curvature) {
     SCULPT_curvature_begin(ss, node, false);
@@ -4843,7 +4855,6 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
   const float bstrength = ss->cache->bstrength;
 
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
-  bool update = false;
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -5492,8 +5503,6 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  bool bmeshpbvh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
-
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
 
@@ -5616,7 +5625,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
     // should never happen
     if (cd_pers_co < 0 || cd_pers_no < 0 || cd_pers_disp < 0 || cd_layer_disp < 0) {
-      printf("error!! $d $d $d $d\n", cd_pers_co, cd_pers_no, cd_pers_disp, cd_layer_disp);
+      printf("error!! %d %d %d %d\n", cd_pers_co, cd_pers_no, cd_pers_disp, cd_layer_disp);
       return;
     }
   }
@@ -6758,7 +6767,6 @@ static void sculpt_topology_update(Sculpt *sd,
     radius_scale = MAX2(radius_scale, brush->topology_rake_factor);
   }
 
-  int n, totnode;
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
                                                                              ss->cache->original;
@@ -6785,7 +6793,6 @@ static void sculpt_topology_update(Sculpt *sd,
     mode |= PBVH_Cleanup;
   }
 
-  PBVHNode **nodes = NULL;
   SculptSearchSphereData sdata = {
       .ss = ss,
       .sd = sd,
@@ -7139,8 +7146,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       break;
   }
 
-  bool apply_autosmooth = !ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
-                          brush->autosmooth_factor > 0;
+  bool apply_autosmooth =
+      !ELEM(brush->sculpt_tool, SCULPT_TOOL_BOUNDARY, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
+      brush->autosmooth_factor > 0;
 
   if (brush->flag2 & BRUSH_CUSTOM_AUTOSMOOTH_SPACING) {
     float spacing = (float)brush->autosmooth_spacing / 100.0f;
@@ -7677,8 +7685,6 @@ bool SCULPT_vertex_colors_poll(bContext *C)
     return false;
   }
 
-  Object *ob = CTX_data_active_object(C);
-
   return SCULPT_mode_poll(C);
 }
 
@@ -7872,6 +7878,7 @@ static void sculpt_update_cache_invariants(
   float max_scale;
   int mode;
 
+  cache->C = C;
   ss->cache = cache;
 
   /* Set scaling adjustment. */
@@ -9440,9 +9447,7 @@ static bool sculpt_only_bmesh_poll(bContext *C)
 
 static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
-  const Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ss->pbvh;
 
@@ -9456,6 +9461,7 @@ static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
 
       BKE_pbvh_reorder_bmesh(ss->pbvh);
+      SCULT_dyntopo_flag_all_disk_sort(ss);
 
       BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
       BM_log_full_mesh(ss->bm, ss->bm_log);
@@ -9532,6 +9538,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       BM_mesh_toolflags_set(ss->bm, false);
 
       BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
+      SCULT_dyntopo_flag_all_disk_sort(ss);
 
       // symmetrize is messing up ids, regenerate them from scratch
       BM_reassign_ids(ss->bm);
@@ -11050,6 +11057,19 @@ static void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
 }
 
 #endif
+
+int SCULPT_vertex_valence_get(struct SculptSession *ss, SculptVertRef vertex)
+{
+  SculptVertexNeighborIter ni;
+  int tot = 0;
+
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    tot++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  return tot;
+}
 
 void ED_operatortypes_sculpt(void)
 {

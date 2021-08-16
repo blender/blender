@@ -1667,14 +1667,16 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
     ss->mvert = me->mvert;
-    ss->mpoly = me->mpoly;
+    ss->medge = me->medge;
     ss->mloop = me->mloop;
+    ss->mpoly = me->mpoly;
   }
   else {
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
     ss->mvert = me->mvert;
+    ss->medge = me->medge;
     ss->mpoly = me->mpoly;
     ss->mloop = me->mloop;
     ss->multires.active = false;
@@ -1710,8 +1712,16 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   BKE_pbvh_face_sets_color_set(ss->pbvh, me->face_sets_color_seed, me->face_sets_color_default);
 
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
-    BKE_mesh_vert_poly_map_create(
-        &ss->pmap, &ss->pmap_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
+    BKE_mesh_vert_poly_map_create(&ss->pmap,
+                                  &ss->pmap_mem,
+                                  me->mvert,
+                                  me->medge,
+                                  me->mpoly,
+                                  me->mloop,
+                                  me->totvert,
+                                  me->totpoly,
+                                  me->totloop,
+                                  false);
   }
 
   pbvh_show_mask_set(ss->pbvh, ss->show_mask);

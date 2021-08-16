@@ -83,6 +83,261 @@
 #include <math.h>
 #include <stdlib.h>
 
+// TODO: check if (mathematically speaking) is it really necassary
+// to sort the edge lists around verts
+
+// from http://rodolphe-vaillant.fr/?e=20
+static float tri_voronoi_area(float p[3], float q[3], float r[3])
+{
+  float pr[3];
+  float pq[3];
+
+  sub_v3_v3v3(pr, p, r);
+  sub_v3_v3v3(pq, p, q);
+
+  float angles[3];
+
+  angle_tri_v3(angles, p, q, r);
+
+  if (angles[0] > (float)M_PI * 0.5f) {
+    return area_tri_v3(p, q, r) / 2.0f;
+  }
+  else if (angles[1] > (float)M_PI * 0.5f || angles[2] > (float)M_PI * 0.5f) {
+    return area_tri_v3(p, q, r) / 4.0f;
+  }
+  else {
+
+    float dpr = dot_v3v3(pr, pr);
+    float dpq = dot_v3v3(pq, pq);
+
+    float area = (1.0f / 8.0f) *
+                 (dpr * cotangent_tri_weight_v3(q, p, r) + dpq * cotangent_tri_weight_v3(r, q, p));
+
+    return area;
+  }
+}
+
+void SCULPT_dyntopo_get_cotangents(SculptSession *ss,
+                                   SculptVertRef vertex,
+                                   float *r_ws,
+                                   float *r_cot1,
+                                   float *r_cot2,
+                                   float *r_area,
+                                   float *r_totarea)
+{
+  SCULPT_dyntopo_check_disk_sort(ss, vertex);
+
+  BMVert *v = (BMVert *)vertex.i;
+  BMEdge *e = v->e;
+
+  if (!e) {
+    return;
+  }
+
+  int i = 0;
+  float totarea = 0.0;
+  float totw = 0.0;
+
+  do {
+    BMEdge *eprev = v == e->v1 ? e->v1_disk_link.prev : e->v2_disk_link.prev;
+    BMEdge *enext = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+
+    BMVert *v1 = BM_edge_other_vert(eprev, v);
+    BMVert *v2 = BM_edge_other_vert(e, v);
+    BMVert *v3 = BM_edge_other_vert(enext, v);
+
+    float cot1 = cotangent_tri_weight_v3(v1->co, v->co, v2->co);
+    float cot2 = cotangent_tri_weight_v3(v3->co, v2->co, v->co);
+
+    float area = tri_voronoi_area(v->co, v1->co, v2->co);
+
+    r_ws[i] = (cot1 + cot2);
+    totw += r_ws[i];
+
+    totarea += area;
+
+    if (r_cot1) {
+      r_cot1[i] = cot1;
+    }
+
+    if (r_cot2) {
+      r_cot2[i] = cot2;
+    }
+
+    if (r_area) {
+      r_area[i] = area;
+    }
+
+    i++;
+    e = enext;
+  } while (e != v->e);
+
+  if (r_totarea) {
+    *r_totarea = totarea;
+  }
+
+  int count = i;
+
+  float mul = 1.0f / (totarea * 2.0);
+
+  for (i = 0; i < count; i++) {
+    r_ws[i] *= mul;
+  }
+}
+
+void SCULPT_faces_get_cotangents(SculptSession *ss,
+                                 SculptVertRef vertex,
+                                 float *r_ws,
+                                 float *r_cot1,
+                                 float *r_cot2,
+                                 float *r_area,
+                                 float *r_totarea)
+{
+  // sculpt vemap should always be sorted in disk cycle order
+
+  float totarea = 0.0;
+  float totw = 0.0;
+
+  MeshElemMap *elem = ss->vemap + vertex.i;
+  for (int i = 0; i < elem->count; i++) {
+    int i1 = (i + elem->count - 1) % elem->count;
+    int i2 = i;
+    int i3 = (i + 1) % elem->count;
+
+    MVert *v = ss->mvert + vertex.i;
+    MEdge *e1 = ss->medge + elem->indices[i1];
+    MEdge *e2 = ss->medge + elem->indices[i2];
+    MEdge *e3 = ss->medge + elem->indices[i3];
+
+    MVert *v1 = (unsigned int)vertex.i == e1->v1 ? ss->mvert + e1->v2 : ss->mvert + e1->v1;
+    MVert *v2 = (unsigned int)vertex.i == e2->v1 ? ss->mvert + e2->v2 : ss->mvert + e2->v1;
+    MVert *v3 = (unsigned int)vertex.i == e3->v1 ? ss->mvert + e3->v2 : ss->mvert + e3->v1;
+
+    float cot1 = cotangent_tri_weight_v3(v1->co, v->co, v2->co);
+    float cot2 = cotangent_tri_weight_v3(v3->co, v2->co, v->co);
+
+    float area = tri_voronoi_area(v->co, v1->co, v2->co);
+
+    r_ws[i] = (cot1 + cot2);
+    totw += r_ws[i];
+
+    totarea += area;
+
+    if (r_cot1) {
+      r_cot1[i] = cot1;
+    }
+
+    if (r_cot2) {
+      r_cot2[i] = cot2;
+    }
+
+    if (r_area) {
+      r_area[i] = area;
+    }
+  }
+
+  if (r_totarea) {
+    *r_totarea = totarea;
+  }
+
+  float mul = 1.0f / (totarea * 2.0);
+
+  for (int i = 0; i < elem->count; i++) {
+    r_ws[i] *= mul;
+  }
+}
+
+void SCULPT_cotangents_begin(Object *ob, SculptSession *ss)
+{
+  SCULPT_vertex_random_access_ensure(ss);
+  int totvert = SCULPT_vertex_count_get(ss);
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      for (int i = 0; i < totvert; i++) {
+        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        SCULPT_dyntopo_check_disk_sort(ss, vertex);
+      }
+      break;
+    }
+    case PBVH_FACES: {
+      Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+      if (!ss->vemap) {
+        BKE_mesh_vert_edge_map_create(&ss->vemap,
+                                      &ss->vemap_mem,
+                                      mesh->mvert,
+                                      mesh->medge,
+                                      mesh->totvert,
+                                      mesh->totedge,
+                                      true);
+      }
+
+      break;
+    }
+    case PBVH_GRIDS:  // not supported yet
+      break;
+  }
+}
+
+void SCULPT_get_cotangents(SculptSession *ss,
+                           SculptVertRef vertex,
+                           float *r_ws,
+                           float *r_cot1,
+                           float *r_cot2,
+                           float *r_area,
+                           float *r_totarea)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH:
+      SCULPT_dyntopo_get_cotangents(ss, vertex, r_ws, r_cot1, r_cot2, r_area, r_totarea);
+      break;
+    case PBVH_FACES:
+      SCULPT_faces_get_cotangents(ss, vertex, r_ws, r_cot1, r_cot2, r_area, r_totarea);
+      break;
+    case PBVH_GRIDS: {
+      {
+        // not supported, return uniform weights;
+
+        int val = SCULPT_vertex_valence_get(ss, vertex);
+
+        for (int i = 0; i < val; i++) {
+          r_ws[i] = 1.0f;
+        }
+      }
+      break;
+    }
+  }
+}
+
+void SCULT_dyntopo_flag_all_disk_sort(SculptSession *ss)
+{
+  BMVert *v;
+  BMIter iter;
+
+  BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+    mv->flag |= DYNVERT_NEED_DISK_SORT;
+  }
+}
+
+// returns true if edge disk list around vertex was sorted
+bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, SculptVertRef vertex)
+{
+  BMVert *v = (BMVert *)vertex.i;
+  MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+
+  if (mv->flag & DYNVERT_NEED_DISK_SORT) {
+    mv->flag &= ~DYNVERT_NEED_DISK_SORT;
+
+    BM_sort_disk_cycle(v);
+
+    return true;
+  }
+
+  return false;
+}
+
 /*
 Copies the bmesh, but orders the elements
 according to PBVH node to improve memory locality
@@ -541,6 +796,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+
+    mv->flag |= DYNVERT_NEED_DISK_SORT;
 
     BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, v);
 

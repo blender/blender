@@ -2014,6 +2014,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 
   MDynTopoVert *mv_new = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_new);
   bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v_new);
+  mv_new->flag |= DYNVERT_NEED_DISK_SORT;
 }
 
 static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
@@ -2410,6 +2411,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     MDynTopoVert *mv_conn = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
 
     bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v_conn);
+    mv_conn->flag |= DYNVERT_NEED_DISK_SORT;
   }
 
   /* Delete v_del */

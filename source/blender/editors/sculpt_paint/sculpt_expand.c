@@ -946,7 +946,8 @@ static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
   MEM_SAFE_FREE(expand_cache->vert_falloff);
   MEM_SAFE_FREE(expand_cache->face_falloff);
 
-  expand_cache->vert_falloff = SCULPT_geodesic_distances_create(ob, initial_vertices, FLT_MAX);
+  expand_cache->vert_falloff = SCULPT_geodesic_distances_create(
+      ob, initial_vertices, FLT_MAX, NULL, NULL);
   BLI_gset_free(initial_vertices, NULL);
 }
 

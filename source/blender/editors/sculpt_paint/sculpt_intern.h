@@ -119,6 +119,8 @@ char SCULPT_mesh_symmetry_xyz_get(Object *object);
 void SCULPT_vertex_random_access_ensure(struct SculptSession *ss);
 void SCULPT_face_random_access_ensure(struct SculptSession *ss);
 
+int SCULPT_vertex_valence_get(struct SculptSession *ss, SculptVertRef vertex);
+
 int SCULPT_vertex_count_get(struct SculptSession *ss);
 const float *SCULPT_vertex_co_get(struct SculptSession *ss, SculptVertRef index);
 void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3]);
@@ -424,7 +426,9 @@ Geodesic distances will only work when used with PBVH_FACES or PBVH_BMESH, for o
 it will fallback to euclidean distances to one of the initial vertices in the set. */
 float *SCULPT_geodesic_distances_create(struct Object *ob,
                                         struct GSet *initial_vertices,
-                                        const float limit_radius);
+                                        const float limit_radius,
+                                        SculptVertRef *r_closest_verts,
+                                        float (*vertco_override)[3]);
 float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
                                             struct Object *ob,
                                             const SculptVertRef vertex,
@@ -1164,6 +1168,7 @@ typedef struct StrokeCache {
   BLI_bitmap *layer_disp_map;
 
   struct PaintStroke *stroke;
+  struct bContext *C;
 } StrokeCache;
 
 /* Sculpt Filters */
@@ -1573,3 +1578,29 @@ bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      void **r_mask_cb_data);
 void SCULPT_dyntopo_automasking_end(void *mask_data);
 void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+
+// returns true if edge disk list around vertex was sorted
+// be careful of this function.
+bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, SculptVertRef vertex);
+void SCULT_dyntopo_flag_all_disk_sort(SculptSession *ss);
+
+// call SCULPT_cotangents_begin in the main thread before any calls to this function
+void SCULPT_dyntopo_get_cotangents(SculptSession *ss,
+                                   SculptVertRef vertex,
+                                   float *r_ws,
+                                   float *r_cot1,
+                                   float *r_cot2,
+                                   float *r_area,
+                                   float *r_totarea);
+
+// call SCULPT_cotangents_begin in the main thread before any calls to this function
+void SCULPT_get_cotangents(SculptSession *ss,
+                           SculptVertRef vertex,
+                           float *r_ws,
+                           float *r_cot1,
+                           float *r_cot2,
+                           float *r_area,
+                           float *r_totarea);
+
+// call this in the main thread before any calls to SCULPT_get_cotangents
+void SCULPT_cotangents_begin(struct Object *ob, SculptSession *ss);

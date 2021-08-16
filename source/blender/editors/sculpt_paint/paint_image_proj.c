@@ -1087,10 +1087,6 @@ static bool pixel_bounds_array(
   float min_uv[2], max_uv[2];
   float(*uv)[2] = in_uv;
 
-  if (tot < 0) {
-    printf("eek!\n");
-  }
-
   if (tot == 0) {
     return false;
   }
