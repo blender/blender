@@ -862,13 +862,11 @@ typedef union OVERLAY_CameraInstanceData {
 static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
                                          Scene *scene,
                                          View3D *v3d,
-                                         Object *camera_object,
                                          Object *ob,
                                          const float color[4])
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_select = DRW_state_is_select();
-  const Object *orig_camera_object = DEG_get_original_object(camera_object);
 
   MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
   if (clip == NULL) {
@@ -942,7 +940,7 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
       }
 
       if (is_select) {
-        DRW_select_load_id(orig_camera_object->runtime.select_id | (track_index << 16));
+        DRW_select_load_id(ob->runtime.select_id | (track_index << 16));
         track_index++;
       }
 
@@ -1251,7 +1249,7 @@ void OVERLAY_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   /* Motion Tracking. */
   if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) != 0) {
-    camera_view3d_reconstruction(cb, scene, v3d, camera_object, ob, color_p);
+    camera_view3d_reconstruction(cb, scene, v3d, ob, color_p);
   }
 
   /* Background images. */
