@@ -1312,7 +1312,8 @@ void BKE_sound_move_scene_sound(Scene *UNUSED(scene),
                                 void *UNUSED(handle),
                                 int UNUSED(startframe),
                                 int UNUSED(endframe),
-                                int UNUSED(frameskip))
+                                int UNUSED(frameskip),
+                                double UNUSED(audio_offset))
 {
 }
 void BKE_sound_move_scene_sound_defaults(Scene *UNUSED(scene), Sequence *UNUSED(sequence))
