@@ -643,7 +643,7 @@ static int customdata_compare(
           const MPropCol *l2_data = l2->data;
 
           for (int i = 0; i < total_length; i++) {
-            for (int j = 0; j < 4; j++) {
+            for (j = 0; j < 4; j++) {
               if (fabsf(l1_data[i].color[j] - l2_data[i].color[j]) > thresh) {
                 return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
               }
