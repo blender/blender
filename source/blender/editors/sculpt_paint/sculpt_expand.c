@@ -930,7 +930,7 @@ static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
                                                         BLI_bitmap *enabled_vertices)
 {
   SculptSession *ss = ob->sculpt;
-  BLI_assert(ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH));
+  BLI_assert(ELEM(BKE_pbvh_type(ss->pbvh), PBVH_GRIDS, PBVH_FACES, PBVH_BMESH));
 
   GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, false);
@@ -1051,7 +1051,7 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
     BLI_BITMAP_ENABLE(enabled_vertices, i);
   }
 
-  if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH)) {
+  if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_GRIDS, PBVH_FACES, PBVH_BMESH)) {
     sculpt_expand_geodesics_from_state_boundary(ob, expand_cache, enabled_vertices);
   }
   else {
@@ -1112,9 +1112,12 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
 
   switch (falloff_type) {
     case SCULPT_EXPAND_FALLOFF_GEODESIC:
+      expand_cache->vert_falloff = sculpt_expand_geodesic_falloff_create(sd, ob, v);
+      /*
       expand_cache->vert_falloff = has_topology_info ?
                                        sculpt_expand_geodesic_falloff_create(sd, ob, v) :
                                        sculpt_expand_spherical_falloff_create(ob, v);
+                                       */
       break;
     case SCULPT_EXPAND_FALLOFF_TOPOLOGY:
       expand_cache->vert_falloff = sculpt_expand_topology_falloff_create(sd, ob, v);

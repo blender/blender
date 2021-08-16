@@ -421,7 +421,7 @@ static float *calc_boundary_tangent(SculptSession *ss, SculptBoundary *boundary)
   return (float *)tangents;
 }
 
-ATTR_NO_OPT static void sculpt_boundary_cotan_init(SculptSession *ss, SculptBoundary *boundary)
+static void sculpt_boundary_cotan_init(SculptSession *ss, SculptBoundary *boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   boundary->boundary_cotangents = MEM_calloc_arrayN(
