@@ -211,8 +211,9 @@ static bool pygpu_shader_uniform_vector_impl(PyObject *args,
     return false;
   }
 
-  if (r_pybuffer->len != (*r_length * *r_count * elem_size)) {
-    PyErr_SetString(PyExc_BufferError, "GPUShader.uniform_vector_*: buffer size does not match.");
+  if (r_pybuffer->len < (*r_length * *r_count * elem_size)) {
+    PyErr_SetString(PyExc_OverflowError,
+                    "GPUShader.uniform_vector_*: buffer size smaller than required.");
     return false;
   }
 
