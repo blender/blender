@@ -72,33 +72,35 @@ KerningCacheBLF *blf_kerning_cache_find(FontBLF *font)
 /* Create a new glyph cache for the current kerning mode. */
 KerningCacheBLF *blf_kerning_cache_new(FontBLF *font, GlyphCacheBLF *gc)
 {
-  KerningCacheBLF *kc;
-
-  kc = (KerningCacheBLF *)MEM_callocN(sizeof(KerningCacheBLF), "blf_kerning_cache_new");
+  KerningCacheBLF *kc = MEM_mallocN(sizeof(KerningCacheBLF), __func__);
   kc->next = NULL;
   kc->prev = NULL;
   kc->mode = font->kerning_mode;
 
-  unsigned int i, j;
-  for (i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
-    for (j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
-      GlyphBLF *g = blf_glyph_search(gc, i);
-      if (!g) {
-        FT_UInt glyph_index = FT_Get_Char_Index(font->face, i);
-        g = blf_glyph_add(font, gc, glyph_index, i);
-      }
-      /* Can fail on certain fonts */
-      GlyphBLF *g_prev = blf_glyph_search(gc, j);
+  GlyphBLF *g_table[KERNING_CACHE_TABLE_SIZE];
+  for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
+    GlyphBLF *g = blf_glyph_search(gc, i);
+    if (UNLIKELY(g == NULL)) {
+      FT_UInt glyph_index = FT_Get_Char_Index(font->face, i);
+      g = blf_glyph_add(font, gc, glyph_index, i);
+    }
+    g_table[i] = g;
+  }
 
-      FT_Vector delta = {
-          .x = 0,
-          .y = 0,
-      };
-      if (g && g_prev && FT_Get_Kerning(font->face, g_prev->idx, g->idx, kc->mode, &delta) == 0) {
-        kc->ascii_table[i][j] = (int)delta.x >> 6;
+  memset(kc->ascii_table, 0, sizeof(kc->ascii_table));
+  for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
+    GlyphBLF *g = g_table[i];
+    if (g == NULL) {
+      continue;
+    }
+    for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
+      GlyphBLF *g_prev = g_table[j];
+      if (g_prev == NULL) {
+        continue;
       }
-      else {
-        kc->ascii_table[i][j] = 0;
+      FT_Vector delta;
+      if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, kc->mode, &delta) == 0) {
+        kc->ascii_table[i][j] = (int)delta.x >> 6;
       }
     }
   }
