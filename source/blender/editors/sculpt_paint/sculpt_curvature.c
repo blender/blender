@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_ghash.h"
@@ -151,15 +153,35 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   SCULPT_vertex_normal_get(ss, vertex, no);
   normal_covariance(nmat, no);
 
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    SCULPT_vertex_normal_get(ss, ni.vertex, no2);
-    sub_v3_v3(no2, no);
+  if (useAccurateSolver) {
+    int val = SCULPT_vertex_valence_get(ss, vertex);
+    float *ws = BLI_array_alloca(ws, val);
+    float *cot1 = BLI_array_alloca(cot1, val);
+    float *cot2 = BLI_array_alloca(cot2, val);
+    float *areas = BLI_array_alloca(areas, val);
+    float totarea = 0.0f;
 
-    normal_covariance(nmat2, no2);
+    SCULPT_get_cotangents(ss, vertex, ws, cot1, cot2, areas, &totarea);
 
-    add_m3_m3m3(nmat, nmat, nmat2);
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+      SCULPT_vertex_normal_get(ss, ni.vertex, no2);
+      sub_v3_v3(no2, no);
+
+      normal_covariance(nmat2, no2);
+      madd_m3_m3m3fl(nmat, nmat, nmat2, ws[ni.i]);
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  else {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+      SCULPT_vertex_normal_get(ss, ni.vertex, no2);
+      sub_v3_v3(no2, no);
+
+      normal_covariance(nmat2, no2);
+      add_m3_m3m3(nmat, nmat, nmat2);
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  }
 
   if (!useAccurateSolver || !BLI_eigen_solve_selfadjoint_m3(nmat, out->ks, out->principle)) {
     // do simple power solve in one direction

@@ -51,6 +51,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
+#include "BKE_subdiv_ccg.h"
 
 #include "DEG_depsgraph.h"
 
@@ -74,14 +75,37 @@
 #include <math.h>
 #include <stdlib.h>
 
-int SCULPT_face_set_get(SculptSession *ss, SculptFaceRef face)
+static int sculpt_face_material_get(SculptSession *ss, SculptFaceRef face)
 {
-  if (ss->bm) {
-    BMFace *f = (BMFace *)face.i;
-    return BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+  int ret = 0;
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMFace *f = (BMFace *)face.i;
+      return f->mat_nr;
+    }
+    case PBVH_GRIDS:
+    case PBVH_FACES:
+      return ss->mpoly[face.i].mat_nr;
   }
 
-  return ss->face_sets[face.i];
+  return -1;
+}
+
+int SCULPT_face_set_get(SculptSession *ss, SculptFaceRef face)
+{
+  int ret = 0;
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMFace *f = (BMFace *)face.i;
+      return BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+    }
+    case PBVH_GRIDS:
+    case PBVH_FACES:
+      return ss->face_sets[face.i];
+  }
+  return -1;
 }
 
 // returns previous face set
@@ -89,15 +113,19 @@ int SCULPT_face_set_set(SculptSession *ss, SculptFaceRef face, int fset)
 {
   int ret = 0;
 
-  if (ss->bm) {
-    BMFace *f = (BMFace *)face.i;
-    ret = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMFace *f = (BMFace *)face.i;
+      ret = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
 
-    BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
-  }
-  else {
-    ret = ss->face_sets[face.i];
-    ss->face_sets[face.i] = fset;
+      BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
+      break;
+    }
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      ret = ss->face_sets[face.i];
+      ss->face_sets[face.i] = fset;
+      break;
   }
 
   return ret;
@@ -793,30 +821,58 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
 {
   Mesh *mesh = ob->data;
   SculptSession *ss = ob->sculpt;
-  BMesh *bm = sculpt_faceset_bm_begin(ss, mesh);
 
-  BMIter iter;
-  BMFace *f;
+  SCULPT_face_random_access_ensure(ss);
 
-  const int cd_fmaps_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
-
-  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    SculptFaceRef fref = {(intptr_t)f};
-
-    if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
-      SCULPT_face_set_set(ss, fref, (int)(f->mat_nr + 1));
-    }
-    else if (mode == SCULPT_FACE_SETS_FROM_FACE_MAPS) {
-      if (cd_fmaps_offset != -1) {
-        SCULPT_face_set_set(ss, fref, BM_ELEM_CD_GET_INT(f, cd_fmaps_offset) + 2);
-      }
-      else {
-        SCULPT_face_set_set(ss, fref, 1);
-      }
-    }
+  int cd_fmaps_offset = -1;
+  if (ss->bm) {
+    cd_fmaps_offset = CustomData_get_offset(&ss->bm->pdata, CD_FACEMAP);
   }
 
-  sculpt_faceset_bm_end(ss, bm);
+  Mesh *me = NULL;
+  int *fmaps = NULL;
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    me = ob->data;
+    fmaps = CustomData_get_layer(&me->pdata, CD_FACEMAP);
+  }
+  else if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    fmaps = CustomData_get_layer(ss->pdata, CD_FACEMAP);
+  }
+
+  for (int i = 0; i < ss->totfaces; i++) {
+    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+
+    if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
+      SCULPT_face_set_set(ss, fref, (int)(sculpt_face_material_get(ss, fref) + 1));
+    }
+    else if (mode == SCULPT_FACE_SETS_FROM_FACE_MAPS) {
+      int fmap = 1;
+
+      switch (BKE_pbvh_type(ss->pbvh)) {
+        case PBVH_BMESH: {
+          BMFace *f = (BMFace *)fref.i;
+
+          if (cd_fmaps_offset >= 0) {
+            fmap = BM_ELEM_CD_GET_INT(f, cd_fmaps_offset) + 2;
+          }
+
+          break;
+        }
+        case PBVH_FACES:
+        case PBVH_GRIDS: {
+          int f_i = fref.i;
+
+          if (fmaps) {
+            fmap = fmaps[i] + 2;
+          }
+          break;
+        }
+      }
+
+      SCULPT_face_set_set(ss, fref, fmap);
+    }
+  }
 }
 
 static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
@@ -1095,8 +1151,8 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  /* Update the active vertex and Face Set using the cursor position to avoid relying on the paint
-   * cursor updates. */
+  /* Update the active vertex and Face Set using the cursor position to avoid relying on the
+   * paint cursor updates. */
   SculptCursorGeometryInfo sgi;
   float mouse[2];
   mouse[0] = event->mval[0];
@@ -1578,8 +1634,8 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
     if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       /* Modification of base mesh geometry requires special remapping of multires displacement,
        * which does not happen here.
-       * Disable delete operation. It can be supported in the future by doing similar displacement
-       * data remapping as what happens in the mesh edit mode. */
+       * Disable delete operation. It can be supported in the future by doing similar
+       * displacement data remapping as what happens in the mesh edit mode. */
       return false;
     }
     if (check_single_face_set(ss, !modify_hidden)) {
