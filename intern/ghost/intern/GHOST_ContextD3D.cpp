@@ -132,6 +132,7 @@ class GHOST_SharedOpenGLResource {
                              ID3D11DeviceContext *device_ctx,
                              unsigned int width,
                              unsigned int height,
+                             DXGI_FORMAT format,
                              ID3D11RenderTargetView *render_target = nullptr)
       : m_device(device), m_device_ctx(device_ctx), m_cur_width(width), m_cur_height(height)
   {
@@ -144,7 +145,7 @@ class GHOST_SharedOpenGLResource {
 
       texDesc.Width = width;
       texDesc.Height = height;
-      texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+      texDesc.Format = format;
       texDesc.SampleDesc.Count = 1;
       texDesc.ArraySize = 1;
       texDesc.MipLevels = 1;
@@ -321,7 +322,10 @@ class GHOST_SharedOpenGLResource {
 };
 
 GHOST_SharedOpenGLResource *GHOST_ContextD3D::createSharedOpenGLResource(
-    unsigned int width, unsigned int height, ID3D11RenderTargetView *render_target)
+    unsigned int width,
+    unsigned int height,
+    DXGI_FORMAT format,
+    ID3D11RenderTargetView *render_target)
 {
   if (!(WGL_NV_DX_interop && WGL_NV_DX_interop2)) {
     fprintf(stderr,
@@ -330,14 +334,15 @@ GHOST_SharedOpenGLResource *GHOST_ContextD3D::createSharedOpenGLResource(
     return nullptr;
   }
   GHOST_SharedOpenGLResource *shared_res = new GHOST_SharedOpenGLResource(
-      m_device, m_device_ctx, width, height, render_target);
+      m_device, m_device_ctx, width, height, format, render_target);
 
   return shared_res;
 }
 GHOST_SharedOpenGLResource *GHOST_ContextD3D::createSharedOpenGLResource(unsigned int width,
-                                                                         unsigned int height)
+                                                                         unsigned int height,
+                                                                         DXGI_FORMAT format)
 {
-  return createSharedOpenGLResource(width, height, nullptr);
+  return createSharedOpenGLResource(width, height, format, nullptr);
 }
 
 void GHOST_ContextD3D::disposeSharedOpenGLResource(GHOST_SharedOpenGLResource *shared_res)

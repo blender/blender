@@ -657,9 +657,6 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
   GPUViewport *viewport = vp->viewport;
   const bool size_changed = offscreen && (GPU_offscreen_width(offscreen) != draw_view->width) &&
                             (GPU_offscreen_height(offscreen) != draw_view->height);
-  char err_out[256] = "unknown";
-  bool failure = false;
-
   if (offscreen) {
     BLI_assert(viewport);
 
@@ -670,8 +667,29 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
     GPU_offscreen_free(offscreen);
   }
 
+  char err_out[256] = "unknown";
+  bool failure = false;
+  eGPUTextureFormat format =
+      GPU_R8; /* Initialize with some unsupported format to check following switch statement. */
+
+  switch (draw_view->swapchain_format) {
+    case GHOST_kXrSwapchainFormatRGBA8:
+      format = GPU_RGBA8;
+      break;
+    case GHOST_kXrSwapchainFormatRGBA16:
+      format = GPU_RGBA16;
+      break;
+    case GHOST_kXrSwapchainFormatRGBA16F:
+      format = GPU_RGBA16F;
+      break;
+    case GHOST_kXrSwapchainFormatRGB10_A2:
+      format = GPU_RGB10_A2;
+      break;
+  }
+  BLI_assert(format != GPU_R8);
+
   offscreen = vp->offscreen = GPU_offscreen_create(
-      draw_view->width, draw_view->height, true, false, err_out);
+      draw_view->width, draw_view->height, true, format, err_out);
   if (offscreen) {
     viewport = vp->viewport = GPU_viewport_create();
     if (!viewport) {
