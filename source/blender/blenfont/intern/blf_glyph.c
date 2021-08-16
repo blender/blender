@@ -95,10 +95,10 @@ KerningCacheBLF *blf_kerning_cache_new(FontBLF *font, GlyphCacheBLF *gc)
           .y = 0,
       };
       if (g && g_prev && FT_Get_Kerning(font->face, g_prev->idx, g->idx, kc->mode, &delta) == 0) {
-        kc->table[i][j] = (int)delta.x >> 6;
+        kc->ascii_table[i][j] = (int)delta.x >> 6;
       }
       else {
-        kc->table[i][j] = 0;
+        kc->ascii_table[i][j] = 0;
       }
     }
   }

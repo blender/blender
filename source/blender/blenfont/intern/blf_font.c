@@ -372,7 +372,7 @@ BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
 
   if (g_prev != NULL) {
     if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
-      *pen_x_p += font->kerning_cache->table[c][c_prev];
+      *pen_x_p += font->kerning_cache->ascii_table[c][c_prev];
     }
     else {
       FT_Vector delta;
