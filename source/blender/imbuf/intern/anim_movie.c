@@ -1213,7 +1213,7 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim,
   /* Step backward frame by frame until we find the key frame we are looking for. */
   while (current_pts != 0) {
     current_pts = *requested_pts - (int64_t)round(offset * steps_per_frame);
-    current_pts = max_ii(current_pts, 0);
+    current_pts = MAX2(current_pts, 0);
 
     /* Seek to timestamp. */
     if (av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD) <
@@ -1243,11 +1243,12 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim,
         /* We found the I-frame we were looking for! */
         break;
       }
-      if (cur_pts == prev_pts) {
-        /* We got the same key frame packet twice.
-         * This probably means that we have hit the beginning of the stream. */
-        break;
-      }
+    }
+
+    if (cur_pts == prev_pts) {
+      /* We got the same key frame packet twice.
+       * This probably means that we have hit the beginning of the stream. */
+      break;
     }
 
     prev_pts = cur_pts;
