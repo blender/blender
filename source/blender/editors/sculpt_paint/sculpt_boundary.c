@@ -322,19 +322,20 @@ static float *calc_boundary_tangent(SculptSession *ss, SculptBoundary *boundary)
     zero_v3(dir);
 
     SculptVertexNeighborIter ni;
-    int val = SCULPT_vertex_valence_get(ss, vertex);
-    float *ws = BLI_array_alloca(ws, val);
-    float *cot1 = BLI_array_alloca(ws, val);
-    float *cot2 = BLI_array_alloca(ws, val);
-    float *areas = BLI_array_alloca(ws, val);
-    float totarea;
-
-    SCULPT_get_cotangents(ss, vertex, ws, cot1, cot2, areas, &totarea);
 
     float no1[3];
     SCULPT_vertex_normal_get(ss, vertex, no1);
 
 #if 0
+    volatile int val = SCULPT_vertex_valence_get(ss, vertex);
+    float *ws = BLI_array_alloca(ws, val);
+    float *cot1 = BLI_array_alloca(cot1, val);
+    float *cot2 = BLI_array_alloca(cot2, val);
+    float *areas = BLI_array_alloca(areas, val);
+    float totarea;
+
+    SCULPT_get_cotangents(ss, vertex, ws, cot1, cot2, areas, &totarea);
+
     float(*cos)[3] = BLI_array_alloca(cos, val);
     float *scalars = BLI_array_alloca(scalars, val);
 
