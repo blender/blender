@@ -383,17 +383,6 @@ BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
   }
 }
 
-BLI_INLINE void blf_kerning_step(
-    FontBLF *font, const FT_UInt kern_mode, const GlyphBLF *g_prev, const GlyphBLF *g, int *pen_x)
-{
-  if (g_prev != NULL) {
-    FT_Vector delta;
-    if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, kern_mode, &delta) == 0) {
-      *pen_x += (int)delta.x >> 6;
-    }
-  }
-}
-
 static void blf_font_draw_ex(FontBLF *font,
                              GlyphCacheBLF *gc,
                              const char *str,
@@ -913,7 +902,7 @@ static void blf_font_wrap_apply(FontBLF *font,
                                                  void *userdata),
                                 void *userdata)
 {
-  unsigned int c;
+  unsigned int c, c_prev = BLI_UTF8_ERR;
   GlyphBLF *g, *g_prev = NULL;
   int pen_x = 0, pen_y = 0;
   size_t i = 0;
@@ -923,6 +912,8 @@ static void blf_font_wrap_apply(FontBLF *font,
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
 
   BLF_KERNING_VARS(font, has_kerning, kern_mode);
+
+  blf_font_ensure_ascii_kerning(font, gc, kern_mode);
 
   struct WordWrapVars {
     int wrap_width;
@@ -945,7 +936,7 @@ static void blf_font_wrap_apply(FontBLF *font,
       continue;
     }
     if (has_kerning) {
-      blf_kerning_step(font, kern_mode, g_prev, g, &pen_x);
+      blf_kerning_step_fast(font, kern_mode, g_prev, g, c_prev, c, &pen_x);
     }
 
     /**
@@ -986,12 +977,14 @@ static void blf_font_wrap_apply(FontBLF *font,
       pen_x = 0;
       pen_y -= gc->glyph_height_max;
       g_prev = NULL;
+      c_prev = BLI_UTF8_ERR;
       lines += 1;
       continue;
     }
 
     pen_x = pen_x_next;
     g_prev = g;
+    c_prev = c;
   }
 
   // printf("done! lines: %d, width, %d\n", lines, pen_x_next);
