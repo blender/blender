@@ -245,6 +245,8 @@ extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(struct ID *id, bo
 
 extern const EnumPropertyItem rna_enum_collection_color_items[];
 
+extern const EnumPropertyItem rna_enum_subdivision_uv_smooth_items[];
+extern const EnumPropertyItem rna_enum_subdivision_boundary_smooth_items[];
 /**
  * For ID filters (#FILTER_ID_AC, #FILTER_ID_AR, ...) an int isn't enough. This version allows 64
  * bit integers. So can't use the regular #EnumPropertyItem. Would be nice if RNA supported this
