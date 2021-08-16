@@ -703,7 +703,7 @@ void *BKE_sound_scene_add_scene_sound(
     Scene *scene, Sequence *sequence, int startframe, int endframe, int frameskip)
 {
   sound_verify_evaluated_id(&scene->id);
-  if (sequence->scene && scene != sequence->scene) {
+  if (sequence->scene && scene != sequence->scene && sequence->sound) {
     const double fps = FPS;
     return AUD_Sequence_add(scene->sound_scene,
                             sequence->scene->sound_scene,
@@ -775,7 +775,7 @@ void BKE_sound_move_scene_sound(
 void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   sound_verify_evaluated_id(&scene->id);
-  if (sequence->scene_sound) {
+  if (sequence->scene_sound && sequence->sound) {
     BKE_sound_move_scene_sound(scene,
                                sequence->scene_sound,
                                sequence->startdisp,
