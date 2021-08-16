@@ -37,7 +37,7 @@
 
 #include "gpu_py_buffer.h"
 
-//#define PYGPU_BUFFER_PROTOCOL
+#define PYGPU_BUFFER_PROTOCOL
 #define MAX_DIMENSIONS 64
 
 /* -------------------------------------------------------------------- */
