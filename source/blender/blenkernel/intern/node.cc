@@ -2364,7 +2364,7 @@ bNodeLink *nodeAddLink(
     ntree->update |= NTREE_UPDATE_LINKS;
   }
 
-  if (link->tosock->flag & SOCK_MULTI_INPUT) {
+  if (link != nullptr && link->tosock->flag & SOCK_MULTI_INPUT) {
     link->multi_input_socket_index = node_count_links(ntree, link->tosock) - 1;
   }
 
@@ -3194,6 +3194,7 @@ void ntreeFreeEmbeddedTree(bNodeTree *ntree)
 {
   ntreeFreeTree(ntree);
   BKE_libblock_free_data(&ntree->id, true);
+  BKE_libblock_free_data_py(&ntree->id);
 }
 
 void ntreeFreeLocalTree(bNodeTree *ntree)

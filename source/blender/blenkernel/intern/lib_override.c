@@ -1020,7 +1020,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
   if (id_root_reference->tag & LIB_TAG_MISSING) {
     BKE_reportf(reports != NULL ? reports->reports : NULL,
                 RPT_ERROR,
-                "impossible to resync data-block %s and its dependencies, as its linked reference "
+                "Impossible to resync data-block %s and its dependencies, as its linked reference "
                 "is missing",
                 id_root->name + 2);
     return false;
@@ -1631,7 +1631,7 @@ static void lib_override_library_main_resync_on_library_indirect_level(
         CLOG_INFO(&LOG, 2, "\tSuccess: %d", success);
         if (success) {
           reports->count.resynced_lib_overrides++;
-          if (library_indirect_level > 0 &&
+          if (library_indirect_level > 0 && reports->do_resynced_lib_overrides_libraries_list &&
               BLI_linklist_index(reports->resynced_lib_overrides_libraries, library) < 0) {
             BLI_linklist_prepend(&reports->resynced_lib_overrides_libraries, library);
             reports->resynced_lib_overrides_libraries_count++;

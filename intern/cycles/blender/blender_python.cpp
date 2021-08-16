@@ -487,6 +487,24 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
     if (param->varlenarray || param->isstruct || param->type.arraylen > 1)
       continue;
 
+    /* Read metadata. */
+    bool is_bool_param = false;
+    ustring param_label = param->name;
+
+    for (const OSL::OSLQuery::Parameter &metadata : param->metadata) {
+      if (metadata.type == TypeDesc::STRING) {
+        if (metadata.name == "widget") {
+          /* Boolean socket. */
+          if (metadata.sdefault[0] == "boolean" || metadata.sdefault[0] == "checkBox") {
+            is_bool_param = true;
+          }
+        }
+        else if (metadata.name == "label") {
+          /* Socket label. */
+          param_label = metadata.sdefault[0];
+        }
+      }
+    }
     /* determine socket type */
     string socket_type;
     BL::NodeSocket::type_enum data_type = BL::NodeSocket::type_VALUE;
@@ -494,6 +512,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
     float default_float = 0.0f;
     int default_int = 0;
     string default_string = "";
+    bool default_boolean = false;
 
     if (param->isclosure) {
       socket_type = "NodeSocketShader";
@@ -523,10 +542,19 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
     }
     else if (param->type.aggregate == TypeDesc::SCALAR) {
       if (param->type.basetype == TypeDesc::INT) {
-        socket_type = "NodeSocketInt";
-        data_type = BL::NodeSocket::type_INT;
-        if (param->validdefault)
-          default_int = param->idefault[0];
+        if (is_bool_param) {
+          socket_type = "NodeSocketBool";
+          data_type = BL::NodeSocket::type_BOOLEAN;
+          if (param->validdefault) {
+            default_boolean = (bool)param->idefault[0];
+          }
+        }
+        else {
+          socket_type = "NodeSocketInt";
+          data_type = BL::NodeSocket::type_INT;
+          if (param->validdefault)
+            default_int = param->idefault[0];
+        }
       }
       else if (param->type.basetype == TypeDesc::FLOAT) {
         socket_type = "NodeSocketFloat";
@@ -546,33 +574,57 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
     else
       continue;
 
-    /* find socket socket */
-    BL::NodeSocket b_sock(PointerRNA_NULL);
+    /* Update existing socket. */
+    bool found_existing = false;
     if (param->isoutput) {
-      b_sock = b_node.outputs[param->name.string()];
-      /* remove if type no longer matches */
-      if (b_sock && b_sock.bl_idname() != socket_type) {
-        b_node.outputs.remove(b_data, b_sock);
-        b_sock = BL::NodeSocket(PointerRNA_NULL);
+      for (BL::NodeSocket &b_sock : b_node.outputs) {
+        if (b_sock.identifier() == param->name) {
+          if (b_sock.bl_idname() != socket_type) {
+            /* Remove if type no longer matches. */
+            b_node.outputs.remove(b_data, b_sock);
+          }
+          else {
+            /* Reuse and update label. */
+            if (b_sock.name() != param_label) {
+              b_sock.name(param_label.string());
+            }
+            used_sockets.insert(b_sock.ptr.data);
+            found_existing = true;
+          }
+          break;
+        }
       }
     }
     else {
-      b_sock = b_node.inputs[param->name.string()];
-      /* remove if type no longer matches */
-      if (b_sock && b_sock.bl_idname() != socket_type) {
-        b_node.inputs.remove(b_data, b_sock);
-        b_sock = BL::NodeSocket(PointerRNA_NULL);
+      for (BL::NodeSocket &b_sock : b_node.inputs) {
+        if (b_sock.identifier() == param->name) {
+          if (b_sock.bl_idname() != socket_type) {
+            /* Remove if type no longer matches. */
+            b_node.inputs.remove(b_data, b_sock);
+          }
+          else {
+            /* Reuse and update label. */
+            if (b_sock.name() != param_label) {
+              b_sock.name(param_label.string());
+            }
+            used_sockets.insert(b_sock.ptr.data);
+            found_existing = true;
+          }
+          break;
+        }
       }
     }
 
-    if (!b_sock) {
-      /* create new socket */
-      if (param->isoutput)
-        b_sock = b_node.outputs.create(
-            b_data, socket_type.c_str(), param->name.c_str(), param->name.c_str());
-      else
-        b_sock = b_node.inputs.create(
-            b_data, socket_type.c_str(), param->name.c_str(), param->name.c_str());
+    if (!found_existing) {
+      /* Create new socket. */
+      BL::NodeSocket b_sock = (param->isoutput) ? b_node.outputs.create(b_data,
+                                                                        socket_type.c_str(),
+                                                                        param_label.c_str(),
+                                                                        param->name.c_str()) :
+                                                  b_node.inputs.create(b_data,
+                                                                       socket_type.c_str(),
+                                                                       param_label.c_str(),
+                                                                       param->name.c_str());
 
       /* set default value */
       if (data_type == BL::NodeSocket::type_VALUE) {
@@ -590,9 +642,12 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
       else if (data_type == BL::NodeSocket::type_STRING) {
         set_string(b_sock.ptr, "default_value", default_string);
       }
-    }
+      else if (data_type == BL::NodeSocket::type_BOOLEAN) {
+        set_boolean(b_sock.ptr, "default_value", default_boolean);
+      }
 
-    used_sockets.insert(b_sock.ptr.data);
+      used_sockets.insert(b_sock.ptr.data);
+    }
   }
 
   /* remove unused parameters */

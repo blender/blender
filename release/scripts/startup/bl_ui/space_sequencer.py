@@ -148,20 +148,6 @@ class SEQUENCER_HT_header(Header):
 
         layout.separator_spacer()
 
-        if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
-            layout.prop(st, "display_mode", text="", icon_only=True)
-            layout.prop(st, "preview_channels", text="", icon_only=True)
-
-            gpd = context.gpencil_data
-            tool_settings = context.tool_settings
-
-            # Proportional editing
-            if gpd and gpd.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(tool_settings, "use_proportional_edit", icon_only=True)
-                if tool_settings.use_proportional_edit:
-                    row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
-
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             tool_settings = context.tool_settings
             row = layout.row(align=True)
@@ -169,6 +155,10 @@ class SEQUENCER_HT_header(Header):
             sub = row.row(align=True)
             sub.popover(panel="SEQUENCER_PT_snapping")
             layout.separator_spacer()
+
+        if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
+            layout.prop(st, "display_mode", text="", icon_only=True)
+            layout.prop(st, "preview_channels", text="", icon_only=True)
 
         row = layout.row(align=True)
         row.prop(st, "show_strip_overlay", text="", icon='OVERLAY')

@@ -32,6 +32,7 @@ class BufferOperation : public ConstantOperation {
 
   const float *get_constant_elem() override;
   void *initializeTileData(rcti *rect) override;
+  void initExecution() override;
   void deinitExecution() override;
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
   void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2]) override;

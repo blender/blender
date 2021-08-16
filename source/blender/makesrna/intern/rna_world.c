@@ -216,7 +216,7 @@ void RNA_def_world(BlenderRNA *brna)
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_array_default(prop, default_world_color);
   RNA_def_property_ui_text(prop, "Color", "Color of the background");
-  /* RNA_def_property_update(prop, 0, "rna_World_update"); */
+  // RNA_def_property_update(prop, 0, "rna_World_update");
   /* render-only uses this */
   RNA_def_property_update(prop, 0, "rna_World_draw_update");
 

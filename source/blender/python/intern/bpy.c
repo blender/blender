@@ -417,9 +417,6 @@ void BPy_init_modules(struct bContext *C)
   PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy", mod);
   Py_DECREF(mod);
 
-  /* run first, initializes rna types */
-  BPY_rna_init();
-
   /* needs to be first so bpy_types can run */
   PyModule_AddObject(mod, "types", BPY_rna_types());
 

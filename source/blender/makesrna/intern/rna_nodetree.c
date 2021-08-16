@@ -1036,7 +1036,7 @@ static void rna_NodeTree_get_from_context(
   void *ret1, *ret2, *ret3;
 
   RNA_pointer_create(NULL, ntreetype->rna_ext.srna, NULL, &ptr); /* dummy */
-  /* RNA_struct_find_function(&ptr, "get_from_context"); */
+  // RNA_struct_find_function(&ptr, "get_from_context");
   func = &rna_NodeTree_get_from_context_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -2987,7 +2987,7 @@ static void rna_NodeSocketInterface_register_properties(bNodeTree *ntree,
   }
 
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, stemp, &ptr);
-  /* RNA_struct_find_function(&ptr, "register_properties"); */
+  // RNA_struct_find_function(&ptr, "register_properties");
   func = &rna_NodeSocketInterface_register_properties_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -3013,7 +3013,7 @@ static void rna_NodeSocketInterface_init_socket(
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, stemp, &ptr);
   RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sock_ptr);
-  /* RNA_struct_find_function(&ptr, "init_socket"); */
+  // RNA_struct_find_function(&ptr, "init_socket");
   func = &rna_NodeSocketInterface_init_socket_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
@@ -3043,7 +3043,7 @@ static void rna_NodeSocketInterface_from_socket(bNodeTree *ntree,
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, stemp, &ptr);
   RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
   RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sock_ptr);
-  /* RNA_struct_find_function(&ptr, "from_socket"); */
+  // RNA_struct_find_function(&ptr, "from_socket");
   func = &rna_NodeSocketInterface_from_socket_func;
 
   RNA_parameter_list_create(&list, &ptr, func);

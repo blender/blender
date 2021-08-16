@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
@@ -30,7 +30,7 @@
 namespace blender::compositor {
 
 /* Writes the image to a single-layer file. */
-class OutputSingleLayerOperation : public NodeOperation {
+class OutputSingleLayerOperation : public MultiThreadedOperation {
  protected:
   const RenderData *m_rd;
   const bNodeTree *m_tree;
@@ -70,6 +70,10 @@ class OutputSingleLayerOperation : public NodeOperation {
   {
     return eCompositorPriority::Low;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 /* extra info for OpenEXR layers */
@@ -86,7 +90,7 @@ struct OutputOpenExrLayer {
 };
 
 /* Writes inputs into OpenEXR multilayer channels. */
-class OutputOpenExrMultiLayerOperation : public NodeOperation {
+class OutputOpenExrMultiLayerOperation : public MultiThreadedOperation {
  protected:
   const Scene *m_scene;
   const RenderData *m_rd;
@@ -122,6 +126,10 @@ class OutputOpenExrMultiLayerOperation : public NodeOperation {
   {
     return eCompositorPriority::Low;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 void add_exr_channels(void *exrhandle,

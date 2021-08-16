@@ -165,6 +165,10 @@ static char **names;
 static char **types;
 /** At `types_size[a]` is the size of type `a` on this systems bitness (32 or 64). */
 static short *types_size_native;
+/** Contains align requirements for a struct on 32 bit systems. */
+static short *types_align_32;
+/** Contains align requirements for a struct on 64 bit systems. */
+static short *types_align_64;
 /** Contains sizes as they are calculated on 32 bit systems. */
 static short *types_size_32;
 /** Contains sizes as they are calculated on 64 bit systems. */
@@ -406,6 +410,8 @@ static int add_type(const char *str, int size)
         types_size_native[index] = size;
         types_size_32[index] = size;
         types_size_64[index] = size;
+        types_align_32[index] = size;
+        types_align_64[index] = size;
       }
       return index;
     }
@@ -419,7 +425,8 @@ static int add_type(const char *str, int size)
   types_size_native[types_len] = size;
   types_size_32[types_len] = size;
   types_size_64[types_len] = size;
-
+  types_align_32[types_len] = size;
+  types_align_64[types_len] = size;
   if (types_len >= max_array_len) {
     printf("too many types\n");
     return types_len - 1;
@@ -966,7 +973,9 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
         int size_native = 0;
         int size_32 = 0;
         int size_64 = 0;
-        bool has_pointer = false;
+        /* Sizes of the largest field in a struct. */
+        int max_align_32 = 0;
+        int max_align_64 = 0;
 
         /* check all elements in struct */
         for (int b = 0; b < structpoin[1]; b++, sp += 2) {
@@ -995,7 +1004,6 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
 
           /* is it a pointer or function pointer? */
           if (cp[0] == '*' || cp[1] == '*') {
-            has_pointer = 1;
             /* has the name an extra length? (array) */
             int mul = 1;
             if (cp[namelen - 1] == ']') {
@@ -1042,6 +1050,8 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             size_native += sizeof(void *) * mul;
             size_32 += 4 * mul;
             size_64 += 8 * mul;
+            max_align_32 = MAX2(max_align_32, 4);
+            max_align_64 = MAX2(max_align_64, 8);
           }
           else if (cp[0] == '[') {
             /* parsing can cause names "var" and "[3]"
@@ -1087,6 +1097,8 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             size_native += mul * types_size_native[type];
             size_32 += mul * types_size_32[type];
             size_64 += mul * types_size_64[type];
+            max_align_32 = MAX2(max_align_32, types_align_32[type]);
+            max_align_64 = MAX2(max_align_64, types_align_64[type]);
           }
           else {
             size_native = 0;
@@ -1103,16 +1115,42 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
           types_size_native[structtype] = size_native;
           types_size_32[structtype] = size_32;
           types_size_64[structtype] = size_64;
-          /* Two ways to detect if a struct contains a pointer:
-           * has_pointer is set or size_native doesn't match any of 32/64bit lengths. */
-          if (has_pointer || size_64 != size_native || size_32 != size_native) {
-            if (size_64 % 8) {
+          types_align_32[structtype] = max_align_32;
+          types_align_64[structtype] = max_align_64;
+
+          /* Sanity check 1: alignment should never be 0. */
+          BLI_assert(max_align_32);
+          BLI_assert(max_align_64);
+
+          /* Sanity check 2: alignment should always be equal or smaller than the maximum
+           * size of a build in type which is 8 bytes (ie int64_t or double). */
+          BLI_assert(max_align_32 <= 8);
+          BLI_assert(max_align_64 <= 8);
+
+          if (size_32 % max_align_32) {
+            /* There is an one odd case where only the 32 bit struct has alignment issues
+             * and the 64 bit does not, that can only be fixed by adding a padding pointer
+             * to the struct to resolve the problem. */
+            if ((size_64 % max_align_64 == 0) && (size_32 % max_align_32 == 4)) {
               fprintf(stderr,
-                      "Sizeerror 8 in struct: %s (add %d bytes)\n",
-                      types[structtype],
-                      size_64 % 8);
-              dna_error = 1;
+                      "Sizeerror in 32 bit struct: %s (add paddding pointer)\n",
+                      types[structtype]);
             }
+            else {
+              fprintf(stderr,
+                      "Sizeerror in 32 bit struct: %s (add %d bytes)\n",
+                      types[structtype],
+                      max_align_32 - (size_32 % max_align_32));
+            }
+            dna_error = 1;
+          }
+
+          if (size_64 % max_align_64) {
+            fprintf(stderr,
+                    "Sizeerror in 64 bit struct: %s (add %d bytes)\n",
+                    types[structtype],
+                    max_align_64 - (size_64 % max_align_64));
+            dna_error = 1;
           }
 
           if (size_native % 4 && !ELEM(size_native, 1, 2)) {
@@ -1229,6 +1267,9 @@ static int make_structDNA(const char *base_directory,
   types_size_native = MEM_callocN(sizeof(short) * max_array_len, "types_size_native");
   types_size_32 = MEM_callocN(sizeof(short) * max_array_len, "types_size_32");
   types_size_64 = MEM_callocN(sizeof(short) * max_array_len, "types_size_64");
+  types_align_32 = MEM_callocN(sizeof(short) * max_array_len, "types_size_32");
+  types_align_64 = MEM_callocN(sizeof(short) * max_array_len, "types_size_64");
+
   structs = MEM_callocN(sizeof(short *) * max_array_len, "structs");
 
   /* Build versioning data */
@@ -1317,7 +1358,11 @@ static int make_structDNA(const char *base_directory,
       sp += 2;
       /* ? num_types was elem? */
       for (b = 0; b < num_types; b++, sp += 2) {
-        printf("   %s %s\n", types[sp[0]], names[sp[1]]);
+        printf("   %s %s allign32:%d, allign64:%d\n",
+               types[sp[0]],
+               names[sp[1]],
+               types_align_32[sp[0]],
+               types_align_64[sp[0]]);
       }
     }
   }
@@ -1439,6 +1484,8 @@ static int make_structDNA(const char *base_directory,
   MEM_freeN(types_size_native);
   MEM_freeN(types_size_32);
   MEM_freeN(types_size_64);
+  MEM_freeN(types_align_32);
+  MEM_freeN(types_align_64);
   MEM_freeN(structs);
 
   BLI_memarena_free(mem_arena);

@@ -259,14 +259,12 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     /* calculate only face normals */
     poly_nors = MEM_malloc_arrayN(numPolys, sizeof(*poly_nors), __func__);
     BKE_mesh_calc_normals_poly(orig_mvert,
-                               NULL,
                                (int)numVerts,
                                orig_mloop,
-                               orig_mpoly,
                                (int)numLoops,
+                               orig_mpoly,
                                (int)numPolys,
-                               poly_nors,
-                               true);
+                               poly_nors);
   }
 
   STACK_INIT(new_vert_arr, numVerts * 2);
@@ -507,8 +505,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   /* NOTE: copied vertex layers don't have flipped normals yet. do this after applying offset. */
   if ((smd->flag & MOD_SOLIDIFY_EVEN) == 0) {
     /* no even thickness, very simple */
-    float scalar_short;
-    float scalar_short_vgroup;
+    float ofs_new_vgroup;
 
     /* for clamping */
     float *vert_lens = NULL;
@@ -597,7 +594,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       uint i_orig, i_end;
       bool do_shell_align;
 
-      scalar_short = scalar_short_vgroup = ofs_new / 32767.0f;
+      ofs_new_vgroup = ofs_new;
 
       INIT_VERT_ARRAY_OFFSETS(false);
 
@@ -606,36 +603,40 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         if (dvert) {
           MDeformVert *dv = &dvert[i];
           if (defgrp_invert) {
-            scalar_short_vgroup = 1.0f - BKE_defvert_find_weight(dv, defgrp_index);
+            ofs_new_vgroup = 1.0f - BKE_defvert_find_weight(dv, defgrp_index);
           }
           else {
-            scalar_short_vgroup = BKE_defvert_find_weight(dv, defgrp_index);
+            ofs_new_vgroup = BKE_defvert_find_weight(dv, defgrp_index);
           }
-          scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) *
-                                scalar_short;
+          ofs_new_vgroup = (offset_fac_vg + (ofs_new_vgroup * offset_fac_vg_inv)) * ofs_new;
         }
         if (do_clamp && offset > FLT_EPSILON) {
           /* always reset because we may have set before */
           if (dvert == NULL) {
-            scalar_short_vgroup = scalar_short;
+            ofs_new_vgroup = ofs_new;
           }
           if (do_angle_clamp) {
             float cos_ang = cosf(((2 * M_PI) - vert_angs[i]) * 0.5f);
             if (cos_ang > 0) {
               float max_off = sqrtf(vert_lens[i]) * 0.5f / cos_ang;
               if (max_off < offset * 0.5f) {
-                scalar_short_vgroup *= max_off / offset * 2;
+                ofs_new_vgroup *= max_off / offset * 2;
               }
             }
           }
           else {
             if (vert_lens[i] < offset_sq) {
               float scalar = sqrtf(vert_lens[i]) / offset;
-              scalar_short_vgroup *= scalar;
+              ofs_new_vgroup *= scalar;
             }
           }
         }
-        madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
+        if (vert_nors) {
+          madd_v3_v3fl(mv->co, vert_nors[i], ofs_new_vgroup);
+        }
+        else {
+          madd_v3v3short_fl(mv->co, mv->no, ofs_new_vgroup / 32767.0f);
+        }
       }
     }
 
@@ -643,7 +644,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       uint i_orig, i_end;
       bool do_shell_align;
 
-      scalar_short = scalar_short_vgroup = ofs_orig / 32767.0f;
+      ofs_new_vgroup = ofs_orig;
 
       /* as above but swapped */
       INIT_VERT_ARRAY_OFFSETS(true);
@@ -653,36 +654,40 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         if (dvert) {
           MDeformVert *dv = &dvert[i];
           if (defgrp_invert) {
-            scalar_short_vgroup = 1.0f - BKE_defvert_find_weight(dv, defgrp_index);
+            ofs_new_vgroup = 1.0f - BKE_defvert_find_weight(dv, defgrp_index);
           }
           else {
-            scalar_short_vgroup = BKE_defvert_find_weight(dv, defgrp_index);
+            ofs_new_vgroup = BKE_defvert_find_weight(dv, defgrp_index);
           }
-          scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) *
-                                scalar_short;
+          ofs_new_vgroup = (offset_fac_vg + (ofs_new_vgroup * offset_fac_vg_inv)) * ofs_orig;
         }
         if (do_clamp && offset > FLT_EPSILON) {
           /* always reset because we may have set before */
           if (dvert == NULL) {
-            scalar_short_vgroup = scalar_short;
+            ofs_new_vgroup = ofs_orig;
           }
           if (do_angle_clamp) {
             float cos_ang = cosf(vert_angs[i_orig] * 0.5f);
             if (cos_ang > 0) {
               float max_off = sqrtf(vert_lens[i]) * 0.5f / cos_ang;
               if (max_off < offset * 0.5f) {
-                scalar_short_vgroup *= max_off / offset * 2;
+                ofs_new_vgroup *= max_off / offset * 2;
               }
             }
           }
           else {
             if (vert_lens[i] < offset_sq) {
               float scalar = sqrtf(vert_lens[i]) / offset;
-              scalar_short_vgroup *= scalar;
+              ofs_new_vgroup *= scalar;
             }
           }
         }
-        madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
+        if (vert_nors) {
+          madd_v3_v3fl(mv->co, vert_nors[i], ofs_new_vgroup);
+        }
+        else {
+          madd_v3v3short_fl(mv->co, mv->no, ofs_new_vgroup / 32767.0f);
+        }
       }
     }
 

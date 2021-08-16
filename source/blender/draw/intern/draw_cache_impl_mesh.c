@@ -95,7 +95,7 @@
 
 #define MDEPS_CREATE(buff_name, ...) [_BUFFER_INDEX(buff_name)] = VA_NARGS_CALL_OVERLOAD(_MDEPS_CREATE, __VA_ARGS__)
 
-#define _MDEPS_CREATE_MAP1(a) g_buffer_desps[_BUFFER_INDEX(a)]
+#define _MDEPS_CREATE_MAP1(a) g_buffer_deps[_BUFFER_INDEX(a)]
 #define _MDEPS_CREATE_MAP2(a, b) _MDEPS_CREATE_MAP1(a) | _MDEPS_CREATE_MAP1(b)
 #define _MDEPS_CREATE_MAP3(a, b, c) _MDEPS_CREATE_MAP2(a, b) | _MDEPS_CREATE_MAP1(c)
 #define _MDEPS_CREATE_MAP4(a, b, c, d) _MDEPS_CREATE_MAP3(a, b, c) | _MDEPS_CREATE_MAP1(d)
@@ -110,8 +110,8 @@
 
 #ifndef NDEBUG
 #  define _MDEPS_ASSERT2(b, name) \
-    g_buffer_desps_d[_BUFFER_INDEX(name)] |= _MDEPS_CREATE1(b); \
-    BLI_assert(g_buffer_desps[_BUFFER_INDEX(name)] & _MDEPS_CREATE1(b))
+    g_buffer_deps_d[_BUFFER_INDEX(name)] |= _MDEPS_CREATE1(b); \
+    BLI_assert(g_buffer_deps[_BUFFER_INDEX(name)] & _MDEPS_CREATE1(b))
 #  define _MDEPS_ASSERT3(b, n1, n2) _MDEPS_ASSERT2(b, n1); _MDEPS_ASSERT2(b, n2)
 #  define _MDEPS_ASSERT4(b, n1, n2, n3) _MDEPS_ASSERT3(b, n1, n2); _MDEPS_ASSERT2(b, n3)
 #  define _MDEPS_ASSERT5(b, n1, n2, n3, n4) _MDEPS_ASSERT4(b, n1, n2, n3); _MDEPS_ASSERT2(b, n4)
@@ -120,7 +120,7 @@
 #  define _MDEPS_ASSERT8(b, n1, n2, n3, n4, n5, n6, n7) _MDEPS_ASSERT7(b, n1, n2, n3, n4, n5, n6); _MDEPS_ASSERT2(b, n7)
 
 #  define MDEPS_ASSERT(...) VA_NARGS_CALL_OVERLOAD(_MDEPS_ASSERT, __VA_ARGS__)
-#  define MDEPS_ASSERT_MAP(name) BLI_assert(g_buffer_desps_d[_BUFFER_INDEX(name)] == g_buffer_desps[_BUFFER_INDEX(name)])
+#  define MDEPS_ASSERT_MAP(name) BLI_assert(g_buffer_deps_d[_BUFFER_INDEX(name)] == g_buffer_deps[_BUFFER_INDEX(name)])
 #else
 #  define MDEPS_ASSERT(...)
 #  define MDEPS_ASSERT_MAP(name)
@@ -128,7 +128,7 @@
 
 /* clang-format on */
 
-static const DRWBatchFlag g_buffer_desps[] = {
+static const DRWBatchFlag g_buffer_deps[] = {
     MDEPS_CREATE(vbo.pos_nor,
                  batch.surface,
                  batch.surface_weights,
@@ -215,7 +215,7 @@ static const DRWBatchFlag g_buffer_desps[] = {
 };
 
 #ifndef NDEBUG
-static DRWBatchFlag g_buffer_desps_d[sizeof(g_buffer_desps)] = {0};
+static DRWBatchFlag g_buffer_deps_d[ARRAY_SIZE(g_buffer_deps)] = {0};
 #endif
 
 static void mesh_batch_cache_discard_surface_batches(MeshBatchCache *cache);

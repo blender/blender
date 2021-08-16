@@ -24,6 +24,7 @@
 #pragma once
 
 struct Main;
+struct wmFileReadPost_Params;
 struct wmGenericCallback;
 struct wmOperatorType;
 
@@ -33,15 +34,45 @@ extern "C" {
 
 /* wm_files.c */
 void wm_history_file_read(void);
+
+struct wmHomeFileRead_Params {
+  /** Load data, disable when only loading user preferences. */
+  unsigned int use_data : 1;
+  /** Load factory settings as well as startup file (disabled for "File New"). */
+  unsigned int use_userdef : 1;
+
+  /**
+   * Ignore on-disk startup file, use bundled `datatoc_startup_blend` instead.
+   * Used for "Restore Factory Settings".
+   */
+  unsigned int use_factory_settings : 1;
+  /**
+   * Load the startup file without any data-blocks.
+   * Useful for automated content generation, so the file starts without data.
+   */
+  unsigned int use_empty_data : 1;
+  /**
+   * Optional path pointing to an alternative blend file (may be NULL).
+   */
+  const char *filepath_startup_override;
+  /**
+   * Template to use instead of the template defined in user-preferences.
+   * When not-null, this is written into the user preferences.
+   */
+  const char *app_template_override;
+};
+
+void wm_homefile_read_ex(struct bContext *C,
+                         const struct wmHomeFileRead_Params *params_homefile,
+                         struct ReportList *reports,
+                         struct wmFileReadPost_Params **r_params_file_read_post);
 void wm_homefile_read(struct bContext *C,
-                      struct ReportList *reports,
-                      bool use_factory_settings,
-                      bool use_empty_data,
-                      bool use_data,
-                      bool use_userdef,
-                      const char *filepath_startup_override,
-                      const char *app_template_override,
-                      bool *r_is_factory_startup);
+                      const struct wmHomeFileRead_Params *params_homefile,
+                      struct ReportList *reports);
+
+void wm_homefile_read_post(struct bContext *C,
+                           const struct wmFileReadPost_Params *params_file_read_post);
+
 void wm_file_read_report(bContext *C, struct Main *bmain);
 
 void wm_close_file_dialog(bContext *C, struct wmGenericCallback *post_action);

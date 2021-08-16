@@ -77,7 +77,7 @@ static float ocean_spectrum_wind_and_damp(const Ocean *oc,
   float newval = val * pow(fabs(k_dot_w), oc->_wind_alignment);
 
   /* Eliminate wavelengths smaller than cutoff. */
-  /* val *= exp(-k2 * m_cutoff); */
+  // val *= exp(-k2 * m_cutoff);
 
   /* Reduce reflected waves. */
   if (k_dot_w < 0.0f) {

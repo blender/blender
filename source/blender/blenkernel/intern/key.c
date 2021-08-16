@@ -2281,15 +2281,8 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
     r_polynors = MEM_mallocN(sizeof(float[3]) * me.totpoly, __func__);
     free_polynors = true;
   }
-  BKE_mesh_calc_normals_poly(me.mvert,
-                             r_vertnors,
-                             me.totvert,
-                             me.mloop,
-                             me.mpoly,
-                             me.totloop,
-                             me.totpoly,
-                             r_polynors,
-                             false);
+  BKE_mesh_calc_normals_poly_and_vertex(
+      me.mvert, me.totvert, me.mloop, me.totloop, me.mpoly, me.totpoly, r_polynors, r_vertnors);
 
   if (r_loopnors) {
     short(*clnors)[2] = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL); /* May be NULL. */

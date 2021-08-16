@@ -102,7 +102,7 @@ static void export_startjob(void *customdata,
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
   usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit,
-                         pxr::VtValue(scene->unit.scale_length));
+                         static_cast<double>(scene->unit.scale_length));
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
                                               BKE_blender_version_string());
 

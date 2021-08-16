@@ -80,8 +80,8 @@ KerningCacheBLF *blf_kerning_cache_new(FontBLF *font, GlyphCacheBLF *gc)
   kc->mode = font->kerning_mode;
 
   unsigned int i, j;
-  for (i = 0; i < 0x80; i++) {
-    for (j = 0; j < 0x80; j++) {
+  for (i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
+    for (j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
       GlyphBLF *g = blf_glyph_search(gc, i);
       if (!g) {
         FT_UInt glyph_index = FT_Get_Char_Index(font->face, i);
@@ -144,8 +144,6 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
   memset(gc->bucket, 0, sizeof(gc->bucket));
 
-  gc->glyphs_len_max = (int)font->face->num_glyphs;
-  gc->glyphs_len_free = (int)font->face->num_glyphs;
   gc->ascender = ((float)font->face->size->metrics.ascender) / 64.0f;
   gc->descender = ((float)font->face->size->metrics.descender) / 64.0f;
 
@@ -514,7 +512,6 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
     memcpy(&gc->bitmap_result[gc->bitmap_len], g->bitmap, (size_t)buff_size);
     gc->bitmap_len = bitmap_len;
 
-    gc->glyphs_len_free--;
     g->glyph_cache = gc;
   }
 

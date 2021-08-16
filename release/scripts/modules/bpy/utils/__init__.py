@@ -754,12 +754,10 @@ def register_classes_factory(classes):
     which simply registers and unregisters a sequence of classes.
     """
     def register():
-        from bpy.utils import register_class
         for cls in classes:
             register_class(cls)
 
     def unregister():
-        from bpy.utils import unregister_class
         for cls in reversed(classes):
             unregister_class(cls)
 

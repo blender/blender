@@ -262,7 +262,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
     CD_LAYERS_FREE(vlayers);
     CD_LAYERS_FREE(elayers);
-    /* CD_LAYER_FREE(flayers); */ /* Never allocated. */
+    // CD_LAYER_FREE(flayers); /* Never allocated. */
     CD_LAYERS_FREE(llayers);
     CD_LAYERS_FREE(players);
 
@@ -430,57 +430,159 @@ static int customdata_compare(
 {
   const float thresh_sq = thresh * thresh;
   CustomDataLayer *l1, *l2;
-  int i1 = 0, i2 = 0, tot, j;
+  int layer_count1 = 0, layer_count2 = 0, j;
+  const uint64_t cd_mask_non_generic = CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY |
+                                       CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MDEFORMVERT;
+  const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
 
   for (int i = 0; i < c1->totlayer; i++) {
-    if (ELEM(c1->layers[i].type,
-             CD_MVERT,
-             CD_MEDGE,
-             CD_MPOLY,
-             CD_MLOOPUV,
-             CD_MLOOPCOL,
-             CD_MDEFORMVERT)) {
-      i1++;
+    if (CD_TYPE_AS_MASK(c1->layers[i].type) & cd_mask_all_attr) {
+      layer_count1++;
     }
   }
 
   for (int i = 0; i < c2->totlayer; i++) {
-    if (ELEM(c2->layers[i].type,
-             CD_MVERT,
-             CD_MEDGE,
-             CD_MPOLY,
-             CD_MLOOPUV,
-             CD_MLOOPCOL,
-             CD_MDEFORMVERT)) {
-      i2++;
+    if (CD_TYPE_AS_MASK(c2->layers[i].type) & cd_mask_all_attr) {
+      layer_count2++;
     }
   }
 
-  if (i1 != i2) {
+  if (layer_count1 != layer_count2) {
     return MESHCMP_CDLAYERS_MISMATCH;
   }
 
   l1 = c1->layers;
   l2 = c2->layers;
 
-  for (i1 = 0; i1 < c1->totlayer; i1++) {
+  for (int i1 = 0; i1 < c1->totlayer; i1++) {
     l1 = c1->layers + i1;
-    if ((CD_TYPE_AS_MASK(l1->type) & CD_MASK_PROP_ALL) == 0) {
-      /* Skip non generic attribute layers. */
-      continue;
-    }
-
-    bool found_corresponding_layer = false;
-    for (i2 = 0; i2 < c2->totlayer; i2++) {
+    for (int i2 = 0; i2 < c2->totlayer; i2++) {
       l2 = c2->layers + i2;
       if (l1->type != l2->type || !STREQ(l1->name, l2->name)) {
         continue;
       }
-      found_corresponding_layer = true;
       /* At this point `l1` and `l2` have the same name and type, so they should be compared. */
 
       switch (l1->type) {
 
+        case CD_MVERT: {
+          MVert *v1 = l1->data;
+          MVert *v2 = l2->data;
+          int vtot = m1->totvert;
+
+          for (j = 0; j < vtot; j++, v1++, v2++) {
+            if (len_squared_v3v3(v1->co, v2->co) > thresh_sq) {
+              return MESHCMP_VERTCOMISMATCH;
+            }
+            /* I don't care about normals, let's just do coordinates. */
+          }
+          break;
+        }
+
+        /* We're order-agnostic for edges here. */
+        case CD_MEDGE: {
+          MEdge *e1 = l1->data;
+          MEdge *e2 = l2->data;
+          int etot = m1->totedge;
+          EdgeHash *eh = BLI_edgehash_new_ex(__func__, etot);
+
+          for (j = 0; j < etot; j++, e1++) {
+            BLI_edgehash_insert(eh, e1->v1, e1->v2, e1);
+          }
+
+          for (j = 0; j < etot; j++, e2++) {
+            if (!BLI_edgehash_lookup(eh, e2->v1, e2->v2)) {
+              return MESHCMP_EDGEUNKNOWN;
+            }
+          }
+          BLI_edgehash_free(eh, NULL);
+          break;
+        }
+        case CD_MPOLY: {
+          MPoly *p1 = l1->data;
+          MPoly *p2 = l2->data;
+          int ptot = m1->totpoly;
+
+          for (j = 0; j < ptot; j++, p1++, p2++) {
+            MLoop *lp1, *lp2;
+            int k;
+
+            if (p1->totloop != p2->totloop) {
+              return MESHCMP_POLYMISMATCH;
+            }
+
+            lp1 = m1->mloop + p1->loopstart;
+            lp2 = m2->mloop + p2->loopstart;
+
+            for (k = 0; k < p1->totloop; k++, lp1++, lp2++) {
+              if (lp1->v != lp2->v) {
+                return MESHCMP_POLYVERTMISMATCH;
+              }
+            }
+          }
+          break;
+        }
+        case CD_MLOOP: {
+          MLoop *lp1 = l1->data;
+          MLoop *lp2 = l2->data;
+          int ltot = m1->totloop;
+
+          for (j = 0; j < ltot; j++, lp1++, lp2++) {
+            if (lp1->v != lp2->v) {
+              return MESHCMP_LOOPMISMATCH;
+            }
+          }
+          break;
+        }
+        case CD_MLOOPUV: {
+          MLoopUV *lp1 = l1->data;
+          MLoopUV *lp2 = l2->data;
+          int ltot = m1->totloop;
+
+          for (j = 0; j < ltot; j++, lp1++, lp2++) {
+            if (len_squared_v2v2(lp1->uv, lp2->uv) > thresh_sq) {
+              return MESHCMP_LOOPUVMISMATCH;
+            }
+          }
+          break;
+        }
+        case CD_MLOOPCOL: {
+          MLoopCol *lp1 = l1->data;
+          MLoopCol *lp2 = l2->data;
+          int ltot = m1->totloop;
+
+          for (j = 0; j < ltot; j++, lp1++, lp2++) {
+            if (abs(lp1->r - lp2->r) > thresh || abs(lp1->g - lp2->g) > thresh ||
+                abs(lp1->b - lp2->b) > thresh || abs(lp1->a - lp2->a) > thresh) {
+              return MESHCMP_LOOPCOLMISMATCH;
+            }
+          }
+          break;
+        }
+        case CD_MDEFORMVERT: {
+          MDeformVert *dv1 = l1->data;
+          MDeformVert *dv2 = l2->data;
+          int dvtot = m1->totvert;
+
+          for (j = 0; j < dvtot; j++, dv1++, dv2++) {
+            int k;
+            MDeformWeight *dw1 = dv1->dw, *dw2 = dv2->dw;
+
+            if (dv1->totweight != dv2->totweight) {
+              return MESHCMP_DVERT_TOTGROUPMISMATCH;
+            }
+
+            for (k = 0; k < dv1->totweight; k++, dw1++, dw2++) {
+              if (dw1->def_nr != dw2->def_nr) {
+                return MESHCMP_DVERT_GROUPMISMATCH;
+              }
+              if (fabsf(dw1->weight - dw2->weight) > thresh) {
+                return MESHCMP_DVERT_WEIGHTMISMATCH;
+              }
+            }
+          }
+          break;
+        }
         case CD_PROP_FLOAT: {
           const float *l1_data = l1->data;
           const float *l2_data = l2->data;
@@ -514,157 +616,30 @@ static int customdata_compare(
           }
           break;
         }
-        default: {
-          int element_size = CustomData_sizeof(l1->type);
+        case CD_PROP_INT32: {
+          const int *l1_data = l1->data;
+          const int *l2_data = l2->data;
+
           for (int i = 0; i < total_length; i++) {
-            int offset = element_size * i;
-            if (!CustomData_data_equals(l1->type,
-                                        POINTER_OFFSET(l1->data, offset),
-                                        POINTER_OFFSET(l2->data, offset))) {
+            if (l1_data[i] != l2_data[i]) {
               return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
             }
           }
           break;
         }
-      }
-    }
+        case CD_PROP_BOOL: {
+          const bool *l1_data = l1->data;
+          const bool *l2_data = l2->data;
 
-    if (!found_corresponding_layer) {
-      return MESHCMP_CDLAYERS_MISMATCH;
-    }
-  }
-
-  l1 = c1->layers;
-  l2 = c2->layers;
-  tot = i1;
-  i1 = 0;
-  i2 = 0;
-  for (int i = 0; i < tot; i++) {
-    while (
-        i1 < c1->totlayer &&
-        !ELEM(l1->type, CD_MVERT, CD_MEDGE, CD_MPOLY, CD_MLOOPUV, CD_MLOOPCOL, CD_MDEFORMVERT)) {
-      i1++;
-      l1++;
-    }
-
-    while (
-        i2 < c2->totlayer &&
-        !ELEM(l2->type, CD_MVERT, CD_MEDGE, CD_MPOLY, CD_MLOOPUV, CD_MLOOPCOL, CD_MDEFORMVERT)) {
-      i2++;
-      l2++;
-    }
-
-    if (l1->type == CD_MVERT) {
-      MVert *v1 = l1->data;
-      MVert *v2 = l2->data;
-      int vtot = m1->totvert;
-
-      for (j = 0; j < vtot; j++, v1++, v2++) {
-        if (len_squared_v3v3(v1->co, v2->co) > thresh_sq) {
-          return MESHCMP_VERTCOMISMATCH;
-        }
-        /* I don't care about normals, let's just do coordinates. */
-      }
-    }
-
-    /* We're order-agnostic for edges here. */
-    if (l1->type == CD_MEDGE) {
-      MEdge *e1 = l1->data;
-      MEdge *e2 = l2->data;
-      int etot = m1->totedge;
-      EdgeHash *eh = BLI_edgehash_new_ex(__func__, etot);
-
-      for (j = 0; j < etot; j++, e1++) {
-        BLI_edgehash_insert(eh, e1->v1, e1->v2, e1);
-      }
-
-      for (j = 0; j < etot; j++, e2++) {
-        if (!BLI_edgehash_lookup(eh, e2->v1, e2->v2)) {
-          return MESHCMP_EDGEUNKNOWN;
-        }
-      }
-      BLI_edgehash_free(eh, NULL);
-    }
-
-    if (l1->type == CD_MPOLY) {
-      MPoly *p1 = l1->data;
-      MPoly *p2 = l2->data;
-      int ptot = m1->totpoly;
-
-      for (j = 0; j < ptot; j++, p1++, p2++) {
-        MLoop *lp1, *lp2;
-        int k;
-
-        if (p1->totloop != p2->totloop) {
-          return MESHCMP_POLYMISMATCH;
-        }
-
-        lp1 = m1->mloop + p1->loopstart;
-        lp2 = m2->mloop + p2->loopstart;
-
-        for (k = 0; k < p1->totloop; k++, lp1++, lp2++) {
-          if (lp1->v != lp2->v) {
-            return MESHCMP_POLYVERTMISMATCH;
+          for (int i = 0; i < total_length; i++) {
+            if (l1_data[i] != l2_data[i]) {
+              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+            }
           }
+          break;
         }
-      }
-    }
-    if (l1->type == CD_MLOOP) {
-      MLoop *lp1 = l1->data;
-      MLoop *lp2 = l2->data;
-      int ltot = m1->totloop;
-
-      for (j = 0; j < ltot; j++, lp1++, lp2++) {
-        if (lp1->v != lp2->v) {
-          return MESHCMP_LOOPMISMATCH;
-        }
-      }
-    }
-    if (l1->type == CD_MLOOPUV) {
-      MLoopUV *lp1 = l1->data;
-      MLoopUV *lp2 = l2->data;
-      int ltot = m1->totloop;
-
-      for (j = 0; j < ltot; j++, lp1++, lp2++) {
-        if (len_squared_v2v2(lp1->uv, lp2->uv) > thresh_sq) {
-          return MESHCMP_LOOPUVMISMATCH;
-        }
-      }
-    }
-
-    if (l1->type == CD_MLOOPCOL) {
-      MLoopCol *lp1 = l1->data;
-      MLoopCol *lp2 = l2->data;
-      int ltot = m1->totloop;
-
-      for (j = 0; j < ltot; j++, lp1++, lp2++) {
-        if (abs(lp1->r - lp2->r) > thresh || abs(lp1->g - lp2->g) > thresh ||
-            abs(lp1->b - lp2->b) > thresh || abs(lp1->a - lp2->a) > thresh) {
-          return MESHCMP_LOOPCOLMISMATCH;
-        }
-      }
-    }
-
-    if (l1->type == CD_MDEFORMVERT) {
-      MDeformVert *dv1 = l1->data;
-      MDeformVert *dv2 = l2->data;
-      int dvtot = m1->totvert;
-
-      for (j = 0; j < dvtot; j++, dv1++, dv2++) {
-        int k;
-        MDeformWeight *dw1 = dv1->dw, *dw2 = dv2->dw;
-
-        if (dv1->totweight != dv2->totweight) {
-          return MESHCMP_DVERT_TOTGROUPMISMATCH;
-        }
-
-        for (k = 0; k < dv1->totweight; k++, dw1++, dw2++) {
-          if (dw1->def_nr != dw2->def_nr) {
-            return MESHCMP_DVERT_GROUPMISMATCH;
-          }
-          if (fabsf(dw1->weight - dw2->weight) > thresh) {
-            return MESHCMP_DVERT_WEIGHTMISMATCH;
-          }
+        default: {
+          break;
         }
       }
     }
@@ -967,7 +942,7 @@ Mesh *BKE_mesh_new_nomain(
       NULL, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE);
   BKE_libblock_init_empty(&mesh->id);
 
-  /* Don't use CustomData_reset(...); because we don't want to touch custom-data. */
+  /* Don't use #CustomData_reset because we don't want to touch custom-data. */
   copy_vn_i(mesh->vdata.typemap, CD_NUMTYPES, -1);
   copy_vn_i(mesh->edata.typemap, CD_NUMTYPES, -1);
   copy_vn_i(mesh->fdata.typemap, CD_NUMTYPES, -1);
@@ -1922,15 +1897,14 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
   }
   else {
     polynors = MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__);
-    BKE_mesh_calc_normals_poly(mesh->mvert,
-                               NULL,
-                               mesh->totvert,
-                               mesh->mloop,
-                               mesh->mpoly,
-                               mesh->totloop,
-                               mesh->totpoly,
-                               polynors,
-                               false);
+    BKE_mesh_calc_normals_poly_and_vertex(mesh->mvert,
+                                          mesh->totvert,
+                                          mesh->mloop,
+                                          mesh->totloop,
+                                          mesh->mpoly,
+                                          mesh->totpoly,
+                                          polynors,
+                                          NULL);
     free_polynors = true;
   }
 

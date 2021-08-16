@@ -1773,7 +1773,7 @@ static void tree_element_to_path(TreeElement *te,
           char buf[128], *name;
 
           temnext = (TreeElement *)(ld->next->data);
-          /* tsenext = TREESTORE(temnext); */ /* UNUSED */
+          // tsenext = TREESTORE(temnext); /* UNUSED */
 
           nextptr = &temnext->rnaptr;
           name = RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), NULL);

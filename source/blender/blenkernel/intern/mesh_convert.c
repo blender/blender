@@ -272,8 +272,8 @@ static int mesh_nurbs_displist_to_mdata(const Curve *cu,
   }
 
   if (totvert == 0) {
-    /* error("can't convert"); */
-    /* Make Sure you check ob->data is a curve */
+    /* Make Sure you check ob->data is a curve. */
+    // error("can't convert");
     return -1;
   }
 

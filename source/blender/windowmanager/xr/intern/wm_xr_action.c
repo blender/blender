@@ -74,7 +74,7 @@ static wmXrAction *action_create(const char *action_name,
                                  const char **subaction_paths,
                                  wmOperatorType *ot,
                                  IDProperty *op_properties,
-                                 const char **haptic_name,
+                                 const char *haptic_name,
                                  const int64_t *haptic_duration,
                                  const float *haptic_frequency,
                                  const float *haptic_amplitude,
@@ -134,8 +134,8 @@ static wmXrAction *action_create(const char *action_name,
 
   if (haptic_name) {
     BLI_assert(is_button_action);
-    action->haptic_name = MEM_mallocN(strlen(*haptic_name) + 1, "XrAction_HapticName");
-    strcpy(action->haptic_name, *haptic_name);
+    action->haptic_name = MEM_mallocN(strlen(haptic_name) + 1, "XrAction_HapticName");
+    strcpy(action->haptic_name, haptic_name);
     action->haptic_duration = *haptic_duration;
     action->haptic_frequency = *haptic_frequency;
     action->haptic_amplitude = *haptic_amplitude;
@@ -232,7 +232,7 @@ bool WM_xr_action_create(wmXrData *xr,
                          const char **subaction_paths,
                          wmOperatorType *ot,
                          IDProperty *op_properties,
-                         const char **haptic_name,
+                         const char *haptic_name,
                          const int64_t *haptic_duration,
                          const float *haptic_frequency,
                          const float *haptic_amplitude,
@@ -502,7 +502,7 @@ bool WM_xr_action_state_get(const wmXrData *xr,
 bool WM_xr_haptic_action_apply(wmXrData *xr,
                                const char *action_set_name,
                                const char *action_name,
-                               const char **subaction_path,
+                               const char *subaction_path,
                                const int64_t *duration,
                                const float *frequency,
                                const float *amplitude)
@@ -521,7 +521,7 @@ bool WM_xr_haptic_action_apply(wmXrData *xr,
 void WM_xr_haptic_action_stop(wmXrData *xr,
                               const char *action_set_name,
                               const char *action_name,
-                              const char **subaction_path)
+                              const char *subaction_path)
 {
   GHOST_XrStopHapticAction(xr->runtime->context, action_set_name, action_name, subaction_path);
 }

@@ -30,7 +30,7 @@
 
 static bNodeSocketTemplate geo_node_attribute_sample_texture_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_TEXTURE, N_("Texture")},
+    {SOCK_TEXTURE, N_("Texture"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, PROP_NONE, SOCK_HIDE_LABEL},
     {SOCK_STRING, N_("Mapping")},
     {SOCK_STRING, N_("Result")},
     {-1, ""},

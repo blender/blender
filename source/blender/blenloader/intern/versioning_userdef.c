@@ -873,13 +873,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  if (!USER_VERSION_ATLEAST(293, 2)) {
-    /* Enable asset browser features by default for alpha testing.
-     * BLO_sanitize_experimental_features_userpref_blend() will disable it again for non-alpha
-     * builds. */
-    userdef->experimental.use_asset_browser = true;
-  }
-
   if (!USER_VERSION_ATLEAST(293, 12)) {
     if (userdef->gizmo_size_navigate_v3d == 0) {
       userdef->gizmo_size_navigate_v3d = 80;

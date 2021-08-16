@@ -556,15 +556,13 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, num_polys);
     CustomData_set_layer_flag(pdata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
-  BKE_mesh_calc_normals_poly(mvert,
-                             NULL,
-                             num_verts,
-                             mloop,
-                             mpoly,
-                             num_loops,
-                             num_polys,
-                             polynors,
-                             (result->runtime.cd_dirty_vert & CD_MASK_NORMAL) ? false : true);
+  if (result->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
+    BKE_mesh_calc_normals_poly_and_vertex(
+        mvert, num_verts, mloop, num_loops, mpoly, num_polys, polynors, NULL);
+  }
+  else {
+    BKE_mesh_calc_normals_poly(mvert, num_verts, mloop, num_loops, mpoly, num_polys, polynors);
+  }
 
   result->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
 

@@ -531,6 +531,7 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
       bNodeTree *ngroup = (bNodeTree *)node->id;
       ntreeFreeLocalNode(localtree, node);
       ntreeFreeTree(ngroup);
+      BLI_assert(!ngroup->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
       MEM_freeN(ngroup);
     }
     else {

@@ -36,7 +36,7 @@ using PointerRNAVec = blender::Vector<PointerRNA>;
 
 static bool asset_operation_poll(bContext * /*C*/)
 {
-  return U.experimental.use_asset_browser;
+  return U.experimental.use_extended_asset_browser;
 }
 
 /**

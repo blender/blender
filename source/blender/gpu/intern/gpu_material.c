@@ -758,6 +758,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   /* Only free after GPU_pass_shader_get where GPUUniformBuf
    * read data from the local tree. */
   ntreeFreeLocalTree(localtree);
+  BLI_assert(!localtree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
   MEM_freeN(localtree);
 
   /* note that even if building the shader fails in some way, we still keep

@@ -319,7 +319,7 @@ static void rna_def_asset_library_reference(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "AssetLibraryReference", NULL);
   RNA_def_struct_ui_text(
-      srna, "Asset Library Reference", "Identifier to refere to the asset library");
+      srna, "Asset Library Reference", "Identifier to refer to the asset library");
 }
 
 /**

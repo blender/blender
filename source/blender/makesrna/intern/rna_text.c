@@ -240,8 +240,7 @@ static void rna_def_text(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_module", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISSCRIPT);
-  RNA_def_property_ui_text(
-      prop, "Register", "Run this text as a script on loading, Text name must end with \".py\"");
+  RNA_def_property_ui_text(prop, "Register", "Run this text as a Python script on loading");
 
   prop = RNA_def_property(srna, "indentation", PROP_ENUM, PROP_NONE); /* as an enum */
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");

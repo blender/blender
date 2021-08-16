@@ -134,6 +134,28 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
         else {
           structname = RNA_struct_ui_name(ptr.type);
         }
+
+        /* For the VSE, a strip's 'Transform' or 'Crop' is a nested (under Sequence) struct, but
+         * displaying the struct name alone is no meaningful information (and also cannot be
+         * filtered well), same for modifiers. So display strip name alongside as well. */
+        if (GS(ptr.owner_id->name) == ID_SCE) {
+          if (BLI_str_startswith(fcu->rna_path, "sequence_editor.sequences_all[\"")) {
+            if (strstr(fcu->rna_path, ".transform.") || strstr(fcu->rna_path, ".crop.") ||
+                strstr(fcu->rna_path, ".modifiers[")) {
+              char *stripname = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
+              const char *structname_all = BLI_sprintfN(
+                  "%s : %s", stripname ? stripname : "", structname);
+              if (free_structname) {
+                MEM_freeN((void *)structname);
+              }
+              if (stripname) {
+                MEM_freeN(stripname);
+              }
+              structname = structname_all;
+              free_structname = 1;
+            }
+          }
+        }
       }
 
       /* Property Name is straightforward */

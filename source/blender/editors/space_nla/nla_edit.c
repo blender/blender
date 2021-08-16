@@ -241,9 +241,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
 
-  /* if we managed to enter tweak-mode on at least one AnimData block,
-   * set the flag for this in the active scene and send notifiers
-   */
+  /* Clear the tweak-mode flag in the active scene and send notifiers. */
   if (ac->scene) {
     /* clear editing flag */
     ac->scene->flag &= ~SCE_NLA_EDIT_ON;

@@ -44,14 +44,28 @@
 /** \name Enum Conversion.
  * \{ */
 
+#define PYDOC_BUILTIN_SHADER_LIST \
+  "      - ``2D_FLAT_COLOR``\n" \
+  "      - ``2D_IMAGE``\n" \
+  "      - ``2D_SMOOTH_COLOR``\n" \
+  "      - ``2D_UNIFORM_COLOR``\n" \
+  "      - ``3D_FLAT_COLOR``\n" \
+  "      - ``3D_SMOOTH_COLOR``\n" \
+  "      - ``3D_UNIFORM_COLOR``\n" \
+  "      - ``3D_POLYLINE_FLAT_COLOR``\n" \
+  "      - ``3D_POLYLINE_SMOOTH_COLOR``\n" \
+  "      - ``3D_POLYLINE_UNIFORM_COLOR``\n"
+
 static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
-    {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
     {GPU_SHADER_2D_FLAT_COLOR, "2D_FLAT_COLOR"},
-    {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
     {GPU_SHADER_2D_IMAGE, "2D_IMAGE"},
-    {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
+    {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
+    {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
     {GPU_SHADER_3D_FLAT_COLOR, "3D_FLAT_COLOR"},
     {GPU_SHADER_3D_SMOOTH_COLOR, "3D_SMOOTH_COLOR"},
+    {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "3D_POLYLINE_FLAT_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR, "3D_POLYLINE_SMOOTH_COLOR"},
     {GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR, "3D_POLYLINE_UNIFORM_COLOR"},
     {0, NULL},
 };
@@ -704,14 +718,8 @@ PyDoc_STRVAR(pygpu_shader_from_builtin_doc,
              "   For more details, you can check the shader code with the\n"
              "   :func:`gpu.shader.code_from_builtin` function.\n"
              "\n"
-             "   :param pygpu_shader_name: One of these builtin shader names:\n\n"
-             "      - ``2D_UNIFORM_COLOR``\n"
-             "      - ``2D_FLAT_COLOR``\n"
-             "      - ``2D_SMOOTH_COLOR``\n"
-             "      - ``2D_IMAGE``\n"
-             "      - ``3D_UNIFORM_COLOR``\n"
-             "      - ``3D_FLAT_COLOR``\n"
-             "      - ``3D_SMOOTH_COLOR``\n"
+             "   :param pygpu_shader_name: One of these builtin shader names:\n"
+             "\n" PYDOC_BUILTIN_SHADER_LIST
              "   :type pygpu_shader_name: str\n"
              "   :return: Shader object corresponding to the given name.\n"
              "   :rtype: :class:`bpy.types.GPUShader`\n");
@@ -734,14 +742,8 @@ PyDoc_STRVAR(pygpu_shader_code_from_builtin_doc,
              "\n"
              "   Exposes the internal shader code for query.\n"
              "\n"
-             "   :param pygpu_shader_name: One of these builtin shader names:\n\n"
-             "      - ``2D_UNIFORM_COLOR``\n"
-             "      - ``2D_FLAT_COLOR``\n"
-             "      - ``2D_SMOOTH_COLOR``\n"
-             "      - ``2D_IMAGE``\n"
-             "      - ``3D_UNIFORM_COLOR``\n"
-             "      - ``3D_FLAT_COLOR``\n"
-             "      - ``3D_SMOOTH_COLOR``\n"
+             "   :param pygpu_shader_name: One of these builtin shader names:\n"
+             "\n" PYDOC_BUILTIN_SHADER_LIST
              "   :type pygpu_shader_name: str\n"
              "   :return: Vertex, fragment and geometry shader codes.\n"
              "   :rtype: dict\n");

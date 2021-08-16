@@ -612,7 +612,6 @@ static bool rna_XrSessionState_action_create(bContext *C,
   const bool is_button_action = (is_float_action || ami->type == XR_BOOLEAN_INPUT);
   wmOperatorType *ot = NULL;
   IDProperty *op_properties = NULL;
-  const char *haptic_name = NULL;
   int64_t haptic_duration_msec;
 
   if (is_button_action) {
@@ -625,7 +624,6 @@ static bool rna_XrSessionState_action_create(bContext *C,
       }
     }
 
-    haptic_name = &ami->haptic_name[0];
     haptic_duration_msec = (int64_t)(ami->haptic_duration * 1000.0f);
   }
 
@@ -637,7 +635,7 @@ static bool rna_XrSessionState_action_create(bContext *C,
                              subaction_paths,
                              ot,
                              op_properties,
-                             is_button_action ? &haptic_name : NULL,
+                             is_button_action ? ami->haptic_name : NULL,
                              is_button_action ? &haptic_duration_msec : NULL,
                              is_button_action ? &ami->haptic_frequency : NULL,
                              is_button_action ? &ami->haptic_amplitude : NULL,
@@ -793,7 +791,7 @@ bool rna_XrSessionState_haptic_action_apply(bContext *C,
   return WM_xr_haptic_action_apply(&wm->xr,
                                    action_set_name,
                                    action_name,
-                                   user_path[0] ? &user_path : NULL,
+                                   user_path[0] ? user_path : NULL,
                                    &duration_msec,
                                    &frequency,
                                    &amplitude);
@@ -810,8 +808,7 @@ void rna_XrSessionState_haptic_action_stop(bContext *C,
 {
 #  ifdef WITH_XR_OPENXR
   wmWindowManager *wm = CTX_wm_manager(C);
-  WM_xr_haptic_action_stop(
-      &wm->xr, action_set_name, action_name, user_path[0] ? &user_path : NULL);
+  WM_xr_haptic_action_stop(&wm->xr, action_set_name, action_name, user_path[0] ? user_path : NULL);
 #  else
   UNUSED_VARS(C, action_set_name, action_name, user_path);
 #  endif

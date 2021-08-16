@@ -130,7 +130,7 @@ class ASSET_OT_open_containing_blend_file(Operator):
             return {'RUNNING_MODAL'}
 
         if returncode:
-            self.report({'WARNING'}, "Blender subprocess exited with error code %d" % returncode)
+            self.report({'WARNING'}, "Blender sub-process exited with error code %d" % returncode)
 
         # TODO(Sybren): Replace this with a generic "reload assets" operator
         # that can run outside of the Asset Browser context.

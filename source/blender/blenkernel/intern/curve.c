@@ -638,7 +638,7 @@ void BKE_nurb_free(Nurb *nu)
     MEM_freeN(nu->knotsv);
   }
   nu->knotsv = NULL;
-  /* if (nu->trim.first) freeNurblist(&(nu->trim)); */
+  // if (nu->trim.first) freeNurblist(&(nu->trim));
 
   MEM_freeN(nu);
 }

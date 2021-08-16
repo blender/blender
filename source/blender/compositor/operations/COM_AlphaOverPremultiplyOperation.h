@@ -28,10 +28,14 @@ namespace blender::compositor {
  */
 class AlphaOverPremultiplyOperation : public MixBaseOperation {
  public:
+  AlphaOverPremultiplyOperation();
+
   /**
    * The inner loop of this operation.
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  void update_memory_buffer_row(PixelCursor &p) override;
 };
 
 }  // namespace blender::compositor

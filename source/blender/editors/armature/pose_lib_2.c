@@ -423,7 +423,7 @@ static void poselib_blend_cleanup(bContext *C, wmOperator *op)
     case POSE_BLEND_ORIGINAL:
       /* Cleanup should not be called directly from these states. */
       BLI_assert_msg(0, "poselib_blend_cleanup: unexpected pose blend state");
-      BKE_report(op->reports, RPT_ERROR, "Internal pose library error, cancelling operator");
+      BKE_report(op->reports, RPT_ERROR, "Internal pose library error, canceling operator");
       ATTR_FALLTHROUGH;
     case POSE_BLEND_CANCEL:
       ED_pose_backup_restore(pbd->pose_backup);

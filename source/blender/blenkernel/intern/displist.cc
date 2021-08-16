@@ -1003,7 +1003,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
       modified = temp_mesh;
 
       BKE_mesh_vert_coords_apply(modified, vertCos);
-      BKE_mesh_calc_normals_mapping_simple(modified);
+      BKE_mesh_calc_normals(modified);
 
       MEM_freeN(vertCos);
     }

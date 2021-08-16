@@ -19,7 +19,7 @@
 /** \file
  * \ingroup draw_engine
  *
- * Engine for debuging the selection map drawing.
+ * Engine for debugging the selection map drawing.
  */
 
 #include "DNA_ID.h"

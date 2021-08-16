@@ -226,6 +226,9 @@ void POSE_OT_ik_add(struct wmOperatorType *ot);
 void POSE_OT_ik_clear(struct wmOperatorType *ot);
 
 void CONSTRAINT_OT_delete(struct wmOperatorType *ot);
+void CONSTRAINT_OT_apply(struct wmOperatorType *ot);
+void CONSTRAINT_OT_copy(struct wmOperatorType *ot);
+void CONSTRAINT_OT_copy_to_selected(struct wmOperatorType *ot);
 
 void CONSTRAINT_OT_move_up(struct wmOperatorType *ot);
 void CONSTRAINT_OT_move_to_index(struct wmOperatorType *ot);

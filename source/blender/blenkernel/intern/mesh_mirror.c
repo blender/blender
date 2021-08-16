@@ -397,15 +397,14 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
     /* calculate custom normals into loop_normals, then mirror first half into second half */
 
-    BKE_mesh_calc_normals_poly(result->mvert,
-                               NULL,
-                               result->totvert,
-                               result->mloop,
-                               result->mpoly,
-                               totloop,
-                               totpoly,
-                               poly_normals,
-                               false);
+    BKE_mesh_calc_normals_poly_and_vertex(result->mvert,
+                                          result->totvert,
+                                          result->mloop,
+                                          totloop,
+                                          result->mpoly,
+                                          totpoly,
+                                          poly_normals,
+                                          NULL);
 
     BKE_mesh_normals_loop_split(result->mvert,
                                 result->totvert,

@@ -364,7 +364,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   }
 
   block = uiLayoutGetBlock(layout);
-  /* UI_block_func_handle_set(block, do_graph_region_buttons, NULL); */
+  // UI_block_func_handle_set(block, do_graph_region_buttons, NULL);
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 

@@ -1,0 +1,23 @@
+diff --git a/runtime/src/z_Linux_asm.S b/runtime/src/z_Linux_asm.S
+index 0d8885e..42aa5ad 100644
+--- a/runtime/src/z_Linux_asm.S
++++ b/runtime/src/z_Linux_asm.S
+@@ -1540,10 +1540,12 @@ __kmp_unnamed_critical_addr:
+     .comm .gomp_critical_user_,32,8
+     .data
+     .align 8
+-    .global __kmp_unnamed_critical_addr
+-__kmp_unnamed_critical_addr:
++    .global ___kmp_unnamed_critical_addr
++___kmp_unnamed_critical_addr:
+     .8byte .gomp_critical_user_
+-    .size __kmp_unnamed_critical_addr,8
++#  if !(KMP_OS_DARWIN)
++    .size ___kmp_unnamed_critical_addr,8
++#  endif
+ #endif /* KMP_ARCH_PPC64 || KMP_ARCH_AARCH64 */
+ 
+ #if KMP_OS_LINUX
+
+
+

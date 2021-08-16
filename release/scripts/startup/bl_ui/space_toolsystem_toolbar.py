@@ -1905,6 +1905,7 @@ class _defs_gpencil_paint:
 
         brush_basic__draw_color_selector(context, layout, brush, gp_settings, props)
         brush_basic_gpencil_paint_settings(layout, context, brush, compact=True)
+        return True
 
     @staticmethod
     def generate_from_brushes(context):

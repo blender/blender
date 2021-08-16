@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_node_types.h"
 
 namespace blender::compositor {
@@ -39,7 +39,7 @@ typedef struct AvgLogLum {
  * \brief base class of tonemap, implementing the simple tonemap
  * \ingroup operation
  */
-class TonemapOperation : public NodeOperation {
+class TonemapOperation : public MultiThreadedOperation {
  protected:
   /**
    * \brief Cached reference to the reader
@@ -85,6 +85,14 @@ class TonemapOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_started(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+  virtual void update_memory_buffer_partial(MemoryBuffer *output,
+                                            const rcti &area,
+                                            Span<MemoryBuffer *> inputs) override;
 };
 
 /**
@@ -99,6 +107,10 @@ class PhotoreceptorTonemapOperation : public TonemapOperation {
    * The inner loop of this operation.
    */
   void executePixel(float output[4], int x, int y, void *data) override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

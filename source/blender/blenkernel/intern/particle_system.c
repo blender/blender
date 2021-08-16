@@ -4761,6 +4761,7 @@ static void particle_settings_free_local(ParticleSettings *particle_settings)
 {
   BKE_libblock_free_datablock(&particle_settings->id, 0);
   BKE_libblock_free_data(&particle_settings->id, false);
+  BLI_assert(!particle_settings->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
   MEM_freeN(particle_settings);
 }
 

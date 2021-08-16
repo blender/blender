@@ -45,6 +45,8 @@ class AlphaOverMixedOperation : public MixBaseOperation {
   {
     this->m_x = x;
   }
+
+  void update_memory_buffer_row(PixelCursor &p) override;
 };
 
 }  // namespace blender::compositor

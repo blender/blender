@@ -304,6 +304,8 @@ static void geo_node_convex_hull_exec(GeoNodeExecParams params)
   }
   params.set_output("Convex Hull", GeometrySet::create_with_mesh(mesh));
 #else
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without Bullet"));
   params.set_output("Convex Hull", geometry_set);
 #endif /* WITH_BULLET */
 }

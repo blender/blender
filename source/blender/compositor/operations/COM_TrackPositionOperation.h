@@ -20,7 +20,7 @@
 
 #include <string.h>
 
-#include "COM_NodeOperation.h"
+#include "COM_ConstantOperation.h"
 
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
@@ -33,7 +33,7 @@ namespace blender::compositor {
 /**
  * Class with implementation of green screen gradient rasterization
  */
-class TrackPositionOperation : public NodeOperation {
+class TrackPositionOperation : public ConstantOperation {
  protected:
   MovieClip *m_movieClip;
   int m_framenumber;
@@ -47,6 +47,8 @@ class TrackPositionOperation : public NodeOperation {
   int m_width, m_height;
   float m_markerPos[2];
   float m_relativePos[2];
+  float track_position_;
+  bool is_track_position_calculated_;
 
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -93,6 +95,11 @@ class TrackPositionOperation : public NodeOperation {
   void initExecution() override;
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  const float *get_constant_elem() override;
+
+ private:
+  void calc_track_position();
 };
 
 }  // namespace blender::compositor

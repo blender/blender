@@ -2117,7 +2117,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_viewlayer_masks", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER);
   RNA_def_property_ui_text(
-      prop, "Use Masks in Render", "Include the mask layers when rendering the viewlayer");
+      prop, "Use Masks in Render", "Include the mask layers when rendering the view-layer");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   /* blend mode */

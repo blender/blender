@@ -341,7 +341,7 @@ bool ED_gpencil_has_keyframe_v3d(Scene *UNUSED(scene), Object *ob, int cfra)
         return (gpl->actframe->framenum == cfra);
       }
       /* XXX: disabled as could be too much of a penalty */
-      /* return BKE_gpencil_layer_frame_find(gpl, cfra); */
+      // return BKE_gpencil_layer_frame_find(gpl, cfra);
     }
   }
 

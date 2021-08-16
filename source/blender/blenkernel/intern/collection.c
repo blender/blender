@@ -508,7 +508,7 @@ void BKE_collection_add_from_collection(Main *bmain,
  * \{ */
 
 /** Free (or release) any data used by this collection (does not free the collection itself). */
-void BKE_collection_free(Collection *collection)
+void BKE_collection_free_data(Collection *collection)
 {
   BKE_libblock_free_data(&collection->id, false);
   collection_free_data(&collection->id);

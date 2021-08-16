@@ -131,14 +131,10 @@ void GPU_matrix_project_2fv(const float world[3],
                             float r_win[2]);
 
 bool GPU_matrix_unproject_3fv(const float win[3],
-                              const float model[4][4],
+                              const float model_inverted[4][4],
                               const float proj[4][4],
                               const int view[4],
                               float r_world[3]);
-
-void GPU_matrix_unproject_3fv_with_precalc(const struct GPUMatrixUnproject_Precalc *unproj_precalc,
-                                           const float win[3],
-                                           float r_world[3]);
 
 /* 2D Projection Matrix */
 

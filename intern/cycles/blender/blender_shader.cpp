@@ -149,7 +149,7 @@ BlenderAttributeType blender_attribute_name_split_type(ustring name, string *r_r
 static BL::NodeSocket get_node_output(BL::Node &b_node, const string &name)
 {
   for (BL::NodeSocket &b_out : b_node.outputs) {
-    if (b_out.name() == name) {
+    if (b_out.identifier() == name) {
       return b_out;
     }
   }
@@ -215,7 +215,12 @@ static void set_default_value(ShaderInput *input,
       break;
     }
     case SocketType::INT: {
-      node->set(socket, get_int(b_sock.ptr, "default_value"));
+      if (b_sock.type() == BL::NodeSocket::type_BOOLEAN) {
+        node->set(socket, get_boolean(b_sock.ptr, "default_value"));
+      }
+      else {
+        node->set(socket, get_int(b_sock.ptr, "default_value"));
+      }
       break;
     }
     case SocketType::COLOR: {
@@ -1002,71 +1007,48 @@ static bool node_use_modified_socket_name(ShaderNode *node)
   return true;
 }
 
-static ShaderInput *node_find_input_by_name(ShaderNode *node,
-                                            BL::Node &b_node,
-                                            BL::NodeSocket &b_socket)
+static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::NodeSocket &b_socket)
 {
-  string name = b_socket.name();
+  string name = b_socket.identifier();
+  ShaderInput *input = node->input(name.c_str());
 
-  if (node_use_modified_socket_name(node)) {
-    bool found = false;
-    int counter = 0, total = 0;
+  if (!input && node_use_modified_socket_name(node)) {
+    /* Different internal name for shader. */
+    if (string_startswith(name, "Shader")) {
+      string_replace(name, "Shader", "Closure");
+    }
+    input = node->input(name.c_str());
 
-    for (BL::NodeSocket &b_input : b_node.inputs) {
-      if (b_input.name() == name) {
-        if (!found) {
-          counter++;
-        }
-        total++;
+    if (!input) {
+      /* Different internal numbering of two sockets with same name. */
+      if (string_endswith(name, "_001")) {
+        string_replace(name, "_001", "2");
+      }
+      else {
+        name += "1";
       }
 
-      if (b_input.ptr.data == b_socket.ptr.data)
-        found = true;
+      input = node->input(name.c_str());
     }
-
-    /* rename if needed */
-    if (name == "Shader")
-      name = "Closure";
-
-    if (total > 1)
-      name = string_printf("%s%d", name.c_str(), counter);
   }
 
-  return node->input(name.c_str());
+  return input;
 }
 
-static ShaderOutput *node_find_output_by_name(ShaderNode *node,
-                                              BL::Node &b_node,
-                                              BL::NodeSocket &b_socket)
+static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::NodeSocket &b_socket)
 {
-  string name = b_socket.name();
+  string name = b_socket.identifier();
+  ShaderOutput *output = node->output(name.c_str());
 
-  if (node_use_modified_socket_name(node)) {
-    bool found = false;
-    int counter = 0, total = 0;
-
-    for (BL::NodeSocket &b_output : b_node.outputs) {
-      if (b_output.name() == name) {
-        if (!found) {
-          counter++;
-        }
-        total++;
-      }
-
-      if (b_output.ptr.data == b_socket.ptr.data) {
-        found = true;
-      }
-    }
-
-    /* rename if needed */
-    if (name == "Shader")
+  if (!output && node_use_modified_socket_name(node)) {
+    /* Different internal name for shader. */
+    if (name == "Shader") {
       name = "Closure";
-
-    if (total > 1)
-      name = string_printf("%s%d", name.c_str(), counter);
+      output = node->output(name.c_str());
+    }
   }
 
-  return node->output(name.c_str());
+  return output;
 }
 
 static void add_nodes(Scene *scene,
@@ -1209,7 +1191,7 @@ static void add_nodes(Scene *scene,
       if (node) {
         /* map node sockets for linking */
         for (BL::NodeSocket &b_input : b_node.inputs) {
-          ShaderInput *input = node_find_input_by_name(node, b_node, b_input);
+          ShaderInput *input = node_find_input_by_name(node, b_input);
           if (!input) {
             /* XXX should not happen, report error? */
             continue;
@@ -1219,7 +1201,7 @@ static void add_nodes(Scene *scene,
           set_default_value(input, b_input, b_data, b_ntree);
         }
         for (BL::NodeSocket &b_output : b_node.outputs) {
-          ShaderOutput *output = node_find_output_by_name(node, b_node, b_output);
+          ShaderOutput *output = node_find_output_by_name(node, b_output);
           if (!output) {
             /* XXX should not happen, report error? */
             continue;

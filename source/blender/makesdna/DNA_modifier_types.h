@@ -136,6 +136,7 @@ typedef struct ModifierData {
 
   /* Runtime field which contains runtime data which is specific to a modifier type. */
   void *runtime;
+  void *_pad1;
 } ModifierData;
 
 typedef enum {
@@ -215,6 +216,7 @@ typedef struct LatticeModifierData {
   float strength;
   short flag;
   char _pad[2];
+  void *_pad1;
 } LatticeModifierData;
 
 /* Lattice modifier flags. */
@@ -232,6 +234,7 @@ typedef struct CurveModifierData {
   short defaxis;
   short flag;
   char _pad[4];
+  void *_pad1;
 } CurveModifierData;
 
 /* Curve modifier flags */
@@ -283,6 +286,7 @@ typedef struct MaskModifierData {
   /** Flags for various things. */
   short flag;
   float threshold;
+  void *_pad1;
 } MaskModifierData;
 
 /* Mask Modifier -> mode */
@@ -373,6 +377,7 @@ typedef struct MirrorModifierData {
   float uv_offset[2];
   float uv_offset_copy[2];
   struct Object *mirror_ob;
+  void *_pad1;
 } MirrorModifierData;
 
 /* MirrorModifierData->flag */
@@ -451,6 +456,7 @@ typedef struct BevelModifierData {
   /** Curve info for the custom profile */
   struct CurveProfile *custom_profile;
 
+  void *_pad2;
 } BevelModifierData;
 
 /* BevelModifierData->flags and BevelModifierData->lim_flags */
@@ -535,6 +541,7 @@ typedef struct FluidModifierData {
   float time;
   /** Domain, inflow, outflow, .... */
   int type;
+  void *_pad1;
 } FluidModifierData;
 
 /* Fluid modifier flags */
@@ -680,6 +687,7 @@ typedef struct CastModifierData {
   /** MAX_VGROUP_NAME. */
   char defgrp_name[64];
   short flag, type;
+  void *_pad1;
 } CastModifierData;
 
 /* Cast modifier flags */
@@ -725,6 +733,7 @@ typedef struct WaveModifierData {
 
   float timeoffs, lifetime;
   char _pad1[4];
+  void *_pad2;
 } WaveModifierData;
 
 /* WaveModifierData.flag */
@@ -797,6 +806,7 @@ typedef struct HookModifierData {
   float force;
   /** Optional vertexgroup name, MAX_VGROUP_NAME. */
   char name[64];
+  void *_pad1;
 } HookModifierData;
 
 typedef struct SoftbodyModifierData {
@@ -1001,6 +1011,7 @@ typedef struct ParticleSystemModifierData {
   int totdmvert, totdmedge, totdmface;
   short flag;
   char _pad[2];
+  void *_pad1;
 } ParticleSystemModifierData;
 
 typedef enum {
@@ -1037,6 +1048,7 @@ typedef struct ParticleInstanceModifierData {
   char index_layer_name[64];
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char value_layer_name[64];
+  void *_pad1;
 } ParticleInstanceModifierData;
 
 typedef enum {
@@ -1057,6 +1069,7 @@ typedef struct ExplodeModifierData {
   float protect;
   /** MAX_CUSTOMDATA_LAYER_NAME. */
   char uvname[64];
+  void *_pad1;
 } ExplodeModifierData;
 
 typedef struct MultiresModifierData {
@@ -1086,6 +1099,7 @@ typedef struct FluidsimModifierData {
 
   /** Definition is in DNA_object_fluidsim_types.h. */
   struct FluidsimSettings *fss;
+  void *_pad1;
 } FluidsimModifierData;
 
 /* DEPRECATED, only used for versioning. */
@@ -1202,6 +1216,7 @@ typedef struct SimpleDeformModifierData {
   char deform_axis;
   char flag;
 
+  void *_pad1;
 } SimpleDeformModifierData;
 
 /* SimpleDeform->flag */
@@ -1310,6 +1325,7 @@ typedef struct ScrewModifierData {
   short flag;
   char axis;
   char _pad[5];
+  void *_pad1;
 } ScrewModifierData;
 
 enum {
@@ -1434,6 +1450,7 @@ typedef struct WarpModifierData {
   char flag;
   char falloff_type;
   char _pad[6];
+  void *_pad1;
 } WarpModifierData;
 
 /* WarpModifierData->flag */
@@ -1497,6 +1514,7 @@ typedef struct WeightVGEditModifierData {
 
   /* Padding... */
   char _pad0[4];
+  void *_pad1;
 } WeightVGEditModifierData;
 
 /* WeightVGEdit flags. */
@@ -2062,6 +2080,7 @@ typedef struct DataTransferModifierData {
   char defgrp_name[64];
 
   int flags;
+  void *_pad2;
 } DataTransferModifierData;
 
 /* DataTransferModifierData.flags */
@@ -2092,6 +2111,7 @@ typedef struct NormalEditModifierData {
   float mix_limit;
   float offset[3];
   char _pad0[4];
+  void *_pad1;
 } NormalEditModifierData;
 
 /* NormalEditModifierData.mode */
@@ -2152,6 +2172,7 @@ typedef struct MeshSeqCacheModifierData {
   float last_lookup_time;
 
   int _pad1;
+  void *_pad2;
 } MeshSeqCacheModifierData;
 
 /* MeshSeqCacheModifierData.read_flag */
@@ -2196,6 +2217,7 @@ typedef struct SurfaceDeformModifierData {
   float mat[4][4];
   float strength;
   char defgrp_name[64];
+  void *_pad1;
 } SurfaceDeformModifierData;
 
 /* Surface Deform modifier flags */
@@ -2257,6 +2279,7 @@ typedef struct NodesModifierData {
   /* Contains logged information from the last evaluation. This can be used to help the user to
    * debug a node tree. */
   void *runtime_eval_log;
+  void *_pad1;
 } NodesModifierData;
 
 typedef struct MeshToVolumeModifierData {
@@ -2284,6 +2307,7 @@ typedef struct MeshToVolumeModifierData {
 
   float density;
   char _pad2[4];
+  void *_pad3;
 } MeshToVolumeModifierData;
 
 /* MeshToVolumeModifierData->resolution_mode */
@@ -2330,6 +2354,7 @@ typedef struct VolumeToMeshModifierData {
 
   /** MAX_NAME */
   char grid_name[64];
+  void *_pad1;
 } VolumeToMeshModifierData;
 
 /** VolumeToMeshModifierData->resolution_mode */

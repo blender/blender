@@ -343,7 +343,7 @@ static int ui_block_align_butal_cmp(const void *a, const void *b)
    *     stupid UI code produces widgets which have the same TOP and LEFT positions...
    *     We do not care really,
    *     because this happens when UI is way too small to be usable anyway. */
-  /* BLI_assert(0); */
+  // BLI_assert(0);
   return 0;
 }
 

@@ -47,6 +47,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -265,6 +266,11 @@ static const char *preview_collection_name(const ePreviewType pr_type)
   }
 }
 
+static bool render_engine_supports_ray_visibility(const Scene *sce)
+{
+  return !STREQ(sce->r.engine, RE_engine_id_BLENDER_EEVEE);
+}
+
 static void switch_preview_collection_visibilty(ViewLayer *view_layer, const ePreviewType pr_type)
 {
   /* Set appropriate layer as visible. */
@@ -281,29 +287,60 @@ static void switch_preview_collection_visibilty(ViewLayer *view_layer, const ePr
   }
 }
 
-static void switch_preview_floor_visibility(ViewLayer *view_layer,
+static const char *preview_floor_material_name(const Scene *scene,
+                                               const ePreviewRenderMethod pr_method)
+{
+  if (pr_method == PR_ICON_RENDER && render_engine_supports_ray_visibility(scene)) {
+    return "FloorHidden";
+  }
+  return "Floor";
+}
+
+static void switch_preview_floor_material(Main *pr_main,
+                                          Mesh *me,
+                                          const Scene *scene,
+                                          const ePreviewRenderMethod pr_method)
+{
+  if (me->totcol == 0) {
+    return;
+  }
+
+  const char *material_name = preview_floor_material_name(scene, pr_method);
+  Material *mat = BLI_findstring(&pr_main->materials, material_name, offsetof(ID, name) + 2);
+  if (mat) {
+    me->mat[0] = mat;
+  }
+}
+
+static void switch_preview_floor_visibility(Main *pr_main,
+                                            const Scene *scene,
+                                            ViewLayer *view_layer,
                                             const ePreviewRenderMethod pr_method)
 {
   /* Hide floor for icon renders. */
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (STREQ(base->object->id.name + 2, "Floor")) {
+      base->object->visibility_flag &= ~OB_HIDE_RENDER;
       if (pr_method == PR_ICON_RENDER) {
-        base->object->visibility_flag |= OB_HIDE_RENDER;
+        if (!render_engine_supports_ray_visibility(scene)) {
+          base->object->visibility_flag |= OB_HIDE_RENDER;
+        }
       }
-      else {
-        base->object->visibility_flag &= ~OB_HIDE_RENDER;
+      if (base->object->type == OB_MESH) {
+        switch_preview_floor_material(pr_main, base->object->data, scene, pr_method);
       }
     }
   }
 }
 
-static void set_preview_visibility(Scene *scene,
+static void set_preview_visibility(Main *pr_main,
+                                   Scene *scene,
                                    ViewLayer *view_layer,
                                    const ePreviewType pr_type,
                                    const ePreviewRenderMethod pr_method)
 {
   switch_preview_collection_visibilty(view_layer, pr_type);
-  switch_preview_floor_visibility(view_layer, pr_method);
+  switch_preview_floor_visibility(pr_main, scene, view_layer, pr_method);
   BKE_layer_collection_sync(scene, view_layer);
 }
 
@@ -357,10 +394,31 @@ static ID *duplicate_ids(ID *id, const bool allow_failure)
   }
 }
 
-static World *preview_get_world(Main *pr_main)
+static const char *preview_world_name(const Scene *sce,
+                                      const ID_Type id_type,
+                                      const ePreviewRenderMethod pr_method)
+{
+  /* When rendering material icons the floor will not be shown in the output. Cycles will use a
+   * material trick to show the floor in the reflections, but hide the floor for camera rays. For
+   * Eevee we use a transparent world that has a projected grid.
+   *
+   * In the future when Eevee supports vulkan raytracing we can re-evaluate and perhaps remove this
+   * approximation.
+   */
+  if (id_type == ID_MA && pr_method == PR_ICON_RENDER &&
+      !render_engine_supports_ray_visibility(sce)) {
+    return "WorldFloor";
+  }
+  return "World";
+}
+
+static World *preview_get_world(Main *pr_main,
+                                const Scene *sce,
+                                const ID_Type id_type,
+                                const ePreviewRenderMethod pr_method)
 {
   World *result = NULL;
-  const char *world_name = "World";
+  const char *world_name = preview_world_name(sce, id_type, pr_method);
   result = BLI_findstring(&pr_main->worlds, world_name, offsetof(ID, name) + 2);
 
   /* No world found return first world. */
@@ -380,9 +438,13 @@ static void preview_sync_exposure(World *dst, const World *src)
   dst->range = src->range;
 }
 
-static World *preview_prepare_world(Main *pr_main, const World *world)
+static World *preview_prepare_world(Main *pr_main,
+                                    const Scene *sce,
+                                    const World *world,
+                                    const ID_Type id_type,
+                                    const ePreviewRenderMethod pr_method)
 {
-  World *result = preview_get_world(pr_main);
+  World *result = preview_get_world(pr_main, sce, id_type, pr_method);
   if (world) {
     preview_sync_exposure(result, world);
   }
@@ -436,7 +498,7 @@ static Scene *preview_prepare_scene(
     sce->r.cfra = scene->r.cfra;
 
     /* Setup the world. */
-    sce->world = preview_prepare_world(pr_main, scene->world);
+    sce->world = preview_prepare_world(pr_main, sce, scene->world, id_type, sp->pr_method);
 
     if (id_type == ID_TE) {
       /* Texture is not actually rendered with engine, just set dummy value. */
@@ -458,7 +520,7 @@ static Scene *preview_prepare_scene(
           /* Use current scene world to light sphere. */
           sce->world = preview_get_localized_world(sp, scene->world);
         }
-        else if (sce->world) {
+        else if (sce->world && sp->pr_method != PR_ICON_RENDER) {
           /* Use a default world color. Using the current
            * scene world can be slow if it has big textures. */
           sce->world->use_nodes = false;
@@ -472,7 +534,7 @@ static Scene *preview_prepare_scene(
                                            sp->pr_main == G_pr_main_grease_pencil) ?
                                               MA_SPHERE_A :
                                               mat->pr_type;
-        set_preview_visibility(sce, view_layer, preview_type, sp->pr_method);
+        set_preview_visibility(pr_main, sce, view_layer, preview_type, sp->pr_method);
 
         if (sp->pr_method != PR_ICON_RENDER) {
           if (mat->nodetree && sp->pr_method == PR_NODE_RENDER) {
@@ -536,7 +598,7 @@ static Scene *preview_prepare_scene(
         BLI_addtail(&pr_main->lights, la);
       }
 
-      set_preview_visibility(sce, view_layer, MA_LAMP, sp->pr_method);
+      set_preview_visibility(pr_main, sce, view_layer, MA_LAMP, sp->pr_method);
 
       if (sce->world) {
         /* Only use lighting from the light. */
@@ -571,7 +633,7 @@ static Scene *preview_prepare_scene(
         BLI_addtail(&pr_main->worlds, wrld);
       }
 
-      set_preview_visibility(sce, view_layer, MA_SKY, sp->pr_method);
+      set_preview_visibility(pr_main, sce, view_layer, MA_SKY, sp->pr_method);
       sce->world = wrld;
 
       if (wrld && wrld->nodetree && sp->pr_method == PR_NODE_RENDER) {

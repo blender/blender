@@ -1381,14 +1381,12 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         }
         if (dirty_nors_dst || do_poly_nors_dst) {
           BKE_mesh_calc_normals_poly(verts_dst,
-                                     NULL,
                                      numverts_dst,
                                      loops_dst,
-                                     polys_dst,
                                      numloops_dst,
+                                     polys_dst,
                                      numpolys_dst,
-                                     poly_nors_dst,
-                                     true);
+                                     poly_nors_dst);
         }
       }
       if (need_lnors_dst) {
@@ -2239,14 +2237,12 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
     }
     if (dirty_nors_dst) {
       BKE_mesh_calc_normals_poly(verts_dst,
-                                 NULL,
                                  numverts_dst,
                                  loops_dst,
-                                 polys_dst,
                                  numloops_dst,
+                                 polys_dst,
                                  numpolys_dst,
-                                 poly_nors_dst,
-                                 true);
+                                 poly_nors_dst);
     }
   }
 

@@ -62,12 +62,18 @@ constexpr int COM_data_type_num_channels(const DataType datatype)
   }
 }
 
+constexpr int COM_data_type_bytes_len(DataType data_type)
+{
+  return COM_data_type_num_channels(data_type) * sizeof(float);
+}
+
 constexpr int COM_DATA_TYPE_VALUE_CHANNELS = COM_data_type_num_channels(DataType::Value);
 constexpr int COM_DATA_TYPE_VECTOR_CHANNELS = COM_data_type_num_channels(DataType::Vector);
 constexpr int COM_DATA_TYPE_COLOR_CHANNELS = COM_data_type_num_channels(DataType::Color);
 
 constexpr float COM_COLOR_TRANSPARENT[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 constexpr float COM_VECTOR_ZERO[3] = {0.0f, 0.0f, 0.0f};
+constexpr float COM_COLOR_BLACK[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 constexpr float COM_VALUE_ZERO[1] = {0.0f};
 constexpr float COM_VALUE_ONE[1] = {1.0f};
 

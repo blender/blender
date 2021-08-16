@@ -216,6 +216,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         obj = context.object
         obj_type = obj.type
         is_geometry = (obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'VOLUME', 'HAIR', 'POINTCLOUD'})
+        has_bounds = (is_geometry or obj_type in {'LATTICE', 'ARMATURE'})
         is_wire = (obj_type in {'CAMERA', 'EMPTY'})
         is_empty_image = (obj_type == 'EMPTY' and obj.empty_display_type == 'IMAGE')
         is_dupli = (obj.instance_type != 'NONE')
@@ -247,20 +248,26 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
             # Only useful with object having faces/materials...
             col.prop(obj, "color")
 
-        col = layout.column(align=False, heading="Bounds")
-        col.use_property_decorate = False
-        row = col.row(align=True)
-        sub = row.row(align=True)
-        sub.prop(obj, "show_bounds", text="")
-        sub = sub.row(align=True)
-        sub.active = obj.show_bounds or (obj.display_type == 'BOUNDS')
-        sub.prop(obj, "display_bounds_type", text="")
-        row.prop_decorator(obj, "display_bounds_type")
+        if has_bounds:
+            col = layout.column(align=False, heading="Bounds")
+            col.use_property_decorate = False
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.prop(obj, "show_bounds", text="")
+            sub = sub.row(align=True)
+            sub.active = obj.show_bounds or (obj.display_type == 'BOUNDS')
+            sub.prop(obj, "display_bounds_type", text="")
+            row.prop_decorator(obj, "display_bounds_type")
 
 
 class OBJECT_PT_instancing(ObjectButtonsPanel, Panel):
     bl_label = "Instancing"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob.type in {'MESH', 'EMPTY', 'POINTCLOUD'})
 
     def draw(self, context):
         layout = self.layout

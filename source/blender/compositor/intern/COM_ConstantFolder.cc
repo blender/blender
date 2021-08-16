@@ -44,7 +44,9 @@ static bool is_constant_foldable(NodeOperation *operation)
 {
   if (operation->get_flags().can_be_constant && !operation->get_flags().is_constant_operation) {
     for (int i = 0; i < operation->getNumberOfInputSockets(); i++) {
-      if (!operation->get_input_operation(i)->get_flags().is_constant_operation) {
+      NodeOperation *input = operation->get_input_operation(i);
+      if (!input->get_flags().is_constant_operation ||
+          !static_cast<ConstantOperation *>(input)->can_get_constant_elem()) {
         return false;
       }
     }

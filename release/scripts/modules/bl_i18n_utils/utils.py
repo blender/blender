@@ -1355,7 +1355,7 @@ class I18n:
         print(prefix.join(lines))
 
     @classmethod
-    def check_py_module_has_translations(clss, src, settings=settings):
+    def check_py_module_has_translations(cls, src, settings=settings):
         """
         Check whether a given src (a py module, either a directory or a py file) has some i18n translation data,
         and returns a tuple (src_file, translations_tuple) if yes, else (None, None).
@@ -1367,11 +1367,11 @@ class I18n:
                     if not fname.endswith(".py"):
                         continue
                     path = os.path.join(root, fname)
-                    _1, txt, _2, has_trans = clss._parser_check_file(path)
+                    _1, txt, _2, has_trans = cls._parser_check_file(path)
                     if has_trans:
                         txts.append((path, txt))
         elif src.endswith(".py") and os.path.isfile(src):
-            _1, txt, _2, has_trans = clss._parser_check_file(src)
+            _1, txt, _2, has_trans = cls._parser_check_file(src)
             if has_trans:
                 txts.append((src, txt))
         for path, txt in txts:
