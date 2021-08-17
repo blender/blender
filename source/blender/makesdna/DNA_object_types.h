@@ -467,8 +467,6 @@ typedef struct ObHook {
 /* used many places, should be specialized. */
 #define SELECT 1
 
-#define OBJECT_ACTIVE_MODIFIER_NONE -1
-
 /* type */
 enum {
   OB_EMPTY = 0,
