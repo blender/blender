@@ -748,6 +748,10 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
 
   if (force_tree_walk) {
     bke_pbvh_insert_face(pbvh, f);
+
+    if (log_face) {
+      BM_log_face_added(pbvh->bm_log, f);
+    }
     return;
   }
 
@@ -1462,6 +1466,8 @@ static void short_edge_queue_task_cb(void *__restrict userdata,
 
 static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 {
+  bool origlen = f->len;
+
   if (f->len == 3) {
     return true;
   }
@@ -1519,7 +1525,12 @@ static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
       }
     }
 
+    if (dbl->link == f) {
+      f = NULL;
+    }
+
     BM_face_kill(pbvh->bm, dbl->link);
+
     MEM_freeN(dbl);
     dbl = next;
   }
@@ -1539,7 +1550,9 @@ static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
     BKE_pbvh_bmesh_add_face(pbvh, f2, true, true);
   }
 
-  BKE_pbvh_bmesh_add_face(pbvh, f, true, true);
+  if (f) {
+    BKE_pbvh_bmesh_add_face(pbvh, f, true, true);
+  }
 
   BLI_array_free(fs);
   BLI_array_free(es);

@@ -488,6 +488,11 @@ static void bm_log_verts_unmake_pre(
       continue;
     }
 
+    if (v->head.htype != BM_VERT) {
+      printf("bm_log error; vertex id: %p, type was: %d\n", key, v->head.htype);
+      continue;
+    }
+
     /* Ensure the log has the final values of the vertex before
      * deleting it */
     bm_log_vert_bmvert_copy(log, entry, lv, v, cd_vert_mask_offset, true);
@@ -653,6 +658,10 @@ static void bm_log_faces_restore(
         continue;
       }
 
+      if (v->head.htype != BM_VERT) {
+        printf("bm_log corruption!\n");
+        continue;
+      }
       BLI_array_append(vs_tmp, v);
     }
 
