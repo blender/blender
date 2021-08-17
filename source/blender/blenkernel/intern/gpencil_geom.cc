@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.h"
 #include "BLI_blenlib.h"
 #include "BLI_float3.hh"
 #include "BLI_ghash.h"
@@ -2817,46 +2818,12 @@ void BKE_gpencil_stroke_set_random_color(bGPDstroke *gps)
 /* Flip stroke. */
 void BKE_gpencil_stroke_flip(bGPDstroke *gps)
 {
-  int end = gps->totpoints - 1;
+  /* Reverse points. */
+  BLI_array_reverse(gps->points, gps->totpoints);
 
-  for (int i = 0; i < gps->totpoints / 2; i++) {
-    bGPDspoint *point, *point2;
-    bGPDspoint pt;
-
-    /* save first point */
-    point = &gps->points[i];
-    pt.x = point->x;
-    pt.y = point->y;
-    pt.z = point->z;
-    pt.flag = point->flag;
-    pt.pressure = point->pressure;
-    pt.strength = point->strength;
-    pt.time = point->time;
-    copy_v4_v4(pt.vert_color, point->vert_color);
-
-    /* replace first point with last point */
-    point2 = &gps->points[end];
-    point->x = point2->x;
-    point->y = point2->y;
-    point->z = point2->z;
-    point->flag = point2->flag;
-    point->pressure = point2->pressure;
-    point->strength = point2->strength;
-    point->time = point2->time;
-    copy_v4_v4(point->vert_color, point2->vert_color);
-
-    /* replace last point with first saved before */
-    point = &gps->points[end];
-    point->x = pt.x;
-    point->y = pt.y;
-    point->z = pt.z;
-    point->flag = pt.flag;
-    point->pressure = pt.pressure;
-    point->strength = pt.strength;
-    point->time = pt.time;
-    copy_v4_v4(point->vert_color, pt.vert_color);
-
-    end--;
+  /* Reverse vertex groups if available. */
+  if (gps->dvert) {
+    BLI_array_reverse(gps->dvert, gps->totpoints);
   }
 }
 
