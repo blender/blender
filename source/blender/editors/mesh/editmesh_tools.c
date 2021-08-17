@@ -6093,7 +6093,7 @@ static int edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
 
     if (!EDBM_op_callf(em, op, "dissolve_degenerate edges=%he dist=%f", BM_ELEM_SELECT, thresh)) {
-      return OPERATOR_CANCELLED;
+      continue;
     }
 
     /* tricky to maintain correct selection here, so just flush up from verts */
