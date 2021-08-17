@@ -2844,7 +2844,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
                                                    matrix,
                                                    0,
                                                    use_seams,
-                                                   use_faces);
+                                                   use_faces,
+                                                   true);
 
       /* Remove unused materials. */
       int actcol = ob_gpencil->actcol;
