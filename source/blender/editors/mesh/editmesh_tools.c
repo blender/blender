@@ -5576,24 +5576,24 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       view_layer, CTX_wm_view3d(C), &objects_len);
 
-  bool is_face_pair;
+  const bool do_seam = RNA_boolean_get(op->ptr, "seam");
+  const bool do_sharp = RNA_boolean_get(op->ptr, "sharp");
+  const bool do_uvs = RNA_boolean_get(op->ptr, "uvs");
+  const bool do_vcols = RNA_boolean_get(op->ptr, "vcols");
+  const bool do_materials = RNA_boolean_get(op->ptr, "materials");
 
+  float angle_face_threshold, angle_shape_threshold;
+  bool is_face_pair;
   {
     int totelem_sel[3];
     EDBM_mesh_stats_multi(objects, objects_len, NULL, totelem_sel);
     is_face_pair = (totelem_sel[2] == 2);
   }
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
-
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    bool do_seam, do_sharp, do_uvs, do_vcols, do_materials;
-    float angle_face_threshold, angle_shape_threshold;
+  /* When joining exactly 2 faces, no limit.
+   * this is useful for one off joins while editing. */
+  {
     PropertyRNA *prop;
-
-    /* When joining exactly 2 faces, no limit.
-     * this is useful for one off joins while editing. */
     prop = RNA_struct_find_property(op->ptr, "face_threshold");
     if (is_face_pair && (RNA_property_is_set(op->ptr, prop) == false)) {
       angle_face_threshold = DEG2RADF(180.0f);
@@ -5609,12 +5609,15 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
     else {
       angle_shape_threshold = RNA_property_float_get(op->ptr, prop);
     }
+  }
 
-    do_seam = RNA_boolean_get(op->ptr, "seam");
-    do_sharp = RNA_boolean_get(op->ptr, "sharp");
-    do_uvs = RNA_boolean_get(op->ptr, "uvs");
-    do_vcols = RNA_boolean_get(op->ptr, "vcols");
-    do_materials = RNA_boolean_get(op->ptr, "materials");
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    if (em->bm->totfacesel == 0) {
+      continue;
+    }
 
     BM_custom_loop_normals_to_vector_layer(em->bm);
 
