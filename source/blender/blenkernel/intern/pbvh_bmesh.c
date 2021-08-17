@@ -68,9 +68,43 @@ Topology rake:
 #include <stdio.h>
 #include <stdlib.h>
 
-void pbvh_bmesh_check_nodes(PBVH *pbvh)
+ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
 #if 0
+  BMVert *v;
+  BMIter iter;
+
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
+
+    if (ni >= 0 && !v->e || !v->e->l) {
+      printf("wire vert had node reference\n");
+    }
+
+    if (ni < -1 || ni >= pbvh->totnode) {
+      printf("vert node ref was invalid");
+      continue;
+    }
+
+    if (ni == -1) {
+      continue;
+    }
+
+    PBVHNode *node = pbvh->nodes + ni;
+    if (!(node->flag & PBVH_Leaf) || !node->bm_unique_verts) {
+      printf("vert node ref was in non leaf node");
+      continue;
+    }
+
+    if (!BLI_table_gset_haskey(node->bm_unique_verts, v)) {
+      printf("vert not in node->bm_unique_verts\n");
+    }
+
+    if (BLI_table_gset_haskey(node->bm_other_verts, v)) {
+      printf("vert in node->bm_other_verts");
+    }
+  }
+
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
     BMVert *v;
@@ -90,6 +124,19 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
     }
 
     TGSET_ITER (v, node->bm_unique_verts) {
+      int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
+
+      if (ni != i) {
+        if (ni >= 0 && ni < pbvh->totnode) {
+          PBVHNode *node2 = pbvh->nodes + ni;
+          printf("v node offset is wrong, %d\n",
+                 !node2->bm_unique_verts ? 0 : BLI_table_gset_haskey(node2->bm_unique_verts, v));
+        }
+        else {
+          printf("v node offset is wrong\n");
+        }
+      }
+
       if (!v || v->head.htype != BM_VERT) {
         printf("corruption in pbvh! bm_unique_verts\n");
       }
@@ -404,10 +451,15 @@ static bool point_in_node(const PBVHNode *node, const float co[3])
          co[1] <= node->vb.bmax[1] && co[2] >= node->vb.bmin[2] && co[2] <= node->vb.bmax[2];
 }
 
-void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
+ATTR_NO_OPT void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
 {
   PBVHNode *node = pbvh->nodes + ni;
   BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, ni);
+
+  if (!(node->flag & PBVH_Leaf)) {
+    printf("major pbvh corruption error");
+    return;
+  }
 
   BLI_table_gset_add(node->bm_faces, f);
 
@@ -447,13 +499,12 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
   } while (l != f->l_first);
 }
 
-void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
+ATTR_NO_OPT void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
 {
   int i = 0;
   bool ok = false;
   int ni = -1;
 
-#if 1
   while (i < pbvh->totnode) {
     PBVHNode *node = pbvh->nodes + i;
     bool ok2 = false;
@@ -496,7 +547,6 @@ void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
       break;
     }
   }
-#endif
 
   if (!ok) {
     // find closest node
@@ -534,7 +584,7 @@ void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
     }
   }
 
-  if (ni < 0) {
+  if (ni < 0 || !(pbvh->nodes[ni].flag & PBVH_Leaf)) {
     fprintf(stderr, "pbvh error!\n");
     fflush(stderr);
     return;
@@ -543,15 +593,22 @@ void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
   bke_pbvh_insert_face_finalize(pbvh, f, ni);
 }
 
-static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
+ATTR_NO_OPT static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
 {
   node->flag &= ~PBVH_RebuildNodeVerts;
 
   int usize = BLI_table_gset_len(node->bm_unique_verts);
   int osize = BLI_table_gset_len(node->bm_other_verts);
 
-  BLI_table_gset_free(node->bm_unique_verts, NULL);
+  TableGSet *old_unique_verts = node->bm_unique_verts;
+
   BLI_table_gset_free(node->bm_other_verts, NULL);
+
+  BMVert *v;
+  TGSET_ITER (v, old_unique_verts) {
+    BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, -1);
+  }
+  TGSET_ITER_END;
 
   node->bm_unique_verts = BLI_table_gset_new("bm_unique_verts");
   node->bm_other_verts = BLI_table_gset_new("bm_other_verts");
@@ -583,6 +640,35 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
   }
   TGSET_ITER_END;
 
+  TGSET_ITER (v, old_unique_verts) {
+    if (BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset) == -1) {
+      // try to find node to insert into
+      BMIter iter2;
+      BMFace *f2;
+      bool ok = false;
+
+      BM_ITER_ELEM (f2, &iter2, v, BM_FACES_OF_VERT) {
+        int ni2 = BM_ELEM_CD_GET_INT(f2, pbvh->cd_face_node_offset);
+
+        if (ni2 >= 0) {
+          BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, ni2);
+          PBVHNode *node = pbvh->nodes + ni2;
+
+          BLI_table_gset_add(node->bm_unique_verts, v);
+          BLI_table_gset_remove(node->bm_other_verts, v, NULL);
+
+          ok = true;
+          break;
+        }
+      }
+
+      if (!ok) {
+        printf("pbvh error: orphaned vert node reference\n");
+      }
+    }
+  }
+  TGSET_ITER_END;
+
   if (usize != BLI_table_gset_len(node->bm_unique_verts)) {
     update = true;
     printf("possible pbvh error: bm_unique_verts might have had bad data. old: %d, new: %d\n",
@@ -603,6 +689,8 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
     node->flag |= PBVH_UpdateOriginalBB | PBVH_UpdateRedraw | PBVH_UpdateColor | PBVH_UpdateTris |
                   PBVH_UpdateVisibility;
   }
+
+  BLI_table_gset_free(old_unique_verts, NULL);
 }
 
 void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node)

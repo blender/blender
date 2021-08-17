@@ -277,19 +277,19 @@ static BMVert *bm_vert_hash_lookup_chain(GHash *deleted_verts, BMVert *v)
   }
 }
 
-static void pbvh_bmesh_copy_facedata(BMesh *bm, BMFace *dest, BMFace *src)
+ATTR_NO_OPT static void pbvh_bmesh_copy_facedata(BMesh *bm, BMFace *dest, BMFace *src)
 {
   dest->head.hflag = src->head.hflag;
   dest->mat_nr = src->mat_nr;
   CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, src->head.data, &dest->head.data);
 }
 
-static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
-                                      int node_index,
-                                      const float co[3],
-                                      const float no[3],
-                                      BMVert *v_example,
-                                      const int cd_vert_mask_offset)
+ATTR_NO_OPT static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
+                                                  int node_index,
+                                                  const float co[3],
+                                                  const float no[3],
+                                                  BMVert *v_example,
+                                                  const int cd_vert_mask_offset)
 {
   PBVHNode *node = &pbvh->nodes[node_index];
 
@@ -746,6 +746,11 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
 {
   int ni = -1;
 
+  if (force_tree_walk) {
+    bke_pbvh_insert_face(pbvh, f);
+    return;
+  }
+
   // look for node in surrounding geometry
   BMLoop *l = f->l_first;
   do {
@@ -764,7 +769,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
     l = l->next;
   } while (l != f->l_first);
 
-  if (ni < 0 || force_tree_walk) {
+  if (ni < 0) {
     bke_pbvh_insert_face(pbvh, f);
   }
   else {

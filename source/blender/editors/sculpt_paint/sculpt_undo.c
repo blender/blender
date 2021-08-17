@@ -417,15 +417,6 @@ static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
   return false;
 }
 
-static void sculpt_undo_bmesh_restore_generic_task_cb(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  PBVHNode **nodes = userdata;
-
-  BKE_pbvh_node_mark_redraw(nodes[n]);
-  BKE_pbvh_node_mark_normals_update(nodes[n]);
-}
-
 extern const char dyntopop_node_idx_layer_id[];
 
 typedef struct BmeshUndoData {
@@ -458,10 +449,11 @@ static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
 static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
-  BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
-  // data->do_full_recalc = true;
 
   data->balance_pbvh = true;
+
+  // let face add vert
+  BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, v);
   mv->flag |= DYNVERT_NEED_DISK_SORT;
@@ -482,7 +474,8 @@ static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
   // data->do_full_recalc = true;
   data->balance_pbvh = true;
 }
-static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
+
+ATTR_NO_OPT static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
   // data->do_full_recalc = true;
@@ -490,11 +483,22 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
   BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, -1);
   BKE_pbvh_bmesh_add_face(data->pbvh, f, false, true);
 
+  int ni = BM_ELEM_CD_GET_INT(f, data->cd_face_node_offset);
+  PBVHNode *node = BKE_pbvh_get_node(data->pbvh, ni);
+
   BMLoop *l = f->l_first;
   do {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, l->v);
     mv->flag |= DYNVERT_NEED_DISK_SORT;
 
+    int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
+
+    if (ni_l < 0 && ni >= 0) {
+      BM_ELEM_CD_SET_INT(l->v, ni_l, ni);
+      TableGSet *bm_unique_verts = BKE_pbvh_bmesh_node_unique_verts(node);
+
+      BLI_table_gset_add(bm_unique_verts, l->v);
+    }
   } while ((l = l->next) != f->l_first);
 
   data->balance_pbvh = true;
@@ -520,12 +524,14 @@ ATTR_NO_OPT static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, voi
 
   int ni = BM_ELEM_CD_GET_INT(&h, data->cd_vert_node_offset);
 
+  int ni2 = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
+
   // attempt to find old node
   PBVHNode *node = BKE_pbvh_get_node_leaf_safe(data->pbvh, ni);
   if (node) {
     // BKE_pbvh_bmesh_mark_node_regen(data->pbvh, node);
     BKE_pbvh_node_mark_update(node);
-    // BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
+    BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, ni);
   }
   else {
     BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
@@ -545,15 +551,36 @@ ATTR_NO_OPT static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, voi
   }
 }
 
-static void bmesh_undo_on_face_change(BMFace *f, void *userdata, void *old_customdata)
+ATTR_NO_OPT static void bmesh_undo_on_face_change(BMFace *f, void *userdata, void *old_customdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  // vert will be added back to pbvh when its owning faces are
-  BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, -1);
+  if (!old_customdata) {
+    data->do_full_recalc = true;  // can't recover?
+    return;
+  }
+
+  BMElem h;
+  h.head.data = old_customdata;
+
+  int ni = BM_ELEM_CD_GET_INT(&h, data->cd_face_node_offset);
+
+  // attempt to find old node in old_customdata
+  PBVHNode *node = BKE_pbvh_get_node_leaf_safe(data->pbvh, ni);
+  if (node) {
+    BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, ni);
+    BKE_pbvh_node_mark_update(node);
+  }
+  else {
+    printf("pbvh face undo error\n");
+    data->do_full_recalc = true;
+    BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, -1);
+  }
 }
 
-static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)
+ATTR_NO_OPT static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode,
+                                                          Object *ob,
+                                                          SculptSession *ss)
 {
   BmeshUndoData data = {ss->pbvh,
                         ss->bm,
@@ -575,6 +602,10 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
                               NULL,
                               (void *)&data};
 
+  SCULPT_dyntopo_node_layers_update_offsets(ss);
+
+  pbvh_bmesh_check_nodes(ss->pbvh);
+
   if (unode->applied) {
     BM_log_undo(ss->bm, ss->bm_log, &callbacks, dyntopop_node_idx_layer_id);
     unode->applied = false;
@@ -584,8 +615,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     unode->applied = true;
   }
 
-  if (!data.do_full_recalc || unode->type == SCULPT_UNDO_MASK ||
-      unode->type == SCULPT_UNDO_COLOR) {
+  if (!data.do_full_recalc) {
     int totnode;
     PBVHNode **nodes;
 
@@ -597,25 +627,21 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
       }
     }
 
+    pbvh_bmesh_check_nodes(ss->pbvh);
     BKE_pbvh_bmesh_regen_node_verts(ss->pbvh);
     pbvh_bmesh_check_nodes(ss->pbvh);
 
-    TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(
-        0, totnode, nodes, sculpt_undo_bmesh_restore_generic_task_cb, &settings);
+    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
     if (nodes) {
       MEM_freeN(nodes);
     }
 
-    SCULPT_dyntopo_node_layers_update_offsets(ss);
-
     if (data.balance_pbvh) {
       BKE_pbvh_bmesh_after_stroke(ss->pbvh);
     }
 
-    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
+    pbvh_bmesh_check_nodes(ss->pbvh);
   }
   else {
     SCULPT_pbvh_clear(ob);
