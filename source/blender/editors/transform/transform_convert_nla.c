@@ -42,6 +42,7 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_mode.h"
 
 /** Used for NLA transform (stored in #TransData.extra pointer). */
 typedef struct TransDataNla {
@@ -411,7 +412,8 @@ void recalcData_nla(TransInfo *t)
      * NOTE: only do this when transform is still running, or we can't restore
      */
     if (t->state != TRANS_CANCEL) {
-      switch (snla->autosnap) {
+      const short autosnap = getAnimEdit_SnapMode(t);
+      switch (autosnap) {
         case SACTSNAP_FRAME: /* snap to nearest frame */
         case SACTSNAP_STEP:  /* frame step - this is basically the same,
                               * since we don't have any remapping going on */

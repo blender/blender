@@ -41,6 +41,7 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_mode.h"
 
 typedef struct TransDataGraph {
   float unit_scale;
@@ -656,7 +657,6 @@ static bool fcu_test_selected(FCurve *fcu)
  */
 static void flushTransGraphData(TransInfo *t)
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   TransData *td;
   TransData2D *td2d;
   TransDataGraph *tdg;
@@ -680,7 +680,8 @@ static void flushTransGraphData(TransInfo *t)
      * - Don't do this when canceling, or else these changes won't go away.
      */
     if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0) {
-      switch (sipo->autosnap) {
+      const short autosnap = getAnimEdit_SnapMode(t);
+      switch (autosnap) {
         case SACTSNAP_FRAME: /* snap to nearest frame */
           td2d->loc[0] = floor((double)td2d->loc[0] + 0.5);
           break;
@@ -714,9 +715,9 @@ static void flushTransGraphData(TransInfo *t)
      *
      * \note We don't do this when canceling transforms, or else these changes don't go away.
      */
-    if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0 &&
-        ELEM(sipo->autosnap, SACTSNAP_STEP, SACTSNAP_TSTEP)) {
-      switch (sipo->autosnap) {
+    if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0) {
+      const short autosnap = getAnimEdit_SnapMode(t);
+      switch (autosnap) {
         case SACTSNAP_STEP: /* frame step */
           td2d->loc2d[0] = floor((double)td2d->loc[0] + 0.5);
           td->loc[0] = floor((double)td->loc[0] + 0.5);
