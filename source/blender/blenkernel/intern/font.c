@@ -716,8 +716,10 @@ typedef struct VFontToCurveIter {
   } bisect;
   bool ok;
   /**
-   * Disables checking if word wrapping is needed to fit the text-box width.
-   * Currently only used when scale-to-fit is enabled.
+   * Wrap words that extends beyond the text-box width (enabled by default).
+   *
+   * Currently only disabled when scale-to-fit is enabled,
+   * so floating-point error doesn't cause unexpected wrapping, see T89241.
    */
   bool word_wrap;
   int status;
