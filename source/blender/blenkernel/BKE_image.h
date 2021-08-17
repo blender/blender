@@ -45,7 +45,7 @@ struct StampData;
 struct anim;
 
 #define IMA_MAX_SPACE 64
-#define IMA_UDIM_MAX 1999
+#define IMA_UDIM_MAX 2000
 
 void BKE_images_init(void);
 void BKE_images_exit(void);

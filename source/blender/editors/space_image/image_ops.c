@@ -3922,7 +3922,7 @@ static int tile_add_exec(bContext *C, wmOperator *op)
   Image *ima = CTX_data_edit_image(C);
 
   int start_tile = RNA_int_get(op->ptr, "number");
-  int end_tile = start_tile + RNA_int_get(op->ptr, "count");
+  int end_tile = start_tile + RNA_int_get(op->ptr, "count") - 1;
 
   if (start_tile < 1001 || end_tile > IMA_UDIM_MAX) {
     BKE_report(op->reports, RPT_ERROR, "Invalid UDIM index range was specified");
@@ -3933,7 +3933,7 @@ static int tile_add_exec(bContext *C, wmOperator *op)
   char *label = RNA_string_get_alloc(op->ptr, "label", NULL, 0);
 
   bool created_tile = false;
-  for (int tile_number = start_tile; tile_number < end_tile; tile_number++) {
+  for (int tile_number = start_tile; tile_number <= end_tile; tile_number++) {
     ImageTile *tile = BKE_image_add_tile(ima, tile_number, label);
 
     if (tile != NULL) {
@@ -3949,6 +3949,7 @@ static int tile_add_exec(bContext *C, wmOperator *op)
   MEM_freeN(label);
 
   if (!created_tile) {
+    BKE_report(op->reports, RPT_WARNING, "No UDIM tiles were created");
     return OPERATOR_CANCELLED;
   }
 
