@@ -9531,6 +9531,10 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
+    if (bm->totfacesel == 0) {
+      continue;
+    }
+
     BMFace *f;
     BMVert *v;
     BMEdge *e;
