@@ -18,9 +18,9 @@
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
 
+#include "DNA_modifier_types.h"
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "DNA_modifier_types.h"
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_subdivision_surface_in[] = {
@@ -74,7 +74,8 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenSubdiv"));
 #else
-  const NodeGeometrySubdivisionSurface &storage = *(const NodeGeometrySubdivisionSurface *)params.node().storage;
+  const NodeGeometrySubdivisionSurface &storage =
+      *(const NodeGeometrySubdivisionSurface *)params.node().storage;
   const int uv_smooth = storage.uv_smooth;
   const int boundary_smooth = storage.boundary_smooth;
   const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 30);
@@ -142,8 +143,10 @@ void register_node_type_geo_subdivision_surface()
   ntype.draw_buttons = geo_node_subdivision_surface_layout;
   node_type_init(&ntype, geo_node_subdivision_surface_init);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_storage(
-      &ntype, "NodeGeometrySubdivisionSurface", node_free_standard_storage, node_copy_standard_storage);
+  node_type_storage(&ntype,
+                    "NodeGeometrySubdivisionSurface",
+                    node_free_standard_storage,
+                    node_copy_standard_storage);
   node_type_socket_templates(
       &ntype, geo_node_subdivision_surface_in, geo_node_subdivision_surface_out);
   nodeRegisterType(&ntype);

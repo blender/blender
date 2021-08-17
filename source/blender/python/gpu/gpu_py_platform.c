@@ -76,11 +76,17 @@ static PyObject *pygpu_platform_version_get(PyObject *UNUSED(self))
  * \{ */
 
 static struct PyMethodDef pygpu_platform__tp_methods[] = {
-    {"vendor_get", (PyCFunction)pygpu_platform_vendor_get, METH_NOARGS,
+    {"vendor_get",
+     (PyCFunction)pygpu_platform_vendor_get,
+     METH_NOARGS,
      pygpu_platform_vendor_get_doc},
-    {"renderer_get", (PyCFunction)pygpu_platform_renderer_get, METH_NOARGS,
+    {"renderer_get",
+     (PyCFunction)pygpu_platform_renderer_get,
+     METH_NOARGS,
      pygpu_platform_renderer_get_doc},
-    {"version_get", (PyCFunction)pygpu_platform_version_get, METH_NOARGS,
+    {"version_get",
+     (PyCFunction)pygpu_platform_version_get,
+     METH_NOARGS,
      pygpu_platform_version_get_doc},
     {NULL, NULL, 0, NULL},
 };
