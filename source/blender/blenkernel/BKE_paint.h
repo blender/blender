@@ -655,6 +655,8 @@ typedef struct SculptSession {
   // id of current stroke, used to detect
   // if vertex original data needs to be updated
   int stroke_id;
+
+  bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

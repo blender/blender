@@ -129,6 +129,7 @@ struct PBVHNode {
 
 typedef enum {
   PBVH_DYNTOPO_SMOOTH_SHADING = 1,
+  PBVH_FAST_DRAW = 2  // hides facesets/masks and forces smooth to save GPU bandwidth
 } PBVHFlags;
 
 typedef struct PBVHBMeshLog PBVHBMeshLog;

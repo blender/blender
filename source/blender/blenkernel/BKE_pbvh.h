@@ -240,21 +240,24 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct CustomData *ldata,
                          struct CustomData *pdata,
                          const struct MLoopTri *looptri,
-                         int looptri_num);
+                         int looptri_num,
+                         bool fast_draw);
 void BKE_pbvh_build_grids(PBVH *pbvh,
                           struct CCGElem **grids,
                           int totgrid,
                           struct CCGKey *key,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
-                          unsigned int **grid_hidden);
+                          unsigned int **grid_hidden,
+                          bool fast_draw);
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMesh *bm,
                           bool smooth_shading,
                           struct BMLog *log,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
-                          const int cd_dyn_vert);
+                          const int cd_dyn_vert,
+                          bool fast_draw);
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
@@ -682,10 +685,10 @@ bool BKE_pbvh_node_vert_update_check_any(PBVH *pbvh, PBVHNode *node);
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
-bool pbvh_has_mask(const PBVH *pbvh);
+bool BKE_pbvh_draw_mask(const PBVH *pbvh);
 void pbvh_show_mask_set(PBVH *pbvh, bool show_mask);
 
-bool pbvh_has_face_sets(PBVH *pbvh);
+bool BKE_pbvh_draw_face_sets(PBVH *pbvh);
 void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets);
 
 /* Parallelization */
@@ -739,6 +742,8 @@ struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
 void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, struct BMVert *v);
 
 #define DYNTOPO_DYNAMIC_TESS
+
+PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
 
 #ifdef __cplusplus
 }

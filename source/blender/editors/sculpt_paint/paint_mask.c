@@ -1305,19 +1305,20 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   MEM_freeN(looptris);
 
-  if (sgcontext->ss && sgcontext->ss->bm) { //rebuild pbvh
+  if (sgcontext->ss && sgcontext->ss->bm) {  // rebuild pbvh
     BKE_pbvh_free(sgcontext->ss->pbvh);
     sgcontext->ss->pbvh = BKE_pbvh_new();
 
     BKE_pbvh_build_bmesh(sgcontext->ss->pbvh,
                          sgcontext->ss->bm,
-                         false,
+                         sgcontext->ss->bm_smooth_shading,
                          sgcontext->ss->bm_log,
                          sgcontext->ss->cd_vert_node_offset,
                          sgcontext->ss->cd_face_node_offset,
-                         sgcontext->ss->cd_dyn_vert);
+                         sgcontext->ss->cd_dyn_vert,
+                         sgcontext->ss->fast_draw);
   }
-  else { //save result to mesh
+  else {  // save result to mesh
     Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
                                               (&(struct BMeshToMeshParams){
                                                   .calc_object_remap = false,

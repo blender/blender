@@ -591,7 +591,8 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          struct CustomData *ldata,
                          struct CustomData *pdata,
                          const MLoopTri *looptri,
-                         int looptri_num)
+                         int looptri_num,
+                         bool fast_draw)
 {
   BBC *prim_bbc = NULL;
   BB cb;
@@ -639,6 +640,10 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
     pbvh_build(pbvh, &cb, prim_bbc, looptri_num);
   }
 
+  if (fast_draw) {
+    pbvh->flags |= PBVH_FAST_DRAW;
+  }
+
   MEM_freeN(prim_bbc);
   MEM_freeN(pbvh->vert_bitmap);
 }
@@ -650,7 +655,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           CCGKey *key,
                           void **gridfaces,
                           DMFlagMat *flagmats,
-                          BLI_bitmap **grid_hidden)
+                          BLI_bitmap **grid_hidden,
+                          bool fast_draw)
 {
   const int gridsize = key->grid_size;
 
@@ -687,6 +693,10 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 
   if (totgrid) {
     pbvh_build(pbvh, &cb, prim_bbc, totgrid);
+  }
+
+  if (fast_draw) {
+    pbvh->flags |= PBVH_FAST_DRAW;
   }
 
   MEM_freeN(prim_bbc);
@@ -1454,20 +1464,11 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
+ATTR_NO_OPT static void pbvh_update_draw_buffers(PBVH *pbvh,
+                                                 PBVHNode **nodes,
+                                                 int totnode,
+                                                 int update_flag)
 {
-  if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
-    /* Free buffers uses OpenGL, so not in parallel. */
-    for (int n = 0; n < totnode; n++) {
-      PBVHNode *node = nodes[n];
-      if (node->flag & PBVH_RebuildDrawBuffers) {
-        pbvh_free_all_draw_buffers(node);
-      }
-      else if ((node->flag & PBVH_UpdateDrawBuffers)) {
-        pbvh_update_free_all_draw_buffers(pbvh, node);
-      }
-    }
-  }
 
   CustomData *vdata;
   CustomData *ldata;
@@ -1486,7 +1487,21 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
     ldata = pbvh->ldata;
   }
 
-  GPU_pbvh_update_attribute_names(vdata, ldata, GPU_pbvh_need_full_render_get());
+  GPU_pbvh_update_attribute_names(
+      vdata, ldata, GPU_pbvh_need_full_render_get(), pbvh->flags & PBVH_FAST_DRAW);
+
+  if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
+    /* Free buffers uses OpenGL, so not in parallel. */
+    for (int n = 0; n < totnode; n++) {
+      PBVHNode *node = nodes[n];
+      if (node->flag & PBVH_RebuildDrawBuffers) {
+        pbvh_free_all_draw_buffers(node);
+      }
+      else if ((node->flag & PBVH_UpdateDrawBuffers)) {
+        pbvh_update_free_all_draw_buffers(pbvh, node);
+      }
+    }
+  }
 
   /* Parallel creation and update of draw buffers. */
   PBVHUpdateData data = {
@@ -3252,8 +3267,12 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   }
 }
 
-bool pbvh_has_mask(const PBVH *pbvh)
+bool BKE_pbvh_draw_mask(const PBVH *pbvh)
 {
+  if (pbvh->flags & PBVH_FAST_DRAW) {
+    return false;
+  }
+
   switch (pbvh->type) {
     case PBVH_GRIDS:
       return (pbvh->gridkey.has_mask != 0);
@@ -3286,8 +3305,12 @@ SculptFaceRef BKE_pbvh_table_index_to_face(PBVH *pbvh, int idx)
   return BKE_pbvh_make_fref(idx);
 }
 
-bool pbvh_has_face_sets(PBVH *pbvh)
+bool BKE_pbvh_draw_face_sets(PBVH *pbvh)
 {
+  if (pbvh->flags & PBVH_FAST_DRAW) {
+    return false;
+  }
+
   switch (pbvh->type) {
     case PBVH_GRIDS:
       return (pbvh->pdata && CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS));

@@ -382,6 +382,7 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 
       ob->sculpt->bm_smooth_shading = ((scene->toolsettings->sculpt->flags &
                                         SCULPT_DYNTOPO_SMOOTH_SHADING) != 0);
+      ob->sculpt->fast_draw = ((scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0);
     }
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -828,6 +829,17 @@ static void rna_def_sculpt(BlenderRNA *brna)
                            "Smooth Shading",
                            "Show faces in dynamic-topology mode with smooth "
                            "shading rather than flat shaded");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
+  prop = RNA_def_property(srna, "use_fast_draw", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_FAST_DRAW);
+  RNA_def_property_ui_text(prop,
+                           "Fast Draw Mode",
+                           "Forces smooth shading"
+                           "and disables drawing of masks and face sets"
+                           "to speed up drawing. Useful for posing"
+                           "high-poly meshes.");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 

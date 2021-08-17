@@ -87,9 +87,11 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MPropCol *vtcol,
                                   const int update_flags);
 
-void GPU_pbvh_update_attribute_names(struct CustomData *vdata,
-                                     struct CustomData *ldata,
-                                     bool need_full_render);
+void GPU_pbvh_update_attribute_names(
+    struct CustomData *vdata,
+    struct CustomData *ldata,
+    bool need_full_render,
+    bool fast_mode);  // fast mode renders without vcol, uv, facesets, even mask, etc
 
 void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct BMesh *bm,
