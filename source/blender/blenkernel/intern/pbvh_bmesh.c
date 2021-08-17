@@ -68,7 +68,7 @@ Topology rake:
 #include <stdio.h>
 #include <stdlib.h>
 
-ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
+void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
 #if 0
   BMVert *v;
@@ -359,7 +359,7 @@ static void pbvh_bmesh_node_split(
     MEM_freeN(n->layer_disp);
   }
 
-  if (n->tribuf) {
+  if (n->tribuf || n->tri_buffers) {
     BKE_pbvh_bmesh_free_tris(pbvh, n);
     n->tribuf = NULL;
   }
@@ -451,7 +451,7 @@ static bool point_in_node(const PBVHNode *node, const float co[3])
          co[1] <= node->vb.bmax[1] && co[2] >= node->vb.bmin[2] && co[2] <= node->vb.bmax[2];
 }
 
-ATTR_NO_OPT void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
+void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
 {
   PBVHNode *node = pbvh->nodes + ni;
   BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, ni);
@@ -499,7 +499,7 @@ ATTR_NO_OPT void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int 
   } while (l != f->l_first);
 }
 
-ATTR_NO_OPT void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
+void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
 {
   int i = 0;
   bool ok = false;
@@ -593,7 +593,7 @@ ATTR_NO_OPT void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
   bke_pbvh_insert_face_finalize(pbvh, f, ni);
 }
 
-ATTR_NO_OPT static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
+static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
 {
   node->flag &= ~PBVH_RebuildNodeVerts;
 
@@ -2197,7 +2197,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
         n->face_vert_indices = NULL;
       }
 
-      if (n->tribuf) {
+      if (n->tribuf || n->tri_buffers) {
         BKE_pbvh_bmesh_free_tris(bvh, n);
       }
 

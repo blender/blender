@@ -733,7 +733,7 @@ void BKE_pbvh_free(PBVH *pbvh)
         BLI_table_gset_free(node->bm_other_verts, NULL);
       }
 
-      if (node->tribuf) {
+      if (node->tribuf || node->tri_buffers) {
         BKE_pbvh_bmesh_free_tris(pbvh, node);
       }
 
@@ -1464,10 +1464,7 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-ATTR_NO_OPT static void pbvh_update_draw_buffers(PBVH *pbvh,
-                                                 PBVHNode **nodes,
-                                                 int totnode,
-                                                 int update_flag)
+static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
 {
 
   CustomData *vdata;

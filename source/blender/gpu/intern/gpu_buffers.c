@@ -689,13 +689,13 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const MPoly *mpoly,
 /** \name Grid PBVH
  * \{ */
 
-ATTR_NO_OPT static void gpu_pbvh_grid_fill_index_buffers(GPU_PBVH_Buffers *buffers,
-                                                         SubdivCCG *UNUSED(subdiv_ccg),
-                                                         const int *UNUSED(face_sets),
-                                                         const int *grid_indices,
-                                                         uint visible_quad_len,
-                                                         int totgrid,
-                                                         int gridsize)
+static void gpu_pbvh_grid_fill_index_buffers(GPU_PBVH_Buffers *buffers,
+                                             SubdivCCG *UNUSED(subdiv_ccg),
+                                             const int *UNUSED(face_sets),
+                                             const int *grid_indices,
+                                             uint visible_quad_len,
+                                             int totgrid,
+                                             int gridsize)
 {
   GPUIndexBufBuilder elb, elb_lines;
   GPUIndexBufBuilder elb_fast, elb_lines_fast;
@@ -842,17 +842,17 @@ void GPU_pbvh_grid_buffers_update_free(GPU_PBVH_Buffers *buffers,
 }
 
 /* Threaded - do not call any functions that use OpenGL calls! */
-ATTR_NO_OPT void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
-                                              SubdivCCG *subdiv_ccg,
-                                              CCGElem **grids,
-                                              const struct DMFlagMat *grid_flag_mats,
-                                              int *grid_indices,
-                                              int totgrid,
-                                              const int *sculpt_face_sets,
-                                              const int face_sets_color_seed,
-                                              const int face_sets_color_default,
-                                              const struct CCGKey *key,
-                                              const int update_flags)
+void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
+                                  SubdivCCG *subdiv_ccg,
+                                  CCGElem **grids,
+                                  const struct DMFlagMat *grid_flag_mats,
+                                  int *grid_indices,
+                                  int totgrid,
+                                  const int *sculpt_face_sets,
+                                  const int face_sets_color_seed,
+                                  const int face_sets_color_default,
+                                  const struct CCGKey *key,
+                                  const int update_flags)
 {
   const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0 && !g_vbo_id.fast_mode;
   const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
@@ -1615,18 +1615,18 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
   gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
 }
 
-ATTR_NO_OPT static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
-                                                              BMesh *bm,
-                                                              TableGSet *bm_faces,
-                                                              TableGSet *bm_unique_verts,
-                                                              TableGSet *bm_other_verts,
-                                                              PBVHTriBuf *tribuf,
-                                                              const int update_flags,
-                                                              const int cd_vert_node_offset,
-                                                              int face_sets_color_seed,
-                                                              int face_sets_color_default,
-                                                              bool flat_vcol,
-                                                              short mat_nr)
+static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
+                                                  BMesh *bm,
+                                                  TableGSet *bm_faces,
+                                                  TableGSet *bm_unique_verts,
+                                                  TableGSet *bm_other_verts,
+                                                  PBVHTriBuf *tribuf,
+                                                  const int update_flags,
+                                                  const int cd_vert_node_offset,
+                                                  int face_sets_color_seed,
+                                                  int face_sets_color_default,
+                                                  bool flat_vcol,
+                                                  short mat_nr)
 {
 
   bool active_vcol_only = g_vbo_id.active_vcol_only;

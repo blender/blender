@@ -475,7 +475,7 @@ static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
   data->balance_pbvh = true;
 }
 
-ATTR_NO_OPT static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
+static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
   // data->do_full_recalc = true;
@@ -509,7 +509,7 @@ static void bmesh_undo_full_mesh(void *userdata)
   data->do_full_recalc = true;
 }
 
-ATTR_NO_OPT static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
+static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
@@ -551,7 +551,7 @@ ATTR_NO_OPT static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, voi
   }
 }
 
-ATTR_NO_OPT static void bmesh_undo_on_face_change(BMFace *f, void *userdata, void *old_customdata)
+static void bmesh_undo_on_face_change(BMFace *f, void *userdata, void *old_customdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
@@ -578,9 +578,7 @@ ATTR_NO_OPT static void bmesh_undo_on_face_change(BMFace *f, void *userdata, voi
   }
 }
 
-ATTR_NO_OPT static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode,
-                                                          Object *ob,
-                                                          SculptSession *ss)
+static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)
 {
   BmeshUndoData data = {ss->pbvh,
                         ss->bm,

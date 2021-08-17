@@ -277,19 +277,19 @@ static BMVert *bm_vert_hash_lookup_chain(GHash *deleted_verts, BMVert *v)
   }
 }
 
-ATTR_NO_OPT static void pbvh_bmesh_copy_facedata(BMesh *bm, BMFace *dest, BMFace *src)
+static void pbvh_bmesh_copy_facedata(BMesh *bm, BMFace *dest, BMFace *src)
 {
   dest->head.hflag = src->head.hflag;
   dest->mat_nr = src->mat_nr;
   CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, src->head.data, &dest->head.data);
 }
 
-ATTR_NO_OPT static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
-                                                  int node_index,
-                                                  const float co[3],
-                                                  const float no[3],
-                                                  BMVert *v_example,
-                                                  const int cd_vert_mask_offset)
+static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
+                                      int node_index,
+                                      const float co[3],
+                                      const float no[3],
+                                      BMVert *v_example,
+                                      const int cd_vert_mask_offset)
 {
   PBVHNode *node = &pbvh->nodes[node_index];
 
