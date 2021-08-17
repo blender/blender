@@ -467,40 +467,50 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     const int type = RNA_enum_get(op->ptr, "type");
 
-    BM_custom_loop_normals_to_vector_layer(em->bm);
-
     switch (type) {
       case MESH_DELETE_VERT: /* Erase Vertices */
-        if (!(em->bm->totvertsel &&
-              EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS))) {
+        if (em->bm->totvertsel == 0) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)) {
           continue;
         }
         break;
       case MESH_DELETE_EDGE: /* Erase Edges */
-        if (!(em->bm->totedgesel &&
-              EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES))) {
+        if (em->bm->totedgesel == 0) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES)) {
           continue;
         }
         break;
       case MESH_DELETE_FACE: /* Erase Faces */
-        if (!(em->bm->totfacesel &&
-              EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES))) {
+        if (em->bm->totfacesel == 0) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES)) {
           continue;
         }
         break;
-      case MESH_DELETE_EDGE_FACE:
-        /* Edges and Faces */
-        if (!((em->bm->totedgesel || em->bm->totfacesel) &&
-              EDBM_op_callf(
-                  em, op, "delete geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES))) {
+      case MESH_DELETE_EDGE_FACE: /* Edges and Faces */
+        if ((em->bm->totedgesel == 0) && (em->bm->totfacesel == 0)) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(
+                em, op, "delete geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES)) {
           continue;
         }
         break;
-      case MESH_DELETE_ONLY_FACE:
-        /* Only faces. */
-        if (!(em->bm->totfacesel &&
-              EDBM_op_callf(
-                  em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_ONLYFACES))) {
+      case MESH_DELETE_ONLY_FACE: /* Only faces. */
+        if (em->bm->totfacesel == 0) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_ONLYFACES)) {
           continue;
         }
         break;
