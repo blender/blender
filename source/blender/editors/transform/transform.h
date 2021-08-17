@@ -779,7 +779,6 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 
 void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
-void recalcData(TransInfo *t);
 
 void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);

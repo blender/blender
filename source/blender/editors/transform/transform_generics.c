@@ -60,6 +60,7 @@
 #include "UI_view2d.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"

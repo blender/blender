@@ -42,6 +42,8 @@
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_convert.h"
+
 #include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
