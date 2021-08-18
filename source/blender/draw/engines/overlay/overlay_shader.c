@@ -211,7 +211,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *paint_point;
   GPUShader *paint_texture;
   GPUShader *paint_vertcol;
-  GPUShader *paint_weight;
+  GPUShader *paint_weight[2];
   GPUShader *paint_wire;
   GPUShader *particle_dot;
   GPUShader *particle_shape;
@@ -1334,13 +1334,14 @@ GPUShader *OVERLAY_shader_paint_vertcol(void)
   return sh_data->paint_vertcol;
 }
 
-GPUShader *OVERLAY_shader_paint_weight(void)
+GPUShader *OVERLAY_shader_paint_weight(const bool shading)
 {
+  int index = shading ? 1 : 0;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  if (!sh_data->paint_weight) {
-    sh_data->paint_weight = GPU_shader_create_from_arrays({
+  if (!sh_data->paint_weight[index]) {
+    sh_data->paint_weight[index] = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg->lib,
                                  datatoc_common_globals_lib_glsl,
                                  datatoc_common_view_lib_glsl,
@@ -1349,10 +1350,10 @@ GPUShader *OVERLAY_shader_paint_weight(void)
         .frag = (const char *[]){datatoc_common_globals_lib_glsl,
                                  datatoc_paint_weight_frag_glsl,
                                  NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
+        .defs = (const char *[]){sh_cfg->def, shading ? "#define FAKE_SHADING\n" : "", NULL},
     });
   }
-  return sh_data->paint_weight;
+  return sh_data->paint_weight[index];
 }
 
 GPUShader *OVERLAY_shader_paint_wire(void)
