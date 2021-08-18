@@ -594,7 +594,7 @@ static void initSnappingMode(TransInfo *t)
   else if (t->spacetype == SPACE_SEQ) {
     t->tsnap.mode = SEQ_tool_settings_snap_mode_get(t->scene);
   }
-  else {
+  else if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
     /* force project off when not supported */
     if ((ts->snap_mode & SCE_SNAP_MODE_FACE) == 0) {
       t->tsnap.project = 0;
@@ -607,6 +607,14 @@ static void initSnappingMode(TransInfo *t)
       t->tsnap.mode &= ~SCE_SNAP_MODE_INCREMENT;
       t->tsnap.mode |= SCE_SNAP_MODE_GRID;
     }
+  }
+  else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) {
+    /* No incremental snapping. */
+    t->tsnap.mode = 0;
+  }
+  else {
+    /* Fallback. */
+    t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
   }
 
   if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
@@ -653,10 +661,6 @@ static void initSnappingMode(TransInfo *t)
   else if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
     setSnappingCallback(t);
     t->tsnap.modeSelect = SNAP_NOT_SELECTED;
-  }
-  else {
-    /* Fallback. */
-    t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
   }
 
   if (t->spacetype == SPACE_VIEW3D) {
