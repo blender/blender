@@ -4745,6 +4745,7 @@ static void def_frame(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "Text");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Text", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -5752,6 +5753,7 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
                                  NULL,
                                  NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
@@ -6171,6 +6173,7 @@ static void def_sh_tex_ies(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "Text");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "IES Text", "Internal IES file");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -6211,6 +6214,7 @@ static void def_sh_script(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "Text");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Script", "Internal shader script to define the shader");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodeScript_update");
 
@@ -7936,6 +7940,7 @@ static void def_cmp_movieclip(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "MovieClip");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -7950,6 +7955,7 @@ static void def_cmp_stabilize2d(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "MovieClip");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -7980,6 +7986,7 @@ static void def_cmp_moviedistortion(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "MovieClip");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -8009,6 +8016,7 @@ static void def_cmp_mask(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "Mask");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Mask", "");
 
   prop = RNA_def_property(srna, "use_feather", PROP_BOOLEAN, PROP_NONE);
@@ -8501,6 +8509,7 @@ static void def_cmp_keyingscreen(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "MovieClip");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -8638,6 +8647,7 @@ static void def_cmp_trackpos(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "MovieClip");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -8702,6 +8712,7 @@ static void def_cmp_planetrackdeform(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "MovieClip");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Movie Clip", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -8832,6 +8843,7 @@ static void def_cmp_cryptomatte(StructRNA *srna)
       prop, "rna_NodeCryptomatte_scene_get", "rna_NodeCryptomatte_scene_set", NULL, NULL);
   RNA_def_property_struct_type(prop, "Scene");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Scene", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -8843,6 +8855,7 @@ static void def_cmp_cryptomatte(StructRNA *srna)
                                  "rna_NodeCryptomatte_image_poll");
   RNA_def_property_struct_type(prop, "Image");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Image", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -8942,6 +8955,7 @@ static void def_tex_image(StructRNA *srna)
   RNA_def_property_pointer_sdna(prop, NULL, "id");
   RNA_def_property_struct_type(prop, "Image");
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Image", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -10929,6 +10943,7 @@ static void rna_def_node_socket_object(BlenderRNA *brna,
   RNA_def_property_update(
       prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT | PROP_CONTEXT_UPDATE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* socket interface */
   srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
@@ -10964,6 +10979,7 @@ static void rna_def_node_socket_image(BlenderRNA *brna,
   RNA_def_property_update(
       prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT | PROP_CONTEXT_UPDATE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* socket interface */
   srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
@@ -11014,6 +11030,7 @@ static void rna_def_node_socket_collection(BlenderRNA *brna,
   RNA_def_property_update(
       prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT | PROP_CONTEXT_UPDATE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* socket interface */
   srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
@@ -11049,6 +11066,7 @@ static void rna_def_node_socket_texture(BlenderRNA *brna,
   RNA_def_property_update(
       prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT | PROP_CONTEXT_UPDATE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* socket interface */
   srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
@@ -11086,6 +11104,7 @@ static void rna_def_node_socket_material(BlenderRNA *brna,
   RNA_def_property_update(
       prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT | PROP_CONTEXT_UPDATE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* socket interface */
   srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
@@ -11471,12 +11490,14 @@ static void rna_def_node(BlenderRNA *brna)
   prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "inputs", NULL);
   RNA_def_property_struct_type(prop, "NodeSocket");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Inputs", "");
   rna_def_node_sockets_api(brna, prop, SOCK_IN);
 
   prop = RNA_def_property(srna, "outputs", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "outputs", NULL);
   RNA_def_property_struct_type(prop, "NodeSocket");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Outputs", "");
   rna_def_node_sockets_api(brna, prop, SOCK_OUT);
 
@@ -11923,6 +11944,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
   prop = RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
   RNA_def_property_struct_type(prop, "Node");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Nodes", "");
   rna_def_nodetree_nodes_api(brna, prop);
 
@@ -11940,6 +11962,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, NULL, NULL, NULL, "rna_GPencil_datablocks_annotations_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil data-block");
   RNA_def_property_update(prop, NC_NODE, NULL);
 
