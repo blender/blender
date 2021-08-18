@@ -88,8 +88,8 @@ bool BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
 
     /* Update the callback flags with some extra information regarding overrides: all 'loopback',
      * 'internal', 'embedded' etc. ID pointers are never overridable. */
-    if (cb_flag & (IDWALK_CB_INTERNAL | IDWALK_CB_EMBEDDED | IDWALK_CB_LOOPBACK |
-                   IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
+    if (cb_flag &
+        (IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
       cb_flag |= IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE;
     }
 
