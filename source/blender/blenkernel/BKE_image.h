@@ -308,6 +308,8 @@ void BKE_image_get_tile_label(struct Image *ima,
 
 struct ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *label);
 bool BKE_image_remove_tile(struct Image *ima, struct ImageTile *tile);
+void BKE_image_reassign_tile(struct Image *ima, struct ImageTile *tile, int new_tile_number);
+void BKE_image_sort_tiles(struct Image *ima);
 
 bool BKE_image_fill_tile(struct Image *ima,
                          struct ImageTile *tile,

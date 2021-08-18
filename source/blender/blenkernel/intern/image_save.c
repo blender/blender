@@ -404,11 +404,12 @@ bool BKE_image_save(
 
   if (ima->source == IMA_SRC_TILED) {
     /* Verify filepath for tiles images. */
-    if (BLI_path_sequence_decode(opts->filepath, NULL, NULL, NULL) != 1001) {
+    ImageTile *first_tile = ima->tiles.first;
+    if (BLI_path_sequence_decode(opts->filepath, NULL, NULL, NULL) != first_tile->tile_number) {
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "When saving a tiled image, the path '%s' must contain the UDIM tag 1001",
-                  opts->filepath);
+                  "When saving a tiled image, the path '%s' must contain the UDIM tile number %d",
+                  opts->filepath, first_tile->tile_number);
       return false;
     }
 
@@ -430,9 +431,14 @@ bool BKE_image_save(
     BLI_path_sequence_decode(filepath, head, tail, &numlen);
 
     /* Save all other tiles. */
-    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-      /* Tile 1001 was already saved before the loop. */
-      if (tile->tile_number == 1001 || !ok) {
+    int index;
+    LISTBASE_FOREACH_INDEX (ImageTile *, tile, &ima->tiles, index) {
+      /* First tile was already saved before the loop. */
+      if (index == 0) {
+        continue;
+      }
+
+      if (!ok) {
         continue;
       }
 
