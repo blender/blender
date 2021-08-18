@@ -96,9 +96,9 @@ void SEQ_add_load_data_init(SeqLoadData *load_data,
   load_data->channel = channel;
 }
 
-static void seq_add_generic_update(Scene *scene, ListBase *seqbase, Sequence *seq)
+static void seq_add_generic_update(Scene *scene, ListBase *UNUSED(seqbase), Sequence *seq)
 {
-  SEQ_sequence_base_unique_name_recursive(seqbase, seq);
+  SEQ_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
   SEQ_time_update_sequence_bounds(scene, seq);
   SEQ_sort(scene);
   SEQ_relations_invalidate_cache_composite(scene, seq);
