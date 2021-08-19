@@ -863,20 +863,8 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 float file_string_width(const char *str)
 {
   const uiStyle *style = UI_style_get();
-  float width;
-
   UI_fontstyle_set(&style->widget);
-  if (style->widget.kerning == 1) { /* for BLF_width */
-    BLF_enable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
-  }
-
-  width = BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
-
-  if (style->widget.kerning == 1) {
-    BLF_disable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
-  }
-
-  return width;
+  return BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
 float file_font_pointsize(void)

@@ -1447,10 +1447,6 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   is_alpha = (region->overlap && (theme_col_back[3] != 255));
 
-  if (fstyle->kerning == 1) {
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   BLF_enable(fontid, BLF_ROTATION);
   BLF_rotation(fontid, M_PI_2);
   // UI_fontstyle_set(&style->widget);
@@ -1620,10 +1616,6 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   GPU_line_smooth(false);
 
   BLF_disable(fontid, BLF_ROTATION);
-
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
 }
 
 #undef TABS_PADDING_BETWEEN_FACTOR

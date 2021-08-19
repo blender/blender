@@ -1118,12 +1118,6 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem font_kerning_style[] = {
-      {0, "UNFITTED", 0, "Unfitted", "Use scaled but un-grid-fitted kerning distances"},
-      {1, "FITTED", 0, "Fitted", "Use scaled and grid-fitted kerning distances"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   srna = RNA_def_struct(brna, "ThemeFontStyle", NULL);
   RNA_def_struct_sdna(srna, "uiFontStyle");
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
@@ -1132,12 +1126,6 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   prop = RNA_def_property(srna, "points", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 6, 24);
   RNA_def_property_ui_text(prop, "Points", "Font size in points");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  prop = RNA_def_property(srna, "font_kerning_style", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "kerning");
-  RNA_def_property_enum_items(prop, font_kerning_style);
-  RNA_def_property_ui_text(prop, "Kerning Style", "Which style to use for font kerning");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "shadow", PROP_INT, PROP_PIXEL);

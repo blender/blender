@@ -355,9 +355,7 @@ BLI_INLINE GlyphBLF *blf_utf8_next_fast(
 
 #define BLF_KERNING_VARS(_font, _has_kerning, _kern_mode) \
   const bool _has_kerning = FT_HAS_KERNING((_font)->face); \
-  const FT_UInt _kern_mode = (_has_kerning && !((_font)->flags & BLF_KERNING_DEFAULT)) ? \
-                                 FT_KERNING_UNFITTED : \
-                                 FT_KERNING_DEFAULT;
+  const FT_UInt _kern_mode = FT_KERNING_DEFAULT;
 
 BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
                                       const FT_UInt kern_mode,
