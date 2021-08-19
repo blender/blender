@@ -72,7 +72,7 @@ static void bm_mempool_init_ex(const BMAllocTemplate *allocsize,
   }
   if (r_lpool) {
     *r_lpool = BLI_mempool_create(
-        loop_size, allocsize->totloop, bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_NOP);
+        loop_size, allocsize->totloop, bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_ALLOW_ITER);
   }
   if (r_fpool) {
     *r_fpool = BLI_mempool_create(
@@ -875,7 +875,11 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
  * \warning Be careful if you keep pointers to affected BM elements,
  * or arrays, when using this func!
  */
-void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx)
+void BM_mesh_remap(BMesh *bm,
+                   const uint *vert_idx,
+                   const uint *edge_idx,
+                   const uint *face_idx,
+                   const uint *loop_idx)
 {
   /* Mapping old to new pointers. */
   GHash *vptr_map = NULL, *eptr_map = NULL, *fptr_map = NULL;
@@ -944,6 +948,70 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     }
   }
 
+  GHash *lptr_map = NULL;
+
+  /* Remap Loops */
+  if (loop_idx) {
+    BMLoop **ltable = MEM_malloc_arrayN(bm->totloop, sizeof(*ltable), "ltable");
+
+    BMLoop *ed;
+    BLI_mempool_iter liter;
+    BLI_mempool_iternew(bm->lpool, &liter);
+    BMLoop *l = (BMLoop *)BLI_mempool_iterstep(&liter);
+
+    int i = 0;
+    for (; l; l = (BMLoop *)BLI_mempool_iterstep(&liter), i++) {
+      l->head.index = i;
+      ltable[i] = l;
+    }
+
+    BMLoop **loops_pool, *loops_copy, **edl;
+    int totloop = bm->totloop;
+    const uint *new_idx;
+    /* Special case: Python uses custom data layers to hold PyObject references.
+     * These have to be kept in place, else the PyObjects we point to, won't point back to us. */
+    const int cd_loop_pyptr = CustomData_get_offset(&bm->ldata, CD_BM_ELEM_PYPTR);
+
+    /* Init the old-to-new vert pointers mapping */
+    lptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap loop pointers mapping", bm->totloop);
+
+    /* Make a copy of all vertices. */
+    loops_pool = ltable;
+    loops_copy = MEM_mallocN(sizeof(BMLoop) * totloop, "BM_mesh_remap loops copy");
+
+    void **pyptrs = (cd_loop_pyptr != -1) ? MEM_mallocN(sizeof(void *) * totloop, __func__) : NULL;
+    for (i = totloop, ed = loops_copy + totloop - 1, edl = loops_pool + totloop - 1; i--;
+         ed--, edl--) {
+      *ed = **edl;
+      if (cd_loop_pyptr != -1) {
+        void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)ed), cd_loop_pyptr);
+        pyptrs[i] = *pyptr;
+      }
+    }
+
+    /* Copy back verts to their new place, and update old2new pointers mapping. */
+    new_idx = loop_idx + totloop - 1;
+    ed = loops_copy + totloop - 1;
+    edl = loops_pool + totloop - 1; /* old, org pointer */
+    for (i = totloop; i--; new_idx--, ed--, edl--) {
+      BMLoop *new_edl = loops_pool[*new_idx];
+      *new_edl = *ed;
+      BLI_ghash_insert(lptr_map, *edl, new_edl);
+#if 0
+      printf(
+          "mapping loop from %d to %d (%p/%p to %p)\n", i, *new_idx, *edl, loops_pool[i], new_edl);
+#endif
+      if (cd_loop_pyptr != -1) {
+        void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)new_edl), cd_loop_pyptr);
+        *pyptr = pyptrs[*new_idx];
+      }
+    }
+
+    MEM_SAFE_FREE(ltable);
+    MEM_SAFE_FREE(loops_copy);
+    MEM_SAFE_FREE(pyptrs);
+  }
+
   /* Remap Edges */
   if (edge_idx) {
     BMEdge **edges_pool, *edges_copy, **edp;
@@ -976,6 +1044,11 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     for (i = totedge; i--; new_idx--, ed--, edp--) {
       BMEdge *new_edp = edges_pool[*new_idx];
       *new_edp = *ed;
+
+      if (new_edp->l && lptr_map) {
+        new_edp->l = BLI_ghash_lookup(lptr_map, (BMLoop *)new_edp->l);
+      }
+
       BLI_ghash_insert(eptr_map, *edp, new_edp);
 #if 0
       printf(
@@ -1028,6 +1101,22 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
       BMFace *new_fap = faces_pool[*new_idx];
       *new_fap = *fa;
       BLI_ghash_insert(fptr_map, *fap, new_fap);
+
+      if (lptr_map) {
+        new_fap->l_first = BLI_ghash_lookup(lptr_map, (void *)new_fap->l_first);
+
+        BMLoop *l = new_fap->l_first;
+
+        do {
+          l->next = BLI_ghash_lookup(lptr_map, (void *)l->next);
+          l->prev = BLI_ghash_lookup(lptr_map, (void *)l->prev);
+          l->radial_next = BLI_ghash_lookup(lptr_map, (void *)l->radial_next);
+          l->radial_prev = BLI_ghash_lookup(lptr_map, (void *)l->radial_prev);
+
+          l = l->next;
+        } while (l != new_fap->l_first);
+      }
+
       if (cd_poly_pyptr != -1) {
         void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)new_fap), cd_poly_pyptr);
         *pyptr = pyptrs[*new_idx];

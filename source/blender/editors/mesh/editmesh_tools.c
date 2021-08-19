@@ -7105,7 +7105,7 @@ static void sort_bmelem_flag(bContext *C,
     }
   }
 
-  BM_mesh_remap(em->bm, map[0], map[1], map[2]);
+  BM_mesh_remap(em->bm, map[0], map[1], map[2], NULL);
   DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 

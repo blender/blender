@@ -99,7 +99,11 @@ BMFace *BM_face_at_index_find_or_table(BMesh *bm, const int index);
 
 int BM_mesh_elem_count(BMesh *bm, const char htype);
 
-void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx);
+void BM_mesh_remap(BMesh *bm,
+                   const uint *vert_idx,
+                   const uint *edge_idx,
+                   const uint *face_idx,
+                   const uint *loop_idx);
 
 void BM_mesh_rebuild(BMesh *bm,
                      const struct BMeshCreateParams *params,

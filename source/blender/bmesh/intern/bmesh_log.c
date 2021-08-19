@@ -1200,7 +1200,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
   }
   BLI_ghash_free(id_to_idx, NULL, NULL);
 
-  BM_mesh_remap(bm, varr, NULL, farr);
+  BM_mesh_remap(bm, varr, NULL, farr, NULL);
 
   MEM_freeN(varr);
   MEM_freeN(farr);

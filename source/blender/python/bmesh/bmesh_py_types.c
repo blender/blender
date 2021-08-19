@@ -2764,7 +2764,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
       return NULL;
   }
 
-  BM_mesh_remap(bm, vert_idx, edge_idx, face_idx);
+  BM_mesh_remap(bm, vert_idx, edge_idx, face_idx, NULL);
 
   PyMem_FREE(elem_map_idx);
   PyMem_FREE(elem_idx);

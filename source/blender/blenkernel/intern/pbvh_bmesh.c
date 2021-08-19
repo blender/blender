@@ -48,8 +48,10 @@ Topology rake:
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
+#include "BLI_sort_utils.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
+
 #include "PIL_time.h"
 #include "atomic_ops.h"
 
@@ -1339,6 +1341,87 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
   }
 }
 
+void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
+{
+  // update boundary flags in a hopefully faster manner then v->e iteration
+  // XXX or not, it's slower
+
+  BMIter iter;
+  BMEdge *e;
+  BMVert *v;
+
+  const int cd_fset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
+
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+    mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY |
+                  DYNVERT_VERT_FSET_HIDDEN);
+
+    if (cd_fset >= 0 && v->e && v->e->l) {
+      mv->flag |= DYNVERT_VERT_FSET_HIDDEN;
+    }
+  }
+
+  BM_ITER_MESH (e, &iter, pbvh->bm, BM_EDGES_OF_MESH) {
+    if (!e->l || e->l == e->l->radial_next) {
+      MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v1);
+      MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v2);
+
+      mv1->flag |= DYNVERT_BOUNDARY;
+      mv2->flag |= DYNVERT_BOUNDARY;
+    }
+
+    if (!e->l) {
+      continue;
+    }
+
+    if (cd_fset < 0) {
+      MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v1);
+      MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v2);
+
+      BMLoop *l = e->l;
+
+      do {
+        if (l->f->len > 3) {
+          mv1->flag |= DYNVERT_NEED_TRIANGULATE;
+          mv2->flag |= DYNVERT_NEED_TRIANGULATE;
+          break;
+        }
+
+        l = l->radial_next;
+      } while (l != e->l);
+      continue;
+    }
+
+    MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v1);
+    MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v2);
+
+    BMLoop *l = e->l;
+    int lastfset = BM_ELEM_CD_GET_INT(l->f, cd_fset);
+    do {
+      int fset = BM_ELEM_CD_GET_INT(l->f, cd_fset);
+
+      if (l->f->len > 3) {
+        mv1->flag |= DYNVERT_NEED_TRIANGULATE;
+        mv2->flag |= DYNVERT_NEED_TRIANGULATE;
+      }
+
+      if (fset > 0) {
+        MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
+        mv->flag &= ~DYNVERT_VERT_FSET_HIDDEN;
+      }
+
+      if (lastfset != fset) {
+        mv1->flag |= DYNVERT_FSET_BOUNDARY;
+        mv2->flag |= DYNVERT_FSET_BOUNDARY;
+      }
+
+      lastfset = fset;
+
+      l = l->radial_next;
+    } while (l != e->l);
+  }
+}
 /* Build a PBVH from a BMesh */
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           BMesh *bm,
@@ -1372,6 +1455,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   BMIter iter;
   BMVert *v;
+
+  // BKE_pbvh_update_all_boundary_bmesh(pbvh);
 
   int cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
@@ -2558,6 +2643,316 @@ static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
   BLI_array_free(fmap);
 }
 
+#define MAX_RE_CHILD 3
+typedef struct ReVertNode {
+  int totvert, totchild;
+  struct ReVertNode *parent;
+  struct ReVertNode *children[MAX_RE_CHILD];
+  BMVert *verts[];
+} ReVertNode;
+
+ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
+{
+  /*try to compute size of verts per node*/
+  int vsize = sizeof(BMVert);
+  vsize += pbvh->bm->vdata.totsize;
+
+  // perhaps aim for l2 cache?
+  const int limit = 1024;
+  int leaf_limit = MAX2(limit / vsize, 4);
+
+  const int cd_vcol = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
+
+  BLI_mempool *pool = BLI_mempool_create(sizeof(ReVertNode) + sizeof(void *) * vsize, 0, 8192, 0);
+  ReVertNode **vnodemap = MEM_calloc_arrayN(pbvh->bm->totvert, sizeof(void *), "vnodemap");
+
+  printf("leaf_limit: %d\n", leaf_limit);
+
+  BMIter iter;
+  BMVert *v;
+  const char flag = BM_ELEM_TAG_ALT;
+  int i = 0;
+
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    BM_elem_flag_disable(v, flag);
+    v->head.index = i++;
+  }
+
+  BMVert **stack = NULL;
+  BLI_array_declare(stack);
+
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, flag)) {
+      continue;
+    }
+
+    ReVertNode *node = BLI_mempool_calloc(pool);
+
+    BLI_array_clear(stack);
+    BLI_array_append(stack, v);
+
+    BM_elem_flag_enable(v, flag);
+
+    vnodemap[v->head.index] = node;
+    node->verts[node->totvert++] = v;
+
+    while (BLI_array_len(stack) > 0) {
+      BMVert *v2 = BLI_array_pop(stack);
+      BMEdge *e;
+
+      if (node->totvert >= leaf_limit) {
+        break;
+      }
+
+      if (!v2->e) {
+        continue;
+      }
+
+      int len = node->totvert;
+
+      e = v2->e;
+      do {
+        BMVert *v3 = BM_edge_other_vert(e, v2);
+
+        if (!BM_elem_flag_test(v3, flag) && len < leaf_limit) {
+          BM_elem_flag_enable(v3, flag);
+          vnodemap[v3->head.index] = node;
+          node->verts[node->totvert++] = v3;
+
+          len++;
+
+          BLI_array_append(stack, v3);
+        }
+
+        e = e->v1 == v2 ? e->v1_disk_link.next : e->v2_disk_link.next;
+      } while (e != v2->e);
+    }
+  }
+
+  const int steps = 4;
+  ReVertNode **roots = NULL;
+  BLI_array_declare(roots);
+
+  for (int step = 0; step < steps; step++) {
+    const bool last_step = step == steps - 1;
+
+    BM_ITER_MESH_INDEX (v, &iter, pbvh->bm, BM_VERTS_OF_MESH, i) {
+      BMEdge *e = v->e;
+
+      if (!e) {
+        continue;
+      }
+
+      ReVertNode *node = vnodemap[v->head.index];
+      if (node->parent) {
+        continue;
+      }
+
+      ReVertNode *other_node = NULL;
+
+      ReVertNode *parent = BLI_mempool_calloc(pool);
+      parent->children[0] = node;
+      parent->totchild = 1;
+
+      do {
+        BMVert *v2 = BM_edge_other_vert(e, v);
+
+        ReVertNode *node2 = vnodemap[v2->head.index];
+
+        bool ok = node != node2 && !node2->parent;
+        for (int j = 0; j < parent->totchild; j++) {
+          if (parent->children[j] == node2) {
+            ok = false;
+            break;
+          }
+        }
+
+        if (ok) {
+          parent->children[parent->totchild++] = node2;
+          break;
+        }
+
+        e = e->v1 == v ? e->v1_disk_link.next : e->v2_disk_link.next;
+      } while (e != v->e);
+
+      if (parent->totchild == 1) {
+        BLI_mempool_free(pool, parent);
+        continue;
+      }
+
+      if (last_step) {
+        BLI_array_append(roots, parent);
+      }
+
+      for (int j = 0; j < parent->totchild; j++) {
+        parent->children[j]->parent = parent;
+      }
+    }
+
+    BM_ITER_MESH_INDEX (v, &iter, pbvh->bm, BM_VERTS_OF_MESH, i) {
+      while (vnodemap[i]->parent) {
+        vnodemap[i] = vnodemap[i]->parent;
+      }
+    }
+  }
+
+  BLI_mempool_iter loopiter;
+  BLI_mempool_iternew(pbvh->bm->lpool, &loopiter);
+  BMLoop *l = BLI_mempool_iterstep(&loopiter);
+  BMEdge *e;
+  BMFace *f;
+
+  for (i = 0; l; l = BLI_mempool_iterstep(&loopiter), i++) {
+    l->head.hflag &= ~flag;
+  }
+  BM_ITER_MESH (e, &iter, pbvh->bm, BM_EDGES_OF_MESH) {
+    e->head.hflag &= ~flag;
+  }
+
+  BM_ITER_MESH (f, &iter, pbvh->bm, BM_FACES_OF_MESH) {
+    f->head.hflag &= ~flag;
+  }
+
+  int totroot = BLI_array_len(roots);
+  ReVertNode **nstack = NULL;
+  BLI_array_declare(nstack);
+  int vorder = 0, eorder = 0, lorder = 0, forder = 0;
+
+  for (i = 0; i < totroot; i++) {
+    BLI_array_clear(nstack);
+
+    ReVertNode *node = roots[i];
+    BLI_array_append(nstack, node);
+
+    while (BLI_array_len(nstack) > 0) {
+      ReVertNode *node2 = BLI_array_pop(nstack);
+
+      if (node2->totchild == 0) {
+        for (int j = 0; j < node2->totvert; j++) {
+          v = node2->verts[j];
+
+#if 0
+          if (cd_vcol >= 0) {
+            MPropCol *col = BM_ELEM_CD_GET_VOID_P(node2->verts[j], cd_vcol);
+
+            float r = 0.0f, g = 0.0f, b = 0.0f;
+
+            unsigned int p = (unsigned int)node2->parent;
+            p = p % 65535;
+
+            unsigned int p2 = (unsigned int)node2->parent;
+            p2 = p2 % 65535;
+
+            r = ((float)vorder) * 0.01;
+            g = ((float)p2) / 65535.0f;
+            b = ((float)p) / 65535.0f;
+
+            r = cosf(r * 17.2343) * 0.5 + 0.5;
+            g = cosf(g * 11.2343) * 0.5 + 0.5;
+            b = cosf(b * 19.2343) * 0.5 + 0.5;
+
+            col->color[0] = r;
+            col->color[1] = g;
+            col->color[2] = b;
+            col->color[3] = 1.0f;
+          }
+#endif
+          v->head.index = vorder++;
+
+          BMEdge *e = v->e;
+          if (!e) {
+            continue;
+          }
+
+          do {
+            if (!(e->head.hflag & flag)) {
+              e->head.hflag |= flag;
+              e->head.index = eorder++;
+            }
+
+            if (e->l) {
+              BMLoop *l = e->l;
+
+              do {
+                if (!(l->head.hflag & flag)) {
+                  l->head.hflag |= flag;
+                  l->head.index = lorder++;
+                }
+
+                if (!(l->f->head.hflag & flag)) {
+                  l->f->head.hflag |= flag;
+                  l->f->head.index = forder++;
+                }
+
+                l = l->radial_next;
+              } while (l != e->l);
+            }
+            e = e->v1 == v ? e->v1_disk_link.next : e->v2_disk_link.next;
+          } while (e != v->e);
+        }
+      }
+      else {
+        for (int j = 0; j < node2->totchild; j++) {
+          BLI_array_append(nstack, node2->children[j]);
+        }
+      }
+    }
+  }
+
+  uint *vidx, *eidx, *lidx, *fidx;
+
+  vidx = MEM_malloc_arrayN(pbvh->bm->totvert, sizeof(*vidx), "vorder");
+  eidx = MEM_malloc_arrayN(pbvh->bm->totedge, sizeof(*eidx), "eorder");
+  lidx = MEM_malloc_arrayN(pbvh->bm->totloop, sizeof(*lidx), "lorder");
+  fidx = MEM_malloc_arrayN(pbvh->bm->totface, sizeof(*fidx), "forder");
+
+  printf("v %d %d\n", vorder, pbvh->bm->totvert);
+  printf("e %d %d\n", eorder, pbvh->bm->totedge);
+  printf("l %d %d\n", lorder, pbvh->bm->totloop);
+  printf("f %d %d\n", forder, pbvh->bm->totface);
+
+  BM_ITER_MESH_INDEX (v, &iter, pbvh->bm, BM_VERTS_OF_MESH, i) {
+    vidx[i] = (uint)v->head.index;
+  }
+
+  BM_ITER_MESH_INDEX (e, &iter, pbvh->bm, BM_EDGES_OF_MESH, i) {
+    eidx[i] = (uint)e->head.index;
+  }
+  BM_ITER_MESH_INDEX (f, &iter, pbvh->bm, BM_FACES_OF_MESH, i) {
+    fidx[i] = (uint)f->head.index;
+  }
+
+  BLI_mempool_iternew(pbvh->bm->lpool, &loopiter);
+  l = BLI_mempool_iterstep(&loopiter);
+
+  for (i = 0; l; l = BLI_mempool_iterstep(&loopiter), i++) {
+    // handle orphaned loops
+    if (!(l->head.hflag & flag)) {
+      printf("warning in %s: orphaned loop!\n", __func__);
+      l->head.index = lorder++;
+    }
+
+    lidx[i] = (uint)l->head.index;
+  }
+
+  BM_mesh_remap(pbvh->bm, vidx, eidx, fidx, lidx);
+
+  printf("roots: %d\n", BLI_array_len(roots));
+
+  MEM_SAFE_FREE(vidx);
+  MEM_SAFE_FREE(eidx);
+  MEM_SAFE_FREE(lidx);
+  MEM_SAFE_FREE(fidx);
+
+  MEM_SAFE_FREE(nstack);
+  MEM_SAFE_FREE(roots);
+  BLI_mempool_destroy(pool);
+  MEM_SAFE_FREE(stack);
+  MEM_SAFE_FREE(vnodemap);
+
+  return pbvh->bm;
+}
+
 BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
 {
   if (BKE_pbvh_type(pbvh) != PBVH_BMESH || pbvh->totnode == 0) {
@@ -2826,7 +3221,7 @@ static int sort_edges(const void *va, const void *vb)
   return (ni1 + ni2) - (ni3 + ni4);
 }
 
-BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
+BMesh *BKE_pbvh_reorder_bmesh1(PBVH *pbvh)
 {
   BMesh *bm = pbvh->bm;
 
@@ -2920,7 +3315,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
     faces[i].elem->head.index = faces[i].index;
   }
 
-  BM_mesh_remap(bm, vs, es, fs);
+  BM_mesh_remap(bm, vs, es, fs, NULL);
 
   // create new mappings
   BMVert **mapvs = MEM_malloc_arrayN(bm->totvert, sizeof(BMVert *), __func__);
