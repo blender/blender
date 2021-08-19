@@ -2331,17 +2331,21 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   bevp1 = bevp2 + (bl->nr - 1);
   bevp0 = bevp1 - 1;
 
-  nr = bl->nr;
-  while (nr--) {
+  /* The ordinal of the point being adjusted (bevp2). First point is 1. */
 
-    if (nr + 3 > bl->nr) { /* first time and second time, otherwise first point adjusts last */
-      vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
-    }
-    else {
-      minimum_twist_between_two_points(bevp1, bevp0);
-    }
+  /* First point is the reference, don't adjust.
+   * Skip this point in the following loop. */
+  if (bl->nr > 0) {
+    vec_to_quat(bevp2->quat, bevp2->dir, 5, 1);
 
-    bevp0 = bevp1;
+    bevp0 = bevp1; /* bevp0 is unused */
+    bevp1 = bevp2;
+    bevp2++;
+  }
+  for (nr = 1; nr < bl->nr; nr++) {
+    minimum_twist_between_two_points(bevp2, bevp1);
+
+    bevp0 = bevp1; /* bevp0 is unused */
     bevp1 = bevp2;
     bevp2++;
   }
