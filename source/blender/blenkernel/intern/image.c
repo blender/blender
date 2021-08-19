@@ -246,15 +246,17 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   ImagePackedFile *imapf;
 
   BLI_assert(ima->packedfile == NULL);
-  /* Do not store packed files in case this is a library override ID. */
-  if (ID_IS_OVERRIDE_LIBRARY(ima) && !is_undo) {
-    BLI_listbase_clear(&ima->packedfiles);
-  }
-  else {
-    /* Some trickery to keep forward compatibility of packed images. */
-    if (ima->packedfiles.first != NULL) {
-      imapf = ima->packedfiles.first;
-      ima->packedfile = imapf->packedfile;
+  if (!is_undo) {
+    /* Do not store packed files in case this is a library override ID. */
+    if (ID_IS_OVERRIDE_LIBRARY(ima)) {
+      BLI_listbase_clear(&ima->packedfiles);
+    }
+    else {
+      /* Some trickery to keep forward compatibility of packed images. */
+      if (ima->packedfiles.first != NULL) {
+        imapf = ima->packedfiles.first;
+        ima->packedfile = imapf->packedfile;
+      }
     }
   }
 
