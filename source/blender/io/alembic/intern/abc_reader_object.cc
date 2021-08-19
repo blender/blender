@@ -197,7 +197,7 @@ void AbcObjectReader::setupObjectTransform(const float time)
   BKE_object_apply_mat4(m_object, transform_from_alembic, true, false);
   BKE_object_to_mat4(m_object, m_object->obmat);
 
-  if (!is_constant) {
+  if (!is_constant || m_settings->always_add_cache_reader) {
     bConstraint *con = BKE_constraint_add_for_object(
         m_object, nullptr, CONSTRAINT_TYPE_TRANSFORM_CACHE);
     bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con->data);
