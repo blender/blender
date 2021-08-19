@@ -845,6 +845,17 @@ static void rna_Sequence_audio_update(Main *UNUSED(bmain), Scene *scene, Pointer
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 }
 
+static void rna_Sequence_pan_range(
+    PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+
+  *min = -FLT_MAX;
+  *max = FLT_MAX;
+  *softmax = 1 + (int)(scene->r.ffcodecdata.audio_channels > 2);
+  *softmin = -*softmax;
+}
+
 static int rna_Sequence_input_count_get(PointerRNA *ptr)
 {
   Sequence *seq = (Sequence *)(ptr->data);
@@ -2559,8 +2570,10 @@ static void rna_def_sound(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pan", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "pan");
-  RNA_def_property_range(prop, -2.0f, 2.0f);
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, -2, 2, 1, 2);
   RNA_def_property_ui_text(prop, "Pan", "Playback panning of the sound (only for Mono sources)");
+  RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Sequence_pan_range");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
 
   prop = RNA_def_property(srna, "show_waveform", PROP_BOOLEAN, PROP_NONE);
