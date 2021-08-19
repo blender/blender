@@ -1830,11 +1830,6 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_MOVE)) {
         tgpi->flag = IN_CURVE_EDIT;
       }
-      else {
-        if (G.debug & G_DEBUG) {
-          printf("GP Add Primitive Modal: LEFTMOUSE %d, Status = %d\n", event->val, tgpi->flag);
-        }
-      }
       break;
     }
     case EVT_SPACEKEY: /* confirm */
