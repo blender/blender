@@ -3178,10 +3178,11 @@ static void redraw_timer_step(bContext *C,
     LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
       CTX_wm_area_set(C, area_iter);
       LISTBASE_FOREACH (ARegion *, region_iter, &area_iter->regionbase) {
-        if (region_iter->visible) {
-          CTX_wm_region_set(C, region_iter);
-          wm_draw_region_test(C, area_iter, region_iter);
+        if (!region_iter->visible) {
+          continue;
         }
+        CTX_wm_region_set(C, region_iter);
+        wm_draw_region_test(C, area_iter, region_iter);
       }
     }
 
