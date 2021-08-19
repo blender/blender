@@ -37,7 +37,7 @@ static bNodeSocketTemplate geo_node_subdivision_surface_out[] = {
 
 static void geo_node_subdivision_surface_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
-                                                PointerRNA *ptr)
+                                                PointerRNA *UNUSED(ptr))
 {
 #ifndef WITH_OPENSUBDIV
   uiItemL(layout, IFACE_("Disabled, built without OpenSubdiv"), ICON_ERROR);
