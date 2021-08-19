@@ -255,6 +255,13 @@ size_t BLI_ungzip_file_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t g
 
 #undef CHUNK
 
+bool BLI_file_magic_is_gzip(const char header[4])
+{
+  /* GZIP itself starts with the magic bytes 0x1f 0x8b.
+   * The third byte indicates the compression method, which is 0x08 for DEFLATE. */
+  return header[0] == 0x1f && header[1] == 0x8b && header[2] == 0x08;
+}
+
 /**
  * Returns true if the file with the specified name can be written.
  * This implementation uses access(2), which makes the check according

@@ -78,12 +78,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #  include "winsock2.h"
 #  include <io.h>
-#  include <zlib.h> /* odd include order-issue */
 #else
 #  include <unistd.h> /* FreeBSD, for write() and close(). */
 #endif

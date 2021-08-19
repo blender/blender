@@ -75,6 +75,9 @@ set(SRC
   intern/endian_switch.c
   intern/expr_pylike_eval.c
   intern/fileops.c
+  intern/filereader_file.c
+  intern/filereader_gzip.c
+  intern/filereader_memory.c
   intern/fnmatch.c
   intern/freetypefont.c
   intern/gsqueue.c
@@ -194,6 +197,7 @@ set(SRC
   BLI_enumerable_thread_specific.hh
   BLI_expr_pylike_eval.h
   BLI_fileops.h
+  BLI_filereader.h
   BLI_fileops_types.h
   BLI_float2.hh
   BLI_float3.hh

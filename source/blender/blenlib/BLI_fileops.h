@@ -166,6 +166,8 @@ size_t BLI_gzip_mem_to_file_at_pos(void *buf,
                                    int compression_level) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 size_t BLI_ungzip_file_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t gz_stream_offset)
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool BLI_file_magic_is_gzip(const char header[4]);
+
 size_t BLI_file_descriptor_size(int file) ATTR_WARN_UNUSED_RESULT;
 size_t BLI_file_size(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
