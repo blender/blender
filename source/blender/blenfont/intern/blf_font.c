@@ -356,7 +356,7 @@ BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
                                       int *pen_x_p)
 {
   /* `blf_font_ensure_ascii_kerning(font, gc);` must be called before this function. */
-  BLI_assert(font->kerning_cache != NULL);
+  BLI_assert(font->kerning_cache != NULL || !FT_HAS_KERNING(font->face));
 
   if (g_prev != NULL && FT_HAS_KERNING(font->face)) {
     if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
