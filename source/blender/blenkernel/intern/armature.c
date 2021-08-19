@@ -212,25 +212,24 @@ static void write_bone(BlendWriter *writer, Bone *bone)
 static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   bArmature *arm = (bArmature *)id;
-  if (arm->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    arm->bonehash = NULL;
-    arm->edbo = NULL;
-    /* Must always be cleared (armatures don't have their own edit-data). */
-    arm->needs_flush_to_id = 0;
-    arm->act_edbone = NULL;
 
-    BLO_write_id_struct(writer, bArmature, id_address, &arm->id);
-    BKE_id_blend_write(writer, &arm->id);
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  arm->bonehash = NULL;
+  arm->edbo = NULL;
+  /* Must always be cleared (armatures don't have their own edit-data). */
+  arm->needs_flush_to_id = 0;
+  arm->act_edbone = NULL;
 
-    if (arm->adt) {
-      BKE_animdata_blend_write(writer, arm->adt);
-    }
+  BLO_write_id_struct(writer, bArmature, id_address, &arm->id);
+  BKE_id_blend_write(writer, &arm->id);
 
-    /* Direct data */
-    LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
-      write_bone(writer, bone);
-    }
+  if (arm->adt) {
+    BKE_animdata_blend_write(writer, arm->adt);
+  }
+
+  /* Direct data */
+  LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
+    write_bone(writer, bone);
   }
 }
 

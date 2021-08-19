@@ -122,18 +122,17 @@ static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
 static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Camera *cam = (Camera *)id;
-  if (cam->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, Camera, id_address, &cam->id);
-    BKE_id_blend_write(writer, &cam->id);
 
-    if (cam->adt) {
-      BKE_animdata_blend_write(writer, cam->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, Camera, id_address, &cam->id);
+  BKE_id_blend_write(writer, &cam->id);
 
-    LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
-      BLO_write_struct(writer, CameraBGImage, bgpic);
-    }
+  if (cam->adt) {
+    BKE_animdata_blend_write(writer, cam->adt);
+  }
+
+  LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
+    BLO_write_struct(writer, CameraBGImage, bgpic);
   }
 }
 

@@ -171,9 +171,6 @@ static void text_free_data(ID *id)
 
 static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  if (id->us < 1 && !BLO_write_is_undo(writer)) {
-    return;
-  }
   Text *text = (Text *)id;
 
   /* NOTE: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */

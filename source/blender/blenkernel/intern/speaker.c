@@ -56,14 +56,13 @@ static void speaker_foreach_id(ID *id, LibraryForeachIDData *data)
 static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Speaker *spk = (Speaker *)id;
-  if (spk->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, Speaker, id_address, &spk->id);
-    BKE_id_blend_write(writer, &spk->id);
 
-    if (spk->adt) {
-      BKE_animdata_blend_write(writer, spk->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, Speaker, id_address, &spk->id);
+  BKE_id_blend_write(writer, &spk->id);
+
+  if (spk->adt) {
+    BKE_animdata_blend_write(writer, spk->adt);
   }
 }
 

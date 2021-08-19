@@ -229,44 +229,43 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   Image *ima = (Image *)id;
   const bool is_undo = BLO_write_is_undo(writer);
-  if (ima->id.us > 0 || is_undo) {
-    ImagePackedFile *imapf;
 
-    BLI_assert(ima->packedfile == NULL);
-    /* Do not store packed files in case this is a library override ID. */
-    if (ID_IS_OVERRIDE_LIBRARY(ima) && !is_undo) {
-      BLI_listbase_clear(&ima->packedfiles);
-    }
-    else {
-      /* Some trickery to keep forward compatibility of packed images. */
-      if (ima->packedfiles.first != NULL) {
-        imapf = ima->packedfiles.first;
-        ima->packedfile = imapf->packedfile;
-      }
-    }
+  ImagePackedFile *imapf;
 
-    /* write LibData */
-    BLO_write_id_struct(writer, Image, id_address, &ima->id);
-    BKE_id_blend_write(writer, &ima->id);
-
-    for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
-      BLO_write_struct(writer, ImagePackedFile, imapf);
-      BKE_packedfile_blend_write(writer, imapf->packedfile);
-    }
-
-    BKE_previewimg_blend_write(writer, ima->preview);
-
-    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
-      BLO_write_struct(writer, ImageView, iv);
-    }
-    BLO_write_struct(writer, Stereo3dFormat, ima->stereo3d_format);
-
-    BLO_write_struct_list(writer, ImageTile, &ima->tiles);
-
-    ima->packedfile = NULL;
-
-    BLO_write_struct_list(writer, RenderSlot, &ima->renderslots);
+  BLI_assert(ima->packedfile == NULL);
+  /* Do not store packed files in case this is a library override ID. */
+  if (ID_IS_OVERRIDE_LIBRARY(ima) && !is_undo) {
+    BLI_listbase_clear(&ima->packedfiles);
   }
+  else {
+    /* Some trickery to keep forward compatibility of packed images. */
+    if (ima->packedfiles.first != NULL) {
+      imapf = ima->packedfiles.first;
+      ima->packedfile = imapf->packedfile;
+    }
+  }
+
+  /* write LibData */
+  BLO_write_id_struct(writer, Image, id_address, &ima->id);
+  BKE_id_blend_write(writer, &ima->id);
+
+  for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
+    BLO_write_struct(writer, ImagePackedFile, imapf);
+    BKE_packedfile_blend_write(writer, imapf->packedfile);
+  }
+
+  BKE_previewimg_blend_write(writer, ima->preview);
+
+  LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
+    BLO_write_struct(writer, ImageView, iv);
+  }
+  BLO_write_struct(writer, Stereo3dFormat, ima->stereo3d_format);
+
+  BLO_write_struct_list(writer, ImageTile, &ima->tiles);
+
+  ima->packedfile = NULL;
+
+  BLO_write_struct_list(writer, RenderSlot, &ima->renderslots);
 }
 
 static void image_blend_read_data(BlendDataReader *reader, ID *id)

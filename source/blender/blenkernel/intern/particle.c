@@ -255,60 +255,59 @@ static void write_boid_state(BlendWriter *writer, BoidState *state)
 static void particle_settings_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   ParticleSettings *part = (ParticleSettings *)id;
-  if (part->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, ParticleSettings, id_address, &part->id);
-    BKE_id_blend_write(writer, &part->id);
 
-    if (part->adt) {
-      BKE_animdata_blend_write(writer, part->adt);
-    }
-    BLO_write_struct(writer, PartDeflect, part->pd);
-    BLO_write_struct(writer, PartDeflect, part->pd2);
-    BLO_write_struct(writer, EffectorWeights, part->effector_weights);
+  /* write LibData */
+  BLO_write_id_struct(writer, ParticleSettings, id_address, &part->id);
+  BKE_id_blend_write(writer, &part->id);
 
-    if (part->clumpcurve) {
-      BKE_curvemapping_blend_write(writer, part->clumpcurve);
-    }
-    if (part->roughcurve) {
-      BKE_curvemapping_blend_write(writer, part->roughcurve);
-    }
-    if (part->twistcurve) {
-      BKE_curvemapping_blend_write(writer, part->twistcurve);
-    }
+  if (part->adt) {
+    BKE_animdata_blend_write(writer, part->adt);
+  }
+  BLO_write_struct(writer, PartDeflect, part->pd);
+  BLO_write_struct(writer, PartDeflect, part->pd2);
+  BLO_write_struct(writer, EffectorWeights, part->effector_weights);
 
-    LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-      /* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
-      if (dw->ob != NULL) {
-        dw->index = 0;
-        if (part->instance_collection) { /* can be NULL if lining fails or set to None */
-          FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (part->instance_collection, object) {
-            if (object == dw->ob) {
-              break;
-            }
-            dw->index++;
+  if (part->clumpcurve) {
+    BKE_curvemapping_blend_write(writer, part->clumpcurve);
+  }
+  if (part->roughcurve) {
+    BKE_curvemapping_blend_write(writer, part->roughcurve);
+  }
+  if (part->twistcurve) {
+    BKE_curvemapping_blend_write(writer, part->twistcurve);
+  }
+
+  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
+    /* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
+    if (dw->ob != NULL) {
+      dw->index = 0;
+      if (part->instance_collection) { /* can be NULL if lining fails or set to None */
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (part->instance_collection, object) {
+          if (object == dw->ob) {
+            break;
           }
-          FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+          dw->index++;
         }
-      }
-      BLO_write_struct(writer, ParticleDupliWeight, dw);
-    }
-
-    if (part->boids && part->phystype == PART_PHYS_BOIDS) {
-      BLO_write_struct(writer, BoidSettings, part->boids);
-
-      LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-        write_boid_state(writer, state);
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
       }
     }
-    if (part->fluid && part->phystype == PART_PHYS_FLUID) {
-      BLO_write_struct(writer, SPHFluidSettings, part->fluid);
-    }
+    BLO_write_struct(writer, ParticleDupliWeight, dw);
+  }
 
-    for (int a = 0; a < MAX_MTEX; a++) {
-      if (part->mtex[a]) {
-        BLO_write_struct(writer, MTex, part->mtex[a]);
-      }
+  if (part->boids && part->phystype == PART_PHYS_BOIDS) {
+    BLO_write_struct(writer, BoidSettings, part->boids);
+
+    LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
+      write_boid_state(writer, state);
+    }
+  }
+  if (part->fluid && part->phystype == PART_PHYS_FLUID) {
+    BLO_write_struct(writer, SPHFluidSettings, part->fluid);
+  }
+
+  for (int a = 0; a < MAX_MTEX; a++) {
+    if (part->mtex[a]) {
+      BLO_write_struct(writer, MTex, part->mtex[a]);
     }
   }
 }

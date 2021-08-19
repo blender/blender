@@ -214,20 +214,19 @@ void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collectio
 static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Collection *collection = (Collection *)id;
-  if (collection->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-    collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
-    collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
-    collection->tag = 0;
-    BLI_listbase_clear(&collection->object_cache);
-    BLI_listbase_clear(&collection->object_cache_instanced);
-    BLI_listbase_clear(&collection->parents);
 
-    /* write LibData */
-    BLO_write_id_struct(writer, Collection, id_address, &collection->id);
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
+  collection->tag = 0;
+  BLI_listbase_clear(&collection->object_cache);
+  BLI_listbase_clear(&collection->object_cache_instanced);
+  BLI_listbase_clear(&collection->parents);
 
-    BKE_collection_blend_write_nolib(writer, collection);
-  }
+  /* write LibData */
+  BLO_write_id_struct(writer, Collection, id_address, &collection->id);
+
+  BKE_collection_blend_write_nolib(writer, collection);
 }
 
 #ifdef USE_COLLECTION_COMPAT_28

@@ -126,23 +126,22 @@ static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   VFont *vf = (VFont *)id;
   const bool is_undo = BLO_write_is_undo(writer);
-  if (vf->id.us > 0 || is_undo) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    vf->data = NULL;
-    vf->temp_pf = NULL;
 
-    /* Do not store packed files in case this is a library override ID. */
-    if (ID_IS_OVERRIDE_LIBRARY(vf) && !is_undo) {
-      vf->packedfile = NULL;
-    }
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  vf->data = NULL;
+  vf->temp_pf = NULL;
 
-    /* write LibData */
-    BLO_write_id_struct(writer, VFont, id_address, &vf->id);
-    BKE_id_blend_write(writer, &vf->id);
-
-    /* direct data */
-    BKE_packedfile_blend_write(writer, vf->packedfile);
+  /* Do not store packed files in case this is a library override ID. */
+  if (ID_IS_OVERRIDE_LIBRARY(vf) && !is_undo) {
+    vf->packedfile = NULL;
   }
+
+  /* write LibData */
+  BLO_write_id_struct(writer, VFont, id_address, &vf->id);
+  BKE_id_blend_write(writer, &vf->id);
+
+  /* direct data */
+  BKE_packedfile_blend_write(writer, vf->packedfile);
 }
 
 static void vfont_blend_read_data(BlendDataReader *reader, ID *id)

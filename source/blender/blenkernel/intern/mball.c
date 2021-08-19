@@ -119,28 +119,27 @@ static void metaball_foreach_id(ID *id, LibraryForeachIDData *data)
 static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   MetaBall *mb = (MetaBall *)id;
-  if (mb->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    BLI_listbase_clear(&mb->disp);
-    mb->editelems = NULL;
-    /* Must always be cleared (meta's don't have their own edit-data). */
-    mb->needs_flush_to_id = 0;
-    mb->lastelem = NULL;
-    mb->batch_cache = NULL;
 
-    /* write LibData */
-    BLO_write_id_struct(writer, MetaBall, id_address, &mb->id);
-    BKE_id_blend_write(writer, &mb->id);
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  BLI_listbase_clear(&mb->disp);
+  mb->editelems = NULL;
+  /* Must always be cleared (meta's don't have their own edit-data). */
+  mb->needs_flush_to_id = 0;
+  mb->lastelem = NULL;
+  mb->batch_cache = NULL;
 
-    /* direct data */
-    BLO_write_pointer_array(writer, mb->totcol, mb->mat);
-    if (mb->adt) {
-      BKE_animdata_blend_write(writer, mb->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, MetaBall, id_address, &mb->id);
+  BKE_id_blend_write(writer, &mb->id);
 
-    LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
-      BLO_write_struct(writer, MetaElem, ml);
-    }
+  /* direct data */
+  BLO_write_pointer_array(writer, mb->totcol, mb->mat);
+  if (mb->adt) {
+    BKE_animdata_blend_write(writer, mb->adt);
+  }
+
+  LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
+    BLO_write_struct(writer, MetaElem, ml);
   }
 }
 

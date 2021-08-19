@@ -186,22 +186,21 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
 static void action_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   bAction *act = (bAction *)id;
-  if (act->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, bAction, id_address, &act->id);
-    BKE_id_blend_write(writer, &act->id);
 
-    BKE_fcurve_blend_write(writer, &act->curves);
+  BLO_write_id_struct(writer, bAction, id_address, &act->id);
+  BKE_id_blend_write(writer, &act->id);
 
-    LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
-      BLO_write_struct(writer, bActionGroup, grp);
-    }
+  BKE_fcurve_blend_write(writer, &act->curves);
 
-    LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-      BLO_write_struct(writer, TimeMarker, marker);
-    }
-
-    BKE_previewimg_blend_write(writer, act->preview);
+  LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
+    BLO_write_struct(writer, bActionGroup, grp);
   }
+
+  LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
+    BLO_write_struct(writer, TimeMarker, marker);
+  }
+
+  BKE_previewimg_blend_write(writer, act->preview);
 }
 
 static void action_blend_read_data(BlendDataReader *reader, ID *id)

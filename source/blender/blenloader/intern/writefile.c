@@ -982,6 +982,14 @@ static bool write_file_handle(Main *mainvar,
         BLI_assert(
             (id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
 
+        /* We only write unused IDs in undo case.
+         * NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
+         * their usercount should never be NULL currently. */
+        if (id->us == 0 && !wd->use_memfile) {
+          BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
+          continue;
+        }
+
         const bool do_override = !ELEM(override_storage, NULL, bmain) &&
                                  ID_IS_OVERRIDE_LIBRARY_REAL(id);
 

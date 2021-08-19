@@ -523,74 +523,72 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   Object *ob = (Object *)id;
 
   const bool is_undo = BLO_write_is_undo(writer);
-  if (ob->id.us > 0 || is_undo) {
-    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-    BKE_object_runtime_reset(ob);
 
-    if (is_undo) {
-      /* For undo we stay in object mode during undo presses, so keep edit-mode disabled on save as
-       * well, can help reducing false detection of changed data-blocks. */
-      ob->mode &= ~OB_MODE_EDIT;
-    }
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+  BKE_object_runtime_reset(ob);
 
-    /* write LibData */
-    BLO_write_id_struct(writer, Object, id_address, &ob->id);
-    BKE_id_blend_write(writer, &ob->id);
-
-    if (ob->adt) {
-      BKE_animdata_blend_write(writer, ob->adt);
-    }
-
-    /* direct data */
-    BLO_write_pointer_array(writer, ob->totcol, ob->mat);
-    BLO_write_raw(writer, sizeof(char) * ob->totcol, ob->matbits);
-
-    bArmature *arm = NULL;
-    if (ob->type == OB_ARMATURE) {
-      arm = ob->data;
-      if (arm && ob->pose && arm->act_bone) {
-        BLI_strncpy(
-            ob->pose->proxy_act_bone, arm->act_bone->name, sizeof(ob->pose->proxy_act_bone));
-      }
-    }
-
-    BKE_pose_blend_write(writer, ob->pose, arm);
-    write_fmaps(writer, &ob->fmaps);
-    BKE_constraint_blend_write(writer, &ob->constraints);
-    animviz_motionpath_blend_write(writer, ob->mpath);
-
-    BLO_write_struct(writer, PartDeflect, ob->pd);
-    if (ob->soft) {
-      /* Set deprecated pointers to prevent crashes of older Blenders */
-      ob->soft->pointcache = ob->soft->shared->pointcache;
-      ob->soft->ptcaches = ob->soft->shared->ptcaches;
-      BLO_write_struct(writer, SoftBody, ob->soft);
-      BLO_write_struct(writer, SoftBody_Shared, ob->soft->shared);
-      BKE_ptcache_blend_write(writer, &(ob->soft->shared->ptcaches));
-      BLO_write_struct(writer, EffectorWeights, ob->soft->effector_weights);
-    }
-
-    if (ob->rigidbody_object) {
-      /* TODO: if any extra data is added to handle duplis, will need separate function then */
-      BLO_write_struct(writer, RigidBodyOb, ob->rigidbody_object);
-    }
-    if (ob->rigidbody_constraint) {
-      BLO_write_struct(writer, RigidBodyCon, ob->rigidbody_constraint);
-    }
-
-    if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
-      BLO_write_struct(writer, ImageUser, ob->iuser);
-    }
-
-    BKE_particle_system_blend_write(writer, &ob->particlesystem);
-    BKE_modifier_blend_write(writer, &ob->modifiers);
-    BKE_gpencil_modifier_blend_write(writer, &ob->greasepencil_modifiers);
-    BKE_shaderfx_blend_write(writer, &ob->shader_fx);
-
-    BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
-
-    BKE_previewimg_blend_write(writer, ob->preview);
+  if (is_undo) {
+    /* For undo we stay in object mode during undo presses, so keep edit-mode disabled on save as
+     * well, can help reducing false detection of changed data-blocks. */
+    ob->mode &= ~OB_MODE_EDIT;
   }
+
+  /* write LibData */
+  BLO_write_id_struct(writer, Object, id_address, &ob->id);
+  BKE_id_blend_write(writer, &ob->id);
+
+  if (ob->adt) {
+    BKE_animdata_blend_write(writer, ob->adt);
+  }
+
+  /* direct data */
+  BLO_write_pointer_array(writer, ob->totcol, ob->mat);
+  BLO_write_raw(writer, sizeof(char) * ob->totcol, ob->matbits);
+
+  bArmature *arm = NULL;
+  if (ob->type == OB_ARMATURE) {
+    arm = ob->data;
+    if (arm && ob->pose && arm->act_bone) {
+      BLI_strncpy(ob->pose->proxy_act_bone, arm->act_bone->name, sizeof(ob->pose->proxy_act_bone));
+    }
+  }
+
+  BKE_pose_blend_write(writer, ob->pose, arm);
+  write_fmaps(writer, &ob->fmaps);
+  BKE_constraint_blend_write(writer, &ob->constraints);
+  animviz_motionpath_blend_write(writer, ob->mpath);
+
+  BLO_write_struct(writer, PartDeflect, ob->pd);
+  if (ob->soft) {
+    /* Set deprecated pointers to prevent crashes of older Blenders */
+    ob->soft->pointcache = ob->soft->shared->pointcache;
+    ob->soft->ptcaches = ob->soft->shared->ptcaches;
+    BLO_write_struct(writer, SoftBody, ob->soft);
+    BLO_write_struct(writer, SoftBody_Shared, ob->soft->shared);
+    BKE_ptcache_blend_write(writer, &(ob->soft->shared->ptcaches));
+    BLO_write_struct(writer, EffectorWeights, ob->soft->effector_weights);
+  }
+
+  if (ob->rigidbody_object) {
+    /* TODO: if any extra data is added to handle duplis, will need separate function then */
+    BLO_write_struct(writer, RigidBodyOb, ob->rigidbody_object);
+  }
+  if (ob->rigidbody_constraint) {
+    BLO_write_struct(writer, RigidBodyCon, ob->rigidbody_constraint);
+  }
+
+  if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
+    BLO_write_struct(writer, ImageUser, ob->iuser);
+  }
+
+  BKE_particle_system_blend_write(writer, &ob->particlesystem);
+  BKE_modifier_blend_write(writer, &ob->modifiers);
+  BKE_gpencil_modifier_blend_write(writer, &ob->greasepencil_modifiers);
+  BKE_shaderfx_blend_write(writer, &ob->shader_fx);
+
+  BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
+
+  BKE_previewimg_blend_write(writer, ob->preview);
 }
 
 /* XXX deprecated - old animation system */
