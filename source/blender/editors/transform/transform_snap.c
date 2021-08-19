@@ -1461,46 +1461,8 @@ bool snapNodesTransform(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name snap Frames
+/** \name snap Grid
  * \{ */
-
-/* This function is used by Animation Editor specific transform functions to do
- * the Snap Keyframe to Nearest Frame/Marker
- */
-void snapFrameTransform(TransInfo *t,
-                        const eAnimEdit_AutoSnap autosnap,
-                        const bool is_frame_value,
-                        const float delta,
-                        float *r_val)
-{
-  double val = delta;
-  switch (autosnap) {
-    case SACTSNAP_STEP:
-    case SACTSNAP_FRAME:
-      val = floor(val + 0.5);
-      break;
-    case SACTSNAP_MARKER:
-      /* snap to nearest marker */
-      /* TODO: need some more careful checks for where data comes from. */
-      val = ED_markers_find_nearest_marker_time(&t->scene->markers, (float)val);
-      break;
-    case SACTSNAP_SECOND:
-    case SACTSNAP_TSTEP: {
-      /* second step */
-      const Scene *scene = t->scene;
-      const double secf = FPS;
-      val = floor((val / secf) + 0.5);
-      if (is_frame_value) {
-        val *= secf;
-      }
-      break;
-    }
-    case SACTSNAP_OFF: {
-      break;
-    }
-  }
-  *r_val = (float)val;
-}
 
 static void snap_grid_apply(
     TransInfo *t, const int max_index, const float grid_dist, const float loc[3], float r_out[3])

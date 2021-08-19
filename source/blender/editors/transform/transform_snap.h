@@ -45,12 +45,6 @@ bool snapNodesTransform(struct TransInfo *t,
                         float r_loc[2],
                         float *r_dist_px,
                         char *r_node_border);
-void snapFrameTransform(struct TransInfo *t,
-                        const eAnimEdit_AutoSnap autosnap,
-                        const bool is_frame_value,
-                        const float delta,
-                        /* return args */
-                        float *r_val);
 
 bool transformModeUseSnap(const TransInfo *t);
 
@@ -86,3 +80,14 @@ struct TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
 void transform_snap_sequencer_data_free(struct TransSeqSnapData *data);
 bool transform_snap_sequencer_calc(struct TransInfo *t);
 void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec);
+
+/* transform_snap_animation.c */
+short getAnimEdit_SnapMode(TransInfo *t);
+void snapFrameTransform(struct TransInfo *t,
+                        const eAnimEdit_AutoSnap autosnap,
+                        const bool is_frame_value,
+                        const float delta,
+                        /* return args */
+                        float *r_val);
+void doAnimEdit_SnapFrame(
+    TransInfo *t, TransData *td, TransData2D *td2d, struct AnimData *adt, short autosnap);

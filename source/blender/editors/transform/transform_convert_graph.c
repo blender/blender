@@ -41,6 +41,8 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_snap.h"
+
 #include "transform_mode.h"
 
 typedef struct TransDataGraph {
