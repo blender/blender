@@ -373,13 +373,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   BLI_assert(ui_but_is_user_menu_compatible(C, but));
 
   char drawstr[sizeof(but->drawstr)];
-  STRNCPY(drawstr, but->drawstr);
-  if (but->flag & UI_BUT_HAS_SEP_CHAR) {
-    char *sep = strrchr(drawstr, UI_SEP_CHAR);
-    if (sep) {
-      *sep = '\0';
-    }
-  }
+  ui_but_drawstr_without_sep_char(but, drawstr, sizeof(drawstr));
 
   MenuType *mt = NULL;
   if (but->optype) {

@@ -23,6 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_screen_types.h"
@@ -551,6 +552,12 @@ size_t ui_but_drawstr_len_without_sep_char(const uiBut *but)
     }
   }
   return strlen(but->drawstr);
+}
+
+size_t ui_but_drawstr_without_sep_char(const uiBut *but, char *str, size_t str_maxlen)
+{
+  size_t str_len_clip = ui_but_drawstr_len_without_sep_char(but);
+  return BLI_strncpy_rlen(str, but->drawstr, min_zz(str_len_clip + 1, str_maxlen));
 }
 
 size_t ui_but_tip_len_only_first_line(const uiBut *but)

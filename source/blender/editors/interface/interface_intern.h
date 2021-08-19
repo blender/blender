@@ -1177,6 +1177,8 @@ uiBut *ui_list_find_mouse_over_ex(const struct ARegion *region,
 
 bool ui_but_contains_password(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
+size_t ui_but_drawstr_without_sep_char(const uiBut *but, char *str, size_t str_maxlen)
+    ATTR_NONNULL(1, 2);
 size_t ui_but_drawstr_len_without_sep_char(const uiBut *but);
 size_t ui_but_tip_len_only_first_line(const uiBut *but);
 
