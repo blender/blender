@@ -111,7 +111,9 @@ static void space_image_gpu_texture_get(Image *image,
     /* update multiindex and pass for the current eye */
     BKE_image_multilayer_index(image->rr, &sima->iuser);
   }
-  BKE_image_multiview_index(image, &sima->iuser);
+  else {
+    BKE_image_multiview_index(image, &sima->iuser);
+  }
 
   if (ibuf) {
     const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
