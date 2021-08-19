@@ -128,6 +128,19 @@ bool RE_engine_is_opengl(RenderEngineType *render_type)
   return (render_type->draw_engine != NULL) && DRW_engine_render_support(render_type->draw_engine);
 }
 
+bool RE_engine_supports_alembic_procedural(const RenderEngineType *render_type, Scene *scene)
+{
+  if ((render_type->flag & RE_USE_ALEMBIC_PROCEDURAL) == 0) {
+    return false;
+  }
+
+  if (BKE_scene_uses_cycles(scene) && !BKE_scene_uses_cycles_experimental_features(scene)) {
+    return false;
+  }
+
+  return true;
+}
+
 /* Create, Free */
 
 RenderEngine *RE_engine_create(RenderEngineType *type)

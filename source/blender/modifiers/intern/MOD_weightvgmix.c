@@ -154,7 +154,9 @@ static void requiredDataMask(Object *UNUSED(ob),
   /* No need to ask for CD_PREVIEW_MLOOPCOL... */
 }
 
-static bool dependsOnTime(ModifierData *md)
+static bool dependsOnTime(struct Scene *UNUSED(scene),
+                          ModifierData *md,
+                          const int UNUSED(dag_eval_mode))
 {
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
 

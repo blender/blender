@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "DNA_cachefile_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -202,6 +203,19 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
     }
     if (scene->nodetree && update_scene_data) {
       ntreeCompositUpdateRLayers(scene->nodetree);
+    }
+  }
+
+  /* Update CacheFiles to ensure that procedurals are properly taken into account. */
+  LISTBASE_FOREACH (CacheFile *, cachefile, &bmain->cachefiles) {
+    /* Only update cachefiles which are set to use a render procedural. We do not use
+     * BKE_cachefile_uses_render_procedural here as we need to update regardless of the current
+     * engine or its settings. */
+    if (cachefile->use_render_procedural) {
+      DEG_id_tag_update(&cachefile->id, ID_RECALC_COPY_ON_WRITE);
+      /* Rebuild relations so that modifiers are reconnected to or disconnected from the cachefile.
+       */
+      DEG_relations_tag_update(bmain);
     }
   }
 }

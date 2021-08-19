@@ -1038,23 +1038,6 @@ static void create_subd_mesh(Scene *scene,
 
 /* Sync */
 
-static BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob)
-{
-  if (b_ob.modifiers.length() > 0) {
-    BL::Modifier b_mod = b_ob.modifiers[b_ob.modifiers.length() - 1];
-
-    if (b_mod.type() == BL::Modifier::type_MESH_SEQUENCE_CACHE) {
-      BL::MeshSequenceCacheModifier mesh_cache = BL::MeshSequenceCacheModifier(b_mod);
-
-      if (MeshSequenceCacheModifier_has_velocity_get(&mesh_cache.ptr)) {
-        return mesh_cache;
-      }
-    }
-  }
-
-  return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
-}
-
 /* Check whether some of "built-in" motion-related attributes are needed to be exported (includes
  * things like velocity from cache modifier, fluid simulation).
  *
@@ -1095,7 +1078,7 @@ static void sync_mesh_cached_velocities(BL::Object &b_ob, Scene *scene, Mesh *me
     return;
   }
 
-  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob);
+  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob, true);
 
   if (!b_mesh_cache) {
     return;
@@ -1258,7 +1241,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   }
 
   /* Cached motion blur already exported. */
-  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(b_ob);
+  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(b_ob, true);
   if (mesh_cache) {
     return;
   }

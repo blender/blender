@@ -49,6 +49,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "RE_engine.h"
+
 #include "BLO_read_write.h"
 
 #ifdef WITH_ALEMBIC
@@ -408,4 +410,20 @@ float BKE_cachefile_time_offset(const CacheFile *cache_file, const float time, c
   const float time_offset = cache_file->frame_offset / fps;
   const float frame = (cache_file->override_frame ? cache_file->frame : time);
   return cache_file->is_sequence ? frame : frame / fps - time_offset;
+}
+
+bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file,
+                                           Scene *scene,
+                                           const int dag_eval_mode)
+{
+  RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
+
+  if (cache_file->type != CACHEFILE_TYPE_ALEMBIC ||
+      !RE_engine_supports_alembic_procedural(render_engine_type, scene)) {
+    return false;
+  }
+
+  /* The render time procedural is only enabled during viewport rendering. */
+  const bool is_final_render = (eEvaluationMode)dag_eval_mode == DAG_EVAL_RENDER;
+  return cache_file->use_render_procedural && !is_final_render;
 }

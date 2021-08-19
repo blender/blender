@@ -227,6 +227,11 @@ def update_render_passes(self, context):
     view_layer.update_render_passes()
 
 
+def update_render_engine(self, context):
+    scene = context.scene
+    scene.update_render_engine()
+
+
 class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     device: EnumProperty(
@@ -240,6 +245,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Feature set to use for rendering",
         items=enum_feature_set,
         default='SUPPORTED',
+        update=update_render_engine,
     )
     shading_system: BoolProperty(
         name="Open Shading Language",

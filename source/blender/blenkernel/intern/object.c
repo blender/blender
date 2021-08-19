@@ -5411,9 +5411,12 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
   return tree;
 }
 
-bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
+bool BKE_object_modifier_use_time(Scene *scene,
+                                  Object *ob,
+                                  ModifierData *md,
+                                  const int dag_eval_mode)
 {
-  if (BKE_modifier_depends_ontime(md)) {
+  if (BKE_modifier_depends_ontime(scene, md, dag_eval_mode)) {
     return true;
   }
 

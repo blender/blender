@@ -151,6 +151,8 @@ class BlenderSync {
                       TaskPool *geom_task_pool);
   void sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob, Object *object);
 
+  void sync_procedural(BL::Object &b_ob, BL::MeshSequenceCacheModifier &b_mesh_cache);
+
   bool sync_object_attributes(BL::DepsgraphObjectInstance &b_instance, Object *object);
 
   /* Volume */
@@ -221,6 +223,7 @@ class BlenderSync {
 
   id_map<void *, Shader> shader_map;
   id_map<ObjectKey, Object> object_map;
+  id_map<void *, Procedural> procedural_map;
   id_map<GeometryKey, Geometry> geometry_map;
   id_map<ObjectKey, Light> light_map;
   id_map<ParticleSystemKey, ParticleSystem> particle_system_map;

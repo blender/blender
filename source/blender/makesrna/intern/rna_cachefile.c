@@ -37,6 +37,7 @@
 #  include "BKE_cachefile.h"
 
 #  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph_build.h"
 
 #  include "WM_api.h"
 #  include "WM_types.h"
@@ -51,6 +52,12 @@ static void rna_CacheFile_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 
   DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+}
+
+static void rna_CacheFile_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  rna_CacheFile_update(bmain, scene, ptr);
+  DEG_relations_tag_update(bmain);
 }
 
 static void rna_CacheFile_object_paths_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -104,6 +111,16 @@ static void rna_def_cachefile(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Sequence", "Whether the cache is separated in a series of files");
   RNA_def_property_update(prop, 0, "rna_CacheFile_update");
+
+  prop = RNA_def_property(srna, "use_render_procedural", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Render Engine Procedural",
+      "Display boxes in the viewport as placeholders for the objects, Cycles will use a "
+      "procedural to load the objects during viewport rendering in experimental mode, "
+      "other render engines will also receive a placeholder and should take care of loading the "
+      "Alembic data themselves if possible");
+  RNA_def_property_update(prop, 0, "rna_CacheFile_dependency_update");
 
   /* ----------------- For Scene time ------------------- */
 

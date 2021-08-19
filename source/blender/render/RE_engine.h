@@ -66,6 +66,7 @@ extern "C" {
 #define RE_USE_GPU_CONTEXT 512
 #define RE_USE_CUSTOM_FREESTYLE 1024
 #define RE_USE_NO_IMAGE_SAVE 2048
+#define RE_USE_ALEMBIC_PROCEDURAL 4096
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION 1
@@ -234,6 +235,12 @@ void RE_engines_exit(void);
 void RE_engines_register(RenderEngineType *render_type);
 
 bool RE_engine_is_opengl(RenderEngineType *render_type);
+
+/**
+ * Return true if the RenderEngineType has native support for direct loading of Alembic data. For
+ * Cycles, this also checks that the experimental feature set is enabled.
+ */
+bool RE_engine_supports_alembic_procedural(const RenderEngineType *render_type, Scene *scene);
 
 RenderEngineType *RE_engines_find(const char *idname);
 

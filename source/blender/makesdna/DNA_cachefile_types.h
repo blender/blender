@@ -87,14 +87,21 @@ typedef struct CacheFile {
   /** The frame offset to subtract. */
   float frame_offset;
 
+  char _pad[4];
+
   /** Animation flag. */
   short flag;
-  short draw_flag; /* UNUSED */
 
   /* eCacheFileType enum. */
   char type;
 
-  char _pad[2];
+  /** Do not load data from the cache file and display objects in the scene as boxes, Cycles will
+   * load objects directly from the CacheFile. Other render engines which can load Alembic data
+   * directly can take care of rendering it themselves.
+   */
+  char use_render_procedural;
+
+  char _pad1[7];
 
   char velocity_unit;
   /* Name of the velocity property in the archive. */
