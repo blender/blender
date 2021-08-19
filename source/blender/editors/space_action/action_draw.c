@@ -271,7 +271,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
         else if (ac->datatype == ANIMCONT_MASK) {
           /* TODO: this is a copy of gpencil. */
           /* frames less than one get less saturated background */
-          uchar *color = sel ? col1 : col2;
+          uchar *color;
+          if (ale->type == ANIMTYPE_SUMMARY) {
+            color = col_summary;
+            color[3] = col1[3];
+          }
+          else {
+            color = sel ? col1 : col2;
+          }
           immUniformColor4ubv(color);
           immRectf(pos, 0.0f, ymin, v2d->cur.xmin, ymax);
 
