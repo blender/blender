@@ -805,6 +805,11 @@ void GeometryManager::device_update_attributes(Device *device,
         Mesh *mesh = static_cast<Mesh *>(geom);
         Attribute *subd_attr = mesh->subd_attributes.find(req);
 
+        /* Vertex normals are stored in DeviceScene.tri_vnormal. */
+        if (subd_attr && subd_attr->std == ATTR_STD_VERTEX_NORMAL) {
+          continue;
+        }
+
         update_attribute_element_size(mesh,
                                       subd_attr,
                                       ATTR_PRIM_SUBD,
