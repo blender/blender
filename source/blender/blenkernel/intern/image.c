@@ -230,6 +230,19 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   Image *ima = (Image *)id;
   const bool is_undo = BLO_write_is_undo(writer);
 
+  /* Clear all data that isn't read to reduce false detection of changed image during memfile undo.
+   */
+  ima->lastused = 0;
+  ima->cache = NULL;
+  ima->gpuflag = 0;
+  BLI_listbase_clear(&ima->anims);
+  BLI_listbase_clear(&ima->gpu_refresh_areas);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 2; j++) {
+      ima->gputexture[i][j] = NULL;
+    }
+  }
+
   ImagePackedFile *imapf;
 
   BLI_assert(ima->packedfile == NULL);
@@ -299,6 +312,7 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     tile->ok = IMA_OK;
   }
+  ima->lastused = 0;
   ima->gpuflag = 0;
   BLI_listbase_clear(&ima->gpu_refresh_areas);
 }
