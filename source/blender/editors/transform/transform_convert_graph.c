@@ -40,6 +40,8 @@
 #include "UI_view2d.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
 #include "transform_convert.h"
 #include "transform_snap.h"
 
@@ -662,10 +664,9 @@ static void flushTransGraphData(TransInfo *t)
   TransData *td;
   TransData2D *td2d;
   TransDataGraph *tdg;
-  Scene *scene = t->scene;
-  double secf = FPS;
   int a;
 
+  const short autosnap = getAnimEdit_SnapMode(t);
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
   /* flush to 2d vector from internally used 3d vector */
@@ -681,22 +682,8 @@ static void flushTransGraphData(TransInfo *t)
      * - Only apply to keyframes (but never to handles).
      * - Don't do this when canceling, or else these changes won't go away.
      */
-    if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0) {
-      const short autosnap = getAnimEdit_SnapMode(t);
-      switch (autosnap) {
-        case SACTSNAP_FRAME: /* snap to nearest frame */
-          td2d->loc[0] = floor((double)td2d->loc[0] + 0.5);
-          break;
-
-        case SACTSNAP_SECOND: /* snap to nearest second */
-          td2d->loc[0] = floor(((double)td2d->loc[0] / secf) + 0.5) * secf;
-          break;
-
-        case SACTSNAP_MARKER: /* snap to nearest marker */
-          td2d->loc[0] = (float)ED_markers_find_nearest_marker_time(&t->scene->markers,
-                                                                    td2d->loc[0]);
-          break;
-      }
+    if ((autosnap != SACTSNAP_OFF) && (t->state != TRANS_CANCEL) && !(td->flag & TD_NOTIMESNAP)) {
+      transform_snap_anim_flush_data(t, td, autosnap, td->loc);
     }
 
     /* we need to unapply the nla-mapping from the time in some situations */
@@ -707,32 +694,6 @@ static void flushTransGraphData(TransInfo *t)
       td2d->loc2d[0] = td2d->loc[0];
     }
 
-    /** Time-stepping auto-snapping modes don't get applied for Graph Editor transforms,
-     * as these use the generic transform modes which don't account for this sort of thing.
-     * These ones aren't affected by NLA mapping, so we do this after the conversion...
-     *
-     * \note We also have to apply to td->loc,
-     * as that's what the handle-adjustment step below looks to,
-     * otherwise we get "swimming handles".
-     *
-     * \note We don't do this when canceling transforms, or else these changes don't go away.
-     */
-    if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0) {
-      const short autosnap = getAnimEdit_SnapMode(t);
-      switch (autosnap) {
-        case SACTSNAP_STEP: /* frame step */
-          td2d->loc2d[0] = floor((double)td2d->loc[0] + 0.5);
-          td->loc[0] = floor((double)td->loc[0] + 0.5);
-          break;
-
-        case SACTSNAP_TSTEP: /* second step */
-          /* XXX: the handle behavior in this case is still not quite right... */
-          td2d->loc[0] = floor(((double)td2d->loc[0] / secf) + 0.5) * secf;
-          td->loc[0] = floor(((double)td->loc[0] / secf) + 0.5) * secf;
-          break;
-      }
-    }
-
     /* if int-values only, truncate to integers */
     if (td->flag & TD_INTVALUES) {
       td2d->loc2d[1] = floorf(td2d->loc[1] * inv_unit_scale - tdg->offset + 0.5f);
@@ -741,15 +702,7 @@ static void flushTransGraphData(TransInfo *t)
       td2d->loc2d[1] = td2d->loc[1] * inv_unit_scale - tdg->offset;
     }
 
-    if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
-      td2d->h1[0] = td2d->ih1[0] + td->loc[0] - td->iloc[0];
-      td2d->h1[1] = td2d->ih1[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
-    }
-
-    if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
-      td2d->h2[0] = td2d->ih2[0] + td->loc[0] - td->iloc[0];
-      td2d->h2[1] = td2d->ih2[1] + (td->loc[1] - td->iloc[1]) * inv_unit_scale;
-    }
+    transform_convert_flush_handle2D(td, td2d, inv_unit_scale);
   }
 }
 

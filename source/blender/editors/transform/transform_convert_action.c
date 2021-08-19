@@ -45,6 +45,8 @@
 #include "WM_types.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
 #include "transform_convert.h"
 
 /* helper struct for gp-frame transforms */
@@ -602,6 +604,19 @@ void recalcData_actedit(TransInfo *t)
   if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
     /* flush transform values back to actual coordinates */
     flushTransIntFrameActionData(t);
+  }
+
+  /* Flush 2d vector. */
+  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+  const short autosnap = getAnimEdit_SnapMode(t);
+  TransData *td;
+  TransData2D *td2d;
+  int i = 0;
+  for (td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
+    if ((autosnap != SACTSNAP_OFF) && (t->state != TRANS_CANCEL) && !(td->flag & TD_NOTIMESNAP)) {
+      transform_snap_anim_flush_data(t, td, autosnap, td->loc);
+    }
+    transform_convert_flush_handle2D(td, td2d, 1.0f);
   }
 
   if (ac.datatype != ANIMCONT_MASK) {

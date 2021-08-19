@@ -90,67 +90,70 @@ short getAnimEdit_SnapMode(TransInfo *t)
 
 void snapFrameTransform(TransInfo *t,
                         const eAnimEdit_AutoSnap autosnap,
-                        const bool is_frame_value,
-                        const float delta,
-                        /* return args */
-                        float *r_val)
+                        const float val_initial,
+                        const float val_final,
+                        float *r_val_final)
 {
-  double val = delta;
+  float deltax = val_final - val_initial;
   switch (autosnap) {
-    case SACTSNAP_STEP:
     case SACTSNAP_FRAME:
-      val = floor(val + 0.5);
+      *r_val_final = floorf(val_final + 0.5f);
       break;
     case SACTSNAP_MARKER:
-      /* snap to nearest marker */
+      /* Snap to nearest marker. */
       /* TODO: need some more careful checks for where data comes from. */
-      val = ED_markers_find_nearest_marker_time(&t->scene->markers, (float)val);
+      *r_val_final = (float)ED_markers_find_nearest_marker_time(&t->scene->markers, val_final);
       break;
     case SACTSNAP_SECOND:
     case SACTSNAP_TSTEP: {
-      /* second step */
       const Scene *scene = t->scene;
       const double secf = FPS;
-      val = floor((val / secf) + 0.5);
-      if (is_frame_value) {
-        val *= secf;
+      if (autosnap == SACTSNAP_SECOND) {
+        *r_val_final = floorf((val_final / secf) + 0.5) * secf;
+      }
+      else {
+        deltax = (float)(floor((deltax / secf) + 0.5) * secf);
+        *r_val_final = val_initial + deltax;
       }
       break;
     }
-    case SACTSNAP_OFF: {
+    case SACTSNAP_STEP:
+      deltax = floorf(deltax + 0.5f);
+      *r_val_final = val_initial + deltax;
       break;
-    }
+    case SACTSNAP_OFF:
+      break;
   }
-  *r_val = (float)val;
 }
 
 /* This function is used by Animation Editor specific transform functions to do
  * the Snap Keyframe to Nearest Frame/Marker
  */
-void doAnimEdit_SnapFrame(
-    TransInfo *t, TransData *td, TransData2D *td2d, AnimData *adt, short autosnap)
+void transform_snap_anim_flush_data(TransInfo *t,
+                                    TransData *td,
+                                    const eAnimEdit_AutoSnap autosnap,
+                                    float *r_val_final)
 {
-  if (autosnap != SACTSNAP_OFF) {
-    float val;
+  BLI_assert(autosnap != SACTSNAP_OFF);
 
-    /* convert frame to nla-action time (if needed) */
-    if (adt && (t->spacetype != SPACE_SEQ)) {
-      val = BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
-    }
-    else {
-      val = *(td->val);
-    }
+  float val = td->loc[0];
+  float ival = td->iloc[0];
+  AnimData *adt = (!ELEM(t->spacetype, SPACE_NLA, SPACE_SEQ)) ? td->extra : NULL;
 
-    snapFrameTransform(t, autosnap, true, val, &val);
-
-    /* convert frame out of nla-action time */
-    if (adt && (t->spacetype != SPACE_SEQ)) {
-      *(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
-    }
-    else {
-      *(td->val) = val;
-    }
+  /* Convert frame to nla-action time (if needed) */
+  if (adt) {
+    val = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_MAP);
+    ival = BKE_nla_tweakedit_remap(adt, ival, NLATIME_CONVERT_MAP);
   }
+
+  snapFrameTransform(t, autosnap, ival, val, &val);
+
+  /* Convert frame out of nla-action time. */
+  if (adt) {
+    val = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
+  }
+
+  *r_val_final = val;
 }
 
 /** \} */

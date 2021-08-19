@@ -83,11 +83,12 @@ void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec);
 
 /* transform_snap_animation.c */
 short getAnimEdit_SnapMode(TransInfo *t);
-void snapFrameTransform(struct TransInfo *t,
+void snapFrameTransform(TransInfo *t,
                         const eAnimEdit_AutoSnap autosnap,
-                        const bool is_frame_value,
-                        const float delta,
-                        /* return args */
-                        float *r_val);
-void doAnimEdit_SnapFrame(
-    TransInfo *t, TransData *td, TransData2D *td2d, struct AnimData *adt, short autosnap);
+                        const float val_initial,
+                        const float val_final,
+                        float *r_val_final);
+void transform_snap_anim_flush_data(TransInfo *t,
+                                    TransData *td,
+                                    const eAnimEdit_AutoSnap autosnap,
+                                    float *r_val_final);
