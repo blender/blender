@@ -308,19 +308,14 @@ void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
   blf_glyph_cache_release(font);
 }
 
-static void blf_font_ensure_ascii_kerning(FontBLF *font,
-                                          GlyphCacheBLF *gc,
-                                          const FT_UInt kern_mode)
+static void blf_font_ensure_ascii_kerning(FontBLF *font, GlyphCacheBLF *gc)
 {
-  KerningCacheBLF *kc = font->kerning_cache;
-
-  font->kerning_mode = kern_mode;
-
-  if (!kc || kc->mode != kern_mode) {
-    font->kerning_cache = kc = blf_kerning_cache_find(font);
-    if (!kc) {
-      font->kerning_cache = kc = blf_kerning_cache_new(font, gc);
-    }
+  if (font->kerning_cache || !FT_HAS_KERNING(font->face)) {
+    return;
+  }
+  font->kerning_cache = blf_kerning_cache_find(font);
+  if (!font->kerning_cache) {
+    font->kerning_cache = blf_kerning_cache_new(font, gc);
   }
 }
 
@@ -353,28 +348,23 @@ BLI_INLINE GlyphBLF *blf_utf8_next_fast(
   return g;
 }
 
-#define BLF_KERNING_VARS(_font, _has_kerning, _kern_mode) \
-  const bool _has_kerning = FT_HAS_KERNING((_font)->face); \
-  const FT_UInt _kern_mode = FT_KERNING_DEFAULT;
-
 BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
-                                      const FT_UInt kern_mode,
                                       const GlyphBLF *g_prev,
                                       const GlyphBLF *g,
                                       const uint c_prev,
                                       const uint c,
                                       int *pen_x_p)
 {
-  /* `blf_font_ensure_ascii_kerning(font, gc, kern_mode);` must be called before this function. */
-  BLI_assert((font->kerning_mode == kern_mode) && (font->kerning_cache != NULL));
+  /* `blf_font_ensure_ascii_kerning(font, gc);` must be called before this function. */
+  BLI_assert(font->kerning_cache != NULL);
 
-  if (g_prev != NULL) {
+  if (g_prev != NULL && FT_HAS_KERNING(font->face)) {
     if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
       *pen_x_p += font->kerning_cache->ascii_table[c][c_prev];
     }
     else {
       FT_Vector delta;
-      if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, kern_mode, &delta) == 0) {
+      if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_DEFAULT, &delta) == 0) {
         *pen_x_p += (int)delta.x >> 6;
       }
     }
@@ -398,9 +388,7 @@ static void blf_font_draw_ex(FontBLF *font,
     return;
   }
 
-  BLF_KERNING_VARS(font, has_kerning, kern_mode);
-
-  blf_font_ensure_ascii_kerning(font, gc, kern_mode);
+  blf_font_ensure_ascii_kerning(font, gc);
 
   blf_batch_draw_begin(font);
 
@@ -413,9 +401,7 @@ static void blf_font_draw_ex(FontBLF *font,
     if (UNLIKELY(g == NULL)) {
       continue;
     }
-    if (has_kerning) {
-      blf_kerning_step_fast(font, kern_mode, g_prev, g, c_prev, c, &pen_x);
-    }
+    blf_kerning_step_fast(font, g_prev, g, c_prev, c, &pen_x);
 
     /* do not return this loop if clipped, we want every character tested */
     blf_glyph_render(font, gc, g, (float)pen_x, (float)pen_y);
@@ -449,9 +435,7 @@ static void blf_font_draw_ascii_ex(
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
 
-  BLF_KERNING_VARS(font, has_kerning, kern_mode);
-
-  blf_font_ensure_ascii_kerning(font, gc, kern_mode);
+  blf_font_ensure_ascii_kerning(font, gc);
 
   blf_batch_draw_begin(font);
 
@@ -465,9 +449,7 @@ static void blf_font_draw_ascii_ex(
         continue;
       }
     }
-    if (has_kerning) {
-      blf_kerning_step_fast(font, kern_mode, g_prev, g, c_prev, c, &pen_x);
-    }
+    blf_kerning_step_fast(font, g_prev, g, c_prev, c, &pen_x);
 
     /* do not return this loop if clipped, we want every character tested */
     blf_glyph_render(font, gc, g, (float)pen_x, (float)pen_y);
@@ -554,9 +536,7 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
   int chx, chy;
   int y, x;
 
-  BLF_KERNING_VARS(font, has_kerning, kern_mode);
-
-  blf_font_ensure_ascii_kerning(font, gc, kern_mode);
+  blf_font_ensure_ascii_kerning(font, gc);
 
   /* another buffer specific call for color conversion */
 
@@ -569,9 +549,7 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
     if (UNLIKELY(g == NULL)) {
       continue;
     }
-    if (has_kerning) {
-      blf_kerning_step_fast(font, kern_mode, g_prev, g, c_prev, c, &pen_x);
-    }
+    blf_kerning_step_fast(font, g_prev, g, c_prev, c, &pen_x);
 
     chx = pen_x + ((int)g->pos[0]);
     chy = pen_y_basis + g->dims[1];
@@ -685,8 +663,6 @@ void blf_font_draw_buffer(FontBLF *font, const char *str, size_t len, struct Res
 }
 
 static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
-                                                   const bool has_kerning,
-                                                   const FT_UInt kern_mode,
                                                    const uint c_prev,
                                                    const uint c,
                                                    GlyphBLF *g_prev,
@@ -700,9 +676,7 @@ static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
   if (UNLIKELY(g == NULL)) {
     return false; /* continue the calling loop. */
   }
-  if (has_kerning) {
-    blf_kerning_step_fast(font, kern_mode, g_prev, g, c_prev, c, pen_x);
-  }
+  blf_kerning_step_fast(font, g_prev, g, c_prev, c, pen_x);
 
   *pen_x += g->advance_i;
 
@@ -720,18 +694,13 @@ size_t blf_font_width_to_strlen(
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   const int width_i = (int)width;
 
-  BLF_KERNING_VARS(font, has_kerning, kern_mode);
-
-  if (has_kerning) {
-    blf_font_ensure_ascii_kerning(font, gc, kern_mode);
-  }
+  blf_font_ensure_ascii_kerning(font, gc);
 
   for (i_prev = i = 0, width_new = pen_x = 0, g_prev = NULL, c_prev = 0; (i < len) && str[i];
        i_prev = i, width_new = pen_x, c_prev = c, g_prev = g) {
     g = blf_utf8_next_fast(font, gc, str, &i, &c);
 
-    if (blf_font_width_to_strlen_glyph_process(
-            font, has_kerning, kern_mode, c_prev, c, g_prev, g, &pen_x, width_i)) {
+    if (blf_font_width_to_strlen_glyph_process(font, c_prev, c, g_prev, g, &pen_x, width_i)) {
       break;
     }
   }
@@ -756,11 +725,7 @@ size_t blf_font_width_to_rstrlen(
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   const int width_i = (int)width;
 
-  BLF_KERNING_VARS(font, has_kerning, kern_mode);
-
-  if (has_kerning) {
-    blf_font_ensure_ascii_kerning(font, gc, kern_mode);
-  }
+  blf_font_ensure_ascii_kerning(font, gc);
 
   i = BLI_strnlen(str, len);
   s = BLI_str_find_prev_char_utf8(str, &str[i]);
@@ -781,8 +746,7 @@ size_t blf_font_width_to_rstrlen(
       BLI_assert(i_tmp == i);
     }
 
-    if (blf_font_width_to_strlen_glyph_process(
-            font, has_kerning, kern_mode, c_prev, c, g_prev, g, &pen_x, width_i)) {
+    if (blf_font_width_to_strlen_glyph_process(font, c_prev, c, g_prev, g, &pen_x, width_i)) {
       break;
     }
   }
@@ -809,14 +773,12 @@ static void blf_font_boundbox_ex(FontBLF *font,
   size_t i = 0;
   rctf gbox;
 
-  BLF_KERNING_VARS(font, has_kerning, kern_mode);
-
   box->xmin = 32000.0f;
   box->xmax = -32000.0f;
   box->ymin = 32000.0f;
   box->ymax = -32000.0f;
 
-  blf_font_ensure_ascii_kerning(font, gc, kern_mode);
+  blf_font_ensure_ascii_kerning(font, gc);
 
   while ((i < len) && str[i]) {
     g = blf_utf8_next_fast(font, gc, str, &i, &c);
@@ -827,9 +789,7 @@ static void blf_font_boundbox_ex(FontBLF *font,
     if (UNLIKELY(g == NULL)) {
       continue;
     }
-    if (has_kerning) {
-      blf_kerning_step_fast(font, kern_mode, g_prev, g, c_prev, c, &pen_x);
-    }
+    blf_kerning_step_fast(font, g_prev, g, c_prev, c, &pen_x);
 
     gbox.xmin = (float)pen_x;
     gbox.xmax = (float)pen_x + g->advance;
@@ -909,9 +869,7 @@ static void blf_font_wrap_apply(FontBLF *font,
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
 
-  BLF_KERNING_VARS(font, has_kerning, kern_mode);
-
-  blf_font_ensure_ascii_kerning(font, gc, kern_mode);
+  blf_font_ensure_ascii_kerning(font, gc);
 
   struct WordWrapVars {
     int wrap_width;
@@ -933,9 +891,7 @@ static void blf_font_wrap_apply(FontBLF *font,
     if (UNLIKELY(g == NULL)) {
       continue;
     }
-    if (has_kerning) {
-      blf_kerning_step_fast(font, kern_mode, g_prev, g, c_prev, c, &pen_x);
-    }
+    blf_kerning_step_fast(font, g_prev, g, c_prev, c, &pen_x);
 
     /**
      * Implementation Detail (utf8).
@@ -1167,9 +1123,7 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
     return;
   }
 
-  BLF_KERNING_VARS(font, has_kerning, kern_mode);
-
-  blf_font_ensure_ascii_kerning(font, gc, kern_mode);
+  blf_font_ensure_ascii_kerning(font, gc);
 
   while ((i < len) && str[i]) {
     i_curr = i;
@@ -1181,9 +1135,7 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
     if (UNLIKELY(g == NULL)) {
       continue;
     }
-    if (has_kerning) {
-      blf_kerning_step_fast(font, kern_mode, g_prev, g, c_prev, c, &pen_x);
-    }
+    blf_kerning_step_fast(font, g_prev, g, c_prev, c, &pen_x);
 
     gbox.xmin = pen_x;
     gbox.xmax = gbox.xmin + MIN2(g->advance_i, g->dims[0]);

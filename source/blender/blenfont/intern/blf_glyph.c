@@ -57,16 +57,7 @@
 
 KerningCacheBLF *blf_kerning_cache_find(FontBLF *font)
 {
-  KerningCacheBLF *p;
-
-  p = (KerningCacheBLF *)font->kerning_caches.first;
-  while (p) {
-    if (p->mode == font->kerning_mode) {
-      return p;
-    }
-    p = p->next;
-  }
-  return NULL;
+  return (KerningCacheBLF *)font->kerning_caches.first;
 }
 
 /* Create a new glyph cache for the current kerning mode. */
@@ -75,7 +66,6 @@ KerningCacheBLF *blf_kerning_cache_new(FontBLF *font, GlyphCacheBLF *gc)
   KerningCacheBLF *kc = MEM_mallocN(sizeof(KerningCacheBLF), __func__);
   kc->next = NULL;
   kc->prev = NULL;
-  kc->mode = font->kerning_mode;
 
   GlyphBLF *g_table[KERNING_CACHE_TABLE_SIZE];
   for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
@@ -99,7 +89,7 @@ KerningCacheBLF *blf_kerning_cache_new(FontBLF *font, GlyphCacheBLF *gc)
         continue;
       }
       FT_Vector delta;
-      if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, kc->mode, &delta) == 0) {
+      if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_DEFAULT, &delta) == 0) {
         kc->ascii_table[i][j] = (int)delta.x >> 6;
       }
     }
