@@ -47,7 +47,7 @@ class TestEnvironment:
         print(f'Init {self.base_dir}')
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
-        if len(self.get_configs_names()) == 0:
+        if len(self.get_config_names()) == 0:
             config_dir = self.base_dir / 'default'
             print(f'Creating default configuration in {config_dir}')
             TestConfig.write_default_config(self, config_dir)
