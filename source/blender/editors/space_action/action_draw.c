@@ -248,7 +248,6 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
           uchar gpl_col[4];
           if (ale->type == ANIMTYPE_SUMMARY) {
             color = col_summary;
-            color[3] = col1[3];
           }
           else if ((show_group_colors) && (ale->type == ANIMTYPE_GPLAYER)) {
             bGPDlayer *gpl = (bGPDlayer *)ale->data;
@@ -274,7 +273,6 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
           uchar *color;
           if (ale->type == ANIMTYPE_SUMMARY) {
             color = col_summary;
-            color[3] = col1[3];
           }
           else {
             color = sel ? col1 : col2;
