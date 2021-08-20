@@ -148,7 +148,5 @@ void register_node_type_geo_subdivision_surface()
                     "NodeGeometrySubdivisionSurface",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  node_type_socket_templates(
-      &ntype, geo_node_subdivision_surface_in, geo_node_subdivision_surface_out);
   nodeRegisterType(&ntype);
 }
