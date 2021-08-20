@@ -1772,6 +1772,16 @@ static void do_versions_seq_set_cache_defaults(Editing *ed)
   ed->recycle_max_cost = 10.0f;
 }
 
+static bool seq_update_flags_cb(Sequence *seq, void *UNUSED(user_data))
+{
+  seq->flag &= ~(SEQ_FLAG_UNUSED_6 | SEQ_FLAG_UNUSED_18 | SEQ_FLAG_UNUSED_19 | SEQ_FLAG_UNUSED_21);
+  if (seq->type == SEQ_TYPE_SPEED) {
+    SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
+    s->flags &= ~(SEQ_SPEED_UNUSED_1);
+  }
+  return true;
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -3447,16 +3457,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
 
       if (scene->ed) {
-        Sequence *seq;
-        SEQ_ALL_BEGIN (scene->ed, seq) {
-          seq->flag &= ~(SEQ_FLAG_UNUSED_6 | SEQ_FLAG_UNUSED_18 | SEQ_FLAG_UNUSED_19 |
-                         SEQ_FLAG_UNUSED_21);
-          if (seq->type == SEQ_TYPE_SPEED) {
-            SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
-            s->flags &= ~(SEQ_SPEED_UNUSED_1);
-          }
-        }
-        SEQ_ALL_END;
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_update_flags_cb, NULL);
       }
     }
 

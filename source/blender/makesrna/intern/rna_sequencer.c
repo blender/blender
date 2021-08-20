@@ -495,15 +495,15 @@ static void rna_Sequence_use_proxy_set(PointerRNA *ptr, bool value)
   SEQ_proxy_set(seq, value != 0);
 }
 
-static int transform_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool transform_seq_cmp_fn(Sequence *seq, void *arg_pt)
 {
   SequenceSearchData *data = arg_pt;
 
   if (seq->strip && seq->strip->transform == data->data) {
     data->seq = seq;
-    return -1; /* done so bail out */
+    return false; /* done so bail out */
   }
-  return 1;
+  return true;
 }
 
 static Sequence *sequence_get_by_transform(Editing *ed, StripTransform *transform)
@@ -514,7 +514,7 @@ static Sequence *sequence_get_by_transform(Editing *ed, StripTransform *transfor
   data.data = transform;
 
   /* irritating we need to search for our sequence! */
-  SEQ_seqbase_recursive_apply(&ed->seqbase, transform_seq_cmp_fn, &data);
+  SEQ_for_each_callback(&ed->seqbase, transform_seq_cmp_fn, &data);
 
   return data.seq;
 }
@@ -547,15 +547,15 @@ static void rna_SequenceTransform_update(Main *UNUSED(bmain),
   SEQ_relations_invalidate_cache_preprocessed(scene, seq);
 }
 
-static int crop_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool crop_seq_cmp_fn(Sequence *seq, void *arg_pt)
 {
   SequenceSearchData *data = arg_pt;
 
   if (seq->strip && seq->strip->crop == data->data) {
     data->seq = seq;
-    return -1; /* done so bail out */
+    return false; /* done so bail out */
   }
-  return 1;
+  return true;
 }
 
 static Sequence *sequence_get_by_crop(Editing *ed, StripCrop *crop)
@@ -566,7 +566,7 @@ static Sequence *sequence_get_by_crop(Editing *ed, StripCrop *crop)
   data.data = crop;
 
   /* irritating we need to search for our sequence! */
-  SEQ_seqbase_recursive_apply(&ed->seqbase, crop_seq_cmp_fn, &data);
+  SEQ_for_each_callback(&ed->seqbase, crop_seq_cmp_fn, &data);
 
   return data.seq;
 }
@@ -935,15 +935,15 @@ static void rna_Sequence_sound_update(Main *bmain, Scene *scene, PointerRNA *UNU
   DEG_relations_tag_update(bmain);
 }
 
-static int seqproxy_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool seqproxy_seq_cmp_fn(Sequence *seq, void *arg_pt)
 {
   SequenceSearchData *data = arg_pt;
 
   if (seq->strip && seq->strip->proxy == data->data) {
     data->seq = seq;
-    return -1; /* done so bail out */
+    return false; /* done so bail out */
   }
-  return 1;
+  return true;
 }
 
 static Sequence *sequence_get_by_proxy(Editing *ed, StripProxy *proxy)
@@ -953,7 +953,7 @@ static Sequence *sequence_get_by_proxy(Editing *ed, StripProxy *proxy)
   data.seq = NULL;
   data.data = proxy;
 
-  SEQ_seqbase_recursive_apply(&ed->seqbase, seqproxy_seq_cmp_fn, &data);
+  SEQ_for_each_callback(&ed->seqbase, seqproxy_seq_cmp_fn, &data);
   return data.seq;
 }
 
@@ -988,7 +988,7 @@ static void rna_Sequence_opacity_set(PointerRNA *ptr, float value)
   seq->blend_opacity = value * 100.0f;
 }
 
-static int colbalance_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool colbalance_seq_cmp_fn(Sequence *seq, void *arg_pt)
 {
   SequenceSearchData *data = arg_pt;
 
@@ -999,12 +999,12 @@ static int colbalance_seq_cmp_fn(Sequence *seq, void *arg_pt)
       if (&cbmd->color_balance == data->data) {
         data->seq = seq;
         data->smd = smd;
-        return -1; /* done so bail out */
+        return false; /* done so bail out */
       }
     }
   }
 
-  return 1;
+  return true;
 }
 
 static Sequence *sequence_get_by_colorbalance(Editing *ed,
@@ -1018,7 +1018,7 @@ static Sequence *sequence_get_by_colorbalance(Editing *ed,
   data.data = cb;
 
   /* irritating we need to search for our sequence! */
-  SEQ_seqbase_recursive_apply(&ed->seqbase, colbalance_seq_cmp_fn, &data);
+  SEQ_for_each_callback(&ed->seqbase, colbalance_seq_cmp_fn, &data);
 
   *r_smd = data.smd;
 
@@ -1122,16 +1122,16 @@ static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
   }
 }
 
-static int modifier_seq_cmp_fn(Sequence *seq, void *arg_pt)
+static bool modifier_seq_cmp_fn(Sequence *seq, void *arg_pt)
 {
   SequenceSearchData *data = arg_pt;
 
   if (BLI_findindex(&seq->modifiers, data->data) != -1) {
     data->seq = seq;
-    return -1; /* done so bail out */
+    return false; /* done so bail out */
   }
 
-  return 1;
+  return true;
 }
 
 static Sequence *sequence_get_by_modifier(Editing *ed, SequenceModifierData *smd)
@@ -1142,7 +1142,7 @@ static Sequence *sequence_get_by_modifier(Editing *ed, SequenceModifierData *smd
   data.data = smd;
 
   /* irritating we need to search for our sequence! */
-  SEQ_seqbase_recursive_apply(&ed->seqbase, modifier_seq_cmp_fn, &data);
+  SEQ_for_each_callback(&ed->seqbase, modifier_seq_cmp_fn, &data);
 
   return data.seq;
 }

@@ -1185,6 +1185,14 @@ static void colormanage_check_colorspace_settings(
   (void)what;
 }
 
+static bool seq_callback(Sequence *seq, void *UNUSED(user_data))
+{
+  if (seq->strip) {
+    colormanage_check_colorspace_settings(&seq->strip->colorspace_settings, "sequencer strip");
+  }
+  return true;
+}
+
 void IMB_colormanagement_check_file_config(Main *bmain)
 {
   Scene *scene;
@@ -1217,13 +1225,9 @@ void IMB_colormanagement_check_file_config(Main *bmain)
     }
 
     /* check sequencer strip input color space settings */
-    Sequence *seq;
-    SEQ_ALL_BEGIN (scene->ed, seq) {
-      if (seq->strip) {
-        colormanage_check_colorspace_settings(&seq->strip->colorspace_settings, "sequencer strip");
-      }
+    if (scene->ed != NULL) {
+      SEQ_for_each_callback(&scene->ed->seqbase, seq_callback, NULL);
     }
-    SEQ_ALL_END;
   }
 
   /* ** check input color space settings ** */

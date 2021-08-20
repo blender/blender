@@ -2980,6 +2980,22 @@ static int sequencer_export_subtitles_invoke(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
+typedef struct Seq_get_text_cb_data {
+  ListBase *text_seq;
+  Scene *scene;
+} Seq_get_text_cb_data;
+
+static bool seq_get_text_strip_cb(Sequence *seq, void *user_data)
+{
+  Seq_get_text_cb_data *cd = (Seq_get_text_cb_data *)user_data;
+  /* Only text strips that are not muted and don't end with negative frame. */
+  if ((seq->type == SEQ_TYPE_TEXT) && ((seq->flag & SEQ_MUTE) == 0) &&
+      (seq->enddisp > cd->scene->r.sfra)) {
+    BLI_addtail(cd->text_seq, MEM_dupallocN(seq));
+  }
+  return true;
+}
+
 static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -3011,14 +3027,10 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* Only text strips that are not muted and don't end with negative frame. */
-  SEQ_ALL_BEGIN (ed, seq) {
-    if ((seq->type == SEQ_TYPE_TEXT) && ((seq->flag & SEQ_MUTE) == 0) &&
-        (seq->enddisp > scene->r.sfra)) {
-      BLI_addtail(&text_seq, MEM_dupallocN(seq));
-    }
+  if (ed != NULL) {
+    Seq_get_text_cb_data cb_data = {&text_seq, scene};
+    SEQ_for_each_callback(&ed->seqbase, seq_get_text_strip_cb, &cb_data);
   }
-  SEQ_ALL_END;
 
   if (BLI_listbase_is_empty(&text_seq)) {
     BKE_report(op->reports, RPT_ERROR, "No subtitles (text strips) to export");

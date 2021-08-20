@@ -2038,6 +2038,58 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
   }
 }
 
+typedef struct Seq_callback_data {
+  Main *bmain;
+  Scene *scene;
+  AnimData *adt;
+} Seq_callback_data;
+
+static bool seq_convert_callback(Sequence *seq, void *userdata)
+{
+  IpoCurve *icu = (seq->ipo) ? seq->ipo->curve.first : NULL;
+  short adrcode = SEQ_FAC1;
+
+  if (G.debug & G_DEBUG) {
+    printf("\tconverting sequence strip %s\n", seq->name + 2);
+  }
+
+  if (ELEM(NULL, seq->ipo, icu)) {
+    seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
+    return true;
+  }
+
+  /* patch adrcode, so that we can map
+   * to different DNA variables later
+   * (semi-hack (tm) )
+   */
+  switch (seq->type) {
+    case SEQ_TYPE_IMAGE:
+    case SEQ_TYPE_META:
+    case SEQ_TYPE_SCENE:
+    case SEQ_TYPE_MOVIE:
+    case SEQ_TYPE_COLOR:
+      adrcode = SEQ_FAC_OPACITY;
+      break;
+    case SEQ_TYPE_SPEED:
+      adrcode = SEQ_FAC_SPEED;
+      break;
+  }
+  icu->adrcode = adrcode;
+
+  Seq_callback_data *cd = (Seq_callback_data *)userdata;
+
+  /* convert IPO */
+  ipo_to_animdata(cd->bmain, (ID *)cd->scene, seq->ipo, NULL, NULL, seq);
+
+  if (cd->adt->action) {
+    cd->adt->action->idroot = ID_SCE; /* scene-rooted */
+  }
+
+  id_us_min(&seq->ipo->id);
+  seq->ipo = NULL;
+  return true;
+}
+
 /* *************************************************** */
 /* External API - Only Called from do_versions() */
 
@@ -2286,52 +2338,8 @@ void do_versions_ipos_to_animato(Main *bmain)
     Scene *scene = (Scene *)id;
     Editing *ed = scene->ed;
     if (ed && ed->seqbasep) {
-      Sequence *seq;
-
-      AnimData *adt = BKE_animdata_ensure_id(id);
-
-      SEQ_ALL_BEGIN (ed, seq) {
-        IpoCurve *icu = (seq->ipo) ? seq->ipo->curve.first : NULL;
-        short adrcode = SEQ_FAC1;
-
-        if (G.debug & G_DEBUG) {
-          printf("\tconverting sequence strip %s\n", seq->name + 2);
-        }
-
-        if (ELEM(NULL, seq->ipo, icu)) {
-          seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
-          continue;
-        }
-
-        /* patch adrcode, so that we can map
-         * to different DNA variables later
-         * (semi-hack (tm) )
-         */
-        switch (seq->type) {
-          case SEQ_TYPE_IMAGE:
-          case SEQ_TYPE_META:
-          case SEQ_TYPE_SCENE:
-          case SEQ_TYPE_MOVIE:
-          case SEQ_TYPE_COLOR:
-            adrcode = SEQ_FAC_OPACITY;
-            break;
-          case SEQ_TYPE_SPEED:
-            adrcode = SEQ_FAC_SPEED;
-            break;
-        }
-        icu->adrcode = adrcode;
-
-        /* convert IPO */
-        ipo_to_animdata(bmain, (ID *)scene, seq->ipo, NULL, NULL, seq);
-
-        if (adt->action) {
-          adt->action->idroot = ID_SCE; /* scene-rooted */
-        }
-
-        id_us_min(&seq->ipo->id);
-        seq->ipo = NULL;
-      }
-      SEQ_ALL_END;
+      Seq_callback_data cb_data = {bmain, scene, BKE_animdata_ensure_id(id)};
+      SEQ_for_each_callback(&ed->seqbase, seq_convert_callback, &cb_data);
     }
   }
 

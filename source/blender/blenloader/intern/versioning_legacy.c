@@ -482,6 +482,22 @@ void blo_do_version_old_trackto_to_constraints(Object *ob)
   ob->track = NULL;
 }
 
+static bool seq_set_alpha_mode_cb(Sequence *seq, void *UNUSED(user_data))
+{
+  if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
+    seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
+  }
+  return true;
+}
+
+static bool seq_set_blend_mode_cb(Sequence *seq, void *UNUSED(user_data))
+{
+  if (seq->blend_mode == 0) {
+    seq->blend_opacity = 100.0f;
+  }
+  return true;
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 {
@@ -1228,7 +1244,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 235) {
     Tex *tex = bmain->textures.first;
     Scene *sce = bmain->scenes.first;
-    Sequence *seq;
     Editing *ed;
 
     while (tex) {
@@ -1240,12 +1255,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (sce) {
       ed = sce->ed;
       if (ed) {
-        SEQ_ALL_BEGIN (sce->ed, seq) {
-          if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
-            seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
-          }
-        }
-        SEQ_ALL_END;
+        SEQ_for_each_callback(&sce->ed->seqbase, seq_set_alpha_mode_cb, NULL);
       }
 
       sce = sce->id.next;
@@ -2404,15 +2414,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 245, 14)) {
     Scene *sce;
-    Sequence *seq;
 
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
-      SEQ_ALL_BEGIN (sce->ed, seq) {
-        if (seq->blend_mode == 0) {
-          seq->blend_opacity = 100.0f;
-        }
+      if (sce->ed) {
+        SEQ_for_each_callback(&sce->ed->seqbase, seq_set_blend_mode_cb, NULL);
       }
-      SEQ_ALL_END;
     }
   }
 

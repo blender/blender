@@ -113,11 +113,7 @@
 
 #include "SEQ_edit.h"
 #include "SEQ_iterator.h"
-#include "SEQ_modifier.h"
-#include "SEQ_proxy.h"
-#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
-#include "SEQ_sound.h"
 
 #include "BLO_read_write.h"
 
@@ -702,6 +698,40 @@ static void scene_foreach_layer_collection(LibraryForeachIDData *data, ListBase 
   }
 }
 
+static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
+{
+  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
+
+#define FOREACHID_PROCESS(_data, _id_super, _cb_flag) \
+  { \
+    CHECK_TYPE(&((_id_super)->id), ID *); \
+    if (!BKE_lib_query_foreachid_process((_data), (ID **)&(_id_super), (_cb_flag))) { \
+      return false; \
+    } \
+  } \
+  ((void)0)
+
+  FOREACHID_PROCESS(data, seq->scene, IDWALK_CB_NEVER_SELF);
+  FOREACHID_PROCESS(data, seq->scene_camera, IDWALK_CB_NOP);
+  FOREACHID_PROCESS(data, seq->clip, IDWALK_CB_USER);
+  FOREACHID_PROCESS(data, seq->mask, IDWALK_CB_USER);
+  FOREACHID_PROCESS(data, seq->sound, IDWALK_CB_USER);
+  IDP_foreach_property(
+      seq->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+    FOREACHID_PROCESS(data, smd->mask_id, IDWALK_CB_USER);
+  }
+
+  if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
+    TextVars *text_data = seq->effectdata;
+    FOREACHID_PROCESS(data, text_data->text_font, IDWALK_CB_USER);
+  }
+
+#undef FOREACHID_PROCESS
+
+  return true;
+}
+
 static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Scene *scene = (Scene *)id;
@@ -717,25 +747,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_library_foreach_ID_embedded(data, (ID **)&scene->nodetree);
   }
   if (scene->ed) {
-    Sequence *seq;
-    SEQ_ALL_BEGIN (scene->ed, seq) {
-      BKE_LIB_FOREACHID_PROCESS(data, seq->scene, IDWALK_CB_NEVER_SELF);
-      BKE_LIB_FOREACHID_PROCESS(data, seq->scene_camera, IDWALK_CB_NOP);
-      BKE_LIB_FOREACHID_PROCESS(data, seq->clip, IDWALK_CB_USER);
-      BKE_LIB_FOREACHID_PROCESS(data, seq->mask, IDWALK_CB_USER);
-      BKE_LIB_FOREACHID_PROCESS(data, seq->sound, IDWALK_CB_USER);
-      IDP_foreach_property(
-          seq->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
-      LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
-        BKE_LIB_FOREACHID_PROCESS(data, smd->mask_id, IDWALK_CB_USER);
-      }
-
-      if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
-        TextVars *text_data = seq->effectdata;
-        BKE_LIB_FOREACHID_PROCESS(data, text_data->text_font, IDWALK_CB_USER);
-      }
-    }
-    SEQ_ALL_END;
+    SEQ_for_each_callback(&scene->ed->seqbase, seq_foreach_member_id_cb, data);
   }
 
   /* This pointer can be NULL during old files reading, better be safe than sorry. */
@@ -883,87 +895,9 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   Editing *ed = sce->ed;
   if (ed) {
-    Sequence *seq;
-
     BLO_write_struct(writer, Editing, ed);
 
-    /* reset write flags too */
-
-    SEQ_ALL_BEGIN (ed, seq) {
-      if (seq->strip) {
-        seq->strip->done = false;
-      }
-      BLO_write_struct(writer, Sequence, seq);
-    }
-    SEQ_ALL_END;
-
-    SEQ_ALL_BEGIN (ed, seq) {
-      if (seq->strip && seq->strip->done == 0) {
-        /* write strip with 'done' at 0 because readfile */
-
-        if (seq->effectdata) {
-          switch (seq->type) {
-            case SEQ_TYPE_COLOR:
-              BLO_write_struct(writer, SolidColorVars, seq->effectdata);
-              break;
-            case SEQ_TYPE_SPEED:
-              BLO_write_struct(writer, SpeedControlVars, seq->effectdata);
-              break;
-            case SEQ_TYPE_WIPE:
-              BLO_write_struct(writer, WipeVars, seq->effectdata);
-              break;
-            case SEQ_TYPE_GLOW:
-              BLO_write_struct(writer, GlowVars, seq->effectdata);
-              break;
-            case SEQ_TYPE_TRANSFORM:
-              BLO_write_struct(writer, TransformVars, seq->effectdata);
-              break;
-            case SEQ_TYPE_GAUSSIAN_BLUR:
-              BLO_write_struct(writer, GaussianBlurVars, seq->effectdata);
-              break;
-            case SEQ_TYPE_TEXT:
-              BLO_write_struct(writer, TextVars, seq->effectdata);
-              break;
-            case SEQ_TYPE_COLORMIX:
-              BLO_write_struct(writer, ColorMixVars, seq->effectdata);
-              break;
-          }
-        }
-
-        BLO_write_struct(writer, Stereo3dFormat, seq->stereo3d_format);
-
-        Strip *strip = seq->strip;
-        BLO_write_struct(writer, Strip, strip);
-        if (strip->crop) {
-          BLO_write_struct(writer, StripCrop, strip->crop);
-        }
-        if (strip->transform) {
-          BLO_write_struct(writer, StripTransform, strip->transform);
-        }
-        if (strip->proxy) {
-          BLO_write_struct(writer, StripProxy, strip->proxy);
-        }
-        if (seq->type == SEQ_TYPE_IMAGE) {
-          BLO_write_struct_array(writer,
-                                 StripElem,
-                                 MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem),
-                                 strip->stripdata);
-        }
-        else if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
-          BLO_write_struct(writer, StripElem, strip->stripdata);
-        }
-
-        strip->done = true;
-      }
-
-      if (seq->prop) {
-        IDP_BlendWrite(writer, seq->prop);
-      }
-
-      SEQ_modifier_blend_write(writer, &seq->modifiers);
-    }
-    SEQ_ALL_END;
-
+    SEQ_blend_write(writer, &ed->seqbase);
     /* new; meta stack too, even when its nasty restore code */
     LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
       BLO_write_struct(writer, MetaStack, ms);
@@ -1155,66 +1089,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     /* recursive link sequences, lb will be correctly initialized */
     link_recurs_seq(reader, &ed->seqbase);
 
-    Sequence *seq;
-    SEQ_ALL_BEGIN (ed, seq) {
-      /* Do as early as possible, so that other parts of reading can rely on valid session UUID. */
-      SEQ_relations_session_uuid_generate(seq);
-
-      BLO_read_data_address(reader, &seq->seq1);
-      BLO_read_data_address(reader, &seq->seq2);
-      BLO_read_data_address(reader, &seq->seq3);
-
-      /* a patch: after introduction of effects with 3 input strips */
-      if (seq->seq3 == NULL) {
-        seq->seq3 = seq->seq2;
-      }
-
-      BLO_read_data_address(reader, &seq->effectdata);
-      BLO_read_data_address(reader, &seq->stereo3d_format);
-
-      if (seq->type & SEQ_TYPE_EFFECT) {
-        seq->flag |= SEQ_EFFECT_NOT_LOADED;
-      }
-
-      if (seq->type == SEQ_TYPE_TEXT) {
-        TextVars *t = seq->effectdata;
-        t->text_blf_id = SEQ_FONT_NOT_LOADED;
-      }
-
-      BLO_read_data_address(reader, &seq->prop);
-      IDP_BlendDataRead(reader, &seq->prop);
-
-      BLO_read_data_address(reader, &seq->strip);
-      if (seq->strip && seq->strip->done == 0) {
-        seq->strip->done = true;
-
-        if (ELEM(seq->type,
-                 SEQ_TYPE_IMAGE,
-                 SEQ_TYPE_MOVIE,
-                 SEQ_TYPE_SOUND_RAM,
-                 SEQ_TYPE_SOUND_HD)) {
-          BLO_read_data_address(reader, &seq->strip->stripdata);
-        }
-        else {
-          seq->strip->stripdata = NULL;
-        }
-        BLO_read_data_address(reader, &seq->strip->crop);
-        BLO_read_data_address(reader, &seq->strip->transform);
-        BLO_read_data_address(reader, &seq->strip->proxy);
-        if (seq->strip->proxy) {
-          seq->strip->proxy->anim = NULL;
-        }
-        else if (seq->flag & SEQ_USE_PROXY) {
-          SEQ_proxy_set(seq, true);
-        }
-
-        /* need to load color balance to it could be converted to modifier */
-        BLO_read_data_address(reader, &seq->strip->color_balance);
-      }
-
-      SEQ_modifier_blend_read_data(reader, &seq->modifiers);
-    }
-    SEQ_ALL_END;
+    /* Read in sequence member data. */
+    SEQ_blend_read(reader, &ed->seqbase);
 
     /* link metastack, slight abuse of structs here,
      * have to restore pointer to internal part in struct */
@@ -1461,50 +1337,9 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
     }
   }
 
-  Sequence *seq;
-  SEQ_ALL_BEGIN (sce->ed, seq) {
-    IDP_BlendReadLib(reader, seq->prop);
-
-    if (seq->ipo) {
-      /* XXX: deprecated - old animation system. */
-      BLO_read_id_address(reader, sce->id.lib, &seq->ipo);
-    }
-    seq->scene_sound = NULL;
-    if (seq->scene) {
-      BLO_read_id_address(reader, sce->id.lib, &seq->scene);
-      seq->scene_sound = NULL;
-    }
-    if (seq->clip) {
-      BLO_read_id_address(reader, sce->id.lib, &seq->clip);
-    }
-    if (seq->mask) {
-      BLO_read_id_address(reader, sce->id.lib, &seq->mask);
-    }
-    if (seq->scene_camera) {
-      BLO_read_id_address(reader, sce->id.lib, &seq->scene_camera);
-    }
-    if (seq->sound) {
-      seq->scene_sound = NULL;
-      if (seq->type == SEQ_TYPE_SOUND_HD) {
-        seq->type = SEQ_TYPE_SOUND_RAM;
-      }
-      else {
-        BLO_read_id_address(reader, sce->id.lib, &seq->sound);
-      }
-      if (seq->sound) {
-        id_us_plus_no_lib((ID *)seq->sound);
-        seq->scene_sound = NULL;
-      }
-    }
-    if (seq->type == SEQ_TYPE_TEXT) {
-      TextVars *t = seq->effectdata;
-      BLO_read_id_address(reader, sce->id.lib, &t->text_font);
-    }
-    BLI_listbase_clear(&seq->anims);
-
-    SEQ_modifier_blend_read_lib(reader, sce, &seq->modifiers);
+  if (sce->ed) {
+    SEQ_blend_read_lib(reader, sce, &sce->ed->seqbase);
   }
-  SEQ_ALL_END;
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
     IDP_BlendReadLib(reader, marker->prop);
@@ -1619,33 +1454,7 @@ static void scene_blend_read_expand(BlendExpander *expander, ID *id)
   }
 
   if (sce->ed) {
-    Sequence *seq;
-
-    SEQ_ALL_BEGIN (sce->ed, seq) {
-      IDP_BlendReadExpand(expander, seq->prop);
-
-      if (seq->scene) {
-        BLO_expand(expander, seq->scene);
-      }
-      if (seq->scene_camera) {
-        BLO_expand(expander, seq->scene_camera);
-      }
-      if (seq->clip) {
-        BLO_expand(expander, seq->clip);
-      }
-      if (seq->mask) {
-        BLO_expand(expander, seq->mask);
-      }
-      if (seq->sound) {
-        BLO_expand(expander, seq->sound);
-      }
-
-      if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
-        TextVars *data = seq->effectdata;
-        BLO_expand(expander, data->text_font);
-      }
-    }
-    SEQ_ALL_END;
+    SEQ_blend_read_expand(expander, &sce->ed->seqbase);
   }
 
   if (sce->rigidbody_world) {
@@ -3781,69 +3590,3 @@ void BKE_scene_cursor_from_mat4(View3DCursor *cursor, const float mat[4][4], boo
 }
 
 /** \} */
-
-/* Dependency graph evaluation. */
-
-static void scene_sequencer_disable_sound_strips(Scene *scene)
-{
-  if (scene->sound_scene == NULL) {
-    return;
-  }
-  Sequence *seq;
-  SEQ_ALL_BEGIN (scene->ed, seq) {
-    if (seq->scene_sound != NULL) {
-      BKE_sound_remove_scene_sound(scene, seq->scene_sound);
-      seq->scene_sound = NULL;
-    }
-  }
-  SEQ_ALL_END;
-}
-
-void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
-{
-  DEG_debug_print_eval(depsgraph, __func__, scene->id.name, scene);
-  if (scene->ed == NULL) {
-    return;
-  }
-  BKE_sound_ensure_scene(scene);
-  Sequence *seq;
-  SEQ_ALL_BEGIN (scene->ed, seq) {
-    if (seq->scene_sound == NULL) {
-      if (seq->sound != NULL) {
-        seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
-      }
-      else if (seq->type == SEQ_TYPE_SCENE) {
-        if (seq->scene != NULL) {
-          BKE_sound_ensure_scene(seq->scene);
-          seq->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene, seq);
-        }
-      }
-    }
-    if (seq->scene_sound != NULL) {
-      /* Make sure changing volume via sequence's properties panel works correct.
-       *
-       * Ideally, the entire BKE_scene_update_sound() will happen from a dependency graph, so
-       * then it is no longer needed to do such manual forced updates. */
-      if (seq->type == SEQ_TYPE_SCENE && seq->scene != NULL) {
-        BKE_sound_set_scene_volume(seq->scene, seq->scene->audio.volume);
-        if ((seq->flag & SEQ_SCENE_STRIPS) == 0) {
-          scene_sequencer_disable_sound_strips(seq->scene);
-        }
-      }
-      if (seq->sound != NULL) {
-        if (scene->id.recalc & ID_RECALC_AUDIO || seq->sound->id.recalc & ID_RECALC_AUDIO) {
-          BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
-        }
-      }
-      BKE_sound_set_scene_sound_volume(
-          seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
-      BKE_sound_set_scene_sound_pitch(
-          seq->scene_sound, seq->pitch, (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
-      BKE_sound_set_scene_sound_pan(
-          seq->scene_sound, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
-    }
-  }
-  SEQ_ALL_END;
-  SEQ_edit_update_muting(scene->ed);
-  SEQ_sound_update_bounds_all(scene);
-}

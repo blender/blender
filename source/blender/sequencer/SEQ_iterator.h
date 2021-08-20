@@ -39,23 +39,7 @@ struct Sequence;
        SEQ_iterator_ensure(collection, &iter, &var) && var != NULL; \
        var = SEQ_iterator_yield(&iter))
 
-#define SEQ_ALL_BEGIN(ed, var) \
-  { \
-    if (ed != NULL) { \
-      SeqCollection *all_strips = SEQ_query_all_strips_recursive(&ed->seqbase); \
-      GSetIterator gsi; \
-      GSET_ITER (gsi, all_strips->set) { \
-        var = (Sequence *)(BLI_gsetIterator_getKey(&gsi));
-
-#define SEQ_ALL_END \
-  } \
-  SEQ_collection_free(all_strips); \
-  } \
-  } \
-  ((void)0)
-
 typedef struct SeqCollection {
-  struct SeqCollection *next, *prev;
   struct GSet *set;
 } SeqCollection;
 
@@ -69,6 +53,11 @@ bool SEQ_iterator_ensure(SeqCollection *collection,
                          SeqIterator *iterator,
                          struct Sequence **r_seq);
 struct Sequence *SEQ_iterator_yield(SeqIterator *iterator);
+
+/* Callback format for the for_each function below. */
+typedef bool (*SeqForEachFunc)(struct Sequence *seq, void *user_data);
+
+void SEQ_for_each_callback(struct ListBase *seqbase, SeqForEachFunc callback, void *user_data);
 
 SeqCollection *SEQ_collection_create(const char *name);
 SeqCollection *SEQ_collection_duplicate(SeqCollection *collection);
@@ -90,8 +79,8 @@ SeqCollection *SEQ_query_by_reference(struct Sequence *seq_reference,
                                                           struct ListBase *seqbase,
                                                           SeqCollection *collection));
 SeqCollection *SEQ_query_selected_strips(struct ListBase *seqbase);
-SeqCollection *SEQ_query_all_strips(ListBase *seqbase);
-SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase);
+SeqCollection *SEQ_query_all_strips(struct ListBase *seqbase);
+SeqCollection *SEQ_query_all_strips_recursive(struct ListBase *seqbase);
 void SEQ_query_strip_effect_chain(struct Sequence *seq_reference,
                                   struct ListBase *seqbase,
                                   SeqCollection *collection);

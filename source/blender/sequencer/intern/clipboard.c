@@ -71,7 +71,7 @@ void SEQ_clipboard_free(void)
 
   for (seq = seqbase_clipboard.first; seq; seq = nseq) {
     nseq = seq->next;
-    seq_free_sequence_recurse(NULL, seq, false);
+    seq_free_sequence_recurse(NULL, seq, false, true);
   }
   BLI_listbase_clear(&seqbase_clipboard);
 }

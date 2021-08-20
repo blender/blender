@@ -2419,7 +2419,7 @@ static void lib_link_seq_clipboard_pt_restore(ID *id, struct IDNameLib_Map *id_m
     id->newid = restore_pointer_by_name(id_map, id->newid, USER_REAL);
   }
 }
-static int lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
+static bool lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
 {
   struct IDNameLib_Map *id_map = arg_pt;
 
@@ -2428,13 +2428,13 @@ static int lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
   lib_link_seq_clipboard_pt_restore((ID *)seq->clip, id_map);
   lib_link_seq_clipboard_pt_restore((ID *)seq->mask, id_map);
   lib_link_seq_clipboard_pt_restore((ID *)seq->sound, id_map);
-  return 1;
+  return true;
 }
 
 static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
 {
   /* update IDs stored in sequencer clipboard */
-  SEQ_seqbase_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
+  SEQ_for_each_callback(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
 }
 
 static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
