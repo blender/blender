@@ -6521,10 +6521,6 @@ void uiTemplateCacheFile(uiLayout *layout,
   uiItemR(layout, &fileptr, "velocity_name", 0, NULL, ICON_NONE);
   uiItemR(layout, &fileptr, "velocity_unit", 0, NULL, ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
-  uiLayoutSetActive(row, engine_supports_procedural && use_render_procedural);
-  uiItemR(row, &fileptr, "default_radius", 0, NULL, ICON_NONE);
-
   /* TODO: unused for now, so no need to expose. */
 #if 0
   row = uiLayoutRow(layout, false);
