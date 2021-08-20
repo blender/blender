@@ -1649,6 +1649,7 @@ static int lineart_edge_type_duplication_count(char eflag)
 }
 static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBuffer *rb)
 {
+  printf("========================================================\nTESTING\n");
   BMesh *bm;
   BMVert *v;
   BMFace *f;
