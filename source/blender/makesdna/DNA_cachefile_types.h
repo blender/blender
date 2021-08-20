@@ -101,7 +101,15 @@ typedef struct CacheFile {
    */
   char use_render_procedural;
 
-  char _pad1[7];
+  char _pad1[3];
+
+  /** Enable data prefetching when using the Cycles Procedural. */
+  char use_prefetch;
+
+  /** Size in megabytes for the prefetch cache used by the Cycles Procedural. */
+  int prefetch_cache_size;
+
+  char _pad2[7];
 
   char velocity_unit;
   /* Name of the velocity property in the archive. */

@@ -150,6 +150,23 @@ static void rna_def_cachefile(BlenderRNA *brna)
                            "determine which file to use in a file sequence");
   RNA_def_property_update(prop, 0, "rna_CacheFile_update");
 
+  /* ----------------- Cache controls ----------------- */
+
+  prop = RNA_def_property(srna, "use_prefetch", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Prefetch",
+      "When enabled, the Cycles Procedural will preload animation data for faster updates");
+  RNA_def_property_update(prop, 0, "rna_CacheFile_update");
+
+  prop = RNA_def_property(srna, "prefetch_cache_size", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(
+      prop,
+      "Prefetch Cache Size",
+      "Memory usage limit in megabytes for the Cycles Procedural cache, if the data does not "
+      "fit within the limit, rendering is aborted");
+  RNA_def_property_update(prop, 0, "rna_CacheFile_update");
+
   /* ----------------- Axis Conversion ----------------- */
 
   prop = RNA_def_property(srna, "forward_axis", PROP_ENUM, PROP_NONE);

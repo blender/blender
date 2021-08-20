@@ -44,9 +44,19 @@ static set<chrono_t> get_relevant_sample_times(AlembicProcedural *proc,
     return result;
   }
 
-  // load the data for the entire animation
-  const double start_frame = static_cast<double>(proc->get_start_frame());
-  const double end_frame = static_cast<double>(proc->get_end_frame());
+  double start_frame;
+  double end_frame;
+
+  if (proc->get_use_prefetch()) {
+    // load the data for the entire animation
+    start_frame = static_cast<double>(proc->get_start_frame());
+    end_frame = static_cast<double>(proc->get_end_frame());
+  }
+  else {
+    // load the data for the current frame
+    start_frame = static_cast<double>(proc->get_frame());
+    end_frame = start_frame;
+  }
 
   const double frame_rate = static_cast<double>(proc->get_frame_rate());
   const double start_time = start_frame / frame_rate;

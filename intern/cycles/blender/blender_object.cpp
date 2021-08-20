@@ -523,6 +523,9 @@ void BlenderSync::sync_procedural(BL::Object &b_ob,
 
   procedural->set_scale(cache_file.scale());
 
+  procedural->set_use_prefetch(cache_file.use_prefetch());
+  procedural->set_prefetch_cache_size(cache_file.prefetch_cache_size());
+
   /* create or update existing AlembicObjects */
   ustring object_path = ustring(b_mesh_cache.object_path());
 

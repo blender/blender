@@ -25,6 +25,7 @@
 #include "render/shader.h"
 
 #include "util/util_foreach.h"
+#include "util/util_logging.h"
 #include "util/util_progress.h"
 #include "util/util_transform.h"
 #include "util/util_vector.h"
@@ -209,6 +210,35 @@ void CachedData::set_time_sampling(TimeSampling time_sampling)
   for (CachedAttribute &attr : attributes) {
     attr.data.set_time_sampling(time_sampling);
   }
+}
+
+size_t CachedData::memory_used() const
+{
+  size_t mem_used = 0;
+
+  mem_used += curve_first_key.memory_used();
+  mem_used += curve_keys.memory_used();
+  mem_used += curve_radius.memory_used();
+  mem_used += curve_shader.memory_used();
+  mem_used += num_ngons.memory_used();
+  mem_used += shader.memory_used();
+  mem_used += subd_creases_edge.memory_used();
+  mem_used += subd_creases_weight.memory_used();
+  mem_used += subd_face_corners.memory_used();
+  mem_used += subd_num_corners.memory_used();
+  mem_used += subd_ptex_offset.memory_used();
+  mem_used += subd_smooth.memory_used();
+  mem_used += subd_start_corner.memory_used();
+  mem_used += transforms.memory_used();
+  mem_used += triangles.memory_used();
+  mem_used += uv_loops.memory_used();
+  mem_used += vertices.memory_used();
+
+  for (const CachedAttribute &attr : attributes) {
+    mem_used += attr.data.memory_used();
+  }
+
+  return mem_used;
 }
 
 static M44d convert_yup_zup(const M44d &mtx, float scale_mult)
@@ -706,6 +736,9 @@ NODE_DEFINE(AlembicProcedural)
 
   SOCKET_NODE_ARRAY(objects, "Objects", AlembicObject::get_node_type());
 
+  SOCKET_BOOLEAN(use_prefetch, "Use Prefetch", true);
+  SOCKET_INT(prefetch_cache_size, "Prefetch Cache Size", 4096);
+
   return type;
 }
 
@@ -820,6 +853,30 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
     if (object->ignore_subdivision_is_modified()) {
       object->clear_cache();
+    }
+  }
+
+  if (use_prefetch_is_modified()) {
+    if (!use_prefetch) {
+      for (Node *node : objects) {
+        AlembicObject *object = static_cast<AlembicObject *>(node);
+        object->clear_cache();
+      }
+    }
+  }
+
+  if (prefetch_cache_size_is_modified()) {
+    /* Check whether the current memory usage fits in the new requested size,
+     * abort the render if it is any higher. */
+    size_t memory_used = 0ul;
+    for (Node *node : objects) {
+      AlembicObject *object = static_cast<AlembicObject *>(node);
+      memory_used += object->get_cached_data().memory_used();
+    }
+
+    if (memory_used > get_prefetch_cache_size_in_bytes()) {
+      progress.set_error("Error: Alembic Procedural memory limit reached");
+      return;
     }
   }
 
@@ -1300,6 +1357,8 @@ void AlembicProcedural::walk_hierarchy(
 
 void AlembicProcedural::build_caches(Progress &progress)
 {
+  size_t memory_used = 0;
+
   for (Node *node : objects) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
@@ -1353,7 +1412,18 @@ void AlembicProcedural::build_caches(Progress &progress)
     if (scale_is_modified() || object->get_cached_data().transforms.size() == 0) {
       object->setup_transform_cache(object->get_cached_data(), scale);
     }
+
+    memory_used += object->get_cached_data().memory_used();
+
+    if (use_prefetch) {
+      if (memory_used > get_prefetch_cache_size_in_bytes()) {
+        progress.set_error("Error: Alembic Procedural memory limit reached");
+        return;
+      }
+    }
   }
+
+  VLOG(1) << "AlembicProcedural memory usage : " << string_human_readable_size(memory_used);
 }
 
 CCL_NAMESPACE_END
