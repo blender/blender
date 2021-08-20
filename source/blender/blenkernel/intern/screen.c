@@ -728,7 +728,7 @@ void BKE_screen_area_map_free(ScrAreaMap *area_map)
 }
 
 /** Free (or release) any data used by this screen (does not free the screen itself). */
-void BKE_screen_free(bScreen *screen)
+void BKE_screen_free_data(bScreen *screen)
 {
   screen_free_data(&screen->id);
 }

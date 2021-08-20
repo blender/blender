@@ -194,7 +194,7 @@ static void sequencer_free(SpaceLink *sl)
   SpaceSeq *sseq = (SpaceSeq *)sl;
   SequencerScopes *scopes = &sseq->scopes;
 
-  /* XXX  if (sseq->gpd) BKE_gpencil_free(sseq->gpd); */
+  /* XXX  if (sseq->gpd) BKE_gpencil_free_data(sseq->gpd); */
 
   if (scopes->zebra_ibuf) {
     IMB_freeImBuf(scopes->zebra_ibuf);

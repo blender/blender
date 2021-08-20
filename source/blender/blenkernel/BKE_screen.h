@@ -473,7 +473,7 @@ void BKE_screen_view3d_shading_init(struct View3DShading *shading);
 /* screen */
 void BKE_screen_foreach_id_screen_area(struct LibraryForeachIDData *data, struct ScrArea *area);
 
-void BKE_screen_free(struct bScreen *screen);
+void BKE_screen_free_data(struct bScreen *screen);
 void BKE_screen_area_map_free(struct ScrAreaMap *area_map) ATTR_NONNULL();
 
 struct ScrEdge *BKE_screen_find_edge(const struct bScreen *screen,

@@ -534,7 +534,7 @@ void BKE_image_free_buffers(Image *ima)
 }
 
 /** Free (or release) any data used by this image (does not free the image itself). */
-void BKE_image_free(Image *ima)
+void BKE_image_free_data(Image *ima)
 {
   image_free_data(&ima->id);
 }

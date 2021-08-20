@@ -245,7 +245,7 @@ typedef struct WeightsArrayCache {
 } WeightsArrayCache;
 
 /** Free (or release) any data used by this shapekey (does not free the key itself). */
-void BKE_key_free(Key *key)
+void BKE_key_free_data(Key *key)
 {
   shapekey_free_data(&key->id);
 }

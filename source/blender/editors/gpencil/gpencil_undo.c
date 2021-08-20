@@ -125,7 +125,7 @@ static void gpencil_undo_free_node(bGPundonode *undo_node)
    */
   undo_node->gpd->adt = NULL;
 
-  BKE_gpencil_free(undo_node->gpd, false);
+  BKE_gpencil_free_data(undo_node->gpd, false);
   MEM_freeN(undo_node->gpd);
 }
 

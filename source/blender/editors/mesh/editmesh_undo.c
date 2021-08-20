@@ -755,7 +755,7 @@ static void undomesh_free_data(UndoMesh *um)
 #endif
 
   if (me->key) {
-    BKE_key_free(me->key);
+    BKE_key_free_data(me->key);
     MEM_freeN(me->key);
   }
 

@@ -56,7 +56,7 @@ void BKE_image_free_buffers(struct Image *image);
 void BKE_image_free_buffers_ex(struct Image *image, bool do_lock);
 void BKE_image_free_gputextures(struct Image *ima);
 /* call from library */
-void BKE_image_free(struct Image *image);
+void BKE_image_free_data(struct Image *image);
 
 typedef void(StampCallback)(void *data, const char *propname, char *propvalue, int len);
 
