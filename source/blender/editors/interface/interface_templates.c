@@ -6469,7 +6469,8 @@ void uiTemplateCacheFile(uiLayout *layout,
   const struct RenderEngineType *engine_type = CTX_data_engine_type(C);
 
   Scene *scene = CTX_data_scene(C);
-  const bool engine_supports_procedural = RE_engine_supports_alembic_procedural(engine_type, scene);
+  const bool engine_supports_procedural = RE_engine_supports_alembic_procedural(engine_type,
+                                                                                scene);
 
   if (!engine_supports_procedural) {
     row = uiLayoutRow(layout, false);

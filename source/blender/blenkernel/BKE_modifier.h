@@ -427,9 +427,7 @@ void BKE_modifier_copydata(struct ModifierData *md, struct ModifierData *target)
 void BKE_modifier_copydata_ex(struct ModifierData *md,
                               struct ModifierData *target,
                               const int flag);
-bool BKE_modifier_depends_ontime(struct Scene *scene,
-                                 struct ModifierData *md,
-                                 int dag_eval_mode);
+bool BKE_modifier_depends_ontime(struct Scene *scene, struct ModifierData *md, int dag_eval_mode);
 bool BKE_modifier_supports_mapping(struct ModifierData *md);
 bool BKE_modifier_supports_cage(struct Scene *scene, struct ModifierData *md);
 bool BKE_modifier_couldbe_cage(struct Scene *scene, struct ModifierData *md);
