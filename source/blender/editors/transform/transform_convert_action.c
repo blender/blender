@@ -241,15 +241,14 @@ static int GPLayerToTransData(TransData *td,
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
     if (is_prop_edit || (gpf->flag & GP_FRAME_SELECT)) {
       if (FrameOnMouseSide(side, (float)gpf->framenum, cfra)) {
-        /* memory is calloc'ed, so that should zero everything nicely for us */
-        td->val = &tfd->val;
-        td->ival = (float)gpf->framenum;
+        tfd->val = (float)gpf->framenum;
+        tfd->sdata = &gpf->framenum;
+
+        td->val = td->loc = &tfd->val; /* XXX: It's not a 3d array. */
+        td->ival = td->iloc[0] = (float)gpf->framenum;
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
-
-        tfd->val = (float)gpf->framenum;
-        tfd->sdata = &gpf->framenum;
 
         /* Advance `td` now. */
         td++;
