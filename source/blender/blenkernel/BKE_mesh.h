@@ -95,7 +95,7 @@ void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh,
                                      const struct MLoopTri *looptri,
                                      int r_edges[3]);
 
-void BKE_mesh_free_data(struct Mesh *me);
+void BKE_mesh_free_data_for_undo(struct Mesh *me);
 void BKE_mesh_clear_geometry(struct Mesh *me);
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 void BKE_mesh_copy_parameters_for_eval(struct Mesh *me_dst, const struct Mesh *me_src);
