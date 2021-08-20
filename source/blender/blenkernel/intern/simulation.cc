@@ -49,13 +49,9 @@
 #include "BKE_simulation.h"
 
 #include "NOD_geometry.h"
-#include "NOD_node_tree_multi_function.hh"
 
 #include "BLI_map.hh"
 #include "BLT_translation.h"
-
-#include "FN_multi_function_network_evaluation.hh"
-#include "FN_multi_function_network_optimization.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

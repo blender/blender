@@ -19,7 +19,6 @@
 #include "DEG_depsgraph_query.h"
 
 #include "NOD_geometry_exec.hh"
-#include "NOD_type_callbacks.hh"
 #include "NOD_type_conversions.hh"
 
 #include "node_geometry_util.hh"

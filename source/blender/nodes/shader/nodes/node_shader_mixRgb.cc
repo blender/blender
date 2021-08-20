@@ -174,9 +174,9 @@ class MixRGBFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void sh_node_mix_rgb_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
+static void sh_node_mix_rgb_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.bnode();
+  bNode &node = builder.node();
   bool clamp = node.custom2 & SHD_MIXRGB_CLAMP;
   int mix_type = node.custom1;
   builder.construct_and_set_matching_fn<MixRGBFunction>(clamp, mix_type);
@@ -191,7 +191,7 @@ void register_node_type_sh_mix_rgb(void)
   node_type_label(&ntype, node_blend_label);
   node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_mix_rgb);
   node_type_gpu(&ntype, gpu_shader_mix_rgb);
-  ntype.expand_in_mf_network = sh_node_mix_rgb_expand_in_mf_network;
+  ntype.build_multi_function = sh_node_mix_rgb_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

@@ -100,11 +100,10 @@ static float3 sh_node_vector_rotate_euler(const float3 vector,
   return result + center;
 }
 
-static const blender::fn::MultiFunction &get_multi_function(
-    blender::nodes::NodeMFNetworkBuilder &builder)
+static const blender::fn::MultiFunction *get_multi_function(bNode &node)
 {
-  bool invert = builder.bnode().custom2;
-  const int mode = builder.bnode().custom1;
+  bool invert = node.custom2;
+  const int mode = node.custom1;
 
   switch (mode) {
     case NODE_VECTOR_ROTATE_TYPE_AXIS: {
@@ -113,13 +112,13 @@ static const blender::fn::MultiFunction &get_multi_function(
             "Rotate Axis", [](float3 in, float3 center, float3 axis, float angle) {
               return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
             }};
-        return fn;
+        return &fn;
       }
       static blender::fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float3, float, float3> fn{
           "Rotate Axis", [](float3 in, float3 center, float3 axis, float angle) {
             return sh_node_vector_rotate_around_axis(in, center, axis, angle);
           }};
-      return fn;
+      return &fn;
     }
     case NODE_VECTOR_ROTATE_TYPE_AXIS_X: {
       float3 axis = float3(1.0f, 0.0f, 0.0f);
@@ -128,13 +127,13 @@ static const blender::fn::MultiFunction &get_multi_function(
             "Rotate X-Axis", [=](float3 in, float3 center, float angle) {
               return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
             }};
-        return fn;
+        return &fn;
       }
       static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
           "Rotate X-Axis", [=](float3 in, float3 center, float angle) {
             return sh_node_vector_rotate_around_axis(in, center, axis, angle);
           }};
-      return fn;
+      return &fn;
     }
     case NODE_VECTOR_ROTATE_TYPE_AXIS_Y: {
       float3 axis = float3(0.0f, 1.0f, 0.0f);
@@ -143,13 +142,13 @@ static const blender::fn::MultiFunction &get_multi_function(
             "Rotate Y-Axis", [=](float3 in, float3 center, float angle) {
               return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
             }};
-        return fn;
+        return &fn;
       }
       static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
           "Rotate Y-Axis", [=](float3 in, float3 center, float angle) {
             return sh_node_vector_rotate_around_axis(in, center, axis, angle);
           }};
-      return fn;
+      return &fn;
     }
     case NODE_VECTOR_ROTATE_TYPE_AXIS_Z: {
       float3 axis = float3(0.0f, 0.0f, 1.0f);
@@ -158,13 +157,13 @@ static const blender::fn::MultiFunction &get_multi_function(
             "Rotate Z-Axis", [=](float3 in, float3 center, float angle) {
               return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
             }};
-        return fn;
+        return &fn;
       }
       static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
           "Rotate Z-Axis", [=](float3 in, float3 center, float angle) {
             return sh_node_vector_rotate_around_axis(in, center, axis, angle);
           }};
-      return fn;
+      return &fn;
     }
     case NODE_VECTOR_ROTATE_TYPE_EULER_XYZ: {
       if (invert) {
@@ -172,24 +171,24 @@ static const blender::fn::MultiFunction &get_multi_function(
             "Rotate Euler", [](float3 in, float3 center, float3 rotation) {
               return sh_node_vector_rotate_euler(in, center, rotation, true);
             }};
-        return fn;
+        return &fn;
       }
       static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
           "Rotate Euler", [](float3 in, float3 center, float3 rotation) {
             return sh_node_vector_rotate_euler(in, center, rotation, false);
           }};
-      return fn;
+      return &fn;
     }
     default:
       BLI_assert_unreachable();
-      return builder.get_not_implemented_fn();
+      return nullptr;
   }
 }
 
-static void sh_node_vector_rotate_expand_in_mf_network(
-    blender::nodes::NodeMFNetworkBuilder &builder)
+static void sh_node_vector_rotate_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  const blender::fn::MultiFunction &fn = get_multi_function(builder);
+  const blender::fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 
@@ -211,7 +210,7 @@ void register_node_type_sh_vector_rotate(void)
   node_type_socket_templates(&ntype, sh_node_vector_rotate_in, sh_node_vector_rotate_out);
   node_type_gpu(&ntype, gpu_shader_vector_rotate);
   node_type_update(&ntype, node_shader_update_vector_rotate);
-  ntype.expand_in_mf_network = sh_node_vector_rotate_expand_in_mf_network;
+  ntype.build_multi_function = sh_node_vector_rotate_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

@@ -163,9 +163,10 @@ class ColorBandFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void sh_node_valtorgb_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
+static void sh_node_valtorgb_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.bnode();
+  bNode &bnode = builder.node();
   const ColorBand *color_band = (const ColorBand *)bnode.storage;
   builder.construct_and_set_matching_fn<ColorBandFunction>(*color_band);
 }
@@ -181,7 +182,7 @@ void register_node_type_sh_valtorgb(void)
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
   node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_valtorgb);
   node_type_gpu(&ntype, gpu_shader_valtorgb);
-  ntype.expand_in_mf_network = sh_node_valtorgb_expand_in_mf_network;
+  ntype.build_multi_function = sh_node_valtorgb_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

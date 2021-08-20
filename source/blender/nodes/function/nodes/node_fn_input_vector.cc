@@ -32,16 +32,14 @@ static void fn_node_input_vector_layout(uiLayout *layout, bContext *UNUSED(C), P
   uiItemR(col, ptr, "vector", UI_ITEM_R_EXPAND, "", ICON_NONE);
 }
 
-static void fn_node_vector_input_expand_in_mf_network(
-    blender::nodes::NodeMFNetworkBuilder &builder)
+static void fn_node_vector_input_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.bnode();
+  bNode &bnode = builder.node();
   NodeInputVector *node_storage = static_cast<NodeInputVector *>(bnode.storage);
   blender::float3 vector(node_storage->vector);
-
   builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<blender::float3>>(vector);
 }
-
 static void fn_node_input_vector_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeInputVector *data = (NodeInputVector *)MEM_callocN(sizeof(NodeInputVector),
@@ -58,7 +56,7 @@ void register_node_type_fn_input_vector()
   node_type_init(&ntype, fn_node_input_vector_init);
   node_type_storage(
       &ntype, "NodeInputVector", node_free_standard_storage, node_copy_standard_storage);
-  ntype.expand_in_mf_network = fn_node_vector_input_expand_in_mf_network;
+  ntype.build_multi_function = fn_node_vector_input_build_multi_function;
   ntype.draw_buttons = fn_node_input_vector_layout;
   nodeRegisterType(&ntype);
 }

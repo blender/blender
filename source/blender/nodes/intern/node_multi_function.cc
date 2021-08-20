@@ -14,21 +14,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#pragma once
-
-#include <optional>
-
-#include "BKE_node.h"
-
-#include "FN_multi_function_data_type.hh"
+#include "NOD_multi_function.hh"
 
 namespace blender::nodes {
 
-using fn::CPPType;
-using fn::MFDataType;
-
-std::optional<MFDataType> socket_mf_type_get(const bNodeSocketType &stype);
-bool socket_is_mf_data_socket(const bNodeSocketType &stype);
-void socket_expand_in_mf_network(SocketMFNetworkBuilder &builder);
+NodeMultiFunctions::NodeMultiFunctions(const DerivedNodeTree &tree, ResourceScope &resource_scope)
+{
+  for (const NodeTreeRef *tree_ref : tree.used_node_tree_refs()) {
+    bNodeTree *btree = tree_ref->btree();
+    for (const NodeRef *node : tree_ref->nodes()) {
+      bNode *bnode = node->bnode();
+      if (bnode->typeinfo->build_multi_function == nullptr) {
+        continue;
+      }
+      NodeMultiFunctionBuilder builder{resource_scope, *bnode, *btree};
+      bnode->typeinfo->build_multi_function(builder);
+      const MultiFunction *fn = builder.built_fn_;
+      if (fn != nullptr) {
+        map_.add_new(bnode, fn);
+      }
+    }
+  }
+}
 
 }  // namespace blender::nodes
