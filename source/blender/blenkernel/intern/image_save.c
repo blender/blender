@@ -409,7 +409,8 @@ bool BKE_image_save(
       BKE_reportf(reports,
                   RPT_ERROR,
                   "When saving a tiled image, the path '%s' must contain the UDIM tile number %d",
-                  opts->filepath, first_tile->tile_number);
+                  opts->filepath,
+                  first_tile->tile_number);
       return false;
     }
 
