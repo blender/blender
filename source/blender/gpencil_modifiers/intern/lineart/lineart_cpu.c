@@ -1496,7 +1496,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
 #define LRT_MESH_FINISH \
   BM_mesh_free(bm); \
   if (ob->type != OB_MESH) { \
-    BKE_mesh_free(use_mesh); \
+    BKE_mesh_free_data(use_mesh); \
     MEM_freeN(use_mesh); \
   }
 

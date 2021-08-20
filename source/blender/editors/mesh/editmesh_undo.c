@@ -695,7 +695,7 @@ static void undomesh_free_data(UndoMesh *um)
     MEM_freeN(me->key);
   }
 
-  BKE_mesh_free(me);
+  BKE_mesh_free_data(me);
 }
 
 static Object *editmesh_object_from_context(bContext *C)
