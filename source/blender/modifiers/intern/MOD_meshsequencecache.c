@@ -270,7 +270,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   return result ? result : mesh;
 #else
-  UNUSED_VARS(ctx, md);
+  UNUSED_VARS(ctx, md, generate_bounding_box_mesh);
   return mesh;
 #endif
 }
@@ -283,7 +283,7 @@ static bool dependsOnTime(Scene *scene, ModifierData *md, const int dag_eval_mod
   return (mcmd->cache_file != NULL) &&
          !BKE_cache_file_uses_render_procedural(mcmd->cache_file, scene, dag_eval_mode);
 #else
-  UNUSED_VARS(md);
+  UNUSED_VARS(scene, md, dag_eval_mode);
   return false;
 #endif
 }
