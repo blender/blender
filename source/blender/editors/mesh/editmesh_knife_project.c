@@ -115,7 +115,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
     BKE_nurbList_free(&nurbslist);
 
     if (me_eval_needs_free) {
-      BKE_mesh_free((struct Mesh *)me_eval);
+      BKE_mesh_free_data((struct Mesh *)me_eval);
     }
   }
 

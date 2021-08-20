@@ -1691,7 +1691,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   }
 
   if (obi->free_use_mesh) {
-    BKE_mesh_free(obi->original_me);
+    BKE_mesh_free_data(obi->original_me);
     MEM_freeN(obi->original_me);
   }
 

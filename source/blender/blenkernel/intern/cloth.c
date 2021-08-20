@@ -1574,7 +1574,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
           BLI_edgeset_free(existing_vert_pairs);
           free_bvhtree_from_mesh(&treedata);
           if (tmp_mesh) {
-            BKE_mesh_free(tmp_mesh);
+            BKE_mesh_free_data(tmp_mesh);
           }
           return false;
         }
@@ -1583,7 +1583,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     BLI_edgeset_free(existing_vert_pairs);
     free_bvhtree_from_mesh(&treedata);
     if (tmp_mesh) {
-      BKE_mesh_free(tmp_mesh);
+      BKE_mesh_free_data(tmp_mesh);
     }
     BLI_rng_free(rng);
   }
