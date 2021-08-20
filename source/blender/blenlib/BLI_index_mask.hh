@@ -58,11 +58,7 @@ class IndexMask {
    */
   IndexMask(Span<int64_t> indices) : indices_(indices)
   {
-#ifdef DEBUG
-    for (int64_t i = 1; i < indices.size(); i++) {
-      BLI_assert(indices[i - 1] < indices[i]);
-    }
-#endif
+    BLI_assert(IndexMask::indices_are_valid_index_mask(indices));
   }
 
   /**
@@ -92,6 +88,22 @@ class IndexMask {
    */
   explicit IndexMask(int64_t n) : IndexMask(IndexRange(n))
   {
+  }
+
+  /** Checks that the indices are non-negative and in ascending order. */
+  static bool indices_are_valid_index_mask(Span<int64_t> indices)
+  {
+    if (!indices.is_empty()) {
+      if (indices.first() < 0) {
+        return false;
+      }
+    }
+    for (int64_t i = 1; i < indices.size(); i++) {
+      if (indices[i - 1] >= indices[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   operator Span<int64_t>() const
@@ -203,6 +215,11 @@ class IndexMask {
   int64_t size() const
   {
     return indices_.size();
+  }
+
+  bool is_empty() const
+  {
+    return indices_.is_empty();
   }
 };
 
