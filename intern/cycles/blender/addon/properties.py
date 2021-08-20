@@ -408,7 +408,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     adaptive_threshold: FloatProperty(
         name="Adaptive Sampling Threshold",
-        description="Noise level step to stop sampling at, lower values reduce noise the cost of render time. Zero for automatic setting based on number of AA samples",
+        description="Noise level step to stop sampling at, lower values reduce noise at the cost of render time. Zero for automatic setting based on number of AA samples",
         min=0.0, max=1.0,
         default=0.0,
         precision=4,
