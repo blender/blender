@@ -1471,7 +1471,6 @@ static void lineart_geometry_object_load(Depsgraph *dg,
                                          int override_usage,
                                          int *global_vindex)
 {
-  printf("========================================================\nTESTING\n");
   BMesh *bm;
   BMVert *v;
   BMFace *f;
