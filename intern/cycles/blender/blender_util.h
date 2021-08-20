@@ -573,7 +573,8 @@ static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b
 }
 
 static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
-                                                                   bool check_velocity)
+                                                                   bool check_velocity,
+                                                                   bool *has_subdivision_modifier)
 {
   for (int i = b_ob.modifiers.length() - 1; i >= 0; --i) {
     BL::Modifier b_mod = b_ob.modifiers[i];
@@ -592,6 +593,15 @@ static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b
 
     /* Skip possible particles system modifiers as they do not modify the geometry. */
     if (b_mod.type() == BL::Modifier::type_PARTICLE_SYSTEM) {
+      continue;
+    }
+
+    /* Only skip the subsurf modifier if we are not checking for the mesh sequence cache modifier
+     * for motion blur. */
+    if (b_mod.type() == BL::Modifier::type_SUBSURF && !check_velocity) {
+      if (has_subdivision_modifier) {
+        *has_subdivision_modifier = true;
+      }
       continue;
     }
 

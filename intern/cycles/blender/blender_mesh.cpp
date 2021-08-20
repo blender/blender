@@ -1078,7 +1078,7 @@ static void sync_mesh_cached_velocities(BL::Object &b_ob, Scene *scene, Mesh *me
     return;
   }
 
-  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob, true);
+  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob, true, nullptr);
 
   if (!b_mesh_cache) {
     return;
@@ -1241,7 +1241,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   }
 
   /* Cached motion blur already exported. */
-  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(b_ob, true);
+  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(b_ob, true, nullptr);
   if (mesh_cache) {
     return;
   }

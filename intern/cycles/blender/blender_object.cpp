@@ -485,7 +485,9 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
 
 /* Object Loop */
 
-void BlenderSync::sync_procedural(BL::Object &b_ob, BL::MeshSequenceCacheModifier &b_mesh_cache)
+void BlenderSync::sync_procedural(BL::Object &b_ob,
+                                  BL::MeshSequenceCacheModifier &b_mesh_cache,
+                                  bool has_subdivision_modifier)
 {
 #ifdef WITH_ALEMBIC
   BL::CacheFile cache_file = b_mesh_cache.cache_file();
@@ -533,6 +535,8 @@ void BlenderSync::sync_procedural(BL::Object &b_ob, BL::MeshSequenceCacheModifie
   const float subd_dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
   abc_object->set_subd_dicing_rate(subd_dicing_rate);
   abc_object->set_subd_max_level(max_subdivisions);
+
+  abc_object->set_ignore_subdivision(!has_subdivision_modifier);
 
   if (abc_object->is_modified() || procedural->is_modified()) {
     procedural->tag_update(scene);
@@ -601,13 +605,14 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     if (b_instance.show_self()) {
 #ifdef WITH_ALEMBIC
       bool use_procedural = false;
+      bool has_subdivision_modifier = false;
       BL::MeshSequenceCacheModifier b_mesh_cache(PointerRNA_NULL);
 
       /* Experimental as Blender does not have good support for procedurals at the moment, also
        * only available in preview renders since currently do not have a good cache policy, the
        * data being loaded at once for all the frames. */
       if (experimental && b_v3d) {
-        b_mesh_cache = object_mesh_cache_find(b_ob, false);
+        b_mesh_cache = object_mesh_cache_find(b_ob, false, &has_subdivision_modifier);
         use_procedural = b_mesh_cache && b_mesh_cache.cache_file().use_render_procedural();
       }
 
@@ -615,7 +620,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
         /* Skip in the motion case, as generating motion blur data will be handled in the
          * procedural. */
         if (!motion) {
-          sync_procedural(b_ob, b_mesh_cache);
+          sync_procedural(b_ob, b_mesh_cache, has_subdivision_modifier);
         }
       }
       else

@@ -353,6 +353,10 @@ class AlembicObject : public Node {
   /* Shaders used for rendering. */
   NODE_SOCKET_API_ARRAY(array<Node *>, used_shaders)
 
+  /* Treat this subdivision object as a regular polygon mesh, so no subdivision will be performed.
+   */
+  NODE_SOCKET_API(bool, ignore_subdivision)
+
   /* Maximum number of subdivisions for ISubD objects. */
   NODE_SOCKET_API(int, subd_max_level)
 
@@ -414,6 +418,11 @@ class AlembicObject : public Node {
   bool is_constant() const
   {
     return cached_data_.is_constant();
+  }
+
+  void clear_cache()
+  {
+    cached_data_.clear();
   }
 
   Object *object = nullptr;
