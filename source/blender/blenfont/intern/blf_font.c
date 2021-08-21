@@ -328,29 +328,31 @@ BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
                                       const uint c,
                                       int *pen_x_p)
 {
-  if (FT_HAS_KERNING(font->face) && g_prev != NULL) {
-    FT_Vector delta = {KERNING_ENTRY_UNSET};
+  if (!FT_HAS_KERNING(font->face) || g_prev == NULL) {
+    return;
+  }
 
-    /* Get unscaled kerning value from our cache if ASCII. */
-    if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
-      delta.x = font->kerning_cache->ascii_table[c][c_prev];
-    }
+  FT_Vector delta = {KERNING_ENTRY_UNSET};
 
-    /* If not ASCII or not found in cache, ask FreeType for kerning. */
-    if (UNLIKELY(delta.x == KERNING_ENTRY_UNSET)) {
-      /* Note that this function sets delta values to zero on any error. */
-      FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNSCALED, &delta);
-    }
+  /* Get unscaled kerning value from our cache if ASCII. */
+  if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
+    delta.x = font->kerning_cache->ascii_table[c][c_prev];
+  }
 
-    /* If ASCII we save this value to our cache for quicker access next time. */
-    if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
-      font->kerning_cache->ascii_table[c][c_prev] = (int)delta.x;
-    }
+  /* If not ASCII or not found in cache, ask FreeType for kerning. */
+  if (UNLIKELY(delta.x == KERNING_ENTRY_UNSET)) {
+    /* Note that this function sets delta values to zero on any error. */
+    FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNSCALED, &delta);
+  }
 
-    if (delta.x != 0) {
-      /* Convert unscaled design units to pixels and move pen. */
-      *pen_x_p += blf_unscaled_F26Dot6_to_pixels(font, delta.x);
-    }
+  /* If ASCII we save this value to our cache for quicker access next time. */
+  if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
+    font->kerning_cache->ascii_table[c][c_prev] = (int)delta.x;
+  }
+
+  if (delta.x != 0) {
+    /* Convert unscaled design units to pixels and move pen. */
+    *pen_x_p += blf_unscaled_F26Dot6_to_pixels(font, delta.x);
   }
 }
 
@@ -1447,35 +1449,27 @@ void blf_font_free(FontBLF *font)
 
 void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
 {
-  GlyphCacheBLF *gc;
-  FT_Error err;
-
   blf_glyph_cache_acquire(font);
 
-  gc = blf_glyph_cache_find(font, size, dpi);
-  if (gc) {
+  GlyphCacheBLF *gc = blf_glyph_cache_find(font, size, dpi);
+  if (gc && (font->size == size && font->dpi == dpi)) {
     /* Optimization: do not call FT_Set_Char_Size if size did not change. */
-    if (font->size == size && font->dpi == dpi) {
-      blf_glyph_cache_release(font);
-      return;
+  }
+  else {
+    const FT_Error err = FT_Set_Char_Size(font->face, 0, ((FT_F26Dot6)(size)) * 64, dpi, dpi);
+    if (err) {
+      /* FIXME: here we can go through the fixed size and choice a close one */
+      printf("The current font don't support the size, %u and dpi, %u\n", size, dpi);
+    }
+    else {
+      font->size = size;
+      font->dpi = dpi;
+      if (gc == NULL) {
+        blf_glyph_cache_new(font);
+      }
     }
   }
 
-  err = FT_Set_Char_Size(font->face, 0, ((FT_F26Dot6)(size)) * 64, dpi, dpi);
-  if (err) {
-    /* FIXME: here we can go through the fixed size and choice a close one */
-    printf("The current font don't support the size, %u and dpi, %u\n", size, dpi);
-
-    blf_glyph_cache_release(font);
-    return;
-  }
-
-  font->size = size;
-  font->dpi = dpi;
-
-  if (!gc) {
-    blf_glyph_cache_new(font);
-  }
   blf_glyph_cache_release(font);
 }
 
