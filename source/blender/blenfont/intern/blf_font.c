@@ -352,11 +352,11 @@ static int blf_unscaled_F26Dot6_to_pixels(FontBLF *font, FT_Pos value)
   }
 
   /* Copies of internal FreeType macros needed here. */
-#define FT_PIX_FLOOR(x) ((x) & ~FT_TYPEOF(x) 63)
+#define FT_PIX_FLOOR(x) ((x) & ~63)
 #define FT_PIX_ROUND(x) FT_PIX_FLOOR((x) + 32)
 
   /* Round to even 64ths, then divide by 64. */
-  return FT_PIX_ROUND(scaled) >> 6;
+  return (int)FT_PIX_ROUND(scaled) >> 6;
 
 #undef FT_PIX_FLOOR
 #undef FT_PIX_ROUND
@@ -385,7 +385,7 @@ BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
 
     /* If ASCII we save this value to our cache for quicker access next time. */
     if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
-      font->kerning_cache->ascii_table[c][c_prev] = delta.x;
+      font->kerning_cache->ascii_table[c][c_prev] = (int)delta.x;
     }
 
     if (delta.x != 0) {
