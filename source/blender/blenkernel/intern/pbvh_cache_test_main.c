@@ -19,13 +19,13 @@
 
 #include <math.h>
 
-void pbvh_bmesh_do_cache_test(void);
+// void pbvh_bmesh_do_cache_test(void);
 
 int main(int argc, char **argv)
 {
   printf("argc: %d\n", argc);
 
-  pbvh_bmesh_do_cache_test();
+  // pbvh_bmesh_do_cache_test();
 
   return 0;
 }
