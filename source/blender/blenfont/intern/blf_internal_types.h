@@ -34,6 +34,9 @@
 /* Number of characters in KerningCacheBLF.table. */
 #define KERNING_CACHE_TABLE_SIZE 128
 
+/* A value in the kerning cache that indicates it is not yet set. */
+#define KERNING_ENTRY_UNSET INT_MAX
+
 typedef struct BatchBLF {
   struct FontBLF *font; /* can only batch glyph from the same font */
   struct GPUBatch *batch;
@@ -50,7 +53,6 @@ typedef struct BatchBLF {
 extern BatchBLF g_batch;
 
 typedef struct KerningCacheBLF {
-  struct KerningCacheBLF *next, *prev;
   /**
    * Cache a ascii glyph pairs. Only store the x offset we are interested in,
    * instead of the full #FT_Vector since it's not used for drawing at the moment.
@@ -223,10 +225,7 @@ typedef struct FontBLF {
    */
   ListBase cache;
 
-  /* list of kerning cache for this font. */
-  ListBase kerning_caches;
-
-  /* current kerning cache for this font and kerning mode. */
+  /* Cache of unscaled kerning values. Will be NULL if font does not have kerning. */
   KerningCacheBLF *kerning_cache;
 
   /* freetype2 lib handle. */

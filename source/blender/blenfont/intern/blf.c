@@ -108,7 +108,6 @@ void BLF_cache_clear(void)
     FontBLF *font = global_font[i];
     if (font) {
       blf_glyph_cache_clear(font);
-      blf_kerning_cache_clear(font);
     }
   }
 }

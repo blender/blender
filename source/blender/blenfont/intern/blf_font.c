@@ -308,17 +308,6 @@ void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
   blf_glyph_cache_release(font);
 }
 
-static void blf_font_ensure_ascii_kerning(FontBLF *font, GlyphCacheBLF *gc)
-{
-  if (font->kerning_cache || !FT_HAS_KERNING(font->face)) {
-    return;
-  }
-  font->kerning_cache = blf_kerning_cache_find(font);
-  if (!font->kerning_cache) {
-    font->kerning_cache = blf_kerning_cache_new(font, gc);
-  }
-}
-
 /* Fast path for runs of ASCII characters. Given that common UTF-8
  * input will consist of an overwhelming majority of ASCII
  * characters.
@@ -348,6 +337,31 @@ BLI_INLINE GlyphBLF *blf_utf8_next_fast(
   return g;
 }
 
+/* Convert a FreeType 26.6 value representing an unscaled design size to pixels.
+ * This is an exact copy of the scaling done inside FT_Get_Kerning when called
+ * with FT_KERNING_DEFAULT, including arbitrary resizing for small fonts.
+ */
+static int blf_unscaled_F26Dot6_to_pixels(FontBLF *font, FT_Pos value)
+{
+  /* Scale value by font size using integer-optimized multiplication. */
+  FT_Long scaled = FT_MulFix(value, font->face->size->metrics.x_scale);
+
+  /* FreeType states that this '25' has been determined heuristically. */
+  if (font->face->size->metrics.x_ppem < 25) {
+    scaled = FT_MulDiv(scaled, font->face->size->metrics.x_ppem, 25);
+  }
+
+  /* Copies of internal FreeType macros needed here. */
+#define FT_PIX_FLOOR(x) ((x) & ~FT_TYPEOF(x) 63)
+#define FT_PIX_ROUND(x) FT_PIX_FLOOR((x) + 32)
+
+  /* Round to even 64ths, then divide by 64. */
+  return FT_PIX_ROUND(scaled) >> 6;
+
+#undef FT_PIX_FLOOR
+#undef FT_PIX_ROUND
+}
+
 BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
                                       const GlyphBLF *g_prev,
                                       const GlyphBLF *g,
@@ -355,18 +369,28 @@ BLI_INLINE void blf_kerning_step_fast(FontBLF *font,
                                       const uint c,
                                       int *pen_x_p)
 {
-  /* `blf_font_ensure_ascii_kerning(font, gc);` must be called before this function. */
-  BLI_assert(font->kerning_cache != NULL || !FT_HAS_KERNING(font->face));
+  if (FT_HAS_KERNING(font->face) && g_prev != NULL) {
+    FT_Vector delta = {KERNING_ENTRY_UNSET};
 
-  if (g_prev != NULL && FT_HAS_KERNING(font->face)) {
+    /* Get unscaled kerning value from our cache if ASCII. */
     if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
-      *pen_x_p += font->kerning_cache->ascii_table[c][c_prev];
+      delta.x = font->kerning_cache->ascii_table[c][c_prev];
     }
-    else {
-      FT_Vector delta;
-      if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_DEFAULT, &delta) == 0) {
-        *pen_x_p += (int)delta.x >> 6;
-      }
+
+    /* If not ASCII or not found in cache, ask FreeType for kerning. */
+    if (UNLIKELY(delta.x == KERNING_ENTRY_UNSET)) {
+      /* Note that this function sets delta values to zero on any error. */
+      FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNSCALED, &delta);
+    }
+
+    /* If ASCII we save this value to our cache for quicker access next time. */
+    if ((c_prev < KERNING_CACHE_TABLE_SIZE) && (c < GLYPH_ASCII_TABLE_SIZE)) {
+      font->kerning_cache->ascii_table[c][c_prev] = delta.x;
+    }
+
+    if (delta.x != 0) {
+      /* Convert unscaled design units to pixels and move pen. */
+      *pen_x_p += blf_unscaled_F26Dot6_to_pixels(font, delta.x);
     }
   }
 }
@@ -387,8 +411,6 @@ static void blf_font_draw_ex(FontBLF *font,
     /* early output, don't do any IMM OpenGL. */
     return;
   }
-
-  blf_font_ensure_ascii_kerning(font, gc);
 
   blf_batch_draw_begin(font);
 
@@ -434,8 +456,6 @@ static void blf_font_draw_ascii_ex(
   int pen_x = 0;
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-
-  blf_font_ensure_ascii_kerning(font, gc);
 
   blf_batch_draw_begin(font);
 
@@ -535,8 +555,6 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
   const unsigned char *b_col_char = buf_info->col_char;
   int chx, chy;
   int y, x;
-
-  blf_font_ensure_ascii_kerning(font, gc);
 
   /* another buffer specific call for color conversion */
 
@@ -694,8 +712,6 @@ size_t blf_font_width_to_strlen(
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   const int width_i = (int)width;
 
-  blf_font_ensure_ascii_kerning(font, gc);
-
   for (i_prev = i = 0, width_new = pen_x = 0, g_prev = NULL, c_prev = 0; (i < len) && str[i];
        i_prev = i, width_new = pen_x, c_prev = c, g_prev = g) {
     g = blf_utf8_next_fast(font, gc, str, &i, &c);
@@ -724,8 +740,6 @@ size_t blf_font_width_to_rstrlen(
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   const int width_i = (int)width;
-
-  blf_font_ensure_ascii_kerning(font, gc);
 
   i = BLI_strnlen(str, len);
   s = BLI_str_find_prev_char_utf8(str, &str[i]);
@@ -777,8 +791,6 @@ static void blf_font_boundbox_ex(FontBLF *font,
   box->xmax = -32000.0f;
   box->ymin = 32000.0f;
   box->ymax = -32000.0f;
-
-  blf_font_ensure_ascii_kerning(font, gc);
 
   while ((i < len) && str[i]) {
     g = blf_utf8_next_fast(font, gc, str, &i, &c);
@@ -868,8 +880,6 @@ static void blf_font_wrap_apply(FontBLF *font,
   int pen_x_next = 0;
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-
-  blf_font_ensure_ascii_kerning(font, gc);
 
   struct WordWrapVars {
     int wrap_width;
@@ -1123,8 +1133,6 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
     return;
   }
 
-  blf_font_ensure_ascii_kerning(font, gc);
-
   while ((i < len) && str[i]) {
     i_curr = i;
     g = blf_utf8_next_fast(font, gc, str, &i, &c);
@@ -1205,7 +1213,9 @@ void blf_font_free(FontBLF *font)
     blf_glyph_cache_free(gc);
   }
 
-  blf_kerning_cache_clear(font);
+  if (font->kerning_cache) {
+    MEM_freeN(font->kerning_cache);
+  }
 
   FT_Done_Face(font->face);
   if (font->filename) {
@@ -1246,7 +1256,6 @@ static void blf_font_fill(FontBLF *font)
   font->dpi = 0;
   font->size = 0;
   BLI_listbase_clear(&font->cache);
-  BLI_listbase_clear(&font->kerning_caches);
   font->kerning_cache = NULL;
 #if BLF_BLUR_ENABLE
   font->blur = 0;
@@ -1307,6 +1316,17 @@ FontBLF *blf_font_new(const char *name, const char *filename)
   font->name = BLI_strdup(name);
   font->filename = BLI_strdup(filename);
   blf_font_fill(font);
+
+  if (FT_HAS_KERNING(font->face)) {
+    /* Create kerning cache table and fill with value indicating "unset". */
+    font->kerning_cache = MEM_mallocN(sizeof(KerningCacheBLF), __func__);
+    for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
+      for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
+        font->kerning_cache->ascii_table[i][j] = KERNING_ENTRY_UNSET;
+      }
+    }
+  }
+
   return font;
 }
 

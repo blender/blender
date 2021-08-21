@@ -121,10 +121,6 @@ int blf_font_count_missing_chars(struct FontBLF *font,
 
 void blf_font_free(struct FontBLF *font);
 
-struct KerningCacheBLF *blf_kerning_cache_find(struct FontBLF *font);
-struct KerningCacheBLF *blf_kerning_cache_new(struct FontBLF *font, struct GlyphCacheBLF *gc);
-void blf_kerning_cache_clear(struct FontBLF *font);
-
 struct GlyphCacheBLF *blf_glyph_cache_find(struct FontBLF *font,
                                            unsigned int size,
                                            unsigned int dpi);

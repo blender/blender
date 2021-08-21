@@ -55,56 +55,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_strict_flags.h"
 
-KerningCacheBLF *blf_kerning_cache_find(FontBLF *font)
-{
-  return (KerningCacheBLF *)font->kerning_caches.first;
-}
-
-/* Create a new glyph cache for the current kerning mode. */
-KerningCacheBLF *blf_kerning_cache_new(FontBLF *font, GlyphCacheBLF *gc)
-{
-  KerningCacheBLF *kc = MEM_mallocN(sizeof(KerningCacheBLF), __func__);
-  kc->next = NULL;
-  kc->prev = NULL;
-
-  GlyphBLF *g_table[KERNING_CACHE_TABLE_SIZE];
-  for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
-    GlyphBLF *g = blf_glyph_search(gc, i);
-    if (UNLIKELY(g == NULL)) {
-      FT_UInt glyph_index = FT_Get_Char_Index(font->face, i);
-      g = blf_glyph_add(font, gc, glyph_index, i);
-    }
-    g_table[i] = g;
-  }
-
-  memset(kc->ascii_table, 0, sizeof(kc->ascii_table));
-  for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
-    GlyphBLF *g = g_table[i];
-    if (g == NULL) {
-      continue;
-    }
-    for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
-      GlyphBLF *g_prev = g_table[j];
-      if (g_prev == NULL) {
-        continue;
-      }
-      FT_Vector delta;
-      if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_DEFAULT, &delta) == 0) {
-        kc->ascii_table[i][j] = (int)delta.x >> 6;
-      }
-    }
-  }
-
-  BLI_addhead(&font->kerning_caches, kc);
-  return kc;
-}
-
-void blf_kerning_cache_clear(FontBLF *font)
-{
-  font->kerning_cache = NULL;
-  BLI_freelistN(&font->kerning_caches);
-}
-
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned int dpi)
 {
   GlyphCacheBLF *p;
