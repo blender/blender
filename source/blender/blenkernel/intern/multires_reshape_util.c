@@ -315,6 +315,8 @@ void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_contex
 
 void multires_reshape_context_free(MultiresReshapeContext *reshape_context)
 {
+  ModifierData *md;
+
   if (reshape_context->need_free_subdiv) {
     BKE_subdiv_free(reshape_context->subdiv);
   }

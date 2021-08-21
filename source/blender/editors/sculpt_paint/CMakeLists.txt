@@ -77,6 +77,8 @@ set(SRC
   sculpt_transform.c
   sculpt_undo.c
   sculpt_uv.c
+  sculpt_displacement.c
+  sculpt_displacement.h
 
   paint_intern.h
   sculpt_intern.h

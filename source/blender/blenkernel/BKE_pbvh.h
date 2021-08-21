@@ -41,6 +41,12 @@ typedef struct SculptFaceRef {
   intptr_t i;
 } SculptFaceRef;
 
+#if 0
+typedef struct SculptLoopRef {
+  intptr_t i;
+} SculptLoopRef;
+#endif
+
 BLI_INLINE SculptVertRef BKE_pbvh_make_vref(intptr_t i)
 {
   SculptVertRef ret = {i};
@@ -744,6 +750,97 @@ void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, struc
 #define DYNTOPO_DYNAMIC_TESS
 
 PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
+
+#if 0
+typedef enum {
+  SCULPT_TEXTURE_UV = 1 << 0,  // per-uv
+  // SCULPT_TEXTURE_PTEX?
+} SculptTextureType;
+
+typedef int TexLayerRef;
+
+/*
+Texture points are texels projected into 3d.
+*/
+typedef intptr_t TexPointRef;
+
+void *BKE_pbvh_get_tex_settings(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+void *BKE_pbvh_get_tex_data(PBVH *pbvh, PBVHNode *node, TexPointRef vdm);
+
+typedef struct SculptTextureDef {
+  SculptTextureType type;
+  int settings_size;
+
+  void (*build_begin)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+
+  /*vdms can cache data per node, which is freed to maintain memory limit.
+    they store cache in the same structure they return in buildNodeData.*/
+  void (*freeCachedData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+  void (*ensuredCachedData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+
+  /*builds all data that isn't cached.*/
+  void *(*buildNodeData)(PBVH *pbvh, PBVHNode *node);
+  bool (*validate)(PBVH *pbvh, TexLayerRef vdm);
+
+  void (*getPointsFromNode)(PBVH *pbvh,
+                            PBVHNode *node,
+                            TexLayerRef vdm,
+                            TexPointRef **r_ids,
+                            float ***r_cos,
+                            float ***r_nos,
+                            int *r_totpoint);
+  void (*releaseNodePoints)(
+      PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, float **cos, float **nos);
+
+#  if 0
+  int (*getTrisFromNode)(PBVH *pbvh,
+                         PBVHNode *node,
+                         TexLayerRef vdm,
+                         TexPointRef *((*r_tris)[3]),
+                         TexPointRef **r_ids,
+                         int tottri,
+                         int totid);
+  void (*getTriInterpWeightsFromNode)(PBVH *pbvh,
+                                      PBVHNode *node,
+                                      TexLayerRef vdm,
+                                      float *((*r_tris)[3]),
+                                      SculptLoopRef ***r_src_loops,
+                                      int tottri,
+                                      int totloop);
+  int (*getTriCount)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
+#  endif
+
+  void (*getPointNeighbors)(PBVH *pbvh,
+                            PBVHNode *node,
+                            TexLayerRef vdm,
+                            TexPointRef id,
+                            TexPointRef **r_neighbor_ids,
+                            int *r_totneighbor,
+                            int maxneighbors,
+                            TexPointRef **r_duplicates_id,
+                            int r_totduplicate,
+                            int maxduplicates);
+  void (*getPointValence)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef id);
+  void (*freeNodeData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, void *settings);
+
+  void (*getPointsFromIds)(
+      PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
+
+  /*displacement texture stuff*/
+  // can be tangent, object space displacement, whatever
+  void (*worldToDelta)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
+  void (*deltaToWorld)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
+} SculptDisplacementDef;
+
+typedef struct SculptLayerEntry {
+  char name[64];
+  int type;
+  void *settings;
+  float factor;
+  struct SculptLayerEntry *parent;
+} SculptLayerEntry;
+
+#endif
 
 #ifdef __cplusplus
 }

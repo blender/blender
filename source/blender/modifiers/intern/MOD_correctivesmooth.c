@@ -614,13 +614,13 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
   MEM_freeN(smooth_vertex_coords);
 }
 
-static void correctivesmooth_modifier_do(ModifierData *md,
-                                         Depsgraph *depsgraph,
-                                         Object *ob,
-                                         Mesh *mesh,
-                                         float (*vertexCos)[3],
-                                         uint numVerts,
-                                         struct BMEditMesh *em)
+ATTR_NO_OPT static void correctivesmooth_modifier_do(ModifierData *md,
+                                                     Depsgraph *depsgraph,
+                                                     Object *ob,
+                                                     Mesh *mesh,
+                                                     float (*vertexCos)[3],
+                                                     uint numVerts,
+                                                     struct BMEditMesh *em)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 

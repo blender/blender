@@ -642,7 +642,7 @@ void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
 
 /* In DerivedMesh.cc */
 void BKE_mesh_wrapper_deferred_finalize(struct Mesh *me_eval,
-                                        const CustomData_MeshMasks *cd_mask_finalize);
+                                        const struct CustomData_MeshMasks *cd_mask_finalize);
 
 /* **** Depsgraph evaluation **** */
 

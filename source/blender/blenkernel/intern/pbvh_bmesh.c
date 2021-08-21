@@ -3395,3 +3395,190 @@ BMesh *BKE_pbvh_reorder_bmesh1(PBVH *pbvh)
 
   return pbvh->bm;
 }
+
+// only floats! and 8 byte aligned!
+typedef struct CacheParams {
+  float vchunk, echunk, lchunk, pchunk;
+  int cluster_steps, cluster_size;
+} CacheParams;
+
+typedef struct CacheParamDef {
+  char name[32];
+  float defvalue, min, max;
+} CacheParamDef;
+
+CacheParamDef pbvh_bmesh_cache_param_def[] = {{"vchunk", 512.0f, 256.0f, 1024.0f * 12.0f},
+                                              {"echunk", 512.0f, 256.0f, 1024.0f * 12.0f},
+                                              {"lchunk", 512.0f, 256.0f, 1024.0f * 12.0f},
+                                              {"pchunk", 512.0f, 256.0f, 1024.0f * 12.0f},
+                                              {"cluster_steps", 512.0f, 1.0f, 256.0f},
+                                              {"cluster_size", 512.0f, 1.0f, 8192.0f * 32.0f}};
+
+int pbvh_bmesh_cache_test_totparams()
+{
+  return sizeof(pbvh_bmesh_cache_param_def) / sizeof(*pbvh_bmesh_cache_param_def);
+}
+
+void pbvh_bmesh_cache_test_default_params(CacheParams *params)
+{
+  float *fparams = (float *)params;
+  int totparam = pbvh_bmesh_cache_test_totparams();
+
+  for (int i = 0; i < totparam; i++) {
+    fparams[i] = pbvh_bmesh_cache_param_def[i].defvalue;
+  }
+}
+
+static void *hashco(float fx, float fy, float fz, float fdimen)
+{
+  double x = (double)fx;
+  double y = (double)fy;
+  double z = (double)fz;
+  double dimen = (double)dimen;
+
+  return (void *)((intptr_t)(z * dimen * dimen + y * dimen + x));
+}
+
+void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
+{
+  // build mesh
+  const int steps = 256;
+
+  BMAllocTemplate templ = {0, 0, 0, 0};
+
+  BMesh *bm = BM_mesh_create(&templ,
+                             &((struct BMeshCreateParams){.use_id_elem_mask = BM_VERT | BM_FACE,
+                                                          .use_id_map = true,
+                                                          .use_unique_ids = true}));
+
+  // reinit pools
+  BLI_mempool_destroy(bm->vpool);
+  BLI_mempool_destroy(bm->epool);
+  BLI_mempool_destroy(bm->lpool);
+  BLI_mempool_destroy(bm->fpool);
+
+  bm->vpool = BLI_mempool_create(sizeof(BMVert), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->epool = BLI_mempool_create(sizeof(BMEdge), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->lpool = BLI_mempool_create(sizeof(BMLoop), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->fpool = BLI_mempool_create(sizeof(BMFace), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
+
+  GHash *vhash = BLI_ghash_ptr_new("vhash");
+
+  float df = 1.0f / (float)steps;
+  float u, v;
+
+  int hashdimen = steps * 8;
+
+  BMVert **grid = MEM_malloc_arrayN(steps * steps, sizeof(*grid), "bmvert grid");
+
+  BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
+  BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT32, "__dyntopo_face_node");
+  BM_data_layer_add(bm, &bm->vdata, CD_SCULPT_FACE_SETS);
+  BM_data_layer_add(bm, &bm->vdata, CD_PAINT_MASK);
+  BM_data_layer_add(bm, &bm->vdata, CD_DYNTOPO_VERT);
+  BM_data_layer_add(bm, &bm->vdata, CD_PROP_COLOR);
+
+  for (int side = 0; side < 6; side++) {
+    int axis = side > 3 ? side - 3 : side;
+    float sign = side > 3 ? -1.0f : 1.0f;
+
+    for (int i = 0, u = 0; i < steps; i++, u += df) {
+      for (int j = 0, v = 0; j < steps; j++, v += df) {
+        float co[3];
+
+        co[axis] = u;
+        co[(axis + 1) % 3] = v;
+        co[(axis + 2) % 3] = sign;
+
+        // turn into sphere
+        normalize_v3(co);
+
+        void *key = hashco(co[0], co[1], co[2], hashdimen);
+        void **val = NULL;
+
+        if (!BLI_ghash_ensure_p(vhash, key, &val)) {
+          BMVert *v = BM_vert_create(bm, co, NULL, BM_CREATE_NOP);
+
+          *val = (void *)v;
+        }
+
+        BMVert *v = (BMVert *)*val;
+        int idx = j * steps + i;
+
+        grid[idx] = v;
+      }
+    }
+
+    for (int i = 0; i < steps - 1; i++) {
+      for (int j = 0; j < steps - 1; j++) {
+        int idx1 = j * steps + i;
+        int idx2 = (j + 1) * steps + i;
+        int idx3 = (j + 1) * steps + i + 1;
+        int idx4 = j * steps + i + 1;
+
+        BMVert *v1 = grid[idx1];
+        BMVert *v2 = grid[idx2];
+        BMVert *v3 = grid[idx3];
+        BMVert *v4 = grid[idx4];
+
+        if (sign < 0) {
+          BMVert *vs[4] = {v4, v3, v2, v1};
+          BM_face_create_verts(bm, vs, 4, NULL, BM_CREATE_NOP, true);
+        }
+        else {
+          BMVert *vs[4] = {v1, v2, v3, v4};
+          BM_face_create_verts(bm, vs, 4, NULL, BM_CREATE_NOP, true);
+        }
+      }
+    }
+  }
+
+  BLI_ghash_free(vhash, NULL, NULL);
+  MEM_SAFE_FREE(grid);
+
+  printf("totvert: %d, totface: %d, tottri: %d\n", bm->totvert, bm->totface, bm->totface * 2);
+
+  int cd_vert_node = CustomData_get_named_layer_index(
+      &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
+  int cd_face_node = CustomData_get_named_layer_index(
+      &bm->vdata, CD_PROP_INT32, "__dyntopo_face_node");
+
+  cd_vert_node = bm->vdata.layers[cd_vert_node].offset;
+  cd_face_node = bm->vdata.layers[cd_face_node].offset;
+
+  const int cd_fset = CustomData_get_offset(&bm->vdata, CD_SCULPT_FACE_SETS);
+  const int cd_dyn_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
+  const int cd_mask = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  const int cd_vcol = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+  BMLog *bmlog = BM_log_create(bm, cd_dyn_vert);
+
+  PBVH *pbvh = BKE_pbvh_new();
+
+  BKE_pbvh_build_bmesh(pbvh, bm, false, bmlog, cd_vert_node, cd_face_node, cd_dyn_vert, false);
+  BKE_pbvh_reorder_bmesh(pbvh);
+
+  if (r_bm) {
+    *r_bm = bm;
+  }
+  else {
+    BM_mesh_free(bm);
+  }
+
+  if (r_pbvh_out) {
+    *r_pbvh_out = pbvh;
+  }
+  else {
+    BKE_pbvh_free(pbvh);
+  }
+}
+
+ATTR_NO_OPT void pbvh_bmesh_do_cache_test()
+{
+  BMesh *bm;
+  PBVH *pbvh;
+
+  CacheParams params;
+
+  pbvh_bmesh_cache_test_default_params(&params);
+  pbvh_bmesh_cache_test(&params, &bm, &pbvh);
+}
