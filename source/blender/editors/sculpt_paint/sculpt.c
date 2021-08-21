@@ -9662,6 +9662,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
   paint_cursor_start(paint, SCULPT_mode_poll_view3d);
 
+  bool has_multires = false;
+
   /* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
    * As long as no data was added that is not supported. */
   if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
@@ -9670,20 +9672,15 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     const char *message_unsupported = NULL;
     if (mmd != NULL) {
       message_unsupported = TIP_("multi-res modifier");
+      has_multires = true;
     }
     else {
       enum eDynTopoWarnFlag flag = SCULPT_dynamic_topology_check(scene, ob);
       if (flag == 0) {
         /* pass */
       }
-      else if (flag & DYNTOPO_WARN_VDATA) {
-        message_unsupported = TIP_("vertex data");
-      }
       else if (flag & DYNTOPO_WARN_EDATA) {
         message_unsupported = TIP_("edge data");
-      }
-      else if (flag & DYNTOPO_WARN_LDATA) {
-        message_unsupported = TIP_("face data");
       }
       else if (flag & DYNTOPO_WARN_MODIFIER) {
         message_unsupported = TIP_("constructive modifier");
@@ -9693,7 +9690,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       }
     }
 
-    if ((message_unsupported == NULL) || force_dyntopo) {
+    if (!has_multires && ((message_unsupported == NULL) || force_dyntopo)) {
       /* Needed because we may be entering this mode before the undo system loads. */
       wmWindowManager *wm = bmain->wm.first;
       bool has_undo = wm->undo_stack != NULL;

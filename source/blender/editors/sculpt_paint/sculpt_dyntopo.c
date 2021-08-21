@@ -1009,14 +1009,36 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
   return OPERATOR_FINISHED;
 }
 
+
+static int dyntopo_error_popup(bContext *C, wmOperatorType *ot, enum eDynTopoWarnFlag flag)
+{
+  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Error!"), ICON_ERROR);
+  uiLayout *layout = UI_popup_menu_layout(pup);
+
+  
+  if (flag & DYNTOPO_ERROR_MULTIRES) {
+    const char *msg_error = TIP_("Multires modifier detected; cannot enable dyntopo.");
+    const char *msg = TIP_(
+        "Dyntopo and multires cannot be mixed.");
+
+    uiItemL(layout, msg_error, ICON_INFO);
+    uiItemL(layout, msg, ICON_NONE);
+    uiItemS(layout);
+  }
+
+  UI_popup_menu_end(C, pup);
+
+  return OPERATOR_INTERFACE;
+}
+
 static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoWarnFlag flag)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Warning!"), ICON_ERROR);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  if (flag & (DYNTOPO_WARN_VDATA | DYNTOPO_WARN_EDATA | DYNTOPO_WARN_LDATA)) {
-    const char *msg_error = TIP_("Vertex Data Detected!");
-    const char *msg = TIP_("Dyntopo will not preserve vertex colors, UVs, or other customdata");
+  if (flag & (DYNTOPO_WARN_EDATA)) {
+    const char *msg_error = TIP_("Edge Data Detected!");
+    const char *msg = TIP_("Dyntopo will not preserve custom edge attributes");
     uiItemL(layout, msg_error, ICON_INFO);
     uiItemL(layout, msg, ICON_NONE);
     uiItemS(layout);
@@ -1076,6 +1098,10 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
         continue;
       }
 
+      if (md->type == eModifierType_Multires) {
+        flag |= DYNTOPO_ERROR_MULTIRES;
+      }
+
       if (mti->type == eModifierTypeType_Constructive) {
         flag |= DYNTOPO_WARN_MODIFIER;
         break;
@@ -1097,7 +1123,9 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C,
     Scene *scene = CTX_data_scene(C);
     enum eDynTopoWarnFlag flag = SCULPT_dynamic_topology_check(scene, ob);
 
-    if (flag) {
+    if (flag & DYNTOPO_ERROR_MULTIRES) {
+      return dyntopo_error_popup(C, op->type, flag);
+    } else if (flag) {
       /* The mesh has customdata that will be lost, let the user confirm this is OK. */
       return dyntopo_warning_popup(C, op->type, flag);
     }

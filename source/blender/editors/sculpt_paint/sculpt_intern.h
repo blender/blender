@@ -360,10 +360,9 @@ void SCULPT_floodfill_free(SculptFloodFill *flood);
 /* Dynamic topology */
 
 enum eDynTopoWarnFlag {
-  DYNTOPO_WARN_VDATA = (1 << 0),
   DYNTOPO_WARN_EDATA = (1 << 1),
-  DYNTOPO_WARN_LDATA = (1 << 2),
   DYNTOPO_WARN_MODIFIER = (1 << 3),
+  DYNTOPO_ERROR_MULTIRES = (1 << 4)
 };
 
 struct Mesh;
