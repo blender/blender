@@ -8627,7 +8627,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
     RNA_enum_set(op->ptr, "mode", mode);
   }
 
-  /* Only handle mousemove event in case we are in mouse mode. */
+  /* Only handle mouse-move event in case we are in mouse mode. */
   if (event->type == MOUSEMOVE || force_mousemove) {
     if (mode == EDBM_CLNOR_POINTTO_MODE_MOUSE) {
       ARegion *region = CTX_wm_region(C);

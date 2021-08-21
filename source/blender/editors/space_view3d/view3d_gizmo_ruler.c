@@ -299,7 +299,9 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3], cons
   ED_view3d_win_to_3d_int(ruler_info->area->spacedata.first, ruler_info->region, r_co, xy, r_co);
 }
 
-/* use for mousemove events */
+/**
+ * Use for mouse-move events.
+ */
 static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
                                         RulerInfo *ruler_info,
                                         RulerItem *ruler_item,

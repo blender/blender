@@ -35,14 +35,14 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Snappint in Anim Editors
+/** \name Snapping in Anim Editors
  * \{ */
 
 /**
  * This function returns the snapping 'mode' for Animation Editors only.
  * We cannot use the standard snapping due to NLA-strip scaling complexities.
  *
- * TODO: these modifier checks should be key-mappable.
+ * TODO: these modifier checks should be accessible from the key-map.
  */
 short getAnimEdit_SnapMode(TransInfo *t)
 {

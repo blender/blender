@@ -1944,9 +1944,9 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       if (ELEM(tgpi->flag, IN_CURVE_EDIT)) {
         break;
       }
-      /* only handle mousemove if not doing numinput */
+      /* Only handle mouse-move if not doing numeric-input. */
       if (has_numinput == false) {
-        /* update position of mouse */
+        /* Update position of mouse. */
         copy_v2_v2(tgpi->end, tgpi->mval);
         copy_v2_v2(tgpi->start, tgpi->origin);
         if (tgpi->flag == IDLE) {

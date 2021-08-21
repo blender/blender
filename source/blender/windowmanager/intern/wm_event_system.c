@@ -3471,8 +3471,8 @@ void wm_event_do_handlers(bContext *C)
             }
             CTX_wm_area_set(C, NULL);
 
-            /* NOTE: do not escape on WM_HANDLER_BREAK,
-             * mousemove needs handled for previous area. */
+            /* NOTE: do not escape on #WM_HANDLER_BREAK,
+             * mouse-move needs handled for previous area. */
           }
         }
 

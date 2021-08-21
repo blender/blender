@@ -131,12 +131,12 @@ static void autokeyframe_pose(
 
     ListBase dsources = {NULL, NULL};
 
-    /* add datasource override for the camera object */
+    /* Add data-source override for the camera object. */
     ANIM_relative_keyingset_add_source(&dsources, id, &RNA_PoseBone, pchan);
 
     /* only insert into active keyingset? */
     if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
-      /* run the active Keying Set on the current datasource */
+      /* Run the active Keying Set on the current data-source. */
       ANIM_apply_keyingset(
           C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
     }
