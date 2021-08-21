@@ -1233,6 +1233,12 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
       rawfile = NULL; /* The Gzip FileReader takes ownership of `rawfile`. */
     }
   }
+  else if (BLI_file_magic_is_zstd(header)) {
+    file = BLI_filereader_new_zstd(rawfile);
+    if (file != NULL) {
+      rawfile = NULL; /* The Zstd FileReader takes ownership of `rawfile`. */
+    }
+  }
 
   /* Clean up `rawfile` if it wasn't taken over. */
   if (rawfile != NULL) {
@@ -1308,6 +1314,9 @@ FileData *blo_filedata_from_memory(const void *mem, int memsize, BlendFileReadRe
 
   if (BLI_file_magic_is_gzip(mem)) {
     file = BLI_filereader_new_gzip(mem_file);
+  }
+  else if (BLI_file_magic_is_zstd(mem)) {
+    file = BLI_filereader_new_zstd(mem_file);
   }
 
   if (file == NULL) {

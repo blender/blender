@@ -873,3 +873,6 @@ if(WITH_HARU)
     set(WITH_HARU OFF)
   endif()
 endif()
+
+set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
+set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)
