@@ -78,7 +78,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlib.h>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
