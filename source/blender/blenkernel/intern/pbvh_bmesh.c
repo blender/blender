@@ -3892,7 +3892,7 @@ double pbvh_meshtest_smooth_test(MeshTest *m, PBVH *pbvh)
 
     double time = time2 - time1;
 
-    printf("  time: %.5f, %d of %d\n", time, iter, SMOOTH_TEST_STEPS);
+    printf("  time: %.5f, %d of %d\n", time, iter + 1, SMOOTH_TEST_STEPS);
 
     // skip first five
     if (iter >= 5) {
@@ -4140,7 +4140,13 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   printf("\n== Times ==\n");
 
   for (int i = 0; i < ARRAY_SIZE(times); i++) {
-    printf("  %s : %.2f\n", names[i], times[i]);
+    if (i > 0) {
+      double perc = (times[0] / times[i] - 1.0) * 100.0;
+      printf("  %s : %.2f (%.2f%% improvement)\n", names[i], times[i], perc);
+    }
+    else {
+      printf("  %s : %.2f\n", names[i], times[i]);
+    }
   }
 
   printf("== Test Finished ==\n");

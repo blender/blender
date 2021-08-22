@@ -862,25 +862,11 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
   }
 }
 
-BLI_INLINE void swap_block(void *a, void *b, int size)
+static void swap_block(void *tmp, void *a, void *b, int size)
 {
-  if (size < 1024 * 32) {
-    void *tmp = alloca(size);
-
-    memcpy(tmp, b, size);
-    memcpy(b, a, size);
-    memcpy(a, tmp, size);
-  }
-  else {
-    char *ca = (char *)a, *cb = (char *)b;
-
-    for (int i = 0; i < size; i++, ca++, cb++) {
-      char byte = *ca;
-
-      *ca = *cb;
-      *cb = byte;
-    }
-  }
+  memcpy(tmp, b, size);
+  memcpy(b, a, size);
+  memcpy(a, tmp, size);
 }
 /**
  * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
@@ -917,6 +903,28 @@ void BM_mesh_remap(BMesh *bm,
   BM_mesh_elem_table_ensure(
       bm, (vert_idx ? BM_VERT : 0) | (edge_idx ? BM_EDGE : 0) | (face_idx ? BM_FACE : 0));
 
+  CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  void *swap_temps[4];
+
+  for (int i = 0; i < 4; i++) {
+    if (cdatas[i]->totsize) {
+      swap_temps[i] = alloca(cdatas[i]->totsize);
+    }
+    else {
+      swap_temps[i] = NULL;
+    }
+  }
+
+#define DO_SWAP(ci, cdata, v, vp) \
+  void *cdold = v->head.data; \
+  void *cdnew = (vp)->head.data; \
+  *v = *(vp); \
+  /* swap customdata blocks*/ \
+  if (cdold) { \
+    v->head.data = cdold; \
+    swap_block(swap_temps[ci], cdold, cdnew, bm->cdata.totsize); \
+  }
+
   /* Remap Verts */
   if (vert_idx) {
     BMVert **verts_pool, *verts_copy, **vep;
@@ -928,16 +936,6 @@ void BM_mesh_remap(BMesh *bm,
 
     /* Init the old-to-new vert pointers mapping */
     vptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap vert pointers mapping", bm->totvert);
-
-#define DO_SWAP(cdata, v, vp) \
-  void *cdold = v->head.data; \
-  void *cdnew = (vp)->head.data; \
-  *v = *(vp); \
-  /* swap customdata blocks*/ \
-  if (cdold) { \
-    v->head.data = cdold; \
-    swap_block(cdold, cdnew, bm->cdata.totsize); \
-  }
 
     /* Make a copy of all vertices. */
     verts_pool = bm->vtable;
@@ -962,7 +960,7 @@ void BM_mesh_remap(BMesh *bm,
     for (i = totvert; i--; new_idx--, ve--, vep--) {
       BMVert *new_vep = verts_pool[*new_idx];
 
-      DO_SWAP(vdata, new_vep, ve);
+      DO_SWAP(0, vdata, new_vep, ve);
 
 #if 0
       printf(
@@ -1034,7 +1032,7 @@ void BM_mesh_remap(BMesh *bm,
       BMLoop *new_edl = loops_pool[*new_idx];
       *new_edl = *ed;
 
-      DO_SWAP(ldata, new_edl, ed);
+      DO_SWAP(2, ldata, new_edl, ed);
 
       BLI_ghash_insert(lptr_map, *edl, new_edl);
 #if 0
@@ -1084,7 +1082,7 @@ void BM_mesh_remap(BMesh *bm,
     for (i = totedge; i--; new_idx--, ed--, edp--) {
       BMEdge *new_edp = edges_pool[*new_idx];
 
-      DO_SWAP(edata, new_edp, ed);
+      DO_SWAP(1, edata, new_edp, ed);
 
       if (new_edp->l && lptr_map) {
         new_edp->l = BLI_ghash_lookup(lptr_map, (BMLoop *)new_edp->l);
@@ -1143,7 +1141,7 @@ void BM_mesh_remap(BMesh *bm,
       *new_fap = *fa;
       BLI_ghash_insert(fptr_map, *fap, new_fap);
 
-      DO_SWAP(pdata, new_fap, fa);
+      DO_SWAP(3, pdata, new_fap, fa);
 
       if (lptr_map) {
         new_fap->l_first = BLI_ghash_lookup(lptr_map, (void *)new_fap->l_first);
@@ -1299,7 +1297,6 @@ void BM_mesh_remap(BMesh *bm,
     memset(bm->idmap.map, 0, sizeof(void *) * bm->idmap.map_size);
 
     char iters[4] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, 0, BM_FACES_OF_MESH};
-    CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
     const bool have_loop = bm->idmap.flag & BM_LOOP;
 
     for (int i = 0; i < 4; i++) {
