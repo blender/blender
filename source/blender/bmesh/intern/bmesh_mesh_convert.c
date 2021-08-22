@@ -228,10 +228,26 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
  *
  * \warning This function doesn't calculate face normals.
  */
+
+/* joeedh:
+GCC under linux is doing something very weird.  In the line below:
+
+  MultiresModifierData *mmd = ob ? get_multires_modifier(NULL, ob, true) : NULL;
+
+ob is evaulating to true when optimizations are on.  The following code:
+
+  printf("ob: %p, %s\n", ob, ob ? "true" : "false");
+
+will print (nil), true.  Very strange!
+*/
+
+#ifdef __GNUC__
+__attribute__((optimize("O0")))
+#endif
 void BM_mesh_bm_from_me(Object *ob,
-                        BMesh *bm,
-                        const Mesh *me,
-                        const struct BMeshFromMeshParams *params)
+                                    BMesh *bm,
+                                    const Mesh *me,
+                                    const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));

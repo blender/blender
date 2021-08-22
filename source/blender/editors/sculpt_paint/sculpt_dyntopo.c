@@ -731,7 +731,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   /* Dynamic topology doesn't ensure selection state is valid, so remove T36280. */
   BKE_mesh_mselect_clear(me);
 
-  /* Create triangles-only BMesh. */
 #if 1
   ss->bm = BM_mesh_create(&allocsize,
                           &((struct BMeshCreateParams){.use_toolflags = false,
@@ -1009,17 +1008,14 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
   return OPERATOR_FINISHED;
 }
 
-
 static int dyntopo_error_popup(bContext *C, wmOperatorType *ot, enum eDynTopoWarnFlag flag)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Error!"), ICON_ERROR);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  
   if (flag & DYNTOPO_ERROR_MULTIRES) {
     const char *msg_error = TIP_("Multires modifier detected; cannot enable dyntopo.");
-    const char *msg = TIP_(
-        "Dyntopo and multires cannot be mixed.");
+    const char *msg = TIP_("Dyntopo and multires cannot be mixed.");
 
     uiItemL(layout, msg_error, ICON_INFO);
     uiItemL(layout, msg, ICON_NONE);
@@ -1125,7 +1121,8 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C,
 
     if (flag & DYNTOPO_ERROR_MULTIRES) {
       return dyntopo_error_popup(C, op->type, flag);
-    } else if (flag) {
+    }
+    else if (flag) {
       /* The mesh has customdata that will be lost, let the user confirm this is OK. */
       return dyntopo_warning_popup(C, op->type, flag);
     }

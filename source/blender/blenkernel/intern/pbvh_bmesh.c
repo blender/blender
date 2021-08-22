@@ -3700,7 +3700,7 @@ static void free_meshtest(MeshTest *m)
 
 #define SMOOTH_TEST_STEPS 20
 
-void pbvh_bmesh_smooth_test(BMesh *bm, PBVH *pbvh)
+double pbvh_bmesh_smooth_test(BMesh *bm, PBVH *pbvh)
 {
   double average = 0.0f;
   double average_tot = 0.0f;
@@ -3762,9 +3762,10 @@ void pbvh_bmesh_smooth_test(BMesh *bm, PBVH *pbvh)
   }
 
   printf("time: %.5f\n", average / average_tot);
+  return average / average_tot;
 }
 
-void pbvh_meshtest2_smooth_test(MeshTest2 *m2, PBVH *pbvh)
+double pbvh_meshtest2_smooth_test(MeshTest2 *m2, PBVH *pbvh)
 {
   double average = 0.0f;
   double average_tot = 0.0f;
@@ -3829,9 +3830,10 @@ void pbvh_meshtest2_smooth_test(MeshTest2 *m2, PBVH *pbvh)
   }
 
   printf("time: %.5f\n", average / average_tot);
+  return average / average_tot;
 }
 
-void pbvh_meshtest_smooth_test(MeshTest *m, PBVH *pbvh)
+double pbvh_meshtest_smooth_test(MeshTest *m, PBVH *pbvh)
 {
   double average = 0.0f;
   double average_tot = 0.0f;
@@ -3902,12 +3904,17 @@ void pbvh_meshtest_smooth_test(MeshTest *m, PBVH *pbvh)
   }
 
   printf("time: %.5f\n", average / average_tot);
+  return average / average_tot;
 }
 
 void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 {
   // build mesh
   const int steps = 325;
+
+  printf("== Starting Test ==\n");
+
+  printf("building test mesh. . .");
 
   BMAllocTemplate templ = {0, 0, 0, 0};
 
@@ -4052,8 +4059,38 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   BM_mesh_elem_table_ensure(bm, BM_VERT | BM_FACE);
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
+  int loop_size = sizeof(BMLoop) - sizeof(void *) * 4;
+
+  size_t s1 = 0, s2 = 0, s3 = 0;
+  s1 = sizeof(BMVert) * (size_t)bm->totvert + sizeof(BMEdge) * (size_t)bm->totedge +
+       sizeof(BMLoop) * (size_t)bm->totloop + sizeof(BMFace) * (size_t)bm->totface;
+  s2 = sizeof(MeshVert2) * (size_t)bm->totvert + sizeof(MeshEdge2) * (size_t)bm->totedge +
+       sizeof(MeshLoop2) * (size_t)bm->totloop + sizeof(MeshFace2) * (size_t)bm->totface;
+  s3 = (size_t)loop_size * (size_t)bm->totvert + sizeof(BMEdge) * (size_t)bm->totedge +
+       sizeof(BMLoop) * (size_t)bm->totloop + sizeof(BMFace) * (size_t)bm->totface;
+
+  double times[4];
+  char *names[4];
+
+  int cd_overhead = 0;
+  CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  int ctots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
+  for (int i = 0; i < 4; i++) {
+    cd_overhead += cdatas[i]->totsize * ctots[i];
+  }
+
+  s1 += cd_overhead;
+  s2 += cd_overhead;
+
+  printf("    bmesh mem size: %.2fmb %.2mb\n",
+         (float)s1 / 1024.0f / 1024.0f,
+         (float)s3 / 1024.0f / 1024.0f);
+  printf("meshtest2 mem size: %.2fmb\n", (float)s2 / 1024.0f / 1024.0f);
+
   printf("= BMesh random order\n");
-  pbvh_bmesh_smooth_test(bm, pbvh);
+  times[0] = pbvh_bmesh_smooth_test(bm, pbvh);
+  names[0] = "random order";
+
   BMesh *bm2 = BKE_pbvh_reorder_bmesh(pbvh);
 
   printf("= BMesh vertex cluster order\n");
@@ -4063,19 +4100,22 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   BM_mesh_elem_table_ensure(bm2, BM_VERT | BM_FACE);
   BM_mesh_elem_index_ensure(bm2, BM_VERT | BM_EDGE | BM_FACE);
 
-  pbvh_bmesh_smooth_test(bm2, pbvh);
+  times[1] = pbvh_bmesh_smooth_test(bm2, pbvh);
+  names[1] = "vertex cluser";
 
   printf("= Pure data-oriented (struct of arrays)\n");
   MeshTest *m = meshtest_from_bm(bm2);
 
-  pbvh_meshtest_smooth_test(m, pbvh);
+  times[2] = pbvh_meshtest_smooth_test(m, pbvh);
+  names[2] = "data-oriented";
 
   free_meshtest(m);
 
   printf("= Object-oriented but with integer indices instead of pointers\n");
   MeshTest2 *m2 = meshtest2_from_bm(bm2);
 
-  pbvh_meshtest2_smooth_test(m2, pbvh);
+  times[3] = pbvh_meshtest2_smooth_test(m2, pbvh);
+  names[3] = "integer indices";
 
   free_meshtest2(m2);
 
@@ -4096,6 +4136,14 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   else {
     BKE_pbvh_free(pbvh);
   }
+
+  printf("\n== Times ==\n");
+
+  for (int i = 0; i < ARRAY_SIZE(times); i++) {
+    printf("  %s : %.2f\n", names[i], times[i]);
+  }
+
+  printf("== Test Finished ==\n");
 }
 
 void pbvh_bmesh_do_cache_test()
