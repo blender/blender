@@ -1290,7 +1290,7 @@ class _defs_sculpt:
         # Use 'bpy.context' instead of 'context' since it can be None.
         prefs = bpy.context.preferences
         if not prefs.experimental.use_sculpt_vertex_colors:
-            exclude_filter = {'PAINT', 'SMEAR'}
+            exclude_filter = {'PAINT' : True, 'SMEAR' : True}
         if not prefs.experimental.use_sculpt_uvsmooth:
             exclude_filter['UV_SMOOTH'] = True
 
