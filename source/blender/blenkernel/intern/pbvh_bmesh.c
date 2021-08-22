@@ -3562,7 +3562,7 @@ static MeshTest2 *meshtest2_from_bm(BMesh *bm)
   }
 
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    const ei = e->head.index;
+    const int ei = e->head.index;
 
     m2->edges[ei].v1 = e->v1->head.index;
     m2->edges[ei].v2 = e->v2->head.index;
@@ -3573,7 +3573,7 @@ static MeshTest2 *meshtest2_from_bm(BMesh *bm)
   }
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    int fi = f->head.index;
+    const int fi = f->head.index;
 
     m2->faces[fi].len = f->len;
     copy_v3_v3(m2->faces[fi].no, f->no);
