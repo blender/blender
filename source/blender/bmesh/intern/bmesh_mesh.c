@@ -908,7 +908,7 @@ void BM_mesh_remap(BMesh *bm,
 
   for (int i = 0; i < 4; i++) {
     if (cdatas[i]->totsize) {
-      swap_temps[i] = alloca(cdatas[i]->totsize);
+      swap_temps[i] = MEM_mallocN(cdatas[i]->totsize, "cdata temp");
     }
     else {
       swap_temps[i] = NULL;
@@ -1335,6 +1335,10 @@ void BM_mesh_remap(BMesh *bm,
         bm->idmap.map[id] = elem;
       }
     }
+  }
+
+  for (int i = 0; i < 4; i++) {
+    MEM_SAFE_FREE(swap_temps[i]);
   }
 }
 
