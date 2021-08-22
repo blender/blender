@@ -997,7 +997,6 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
         col = flow.column()
-        col.row().prop(font_style, "font_kerning_style", expand=True)
         col.prop(font_style, "points")
 
         col = flow.column(align=True)
