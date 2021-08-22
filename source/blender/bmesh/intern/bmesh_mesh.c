@@ -25,6 +25,7 @@
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -861,6 +862,26 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
   }
 }
 
+BLI_INLINE void swap_block(void *a, void *b, int size)
+{
+  if (size < 1024 * 32) {
+    void *tmp = alloca(size);
+
+    memcpy(tmp, b, size);
+    memcpy(b, a, size);
+    memcpy(a, tmp, size);
+  }
+  else {
+    char *ca = (char *)a, *cb = (char *)b;
+
+    for (int i = 0; i < size; i++, ca++, cb++) {
+      char byte = *ca;
+
+      *ca = *cb;
+      *cb = byte;
+    }
+  }
+}
 /**
  * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
  * (xxx_idx[org_index] = new_index).
@@ -908,13 +929,25 @@ void BM_mesh_remap(BMesh *bm,
     /* Init the old-to-new vert pointers mapping */
     vptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap vert pointers mapping", bm->totvert);
 
+#define DO_SWAP(cdata, v, vp) \
+  void *cdold = v->head.data; \
+  void *cdnew = (vp)->head.data; \
+  *v = *(vp); \
+  /* swap customdata blocks*/ \
+  if (cdold) { \
+    v->head.data = cdold; \
+    swap_block(cdold, cdnew, bm->cdata.totsize); \
+  }
+
     /* Make a copy of all vertices. */
     verts_pool = bm->vtable;
     verts_copy = MEM_mallocN(sizeof(BMVert) * totvert, "BM_mesh_remap verts copy");
     void **pyptrs = (cd_vert_pyptr != -1) ? MEM_mallocN(sizeof(void *) * totvert, __func__) : NULL;
     for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--;
          ve--, vep--) {
+
       *ve = **vep;
+
       // printf("*vep: %p, verts_pool[%d]: %p\n", *vep, i, verts_pool[i]);
       if (cd_vert_pyptr != -1) {
         void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)ve), cd_vert_pyptr);
@@ -928,7 +961,9 @@ void BM_mesh_remap(BMesh *bm,
     vep = verts_pool + totvert - 1; /* old, org pointer */
     for (i = totvert; i--; new_idx--, ve--, vep--) {
       BMVert *new_vep = verts_pool[*new_idx];
-      *new_vep = *ve;
+
+      DO_SWAP(vdata, new_vep, ve);
+
 #if 0
       printf(
           "mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);
@@ -982,7 +1017,9 @@ void BM_mesh_remap(BMesh *bm,
     void **pyptrs = (cd_loop_pyptr != -1) ? MEM_mallocN(sizeof(void *) * totloop, __func__) : NULL;
     for (i = totloop, ed = loops_copy + totloop - 1, edl = loops_pool + totloop - 1; i--;
          ed--, edl--) {
+
       *ed = **edl;
+
       if (cd_loop_pyptr != -1) {
         void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)ed), cd_loop_pyptr);
         pyptrs[i] = *pyptr;
@@ -996,6 +1033,9 @@ void BM_mesh_remap(BMesh *bm,
     for (i = totloop; i--; new_idx--, ed--, edl--) {
       BMLoop *new_edl = loops_pool[*new_idx];
       *new_edl = *ed;
+
+      DO_SWAP(ldata, new_edl, ed);
+
       BLI_ghash_insert(lptr_map, *edl, new_edl);
 #if 0
       printf(
@@ -1043,7 +1083,8 @@ void BM_mesh_remap(BMesh *bm,
     edp = edges_pool + totedge - 1; /* old, org pointer */
     for (i = totedge; i--; new_idx--, ed--, edp--) {
       BMEdge *new_edp = edges_pool[*new_idx];
-      *new_edp = *ed;
+
+      DO_SWAP(edata, new_edp, ed);
 
       if (new_edp->l && lptr_map) {
         new_edp->l = BLI_ghash_lookup(lptr_map, (BMLoop *)new_edp->l);
@@ -1101,6 +1142,8 @@ void BM_mesh_remap(BMesh *bm,
       BMFace *new_fap = faces_pool[*new_idx];
       *new_fap = *fa;
       BLI_ghash_insert(fptr_map, *fap, new_fap);
+
+      DO_SWAP(pdata, new_fap, fa);
 
       if (lptr_map) {
         new_fap->l_first = BLI_ghash_lookup(lptr_map, (void *)new_fap->l_first);

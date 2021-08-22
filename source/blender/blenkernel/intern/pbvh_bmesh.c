@@ -1078,6 +1078,7 @@ static void pbvh_bmesh_normals_update_old(PBVHNode **nodes, int totnode)
 struct FastNodeBuildInfo {
   int totface; /* number of faces */
   int start;   /* start of faces in array */
+  int depth;
   struct FastNodeBuildInfo *child1;
   struct FastNodeBuildInfo *child2;
 };
@@ -1092,7 +1093,7 @@ static void pbvh_bmesh_node_limit_ensure_fast(
 {
   struct FastNodeBuildInfo *child1, *child2;
 
-  if (node->totface <= pbvh->leaf_limit) {
+  if (node->totface <= pbvh->leaf_limit || node->depth >= pbvh->depth_limit) {
     return;
   }
 
@@ -1174,8 +1175,12 @@ static void pbvh_bmesh_node_limit_ensure_fast(
 
   child1->totface = num_child1;
   child1->start = node->start;
+  child1->depth = node->depth + 1;
+
   child2->totface = num_child2;
   child2->start = node->start + num_child1;
+  child2->depth = node->depth + 2;
+
   child1->child1 = child1->child2 = child2->child1 = child2->child2 = NULL;
 
   pbvh_bmesh_node_limit_ensure_fast(pbvh, nodeinfo, bbc_array, child1, arena);
@@ -1186,6 +1191,7 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
     PBVH *pbvh, BMFace **nodeinfo, BBC *bbc_array, struct FastNodeBuildInfo *node, int node_index)
 {
   PBVHNode *n = pbvh->nodes + node_index;
+
   /* two cases, node does not have children or does have children */
   if (node->child1) {
     int children_offset = pbvh->totnode;
@@ -2651,7 +2657,7 @@ typedef struct ReVertNode {
   BMVert *verts[];
 } ReVertNode;
 
-ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
+BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
 {
   /*try to compute size of verts per node*/
   int vsize = sizeof(BMVert);
@@ -2674,7 +2680,7 @@ ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   int i = 0;
 
   BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
-    BM_elem_flag_disable(v, flag);
+    v->head.hflag &= ~flag;
     v->head.index = i++;
   }
 
@@ -2682,7 +2688,7 @@ ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   BLI_array_declare(stack);
 
   BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(v, flag)) {
+    if (v->head.hflag & flag) {
       continue;
     }
 
@@ -2691,7 +2697,7 @@ ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
     BLI_array_clear(stack);
     BLI_array_append(stack, v);
 
-    BM_elem_flag_enable(v, flag);
+    v->head.hflag |= flag;
 
     vnodemap[v->head.index] = node;
     node->verts[node->totvert++] = v;
@@ -2715,7 +2721,8 @@ ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
         BMVert *v3 = BM_edge_other_vert(e, v2);
 
         if (!BM_elem_flag_test(v3, flag) && len < leaf_limit) {
-          BM_elem_flag_enable(v3, flag);
+          v3->head.hflag |= flag;
+
           vnodemap[v3->head.index] = node;
           node->verts[node->totvert++] = v3;
 
@@ -2760,6 +2767,8 @@ ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
         ReVertNode *node2 = vnodemap[v2->head.index];
 
         bool ok = node != node2 && !node2->parent;
+        ok = ok && parent->totchild < MAX_RE_CHILD;
+
         for (int j = 0; j < parent->totchild; j++) {
           if (parent->children[j] == node2) {
             ok = false;
@@ -2769,16 +2778,12 @@ ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
 
         if (ok) {
           parent->children[parent->totchild++] = node2;
+          node2->parent = parent;
           break;
         }
 
         e = e->v1 == v ? e->v1_disk_link.next : e->v2_disk_link.next;
       } while (e != v->e);
-
-      if (parent->totchild == 1) {
-        BLI_mempool_free(pool, parent);
-        continue;
-      }
 
       if (last_step) {
         BLI_array_append(roots, parent);
@@ -2935,9 +2940,9 @@ ATTR_NO_OPT BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
     lidx[i] = (uint)l->head.index;
   }
 
-  BM_mesh_remap(pbvh->bm, vidx, eidx, fidx, lidx);
-
   printf("roots: %d\n", BLI_array_len(roots));
+
+  BM_mesh_remap(pbvh->bm, vidx, eidx, fidx, lidx);
 
   MEM_SAFE_FREE(vidx);
   MEM_SAFE_FREE(eidx);
@@ -3439,10 +3444,470 @@ static void *hashco(float fx, float fy, float fz, float fdimen)
   return (void *)((intptr_t)(z * dimen * dimen + y * dimen + x));
 }
 
+typedef struct MeshTest {
+  float (*v_co)[3];
+  float (*v_no)[3];
+  int *v_e;
+  int *v_index;
+  int *v_flag;
+
+  int *e_v1;
+  int *e_v2;
+  int *e_v1_next;
+  int *e_v2_next;
+  int *e_l;
+  int *e_flag;
+  int *e_index;
+
+  int *l_v;
+  int *l_e;
+  int *l_f;
+  int *l_next;
+  int *l_prev;
+  int *l_radial_next;
+  int *l_radial_prev;
+
+  int *f_l;
+  int *f_index;
+  int *f_flag;
+
+  int totvert, totedge, totloop, totface;
+  MemArena *arena;
+} MeshTest;
+
+typedef struct ElemHeader {
+  short type, hflag;
+  int index;
+  void *data;
+} ElemHeader;
+
+typedef struct MeshVert2 {
+  ElemHeader head;
+  float co[3];
+  float no[3];
+  int e;
+} MeshVert2;
+
+typedef struct MeshEdge2 {
+  ElemHeader head;
+  int v1, v2;
+  int v1_next, v2_next;
+  int l;
+} MeshEdge2;
+
+typedef struct MeshLoop2 {
+  ElemHeader head;
+  int v, e, f, next, prev;
+  int radial_next, radial_prev;
+} MeshLoop2;
+
+typedef struct MeshFace2 {
+  ElemHeader head;
+  int l, len;
+  float no[3];
+} MeshFace2;
+
+typedef struct MeshTest2 {
+  MeshVert2 *verts;
+  MeshEdge2 *edges;
+  MeshLoop2 *loops;
+  MeshFace2 *faces;
+
+  int totvert, totedge, totloop, totface;
+  MemArena *arena;
+} MeshTest2;
+
+static MeshTest2 *meshtest2_from_bm(BMesh *bm)
+{
+  MeshTest2 *m2 = MEM_callocN(sizeof(MeshTest2), "MeshTest2");
+  m2->arena = BLI_memarena_new(1024 * 32, "MeshTest2 arena");
+
+  m2->totvert = bm->totvert;
+  m2->totedge = bm->totedge;
+  m2->totloop = bm->totloop;
+  m2->totface = bm->totface;
+
+  BMVert *v;
+  BMEdge *e;
+  BMLoop *l;
+  BMFace *f;
+  BMIter iter;
+
+  int lindex = 0;
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+    do {
+      l->head.index = lindex++;
+    } while ((l = l->next) != f->l_first);
+  }
+
+  m2->totloop = lindex;
+
+  m2->verts = MEM_calloc_arrayN(bm->totvert, sizeof(MeshVert2), "MeshVert2s");
+  m2->edges = MEM_calloc_arrayN(bm->totedge, sizeof(MeshEdge2), "MeshEdge2s");
+  m2->loops = MEM_calloc_arrayN(m2->totloop, sizeof(MeshLoop2), "MeshLoop2s");
+  m2->faces = MEM_calloc_arrayN(bm->totface, sizeof(MeshFace2), "MeshFace2s");
+
+  bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    const int vi = v->head.index;
+
+    copy_v3_v3(m2->verts[vi].co, v->co);
+    copy_v3_v3(m2->verts[vi].no, v->no);
+
+    m2->verts[vi].e = v->e ? v->e->head.index : -1;
+  }
+
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    const ei = e->head.index;
+
+    m2->edges[ei].v1 = e->v1->head.index;
+    m2->edges[ei].v2 = e->v2->head.index;
+    m2->edges[ei].l = e->l ? e->l->head.index : -1;
+
+    m2->edges[ei].v1_next = e->v1_disk_link.next->head.index;
+    m2->edges[ei].v2_next = e->v2_disk_link.next->head.index;
+  }
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    int fi = f->head.index;
+
+    m2->faces[fi].len = f->len;
+    copy_v3_v3(m2->faces[fi].no, f->no);
+
+    BMLoop *l = f->l_first;
+    do {
+      int li = l->head.index;
+
+      m2->loops[li].v = l->v->head.index;
+      m2->loops[li].e = l->e->head.index;
+      m2->loops[li].f = l->f->head.index;
+
+      m2->loops[li].radial_next = l->radial_next->head.index;
+      m2->loops[li].radial_prev = l->radial_prev->head.index;
+
+      m2->loops[li].next = l->next->head.index;
+      m2->loops[li].prev = l->prev->head.index;
+    } while ((l = l->next) != f->l_first);
+  }
+
+  return m2;
+}
+
+static void free_meshtest2(MeshTest2 *m2)
+{
+  BLI_memarena_free(m2->arena);
+  MEM_freeN(m2);
+}
+
+static MeshTest *meshtest_from_bm(BMesh *bm)
+{
+  MeshTest *m = MEM_callocN(sizeof(MeshTest), "MeshTest");
+  m->arena = BLI_memarena_new(1024 * 32, "m->arena");
+
+  m->v_co = BLI_memarena_alloc(m->arena, bm->totvert * sizeof(*m->v_co));
+  m->v_no = BLI_memarena_alloc(m->arena, bm->totvert * sizeof(*m->v_no));
+  m->v_e = BLI_memarena_alloc(m->arena, bm->totvert * sizeof(*m->v_e));
+  m->v_flag = BLI_memarena_alloc(m->arena, bm->totvert * sizeof(*m->v_flag));
+  m->v_index = BLI_memarena_alloc(m->arena, bm->totvert * sizeof(*m->v_index));
+
+  m->e_v1 = BLI_memarena_alloc(m->arena, bm->totedge * sizeof(*m->e_v1));
+  m->e_v1_next = BLI_memarena_alloc(m->arena, bm->totedge * sizeof(*m->e_v1));
+  m->e_v2 = BLI_memarena_alloc(m->arena, bm->totedge * sizeof(*m->e_v1));
+  m->e_v2_next = BLI_memarena_alloc(m->arena, bm->totedge * sizeof(*m->e_v1));
+  m->e_l = BLI_memarena_alloc(m->arena, bm->totedge * sizeof(*m->e_v1));
+  m->e_index = BLI_memarena_alloc(m->arena, bm->totedge * sizeof(*m->e_v1));
+  m->e_flag = BLI_memarena_alloc(m->arena, bm->totedge * sizeof(*m->e_v1));
+
+  m->l_v = BLI_memarena_alloc(m->arena, bm->totloop * sizeof(*m->l_e));
+  m->l_e = BLI_memarena_alloc(m->arena, bm->totloop * sizeof(*m->l_e));
+  m->l_f = BLI_memarena_alloc(m->arena, bm->totloop * sizeof(*m->l_e));
+  m->l_next = BLI_memarena_alloc(m->arena, bm->totloop * sizeof(*m->l_e));
+  m->l_prev = BLI_memarena_alloc(m->arena, bm->totloop * sizeof(*m->l_e));
+  m->l_radial_next = BLI_memarena_alloc(m->arena, bm->totloop * sizeof(*m->l_e));
+  m->l_radial_prev = BLI_memarena_alloc(m->arena, bm->totloop * sizeof(*m->l_e));
+
+  m->f_l = BLI_memarena_alloc(m->arena, bm->totface * sizeof(*m->f_l));
+
+  m->totvert = bm->totvert;
+  m->totedge = bm->totedge;
+  m->totface = bm->totface;
+  m->totloop = bm->totloop;
+
+  BMVert *v;
+  BMEdge *e;
+  BMLoop *l;
+  BMFace *f;
+  BMIter iter;
+
+  int lindex = 0;
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+    do {
+      l->head.index = lindex++;
+    } while ((l = l->next) != f->l_first);
+  }
+
+  bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    copy_v3_v3(m->v_co[v->head.index], v->co);
+    copy_v3_v3(m->v_no[v->head.index], v->no);
+
+    m->v_e[v->head.index] = v->e ? v->e->head.index : -1;
+  }
+
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    m->e_v1[e->head.index] = e->v1->head.index;
+    m->e_v2[e->head.index] = e->v2->head.index;
+
+    m->e_v1_next[e->head.index] = e->v1_disk_link.next->head.index;
+    m->e_v2_next[e->head.index] = e->v2_disk_link.next->head.index;
+
+    m->e_l[e->head.index] = e->l ? e->l->head.index : -1;
+  }
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    m->f_l = f->l_first->head.index;
+
+    BMLoop *l = f->l_first;
+    do {
+      const int li = l->head.index;
+
+      m->l_e[li] = l->e->head.index;
+      m->l_v[li] = l->v->head.index;
+      m->l_f[li] = f->head.index;
+      m->l_next[li] = l->next->head.index;
+      m->l_prev[li] = l->prev->head.index;
+      m->l_radial_next[li] = l->radial_next->head.index;
+      m->l_radial_prev[li] = l->radial_prev->head.index;
+    } while ((l = l->next) != f->l_first);
+  }
+
+  return m;
+}
+
+static void free_meshtest(MeshTest *m)
+{
+  BLI_memarena_free(m->arena);
+  MEM_freeN(m);
+}
+
+#define SMOOTH_TEST_STEPS 20
+
+void pbvh_bmesh_smooth_test(BMesh *bm, PBVH *pbvh)
+{
+  double average = 0.0f;
+  double average_tot = 0.0f;
+
+  for (int iter = 0; iter < SMOOTH_TEST_STEPS; iter++) {
+    RNG *rng = BLI_rng_new(0);
+
+    double time1 = PIL_check_seconds_timer();
+
+    for (int step = 0; step < 5; step++) {
+      for (int i = 0; i < bm->totvert; i++) {
+        int vi = BLI_rng_get_int(rng) % bm->totvert;
+        BMVert *v = bm->vtable[vi];
+        BMEdge *e = v->e;
+        float co[3];
+
+        zero_v3(co);
+        int tot = 0.0;
+
+        if (!e) {
+          continue;
+        }
+
+        do {
+          BMVert *v2 = BM_edge_other_vert(e, v);
+          float co2[3];
+
+          sub_v3_v3v3(co2, v2->co, v->co);
+          madd_v3_v3fl(co2, v->no, -dot_v3v3(v->no, co2) * 0.9f);
+          add_v3_v3(co, co2);
+
+          tot++;
+
+          e = e->v1 == v ? e->v1_disk_link.next : e->v2_disk_link.next;
+        } while (e != v->e);
+
+        if (tot == 0.0) {
+          continue;
+        }
+
+        mul_v3_fl(co, 1.0f / (float)tot);
+        madd_v3_v3fl(v->co, co, 0.5f);
+      }
+    }
+
+    double time2 = PIL_check_seconds_timer();
+
+    double time = time2 - time1;
+
+    printf("  time: %.5f, %d of %d\n", time, iter, SMOOTH_TEST_STEPS);
+
+    // skip first five
+    if (iter >= 5) {
+      average += time;
+      average_tot += 1.0f;
+    }
+
+    BLI_rng_free(rng);
+  }
+
+  printf("time: %.5f\n", average / average_tot);
+}
+
+void pbvh_meshtest2_smooth_test(MeshTest2 *m2, PBVH *pbvh)
+{
+  double average = 0.0f;
+  double average_tot = 0.0f;
+
+  for (int iter = 0; iter < SMOOTH_TEST_STEPS; iter++) {
+    RNG *rng = BLI_rng_new(0);
+
+    double time1 = PIL_check_seconds_timer();
+
+    for (int step = 0; step < 5; step++) {
+      for (int i = 0; i < m2->totvert; i++) {
+        int vi = BLI_rng_get_int(rng) % m2->totvert;
+        MeshVert2 *v = m2->verts + vi;
+        MeshEdge2 *e = v->e != -1 ? m2->edges + v->e : NULL;
+        float co[3];
+
+        zero_v3(co);
+        int tot = 0.0;
+
+        if (!e) {
+          continue;
+        }
+
+        int enext = -1;
+
+        do {
+          MeshVert2 *v2 = vi == e->v1 ? m2->verts + e->v2 : m2->verts + e->v1;
+          float co2[3];
+
+          sub_v3_v3v3(co2, v2->co, v->co);
+          madd_v3_v3fl(co2, v->no, -dot_v3v3(v->no, co2) * 0.9f);
+          add_v3_v3(co, co2);
+
+          tot++;
+
+          enext = e->v1 == vi ? e->v1_next : e->v2_next;
+          e = m2->edges + enext;
+        } while (enext != v->e);
+
+        if (tot == 0.0) {
+          continue;
+        }
+
+        mul_v3_fl(co, 1.0f / (float)tot);
+        madd_v3_v3fl(v->co, co, 0.5f);
+      }
+    }
+
+    double time2 = PIL_check_seconds_timer();
+
+    double time = time2 - time1;
+
+    printf("  time: %.5f, %d of %d\n", time, iter, SMOOTH_TEST_STEPS);
+
+    // skip first five
+    if (iter >= 5) {
+      average += time;
+      average_tot += 1.0f;
+    }
+
+    BLI_rng_free(rng);
+  }
+
+  printf("time: %.5f\n", average / average_tot);
+}
+
+void pbvh_meshtest_smooth_test(MeshTest *m, PBVH *pbvh)
+{
+  double average = 0.0f;
+  double average_tot = 0.0f;
+
+  for (int iter = 0; iter < SMOOTH_TEST_STEPS; iter++) {
+    RNG *rng = BLI_rng_new(0);
+
+    double time1 = PIL_check_seconds_timer();
+
+    for (int step = 0; step < 5; step++) {
+      for (int i = 0; i < m->totvert; i++) {
+        int vi = BLI_rng_get_int(rng) % m->totvert;
+        // BMVert *v = bm->vtable[vi];
+        const int startei = m->v_e[vi];
+        int ei = startei;
+
+        float co[3];
+
+        zero_v3(co);
+        int tot = 0.0;
+
+        if (ei == -1) {
+          continue;
+        }
+
+        const float *no = m->v_no[vi];
+        const float *vco = m->v_co[vi];
+
+        do {
+          int ev1 = m->e_v1[ei];
+          int ev2 = m->e_v2[ei];
+
+          int v2i = ev1 == vi ? ev2 : ev1;
+
+          float co2[3];
+
+          sub_v3_v3v3(co2, m->v_co[v2i], vco);
+          madd_v3_v3fl(co2, no, -dot_v3v3(no, co2) * 0.9f);
+          add_v3_v3(co, co2);
+
+          tot++;
+
+          ei = ev1 == vi ? m->e_v1_next[ei] : m->e_v2_next[ei];
+        } while (ei != startei);
+
+        if (tot == 0.0) {
+          continue;
+        }
+
+        mul_v3_fl(co, 1.0f / (float)tot);
+        madd_v3_v3fl(m->v_co[vi], co, 0.5f);
+      }
+    }
+
+    double time2 = PIL_check_seconds_timer();
+
+    double time = time2 - time1;
+
+    printf("  time: %.5f, %d of %d\n", time, iter, SMOOTH_TEST_STEPS);
+
+    // skip first five
+    if (iter >= 5) {
+      average += time;
+      average_tot += 1.0f;
+    }
+
+    BLI_rng_free(rng);
+  }
+
+  printf("time: %.5f\n", average / average_tot);
+}
+
 void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 {
   // build mesh
-  const int steps = 256;
+  const int steps = 325;
 
   BMAllocTemplate templ = {0, 0, 0, 0};
 
@@ -3533,6 +3998,32 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
     }
   }
 
+  // randomize
+  int *rands[4];
+  int tots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
+
+  RNG *rng = BLI_rng_new(0);
+
+  for (int i = 0; i < 4; i++) {
+    rands[i] = MEM_malloc_arrayN(tots[i], sizeof(int), "rands[i]");
+
+    for (int j = 0; j < tots[i]; j++) {
+      rands[i][j] = j;
+    }
+
+    for (int j = 0; j < tots[i] >> 1; j++) {
+      int j2 = BLI_rng_get_int(rng) % tots[i];
+      SWAP(int, rands[i][j], rands[i][j2]);
+    }
+  }
+
+  BM_mesh_remap(bm, rands[0], rands[1], rands[3], rands[2]);
+
+  for (int i = 0; i < 4; i++) {
+    MEM_SAFE_FREE(rands[i]);
+  }
+
+  BLI_rng_free(rng);
   BLI_ghash_free(vhash, NULL, NULL);
   MEM_SAFE_FREE(grid);
 
@@ -3555,7 +4046,42 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   PBVH *pbvh = BKE_pbvh_new();
 
   BKE_pbvh_build_bmesh(pbvh, bm, false, bmlog, cd_vert_node, cd_face_node, cd_dyn_vert, false);
-  BKE_pbvh_reorder_bmesh(pbvh);
+
+  bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  BM_mesh_elem_table_ensure(bm, BM_VERT | BM_FACE);
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  printf("= BMesh random order\n");
+  pbvh_bmesh_smooth_test(bm, pbvh);
+  BMesh *bm2 = BKE_pbvh_reorder_bmesh(pbvh);
+
+  printf("= BMesh vertex cluster order\n");
+
+  bm2->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  bm2->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  BM_mesh_elem_table_ensure(bm2, BM_VERT | BM_FACE);
+  BM_mesh_elem_index_ensure(bm2, BM_VERT | BM_EDGE | BM_FACE);
+
+  pbvh_bmesh_smooth_test(bm2, pbvh);
+
+  printf("= Pure data-oriented (struct of arrays)\n");
+  MeshTest *m = meshtest_from_bm(bm2);
+
+  pbvh_meshtest_smooth_test(m, pbvh);
+
+  free_meshtest(m);
+
+  printf("= Object-oriented but with integer indices instead of pointers\n");
+  MeshTest2 *m2 = meshtest2_from_bm(bm2);
+
+  pbvh_meshtest2_smooth_test(m2, pbvh);
+
+  free_meshtest2(m2);
+
+  if (bm2 && bm2 != bm) {
+    BM_mesh_free(bm2);
+  }
 
   if (r_bm) {
     *r_bm = bm;
@@ -3572,7 +4098,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   }
 }
 
-ATTR_NO_OPT void pbvh_bmesh_do_cache_test()
+void pbvh_bmesh_do_cache_test()
 {
   BMesh *bm;
   PBVH *pbvh;
