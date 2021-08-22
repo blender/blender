@@ -3999,21 +3999,21 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   }
 
   // randomize
-  int *rands[4];
-  int tots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
+  uint *rands[4];
+  uint tots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
 
   RNG *rng = BLI_rng_new(0);
 
-  for (int i = 0; i < 4; i++) {
-    rands[i] = MEM_malloc_arrayN(tots[i], sizeof(int), "rands[i]");
+  for (uint i = 0; i < 4; i++) {
+    rands[i] = MEM_malloc_arrayN(tots[i], sizeof(uint), "rands[i]");
 
-    for (int j = 0; j < tots[i]; j++) {
+    for (uint j = 0; j < tots[i]; j++) {
       rands[i][j] = j;
     }
 
-    for (int j = 0; j < tots[i] >> 1; j++) {
+    for (uint j = 0; j < tots[i] >> 1; j++) {
       int j2 = BLI_rng_get_int(rng) % tots[i];
-      SWAP(int, rands[i][j], rands[i][j2]);
+      SWAP(uint, rands[i][j], rands[i][j2]);
     }
   }
 
