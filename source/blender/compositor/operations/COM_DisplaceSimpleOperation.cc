@@ -132,4 +132,56 @@ bool DisplaceSimpleOperation::determineDependingAreaOfInterest(rcti *input,
   return false;
 }
 
+void DisplaceSimpleOperation::get_area_of_interest(const int input_idx,
+                                                   const rcti &output_area,
+                                                   rcti &r_input_area)
+{
+  switch (input_idx) {
+    case 0: {
+      r_input_area.xmin = 0;
+      r_input_area.ymin = 0;
+      r_input_area.xmax = getInputOperation(input_idx)->getWidth();
+      r_input_area.ymax = getInputOperation(input_idx)->getHeight();
+      break;
+    }
+    default: {
+      r_input_area = output_area;
+      break;
+    }
+  }
+}
+
+void DisplaceSimpleOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                           const rcti &area,
+                                                           Span<MemoryBuffer *> inputs)
+{
+  const float width = this->getWidth();
+  const float height = this->getHeight();
+  const MemoryBuffer *input_color = inputs[0];
+  for (BuffersIterator<float> it = output->iterate_with(inputs.drop_front(1), area); !it.is_end();
+       ++it) {
+    float scale_x = *it.in(1);
+    float scale_y = *it.in(2);
+
+    /* Clamp x and y displacement to triple image resolution -
+     * to prevent hangs from huge values mistakenly plugged in eg. z buffers. */
+    CLAMP(scale_x, -m_width_x4, m_width_x4);
+    CLAMP(scale_y, -m_height_x4, m_height_x4);
+
+    /* Main displacement in pixel space. */
+    const float *vector = it.in(0);
+    const float p_dx = vector[0] * scale_x;
+    const float p_dy = vector[1] * scale_y;
+
+    /* Displaced pixel in uv coords, for image sampling. */
+    /* Clamp nodes to avoid glitches. */
+    float u = it.x - p_dx + 0.5f;
+    float v = it.y - p_dy + 0.5f;
+    CLAMP(u, 0.0f, width - 1.0f);
+    CLAMP(v, 0.0f, height - 1.0f);
+
+    input_color->read_elem_checked(u, v, it.out);
+  }
+}
+
 }  // namespace blender::compositor

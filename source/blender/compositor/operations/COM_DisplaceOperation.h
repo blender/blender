@@ -18,22 +18,26 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class DisplaceOperation : public NodeOperation {
+class DisplaceOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
    */
   SocketReader *m_inputColorProgram;
-  SocketReader *m_inputVectorProgram;
-  SocketReader *m_inputScaleXProgram;
-  SocketReader *m_inputScaleYProgram;
 
   float m_width_x4;
   float m_height_x4;
+
+  int input_vector_width_;
+  int input_vector_height_;
+
+  std::function<void(float x, float y, float *out)> vector_read_fn_;
+  std::function<void(float x, float y, float *out)> scale_x_read_fn_;
+  std::function<void(float x, float y, float *out)> scale_y_read_fn_;
 
  public:
   DisplaceOperation();
@@ -61,6 +65,14 @@ class DisplaceOperation : public NodeOperation {
    * Deinitialize the execution
    */
   void deinitExecution() override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_started(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 
  private:
   bool read_displacement(

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_movieclip_types.h"
 #include "MEM_guardedalloc.h"
 
@@ -26,7 +26,7 @@
 
 namespace blender::compositor {
 
-class MovieDistortionOperation : public NodeOperation {
+class MovieDistortionOperation : public MultiThreadedOperation {
  private:
   SocketReader *m_inputOperation;
   MovieClip *m_movieClip;
@@ -58,6 +58,11 @@ class MovieDistortionOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

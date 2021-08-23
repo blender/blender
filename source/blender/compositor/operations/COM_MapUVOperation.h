@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class MapUVOperation : public NodeOperation {
+class MapUVOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -30,7 +30,14 @@ class MapUVOperation : public NodeOperation {
   SocketReader *m_inputUVProgram;
   SocketReader *m_inputColorProgram;
 
+  int uv_width_;
+  int uv_height_;
+  int image_width_;
+  int image_height_;
+
   float m_alpha;
+
+  std::function<void(float x, float y, float *out)> uv_input_read_fn_;
 
  public:
   MapUVOperation();
@@ -49,6 +56,8 @@ class MapUVOperation : public NodeOperation {
 
   void pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2], float &r_alpha);
 
+  void init_data() override;
+
   /**
    * Initialize the execution
    */
@@ -63,6 +72,14 @@ class MapUVOperation : public NodeOperation {
   {
     this->m_alpha = alpha;
   }
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_started(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 
  private:
   bool read_uv(float x, float y, float &r_u, float &r_v, float &r_alpha);

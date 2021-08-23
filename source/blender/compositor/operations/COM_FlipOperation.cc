@@ -75,4 +75,42 @@ bool FlipOperation::determineDependingAreaOfInterest(rcti *input,
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
+void FlipOperation::get_area_of_interest(const int input_idx,
+                                         const rcti &output_area,
+                                         rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  if (this->m_flipX) {
+    const int w = (int)this->getWidth() - 1;
+    r_input_area.xmax = (w - output_area.xmin) + 1;
+    r_input_area.xmin = (w - output_area.xmax) - 1;
+  }
+  else {
+    r_input_area.xmin = output_area.xmin;
+    r_input_area.xmax = output_area.xmax;
+  }
+  if (this->m_flipY) {
+    const int h = (int)this->getHeight() - 1;
+    r_input_area.ymax = (h - output_area.ymin) + 1;
+    r_input_area.ymin = (h - output_area.ymax) - 1;
+  }
+  else {
+    r_input_area.ymin = output_area.ymin;
+    r_input_area.ymax = output_area.ymax;
+  }
+}
+
+void FlipOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                 const rcti &area,
+                                                 Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input_img = inputs[0];
+  for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
+    const int nx = this->m_flipX ? ((int)this->getWidth() - 1) - it.x : it.x;
+    const int ny = this->m_flipY ? ((int)this->getHeight() - 1) - it.y : it.y;
+    input_img->read_elem(nx, ny, it.out);
+  }
+}
+
 }  // namespace blender::compositor
