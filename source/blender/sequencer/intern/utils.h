@@ -31,10 +31,6 @@ struct Scene;
 
 bool sequencer_seq_generates_image(struct Sequence *seq);
 void seq_open_anim_file(struct Scene *scene, struct Sequence *seq, bool openfile);
-struct Sequence *seq_find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqbase */,
-                                                struct Sequence *meta /* = NULL */,
-                                                struct Sequence *seq);
-
 #ifdef __cplusplus
 }
 #endif

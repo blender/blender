@@ -61,6 +61,7 @@
 
 #include "SEQ_effects.h"
 #include "SEQ_proxy.h"
+#include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_utils.h"
 
@@ -3023,7 +3024,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
   if (!i) {
     Sequence *meta;
 
-    meta = seq_find_metastrip_by_sequence(&ed->seqbase, NULL, seq);
+    meta = SEQ_find_metastrip_by_sequence(&ed->seqbase, NULL, seq);
 
     if (meta) {
       i = do_adjustment_impl(context, meta, timeline_frame);

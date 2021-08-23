@@ -431,7 +431,7 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   return best_seq;
 }
 
-/* in cases where we done know the sequence's listbase */
+/* in cases where we don't know the sequence's listbase */
 ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
 {
   Sequence *iseq;
@@ -443,25 +443,6 @@ ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
     }
     if (iseq->seqbase.first && (lb = SEQ_get_seqbase_by_seq(&iseq->seqbase, seq))) {
       return lb;
-    }
-  }
-
-  return NULL;
-}
-
-Sequence *seq_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
-{
-  Sequence *iseq;
-
-  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-    Sequence *rval;
-
-    if (seq == iseq) {
-      return meta;
-    }
-    if (iseq->seqbase.first &&
-        (rval = seq_find_metastrip_by_sequence(&iseq->seqbase, iseq, seq))) {
-      return rval;
     }
   }
 

@@ -504,3 +504,23 @@ void SEQ_relations_check_uuids_unique_and_report(const Scene *scene)
 
   BLI_gset_free(used_uuids, NULL);
 }
+
+/* Return immediate parent meta of sequence */
+struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
+{
+  Sequence *iseq;
+
+  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
+    Sequence *rval;
+
+    if (seq == iseq) {
+      return meta;
+    }
+    if (iseq->seqbase.first &&
+        (rval = SEQ_find_metastrip_by_sequence(&iseq->seqbase, iseq, seq))) {
+      return rval;
+    }
+  }
+
+  return NULL;
+}
