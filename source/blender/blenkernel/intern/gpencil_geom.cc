@@ -620,7 +620,10 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
   }
 
   if (new_count == 1) {
-    BKE_gpencil_free_stroke_weights(gps);
+    if (gps->dvert) {
+      BKE_gpencil_free_stroke_weights(gps);
+      MEM_freeN(gps->dvert);
+    }
     MEM_freeN(gps->points);
     gps->points = nullptr;
     gps->dvert = nullptr;
@@ -628,27 +631,24 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
     return false;
   }
 
-  new_pt = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * new_count, "gp_stroke_points_trimmed");
-
-  for (int i = 0; i < new_count; i++) {
-    memcpy(&new_pt[i], &pt[i + index_from], sizeof(bGPDspoint));
-  }
+  new_pt = (bGPDspoint *)MEM_mallocN(sizeof(bGPDspoint) * new_count, "gp_stroke_points_trimmed");
+  memcpy(new_pt, &pt[index_from], sizeof(bGPDspoint) * new_count);
 
   if (gps->dvert) {
-    new_dv = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * new_count,
+    new_dv = (MDeformVert *)MEM_mallocN(sizeof(MDeformVert) * new_count,
                                         "gp_stroke_dverts_trimmed");
     for (int i = 0; i < new_count; i++) {
       dv = &gps->dvert[i + index_from];
       new_dv[i].flag = dv->flag;
       new_dv[i].totweight = dv->totweight;
-      new_dv[i].dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+      new_dv[i].dw = (MDeformWeight *)MEM_mallocN(sizeof(MDeformWeight) * dv->totweight,
                                                   "gp_stroke_dverts_dw_trimmed");
       for (int j = 0; j < dv->totweight; j++) {
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
       }
-      BKE_defvert_clear(dv);
     }
+    BKE_gpencil_free_stroke_weights(gps);
     MEM_freeN(gps->dvert);
     gps->dvert = new_dv;
   }
@@ -692,25 +692,21 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
       gpf, gps, gps->mat_nr, new_count, gps->thickness);
 
   new_pt = new_gps->points; /* Allocated from above. */
-
-  for (int i = 0; i < new_count; i++) {
-    memcpy(&new_pt[i], &pt[i + before_index], sizeof(bGPDspoint));
-  }
+  memcpy(new_pt, &pt[before_index], sizeof(bGPDspoint) * new_count);
 
   if (gps->dvert) {
-    new_dv = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * new_count,
+    new_dv = (MDeformVert *)MEM_mallocN(sizeof(MDeformVert) * new_count,
                                         "gp_stroke_dverts_remaining(MDeformVert)");
     for (int i = 0; i < new_count; i++) {
       dv = &gps->dvert[i + before_index];
       new_dv[i].flag = dv->flag;
       new_dv[i].totweight = dv->totweight;
-      new_dv[i].dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+      new_dv[i].dw = (MDeformWeight *)MEM_mallocN(sizeof(MDeformWeight) * dv->totweight,
                                                   "gp_stroke_dverts_dw_remaining(MDeformWeight)");
       for (int j = 0; j < dv->totweight; j++) {
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
       }
-      BKE_defvert_clear(dv);
     }
     new_gps->dvert = new_dv;
   }
