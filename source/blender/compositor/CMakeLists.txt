@@ -515,6 +515,8 @@ set(SRC
   operations/COM_ScaleOperation.h
   operations/COM_ScreenLensDistortionOperation.cc
   operations/COM_ScreenLensDistortionOperation.h
+  operations/COM_TransformOperation.cc
+  operations/COM_TransformOperation.h
   operations/COM_TranslateOperation.cc
   operations/COM_TranslateOperation.h
   operations/COM_WrapOperation.cc

@@ -18,12 +18,15 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class RotateOperation : public NodeOperation {
+class RotateOperation : public MultiThreadedOperation {
  private:
+  constexpr static int IMAGE_INPUT_INDEX = 0;
+  constexpr static int DEGREE_INPUT_INDEX = 1;
+
   SocketReader *m_imageSocket;
   SocketReader *m_degreeSocket;
   float m_centerX;
@@ -32,21 +35,51 @@ class RotateOperation : public NodeOperation {
   float m_sine;
   bool m_doDegree2RadConversion;
   bool m_isDegreeSet;
+  PixelSampler sampler_;
 
  public:
   RotateOperation();
+
+  static void rotate_coords(
+      float &x, float &y, float center_x, float center_y, float sine, float cosine)
+  {
+    const float dx = x - center_x;
+    const float dy = y - center_y;
+    x = center_x + (cosine * dx + sine * dy);
+    y = center_y + (-sine * dx + cosine * dy);
+  }
+
+  static void get_area_rotation_bounds(const rcti &area,
+                                       const float center_x,
+                                       const float center_y,
+                                       const float sine,
+                                       const float cosine,
+                                       rcti &r_bounds);
+
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void init_data() override;
   void initExecution() override;
   void deinitExecution() override;
+
   void setDoDegree2RadConversion(bool abool)
   {
     this->m_doDegree2RadConversion = abool;
   }
 
+  void set_sampler(PixelSampler sampler)
+  {
+    sampler_ = sampler;
+  }
+
   void ensureDegree();
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

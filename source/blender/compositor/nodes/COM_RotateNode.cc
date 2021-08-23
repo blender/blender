@@ -30,20 +30,31 @@ RotateNode::RotateNode(bNode *editorNode) : Node(editorNode)
 }
 
 void RotateNode::convertToOperations(NodeConverter &converter,
-                                     const CompositorContext & /*context*/) const
+                                     const CompositorContext &context) const
 {
   NodeInput *inputSocket = this->getInputSocket(0);
   NodeInput *inputDegreeSocket = this->getInputSocket(1);
   NodeOutput *outputSocket = this->getOutputSocket(0);
   RotateOperation *operation = new RotateOperation();
-  SetSamplerOperation *sampler = new SetSamplerOperation();
-  sampler->setSampler((PixelSampler)this->getbNode()->custom1);
-
-  converter.addOperation(sampler);
   converter.addOperation(operation);
 
-  converter.addLink(sampler->getOutputSocket(), operation->getInputSocket(0));
-  converter.mapInputSocket(inputSocket, sampler->getInputSocket(0));
+  PixelSampler sampler = (PixelSampler)this->getbNode()->custom1;
+  switch (context.get_execution_model()) {
+    case eExecutionModel::Tiled: {
+      SetSamplerOperation *sampler_op = new SetSamplerOperation();
+      sampler_op->setSampler(sampler);
+      converter.addOperation(sampler_op);
+      converter.addLink(sampler_op->getOutputSocket(), operation->getInputSocket(0));
+      converter.mapInputSocket(inputSocket, sampler_op->getInputSocket(0));
+      break;
+    }
+    case eExecutionModel::FullFrame: {
+      operation->set_sampler(sampler);
+      converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
+      break;
+    }
+  }
+
   converter.mapInputSocket(inputDegreeSocket, operation->getInputSocket(1));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }

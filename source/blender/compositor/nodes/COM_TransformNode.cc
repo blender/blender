@@ -22,6 +22,7 @@
 #include "COM_ScaleOperation.h"
 #include "COM_SetSamplerOperation.h"
 #include "COM_SetValueOperation.h"
+#include "COM_TransformOperation.h"
 #include "COM_TranslateOperation.h"
 
 namespace blender::compositor {
@@ -32,7 +33,7 @@ TransformNode::TransformNode(bNode *editorNode) : Node(editorNode)
 }
 
 void TransformNode::convertToOperations(NodeConverter &converter,
-                                        const CompositorContext & /*context*/) const
+                                        const CompositorContext &context) const
 {
   NodeInput *imageInput = this->getInputSocket(0);
   NodeInput *xInput = this->getInputSocket(1);
@@ -40,33 +41,51 @@ void TransformNode::convertToOperations(NodeConverter &converter,
   NodeInput *angleInput = this->getInputSocket(3);
   NodeInput *scaleInput = this->getInputSocket(4);
 
-  ScaleRelativeOperation *scaleOperation = new ScaleRelativeOperation();
-  converter.addOperation(scaleOperation);
+  switch (context.get_execution_model()) {
+    case eExecutionModel::Tiled: {
+      ScaleRelativeOperation *scaleOperation = new ScaleRelativeOperation();
+      converter.addOperation(scaleOperation);
 
-  RotateOperation *rotateOperation = new RotateOperation();
-  rotateOperation->setDoDegree2RadConversion(false);
-  converter.addOperation(rotateOperation);
+      RotateOperation *rotateOperation = new RotateOperation();
+      rotateOperation->setDoDegree2RadConversion(false);
+      converter.addOperation(rotateOperation);
 
-  TranslateOperation *translateOperation = new TranslateOperation();
-  converter.addOperation(translateOperation);
+      TranslateOperation *translateOperation = new TranslateOperation();
+      converter.addOperation(translateOperation);
 
-  SetSamplerOperation *sampler = new SetSamplerOperation();
-  sampler->setSampler((PixelSampler)this->getbNode()->custom1);
-  converter.addOperation(sampler);
+      SetSamplerOperation *sampler = new SetSamplerOperation();
+      sampler->setSampler((PixelSampler)this->getbNode()->custom1);
+      converter.addOperation(sampler);
 
-  converter.mapInputSocket(imageInput, sampler->getInputSocket(0));
-  converter.addLink(sampler->getOutputSocket(), scaleOperation->getInputSocket(0));
-  converter.mapInputSocket(scaleInput, scaleOperation->getInputSocket(1));
-  converter.mapInputSocket(scaleInput, scaleOperation->getInputSocket(2));  // xscale = yscale
+      converter.mapInputSocket(imageInput, sampler->getInputSocket(0));
+      converter.addLink(sampler->getOutputSocket(), scaleOperation->getInputSocket(0));
+      converter.mapInputSocket(scaleInput, scaleOperation->getInputSocket(1));
+      converter.mapInputSocket(scaleInput, scaleOperation->getInputSocket(2));  // xscale = yscale
 
-  converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
-  converter.mapInputSocket(angleInput, rotateOperation->getInputSocket(1));
+      converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
+      converter.mapInputSocket(angleInput, rotateOperation->getInputSocket(1));
 
-  converter.addLink(rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
-  converter.mapInputSocket(xInput, translateOperation->getInputSocket(1));
-  converter.mapInputSocket(yInput, translateOperation->getInputSocket(2));
+      converter.addLink(rotateOperation->getOutputSocket(), translateOperation->getInputSocket(0));
+      converter.mapInputSocket(xInput, translateOperation->getInputSocket(1));
+      converter.mapInputSocket(yInput, translateOperation->getInputSocket(2));
 
-  converter.mapOutputSocket(getOutputSocket(), translateOperation->getOutputSocket());
+      converter.mapOutputSocket(getOutputSocket(), translateOperation->getOutputSocket());
+      break;
+    }
+    case eExecutionModel::FullFrame: {
+      TransformOperation *op = new TransformOperation();
+      op->set_sampler((PixelSampler)this->getbNode()->custom1);
+      converter.addOperation(op);
+
+      converter.mapInputSocket(imageInput, op->getInputSocket(0));
+      converter.mapInputSocket(xInput, op->getInputSocket(1));
+      converter.mapInputSocket(yInput, op->getInputSocket(2));
+      converter.mapInputSocket(angleInput, op->getInputSocket(3));
+      converter.mapInputSocket(scaleInput, op->getInputSocket(4));
+      converter.mapOutputSocket(getOutputSocket(), op->getOutputSocket());
+      break;
+    }
+  }
 }
 
 }  // namespace blender::compositor
