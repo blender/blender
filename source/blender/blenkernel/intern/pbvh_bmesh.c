@@ -3439,9 +3439,9 @@ static void *hashco(float fx, float fy, float fz, float fdimen)
   double x = (double)fx;
   double y = (double)fy;
   double z = (double)fz;
-  double dimen = (double)dimen;
+  double dimen = (double)fdimen;
 
-  return (void *)((intptr_t)(z * dimen * dimen + y * dimen + x));
+  return (void *)((intptr_t)(z * dimen * dimen * dimen + y * dimen * dimen + x * dimen));
 }
 
 typedef struct MeshTest {
@@ -3914,7 +3914,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 
   printf("== Starting Test ==\n");
 
-  printf("building test mesh. . .");
+  printf("building test mesh. . .\n");
 
   BMAllocTemplate templ = {0, 0, 0, 0};
 
@@ -3930,32 +3930,38 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   BLI_mempool_destroy(bm->fpool);
 
   bm->vpool = BLI_mempool_create(sizeof(BMVert), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->epool = BLI_mempool_create(sizeof(BMEdge), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->lpool = BLI_mempool_create(sizeof(BMLoop), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
-  bm->fpool = BLI_mempool_create(sizeof(BMFace), 0, (int)params->vchunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->epool = BLI_mempool_create(sizeof(BMEdge), 0, (int)params->echunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->lpool = BLI_mempool_create(sizeof(BMLoop), 0, (int)params->lchunk, BLI_MEMPOOL_ALLOW_ITER);
+  bm->fpool = BLI_mempool_create(sizeof(BMFace), 0, (int)params->pchunk, BLI_MEMPOOL_ALLOW_ITER);
 
   GHash *vhash = BLI_ghash_ptr_new("vhash");
 
   float df = 1.0f / (float)steps;
-  float u, v;
 
   int hashdimen = steps * 8;
 
   BMVert **grid = MEM_malloc_arrayN(steps * steps, sizeof(*grid), "bmvert grid");
 
   BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
-  BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT32, "__dyntopo_face_node");
-  BM_data_layer_add(bm, &bm->vdata, CD_SCULPT_FACE_SETS);
+  BM_data_layer_add_named(bm, &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
+  BM_data_layer_add(bm, &bm->pdata, CD_SCULPT_FACE_SETS);
+
   BM_data_layer_add(bm, &bm->vdata, CD_PAINT_MASK);
   BM_data_layer_add(bm, &bm->vdata, CD_DYNTOPO_VERT);
   BM_data_layer_add(bm, &bm->vdata, CD_PROP_COLOR);
 
   for (int side = 0; side < 6; side++) {
-    int axis = side > 3 ? side - 3 : side;
-    float sign = side > 3 ? -1.0f : 1.0f;
+    int axis = side >= 3 ? side - 3 : side;
+    float sign = side >= 3 ? -1.0f : 1.0f;
 
-    for (int i = 0, u = 0; i < steps; i++, u += df) {
-      for (int j = 0, v = 0; j < steps; j++, v += df) {
+    printf("AXIS: %d\n", axis);
+
+    float u = 0.0f;
+
+    for (int i = 0; i < steps; i++, u += df) {
+      float v = 0.0f;
+
+      for (int j = 0; j < steps; j++, v += df) {
         float co[3];
 
         co[axis] = u;
@@ -3966,18 +3972,32 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
         normalize_v3(co);
 
         void *key = hashco(co[0], co[1], co[2], hashdimen);
+
+#if 0
+        printf("%.3f %.3f %.3f, key: %p i: %d j: %d df: %f, u: %f v: %f\n",
+               co[0],
+               co[1],
+               co[2],
+               key,
+               i,
+               j,
+               df,
+               u,
+               v);
+#endif
+
         void **val = NULL;
 
         if (!BLI_ghash_ensure_p(vhash, key, &val)) {
-          BMVert *v = BM_vert_create(bm, co, NULL, BM_CREATE_NOP);
+          BMVert *v2 = BM_vert_create(bm, co, NULL, BM_CREATE_NOP);
 
-          *val = (void *)v;
+          *val = (void *)v2;
         }
 
-        BMVert *v = (BMVert *)*val;
+        BMVert *v2 = (BMVert *)*val;
         int idx = j * steps + i;
 
-        grid[idx] = v;
+        grid[idx] = v2;
       }
     }
 
@@ -3992,6 +4012,11 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
         BMVert *v2 = grid[idx2];
         BMVert *v3 = grid[idx3];
         BMVert *v4 = grid[idx4];
+
+        if (v1 == v2 || v1 == v3 || v1 == v4 || v2 == v3 || v2 == v4 || v3 == v4) {
+          printf("ERROR!\n");
+          continue;
+        }
 
         if (sign < 0) {
           BMVert *vs[4] = {v4, v3, v2, v1};
@@ -4039,12 +4064,12 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   int cd_vert_node = CustomData_get_named_layer_index(
       &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
   int cd_face_node = CustomData_get_named_layer_index(
-      &bm->vdata, CD_PROP_INT32, "__dyntopo_face_node");
+      &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
 
   cd_vert_node = bm->vdata.layers[cd_vert_node].offset;
-  cd_face_node = bm->vdata.layers[cd_face_node].offset;
+  cd_face_node = bm->pdata.layers[cd_face_node].offset;
 
-  const int cd_fset = CustomData_get_offset(&bm->vdata, CD_SCULPT_FACE_SETS);
+  const int cd_fset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
   const int cd_dyn_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
   const int cd_mask = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   const int cd_vcol = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
@@ -4052,12 +4077,12 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 
   PBVH *pbvh = BKE_pbvh_new();
 
-  BKE_pbvh_build_bmesh(pbvh, bm, false, bmlog, cd_vert_node, cd_face_node, cd_dyn_vert, false);
-
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   BM_mesh_elem_table_ensure(bm, BM_VERT | BM_FACE);
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+
+  BKE_pbvh_build_bmesh(pbvh, bm, false, bmlog, cd_vert_node, cd_face_node, cd_dyn_vert, false);
 
   int loop_size = sizeof(BMLoop) - sizeof(void *) * 4;
 
@@ -4082,7 +4107,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   s1 += cd_overhead;
   s2 += cd_overhead;
 
-  printf("    bmesh mem size: %.2fmb %.2mb\n",
+  printf("    bmesh mem size: %.2fmb %.2fmb\n",
          (float)s1 / 1024.0f / 1024.0f,
          (float)s3 / 1024.0f / 1024.0f);
   printf("meshtest2 mem size: %.2fmb\n", (float)s2 / 1024.0f / 1024.0f);
