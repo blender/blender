@@ -252,11 +252,11 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_flag);
 void mesh_render_data_update_loose_geom(MeshRenderData *mr,
-                                        MeshBufferExtractionCache *cache,
+                                        MeshBufferCache *cache,
                                         const eMRIterType iter_type,
                                         const eMRDataType data_flag);
 void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
-                                          MeshBufferExtractionCache *cache,
+                                          MeshBufferCache *cache,
                                           const eMRDataType data_flag);
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,

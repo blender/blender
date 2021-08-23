@@ -856,16 +856,16 @@ static void mesh_buffer_list_clear(MeshBufferList *mbuflist)
   }
 }
 
-static void mesh_buffer_extraction_cache_clear(MeshBufferExtractionCache *extraction_cache)
+static void mesh_buffer_cache_clear(MeshBufferCache *mbc)
 {
-  MEM_SAFE_FREE(extraction_cache->loose_geom.verts);
-  MEM_SAFE_FREE(extraction_cache->loose_geom.edges);
-  extraction_cache->loose_geom.edge_len = 0;
-  extraction_cache->loose_geom.vert_len = 0;
+  MEM_SAFE_FREE(mbc->loose_geom.verts);
+  MEM_SAFE_FREE(mbc->loose_geom.edges);
+  mbc->loose_geom.edge_len = 0;
+  mbc->loose_geom.vert_len = 0;
 
-  MEM_SAFE_FREE(extraction_cache->poly_sorted.tri_first_index);
-  MEM_SAFE_FREE(extraction_cache->poly_sorted.mat_tri_len);
-  extraction_cache->poly_sorted.visible_tri_len = 0;
+  MEM_SAFE_FREE(mbc->poly_sorted.tri_first_index);
+  MEM_SAFE_FREE(mbc->poly_sorted.mat_tri_len);
+  mbc->poly_sorted.visible_tri_len = 0;
 }
 
 static void mesh_batch_cache_clear(Mesh *me)
@@ -878,9 +878,9 @@ static void mesh_batch_cache_clear(Mesh *me)
     mesh_buffer_list_clear(mbuflist);
   }
 
-  mesh_buffer_extraction_cache_clear(&cache->final_extraction_cache);
-  mesh_buffer_extraction_cache_clear(&cache->cage_extraction_cache);
-  mesh_buffer_extraction_cache_clear(&cache->uv_cage_extraction_cache);
+  mesh_buffer_cache_clear(&cache->final_extraction_cache);
+  mesh_buffer_cache_clear(&cache->cage_extraction_cache);
+  mesh_buffer_cache_clear(&cache->uv_cage_extraction_cache);
 
   for (int i = 0; i < cache->mat_len; i++) {
     GPU_INDEXBUF_DISCARD_SAFE(cache->tris_per_mat[i]);

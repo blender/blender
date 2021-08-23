@@ -159,7 +159,7 @@ typedef struct MeshBufferList {
  *
  * - Loose geometry.
  */
-typedef struct MeshBufferExtractionCache {
+typedef struct MeshBufferCache {
   struct {
     int edge_len;
     int vert_len;
@@ -172,7 +172,7 @@ typedef struct MeshBufferExtractionCache {
     int *mat_tri_len;
     int visible_tri_len;
   } poly_sorted;
-} MeshBufferExtractionCache;
+} MeshBufferCache;
 
 #define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbuflist) \
   for (MeshBufferList *mbuflist = &batch_cache->final; \
@@ -185,9 +185,9 @@ typedef struct MeshBufferExtractionCache {
 typedef struct MeshBatchCache {
   MeshBufferList final, cage, uv_cage;
 
-  MeshBufferExtractionCache final_extraction_cache;
-  MeshBufferExtractionCache cage_extraction_cache;
-  MeshBufferExtractionCache uv_cage_extraction_cache;
+  MeshBufferCache final_extraction_cache;
+  MeshBufferCache cage_extraction_cache;
+  MeshBufferCache uv_cage_extraction_cache;
 
   struct {
     /* Surfaces / Render */
@@ -309,7 +309,7 @@ BLI_STATIC_ASSERT(MBC_BATCH_INDEX(surface_per_mat) < 32,
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
                                         MeshBufferList *mbuflist,
-                                        MeshBufferExtractionCache *extraction_cache,
+                                        MeshBufferCache *extraction_cache,
                                         Mesh *me,
                                         const bool is_editmode,
                                         const bool is_paint_mode,

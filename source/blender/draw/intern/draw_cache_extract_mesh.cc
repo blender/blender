@@ -497,12 +497,12 @@ static struct TaskNode *extract_task_node_create(struct TaskGraph *task_graph,
  * \{ */
 struct MeshRenderDataUpdateTaskData {
   MeshRenderData *mr = nullptr;
-  MeshBufferExtractionCache *cache = nullptr;
+  MeshBufferCache *cache = nullptr;
   eMRIterType iter_type;
   eMRDataType data_flag;
 
   MeshRenderDataUpdateTaskData(MeshRenderData *mr,
-                               MeshBufferExtractionCache *cache,
+                               MeshBufferCache *cache,
                                eMRIterType iter_type,
                                eMRDataType data_flag)
       : mr(mr), cache(cache), iter_type(iter_type), data_flag(data_flag)
@@ -542,7 +542,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
 
 static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *task_graph,
                                                              MeshRenderData *mr,
-                                                             MeshBufferExtractionCache *cache,
+                                                             MeshBufferCache *cache,
                                                              const eMRIterType iter_type,
                                                              const eMRDataType data_flag)
 {
@@ -566,7 +566,7 @@ static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *t
 static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                MeshBatchCache *cache,
                                                MeshBufferList *mbuflist,
-                                               MeshBufferExtractionCache *extraction_cache,
+                                               MeshBufferCache *extraction_cache,
                                                Mesh *me,
 
                                                const bool is_editmode,
@@ -780,7 +780,7 @@ extern "C" {
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
                                         MeshBufferList *mbuflist,
-                                        MeshBufferExtractionCache *extraction_cache,
+                                        MeshBufferCache *extraction_cache,
                                         Mesh *me,
 
                                         const bool is_editmode,
