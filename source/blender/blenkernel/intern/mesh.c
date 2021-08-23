@@ -583,7 +583,7 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *me)
 }
 
 /** Free (or release) any data used by this mesh (does not free the mesh itself). */
-void BKE_mesh_free(Mesh *me)
+void BKE_mesh_free_data(Mesh *me)
 {
   mesh_free_data(&me->id);
 }
@@ -779,7 +779,7 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval)
 {
   /* Evaluated mesh may point to edit mesh, but never owns it. */
   mesh_eval->edit_mesh = NULL;
-  BKE_mesh_free(mesh_eval);
+  BKE_mesh_free_data(mesh_eval);
   BKE_libblock_free_data(&mesh_eval->id, false);
   MEM_freeN(mesh_eval);
 }
