@@ -565,8 +565,7 @@ static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *t
 
 static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                MeshBatchCache *cache,
-                                               MeshBufferList *mbuflist,
-                                               MeshBufferCache *extraction_cache,
+                                               MeshBufferCache *mbc,
                                                Mesh *me,
 
                                                const bool is_editmode,
@@ -616,6 +615,8 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 
   /* Create an array containing all the extractors that needs to be executed. */
   ExtractorRunDatas extractors;
+
+  MeshBufferList *mbuflist = &mbc->buff;
 
 #define EXTRACT_ADD_REQUESTED(type, name) \
   do { \
@@ -705,7 +706,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   eMRDataType data_flag = extractors.data_types();
 
   struct TaskNode *task_node_mesh_render_data = mesh_extract_render_data_node_create(
-      task_graph, mr, extraction_cache, iter_type, data_flag);
+      task_graph, mr, mbc, iter_type, data_flag);
 
   /* Simple heuristic. */
   const bool use_thread = (mr->loop_len + mr->loop_loose_len) > MIN_RANGE_LEN;
@@ -779,8 +780,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 extern "C" {
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
-                                        MeshBufferList *mbuflist,
-                                        MeshBufferCache *extraction_cache,
+                                        MeshBufferCache *mbc,
                                         Mesh *me,
 
                                         const bool is_editmode,
@@ -796,8 +796,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 {
   blender::draw::mesh_buffer_cache_create_requested(task_graph,
                                                     cache,
-                                                    mbuflist,
-                                                    extraction_cache,
+                                                    mbc,
                                                     me,
                                                     is_editmode,
                                                     is_paint_mode,

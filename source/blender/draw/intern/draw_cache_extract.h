@@ -235,6 +235,8 @@ BLI_STATIC_ASSERT(MBC_BATCH_LEN < 32, "Number of batches exceeded the limit of b
  * - Loose geometry.
  */
 typedef struct MeshBufferCache {
+  MeshBufferList buff;
+
   struct {
     int edge_len;
     int vert_len;
@@ -249,20 +251,15 @@ typedef struct MeshBufferCache {
   } poly_sorted;
 } MeshBufferCache;
 
-#define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbuflist) \
-  for (MeshBufferList *mbuflist = &batch_cache->final; \
-       mbuflist == &batch_cache->final || mbuflist == &batch_cache->cage || \
-       mbuflist == &batch_cache->uv_cage; \
-       mbuflist = (mbuflist == &batch_cache->final) ? \
-                      &batch_cache->cage : \
-                      ((mbuflist == &batch_cache->cage) ? &batch_cache->uv_cage : NULL))
+#define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbc) \
+  for (MeshBufferCache *mbc = &batch_cache->final; \
+       mbc == &batch_cache->final || mbc == &batch_cache->cage || mbc == &batch_cache->uv_cage; \
+       mbc = (mbc == &batch_cache->final) ? \
+                 &batch_cache->cage : \
+                 ((mbc == &batch_cache->cage) ? &batch_cache->uv_cage : NULL))
 
 typedef struct MeshBatchCache {
-  MeshBufferList final, cage, uv_cage;
-
-  MeshBufferCache final_extraction_cache;
-  MeshBufferCache cage_extraction_cache;
-  MeshBufferCache uv_cage_extraction_cache;
+  MeshBufferCache final, cage, uv_cage;
 
   MeshBatchList batch;
 
@@ -307,8 +304,7 @@ typedef struct MeshBatchCache {
    MBC_EDITUV_EDGES | MBC_EDITUV_VERTS | MBC_EDITUV_FACEDOTS | MBC_WIRE_LOOPS_UVS)
 
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
-                                        MeshBatchCache *cache,
-                                        MeshBufferList *mbuflist,
+                                        MeshBatchCache *mbc,
                                         MeshBufferCache *extraction_cache,
                                         Mesh *me,
                                         const bool is_editmode,

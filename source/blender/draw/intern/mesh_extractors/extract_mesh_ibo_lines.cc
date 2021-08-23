@@ -180,12 +180,12 @@ constexpr MeshExtract create_extractor_lines()
 
 static void extract_lines_loose_subbuffer(const MeshRenderData *mr, struct MeshBatchCache *cache)
 {
-  BLI_assert(cache->final.ibo.lines);
+  BLI_assert(cache->final.buff.ibo.lines);
   /* Multiply by 2 because these are edges indices. */
   const int start = mr->edge_len * 2;
   const int len = mr->edge_loose_len * 2;
   GPU_indexbuf_create_subrange_in_place(
-      cache->final.ibo.lines_loose, cache->final.ibo.lines, start, len);
+      cache->final.buff.ibo.lines_loose, cache->final.buff.ibo.lines, start, len);
   cache->no_loose_wire = (len == 0);
 }
 
@@ -228,7 +228,7 @@ static void extract_lines_loose_only_init(const MeshRenderData *mr,
                                           void *buf,
                                           void *UNUSED(tls_data))
 {
-  BLI_assert(buf == cache->final.ibo.lines_loose);
+  BLI_assert(buf == cache->final.buff.ibo.lines_loose);
   UNUSED_VARS_NDEBUG(buf);
   extract_lines_loose_subbuffer(mr, cache);
 }
