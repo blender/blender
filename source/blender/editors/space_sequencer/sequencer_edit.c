@@ -1446,8 +1446,13 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
     }
 
     if (ignore_selection || seq->flag & SELECT) {
-      if (SEQ_edit_strip_split(bmain, scene, ed->seqbasep, seq, split_frame, method) != NULL) {
+      const char *error_msg = NULL;
+      if (SEQ_edit_strip_split(bmain, scene, ed->seqbasep, seq, split_frame, method, &error_msg) !=
+          NULL) {
         changed = true;
+      }
+      if (error_msg != NULL) {
+        BKE_report(op->reports, RPT_ERROR, error_msg);
       }
     }
   }
