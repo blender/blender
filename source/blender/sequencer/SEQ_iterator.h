@@ -73,6 +73,7 @@ struct Sequence *SEQ_iterator_yield(SeqIterator *iterator);
 SeqCollection *SEQ_collection_create(const char *name);
 SeqCollection *SEQ_collection_duplicate(SeqCollection *collection);
 uint SEQ_collection_len(const SeqCollection *collection);
+bool SEQ_collection_has_strip(const struct Sequence *seq, const SeqCollection *collection);
 bool SEQ_collection_append_strip(struct Sequence *seq, SeqCollection *data);
 bool SEQ_collection_remove_strip(struct Sequence *seq, SeqCollection *data);
 void SEQ_collection_free(SeqCollection *collection);

@@ -40,6 +40,10 @@
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"seq.strip_transform"};
+
 static int seq_tx_get_start(Sequence *seq)
 {
   return seq->start;
@@ -313,6 +317,12 @@ static int shuffle_seq_time_offset_test(SeqCollection *strips_to_shuffle,
   SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
     LISTBASE_FOREACH (Sequence *, seq_other, seqbasep) {
       if (!seq_overlap(seq, seq_other)) {
+        continue;
+      }
+      if (UNLIKELY(SEQ_collection_has_strip(seq_other, strips_to_shuffle))) {
+        CLOG_WARN(&LOG,
+                  "Strip overlaps with itself or another strip, that is to be shuffled."
+                  "This should never happen.");
         continue;
       }
       if (dir == 'L') {

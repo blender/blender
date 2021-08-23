@@ -123,6 +123,14 @@ uint SEQ_collection_len(const SeqCollection *collection)
 }
 
 /**
+ * Check if seq is in collection.
+ */
+bool SEQ_collection_has_strip(const Sequence *seq, const SeqCollection *collection)
+{
+  return BLI_gset_haskey(collection->set, seq);
+}
+
+/**
  * Query strips from seqbase. seq_reference is used by query function as filter condition.
  *
  * \param seq_reference: reference strip for query function

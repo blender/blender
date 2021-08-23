@@ -400,15 +400,14 @@ static void seq_transform_handle_overlap(TransInfo *t, SeqCollection *transforme
   if (seq_transform_check_strip_effects(transformed_strips)) {
     /* Update effect strips based on strips just moved in time. */
     seq_transform_update_effects(t, transformed_strips);
+  }
 
-    /* If any effects still overlap, we need to move them up. */
-    Sequence *seq;
-    SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
-      if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
-        if (SEQ_transform_test_overlap(seqbasep, seq)) {
-          SEQ_transform_seqbase_shuffle(seqbasep, seq, t->scene);
-        }
-      }
+  /* If any effects still overlap, we need to move them up.
+   * In some cases other strips can be overlapping still, see T90646. */
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+    if (SEQ_transform_test_overlap(seqbasep, seq)) {
+      SEQ_transform_seqbase_shuffle(seqbasep, seq, t->scene);
     }
   }
 }
