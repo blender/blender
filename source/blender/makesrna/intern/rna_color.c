@@ -701,11 +701,7 @@ static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
   }
 
   if (!cuma->table) {
-    BKE_report(
-        reports,
-        RPT_ERROR,
-        "CurveMap table not initialized, call initialize() on CurveMapping owner of the CurveMap");
-    return 0.0f;
+    BKE_curvemapping_init(cumap);
   }
   return BKE_curvemap_evaluateF(cumap, cuma, value);
 }
