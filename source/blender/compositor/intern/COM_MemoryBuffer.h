@@ -191,22 +191,95 @@ class MemoryBuffer {
 
   void read_elem(int x, int y, float *out) const
   {
-    memcpy(out, get_elem(x, y), m_num_channels * sizeof(float));
+    memcpy(out, get_elem(x, y), get_elem_bytes_len());
+  }
+
+  void read_elem_checked(int x, int y, float *out) const
+  {
+    if (x < m_rect.xmin || x >= m_rect.xmax || y < m_rect.ymin || y >= m_rect.ymax) {
+      clear_elem(out);
+    }
+    else {
+      read_elem(x, y, out);
+    }
+  }
+
+  void read_elem_checked(float x, float y, float *out) const
+  {
+    if (x < m_rect.xmin || x >= m_rect.xmax || y < m_rect.ymin || y >= m_rect.ymax) {
+      clear_elem(out);
+    }
+    else {
+      read_elem(x, y, out);
+    }
+  }
+
+  void read_elem_bilinear(float x, float y, float *out) const
+  {
+    /* Only clear past +/-1 borders to be able to smooth edges. */
+    if (x <= m_rect.xmin - 1.0f || x >= m_rect.xmax || y <= m_rect.ymin - 1.0f ||
+        y >= m_rect.ymax) {
+      clear_elem(out);
+      return;
+    }
+
+    if (m_is_a_single_elem) {
+      if (x >= m_rect.xmin && x < m_rect.xmax - 1.0f && y >= m_rect.ymin &&
+          y < m_rect.ymax - 1.0f) {
+        memcpy(out, m_buffer, get_elem_bytes_len());
+        return;
+      }
+
+      /* Do sampling at borders to smooth edges. */
+      const float last_x = getWidth() - 1.0f;
+      const float rel_x = get_relative_x(x);
+      float single_x = 0.0f;
+      if (rel_x < 0.0f) {
+        single_x = rel_x;
+      }
+      else if (rel_x > last_x) {
+        single_x = rel_x - last_x;
+      }
+
+      const float last_y = getHeight() - 1.0f;
+      const float rel_y = get_relative_y(y);
+      float single_y = 0.0f;
+      if (rel_y < 0.0f) {
+        single_y = rel_y;
+      }
+      else if (rel_y > last_y) {
+        single_y = rel_y - last_y;
+      }
+
+      BLI_bilinear_interpolation_fl(m_buffer, out, 1, 1, m_num_channels, single_x, single_y);
+      return;
+    }
+
+    BLI_bilinear_interpolation_fl(m_buffer,
+                                  out,
+                                  getWidth(),
+                                  getHeight(),
+                                  m_num_channels,
+                                  get_relative_x(x),
+                                  get_relative_y(y));
   }
 
   void read_elem_sampled(float x, float y, PixelSampler sampler, float *out) const
   {
     switch (sampler) {
       case PixelSampler::Nearest:
-        this->read_elem(x, y, out);
+        read_elem_checked(x, y, out);
         break;
       case PixelSampler::Bilinear:
       case PixelSampler::Bicubic:
         /* No bicubic. Current implementation produces fuzzy results. */
-        this->readBilinear(out, x, y);
+        read_elem_bilinear(x, y, out);
         break;
     }
   }
+
+  void read_elem_filtered(
+      const float x, const float y, float dx[2], float dy[2], float *out) const;
 
   /**
    * Get channel value at given coordinates.
@@ -403,6 +476,8 @@ class MemoryBuffer {
     y = y + m_rect.ymin;
   }
 
+  /* TODO(manzanilla): to be removed with tiled implementation. For applying #MemoryBufferExtend
+   * use #wrap_pixel. */
   inline void read(float *result,
                    int x,
                    int y,
@@ -425,6 +500,7 @@ class MemoryBuffer {
     }
   }
 
+  /* TODO(manzanilla): to be removed with tiled implementation. */
   inline void readNoCheck(float *result,
                           int x,
                           int y,
@@ -580,6 +656,21 @@ class MemoryBuffer {
   const int buffer_len() const
   {
     return get_memory_width() * get_memory_height();
+  }
+
+  void clear_elem(float *out) const
+  {
+    memset(out, 0, this->m_num_channels * sizeof(float));
+  }
+
+  template<typename T> T get_relative_x(T x) const
+  {
+    return x - m_rect.xmin;
+  }
+
+  template<typename T> T get_relative_y(T y) const
+  {
+    return y - m_rect.ymin;
   }
 
   void copy_single_elem_from(const MemoryBuffer *src,
