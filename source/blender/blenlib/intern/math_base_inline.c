@@ -656,6 +656,18 @@ MINLINE int compare_ff_relative(float a, float b, const float max_diff, const in
   return ((ua.i < 0) != (ub.i < 0)) ? 0 : (abs(ua.i - ub.i) <= max_ulps) ? 1 : 0;
 }
 
+MINLINE bool compare_threshold_relative(const float value1, const float value2, const float thresh)
+{
+  const float abs_diff = fabsf(value1 - value2);
+  /* Avoid letting the threshold get too small just because the values happen to be close to zero.
+   */
+  if (fabsf(value2) < 1) {
+    return abs_diff > thresh;
+  }
+  /* Using relative threshold in general. */
+  return abs_diff > thresh * fabsf(value2);
+}
+
 MINLINE float signf(float f)
 {
   return (f < 0.0f) ? -1.0f : 1.0f;
