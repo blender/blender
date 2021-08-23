@@ -1481,7 +1481,7 @@ static bool id_name_final_build(char *name, char *base_name, size_t base_name_le
 
     /* Code above may have generated invalid utf-8 string, due to raw truncation.
      * Ensure we get a valid one now. */
-    base_name_len -= (size_t)BLI_utf8_invalid_strip(base_name, base_name_len);
+    base_name_len -= (size_t)BLI_str_utf8_invalid_strip(base_name, base_name_len);
 
     /* Also truncate orig name, and start the whole check again. */
     name[base_name_len] = '\0';
@@ -1731,7 +1731,7 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname, const boo
   else {
     /* disallow non utf8 chars,
      * the interface checks for this but new ID's based on file names don't */
-    BLI_utf8_invalid_strip(name, strlen(name));
+    BLI_str_utf8_invalid_strip(name, strlen(name));
   }
 
   ID *id_sorting_hint = NULL;

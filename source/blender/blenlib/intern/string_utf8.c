@@ -70,7 +70,7 @@ static const size_t utf8_skip_data[256] = {
  *
  * \return the offset of the first invalid byte.
  */
-ptrdiff_t BLI_utf8_invalid_byte(const char *str, size_t length)
+ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
 {
   const unsigned char *p, *perr, *pend = (const unsigned char *)str + length;
   unsigned char c;
@@ -200,14 +200,14 @@ utf8_error:
  *
  * \return number of stripped bytes.
  */
-int BLI_utf8_invalid_strip(char *str, size_t length)
+int BLI_str_utf8_invalid_strip(char *str, size_t length)
 {
   ptrdiff_t bad_char;
   int tot = 0;
 
   BLI_assert(str[length] == '\0');
 
-  while ((bad_char = BLI_utf8_invalid_byte(str, length)) != -1) {
+  while ((bad_char = BLI_str_utf8_invalid_byte(str, length)) != -1) {
     str += bad_char;
     length -= (size_t)(bad_char + 1);
 

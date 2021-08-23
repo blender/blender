@@ -266,7 +266,7 @@ static const char *utf8_invalid_tests[][3] = {
 };
 /* clang-format on */
 
-/* BLI_utf8_invalid_strip (and indirectly, BLI_utf8_invalid_byte). */
+/* BLI_str_utf8_invalid_strip (and indirectly, BLI_str_utf8_invalid_byte). */
 TEST(string, Utf8InvalidBytes)
 {
   for (int i = 0; utf8_invalid_tests[i][0] != nullptr; i++) {
@@ -277,7 +277,7 @@ TEST(string, Utf8InvalidBytes)
     char buff[80];
     memcpy(buff, tst, sizeof(buff));
 
-    const int num_errors_found = BLI_utf8_invalid_strip(buff, sizeof(buff) - 1);
+    const int num_errors_found = BLI_str_utf8_invalid_strip(buff, sizeof(buff) - 1);
 
     printf("[%02d] -> [%02d] \"%s\"  ->  \"%s\"\n", num_errors, num_errors_found, tst, buff);
     EXPECT_EQ(num_errors_found, num_errors);
