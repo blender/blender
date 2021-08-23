@@ -5,6 +5,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_array.h"
 #include "BLI_bitmap.h"
 #include "BLI_buffer.h"
@@ -31,6 +32,7 @@
 
 #include <stdio.h>
 
+//#define USE_NEW_SPLIT
 #define DYNVERT_ALL_BOUNDARY (DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY)
 
 #define DYNTOPO_MAX_ITER 4096
@@ -144,6 +146,7 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
 
 static bool check_face_is_tri(PBVH *pbvh, BMFace *f);
 static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v);
+static void pbvh_split_edges(PBVH *pbvh, BMesh *bm, BMEdge **edges, int totedge);
 
 BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v)
 {
@@ -1688,6 +1691,9 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
       BMEdge *e = edges[j];
       e->head.hflag &= ~BM_ELEM_TAG;
 
+      check_vert_fan_are_tris(pbvh, e->v1);
+      check_vert_fan_are_tris(pbvh, e->v2);
+
       float w = -calc_weighted_edge_split(eq_ctx, e->v1, e->v2);
       float w2 = maskcb_get(eq_ctx, e);
 
@@ -1837,9 +1843,6 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   BMesh *bm = pbvh->bm;
 
   // pbvh_bmesh_check_nodes(pbvh);
-
-  check_vert_fan_are_tris(pbvh, e->v1);
-  check_vert_fan_are_tris(pbvh, e->v2);
 
   // pbvh_bmesh_check_nodes(pbvh);
 
@@ -2046,6 +2049,11 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
   RNG *rng = BLI_rng_new((int)(time * 1000.0f));
   int step = 0;
 
+#ifdef USE_NEW_SPLIT
+  BMEdge **edges = NULL;
+  BLI_array_staticdeclare(edges, 1024);
+#endif
+
   while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
     if (step++ > max_steps) {
       break;
@@ -2105,8 +2113,12 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
     }
 
     any_subdivided = true;
+#ifdef USE_NEW_SPLIT
+    BLI_array_append(edges, e);
+#else
 
     pbvh_bmesh_split_edge(eq_ctx, pbvh, e, edge_loops);
+#endif
   }
 
 #if !defined(DYNTOPO_USE_HEAP) && defined(USE_EDGEQUEUE_TAG)
@@ -2124,6 +2136,11 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
 
 #ifdef USE_EDGEQUEUE_TAG_VERIFY
   pbvh_bmesh_edge_tag_verify(pbvh);
+#endif
+
+#ifdef USE_NEW_SPLIT
+  pbvh_split_edges(pbvh, pbvh->bm, edges, BLI_array_len(edges));
+  BLI_array_free(edges);
 #endif
 
   BLI_rng_free(rng);
@@ -3014,3 +3031,311 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
   return modified;
 }
+
+#ifdef USE_NEW_SPLIT
+#  define SPLIT_TAG BM_ELEM_TAG_ALT
+
+/*
+#generate shifted and mirrored patterns
+
+table = [
+  [4, 3, -1, -1, -1],
+  [5, -1, 3, -1, 4, -1],
+  [6, -1, 3, -1, 5, -1, 1, -1]
+]
+
+table2 = {}
+
+def getmask(row):
+  mask = 0
+  for i in range(len(row)):
+    if row[i] >= 0:
+      mask |= 1 << i
+  return mask
+
+for row in table:
+  #table2.append(row)
+
+  n = row[0]
+  row = row[1:]
+
+  mask = getmask(row)
+  table2[mask] = [n] + row
+
+  for step in range(2):
+    for i in range(n):
+      row2 = []
+      for j in range(n):
+        j2 = row[(j + i) % n]
+        if j2 >= 0:
+          j2 = (j2 + i) % n
+        row2.append(j2)
+
+      mask = getmask(row2)
+      if mask not in table2:
+        table2[mask] = [n] + row2
+
+    row.reverse()
+
+maxk = 0
+for k in table2:
+  maxk = max(maxk, k)
+
+buf = 'static const int splitmap[%i][16] = {\n' % (maxk+1)
+buf += '  //{numverts, vert_connections...}\n'
+
+for k in range(maxk+1):
+  if k not in table2:
+    buf += '  {-1},\n'
+    continue
+
+  buf += '  {'
+  row = table2[k]
+  for j in range(len(row)):
+    if j > 0:
+      buf += ", "
+    buf += str(row[j])
+  buf += '},\n'
+buf += '};\n'
+print(buf)
+
+*/
+
+static const int splitmap[43][16] = {
+    //{numverts, vert_connections...}
+    {-1},                          // 0
+    {4, 2, -1, -1, -1},            // 1
+    {4, -1, 3, -1, -1},            // 2
+    {-1},                          // 3
+    {4, -1, -1, 0, -1},            // 4
+    {5, 2, -1, 4, -1, -1},         // 5
+    {-1},                          // 6
+    {-1},                          // 7
+    {4, -1, -1, -1, 1},            // 8
+    {5, 2, -1, -1, 0, -1},         // 9
+    {5, -1, 3, -1, 0, -1},         // 10
+    {-1},                          // 11
+    {-1},                          // 12
+    {-1},                          // 13
+    {-1},                          // 14
+    {-1},                          // 15
+    {-1},                          // 16
+    {-1},                          // 17
+    {5, -1, 3, -1, -1, 1},         // 18
+    {-1},                          // 19
+    {5, -1, -1, 4, -1, 1},         // 20
+    {6, 2, -1, 4, -1, 0, -1},      // 21
+    {-1},                          // 22
+    {-1},                          // 23
+    {-1},                          // 24
+    {-1},                          // 25
+    {-1},                          // 26
+    {-1},                          // 27
+    {-1},                          // 28
+    {-1},                          // 29
+    {-1},                          // 30
+    {-1},                          // 31
+    {-1},                          // 32
+    {-1},                          // 33
+    {-1},                          // 34
+    {-1},                          // 35
+    {-1},                          // 36
+    {-1},                          // 37
+    {-1},                          // 38
+    {-1},                          // 39
+    {-1},                          // 40
+    {-1},                          // 41
+    {6, -1, 3, -1, 5, -1, 1, -1},  // 42
+};
+
+static void pbvh_split_edges(PBVH *pbvh, BMesh *bm, BMEdge **edges, int totedge)
+{
+  BMFace **faces = NULL;
+  BLI_array_staticdeclare(faces, 512);
+
+  for (int i = 0; i < totedge; i++) {
+    BMEdge *e = edges[i];
+    BMLoop *l = e->l;
+
+#  if 0
+    int ni = BM_ELEM_CD_GET_INT(e->v1, pbvh->cd_vert_node_offset);
+    if (ni >= 0) {
+      PBVHNode *node = pbvh->nodes + ni;
+
+      BLI_table_gset_remove(node->bm_unique_verts, e->v1, NULL);
+      BM_ELEM_CD_SET_INT(e->v1, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+    }
+
+    ni = BM_ELEM_CD_GET_INT(e->v2, pbvh->cd_vert_node_offset);
+    if (ni >= 0) {
+      PBVHNode *node = pbvh->nodes + ni;
+
+      BLI_table_gset_remove(node->bm_unique_verts, e->v2, NULL);
+      BM_ELEM_CD_SET_INT(e->v2, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+    }
+#  endif
+
+    check_vert_fan_are_tris(pbvh, e->v1);
+    check_vert_fan_are_tris(pbvh, e->v2);
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      BMLoop *l2 = l->f->l_first;
+      do {
+        l2->e->head.hflag &= ~SPLIT_TAG;
+        l2->v->head.hflag &= ~SPLIT_TAG;
+      } while ((l2 = l2->next) != l->f->l_first);
+
+      l->f->head.hflag &= ~SPLIT_TAG;
+    } while ((l = l->radial_next) != e->l);
+  }
+
+  for (int i = 0; i < totedge; i++) {
+    BMEdge *e = edges[i];
+    BMLoop *l = e->l;
+
+    e->head.hflag |= SPLIT_TAG;
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      if (!(l->f->head.hflag & SPLIT_TAG)) {
+        l->f->head.hflag |= SPLIT_TAG;
+        BLI_array_append(faces, l->f);
+      }
+
+    } while ((l = l->radial_next) != e->l);
+  }
+
+  int totface = BLI_array_len(faces);
+  for (int i = 0; i < totface; i++) {
+    BMFace *f = faces[i];
+    BMLoop *l = f->l_first;
+
+    pbvh_bmesh_face_remove(pbvh, f, true, false, false);
+
+    int mask = 0;
+    int j = 0;
+
+    do {
+      if (l->e->head.hflag & SPLIT_TAG) {
+        mask |= 1 << j;
+      }
+
+      j++;
+    } while ((l = l->next) != f->l_first);
+
+    f->head.index = mask;
+  }
+
+  for (int i = 0; i < totedge; i++) {
+    BMEdge *e = edges[i];
+    BMEdge *newe = NULL;
+
+    if (!(e->head.hflag & SPLIT_TAG)) {
+      // printf("error split\n");
+      continue;
+    }
+
+    e->head.hflag &= ~SPLIT_TAG;
+
+    BMVert *newv = BM_edge_split(bm, e, e->v1, &newe, 0.5f);
+
+    newv->head.hflag |= SPLIT_TAG;
+
+    BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+    BM_log_vert_added(pbvh->bm_log, newv, pbvh->cd_vert_mask_offset);
+  }
+
+  for (int i = 0; i < totface; i++) {
+    BMFace *f = faces[i];
+    int mask = 0;
+
+    BMLoop *l = f->l_first;
+    int j = 0;
+    do {
+      if (l->v->head.hflag & SPLIT_TAG) {
+        mask |= 1 << j;
+      }
+      j++;
+    } while ((l = l->next) != f->l_first);
+
+    if (mask >= ARRAY_SIZE(splitmap)) {
+      printf("splitmap error!\n");
+      continue;
+    }
+
+    const int *pat = splitmap[mask];
+    int n = pat[0];
+
+    if (n < 0) {
+      continue;
+    }
+
+    if (n != f->len) {
+      printf("error!\n");
+      continue;
+    }
+
+    BMFace *f2 = f;
+    BMVert **vs = BLI_array_alloca(vs, n);
+
+    l = f->l_first;
+    j = 0;
+    do {
+      vs[j++] = l->v;
+    } while ((l = l->next) != f->l_first);
+
+    BMFace **newfaces = BLI_array_alloca(newfaces, n);
+    int count = 0;
+
+    for (j = 0; j < n; j++) {
+      if (pat[j + 1] < 0) {
+        continue;
+      }
+
+      BMVert *v1 = vs[j], *v2 = vs[pat[j + 1]];
+      BMLoop *l1 = NULL, *l2 = NULL;
+      BMLoop *rl = NULL;
+
+      BMLoop *l3 = f2->l_first;
+      do {
+        if (l3->v == v1) {
+          l1 = l3;
+        }
+        else if (l3->v == v2) {
+          l2 = l3;
+        }
+      } while ((l3 = l3->next) != f2->l_first);
+
+      if (l1 == l2 || !l1 || !l2) {
+        printf("errorl!\n");
+        continue;
+      }
+
+      BMFace *newf = BM_face_split(bm, f2, l1, l2, &rl, NULL, false);
+      if (newf) {
+        newfaces[count++] = newf;
+        f2 = newf;
+      }
+      else {
+        printf("error!\n");
+        continue;
+      }
+    }
+
+    for (j = 0; j < count; j++) {
+      BKE_pbvh_bmesh_add_face(pbvh, newfaces[j], true, false);
+    }
+
+    BKE_pbvh_bmesh_add_face(pbvh, f, true, false);
+  }
+
+  BLI_array_free(faces);
+}
+#endif

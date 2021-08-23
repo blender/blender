@@ -1520,6 +1520,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *f_example)
 #endif
 
   BM_elem_attrs_copy(bm, bm, f_example, f);
+  bm_alloc_id(bm, (BMElem *)f);
 
   return f;
 }
