@@ -118,7 +118,7 @@ static void sequence_invalidate_cache(Scene *scene,
   }
 
   if (seq->effectdata && seq->type == SEQ_TYPE_SPEED) {
-    seq_effect_speed_rebuild_map(scene, seq, true);
+    seq_effect_speed_rebuild_map(scene, seq);
   }
 
   sequence_do_invalidate_dependent(scene, seq, &ed->seqbase);
@@ -268,7 +268,7 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
         SEQ_relations_sequence_free_anim(seq);
       }
       if (seq->type == SEQ_TYPE_SPEED) {
-        seq_effect_speed_rebuild_map(scene, seq, true);
+        seq_effect_speed_rebuild_map(scene, seq);
       }
     }
     if (seq->type == SEQ_TYPE_META) {
@@ -325,7 +325,7 @@ static bool update_changed_seq_recurs(
         SEQ_relations_sequence_free_anim(seq);
       }
       else if (seq->type == SEQ_TYPE_SPEED) {
-        seq_effect_speed_rebuild_map(scene, seq, true);
+        seq_effect_speed_rebuild_map(scene, seq);
       }
     }
 

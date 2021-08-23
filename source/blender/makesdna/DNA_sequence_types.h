@@ -339,11 +339,8 @@ typedef struct SpeedControlVars {
   float *frameMap;
   /* DEPRECATED, only used for versioning. */
   float globalSpeed;
-  /* DEPRECATED, only used for versioning. */
   int flags;
 
-  int length;
-  int lastValidFrame;
   int speed_control_type;
 
   float speed_fader;

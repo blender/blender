@@ -1176,11 +1176,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
         seq->flag |= SEQ_EFFECT_NOT_LOADED;
       }
 
-      if (seq->type == SEQ_TYPE_SPEED) {
-        SpeedControlVars *s = seq->effectdata;
-        s->frameMap = NULL;
-      }
-
       if (seq->type == SEQ_TYPE_TEXT) {
         TextVars *t = seq->effectdata;
         t->text_blf_id = SEQ_FONT_NOT_LOADED;
