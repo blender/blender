@@ -29,6 +29,7 @@ ColorRampOperation::ColorRampOperation()
 
   this->m_inputProgram = nullptr;
   this->m_colorBand = nullptr;
+  this->flags.can_be_constant = true;
 }
 void ColorRampOperation::initExecution()
 {
@@ -49,6 +50,15 @@ void ColorRampOperation::executePixelSampled(float output[4],
 void ColorRampOperation::deinitExecution()
 {
   this->m_inputProgram = nullptr;
+}
+
+void ColorRampOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                      const rcti &area,
+                                                      Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    BKE_colorband_evaluate(m_colorBand, *it.in(0), it.out);
+  }
 }
 
 }  // namespace blender::compositor

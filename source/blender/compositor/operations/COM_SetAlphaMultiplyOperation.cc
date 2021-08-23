@@ -28,6 +28,7 @@ SetAlphaMultiplyOperation::SetAlphaMultiplyOperation()
 
   this->m_inputColor = nullptr;
   this->m_inputAlpha = nullptr;
+  this->flags.can_be_constant = true;
 }
 
 void SetAlphaMultiplyOperation::initExecution()
@@ -54,6 +55,17 @@ void SetAlphaMultiplyOperation::deinitExecution()
 {
   this->m_inputColor = nullptr;
   this->m_inputAlpha = nullptr;
+}
+
+void SetAlphaMultiplyOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                             const rcti &area,
+                                                             Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *color = it.in(0);
+    const float alpha = *it.in(1);
+    mul_v4_v4fl(it.out, color, alpha);
+  }
 }
 
 }  // namespace blender::compositor
