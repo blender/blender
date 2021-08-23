@@ -62,6 +62,13 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
+void FastGaussianBlurOperation::init_data()
+{
+  BlurBaseOperation::init_data();
+  this->m_sx = this->m_data.sizex * this->m_size / 2.0f;
+  this->m_sy = this->m_data.sizey * this->m_size / 2.0f;
+}
+
 void FastGaussianBlurOperation::initExecution()
 {
   BlurBaseOperation::initExecution();
@@ -117,6 +124,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
                                           unsigned int chan,
                                           unsigned int xy)
 {
+  BLI_assert(!src->is_a_single_elem());
   double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
   double *X, *Y, *W;
   const unsigned int src_width = src->getWidth();
@@ -257,6 +265,64 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
 #undef YVV
 }
 
+void FastGaussianBlurOperation::get_area_of_interest(const int input_idx,
+                                                     const rcti &output_area,
+                                                     rcti &r_input_area)
+{
+  switch (input_idx) {
+    case IMAGE_INPUT_INDEX:
+      r_input_area.xmin = 0;
+      r_input_area.xmax = getWidth();
+      r_input_area.ymin = 0;
+      r_input_area.ymax = getHeight();
+      break;
+    default:
+      BlurBaseOperation::get_area_of_interest(input_idx, output_area, r_input_area);
+      return;
+  }
+}
+
+void FastGaussianBlurOperation::update_memory_buffer_started(MemoryBuffer *output,
+                                                             const rcti &area,
+                                                             Span<MemoryBuffer *> inputs)
+{
+  /* TODO(manzanilla): Add a render test and make #IIR_gauss multi-threaded with support for
+   * an output buffer. */
+  const MemoryBuffer *input = inputs[IMAGE_INPUT_INDEX];
+  MemoryBuffer *image = nullptr;
+  const bool is_full_output = BLI_rcti_compare(&output->get_rect(), &area);
+  if (is_full_output) {
+    image = output;
+  }
+  else {
+    image = new MemoryBuffer(getOutputSocket()->getDataType(), area);
+  }
+  image->copy_from(input, area);
+
+  if ((this->m_sx == this->m_sy) && (this->m_sx > 0.0f)) {
+    for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
+      IIR_gauss(image, this->m_sx, c, 3);
+    }
+  }
+  else {
+    if (this->m_sx > 0.0f) {
+      for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
+        IIR_gauss(image, this->m_sx, c, 1);
+      }
+    }
+    if (this->m_sy > 0.0f) {
+      for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
+        IIR_gauss(image, this->m_sy, c, 2);
+      }
+    }
+  }
+
+  if (!is_full_output) {
+    output->copy_from(image, area);
+    delete image;
+  }
+}
+
 FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -339,6 +405,46 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
   }
   unlockMutex();
   return this->m_iirgaus;
+}
+
+void FastGaussianBlurValueOperation::get_area_of_interest(const int UNUSED(input_idx),
+                                                          const rcti &UNUSED(output_area),
+                                                          rcti &r_input_area)
+{
+  r_input_area.xmin = 0;
+  r_input_area.xmax = getWidth();
+  r_input_area.ymin = 0;
+  r_input_area.ymax = getHeight();
+}
+
+void FastGaussianBlurValueOperation::update_memory_buffer_started(MemoryBuffer *UNUSED(output),
+                                                                  const rcti &UNUSED(area),
+                                                                  Span<MemoryBuffer *> inputs)
+{
+  if (m_iirgaus == nullptr) {
+    const MemoryBuffer *image = inputs[0];
+    MemoryBuffer *gauss = new MemoryBuffer(*image);
+    FastGaussianBlurOperation::IIR_gauss(gauss, m_sigma, 0, 3);
+    m_iirgaus = gauss;
+  }
+}
+
+void FastGaussianBlurValueOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                                  const rcti &area,
+                                                                  Span<MemoryBuffer *> inputs)
+{
+  MemoryBuffer *image = inputs[0];
+  BuffersIterator<float> it = output->iterate_with({image, m_iirgaus}, area);
+  if (this->m_overlay == FAST_GAUSS_OVERLAY_MIN) {
+    for (; !it.is_end(); ++it) {
+      *it.out = MIN2(*it.in(0), *it.in(1));
+    }
+  }
+  else if (this->m_overlay == FAST_GAUSS_OVERLAY_MAX) {
+    for (; !it.is_end(); ++it) {
+      *it.out = MAX2(*it.in(0), *it.in(1));
+    }
+  }
 }
 
 }  // namespace blender::compositor

@@ -363,6 +363,14 @@ MINLINE signed char round_db_to_char_clamp(double a){
 #undef _round_clamp_fl_impl
 #undef _round_clamp_db_impl
 
+/**
+ * Round to closest even number, halfway cases are rounded away from zero.
+ */
+MINLINE float round_to_even(float f)
+{
+  return roundf(f * 0.5f) * 2.0f;
+}
+
 /* integer division that rounds 0.5 up, particularly useful for color blending
  * with integers, to avoid gradual darkening when rounding down */
 MINLINE int divide_round_i(int a, int b)

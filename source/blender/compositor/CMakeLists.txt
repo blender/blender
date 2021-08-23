@@ -328,10 +328,14 @@ set(SRC
   operations/COM_FastGaussianBlurOperation.h
   operations/COM_GammaCorrectOperation.cc
   operations/COM_GammaCorrectOperation.h
+  operations/COM_GaussianAlphaBlurBaseOperation.cc
+  operations/COM_GaussianAlphaBlurBaseOperation.h
   operations/COM_GaussianAlphaXBlurOperation.cc
   operations/COM_GaussianAlphaXBlurOperation.h
   operations/COM_GaussianAlphaYBlurOperation.cc
   operations/COM_GaussianAlphaYBlurOperation.h
+  operations/COM_GaussianBlurBaseOperation.cc
+  operations/COM_GaussianBlurBaseOperation.h
   operations/COM_GaussianBokehBlurOperation.cc
   operations/COM_GaussianBokehBlurOperation.h
   operations/COM_GaussianXBlurOperation.cc

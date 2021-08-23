@@ -24,11 +24,9 @@
 
 namespace blender::compositor {
 
-GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(DataType::Value)
+GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation()
+    : GaussianAlphaBlurBaseOperation(eDimension::Y)
 {
-  this->m_gausstab = nullptr;
-  this->m_filtersize = 0;
-  this->m_falloff = -1; /* intentionally invalid, so we can detect uninitialized values */
 }
 
 void *GaussianAlphaYBlurOperation::initializeTileData(rcti * /*rect*/)
@@ -42,14 +40,14 @@ void *GaussianAlphaYBlurOperation::initializeTileData(rcti * /*rect*/)
   return buffer;
 }
 
+/* TODO(manzanilla): to be removed with tiled implementation. */
 void GaussianAlphaYBlurOperation::initExecution()
 {
-  /* Until we support size input - comment this. */
-  // BlurBaseOperation::initExecution();
+  GaussianAlphaBlurBaseOperation::initExecution();
 
   initMutex();
 
-  if (this->m_sizeavailable) {
+  if (this->m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
     float rad = max_ff(m_size * m_data.sizey, 0.0f);
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
@@ -58,6 +56,7 @@ void GaussianAlphaYBlurOperation::initExecution()
   }
 }
 
+/* TODO(manzanilla): to be removed with tiled implementation. */
 void GaussianAlphaYBlurOperation::updateGauss()
 {
   if (this->m_gausstab == nullptr) {
@@ -143,7 +142,7 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
 
 void GaussianAlphaYBlurOperation::deinitExecution()
 {
-  BlurBaseOperation::deinitExecution();
+  GaussianAlphaBlurBaseOperation::deinitExecution();
 
   if (this->m_gausstab) {
     MEM_freeN(this->m_gausstab);

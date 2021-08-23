@@ -196,6 +196,8 @@ MINLINE unsigned int log2_ceil_u(unsigned int x);
 MINLINE int divide_round_i(int a, int b);
 MINLINE int mod_i(int i, int n);
 
+MINLINE float round_to_even(float f);
+
 MINLINE signed char round_fl_to_char(float a);
 MINLINE unsigned char round_fl_to_uchar(float a);
 MINLINE short round_fl_to_short(float a);

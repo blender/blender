@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "COM_QualityStepHelper.h"
 
 #define MAX_GAUSSTAB_RADIUS 30000
@@ -27,10 +27,16 @@
 
 namespace blender::compositor {
 
-class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
+class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
+  bool m_extend_bounds;
+
  protected:
-  BlurBaseOperation(DataType data_type);
+  static constexpr int IMAGE_INPUT_INDEX = 0;
+  static constexpr int SIZE_INPUT_INDEX = 1;
+
+ protected:
+  BlurBaseOperation(DataType data_type8);
   float *make_gausstab(float rad, int size);
 #ifdef BLI_HAVE_SSE2
   __m128 *convert_gausstab_sse(const float *gausstab, int size);
@@ -49,9 +55,11 @@ class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
   float m_size;
   bool m_sizeavailable;
 
-  bool m_extend_bounds;
+  /* Flags for inheriting classes. */
+  bool use_variable_size_;
 
  public:
+  virtual void init_data() override;
   /**
    * Initialize the execution
    */
@@ -75,8 +83,14 @@ class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
     this->m_extend_bounds = extend_bounds;
   }
 
+  int get_blur_size(eDimension dim) const;
+
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
+
+  virtual void get_area_of_interest(int input_idx,
+                                    const rcti &output_area,
+                                    rcti &r_input_area) override;
 };
 
 }  // namespace blender::compositor

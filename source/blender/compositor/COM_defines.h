@@ -33,6 +33,8 @@ enum class eExecutionModel {
   FullFrame
 };
 
+enum class eDimension { X, Y };
+
 /**
  * \brief possible data types for sockets
  * \ingroup Model
