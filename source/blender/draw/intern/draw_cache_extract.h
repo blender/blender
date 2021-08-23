@@ -152,8 +152,6 @@ typedef struct MeshBufferCache {
     GPUIndexBuf *edituv_points;
     GPUIndexBuf *edituv_fdots;
   } ibo;
-  /* Index buffer per material. These are subranges of `ibo.tris` */
-  GPUIndexBuf **tris_per_mat;
 } MeshBufferCache;
 
 /**
@@ -225,6 +223,9 @@ typedef struct MeshBatchCache {
     GPUBatch *wire_loops_uvs; /* Same as wire_loops but only has uvs. */
     GPUBatch *sculpt_overlays;
   } batch;
+
+  /* Index buffer per material. These are subranges of `ibo.tris` */
+  GPUIndexBuf **tris_per_mat;
 
   GPUBatch **surface_per_mat;
 

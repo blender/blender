@@ -105,20 +105,19 @@ static void extract_tris_finish(const MeshRenderData *mr,
 
   /* Create ibo sub-ranges. Always do this to avoid error when the standard surface batch
    * is created before the surfaces-per-material. */
-  if (mr->use_final_mesh && cache->final.tris_per_mat) {
-    MeshBufferCache *mbc_final = &cache->final;
+  if (mr->use_final_mesh && cache->tris_per_mat) {
     int mat_start = 0;
     for (int i = 0; i < mr->mat_len; i++) {
       /* These IBOs have not been queried yet but we create them just in case they are needed
        * later since they are not tracked by mesh_buffer_cache_create_requested(). */
-      if (mbc_final->tris_per_mat[i] == nullptr) {
-        mbc_final->tris_per_mat[i] = GPU_indexbuf_calloc();
+      if (cache->tris_per_mat[i] == nullptr) {
+        cache->tris_per_mat[i] = GPU_indexbuf_calloc();
       }
       const int mat_tri_len = mr->poly_sorted.mat_tri_len[i];
       /* Multiply by 3 because these are triangle indices. */
       const int start = mat_start * 3;
       const int len = mat_tri_len * 3;
-      GPU_indexbuf_create_subrange_in_place(mbc_final->tris_per_mat[i], ibo, start, len);
+      GPU_indexbuf_create_subrange_in_place(cache->tris_per_mat[i], ibo, start, len);
       mat_start += mat_tri_len;
     }
   }
@@ -197,17 +196,16 @@ static void extract_tris_single_mat_finish(const MeshRenderData *mr,
 
   /* Create ibo sub-ranges. Always do this to avoid error when the standard surface batch
    * is created before the surfaces-per-material. */
-  if (mr->use_final_mesh && cache->final.tris_per_mat) {
-    MeshBufferCache *mbc = &cache->final;
+  if (mr->use_final_mesh && cache->tris_per_mat) {
     for (int i = 0; i < mr->mat_len; i++) {
       /* These IBOs have not been queried yet but we create them just in case they are needed
        * later since they are not tracked by mesh_buffer_cache_create_requested(). */
-      if (mbc->tris_per_mat[i] == nullptr) {
-        mbc->tris_per_mat[i] = GPU_indexbuf_calloc();
+      if (cache->tris_per_mat[i] == nullptr) {
+        cache->tris_per_mat[i] = GPU_indexbuf_calloc();
       }
       /* Multiply by 3 because these are triangle indices. */
       const int len = mr->tri_len * 3;
-      GPU_indexbuf_create_subrange_in_place(mbc->tris_per_mat[i], ibo, 0, len);
+      GPU_indexbuf_create_subrange_in_place(cache->tris_per_mat[i], ibo, 0, len);
     }
   }
 }
