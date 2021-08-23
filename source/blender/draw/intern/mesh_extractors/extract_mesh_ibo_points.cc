@@ -169,7 +169,7 @@ constexpr MeshExtract create_extractor_points()
   extractor.use_threading = true;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.points);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.points);
   return extractor;
 }
 

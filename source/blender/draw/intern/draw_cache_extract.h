@@ -101,7 +101,7 @@ BLI_INLINE int mesh_render_mat_len_get(const Mesh *me)
   return MAX2(1, me->totcol);
 }
 
-typedef struct MeshBufferCache {
+typedef struct MeshBufferList {
   /* Every VBO below contains at least enough
    * data for every loops in the mesh (except fdots and skin roots).
    * For some VBOs, it extends to (in this exact order) :
@@ -152,7 +152,7 @@ typedef struct MeshBufferCache {
     GPUIndexBuf *edituv_points;
     GPUIndexBuf *edituv_fdots;
   } ibo;
-} MeshBufferCache;
+} MeshBufferList;
 
 /**
  * Data that are kept around between extractions to reduce rebuilding time.
@@ -174,15 +174,16 @@ typedef struct MeshBufferExtractionCache {
   } poly_sorted;
 } MeshBufferExtractionCache;
 
-#define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbc) \
-  for (MeshBufferCache *mbc = &batch_cache->final; \
-       mbc == &batch_cache->final || mbc == &batch_cache->cage || mbc == &batch_cache->uv_cage; \
-       mbc = (mbc == &batch_cache->final) ? \
-                 &batch_cache->cage : \
-                 ((mbc == &batch_cache->cage) ? &batch_cache->uv_cage : NULL))
+#define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbuflist) \
+  for (MeshBufferList *mbuflist = &batch_cache->final; \
+       mbuflist == &batch_cache->final || mbuflist == &batch_cache->cage || \
+       mbuflist == &batch_cache->uv_cage; \
+       mbuflist = (mbuflist == &batch_cache->final) ? \
+                      &batch_cache->cage : \
+                      ((mbuflist == &batch_cache->cage) ? &batch_cache->uv_cage : NULL))
 
 typedef struct MeshBatchCache {
-  MeshBufferCache final, cage, uv_cage;
+  MeshBufferList final, cage, uv_cage;
 
   MeshBufferExtractionCache final_extraction_cache;
   MeshBufferExtractionCache cage_extraction_cache;
@@ -261,8 +262,8 @@ typedef struct MeshBatchCache {
 } MeshBatchCache;
 
 #define MBC_BATCH_LEN (sizeof(((MeshBatchCache){0}).batch) / sizeof(void *))
-#define MBC_VBO_LEN (sizeof(((MeshBufferCache){0}).vbo) / sizeof(void *))
-#define MBC_IBO_LEN (sizeof(((MeshBufferCache){0}).ibo) / sizeof(void *))
+#define MBC_VBO_LEN (sizeof(((MeshBufferList){0}).vbo) / sizeof(void *))
+#define MBC_IBO_LEN (sizeof(((MeshBufferList){0}).ibo) / sizeof(void *))
 
 #define MBC_BATCH_INDEX(batch_name) \
   ((offsetof(MeshBatchCache, batch_name) - offsetof(MeshBatchCache, batch)) / sizeof(void *))
@@ -307,7 +308,7 @@ BLI_STATIC_ASSERT(MBC_BATCH_INDEX(surface_per_mat) < 32,
 
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
-                                        MeshBufferCache *mbc,
+                                        MeshBufferList *mbuflist,
                                         MeshBufferExtractionCache *extraction_cache,
                                         Mesh *me,
                                         const bool is_editmode,

@@ -79,8 +79,8 @@
 
 /* clang-format off */
 
-#define BUFFER_INDEX(buff_name) ((offsetof(MeshBufferCache, buff_name) - offsetof(MeshBufferCache, vbo)) / sizeof(void *))
-#define BUFFER_LEN (sizeof(MeshBufferCache) / sizeof(void *))
+#define BUFFER_INDEX(buff_name) ((offsetof(MeshBufferList, buff_name) - offsetof(MeshBufferList, vbo)) / sizeof(void *))
+#define BUFFER_LEN (sizeof(MeshBufferList) / sizeof(void *))
 
 #define _BATCH_FLAG1(b) (1u << MBC_BATCH_INDEX(b))
 #define _BATCH_FLAG2(b1, b2) _BATCH_FLAG1(b1) | _BATCH_FLAG1(b2)
@@ -844,14 +844,14 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
   }
 }
 
-static void mesh_buffer_cache_clear(MeshBufferCache *mbufcache)
+static void mesh_buffer_list_clear(MeshBufferList *mbuflist)
 {
-  GPUVertBuf **vbos = (GPUVertBuf **)&mbufcache->vbo;
-  GPUIndexBuf **ibos = (GPUIndexBuf **)&mbufcache->ibo;
-  for (int i = 0; i < sizeof(mbufcache->vbo) / sizeof(void *); i++) {
+  GPUVertBuf **vbos = (GPUVertBuf **)&mbuflist->vbo;
+  GPUIndexBuf **ibos = (GPUIndexBuf **)&mbuflist->ibo;
+  for (int i = 0; i < sizeof(mbuflist->vbo) / sizeof(void *); i++) {
     GPU_VERTBUF_DISCARD_SAFE(vbos[i]);
   }
-  for (int i = 0; i < sizeof(mbufcache->ibo) / sizeof(void *); i++) {
+  for (int i = 0; i < sizeof(mbuflist->ibo) / sizeof(void *); i++) {
     GPU_INDEXBUF_DISCARD_SAFE(ibos[i]);
   }
 }
@@ -874,8 +874,8 @@ static void mesh_batch_cache_clear(Mesh *me)
   if (!cache) {
     return;
   }
-  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    mesh_buffer_cache_clear(mbufcache);
+  FOREACH_MESH_BUFFER_CACHE (cache, mbuflist) {
+    mesh_buffer_list_clear(mbuflist);
   }
 
   mesh_buffer_extraction_cache_clear(&cache->final_extraction_cache);
@@ -1508,7 +1508,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   const bool do_uvcage = is_editmode && !me->edit_mesh->mesh_eval_final->runtime.is_original;
 
-  MeshBufferCache *mbufcache = &cache->final;
+  MeshBufferList *mbufcache = &cache->final;
 
   /* Initialize batches and request VBO's & IBO's. */
   MDEPS_ASSERT(batch.surface, ibo.tris, vbo.lnor, vbo.pos_nor, vbo.uv, vbo.vcol);

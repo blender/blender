@@ -134,7 +134,7 @@ constexpr MeshExtract create_extractor_tris()
   extractor.data_type = MR_DATA_LOOPTRI | MR_DATA_POLYS_SORTED;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.tris);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.tris);
   return extractor;
 }
 
@@ -221,7 +221,7 @@ constexpr MeshExtract create_extractor_tris_single_mat()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.tris);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.tris);
   return extractor;
 }
 

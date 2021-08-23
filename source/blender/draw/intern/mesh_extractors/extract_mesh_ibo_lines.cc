@@ -168,7 +168,7 @@ constexpr MeshExtract create_extractor_lines()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.lines);
   return extractor;
 }
 
@@ -213,7 +213,7 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.lines);
   return extractor;
 }
 
@@ -240,7 +240,7 @@ constexpr MeshExtract create_extractor_lines_loose_only()
   extractor.data_type = MR_DATA_LOOSE_GEOM;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_loose);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.lines_loose);
   return extractor;
 }
 

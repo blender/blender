@@ -114,7 +114,7 @@ constexpr MeshExtract create_extractor_lines_paint_mask()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_LinePaintMask_Data);
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_paint_mask);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.lines_paint_mask);
   return extractor;
 }
 

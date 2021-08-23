@@ -105,7 +105,7 @@ constexpr MeshExtract create_extractor_fdots()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.fdots);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.fdots);
   return extractor;
 }
 

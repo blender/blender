@@ -102,7 +102,7 @@ constexpr MeshExtract create_extractor_orco()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_Orco_Data);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.orco);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.orco);
   return extractor;
 }
 
