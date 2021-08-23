@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class CryptomatteOperation : public NodeOperation {
+class CryptomatteOperation : public MultiThreadedOperation {
  private:
   Vector<float> m_objectIndex;
 
@@ -35,6 +35,10 @@ class CryptomatteOperation : public NodeOperation {
   void executePixel(float output[4], int x, int y, void *data) override;
 
   void addObjectIndex(float objectIndex);
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

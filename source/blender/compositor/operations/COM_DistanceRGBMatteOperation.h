@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_MixOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
@@ -26,13 +26,13 @@ namespace blender::compositor {
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-class DistanceRGBMatteOperation : public NodeOperation {
+class DistanceRGBMatteOperation : public MultiThreadedOperation {
  protected:
   NodeChroma *m_settings;
   SocketReader *m_inputImageProgram;
   SocketReader *m_inputKeyProgram;
 
-  virtual float calculateDistance(float key[4], float image[4]);
+  virtual float calculateDistance(const float key[4], const float image[4]);
 
  public:
   /**
@@ -52,6 +52,10 @@ class DistanceRGBMatteOperation : public NodeOperation {
   {
     this->m_settings = nodeChroma;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

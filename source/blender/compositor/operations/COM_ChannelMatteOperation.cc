@@ -27,6 +27,7 @@ ChannelMatteOperation::ChannelMatteOperation()
   addOutputSocket(DataType::Value);
 
   this->m_inputImageProgram = nullptr;
+  flags.can_be_constant = true;
 }
 
 void ChannelMatteOperation::initExecution()
@@ -119,6 +120,39 @@ void ChannelMatteOperation::executePixelSampled(float output[4],
 
   /* Don't make something that was more transparent less transparent. */
   output[0] = MIN2(alpha, inColor[3]);
+}
+
+void ChannelMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                         const rcti &area,
+                                                         Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *color = it.in(0);
+
+    /* Matte operation. */
+    float alpha = color[this->m_ids[0]] - MAX2(color[this->m_ids[1]], color[this->m_ids[2]]);
+
+    /* Flip because 0.0 is transparent, not 1.0. */
+    alpha = 1.0f - alpha;
+
+    /* Test range. */
+    if (alpha > m_limit_max) {
+      alpha = color[3]; /* Whatever it was prior. */
+    }
+    else if (alpha < m_limit_min) {
+      alpha = 0.0f;
+    }
+    else { /* Blend. */
+      alpha = (alpha - m_limit_min) / m_limit_range;
+    }
+
+    /* Store matte(alpha) value in [0] to go with
+     * COM_SetAlphaMultiplyOperation and the Value output.
+     */
+
+    /* Don't make something that was more transparent less transparent. */
+    *it.out = MIN2(alpha, color[3]);
+  }
 }
 
 }  // namespace blender::compositor
