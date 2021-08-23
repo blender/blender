@@ -175,7 +175,7 @@ void register_node_type_sh_valtorgb(void)
 {
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, sh_node_valtorgb_in, sh_node_valtorgb_out);
   node_type_init(&ntype, node_shader_init_valtorgb);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
@@ -221,7 +221,7 @@ void register_node_type_sh_rgbtobw(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
+  sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, sh_node_rgbtobw_in, sh_node_rgbtobw_out);
   node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_rgbtobw);
   node_type_gpu(&ntype, gpu_shader_rgbtobw);

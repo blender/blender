@@ -91,7 +91,7 @@ void register_node_type_sh_sepxyz(void)
 {
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_SEPXYZ, "Separate XYZ", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, sh_node_sepxyz_in, sh_node_sepxyz_out);
   node_type_gpu(&ntype, gpu_shader_sepxyz);
   ntype.build_multi_function = sh_node_sepxyz_build_multi_function;
@@ -131,7 +131,7 @@ void register_node_type_sh_combxyz(void)
 {
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, sh_node_combxyz_in, sh_node_combxyz_out);
   node_type_gpu(&ntype, gpu_shader_combxyz);
   ntype.build_multi_function = sh_node_combxyz_build_multi_function;

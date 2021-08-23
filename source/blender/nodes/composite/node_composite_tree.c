@@ -67,7 +67,7 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
   func(calldata, NODE_CLASS_OP_COLOR, N_("Color"));
   func(calldata, NODE_CLASS_OP_VECTOR, N_("Vector"));
   func(calldata, NODE_CLASS_OP_FILTER, N_("Filter"));
-  func(calldata, NODE_CLASS_CONVERTOR, N_("Convertor"));
+  func(calldata, NODE_CLASS_CONVERTER, N_("Converter"));
   func(calldata, NODE_CLASS_MATTE, N_("Matte"));
   func(calldata, NODE_CLASS_DISTORT, N_("Distort"));
   func(calldata, NODE_CLASS_GROUP, N_("Group"));

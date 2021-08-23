@@ -670,8 +670,8 @@ int node_get_colorid(bNode *node)
       return TH_NODE_INPUT;
     case NODE_CLASS_OUTPUT:
       return (node->flag & NODE_DO_OUTPUT) ? TH_NODE_OUTPUT : TH_NODE;
-    case NODE_CLASS_CONVERTOR:
-      return TH_NODE_CONVERTOR;
+    case NODE_CLASS_CONVERTER:
+      return TH_NODE_CONVERTER;
     case NODE_CLASS_OP_COLOR:
       return TH_NODE_COLOR;
     case NODE_CLASS_OP_VECTOR:
