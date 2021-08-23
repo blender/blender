@@ -245,7 +245,9 @@ void MemoryBuffer::copy_from(const MemoryBuffer *src,
 
 void MemoryBuffer::copy_from(const uchar *src, const rcti &area)
 {
-  copy_from(src, area, 0, this->get_num_channels(), this->get_num_channels(), 0);
+  const int elem_stride = this->get_num_channels();
+  const int row_stride = elem_stride * getWidth();
+  copy_from(src, area, 0, this->get_num_channels(), elem_stride, row_stride, 0);
 }
 
 void MemoryBuffer::copy_from(const uchar *src,
@@ -253,10 +255,18 @@ void MemoryBuffer::copy_from(const uchar *src,
                              const int channel_offset,
                              const int elem_size,
                              const int elem_stride,
+                             const int row_stride,
                              const int to_channel_offset)
 {
-  copy_from(
-      src, area, channel_offset, elem_size, elem_stride, area.xmin, area.ymin, to_channel_offset);
+  copy_from(src,
+            area,
+            channel_offset,
+            elem_size,
+            elem_stride,
+            row_stride,
+            area.xmin,
+            area.ymin,
+            to_channel_offset);
 }
 
 void MemoryBuffer::copy_from(const uchar *src,
@@ -264,6 +274,7 @@ void MemoryBuffer::copy_from(const uchar *src,
                              const int channel_offset,
                              const int elem_size,
                              const int elem_stride,
+                             const int row_stride,
                              const int to_x,
                              const int to_y,
                              const int to_channel_offset)
@@ -273,10 +284,9 @@ void MemoryBuffer::copy_from(const uchar *src,
 
   const int width = BLI_rcti_size_x(&area);
   const int height = BLI_rcti_size_y(&area);
-  const int src_row_stride = width * elem_stride;
-  const uchar *const src_start = src + area.ymin * src_row_stride + channel_offset;
+  const uchar *const src_start = src + area.ymin * row_stride + channel_offset;
   for (int y = 0; y < height; y++) {
-    const uchar *from_elem = src_start + y * src_row_stride;
+    const uchar *from_elem = src_start + y * row_stride + area.xmin * elem_stride;
     float *to_elem = &this->get_value(to_x, to_y + y, to_channel_offset);
     const float *row_end = to_elem + width * this->elem_stride;
     while (to_elem < row_end) {
@@ -346,7 +356,16 @@ void MemoryBuffer::copy_from(const ImBuf *src,
   else if (src->rect) {
     const uchar *uc_buf = (uchar *)src->rect;
     const int elem_stride = src->channels;
-    copy_from(uc_buf, area, channel_offset, elem_size, elem_stride, to_x, to_y, to_channel_offset);
+    const int row_stride = elem_stride * src->x;
+    copy_from(uc_buf,
+              area,
+              channel_offset,
+              elem_size,
+              elem_stride,
+              row_stride,
+              to_x,
+              to_y,
+              to_channel_offset);
     if (ensure_linear_space) {
       colorspace_to_scene_linear(this, area, src->rect_colorspace);
     }

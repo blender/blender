@@ -583,12 +583,14 @@ class MemoryBuffer {
                  int channel_offset,
                  int elem_size,
                  int elem_stride,
+                 int row_stride,
                  int to_channel_offset);
   void copy_from(const uchar *src,
                  const rcti &area,
                  int channel_offset,
                  int elem_size,
                  int elem_stride,
+                 int row_stride,
                  int to_x,
                  int to_y,
                  int to_channel_offset);
