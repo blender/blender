@@ -3397,7 +3397,7 @@ char *RNA_property_string_get_alloc(
     buf = fixedbuf;
   }
   else {
-    buf = MEM_mallocN(sizeof(char) * (length + 1), "RNA_string_get_alloc");
+    buf = MEM_mallocN(sizeof(char) * (length + 1), __func__);
   }
 
 #ifndef NDEBUG
@@ -3537,10 +3537,8 @@ void RNA_property_string_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop,
   strcpy(value, sprop->defaultvalue);
 }
 
-char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
-                                            PropertyRNA *prop,
-                                            char *fixedbuf,
-                                            int fixedlen)
+char *RNA_property_string_get_default_alloc(
+    PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len)
 {
   char *buf;
   int length;
@@ -3553,10 +3551,14 @@ char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
     buf = fixedbuf;
   }
   else {
-    buf = MEM_callocN(sizeof(char) * (length + 1), "RNA_string_get_alloc");
+    buf = MEM_callocN(sizeof(char) * (length + 1), __func__);
   }
 
   RNA_property_string_get_default(ptr, prop, buf);
+
+  if (r_len) {
+    *r_len = length;
+  }
 
   return buf;
 }
@@ -6587,15 +6589,18 @@ void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
   }
 }
 
-char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen)
+char *RNA_string_get_alloc(
+    PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen, int *r_len)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, name);
 
   if (prop) {
-    /* TODO: pass length. */
-    return RNA_property_string_get_alloc(ptr, prop, fixedbuf, fixedlen, NULL);
+    return RNA_property_string_get_alloc(ptr, prop, fixedbuf, fixedlen, r_len);
   }
   printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
+  if (r_len != NULL) {
+    *r_len = 0;
+  }
   return NULL;
 }
 
@@ -8166,7 +8171,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
     }
 
     case PROP_STRING: {
-      char *value = RNA_property_string_get_default_alloc(ptr, prop, NULL, 0);
+      char *value = RNA_property_string_get_default_alloc(ptr, prop, NULL, 0, NULL);
       RNA_property_string_set(ptr, prop, value);
       MEM_freeN(value);
       return true;

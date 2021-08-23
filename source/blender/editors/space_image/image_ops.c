@@ -3935,7 +3935,7 @@ static int tile_add_exec(bContext *C, wmOperator *op)
   }
 
   bool fill_tile = RNA_boolean_get(op->ptr, "fill");
-  char *label = RNA_string_get_alloc(op->ptr, "label", NULL, 0);
+  char *label = RNA_string_get_alloc(op->ptr, "label", NULL, 0, NULL);
 
   /* BKE_image_add_tile assumes a pre-sorted list of tiles. */
   BKE_image_sort_tiles(ima);

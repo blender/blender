@@ -68,7 +68,7 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char head[FILE_MAX], tail[FILE_MAX];
     ushort digits;
-    char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+    char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
     ImageFrame *frame = MEM_callocN(sizeof(ImageFrame), "image_frame");
 
     /* use the first file in the list as base filename */

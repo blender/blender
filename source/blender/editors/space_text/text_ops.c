@@ -3430,7 +3430,7 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 
   text_drawcache_tag_update(st, 0);
 
-  str = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
+  str = RNA_string_get_alloc(op->ptr, "text", NULL, 0, NULL);
 
   ED_text_undo_push_init(C);
 

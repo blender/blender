@@ -576,7 +576,7 @@ static int paste_from_file_exec(bContext *C, wmOperator *op)
   char *path;
   int retval;
 
-  path = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
+  path = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0, NULL);
   retval = paste_from_file(C, op->reports, path);
   MEM_freeN(path);
 
@@ -1627,7 +1627,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  inserted_utf8 = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
+  inserted_utf8 = RNA_string_get_alloc(op->ptr, "text", NULL, 0, NULL);
   len = BLI_strlen_utf8(inserted_utf8);
 
   inserted_text = MEM_callocN(sizeof(char32_t) * (len + 1), "FONT_insert_text");

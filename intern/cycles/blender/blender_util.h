@@ -424,7 +424,7 @@ static inline void set_enum(PointerRNA &ptr, const char *name, const string &ide
 static inline string get_string(PointerRNA &ptr, const char *name)
 {
   char cstrbuf[1024];
-  char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf));
+  char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf), NULL);
   string str(cstr);
   if (cstr != cstrbuf)
     MEM_freeN(cstr);

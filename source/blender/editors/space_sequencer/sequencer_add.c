@@ -254,11 +254,11 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
     BLI_strncpy(load_data->name, BLI_path_basename(load_data->path), sizeof(load_data->name));
   }
   else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
-    char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0);
+    char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
 
     if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
-        char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+        char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
         BLI_strncpy(load_data->name, filename, sizeof(load_data->name));
         BLI_join_dirfile(load_data->path, sizeof(load_data->path), directory, filename);
         MEM_freeN(filename);
@@ -944,7 +944,7 @@ int sequencer_image_seq_get_minmax_frame(wmOperator *op,
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char *filename;
     int frame;
-    filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+    filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
 
     if (filename) {
       if (BLI_path_frame_get(filename, &frame, &numdigits)) {
@@ -973,7 +973,7 @@ void sequencer_image_seq_reserve_frames(
 {
   char *filename = NULL;
   RNA_BEGIN (op->ptr, itemptr, "files") {
-    filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+    filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
     break;
   }
   RNA_END;
@@ -1023,7 +1023,7 @@ static void sequencer_add_image_strip_load_files(
   else {
     size_t strip_frame = 0;
     RNA_BEGIN (op->ptr, itemptr, "files") {
-      char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+      char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
       SEQ_add_image_load_file(seq, strip_frame, filename);
       MEM_freeN(filename);
       strip_frame++;

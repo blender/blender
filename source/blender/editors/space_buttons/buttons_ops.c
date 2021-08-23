@@ -198,7 +198,8 @@ static int file_browse_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   FileBrowseOp *fbo = op->customdata;
   ID *id;
-  char *str, path[FILE_MAX];
+  char *str;
+  int str_len;
   const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" :
                                                                            "filepath";
 
@@ -206,10 +207,11 @@ static int file_browse_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  str = RNA_string_get_alloc(op->ptr, path_prop, NULL, 0);
+  str = RNA_string_get_alloc(op->ptr, path_prop, NULL, 0, &str_len);
 
   /* Add slash for directories, important for some properties. */
   if (RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
+    char path[FILE_MAX];
     const bool is_relative = RNA_boolean_get(op->ptr, "relative_path");
     id = fbo->ptr.owner_id;
 
@@ -220,13 +222,13 @@ static int file_browse_exec(bContext *C, wmOperator *op)
       /* Do this first so '//' isn't converted to '//\' on windows. */
       BLI_path_slash_ensure(path);
       if (is_relative) {
-        BLI_strncpy(path, str, FILE_MAX);
+        const int path_len = BLI_strncpy_rlen(path, str, FILE_MAX);
         BLI_path_rel(path, BKE_main_blendfile_path(bmain));
-        str = MEM_reallocN(str, strlen(path) + 2);
+        str = MEM_reallocN(str, path_len + 2);
         BLI_strncpy(str, path, FILE_MAX);
       }
       else {
-        str = MEM_reallocN(str, strlen(str) + 2);
+        str = MEM_reallocN(str, str_len + 2);
       }
     }
     else {

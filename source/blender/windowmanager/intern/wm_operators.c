@@ -2497,7 +2497,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
 
   /* get an rna string path from the operator's properties */
   char *str;
-  if (!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0))) {
+  if (!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0, NULL))) {
     return 1;
   }
 

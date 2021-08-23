@@ -1029,10 +1029,8 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const char *value, int len);
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_string_get_default(PointerRNA *ptr, PropertyRNA *prop, char *value);
-char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
-                                            PropertyRNA *prop,
-                                            char *fixedbuf,
-                                            int fixedlen);
+char *RNA_property_string_get_default_alloc(
+    PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len);
 int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop);
 
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
@@ -1238,7 +1236,8 @@ bool RNA_enum_icon_from_value(const EnumPropertyItem *item, int value, int *r_ic
 bool RNA_enum_name_from_value(const EnumPropertyItem *item, int value, const char **r_name);
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
-char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen);
+char *RNA_string_get_alloc(
+    PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen, int *r_len);
 int RNA_string_length(PointerRNA *ptr, const char *name);
 void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 
