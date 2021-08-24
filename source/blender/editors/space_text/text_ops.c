@@ -3424,25 +3424,26 @@ static int text_insert_exec(bContext *C, wmOperator *op)
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
   char *str;
+  int str_len;
   bool done = false;
   size_t i = 0;
   uint code;
 
   text_drawcache_tag_update(st, 0);
 
-  str = RNA_string_get_alloc(op->ptr, "text", NULL, 0, NULL);
+  str = RNA_string_get_alloc(op->ptr, "text", NULL, 0, &str_len);
 
   ED_text_undo_push_init(C);
 
   if (st && st->overwrite) {
     while (str[i]) {
-      code = BLI_str_utf8_as_unicode_step(str, &i);
+      code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
       done |= txt_replace_char(text, code);
     }
   }
   else {
     while (str[i]) {
-      code = BLI_str_utf8_as_unicode_step(str, &i);
+      code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
       done |= txt_add_char(text, code);
     }
   }

@@ -298,7 +298,7 @@ static void blf_batch_draw_end(void)
  */
 
 BLI_INLINE GlyphBLF *blf_utf8_next_fast(
-    FontBLF *font, GlyphCacheBLF *gc, const char *str, size_t *i_p, uint *r_c)
+    FontBLF *font, GlyphCacheBLF *gc, const char *str, size_t str_len, size_t *i_p, uint *r_c)
 {
   GlyphBLF *g;
   if ((*r_c = str[*i_p]) < GLYPH_ASCII_TABLE_SIZE) {
@@ -309,7 +309,7 @@ BLI_INLINE GlyphBLF *blf_utf8_next_fast(
     }
     (*i_p)++;
   }
-  else if ((*r_c = BLI_str_utf8_as_unicode_step(str, i_p)) != BLI_UTF8_ERR) {
+  else if ((*r_c = BLI_str_utf8_as_unicode_step(str, str_len, i_p)) != BLI_UTF8_ERR) {
     g = blf_glyph_search(gc, *r_c);
     if (UNLIKELY(g == NULL)) {
       g = blf_glyph_add(font, gc, FT_Get_Char_Index(font->face, *r_c), *r_c);
@@ -382,7 +382,7 @@ static void blf_font_draw_ex(FontBLF *font,
   blf_batch_draw_begin(font);
 
   while ((i < str_len) && str[i]) {
-    g = blf_utf8_next_fast(font, gc, str, &i, &c);
+    g = blf_utf8_next_fast(font, gc, str, str_len, &i, &c);
 
     if (UNLIKELY(c == BLI_UTF8_ERR)) {
       break;
@@ -478,7 +478,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int
   blf_batch_draw_begin(font);
 
   while ((i < str_len) && str[i]) {
-    g = blf_utf8_next_fast(font, gc, str, &i, &c);
+    g = blf_utf8_next_fast(font, gc, str, str_len, &i, &c);
 
     if (UNLIKELY(c == BLI_UTF8_ERR)) {
       break;
@@ -535,7 +535,7 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
   /* another buffer specific call for color conversion */
 
   while ((i < str_len) && str[i]) {
-    g = blf_utf8_next_fast(font, gc, str, &i, &c);
+    g = blf_utf8_next_fast(font, gc, str, str_len, &i, &c);
 
     if (UNLIKELY(c == BLI_UTF8_ERR)) {
       break;
@@ -703,7 +703,7 @@ size_t blf_font_width_to_strlen(
 
   for (i_prev = i = 0, width_new = pen_x = 0, g_prev = NULL, c_prev = 0; (i < str_len) && str[i];
        i_prev = i, width_new = pen_x, c_prev = c, g_prev = g) {
-    g = blf_utf8_next_fast(font, gc, str, &i, &c);
+    g = blf_utf8_next_fast(font, gc, str, str_len, &i, &c);
 
     if (blf_font_width_to_strlen_glyph_process(font, c_prev, c, g_prev, g, &pen_x, width_i)) {
       break;
@@ -737,7 +737,7 @@ size_t blf_font_width_to_rstrlen(
   i_prev = (size_t)((s_prev != NULL) ? s_prev - str : 0);
 
   i_tmp = i;
-  g = blf_utf8_next_fast(font, gc, str, &i_tmp, &c);
+  g = blf_utf8_next_fast(font, gc, str, str_len, &i_tmp, &c);
   for (width_new = pen_x = 0; (s != NULL);
        i = i_prev, s = s_prev, c = c_prev, g = g_prev, g_prev = NULL, width_new = pen_x) {
     s_prev = BLI_str_find_prev_char_utf8(str, s);
@@ -745,7 +745,7 @@ size_t blf_font_width_to_rstrlen(
 
     if (s_prev != NULL) {
       i_tmp = i_prev;
-      g_prev = blf_utf8_next_fast(font, gc, str, &i_tmp, &c_prev);
+      g_prev = blf_utf8_next_fast(font, gc, str, str_len, &i_tmp, &c_prev);
       BLI_assert(i_tmp == i);
     }
 
@@ -788,7 +788,7 @@ static void blf_font_boundbox_ex(FontBLF *font,
   box->ymax = -32000.0f;
 
   while ((i < str_len) && str[i]) {
-    g = blf_utf8_next_fast(font, gc, str, &i, &c);
+    g = blf_utf8_next_fast(font, gc, str, str_len, &i, &c);
 
     if (UNLIKELY(c == BLI_UTF8_ERR)) {
       break;
@@ -961,7 +961,7 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
 
   while ((i < str_len) && str[i]) {
     i_curr = i;
-    g = blf_utf8_next_fast(font, gc, str, &i, &c);
+    g = blf_utf8_next_fast(font, gc, str, str_len, &i, &c);
 
     if (UNLIKELY(c == BLI_UTF8_ERR)) {
       break;
@@ -1051,7 +1051,7 @@ static void blf_font_wrap_apply(FontBLF *font,
     size_t i_curr = i;
     bool do_draw = false;
 
-    g = blf_utf8_next_fast(font, gc, str, &i, &c);
+    g = blf_utf8_next_fast(font, gc, str, str_len, &i, &c);
 
     if (UNLIKELY(c == BLI_UTF8_ERR)) {
       break;
@@ -1202,7 +1202,7 @@ int blf_font_count_missing_chars(FontBLF *font,
     if ((c = str[i]) < GLYPH_ASCII_TABLE_SIZE) {
       i++;
     }
-    else if ((c = BLI_str_utf8_as_unicode_step(str, &i)) != BLI_UTF8_ERR) {
+    else if ((c = BLI_str_utf8_as_unicode_step(str, str_len, &i)) != BLI_UTF8_ERR) {
       if (FT_Get_Char_Index((font)->face, c) == 0) {
         missing++;
       }

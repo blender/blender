@@ -1660,7 +1660,7 @@ void txt_insert_buf(Text *text, const char *in_buffer)
 
   /* Read the first line (or as close as possible */
   while (buffer[i] && buffer[i] != '\n') {
-    txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, &i));
+    txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, len, &i));
   }
 
   if (buffer[i] == '\n') {
@@ -1682,7 +1682,7 @@ void txt_insert_buf(Text *text, const char *in_buffer)
       }
       else {
         for (j = i - l; j < i && j < len;) {
-          txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, &j));
+          txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, len, &j));
         }
         break;
       }

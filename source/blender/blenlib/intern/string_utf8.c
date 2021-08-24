@@ -582,49 +582,69 @@ uint BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, size_t *__r
 
 /**
  * Another variant that steps over the index.
+ *
+ * \param p: The text to step over.
+ * \param p_len: The length of `p`.
+ * \param index: Index of `p` to step over.
+ *
  * \note currently this also falls back to latin1 for text drawing.
+ *
+ * \note The behavior for clipped text (where `p_len` limits decoding trailing bytes)
+ * must have the same behavior is encountering a nil byte,
+ * so functions that only use the first part of a string has matching behavior to functions
+ * that null terminate the text.
  */
-uint BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict index)
+uint BLI_str_utf8_as_unicode_step(const char *__restrict p,
+                                  const size_t p_len,
+                                  size_t *__restrict index)
 {
   int i, len;
   uint mask = 0;
   uint result;
-  unsigned char c;
+  const char c = p[*index];
 
-  p += *index;
-  c = (unsigned char)*p;
+  BLI_assert(*index < p_len);
+  BLI_assert(c != '\0');
 
   UTF8_COMPUTE(c, mask, len, -1);
   if (UNLIKELY(len == -1)) {
-    /* when called with NULL end, result will never be NULL,
-     * checks for a NULL character */
-    const char *p_next = BLI_str_find_next_char_utf8(p, NULL);
-    /* will never return the same pointer unless '\0',
-     * eternal loop is prevented */
-    *index += (size_t)(p_next - p);
-    return BLI_UTF8_ERR;
+    const char *p_next = BLI_str_find_next_char_utf8(p + *index, p + p_len);
+    /* #BLI_str_find_next_char_utf8 ensures the nil byte will terminate.
+     * so there is no chance this sets the index past the nil byte (assert this is the case). */
+    BLI_assert(p_next || (memchr(p + *index, '\0', p_len - *index) == NULL));
+    len = (int)((p_next ? (size_t)(p_next - p) : p_len) - *index);
+    result = BLI_UTF8_ERR;
   }
-
-  /* this is tricky since there are a few ways we can bail out of bad unicode
-   * values, 3 possible solutions. */
-#if 0
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
-#elif 1
-  /* WARNING: this is NOT part of glib, or supported by similar functions.
-   * this is added for text drawing because some filepaths can have latin1
-   * characters */
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
-  if (result == BLI_UTF8_ERR) {
+  else if (UNLIKELY(*index + (size_t)len > p_len)) {
+    /* A multi-byte character reads past the buffer bounds,
+     * match the behavior of encountering an byte with invalid encoding below. */
     len = 1;
-    result = *p;
+    result = (uint)c;
   }
-  /* end warning! */
+  else {
+    /* This is tricky since there are a few ways we can bail out of bad unicode
+     * values, 3 possible solutions. */
+    p += *index;
+#if 0
+    UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
+#elif 1
+    /* WARNING: this is NOT part of glib, or supported by similar functions.
+     * this is added for text drawing because some filepaths can have latin1
+     * characters */
+    UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
+    if (result == BLI_UTF8_ERR) {
+      len = 1;
+      result = (uint)c;
+    }
+    /* end warning! */
 #else
-  /* without a fallback like '?', text drawing will stop on this value */
-  UTF8_GET(result, p, i, mask, len, '?');
+    /* Without a fallback like '?', text drawing will stop on this value. */
+    UTF8_GET(result, p, i, mask, len, '?');
 #endif
+  }
 
   *index += (size_t)len;
+  BLI_assert(*index <= p_len);
   return result;
 }
 
@@ -810,6 +830,7 @@ char *BLI_str_find_next_char_utf8(const char *p, const char *end)
 {
   if (*p) {
     if (end) {
+      BLI_assert(end >= p);
       for (++p; p < end && (*p & 0xc0) == 0x80; p++) {
         /* do nothing */
       }
