@@ -1248,7 +1248,7 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
     packet->stream_index = stream->index;
     av_packet_rescale_ts(packet, c->time_base, stream->time_base);
 #  ifdef FFMPEG_USE_DURATION_WORKAROUND
-    my_guess_pkt_duration(context->outfile, stream, packet);
+    my_guess_pkt_duration(outfile, stream, packet);
 #  endif
 
     int write_ret = av_interleaved_write_frame(outfile, packet);
