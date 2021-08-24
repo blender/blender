@@ -143,11 +143,6 @@ int BKE_mesh_mface_index_validate(struct MFace *mface,
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
-void BKE_mesh_from_nurbs_displist(struct Main *bmain,
-                                  struct Object *ob,
-                                  struct ListBase *dispbase,
-                                  const char *obdata_name,
-                                  bool temporary);
 void BKE_mesh_to_curve_nurblist(const struct Mesh *me,
                                 struct ListBase *nurblist,
                                 const int edge_users_test);
