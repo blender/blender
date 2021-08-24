@@ -625,6 +625,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 #endif
 
+  /* Disable cursor wrap when edge panning is enabled. */
+  if (t->options & CTX_VIEW2D_EDGE_PAN) {
+    t->flag |= T_NO_CURSOR_WRAP;
+  }
+
   setTransformViewAspect(t, t->aspect);
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) &&

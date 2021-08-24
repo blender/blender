@@ -1671,6 +1671,13 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
+  if ((prop = RNA_struct_find_property(op->ptr, "view2d_edge_pan")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    if (RNA_property_boolean_get(op->ptr, prop)) {
+      options |= CTX_VIEW2D_EDGE_PAN;
+    }
+  }
+
   t->options = options;
 
   t->mode = mode;

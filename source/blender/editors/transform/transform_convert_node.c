@@ -46,12 +46,6 @@
 /** \name Node Transform Creation
  * \{ */
 
-typedef struct NodeTransCustomData {
-  /* Initial rect of the view2d, used for computing offset during edge panning */
-  rctf initial_v2d_cur;
-  View2DEdgePanData edge_pan;
-} NodeTransCustomData;
-
 /* transcribe given node into TransData2D for Transforming */
 static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const float dpi_fac)
 {
@@ -115,21 +109,16 @@ void createTransNodeData(TransInfo *t)
   const float dpi_fac = UI_DPI_FAC;
   SpaceNode *snode = t->area->spacedata.first;
 
-  if (t->mode == TFM_TRANSLATION) {
-    /* Disable cursor wrapping in the node editor for edge pan */
-    t->flag |= T_NO_CURSOR_WRAP;
-  }
-
   /* Custom data to enable edge panning during the node transform */
-  NodeTransCustomData *customdata = MEM_callocN(sizeof(*customdata), __func__);
+  View2DEdgePanData *customdata = MEM_callocN(sizeof(*customdata), __func__);
   UI_view2d_edge_pan_init(t->context,
-                          &customdata->edge_pan,
+                          customdata,
                           NODE_EDGE_PAN_INSIDE_PAD,
                           NODE_EDGE_PAN_OUTSIDE_PAD,
                           NODE_EDGE_PAN_SPEED_RAMP,
                           NODE_EDGE_PAN_MAX_SPEED,
-                          NODE_EDGE_PAN_DELAY);
-  customdata->initial_v2d_cur = t->region->v2d.cur;
+                          NODE_EDGE_PAN_DELAY,
+                          NODE_EDGE_PAN_ZOOM_INFLUENCE);
   t->custom.type.data = customdata;
   t->custom.type.use_free = true;
 
@@ -176,17 +165,22 @@ void flushTransNodes(TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
 
-  NodeTransCustomData *customdata = (NodeTransCustomData *)t->custom.type.data;
+  View2DEdgePanData *customdata = (View2DEdgePanData *)t->custom.type.data;
 
-  if (t->mode == TFM_TRANSLATION) {
-    /* Edge panning functions expect window coordinates, mval is relative to region */
-    const float x = t->region->winrct.xmin + t->mval[0];
-    const float y = t->region->winrct.ymin + t->mval[1];
-    UI_view2d_edge_pan_apply(t->context, &customdata->edge_pan, x, y);
+  if (t->options & CTX_VIEW2D_EDGE_PAN) {
+    if (t->state == TRANS_CANCEL) {
+      UI_view2d_edge_pan_cancel(t->context, customdata);
+    }
+    else {
+      /* Edge panning functions expect window coordinates, mval is relative to region */
+      const float x = t->region->winrct.xmin + t->mval[0];
+      const float y = t->region->winrct.ymin + t->mval[1];
+      UI_view2d_edge_pan_apply(t->context, customdata, x, y);
+    }
   }
 
   /* Initial and current view2D rects for additional transform due to view panning and zooming */
-  const rctf *rect_src = &customdata->initial_v2d_cur;
+  const rctf *rect_src = &customdata->initial_rect;
   const rctf *rect_dst = &t->region->v2d.cur;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
