@@ -1984,9 +1984,12 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
   if (type == SCE_COPY_FULL) {
     /* Scene duplication is always root of duplication currently. */
     const bool is_subprocess = false;
+    const bool is_root_id = true;
 
     if (!is_subprocess) {
       BKE_main_id_newptr_and_tag_clear(bmain);
+    }
+    if (is_root_id) {
       /* In case root duplicated ID is linked, assume we want to get a local copy of it and
        * duplicate all expected linked data. */
       if (ID_IS_LINKED(sce)) {

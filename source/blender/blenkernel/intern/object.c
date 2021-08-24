@@ -2614,17 +2614,21 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 Object *BKE_object_duplicate(Main *bmain,
                              Object *ob,
                              eDupli_ID_Flags dupflag,
-                             const eLibIDDuplicateFlags duplicate_options)
+                             eLibIDDuplicateFlags duplicate_options)
 {
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
+  const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
 
   if (!is_subprocess) {
     BKE_main_id_newptr_and_tag_clear(bmain);
+  }
+  if (is_root_id) {
     /* In case root duplicated ID is linked, assume we want to get a local copy of it and duplicate
      * all expected linked data. */
     if (ID_IS_LINKED(ob)) {
       dupflag |= USER_DUP_LINKED_ID;
     }
+    duplicate_options &= ~LIB_ID_DUPLICATE_IS_ROOT_ID;
   }
 
   Material ***matarar;
