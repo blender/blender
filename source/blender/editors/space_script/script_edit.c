@@ -47,7 +47,7 @@
 
 static int run_pyfile_exec(bContext *C, wmOperator *op)
 {
-  char path[512];
+  char path[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", path);
 #ifdef WITH_PYTHON
   if (BPY_run_filepath(C, path, op->reports)) {
