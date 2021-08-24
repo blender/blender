@@ -92,11 +92,6 @@ static void camera_copy_data(Main *UNUSED(bmain),
   BLI_duplicatelist(&cam_dst->bg_images, &cam_src->bg_images);
 }
 
-static void camera_make_local(Main *bmain, ID *id, const int flags)
-{
-  BKE_lib_id_make_local_generic(bmain, id, flags);
-}
-
 /** Free (or release) any data used by this camera (does not free the camera itself). */
 static void camera_free_data(ID *id)
 {
@@ -192,7 +187,7 @@ IDTypeInfo IDType_ID_CA = {
     .init_data = camera_init_data,
     .copy_data = camera_copy_data,
     .free_data = camera_free_data,
-    .make_local = camera_make_local,
+    .make_local = NULL,
     .foreach_id = camera_foreach_id,
     .foreach_cache = NULL,
     .owner_get = NULL,
