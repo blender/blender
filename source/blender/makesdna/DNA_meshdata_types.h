@@ -550,8 +550,12 @@ enum {
   DYNVERT_NEED_BOUNDARY = (1 << 3),
   DYNVERT_NEED_TRIANGULATE = (1 << 4),
   DYNVERT_NEED_DISK_SORT = (1 << 5),
-  DYNVERT_NEED_VALENCE = (1 << 6)
-
+  DYNVERT_NEED_VALENCE = (1 << 6),
+  DYNVERT_FSET_CORNER = (1 << 7),
+  DYNVERT_CORNER = (1 << 8),
+  DYNVERT_API_TEMP1 = (1 << 9),
+  DYNVERT_API_TEMP2 = (1 << 10),
+  DYNVERT_SPLIT_TEMP = (1 << 15)
 };
 
 #ifdef __cplusplus

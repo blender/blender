@@ -82,6 +82,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
   const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex, check_fsets);
+
   const float *co = SCULPT_vertex_co_get(ss, vertex);
   float no[3];
 
@@ -666,6 +667,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
   const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  const bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
   if (weighted) {
     BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
@@ -695,6 +697,11 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     }
     else {
       float avg[3], val[3];
+
+      if (SCULPT_vertex_is_corner(ss, vd.vertex, check_fsets)) {
+        continue;
+      }
+
       SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, projection);
       sub_v3_v3v3(val, avg, vd.co);
       madd_v3_v3v3fl(val, vd.co, val, fade);

@@ -36,6 +36,7 @@
 
 //#define USE_NEW_SPLIT
 #define DYNVERT_ALL_BOUNDARY (DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY)
+#define DYNVERT_ALL_CORNER (DYNVERT_CORNER | DYNVERT_FSET_CORNER)
 
 #define DYNTOPO_MAX_ITER 4096
 
@@ -171,6 +172,10 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v)
 
   MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
   const bool bound1 = mv1->flag & DYNVERT_ALL_BOUNDARY;
+
+  if (mv1->flag & DYNVERT_ALL_CORNER) {
+    return;
+  }
 
   do {
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
@@ -1586,15 +1591,14 @@ static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
     for (int i = 0; i < totface; i++) {
       if (fs[i] == f2) {
-        fs[i] = NULL;
+        // fs[i] = NULL;
       }
     }
 
-    if (dbl->link == f) {
-      f = NULL;
+    if (dbl->link != f) {
+      // f = NULL;
+      // BM_face_kill(pbvh->bm, dbl->link);
     }
-
-    BM_face_kill(pbvh->bm, dbl->link);
 
     MEM_freeN(dbl);
     dbl = next;
@@ -1909,6 +1913,10 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
 
       pbvh_check_vert_boundary(pbvh, e->v1);
       pbvh_check_vert_boundary(pbvh, e->v2);
+
+      if ((mv1->flag & DYNVERT_ALL_CORNER) || (mv2->flag & DYNVERT_ALL_CORNER)) {
+        continue;
+      }
 
       if ((mv1->flag & DYNVERT_ALL_BOUNDARY) != (mv2->flag & DYNVERT_ALL_BOUNDARY)) {
         continue;

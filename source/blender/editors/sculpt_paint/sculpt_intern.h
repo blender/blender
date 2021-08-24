@@ -121,7 +121,7 @@ char SCULPT_mesh_symmetry_xyz_get(Object *object);
 void SCULPT_vertex_random_access_ensure(struct SculptSession *ss);
 void SCULPT_face_random_access_ensure(struct SculptSession *ss);
 
-int SCULPT_vertex_valence_get(struct SculptSession *ss, SculptVertRef vertex);
+int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vertex);
 
 int SCULPT_vertex_count_get(struct SculptSession *ss);
 const float *SCULPT_vertex_co_get(struct SculptSession *ss, SculptVertRef index);
@@ -171,7 +171,7 @@ typedef struct SculptVertexNeighborIter {
   bool is_duplicate;
 } SculptVertexNeighborIter;
 
-void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
+void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
                                  const SculptVertRef vref,
                                  const bool include_duplicates,
                                  SculptVertexNeighborIter *iter);
@@ -222,6 +222,18 @@ void SCULPT_fake_neighbors_free(struct Object *ob);
 
 /* Vertex Info. */
 void SCULPT_boundary_info_ensure(Object *object);
+
+/* this is a bitmask */
+typedef enum SculptCornerType {
+  SCULPT_CORNER_NONE = 0,
+  SCULPT_CORNER_BOUNDARY = 1,
+  SCULPT_CORNER_FACE_SET = 2
+} SculptCornerType;
+
+SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
+                                         const SculptVertRef index,
+                                         bool check_facesets);
+
 /* Boundary Info needs to be initialized in order to use this function. */
 bool SCULPT_vertex_is_boundary(const SculptSession *ss,
                                const SculptVertRef index,
@@ -869,7 +881,7 @@ typedef struct SculptThreadedTaskData {
   SculptVertRef mask_by_color_vertex;
   float *mask_by_color_floodfill;
 
-  int face_set;
+  int face_set, face_set2;
   int filter_undo_type;
 
   int mask_init_mode;

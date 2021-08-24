@@ -1286,36 +1286,97 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
 
 /***************************** Public API *****************************/
 
+static float sculpt_corner_angle(float *base, float *co1, float *co2)
+{
+  float t1[3], t2[3];
+  sub_v3_v3v3(t1, co1, base);
+  sub_v3_v3v3(t2, co2, base);
+
+  normalize_v3(t1);
+  normalize_v3(t2);
+
+  float th = dot_v3v3(t1, t2);
+
+  return saacos(th);
+}
+
+typedef struct FSetTemp {
+  BMVert *v;
+  int fset;
+  bool boundary;
+} FSetTemp;
+
 void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVert *v)
 {
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
 
   BMEdge *e = v->e;
   mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY |
-                DYNVERT_NEED_TRIANGULATE);
+                DYNVERT_NEED_TRIANGULATE | DYNVERT_FSET_CORNER | DYNVERT_CORNER |
+                DYNVERT_NEED_VALENCE);
 
   if (!e) {
     mv->flag |= DYNVERT_BOUNDARY;
     return;
   }
 
-  int lastfset = 0;
+  int fset1 = 0;
+  int fset2 = 0;
+  int fset3 = 0;
+  BMVert *vfset1 = NULL;
+  BMVert *vfset2 = NULL;
+  int fset2_count = 0;
+
+  int fset1_count = 0;
+
   bool first = true;
 
+  int val = 0;
+
+  FSetTemp *fsets = NULL;
+  BLI_array_staticdeclare(fsets, 32);
+
   do {
+    BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
+
     if (e->l) {
       int fset = abs(BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset));
-
-      if (!first && fset != lastfset) {
-        mv->flag |= DYNVERT_FSET_BOUNDARY;
-      }
 
       if (e->l->f->len > 3) {
         mv->flag |= DYNVERT_NEED_TRIANGULATE;
       }
 
-      lastfset = fset;
+      if (!fset1) {
+        fset1 = fset;
+        vfset1 = v2;
+      }
+      else if (!fset2 && fset != fset1) {
+        fset2 = fset;
+      }
+      else if (!fset3 && fset != fset1 && fset != fset2) {
+        fset3 = fset;
+      }
+
+      if (!vfset2 && fset == fset2 && v2 != vfset1) {
+        vfset2 = v2;
+      }
+
+      if (fset == fset1) {
+        fset1_count++;
+      }
+
+      if (fset == fset2) {
+        fset2_count++;
+      }
+
       first = false;
+
+      bool bound = (e->l == e->l->radial_next) ||
+                   (abs(BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset)) !=
+                    abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset)));
+
+      FSetTemp fs = {.fset = fset, .v = v2, .boundary = bound};
+      BLI_array_append(fsets, fs);
 
       // also check e->l->radial_next, in case we are not manifold
       // which can mess up the loop order
@@ -1326,9 +1387,30 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
           mv->flag |= DYNVERT_NEED_TRIANGULATE;
         }
 
-        if (fset != lastfset) {
-          mv->flag |= DYNVERT_FSET_BOUNDARY;
+        if (!fset1) {
+          fset1 = fset;
         }
+        else if (!fset2 && fset != fset1) {
+          fset2 = fset;
+        }
+        else if (!fset3 && fset != fset1 && fset != fset2) {
+          fset3 = fset;
+        }
+
+        if (fset == fset1) {
+          fset1_count++;
+        }
+
+        if (fset == fset2) {
+          fset2_count++;
+        }
+
+        if (!vfset2 && fset == fset2 && v2 != vfset1) {
+          vfset2 = v2;
+        }
+
+        FSetTemp fs = {.fset = fset, .v = v2, .boundary = bound};
+        BLI_array_append(fsets, fs);
       }
     }
 
@@ -1336,8 +1418,63 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
       mv->flag |= DYNVERT_BOUNDARY;
     }
 
+    val++;
     e = e->v1 == v ? e->v1_disk_link.next : e->v2_disk_link.next;
   } while (e != v->e);
+
+  if (fset1 && fset2) {
+    mv->flag |= DYNVERT_FSET_BOUNDARY;
+  }
+
+  if (fset2 && !fset3) {
+    int n = MIN2(fset1_count, fset2_count);
+    float maxth = 0;
+    float maxth2 = 0;
+
+    // find widest angle
+    for (int i = 0; n < 7 && i < BLI_array_len(fsets); i++) {
+      if (!fsets[i].boundary) {
+        continue;
+      }
+
+      for (int j = 0; j < BLI_array_len(fsets); j++) {
+        if (!fsets[j].boundary) {
+          continue;
+        }
+
+        if (i != j && fsets[j].fset == fset1 && fsets[i].v != fsets[j].v) {
+          float th = sculpt_corner_angle(v->co, fsets[i].v->co, fsets[j].v->co);
+          if (th > maxth) {
+            maxth = th;
+          }
+        }
+        if (i != j && fsets[j].fset == fset2 && fsets[i].v != fsets[j].v) {
+          float th = sculpt_corner_angle(v->co, fsets[i].v->co, fsets[j].v->co);
+          if (th > maxth2) {
+            maxth2 = th;
+          }
+        }
+      }
+    }
+
+    bool ok = maxth > 0.25 && maxth < M_PI * 0.55;
+    ok = ok || (maxth2 > 0.25 && maxth2 < M_PI * 0.55);
+
+    // 45 degrees
+    if (ok) {
+      mv->flag |= DYNVERT_FSET_CORNER;
+    }
+  }
+  else if (fset2 && fset3) {
+    mv->flag |= DYNVERT_FSET_CORNER;
+  }
+
+  mv->valence = val;
+  if (val < 4 && (mv->flag & DYNVERT_BOUNDARY)) {
+    mv->flag |= DYNVERT_CORNER;
+  }
+
+  BLI_array_free(fsets);
 }
 
 void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVert *v)
