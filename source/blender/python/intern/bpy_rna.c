@@ -7774,7 +7774,7 @@ void BPY_rna_exit(void)
    * will crash giving a useful error with address sanitizer. The likely cause
    * for this list not being empty is a missing call to: #BKE_libblock_free_data_py. */
   const int id_weakref_pool_len = BLI_ghash_len(id_weakref_pool);
-  if (id_weakref_pool_len != id_weakref_pool_len) {
+  if (id_weakref_pool_len != 0) {
     printf("Found %d unreleased ID's\n", id_weakref_pool_len);
     GHashIterator gh_iter;
     GHASH_ITER (gh_iter, id_weakref_pool) {
