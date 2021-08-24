@@ -3967,15 +3967,17 @@ ModifierData *object_copy_particle_system(Main *bmain,
   return object_add_or_copy_particle_system(bmain, scene, ob, NULL, psys_orig);
 }
 
-void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob)
+void object_remove_particle_system(Main *bmain,
+                                   Scene *UNUSED(scene),
+                                   Object *ob,
+                                   ParticleSystem *psys)
 {
-  ParticleSystem *psys = psys_get_current(ob);
-  ParticleSystemModifierData *psmd;
-  ModifierData *md;
-
-  if (!psys) {
+  if (!ob || !psys) {
     return;
   }
+
+  ParticleSystemModifierData *psmd;
+  ModifierData *md;
 
   /* Clear particle system in fluid modifier. */
   if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid))) {

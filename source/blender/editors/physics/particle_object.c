@@ -124,7 +124,8 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   mode_orig = ob->mode;
-  object_remove_particle_system(bmain, scene, ob);
+  ParticleSystem *psys = psys_get_current(ob);
+  object_remove_particle_system(bmain, scene, ob, psys);
 
   /* possible this isn't the active object
    * object_remove_particle_system() clears the mode on the last psys
