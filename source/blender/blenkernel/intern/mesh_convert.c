@@ -548,10 +548,12 @@ Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob)
   return BKE_mesh_new_nomain_from_curve_displist(ob, &disp);
 }
 
-/* this may fail replacing ob->data, be sure to check ob->type */
 static void mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const char *obdata_name)
 {
-  Object *ob1;
+  if (ob->runtime.data_eval && GS(((ID *)ob->runtime.data_eval)->name) != ID_ME) {
+    return;
+  }
+
   Mesh *me_eval = (Mesh *)ob->runtime.data_eval;
   Mesh *me;
   MVert *allvert = NULL;
