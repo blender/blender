@@ -692,15 +692,19 @@ Collection *BKE_collection_duplicate(Main *bmain,
                                      eLibIDDuplicateFlags duplicate_options)
 {
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
+  const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
 
   if (!is_subprocess) {
     BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
     BKE_main_id_clear_newpoins(bmain);
+  }
+  if (is_root_id) {
     /* In case root duplicated ID is linked, assume we want to get a local copy of it and duplicate
      * all expected linked data. */
     if (ID_IS_LINKED(collection)) {
       duplicate_flags |= USER_DUP_LINKED_ID;
     }
+    duplicate_options &= ~LIB_ID_DUPLICATE_IS_ROOT_ID;
   }
 
   Collection *collection_new = collection_duplicate_recursive(

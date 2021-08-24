@@ -625,7 +625,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
   }
 
   const eDupli_ID_Flags dupli_flags = USER_DUP_OBJECT | (linked ? 0 : U.dupflag);
-  BKE_collection_duplicate(bmain, parent, collection, dupli_flags, 0);
+  BKE_collection_duplicate(bmain, parent, collection, dupli_flags, LIB_ID_DUPLICATE_IS_ROOT_ID);
 
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));

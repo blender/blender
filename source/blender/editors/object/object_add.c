@@ -3316,8 +3316,13 @@ Base *ED_object_add_duplicate(
   Base *basen;
   Object *ob;
 
-  basen = object_add_duplicate_internal(
-      bmain, scene, view_layer, base->object, dupflag, LIB_ID_DUPLICATE_IS_SUBPROCESS);
+  basen = object_add_duplicate_internal(bmain,
+                                        scene,
+                                        view_layer,
+                                        base->object,
+                                        dupflag,
+                                        LIB_ID_DUPLICATE_IS_SUBPROCESS |
+                                            LIB_ID_DUPLICATE_IS_ROOT_ID);
   if (basen == NULL) {
     return NULL;
   }
@@ -3353,8 +3358,13 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   BKE_main_id_clear_newpoins(bmain);
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
-    Base *basen = object_add_duplicate_internal(
-        bmain, scene, view_layer, base->object, dupflag, LIB_ID_DUPLICATE_IS_SUBPROCESS);
+    Base *basen = object_add_duplicate_internal(bmain,
+                                                scene,
+                                                view_layer,
+                                                base->object,
+                                                dupflag,
+                                                LIB_ID_DUPLICATE_IS_SUBPROCESS |
+                                                    LIB_ID_DUPLICATE_IS_ROOT_ID);
 
     /* note that this is safe to do with this context iterator,
      * the list is made in advance */
@@ -3458,7 +3468,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
        * function will only work if the object is already linked in the view layer, which is not
        * the case here. So we have to do the new-ID relinking ourselves (#copy_object_set_idnew()).
        */
-      LIB_ID_DUPLICATE_IS_SUBPROCESS);
+      LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID);
 
   if (basen == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Object could not be duplicated");
