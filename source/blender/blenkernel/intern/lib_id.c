@@ -153,7 +153,7 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
  */
-static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
+void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
 {
   const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0 &&
                               (id->flag & LIB_EMBEDDED_DATA) == 0;
@@ -193,15 +193,10 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
    * IDs here, this is down automatically in `lib_id_expand_local_cb()`. */
   Key *key = BKE_key_from_id(id);
   if (key != NULL) {
-    lib_id_clear_library_data_ex(bmain, &key->id);
+    BKE_lib_id_clear_library_data(bmain, &key->id);
   }
 
   DEG_relations_tag_update(bmain);
-}
-
-void BKE_lib_id_clear_library_data(Main *bmain, ID *id)
-{
-  lib_id_clear_library_data_ex(bmain, id);
 }
 
 void id_lib_extern(ID *id)
@@ -369,7 +364,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
     if (*id_pointer != NULL && ID_IS_LINKED(*id_pointer)) {
       BLI_assert(*id_pointer != id_self);
 
-      lib_id_clear_library_data_ex(bmain, *id_pointer);
+      BKE_lib_id_clear_library_data(bmain, *id_pointer);
     }
     return IDWALK_RET_NOP;
   }
@@ -429,7 +424,7 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
 
   if (lib_local || is_local) {
     if (!is_lib) {
-      lib_id_clear_library_data_ex(bmain, id);
+      BKE_lib_id_clear_library_data(bmain, id);
       BKE_lib_id_expand_local(bmain, id);
     }
     else {
@@ -2014,7 +2009,7 @@ void BKE_library_make_local(Main *bmain,
        * currently there are some indirect usages. So instead of making a copy that we'll likely
        * get rid of later, directly make that data block local.
        * Saves a tremendous amount of time with complex scenes... */
-      lib_id_clear_library_data_ex(bmain, id);
+      BKE_lib_id_clear_library_data(bmain, id);
       BKE_lib_id_expand_local(bmain, id);
       id->tag &= ~LIB_TAG_DOIT;
 
