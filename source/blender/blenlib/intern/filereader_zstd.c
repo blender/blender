@@ -79,7 +79,7 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
   if (base->seek(base, -5, SEEK_END) < 0 || base->read(base, &flags, 1) != 1) {
     return false;
   }
-  /* Bit 7 indicates checksums. Bits 5 and 6 must be zero. */
+  /* Bit 7 indicates check-sums. Bits 5 and 6 must be zero. */
   bool has_checksums = (flags & 0x80);
   if (flags & 0x60) {
     return false;
@@ -134,7 +134,7 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
   zstd->seek.compressed_ofs[num_frames] = compressed_ofs;
   zstd->seek.uncompressed_ofs[num_frames] = uncompressed_ofs;
 
-  /* Seek to the end of the previous frame for the following BHead frame detection. */
+  /* Seek to the end of the previous frame for the following #BHead frame detection. */
   if (seek_frame_start != compressed_ofs || base->seek(base, seek_frame_start, SEEK_SET) < 0) {
     MEM_freeN(zstd->seek.compressed_ofs);
     MEM_freeN(zstd->seek.uncompressed_ofs);
@@ -178,7 +178,7 @@ static const char *zstd_ensure_cache(ZstdReader *zstd, int frame)
     return zstd->seek.cached_content;
   }
 
-  /* Cached frame doesn't match, so discard it and cache the wanted one onstead. */
+  /* Cached frame doesn't match, so discard it and cache the wanted one instead. */
   MEM_SAFE_FREE(zstd->seek.cached_content);
 
   size_t compressed_size = zstd->seek.compressed_ofs[frame + 1] - zstd->seek.compressed_ofs[frame];

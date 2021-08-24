@@ -387,7 +387,7 @@ void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
                                                          rcti &r_input_area)
 {
   if (input_idx != 0) {
-    /* Dispersion and distorsion inputs are used as constants only. */
+    /* Dispersion and distortion inputs are used as constants only. */
     r_input_area = COM_SINGLE_ELEM_AREA;
   }
 

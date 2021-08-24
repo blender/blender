@@ -229,7 +229,7 @@ void BlurBaseOperation::determineResolution(unsigned int resolution[2],
     }
     case eExecutionModel::FullFrame: {
       /* Setting a modifier ensures all non main inputs have extended bounds as preferred
-       * resolution, avoiding unnecessary resolution convertions that would hide constant
+       * resolution, avoiding unnecessary resolution conversions that would hide constant
        * operations. */
       set_determined_resolution_modifier([=](unsigned int res[2]) {
         /* Rounding to even prevents jiggling in backdrop while switching size values. */

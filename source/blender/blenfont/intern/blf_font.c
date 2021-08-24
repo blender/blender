@@ -508,7 +508,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Text Drawgin: Buffer
+/** \name Text Drawing: Buffer
  * \{ */
 
 /* Sanity checks are done by BLF_draw_buffer() */

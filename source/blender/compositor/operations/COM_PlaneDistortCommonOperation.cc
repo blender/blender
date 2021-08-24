@@ -201,7 +201,7 @@ void PlaneDistortWarpImageOperation::get_area_of_interest(const int input_idx,
   r_input_area.xmax = get_input_operation(0)->getWidth();
   r_input_area.ymax = get_input_operation(0)->getHeight();
 
-/* Old implemention but resulting coordinates are way out of input operation bounds and in some
+/* Old implementation but resulting coordinates are way out of input operation bounds and in some
  * cases the area result may incorrectly cause cropping. */
 #if 0
   float min[2], max[2];

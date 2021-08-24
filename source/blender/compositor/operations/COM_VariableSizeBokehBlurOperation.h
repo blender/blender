@@ -98,7 +98,7 @@ class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public Qua
                                     Span<MemoryBuffer *> inputs) override;
 };
 
-/* Currently unused. If ever used, it needs fullframe implementation. */
+/* Currently unused. If ever used, it needs full-frame implementation. */
 #ifdef COM_DEFOCUS_SEARCH
 class InverseSearchRadiusOperation : public NodeOperation {
  private:
