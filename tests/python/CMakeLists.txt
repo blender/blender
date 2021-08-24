@@ -741,10 +741,17 @@ if(WITH_COMPOSITOR)
 endif()
 
 set(geo_node_tests
+  attributes
+  curve_primitives
   curves
   geometry
+  mesh_primitives
   mesh
   points
+  utilities
+  vector
+  volume
+
 )
 
 foreach(geo_node_test ${geo_node_tests})
