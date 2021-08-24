@@ -126,7 +126,7 @@ static bool boundary_initial_vertex_floodfill_cb(SculptSession *ss,
     data->floodfill_steps[to_v] = data->floodfill_steps[from_v];
   }
 
-  if (SCULPT_vertex_is_boundary(ss, to_vref)) {
+  if (SCULPT_vertex_is_boundary(ss, to_vref, false)) {
     if (data->floodfill_steps[to_v] < data->boundary_initial_vertex_steps) {
       data->boundary_initial_vertex_steps = data->floodfill_steps[to_v];
       data->boundary_initial_vertex = to_vref;
@@ -146,7 +146,7 @@ static SculptVertRef sculpt_boundary_get_closest_boundary_vertex(
     const int initial_vertex_index,
     const float radius)
 {
-  if (SCULPT_vertex_is_boundary(ss, initial_vertex)) {
+  if (SCULPT_vertex_is_boundary(ss, initial_vertex, false)) {
     return initial_vertex;
   }
 
@@ -243,7 +243,7 @@ static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, initial_vertex, ni) {
     if (SCULPT_vertex_visible_get(ss, ni.vertex)) {
       neighbor_count++;
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex, false)) {
         boundary_vertex_count++;
       }
     }
@@ -285,7 +285,7 @@ static bool boundary_floodfill_cb(
   int from_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v);
 
-  if (!SCULPT_vertex_is_boundary(ss, to_v)) {
+  if (!SCULPT_vertex_is_boundary(ss, to_v, false)) {
     return false;
   }
   const float edge_len = len_v3v3(SCULPT_vertex_co_get(ss, from_v),

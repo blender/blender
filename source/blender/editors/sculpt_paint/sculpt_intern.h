@@ -54,6 +54,8 @@ typedef struct SculptCustomLayer {
   int elemsize;
   int cd_offset;           // for bmesh
   CustomDataLayer *layer;  // not for multires
+  bool from_bmesh;  // note that layers can be fixed arrays but still from a bmesh, e.g. filter
+                    // laplacian smooth
 } SculptCustomLayer;
 
 /*
@@ -221,7 +223,9 @@ void SCULPT_fake_neighbors_free(struct Object *ob);
 /* Vertex Info. */
 void SCULPT_boundary_info_ensure(Object *object);
 /* Boundary Info needs to be initialized in order to use this function. */
-bool SCULPT_vertex_is_boundary(const SculptSession *ss, const SculptVertRef index);
+bool SCULPT_vertex_is_boundary(const SculptSession *ss,
+                               const SculptVertRef index,
+                               bool check_facesets);
 
 void SCULPT_connected_components_ensure(Object *ob);
 
@@ -240,7 +244,7 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, SculptVertRef index);
 void SCULPT_vertex_face_set_set(SculptSession *ss, SculptVertRef index, int face_set);
 
 bool SCULPT_vertex_has_face_set(SculptSession *ss, SculptVertRef index, int face_set);
-bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, SculptVertRef index);
+bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef index);
 
 int SCULPT_face_set_next_available_get(SculptSession *ss);
 
@@ -603,16 +607,12 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
 /* Topology rake */
-void SCULPT_bmesh_four_neighbor_average(float avg[3],
-                                        float direction[3],
-                                        struct BMVert *v,
-                                        float projection);
+void SCULPT_bmesh_four_neighbor_average(
+    float avg[3], float direction[3], struct BMVert *v, float projection, bool check_fsets);
 
 /* Smoothing api */
-void SCULPT_neighbor_coords_average(SculptSession *ss,
-                                    float result[3],
-                                    SculptVertRef index,
-                                    float projection);
+void SCULPT_neighbor_coords_average(
+    SculptSession *ss, float result[3], SculptVertRef index, float projection, bool check_fsets);
 float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index);
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef index);
 
@@ -641,15 +641,16 @@ void SCULPT_do_smooth_brush(
 void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           float *disp,
                                           const float co[3],
-                                          float (*laplacian_disp)[3],
+                                          struct SculptCustomLayer *scl,
                                           const SculptVertRef v_index,
                                           const float origco[3],
                                           const float alpha,
-                                          const float projection);
+                                          const float projection,
+                                          bool check_fsets);
 
 void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          float *co,
-                                         float (*laplacian_disp)[3],
+                                         struct SculptCustomLayer *scl,
                                          const SculptVertRef v_index,
                                          const float beta,
                                          const float fade);
@@ -1544,12 +1545,21 @@ static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLaye
 {
   if (scl->data) {
     char *p = (char *)scl->data;
+    int idx = (int)vertex.i;
+
+    if (scl->from_bmesh) {
+      BMVert *v = (BMVert *)vertex.i;
+      idx = v->head.index;
+    }
+
     return p + scl->elemsize * (int)vertex.i;
   }
   else {
     BMVert *v = (BMVert *)vertex.i;
     return BM_ELEM_CD_GET_VOID_P(v, scl->cd_offset);
   }
+
+  return NULL;
 }
 
 /*

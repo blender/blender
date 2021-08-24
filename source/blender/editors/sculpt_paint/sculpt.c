@@ -345,6 +345,7 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       CustomData *cdata = NULL;
+      out->from_bmesh = true;
 
       if (!ss->bm) {
         return false;
@@ -386,6 +387,8 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
       CustomData *cdata = NULL;
       int totelem = 0;
 
+      out->from_bmesh = false;
+
       switch (domain) {
         case ATTR_DOMAIN_POINT:
           totelem = ss->totvert;
@@ -423,6 +426,8 @@ static bool sculpt_temp_customlayer_get(SculptSession *ss,
     case PBVH_GRIDS: {
       CustomData *cdata = NULL;
       int totelem = 0;
+
+      out->from_bmesh = false;
 
       switch (domain) {
         case ATTR_DOMAIN_POINT:
@@ -1113,7 +1118,8 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
   }
 }
 
-static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, SculptVertRef vertex)
+static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss,
+                                                      SculptVertRef vertex)
 {
   int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
 
@@ -1136,7 +1142,9 @@ static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, SculptV
  * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
  * in the base mesh are equal.
  */
-static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
+static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSession *ss,
+                                                               int v1,
+                                                               int v2)
 {
   MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
@@ -1164,7 +1172,7 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   return true;
 }
 
-bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, SculptVertRef index)
+bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -1174,9 +1182,17 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, SculptVertRef index)
       BMIter iter;
       BMLoop *l;
       BMVert *v = (BMVert *)index.i;
+      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+
+      if (mv->flag & DYNVERT_NEED_BOUNDARY) {
+        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, v);
+      }
+
+      return !(mv->flag & DYNVERT_FSET_BOUNDARY);
+
+#if 0
       int face_set = 0;
       bool first = true;
-
       if (ss->cd_faceset_offset == -1) {
         return false;
       }
@@ -1192,8 +1208,8 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, SculptVertRef index)
         first = false;
         face_set = face_set2;
       }
-
       return true;
+#endif
     }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
@@ -1521,7 +1537,9 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss,
                          BKE_pbvh_vertex_index_to_table(ss->pbvh, index));
 }
 
-bool SCULPT_vertex_is_boundary(const SculptSession *ss, const SculptVertRef vertex)
+bool SCULPT_vertex_is_boundary(const SculptSession *ss,
+                               const SculptVertRef vertex,
+                               bool check_facesets)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -1531,13 +1549,30 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const SculptVertRef vert
         BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, (BMVert *)vertex.i);
       }
 
-      return mv->flag & DYNVERT_BOUNDARY;
+      if (!check_facesets) {
+        return mv->flag & (DYNVERT_BOUNDARY);
+      }
+      else {
+        return mv->flag & (DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY);
+      }
     }
     case PBVH_FACES: {
       if (!SCULPT_vertex_all_face_sets_visible_get(ss, vertex)) {
         return true;
       }
-      return sculpt_check_boundary_vertex_in_base_mesh(ss, vertex);
+
+      if (check_facesets) {
+        bool ret = sculpt_check_boundary_vertex_in_base_mesh(ss, vertex);
+
+        if (ret) {
+          return ret;
+        }
+
+        return !SCULPT_vertex_has_unique_face_set(ss, vertex);
+      }
+      else {
+        return sculpt_check_boundary_vertex_in_base_mesh(ss, vertex);
+      }
     }
 
     case PBVH_GRIDS: {
@@ -3657,6 +3692,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   const bool use_curvature = ss->cache->brush->flag2 & BRUSH_CURVATURE_RAKE;
+  bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
   if (use_curvature) {
     SCULPT_curvature_begin(ss, node, false);
@@ -3700,7 +3736,11 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
       copy_v3_v3(direction2, direction);
     }
 
-    SCULPT_bmesh_four_neighbor_average(avg, direction2, vd.bm_vert, data->rake_projection);
+    if (SCULPT_vertex_is_boundary(ss, vd.vertex, check_fsets)) {
+      continue;
+    }
+    SCULPT_bmesh_four_neighbor_average(
+        avg, direction2, vd.bm_vert, data->rake_projection, check_fsets);
 
     sub_v3_v3v3(val, avg, vd.co);
 
@@ -4288,7 +4328,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
   int neighbor_count = 0;
   zero_v3(smooth_pos);
   zero_v3(boundary_normal);
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vd->vertex);
+  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vd->vertex, false);
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->vertex, ni) {
@@ -4299,7 +4339,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
       /* When the vertex to relax is boundary, use only connected boundary vertices for the average
        * position. */
       if (is_boundary) {
-        if (!SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+        if (!SCULPT_vertex_is_boundary(ss, ni.vertex, false)) {
           continue;
         }
         add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));

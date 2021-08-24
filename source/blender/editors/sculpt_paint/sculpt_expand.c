@@ -417,7 +417,7 @@ static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-    if (use_mesh_boundary && SCULPT_vertex_is_boundary(ss, vertex)) {
+    if (use_mesh_boundary && SCULPT_vertex_is_boundary(ss, vertex, false)) {
       is_expand_boundary = true;
     }
 
@@ -2371,7 +2371,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   eSculptExpandFalloffType falloff_type = RNA_enum_get(op->ptr, "falloff_type");
 
   /* When starting from a boundary vertex, set the initial falloff to boundary. */
-  if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex)) {
+  if (SCULPT_vertex_is_boundary(ss, ss->expand_cache->initial_active_vertex, false)) {
     falloff_type = SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
   }
 

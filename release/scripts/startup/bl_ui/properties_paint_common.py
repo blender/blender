@@ -568,6 +568,7 @@ def brush_settings(layout, context, brush, popover=False):
             )
 
             box.prop(brush, "use_weighted_smooth")
+            box.prop(brush, "preserve_faceset_boundary")
 
             box.prop(brush, "use_custom_auto_smooth_spacing", text="Custom Spacing")
             if brush.use_custom_auto_smooth_spacing:
@@ -815,6 +816,8 @@ def brush_settings(layout, context, brush, popover=False):
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
             col.prop(brush, "use_weighted_smooth")
+            col.prop(brush, "preserve_faceset_boundary")
+
             col.prop(brush, "smooth_deform_type")
 
             if brush.smooth_deform_type == 'SURFACE':

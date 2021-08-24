@@ -3294,6 +3294,12 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Weight By Area", "Weight by face area to get a smoother result");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "preserve_faceset_boundary", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_SMOOTH_PRESERVE_FACE_SETS);
+  RNA_def_property_ui_text(
+      prop, "Preserve Face Sets", "Preserve face set boundaries when smoothing");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "use_grab_silhouette", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_GRAB_SILHOUETTE);
   RNA_def_property_ui_text(

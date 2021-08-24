@@ -1595,7 +1595,7 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
     }
   }
 
-  double start = PIL_check_seconds_timer();
+  // double start = PIL_check_seconds_timer();
 
   modified = modified || BKE_pbvh_bmesh_update_topology(pbvh,
                                                         mode,
@@ -1609,9 +1609,9 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                                         mask_cb,
                                                         mask_cb_data);
 
-  double end = PIL_check_seconds_timer();
+  // double end = PIL_check_seconds_timer();
 
-  printf("dyntopo time: %f\n", end - start);
+  // printf("dyntopo time: %f\n", end - start);
 
   return modified;
 }

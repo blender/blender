@@ -413,7 +413,10 @@ typedef enum eBrushFlags2 {
   BRUSH_CUSTOM_AUTOSMOOTH_SPACING = (1 << 10),
   BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING = (1 << 11),
   BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF = (1 << 12),
-  BRUSH_SMOOTH_USE_AREA_WEIGHT = (1 << 13)
+  BRUSH_SMOOTH_USE_AREA_WEIGHT = (1 << 13),
+
+  /*preserve face set boundaries*/
+  BRUSH_SMOOTH_PRESERVE_FACE_SETS = (1 << 14)
 } eBrushFlags2;
 
 typedef enum {

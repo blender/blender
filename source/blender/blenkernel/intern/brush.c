@@ -1975,12 +1975,16 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
 
     case SCULPT_TOOL_SIMPLIFY:
-      //don't use DYNTOPO_INHERIT_BITMASK, we want to include
-      //future bits
+      // don't use DYNTOPO_INHERIT_BITMASK, we want to include
+      // future bits
+
+      br->flag |= BRUSH_SMOOTH_PRESERVE_FACE_SETS;
       br->dyntopo.inherit = 0x7FFFFFFF &
                             ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
       br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
       br->autosmooth_factor = 0.02;
+
+      break;
     case SCULPT_TOOL_VCOL_BOUNDARY:
     case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_MASK:
@@ -2639,7 +2643,8 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
     brush->dyntopo = *out = brush2.dyntopo;
 
     brush_free_data((ID *)&brush2);
-  } else if (!out->detail_size) {
+  }
+  else if (!out->detail_size) {
     brush->dyntopo.inherit |= DYNTOPO_INHERIT_DETAIL_SIZE;
     brush->dyntopo.detail_size = 12.0;
   }

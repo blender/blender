@@ -79,7 +79,9 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float total = 0.0f;
   int neighbor_count = 0;
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex);
+  bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
+
+  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex, check_fsets);
   const float *co = SCULPT_vertex_co_get(ss, vertex);
   float no[3];
 
@@ -87,7 +89,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     SCULPT_vertex_normal_get(ss, vertex, no);
   }
 
-  const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) && !is_boundary;
   float *areas;
 
   if (weighted) {
@@ -113,7 +115,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
     if (is_boundary) {
       /* Boundary vertices use only other boundary vertices. */
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex, check_fsets)) {
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
         ok = true;
       }
@@ -170,7 +172,8 @@ void SCULPT_neighbor_coords_average_interior_velocity(SculptSession *ss,
   float avg[3] = {0.0f, 0.0f, 0.0f};
   int total = 0;
   int neighbor_count = 0;
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex);
+  bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
+  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex, check_fsets);
   const float *co = SCULPT_vertex_co_get(ss, vertex);
   float no[3];
 
@@ -197,7 +200,7 @@ void SCULPT_neighbor_coords_average_interior_velocity(SculptSession *ss,
 
     if (is_boundary) {
       /* Boundary vertices use only other boundary vertices. */
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex, check_fsets)) {
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
         ok = true;
       }
@@ -246,10 +249,8 @@ void SCULPT_neighbor_coords_average_interior_velocity(SculptSession *ss,
 }
 /* For bmesh: Average surrounding verts based on an orthogonality measure.
  * Naturally converges to a quad-like structure. */
-void SCULPT_bmesh_four_neighbor_average(float avg[3],
-                                        float direction[3],
-                                        BMVert *v,
-                                        float projection)
+void SCULPT_bmesh_four_neighbor_average(
+    float avg[3], float direction[3], BMVert *v, float projection, bool check_fsets)
 {
 
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
@@ -295,14 +296,86 @@ void SCULPT_bmesh_four_neighbor_average(float avg[3],
   }
 }
 
+static void sculpt_neighbor_coords_average_fset(SculptSession *ss,
+                                                float result[3],
+                                                SculptVertRef vertex,
+                                                float projection)
+{
+  float avg[3] = {0.0f, 0.0f, 0.0f};
+  float *co, no[3];
+  float total = 0.0f;
+
+  bool boundary = !SCULPT_vertex_has_unique_face_set(ss, vertex);
+
+  if (projection > 0.0f) {
+    co = (float *)SCULPT_vertex_co_get(ss, vertex);
+    SCULPT_vertex_normal_get(ss, vertex, no);
+  }
+
+  const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) && !boundary;
+  float *areas;
+
+  if (weighted) {
+    int val = SCULPT_vertex_valence_get(ss, vertex);
+    areas = BLI_array_alloca(areas, val);
+
+    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+  }
+
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    const float *co2 = SCULPT_vertex_co_get(ss, ni.vertex);
+    float w;
+
+    if (weighted) {
+      w = areas[ni.i];
+    }
+    else {
+      w = 1.0f;
+    }
+
+    if (boundary && SCULPT_vertex_has_unique_face_set(ss, ni.vertex)) {
+      continue;
+    }
+
+    if (projection > 0.0f) {
+      float tmp[3];
+
+      sub_v3_v3v3(tmp, co2, co);
+      float fac = dot_v3v3(tmp, no);
+      madd_v3_v3fl(tmp, no, -fac * projection);
+
+      madd_v3_v3fl(avg, tmp, w);
+    }
+    else {
+      madd_v3_v3fl(avg, co2, w);
+    }
+    total += w;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  if (total > (boundary ? 1.0f : 0.0f)) {
+    mul_v3_v3fl(result, avg, 1.0f / total);
+
+    if (projection > 0.0) {
+      add_v3_v3(result, co);
+    }
+  }
+  else {
+    copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
+  }
+}
 /* Generic functions for laplacian smoothing. These functions do not take boundary vertices into
  * account. */
 
-void SCULPT_neighbor_coords_average(SculptSession *ss,
-                                    float result[3],
-                                    SculptVertRef vertex,
-                                    float projection)
+void SCULPT_neighbor_coords_average(
+    SculptSession *ss, float result[3], SculptVertRef vertex, float projection, bool check_fsets)
 {
+  if (check_fsets) {
+    sculpt_neighbor_coords_average_fset(ss, result, vertex, projection);
+    return;
+  }
+
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float *co, no[3];
   float total = 0.0f;
@@ -435,7 +508,9 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
                                                                 thread_id);
 
     float disp[3];
-    madd_v3_v3v3fl(disp, vd.co, ss->cache->detail_directions[vd.index], fade);
+    float *dir = SCULPT_temp_cdata_get(vd.vertex, data->scl);
+
+    madd_v3_v3v3fl(disp, vd.co, dir, fade);
     SCULPT_clip(sd, ss, vd.co, disp);
 
     if (vd.mvert) {
@@ -453,6 +528,11 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+  SculptCustomLayer scl;
+
+  SCULPT_temp_customlayer_ensure(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir");
+  SCULPT_temp_customlayer_get(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl);
+
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
     BKE_pbvh_update_all_tri_areas(ss->pbvh);
@@ -463,24 +543,18 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     const int totvert = SCULPT_vertex_count_get(ss);
-    ss->cache->detail_directions = MEM_malloc_arrayN(
-        totvert, 3 * sizeof(float), "details directions");
 
     for (int i = 0; i < totvert; i++) {
       float avg[3];
       SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      float *dir = SCULPT_temp_cdata_get(vertex, &scl);
 
-      SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f);
-      sub_v3_v3v3(ss->cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
+      SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false);
+      sub_v3_v3v3(dir, avg, SCULPT_vertex_co_get(ss, vertex));
     }
   }
 
-  SculptThreadedTaskData data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  SculptThreadedTaskData data = {.sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .scl = &scl};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -798,29 +872,30 @@ void SCULPT_do_smooth_brush(
 void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           float *disp,
                                           const float co[3],
-                                          float (*laplacian_disp)[3],
+                                          SculptCustomLayer *scl,
                                           const SculptVertRef v_index,
                                           const float origco[3],
                                           const float alpha,
-                                          const float projection)
+                                          const float projection,
+                                          bool check_fsets)
 {
   float laplacian_smooth_co[3];
   float weigthed_o[3], weigthed_q[3], d[3];
-  SCULPT_neighbor_coords_average(ss, laplacian_smooth_co, v_index, projection);
+  SCULPT_neighbor_coords_average(ss, laplacian_smooth_co, v_index, projection, check_fsets);
 
   int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
 
   mul_v3_v3fl(weigthed_o, origco, alpha);
   mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
   add_v3_v3v3(d, weigthed_o, weigthed_q);
-  sub_v3_v3v3(laplacian_disp[index], laplacian_smooth_co, d);
+  sub_v3_v3v3((float *)SCULPT_temp_cdata_get(v_index, scl), laplacian_smooth_co, d);
 
   sub_v3_v3v3(disp, laplacian_smooth_co, co);
 }
 
 void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          float *co,
-                                         float (*laplacian_disp)[3],
+                                         SculptCustomLayer *scl,
                                          const SculptVertRef v_index,
                                          const float beta,
                                          const float fade)
@@ -832,14 +907,14 @@ void SCULPT_surface_smooth_displace_step(SculptSession *ss,
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_index, ni) {
-    add_v3_v3(b_avg, laplacian_disp[ni.index]);
+    add_v3_v3(b_avg, (float *)SCULPT_temp_cdata_get(ni.vertex, scl));
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (total > 0) {
     mul_v3_v3fl(b_current_vertex, b_avg, (1.0f - beta) / total);
-    madd_v3_v3fl(b_current_vertex, laplacian_disp[index], beta);
+    madd_v3_v3fl(b_current_vertex, (float *)SCULPT_temp_cdata_get(v_index, scl), beta);
     mul_v3_fl(b_current_vertex, clamp_f(fade, 0.0f, 1.0f));
     sub_v3_v3(co, b_current_vertex);
   }
@@ -870,6 +945,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
 
   bool modified = false;
 
+  bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -892,11 +968,12 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
     SCULPT_surface_smooth_laplacian_step(ss,
                                          disp,
                                          vd.co,
-                                         ss->cache->surface_smooth_laplacian_disp,
+                                         data->scl,
                                          vd.vertex,
                                          orig_data.co,
                                          alpha,
-                                         data->smooth_projection);
+                                         data->smooth_projection,
+                                         check_fsets);
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -940,8 +1017,7 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
                                                                 vd.mask ? *vd.mask : 0.0f,
                                                                 vd.vertex,
                                                                 thread_id);
-    SCULPT_surface_smooth_displace_step(
-        ss, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.vertex, beta, fade);
+    SCULPT_surface_smooth_displace_step(ss, vd.co, data->scl, vd.vertex, beta, fade);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -951,15 +1027,20 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
+  SculptCustomLayer scl;
+
+  SCULPT_temp_customlayer_ensure(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth");
+  SCULPT_temp_customlayer_get(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &scl);
+
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
     BKE_pbvh_update_all_tri_areas(ss->pbvh);
   }
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-    BLI_assert(ss->cache->surface_smooth_laplacian_disp == NULL);
-    ss->cache->surface_smooth_laplacian_disp = MEM_callocN(
-        sizeof(float[3]) * SCULPT_vertex_count_get(ss), "HC smooth laplacian b");
+    // BLI_assert(ss->cache->surface_smooth_laplacian_disp == NULL);
+    // ss->cache->surface_smooth_laplacian_disp = MEM_callocN(
+    //    sizeof(float[3]) * SCULPT_vertex_count_get(ss), "HC smooth laplacian b");
   }
 
   /* Threaded loop over nodes. */
@@ -967,7 +1048,8 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
                                  .ob = ob,
                                  .brush = brush,
                                  .nodes = nodes,
-                                 .smooth_projection = brush->autosmooth_projection};
+                                 .smooth_projection = brush->autosmooth_projection,
+                                 .scl = &scl};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
