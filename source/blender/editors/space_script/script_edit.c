@@ -52,7 +52,9 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 #ifdef WITH_PYTHON
   if (BPY_run_filepath(C, path, op->reports)) {
     ARegion *region = CTX_wm_region(C);
-    ED_region_tag_redraw(region);
+    if (region != NULL) {
+      ED_region_tag_redraw(region);
+    }
     return OPERATOR_FINISHED;
   }
 #else
@@ -70,7 +72,6 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = run_pyfile_exec;
-  ot->poll = ED_operator_areaactive;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
