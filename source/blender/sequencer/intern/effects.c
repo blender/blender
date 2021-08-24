@@ -3157,7 +3157,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
   }
 }
 
-static void seq_effect_speed_frame_map_ensure(Scene *scene, Sequence *seq, FCurve *fcu)
+static void seq_effect_speed_frame_map_ensure(Scene *scene, Sequence *seq)
 {
   SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   if (v->frameMap != NULL) {
@@ -3184,22 +3184,24 @@ float seq_speed_effect_target_frame_get(Scene *scene,
 
   float target_frame = 0.0f;
   switch (s->speed_control_type) {
-    case SEQ_SPEED_STRETCH:
+    case SEQ_SPEED_STRETCH: {
       const float target_content_length = seq_effect_speed_get_strip_content_length(source);
       const float target_strip_length = source->enddisp - source->startdisp;
       const float ratio = target_content_length / target_strip_length;
       target_frame = frame_index * ratio;
       break;
-    case SEQ_SPEED_MULTIPLY:
+    }
+    case SEQ_SPEED_MULTIPLY: {
       FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq_speed);
       if (fcu != NULL) {
-        seq_effect_speed_frame_map_ensure(scene, seq_speed, fcu);
+        seq_effect_speed_frame_map_ensure(scene, seq_speed);
         target_frame = s->frameMap[frame_index];
       }
       else {
         target_frame = frame_index * s->speed_fader;
       }
       break;
+    }
     case SEQ_SPEED_LENGTH:
       target_frame = seq_effect_speed_get_strip_content_length(source) *
                      (s->speed_fader_length / 100.0f);
