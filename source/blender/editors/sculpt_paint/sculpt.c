@@ -9461,9 +9461,8 @@ static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
 
       BKE_pbvh_reorder_bmesh(ss->pbvh);
-      SCULT_dyntopo_flag_all_disk_sort(ss);
 
-      BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
+      BKE_pbvh_bmesh_on_mesh_change(ss->pbvh);
       BM_log_full_mesh(ss->bm, ss->bm_log);
 
       ss->active_vertex_index.i = 0;
@@ -11059,11 +11058,35 @@ int SCULPT_vertex_valence_get(struct SculptSession *ss, SculptVertRef vertex)
 {
   SculptVertexNeighborIter ni;
   int tot = 0;
+  int mval = -1;
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    BMVert *v = (BMVert *)vertex.i;
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+
+    if (mv->flag & DYNVERT_NEED_VALENCE) {
+      BKE_pbvh_bmesh_update_valence(ss->cd_dyn_vert, vertex);
+    }
+
+    mval = mv->valence;
+
+#ifdef NDEBUG
+    // return mval;
+#endif
+  }
 
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     tot++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+#ifdef NDEBUG
+  if (mval >= 0 && mval != tot) {
+    printf("Out of date vertex valence detected! old: %d, should be: %d\n", mval, tot);
+  }
+#else
+  BLI_assert(mval < 0 || mval == tot);
+#endif
 
   return tot;
 }

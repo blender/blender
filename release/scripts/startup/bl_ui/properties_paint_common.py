@@ -567,6 +567,8 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
+            box.prop(brush, "use_weighted_smooth")
+
             box.prop(brush, "use_custom_auto_smooth_spacing", text="Custom Spacing")
             if brush.use_custom_auto_smooth_spacing:
                UnifiedPaintPanel.prop_unified(
@@ -812,7 +814,9 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
+            col.prop(brush, "use_weighted_smooth")
             col.prop(brush, "smooth_deform_type")
+
             if brush.smooth_deform_type == 'SURFACE':
                 col.prop(brush, "surface_smooth_shape_preservation")
                 col.prop(brush, "surface_smooth_current_vertex")

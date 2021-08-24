@@ -533,6 +533,7 @@ typedef struct SculptSession {
   int cd_face_node_offset;
   int cd_vcol_offset;
   int cd_faceset_offset;
+  int cd_face_areas;
 
   bool bm_smooth_shading;
   /* Undo/redo log for dynamic topology sculpting */

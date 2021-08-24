@@ -2139,6 +2139,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
                        ob->sculpt->cd_vert_node_offset,
                        ob->sculpt->cd_face_node_offset,
                        ob->sculpt->cd_dyn_vert,
+                       ob->sculpt->cd_face_areas,
                        ob->sculpt->fast_draw);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, false);

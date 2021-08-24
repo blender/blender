@@ -117,6 +117,30 @@ static float tri_voronoi_area(float p[3], float q[3], float r[3])
   }
 }
 
+static float cotangent_tri_weight_v3_proj(const float n[3],
+                                          const float v1[3],
+                                          const float v2[3],
+                                          const float v3[3])
+{
+  float a[3], b[3], c[3], c_len;
+
+  sub_v3_v3v3(a, v2, v1);
+  sub_v3_v3v3(b, v3, v1);
+
+  madd_v3_v3fl(a, n, -dot_v3v3(n, a));
+  madd_v3_v3fl(b, n, -dot_v3v3(n, b));
+
+  cross_v3_v3v3(c, a, b);
+
+  c_len = len_v3(c);
+
+  if (c_len > FLT_EPSILON) {
+    return dot_v3v3(a, b) / c_len;
+  }
+
+  return 0.0f;
+}
+
 void SCULPT_dyntopo_get_cotangents(SculptSession *ss,
                                    SculptVertRef vertex,
                                    float *r_ws,
@@ -312,13 +336,7 @@ void SCULPT_get_cotangents(SculptSession *ss,
 
 void SCULT_dyntopo_flag_all_disk_sort(SculptSession *ss)
 {
-  BMVert *v;
-  BMIter iter;
-
-  BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
-    mv->flag |= DYNVERT_NEED_DISK_SORT;
-  }
+  BKE_pbvh_bmesh_flag_all_disk_sort(ss->pbvh);
 }
 
 // returns true if edge disk list around vertex was sorted
@@ -504,8 +522,11 @@ void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
 {
   SCULPT_dyntopo_node_layers_add(ss);
   if (ss->pbvh) {
-    BKE_pbvh_update_offsets(
-        ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
+    BKE_pbvh_update_offsets(ss->pbvh,
+                            ss->cd_vert_node_offset,
+                            ss->cd_face_node_offset,
+                            ss->cd_dyn_vert,
+                            ss->cd_face_areas);
   }
   if (ss->bm_log) {
     BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
@@ -542,6 +563,8 @@ int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name)
       &ss->bm->vdata, type, li - CustomData_get_layer_index(&ss->bm->vdata, type));
 }
 
+char dyntopop_faces_areas_layer_id[] = "__dyntopo_face_areas";
+
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 {
   int cd_node_layer_index, cd_face_node_layer_index;
@@ -555,11 +578,11 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 
   BM_data_layers_ensure(ss->bm, &ss->bm->vdata, vlayers, 3);
 
-  cd_face_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
-  if (cd_face_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
-  }
+  BMCustomLayerReq flayers[] = {
+      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY},
+      {CD_PROP_FLOAT, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY},
+  };
+  BM_data_layers_ensure(ss->bm, &ss->bm->pdata, flayers, 2);
 
   // get indices again, as they might have changed after adding new layers
   cd_node_layer_index = CustomData_get_named_layer_index(
@@ -587,6 +610,10 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 
   ss->bm->pdata.layers[cd_face_node_layer_index].flag |= CD_FLAG_TEMPORARY;
   ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
+
+  ss->cd_face_areas = CustomData_get_named_layer(
+      &ss->bm->pdata, CD_PROP_FLOAT, dyntopop_faces_areas_layer_id);
+  ss->cd_face_areas = ss->bm->pdata.layers[ss->cd_face_areas].offset;
 }
 
 /**
@@ -796,9 +823,10 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
-    mv->flag |= DYNVERT_NEED_DISK_SORT;
+    mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE;
 
     BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, v);
+    BKE_pbvh_bmesh_update_valence(ss->cd_dyn_vert, (SculptVertRef){.i = (intptr_t)v});
 
     // persistent base
     if (cd_pers_co >= 0) {

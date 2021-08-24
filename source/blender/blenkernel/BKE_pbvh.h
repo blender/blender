@@ -209,7 +209,11 @@ typedef enum {
   PBVH_Delete = 1 << 15,
   PBVH_UpdateCurvatureDir = 1 << 16,
   PBVH_UpdateTris = 1 << 17,
-  PBVH_RebuildNodeVerts = 1 << 18
+  PBVH_RebuildNodeVerts = 1 << 18,
+
+  /* tri areas are not guaranteed to be up to date, tools should
+     update all nodes on first step of brush*/
+  PBVH_UpdateTriAreas = 1 << 19
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -263,11 +267,13 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
                           const int cd_dyn_vert,
+                          const int cd_face_areas,
                           bool fast_draw);
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
-                             const int cd_dyn_vert);
+                             const int cd_dyn_vert,
+                             const int cd_face_areas);
 void BKE_pbvh_free(PBVH *pbvh);
 
 /** update original data, only data whose r_** parameters are passed in will be updated*/
@@ -436,6 +442,18 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                           void *mask_cb_data);
 /* Node Access */
 
+void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
+
+// updates boundaries and valences for whole mesh
+void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh);
+bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, SculptVertRef vertex);
+void BKE_pbvh_bmesh_update_valence(int cd_dyn_vert, SculptVertRef vertex);
+void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
+void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
+bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex);
+
+void BKE_pbvh_node_mark_update_tri_area(PBVHNode *node);
+void BKE_pbvh_update_all_tri_areas(PBVH *pbvh);
 void BKE_pbvh_node_mark_update(PBVHNode *node);
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node);
 void BKE_pbvh_node_mark_update_color(PBVHNode *node);
@@ -750,6 +768,8 @@ void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, struc
 #define DYNTOPO_DYNAMIC_TESS
 
 PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
+
+void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_areas, int valence);
 
 #if 0
 typedef enum {

@@ -3866,3 +3866,107 @@ PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node)
 {
   return pbvh->nodes + node;
 }
+
+void BKE_pbvh_node_mark_update_tri_area(PBVHNode *node)
+{
+  node->flag |= PBVH_UpdateTriAreas;
+}
+
+void BKE_pbvh_update_all_tri_areas(PBVH *pbvh)
+{
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+    if (node->flag & PBVH_Leaf) {
+      node->flag |= PBVH_UpdateTriAreas;
+#if 0
+      // ensure node triangulations are valid
+      // so we don't end up doing it inside brush threads
+      BKE_pbvh_bmesh_check_tris(pbvh, node);
+#endif
+    }
+  }
+}
+
+void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
+{
+  if (!(node->flag & PBVH_UpdateTriAreas) || !node->tribuf || !node->tribuf->tottri) {
+    return;
+  }
+
+  node->flag &= ~PBVH_UpdateTriAreas;
+
+  if (node->flag & PBVH_UpdateTris) {
+    BKE_pbvh_bmesh_check_tris(pbvh, node);
+  }
+
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_BMESH: {
+      BMFace *f;
+      const int cd_face_area = pbvh->cd_face_area;
+
+      TGSET_ITER (f, node->bm_faces) {
+        BM_ELEM_CD_SET_FLOAT(f, cd_face_area, 0.0f);
+      }
+      TGSET_ITER_END;
+
+      for (int i = 0; i < node->tribuf->tottri; i++) {
+        PBVHTri *tri = node->tribuf->tris + i;
+
+        BMVert *v1 = (BMVert *)(node->tribuf->verts[tri->v[0]].i);
+        BMVert *v2 = (BMVert *)(node->tribuf->verts[tri->v[1]].i);
+        BMVert *v3 = (BMVert *)(node->tribuf->verts[tri->v[2]].i);
+        BMFace *f = (BMFace *)tri->f.i;
+
+        float area = area_tri_v3(v1->co, v2->co, v3->co);
+        float farea = BM_ELEM_CD_GET_FLOAT(f, cd_face_area);
+
+        BM_ELEM_CD_SET_FLOAT(f, cd_face_area, farea + area);
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_areas, int valence)
+{
+  if (BKE_pbvh_type(pbvh) != PBVH_BMESH) {
+    // not supported
+    for (int i = 0; i < valence; i++) {
+      r_areas[i] = 1.0f;
+    }
+
+    return;
+  }
+
+  BMVert *v = (BMVert *)vertex.i;
+  BMEdge *e = v->e;
+
+  if (!e) {
+    for (int i = 0; i < valence; i++) {
+      r_areas[i] = 1.0f;
+    }
+
+    return;
+  }
+
+  const int cd_face_area = pbvh->cd_face_area;
+  int j = 0;
+
+  do {
+    float w = 0.0f;
+
+    if (!e->l) {
+      w = 0.0f;
+    }
+    else {
+      w += BM_ELEM_CD_GET_FLOAT(e->l->f, cd_face_area) * 0.5f;
+      w += BM_ELEM_CD_GET_FLOAT(e->l->radial_next->f, cd_face_area) * 0.5f;
+    }
+
+    r_areas[j++] = w;
+
+    e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+  } while (e != v->e);
+}

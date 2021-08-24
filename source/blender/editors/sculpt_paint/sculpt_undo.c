@@ -506,6 +506,11 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 static void bmesh_undo_full_mesh(void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
+
+  if (data->pbvh) {
+    BKE_pbvh_bmesh_update_all_valence(data->pbvh);
+  }
+
   data->do_full_recalc = true;
 }
 
@@ -673,7 +678,10 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
 
   SCULPT_dyntopo_node_layers_add(ss);
   SCULPT_dyntopo_node_layers_update_offsets(ss);
-  SCULT_dyntopo_flag_all_disk_sort(ss);
+
+  if (ss->pbvh && ss->bm) {
+    SCULT_dyntopo_flag_all_disk_sort(ss);
+  }
 
   if (!ss->bm_log) {
     /* Restore the BMLog using saved entries. */

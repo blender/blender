@@ -105,6 +105,15 @@ void pbvh_bmesh_check_nodes(PBVH *pbvh)
     if (BLI_table_gset_haskey(node->bm_other_verts, v)) {
       printf("vert in node->bm_other_verts");
     }
+
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+    BKE_pbvh_bmesh_check_valence(pbvh, (SculptVertRef){.i = (intptr_t)v});
+
+    if (BM_vert_edge_count(v) != mv->valence) {
+      printf("cached vertex valence mismatch; old: %d, should be: %d\n",
+             mv->valence,
+             BM_vert_edge_count(v));
+    }
   }
 
   for (int i = 0; i < pbvh->totnode; i++) {
@@ -363,7 +372,6 @@ static void pbvh_bmesh_node_split(
 
   if (n->tribuf || n->tri_buffers) {
     BKE_pbvh_bmesh_free_tris(pbvh, n);
-    n->tribuf = NULL;
   }
 
   n->bm_faces = NULL;
@@ -372,6 +380,7 @@ static void pbvh_bmesh_node_split(
   n->layer_disp = NULL;
 
   pbvh_free_all_draw_buffers(n);
+
   n->flag &= ~PBVH_Leaf;
 
   /* Recurse */
@@ -1436,8 +1445,10 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
                           const int cd_dyn_vert,
+                          const int cd_face_areas,
                           bool fast_draw)
 {
+  pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
@@ -1472,6 +1483,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
     mv->flag = DYNVERT_NEED_DISK_SORT;
 
     bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v);
+    BKE_pbvh_bmesh_update_valence(pbvh->cd_dyn_vert, (SculptVertRef){(intptr_t)v});
 
     copy_v3_v3(mv->origco, v->co);
     copy_v3_v3(mv->origno, v->no);
@@ -1583,6 +1595,8 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
     }
   }
 
+  double start = PIL_check_seconds_timer();
+
   modified = modified || BKE_pbvh_bmesh_update_topology(pbvh,
                                                         mode,
                                                         center,
@@ -1594,6 +1608,10 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                                         updatePBVH,
                                                         mask_cb,
                                                         mask_cb_data);
+
+  double end = PIL_check_seconds_timer();
+
+  printf("dyntopo time: %f\n", end - start);
 
   return modified;
 }
@@ -1609,6 +1627,8 @@ static void pbvh_free_tribuf(PBVHTriBuf *tribuf)
   tribuf->tris = NULL;
   tribuf->loops = NULL;
   tribuf->edges = NULL;
+
+  tribuf->totloop = tribuf->tottri = tribuf->totedge = tribuf->totvert = 0;
 
   tribuf->verts_size = 0;
   tribuf->tris_size = 0;
@@ -1742,12 +1762,7 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
   TGSET_ITER_END
 
   if (node->tribuf) {
-    MEM_SAFE_FREE(node->tribuf->verts);
-    MEM_SAFE_FREE(node->tribuf->tris);
-    MEM_SAFE_FREE(node->tribuf->loops);
-
-    node->tribuf->tottri = 0;
-    node->tribuf->tris = NULL;
+    pbvh_free_tribuf(node->tribuf);
   }
   else {
     node->tribuf = MEM_callocN(sizeof(*node->tribuf), "node->tribuf");
@@ -1851,12 +1866,11 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     mat_vmaps[i] = NULL;
   }
 
-  if (node->tribuf) {
-    pbvh_free_tribuf(node->tribuf);
+  if (node->tribuf || node->tri_buffers) {
+    BKE_pbvh_bmesh_free_tris(pbvh, node);
   }
-  else {
-    node->tribuf = MEM_callocN(sizeof(*node->tribuf), "node->tribuf");
-  }
+
+  node->tribuf = MEM_callocN(sizeof(*node->tribuf), "node->tribuf");
 
   BMLoop **loops = NULL;
   uint(*loops_idx)[3] = NULL;
@@ -2092,6 +2106,99 @@ static int pbvh_count_subtree_verts(PBVH *pbvh, PBVHNode *n)
   n->subtree_tottri = ret;
 
   return ret;
+}
+
+void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh)
+{
+  BMVert *v;
+  BMIter iter;
+
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+    mv->flag |= DYNVERT_NEED_DISK_SORT;
+  }
+}
+
+void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh)
+{
+  BMIter iter;
+  BMVert *v;
+
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    BKE_pbvh_bmesh_update_valence(pbvh->cd_dyn_vert, (SculptVertRef){(intptr_t)v});
+  }
+}
+
+void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
+{
+  BMIter iter;
+  BMVert *v;
+
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (node->flag & PBVH_Leaf) {
+      node->flag |= PBVH_UpdateTriAreas;
+    }
+  }
+
+  const int cd_dyn_vert = pbvh->cd_dyn_vert;
+
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
+
+    mv->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_TRIANGULATE;
+    BKE_pbvh_bmesh_update_valence(pbvh->cd_dyn_vert, (SculptVertRef){.i = (intptr_t)v});
+  }
+}
+
+bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex)
+{
+  BMVert *v = (BMVert *)vertex.i;
+  MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
+
+  bool ret = mv->flag & DYNVERT_NEED_VALENCE;
+
+  mv->flag |= DYNVERT_NEED_VALENCE;
+
+  return ret;
+}
+
+bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, SculptVertRef vertex)
+{
+  BMVert *v = (BMVert *)vertex.i;
+  MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
+
+  if (mv->flag & DYNVERT_NEED_VALENCE) {
+    BKE_pbvh_bmesh_update_valence(pbvh->cd_dyn_vert, vertex);
+    return true;
+  }
+
+  return false;
+}
+
+void BKE_pbvh_bmesh_update_valence(int cd_dyn_vert, SculptVertRef vertex)
+{
+  BMVert *v = (BMVert *)vertex.i;
+  BMEdge *e;
+
+  MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, cd_dyn_vert);
+
+  mv->flag &= ~DYNVERT_NEED_VALENCE;
+
+  if (!v->e) {
+    mv->valence = 0;
+    return;
+  }
+
+  mv->valence = 0;
+
+  e = v->e;
+  do {
+    mv->valence++;
+
+    e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+  } while (e != v->e);
 }
 
 static void pbvh_bmesh_join_subnodes(PBVH *pbvh, PBVHNode *node, PBVHNode *parent)
@@ -2481,10 +2588,12 @@ struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node)
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
-                             const int cd_dyn_vert)
+                             const int cd_dyn_vert,
+                             const int cd_face_areas)
 {
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
+  pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
   pbvh->cd_vcol_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
   pbvh->cd_dyn_vert = cd_dyn_vert;
@@ -3907,6 +4016,31 @@ double pbvh_meshtest_smooth_test(MeshTest *m, PBVH *pbvh)
   return average / average_tot;
 }
 
+/*
+test results from blenderartists thread:
+
+random, cluster,  percent,  data, data_perc, indices, ind_perc, mem (gb)
+  [1.22,    1.04,   14.42,  0.73,     67,     0.94,    29,      0],
+  [1.49,    1.46,   2.35,   1.10,     36,     1.17,    27,      0],
+  [1.29,    1.13,     14,   0.75,  71.54,     0.89,    45.08 ,  0],
+  [1.58,    1.40,   12.3,   1.09,   44.7,     1.11,    42.42,   16],
+  [1.53,    1.36,   12.77,  1.08,  41.6,      1.07,    42.91,   0],
+  [1.56,    1.39,   12.47,  1.09,  42.65,     1.10,    42.15,   16],
+  [1.22,    1.06,   15.05,  0.75,   63.85,    0.82,    49.67,   32]
+
+[random]           average: 1.41 variange: 0.15 median: 1.49
+[cluster]          average: 1.26 variange: 0.17 median: 1.36
+[cluster-percent]  average: 11.91 variange: 4.02 median: 12.77
+[data]             average: 0.94 variange: 0.17 median: 1.08
+[data-percent]     average: 52.48 variange: 13.37 median: 44.70
+[indices]          average: 1.01 variange: 0.12 median: 1.07
+[indices-percent]  average: 39.75 variange: 7.82 median: 42.42
+
+So looks like the biggest gain is from replacing pointers with indices
+(which lessens total memory bandwidth).  The pure data-oriented version
+is a tad bit faster then the index-replacement one, but not by that much.
+*/
+
 void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 {
   // build mesh
@@ -4065,9 +4199,12 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
       &bm->vdata, CD_PROP_INT32, "__dyntopo_vert_node");
   int cd_face_node = CustomData_get_named_layer_index(
       &bm->pdata, CD_PROP_INT32, "__dyntopo_face_node");
+  int cd_face_area = CustomData_get_named_layer_index(
+      &bm->pdata, CD_PROP_FLOAT, "__dyntopo_face_areas");
 
   cd_vert_node = bm->vdata.layers[cd_vert_node].offset;
   cd_face_node = bm->pdata.layers[cd_face_node].offset;
+  cd_face_area = bm->pdata.layers[cd_face_area].offset;
 
   const int cd_fset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
   const int cd_dyn_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
@@ -4082,7 +4219,8 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   BM_mesh_elem_table_ensure(bm, BM_VERT | BM_FACE);
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
-  BKE_pbvh_build_bmesh(pbvh, bm, false, bmlog, cd_vert_node, cd_face_node, cd_dyn_vert, false);
+  BKE_pbvh_build_bmesh(
+      pbvh, bm, false, bmlog, cd_vert_node, cd_face_node, cd_dyn_vert, cd_face_area, false);
 
   int loop_size = sizeof(BMLoop) - sizeof(void *) * 4;
 

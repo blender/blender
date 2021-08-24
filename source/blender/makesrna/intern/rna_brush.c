@@ -3289,6 +3289,11 @@ static void rna_def_brush(BlenderRNA *brna)
       "Apply the maximum grab strength to the active vertex instead of the cursor location");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_weighted_smooth", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_SMOOTH_USE_AREA_WEIGHT);
+  RNA_def_property_ui_text(prop, "Weight By Area", "Weight by face area to get a smoother result");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "use_grab_silhouette", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_GRAB_SILHOUETTE);
   RNA_def_property_ui_text(

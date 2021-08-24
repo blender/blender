@@ -24,6 +24,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
 #include "BLI_blenlib.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_hash.h"
@@ -76,7 +77,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float projection)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
-  int total = 0;
+  float total = 0.0f;
   int neighbor_count = 0;
   const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex);
   const float *co = SCULPT_vertex_co_get(ss, vertex);
@@ -86,12 +87,29 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     SCULPT_vertex_normal_get(ss, vertex, no);
   }
 
+  const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  float *areas;
+
+  if (weighted) {
+    int val = SCULPT_vertex_valence_get(ss, vertex);
+    areas = BLI_array_alloca(areas, val);
+
+    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+  }
+
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     neighbor_count++;
 
-    float tmp[3];
+    float tmp[3], w;
     bool ok = false;
+
+    if (weighted) {
+      w = areas[ni.i];
+    }
+    else {
+      w = 1.0f;
+    }
 
     if (is_boundary) {
       /* Boundary vertices use only other boundary vertices. */
@@ -114,13 +132,13 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       sub_v3_v3(tmp, co);
       float fac = dot_v3v3(tmp, no);
       madd_v3_v3fl(tmp, no, -fac * projection);
-      add_v3_v3(avg, tmp);
+      madd_v3_v3fl(avg, tmp, w);
     }
     else {
-      add_v3_v3(avg, tmp);
+      madd_v3_v3fl(avg, tmp, w);
     }
 
-    total++;
+    total += w;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
@@ -131,7 +149,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   }
 
   /* Avoid division by 0 when there are no neighbors. */
-  if (total == 0) {
+  if (total == 0.0f) {
     copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
     return;
   }
@@ -287,16 +305,34 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float *co, no[3];
-  int total = 0;
+  float total = 0.0f;
 
   if (projection > 0.0f) {
     co = (float *)SCULPT_vertex_co_get(ss, vertex);
     SCULPT_vertex_normal_get(ss, vertex, no);
   }
 
+  const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  float *areas;
+
+  if (weighted) {
+    int val = SCULPT_vertex_valence_get(ss, vertex);
+    areas = BLI_array_alloca(areas, val);
+
+    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+  }
+
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     const float *co2 = SCULPT_vertex_co_get(ss, ni.vertex);
+    float w;
+
+    if (weighted) {
+      w = areas[ni.i];
+    }
+    else {
+      w = 1.0f;
+    }
 
     if (projection > 0.0f) {
       float tmp[3];
@@ -305,16 +341,16 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
       float fac = dot_v3v3(tmp, no);
       madd_v3_v3fl(tmp, no, -fac * projection);
 
-      add_v3_v3(avg, tmp);
+      madd_v3_v3fl(avg, tmp, w);
     }
     else {
-      add_v3_v3(avg, co2);
+      madd_v3_v3fl(avg, co2, w);
     }
-    total++;
+    total += w;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-  if (total > 0) {
+  if (total > 0.0f) {
     mul_v3_v3fl(result, avg, 1.0f / total);
 
     if (projection > 0.0) {
@@ -416,6 +452,11 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
+      (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
+    BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
@@ -528,6 +569,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 }
 
 #else
+
 static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict tls)
@@ -549,6 +591,13 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
+  const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+
+  if (weighted) {
+    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
+  }
+
+  bool modified = false;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -580,8 +629,14 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
+
+    modified = true;
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (modified && weighted) {
+    BKE_pbvh_node_mark_update_tri_area(data->nodes[n]);
+  }
 }
 #endif
 
@@ -721,6 +776,12 @@ void SCULPT_do_smooth_brush(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection)
 {
   SculptSession *ss = ob->sculpt;
+
+  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
+      (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
+    BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
+
   if (ss->cache->bstrength <= 0.0f) {
     /* Invert mode, intensify details. */
     SCULPT_enhance_details_brush(sd, ob, nodes, totnode);
@@ -801,6 +862,14 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+
+  if (weighted) {
+    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
+  }
+
+  bool modified = false;
+
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -832,8 +901,14 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
+
+    modified = true;
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (modified && weighted) {
+    BKE_pbvh_node_mark_update_tri_area(data->nodes[n]);
+  }
 }
 
 static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
@@ -875,6 +950,11 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
+
+  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
+      (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
+    BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     BLI_assert(ss->cache->surface_smooth_laplacian_disp == NULL);

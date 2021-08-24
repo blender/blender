@@ -198,6 +198,7 @@ struct PBVH {
   int cd_vert_mask_offset;
   int cd_vcol_offset;
   int cd_faceset_offset;
+  int cd_face_area;
 
   float planes[6][4];
   int num_planes;
