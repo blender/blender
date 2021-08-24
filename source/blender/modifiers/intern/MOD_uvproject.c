@@ -72,7 +72,7 @@ static void requiredDataMask(Object *UNUSED(ob),
                              CustomData_MeshMasks *r_cddata_masks)
 {
   /* ask for UV coordinates */
-  r_cddata_masks->lmask |= CD_MLOOPUV;
+  r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
