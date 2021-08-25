@@ -41,53 +41,29 @@
 
 #include "MEM_guardedalloc.h"
 
+/* NOTE: we should handle all previews for a same group at once, would avoid reopening
+ * `.blend` file for each and every ID. However, this adds some complexity,
+ * so keep it for later. */
 static ImBuf *imb_thumb_load_from_blend_id(const char *blen_path,
                                            const char *blen_group,
                                            const char *blen_id)
 {
   ImBuf *ima = NULL;
-  LinkNode *ln, *names, *lp, *previews = NULL;
   BlendFileReadReport bf_reports = {.reports = NULL};
-  struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
-  int idcode = BKE_idtype_idcode_from_name(blen_group);
-  int i, nprevs, nnames;
 
+  struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
   if (libfiledata == NULL) {
     return NULL;
   }
 
-  /* NOTE: we should handle all previews for a same group at once, would avoid reopening
-   * `.blend` file for each and every ID. However, this adds some complexity,
-   * so keep it for later. */
-  names = BLO_blendhandle_get_datablock_names(libfiledata, idcode, false, &nnames);
-  previews = BLO_blendhandle_get_previews(libfiledata, idcode, &nprevs);
-
+  int idcode = BKE_idtype_idcode_from_name(blen_group);
+  PreviewImage *preview = BLO_blendhandle_get_preview_for_id(libfiledata, idcode, blen_id);
   BLO_blendhandle_close(libfiledata);
 
-  if (!previews || (nnames != nprevs)) {
-    if (previews != 0) {
-      /* No previews at all is not a bug! */
-      printf("%s: error, found %d items, %d previews\n", __func__, nnames, nprevs);
-    }
-    BLI_linklist_free(previews, BKE_previewimg_freefunc);
-    BLI_linklist_freeN(names);
-    return NULL;
+  if (preview) {
+    ima = BKE_previewimg_to_imbuf(preview, ICON_SIZE_PREVIEW);
+    BKE_previewimg_freefunc(preview);
   }
-
-  for (i = 0, ln = names, lp = previews; i < nnames; i++, ln = ln->next, lp = lp->next) {
-    const char *blockname = ln->link;
-    PreviewImage *img = lp->link;
-
-    if (STREQ(blockname, blen_id)) {
-      if (img) {
-        ima = BKE_previewimg_to_imbuf(img, ICON_SIZE_PREVIEW);
-      }
-      break;
-    }
-  }
-
-  BLI_linklist_free(previews, BKE_previewimg_freefunc);
-  BLI_linklist_freeN(names);
   return ima;
 }
 

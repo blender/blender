@@ -217,6 +217,96 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
 }
 
 /**
+ * Read the preview rects and store in `result`.
+ *
+ * `bhead` should point to the block that sourced the `preview_from_file`
+ *     parameter.
+ * `bhead` parameter is consumed. The correct bhead pointing to the next bhead in the file after
+ * the preview rects is returned by this function.
+ * \param fd: The filedata to read the data from.
+ * \param bhead: should point to the block that sourced the `preview_from_file parameter`.
+ *               bhead is consumed. the new bhead is returned by this function.
+ * \param result: the Preview Image where the preview rect will be stored.
+ * \param preview_from_file: The read PreviewImage where the bhead points to. The rects of this
+ * \return PreviewImage or NULL when no preview Images have been found. Caller owns the returned
+ */
+static BHead *blo_blendhandle_read_preview_rects(FileData *fd,
+                                                 BHead *bhead,
+                                                 PreviewImage *result,
+                                                 const PreviewImage *preview_from_file)
+{
+  for (int preview_index = 0; preview_index < NUM_ICON_SIZES; preview_index++) {
+    if (preview_from_file->rect[preview_index] && preview_from_file->w[preview_index] &&
+        preview_from_file->h[preview_index]) {
+      bhead = blo_bhead_next(fd, bhead);
+      BLI_assert((preview_from_file->w[preview_index] * preview_from_file->h[preview_index] *
+                  sizeof(uint)) == bhead->len);
+      result->rect[preview_index] = BLO_library_read_struct(fd, bhead, "PreviewImage Icon Rect");
+    }
+    else {
+      /* This should not be needed, but can happen in 'broken' .blend files,
+       * better handle this gracefully than crashing. */
+      BLI_assert(preview_from_file->rect[preview_index] == NULL &&
+                 preview_from_file->w[preview_index] == 0 &&
+                 preview_from_file->h[preview_index] == 0);
+      result->rect[preview_index] = NULL;
+      result->w[preview_index] = result->h[preview_index] = 0;
+    }
+    BKE_previewimg_finish(result, preview_index);
+  }
+
+  return bhead;
+}
+
+/**
+ * Get the PreviewImage of a single data block in a file.
+ * (e.g. all the scene previews in a file).
+ *
+ * \param bh: The blendhandle to access.
+ * \param ofblocktype: The type of names to get.
+ * \param name: Name of the block without the ID_ prefix, to read the preview image from.
+ * \return PreviewImage or NULL when no preview Images have been found. Caller owns the returned
+ */
+PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
+                                                 int ofblocktype,
+                                                 const char *name)
+{
+  FileData *fd = (FileData *)bh;
+  bool looking = false;
+  const int sdna_preview_image = DNA_struct_find_nr(fd->filesdna, "PreviewImage");
+
+  for (BHead *bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
+    if (bhead->code == DATA) {
+      if (looking && bhead->SDNAnr == sdna_preview_image) {
+        PreviewImage *preview_from_file = BLO_library_read_struct(fd, bhead, "PreviewImage");
+
+        if (preview_from_file == NULL) {
+          break;
+        }
+
+        PreviewImage *result = MEM_dupallocN(preview_from_file);
+        bhead = blo_blendhandle_read_preview_rects(fd, bhead, result, preview_from_file);
+        MEM_freeN(preview_from_file);
+        return result;
+      }
+    }
+    else if (looking || bhead->code == ENDB) {
+      /* We were looking for a preview image, but didn't find any belonging to block. So it doesn't
+       * exist. */
+      break;
+    }
+    else if (bhead->code == ofblocktype) {
+      const char *idname = blo_bhead_id_name(fd, bhead);
+      if (STREQ(&idname[2], name)) {
+        looking = true;
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
  * Gets the previews of all the data-blocks in a file of a certain type
  * (e.g. all the scene previews in a file).
  *
@@ -264,33 +354,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_
 
           if (prv) {
             memcpy(new_prv, prv, sizeof(PreviewImage));
-            if (prv->rect[0] && prv->w[0] && prv->h[0]) {
-              bhead = blo_bhead_next(fd, bhead);
-              BLI_assert((new_prv->w[0] * new_prv->h[0] * sizeof(uint)) == bhead->len);
-              new_prv->rect[0] = BLO_library_read_struct(fd, bhead, "PreviewImage Icon Rect");
-            }
-            else {
-              /* This should not be needed, but can happen in 'broken' .blend files,
-               * better handle this gracefully than crashing. */
-              BLI_assert(prv->rect[0] == NULL && prv->w[0] == 0 && prv->h[0] == 0);
-              new_prv->rect[0] = NULL;
-              new_prv->w[0] = new_prv->h[0] = 0;
-            }
-            BKE_previewimg_finish(new_prv, 0);
-
-            if (prv->rect[1] && prv->w[1] && prv->h[1]) {
-              bhead = blo_bhead_next(fd, bhead);
-              BLI_assert((new_prv->w[1] * new_prv->h[1] * sizeof(uint)) == bhead->len);
-              new_prv->rect[1] = BLO_library_read_struct(fd, bhead, "PreviewImage Image Rect");
-            }
-            else {
-              /* This should not be needed, but can happen in 'broken' .blend files,
-               * better handle this gracefully than crashing. */
-              BLI_assert(prv->rect[1] == NULL && prv->w[1] == 0 && prv->h[1] == 0);
-              new_prv->rect[1] = NULL;
-              new_prv->w[1] = new_prv->h[1] = 0;
-            }
-            BKE_previewimg_finish(new_prv, 1);
+            bhead = blo_blendhandle_read_preview_rects(fd, bhead, new_prv, prv);
             MEM_freeN(prv);
           }
         }
