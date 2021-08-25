@@ -166,6 +166,7 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
      * first call, see comment above. */
     (*runtime)->context = NULL;
 
+    wm_xr_session_data_free(&(*runtime)->session_state);
     WM_xr_actionmaps_clear(*runtime);
 
     GHOST_XrContextDestroy(context);
