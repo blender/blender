@@ -243,6 +243,9 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
       if (t->con.mode & CON_AXIS2) {
         dvec[i++] = dvec[2];
       }
+      while (i != 3) {
+        dvec[i++] = 0.0f;
+      }
     }
 
     if (t->flag & T_2D_EDIT) {
