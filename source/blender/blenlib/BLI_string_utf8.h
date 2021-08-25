@@ -39,10 +39,6 @@ int BLI_str_utf8_size(const char *p) ATTR_NONNULL();
 int BLI_str_utf8_size_safe(const char *p) ATTR_NONNULL();
 /* copied from glib */
 unsigned int BLI_str_utf8_as_unicode(const char *p) ATTR_NONNULL();
-unsigned int BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *__restrict index)
-    ATTR_NONNULL();
-unsigned int BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p,
-                                                   size_t *__restrict index) ATTR_NONNULL();
 unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p,
                                           size_t p_len,
                                           size_t *__restrict index) ATTR_NONNULL(1, 3);

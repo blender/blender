@@ -546,40 +546,6 @@ uint BLI_str_utf8_as_unicode(const char *p)
   return result;
 }
 
-/* variant that increments the length */
-uint BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *__restrict index)
-{
-  int i, len;
-  uint mask = 0;
-  uint result;
-  const unsigned char c = (unsigned char)*p;
-
-  UTF8_COMPUTE(c, mask, len, -1);
-  if (UNLIKELY(len == -1)) {
-    return BLI_UTF8_ERR;
-  }
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
-  *index += (size_t)len;
-  return result;
-}
-
-uint BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, size_t *__restrict index)
-{
-  int i, len;
-  uint mask = 0;
-  uint result;
-  const unsigned char c = (unsigned char)*p;
-
-  UTF8_COMPUTE(c, mask, len, -1);
-  if (UNLIKELY(len == -1)) {
-    *index += 1;
-    return c;
-  }
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
-  *index += (size_t)len;
-  return result;
-}
-
 /**
  * UTF8 decoding that steps over the index (unless an error is encountered).
  *
@@ -709,16 +675,23 @@ size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
   memset(dst_w, 0xff, sizeof(*dst_w) * maxncpy);
 #endif
 
+  const size_t src_c_len = strlen(src_c);
+  const char *src_c_end = src_c + src_c_len;
+  size_t index = 0;
   while (*src_c && len != maxlen) {
-    size_t step = 0;
-    uint unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
+    const uint unicode = BLI_str_utf8_as_unicode_step_or_error(src_c, src_c_len, &index);
     if (unicode != BLI_UTF8_ERR) {
       *dst_w = unicode;
-      src_c += step;
     }
     else {
       *dst_w = '?';
-      src_c = BLI_str_find_next_char_utf8(src_c, NULL);
+      const char *src_c_next = BLI_str_find_next_char_utf8(src_c + index, src_c_end);
+      if (src_c_next != NULL) {
+        index = (size_t)(src_c_next - src_c);
+      }
+      else {
+        index += 1;
+      }
     }
     dst_w++;
     len++;
@@ -898,7 +871,9 @@ size_t BLI_str_partition_ex_utf8(const char *str,
       index = 0;
        *sep >= str && (!end || *sep < end) && **sep != '\0';
        *sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(str, *sep) : str + index)) {
-    const uint c = BLI_str_utf8_as_unicode_and_size(*sep, &index);
+    size_t index_ofs = 0;
+    const uint c = BLI_str_utf8_as_unicode_step_or_error(*sep, (size_t)(end - *sep), &index_ofs);
+    index += index_ofs;
 
     if (c == BLI_UTF8_ERR) {
       *suf = *sep = NULL;
