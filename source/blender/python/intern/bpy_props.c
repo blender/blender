@@ -157,7 +157,6 @@ static const EnumPropertyItem property_subtype_number_items[] = {
      0,
      "Time (Absolute)",
      "Time specified in seconds, independent of the scene"},
-    {PROP_TIME_ABSOLUTE, "TIME_ABSOLUTE", 0, "Time Absolute", ""},
     {PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
     {PROP_DISTANCE_CAMERA, "DISTANCE_CAMERA", 0, "Camera Distance", ""},
     {PROP_POWER, "POWER", 0, "Power", ""},
