@@ -178,6 +178,12 @@ XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const cha
  * Item in an XR action map, that maps an XR event to an operator, pose, or haptic output.
  * \{ */
 
+static void wm_xr_actionmap_item_bindings_clear(XrActionMapItem *ami)
+{
+  BLI_freelistN(&ami->bindings);
+  ami->selbinding = -1;
+}
+
 static void wm_xr_actionmap_item_properties_set(XrActionMapItem *ami)
 {
   WM_operator_properties_alloc(&(ami->op_properties_ptr), &(ami->op_properties), ami->op);
@@ -345,10 +351,8 @@ bool WM_xr_actionmap_item_remove(XrActionMap *actionmap, XrActionMapItem *ami)
   int idx = BLI_findindex(&actionmap->items, ami);
 
   if (idx != -1) {
-    if (ami->op_properties_ptr) {
-      WM_operator_properties_free(ami->op_properties_ptr);
-      MEM_freeN(ami->op_properties_ptr);
-    }
+    wm_xr_actionmap_item_bindings_clear(ami);
+    wm_xr_actionmap_item_properties_free(ami);
     BLI_freelinkN(&actionmap->items, ami);
 
     if (BLI_listbase_is_empty(&actionmap->items)) {
@@ -518,6 +522,7 @@ XrActionMap *WM_xr_actionmap_find(wmXrRuntimeData *runtime, const char *name)
 void WM_xr_actionmap_clear(XrActionMap *actionmap)
 {
   LISTBASE_FOREACH (XrActionMapItem *, ami, &actionmap->items) {
+    wm_xr_actionmap_item_bindings_clear(ami);
     wm_xr_actionmap_item_properties_free(ami);
   }
 
