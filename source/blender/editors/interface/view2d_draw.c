@@ -349,7 +349,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
       const float text_width = BLF_width(font_id, text, strlen(text));
 
       if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
-        BLF_draw_default_ascii(xpos_region - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
+        BLF_draw_default(xpos_region - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
       }
     }
   }
@@ -411,7 +411,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
     const float text_width = BLF_width(font_id, text, strlen(text));
 
     if (ypos_region - text_width / 2.0f >= ymin && ypos_region + text_width / 2.0f <= ymax) {
-      BLF_draw_default_ascii(xpos, ypos_region - text_width / 2.0f, 0.0f, text, sizeof(text));
+      BLF_draw_default(xpos, ypos_region - text_width / 2.0f, 0.0f, text, sizeof(text));
     }
   }
 

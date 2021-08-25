@@ -333,14 +333,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       BLI_snprintf(text, 5, "%d", tile->tile_number);
       float tile_location[3] = {
           ((tile->tile_number - 1001) % 10), ((tile->tile_number - 1001) / 10), 0.0f};
-      DRW_text_cache_add(dt,
-                         tile_location,
-                         text,
-                         strlen(text),
-                         10,
-                         10,
-                         DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_ASCII,
-                         color);
+      DRW_text_cache_add(
+          dt, tile_location, text, strlen(text), 10, 10, DRW_TEXT_CACHE_GLOBALSPACE, color);
     }
   }
 

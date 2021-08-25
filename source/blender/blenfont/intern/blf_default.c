@@ -77,14 +77,3 @@ void BLF_draw_default(float x, float y, float z, const char *str, const size_t s
   BLF_position(global_font_default, x, y, z);
   BLF_draw(global_font_default, str, str_len);
 }
-
-/* same as above but call 'BLF_draw_ascii' */
-void BLF_draw_default_ascii(float x, float y, float z, const char *str, const size_t str_len)
-{
-  ASSERT_DEFAULT_SET;
-
-  const uiStyle *style = UI_style_get();
-  BLF_size(global_font_default, style->widgetlabel.points, global_font_dpi);
-  BLF_position(global_font_default, x, y, z);
-  BLF_draw_ascii(global_font_default, str, str_len); /* XXX, use real length */
-}

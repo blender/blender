@@ -710,7 +710,8 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
   }
 
   if (flags & P_VIEW2D_EDGE_PAN) {
-    prop = RNA_def_boolean(ot->srna, "view2d_edge_pan", false, "Edge Pan", "Enable edge panning in 2D view");
+    prop = RNA_def_boolean(
+        ot->srna, "view2d_edge_pan", false, "Edge Pan", "Enable edge panning in 2D view");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
 

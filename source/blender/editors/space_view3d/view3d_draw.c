@@ -1020,7 +1020,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 
     const char axis_text[2] = {'x' + i, '\0'};
     BLF_color4ubv(BLF_default(), axis_col[i]);
-    BLF_draw_default_ascii(axis_pos[i][0] + 2, axis_pos[i][1] + 2, 0.0f, axis_text, 1);
+    BLF_draw_default(axis_pos[i][0] + 2, axis_pos[i][1] + 2, 0.0f, axis_text, 1);
   }
 }
 
@@ -1458,9 +1458,7 @@ static void draw_grid_unit_name(
       BLF_enable(font_id, BLF_SHADOW);
       BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
       BLF_shadow_offset(font_id, 1, -1);
-      BLF_draw_default_ascii(
-          xoffset, *yoffset, 0.0f, numstr[0] ? numstr : grid_unit, sizeof(numstr));
-
+      BLF_draw_default(xoffset, *yoffset, 0.0f, numstr[0] ? numstr : grid_unit, sizeof(numstr));
       BLF_disable(font_id, BLF_SHADOW);
     }
   }
@@ -2548,11 +2546,7 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 
   *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
 
-#ifdef WITH_INTERNATIONAL
   BLF_draw_default(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
-#else
-  BLF_draw_default_ascii(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
-#endif
 
   BLF_disable(font_id, BLF_SHADOW);
 }

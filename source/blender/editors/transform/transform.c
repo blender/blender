@@ -1372,11 +1372,7 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *region)
   uchar color[3];
   UI_GetThemeColorShade3ubv(TH_TEXT_HI, -50, color);
   BLF_color3ubv(font_id, color);
-#ifdef WITH_INTERNATIONAL
   BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
-#else
-  BLF_draw_default_ascii(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
-#endif
 
   /* autokey recording icon... */
   GPU_blend(GPU_BLEND_ALPHA);

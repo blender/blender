@@ -550,34 +550,6 @@ void BLF_draw(int fontid, const char *str, const size_t str_len)
   BLF_draw_ex(fontid, str, str_len, NULL);
 }
 
-void BLF_draw_ascii_ex(int fontid, const char *str, const size_t str_len, struct ResultBLF *r_info)
-{
-  FontBLF *font = blf_get(fontid);
-
-  BLF_RESULT_CHECK_INIT(r_info);
-
-  if (font) {
-    blf_draw_gl__start(font);
-    if (font->flags & BLF_WORD_WRAP) {
-      /* Use non-ASCII draw function for word-wrap. */
-      blf_font_draw__wrap(font, str, str_len, r_info);
-    }
-    else {
-      blf_font_draw_ascii(font, str, str_len, r_info);
-    }
-    blf_draw_gl__end(font);
-  }
-}
-
-void BLF_draw_ascii(int fontid, const char *str, const size_t str_len)
-{
-  if (str_len == 0 || str[0] == '\0') {
-    return;
-  }
-
-  BLF_draw_ascii_ex(fontid, str, str_len, NULL);
-}
-
 int BLF_draw_mono(int fontid, const char *str, const size_t str_len, int cwidth)
 {
   if (str_len == 0 || str[0] == '\0') {

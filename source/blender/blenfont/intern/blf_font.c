@@ -412,56 +412,6 @@ void blf_font_draw(FontBLF *font, const char *str, const size_t str_len, struct 
   blf_glyph_cache_release(font);
 }
 
-/* faster version of blf_font_draw, ascii only for view dimensions */
-static void blf_font_draw_ascii_ex(
-    FontBLF *font, const char *str, size_t str_len, struct ResultBLF *r_info, int pen_y)
-{
-  unsigned int c, c_prev = BLI_UTF8_ERR;
-  GlyphBLF *g, *g_prev = NULL;
-  int pen_x = 0;
-
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-
-  blf_batch_draw_begin(font);
-
-  while ((c = *(str++)) && str_len--) {
-    BLI_assert(c < GLYPH_ASCII_TABLE_SIZE);
-    g = gc->glyph_ascii_table[c];
-    if (UNLIKELY(g == NULL)) {
-      g = blf_glyph_add(font, gc, FT_Get_Char_Index((font)->face, c), c);
-      gc->glyph_ascii_table[c] = g;
-      if (UNLIKELY(g == NULL)) {
-        continue;
-      }
-    }
-    blf_kerning_step_fast(font, g_prev, g, c_prev, c, &pen_x);
-
-    /* do not return this loop if clipped, we want every character tested */
-    blf_glyph_render(font, gc, g, (float)pen_x, (float)pen_y);
-
-    pen_x += g->advance_i;
-    g_prev = g;
-    c_prev = c;
-  }
-
-  blf_batch_draw_end();
-
-  if (r_info) {
-    r_info->lines = 1;
-    r_info->width = pen_x;
-  }
-
-  blf_glyph_cache_release(font);
-}
-
-void blf_font_draw_ascii(FontBLF *font,
-                         const char *str,
-                         const size_t str_len,
-                         struct ResultBLF *r_info)
-{
-  blf_font_draw_ascii_ex(font, str, str_len, r_info, 0);
-}
-
 /* use fixed column width, but an utf8 character may occupy multiple columns */
 int blf_font_draw_mono(FontBLF *font, const char *str, const size_t str_len, int cwidth)
 {
