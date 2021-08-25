@@ -678,7 +678,7 @@ size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
   const size_t src_c_len = strlen(src_c);
   const char *src_c_end = src_c + src_c_len;
   size_t index = 0;
-  while (*src_c && len != maxlen) {
+  while ((index < src_c_len) && (len != maxlen)) {
     const uint unicode = BLI_str_utf8_as_unicode_step_or_error(src_c, src_c_len, &index);
     if (unicode != BLI_UTF8_ERR) {
       *dst_w = unicode;
