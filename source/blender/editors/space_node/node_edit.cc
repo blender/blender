@@ -398,7 +398,7 @@ void snode_dag_update(bContext *C, SpaceNode *snode)
   Main *bmain = CTX_data_main(C);
 
   /* for groups, update all ID's using this */
-  if (snode->edittree != snode->nodetree) {
+  if ((snode->edittree->id.flag & LIB_EMBEDDED_DATA) == 0) {
     FOREACH_NODETREE_BEGIN (bmain, tntree, id) {
       if (ntreeHasTree(tntree, snode->edittree)) {
         DEG_id_tag_update(id, 0);
