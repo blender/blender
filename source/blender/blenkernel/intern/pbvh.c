@@ -81,6 +81,27 @@ void BB_reset(BB *bb)
   bb->bmax[0] = bb->bmax[1] = bb->bmax[2] = -FLT_MAX;
 }
 
+void BB_intersect(BB *r_out, BB *a, BB *b)
+{
+  for (int i = 0; i < 3; i++) {
+    r_out->bmin[i] = max_ff(a->bmin[i], b->bmin[i]);
+    r_out->bmax[i] = min_ff(a->bmax[i], b->bmax[i]);
+
+    if (r_out->bmax[i] < r_out->bmin[i]) {
+      r_out->bmax[i] = r_out->bmin[i] = 0.0f;
+    }
+  }
+}
+
+float BB_volume(const BB *bb)
+{
+  float dx = bb->bmax[0] - bb->bmin[0];
+  float dy = bb->bmax[1] - bb->bmin[1];
+  float dz = bb->bmax[2] - bb->bmin[2];
+
+  return dx * dy * dz;
+}
+
 /* Expand the bounding box to include a new coordinate */
 void BB_expand(BB *bb, const float co[3])
 {

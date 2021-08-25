@@ -1060,6 +1060,8 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hid
 /** \name BMesh PBVH
  * \{ */
 
+static int debug_pass = 0;
+
 /* Output a BMVert into a VertexBufferFormat array at v_index. */
 static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
                                           GPUVertBuf *vert_buf,
@@ -1099,7 +1101,7 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
     if (G.debug_value == 889) {
       int ni = BM_ELEM_CD_GET_INT(v, cd_vert_node_offset);
 
-      effective_mask = ni == -1 ? 0.0f : (float)((ni * 50) % 32) / 32.0f;
+      effective_mask = ni == -1 ? 0.0f : (float)(((ni + debug_pass) * 511) % 64) / 64;
     }
 
     uchar cmask = (uchar)(effective_mask * 255);
@@ -1266,6 +1268,8 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata,
                                      bool fast_mode)
 {
   const bool active_only = !need_full_render;
+
+  debug_pass++;
 
   GPU_vertformat_clear(&g_vbo_id.format);
 

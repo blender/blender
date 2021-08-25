@@ -208,6 +208,8 @@ struct PBVH {
 
   bool flat_vcol_shading;
   bool need_full_render;  // used by pbvh drawing for PBVH_BMESH
+
+  int balance_counter;
 };
 
 /* pbvh.c */
@@ -216,6 +218,9 @@ void BB_expand(BB *bb, const float co[3]);
 void BB_expand_with_bb(BB *bb, BB *bb2);
 void BBC_update_centroid(BBC *bbc);
 int BB_widest_axis(const BB *bb);
+void BB_intersect(BB *r_out, BB *a, BB *b);
+float BB_volume(const BB *bb);
+
 void pbvh_grow_nodes(PBVH *bvh, int totnode);
 bool ray_face_intersection_quad(const float ray_start[3],
                                 struct IsectRayPrecalc *isect_precalc,

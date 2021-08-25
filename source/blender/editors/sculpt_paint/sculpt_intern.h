@@ -1542,8 +1542,7 @@ void SCULPT_dyntopo_save_persistent_base(SculptSession *ss);
 #define SCULPT_LAYER_DISP "__dyntopo_layer_disp"
 
 // these tools don't support dynamic pbvh splitting during the stroke
-#define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) \
-  (ELEM(tool, SCULPT_TOOL_DRAW_SHARP, SCULPT_TOOL_LAYER) == 0)
+#define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) (ELEM(tool, SCULPT_TOOL_LAYER) == 0)
 
 /*get current symmetry pass index inclusive of both
   mirror and radial symmetry*/
