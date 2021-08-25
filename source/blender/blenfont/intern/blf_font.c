@@ -309,14 +309,12 @@ BLI_INLINE GlyphBLF *blf_utf8_next_fast(
     }
     (*i_p)++;
   }
-  else if ((*r_c = BLI_str_utf8_as_unicode_step(str, str_len, i_p)) != BLI_UTF8_ERR) {
+  else {
+    *r_c = BLI_str_utf8_as_unicode_step(str, str_len, i_p);
     g = blf_glyph_search(gc, *r_c);
     if (UNLIKELY(g == NULL)) {
       g = blf_glyph_add(font, gc, FT_Get_Char_Index(font->face, *r_c), *r_c);
     }
-  }
-  else {
-    g = NULL;
   }
   return g;
 }
@@ -1202,7 +1200,8 @@ int blf_font_count_missing_chars(FontBLF *font,
     if ((c = str[i]) < GLYPH_ASCII_TABLE_SIZE) {
       i++;
     }
-    else if ((c = BLI_str_utf8_as_unicode_step(str, str_len, &i)) != BLI_UTF8_ERR) {
+    else {
+      c = BLI_str_utf8_as_unicode_step(str, str_len, &i);
       if (FT_Get_Char_Index((font)->face, c) == 0) {
         missing++;
       }
