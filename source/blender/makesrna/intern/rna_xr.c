@@ -40,6 +40,23 @@
 #  include "WM_api.h"
 
 /* -------------------------------------------------------------------- */
+
+#  ifdef WITH_XR_OPENXR
+static wmXrData *rna_XrSession_wm_xr_data_get(PointerRNA *ptr)
+{
+  /* Callers could also get XrSessionState pointer through ptr->data, but prefer if we just
+   * consistently pass wmXrData pointers to the WM_xr_xxx() API. */
+
+  BLI_assert((ptr->type == &RNA_XrSessionSettings) || (ptr->type == &RNA_XrSessionState));
+
+  wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
+  BLI_assert(wm && (GS(wm->id.name) == ID_WM));
+
+  return &wm->xr;
+}
+#  endif
+
+/* -------------------------------------------------------------------- */
 /** \name XR Action Map
  * \{ */
 
@@ -420,29 +437,32 @@ static void rna_XrActionMapItem_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 #  endif
 }
 
-static XrActionMap *rna_XrActionMap_new(wmXrData *xr, const char *name, bool replace_existing)
+static XrActionMap *rna_XrActionMap_new(PointerRNA *ptr, const char *name, bool replace_existing)
 {
 #  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   return WM_xr_actionmap_new(xr->runtime, name, replace_existing);
 #  else
-  UNUSED_VARS(xr, name, replace_existing);
+  UNUSED_VARS(ptr, name, replace_existing);
   return NULL;
 #  endif
 }
 
-static XrActionMap *rna_XrActionMap_new_from_actionmap(wmXrData *xr, XrActionMap *am_src)
+static XrActionMap *rna_XrActionMap_new_from_actionmap(PointerRNA *ptr, XrActionMap *am_src)
 {
 #  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   return WM_xr_actionmap_add_copy(xr->runtime, am_src);
 #  else
-  UNUSED_VARS(xr, am_src);
+  UNUSED_VARS(ptr, am_src);
   return NULL;
 #  endif
 }
 
-static void rna_XrActionMap_remove(wmXrData *xr, ReportList *reports, PointerRNA *actionmap_ptr)
+static void rna_XrActionMap_remove(ReportList *reports, PointerRNA *ptr, PointerRNA *actionmap_ptr)
 {
 #  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   XrActionMap *actionmap = actionmap_ptr->data;
   if (WM_xr_actionmap_remove(xr->runtime, actionmap) == false) {
     BKE_reportf(reports, RPT_ERROR, "ActionMap '%s' cannot be removed", actionmap->name);
@@ -450,16 +470,17 @@ static void rna_XrActionMap_remove(wmXrData *xr, ReportList *reports, PointerRNA
   }
   RNA_POINTER_INVALIDATE(actionmap_ptr);
 #  else
-  UNUSED_VARS(xr, reports, actionmap_ptr);
+  UNUSED_VARS(ptr, reports, actionmap_ptr);
 #  endif
 }
 
-static XrActionMap *rna_XrActionMap_find(wmXrData *xr, const char *name)
+static XrActionMap *rna_XrActionMap_find(PointerRNA *ptr, const char *name)
 {
 #  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   return WM_xr_actionmap_find(xr->runtime, name);
 #  else
-  UNUSED_VARS(xr, name);
+  UNUSED_VARS(ptr, name);
   return NULL;
 #  endif
 }
@@ -478,23 +499,6 @@ static void rna_XrActionMap_name_update(Main *bmain, Scene *UNUSED(scene), Point
 }
 
 /** \} */
-
-/* -------------------------------------------------------------------- */
-
-#  ifdef WITH_XR_OPENXR
-static wmXrData *rna_XrSession_wm_xr_data_get(PointerRNA *ptr)
-{
-  /* Callers could also get XrSessionState pointer through ptr->data, but prefer if we just
-   * consistently pass wmXrData pointers to the WM_xr_xxx() API. */
-
-  BLI_assert((ptr->type == &RNA_XrSessionSettings) || (ptr->type == &RNA_XrSessionState));
-
-  wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
-  BLI_assert(wm && (GS(wm->id.name) == ID_WM));
-
-  return &wm->xr;
-}
-#  endif
 
 /* -------------------------------------------------------------------- */
 /** \name XR Session Settings
@@ -1136,10 +1140,12 @@ static void rna_def_xr_actionmaps(BlenderRNA *brna, PropertyRNA *cprop)
 
   RNA_def_property_srna(cprop, "XrActionMaps");
   srna = RNA_def_struct(brna, "XrActionMaps", NULL);
-  RNA_def_struct_sdna(srna, "wmXrData");
   RNA_def_struct_ui_text(srna, "XR Action Maps", "Collection of XR action maps");
 
   func = RNA_def_function(srna, "new", "rna_XrActionMap_new");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "xr_session_state", "XrSessionState", "XR Session State", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func,
@@ -1152,6 +1158,9 @@ static void rna_def_xr_actionmaps(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_from_actionmap", "rna_XrActionMap_new_from_actionmap");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "xr_session_state", "XrSessionState", "XR Session State", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_pointer(
       func, "actionmap", "XrActionMap", "Action Map", "Action map to use as a reference");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
@@ -1159,12 +1168,17 @@ static void rna_def_xr_actionmaps(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_XrActionMap_remove");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "xr_session_state", "XrSessionState", "XR Session State", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_pointer(func, "actionmap", "XrActionMap", "Action Map", "Removed action map");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
   func = RNA_def_function(srna, "find", "rna_XrActionMap_find");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "xr_session_state", "XrSessionState", "XR Session State", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(
