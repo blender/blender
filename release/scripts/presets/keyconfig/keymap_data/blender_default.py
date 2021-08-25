@@ -2498,7 +2498,7 @@ def km_text(params):
          {"properties": [("type", 'PREVIOUS_CHARACTER')]}),
         ("text.delete", {"type": 'DEL', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("type", 'NEXT_WORD')]}),
-        ("text.delete", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True},
+        ("text.delete", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("type", 'PREVIOUS_WORD')]}),
         ("text.overwrite_toggle", {"type": 'INSERT', "value": 'PRESS'}, None),
         ("text.scroll_bar", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
