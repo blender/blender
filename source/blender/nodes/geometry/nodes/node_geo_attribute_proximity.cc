@@ -53,8 +53,7 @@ static void geo_attribute_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
   NodeGeometryAttributeProximity *node_storage = (NodeGeometryAttributeProximity *)MEM_callocN(
       sizeof(NodeGeometryAttributeProximity), __func__);
 
-  node_storage->target_geometry_element =
-      GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES;
+  node_storage->target_geometry_element = GEO_NODE_PROXIMITY_TARGET_FACES;
   node->storage = node_storage;
 }
 
@@ -127,13 +126,13 @@ static bool bvh_from_mesh(const Mesh *target_mesh,
 {
   BVHCacheType bvh_type = BVHTREE_FROM_LOOPTRI;
   switch (target_geometry_element) {
-    case GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS:
+    case GEO_NODE_PROXIMITY_TARGET_POINTS:
       bvh_type = BVHTREE_FROM_VERTS;
       break;
-    case GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_EDGES:
+    case GEO_NODE_PROXIMITY_TARGET_EDGES:
       bvh_type = BVHTREE_FROM_EDGES;
       break;
-    case GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES:
+    case GEO_NODE_PROXIMITY_TARGET_FACES:
       bvh_type = BVHTREE_FROM_LOOPTRI;
       break;
   }
@@ -189,8 +188,7 @@ static void attribute_calc_proximity(GeometryComponent &component,
   bool bvh_pointcloud_success = false;
   BVHTreeFromPointCloud tree_data_pointcloud;
   if (geometry_set_target.has_pointcloud() &&
-      storage.target_geometry_element ==
-          GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS) {
+      storage.target_geometry_element == GEO_NODE_PROXIMITY_TARGET_POINTS) {
     bvh_pointcloud_success = bvh_from_pointcloud(geometry_set_target.get_pointcloud_for_read(),
                                                  tree_data_pointcloud);
   }
