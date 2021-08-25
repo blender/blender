@@ -41,64 +41,73 @@
 
 #include "MEM_guardedalloc.h"
 
-ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const char *blen_id)
+static ImBuf *imb_thumb_load_from_blend_id(const char *blen_path,
+                                           const char *blen_group,
+                                           const char *blen_id)
 {
   ImBuf *ima = NULL;
+  LinkNode *ln, *names, *lp, *previews = NULL;
+  BlendFileReadReport bf_reports = {.reports = NULL};
+  struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
+  int idcode = BKE_idtype_idcode_from_name(blen_group);
+  int i, nprevs, nnames;
 
-  if (blen_group && blen_id) {
-    LinkNode *ln, *names, *lp, *previews = NULL;
-    BlendFileReadReport bf_reports = {.reports = NULL};
-    struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
-    int idcode = BKE_idtype_idcode_from_name(blen_group);
-    int i, nprevs, nnames;
+  if (libfiledata == NULL) {
+    return NULL;
+  }
 
-    if (libfiledata == NULL) {
-      return ima;
+  /* NOTE: we should handle all previews for a same group at once, would avoid reopening
+   * `.blend` file for each and every ID. However, this adds some complexity,
+   * so keep it for later. */
+  names = BLO_blendhandle_get_datablock_names(libfiledata, idcode, false, &nnames);
+  previews = BLO_blendhandle_get_previews(libfiledata, idcode, &nprevs);
+
+  BLO_blendhandle_close(libfiledata);
+
+  if (!previews || (nnames != nprevs)) {
+    if (previews != 0) {
+      /* No previews at all is not a bug! */
+      printf("%s: error, found %d items, %d previews\n", __func__, nnames, nprevs);
     }
-
-    /* NOTE: we should handle all previews for a same group at once, would avoid reopening
-     * `.blend` file for each and every ID. However, this adds some complexity,
-     * so keep it for later. */
-    names = BLO_blendhandle_get_datablock_names(libfiledata, idcode, false, &nnames);
-    previews = BLO_blendhandle_get_previews(libfiledata, idcode, &nprevs);
-
-    BLO_blendhandle_close(libfiledata);
-
-    if (!previews || (nnames != nprevs)) {
-      if (previews != 0) {
-        /* No previews at all is not a bug! */
-        printf("%s: error, found %d items, %d previews\n", __func__, nnames, nprevs);
-      }
-      BLI_linklist_free(previews, BKE_previewimg_freefunc);
-      BLI_linklist_freeN(names);
-      return ima;
-    }
-
-    for (i = 0, ln = names, lp = previews; i < nnames; i++, ln = ln->next, lp = lp->next) {
-      const char *blockname = ln->link;
-      PreviewImage *img = lp->link;
-
-      if (STREQ(blockname, blen_id)) {
-        if (img) {
-          ima = BKE_previewimg_to_imbuf(img, ICON_SIZE_PREVIEW);
-        }
-        break;
-      }
-    }
-
     BLI_linklist_free(previews, BKE_previewimg_freefunc);
     BLI_linklist_freeN(names);
+    return NULL;
   }
-  else {
-    BlendThumbnail *data;
 
-    data = BLO_thumbnail_from_file(blen_path);
-    ima = BKE_main_thumbnail_to_imbuf(NULL, data);
+  for (i = 0, ln = names, lp = previews; i < nnames; i++, ln = ln->next, lp = lp->next) {
+    const char *blockname = ln->link;
+    PreviewImage *img = lp->link;
 
-    if (data) {
-      MEM_freeN(data);
+    if (STREQ(blockname, blen_id)) {
+      if (img) {
+        ima = BKE_previewimg_to_imbuf(img, ICON_SIZE_PREVIEW);
+      }
+      break;
     }
   }
 
+  BLI_linklist_free(previews, BKE_previewimg_freefunc);
+  BLI_linklist_freeN(names);
   return ima;
+}
+
+static ImBuf *imb_thumb_load_from_blendfile(const char *blen_path)
+{
+  BlendThumbnail *data = BLO_thumbnail_from_file(blen_path);
+  ImBuf *ima = BKE_main_thumbnail_to_imbuf(NULL, data);
+
+  if (data) {
+    MEM_freeN(data);
+  }
+  return ima;
+}
+
+ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const char *blen_id)
+{
+  if (blen_group && blen_id) {
+    return imb_thumb_load_from_blend_id(blen_path, blen_group, blen_id);
+  }
+  else {
+    return imb_thumb_load_from_blendfile(blen_path);
+  }
 }
