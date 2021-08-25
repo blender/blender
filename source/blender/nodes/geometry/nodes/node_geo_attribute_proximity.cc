@@ -14,8 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BLI_kdopbvh.h"
-#include "BLI_kdtree.h"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
@@ -59,160 +57,149 @@ static void geo_attribute_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
 
 namespace blender::nodes {
 
-static void proximity_calc(MutableSpan<float> distance_span,
-                           MutableSpan<float3> location_span,
-                           const VArray<float3> &positions,
-                           BVHTreeFromMesh *tree_data_mesh,
-                           BVHTreeFromPointCloud *tree_data_pointcloud)
+static void calculate_mesh_proximity(const VArray<float3> &positions,
+                                     const Mesh &mesh,
+                                     const GeometryNodeAttributeProximityTargetType type,
+                                     MutableSpan<float> r_distances,
+                                     MutableSpan<float3> r_locations)
 {
+  BVHTreeFromMesh bvh_data;
+  switch (type) {
+    case GEO_NODE_PROXIMITY_TARGET_POINTS:
+      BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_VERTS, 2);
+      break;
+    case GEO_NODE_PROXIMITY_TARGET_EDGES:
+      BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_EDGES, 2);
+      break;
+    case GEO_NODE_PROXIMITY_TARGET_FACES:
+      BKE_bvhtree_from_mesh_get(&bvh_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
+      break;
+  }
+
+  if (bvh_data.tree == nullptr) {
+    return;
+  }
+
   threading::parallel_for(positions.index_range(), 512, [&](IndexRange range) {
-    BVHTreeNearest nearest_from_mesh;
-    BVHTreeNearest nearest_from_pointcloud;
-
-    copy_v3_fl(nearest_from_mesh.co, FLT_MAX);
-    copy_v3_fl(nearest_from_pointcloud.co, FLT_MAX);
-
-    nearest_from_mesh.index = -1;
-    nearest_from_pointcloud.index = -1;
+    BVHTreeNearest nearest;
+    copy_v3_fl(nearest.co, FLT_MAX);
+    nearest.index = -1;
 
     for (int i : range) {
       /* Use the distance to the last found point as upper bound to speedup the bvh lookup. */
-      nearest_from_mesh.dist_sq = len_squared_v3v3(nearest_from_mesh.co, positions[i]);
+      nearest.dist_sq = float3::distance_squared(nearest.co, positions[i]);
 
-      if (tree_data_mesh != nullptr) {
-        BLI_bvhtree_find_nearest(tree_data_mesh->tree,
-                                 positions[i],
-                                 &nearest_from_mesh,
-                                 tree_data_mesh->nearest_callback,
-                                 tree_data_mesh);
-      }
+      BLI_bvhtree_find_nearest(
+          bvh_data.tree, positions[i], &nearest, bvh_data.nearest_callback, &bvh_data);
 
-      /* Use the distance to the closest point in the mesh to speedup the pointcloud bvh lookup.
-       * This is ok because we only need to find the closest point in the pointcloud if it's closer
-       * than the mesh. */
-      nearest_from_pointcloud.dist_sq = nearest_from_mesh.dist_sq;
-
-      if (tree_data_pointcloud != nullptr) {
-        BLI_bvhtree_find_nearest(tree_data_pointcloud->tree,
-                                 positions[i],
-                                 &nearest_from_pointcloud,
-                                 tree_data_pointcloud->nearest_callback,
-                                 tree_data_pointcloud);
-      }
-
-      if (nearest_from_pointcloud.dist_sq < nearest_from_mesh.dist_sq) {
-        if (!distance_span.is_empty()) {
-          distance_span[i] = sqrtf(nearest_from_pointcloud.dist_sq);
-        }
-        if (!location_span.is_empty()) {
-          location_span[i] = nearest_from_pointcloud.co;
-        }
-      }
-      else {
-        if (!distance_span.is_empty()) {
-          distance_span[i] = sqrtf(nearest_from_mesh.dist_sq);
-        }
-        if (!location_span.is_empty()) {
-          location_span[i] = nearest_from_mesh.co;
+      if (nearest.dist_sq < r_distances[i]) {
+        r_distances[i] = nearest.dist_sq;
+        if (!r_locations.is_empty()) {
+          r_locations[i] = nearest.co;
         }
       }
     }
   });
+
+  free_bvhtree_from_mesh(&bvh_data);
 }
 
-static bool bvh_from_mesh(const Mesh *target_mesh,
-                          int target_geometry_element,
-                          BVHTreeFromMesh &r_tree_data_mesh)
+static void calculate_pointcloud_proximity(const VArray<float3> &positions,
+                                           const PointCloud &pointcloud,
+                                           MutableSpan<float> r_distances,
+                                           MutableSpan<float3> r_locations)
 {
-  BVHCacheType bvh_type = BVHTREE_FROM_LOOPTRI;
-  switch (target_geometry_element) {
-    case GEO_NODE_PROXIMITY_TARGET_POINTS:
-      bvh_type = BVHTREE_FROM_VERTS;
-      break;
-    case GEO_NODE_PROXIMITY_TARGET_EDGES:
-      bvh_type = BVHTREE_FROM_EDGES;
-      break;
-    case GEO_NODE_PROXIMITY_TARGET_FACES:
-      bvh_type = BVHTREE_FROM_LOOPTRI;
-      break;
+  BVHTreeFromPointCloud bvh_data;
+  BKE_bvhtree_from_pointcloud_get(&bvh_data, &pointcloud, 2);
+  if (bvh_data.tree == nullptr) {
+    return;
   }
 
-  BKE_bvhtree_from_mesh_get(&r_tree_data_mesh, target_mesh, bvh_type, 2);
-  if (r_tree_data_mesh.tree == nullptr) {
-    return false;
-  }
-  return true;
-}
+  threading::parallel_for(positions.index_range(), 512, [&](IndexRange range) {
+    BVHTreeNearest nearest;
+    copy_v3_fl(nearest.co, FLT_MAX);
+    nearest.index = -1;
 
-static bool bvh_from_pointcloud(const PointCloud *target_pointcloud,
-                                BVHTreeFromPointCloud &r_tree_data_pointcloud)
-{
-  BKE_bvhtree_from_pointcloud_get(&r_tree_data_pointcloud, target_pointcloud, 2);
-  if (r_tree_data_pointcloud.tree == nullptr) {
-    return false;
-  }
-  return true;
+    for (int i : range) {
+      /* Use the distance to the closest point in the mesh to speedup the pointcloud bvh lookup.
+       * This is ok because we only need to find the closest point in the pointcloud if it's
+       * closer than the mesh. */
+      nearest.dist_sq = r_distances[i];
+
+      BLI_bvhtree_find_nearest(
+          bvh_data.tree, positions[i], &nearest, bvh_data.nearest_callback, &bvh_data);
+
+      if (nearest.dist_sq < r_distances[i]) {
+        r_distances[i] = nearest.dist_sq;
+        if (!r_locations.is_empty()) {
+          r_locations[i] = nearest.co;
+        }
+      }
+    }
+  });
+
+  free_bvhtree_from_pointcloud(&bvh_data);
 }
 
 static void attribute_calc_proximity(GeometryComponent &component,
-                                     GeometrySet &geometry_set_target,
+                                     GeometrySet &target,
                                      GeoNodeExecParams &params)
 {
-  /* This node works on the "point" domain, since that is where positions are stored. */
-  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
-
-  const std::string distance_attribute_name = params.get_input<std::string>("Distance");
+  const std::string distance_name = params.get_input<std::string>("Distance");
   OutputAttribute_Typed<float> distance_attribute =
-      component.attribute_try_get_for_output_only<float>(distance_attribute_name, result_domain);
+      component.attribute_try_get_for_output_only<float>(distance_name, ATTR_DOMAIN_POINT);
 
-  const std::string location_attribute_name = params.get_input<std::string>("Position");
+  const std::string location_name = params.get_input<std::string>("Position");
   OutputAttribute_Typed<float3> location_attribute =
-      component.attribute_try_get_for_output_only<float3>(location_attribute_name, result_domain);
+      component.attribute_try_get_for_output_only<float3>(location_name, ATTR_DOMAIN_POINT);
 
   ReadAttributeLookup position_attribute = component.attribute_try_get_for_read("position");
   if (!position_attribute || (!distance_attribute && !location_attribute)) {
     return;
   }
-  BLI_assert(position_attribute.varray->type().is<float3>());
-
+  GVArray_Typed<float3> positions{*position_attribute.varray};
   const NodeGeometryAttributeProximity &storage =
       *(const NodeGeometryAttributeProximity *)params.node().storage;
 
-  bool bvh_mesh_success = false;
-  BVHTreeFromMesh tree_data_mesh;
-  if (geometry_set_target.has_mesh()) {
-    bvh_mesh_success = bvh_from_mesh(
-        geometry_set_target.get_mesh_for_read(), storage.target_geometry_element, tree_data_mesh);
+  Array<float> distances_internal;
+  MutableSpan<float> distances;
+  if (distance_attribute) {
+    distances = distance_attribute.as_span();
+  }
+  else {
+    /* Theoretically it would be possible to avoid using the distance array when it's not required
+     * and there is only one component. However, this only adds an allocation and a single float
+     * comparison per vertex, so it's likely not worth it. */
+    distances_internal.reinitialize(positions.size());
+    distances = distances_internal;
+  }
+  distances.fill(FLT_MAX);
+  MutableSpan<float3> locations = location_attribute ? location_attribute.as_span() :
+                                                       MutableSpan<float3>();
+
+  if (target.has_mesh()) {
+    calculate_mesh_proximity(
+        positions,
+        *target.get_mesh_for_read(),
+        static_cast<GeometryNodeAttributeProximityTargetType>(storage.target_geometry_element),
+        distances,
+        locations);
   }
 
-  bool bvh_pointcloud_success = false;
-  BVHTreeFromPointCloud tree_data_pointcloud;
-  if (geometry_set_target.has_pointcloud() &&
+  if (target.has_pointcloud() &&
       storage.target_geometry_element == GEO_NODE_PROXIMITY_TARGET_POINTS) {
-    bvh_pointcloud_success = bvh_from_pointcloud(geometry_set_target.get_pointcloud_for_read(),
-                                                 tree_data_pointcloud);
-  }
-
-  GVArray_Typed<float3> positions{*position_attribute.varray};
-  MutableSpan<float> distance_span = distance_attribute ? distance_attribute.as_span() :
-                                                          MutableSpan<float>();
-  MutableSpan<float3> location_span = location_attribute ? location_attribute.as_span() :
-                                                           MutableSpan<float3>();
-
-  proximity_calc(distance_span,
-                 location_span,
-                 positions,
-                 bvh_mesh_success ? &tree_data_mesh : nullptr,
-                 bvh_pointcloud_success ? &tree_data_pointcloud : nullptr);
-
-  if (bvh_mesh_success) {
-    free_bvhtree_from_mesh(&tree_data_mesh);
-  }
-  if (bvh_pointcloud_success) {
-    free_bvhtree_from_pointcloud(&tree_data_pointcloud);
+    calculate_pointcloud_proximity(
+        positions, *target.get_pointcloud_for_read(), distances, locations);
   }
 
   if (distance_attribute) {
+    /* Squared distances are used above to speed up comparisons,
+     * so do the square roots now if necessary for the output attribute. */
+    threading::parallel_for(distances.index_range(), 2048, [&](IndexRange range) {
+      for (const int i : range) {
+        distances[i] = std::sqrt(distances[i]);
+      }
+    });
     distance_attribute.save();
   }
   if (location_attribute) {
