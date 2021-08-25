@@ -83,7 +83,5 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
   if (blen_group && blen_id) {
     return imb_thumb_load_from_blend_id(blen_path, blen_group, blen_id);
   }
-  else {
-    return imb_thumb_load_from_blendfile(blen_path);
-  }
+  return imb_thumb_load_from_blendfile(blen_path);
 }
