@@ -376,7 +376,7 @@ static bool lookup_property(BL::ID b_id, const string &name, float4 *r_value)
     if (type == PROP_FLOAT)
       value = RNA_property_float_get(&ptr, prop);
     else if (type == PROP_INT)
-      value = RNA_property_int_get(&ptr, prop);
+      value = static_cast<float>(RNA_property_int_get(&ptr, prop));
     else
       return false;
 
@@ -504,14 +504,14 @@ void BlenderSync::sync_procedural(BL::Object &b_ob,
     procedural_map.used(procedural);
   }
 
-  float current_frame = b_scene.frame_current();
+  float current_frame = static_cast<float>(b_scene.frame_current());
   if (cache_file.override_frame()) {
     current_frame = cache_file.frame();
   }
 
   if (!cache_file.override_frame()) {
-    procedural->set_start_frame(b_scene.frame_start());
-    procedural->set_end_frame(b_scene.frame_end());
+    procedural->set_start_frame(static_cast<float>(b_scene.frame_start()));
+    procedural->set_end_frame(static_cast<float>(b_scene.frame_end()));
   }
 
   procedural->set_frame(current_frame);
