@@ -225,7 +225,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_texture(Tex *tex);
   virtual void build_image(Image *image);
   virtual void build_world(World *world);
-  virtual void build_gpencil(bGPdata *gpd);
   virtual void build_cachefile(CacheFile *cache_file);
   virtual void build_mask(Mask *mask);
   virtual void build_movieclip(MovieClip *clip);
