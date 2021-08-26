@@ -4357,8 +4357,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
       }
     }
 
-    wmWindow *win_other;
-    if (WM_window_find_under_cursor(wm, win, win, mval, &win_other, mval)) {
+    wmWindow *win_other = WM_window_find_under_cursor(wm, win, win, mval, mval);
+    if (win_other) {
       event->x = mval[0];
       event->y = mval[1];
       return win_other;
