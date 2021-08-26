@@ -59,6 +59,7 @@
 
 #include "ED_curve.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -704,6 +705,7 @@ static void txt_add_object(bContext *C,
 
 void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
 {
+  Main *bmain = CTX_data_main(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const TextLine *line;
   float offset[3];
@@ -742,6 +744,9 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
 
     txt_add_object(C, text->lines.first, BLI_listbase_count(&text->lines), offset);
   }
+
+  DEG_relations_tag_update(bmain);
+  ED_outliner_select_sync_from_object_tag(C);
 }
 
 /** \} */
