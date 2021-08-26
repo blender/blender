@@ -28,6 +28,11 @@ void eyedropper_draw_cursor_text_region(const struct bContext *C,
                                         const struct ARegion *region,
                                         const char *name);
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event);
+void datadropper_win_area_find(const struct bContext *C,
+                               const int mval[2],
+                               int r_mval[2],
+                               struct wmWindow **r_win,
+                               struct ScrArea **r_area);
 
 /* interface_eyedropper_color.c (expose for color-band picker) */
 void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3]);
