@@ -107,14 +107,13 @@ static bool seq_for_each_recursive(ListBase *seqbase, SeqForEachFunc callback, v
 }
 
 /**
- * Utility function to recursivily iterate through all sequence strips in a seqbase list.
+ * Utility function to recursively iterate through all sequence strips in a `seqbase` list.
  * Uses callback to do operations on each sequence element.
  * The callback can stop the iteration if needed.
  *
- * \param seqbase: ListBase of sequences to be iterated over
- * \param callback: query function callback, returns false if iteration should stop
- * \param user_data: pointer to user data that can be used in the callback function
- *
+ * \param seqbase: #ListBase of sequences to be iterated over.
+ * \param callback: query function callback, returns false if iteration should stop.
+ * \param user_data: pointer to user data that can be used in the callback function.
  */
 void SEQ_for_each_callback(ListBase *seqbase, SeqForEachFunc callback, void *user_data)
 {

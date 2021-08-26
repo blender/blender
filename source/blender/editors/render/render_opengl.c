@@ -697,7 +697,7 @@ static void gather_frames_to_render(bContext *C, OGLRender *oglrender)
     AnimData *adt = BKE_animdata_from_id(id);
     gather_frames_to_render_for_adt(oglrender, adt);
 
-    /* Gather the frames from linked datablocks (materials, shapkeys, etc.). */
+    /* Gather the frames from linked data-blocks (materials, shape-keys, etc.). */
     BKE_library_foreach_ID_link(
         NULL, id, gather_frames_to_render_for_id, oglrender, IDWALK_RECURSE);
   }

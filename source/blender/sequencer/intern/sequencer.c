@@ -755,9 +755,9 @@ static bool seq_write_data_cb(Sequence *seq, void *userdata)
   BlendWriter *writer = (BlendWriter *)userdata;
   BLO_write_struct(writer, Sequence, seq);
   if (seq->strip && seq->strip->done == 0) {
-    /* write strip with 'done' at 0 because readfile */
+    /* Write strip with 'done' at 0 because read-file. */
 
-    // TODO this doesn't depend on the `Strip` data to be present?
+    /* TODO this doesn't depend on the `Strip` data to be present? */
     if (seq->effectdata) {
       switch (seq->type) {
         case SEQ_TYPE_COLOR:

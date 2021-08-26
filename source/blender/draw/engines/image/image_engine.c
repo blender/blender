@@ -120,7 +120,7 @@ static void space_image_gpu_texture_get(Image *image,
   }
 
   if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
-    /* This codepath is only supposed to happen when drawing a lazily-allocatable render result.
+    /* This code-path is only supposed to happen when drawing a lazily-allocatable render result.
      * In all the other cases the `ED_space_image_acquire_buffer()` is expected to return NULL as
      * an image buffer when it has no pixels. */
 

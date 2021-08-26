@@ -172,12 +172,12 @@ char *blf_dir_metrics_search(const char *filename)
     s[1] = 'f';
     s[2] = 'm';
 
-    /* first check .afm */
+    /* First check `.afm`. */
     if (BLI_exists(mfile)) {
       return mfile;
     }
 
-    /* and now check .pfm */
+    /* And now check `.pfm`. */
     s[0] = 'p';
 
     if (BLI_exists(mfile)) {

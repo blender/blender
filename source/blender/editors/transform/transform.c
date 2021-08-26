@@ -1400,7 +1400,7 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
 
     /* draw auto-key-framing hint in the corner
      * - only draw if enabled (advanced users may be distracted/annoyed),
-     *   for objects that will be autokeyframed (no point otherwise),
+     *   for objects that will be auto-keyframed (no point otherwise),
      *   AND only for the active region (as showing all is too overwhelming)
      */
     if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {

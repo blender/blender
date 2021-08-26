@@ -1050,7 +1050,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals *kg,
             float D, G1i;
 
             if (alpha_x == alpha_y) {
-              /* istropic distribution */
+              /* Isotropic distribution. */
               float cosThetaM2 = cosThetaM * cosThetaM;
               float cosThetaM4 = cosThetaM2 * cosThetaM2;
               float tanThetaM2 = 1 / (cosThetaM2)-1;
