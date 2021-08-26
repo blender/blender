@@ -269,7 +269,7 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const 
   /* copy each NLA-track, one at a time */
   for (nlt = src->first; nlt; nlt = nlt->next) {
     /* make a copy, and add the copy to the destination list */
-    // XXX: we need to fix this sometime
+    /* XXX: we need to fix this sometime. */
     nlt_d = BKE_nlatrack_copy(bmain, nlt, true, flag);
     BLI_addtail(dst, nlt_d);
   }
@@ -516,7 +516,7 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
   if (IS_EQF(strip->repeat, 0.0f)) {
     strip->repeat = 1.0f;
   }
-  // repeat = strip->repeat; // UNUSED
+  // repeat = strip->repeat; /* UNUSED */
 
   /* scaling */
   if (IS_EQF(strip->scale, 0.0f)) {

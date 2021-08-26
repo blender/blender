@@ -262,7 +262,7 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
   return ScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-// Absolute fixed size
+/* Absolute fixed size. */
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::None);

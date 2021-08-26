@@ -40,7 +40,7 @@ SplitOperation::SplitOperation()
 
 void SplitOperation::initExecution()
 {
-  // When initializing the tree during initial load the width and height can be zero.
+  /* When initializing the tree during initial load the width and height can be zero. */
   this->m_image1Input = getInputSocketReader(0);
   this->m_image2Input = getInputSocketReader(1);
 }

@@ -64,9 +64,8 @@ void BokehBlurNode::convertToOperations(NodeConverter &converter,
     converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
     converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 
-    // NOTE: on the bokeh blur operation the sockets are switched.
-    // for this reason the next two lines are correct.
-    // Fix for T43771
+    /* NOTE: on the bokeh blur operation the sockets are switched.
+     * for this reason the next two lines are correct. Fix for T43771. */
     converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(3));
     converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(2));
 

@@ -51,7 +51,7 @@
 /**
  * Orient the handles towards the selection (can be slow with high-poly mesh!).
  */
-// Disable for now, issues w/ refresh and '+' icons overlap.
+/* Disable for now, issues w/ refresh and '+' icons overlap. */
 // #define USE_SELECT_CENTER
 
 #ifdef USE_SELECT_CENTER

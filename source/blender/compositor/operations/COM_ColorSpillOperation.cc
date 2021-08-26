@@ -30,7 +30,7 @@ ColorSpillOperation::ColorSpillOperation()
 
   this->m_inputImageReader = nullptr;
   this->m_inputFacReader = nullptr;
-  this->m_spillChannel = 1;  // GREEN
+  this->m_spillChannel = 1; /* GREEN */
   this->m_spillMethod = 0;
   flags.can_be_constant = true;
 }

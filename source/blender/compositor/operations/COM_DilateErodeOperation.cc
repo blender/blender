@@ -160,7 +160,7 @@ bool DilateErodeThresholdOperation::determineDependingAreaOfInterest(
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-// Dilate Distance
+/* Dilate Distance. */
 DilateDistanceOperation::DilateDistanceOperation()
 {
   this->addInputSocket(DataType::Value);

@@ -28,7 +28,7 @@ namespace blender::compositor {
 #define ASSERT_XY_RANGE(x, y) \
   BLI_assert(x >= 0 && x < this->getWidth() && y >= 0 && y < this->getHeight())
 
-// Inpaint (simple convolve using average of known pixels)
+/* In-paint (simple convolve using average of known pixels). */
 InpaintSimpleOperation::InpaintSimpleOperation()
 {
   this->addInputSocket(DataType::Color);

@@ -561,7 +561,7 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph,
     return true;
   }
 
-  // Check if chunk is already executed or scheduled and not yet executed.
+  /* Check if chunk is already executed or scheduled and not yet executed. */
   const int chunk_index = chunk_y * this->m_x_chunks_len + chunk_x;
   WorkPackage &work_package = m_work_packages[chunk_index];
   if (work_package.state == eWorkPackageState::Executed) {

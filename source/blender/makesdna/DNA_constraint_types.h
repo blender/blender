@@ -37,7 +37,7 @@ struct Ipo;
 struct Text;
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
-// XXX deprecated... old AnimSys
+/* XXX: deprecated... old AnimSys. */
 typedef struct bConstraintChannel {
   struct bConstraintChannel *next, *prev;
   struct Ipo *ipo;

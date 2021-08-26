@@ -101,7 +101,7 @@ void Stabilize2dNode::convertToOperations(NodeConverter &converter,
       converter.mapOutputSocket(getOutputSocket(), psoperation->getOutputSocket());
 
       if (invert) {
-        // Translate -> Rotate -> Scale.
+        /* Translate -> Rotate -> Scale. */
         converter.mapInputSocket(imageInput, translateOperation->getInputSocket(0));
 
         converter.addLink(translateOperation->getOutputSocket(),
@@ -111,7 +111,7 @@ void Stabilize2dNode::convertToOperations(NodeConverter &converter,
         converter.addLink(scaleOperation->getOutputSocket(), psoperation->getInputSocket(0));
       }
       else {
-        // Scale  -> Rotate -> Translate.
+        /* Scale  -> Rotate -> Translate. */
         converter.mapInputSocket(imageInput, scaleOperation->getInputSocket(0));
 
         converter.addLink(scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));

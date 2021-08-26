@@ -61,7 +61,7 @@ ViewerOperation::ViewerOperation()
 
 void ViewerOperation::initExecution()
 {
-  // When initializing the tree during initial load the width and height can be zero.
+  /* When initializing the tree during initial load the width and height can be zero. */
   this->m_imageInput = getInputSocketReader(0);
   this->m_alphaInput = getInputSocketReader(1);
   this->m_depthInput = getInputSocketReader(2);

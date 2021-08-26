@@ -61,8 +61,7 @@ struct bSound *BKE_sound_new_file_exists_ex(struct Main *bmain,
                                             bool *r_exists);
 struct bSound *BKE_sound_new_file_exists(struct Main *bmain, const char *filepath);
 
-// XXX unused currently
-#if 0
+#if 0 /* UNUSED */
 struct bSound *BKE_sound_new_buffer(struct Main *bmain, struct bSound *source);
 
 struct bSound *BKE_sound_new_limiter(struct Main *bmain,

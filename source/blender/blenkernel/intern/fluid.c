@@ -557,7 +557,7 @@ static bool BKE_fluid_modifier_init(
   return false;
 }
 
-// forward declaration
+/* Forward declarations. */
 static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *view_layer);
 static float calc_voxel_transp(
     float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct);
@@ -4380,10 +4380,10 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
   light[2] = (light[2] - fds->p0[2]) / fds->cell_size[2] - 0.5f - (float)fds->res_min[2];
 
   /* Calculate domain bounds in sim cell space. */
-  // 0,2,4 = 0.0f
-  bv[1] = (float)fds->res[0];  // x
-  bv[3] = (float)fds->res[1];  // y
-  bv[5] = (float)fds->res[2];  // z
+  /* 0,2,4 = 0.0f */
+  bv[1] = (float)fds->res[0]; /* X */
+  bv[3] = (float)fds->res[1]; /* Y */
+  bv[5] = (float)fds->res[2]; /* Z */
 
   for (int z = 0; z < fds->res[2]; z++) {
     size_t index = z * slabsize;
