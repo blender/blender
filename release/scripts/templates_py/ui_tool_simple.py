@@ -53,14 +53,38 @@ class MyOtherTool(WorkSpaceTool):
         layout.prop(props, "mode")
 
 
+class MyWidgetTool(WorkSpaceTool):
+    bl_space_type = 'VIEW_3D'
+    bl_context_mode = 'OBJECT'
+
+    bl_idname = "my_template.my_gizmo_translate"
+    bl_label = "My Gizmo Tool"
+    bl_description = "Short description"
+    bl_icon = "ops.transform.translate"
+    bl_widget="VIEW3D_GGT_tool_generic_handle_free"
+    bl_widget_properties=[
+        ("radius", 75.0),
+        ("backdrop_fill_alpha", 0.0),
+    ]
+    bl_keymap = (
+        ("transform.translate", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+    )
+
+    def draw_settings(context, layout, tool):
+        props = tool.operator_properties("transform.translate")
+        layout.prop(props, "mode")
+
+
 def register():
     bpy.utils.register_tool(MyTool, after={"builtin.scale_cage"}, separator=True, group=True)
     bpy.utils.register_tool(MyOtherTool, after={MyTool.bl_idname})
+    bpy.utils.register_tool(MyWidgetTool, after={MyTool.bl_idname})
 
 
 def unregister():
     bpy.utils.unregister_tool(MyTool)
     bpy.utils.unregister_tool(MyOtherTool)
+    bpy.utils.unregister_tool(MyWidgetTool)
 
 
 if __name__ == "__main__":

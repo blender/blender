@@ -75,6 +75,8 @@ ToolDef = namedtuple(
         "icon",
         # An optional cursor to use when this tool is active.
         "cursor",
+        # The properties to use for the widget.
+        "widget_properties",
         # An optional gizmo group to activate when the tool is set or None for no gizmo.
         "widget",
         # Optional key-map for tool, possible values are:
@@ -132,6 +134,7 @@ def from_dict(kw_args):
         "icon": None,
         "cursor": None,
         "widget": None,
+        "widget_properties": None,
         "keymap": None,
         "data_block": None,
         "operator": None,
@@ -939,6 +942,21 @@ class WM_MT_toolsystem_submenu(Menu):
             ).name = item.idname
 
 
+def _kmi_props_setattr(kmi_props, attr, value):
+    if type(value) is list:
+        kmi_subprop = getattr(kmi_props, attr)
+        for subattr, subvalue in value:
+            _kmi_props_setattr(kmi_subprop, subattr, subvalue)
+        return
+
+    try:
+        setattr(kmi_props, attr, value)
+    except AttributeError:
+        print(f"Warning: property '{attr}' not found in keymap item '{kmi_props.__class__.__name__}'")
+    except Exception as ex:
+        print(f"Warning: {ex!r}")
+
+
 def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     tool = ToolSelectPanelHelper._tool_active_from_context(context, space_type, create=True)
@@ -983,17 +1001,37 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
         item_fallback, _index = cls._tool_get_active_by_index(context, select_index)
     # End calculating fallback.
 
+    gizmo_group = item.widget or ""
+
     tool.setup(
         idname=item.idname,
         keymap=item.keymap[0] if item.keymap is not None else "",
         cursor=item.cursor or 'DEFAULT',
-        gizmo_group=item.widget or "",
+        gizmo_group=gizmo_group,
         data_block=item.data_block or "",
         operator=item.operator or "",
         index=index,
         idname_fallback=(item_fallback and item_fallback.idname) or "",
         keymap_fallback=(item_fallback and item_fallback.keymap and item_fallback.keymap[0]) or "",
     )
+
+    if (
+            (gizmo_group != "") and
+            (props := tool.gizmo_group_properties(gizmo_group))
+    ):
+        if props is None:
+            print("Error:", gizmo_group, "could not access properties!")
+        else:
+            for key in props.bl_rna.properties.keys():
+                props.property_unset(key)
+
+            gizmo_properties = item.widget_properties
+            if gizmo_properties is not None:
+                if not isinstance(gizmo_properties, list):
+                    raise Exception("expected a list, not a %r" % type(gizmo_properties))
+
+                from bl_keymap_utils.io import _init_properties_from_data
+                _init_properties_from_data(props, gizmo_properties)
 
     WindowManager = bpy.types.WindowManager
 
