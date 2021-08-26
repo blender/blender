@@ -297,8 +297,8 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  const size_t maxncpy)
 {
   const size_t maxlen = maxncpy - 1;
-  /* 6 is max utf8 length of an unicode char. */
-  const int64_t maxlen_secured = (int64_t)maxlen - 6;
+  /* #BLI_UTF8_MAX is max utf8 length of an unicode char. */
+  const int64_t maxlen_secured = (int64_t)maxlen - BLI_UTF8_MAX;
   size_t len = 0;
 
   BLI_assert(maxncpy != 0);
@@ -314,9 +314,9 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
   /* We have to be more careful for the last six bytes,
    * to avoid buffer overflow in case utf8-encoded char would be too long for our dst buffer. */
   while (*src) {
-    char t[6];
+    char t[BLI_UTF8_MAX];
     size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);
-    BLI_assert(l <= 6);
+    BLI_assert(l <= BLI_UTF8_MAX);
     if (len + l > maxlen) {
       break;
     }
@@ -707,8 +707,8 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
                              const size_t maxncpy)
 {
   const size_t maxlen = maxncpy - 1;
-  /* 6 is max utf8 length of an unicode char. */
-  const int64_t maxlen_secured = (int64_t)maxlen - 6;
+  /* #BLI_UTF8_MAX is max utf8 length of an unicode char. */
+  const int64_t maxlen_secured = (int64_t)maxlen - BLI_UTF8_MAX;
   size_t len = 0;
 
   BLI_assert(maxncpy != 0);
@@ -724,9 +724,9 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
   /* We have to be more careful for the last six bytes,
    * to avoid buffer overflow in case utf8-encoded char would be too long for our dst buffer. */
   while (*src) {
-    char t[6];
+    char t[BLI_UTF8_MAX];
     size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);
-    BLI_assert(l <= 6);
+    BLI_assert(l <= BLI_UTF8_MAX);
     if (len + l > maxlen) {
       break;
     }
