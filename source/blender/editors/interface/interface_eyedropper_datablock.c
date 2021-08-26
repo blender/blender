@@ -71,13 +71,14 @@ typedef struct DataDropper {
   ScrArea *cursor_area; /* Area under the cursor */
   ARegionType *art;
   void *draw_handle_pixel;
+  int name_pos[2];
   char name[200];
 } DataDropper;
 
 static void datadropper_draw_cb(const struct bContext *C, ARegion *region, void *arg)
 {
   DataDropper *ddr = arg;
-  eyedropper_draw_cursor_text_region(C, region, ddr->name);
+  eyedropper_draw_cursor_text_region(C, UNPACK2(ddr->name_pos), ddr->name);
 }
 
 static int datadropper_init(bContext *C, wmOperator *op)
@@ -148,12 +149,10 @@ static void datadropper_exit(bContext *C, wmOperator *op)
 /**
  * \brief get the ID from the 3D view or outliner.
  */
-static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int my, ID **r_id)
+static void datadropper_id_sample_pt(
+    bContext *C, wmWindow *win, ScrArea *area, DataDropper *ddr, int mx, int my, ID **r_id)
 {
-  /* we could use some clever */
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, -1, mx, my);
-
+  wmWindow *win_prev = CTX_wm_window(C);
   ScrArea *area_prev = CTX_wm_area(C);
   ARegion *region_prev = CTX_wm_region(C);
 
@@ -166,6 +165,7 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
         const int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
         Base *base;
 
+        CTX_wm_window_set(C, win);
         CTX_wm_area_set(C, area);
         CTX_wm_region_set(C, region);
 
@@ -202,11 +202,15 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
             BLI_snprintf(ddr->name, sizeof(ddr->name), "%s: %s", ddr->idcode_name, id->name + 2);
             *r_id = id;
           }
+
+          ddr->name_pos[0] = mval[0];
+          ddr->name_pos[1] = mval[1];
         }
       }
     }
   }
 
+  CTX_wm_window_set(C, win_prev);
   CTX_wm_area_set(C, area_prev);
   CTX_wm_region_set(C, region_prev);
 }
@@ -232,7 +236,13 @@ static bool datadropper_id_sample(bContext *C, DataDropper *ddr, int mx, int my)
 {
   ID *id = NULL;
 
-  datadropper_id_sample_pt(C, ddr, mx, my, &id);
+  wmWindow *win;
+  ScrArea *area;
+
+  int mval[] = {mx, my};
+  datadropper_win_area_find(C, mval, mval, &win, &area);
+
+  datadropper_id_sample_pt(C, win, area, ddr, mval[0], mval[1], &id);
   return datadropper_id_set(C, ddr, id);
 }
 
@@ -244,14 +254,8 @@ static void datadropper_cancel(bContext *C, wmOperator *op)
 }
 
 /* To switch the draw callback when region under mouse event changes */
-static void datadropper_set_draw_callback_region(bContext *C,
-                                                 DataDropper *ddr,
-                                                 const int mx,
-                                                 const int my)
+static void datadropper_set_draw_callback_region(bContext *C, ScrArea *area, DataDropper *ddr)
 {
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, -1, mx, my);
-
   if (area) {
     /* If spacetype changed */
     if (area->spacetype != ddr->cursor_area->spacetype) {
@@ -300,10 +304,16 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (event->type == MOUSEMOVE) {
     ID *id = NULL;
 
-    /* Set the region for eyedropper cursor text drawing */
-    datadropper_set_draw_callback_region(C, ddr, event->x, event->y);
+    wmWindow *win;
+    ScrArea *area;
 
-    datadropper_id_sample_pt(C, ddr, event->x, event->y, &id);
+    int mval[] = {event->x, event->y};
+    datadropper_win_area_find(C, mval, mval, &win, &area);
+
+    /* Set the region for eyedropper cursor text drawing */
+    datadropper_set_draw_callback_region(C, area, ddr);
+
+    datadropper_id_sample_pt(C, win, area, ddr, mval[0], mval[1], &id);
   }
 
   return OPERATOR_RUNNING_MODAL;
