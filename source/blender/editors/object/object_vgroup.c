@@ -28,6 +28,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -39,6 +40,7 @@
 #include "BLI_alloca.h"
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
@@ -4083,16 +4085,38 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
   }
   else {
     int dvert_tot = 0;
-
-    BKE_object_defgroup_array_get(ob->data, &dvert, &dvert_tot);
-
-    /* Create as necessary. */
-    if (dvert) {
-      while (dvert_tot--) {
-        if (dvert->totweight) {
-          BKE_defvert_remap(dvert, sort_map, defbase_tot);
+    /* Grease pencil stores vertex groups separately for each stroke,
+     * so remap each stroke's weights separately. */
+    if (ob->type == OB_GPENCIL) {
+      bGPdata *gpd = ob->data;
+      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+        LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+            dvert = gps->dvert;
+            dvert_tot = gps->totpoints;
+            if (dvert) {
+              while (dvert_tot--) {
+                if (dvert->totweight) {
+                  BKE_defvert_remap(dvert, sort_map, defbase_tot);
+                }
+                dvert++;
+              }
+            }
+          }
         }
-        dvert++;
+      }
+    }
+    else {
+      BKE_object_defgroup_array_get(ob->data, &dvert, &dvert_tot);
+
+      /* Create as necessary. */
+      if (dvert) {
+        while (dvert_tot--) {
+          if (dvert->totweight) {
+            BKE_defvert_remap(dvert, sort_map, defbase_tot);
+          }
+          dvert++;
+        }
       }
     }
   }
