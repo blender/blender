@@ -50,6 +50,9 @@ set(SRC
   intern/gpencil_io_export_base.hh
   intern/gpencil_io_import_base.hh
   intern/gpencil_io_import_svg.hh
+
+  # Only so this file is known by CMake.
+  ../../../../extern/nanosvg/nanosvg.h
 )
 
 set(LIB

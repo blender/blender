@@ -24,8 +24,8 @@
 
 #include "BLI_function_ref.hh"
 
-struct bAction;
 struct FCurve;
+struct bAction;
 
 namespace blender::bke {
 

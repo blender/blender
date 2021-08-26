@@ -29,10 +29,10 @@ extern "C" {
 
 #include "DNA_scene_types.h"
 
-struct BlendWriter;
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
 struct Depsgraph;
 struct Editing;
 struct Scene;

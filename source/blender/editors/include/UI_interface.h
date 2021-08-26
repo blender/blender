@@ -35,8 +35,8 @@ extern "C" {
 /* Struct Declarations */
 
 struct ARegion;
-struct AssetHandle;
 struct AssetFilterSettings;
+struct AssetHandle;
 struct AutoComplete;
 struct EnumPropertyItem;
 struct FileDirEntry;

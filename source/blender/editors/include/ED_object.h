@@ -50,10 +50,10 @@ struct bContext;
 struct bFaceMap;
 struct bPoseChannel;
 struct uiLayout;
+struct wmEvent;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
-struct wmEvent;
 
 /* object_edit.c */
 /* context.object */
