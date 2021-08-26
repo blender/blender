@@ -1738,19 +1738,19 @@ static int area_snap_calc_location(const bScreen *screen,
       int snap_dist_best = INT_MAX;
       {
         const float div_array[] = {
-            /* Middle. */
-            1.0f / 2.0f,
-            /* Thirds. */
-            1.0f / 3.0f,
-            2.0f / 3.0f,
-            /* Quarters. */
-            1.0f / 4.0f,
-            3.0f / 4.0f,
-            /* Eighth. */
-            1.0f / 8.0f,
-            3.0f / 8.0f,
-            5.0f / 8.0f,
-            7.0f / 8.0f,
+            0.0f,
+            1.0f / 12.0f,
+            2.0f / 12.0f,
+            3.0f / 12.0f,
+            4.0f / 12.0f,
+            5.0f / 12.0f,
+            6.0f / 12.0f,
+            7.0f / 12.0f,
+            8.0f / 12.0f,
+            9.0f / 12.0f,
+            10.0f / 12.0f,
+            11.0f / 12.0f,
+            1.0f,
         };
         /* Test the snap to the best division. */
         for (int i = 0; i < ARRAY_SIZE(div_array); i++) {
