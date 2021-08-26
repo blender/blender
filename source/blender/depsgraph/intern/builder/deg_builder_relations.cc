@@ -543,12 +543,13 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       build_movieclip((MovieClip *)id);
       break;
     case ID_ME:
-    case ID_CU:
     case ID_MB:
+    case ID_CU:
     case ID_LT:
     case ID_HA:
     case ID_PT:
     case ID_VO:
+    case ID_GD:
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
@@ -571,9 +572,6 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
-      break;
-    case ID_GD:
-      build_gpencil((bGPdata *)id);
       break;
 
     case ID_LI:
@@ -2589,18 +2587,6 @@ void DepsgraphRelationBuilder::build_image(Image *image)
   }
   build_idproperties(image->id.properties);
   build_parameters(&image->id);
-}
-
-void DepsgraphRelationBuilder::build_gpencil(bGPdata *gpd)
-{
-  if (built_map_.checkIsBuiltAndTag(gpd)) {
-    return;
-  }
-  /* animation */
-  build_animdata(&gpd->id);
-  build_parameters(&gpd->id);
-
-  // TODO: parent object (when that feature is implemented)
 }
 
 void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
