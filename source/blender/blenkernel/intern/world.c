@@ -138,26 +138,25 @@ static void world_foreach_id(ID *id, LibraryForeachIDData *data)
 static void world_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   World *wrld = (World *)id;
-  if (wrld->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    BLI_listbase_clear(&wrld->gpumaterial);
 
-    /* write LibData */
-    BLO_write_id_struct(writer, World, id_address, &wrld->id);
-    BKE_id_blend_write(writer, &wrld->id);
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  BLI_listbase_clear(&wrld->gpumaterial);
 
-    if (wrld->adt) {
-      BKE_animdata_blend_write(writer, wrld->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, World, id_address, &wrld->id);
+  BKE_id_blend_write(writer, &wrld->id);
 
-    /* nodetree is integral part of world, no libdata */
-    if (wrld->nodetree) {
-      BLO_write_struct(writer, bNodeTree, wrld->nodetree);
-      ntreeBlendWrite(writer, wrld->nodetree);
-    }
-
-    BKE_previewimg_blend_write(writer, wrld->preview);
+  if (wrld->adt) {
+    BKE_animdata_blend_write(writer, wrld->adt);
   }
+
+  /* nodetree is integral part of world, no libdata */
+  if (wrld->nodetree) {
+    BLO_write_struct(writer, bNodeTree, wrld->nodetree);
+    ntreeBlendWrite(writer, wrld->nodetree);
+  }
+
+  BKE_previewimg_blend_write(writer, wrld->preview);
 }
 
 static void world_blend_read_data(BlendDataReader *reader, ID *id)

@@ -697,7 +697,7 @@ static void gather_frames_to_render(bContext *C, OGLRender *oglrender)
     AnimData *adt = BKE_animdata_from_id(id);
     gather_frames_to_render_for_adt(oglrender, adt);
 
-    /* Gather the frames from linked datablocks (materials, shapkeys, etc.). */
+    /* Gather the frames from linked data-blocks (materials, shape-keys, etc.). */
     BKE_library_foreach_ID_link(
         NULL, id, gather_frames_to_render_for_id, oglrender, IDWALK_RECURSE);
   }
@@ -768,7 +768,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
   /* corrects render size with actual size, not every card supports non-power-of-two dimensions */
   DRW_opengl_context_enable(); /* Off-screen creation needs to be done in DRW context. */
-  ofs = GPU_offscreen_create(sizex, sizey, true, true, err_out);
+  ofs = GPU_offscreen_create(sizex, sizey, true, GPU_RGBA16F, err_out);
   DRW_opengl_context_disable();
 
   if (!ofs) {

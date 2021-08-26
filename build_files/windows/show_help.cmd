@@ -32,6 +32,10 @@ echo - 2019pre ^(build with visual studio 2019 pre-release^)
 echo - 2019b ^(build with visual studio 2019 Build Tools^)
 
 echo.
+echo Documentation Targets ^(Not associated with building^)
+echo - doc_py ^(Generate sphinx python api docs^)
+
+echo.
 echo Experimental options
 echo - with_opengl_tests ^(enable both the render and draw opengl test suites^)
 echo - clang ^(enable building with clang^)

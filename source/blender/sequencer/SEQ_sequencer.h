@@ -29,6 +29,11 @@ extern "C" {
 
 #include "DNA_scene_types.h"
 
+struct BlendDataReader;
+struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
+struct Depsgraph;
 struct Editing;
 struct Scene;
 struct Sequence;
@@ -82,6 +87,21 @@ void SEQ_sequence_base_dupli_recursive(const struct Scene *scene_src,
                                        const struct ListBase *seqbase,
                                        int dupe_flag,
                                        const int flag);
+
+/* Read and Write functions for .blend file data */
+void SEQ_blend_write(struct BlendWriter *writer, struct ListBase *seqbase);
+void SEQ_blend_read(struct BlendDataReader *reader, struct ListBase *seqbase);
+
+void SEQ_blend_read_lib(struct BlendLibReader *reader,
+                        struct Scene *scene,
+                        struct ListBase *seqbase);
+
+void SEQ_blend_read_expand(struct BlendExpander *expander, struct ListBase *seqbase);
+
+/* Depsgraph update function */
+void SEQ_eval_sequences(struct Depsgraph *depsgraph,
+                        struct Scene *scene,
+                        struct ListBase *seqbase);
 
 /* Defined in sequence_lookup.c */
 

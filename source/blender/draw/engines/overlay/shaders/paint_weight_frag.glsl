@@ -1,12 +1,12 @@
 
 in vec2 weight_interp; /* (weight, alert) */
+in float color_fac;
 
 out vec4 fragColor;
 
 uniform float opacity = 1.0;
 uniform sampler1D colorramp;
 
-uniform bool useAlphaBlend = false;
 uniform bool drawContours = false;
 
 float contours(float value, float steps, float width_px, float max_rel_width, float gradient)
@@ -68,6 +68,13 @@ vec4 contour_grid(float weight, float weight_gradient)
   return grid * clamp((weight_gradient - flt_eps) / flt_eps, 0.0, 1.0);
 }
 
+vec4 apply_color_fac(vec4 color_in)
+{
+  vec4 color = color_in;
+  color.rgb = max(vec3(0.005), color_in.rgb) * color_fac;
+  return color;
+}
+
 void main()
 {
   float alert = weight_interp.y;
@@ -75,12 +82,13 @@ void main()
 
   /* Missing vertex group alert color. Uniform in practice. */
   if (alert > 1.1) {
-    color = colorVertexMissingData;
+    color = apply_color_fac(colorVertexMissingData);
   }
   /* Weights are available */
   else {
     float weight = weight_interp.x;
     vec4 weight_color = texture(colorramp, weight, 0);
+    weight_color = apply_color_fac(weight_color);
 
     /* Contour display */
     if (drawContours) {
@@ -93,14 +101,9 @@ void main()
     }
 
     /* Zero weight alert color. Nonlinear blend to reduce impact. */
-    color = mix(weight_color, colorVertexUnreferenced, alert * alert);
+    vec4 color_unreferenced = apply_color_fac(colorVertexUnreferenced);
+    color = mix(weight_color, color_unreferenced, alert * alert);
   }
 
-  if (useAlphaBlend) {
-    fragColor = vec4(color.rgb, opacity);
-  }
-  else {
-    /* mix with 1.0 -> is like opacity when using multiply blend mode */
-    fragColor = vec4(mix(vec3(1.0), color.rgb, opacity), 1.0);
-  }
+  fragColor = vec4(color.rgb, opacity);
 }

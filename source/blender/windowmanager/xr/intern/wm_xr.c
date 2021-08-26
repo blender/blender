@@ -115,7 +115,6 @@ bool wm_xr_init(wmWindowManager *wm)
 void wm_xr_exit(wmWindowManager *wm)
 {
   if (wm->xr.runtime != NULL) {
-    WM_xr_actionmaps_clear(wm->xr.runtime);
     wm_xr_runtime_data_free(&wm->xr.runtime);
   }
   if (wm->xr.session_settings.shading.prop) {
@@ -149,6 +148,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
 wmXrRuntimeData *wm_xr_runtime_data_create(void)
 {
   wmXrRuntimeData *runtime = MEM_callocN(sizeof(*runtime), __func__);
+  runtime->actactionmap = runtime->selactionmap = -1;
   return runtime;
 }
 
@@ -165,6 +165,10 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
     /* Prevent recursive GHOST_XrContextDestroy() call by NULL'ing the context pointer before the
      * first call, see comment above. */
     (*runtime)->context = NULL;
+
+    wm_xr_session_data_free(&(*runtime)->session_state);
+    WM_xr_actionmaps_clear(*runtime);
+
     GHOST_XrContextDestroy(context);
   }
   MEM_SAFE_FREE(*runtime);

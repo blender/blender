@@ -22,6 +22,7 @@
 # Export Functions
 
 __all__ = (
+    "_init_properties_from_data",  # Shared with gizmo default property initialization.
     "keyconfig_export_as_data",
     "keyconfig_import_from_data",
     "keyconfig_init_from_data",
@@ -244,20 +245,24 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
 
 # -----------------------------------------------------------------------------
 # Import Functions
+#
+# NOTE: unlike export, this runs on startup.
+# Take care making changes that could impact performance.
 
-def _kmi_props_setattr(kmi_props, attr, value):
-    if type(value) is list:
-        kmi_subprop = getattr(kmi_props, attr)
-        for subattr, subvalue in value:
-            _kmi_props_setattr(kmi_subprop, subattr, subvalue)
-        return
-
-    try:
-        setattr(kmi_props, attr, value)
-    except AttributeError:
-        print(f"Warning: property '{attr}' not found in keymap item '{kmi_props.__class__.__name__}'")
-    except Exception as ex:
-        print(f"Warning: {ex!r}")
+def _init_properties_from_data(base_props, base_value):
+    assert(type(base_value) is list)
+    for attr, value in base_value:
+        if type(value) is list:
+            base_props.property_unset(attr)
+            props = getattr(base_props, attr)
+            _init_properties_from_data(props, value)
+        else:
+            try:
+                setattr(base_props, attr, value)
+            except AttributeError:
+                print(f"Warning: property '{attr}' not found in item '{base_props.__class__.__name__}'")
+            except Exception as ex:
+                print(f"Warning: {ex!r}")
 
 
 def keymap_init_from_data(km, km_items, is_modal=False):
@@ -271,8 +276,7 @@ def keymap_init_from_data(km, km_items, is_modal=False):
             if kmi_props_data is not None:
                 kmi_props = kmi.properties
                 assert type(kmi_props_data) is list
-                for attr, value in kmi_props_data:
-                    _kmi_props_setattr(kmi_props, attr, value)
+                _init_properties_from_data(kmi_props, kmi_props_data)
 
 
 def keyconfig_init_from_data(kc, keyconfig_data):

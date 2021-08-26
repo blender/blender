@@ -29,6 +29,11 @@ typedef struct Range2f {
   float max;
 } Range2f;
 
+BLI_INLINE bool range2f_in_range(const Range2f *range, const float value)
+{
+  return IN_RANGE(value, range->min, range->max);
+}
+
 #ifdef __cplusplus
 }
 #endif

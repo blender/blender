@@ -315,7 +315,7 @@ class OUTLINER_MT_asset(Menu):
 
     @classmethod
     def poll(cls, context):
-        return context.preferences.experimental.use_asset_browser
+        return context.preferences.experimental.use_extended_asset_browser
 
     def draw(self, context):
         layout = self.layout

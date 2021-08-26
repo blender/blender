@@ -114,27 +114,26 @@ static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_add
 {
   Key *key = (Key *)id;
   const bool is_undo = BLO_write_is_undo(writer);
-  if (key->id.us > 0 || is_undo) {
-    /* write LibData */
-    BLO_write_id_struct(writer, Key, id_address, &key->id);
-    BKE_id_blend_write(writer, &key->id);
 
-    if (key->adt) {
-      BKE_animdata_blend_write(writer, key->adt);
+  /* write LibData */
+  BLO_write_id_struct(writer, Key, id_address, &key->id);
+  BKE_id_blend_write(writer, &key->id);
+
+  if (key->adt) {
+    BKE_animdata_blend_write(writer, key->adt);
+  }
+
+  /* direct data */
+  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
+    KeyBlock tmp_kb = *kb;
+    /* Do not store actual geometry data in case this is a library override ID. */
+    if (ID_IS_OVERRIDE_LIBRARY(key) && !is_undo) {
+      tmp_kb.totelem = 0;
+      tmp_kb.data = NULL;
     }
-
-    /* direct data */
-    LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-      KeyBlock tmp_kb = *kb;
-      /* Do not store actual geometry data in case this is a library override ID. */
-      if (ID_IS_OVERRIDE_LIBRARY(key) && !is_undo) {
-        tmp_kb.totelem = 0;
-        tmp_kb.data = NULL;
-      }
-      BLO_write_struct_at_address(writer, KeyBlock, kb, &tmp_kb);
-      if (tmp_kb.data != NULL) {
-        BLO_write_raw(writer, tmp_kb.totelem * key->elemsize, tmp_kb.data);
-      }
+    BLO_write_struct_at_address(writer, KeyBlock, kb, &tmp_kb);
+    if (tmp_kb.data != NULL) {
+      BLO_write_raw(writer, tmp_kb.totelem * key->elemsize, tmp_kb.data);
     }
   }
 }
@@ -246,7 +245,7 @@ typedef struct WeightsArrayCache {
 } WeightsArrayCache;
 
 /** Free (or release) any data used by this shapekey (does not free the key itself). */
-void BKE_key_free(Key *key)
+void BKE_key_free_data(Key *key)
 {
   shapekey_free_data(&key->id);
 }
@@ -2281,15 +2280,8 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
     r_polynors = MEM_mallocN(sizeof(float[3]) * me.totpoly, __func__);
     free_polynors = true;
   }
-  BKE_mesh_calc_normals_poly(me.mvert,
-                             r_vertnors,
-                             me.totvert,
-                             me.mloop,
-                             me.mpoly,
-                             me.totloop,
-                             me.totpoly,
-                             r_polynors,
-                             false);
+  BKE_mesh_calc_normals_poly_and_vertex(
+      me.mvert, me.totvert, me.mloop, me.totloop, me.mpoly, me.totpoly, r_polynors, r_vertnors);
 
   if (r_loopnors) {
     short(*clnors)[2] = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL); /* May be NULL. */

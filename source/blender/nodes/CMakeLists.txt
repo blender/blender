@@ -175,6 +175,7 @@ set(SRC
   geometry/nodes/node_geo_curve_primitive_star.cc
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_curve_reverse.cc
+  geometry/nodes/node_geo_curve_select_by_handle_type.cc
   geometry/nodes/node_geo_curve_set_handles.cc
   geometry/nodes/node_geo_curve_spline_type.cc
   geometry/nodes/node_geo_curve_subdivide.cc
@@ -344,11 +345,10 @@ set(SRC
   intern/node_common.c
   intern/node_exec.cc
   intern/node_geometry_exec.cc
+  intern/node_multi_function.cc
   intern/node_socket.cc
-  intern/node_tree_multi_function.cc
   intern/node_tree_ref.cc
   intern/node_util.c
-  intern/type_callbacks.cc
   intern/type_conversions.cc
 
   composite/node_composite_util.h
@@ -365,13 +365,12 @@ set(SRC
   NOD_geometry_exec.hh
   NOD_geometry_nodes_eval_log.hh
   NOD_math_functions.hh
-  NOD_node_tree_multi_function.hh
+  NOD_multi_function.hh
   NOD_node_tree_ref.hh
   NOD_shader.h
   NOD_socket.h
   NOD_static_types.h
   NOD_texture.h
-  NOD_type_callbacks.hh
   NOD_type_conversions.hh
   intern/node_common.h
   intern/node_exec.h

@@ -104,7 +104,7 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
 {
   /* If reference_id is NULL, we are creating an override template for purely local data.
    * Else, reference *must* be linked data. */
-  BLI_assert(reference_id == NULL || reference_id->lib != NULL);
+  BLI_assert(reference_id == NULL || ID_IS_LINKED(reference_id));
   BLI_assert(local_id->override_library == NULL);
 
   ID *ancestor_id;
@@ -286,7 +286,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
                                             const bool do_tagged_remap)
 {
   BLI_assert(reference_id != NULL);
-  BLI_assert(reference_id->lib != NULL);
+  BLI_assert(ID_IS_LINKED(reference_id));
 
   ID *local_id = lib_override_library_create_from(bmain, reference_id, 0);
 
@@ -299,7 +299,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
 
     ID *other_id;
     FOREACH_MAIN_ID_BEGIN (bmain, other_id) {
-      if ((other_id->tag & LIB_TAG_DOIT) != 0 && other_id->lib == NULL) {
+      if ((other_id->tag & LIB_TAG_DOIT) != 0 && !ID_IS_LINKED(other_id)) {
         /* Note that using ID_REMAP_SKIP_INDIRECT_USAGE below is superfluous, as we only remap
          * local IDs usages anyway. */
         BKE_libblock_relink_ex(bmain,
@@ -830,7 +830,7 @@ static void lib_override_library_create_post_process(Main *bmain,
   Collection *default_instantiating_collection = residual_storage;
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     Object *ob_new = (Object *)ob->id.newid;
-    if (ob_new == NULL || ob_new->id.lib != NULL) {
+    if (ob_new == NULL || ID_IS_LINKED(ob_new)) {
       continue;
     }
 
@@ -1020,7 +1020,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
   if (id_root_reference->tag & LIB_TAG_MISSING) {
     BKE_reportf(reports != NULL ? reports->reports : NULL,
                 RPT_ERROR,
-                "impossible to resync data-block %s and its dependencies, as its linked reference "
+                "Impossible to resync data-block %s and its dependencies, as its linked reference "
                 "is missing",
                 id_root->name + 2);
     return false;
@@ -1148,7 +1148,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
         /* We need to 'move back' newly created override into its proper library (since it was
          * duplicated from the reference ID with 'no main' option, it should currently be the same
          * as the reference ID one). */
-        BLI_assert(/*id_override_new->lib == NULL || */ id_override_new->lib == id->lib);
+        BLI_assert(/*!ID_IS_LINKED(id_override_new) || */ id_override_new->lib == id->lib);
         BLI_assert(id_override_old == NULL || id_override_old->lib == id_root->lib);
         id_override_new->lib = id_root->lib;
         /* Remap step below will tag directly linked ones properly as needed. */
@@ -1631,7 +1631,7 @@ static void lib_override_library_main_resync_on_library_indirect_level(
         CLOG_INFO(&LOG, 2, "\tSuccess: %d", success);
         if (success) {
           reports->count.resynced_lib_overrides++;
-          if (library_indirect_level > 0 &&
+          if (library_indirect_level > 0 && reports->do_resynced_lib_overrides_libraries_list &&
               BLI_linklist_index(reports->resynced_lib_overrides_libraries, library) < 0) {
             BLI_linklist_prepend(&reports->resynced_lib_overrides_libraries, library);
             reports->resynced_lib_overrides_libraries_count++;
@@ -1734,8 +1734,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
 #define OVERRIDE_RESYNC_RESIDUAL_STORAGE_NAME "OVERRIDE_RESYNC_LEFTOVERS"
   Collection *override_resync_residual_storage = BLI_findstring(
       &bmain->collections, OVERRIDE_RESYNC_RESIDUAL_STORAGE_NAME, offsetof(ID, name) + 2);
-  if (override_resync_residual_storage != NULL &&
-      override_resync_residual_storage->id.lib != NULL) {
+  if (override_resync_residual_storage != NULL && ID_IS_LINKED(override_resync_residual_storage)) {
     override_resync_residual_storage = NULL;
   }
   if (override_resync_residual_storage == NULL) {
@@ -2195,7 +2194,7 @@ void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *
     id->override_library->reference = NULL;
     return;
   }
-  if (id->override_library->reference->lib == NULL) {
+  if (!ID_IS_LINKED(id->override_library->reference)) {
     /* Very serious data corruption, cannot do much about it besides removing the reference
      * (therefore making the id a local override template one only). */
     BKE_reportf(reports,

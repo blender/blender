@@ -27,9 +27,9 @@
 extern "C" {
 #endif
 
+struct AssetLibraryReference;
 struct BlendHandle;
 struct FileList;
-struct AssetLibraryReference;
 struct FileSelection;
 struct wmWindowManager;
 
@@ -73,7 +73,7 @@ void filelist_setfilter_options(struct FileList *filelist,
                                 const char *filter_search);
 void filelist_filter(struct FileList *filelist);
 void filelist_setlibrary(struct FileList *filelist,
-                         const struct AssetLibraryReference *asset_library);
+                         const struct AssetLibraryReference *asset_library_ref);
 
 void filelist_init_icons(void);
 void filelist_free_icons(void);

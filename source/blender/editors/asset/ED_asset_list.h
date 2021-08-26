@@ -27,8 +27,8 @@ extern "C" {
 struct AssetFilterSettings;
 struct AssetHandle;
 struct AssetLibraryReference;
-struct bContext;
 struct ID;
+struct bContext;
 struct wmNotifier;
 
 void ED_assetlist_storage_fetch(const struct AssetLibraryReference *library_reference,

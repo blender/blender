@@ -82,7 +82,7 @@ extern "C" {
 
 /* CRUD ------------------------------------------- */
 
-// Get main depsgraph instance from context!
+/* Get main depsgraph instance from context! */
 
 /* Create new Depsgraph instance */
 /* TODO: what args are needed here? What's the building-graph entry point? */

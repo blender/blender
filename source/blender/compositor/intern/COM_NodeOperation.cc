@@ -82,8 +82,12 @@ void NodeOperation::determineResolution(unsigned int resolution[2],
     input.determineResolution(resolution, preferredResolution);
     used_resolution_index = m_resolutionInputSocketIndex;
   }
-  unsigned int temp2[2] = {resolution[0], resolution[1]};
 
+  if (modify_determined_resolution_fn_) {
+    modify_determined_resolution_fn_(resolution);
+  }
+
+  unsigned int temp2[2] = {resolution[0], resolution[1]};
   unsigned int temp[2];
   for (unsigned int index = 0; index < m_inputs.size(); index++) {
     if (index == used_resolution_index) {

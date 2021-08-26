@@ -1005,7 +1005,7 @@ int GHOST_XrSyncActions(GHOST_XrContextHandle xr_contexthandle, const char *acti
 int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_contexthandle,
                               const char *action_set_name,
                               const char *action_name,
-                              const char **subaction_path,
+                              const char *subaction_path,
                               const int64_t *duration,
                               const float *frequency,
                               const float *amplitude)
@@ -1022,7 +1022,7 @@ int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_contexthandle,
 void GHOST_XrStopHapticAction(GHOST_XrContextHandle xr_contexthandle,
                               const char *action_set_name,
                               const char *action_name,
-                              const char **subaction_path)
+                              const char *subaction_path)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
   GHOST_XrSession *xr_session = xr_context->getSession();

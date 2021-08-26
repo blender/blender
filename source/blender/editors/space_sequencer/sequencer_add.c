@@ -159,7 +159,7 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
                                "set_view_transform",
                                true,
                                "Set View Transform",
-                               "Set appropriate view transform based on media colorspace");
+                               "Set appropriate view transform based on media color space");
   }
 }
 
@@ -254,11 +254,11 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
     BLI_strncpy(load_data->name, BLI_path_basename(load_data->path), sizeof(load_data->name));
   }
   else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
-    char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0);
+    char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
 
     if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
-        char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+        char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
         BLI_strncpy(load_data->name, filename, sizeof(load_data->name));
         BLI_join_dirfile(load_data->path, sizeof(load_data->path), directory, filename);
         MEM_freeN(filename);
@@ -565,10 +565,7 @@ static void sequencer_add_init(bContext *UNUSED(C), wmOperator *op)
 
 static void sequencer_add_cancel(bContext *UNUSED(C), wmOperator *op)
 {
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
-  op->customdata = NULL;
+  MEM_SAFE_FREE(op->customdata);
 }
 
 static bool sequencer_add_draw_check_fn(PointerRNA *UNUSED(ptr),
@@ -646,15 +643,17 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
     Sequence *seq_movie = NULL;
     Sequence *seq_sound = NULL;
+    double video_start_offset;
+
     load_data->channel++;
-    seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data);
+    seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data, &video_start_offset);
     load_data->channel--;
     if (seq_movie == NULL) {
       BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", load_data->path);
     }
     else {
       if (RNA_boolean_get(op->ptr, "sound")) {
-        seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
+        seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, video_start_offset);
       }
       load_data->start_frame += seq_movie->enddisp - seq_movie->startdisp;
       seq_load_apply_generic_options(C, op, seq_sound);
@@ -673,8 +672,10 @@ static bool sequencer_add_movie_single_strip(bContext *C, wmOperator *op, SeqLoa
 
   Sequence *seq_movie = NULL;
   Sequence *seq_sound = NULL;
+  double video_start_offset;
+
   load_data->channel++;
-  seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data);
+  seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data, &video_start_offset);
   load_data->channel--;
 
   if (seq_movie == NULL) {
@@ -682,7 +683,7 @@ static bool sequencer_add_movie_single_strip(bContext *C, wmOperator *op, SeqLoa
     return false;
   }
   if (RNA_boolean_get(op->ptr, "sound")) {
-    seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
+    seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, video_start_offset);
   }
   seq_load_apply_generic_options(C, op, seq_sound);
   seq_load_apply_generic_options(C, op, seq_movie);
@@ -710,13 +711,13 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
   }
   else {
     if (!sequencer_add_movie_single_strip(C, op, &load_data)) {
+      sequencer_add_cancel(C, op);
       return OPERATOR_CANCELLED;
     }
   }
 
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
+  /* Free custom data. */
+  sequencer_add_cancel(C, op);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -825,7 +826,7 @@ static void sequencer_add_sound_multiple_strips(bContext *C,
     RNA_string_get(&itemptr, "name", file_only);
     BLI_join_dirfile(load_data->path, sizeof(load_data->path), dir_only, file_only);
     BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
-    Sequence *seq = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
+    Sequence *seq = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, 0.0f);
     if (seq == NULL) {
       BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", load_data->path);
     }
@@ -843,7 +844,7 @@ static bool sequencer_add_sound_single_strip(bContext *C, wmOperator *op, SeqLoa
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, true);
 
-  Sequence *seq = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
+  Sequence *seq = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, 0.0f);
   if (seq == NULL) {
     BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", load_data->path);
     return false;
@@ -943,7 +944,7 @@ int sequencer_image_seq_get_minmax_frame(wmOperator *op,
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char *filename;
     int frame;
-    filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+    filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
 
     if (filename) {
       if (BLI_path_frame_get(filename, &frame, &numdigits)) {
@@ -972,7 +973,7 @@ void sequencer_image_seq_reserve_frames(
 {
   char *filename = NULL;
   RNA_BEGIN (op->ptr, itemptr, "files") {
-    filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+    filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
     break;
   }
   RNA_END;
@@ -1022,7 +1023,7 @@ static void sequencer_add_image_strip_load_files(
   else {
     size_t strip_frame = 0;
     RNA_BEGIN (op->ptr, itemptr, "files") {
-      char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+      char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
       SEQ_add_image_load_file(seq, strip_frame, filename);
       MEM_freeN(filename);
       strip_frame++;
@@ -1043,6 +1044,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
   load_data.image.len = sequencer_add_image_strip_calculate_length(
       op, load_data.start_frame, &minframe, &numdigits);
   if (load_data.image.len == 0) {
+    sequencer_add_cancel(C, op);
     return OPERATOR_CANCELLED;
   }
 
@@ -1065,9 +1067,8 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
+  /* Free custom data. */
+  sequencer_add_cancel(C, op);
 
   return OPERATOR_FINISHED;
 }

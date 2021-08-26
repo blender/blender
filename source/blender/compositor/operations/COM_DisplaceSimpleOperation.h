@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class DisplaceSimpleOperation : public NodeOperation {
+class DisplaceSimpleOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -59,6 +59,11 @@ class DisplaceSimpleOperation : public NodeOperation {
    * Deinitialize the execution
    */
   void deinitExecution() override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

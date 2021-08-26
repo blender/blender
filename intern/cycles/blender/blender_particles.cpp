@@ -71,7 +71,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   Particle pa;
 
   pa.index = persistent_id[0];
-  pa.age = b_scene.frame_current() - b_pa.birth_time();
+  pa.age = b_scene.frame_current_final() - b_pa.birth_time();
   pa.lifetime = b_pa.lifetime();
   pa.location = get_float3(b_pa.location());
   pa.rotation = get_float4(b_pa.rotation());

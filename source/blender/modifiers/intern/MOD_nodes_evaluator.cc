@@ -836,7 +836,7 @@ class GeometryNodesEvaluator {
     }
 
     /* Use the multi-function implementation if it exists. */
-    const MultiFunction *multi_function = params_.mf_by_node->lookup_default(node, nullptr);
+    const MultiFunction *multi_function = params_.mf_by_node->try_get(node);
     if (multi_function != nullptr) {
       this->execute_multi_function_node(node, *multi_function, node_state);
       return;

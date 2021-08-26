@@ -148,13 +148,12 @@ static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &
 
   if (XR_FAILED(result)) {
     /* One of the rare cases where we don't want to immediately throw an exception on failure,
-     * since run-times are not required to support the stage reference space. Although we need the
-     * stage reference space for absolute tracking, if the runtime doesn't support it then just
-     * fallback to the local space. */
+     * since runtimes are not required to support the stage reference space. If the runtime
+     * doesn't support it then just fall back to the local space. */
     if (result == XR_ERROR_REFERENCE_SPACE_UNSUPPORTED) {
       printf(
-          "Warning: XR runtime does not support stage reference space, disabling absolute "
-          "tracking.\n");
+          "Warning: XR runtime does not support stage reference space, falling back to local "
+          "reference space.\n");
 
       create_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
       CHECK_XR(xrCreateReferenceSpace(oxr.session, &create_info, &oxr.reference_space),
@@ -172,8 +171,9 @@ static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &
              "Failed to get stage reference space bounds.");
     if (extents.width == 0.0f || extents.height == 0.0f) {
       printf(
-          "Warning: Invalid stage reference space bounds, disabling absolute tracking. To enable "
-          "absolute tracking, please define a tracking space via the XR runtime.\n");
+          "Warning: Invalid stage reference space bounds, falling back to local reference space. "
+          "To use the stage reference space, please define a tracking space via the XR "
+          "runtime.\n");
 
       /* Fallback to local space. */
       if (oxr.reference_space != XR_NULL_HANDLE) {
@@ -422,6 +422,7 @@ void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
 
   assert(view_idx < 256);
   draw_view_info.view_idx = (char)view_idx;
+  draw_view_info.swapchain_format = swapchain.getFormat();
   draw_view_info.expects_srgb_buffer = swapchain.isBufferSRGB();
   draw_view_info.ofsx = r_proj_layer_view.subImage.imageRect.offset.x;
   draw_view_info.ofsy = r_proj_layer_view.subImage.imageRect.offset.y;
@@ -754,7 +755,7 @@ bool GHOST_XrSession::syncActions(const char *action_set_name)
 
 bool GHOST_XrSession::applyHapticAction(const char *action_set_name,
                                         const char *action_name,
-                                        const char **subaction_path,
+                                        const char *subaction_path,
                                         const int64_t &duration,
                                         const float &frequency,
                                         const float &amplitude)
@@ -777,7 +778,7 @@ bool GHOST_XrSession::applyHapticAction(const char *action_set_name,
 
 void GHOST_XrSession::stopHapticAction(const char *action_set_name,
                                        const char *action_name,
-                                       const char **subaction_path)
+                                       const char *subaction_path)
 {
   GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
   if (action_set == nullptr) {

@@ -766,8 +766,6 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 
   BKE_lightprobe_type_set(probe, type);
 
-  DEG_relations_tag_update(CTX_data_main(C));
-
   return OPERATOR_FINISHED;
 }
 
@@ -883,8 +881,6 @@ static int effector_add_exec(bContext *C, wmOperator *op)
   }
 
   ob->pd = BKE_partdeflect_new(type);
-
-  DEG_relations_tag_update(CTX_data_main(C));
 
   return OPERATOR_FINISHED;
 }
@@ -1015,8 +1011,10 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
   if (newob && !enter_editmode) {
     ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
   }
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
+  else {
+    /* Only needed in edit-mode (#ED_object_add_type normally handles this). */
+    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
+  }
 
   return OPERATOR_FINISHED;
 }
@@ -1066,8 +1064,6 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 
   obedit = ED_object_add_type(C, OB_FONT, NULL, loc, rot, enter_editmode, local_view_bits);
   BKE_object_obdata_size_init(obedit, RNA_float_get(op->ptr, "radius"));
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 
   return OPERATOR_FINISHED;
 }
@@ -1137,8 +1133,6 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
   if (newob && !enter_editmode) {
     ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
   }
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 
   return OPERATOR_FINISHED;
 }
@@ -1670,7 +1664,6 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* Avoid dependency cycles. */
@@ -1685,12 +1678,6 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
   ob->empty_drawsize = U.collection_instance_empty_size;
   ob->transflag |= OB_DUPLICOLLECTION;
   id_us_plus(&collection->id);
-
-  /* works without this except if you try render right after, see: 22027 */
-  DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
   return OPERATOR_FINISHED;
 }
@@ -1784,16 +1771,8 @@ static int object_data_instance_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Scene *scene = CTX_data_scene(C);
-
   ED_object_add_type_with_obdata(
       C, object_type, id->name + 2, loc, rot, false, local_view_bits, id);
-
-  /* Works without this except if you try render right after, see: T22027. */
-  DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
   return OPERATOR_FINISHED;
 }
@@ -2844,7 +2823,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
                                                    matrix,
                                                    0,
                                                    use_seams,
-                                                   use_faces);
+                                                   use_faces,
+                                                   true);
 
       /* Remove unused materials. */
       int actcol = ob_gpencil->actcol;
@@ -3358,8 +3338,13 @@ Base *ED_object_add_duplicate(
   Base *basen;
   Object *ob;
 
-  basen = object_add_duplicate_internal(
-      bmain, scene, view_layer, base->object, dupflag, LIB_ID_DUPLICATE_IS_SUBPROCESS);
+  basen = object_add_duplicate_internal(bmain,
+                                        scene,
+                                        view_layer,
+                                        base->object,
+                                        dupflag,
+                                        LIB_ID_DUPLICATE_IS_SUBPROCESS |
+                                            LIB_ID_DUPLICATE_IS_ROOT_ID);
   if (basen == NULL) {
     return NULL;
   }
@@ -3394,8 +3379,13 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   BKE_main_id_newptr_and_tag_clear(bmain);
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
-    Base *basen = object_add_duplicate_internal(
-        bmain, scene, view_layer, base->object, dupflag, LIB_ID_DUPLICATE_IS_SUBPROCESS);
+    Base *basen = object_add_duplicate_internal(bmain,
+                                                scene,
+                                                view_layer,
+                                                base->object,
+                                                dupflag,
+                                                LIB_ID_DUPLICATE_IS_SUBPROCESS |
+                                                    LIB_ID_DUPLICATE_IS_ROOT_ID);
 
     /* note that this is safe to do with this context iterator,
      * the list is made in advance */
@@ -3515,7 +3505,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
          * the case here. So we have to do the new-ID relinking ourselves
          * (#copy_object_set_idnew()).
          */
-        LIB_ID_DUPLICATE_IS_SUBPROCESS);
+        LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID);
   }
   else {
     /* basen is actually not a new base in this case. */

@@ -267,7 +267,8 @@ static void test_overlay_glsl_shaders()
     EXPECT_NE(OVERLAY_shader_paint_point(), nullptr);
     EXPECT_NE(OVERLAY_shader_paint_texture(), nullptr);
     EXPECT_NE(OVERLAY_shader_paint_vertcol(), nullptr);
-    EXPECT_NE(OVERLAY_shader_paint_weight(), nullptr);
+    EXPECT_NE(OVERLAY_shader_paint_weight(false), nullptr);
+    EXPECT_NE(OVERLAY_shader_paint_weight(true), nullptr);
     EXPECT_NE(OVERLAY_shader_paint_wire(), nullptr);
     EXPECT_NE(OVERLAY_shader_particle_dot(), nullptr);
     EXPECT_NE(OVERLAY_shader_particle_shape(), nullptr);

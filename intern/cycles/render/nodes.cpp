@@ -350,7 +350,7 @@ void ImageTextureNode::attributes(Shader *shader, AttributeRequestSet *attribute
 #ifdef WITH_PTEX
   /* todo: avoid loading other texture coordinates when using ptex,
    * and hide texture coordinate socket in the UI */
-  if (shader->has_surface && string_endswith(filename, ".ptx")) {
+  if (shader->has_surface_link() && string_endswith(filename, ".ptx")) {
     /* ptex */
     attributes->add(ATTR_STD_PTEX_FACE_ID);
     attributes->add(ATTR_STD_PTEX_UV);
@@ -552,7 +552,7 @@ ImageParams EnvironmentTextureNode::image_params() const
 void EnvironmentTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 #ifdef WITH_PTEX
-  if (shader->has_surface && string_endswith(filename, ".ptx")) {
+  if (shader->has_surface_link() && string_endswith(filename, ".ptx")) {
     /* ptex */
     attributes->add(ATTR_STD_PTEX_FACE_ID);
     attributes->add(ATTR_STD_PTEX_UV);
@@ -2319,7 +2319,7 @@ AnisotropicBsdfNode::AnisotropicBsdfNode() : BsdfNode(get_node_type())
 
 void AnisotropicBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_surface) {
+  if (shader->has_surface_link()) {
     ShaderInput *tangent_in = input("Tangent");
 
     if (!tangent_in->link)
@@ -2843,7 +2843,7 @@ bool PrincipledBsdfNode::has_surface_bssrdf()
 
 void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_surface) {
+  if (shader->has_surface_link()) {
     ShaderInput *tangent_in = input("Tangent");
 
     if (!tangent_in->link)
@@ -3684,7 +3684,7 @@ GeometryNode::GeometryNode() : ShaderNode(get_node_type())
 
 void GeometryNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_surface) {
+  if (shader->has_surface_link()) {
     if (!output("Tangent")->links.empty()) {
       attributes->add(ATTR_STD_GENERATED);
     }
@@ -3830,7 +3830,7 @@ TextureCoordinateNode::TextureCoordinateNode() : ShaderNode(get_node_type())
 
 void TextureCoordinateNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_surface) {
+  if (shader->has_surface_link()) {
     if (!from_dupli) {
       if (!output("Generated")->links.empty())
         attributes->add(ATTR_STD_GENERATED);
@@ -4388,7 +4388,7 @@ HairInfoNode::HairInfoNode() : ShaderNode(get_node_type())
 
 void HairInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_surface) {
+  if (shader->has_surface_link()) {
     ShaderOutput *intercept_out = output("Intercept");
 
     if (!intercept_out->links.empty())
@@ -6744,7 +6744,7 @@ NormalMapNode::NormalMapNode() : ShaderNode(get_node_type())
 
 void NormalMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_surface && space == NODE_NORMAL_MAP_TANGENT) {
+  if (shader->has_surface_link() && space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
       attributes->add(ATTR_STD_UV_TANGENT);
       attributes->add(ATTR_STD_UV_TANGENT_SIGN);
@@ -6838,7 +6838,7 @@ TangentNode::TangentNode() : ShaderNode(get_node_type())
 
 void TangentNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_surface) {
+  if (shader->has_surface_link()) {
     if (direction_type == NODE_TANGENT_UVMAP) {
       if (attribute.empty())
         attributes->add(ATTR_STD_UV_TANGENT);
@@ -7021,7 +7021,7 @@ void VectorDisplacementNode::constant_fold(const ConstantFolder &folder)
 
 void VectorDisplacementNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_surface && space == NODE_NORMAL_MAP_TANGENT) {
+  if (shader->has_surface_link() && space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
       attributes->add(ATTR_STD_UV_TANGENT);
       attributes->add(ATTR_STD_UV_TANGENT_SIGN);

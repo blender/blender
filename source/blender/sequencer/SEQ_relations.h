@@ -65,6 +65,9 @@ void SEQ_cache_iterate(
     void *userdata,
     bool callback_init(void *userdata, size_t item_count),
     bool callback_iter(void *userdata, struct Sequence *seq, int timeline_frame, int cache_type));
+struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqbase */,
+                                                struct Sequence *meta /* = NULL */,
+                                                struct Sequence *seq);
 #ifdef __cplusplus
 }
 #endif

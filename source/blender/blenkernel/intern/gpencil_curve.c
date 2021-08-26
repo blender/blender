@@ -883,7 +883,7 @@ static void gpencil_interpolate_fl_from_to(
   float *r = point_offset;
   for (int i = 0; i <= it; i++) {
     float fac = (float)i / (float)it;
-    fac = 3.0f * fac * fac - 2.0f * fac * fac * fac;  // smooth
+    fac = 3.0f * fac * fac - 2.0f * fac * fac * fac; /* Smooth. */
     *r = interpf(to, from, fac);
     r = POINTER_OFFSET(r, stride);
   }
@@ -896,7 +896,7 @@ static void gpencil_interpolate_v4_from_to(
   float *r = point_offset;
   for (int i = 0; i <= it; i++) {
     float fac = (float)i / (float)it;
-    fac = 3.0f * fac * fac - 2.0f * fac * fac * fac;  // smooth
+    fac = 3.0f * fac * fac - 2.0f * fac * fac * fac; /* Smooth. */
     interp_v4_v4v4(r, from, to, fac);
     r = POINTER_OFFSET(r, stride);
   }

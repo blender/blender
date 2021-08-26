@@ -106,7 +106,7 @@ constexpr MeshExtract create_extractor_fdots_pos()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(float(*)[3]);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_pos);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdots_pos);
   return extractor;
 }
 

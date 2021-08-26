@@ -162,7 +162,7 @@ struct ExtractTaskData {
   const MeshRenderData *mr = nullptr;
   MeshBatchCache *cache = nullptr;
   ExtractorRunDatas *extractors = nullptr;
-  MeshBufferCache *mbc = nullptr;
+  MeshBufferList *mbuflist = nullptr;
 
   eMRIterType iter_type;
   bool use_threading = false;
@@ -170,9 +170,13 @@ struct ExtractTaskData {
   ExtractTaskData(const MeshRenderData *mr,
                   struct MeshBatchCache *cache,
                   ExtractorRunDatas *extractors,
-                  MeshBufferCache *mbc,
+                  MeshBufferList *mbuflist,
                   const bool use_threading)
-      : mr(mr), cache(cache), extractors(extractors), mbc(mbc), use_threading(use_threading)
+      : mr(mr),
+        cache(cache),
+        extractors(extractors),
+        mbuflist(mbuflist),
+        use_threading(use_threading)
   {
     iter_type = extractors->iter_types();
   };
@@ -204,13 +208,13 @@ static void extract_task_data_free(void *data)
 BLI_INLINE void extract_init(const MeshRenderData *mr,
                              struct MeshBatchCache *cache,
                              ExtractorRunDatas &extractors,
-                             MeshBufferCache *mbc,
+                             MeshBufferList *mbuflist,
                              void *data_stack)
 {
   uint32_t data_offset = 0;
   for (ExtractorRunData &run_data : extractors) {
     const MeshExtract *extractor = run_data.extractor;
-    run_data.buffer = mesh_extract_buffer_get(extractor, mbc);
+    run_data.buffer = mesh_extract_buffer_get(extractor, mbuflist);
     run_data.data_offset = data_offset;
     extractor->init(mr, cache, run_data.buffer, POINTER_OFFSET(data_stack, data_offset));
     data_offset += (uint32_t)extractor->data_size;
@@ -445,7 +449,7 @@ static void extract_task_range_run(void *__restrict taskdata)
   settings.func_reduce = extract_task_reduce;
   settings.min_iter_per_thread = MIN_RANGE_LEN;
 
-  extract_init(data->mr, data->cache, *data->extractors, data->mbc, userdata_chunk);
+  extract_init(data->mr, data->cache, *data->extractors, data->mbuflist, userdata_chunk);
 
   if (iter_type & MR_ITER_LOOPTRI) {
     extract_task_range_run_iter(data->mr, data->extractors, MR_ITER_LOOPTRI, is_mesh, &settings);
@@ -474,10 +478,10 @@ static struct TaskNode *extract_task_node_create(struct TaskGraph *task_graph,
                                                  const MeshRenderData *mr,
                                                  MeshBatchCache *cache,
                                                  ExtractorRunDatas *extractors,
-                                                 MeshBufferCache *mbc,
+                                                 MeshBufferList *mbuflist,
                                                  const bool use_threading)
 {
-  ExtractTaskData *taskdata = new ExtractTaskData(mr, cache, extractors, mbc, use_threading);
+  ExtractTaskData *taskdata = new ExtractTaskData(mr, cache, extractors, mbuflist, use_threading);
   struct TaskNode *task_node = BLI_task_graph_node_create(
       task_graph,
       extract_task_range_run,
@@ -493,12 +497,12 @@ static struct TaskNode *extract_task_node_create(struct TaskGraph *task_graph,
  * \{ */
 struct MeshRenderDataUpdateTaskData {
   MeshRenderData *mr = nullptr;
-  MeshBufferExtractionCache *cache = nullptr;
+  MeshBufferCache *cache = nullptr;
   eMRIterType iter_type;
   eMRDataType data_flag;
 
   MeshRenderDataUpdateTaskData(MeshRenderData *mr,
-                               MeshBufferExtractionCache *cache,
+                               MeshBufferCache *cache,
                                eMRIterType iter_type,
                                eMRDataType data_flag)
       : mr(mr), cache(cache), iter_type(iter_type), data_flag(data_flag)
@@ -538,7 +542,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
 
 static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *task_graph,
                                                              MeshRenderData *mr,
-                                                             MeshBufferExtractionCache *cache,
+                                                             MeshBufferCache *cache,
                                                              const eMRIterType iter_type,
                                                              const eMRDataType data_flag)
 {
@@ -562,7 +566,6 @@ static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *t
 static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                MeshBatchCache *cache,
                                                MeshBufferCache *mbc,
-                                               MeshBufferExtractionCache *extraction_cache,
                                                Mesh *me,
 
                                                const bool is_editmode,
@@ -613,9 +616,11 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   /* Create an array containing all the extractors that needs to be executed. */
   ExtractorRunDatas extractors;
 
+  MeshBufferList *mbuflist = &mbc->buff;
+
 #define EXTRACT_ADD_REQUESTED(type, name) \
   do { \
-    if (DRW_##type##_requested(mbc->type.name)) { \
+    if (DRW_##type##_requested(mbuflist->type.name)) { \
       const MeshExtract *extractor = mesh_extract_override_get( \
           &extract_##name, do_hq_normals, override_single_mat); \
       extractors.append(extractor); \
@@ -647,19 +652,19 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   EXTRACT_ADD_REQUESTED(vbo, skin_roots);
 
   EXTRACT_ADD_REQUESTED(ibo, tris);
-  if (DRW_ibo_requested(mbc->ibo.lines_loose)) {
+  if (DRW_ibo_requested(mbuflist->ibo.lines_loose)) {
     /* `ibo.lines_loose` require the `ibo.lines` buffer. */
-    if (mbc->ibo.lines == nullptr) {
-      DRW_ibo_request(nullptr, &mbc->ibo.lines);
+    if (mbuflist->ibo.lines == nullptr) {
+      DRW_ibo_request(nullptr, &mbuflist->ibo.lines);
     }
-    const MeshExtract *extractor = DRW_ibo_requested(mbc->ibo.lines) ?
+    const MeshExtract *extractor = DRW_ibo_requested(mbuflist->ibo.lines) ?
                                        &extract_lines_with_lines_loose :
                                        &extract_lines_loose_only;
     extractors.append(extractor);
   }
-  else if (DRW_ibo_requested(mbc->ibo.lines)) {
+  else if (DRW_ibo_requested(mbuflist->ibo.lines)) {
     const MeshExtract *extractor;
-    if (mbc->ibo.lines_loose != nullptr) {
+    if (mbuflist->ibo.lines_loose != nullptr) {
       /* Update `ibo.lines_loose` as it depends on `ibo.lines`. */
       extractor = &extract_lines_with_lines_loose;
     }
@@ -701,7 +706,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   eMRDataType data_flag = extractors.data_types();
 
   struct TaskNode *task_node_mesh_render_data = mesh_extract_render_data_node_create(
-      task_graph, mr, extraction_cache, iter_type, data_flag);
+      task_graph, mr, mbc, iter_type, data_flag);
 
   /* Simple heuristic. */
   const bool use_thread = (mr->loop_len + mr->loop_loose_len) > MIN_RANGE_LEN;
@@ -714,7 +719,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
         ExtractorRunDatas *single_threaded_extractors = new ExtractorRunDatas();
         single_threaded_extractors->append(extractor);
         struct TaskNode *task_node = extract_task_node_create(
-            task_graph, mr, cache, single_threaded_extractors, mbc, false);
+            task_graph, mr, cache, single_threaded_extractors, mbuflist, false);
 
         BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
       }
@@ -725,7 +730,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
     extractors.filter_threaded_extractors_into(*multi_threaded_extractors);
     if (!multi_threaded_extractors->is_empty()) {
       struct TaskNode *task_node = extract_task_node_create(
-          task_graph, mr, cache, multi_threaded_extractors, mbc, true);
+          task_graph, mr, cache, multi_threaded_extractors, mbuflist, true);
 
       BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
     }
@@ -738,7 +743,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
     /* Run all requests on the same thread. */
     ExtractorRunDatas *extractors_copy = new ExtractorRunDatas(extractors);
     struct TaskNode *task_node = extract_task_node_create(
-        task_graph, mr, cache, extractors_copy, mbc, false);
+        task_graph, mr, cache, extractors_copy, mbuflist, false);
 
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
   }
@@ -776,7 +781,6 @@ extern "C" {
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
                                         MeshBufferCache *mbc,
-                                        MeshBufferExtractionCache *extraction_cache,
                                         Mesh *me,
 
                                         const bool is_editmode,
@@ -793,7 +797,6 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   blender::draw::mesh_buffer_cache_create_requested(task_graph,
                                                     cache,
                                                     mbc,
-                                                    extraction_cache,
                                                     me,
                                                     is_editmode,
                                                     is_paint_mode,

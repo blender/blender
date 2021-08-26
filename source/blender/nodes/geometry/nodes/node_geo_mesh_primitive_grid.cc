@@ -79,19 +79,17 @@ static Mesh *create_grid_mesh(const int verts_x,
   MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
 
   {
-    const float dx = size_x / edges_x;
-    const float dy = size_y / edges_y;
-    float x = -size_x * 0.5;
+    const float dx = edges_x == 0 ? 0.0f : size_x / edges_x;
+    const float dy = edges_y == 0 ? 0.0f : size_y / edges_y;
+    const float x_shift = edges_x / 2.0f;
+    const float y_shift = edges_y / 2.0f;
     for (const int x_index : IndexRange(verts_x)) {
-      float y = -size_y * 0.5;
       for (const int y_index : IndexRange(verts_y)) {
         const int vert_index = x_index * verts_y + y_index;
-        verts[vert_index].co[0] = x;
-        verts[vert_index].co[1] = y;
+        verts[vert_index].co[0] = (x_index - x_shift) * dx;
+        verts[vert_index].co[1] = (y_index - y_shift) * dy;
         verts[vert_index].co[2] = 0.0f;
-        y += dy;
       }
-      x += dx;
     }
   }
 

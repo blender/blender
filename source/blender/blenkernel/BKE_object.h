@@ -401,7 +401,10 @@ void BKE_object_groups_clear(struct Main *bmain, struct Scene *scene, struct Obj
 
 struct KDTree_3d *BKE_object_as_kdtree(struct Object *ob, int *r_tot);
 
-bool BKE_object_modifier_use_time(struct Object *ob, struct ModifierData *md);
+bool BKE_object_modifier_use_time(struct Scene *scene,
+                                  struct Object *ob,
+                                  struct ModifierData *md,
+                                  int dag_eval_mode);
 
 bool BKE_object_modifier_update_subframe(struct Depsgraph *depsgraph,
                                          struct Scene *scene,

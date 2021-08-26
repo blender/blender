@@ -736,7 +736,7 @@ GPUShader *OVERLAY_shader_paint_face(void);
 GPUShader *OVERLAY_shader_paint_point(void);
 GPUShader *OVERLAY_shader_paint_texture(void);
 GPUShader *OVERLAY_shader_paint_vertcol(void);
-GPUShader *OVERLAY_shader_paint_weight(void);
+GPUShader *OVERLAY_shader_paint_weight(bool shading);
 GPUShader *OVERLAY_shader_paint_wire(void);
 GPUShader *OVERLAY_shader_particle_dot(void);
 GPUShader *OVERLAY_shader_particle_shape(void);

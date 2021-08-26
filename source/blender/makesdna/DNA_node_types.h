@@ -1328,6 +1328,13 @@ typedef struct NodeAttributeConvert {
   int8_t domain;
 } NodeAttributeConvert;
 
+typedef struct NodeGeometrySubdivisionSurface {
+  /* eSubsurfUVSmooth. */
+  uint8_t uv_smooth;
+  /* eSubsurfBoundarySmooth. */
+  uint8_t boundary_smooth;
+} NodeGeometrySubdivisionSurface;
+
 typedef struct NodeGeometryMeshCircle {
   /* GeometryNodeMeshCircleFillType. */
   uint8_t fill_type;
@@ -1366,6 +1373,13 @@ typedef struct NodeGeometryCurveSetHandles {
   /* GeometryNodeCurveHandleMode. */
   uint8_t mode;
 } NodeGeometryCurveSetHandles;
+
+typedef struct NodeGeometryCurveSelectHandles {
+  /* GeometryNodeCurveHandleType. */
+  uint8_t handle_type;
+  /* GeometryNodeCurveHandleMode. */
+  uint8_t mode;
+} NodeGeometryCurveSelectHandles;
 
 typedef struct NodeGeometryCurvePrimitiveLine {
   /* GeometryNodeCurvePrimitiveLineMode. */
@@ -1822,9 +1836,9 @@ typedef enum NodeShaderOutputTarget {
 /* Geometry Nodes */
 
 typedef enum GeometryNodeAttributeProximityTargetType {
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS = 0,
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_EDGES = 1,
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES = 2,
+  GEO_NODE_PROXIMITY_TARGET_POINTS = 0,
+  GEO_NODE_PROXIMITY_TARGET_EDGES = 1,
+  GEO_NODE_PROXIMITY_TARGET_FACES = 2,
 } GeometryNodeAttributeProximityTargetType;
 
 typedef enum GeometryNodeBooleanOperation {

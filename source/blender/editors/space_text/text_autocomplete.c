@@ -177,13 +177,12 @@ static GHash *text_autocomplete_build(Text *text)
         i_pos = i_start;
         while ((i_start < linep->len) &&
                (!text_check_identifier_nodigit_unicode(
-                   BLI_str_utf8_as_unicode_and_size_safe(&linep->line[i_start], &i_pos)))) {
+                   BLI_str_utf8_as_unicode_step(linep->line, linep->len, &i_pos)))) {
           i_start = i_pos;
         }
         i_pos = i_end = i_start;
-        while ((i_end < linep->len) &&
-               (text_check_identifier_unicode(
-                   BLI_str_utf8_as_unicode_and_size_safe(&linep->line[i_end], &i_pos)))) {
+        while ((i_end < linep->len) && (text_check_identifier_unicode(BLI_str_utf8_as_unicode_step(
+                                           linep->line, linep->len, &i_pos)))) {
           i_end = i_pos;
         }
 

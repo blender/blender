@@ -557,7 +557,7 @@ static bool BKE_fluid_modifier_init(
   return false;
 }
 
-// forward declaration
+/* Forward declarations. */
 static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *view_layer);
 static float calc_voxel_transp(
     float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct);
@@ -4380,10 +4380,10 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
   light[2] = (light[2] - fds->p0[2]) / fds->cell_size[2] - 0.5f - (float)fds->res_min[2];
 
   /* Calculate domain bounds in sim cell space. */
-  // 0,2,4 = 0.0f
-  bv[1] = (float)fds->res[0];  // x
-  bv[3] = (float)fds->res[1];  // y
-  bv[5] = (float)fds->res[2];  // z
+  /* 0,2,4 = 0.0f */
+  bv[1] = (float)fds->res[0]; /* X */
+  bv[3] = (float)fds->res[1]; /* Y */
+  bv[5] = (float)fds->res[2]; /* Z */
 
   for (int z = 0; z < fds->res[2]; z++) {
     size_t index = z * slabsize;
@@ -4766,20 +4766,14 @@ static void BKE_fluid_modifier_freeDomain(FluidModifierData *fmd)
       BLI_rw_mutex_free(fmd->domain->fluid_mutex);
     }
 
-    if (fmd->domain->effector_weights) {
-      MEM_freeN(fmd->domain->effector_weights);
-    }
-    fmd->domain->effector_weights = NULL;
+    MEM_SAFE_FREE(fmd->domain->effector_weights);
 
     if (!(fmd->modifier.flag & eModifierFlag_SharedCaches)) {
       BKE_ptcache_free_list(&(fmd->domain->ptcaches[0]));
       fmd->domain->point_cache[0] = NULL;
     }
 
-    if (fmd->domain->mesh_velocities) {
-      MEM_freeN(fmd->domain->mesh_velocities);
-    }
-    fmd->domain->mesh_velocities = NULL;
+    MEM_SAFE_FREE(fmd->domain->mesh_velocities);
 
     if (fmd->domain->coba) {
       MEM_freeN(fmd->domain->coba);
@@ -4798,10 +4792,7 @@ static void BKE_fluid_modifier_freeFlow(FluidModifierData *fmd)
     }
     fmd->flow->mesh = NULL;
 
-    if (fmd->flow->verts_old) {
-      MEM_freeN(fmd->flow->verts_old);
-    }
-    fmd->flow->verts_old = NULL;
+    MEM_SAFE_FREE(fmd->flow->verts_old);
     fmd->flow->numverts = 0;
     fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
 
@@ -4818,10 +4809,7 @@ static void BKE_fluid_modifier_freeEffector(FluidModifierData *fmd)
     }
     fmd->effector->mesh = NULL;
 
-    if (fmd->effector->verts_old) {
-      MEM_freeN(fmd->effector->verts_old);
-    }
-    fmd->effector->verts_old = NULL;
+    MEM_SAFE_FREE(fmd->effector->verts_old);
     fmd->effector->numverts = 0;
     fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
 
@@ -4857,18 +4845,12 @@ static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need
     fmd->domain->active_fields = 0;
   }
   else if (fmd->flow) {
-    if (fmd->flow->verts_old) {
-      MEM_freeN(fmd->flow->verts_old);
-    }
-    fmd->flow->verts_old = NULL;
+    MEM_SAFE_FREE(fmd->flow->verts_old);
     fmd->flow->numverts = 0;
     fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
   }
   else if (fmd->effector) {
-    if (fmd->effector->verts_old) {
-      MEM_freeN(fmd->effector->verts_old);
-    }
-    fmd->effector->verts_old = NULL;
+    MEM_SAFE_FREE(fmd->effector->verts_old);
     fmd->effector->numverts = 0;
     fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
   }

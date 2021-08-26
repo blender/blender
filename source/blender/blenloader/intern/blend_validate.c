@@ -64,7 +64,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
   int i = set_listbasepointers(bmain, lbarray);
   while (i--) {
     for (ID *id = lbarray[i]->first; id != NULL; id = id->next) {
-      if (id->lib != NULL) {
+      if (ID_IS_LINKED(id)) {
         is_valid = false;
         BKE_reportf(reports,
                     RPT_ERROR,
@@ -115,7 +115,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
       int totnames = 0;
       LinkNode *names = BLO_blendhandle_get_datablock_names(bh, GS(id->name), false, &totnames);
       for (; id != NULL; id = id->next) {
-        if (id->lib == NULL) {
+        if (!ID_IS_LINKED(id)) {
           is_valid = false;
           BKE_reportf(reports,
                       RPT_ERROR,
@@ -179,7 +179,7 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
       if (!BKE_key_idtype_support(GS(id->name))) {
         break;
       }
-      if (id->lib == NULL) {
+      if (!ID_IS_LINKED(id)) {
         /* We assume lib data is valid... */
         Key *shapekey = BKE_key_from_id(id);
         if (shapekey != NULL && shapekey->from != id) {

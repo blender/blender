@@ -41,6 +41,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -1691,8 +1692,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *obi, LineartRenderBu
   }
 
   if (obi->free_use_mesh) {
-    BKE_mesh_free(obi->original_me);
-    MEM_freeN(obi->original_me);
+    BKE_id_free(NULL, obi->original_me);
   }
 
   if (rb->remove_doubles) {

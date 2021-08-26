@@ -111,12 +111,11 @@ void WM_reinit_gizmomap_all(struct Main *bmain);
 
 void WM_script_tag_reload(void);
 
-bool WM_window_find_under_cursor(const wmWindowManager *wm,
-                                 const wmWindow *win_ignore,
-                                 const wmWindow *win,
-                                 const int mval[2],
-                                 wmWindow **r_win,
-                                 int r_mval[2]);
+wmWindow *WM_window_find_under_cursor(const wmWindowManager *wm,
+                                      const wmWindow *win_ignore,
+                                      const wmWindow *win,
+                                      const int mval[2],
+                                      int r_mval[2]);
 void WM_window_pixel_sample_read(const wmWindowManager *wm,
                                  const wmWindow *win,
                                  const int pos[2],
@@ -263,9 +262,8 @@ struct wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *han
                                                                    wmKeyMap *keymap,
                                                                    int priority);
 
-typedef struct wmKeyMap *(wmEventHandler_KeymapDynamicFn)(wmWindowManager *wm,
-                                                          struct wmEventHandler_Keymap *handler)
-    ATTR_WARN_UNUSED_RESULT;
+typedef struct wmKeyMap *(wmEventHandler_KeymapDynamicFn)(
+    wmWindowManager *wm, struct wmEventHandler_Keymap *handler)ATTR_WARN_UNUSED_RESULT;
 
 struct wmKeyMap *WM_event_get_keymap_from_toolsystem_fallback(
     struct wmWindowManager *wm, struct wmEventHandler_Keymap *handler);
@@ -987,7 +985,7 @@ bool WM_xr_action_create(wmXrData *xr,
                          const char **subaction_paths,
                          struct wmOperatorType *ot,
                          struct IDProperty *op_properties,
-                         const char **haptic_name,
+                         const char *haptic_name,
                          const int64_t *haptic_duration,
                          const float *haptic_frequency,
                          const float *haptic_amplitude,
@@ -1027,14 +1025,14 @@ bool WM_xr_action_state_get(const wmXrData *xr,
 bool WM_xr_haptic_action_apply(wmXrData *xr,
                                const char *action_set_name,
                                const char *action_name,
-                               const char **subaction_path,
+                               const char *subaction_path,
                                const int64_t *duration,
                                const float *frequency,
                                const float *amplitude);
 void WM_xr_haptic_action_stop(wmXrData *xr,
                               const char *action_set_name,
                               const char *action_name,
-                              const char **subaction_path);
+                              const char *subaction_path);
 
 /* wm_xr_actionmap.c */
 XrActionMap *WM_xr_actionmap_new(struct wmXrRuntimeData *runtime,

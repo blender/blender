@@ -49,7 +49,7 @@ void unregister_graph(Depsgraph *depsgraph)
   VectorSet<Depsgraph *> &graphs = graph_registry.lookup(bmain);
   graphs.remove(depsgraph);
 
-  // If this was the last depsgraph associated with the main, remove the main entry as well.
+  /* If this was the last depsgraph associated with the main, remove the main entry as well. */
   if (graphs.is_empty()) {
     graph_registry.remove(bmain);
   }

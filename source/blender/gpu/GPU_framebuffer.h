@@ -223,7 +223,7 @@ uint GPU_framebuffer_stack_level_get(void);
  */
 
 GPUOffScreen *GPU_offscreen_create(
-    int width, int height, bool depth, bool high_bitdepth, char err_out[256]);
+    int width, int height, bool depth, eGPUTextureFormat format, char err_out[256]);
 void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs, bool save);
 void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore);

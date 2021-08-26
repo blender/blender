@@ -64,6 +64,7 @@ set(SRC
   ../include/ED_info.h
   ../include/ED_keyframes_draw.h
   ../include/ED_keyframes_edit.h
+  ../include/ED_keyframes_keylist.h
   ../include/ED_keyframing.h
   ../include/ED_lattice.h
   ../include/ED_markers.h

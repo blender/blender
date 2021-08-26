@@ -1446,8 +1446,13 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
     }
 
     if (ignore_selection || seq->flag & SELECT) {
-      if (SEQ_edit_strip_split(bmain, scene, ed->seqbasep, seq, split_frame, method) != NULL) {
+      const char *error_msg = NULL;
+      if (SEQ_edit_strip_split(bmain, scene, ed->seqbasep, seq, split_frame, method, &error_msg) !=
+          NULL) {
         changed = true;
+      }
+      if (error_msg != NULL) {
+        BKE_report(op->reports, RPT_ERROR, error_msg);
       }
     }
   }
@@ -2826,7 +2831,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     }
     else {
       RNA_BEGIN (op->ptr, itemptr, "files") {
-        char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+        char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
         BLI_strncpy(se->name, filename, sizeof(se->name));
         MEM_freeN(filename);
         se++;
@@ -2943,7 +2948,7 @@ static int seq_cmp_time_startdisp_channel(const void *a, const void *b)
   int seq_a_start = SEQ_transform_get_left_handle_frame(seq_a);
   int seq_b_start = SEQ_transform_get_left_handle_frame(seq_b);
 
-  /** If strips have the same start frame favor the one with a higher channel. **/
+  /* If strips have the same start frame favor the one with a higher channel. */
   if (seq_a_start == seq_b_start) {
     return seq_a->machine > seq_b->machine;
   }
@@ -2973,6 +2978,22 @@ static int sequencer_export_subtitles_invoke(bContext *C,
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
+}
+
+typedef struct Seq_get_text_cb_data {
+  ListBase *text_seq;
+  Scene *scene;
+} Seq_get_text_cb_data;
+
+static bool seq_get_text_strip_cb(Sequence *seq, void *user_data)
+{
+  Seq_get_text_cb_data *cd = (Seq_get_text_cb_data *)user_data;
+  /* Only text strips that are not muted and don't end with negative frame. */
+  if ((seq->type == SEQ_TYPE_TEXT) && ((seq->flag & SEQ_MUTE) == 0) &&
+      (seq->enddisp > cd->scene->r.sfra)) {
+    BLI_addtail(cd->text_seq, MEM_dupallocN(seq));
+  }
+  return true;
 }
 
 static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
@@ -3006,14 +3027,10 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* Only text strips that are not muted and don't end with negative frame. */
-  SEQ_ALL_BEGIN (ed, seq) {
-    if ((seq->type == SEQ_TYPE_TEXT) && ((seq->flag & SEQ_MUTE) == 0) &&
-        (seq->enddisp > scene->r.sfra)) {
-      BLI_addtail(&text_seq, MEM_dupallocN(seq));
-    }
+  if (ed != NULL) {
+    Seq_get_text_cb_data cb_data = {&text_seq, scene};
+    SEQ_for_each_callback(&ed->seqbase, seq_get_text_strip_cb, &cb_data);
   }
-  SEQ_ALL_END;
 
   if (BLI_listbase_is_empty(&text_seq)) {
     BKE_report(op->reports, RPT_ERROR, "No subtitles (text strips) to export");

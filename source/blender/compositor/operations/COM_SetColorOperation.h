@@ -85,10 +85,6 @@ class SetColorOperation : public ConstantOperation {
 
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
-
-  void update_memory_buffer(MemoryBuffer *output,
-                            const rcti &area,
-                            Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

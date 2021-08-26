@@ -232,7 +232,7 @@ typedef struct MeshExtract {
   /** Used to know if the element callbacks are thread-safe and can be parallelized. */
   bool use_threading;
   /**
-   * Offset in bytes of the buffer inside a MeshBufferCache instance. Points to a vertex or index
+   * Offset in bytes of the buffer inside a MeshBufferList instance. Points to a vertex or index
    * buffer.
    */
   size_t mesh_buffer_offset;
@@ -252,11 +252,11 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_flag);
 void mesh_render_data_update_loose_geom(MeshRenderData *mr,
-                                        MeshBufferExtractionCache *cache,
+                                        MeshBufferCache *cache,
                                         const eMRIterType iter_type,
                                         const eMRDataType data_flag);
 void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
-                                          MeshBufferExtractionCache *cache,
+                                          MeshBufferCache *cache,
                                           const eMRDataType data_flag);
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,
@@ -270,7 +270,7 @@ typedef struct EditLoopData {
   uchar bweight;
 } EditLoopData;
 
-void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferCache *mbc);
+void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist);
 eMRIterType mesh_extract_iter_type(const MeshExtract *ext);
 const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
                                              const bool do_hq_normals,

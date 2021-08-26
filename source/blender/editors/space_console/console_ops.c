@@ -384,7 +384,7 @@ static int console_insert_exec(bContext *C, wmOperator *op)
   SpaceConsole *sc = CTX_wm_space_console(C);
   ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
-  char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
+  char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0, NULL);
   int len;
 
   if (str[0] == '\t' && str[1] == '\0') {
@@ -860,7 +860,7 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
   ScrArea *area = CTX_wm_area(C);
   ConsoleLine *ci = console_history_verify(C);
   /* own this text in the new line, don't free */
-  char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
+  char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0, NULL);
   int cursor = RNA_int_get(op->ptr, "current_character");
   const bool rem_dupes = RNA_boolean_get(op->ptr, "remove_duplicates");
   int prev_len = ci->len;
@@ -923,7 +923,7 @@ static int console_scrollback_append_exec(bContext *C, wmOperator *op)
   ConsoleLine *ci;
 
   /* own this text in the new line, don't free */
-  char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
+  char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0, NULL);
   int type = RNA_enum_get(op->ptr, "type");
 
   console_history_verify(C);

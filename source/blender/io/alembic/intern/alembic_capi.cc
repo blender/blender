@@ -663,6 +663,7 @@ bool ABC_import(bContext *C,
                 int sequence_len,
                 int offset,
                 bool validate_meshes,
+                bool always_add_cache_reader,
                 bool as_background_job)
 {
   /* Using new here since MEM_* functions do not call constructor to properly initialize data. */
@@ -681,6 +682,7 @@ bool ABC_import(bContext *C,
   job->settings.sequence_len = sequence_len;
   job->settings.sequence_offset = offset;
   job->settings.validate_meshes = validate_meshes;
+  job->settings.always_add_cache_reader = always_add_cache_reader;
   job->error_code = ABC_NO_ERROR;
   job->was_cancelled = false;
   job->archive = nullptr;

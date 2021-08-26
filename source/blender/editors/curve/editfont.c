@@ -59,6 +59,7 @@
 
 #include "ED_curve.h"
 #include "ED_object.h"
+#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -439,37 +440,27 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 }
 
-static int kill_selection(Object *obedit, int ins) /* 1 == new character */
+static int kill_selection(Object *obedit, int ins) /* ins == new character len */
 {
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
   int selend, selstart, direction;
-  int offset = 0;
   int getfrom;
 
   direction = BKE_vfont_select_get(obedit, &selstart, &selend);
   if (direction) {
     int size;
-    if (ins) {
-      offset = 1;
-    }
     if (ef->pos >= selstart) {
-      ef->pos = selstart + offset;
+      ef->pos = selstart + ins;
     }
     if ((direction == -1) && ins) {
-      selstart++;
-      selend++;
+      selstart += ins;
+      selend += ins;
     }
-    getfrom = selend + offset;
-    if (ins == 0) {
-      getfrom++;
-    }
-    size = (ef->len * sizeof(*ef->textbuf)) - (selstart * sizeof(*ef->textbuf)) +
-           (offset * sizeof(*ef->textbuf));
-    memmove(ef->textbuf + selstart, ef->textbuf + getfrom, size);
-    memmove(ef->textbufinfo + selstart,
-            ef->textbufinfo + getfrom,
-            ((ef->len - selstart) + offset) * sizeof(CharInfo));
+    getfrom = selend + 1;
+    size = ef->len - selend; /* This is equivalent to: `(ef->len - getfrom) + 1(null)`. */
+    memmove(ef->textbuf + selstart, ef->textbuf + getfrom, sizeof(*ef->textbuf) * size);
+    memmove(ef->textbufinfo + selstart, ef->textbufinfo + getfrom, sizeof(CharInfo) * size);
     ef->len -= ((selend - selstart) + 1);
     ef->selstart = ef->selend = 0;
   }
@@ -586,7 +577,7 @@ static int paste_from_file_exec(bContext *C, wmOperator *op)
   char *path;
   int retval;
 
-  path = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
+  path = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0, NULL);
   retval = paste_from_file(C, op->reports, path);
   MEM_freeN(path);
 
@@ -714,6 +705,7 @@ static void txt_add_object(bContext *C,
 
 void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
 {
+  Main *bmain = CTX_data_main(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const TextLine *line;
   float offset[3];
@@ -752,6 +744,9 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
 
     txt_add_object(C, text->lines.first, BLI_listbase_count(&text->lines), offset);
   }
+
+  DEG_relations_tag_update(bmain);
+  ED_outliner_select_sync_from_object_tag(C);
 }
 
 /** \} */
@@ -1637,7 +1632,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  inserted_utf8 = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
+  inserted_utf8 = RNA_string_get_alloc(op->ptr, "text", NULL, 0, NULL);
   len = BLI_strlen_utf8(inserted_utf8);
 
   inserted_text = MEM_callocN(sizeof(char32_t) * (len + 1), "FONT_insert_text");
@@ -1650,7 +1645,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
   MEM_freeN(inserted_text);
   MEM_freeN(inserted_utf8);
 
-  kill_selection(obedit, 1);
+  kill_selection(obedit, len);
   text_update_edited(C, obedit, FO_EDIT);
 
   return OPERATOR_FINISHED;

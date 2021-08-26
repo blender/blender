@@ -22,15 +22,27 @@
 
 namespace blender::compositor {
 
+/* TODO(manzanilla): After removing tiled implementation, implement a default #determineResolution
+ * for all constant operations and make all initialization and deinitilization methods final. */
 /**
- * Base class for primitive constant operations (Color/Vector/Value). The rest of operations that
- * can be constant are evaluated into primitives during constant folding.
+ * Base class for operations that are always constant. Operations that can be constant only when
+ * all their inputs are so, are evaluated into primitive constants (Color/Vector/Value) during
+ * constant folding.
  */
 class ConstantOperation : public NodeOperation {
+ protected:
+  bool needs_resolution_to_get_constant_;
+
  public:
   ConstantOperation();
 
+  /** May require resolution to be already determined. */
   virtual const float *get_constant_elem() = 0;
+  bool can_get_constant_elem() const;
+
+  void update_memory_buffer(MemoryBuffer *output,
+                            const rcti &area,
+                            Span<MemoryBuffer *> inputs) final;
 };
 
 }  // namespace blender::compositor

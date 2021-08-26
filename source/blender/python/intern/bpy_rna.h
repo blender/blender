@@ -181,6 +181,7 @@ StructRNA *srna_from_self(PyObject *self, const char *error_prefix);
 StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *error_prefix);
 
 void BPY_rna_init(void);
+void BPY_rna_exit(void);
 PyObject *BPY_rna_module(void);
 void BPY_update_rna_module(void);
 // PyObject *BPY_rna_doc(void);

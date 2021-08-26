@@ -2281,7 +2281,7 @@ static void ui_shadowbox(const rctf *rect, uint pos, uint color, float shadsize,
   immVertex2fv(pos, v3);
 
   /* corner shape */
-  /* immAttr4ub(color, 0, 0, 0, alpha); */ /* Not needed, done above in previous tri */
+  // immAttr4ub(color, 0, 0, 0, alpha); /* Not needed, done above in previous tri. */
   immVertex2fv(pos, v3);
   immAttr4ub(color, 0, 0, 0, 0);
   immVertex2fv(pos, v4);
@@ -2293,7 +2293,7 @@ static void ui_shadowbox(const rctf *rect, uint pos, uint color, float shadsize,
   immVertex2fv(pos, v3);
 
   /* bottom quad */
-  /* immAttr4ub(color, 0, 0, 0, alpha); */ /* Not needed, done above in previous tri */
+  // immAttr4ub(color, 0, 0, 0, alpha); /* Not needed, done above in previous tri. */
   immVertex2fv(pos, v3);
   immAttr4ub(color, 0, 0, 0, 0);
   immVertex2fv(pos, v6);

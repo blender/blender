@@ -494,10 +494,7 @@ static void free_pointdensity(PointDensity *pd)
     pd->point_tree = NULL;
   }
 
-  if (pd->point_data) {
-    MEM_freeN(pd->point_data);
-    pd->point_data = NULL;
-  }
+  MEM_SAFE_FREE(pd->point_data);
   pd->totpoints = 0;
 }
 

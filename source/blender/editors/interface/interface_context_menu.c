@@ -373,13 +373,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   BLI_assert(ui_but_is_user_menu_compatible(C, but));
 
   char drawstr[sizeof(but->drawstr)];
-  STRNCPY(drawstr, but->drawstr);
-  if (but->flag & UI_BUT_HAS_SEP_CHAR) {
-    char *sep = strrchr(drawstr, UI_SEP_CHAR);
-    if (sep) {
-      *sep = '\0';
-    }
-  }
+  ui_but_drawstr_without_sep_char(but, drawstr, sizeof(drawstr));
 
   MenuType *mt = NULL;
   if (but->optype) {
@@ -952,7 +946,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   /* If the button represents an id, it can set the "id" context pointer. */
-  if (U.experimental.use_asset_browser && ED_asset_can_mark_single_from_context(C)) {
+  if (U.experimental.use_extended_asset_browser && ED_asset_can_mark_single_from_context(C)) {
     ID *id = CTX_data_pointer_get_type(C, "id", &RNA_ID).data;
 
     /* Gray out items depending on if data-block is an asset. Preferably this could be done via

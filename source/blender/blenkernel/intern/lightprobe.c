@@ -60,14 +60,13 @@ static void lightprobe_foreach_id(ID *id, LibraryForeachIDData *data)
 static void lightprobe_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   LightProbe *prb = (LightProbe *)id;
-  if (prb->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, LightProbe, id_address, &prb->id);
-    BKE_id_blend_write(writer, &prb->id);
 
-    if (prb->adt) {
-      BKE_animdata_blend_write(writer, prb->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, LightProbe, id_address, &prb->id);
+  BKE_id_blend_write(writer, &prb->id);
+
+  if (prb->adt) {
+    BKE_animdata_blend_write(writer, prb->adt);
   }
 }
 

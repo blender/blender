@@ -976,10 +976,6 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 
   /* exit with error if no valid points from this stroke */
   if (totelem == 0) {
-    if (G.debug & G_DEBUG) {
-      printf("Error: No valid points in stroke buffer to convert (tot=%d)\n",
-             gpd->runtime.sbuffer_used);
-    }
     return;
   }
 
@@ -997,7 +993,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   gps->uv_scale = 1.0f;
 
   /* Set stroke caps. */
-  gps->caps[0] = gps->caps[1] = brush->gpencil_settings->caps_type;
+  gps->caps[0] = gps->caps[1] = (short)brush->gpencil_settings->caps_type;
 
   /* allocate enough memory for a continuous array for storage points */
   const int subdivide = brush->gpencil_settings->draw_subdivide;
@@ -1949,9 +1945,6 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
   /* make sure the active view (at the starting time) is a 3d-view */
   if (curarea == NULL) {
     p->status = GP_STATUS_ERROR;
-    if (G.debug & G_DEBUG) {
-      printf("Error: No active view for painting\n");
-    }
     return 0;
   }
 
@@ -1980,11 +1973,6 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 
       if (region->regiondata == NULL) {
         p->status = GP_STATUS_ERROR;
-        if (G.debug & G_DEBUG) {
-          printf(
-              "Error: 3D-View active region doesn't have any region data, so cannot be "
-              "drawable\n");
-        }
         return 0;
       }
 
@@ -2010,9 +1998,6 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
     /* unsupported views */
     default: {
       p->status = GP_STATUS_ERROR;
-      if (G.debug & G_DEBUG) {
-        printf("Error: Active view not appropriate for Grease Pencil drawing\n");
-      }
       return 0;
     }
   }
@@ -2021,9 +2006,6 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
   gpd_ptr = ED_gpencil_data_get_pointers(C, &p->ownerPtr);
   if ((gpd_ptr == NULL) || ED_gpencil_data_owner_is_annotation(&p->ownerPtr)) {
     p->status = GP_STATUS_ERROR;
-    if (G.debug & G_DEBUG) {
-      printf("Error: Current context doesn't allow for any Grease Pencil data\n");
-    }
     return 0;
   }
 
@@ -2147,9 +2129,6 @@ static void gpencil_paint_initstroke(tGPsdata *p,
 
   if ((paintmode != GP_PAINTMODE_ERASER) && (p->gpl->flag & GP_LAYER_LOCKED)) {
     p->status = GP_STATUS_ERROR;
-    if (G.debug & G_DEBUG) {
-      printf("Error: Cannot paint on locked layer\n");
-    }
     return;
   }
 
@@ -2228,9 +2207,6 @@ static void gpencil_paint_initstroke(tGPsdata *p,
 
     if (p->gpf == NULL) {
       p->status = GP_STATUS_ERROR;
-      if (G.debug & G_DEBUG) {
-        printf("Error: No frame created (gpencil_paint_init)\n");
-      }
       if (!IS_AUTOKEY_ON(scene)) {
         BKE_report(p->reports, RPT_INFO, "No available frame for creating stroke");
       }
@@ -2824,9 +2800,6 @@ static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgra
       BKE_report(op->reports, RPT_ERROR, "Cannot paint stroke");
       p->status = GP_STATUS_ERROR;
 
-      if (G.debug & G_DEBUG) {
-        printf("Error: Grease-Pencil Paint - Add Point Invalid\n");
-      }
       return;
     }
 
@@ -3198,10 +3171,6 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
 
-  if (G.debug & G_DEBUG) {
-    printf("GPencil - Starting Drawing\n");
-  }
-
   /* support for tablets eraser pen */
   if (gpencil_is_tablet_eraser_active(event)) {
     RNA_enum_set(op->ptr, "mode", GP_PAINTMODE_ERASER);
@@ -3238,9 +3207,6 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
   if (!gpencil_draw_init(C, op, event)) {
     if (op->customdata) {
       MEM_freeN(op->customdata);
-    }
-    if (G.debug & G_DEBUG) {
-      printf("\tGP - no valid data\n");
     }
     return OPERATOR_CANCELLED;
   }
@@ -3730,18 +3696,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ARegion *current_region = BKE_area_find_region_xy(
             p->area, RGN_TYPE_ANY, event->x, event->y);
 
-        if (G.debug & G_DEBUG) {
-          printf("found alternative region %p (old was %p) - at %d %d (area: %d %d -> %d %d)\n",
-                 current_region,
-                 p->region,
-                 event->x,
-                 event->y,
-                 p->area->totrct.xmin,
-                 p->area->totrct.ymin,
-                 p->area->totrct.xmax,
-                 p->area->totrct.ymax);
-        }
-
         if (current_region) {
           /* Assume that since we found the cursor in here, it is in bounds
            * and that this should be the region that we begin drawing in
@@ -3753,10 +3707,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
           /* Out of bounds, or invalid in some other way */
           p->status = GP_STATUS_ERROR;
           estate = OPERATOR_CANCELLED;
-
-          if (G.debug & G_DEBUG) {
-            printf("%s: Region under cursor is out of bounds, so cannot be drawn on\n", __func__);
-          }
         }
       }
       else if (p->region) {
@@ -3768,10 +3718,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* No region */
         p->status = GP_STATUS_ERROR;
         estate = OPERATOR_CANCELLED;
-
-        if (G.debug & G_DEBUG) {
-          printf("%s: No active region found in GP Paint session data\n", __func__);
-        }
       }
 
       if (in_bounds) {

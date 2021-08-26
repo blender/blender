@@ -32,6 +32,7 @@ struct CacheReader;
 struct Depsgraph;
 struct Main;
 struct Object;
+struct Scene;
 
 void BKE_cachefiles_init(void);
 void BKE_cachefiles_exit(void);
@@ -59,6 +60,10 @@ void BKE_cachefile_reader_open(struct CacheFile *cache_file,
                                struct Object *object,
                                const char *object_path);
 void BKE_cachefile_reader_free(struct CacheFile *cache_file, struct CacheReader **reader);
+
+bool BKE_cache_file_uses_render_procedural(const struct CacheFile *cache_file,
+                                           struct Scene *scene,
+                                           const int dag_eval_mode);
 
 #ifdef __cplusplus
 }

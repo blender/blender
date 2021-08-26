@@ -227,7 +227,7 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
       }
 
       if (!data_cb.is_subset &&
-          /* We do not want to pre-add keys of flitered out types. */
+          /* We do not want to pre-add keys of filtered out types. */
           (key_types_bitmap == NULL || id_check_type(id, key_types_bitmap)) &&
           /* We do not want to pre-add keys when we have filter on value types,
            * but not on key types. */

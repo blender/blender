@@ -1458,7 +1458,7 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "type->description");
   RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Panel_bl_description_set");
-  /* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
+  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
 
@@ -1820,7 +1820,7 @@ static void rna_def_menu(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "type->description");
   RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Menu_bl_description_set");
-  /* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
+  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
 

@@ -503,6 +503,8 @@ static bool pose_select_linked_pick_poll(bContext *C)
 
 void POSE_OT_select_linked_pick(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Select Connected";
   ot->idname = "POSE_OT_select_linked_pick";
@@ -517,11 +519,12 @@ void POSE_OT_select_linked_pick(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  false,
-                  "Extend",
-                  "Extend selection instead of deselecting everything first");
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         false,
+                         "Extend",
+                         "Extend selection instead of deselecting everything first");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int pose_select_linked_exec(bContext *C, wmOperator *UNUSED(op))

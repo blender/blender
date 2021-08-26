@@ -30,7 +30,7 @@
 #include <ostream>
 
 namespace blender::compositor {
-// Forward Declarations.
+/* Forward Declarations. */
 class ExecutionGroup;
 
 /**

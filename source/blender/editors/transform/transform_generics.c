@@ -60,6 +60,7 @@
 #include "UI_view2d.h"
 
 #include "transform.h"
+#include "transform_convert.h"
 #include "transform_mode.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"
@@ -152,8 +153,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->flag = 0;
 
-  if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) &&
-      ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL)) {
+  if (obact && ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL)) {
     t->obedit_type = obact->type;
   }
   else {
@@ -624,6 +624,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->flag &= ~T_MIRROR;
   }
 #endif
+
+  /* Disable cursor wrap when edge panning is enabled. */
+  if (t->options & CTX_VIEW2D_EDGE_PAN) {
+    t->flag |= T_NO_CURSOR_WRAP;
+  }
 
   setTransformViewAspect(t, t->aspect);
 

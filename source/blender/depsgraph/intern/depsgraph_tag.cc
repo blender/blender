@@ -646,8 +646,8 @@ void graph_id_tag_update(
 {
   const int debug_flags = (graph != nullptr) ? DEG_debug_flags_get((::Depsgraph *)graph) : G.debug;
   if (graph != nullptr && graph->is_evaluating) {
-    if (debug_flags & G_DEBUG_DEPSGRAPH) {
-      printf("ID tagged for update during dependency graph evaluation.");
+    if (debug_flags & G_DEBUG_DEPSGRAPH_TAG) {
+      printf("ID tagged for update during dependency graph evaluation.\n");
     }
     return;
   }

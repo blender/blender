@@ -69,11 +69,9 @@ static int gpu_shader_math(GPUMaterial *mat,
   return 0;
 }
 
-static const blender::fn::MultiFunction &get_base_multi_function(
-    blender::nodes::NodeMFNetworkBuilder &builder)
+static const blender::fn::MultiFunction *get_base_multi_function(bNode &node)
 {
-  const int mode = builder.bnode().custom1;
-
+  const int mode = node.custom1;
   const blender::fn::MultiFunction *base_fn = nullptr;
 
   blender::nodes::try_dispatch_float_math_fl_to_fl(
@@ -82,7 +80,7 @@ static const blender::fn::MultiFunction &get_base_multi_function(
         base_fn = &fn;
       });
   if (base_fn != nullptr) {
-    return *base_fn;
+    return base_fn;
   }
 
   blender::nodes::try_dispatch_float_math_fl_fl_to_fl(
@@ -92,7 +90,7 @@ static const blender::fn::MultiFunction &get_base_multi_function(
         base_fn = &fn;
       });
   if (base_fn != nullptr) {
-    return *base_fn;
+    return base_fn;
   }
 
   blender::nodes::try_dispatch_float_math_fl_fl_fl_to_fl(
@@ -102,36 +100,51 @@ static const blender::fn::MultiFunction &get_base_multi_function(
         base_fn = &fn;
       });
   if (base_fn != nullptr) {
-    return *base_fn;
+    return base_fn;
   }
 
-  return builder.get_not_implemented_fn();
+  return nullptr;
 }
 
-static void sh_node_math_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
+class ClampWrapperFunction : public blender::fn::MultiFunction {
+ private:
+  const blender::fn::MultiFunction &fn_;
+
+ public:
+  ClampWrapperFunction(const blender::fn::MultiFunction &fn) : fn_(fn)
+  {
+    this->set_signature(&fn.signature());
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext context) const override
+  {
+    fn_.call(mask, params, context);
+
+    /* Assumes the output parameter is the last one. */
+    const int output_param_index = this->param_amount() - 1;
+    /* This has actually been initialized in the call above. */
+    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(
+        output_param_index);
+
+    for (const int i : mask) {
+      float &value = results[i];
+      CLAMP(value, 0.0f, 1.0f);
+    }
+  }
+};
+
+static void sh_node_math_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  const blender::fn::MultiFunction &base_function = get_base_multi_function(builder);
+  const blender::fn::MultiFunction *base_function = get_base_multi_function(builder.node());
 
-  const blender::nodes::DNode &dnode = builder.dnode();
-  blender::fn::MFNetwork &network = builder.network();
-  blender::fn::MFFunctionNode &base_node = network.add_function(base_function);
-
-  builder.network_map().add_try_match(*dnode.context(), dnode->inputs(), base_node.inputs());
-
-  const bool clamp_output = builder.bnode().custom2 != 0;
+  const bool clamp_output = builder.node().custom2 != 0;
   if (clamp_output) {
-    static blender::fn::CustomMF_SI_SO<float, float> clamp_fn{"Clamp", [](float value) {
-                                                                CLAMP(value, 0.0f, 1.0f);
-                                                                return value;
-                                                              }};
-    blender::fn::MFFunctionNode &clamp_node = network.add_function(clamp_fn);
-    network.add_link(base_node.output(0), clamp_node.input(0));
-    builder.network_map().add(blender::nodes::DOutputSocket(dnode.context(), &dnode->output(0)),
-                              clamp_node.output(0));
+    builder.construct_and_set_matching_fn<ClampWrapperFunction>(*base_function);
   }
   else {
-    builder.network_map().add(blender::nodes::DOutputSocket(dnode.context(), &dnode->output(0)),
-                              base_node.output(0));
+    builder.set_matching_fn(base_function);
   }
 }
 
@@ -139,12 +152,12 @@ void register_node_type_sh_math(void)
 {
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, sh_node_math_in, sh_node_math_out);
   node_type_label(&ntype, node_math_label);
   node_type_gpu(&ntype, gpu_shader_math);
   node_type_update(&ntype, node_math_update);
-  ntype.expand_in_mf_network = sh_node_math_expand_in_mf_network;
+  ntype.build_multi_function = sh_node_math_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

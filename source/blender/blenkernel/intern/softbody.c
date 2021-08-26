@@ -891,11 +891,7 @@ static void free_softbody_baked(SoftBody *sb)
       MEM_freeN(key);
     }
   }
-  if (sb->keys) {
-    MEM_freeN(sb->keys);
-  }
-
-  sb->keys = NULL;
+  MEM_SAFE_FREE(sb->keys);
   sb->totkey = 0;
 }
 static void free_scratch(SoftBody *sb)
@@ -2281,7 +2277,7 @@ static void softbody_calc_forces(
   float fieldfactor = -1.0f, windfactor = 0.25;
   int do_deflector /*, do_selfcollision */, do_springcollision, do_aero;
 
-  /* gravity = sb->grav * sb_grav_force_scale(ob); */ /* UNUSED */
+  // gravity = sb->grav * sb_grav_force_scale(ob); /* UNUSED */
 
   /* check conditions for various options */
   do_deflector = query_external_colliders(depsgraph, sb->collision_group);
@@ -2753,7 +2749,7 @@ static void mesh_to_softbody(Object *ob)
       build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
       /* insert *other second order* springs if desired */
       if (sb->secondspring > 0.0000001f) {
-        /* exploits the first run of build_bps_springlist(ob); */
+        /* Exploits the first run of `build_bps_springlist(ob)`. */
         add_2nd_order_springs(ob, sb->secondspring);
         /* yes we need to do it again. */
         build_bps_springlist(ob);

@@ -48,10 +48,6 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
 )
 
-set(INC_SYS
-  ${ZLIB_INCLUDE_DIRS}
-)
-
 set(SRC
   intern/wm.c
   intern/wm_cursors.c

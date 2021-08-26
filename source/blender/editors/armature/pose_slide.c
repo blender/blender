@@ -1716,7 +1716,7 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
   /* Find the long keyframe (i.e. hold), and hence obtain the endFrame value
    * - the best case would be one that starts on the frame itself
    */
-  ActKeyColumn *ab = ED_keylist_find_exact(keylist, startFrame);
+  const ActKeyColumn *ab = ED_keylist_find_exact(keylist, startFrame);
 
   /* There are only two cases for no-exact match:
    *  1) the current frame is just before another key but not on a key itself
@@ -1746,7 +1746,7 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
   if (ab) {
     /* Go to next if it is also valid and meets "extension" criteria. */
     while (ab->next) {
-      ActKeyColumn *abn = ab->next;
+      const ActKeyColumn *abn = ab->next;
 
       /* Must be valid. */
       if ((actkeyblock_get_valid_hold(abn) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {

@@ -299,13 +299,14 @@ static void vicon_keytype_draw_wrapper(
   const float yco = y + h / 2 + 0.5f;
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  const uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  uint color_id = GPU_vertformat_attr_add(
+  KeyframeShaderBindings sh_bindings;
+  sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  sh_bindings.size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  sh_bindings.color_id = GPU_vertformat_attr_add(
       format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  uint outline_color_id = GPU_vertformat_attr_add(
+  sh_bindings.outline_color_id = GPU_vertformat_attr_add(
       format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  const uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
@@ -326,11 +327,7 @@ static void vicon_keytype_draw_wrapper(
                       key_type,
                       KEYFRAME_SHAPE_BOTH,
                       alpha,
-                      pos_id,
-                      size_id,
-                      color_id,
-                      outline_color_id,
-                      flags_id,
+                      &sh_bindings,
                       handle_type,
                       KEYFRAME_EXTREME_NONE);
 

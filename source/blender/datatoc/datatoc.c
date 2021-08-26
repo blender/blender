@@ -100,15 +100,14 @@ int main(int argc, char **argv)
   fprintf(fpout, "const int datatoc_%s_size = %d;\n", argv[1], (int)size);
   fprintf(fpout, "const char datatoc_%s[] = {\n", argv[1]);
   while (size--) {
-    /* if we want to open in an editor
-     * this is nicer to avoid very long lines */
-#ifdef VERBOSE
+    /* Even though this file is generated and doesn't need new-lines,
+     * these files may be loaded by developers when looking up symbols.
+     * Avoid a very long single line that may lock-up some editors. */
     if (size % 32 == 31) {
       fprintf(fpout, "\n");
     }
-#endif
 
-    /* fprintf (fpout, "\\x%02x", getc(fpin)); */
+    // fprintf(fpout, "\\x%02x", getc(fpin));
     fprintf(fpout, "%3d,", getc(fpin));
   }
 

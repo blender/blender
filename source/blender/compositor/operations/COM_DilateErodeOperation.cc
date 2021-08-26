@@ -160,7 +160,7 @@ bool DilateErodeThresholdOperation::determineDependingAreaOfInterest(
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-// Dilate Distance
+/* Dilate Distance. */
 DilateDistanceOperation::DilateDistanceOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -500,7 +500,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
   int bwidth = rect->xmax - rect->xmin;
   int bheight = rect->ymax - rect->ymin;
 
-  /* NOTE: Cache buffer has original tilesize width, but new height.
+  /* NOTE: Cache buffer has original tile-size width, but new height.
    * We have to calculate the additional rows in the first pass,
    * to have valid data available for the second pass. */
   tile_info *result = create_cache(rect->xmin, rect->xmax, ymin, ymax);

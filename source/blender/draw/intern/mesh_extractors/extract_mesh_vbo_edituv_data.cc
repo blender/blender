@@ -128,7 +128,7 @@ constexpr MeshExtract create_extractor_edituv_data()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUVData_Data);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edituv_data);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.edituv_data);
   return extractor;
 }
 

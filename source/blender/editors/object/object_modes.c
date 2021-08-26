@@ -597,7 +597,7 @@ void OBJECT_OT_transfer_mode(wmOperatorType *ot)
                   "use_flash_on_transfer",
                   true,
                   "Flash On Transfer",
-                  "Flash the target object when transfering the mode");
+                  "Flash the target object when transferring the mode");
 }
 
 /** \} */

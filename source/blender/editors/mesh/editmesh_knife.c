@@ -2630,23 +2630,23 @@ static void knife_init_colors(KnifeColors *colors)
 }
 
 /* called when modal loop selection gets set up... */
-static void knifetool_init(bContext *C,
+static void knifetool_init(ViewContext *vc,
                            KnifeTool_OpData *kcd,
                            const bool only_select,
                            const bool cut_through,
                            const bool is_interactive)
 {
-  Scene *scene = CTX_data_scene(C);
-  Object *obedit = CTX_data_edit_object(C);
+  kcd->vc = *vc;
+
+  Scene *scene = vc->scene;
+  Object *obedit = vc->obedit;
 
   /* assign the drawing handle for drawing preview line... */
   kcd->scene = scene;
   kcd->ob = obedit;
-  kcd->region = CTX_wm_region(C);
+  kcd->region = vc->region;
 
   invert_m4_m4_safe_ortho(kcd->ob_imat, kcd->ob->obmat);
-
-  em_setup_viewcontext(C, &kcd->vc);
 
   kcd->em = BKE_editmesh_from_object(kcd->ob);
 
@@ -2694,14 +2694,14 @@ static void knifetool_init(bContext *C,
 }
 
 /* called when modal loop selection is done... */
-static void knifetool_exit_ex(bContext *C, KnifeTool_OpData *kcd)
+static void knifetool_exit_ex(KnifeTool_OpData *kcd)
 {
   if (!kcd) {
     return;
   }
 
   if (kcd->is_interactive) {
-    WM_cursor_modal_restore(CTX_wm_window(C));
+    WM_cursor_modal_restore(kcd->vc.win);
 
     /* deactivate the extra drawing stuff in 3D-View */
     ED_region_draw_cb_exit(kcd->region->type, kcd->draw_handle);
@@ -2735,10 +2735,10 @@ static void knifetool_exit_ex(bContext *C, KnifeTool_OpData *kcd)
   /* destroy kcd itself */
   MEM_freeN(kcd);
 }
-static void knifetool_exit(bContext *C, wmOperator *op)
+static void knifetool_exit(wmOperator *op)
 {
   KnifeTool_OpData *kcd = op->customdata;
-  knifetool_exit_ex(C, kcd);
+  knifetool_exit_ex(kcd);
   op->customdata = NULL;
 }
 
@@ -2827,10 +2827,10 @@ static void knifetool_finish(wmOperator *op)
 /** \name Operator (#MESH_OT_knife_tool)
  * \{ */
 
-static void knifetool_cancel(bContext *C, wmOperator *op)
+static void knifetool_cancel(bContext *UNUSED(C), wmOperator *op)
 {
   /* this is just a wrapper around exit() */
-  knifetool_exit(C, op);
+  knifetool_exit(op);
 }
 
 wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
@@ -2872,7 +2872,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
   bool do_refresh = false;
 
   if (!obedit || obedit->type != OB_MESH || BKE_editmesh_from_object(obedit) != kcd->em) {
-    knifetool_exit(C, op);
+    knifetool_exit(op);
     ED_workspace_status_text(C, NULL);
     return OPERATOR_FINISHED;
   }
@@ -2893,7 +2893,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* finish */
         ED_region_tag_redraw(kcd->region);
 
-        knifetool_exit(C, op);
+        knifetool_exit(op);
         ED_workspace_status_text(C, NULL);
 
         return OPERATOR_CANCELLED;
@@ -2902,7 +2902,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_region_tag_redraw(kcd->region);
 
         knifetool_finish(op);
-        knifetool_exit(C, op);
+        knifetool_exit(op);
         ED_workspace_status_text(C, NULL);
 
         return OPERATOR_FINISHED;
@@ -3066,7 +3066,10 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");
   const bool wait_for_input = RNA_boolean_get(op->ptr, "wait_for_input");
 
+  ViewContext vc;
   KnifeTool_OpData *kcd;
+
+  em_setup_viewcontext(C, &vc);
 
   if (only_select) {
     Object *obedit = CTX_data_edit_object(C);
@@ -3080,7 +3083,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* alloc new customdata */
   kcd = op->customdata = MEM_callocN(sizeof(KnifeTool_OpData), __func__);
 
-  knifetool_init(C, kcd, only_select, cut_through, true);
+  knifetool_init(&vc, kcd, only_select, cut_through, true);
 
   op->flag |= OP_IS_MODAL_CURSOR_REGION;
 
@@ -3165,7 +3168,7 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
 /**
  * \param use_tag: When set, tag all faces inside the polylines.
  */
-void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_through)
+void EDBM_mesh_knife(ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_through)
 {
   KnifeTool_OpData *kcd;
 
@@ -3176,7 +3179,7 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
 
     kcd = MEM_callocN(sizeof(KnifeTool_OpData), __func__);
 
-    knifetool_init(C, kcd, only_select, cut_through, is_interactive);
+    knifetool_init(vc, kcd, only_select, cut_through, is_interactive);
 
     kcd->ignore_edge_snapping = true;
     kcd->ignore_vert_snapping = true;
@@ -3313,7 +3316,7 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
 #undef F_ISECT_SET_OUTSIDE
     }
 
-    knifetool_exit_ex(C, kcd);
+    knifetool_exit_ex(kcd);
     kcd = NULL;
   }
 }

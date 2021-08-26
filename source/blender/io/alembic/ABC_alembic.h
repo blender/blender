@@ -97,6 +97,7 @@ bool ABC_import(struct bContext *C,
                 int sequence_len,
                 int offset,
                 bool validate_meshes,
+                bool always_add_cache_reader,
                 bool as_background_job);
 
 struct CacheArchiveHandle *ABC_create_handle(struct Main *bmain,

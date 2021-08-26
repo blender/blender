@@ -17,6 +17,7 @@
  */
 
 #include "COM_ScreenLensDistortionOperation.h"
+#include "COM_ConstantOperation.h"
 
 #include "BLI_math.h"
 #include "BLI_rand.h"
@@ -53,6 +54,35 @@ void ScreenLensDistortionOperation::setDispersion(float dispersion)
   m_dispersion_const = true;
 }
 
+void ScreenLensDistortionOperation::init_data()
+{
+  this->m_cx = 0.5f * (float)getWidth();
+  this->m_cy = 0.5f * (float)getHeight();
+
+  switch (execution_model_) {
+    case eExecutionModel::FullFrame: {
+      NodeOperation *distortion_op = get_input_operation(1);
+      NodeOperation *dispersion_op = get_input_operation(2);
+      if (!m_distortion_const && distortion_op->get_flags().is_constant_operation) {
+        m_distortion = static_cast<ConstantOperation *>(distortion_op)->get_constant_elem()[0];
+      }
+      if (!m_dispersion_const && distortion_op->get_flags().is_constant_operation) {
+        m_dispersion = static_cast<ConstantOperation *>(dispersion_op)->get_constant_elem()[0];
+      }
+      updateVariables(m_distortion, m_dispersion);
+      break;
+    }
+    case eExecutionModel::Tiled: {
+      /* If both are constant, init variables once. */
+      if (m_distortion_const && m_dispersion_const) {
+        updateVariables(m_distortion, m_dispersion);
+        m_variables_ready = true;
+      }
+      break;
+    }
+  }
+}
+
 void ScreenLensDistortionOperation::initExecution()
 {
   this->m_inputProgram = this->getInputSocketReader(0);
@@ -61,15 +91,6 @@ void ScreenLensDistortionOperation::initExecution()
   uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
   rng_seed ^= (uint)POINTER_AS_INT(m_inputProgram);
   this->m_rng = BLI_rng_new(rng_seed);
-
-  this->m_cx = 0.5f * (float)getWidth();
-  this->m_cy = 0.5f * (float)getHeight();
-
-  /* if both are constant, init variables once */
-  if (m_distortion_const && m_dispersion_const) {
-    updateVariables(m_distortion, m_dispersion);
-    m_variables_ready = true;
-  }
 }
 
 void *ScreenLensDistortionOperation::initializeTileData(rcti * /*rect*/)
@@ -130,7 +151,7 @@ bool ScreenLensDistortionOperation::get_delta(float r_sq,
   return false;
 }
 
-void ScreenLensDistortionOperation::accumulate(MemoryBuffer *buffer,
+void ScreenLensDistortionOperation::accumulate(const MemoryBuffer *buffer,
                                                int a,
                                                int b,
                                                float r_sq,
@@ -154,7 +175,14 @@ void ScreenLensDistortionOperation::accumulate(MemoryBuffer *buffer,
 
     float xy[2];
     distort_uv(uv, t, xy);
-    buffer->readBilinear(color, xy[0], xy[1]);
+    switch (execution_model_) {
+      case eExecutionModel::Tiled:
+        buffer->readBilinear(color, xy[0], xy[1]);
+        break;
+      case eExecutionModel::FullFrame:
+        buffer->read_elem_bilinear(xy[0], xy[1], color);
+        break;
+    }
 
     sum[a] += (1.0f - tz) * color[a];
     sum[b] += (tz)*color[b];
@@ -352,6 +380,145 @@ void ScreenLensDistortionOperation::updateVariables(float distortion, float disp
   m_dk4[2] = 0.0f; /* unused */
 
   mul_v3_v3fl(m_k4, m_k, 4.0f);
+}
+
+void ScreenLensDistortionOperation::get_area_of_interest(const int input_idx,
+                                                         const rcti &UNUSED(output_area),
+                                                         rcti &r_input_area)
+{
+  if (input_idx != 0) {
+    /* Dispersion and distortion inputs are used as constants only. */
+    r_input_area = COM_SINGLE_ELEM_AREA;
+  }
+
+  /* XXX the original method of estimating the area-of-interest does not work
+   * it assumes a linear increase/decrease of mapped coordinates, which does not
+   * yield correct results for the area and leaves uninitialized buffer areas.
+   * So now just use the full image area, which may not be as efficient but works at least ...
+   */
+#if 1
+  NodeOperation *image = getInputOperation(0);
+  r_input_area.xmax = image->getWidth();
+  r_input_area.xmin = 0;
+  r_input_area.ymax = image->getHeight();
+  r_input_area.ymin = 0;
+
+#else /* Original method in tiled implementation. */
+  rcti newInput;
+  const float margin = 2;
+
+  BLI_rcti_init_minmax(&newInput);
+
+  if (m_dispersion_const && m_distortion_const) {
+    /* update from fixed distortion/dispersion */
+#  define UPDATE_INPUT(x, y) \
+    { \
+      float coords[6]; \
+      determineUV(coords, x, y); \
+      newInput.xmin = min_ffff(newInput.xmin, coords[0], coords[2], coords[4]); \
+      newInput.ymin = min_ffff(newInput.ymin, coords[1], coords[3], coords[5]); \
+      newInput.xmax = max_ffff(newInput.xmax, coords[0], coords[2], coords[4]); \
+      newInput.ymax = max_ffff(newInput.ymax, coords[1], coords[3], coords[5]); \
+    } \
+    (void)0
+
+    UPDATE_INPUT(input->xmin, input->xmax);
+    UPDATE_INPUT(input->xmin, input->ymax);
+    UPDATE_INPUT(input->xmax, input->ymax);
+    UPDATE_INPUT(input->xmax, input->ymin);
+
+#  undef UPDATE_INPUT
+  }
+  else {
+    /* use maximum dispersion 1.0 if not const */
+    float dispersion = m_dispersion_const ? m_dispersion : 1.0f;
+
+#  define UPDATE_INPUT(x, y, distortion) \
+    { \
+      float coords[6]; \
+      updateVariables(distortion, dispersion); \
+      determineUV(coords, x, y); \
+      newInput.xmin = min_ffff(newInput.xmin, coords[0], coords[2], coords[4]); \
+      newInput.ymin = min_ffff(newInput.ymin, coords[1], coords[3], coords[5]); \
+      newInput.xmax = max_ffff(newInput.xmax, coords[0], coords[2], coords[4]); \
+      newInput.ymax = max_ffff(newInput.ymax, coords[1], coords[3], coords[5]); \
+    } \
+    (void)0
+
+    if (m_distortion_const) {
+      /* update from fixed distortion */
+      UPDATE_INPUT(input->xmin, input->xmax, m_distortion);
+      UPDATE_INPUT(input->xmin, input->ymax, m_distortion);
+      UPDATE_INPUT(input->xmax, input->ymax, m_distortion);
+      UPDATE_INPUT(input->xmax, input->ymin, m_distortion);
+    }
+    else {
+      /* update from min/max distortion (-1..1) */
+      UPDATE_INPUT(input->xmin, input->xmax, -1.0f);
+      UPDATE_INPUT(input->xmin, input->ymax, -1.0f);
+      UPDATE_INPUT(input->xmax, input->ymax, -1.0f);
+      UPDATE_INPUT(input->xmax, input->ymin, -1.0f);
+
+      UPDATE_INPUT(input->xmin, input->xmax, 1.0f);
+      UPDATE_INPUT(input->xmin, input->ymax, 1.0f);
+      UPDATE_INPUT(input->xmax, input->ymax, 1.0f);
+      UPDATE_INPUT(input->xmax, input->ymin, 1.0f);
+
+#  undef UPDATE_INPUT
+    }
+  }
+
+  newInput.xmin -= margin;
+  newInput.ymin -= margin;
+  newInput.xmax += margin;
+  newInput.ymax += margin;
+
+  operation = getInputOperation(0);
+  if (operation->determineDependingAreaOfInterest(&newInput, readOperation, output)) {
+    return true;
+  }
+  return false;
+#endif
+}
+
+void ScreenLensDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                                 const rcti &area,
+                                                                 Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input_image = inputs[0];
+  for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
+    float xy[2] = {(float)it.x, (float)it.y};
+    float uv[2];
+    get_uv(xy, uv);
+    const float uv_dot = len_squared_v2(uv);
+
+    float delta[3][2];
+    const bool valid_r = get_delta(uv_dot, m_k4[0], uv, delta[0]);
+    const bool valid_g = get_delta(uv_dot, m_k4[1], uv, delta[1]);
+    const bool valid_b = get_delta(uv_dot, m_k4[2], uv, delta[2]);
+    if (!(valid_r && valid_g && valid_b)) {
+      zero_v4(it.out);
+      continue;
+    }
+
+    int count[3] = {0, 0, 0};
+    float sum[4] = {0, 0, 0, 0};
+    accumulate(input_image, 0, 1, uv_dot, uv, delta, sum, count);
+    accumulate(input_image, 1, 2, uv_dot, uv, delta, sum, count);
+
+    if (count[0]) {
+      it.out[0] = 2.0f * sum[0] / (float)count[0];
+    }
+    if (count[1]) {
+      it.out[1] = 2.0f * sum[1] / (float)count[1];
+    }
+    if (count[2]) {
+      it.out[2] = 2.0f * sum[2] / (float)count[2];
+    }
+
+    /* Set alpha. */
+    it.out[3] = 1.0f;
+  }
 }
 
 }  // namespace blender::compositor

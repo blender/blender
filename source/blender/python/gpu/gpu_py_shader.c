@@ -44,15 +44,35 @@
 /** \name Enum Conversion.
  * \{ */
 
+#define PYDOC_BUILTIN_SHADER_LIST \
+  "      - ``2D_FLAT_COLOR``\n" \
+  "      - ``2D_IMAGE``\n" \
+  "      - ``2D_SMOOTH_COLOR``\n" \
+  "      - ``2D_UNIFORM_COLOR``\n" \
+  "      - ``3D_FLAT_COLOR``\n" \
+  "      - ``3D_SMOOTH_COLOR``\n" \
+  "      - ``3D_UNIFORM_COLOR``\n" \
+  "      - ``3D_POLYLINE_FLAT_COLOR``\n" \
+  "      - ``3D_POLYLINE_SMOOTH_COLOR``\n" \
+  "      - ``3D_POLYLINE_UNIFORM_COLOR``\n"
+
 static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
-    {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
     {GPU_SHADER_2D_FLAT_COLOR, "2D_FLAT_COLOR"},
-    {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
     {GPU_SHADER_2D_IMAGE, "2D_IMAGE"},
-    {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
+    {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
+    {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
     {GPU_SHADER_3D_FLAT_COLOR, "3D_FLAT_COLOR"},
     {GPU_SHADER_3D_SMOOTH_COLOR, "3D_SMOOTH_COLOR"},
+    {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "3D_POLYLINE_FLAT_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR, "3D_POLYLINE_SMOOTH_COLOR"},
     {GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR, "3D_POLYLINE_UNIFORM_COLOR"},
+    {0, NULL},
+};
+
+static const struct PyC_StringEnumItems pygpu_shader_config_items[] = {
+    {GPU_SHADER_CFG_DEFAULT, "DEFAULT"},
+    {GPU_SHADER_CFG_CLIPPED, "CLIPPED"},
     {0, NULL},
 };
 
@@ -197,8 +217,9 @@ static bool pygpu_shader_uniform_vector_impl(PyObject *args,
     return false;
   }
 
-  if (r_pybuffer->len != (*r_length * *r_count * elem_size)) {
-    PyErr_SetString(PyExc_BufferError, "GPUShader.uniform_vector_*: buffer size does not match.");
+  if (r_pybuffer->len < (*r_length * *r_count * elem_size)) {
+    PyErr_SetString(PyExc_OverflowError,
+                    "GPUShader.uniform_vector_*: buffer size smaller than required.");
     return false;
   }
 
@@ -696,35 +717,48 @@ static PyObject *pygpu_shader_unbind(BPyGPUShader *UNUSED(self))
 }
 
 PyDoc_STRVAR(pygpu_shader_from_builtin_doc,
-             ".. function:: from_builtin(pygpu_shader_name)\n"
+             ".. function:: from_builtin(shader_name, config='DEFAULT')\n"
              "\n"
              "   Shaders that are embedded in the blender internal code.\n"
              "   They all read the uniform ``mat4 ModelViewProjectionMatrix``,\n"
              "   which can be edited by the :mod:`gpu.matrix` module.\n"
+             "   You can also choose a shader configuration that uses clip_planes by setting the "
+             "``CLIPPED`` value to the config parameter. Note that in this case you also need to "
+             "manually set the value of ``ModelMatrix``.\n"
+             "\n"
              "   For more details, you can check the shader code with the\n"
              "   :func:`gpu.shader.code_from_builtin` function.\n"
              "\n"
-             "   :param pygpu_shader_name: One of these builtin shader names:\n\n"
-             "      - ``2D_UNIFORM_COLOR``\n"
-             "      - ``2D_FLAT_COLOR``\n"
-             "      - ``2D_SMOOTH_COLOR``\n"
-             "      - ``2D_IMAGE``\n"
-             "      - ``3D_UNIFORM_COLOR``\n"
-             "      - ``3D_FLAT_COLOR``\n"
-             "      - ``3D_SMOOTH_COLOR``\n"
-             "   :type pygpu_shader_name: str\n"
+             "   :param shader_name: One of these builtin shader names:\n"
+             "\n" PYDOC_BUILTIN_SHADER_LIST
+             "   :type shader_name: str\n"
+             "   :param config: One of these types of shader configuration:\n"
+             "      - ``DEFAULT``\n"
+             "      - ``CLIPPED``\n"
+             "   :type config: str\n"
              "   :return: Shader object corresponding to the given name.\n"
              "   :rtype: :class:`bpy.types.GPUShader`\n");
-static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg)
+static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
   struct PyC_StringEnum pygpu_bultinshader = {pygpu_shader_builtin_items};
-  if (!PyC_ParseStringEnum(arg, &pygpu_bultinshader)) {
+  struct PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
+
+  static const char *_keywords[] = {"shader_name", "config", NULL};
+  static _PyArg_Parser _parser = {"O&|$O&:from_builtin", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kwds,
+                                        &_parser,
+                                        PyC_ParseStringEnum,
+                                        &pygpu_bultinshader,
+                                        PyC_ParseStringEnum,
+                                        &pygpu_config)) {
     return NULL;
   }
 
-  GPUShader *shader = GPU_shader_get_builtin_shader(pygpu_bultinshader.value_found);
+  GPUShader *shader = GPU_shader_get_builtin_shader_with_config(pygpu_bultinshader.value_found,
+                                                                pygpu_config.value_found);
 
   return BPyGPUShader_CreatePyObject(shader, true);
 }
@@ -734,14 +768,8 @@ PyDoc_STRVAR(pygpu_shader_code_from_builtin_doc,
              "\n"
              "   Exposes the internal shader code for query.\n"
              "\n"
-             "   :param pygpu_shader_name: One of these builtin shader names:\n\n"
-             "      - ``2D_UNIFORM_COLOR``\n"
-             "      - ``2D_FLAT_COLOR``\n"
-             "      - ``2D_SMOOTH_COLOR``\n"
-             "      - ``2D_IMAGE``\n"
-             "      - ``3D_UNIFORM_COLOR``\n"
-             "      - ``3D_FLAT_COLOR``\n"
-             "      - ``3D_SMOOTH_COLOR``\n"
+             "   :param pygpu_shader_name: One of these builtin shader names:\n"
+             "\n" PYDOC_BUILTIN_SHADER_LIST
              "   :type pygpu_shader_name: str\n"
              "   :return: Vertex, fragment and geometry shader codes.\n"
              "   :rtype: dict\n");
@@ -785,7 +813,7 @@ static struct PyMethodDef pygpu_shader_module__tp_methods[] = {
     {"unbind", (PyCFunction)pygpu_shader_unbind, METH_NOARGS, pygpu_shader_unbind_doc},
     {"from_builtin",
      (PyCFunction)pygpu_shader_from_builtin,
-     METH_O,
+     METH_VARARGS | METH_KEYWORDS,
      pygpu_shader_from_builtin_doc},
     {"code_from_builtin",
      (PyCFunction)pygpu_shader_code_from_builtin,

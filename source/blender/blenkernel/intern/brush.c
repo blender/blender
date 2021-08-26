@@ -206,54 +206,53 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Brush *brush = (Brush *)id;
-  if (brush->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, Brush, id_address, &brush->id);
-    BKE_id_blend_write(writer, &brush->id);
 
-    if (brush->curve) {
-      BKE_curvemapping_blend_write(writer, brush->curve);
-    }
-    if (brush->pressure_size_curve) {
-      BKE_curvemapping_blend_write(writer, brush->pressure_size_curve);
-    }
-    if (brush->pressure_strength_curve) {
-      BKE_curvemapping_blend_write(writer, brush->pressure_strength_curve);
-    }
+  BLO_write_id_struct(writer, Brush, id_address, &brush->id);
+  BKE_id_blend_write(writer, &brush->id);
 
-    if (brush->gpencil_settings) {
-      BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
+  if (brush->curve) {
+    BKE_curvemapping_blend_write(writer, brush->curve);
+  }
+  if (brush->pressure_size_curve) {
+    BKE_curvemapping_blend_write(writer, brush->pressure_size_curve);
+  }
+  if (brush->pressure_strength_curve) {
+    BKE_curvemapping_blend_write(writer, brush->pressure_strength_curve);
+  }
 
-      if (brush->gpencil_settings->curve_sensitivity) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_sensitivity);
-      }
-      if (brush->gpencil_settings->curve_strength) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_strength);
-      }
-      if (brush->gpencil_settings->curve_jitter) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_jitter);
-      }
-      if (brush->gpencil_settings->curve_rand_pressure) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_pressure);
-      }
-      if (brush->gpencil_settings->curve_rand_strength) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_strength);
-      }
-      if (brush->gpencil_settings->curve_rand_uv) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_uv);
-      }
-      if (brush->gpencil_settings->curve_rand_hue) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_hue);
-      }
-      if (brush->gpencil_settings->curve_rand_saturation) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_saturation);
-      }
-      if (brush->gpencil_settings->curve_rand_value) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_value);
-      }
+  if (brush->gpencil_settings) {
+    BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
+
+    if (brush->gpencil_settings->curve_sensitivity) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_sensitivity);
     }
-    if (brush->gradient) {
-      BLO_write_struct(writer, ColorBand, brush->gradient);
+    if (brush->gpencil_settings->curve_strength) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_strength);
     }
+    if (brush->gpencil_settings->curve_jitter) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_jitter);
+    }
+    if (brush->gpencil_settings->curve_rand_pressure) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_pressure);
+    }
+    if (brush->gpencil_settings->curve_rand_strength) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_strength);
+    }
+    if (brush->gpencil_settings->curve_rand_uv) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_uv);
+    }
+    if (brush->gpencil_settings->curve_rand_hue) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_hue);
+    }
+    if (brush->gpencil_settings->curve_rand_saturation) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_saturation);
+    }
+    if (brush->gpencil_settings->curve_rand_value) {
+      BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_value);
+    }
+  }
+  if (brush->gradient) {
+    BLO_write_struct(writer, ColorBand, brush->gradient);
   }
 }
 
@@ -714,10 +713,7 @@ static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
       break;
   }
 
-  if (cuma->table) {
-    MEM_freeN(cuma->table);
-    cuma->table = NULL;
-  }
+  MEM_SAFE_FREE(cuma->table);
 }
 
 void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)

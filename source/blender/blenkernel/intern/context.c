@@ -1448,9 +1448,9 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
   return ctx_data_collection_get(C, "editable_gpencil_strokes", list);
 }
 
-const AssetLibraryReference *CTX_wm_asset_library(const bContext *C)
+const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C)
 {
-  return ctx_data_pointer_get(C, "asset_library");
+  return ctx_data_pointer_get(C, "asset_library_ref");
 }
 
 AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)

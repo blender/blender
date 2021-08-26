@@ -43,6 +43,8 @@ void sort_trans_data_dist(TransInfo *t);
 void createTransData(struct bContext *C, TransInfo *t);
 bool clipUVTransform(TransInfo *t, float vec[2], const bool resize);
 void clipUVData(TransInfo *t);
+void transform_convert_flush_handle2D(TransData *td, TransData2D *td2d, const float y_fac);
+void recalcData(TransInfo *t);
 
 /* transform_convert_mesh.c */
 void transform_convert_mesh_customdatacorrect_init(TransInfo *t);

@@ -39,12 +39,21 @@ KeyingScreenOperation::KeyingScreenOperation()
   this->m_framenumber = 0;
   this->m_trackingObject[0] = 0;
   flags.complex = true;
+  m_cachedTriangulation = nullptr;
 }
 
 void KeyingScreenOperation::initExecution()
 {
   initMutex();
-  this->m_cachedTriangulation = nullptr;
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    BLI_assert(m_cachedTriangulation == nullptr);
+    if (m_movieClip) {
+      m_cachedTriangulation = buildVoronoiTriangulation();
+    }
+  }
+  else {
+    this->m_cachedTriangulation = nullptr;
+  }
 }
 
 void KeyingScreenOperation::deinitExecution()
@@ -226,25 +235,13 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
   return triangulation;
 }
 
-void *KeyingScreenOperation::initializeTileData(rcti *rect)
+KeyingScreenOperation::TileData *KeyingScreenOperation::triangulate(const rcti *rect)
 {
   TileData *tile_data;
   TriangulationData *triangulation;
   int triangles_allocated = 0;
   int chunk_size = 20;
   int i;
-
-  if (this->m_movieClip == nullptr) {
-    return nullptr;
-  }
-
-  if (!this->m_cachedTriangulation) {
-    lockMutex();
-    if (this->m_cachedTriangulation == nullptr) {
-      this->m_cachedTriangulation = buildVoronoiTriangulation();
-    }
-    unlockMutex();
-  }
 
   triangulation = this->m_cachedTriangulation;
 
@@ -276,6 +273,23 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect)
   }
 
   return tile_data;
+}
+
+void *KeyingScreenOperation::initializeTileData(rcti *rect)
+{
+  if (this->m_movieClip == nullptr) {
+    return nullptr;
+  }
+
+  if (!this->m_cachedTriangulation) {
+    lockMutex();
+    if (this->m_cachedTriangulation == nullptr) {
+      this->m_cachedTriangulation = buildVoronoiTriangulation();
+    }
+    unlockMutex();
+  }
+
+  return triangulate(rect);
 }
 
 void KeyingScreenOperation::deinitializeTileData(rcti * /*rect*/, void *data)
@@ -345,6 +359,59 @@ void KeyingScreenOperation::executePixel(float output[4], int x, int y, void *da
       }
     }
   }
+}
+
+void KeyingScreenOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                         const rcti &area,
+                                                         Span<MemoryBuffer *> inputs)
+{
+  if (m_movieClip == nullptr) {
+    output->fill(area, COM_COLOR_BLACK);
+    return;
+  }
+
+  TileData *tri_area = this->triangulate(&area);
+  BLI_assert(tri_area != nullptr);
+
+  const int *triangles = tri_area->triangles;
+  const int num_triangles = tri_area->triangles_total;
+  const TriangulationData *triangulation = m_cachedTriangulation;
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    copy_v4_v4(it.out, COM_COLOR_BLACK);
+
+    const float co[2] = {(float)it.x, (float)it.y};
+    for (int i = 0; i < num_triangles; i++) {
+      const int triangle_idx = triangles[i];
+      const rcti *rect = &triangulation->triangles_AABB[triangle_idx];
+
+      if (!BLI_rcti_isect_pt(rect, it.x, it.y)) {
+        continue;
+      }
+
+      const int *triangle = triangulation->triangles[triangle_idx];
+      const VoronoiTriangulationPoint &a = triangulation->triangulated_points[triangle[0]];
+      const VoronoiTriangulationPoint &b = triangulation->triangulated_points[triangle[1]];
+      const VoronoiTriangulationPoint &c = triangulation->triangulated_points[triangle[2]];
+
+      float w[3];
+      if (!barycentric_coords_v2(a.co, b.co, c.co, co, w)) {
+        continue;
+      }
+
+      if (barycentric_inside_triangle_v2(w)) {
+        it.out[0] = a.color[0] * w[0] + b.color[0] * w[1] + c.color[0] * w[2];
+        it.out[1] = a.color[1] * w[0] + b.color[1] * w[1] + c.color[1] * w[2];
+        it.out[2] = a.color[2] * w[0] + b.color[2] * w[1] + c.color[2] * w[2];
+        break;
+      }
+    }
+  }
+
+  if (tri_area->triangles) {
+    MEM_freeN(tri_area->triangles);
+  }
+
+  MEM_freeN(tri_area);
 }
 
 }  // namespace blender::compositor

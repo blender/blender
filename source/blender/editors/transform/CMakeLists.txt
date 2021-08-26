@@ -101,6 +101,7 @@ set(SRC
   transform_ops.c
   transform_orientations.c
   transform_snap.c
+  transform_snap_animation.c
   transform_snap_object.c
   transform_snap_sequencer.c
 

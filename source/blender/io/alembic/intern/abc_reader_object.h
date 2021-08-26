@@ -51,6 +51,7 @@ struct ImportSettings {
   int read_flag;
 
   bool validate_meshes;
+  bool always_add_cache_reader;
 
   CacheFile *cache_file;
 
@@ -65,6 +66,7 @@ struct ImportSettings {
         sequence_offset(0),
         read_flag(0),
         validate_meshes(false),
+        always_add_cache_reader(false),
         cache_file(NULL)
   {
   }

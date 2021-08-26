@@ -4917,10 +4917,7 @@ static int view3d_clipping_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   if (rv3d->rflag & RV3D_CLIPPING) {
     rv3d->rflag &= ~RV3D_CLIPPING;
     ED_region_tag_redraw(region);
-    if (rv3d->clipbb) {
-      MEM_freeN(rv3d->clipbb);
-    }
-    rv3d->clipbb = NULL;
+    MEM_SAFE_FREE(rv3d->clipbb);
     return OPERATOR_FINISHED;
   }
   return WM_gesture_box_invoke(C, op, event);

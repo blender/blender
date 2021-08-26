@@ -78,6 +78,9 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2]);
 
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
+  if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
+    return false;
+  }
   return ((around == V3D_AROUND_LOCAL_ORIGINS) && (ELEM(t->obedit_type, OB_MESH, OB_GPENCIL)));
 }
 
@@ -1369,11 +1372,7 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *region)
   uchar color[3];
   UI_GetThemeColorShade3ubv(TH_TEXT_HI, -50, color);
   BLF_color3ubv(font_id, color);
-#ifdef WITH_INTERNATIONAL
   BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
-#else
-  BLF_draw_default_ascii(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
-#endif
 
   /* autokey recording icon... */
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1401,7 +1400,7 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
 
     /* draw auto-key-framing hint in the corner
      * - only draw if enabled (advanced users may be distracted/annoyed),
-     *   for objects that will be autokeyframed (no point otherwise),
+     *   for objects that will be auto-keyframed (no point otherwise),
      *   AND only for the active region (as showing all is too overwhelming)
      */
     if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
@@ -1665,6 +1664,13 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       RNA_property_is_set(op->ptr, prop)) {
     if (RNA_property_boolean_get(op->ptr, prop)) {
       options |= CTX_GPENCIL_STROKES;
+    }
+  }
+
+  if ((prop = RNA_struct_find_property(op->ptr, "view2d_edge_pan")) &&
+      RNA_property_is_set(op->ptr, prop)) {
+    if (RNA_property_boolean_get(op->ptr, prop)) {
+      options |= CTX_VIEW2D_EDGE_PAN;
     }
   }
 

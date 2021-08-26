@@ -441,6 +441,9 @@ if(WITH_HARU)
   endif()
 endif()
 
+set(ZSTD_ROOT_DIR ${LIBDIR}/zstd)
+find_package(Zstd REQUIRED)
+
 if(EXISTS ${LIBDIR})
   without_system_libs_end()
 endif()
@@ -500,17 +503,10 @@ endif()
 # makesdna, tests, etc.), we add an rpath to the OpenMP library dir through
 # CMAKE_BUILD_RPATH. This avoids having to make many copies of the dylib next to each binary.
 #
-# For the installed Blender executable, CMAKE_INSTALL_RPATH will be used
-# to locate the dylibs at @executable_path, next to the Blender executable.
-#
-# For the installed Python module, CMAKE_INSTALL_RPATH is modified to find the
-# dylib in an adjacent folder.
+# For the installed Python module and installed Blender executable, CMAKE_INSTALL_RPATH
+# is modified to find the dylib in an adjacent folder. Install step puts the libraries there.
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 list(APPEND CMAKE_BUILD_RPATH "${OpenMP_LIBRARY_DIR}")
 
 set(CMAKE_SKIP_INSTALL_RPATH FALSE)
-list(APPEND CMAKE_INSTALL_RPATH "@executable_path")
-
-if(WITH_PYTHON_MODULE)
-  list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../Resources/${BLENDER_VERSION}/lib")
-endif()
+list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../Resources/${BLENDER_VERSION}/lib")

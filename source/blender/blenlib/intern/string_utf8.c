@@ -70,7 +70,7 @@ static const size_t utf8_skip_data[256] = {
  *
  * \return the offset of the first invalid byte.
  */
-ptrdiff_t BLI_utf8_invalid_byte(const char *str, size_t length)
+ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
 {
   const unsigned char *p, *perr, *pend = (const unsigned char *)str + length;
   unsigned char c;
@@ -200,14 +200,14 @@ utf8_error:
  *
  * \return number of stripped bytes.
  */
-int BLI_utf8_invalid_strip(char *str, size_t length)
+int BLI_str_utf8_invalid_strip(char *str, size_t length)
 {
   ptrdiff_t bad_char;
   int tot = 0;
 
   BLI_assert(str[length] == '\0');
 
-  while ((bad_char = BLI_utf8_invalid_byte(str, length)) != -1) {
+  while ((bad_char = BLI_str_utf8_invalid_byte(str, length)) != -1) {
     str += bad_char;
     length -= (size_t)(bad_char + 1);
 
@@ -297,8 +297,8 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  const size_t maxncpy)
 {
   const size_t maxlen = maxncpy - 1;
-  /* 6 is max utf8 length of an unicode char. */
-  const int64_t maxlen_secured = (int64_t)maxlen - 6;
+  /* #BLI_UTF8_MAX is max utf8 length of an unicode char. */
+  const int64_t maxlen_secured = (int64_t)maxlen - BLI_UTF8_MAX;
   size_t len = 0;
 
   BLI_assert(maxncpy != 0);
@@ -314,9 +314,9 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
   /* We have to be more careful for the last six bytes,
    * to avoid buffer overflow in case utf8-encoded char would be too long for our dst buffer. */
   while (*src) {
-    char t[6];
+    char t[BLI_UTF8_MAX];
     size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);
-    BLI_assert(l <= 6);
+    BLI_assert(l <= BLI_UTF8_MAX);
     if (len + l > maxlen) {
       break;
     }
@@ -546,85 +546,64 @@ uint BLI_str_utf8_as_unicode(const char *p)
   return result;
 }
 
-/* variant that increments the length */
-uint BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *__restrict index)
+/**
+ * UTF8 decoding that steps over the index (unless an error is encountered).
+ *
+ * \param p: The text to step over.
+ * \param p_len: The length of `p`.
+ * \param index: Index of `p` to step over.
+ * \return the code-point or #BLI_UTF8_ERR if there is a decoding error.
+ *
+ * \note The behavior for clipped text (where `p_len` limits decoding trailing bytes)
+ * must have the same behavior is encountering a nil byte,
+ * so functions that only use the first part of a string has matching behavior to functions
+ * that null terminate the text.
+ */
+uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
+                                           const size_t p_len,
+                                           size_t *__restrict index)
 {
   int i, len;
   uint mask = 0;
   uint result;
-  const unsigned char c = (unsigned char)*p;
+  const unsigned char c = (unsigned char)*(p += *index);
+
+  BLI_assert(*index < p_len);
+  BLI_assert(c != '\0');
 
   UTF8_COMPUTE(c, mask, len, -1);
-  if (UNLIKELY(len == -1)) {
+  if (UNLIKELY(len == -1) || (*index + (size_t)len > p_len)) {
     return BLI_UTF8_ERR;
   }
   UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
-  *index += (size_t)len;
-  return result;
-}
-
-uint BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, size_t *__restrict index)
-{
-  int i, len;
-  uint mask = 0;
-  uint result;
-  const unsigned char c = (unsigned char)*p;
-
-  UTF8_COMPUTE(c, mask, len, -1);
-  if (UNLIKELY(len == -1)) {
-    *index += 1;
-    return c;
+  if (UNLIKELY(result == BLI_UTF8_ERR)) {
+    return BLI_UTF8_ERR;
   }
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
   *index += (size_t)len;
+  BLI_assert(*index <= p_len);
   return result;
 }
 
 /**
- * Another variant that steps over the index.
- * \note currently this also falls back to latin1 for text drawing.
+ * UTF8 decoding that steps over the index (unless an error is encountered).
+ *
+ * \param p: The text to step over.
+ * \param p_len: The length of `p`.
+ * \param index: Index of `p` to step over.
+ * \return the code-point `(p + *index)` if there is a decoding error.
+ *
+ * \note Falls back to `LATIN1` for text drawing.
  */
-uint BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict index)
+uint BLI_str_utf8_as_unicode_step(const char *__restrict p,
+                                  const size_t p_len,
+                                  size_t *__restrict index)
 {
-  int i, len;
-  uint mask = 0;
-  uint result;
-  unsigned char c;
-
-  p += *index;
-  c = (unsigned char)*p;
-
-  UTF8_COMPUTE(c, mask, len, -1);
-  if (UNLIKELY(len == -1)) {
-    /* when called with NULL end, result will never be NULL,
-     * checks for a NULL character */
-    const char *p_next = BLI_str_find_next_char_utf8(p, NULL);
-    /* will never return the same pointer unless '\0',
-     * eternal loop is prevented */
-    *index += (size_t)(p_next - p);
-    return BLI_UTF8_ERR;
+  uint result = BLI_str_utf8_as_unicode_step_or_error(p, p_len, index);
+  if (UNLIKELY(result == BLI_UTF8_ERR)) {
+    result = (uint)p[*index];
+    *index += 1;
   }
-
-  /* this is tricky since there are a few ways we can bail out of bad unicode
-   * values, 3 possible solutions. */
-#if 0
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
-#elif 1
-  /* WARNING: this is NOT part of glib, or supported by similar functions.
-   * this is added for text drawing because some filepaths can have latin1
-   * characters */
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
-  if (result == BLI_UTF8_ERR) {
-    len = 1;
-    result = *p;
-  }
-  /* end warning! */
-#else
-  /* without a fallback like '?', text drawing will stop on this value */
-  UTF8_GET(result, p, i, mask, len, '?');
-#endif
-
-  *index += (size_t)len;
+  BLI_assert(*index <= p_len);
   return result;
 }
 
@@ -696,16 +675,23 @@ size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
   memset(dst_w, 0xff, sizeof(*dst_w) * maxncpy);
 #endif
 
-  while (*src_c && len != maxlen) {
-    size_t step = 0;
-    uint unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
+  const size_t src_c_len = strlen(src_c);
+  const char *src_c_end = src_c + src_c_len;
+  size_t index = 0;
+  while ((index < src_c_len) && (len != maxlen)) {
+    const uint unicode = BLI_str_utf8_as_unicode_step_or_error(src_c, src_c_len, &index);
     if (unicode != BLI_UTF8_ERR) {
       *dst_w = unicode;
-      src_c += step;
     }
     else {
       *dst_w = '?';
-      src_c = BLI_str_find_next_char_utf8(src_c, NULL);
+      const char *src_c_next = BLI_str_find_next_char_utf8(src_c + index, src_c_end);
+      if (src_c_next != NULL) {
+        index = (size_t)(src_c_next - src_c);
+      }
+      else {
+        index += 1;
+      }
     }
     dst_w++;
     len++;
@@ -721,8 +707,8 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
                              const size_t maxncpy)
 {
   const size_t maxlen = maxncpy - 1;
-  /* 6 is max utf8 length of an unicode char. */
-  const int64_t maxlen_secured = (int64_t)maxlen - 6;
+  /* #BLI_UTF8_MAX is max utf8 length of an unicode char. */
+  const int64_t maxlen_secured = (int64_t)maxlen - BLI_UTF8_MAX;
   size_t len = 0;
 
   BLI_assert(maxncpy != 0);
@@ -738,9 +724,9 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
   /* We have to be more careful for the last six bytes,
    * to avoid buffer overflow in case utf8-encoded char would be too long for our dst buffer. */
   while (*src) {
-    char t[6];
+    char t[BLI_UTF8_MAX];
     size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);
-    BLI_assert(l <= 6);
+    BLI_assert(l <= BLI_UTF8_MAX);
     if (len + l > maxlen) {
       break;
     }
@@ -810,6 +796,7 @@ char *BLI_str_find_next_char_utf8(const char *p, const char *end)
 {
   if (*p) {
     if (end) {
+      BLI_assert(end >= p);
       for (++p; p < end && (*p & 0xc0) == 0x80; p++) {
         /* do nothing */
       }
@@ -884,7 +871,9 @@ size_t BLI_str_partition_ex_utf8(const char *str,
       index = 0;
        *sep >= str && (!end || *sep < end) && **sep != '\0';
        *sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(str, *sep) : str + index)) {
-    const uint c = BLI_str_utf8_as_unicode_and_size(*sep, &index);
+    size_t index_ofs = 0;
+    const uint c = BLI_str_utf8_as_unicode_step_or_error(*sep, (size_t)(end - *sep), &index_ofs);
+    index += index_ofs;
 
     if (c == BLI_UTF8_ERR) {
       *suf = *sep = NULL;

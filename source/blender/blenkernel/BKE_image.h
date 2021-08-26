@@ -45,7 +45,7 @@ struct StampData;
 struct anim;
 
 #define IMA_MAX_SPACE 64
-#define IMA_UDIM_MAX 1999
+#define IMA_UDIM_MAX 2000
 
 void BKE_images_init(void);
 void BKE_images_exit(void);
@@ -56,7 +56,7 @@ void BKE_image_free_buffers(struct Image *image);
 void BKE_image_free_buffers_ex(struct Image *image, bool do_lock);
 void BKE_image_free_gputextures(struct Image *ima);
 /* call from library */
-void BKE_image_free(struct Image *image);
+void BKE_image_free_data(struct Image *image);
 
 typedef void(StampCallback)(void *data, const char *propname, char *propvalue, int len);
 
@@ -308,6 +308,8 @@ void BKE_image_get_tile_label(struct Image *ima,
 
 struct ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *label);
 bool BKE_image_remove_tile(struct Image *ima, struct ImageTile *tile);
+void BKE_image_reassign_tile(struct Image *ima, struct ImageTile *tile, int new_tile_number);
+void BKE_image_sort_tiles(struct Image *ima);
 
 bool BKE_image_fill_tile(struct Image *ima,
                          struct ImageTile *tile,

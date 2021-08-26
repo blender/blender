@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
-class ConvertBaseOperation : public NodeOperation {
+class ConvertBaseOperation : public MultiThreadedOperation {
  protected:
   SocketReader *m_inputOperation;
 
@@ -31,6 +31,13 @@ class ConvertBaseOperation : public NodeOperation {
 
   void initExecution() override;
   void deinitExecution() override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) final;
+
+ protected:
+  virtual void update_memory_buffer_partial(BuffersIterator<float> &it) = 0;
 };
 
 class ConvertValueToColorOperation : public ConvertBaseOperation {
@@ -38,6 +45,9 @@ class ConvertValueToColorOperation : public ConvertBaseOperation {
   ConvertValueToColorOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertColorToValueOperation : public ConvertBaseOperation {
@@ -45,6 +55,9 @@ class ConvertColorToValueOperation : public ConvertBaseOperation {
   ConvertColorToValueOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertColorToBWOperation : public ConvertBaseOperation {
@@ -52,6 +65,9 @@ class ConvertColorToBWOperation : public ConvertBaseOperation {
   ConvertColorToBWOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertColorToVectorOperation : public ConvertBaseOperation {
@@ -59,6 +75,9 @@ class ConvertColorToVectorOperation : public ConvertBaseOperation {
   ConvertColorToVectorOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertValueToVectorOperation : public ConvertBaseOperation {
@@ -66,6 +85,9 @@ class ConvertValueToVectorOperation : public ConvertBaseOperation {
   ConvertValueToVectorOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertVectorToColorOperation : public ConvertBaseOperation {
@@ -73,6 +95,9 @@ class ConvertVectorToColorOperation : public ConvertBaseOperation {
   ConvertVectorToColorOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertVectorToValueOperation : public ConvertBaseOperation {
@@ -80,6 +105,9 @@ class ConvertVectorToValueOperation : public ConvertBaseOperation {
   ConvertVectorToValueOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertRGBToYCCOperation : public ConvertBaseOperation {
@@ -94,6 +122,9 @@ class ConvertRGBToYCCOperation : public ConvertBaseOperation {
 
   /** Set the YCC mode */
   void setMode(int mode);
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertYCCToRGBOperation : public ConvertBaseOperation {
@@ -108,6 +139,9 @@ class ConvertYCCToRGBOperation : public ConvertBaseOperation {
 
   /** Set the YCC mode */
   void setMode(int mode);
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertRGBToYUVOperation : public ConvertBaseOperation {
@@ -115,6 +149,9 @@ class ConvertRGBToYUVOperation : public ConvertBaseOperation {
   ConvertRGBToYUVOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertYUVToRGBOperation : public ConvertBaseOperation {
@@ -122,6 +159,9 @@ class ConvertYUVToRGBOperation : public ConvertBaseOperation {
   ConvertYUVToRGBOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertRGBToHSVOperation : public ConvertBaseOperation {
@@ -129,6 +169,9 @@ class ConvertRGBToHSVOperation : public ConvertBaseOperation {
   ConvertRGBToHSVOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertHSVToRGBOperation : public ConvertBaseOperation {
@@ -136,6 +179,9 @@ class ConvertHSVToRGBOperation : public ConvertBaseOperation {
   ConvertHSVToRGBOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertPremulToStraightOperation : public ConvertBaseOperation {
@@ -143,6 +189,9 @@ class ConvertPremulToStraightOperation : public ConvertBaseOperation {
   ConvertPremulToStraightOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
 class ConvertStraightToPremulOperation : public ConvertBaseOperation {
@@ -150,9 +199,12 @@ class ConvertStraightToPremulOperation : public ConvertBaseOperation {
   ConvertStraightToPremulOperation();
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
-class SeparateChannelOperation : public NodeOperation {
+class SeparateChannelOperation : public MultiThreadedOperation {
  private:
   SocketReader *m_inputOperation;
   int m_channel;
@@ -168,9 +220,13 @@ class SeparateChannelOperation : public NodeOperation {
   {
     this->m_channel = channel;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
-class CombineChannelsOperation : public NodeOperation {
+class CombineChannelsOperation : public MultiThreadedOperation {
  private:
   SocketReader *m_inputChannel1Operation;
   SocketReader *m_inputChannel2Operation;
@@ -183,6 +239,10 @@ class CombineChannelsOperation : public NodeOperation {
 
   void initExecution() override;
   void deinitExecution() override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

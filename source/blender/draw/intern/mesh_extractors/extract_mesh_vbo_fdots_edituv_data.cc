@@ -89,7 +89,7 @@ constexpr MeshExtract create_extractor_fdots_edituv_data()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUVFdotData_Data);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_edituv_data);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdots_edituv_data);
   return extractor;
 }
 

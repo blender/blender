@@ -128,7 +128,7 @@ constexpr MeshExtract create_extractor_sculpt_data()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.sculpt_data);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.sculpt_data);
   return extractor;
 }
 

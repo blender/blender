@@ -208,7 +208,7 @@ function(blender_source_group
   )
 
   # if enabled, use the sources directories as filters.
-  if(WINDOWS_USE_VISUAL_STUDIO_SOURCE_FOLDERS)
+  if(IDE_GROUP_SOURCES_IN_FOLDERS)
     foreach(_SRC ${sources})
       # remove ../'s
       get_filename_component(_SRC_DIR ${_SRC} REALPATH)
@@ -240,8 +240,8 @@ function(blender_source_group
     endforeach()
   endif()
 
-  # if enabled, set the FOLDER property for visual studio projects
-  if(WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS)
+  # if enabled, set the FOLDER property for the projects
+  if(IDE_GROUP_PROJECTS_IN_FOLDERS)
     get_filename_component(FolderDir ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
     string(REPLACE ${CMAKE_SOURCE_DIR} "" FolderDir ${FolderDir})
     set_target_properties(${name} PROPERTIES FOLDER ${FolderDir})

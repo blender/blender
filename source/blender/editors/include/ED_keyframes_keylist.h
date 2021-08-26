@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "BLI_range.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,7 +39,6 @@ struct Scene;
 struct bAnimContext;
 struct bDopeSheet;
 struct bGPDlayer;
-struct Range2f;
 
 /* ****************************** Base Structs ****************************** */
 
@@ -138,15 +139,14 @@ typedef enum eKeyframeExtremeDrawOpts {
 
 struct AnimKeylist *ED_keylist_create(void);
 void ED_keylist_free(struct AnimKeylist *keylist);
-struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist, float cfra);
-struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist, float cfra);
-struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist, float cfra);
-struct ActKeyColumn *ED_keylist_find_any_between(const struct AnimKeylist *keylist,
-                                                 float min_fra,
-                                                 float max_fra);
+const struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_any_between(const struct AnimKeylist *keylist,
+                                                       const Range2f frame_range);
 bool ED_keylist_is_empty(const struct AnimKeylist *keylist);
 const struct ListBase /* ActKeyColumn */ *ED_keylist_listbase(const struct AnimKeylist *keylist);
-bool ED_keylist_frame_range(const struct AnimKeylist *keylist, struct Range2f *r_frame_range);
+bool ED_keylist_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_range);
 
 /* Key-data Generation --------------- */
 
@@ -154,34 +154,36 @@ bool ED_keylist_frame_range(const struct AnimKeylist *keylist, struct Range2f *r
 void fcurve_to_keylist(struct AnimData *adt,
                        struct FCurve *fcu,
                        struct AnimKeylist *keylist,
-                       int saction_flag);
+                       const int saction_flag);
 /* Action Group */
 void agroup_to_keylist(struct AnimData *adt,
                        struct bActionGroup *agrp,
                        struct AnimKeylist *keylist,
-                       int saction_flag);
+                       const int saction_flag);
 /* Action */
 void action_to_keylist(struct AnimData *adt,
                        struct bAction *act,
                        struct AnimKeylist *keylist,
-                       int saction_flag);
+                       const int saction_flag);
 /* Object */
 void ob_to_keylist(struct bDopeSheet *ads,
                    struct Object *ob,
                    struct AnimKeylist *keylist,
-                   int saction_flag);
+                   const int saction_flag);
 /* Cache File */
 void cachefile_to_keylist(struct bDopeSheet *ads,
                           struct CacheFile *cache_file,
                           struct AnimKeylist *keylist,
-                          int saction_flag);
+                          const int saction_flag);
 /* Scene */
 void scene_to_keylist(struct bDopeSheet *ads,
                       struct Scene *sce,
                       struct AnimKeylist *keylist,
-                      int saction_flag);
+                      const int saction_flag);
 /* DopeSheet Summary */
-void summary_to_keylist(struct bAnimContext *ac, struct AnimKeylist *keylist, int saction_flag);
+void summary_to_keylist(struct bAnimContext *ac,
+                        struct AnimKeylist *keylist,
+                        const int saction_flag);
 /* Grease Pencil datablock summary */
 void gpencil_to_keylist(struct bDopeSheet *ads,
                         struct bGPdata *gpd,
@@ -199,10 +201,10 @@ void mask_to_keylist(struct bDopeSheet *ads,
 short compare_ak_cfraPtr(void *node, void *data);
 
 /* Checks if ActKeyColumn has any block data */
-bool actkeyblock_is_valid(ActKeyColumn *ac);
+bool actkeyblock_is_valid(const ActKeyColumn *ac);
 
 /* Checks if ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds") */
-int actkeyblock_get_valid_hold(ActKeyColumn *ac);
+int actkeyblock_get_valid_hold(const ActKeyColumn *ac);
 
 #ifdef __cplusplus
 }

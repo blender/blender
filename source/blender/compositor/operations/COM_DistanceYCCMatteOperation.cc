@@ -21,7 +21,7 @@
 
 namespace blender::compositor {
 
-float DistanceYCCMatteOperation::calculateDistance(float key[4], float image[4])
+float DistanceYCCMatteOperation::calculateDistance(const float key[4], const float image[4])
 {
   /* only measure the second 2 values */
   return len_v2v2(key + 1, image + 1);

@@ -169,10 +169,7 @@ void psys_reset(ParticleSystem *psys, int mode)
   }
 
   /* reset children */
-  if (psys->child) {
-    MEM_freeN(psys->child);
-    psys->child = NULL;
-  }
+  MEM_SAFE_FREE(psys->child);
 
   psys->totchild = 0;
 
@@ -182,10 +179,7 @@ void psys_reset(ParticleSystem *psys, int mode)
   /* reset point cache */
   BKE_ptcache_invalidate(psys->pointcache);
 
-  if (psys->fluid_springs) {
-    MEM_freeN(psys->fluid_springs);
-    psys->fluid_springs = NULL;
-  }
+  MEM_SAFE_FREE(psys->fluid_springs);
 
   psys->tot_fluidsprings = psys->alloc_fluidsprings = 0;
 }
@@ -1644,10 +1638,10 @@ static void sph_springs_modify(ParticleSystem *psys, float dtime)
     Lij = spring->rest_length;
     d = yield_ratio * timefix * Lij;
 
-    if (rij > Lij + d) {  // Stretch
+    if (rij > Lij + d) { /* Stretch */
       spring->rest_length += plasticity * (rij - Lij - d) * timefix;
     }
-    else if (rij < Lij - d) {  // Compress
+    else if (rij < Lij - d) { /* Compress */
       spring->rest_length -= plasticity * (Lij - d - rij) * timefix;
     }
 
@@ -2215,7 +2209,7 @@ static void sph_integrate(ParticleSimulationData *sim,
                           SPHData *sphdata)
 {
   ParticleSettings *part = sim->psys->part;
-  // float timestep = psys_get_timestep(sim); // UNUSED
+  // float timestep = psys_get_timestep(sim); /* UNUSED */
   float pa_mass = part->mass * ((part->flag & PART_SIZEMASS) ? pa->size : 1.0f);
   float dtime = dfra * psys_get_timestep(sim);
   // int steps = 1; // UNUSED
@@ -2224,7 +2218,7 @@ static void sph_integrate(ParticleSimulationData *sim,
   sphdata->pa = pa;
   sphdata->mass = pa_mass;
   sphdata->pass = 0;
-  // sphdata.element_size and sphdata.flow are set in the callback.
+  /* #sphdata.element_size and #sphdata.flow are set in the callback. */
 
   /* Restore previous state and treat gravity & effectors as external acceleration. */
   sub_v3_v3v3(effector_acceleration, pa->state.vel, pa->prev_state.vel);
@@ -4516,10 +4510,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
     reset_all_particles(sim, 0.0, cfra, oldtotpart);
     free_unexisting_particles(sim);
 
-    if (psys->fluid_springs) {
-      MEM_freeN(psys->fluid_springs);
-      psys->fluid_springs = NULL;
-    }
+    MEM_SAFE_FREE(psys->fluid_springs);
 
     psys->tot_fluidsprings = psys->alloc_fluidsprings = 0;
 
@@ -4770,6 +4761,7 @@ static void particle_settings_free_local(ParticleSettings *particle_settings)
 {
   BKE_libblock_free_datablock(&particle_settings->id, 0);
   BKE_libblock_free_data(&particle_settings->id, false);
+  BLI_assert(!particle_settings->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
   MEM_freeN(particle_settings);
 }
 

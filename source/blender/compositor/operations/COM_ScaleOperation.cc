@@ -74,17 +74,18 @@ float ScaleOperation::get_constant_scale_y()
   return get_constant_scale(2, get_relative_scale_y_factor());
 }
 
-BLI_INLINE float scale_coord(const int coord, const float center, const float relative_scale)
+void ScaleOperation::scale_area(
+    rcti &rect, float center_x, float center_y, float scale_x, float scale_y)
 {
-  return center + (coord - center) / relative_scale;
+  rect.xmin = scale_coord(rect.xmin, center_x, scale_x);
+  rect.xmax = scale_coord(rect.xmax, center_x, scale_x);
+  rect.ymin = scale_coord(rect.ymin, center_y, scale_y);
+  rect.ymax = scale_coord(rect.ymax, center_y, scale_y);
 }
 
 void ScaleOperation::scale_area(rcti &rect, float scale_x, float scale_y)
 {
-  rect.xmin = scale_coord(rect.xmin, m_centerX, scale_x);
-  rect.xmax = scale_coord(rect.xmax, m_centerX, scale_x);
-  rect.ymin = scale_coord(rect.ymin, m_centerY, scale_y);
-  rect.ymax = scale_coord(rect.ymax, m_centerY, scale_y);
+  scale_area(rect, m_centerX, m_centerY, scale_x, scale_y);
 }
 
 void ScaleOperation::init_data()
@@ -261,7 +262,7 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
   return ScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-// Absolute fixed size
+/* Absolute fixed size. */
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::None);

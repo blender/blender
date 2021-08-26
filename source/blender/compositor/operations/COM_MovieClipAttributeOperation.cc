@@ -29,10 +29,21 @@ MovieClipAttributeOperation::MovieClipAttributeOperation()
   this->m_framenumber = 0;
   this->m_attribute = MCA_X;
   this->m_invert = false;
+  needs_resolution_to_get_constant_ = true;
+  is_value_calculated_ = false;
 }
 
 void MovieClipAttributeOperation::initExecution()
 {
+  if (!is_value_calculated_) {
+    calc_value();
+  }
+}
+
+void MovieClipAttributeOperation::calc_value()
+{
+  BLI_assert(this->get_flags().is_resolution_set);
+  is_value_calculated_ = true;
   if (this->m_clip == nullptr) {
     return;
   }
@@ -81,6 +92,14 @@ void MovieClipAttributeOperation::determineResolution(unsigned int resolution[2]
 {
   resolution[0] = preferredResolution[0];
   resolution[1] = preferredResolution[1];
+}
+
+const float *MovieClipAttributeOperation::get_constant_elem()
+{
+  if (!is_value_calculated_) {
+    calc_value();
+  }
+  return &m_value;
 }
 
 }  // namespace blender::compositor

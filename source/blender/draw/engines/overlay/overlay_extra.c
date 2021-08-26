@@ -861,12 +861,8 @@ typedef union OVERLAY_CameraInstanceData {
   };
 } OVERLAY_CameraInstanceData;
 
-static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
-                                         Scene *scene,
-                                         View3D *v3d,
-                                         Object *camera_object,
-                                         Object *ob,
-                                         const float color[4])
+static void camera_view3d_reconstruction(
+    OVERLAY_ExtraCallBuffers *cb, Scene *scene, View3D *v3d, Object *ob, const float color[4])
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_select = DRW_state_is_select();
@@ -943,7 +939,7 @@ static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
       }
 
       if (is_select) {
-        DRW_select_load_id(camera_object->runtime.select_id | (track_index << 16));
+        DRW_select_load_id(ob->runtime.select_id | (track_index << 16));
         track_index++;
       }
 
@@ -1251,7 +1247,7 @@ void OVERLAY_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   /* Motion Tracking. */
   if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) != 0) {
-    camera_view3d_reconstruction(cb, scene, v3d, camera_object, ob, color_p);
+    camera_view3d_reconstruction(cb, scene, v3d, ob, color_p);
   }
 
   /* Background images. */
@@ -1357,7 +1353,8 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
         }
       }
     }
-    BKE_constraints_clear_evalob(cob);
+    /* NOTE: Don't use BKE_constraints_clear_evalob here as that will reset ob->constinv. */
+    MEM_freeN(cob);
   }
 }
 

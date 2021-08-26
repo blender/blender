@@ -351,6 +351,11 @@ static void seq_split_set_left_offset(Sequence *seq, int timeline_frame)
   SEQ_transform_set_left_handle_frame(seq, timeline_frame);
 }
 
+static bool seq_edit_split_effect_intersect_check(const Sequence *seq, const int timeline_frame)
+{
+  return timeline_frame > seq->startdisp && timeline_frame < seq->enddisp;
+}
+
 static void seq_edit_split_handle_strip_offsets(Main *bmain,
                                                 Scene *scene,
                                                 Sequence *left_seq,
@@ -358,20 +363,82 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
                                                 const int timeline_frame,
                                                 const eSeqSplitMethod method)
 {
-  switch (method) {
-    case SEQ_SPLIT_SOFT:
-      seq_split_set_left_offset(right_seq, timeline_frame);
-      seq_split_set_right_offset(left_seq, timeline_frame);
-      break;
-    case SEQ_SPLIT_HARD:
-      seq_split_set_right_hold_offset(left_seq, timeline_frame);
-      seq_split_set_left_hold_offset(right_seq, timeline_frame);
-      SEQ_add_reload_new_file(bmain, scene, left_seq, false);
-      SEQ_add_reload_new_file(bmain, scene, right_seq, false);
-      break;
+  if (seq_edit_split_effect_intersect_check(right_seq, timeline_frame)) {
+    switch (method) {
+      case SEQ_SPLIT_SOFT:
+        seq_split_set_left_offset(right_seq, timeline_frame);
+        break;
+      case SEQ_SPLIT_HARD:
+        seq_split_set_left_hold_offset(right_seq, timeline_frame);
+        SEQ_add_reload_new_file(bmain, scene, right_seq, false);
+        break;
+    }
+    SEQ_time_update_sequence(scene, right_seq);
   }
-  SEQ_time_update_sequence(scene, left_seq);
-  SEQ_time_update_sequence(scene, right_seq);
+
+  if (seq_edit_split_effect_intersect_check(left_seq, timeline_frame)) {
+    switch (method) {
+      case SEQ_SPLIT_SOFT:
+        seq_split_set_right_offset(left_seq, timeline_frame);
+        break;
+      case SEQ_SPLIT_HARD:
+        seq_split_set_right_hold_offset(left_seq, timeline_frame);
+        SEQ_add_reload_new_file(bmain, scene, left_seq, false);
+        break;
+    }
+    SEQ_time_update_sequence(scene, left_seq);
+  }
+}
+
+static bool seq_edit_split_effect_inputs_intersect(const Sequence *seq, const int timeline_frame)
+{
+  bool input_does_intersect = false;
+  if (seq->seq1) {
+    input_does_intersect |= seq_edit_split_effect_intersect_check(seq->seq1, timeline_frame);
+    if ((seq->seq1->type & SEQ_TYPE_EFFECT) != 0) {
+      input_does_intersect |= seq_edit_split_effect_inputs_intersect(seq->seq1, timeline_frame);
+    }
+  }
+  if (seq->seq2) {
+    input_does_intersect |= seq_edit_split_effect_intersect_check(seq->seq2, timeline_frame);
+    if ((seq->seq1->type & SEQ_TYPE_EFFECT) != 0) {
+      input_does_intersect |= seq_edit_split_effect_inputs_intersect(seq->seq2, timeline_frame);
+    }
+  }
+  if (seq->seq3) {
+    input_does_intersect |= seq_edit_split_effect_intersect_check(seq->seq3, timeline_frame);
+    if ((seq->seq1->type & SEQ_TYPE_EFFECT) != 0) {
+      input_does_intersect |= seq_edit_split_effect_inputs_intersect(seq->seq3, timeline_frame);
+    }
+  }
+  return input_does_intersect;
+}
+
+static bool seq_edit_split_operation_permitted_check(SeqCollection *strips,
+                                                     const int timeline_frame,
+                                                     const char **r_error)
+{
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
+    if ((seq->type & SEQ_TYPE_EFFECT) == 0) {
+      continue;
+    }
+    if (!seq_edit_split_effect_intersect_check(seq, timeline_frame)) {
+      continue;
+    }
+    if (SEQ_effect_get_num_inputs(seq->type) <= 1) {
+      continue;
+    }
+    if (ELEM(seq->type, SEQ_TYPE_CROSS, SEQ_TYPE_GAMCROSS, SEQ_TYPE_WIPE)) {
+      *r_error = "Splitting transition effect is not permitted.";
+      return false;
+    }
+    if (!seq_edit_split_effect_inputs_intersect(seq, timeline_frame)) {
+      *r_error = "Effect inputs don't overlap. Can not split such effect.";
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -390,15 +457,22 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
                                ListBase *seqbase,
                                Sequence *seq,
                                const int timeline_frame,
-                               const eSeqSplitMethod method)
+                               const eSeqSplitMethod method,
+                               const char **r_error)
 {
-  if (timeline_frame <= seq->startdisp || timeline_frame >= seq->enddisp) {
+  if (!seq_edit_split_effect_intersect_check(seq, timeline_frame)) {
     return NULL;
   }
 
+  /* Whole strip chain must be duplicated in order to preserve relationships. */
   SeqCollection *collection = SEQ_collection_create(__func__);
   SEQ_collection_append_strip(seq, collection);
   SEQ_collection_expand(seqbase, collection, SEQ_query_strip_effect_chain);
+
+  if (!seq_edit_split_operation_permitted_check(collection, timeline_frame, r_error)) {
+    SEQ_collection_free(collection);
+    return NULL;
+  }
 
   /* Move strips in collection from seqbase to new ListBase. */
   ListBase left_strips = {NULL, NULL};
@@ -421,7 +495,19 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   Sequence *left_seq = left_strips.first;
   Sequence *right_seq = right_strips.first;
   Sequence *return_seq = right_strips.first;
+
+  /* Strips can't be tagged while in detached `seqbase`. Collect all strips which needs to be
+   * deleted and delay tagging until they are moved back to `seqbase` in `Editing`. */
+  SeqCollection *strips_to_delete = SEQ_collection_create(__func__);
+
   while (left_seq && right_seq) {
+    if (left_seq->startdisp >= timeline_frame) {
+      SEQ_collection_append_strip(left_seq, strips_to_delete);
+    }
+    if (right_seq->enddisp <= timeline_frame) {
+      SEQ_collection_append_strip(right_seq, strips_to_delete);
+    }
+
     seq_edit_split_handle_strip_offsets(bmain, scene, left_seq, right_seq, timeline_frame, method);
     left_seq = left_seq->next;
     right_seq = right_seq->next;
@@ -435,6 +521,12 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     SEQ_ensure_unique_name(seq, scene);
   }
 
+  Sequence *seq_delete;
+  SEQ_ITERATOR_FOREACH (seq_delete, strips_to_delete) {
+    SEQ_edit_flag_for_removal(scene, seqbase, seq_delete);
+  }
+  SEQ_edit_remove_flagged_sequences(scene, seqbase);
+  SEQ_collection_free(strips_to_delete);
   return return_seq;
 }
 
@@ -476,6 +568,6 @@ bool SEQ_edit_remove_gaps(Scene *scene,
 void SEQ_edit_sequence_name_set(Scene *scene, Sequence *seq, const char *new_name)
 {
   BLI_strncpy_utf8(seq->name + 2, new_name, MAX_NAME - 2);
-  BLI_utf8_invalid_strip(seq->name + 2, strlen(seq->name + 2));
+  BLI_str_utf8_invalid_strip(seq->name + 2, strlen(seq->name + 2));
   SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
 }

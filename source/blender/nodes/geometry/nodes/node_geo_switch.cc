@@ -179,7 +179,7 @@ void register_node_type_geo_switch()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SWITCH, "Switch", NODE_CLASS_CONVERTOR, 0);
+  geo_node_type_base(&ntype, GEO_NODE_SWITCH, "Switch", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, geo_node_switch_in, geo_node_switch_out);
   node_type_init(&ntype, geo_node_switch_init);
   node_type_update(&ntype, blender::nodes::geo_node_switch_update);

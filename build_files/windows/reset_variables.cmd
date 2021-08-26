@@ -33,3 +33,4 @@ set TEST=
 set BUILD_WITH_SCCACHE=
 set ICONS=
 set ICONS_GEOM=
+set DOC_PY=

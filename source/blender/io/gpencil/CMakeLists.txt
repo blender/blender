@@ -33,6 +33,7 @@ set(INC
   ../../../../intern/clog
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
+  ../../../../extern/nanosvg
 )
 
 set(INC_SYS
@@ -44,14 +45,14 @@ set(SRC
   intern/gpencil_io_import_base.cc
   intern/gpencil_io_import_svg.cc
 
-  # This line must be removed if NanoSVG is moved to extern
-  nanosvg/nanosvg.h
-
   gpencil_io.h
   intern/gpencil_io_base.hh
   intern/gpencil_io_export_base.hh
   intern/gpencil_io_import_base.hh
   intern/gpencil_io_import_svg.hh
+
+  # Only so this file is known by CMake.
+  ../../../../extern/nanosvg/nanosvg.h
 )
 
 set(LIB

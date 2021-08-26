@@ -79,39 +79,42 @@
 
 /* clang-format off */
 
-#define _BUFFER_INDEX(buff_name) ((offsetof(MeshBufferCache, buff_name) - offsetof(MeshBufferCache, vbo)) / sizeof(void *))
+#define BUFFER_INDEX(buff_name) ((offsetof(MeshBufferList, buff_name) - offsetof(MeshBufferList, vbo)) / sizeof(void *))
+#define BUFFER_LEN (sizeof(MeshBufferList) / sizeof(void *))
 
-#define _MDEPS_CREATE1(b) (1u << MBC_BATCH_INDEX(b))
-#define _MDEPS_CREATE2(b1, b2) _MDEPS_CREATE1(b1) | _MDEPS_CREATE1(b2)
-#define _MDEPS_CREATE3(b1, b2, b3) _MDEPS_CREATE2(b1, b2) | _MDEPS_CREATE1(b3)
-#define _MDEPS_CREATE4(b1, b2, b3, b4) _MDEPS_CREATE3(b1, b2, b3) | _MDEPS_CREATE1(b4)
-#define _MDEPS_CREATE5(b1, b2, b3, b4, b5) _MDEPS_CREATE4(b1, b2, b3, b4) | _MDEPS_CREATE1(b5)
-#define _MDEPS_CREATE6(b1, b2, b3, b4, b5, b6) _MDEPS_CREATE5(b1, b2, b3, b4, b5) | _MDEPS_CREATE1(b6)
-#define _MDEPS_CREATE7(b1, b2, b3, b4, b5, b6, b7) _MDEPS_CREATE6(b1, b2, b3, b4, b5, b6) | _MDEPS_CREATE1(b7)
-#define _MDEPS_CREATE8(b1, b2, b3, b4, b5, b6, b7, b8) _MDEPS_CREATE7(b1, b2, b3, b4, b5, b6, b7) | _MDEPS_CREATE1(b8)
-#define _MDEPS_CREATE9(b1, b2, b3, b4, b5, b6, b7, b8, b9) _MDEPS_CREATE8(b1, b2, b3, b4, b5, b6, b7, b8) | _MDEPS_CREATE1(b9)
-#define _MDEPS_CREATE10(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10) _MDEPS_CREATE9(b1, b2, b3, b4, b5, b6, b7, b8, b9) | _MDEPS_CREATE1(b10)
-#define _MDEPS_CREATE19(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19) _MDEPS_CREATE10(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10) | _MDEPS_CREATE9(b11, b12, b13, b14, b15, b16, b17, b18, b19)
+#define _BATCH_FLAG1(b) (1u << MBC_BATCH_INDEX(b))
+#define _BATCH_FLAG2(b1, b2) _BATCH_FLAG1(b1) | _BATCH_FLAG1(b2)
+#define _BATCH_FLAG3(b1, b2, b3) _BATCH_FLAG2(b1, b2) | _BATCH_FLAG1(b3)
+#define _BATCH_FLAG4(b1, b2, b3, b4) _BATCH_FLAG3(b1, b2, b3) | _BATCH_FLAG1(b4)
+#define _BATCH_FLAG5(b1, b2, b3, b4, b5) _BATCH_FLAG4(b1, b2, b3, b4) | _BATCH_FLAG1(b5)
+#define _BATCH_FLAG6(b1, b2, b3, b4, b5, b6) _BATCH_FLAG5(b1, b2, b3, b4, b5) | _BATCH_FLAG1(b6)
+#define _BATCH_FLAG7(b1, b2, b3, b4, b5, b6, b7) _BATCH_FLAG6(b1, b2, b3, b4, b5, b6) | _BATCH_FLAG1(b7)
+#define _BATCH_FLAG8(b1, b2, b3, b4, b5, b6, b7, b8) _BATCH_FLAG7(b1, b2, b3, b4, b5, b6, b7) | _BATCH_FLAG1(b8)
+#define _BATCH_FLAG9(b1, b2, b3, b4, b5, b6, b7, b8, b9) _BATCH_FLAG8(b1, b2, b3, b4, b5, b6, b7, b8) | _BATCH_FLAG1(b9)
+#define _BATCH_FLAG10(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10) _BATCH_FLAG9(b1, b2, b3, b4, b5, b6, b7, b8, b9) | _BATCH_FLAG1(b10)
+#define _BATCH_FLAG18(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18) _BATCH_FLAG10(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10) | _BATCH_FLAG8(b11, b12, b13, b14, b15, b16, b17, b18)
 
-#define MDEPS_CREATE(buff_name, ...) [_BUFFER_INDEX(buff_name)] = VA_NARGS_CALL_OVERLOAD(_MDEPS_CREATE, __VA_ARGS__)
+#define BATCH_FLAG(...) VA_NARGS_CALL_OVERLOAD(_BATCH_FLAG, __VA_ARGS__)
 
-#define _MDEPS_CREATE_MAP1(a) g_buffer_desps[_BUFFER_INDEX(a)]
-#define _MDEPS_CREATE_MAP2(a, b) _MDEPS_CREATE_MAP1(a) | _MDEPS_CREATE_MAP1(b)
-#define _MDEPS_CREATE_MAP3(a, b, c) _MDEPS_CREATE_MAP2(a, b) | _MDEPS_CREATE_MAP1(c)
-#define _MDEPS_CREATE_MAP4(a, b, c, d) _MDEPS_CREATE_MAP3(a, b, c) | _MDEPS_CREATE_MAP1(d)
-#define _MDEPS_CREATE_MAP5(a, b, c, d, e) _MDEPS_CREATE_MAP4(a, b, c, d) | _MDEPS_CREATE_MAP1(e)
-#define _MDEPS_CREATE_MAP6(a, b, c, d, e, f) _MDEPS_CREATE_MAP5(a, b, c, d, e) | _MDEPS_CREATE_MAP1(f)
-#define _MDEPS_CREATE_MAP7(a, b, c, d, e, f, g) _MDEPS_CREATE_MAP6(a, b, c, d, e, f) | _MDEPS_CREATE_MAP1(g)
-#define _MDEPS_CREATE_MAP8(a, b, c, d, e, f, g, h) _MDEPS_CREATE_MAP7(a, b, c, d, e, f, g) | _MDEPS_CREATE_MAP1(h)
-#define _MDEPS_CREATE_MAP9(a, b, c, d, e, f, g, h, i) _MDEPS_CREATE_MAP8(a, b, c, d, e, f, g, h) | _MDEPS_CREATE_MAP1(i)
-#define _MDEPS_CREATE_MAP10(a, b, c, d, e, f, g, h, i, j) _MDEPS_CREATE_MAP9(a, b, c, d, e, f, g, h, i) | _MDEPS_CREATE_MAP1(j)
+#define _BATCH_MAP1(a) g_buffer_deps[BUFFER_INDEX(a)]
+#define _BATCH_MAP2(a, b) _BATCH_MAP1(a) | _BATCH_MAP1(b)
+#define _BATCH_MAP3(a, b, c) _BATCH_MAP2(a, b) | _BATCH_MAP1(c)
+#define _BATCH_MAP4(a, b, c, d) _BATCH_MAP3(a, b, c) | _BATCH_MAP1(d)
+#define _BATCH_MAP5(a, b, c, d, e) _BATCH_MAP4(a, b, c, d) | _BATCH_MAP1(e)
+#define _BATCH_MAP6(a, b, c, d, e, f) _BATCH_MAP5(a, b, c, d, e) | _BATCH_MAP1(f)
+#define _BATCH_MAP7(a, b, c, d, e, f, g) _BATCH_MAP6(a, b, c, d, e, f) | _BATCH_MAP1(g)
+#define _BATCH_MAP8(a, b, c, d, e, f, g, h) _BATCH_MAP7(a, b, c, d, e, f, g) | _BATCH_MAP1(h)
+#define _BATCH_MAP9(a, b, c, d, e, f, g, h, i) _BATCH_MAP8(a, b, c, d, e, f, g, h) | _BATCH_MAP1(i)
+#define _BATCH_MAP10(a, b, c, d, e, f, g, h, i, j) _BATCH_MAP9(a, b, c, d, e, f, g, h, i) | _BATCH_MAP1(j)
 
-#define MDEPS_CREATE_MAP(...) VA_NARGS_CALL_OVERLOAD(_MDEPS_CREATE_MAP, __VA_ARGS__)
+#define BATCH_MAP(...) VA_NARGS_CALL_OVERLOAD(_BATCH_MAP, __VA_ARGS__)
 
 #ifndef NDEBUG
-#  define _MDEPS_ASSERT2(b, name) \
-    g_buffer_desps_d[_BUFFER_INDEX(name)] |= _MDEPS_CREATE1(b); \
-    BLI_assert(g_buffer_desps[_BUFFER_INDEX(name)] & _MDEPS_CREATE1(b))
+#  define MDEPS_ASSERT_INDEX(buffer_index, batch_flag) \
+    g_buffer_deps_d[buffer_index] |= batch_flag; \
+    BLI_assert(g_buffer_deps[buffer_index] & batch_flag)
+
+#  define _MDEPS_ASSERT2(b, n1) MDEPS_ASSERT_INDEX(BUFFER_INDEX(n1), b)
 #  define _MDEPS_ASSERT3(b, n1, n2) _MDEPS_ASSERT2(b, n1); _MDEPS_ASSERT2(b, n2)
 #  define _MDEPS_ASSERT4(b, n1, n2, n3) _MDEPS_ASSERT3(b, n1, n2); _MDEPS_ASSERT2(b, n3)
 #  define _MDEPS_ASSERT5(b, n1, n2, n3, n4) _MDEPS_ASSERT4(b, n1, n2, n3); _MDEPS_ASSERT2(b, n4)
@@ -119,103 +122,101 @@
 #  define _MDEPS_ASSERT7(b, n1, n2, n3, n4, n5, n6) _MDEPS_ASSERT6(b, n1, n2, n3, n4, n5); _MDEPS_ASSERT2(b, n6)
 #  define _MDEPS_ASSERT8(b, n1, n2, n3, n4, n5, n6, n7) _MDEPS_ASSERT7(b, n1, n2, n3, n4, n5, n6); _MDEPS_ASSERT2(b, n7)
 
-#  define MDEPS_ASSERT(...) VA_NARGS_CALL_OVERLOAD(_MDEPS_ASSERT, __VA_ARGS__)
-#  define MDEPS_ASSERT_MAP(name) BLI_assert(g_buffer_desps_d[_BUFFER_INDEX(name)] == g_buffer_desps[_BUFFER_INDEX(name)])
+#  define MDEPS_ASSERT_FLAG(...) VA_NARGS_CALL_OVERLOAD(_MDEPS_ASSERT, __VA_ARGS__)
+#  define MDEPS_ASSERT(batch_name, ...) MDEPS_ASSERT_FLAG(BATCH_FLAG(batch_name), __VA_ARGS__)
+#  define MDEPS_ASSERT_MAP_INDEX(buff_index) BLI_assert(g_buffer_deps_d[buff_index] == g_buffer_deps[buff_index])
+#  define MDEPS_ASSERT_MAP(buff_name) MDEPS_ASSERT_MAP_INDEX(BUFFER_INDEX(buff_name))
 #else
-#  define MDEPS_ASSERT(...)
-#  define MDEPS_ASSERT_MAP(name)
+#  define MDEPS_ASSERT_INDEX(buffer_index, batch_flag)
+#  define MDEPS_ASSERT_FLAG(...)
+#  define MDEPS_ASSERT(batch_name, ...)
+#  define MDEPS_ASSERT_MAP_INDEX(buff_index)
+#  define MDEPS_ASSERT_MAP(buff_name)
 #endif
 
 /* clang-format on */
 
-static const DRWBatchFlag g_buffer_desps[] = {
-    MDEPS_CREATE(vbo.pos_nor,
-                 batch.surface,
-                 batch.surface_weights,
-                 batch.edit_triangles,
-                 batch.edit_vertices,
-                 batch.edit_edges,
-                 batch.edit_vnor,
-                 batch.edit_lnor,
-                 batch.edit_mesh_analysis,
-                 batch.edit_selection_verts,
-                 batch.edit_selection_edges,
-                 batch.edit_selection_faces,
-                 batch.all_verts,
-                 batch.all_edges,
-                 batch.loose_edges,
-                 batch.edge_detection,
-                 batch.wire_edges,
-                 batch.wire_loops,
-                 batch.sculpt_overlays,
-                 surface_per_mat),
-    MDEPS_CREATE(vbo.lnor, batch.surface, batch.edit_lnor, batch.wire_loops, surface_per_mat),
-    MDEPS_CREATE(vbo.edge_fac, batch.wire_edges),
-    MDEPS_CREATE(vbo.weights, batch.surface_weights),
-    MDEPS_CREATE(vbo.uv,
-                 batch.surface,
-                 batch.edituv_faces_stretch_area,
-                 batch.edituv_faces_stretch_angle,
-                 batch.edituv_faces,
-                 batch.edituv_edges,
-                 batch.edituv_verts,
-                 batch.wire_loops_uvs,
-                 surface_per_mat),
-    MDEPS_CREATE(vbo.tan, surface_per_mat),
-    MDEPS_CREATE(vbo.vcol, batch.surface, surface_per_mat),
-    MDEPS_CREATE(vbo.sculpt_data, batch.sculpt_overlays),
-    MDEPS_CREATE(vbo.orco, surface_per_mat),
-    MDEPS_CREATE(vbo.edit_data, batch.edit_triangles, batch.edit_edges, batch.edit_vertices),
-    MDEPS_CREATE(vbo.edituv_data,
-                 batch.edituv_faces,
-                 batch.edituv_faces_stretch_area,
-                 batch.edituv_faces_stretch_angle,
-                 batch.edituv_edges,
-                 batch.edituv_verts),
-    MDEPS_CREATE(vbo.edituv_stretch_area, batch.edituv_faces_stretch_area),
-    MDEPS_CREATE(vbo.edituv_stretch_angle, batch.edituv_faces_stretch_angle),
-    MDEPS_CREATE(vbo.mesh_analysis, batch.edit_mesh_analysis),
-    MDEPS_CREATE(vbo.fdots_pos, batch.edit_fdots, batch.edit_selection_fdots),
-    MDEPS_CREATE(vbo.fdots_nor, batch.edit_fdots),
-    MDEPS_CREATE(vbo.fdots_uv, batch.edituv_fdots),
-    MDEPS_CREATE(vbo.fdots_edituv_data, batch.edituv_fdots),
-    MDEPS_CREATE(vbo.skin_roots, batch.edit_skin_roots),
-    MDEPS_CREATE(vbo.vert_idx, batch.edit_selection_verts),
-    MDEPS_CREATE(vbo.edge_idx, batch.edit_selection_edges),
-    MDEPS_CREATE(vbo.poly_idx, batch.edit_selection_faces),
-    MDEPS_CREATE(vbo.fdot_idx, batch.edit_selection_fdots),
+#define TRIS_PER_MAT_INDEX BUFFER_LEN
+#define SURFACE_PER_MAT_FLAG (1u << MBC_BATCH_LEN)
 
-    MDEPS_CREATE(ibo.tris,
-                 batch.surface,
-                 batch.surface_weights,
-                 batch.edit_triangles,
-                 batch.edit_lnor,
-                 batch.edit_mesh_analysis,
-                 batch.edit_selection_faces,
-                 batch.sculpt_overlays),
-    MDEPS_CREATE(ibo.lines,
-                 batch.edit_edges,
-                 batch.edit_selection_edges,
-                 batch.all_edges,
-                 batch.wire_edges),
-    MDEPS_CREATE(ibo.lines_loose, batch.loose_edges),
-    MDEPS_CREATE(ibo.points, batch.edit_vnor, batch.edit_vertices, batch.edit_selection_verts),
-    MDEPS_CREATE(ibo.fdots, batch.edit_fdots, batch.edit_selection_fdots),
-    MDEPS_CREATE(ibo.lines_paint_mask, batch.wire_loops),
-    MDEPS_CREATE(ibo.lines_adjacency, batch.edge_detection),
-    MDEPS_CREATE(ibo.edituv_tris,
-                 batch.edituv_faces,
-                 batch.edituv_faces_stretch_area,
-                 batch.edituv_faces_stretch_angle),
-    MDEPS_CREATE(ibo.edituv_lines, batch.edituv_edges, batch.wire_loops_uvs),
-    MDEPS_CREATE(ibo.edituv_points, batch.edituv_verts),
-    MDEPS_CREATE(ibo.edituv_fdots, batch.edituv_fdots),
+static const DRWBatchFlag g_buffer_deps[] = {
+    [BUFFER_INDEX(vbo.pos_nor)] = BATCH_FLAG(surface,
+                                             surface_weights,
+                                             edit_triangles,
+                                             edit_vertices,
+                                             edit_edges,
+                                             edit_vnor,
+                                             edit_lnor,
+                                             edit_mesh_analysis,
+                                             edit_selection_verts,
+                                             edit_selection_edges,
+                                             edit_selection_faces,
+                                             all_verts,
+                                             all_edges,
+                                             loose_edges,
+                                             edge_detection,
+                                             wire_edges,
+                                             wire_loops,
+                                             sculpt_overlays) |
+                                  SURFACE_PER_MAT_FLAG,
+    [BUFFER_INDEX(vbo.lnor)] = BATCH_FLAG(surface, edit_lnor, wire_loops) | SURFACE_PER_MAT_FLAG,
+    [BUFFER_INDEX(vbo.edge_fac)] = BATCH_FLAG(wire_edges),
+    [BUFFER_INDEX(vbo.weights)] = BATCH_FLAG(surface_weights),
+    [BUFFER_INDEX(vbo.uv)] = BATCH_FLAG(surface,
+                                        edituv_faces_stretch_area,
+                                        edituv_faces_stretch_angle,
+                                        edituv_faces,
+                                        edituv_edges,
+                                        edituv_verts,
+                                        wire_loops_uvs) |
+                             SURFACE_PER_MAT_FLAG,
+    [BUFFER_INDEX(vbo.tan)] = SURFACE_PER_MAT_FLAG,
+    [BUFFER_INDEX(vbo.vcol)] = BATCH_FLAG(surface) | SURFACE_PER_MAT_FLAG,
+    [BUFFER_INDEX(vbo.sculpt_data)] = BATCH_FLAG(sculpt_overlays),
+    [BUFFER_INDEX(vbo.orco)] = SURFACE_PER_MAT_FLAG,
+    [BUFFER_INDEX(vbo.edit_data)] = BATCH_FLAG(edit_triangles, edit_edges, edit_vertices),
+    [BUFFER_INDEX(vbo.edituv_data)] = BATCH_FLAG(edituv_faces,
+                                                 edituv_faces_stretch_area,
+                                                 edituv_faces_stretch_angle,
+                                                 edituv_edges,
+                                                 edituv_verts),
+    [BUFFER_INDEX(vbo.edituv_stretch_area)] = BATCH_FLAG(edituv_faces_stretch_area),
+    [BUFFER_INDEX(vbo.edituv_stretch_angle)] = BATCH_FLAG(edituv_faces_stretch_angle),
+    [BUFFER_INDEX(vbo.mesh_analysis)] = BATCH_FLAG(edit_mesh_analysis),
+    [BUFFER_INDEX(vbo.fdots_pos)] = BATCH_FLAG(edit_fdots, edit_selection_fdots),
+    [BUFFER_INDEX(vbo.fdots_nor)] = BATCH_FLAG(edit_fdots),
+    [BUFFER_INDEX(vbo.fdots_uv)] = BATCH_FLAG(edituv_fdots),
+    [BUFFER_INDEX(vbo.fdots_edituv_data)] = BATCH_FLAG(edituv_fdots),
+    [BUFFER_INDEX(vbo.skin_roots)] = BATCH_FLAG(edit_skin_roots),
+    [BUFFER_INDEX(vbo.vert_idx)] = BATCH_FLAG(edit_selection_verts),
+    [BUFFER_INDEX(vbo.edge_idx)] = BATCH_FLAG(edit_selection_edges),
+    [BUFFER_INDEX(vbo.poly_idx)] = BATCH_FLAG(edit_selection_faces),
+    [BUFFER_INDEX(vbo.fdot_idx)] = BATCH_FLAG(edit_selection_fdots),
 
-    MDEPS_CREATE(tris_per_mat, surface_per_mat),
+    [BUFFER_INDEX(ibo.tris)] = BATCH_FLAG(surface,
+                                          surface_weights,
+                                          edit_triangles,
+                                          edit_lnor,
+                                          edit_mesh_analysis,
+                                          edit_selection_faces,
+                                          sculpt_overlays),
+    [BUFFER_INDEX(ibo.lines)] = BATCH_FLAG(
+        edit_edges, edit_selection_edges, all_edges, wire_edges),
+    [BUFFER_INDEX(ibo.lines_loose)] = BATCH_FLAG(loose_edges),
+    [BUFFER_INDEX(ibo.points)] = BATCH_FLAG(edit_vnor, edit_vertices, edit_selection_verts),
+    [BUFFER_INDEX(ibo.fdots)] = BATCH_FLAG(edit_fdots, edit_selection_fdots),
+    [BUFFER_INDEX(ibo.lines_paint_mask)] = BATCH_FLAG(wire_loops),
+    [BUFFER_INDEX(ibo.lines_adjacency)] = BATCH_FLAG(edge_detection),
+    [BUFFER_INDEX(ibo.edituv_tris)] = BATCH_FLAG(
+        edituv_faces, edituv_faces_stretch_area, edituv_faces_stretch_angle),
+    [BUFFER_INDEX(ibo.edituv_lines)] = BATCH_FLAG(edituv_edges, wire_loops_uvs),
+    [BUFFER_INDEX(ibo.edituv_points)] = BATCH_FLAG(edituv_verts),
+    [BUFFER_INDEX(ibo.edituv_fdots)] = BATCH_FLAG(edituv_fdots),
+    [TRIS_PER_MAT_INDEX] = SURFACE_PER_MAT_FLAG,
 };
 
 #ifndef NDEBUG
-static DRWBatchFlag g_buffer_desps_d[sizeof(g_buffer_desps)] = {0};
+static DRWBatchFlag g_buffer_deps_d[ARRAY_SIZE(g_buffer_deps)] = {0};
 #endif
 
 static void mesh_batch_cache_discard_surface_batches(MeshBatchCache *cache);
@@ -231,7 +232,7 @@ static void mesh_batch_cache_discard_batch(MeshBatchCache *cache, const DRWBatch
     }
   }
 
-  if (batch_map & (1u << MBC_BATCH_INDEX(surface_per_mat))) {
+  if (batch_map & SURFACE_PER_MAT_FLAG) {
     mesh_batch_cache_discard_surface_batches(cache);
   }
 }
@@ -661,8 +662,7 @@ static void mesh_batch_cache_init(Mesh *me)
 
   cache->mat_len = mesh_render_mat_len_get(me);
   cache->surface_per_mat = MEM_callocN(sizeof(*cache->surface_per_mat) * cache->mat_len, __func__);
-  cache->final.tris_per_mat = MEM_callocN(sizeof(*cache->final.tris_per_mat) * cache->mat_len,
-                                          __func__);
+  cache->tris_per_mat = MEM_callocN(sizeof(*cache->tris_per_mat) * cache->mat_len, __func__);
 
   cache->is_dirty = false;
   cache->batch_ready = 0;
@@ -688,8 +688,8 @@ static void mesh_batch_cache_check_vertex_group(MeshBatchCache *cache,
                                                 const struct DRW_MeshWeightState *wstate)
 {
   if (!drw_mesh_weight_state_compare(&cache->weight_state, wstate)) {
-    FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-      GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.weights);
+    FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+      GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.weights);
     }
     GPU_BATCH_CLEAR_SAFE(cache->batch.surface_weights);
 
@@ -708,6 +708,9 @@ static void mesh_batch_cache_request_surface_batches(MeshBatchCache *cache)
   }
 }
 
+/* Free batches with material-mapped looptris.
+ * NOTE: The updating of the indices buffers (#tris_per_mat) is handled in the extractors.
+ * No need to discard they here. */
 static void mesh_batch_cache_discard_surface_batches(MeshBatchCache *cache)
 {
   GPU_BATCH_DISCARD_SAFE(cache->batch.surface);
@@ -719,41 +722,41 @@ static void mesh_batch_cache_discard_surface_batches(MeshBatchCache *cache)
 
 static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 {
-  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.tan);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.vcol);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.orco);
+  FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.uv);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.tan);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.vcol);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.orco);
   }
-  DRWBatchFlag batch_map = MDEPS_CREATE_MAP(vbo.uv, vbo.tan, vbo.vcol, vbo.orco);
+  DRWBatchFlag batch_map = BATCH_MAP(vbo.uv, vbo.tan, vbo.vcol, vbo.orco);
   mesh_batch_cache_discard_batch(cache, batch_map);
   mesh_cd_layers_type_clear(&cache->cd_used);
 }
 
 static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 {
-  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_stretch_angle);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_stretch_area);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_data);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_uv);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_edituv_data);
-    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_tris);
-    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_lines);
-    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_points);
-    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_fdots);
+  FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.edituv_stretch_angle);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.edituv_stretch_area);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.uv);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.edituv_data);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.fdots_uv);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.fdots_edituv_data);
+    GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_tris);
+    GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_lines);
+    GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_points);
+    GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_fdots);
   }
-  DRWBatchFlag batch_map = MDEPS_CREATE_MAP(vbo.edituv_stretch_angle,
-                                            vbo.edituv_stretch_area,
-                                            vbo.uv,
-                                            vbo.edituv_data,
-                                            vbo.fdots_uv,
-                                            vbo.fdots_edituv_data,
-                                            ibo.edituv_tris,
-                                            ibo.edituv_lines,
-                                            ibo.edituv_points,
-                                            ibo.edituv_fdots);
+  DRWBatchFlag batch_map = BATCH_MAP(vbo.edituv_stretch_angle,
+                                     vbo.edituv_stretch_area,
+                                     vbo.uv,
+                                     vbo.edituv_data,
+                                     vbo.fdots_uv,
+                                     vbo.fdots_edituv_data,
+                                     ibo.edituv_tris,
+                                     ibo.edituv_lines,
+                                     ibo.edituv_points,
+                                     ibo.edituv_fdots);
   mesh_batch_cache_discard_batch(cache, batch_map);
 
   cache->tot_area = 0.0f;
@@ -768,20 +771,20 @@ static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 
 static void mesh_batch_cache_discard_uvedit_select(MeshBatchCache *cache)
 {
-  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_data);
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_edituv_data);
-    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_tris);
-    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_lines);
-    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_points);
-    GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.edituv_fdots);
+  FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.edituv_data);
+    GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.fdots_edituv_data);
+    GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_tris);
+    GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_lines);
+    GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_points);
+    GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_fdots);
   }
-  DRWBatchFlag batch_map = MDEPS_CREATE_MAP(vbo.edituv_data,
-                                            vbo.fdots_edituv_data,
-                                            ibo.edituv_tris,
-                                            ibo.edituv_lines,
-                                            ibo.edituv_points,
-                                            ibo.edituv_fdots);
+  DRWBatchFlag batch_map = BATCH_MAP(vbo.edituv_data,
+                                     vbo.fdots_edituv_data,
+                                     ibo.edituv_tris,
+                                     ibo.edituv_lines,
+                                     ibo.edituv_points,
+                                     ibo.edituv_fdots);
   mesh_batch_cache_discard_batch(cache, batch_map);
 }
 
@@ -794,11 +797,11 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
   DRWBatchFlag batch_map;
   switch (mode) {
     case BKE_MESH_BATCH_DIRTY_SELECT:
-      FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edit_data);
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_nor);
+      FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.edit_data);
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.fdots_nor);
       }
-      batch_map = MDEPS_CREATE_MAP(vbo.edit_data, vbo.fdots_nor);
+      batch_map = BATCH_MAP(vbo.edit_data, vbo.fdots_nor);
       mesh_batch_cache_discard_batch(cache, batch_map);
 
       /* Because visible UVs depends on edit mode selection, discard topology. */
@@ -807,12 +810,12 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
     case BKE_MESH_BATCH_DIRTY_SELECT_PAINT:
       /* Paint mode selection flag is packed inside the nor attribute.
        * Note that it can be slow if auto smooth is enabled. (see T63946) */
-      FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-        GPU_INDEXBUF_DISCARD_SAFE(mbufcache->ibo.lines_paint_mask);
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.pos_nor);
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.lnor);
+      FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+        GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.lines_paint_mask);
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.pos_nor);
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.lnor);
       }
-      batch_map = MDEPS_CREATE_MAP(ibo.lines_paint_mask, vbo.pos_nor, vbo.lnor);
+      batch_map = BATCH_MAP(ibo.lines_paint_mask, vbo.pos_nor, vbo.lnor);
       mesh_batch_cache_discard_batch(cache, batch_map);
       break;
     case BKE_MESH_BATCH_DIRTY_ALL:
@@ -826,11 +829,11 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
       mesh_batch_cache_discard_uvedit(cache);
       break;
     case BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT:
-      FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.edituv_data);
-        GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.fdots_edituv_data);
+      FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.edituv_data);
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.fdots_edituv_data);
       }
-      batch_map = MDEPS_CREATE_MAP(vbo.edituv_data, vbo.fdots_edituv_data);
+      batch_map = BATCH_MAP(vbo.edituv_data, vbo.fdots_edituv_data);
       mesh_batch_cache_discard_batch(cache, batch_map);
       break;
     default:
@@ -838,28 +841,30 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
   }
 }
 
-static void mesh_buffer_cache_clear(MeshBufferCache *mbufcache)
+static void mesh_buffer_list_clear(MeshBufferList *mbuflist)
 {
-  GPUVertBuf **vbos = (GPUVertBuf **)&mbufcache->vbo;
-  GPUIndexBuf **ibos = (GPUIndexBuf **)&mbufcache->ibo;
-  for (int i = 0; i < sizeof(mbufcache->vbo) / sizeof(void *); i++) {
+  GPUVertBuf **vbos = (GPUVertBuf **)&mbuflist->vbo;
+  GPUIndexBuf **ibos = (GPUIndexBuf **)&mbuflist->ibo;
+  for (int i = 0; i < sizeof(mbuflist->vbo) / sizeof(void *); i++) {
     GPU_VERTBUF_DISCARD_SAFE(vbos[i]);
   }
-  for (int i = 0; i < sizeof(mbufcache->ibo) / sizeof(void *); i++) {
+  for (int i = 0; i < sizeof(mbuflist->ibo) / sizeof(void *); i++) {
     GPU_INDEXBUF_DISCARD_SAFE(ibos[i]);
   }
 }
 
-static void mesh_buffer_extraction_cache_clear(MeshBufferExtractionCache *extraction_cache)
+static void mesh_buffer_cache_clear(MeshBufferCache *mbc)
 {
-  MEM_SAFE_FREE(extraction_cache->loose_geom.verts);
-  MEM_SAFE_FREE(extraction_cache->loose_geom.edges);
-  extraction_cache->loose_geom.edge_len = 0;
-  extraction_cache->loose_geom.vert_len = 0;
+  mesh_buffer_list_clear(&mbc->buff);
 
-  MEM_SAFE_FREE(extraction_cache->poly_sorted.tri_first_index);
-  MEM_SAFE_FREE(extraction_cache->poly_sorted.mat_tri_len);
-  extraction_cache->poly_sorted.visible_tri_len = 0;
+  MEM_SAFE_FREE(mbc->loose_geom.verts);
+  MEM_SAFE_FREE(mbc->loose_geom.edges);
+  mbc->loose_geom.edge_len = 0;
+  mbc->loose_geom.vert_len = 0;
+
+  MEM_SAFE_FREE(mbc->poly_sorted.tri_first_index);
+  MEM_SAFE_FREE(mbc->poly_sorted.mat_tri_len);
+  mbc->poly_sorted.visible_tri_len = 0;
 }
 
 static void mesh_batch_cache_clear(Mesh *me)
@@ -868,18 +873,14 @@ static void mesh_batch_cache_clear(Mesh *me)
   if (!cache) {
     return;
   }
-  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    mesh_buffer_cache_clear(mbufcache);
+  FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+    mesh_buffer_cache_clear(mbc);
   }
-
-  mesh_buffer_extraction_cache_clear(&cache->final_extraction_cache);
-  mesh_buffer_extraction_cache_clear(&cache->cage_extraction_cache);
-  mesh_buffer_extraction_cache_clear(&cache->uv_cage_extraction_cache);
 
   for (int i = 0; i < cache->mat_len; i++) {
-    GPU_INDEXBUF_DISCARD_SAFE(cache->final.tris_per_mat[i]);
+    GPU_INDEXBUF_DISCARD_SAFE(cache->tris_per_mat[i]);
   }
-  MEM_SAFE_FREE(cache->final.tris_per_mat);
+  MEM_SAFE_FREE(cache->tris_per_mat);
 
   for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
     GPUBatch **batch = (GPUBatch **)&cache->batch;
@@ -1083,8 +1084,8 @@ GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh *me)
   /* Request surface to trigger the vbo filling. Otherwise it may do nothing. */
   mesh_batch_cache_request_surface_batches(cache);
 
-  DRW_vbo_request(NULL, &cache->final.vbo.pos_nor);
-  return cache->final.vbo.pos_nor;
+  DRW_vbo_request(NULL, &cache->final.buff.vbo.pos_nor);
+  return cache->final.buff.vbo.pos_nor;
 }
 
 /** \} */
@@ -1316,22 +1317,22 @@ static void drw_mesh_batch_cache_check_available(struct TaskGraph *task_graph, M
     BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
   }
   for (int i = 0; i < MBC_VBO_LEN; i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->final.vbo)[i]));
+    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->final.buff.vbo)[i]));
   }
   for (int i = 0; i < MBC_IBO_LEN; i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->final.ibo)[i]));
+    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->final.buff.ibo)[i]));
   }
   for (int i = 0; i < MBC_VBO_LEN; i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->cage.vbo)[i]));
+    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->cage.buff.vbo)[i]));
   }
   for (int i = 0; i < MBC_IBO_LEN; i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->cage.ibo)[i]));
+    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->cage.buff.ibo)[i]));
   }
   for (int i = 0; i < MBC_VBO_LEN; i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->uv_cage.vbo)[i]));
+    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->uv_cage.buff.vbo)[i]));
   }
   for (int i = 0; i < MBC_IBO_LEN; i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->uv_cage.ibo)[i]));
+    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->uv_cage.buff.ibo)[i]));
   }
 }
 #endif
@@ -1414,25 +1415,25 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
      * material. */
     bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_used, cache->cd_needed);
     if (cd_overlap == false) {
-      FOREACH_MESH_BUFFER_CACHE (cache, mbuffercache) {
+      FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
         if ((cache->cd_used.uv & cache->cd_needed.uv) != cache->cd_needed.uv) {
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.uv);
+          GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.uv);
           cd_uv_update = true;
         }
         if ((cache->cd_used.tan & cache->cd_needed.tan) != cache->cd_needed.tan ||
             cache->cd_used.tan_orco != cache->cd_needed.tan_orco) {
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.tan);
+          GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.tan);
         }
         if (cache->cd_used.orco != cache->cd_needed.orco) {
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.orco);
+          GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.orco);
         }
         if (cache->cd_used.sculpt_overlays != cache->cd_needed.sculpt_overlays) {
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.sculpt_data);
+          GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.sculpt_data);
         }
         if (((cache->cd_used.vcol & cache->cd_needed.vcol) != cache->cd_needed.vcol) ||
             ((cache->cd_used.sculpt_vcol & cache->cd_needed.sculpt_vcol) !=
              cache->cd_needed.sculpt_vcol)) {
-          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.vcol);
+          GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.vcol);
         }
       }
       /* We can't discard batches at this point as they have been
@@ -1454,14 +1455,14 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
     const bool is_uvsyncsel = ts && (ts->uv_flag & UV_SYNC_SELECTION);
     if (cd_uv_update || (cache->is_uvsyncsel != is_uvsyncsel)) {
       cache->is_uvsyncsel = is_uvsyncsel;
-      FOREACH_MESH_BUFFER_CACHE (cache, mbuffercache) {
-        GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.edituv_data);
-        GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.fdots_uv);
-        GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.fdots_edituv_data);
-        GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_tris);
-        GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_lines);
-        GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_points);
-        GPU_INDEXBUF_DISCARD_SAFE(mbuffercache->ibo.edituv_fdots);
+      FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.edituv_data);
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.fdots_uv);
+        GPU_VERTBUF_DISCARD_SAFE(mbc->buff.vbo.fdots_edituv_data);
+        GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_tris);
+        GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_lines);
+        GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_points);
+        GPU_INDEXBUF_DISCARD_SAFE(mbc->buff.ibo.edituv_fdots);
       }
       /* We only clear the batches as they may already have been
        * referenced. */
@@ -1502,173 +1503,174 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   const bool do_uvcage = is_editmode && !me->edit_mesh->mesh_eval_final->runtime.is_original;
 
-  MeshBufferCache *mbufcache = &cache->final;
+  MeshBufferList *mbuflist = &cache->final.buff;
 
   /* Initialize batches and request VBO's & IBO's. */
-  MDEPS_ASSERT(batch.surface, ibo.tris, vbo.lnor, vbo.pos_nor, vbo.uv, vbo.vcol);
+  MDEPS_ASSERT(surface, ibo.tris, vbo.lnor, vbo.pos_nor, vbo.uv, vbo.vcol);
   if (DRW_batch_requested(cache->batch.surface, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.surface, &mbufcache->ibo.tris);
+    DRW_ibo_request(cache->batch.surface, &mbuflist->ibo.tris);
     /* Order matters. First ones override latest VBO's attributes. */
-    DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.lnor);
-    DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.surface, &mbuflist->vbo.lnor);
+    DRW_vbo_request(cache->batch.surface, &mbuflist->vbo.pos_nor);
     if (cache->cd_used.uv != 0) {
-      DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.uv);
+      DRW_vbo_request(cache->batch.surface, &mbuflist->vbo.uv);
     }
     if (cache->cd_used.vcol != 0 || cache->cd_used.sculpt_vcol != 0) {
-      DRW_vbo_request(cache->batch.surface, &mbufcache->vbo.vcol);
+      DRW_vbo_request(cache->batch.surface, &mbuflist->vbo.vcol);
     }
   }
-  MDEPS_ASSERT(batch.all_verts, vbo.pos_nor);
+  MDEPS_ASSERT(all_verts, vbo.pos_nor);
   if (DRW_batch_requested(cache->batch.all_verts, GPU_PRIM_POINTS)) {
-    DRW_vbo_request(cache->batch.all_verts, &mbufcache->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.all_verts, &mbuflist->vbo.pos_nor);
   }
-  MDEPS_ASSERT(batch.sculpt_overlays, ibo.tris, vbo.pos_nor, vbo.sculpt_data);
+  MDEPS_ASSERT(sculpt_overlays, ibo.tris, vbo.pos_nor, vbo.sculpt_data);
   if (DRW_batch_requested(cache->batch.sculpt_overlays, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.sculpt_overlays, &mbufcache->ibo.tris);
-    DRW_vbo_request(cache->batch.sculpt_overlays, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.sculpt_overlays, &mbufcache->vbo.sculpt_data);
+    DRW_ibo_request(cache->batch.sculpt_overlays, &mbuflist->ibo.tris);
+    DRW_vbo_request(cache->batch.sculpt_overlays, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.sculpt_overlays, &mbuflist->vbo.sculpt_data);
   }
-  MDEPS_ASSERT(batch.all_edges, ibo.lines, vbo.pos_nor);
+  MDEPS_ASSERT(all_edges, ibo.lines, vbo.pos_nor);
   if (DRW_batch_requested(cache->batch.all_edges, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.all_edges, &mbufcache->ibo.lines);
-    DRW_vbo_request(cache->batch.all_edges, &mbufcache->vbo.pos_nor);
+    DRW_ibo_request(cache->batch.all_edges, &mbuflist->ibo.lines);
+    DRW_vbo_request(cache->batch.all_edges, &mbuflist->vbo.pos_nor);
   }
-  MDEPS_ASSERT(batch.loose_edges, ibo.lines_loose, vbo.pos_nor);
+  MDEPS_ASSERT(loose_edges, ibo.lines_loose, vbo.pos_nor);
   if (DRW_batch_requested(cache->batch.loose_edges, GPU_PRIM_LINES)) {
-    DRW_ibo_request(NULL, &mbufcache->ibo.lines);
-    DRW_ibo_request(cache->batch.loose_edges, &mbufcache->ibo.lines_loose);
-    DRW_vbo_request(cache->batch.loose_edges, &mbufcache->vbo.pos_nor);
+    DRW_ibo_request(NULL, &mbuflist->ibo.lines);
+    DRW_ibo_request(cache->batch.loose_edges, &mbuflist->ibo.lines_loose);
+    DRW_vbo_request(cache->batch.loose_edges, &mbuflist->vbo.pos_nor);
   }
-  MDEPS_ASSERT(batch.edge_detection, ibo.lines_adjacency, vbo.pos_nor);
+  MDEPS_ASSERT(edge_detection, ibo.lines_adjacency, vbo.pos_nor);
   if (DRW_batch_requested(cache->batch.edge_detection, GPU_PRIM_LINES_ADJ)) {
-    DRW_ibo_request(cache->batch.edge_detection, &mbufcache->ibo.lines_adjacency);
-    DRW_vbo_request(cache->batch.edge_detection, &mbufcache->vbo.pos_nor);
+    DRW_ibo_request(cache->batch.edge_detection, &mbuflist->ibo.lines_adjacency);
+    DRW_vbo_request(cache->batch.edge_detection, &mbuflist->vbo.pos_nor);
   }
-  MDEPS_ASSERT(batch.surface_weights, ibo.tris, vbo.pos_nor, vbo.weights);
+  MDEPS_ASSERT(surface_weights, ibo.tris, vbo.pos_nor, vbo.weights);
   if (DRW_batch_requested(cache->batch.surface_weights, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.surface_weights, &mbufcache->ibo.tris);
-    DRW_vbo_request(cache->batch.surface_weights, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.surface_weights, &mbufcache->vbo.weights);
+    DRW_ibo_request(cache->batch.surface_weights, &mbuflist->ibo.tris);
+    DRW_vbo_request(cache->batch.surface_weights, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.surface_weights, &mbuflist->vbo.weights);
   }
-  MDEPS_ASSERT(batch.wire_loops, ibo.lines_paint_mask, vbo.lnor, vbo.pos_nor);
+  MDEPS_ASSERT(wire_loops, ibo.lines_paint_mask, vbo.lnor, vbo.pos_nor);
   if (DRW_batch_requested(cache->batch.wire_loops, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.wire_loops, &mbufcache->ibo.lines_paint_mask);
+    DRW_ibo_request(cache->batch.wire_loops, &mbuflist->ibo.lines_paint_mask);
     /* Order matters. First ones override latest VBO's attributes. */
-    DRW_vbo_request(cache->batch.wire_loops, &mbufcache->vbo.lnor);
-    DRW_vbo_request(cache->batch.wire_loops, &mbufcache->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.wire_loops, &mbuflist->vbo.lnor);
+    DRW_vbo_request(cache->batch.wire_loops, &mbuflist->vbo.pos_nor);
   }
-  MDEPS_ASSERT(batch.wire_edges, ibo.lines, vbo.pos_nor, vbo.edge_fac);
+  MDEPS_ASSERT(wire_edges, ibo.lines, vbo.pos_nor, vbo.edge_fac);
   if (DRW_batch_requested(cache->batch.wire_edges, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.wire_edges, &mbufcache->ibo.lines);
-    DRW_vbo_request(cache->batch.wire_edges, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.wire_edges, &mbufcache->vbo.edge_fac);
+    DRW_ibo_request(cache->batch.wire_edges, &mbuflist->ibo.lines);
+    DRW_vbo_request(cache->batch.wire_edges, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.wire_edges, &mbuflist->vbo.edge_fac);
   }
-  MDEPS_ASSERT(batch.wire_loops_uvs, ibo.edituv_lines, vbo.uv);
+  MDEPS_ASSERT(wire_loops_uvs, ibo.edituv_lines, vbo.uv);
   if (DRW_batch_requested(cache->batch.wire_loops_uvs, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.wire_loops_uvs, &mbufcache->ibo.edituv_lines);
+    DRW_ibo_request(cache->batch.wire_loops_uvs, &mbuflist->ibo.edituv_lines);
     /* For paint overlay. Active layer should have been queried. */
     if (cache->cd_used.uv != 0) {
-      DRW_vbo_request(cache->batch.wire_loops_uvs, &mbufcache->vbo.uv);
+      DRW_vbo_request(cache->batch.wire_loops_uvs, &mbuflist->vbo.uv);
     }
   }
-  MDEPS_ASSERT(batch.edit_mesh_analysis, ibo.tris, vbo.pos_nor, vbo.mesh_analysis);
+  MDEPS_ASSERT(edit_mesh_analysis, ibo.tris, vbo.pos_nor, vbo.mesh_analysis);
   if (DRW_batch_requested(cache->batch.edit_mesh_analysis, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.edit_mesh_analysis, &mbufcache->ibo.tris);
-    DRW_vbo_request(cache->batch.edit_mesh_analysis, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_mesh_analysis, &mbufcache->vbo.mesh_analysis);
+    DRW_ibo_request(cache->batch.edit_mesh_analysis, &mbuflist->ibo.tris);
+    DRW_vbo_request(cache->batch.edit_mesh_analysis, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.edit_mesh_analysis, &mbuflist->vbo.mesh_analysis);
   }
 
   /* Per Material */
-  MDEPS_ASSERT(
-      surface_per_mat, tris_per_mat, vbo.lnor, vbo.pos_nor, vbo.uv, vbo.tan, vbo.vcol, vbo.orco);
+  MDEPS_ASSERT_FLAG(
+      SURFACE_PER_MAT_FLAG, vbo.lnor, vbo.pos_nor, vbo.uv, vbo.tan, vbo.vcol, vbo.orco);
+  MDEPS_ASSERT_INDEX(TRIS_PER_MAT_INDEX, SURFACE_PER_MAT_FLAG);
   for (int i = 0; i < cache->mat_len; i++) {
     if (DRW_batch_requested(cache->surface_per_mat[i], GPU_PRIM_TRIS)) {
-      DRW_ibo_request(cache->surface_per_mat[i], &mbufcache->tris_per_mat[i]);
+      DRW_ibo_request(cache->surface_per_mat[i], &cache->tris_per_mat[i]);
       /* Order matters. First ones override latest VBO's attributes. */
-      DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.lnor);
-      DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.pos_nor);
+      DRW_vbo_request(cache->surface_per_mat[i], &mbuflist->vbo.lnor);
+      DRW_vbo_request(cache->surface_per_mat[i], &mbuflist->vbo.pos_nor);
       if (cache->cd_used.uv != 0) {
-        DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.uv);
+        DRW_vbo_request(cache->surface_per_mat[i], &mbuflist->vbo.uv);
       }
       if ((cache->cd_used.tan != 0) || (cache->cd_used.tan_orco != 0)) {
-        DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.tan);
+        DRW_vbo_request(cache->surface_per_mat[i], &mbuflist->vbo.tan);
       }
       if (cache->cd_used.vcol != 0 || cache->cd_used.sculpt_vcol != 0) {
-        DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.vcol);
+        DRW_vbo_request(cache->surface_per_mat[i], &mbuflist->vbo.vcol);
       }
       if (cache->cd_used.orco != 0) {
-        DRW_vbo_request(cache->surface_per_mat[i], &mbufcache->vbo.orco);
+        DRW_vbo_request(cache->surface_per_mat[i], &mbuflist->vbo.orco);
       }
     }
   }
 
-  mbufcache = (do_cage) ? &cache->cage : &cache->final;
+  mbuflist = (do_cage) ? &cache->cage.buff : &cache->final.buff;
 
   /* Edit Mesh */
-  MDEPS_ASSERT(batch.edit_triangles, ibo.tris, vbo.pos_nor, vbo.edit_data);
+  MDEPS_ASSERT(edit_triangles, ibo.tris, vbo.pos_nor, vbo.edit_data);
   if (DRW_batch_requested(cache->batch.edit_triangles, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.edit_triangles, &mbufcache->ibo.tris);
-    DRW_vbo_request(cache->batch.edit_triangles, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_triangles, &mbufcache->vbo.edit_data);
+    DRW_ibo_request(cache->batch.edit_triangles, &mbuflist->ibo.tris);
+    DRW_vbo_request(cache->batch.edit_triangles, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.edit_triangles, &mbuflist->vbo.edit_data);
   }
-  MDEPS_ASSERT(batch.edit_vertices, ibo.points, vbo.pos_nor, vbo.edit_data);
+  MDEPS_ASSERT(edit_vertices, ibo.points, vbo.pos_nor, vbo.edit_data);
   if (DRW_batch_requested(cache->batch.edit_vertices, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edit_vertices, &mbufcache->ibo.points);
-    DRW_vbo_request(cache->batch.edit_vertices, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_vertices, &mbufcache->vbo.edit_data);
+    DRW_ibo_request(cache->batch.edit_vertices, &mbuflist->ibo.points);
+    DRW_vbo_request(cache->batch.edit_vertices, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.edit_vertices, &mbuflist->vbo.edit_data);
   }
-  MDEPS_ASSERT(batch.edit_edges, ibo.lines, vbo.pos_nor, vbo.edit_data);
+  MDEPS_ASSERT(edit_edges, ibo.lines, vbo.pos_nor, vbo.edit_data);
   if (DRW_batch_requested(cache->batch.edit_edges, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.edit_edges, &mbufcache->ibo.lines);
-    DRW_vbo_request(cache->batch.edit_edges, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_edges, &mbufcache->vbo.edit_data);
+    DRW_ibo_request(cache->batch.edit_edges, &mbuflist->ibo.lines);
+    DRW_vbo_request(cache->batch.edit_edges, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.edit_edges, &mbuflist->vbo.edit_data);
   }
-  MDEPS_ASSERT(batch.edit_vnor, ibo.points, vbo.pos_nor);
+  MDEPS_ASSERT(edit_vnor, ibo.points, vbo.pos_nor);
   if (DRW_batch_requested(cache->batch.edit_vnor, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edit_vnor, &mbufcache->ibo.points);
-    DRW_vbo_request(cache->batch.edit_vnor, &mbufcache->vbo.pos_nor);
+    DRW_ibo_request(cache->batch.edit_vnor, &mbuflist->ibo.points);
+    DRW_vbo_request(cache->batch.edit_vnor, &mbuflist->vbo.pos_nor);
   }
-  MDEPS_ASSERT(batch.edit_lnor, ibo.tris, vbo.pos_nor, vbo.lnor);
+  MDEPS_ASSERT(edit_lnor, ibo.tris, vbo.pos_nor, vbo.lnor);
   if (DRW_batch_requested(cache->batch.edit_lnor, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edit_lnor, &mbufcache->ibo.tris);
-    DRW_vbo_request(cache->batch.edit_lnor, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_lnor, &mbufcache->vbo.lnor);
+    DRW_ibo_request(cache->batch.edit_lnor, &mbuflist->ibo.tris);
+    DRW_vbo_request(cache->batch.edit_lnor, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.edit_lnor, &mbuflist->vbo.lnor);
   }
-  MDEPS_ASSERT(batch.edit_fdots, ibo.fdots, vbo.fdots_pos, vbo.fdots_nor);
+  MDEPS_ASSERT(edit_fdots, ibo.fdots, vbo.fdots_pos, vbo.fdots_nor);
   if (DRW_batch_requested(cache->batch.edit_fdots, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edit_fdots, &mbufcache->ibo.fdots);
-    DRW_vbo_request(cache->batch.edit_fdots, &mbufcache->vbo.fdots_pos);
-    DRW_vbo_request(cache->batch.edit_fdots, &mbufcache->vbo.fdots_nor);
+    DRW_ibo_request(cache->batch.edit_fdots, &mbuflist->ibo.fdots);
+    DRW_vbo_request(cache->batch.edit_fdots, &mbuflist->vbo.fdots_pos);
+    DRW_vbo_request(cache->batch.edit_fdots, &mbuflist->vbo.fdots_nor);
   }
-  MDEPS_ASSERT(batch.edit_skin_roots, vbo.skin_roots);
+  MDEPS_ASSERT(edit_skin_roots, vbo.skin_roots);
   if (DRW_batch_requested(cache->batch.edit_skin_roots, GPU_PRIM_POINTS)) {
-    DRW_vbo_request(cache->batch.edit_skin_roots, &mbufcache->vbo.skin_roots);
+    DRW_vbo_request(cache->batch.edit_skin_roots, &mbuflist->vbo.skin_roots);
   }
 
   /* Selection */
-  MDEPS_ASSERT(batch.edit_selection_verts, ibo.points, vbo.pos_nor, vbo.vert_idx);
+  MDEPS_ASSERT(edit_selection_verts, ibo.points, vbo.pos_nor, vbo.vert_idx);
   if (DRW_batch_requested(cache->batch.edit_selection_verts, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edit_selection_verts, &mbufcache->ibo.points);
-    DRW_vbo_request(cache->batch.edit_selection_verts, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_selection_verts, &mbufcache->vbo.vert_idx);
+    DRW_ibo_request(cache->batch.edit_selection_verts, &mbuflist->ibo.points);
+    DRW_vbo_request(cache->batch.edit_selection_verts, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.edit_selection_verts, &mbuflist->vbo.vert_idx);
   }
-  MDEPS_ASSERT(batch.edit_selection_edges, ibo.lines, vbo.pos_nor, vbo.edge_idx);
+  MDEPS_ASSERT(edit_selection_edges, ibo.lines, vbo.pos_nor, vbo.edge_idx);
   if (DRW_batch_requested(cache->batch.edit_selection_edges, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.edit_selection_edges, &mbufcache->ibo.lines);
-    DRW_vbo_request(cache->batch.edit_selection_edges, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_selection_edges, &mbufcache->vbo.edge_idx);
+    DRW_ibo_request(cache->batch.edit_selection_edges, &mbuflist->ibo.lines);
+    DRW_vbo_request(cache->batch.edit_selection_edges, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.edit_selection_edges, &mbuflist->vbo.edge_idx);
   }
-  MDEPS_ASSERT(batch.edit_selection_faces, ibo.tris, vbo.pos_nor, vbo.poly_idx);
+  MDEPS_ASSERT(edit_selection_faces, ibo.tris, vbo.pos_nor, vbo.poly_idx);
   if (DRW_batch_requested(cache->batch.edit_selection_faces, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.edit_selection_faces, &mbufcache->ibo.tris);
-    DRW_vbo_request(cache->batch.edit_selection_faces, &mbufcache->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_selection_faces, &mbufcache->vbo.poly_idx);
+    DRW_ibo_request(cache->batch.edit_selection_faces, &mbuflist->ibo.tris);
+    DRW_vbo_request(cache->batch.edit_selection_faces, &mbuflist->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.edit_selection_faces, &mbuflist->vbo.poly_idx);
   }
-  MDEPS_ASSERT(batch.edit_selection_fdots, ibo.fdots, vbo.fdots_pos, vbo.fdot_idx);
+  MDEPS_ASSERT(edit_selection_fdots, ibo.fdots, vbo.fdots_pos, vbo.fdot_idx);
   if (DRW_batch_requested(cache->batch.edit_selection_fdots, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edit_selection_fdots, &mbufcache->ibo.fdots);
-    DRW_vbo_request(cache->batch.edit_selection_fdots, &mbufcache->vbo.fdots_pos);
-    DRW_vbo_request(cache->batch.edit_selection_fdots, &mbufcache->vbo.fdot_idx);
+    DRW_ibo_request(cache->batch.edit_selection_fdots, &mbuflist->ibo.fdots);
+    DRW_vbo_request(cache->batch.edit_selection_fdots, &mbuflist->vbo.fdots_pos);
+    DRW_vbo_request(cache->batch.edit_selection_fdots, &mbuflist->vbo.fdot_idx);
   }
 
   /**
@@ -1676,54 +1678,54 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
    * but the selection code for UVs needs to support it first. So for now, only
    * display the cage in all cases.
    */
-  mbufcache = (do_uvcage) ? &cache->uv_cage : &cache->final;
+  mbuflist = (do_uvcage) ? &cache->uv_cage.buff : &cache->final.buff;
 
   /* Edit UV */
-  MDEPS_ASSERT(batch.edituv_faces, ibo.edituv_tris, vbo.uv, vbo.edituv_data);
+  MDEPS_ASSERT(edituv_faces, ibo.edituv_tris, vbo.uv, vbo.edituv_data);
   if (DRW_batch_requested(cache->batch.edituv_faces, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.edituv_faces, &mbufcache->ibo.edituv_tris);
-    DRW_vbo_request(cache->batch.edituv_faces, &mbufcache->vbo.uv);
-    DRW_vbo_request(cache->batch.edituv_faces, &mbufcache->vbo.edituv_data);
+    DRW_ibo_request(cache->batch.edituv_faces, &mbuflist->ibo.edituv_tris);
+    DRW_vbo_request(cache->batch.edituv_faces, &mbuflist->vbo.uv);
+    DRW_vbo_request(cache->batch.edituv_faces, &mbuflist->vbo.edituv_data);
   }
-  MDEPS_ASSERT(batch.edituv_faces_stretch_area,
+  MDEPS_ASSERT(edituv_faces_stretch_area,
                ibo.edituv_tris,
                vbo.uv,
                vbo.edituv_data,
                vbo.edituv_stretch_area);
   if (DRW_batch_requested(cache->batch.edituv_faces_stretch_area, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->ibo.edituv_tris);
-    DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->vbo.uv);
-    DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->vbo.edituv_data);
-    DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbufcache->vbo.edituv_stretch_area);
+    DRW_ibo_request(cache->batch.edituv_faces_stretch_area, &mbuflist->ibo.edituv_tris);
+    DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbuflist->vbo.uv);
+    DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbuflist->vbo.edituv_data);
+    DRW_vbo_request(cache->batch.edituv_faces_stretch_area, &mbuflist->vbo.edituv_stretch_area);
   }
-  MDEPS_ASSERT(batch.edituv_faces_stretch_angle,
+  MDEPS_ASSERT(edituv_faces_stretch_angle,
                ibo.edituv_tris,
                vbo.uv,
                vbo.edituv_data,
                vbo.edituv_stretch_angle);
   if (DRW_batch_requested(cache->batch.edituv_faces_stretch_angle, GPU_PRIM_TRIS)) {
-    DRW_ibo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->ibo.edituv_tris);
-    DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->vbo.uv);
-    DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->vbo.edituv_data);
-    DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbufcache->vbo.edituv_stretch_angle);
+    DRW_ibo_request(cache->batch.edituv_faces_stretch_angle, &mbuflist->ibo.edituv_tris);
+    DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbuflist->vbo.uv);
+    DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbuflist->vbo.edituv_data);
+    DRW_vbo_request(cache->batch.edituv_faces_stretch_angle, &mbuflist->vbo.edituv_stretch_angle);
   }
-  MDEPS_ASSERT(batch.edituv_edges, ibo.edituv_lines, vbo.uv, vbo.edituv_data);
+  MDEPS_ASSERT(edituv_edges, ibo.edituv_lines, vbo.uv, vbo.edituv_data);
   if (DRW_batch_requested(cache->batch.edituv_edges, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.edituv_edges, &mbufcache->ibo.edituv_lines);
-    DRW_vbo_request(cache->batch.edituv_edges, &mbufcache->vbo.uv);
-    DRW_vbo_request(cache->batch.edituv_edges, &mbufcache->vbo.edituv_data);
+    DRW_ibo_request(cache->batch.edituv_edges, &mbuflist->ibo.edituv_lines);
+    DRW_vbo_request(cache->batch.edituv_edges, &mbuflist->vbo.uv);
+    DRW_vbo_request(cache->batch.edituv_edges, &mbuflist->vbo.edituv_data);
   }
-  MDEPS_ASSERT(batch.edituv_verts, ibo.edituv_points, vbo.uv, vbo.edituv_data);
+  MDEPS_ASSERT(edituv_verts, ibo.edituv_points, vbo.uv, vbo.edituv_data);
   if (DRW_batch_requested(cache->batch.edituv_verts, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edituv_verts, &mbufcache->ibo.edituv_points);
-    DRW_vbo_request(cache->batch.edituv_verts, &mbufcache->vbo.uv);
-    DRW_vbo_request(cache->batch.edituv_verts, &mbufcache->vbo.edituv_data);
+    DRW_ibo_request(cache->batch.edituv_verts, &mbuflist->ibo.edituv_points);
+    DRW_vbo_request(cache->batch.edituv_verts, &mbuflist->vbo.uv);
+    DRW_vbo_request(cache->batch.edituv_verts, &mbuflist->vbo.edituv_data);
   }
-  MDEPS_ASSERT(batch.edituv_fdots, ibo.edituv_fdots, vbo.fdots_uv, vbo.fdots_edituv_data);
+  MDEPS_ASSERT(edituv_fdots, ibo.edituv_fdots, vbo.fdots_uv, vbo.fdots_edituv_data);
   if (DRW_batch_requested(cache->batch.edituv_fdots, GPU_PRIM_POINTS)) {
-    DRW_ibo_request(cache->batch.edituv_fdots, &mbufcache->ibo.edituv_fdots);
-    DRW_vbo_request(cache->batch.edituv_fdots, &mbufcache->vbo.fdots_uv);
-    DRW_vbo_request(cache->batch.edituv_fdots, &mbufcache->vbo.fdots_edituv_data);
+    DRW_ibo_request(cache->batch.edituv_fdots, &mbuflist->ibo.edituv_fdots);
+    DRW_vbo_request(cache->batch.edituv_fdots, &mbuflist->vbo.fdots_uv);
+    DRW_vbo_request(cache->batch.edituv_fdots, &mbuflist->vbo.fdots_edituv_data);
   }
 
   MDEPS_ASSERT_MAP(vbo.lnor);
@@ -1762,7 +1764,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   MDEPS_ASSERT_MAP(ibo.edituv_points);
   MDEPS_ASSERT_MAP(ibo.edituv_fdots);
 
-  MDEPS_ASSERT_MAP(tris_per_mat);
+  MDEPS_ASSERT_MAP_INDEX(TRIS_PER_MAT_INDEX);
 
   /* Meh loose Scene const correctness here. */
   const bool use_subsurf_fdots = scene ? BKE_modifiers_uses_subsurf_facedots(scene, ob) : false;
@@ -1771,7 +1773,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
     mesh_buffer_cache_create_requested(task_graph,
                                        cache,
                                        &cache->uv_cage,
-                                       &cache->uv_cage_extraction_cache,
                                        me,
                                        is_editmode,
                                        is_paint_mode,
@@ -1789,7 +1790,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
     mesh_buffer_cache_create_requested(task_graph,
                                        cache,
                                        &cache->cage,
-                                       &cache->cage_extraction_cache,
                                        me,
                                        is_editmode,
                                        is_paint_mode,
@@ -1806,7 +1806,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   mesh_buffer_cache_create_requested(task_graph,
                                      cache,
                                      &cache->final,
-                                     &cache->final_extraction_cache,
                                      me,
                                      is_editmode,
                                      is_paint_mode,

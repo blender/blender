@@ -134,7 +134,7 @@ typedef struct wmXrAction {
   eXrAxisFlag *axis_flags;
 
   /** The currently active subaction path (if any) for modal actions. */
-  char **active_modal_path;
+  const char *active_modal_path;
 
   /** Operator to be called on XR events. */
   struct wmOperatorType *ot;
@@ -155,7 +155,7 @@ typedef struct wmXrAction {
 typedef struct wmXrHapticAction {
   struct wmXrHapticAction *next, *prev;
   wmXrAction *action;
-  const char **subaction_path;
+  const char *subaction_path;
   int64_t time_start;
 } wmXrHapticAction;
 
@@ -174,6 +174,7 @@ typedef struct wmXrActionSet {
 
 wmXrRuntimeData *wm_xr_runtime_data_create(void);
 void wm_xr_runtime_data_free(wmXrRuntimeData **runtime);
+void wm_xr_session_data_free(wmXrSessionState *state);
 
 void wm_xr_session_draw_data_update(const wmXrSessionState *state,
                                     const XrSessionSettings *settings,

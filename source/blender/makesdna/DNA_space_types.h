@@ -763,7 +763,7 @@ typedef struct FileSelectParams {
 typedef struct FileAssetSelectParams {
   FileSelectParams base_params;
 
-  AssetLibraryReference asset_library;
+  AssetLibraryReference asset_library_ref;
 
   short import_type; /* eFileAssetImportType */
   char _pad[6];

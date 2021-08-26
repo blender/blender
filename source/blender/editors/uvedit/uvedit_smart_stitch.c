@@ -265,26 +265,11 @@ static StitchPreviewer *stitch_preview_init(void)
 static void stitch_preview_delete(StitchPreviewer *stitch_preview)
 {
   if (stitch_preview) {
-    if (stitch_preview->preview_polys) {
-      MEM_freeN(stitch_preview->preview_polys);
-      stitch_preview->preview_polys = NULL;
-    }
-    if (stitch_preview->uvs_per_polygon) {
-      MEM_freeN(stitch_preview->uvs_per_polygon);
-      stitch_preview->uvs_per_polygon = NULL;
-    }
-    if (stitch_preview->preview_stitchable) {
-      MEM_freeN(stitch_preview->preview_stitchable);
-      stitch_preview->preview_stitchable = NULL;
-    }
-    if (stitch_preview->preview_unstitchable) {
-      MEM_freeN(stitch_preview->preview_unstitchable);
-      stitch_preview->preview_unstitchable = NULL;
-    }
-    if (stitch_preview->static_tris) {
-      MEM_freeN(stitch_preview->static_tris);
-      stitch_preview->static_tris = NULL;
-    }
+    MEM_SAFE_FREE(stitch_preview->preview_polys);
+    MEM_SAFE_FREE(stitch_preview->uvs_per_polygon);
+    MEM_SAFE_FREE(stitch_preview->preview_stitchable);
+    MEM_SAFE_FREE(stitch_preview->preview_unstitchable);
+    MEM_SAFE_FREE(stitch_preview->static_tris);
     MEM_freeN(stitch_preview);
   }
 }

@@ -155,6 +155,8 @@ typedef struct RenderResult {
   char *error;
 
   struct StampData *stamp_data;
+
+  bool passes_allocated;
 } RenderResult;
 
 typedef struct RenderStats {

@@ -36,6 +36,7 @@ KeyingDespillOperation::KeyingDespillOperation()
 
   this->m_pixelReader = nullptr;
   this->m_screenReader = nullptr;
+  flags.can_be_constant = true;
 }
 
 void KeyingDespillOperation::initExecution()
@@ -79,6 +80,34 @@ void KeyingDespillOperation::executePixelSampled(float output[4],
   const float amount_despill = this->m_despillFactor * amount;
   if (amount_despill > 0.0f) {
     output[screen_primary_channel] = pixelColor[screen_primary_channel] - amount_despill;
+  }
+}
+
+void KeyingDespillOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                          const rcti &area,
+                                                          Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *pixel_color = it.in(0);
+    const float *screen_color = it.in(1);
+
+    const int screen_primary_channel = max_axis_v3(screen_color);
+    const int other_1 = (screen_primary_channel + 1) % 3;
+    const int other_2 = (screen_primary_channel + 2) % 3;
+
+    const int min_channel = MIN2(other_1, other_2);
+    const int max_channel = MAX2(other_1, other_2);
+
+    const float average_value = m_colorBalance * pixel_color[min_channel] +
+                                (1.0f - m_colorBalance) * pixel_color[max_channel];
+    const float amount = (pixel_color[screen_primary_channel] - average_value);
+
+    copy_v4_v4(it.out, pixel_color);
+
+    const float amount_despill = m_despillFactor * amount;
+    if (amount_despill > 0.0f) {
+      it.out[screen_primary_channel] = pixel_color[screen_primary_channel] - amount_despill;
+    }
   }
 }
 

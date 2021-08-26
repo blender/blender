@@ -880,6 +880,8 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
   bNodeTree *ntree = snode->edittree;
   bNodeLinkDrag *nldrag = (bNodeLinkDrag *)op->customdata;
   bool do_tag_update = false;
+  /* View will be reset if no links connect. */
+  bool reset_view = true;
 
   /* avoid updates while applying links */
   ntree->is_updating = true;
@@ -917,6 +919,8 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
       if (link->tonode) {
         do_tag_update |= (do_tag_update || node_connected_to_output(bmain, ntree, link->tonode));
       }
+
+      reset_view = false;
     }
     else {
       nodeRemLink(ntree, link);
@@ -928,6 +932,10 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
   snode_notify(C, snode);
   if (do_tag_update) {
     snode_dag_update(C, snode);
+  }
+
+  if (reset_view) {
+    UI_view2d_edge_pan_cancel(C, &nldrag->pan_data);
   }
 
   BLI_remlink(&snode->runtime->linkdrag, nldrag);
@@ -1207,6 +1215,8 @@ static void node_link_cancel(bContext *C, wmOperator *op)
 
   BLI_remlink(&snode->runtime->linkdrag, nldrag);
 
+  UI_view2d_edge_pan_cancel(C, &nldrag->pan_data);
+
   BLI_freelistN(&nldrag->links);
   MEM_freeN(nldrag);
   clear_picking_highlight(&snode->edittree->links);
@@ -1258,7 +1268,8 @@ void NODE_OT_link(wmOperatorType *ot)
                                             NODE_EDGE_PAN_OUTSIDE_PAD,
                                             NODE_EDGE_PAN_SPEED_RAMP,
                                             NODE_EDGE_PAN_MAX_SPEED,
-                                            NODE_EDGE_PAN_DELAY);
+                                            NODE_EDGE_PAN_DELAY,
+                                            NODE_EDGE_PAN_ZOOM_INFLUENCE);
 }
 
 /** \} */

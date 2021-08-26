@@ -1007,15 +1007,8 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
       if (me->flag & ME_AUTOSMOOTH) {
         float(*polynors)[3] = MEM_mallocN(sizeof(*polynors) * (size_t)me->totpoly, __func__);
 
-        BKE_mesh_calc_normals_poly(me->mvert,
-                                   NULL,
-                                   me->totvert,
-                                   me->mloop,
-                                   me->mpoly,
-                                   me->totloop,
-                                   me->totpoly,
-                                   polynors,
-                                   true);
+        BKE_mesh_calc_normals_poly(
+            me->mvert, me->totvert, me->mloop, me->totloop, me->mpoly, me->totpoly, polynors);
 
         BKE_edges_sharp_from_angle_set(me->mvert,
                                        me->totvert,

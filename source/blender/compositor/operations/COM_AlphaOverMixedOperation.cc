@@ -23,6 +23,7 @@ namespace blender::compositor {
 AlphaOverMixedOperation::AlphaOverMixedOperation()
 {
   this->m_x = 0.0f;
+  this->flags.can_be_constant = true;
 }
 
 void AlphaOverMixedOperation::executePixelSampled(float output[4],
@@ -53,6 +54,32 @@ void AlphaOverMixedOperation::executePixelSampled(float output[4],
     output[1] = (mul * inputColor1[1]) + premul * inputOverColor[1];
     output[2] = (mul * inputColor1[2]) + premul * inputOverColor[2];
     output[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
+  }
+}
+
+void AlphaOverMixedOperation::update_memory_buffer_row(PixelCursor &p)
+{
+  for (; p.out < p.row_end; p.next()) {
+    const float *color1 = p.color1;
+    const float *over_color = p.color2;
+    const float value = *p.value;
+
+    if (over_color[3] <= 0.0f) {
+      copy_v4_v4(p.out, color1);
+    }
+    else if (value == 1.0f && over_color[3] >= 1.0f) {
+      copy_v4_v4(p.out, over_color);
+    }
+    else {
+      const float addfac = 1.0f - this->m_x + over_color[3] * this->m_x;
+      const float premul = value * addfac;
+      const float mul = 1.0f - value * over_color[3];
+
+      p.out[0] = (mul * color1[0]) + premul * over_color[0];
+      p.out[1] = (mul * color1[1]) + premul * over_color[1];
+      p.out[2] = (mul * color1[2]) + premul * over_color[2];
+      p.out[3] = (mul * color1[3]) + value * over_color[3];
+    }
   }
 }
 

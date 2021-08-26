@@ -95,7 +95,7 @@ void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh,
                                      const struct MLoopTri *looptri,
                                      int r_edges[3]);
 
-void BKE_mesh_free(struct Mesh *me);
+void BKE_mesh_free_data_for_undo(struct Mesh *me);
 void BKE_mesh_clear_geometry(struct Mesh *me);
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 void BKE_mesh_copy_parameters_for_eval(struct Mesh *me_dst, const struct Mesh *me_src);
@@ -143,11 +143,6 @@ int BKE_mesh_mface_index_validate(struct MFace *mface,
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
-void BKE_mesh_from_nurbs_displist(struct Main *bmain,
-                                  struct Object *ob,
-                                  struct ListBase *dispbase,
-                                  const char *obdata_name,
-                                  bool temporary);
 void BKE_mesh_to_curve_nurblist(const struct Mesh *me,
                                 struct ListBase *nurblist,
                                 const int edge_users_test);
@@ -281,39 +276,21 @@ void BKE_mesh_recalc_looptri_with_normals(const struct MLoop *mloop,
 /* *** mesh_normals.cc *** */
 
 void BKE_mesh_normals_tag_dirty(struct Mesh *mesh);
-void BKE_mesh_calc_normals_mapping_simple(struct Mesh *me);
-void BKE_mesh_calc_normals_mapping(struct MVert *mverts,
-                                   int numVerts,
-                                   const struct MLoop *mloop,
-                                   const struct MPoly *mpolys,
-                                   int numLoops,
-                                   int numPolys,
-                                   float (*r_polyNors)[3],
-                                   const struct MFace *mfaces,
-                                   int numFaces,
-                                   const int *origIndexFace,
-                                   float (*r_faceNors)[3]);
-void BKE_mesh_calc_normals_mapping_ex(struct MVert *mverts,
-                                      int numVerts,
-                                      const struct MLoop *mloop,
-                                      const struct MPoly *mpolys,
-                                      int numLoops,
-                                      int numPolys,
-                                      float (*r_polyNors)[3],
-                                      const struct MFace *mfaces,
-                                      int numFaces,
-                                      const int *origIndexFace,
-                                      float (*r_faceNors)[3],
-                                      const bool only_face_normals);
-void BKE_mesh_calc_normals_poly(struct MVert *mverts,
-                                float (*r_vertnors)[3],
-                                int numVerts,
+void BKE_mesh_calc_normals_poly(const struct MVert *mvert,
+                                int mvert_len,
                                 const struct MLoop *mloop,
-                                const struct MPoly *mpolys,
-                                int numLoops,
-                                int numPolys,
-                                float (*r_polyNors)[3],
-                                const bool only_face_normals);
+                                int mloop_len,
+                                const struct MPoly *mpoly,
+                                int mpoly_len,
+                                float (*r_poly_normals)[3]);
+void BKE_mesh_calc_normals_poly_and_vertex(struct MVert *mvert,
+                                           int mvert_len,
+                                           const struct MLoop *mloop,
+                                           int mloop_len,
+                                           const struct MPoly *mpolys,
+                                           int mpoly_len,
+                                           float (*r_poly_normals)[3],
+                                           float (*r_vert_normals)[3]);
 void BKE_mesh_calc_normals(struct Mesh *me);
 void BKE_mesh_ensure_normals(struct Mesh *me);
 void BKE_mesh_ensure_normals_for_display(struct Mesh *mesh);

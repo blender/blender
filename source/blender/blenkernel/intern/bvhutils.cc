@@ -1254,11 +1254,10 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
     bool in_cache = bvhcache_find(
         bvh_cache_p, bvh_cache_type, &tree, &lock_started, mesh_eval_mutex);
     BVHCache *bvh_cache = *bvh_cache_p;
-    bvhtree_balance(tree, true);
-
     if (in_cache == false) {
       tree = bvhtree_from_editmesh_looptri_create_tree(
           epsilon, tree_type, axis, em, looptri_mask, looptri_num_active);
+      bvhtree_balance(tree, true);
 
       /* Save on cache for later use */
       // printf("BVHTree built and saved on cache\n");

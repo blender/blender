@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
@@ -75,6 +77,8 @@
 #include "WM_types.h"
 
 #include "wm_files.h"
+
+static CLG_LogRef LOG = {"wm.files_link"};
 
 /* -------------------------------------------------------------------- */
 /** \name Link/Append Operator
@@ -315,7 +319,7 @@ static bool wm_link_append_item_poll(ReportList *reports,
   short idcode;
 
   if (!group || !name) {
-    printf("skipping %s\n", path);
+    CLOG_WARN(&LOG, "Skipping %s", path);
     return false;
   }
 
@@ -485,11 +489,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   }
 
   /* XXX We'd need re-entrant locking on Main for this to work... */
-  /* BKE_main_lock(bmain); */
+  // BKE_main_lock(bmain);
 
   wm_link_do(lapp_data, op->reports, bmain, scene, view_layer, CTX_wm_view3d(C));
 
-  /* BKE_main_unlock(bmain); */
+  // BKE_main_unlock(bmain);
 
   /* mark all library linked objects to be updated */
   BKE_main_lib_objects_recalc_all(bmain);
@@ -759,12 +763,12 @@ static void lib_relocate_do_remap(Main *bmain,
     BLI_assert(new_id);
   }
   if (new_id) {
-#ifdef PRINT_DEBUG
-    printf("before remap of %s, old_id users: %d, new_id users: %d\n",
-           old_id->name,
-           old_id->us,
-           new_id->us);
-#endif
+    CLOG_INFO(&LOG,
+              4,
+              "Before remap of %s, old_id users: %d, new_id users: %d",
+              old_id->name,
+              old_id->us,
+              new_id->us);
     BKE_libblock_remap_locked(bmain, old_id, new_id, remap_flags);
 
     if (old_id->flag & LIB_FAKEUSER) {
@@ -772,12 +776,12 @@ static void lib_relocate_do_remap(Main *bmain,
       id_fake_user_set(new_id);
     }
 
-#ifdef PRINT_DEBUG
-    printf("after remap of %s, old_id users: %d, new_id users: %d\n",
-           old_id->name,
-           old_id->us,
-           new_id->us);
-#endif
+    CLOG_INFO(&LOG,
+              4,
+              "After remap of %s, old_id users: %d, new_id users: %d",
+              old_id->name,
+              old_id->us,
+              new_id->us);
 
     /* In some cases, new_id might become direct link, remove parent of library in this case. */
     if (new_id->lib->parent && (new_id->tag & LIB_TAG_INDIRECT) == 0) {
@@ -831,7 +835,7 @@ static void lib_relocate_do_remap(Main *bmain,
   }
 }
 
-static void lib_relocate_do(Main *bmain,
+static void lib_relocate_do(bContext *C,
                             Library *library,
                             WMLinkAppendData *lapp_data,
                             ReportList *reports,
@@ -842,6 +846,10 @@ static void lib_relocate_do(Main *bmain,
 
   LinkNode *itemlink;
   int item_idx;
+
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* Remove all IDs to be reloaded from Main. */
   lba_idx = set_listbasepointers(bmain, lbarray);
@@ -871,9 +879,7 @@ static void lib_relocate_do(Main *bmain,
         item = wm_link_append_data_item_add(lapp_data, id->name + 2, idcode, id);
         BLI_bitmap_set_all(item->libraries, true, lapp_data->num_libraries);
 
-#ifdef PRINT_DEBUG
-        printf("\tdatablock to seek for: %s\n", id->name);
-#endif
+        CLOG_INFO(&LOG, 4, "Datablock to seek for: %s", id->name);
       }
     }
   }
@@ -990,20 +996,30 @@ static void lib_relocate_do(Main *bmain,
     }
   }
 
-  /* Update overrides of reloaded linked data-blocks.
-   * Note that this will not necessarily fully update the override, it might need to be manually
-   * 're-generated' depending on changes in linked data. */
+  /* Update overrides of reloaded linked data-blocks. */
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
         (id->tag & LIB_TAG_PRE_EXISTING) == 0) {
       continue;
     }
-    if (id->override_library->reference->lib == library) {
+    if ((id->override_library->reference->tag & LIB_TAG_PRE_EXISTING) == 0) {
       BKE_lib_override_library_update(bmain, id);
     }
   }
   FOREACH_MAIN_ID_END;
+
+  /* Resync overrides if needed. */
+  if (!USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {
+    BKE_lib_override_library_main_resync(bmain,
+                                         scene,
+                                         view_layer,
+                                         &(struct BlendFileReadReport){
+                                             .reports = reports,
+                                         });
+    /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
+    BKE_lib_override_library_main_operations_create(bmain, true);
+  }
 
   BKE_main_collection_sync(bmain);
 
@@ -1039,7 +1055,7 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 
   wm_link_append_data_library_add(lapp_data, lib->filepath_abs);
 
-  lib_relocate_do(CTX_data_main(C), lib, lapp_data, reports, true);
+  lib_relocate_do(C, lib, lapp_data, reports, true);
 
   wm_link_append_data_free(lapp_data);
 
@@ -1103,9 +1119,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
     }
 
     if (BLI_path_cmp(lib->filepath_abs, path) == 0) {
-#ifdef PRINT_DEBUG
-      printf("We are supposed to reload '%s' lib (%d)...\n", lib->filepath, lib->id.us);
-#endif
+      CLOG_INFO(&LOG, 4, "We are supposed to reload '%s' lib (%d)", lib->filepath, lib->id.us);
 
       do_reload = true;
 
@@ -1115,9 +1129,8 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
     else {
       int totfiles = 0;
 
-#ifdef PRINT_DEBUG
-      printf("We are supposed to relocate '%s' lib to new '%s' one...\n", lib->filepath, libname);
-#endif
+      CLOG_INFO(
+          &LOG, 4, "We are supposed to relocate '%s' lib to new '%s' one", lib->filepath, libname);
 
       /* Check if something is indicated for relocate. */
       prop = RNA_struct_find_property(op->ptr, "files");
@@ -1143,17 +1156,13 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
             continue;
           }
 
-#ifdef PRINT_DEBUG
-          printf("\t candidate new lib to reload datablocks from: %s\n", path);
-#endif
+          CLOG_INFO(&LOG, 4, "\tCandidate new lib to reload datablocks from: %s", path);
           wm_link_append_data_library_add(lapp_data, path);
         }
         RNA_END;
       }
       else {
-#ifdef PRINT_DEBUG
-        printf("\t candidate new lib to reload datablocks from: %s\n", path);
-#endif
+        CLOG_INFO(&LOG, 4, "\tCandidate new lib to reload datablocks from: %s", path);
         wm_link_append_data_library_add(lapp_data, path);
       }
     }
@@ -1162,7 +1171,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       lapp_data->flag |= BLO_LIBLINK_USE_PLACEHOLDERS | BLO_LIBLINK_FORCE_INDIRECT;
     }
 
-    lib_relocate_do(bmain, lib, lapp_data, op->reports, do_reload);
+    lib_relocate_do(C, lib, lapp_data, op->reports, do_reload);
 
     wm_link_append_data_free(lapp_data);
 

@@ -101,18 +101,40 @@ void PlaneTrackCommon::determineResolution(unsigned int resolution[2],
 
 /* ******** PlaneTrackMaskOperation ******** */
 
+void PlaneTrackMaskOperation::init_data()
+{
+  PlaneDistortMaskOperation::init_data();
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    PlaneTrackCommon::read_and_calculate_corners(this);
+  }
+}
+
+/* TODO(manzanilla): to be removed with tiled implementation. */
 void PlaneTrackMaskOperation::initExecution()
 {
   PlaneDistortMaskOperation::initExecution();
-  PlaneTrackCommon::read_and_calculate_corners(this);
+  if (execution_model_ == eExecutionModel::Tiled) {
+    PlaneTrackCommon::read_and_calculate_corners(this);
+  }
 }
 
 /* ******** PlaneTrackWarpImageOperation ******** */
 
+void PlaneTrackWarpImageOperation::init_data()
+{
+  PlaneDistortWarpImageOperation::init_data();
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    PlaneTrackCommon::read_and_calculate_corners(this);
+  }
+}
+
+/* TODO(manzanilla): to be removed with tiled implementation. */
 void PlaneTrackWarpImageOperation::initExecution()
 {
   PlaneDistortWarpImageOperation::initExecution();
-  PlaneTrackCommon::read_and_calculate_corners(this);
+  if (execution_model_ == eExecutionModel::Tiled) {
+    PlaneTrackCommon::read_and_calculate_corners(this);
+  }
 }
 
 }  // namespace blender::compositor

@@ -327,7 +327,6 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 }
 
 #define VERT_KEEP 8
-#define VERT_IN 32
 
 #define EDGE_MARK 1
 

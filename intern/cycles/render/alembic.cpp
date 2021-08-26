@@ -25,6 +25,7 @@
 #include "render/shader.h"
 
 #include "util/util_foreach.h"
+#include "util/util_logging.h"
 #include "util/util_progress.h"
 #include "util/util_transform.h"
 #include "util/util_vector.h"
@@ -211,6 +212,35 @@ void CachedData::set_time_sampling(TimeSampling time_sampling)
   }
 }
 
+size_t CachedData::memory_used() const
+{
+  size_t mem_used = 0;
+
+  mem_used += curve_first_key.memory_used();
+  mem_used += curve_keys.memory_used();
+  mem_used += curve_radius.memory_used();
+  mem_used += curve_shader.memory_used();
+  mem_used += num_ngons.memory_used();
+  mem_used += shader.memory_used();
+  mem_used += subd_creases_edge.memory_used();
+  mem_used += subd_creases_weight.memory_used();
+  mem_used += subd_face_corners.memory_used();
+  mem_used += subd_num_corners.memory_used();
+  mem_used += subd_ptex_offset.memory_used();
+  mem_used += subd_smooth.memory_used();
+  mem_used += subd_start_corner.memory_used();
+  mem_used += transforms.memory_used();
+  mem_used += triangles.memory_used();
+  mem_used += uv_loops.memory_used();
+  mem_used += vertices.memory_used();
+
+  for (const CachedAttribute &attr : attributes) {
+    mem_used += attr.data.memory_used();
+  }
+
+  return mem_used;
+}
+
 static M44d convert_yup_zup(const M44d &mtx, float scale_mult)
 {
   V3d scale, shear, rotation, translation;
@@ -385,6 +415,8 @@ NODE_DEFINE(AlembicObject)
   SOCKET_STRING(path, "Alembic Path", ustring());
   SOCKET_NODE_ARRAY(used_shaders, "Used Shaders", Shader::get_node_type());
 
+  SOCKET_BOOLEAN(ignore_subdivision, "Ignore Subdivision", true);
+
   SOCKET_INT(subd_max_level, "Max Subdivision Level", 1);
   SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 1.0f);
 
@@ -469,6 +501,33 @@ void AlembicObject::load_data_in_cache(CachedData &cached_data,
   }
 
   cached_data.clear();
+
+  if (this->get_ignore_subdivision()) {
+    PolyMeshSchemaData data;
+    data.topology_variance = schema.getTopologyVariance();
+    data.time_sampling = schema.getTimeSampling();
+    data.positions = schema.getPositionsProperty();
+    data.face_counts = schema.getFaceCountsProperty();
+    data.face_indices = schema.getFaceIndicesProperty();
+    data.num_samples = schema.getNumSamples();
+    data.velocities = schema.getVelocitiesProperty();
+    data.shader_face_sets = parse_face_sets_for_shader_assignment(schema, get_used_shaders());
+
+    read_geometry_data(proc, cached_data, data, progress);
+
+    if (progress.get_cancel()) {
+      return;
+    }
+
+    /* Use the schema as the base compound property to also be able to look for top level
+     * properties. */
+    read_attributes(
+        proc, cached_data, schema, schema.getUVsParam(), get_requested_attributes(), progress);
+
+    cached_data.invalidate_last_loaded_time(true);
+    data_loaded = true;
+    return;
+  }
 
   SubDSchemaData data;
   data.time_sampling = schema.getTimeSampling();
@@ -677,6 +736,9 @@ NODE_DEFINE(AlembicProcedural)
 
   SOCKET_NODE_ARRAY(objects, "Objects", AlembicObject::get_node_type());
 
+  SOCKET_BOOLEAN(use_prefetch, "Use Prefetch", true);
+  SOCKET_INT(prefetch_cache_size, "Prefetch Cache Size", 4096);
+
   return type;
 }
 
@@ -780,6 +842,43 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   }
 
   const chrono_t frame_time = (chrono_t)((frame - frame_offset) / frame_rate);
+
+  /* Clear the subdivision caches as the data is stored differently. */
+  for (Node *node : objects) {
+    AlembicObject *object = static_cast<AlembicObject *>(node);
+
+    if (object->schema_type != AlembicObject::SUBD) {
+      continue;
+    }
+
+    if (object->ignore_subdivision_is_modified()) {
+      object->clear_cache();
+    }
+  }
+
+  if (use_prefetch_is_modified()) {
+    if (!use_prefetch) {
+      for (Node *node : objects) {
+        AlembicObject *object = static_cast<AlembicObject *>(node);
+        object->clear_cache();
+      }
+    }
+  }
+
+  if (prefetch_cache_size_is_modified()) {
+    /* Check whether the current memory usage fits in the new requested size,
+     * abort the render if it is any higher. */
+    size_t memory_used = 0ul;
+    for (Node *node : objects) {
+      AlembicObject *object = static_cast<AlembicObject *>(node);
+      memory_used += object->get_cached_data().memory_used();
+    }
+
+    if (memory_used > get_prefetch_cache_size_in_bytes()) {
+      progress.set_error("Error: Alembic Procedural memory limit reached");
+      return;
+    }
+  }
 
   build_caches(progress);
 
@@ -959,14 +1058,6 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object, Abc::chrono_t frame
 
   update_attributes(mesh->attributes, cached_data, frame_time);
 
-  /* we don't yet support arbitrary attributes, for now add vertex
-   * coordinates as generated coordinates if requested */
-  if (mesh->need_attribute(scene_, ATTR_STD_GENERATED)) {
-    Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-    memcpy(
-        attr->data_float3(), mesh->get_verts().data(), sizeof(float3) * mesh->get_verts().size());
-  }
-
   if (mesh->is_modified()) {
     bool need_rebuild = mesh->triangles_is_modified();
     mesh->tag_update(scene_, need_rebuild);
@@ -975,12 +1066,12 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object, Abc::chrono_t frame
 
 void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame_time)
 {
-  CachedData &cached_data = abc_object->get_cached_data();
-
-  if (abc_object->subd_max_level_is_modified() || abc_object->subd_dicing_rate_is_modified()) {
-    /* need to reset the current data is something changed */
-    cached_data.invalidate_last_loaded_time();
+  if (abc_object->get_ignore_subdivision()) {
+    read_mesh(abc_object, frame_time);
+    return;
   }
+
+  CachedData &cached_data = abc_object->get_cached_data();
 
   /* Update sockets. */
 
@@ -994,6 +1085,11 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
   /* Only update sockets for the original Geometry. */
   if (abc_object->instance_of) {
     return;
+  }
+
+  if (abc_object->subd_max_level_is_modified() || abc_object->subd_dicing_rate_is_modified()) {
+    /* need to reset the current data is something changed */
+    cached_data.invalidate_last_loaded_time();
   }
 
   Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
@@ -1053,14 +1149,6 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
 
   update_attributes(mesh->subd_attributes, cached_data, frame_time);
 
-  /* we don't yet support arbitrary attributes, for now add vertex
-   * coordinates as generated coordinates if requested */
-  if (mesh->need_attribute(scene_, ATTR_STD_GENERATED)) {
-    Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-    memcpy(
-        attr->data_float3(), mesh->get_verts().data(), sizeof(float3) * mesh->get_verts().size());
-  }
-
   if (mesh->is_modified()) {
     bool need_rebuild = (mesh->triangles_is_modified()) ||
                         (mesh->subd_num_corners_is_modified()) ||
@@ -1109,17 +1197,6 @@ void AlembicProcedural::read_curves(AlembicObject *abc_object, Abc::chrono_t fra
   /* update attributes */
 
   update_attributes(hair->attributes, cached_data, frame_time);
-
-  /* we don't yet support arbitrary attributes, for now add first keys as generated coordinates if
-   * requested */
-  if (hair->need_attribute(scene_, ATTR_STD_GENERATED)) {
-    Attribute *attr_generated = hair->attributes.add(ATTR_STD_GENERATED);
-    float3 *generated = attr_generated->data_float3();
-
-    for (size_t i = 0; i < hair->num_curves(); i++) {
-      generated[i] = hair->get_curve_keys()[hair->get_curve(i).first_key];
-    }
-  }
 
   const bool rebuild = (hair->curve_keys_is_modified() || hair->curve_radius_is_modified());
   hair->tag_update(scene_, rebuild);
@@ -1280,6 +1357,8 @@ void AlembicProcedural::walk_hierarchy(
 
 void AlembicProcedural::build_caches(Progress &progress)
 {
+  size_t memory_used = 0;
+
   for (Node *node : objects) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
@@ -1333,7 +1412,18 @@ void AlembicProcedural::build_caches(Progress &progress)
     if (scale_is_modified() || object->get_cached_data().transforms.size() == 0) {
       object->setup_transform_cache(object->get_cached_data(), scale);
     }
+
+    memory_used += object->get_cached_data().memory_used();
+
+    if (use_prefetch) {
+      if (memory_used > get_prefetch_cache_size_in_bytes()) {
+        progress.set_error("Error: Alembic Procedural memory limit reached");
+        return;
+      }
+    }
   }
+
+  VLOG(1) << "AlembicProcedural memory usage : " << string_human_readable_size(memory_used);
 }
 
 CCL_NAMESPACE_END

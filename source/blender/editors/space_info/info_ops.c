@@ -512,7 +512,7 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  const char *searchpath = RNA_string_get_alloc(op->ptr, "directory", NULL, 0);
+  const char *searchpath = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
   const bool find_all = RNA_boolean_get(op->ptr, "find_all");
 
   BKE_bpath_missing_files_find(bmain, searchpath, op->reports, find_all);

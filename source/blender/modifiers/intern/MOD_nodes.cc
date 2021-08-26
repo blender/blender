@@ -84,7 +84,8 @@
 #include "NOD_derived_node_tree.hh"
 #include "NOD_geometry.h"
 #include "NOD_geometry_nodes_eval_log.hh"
-#include "NOD_node_tree_multi_function.hh"
+
+#include "FN_multi_function.hh"
 
 using blender::destruct_ptr;
 using blender::float3;
@@ -858,7 +859,7 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
 {
   blender::ResourceScope scope;
   blender::LinearAllocator<> &allocator = scope.linear_allocator();
-  blender::nodes::MultiFunctionByNode mf_by_node = get_multi_function_per_node(tree, scope);
+  blender::nodes::NodeMultiFunctions mf_by_node{tree, scope};
 
   Map<DOutputSocket, GMutablePointer> group_inputs;
 

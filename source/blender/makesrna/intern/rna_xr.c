@@ -40,6 +40,23 @@
 #  include "WM_api.h"
 
 /* -------------------------------------------------------------------- */
+
+#  ifdef WITH_XR_OPENXR
+static wmXrData *rna_XrSession_wm_xr_data_get(PointerRNA *ptr)
+{
+  /* Callers could also get XrSessionState pointer through ptr->data, but prefer if we just
+   * consistently pass wmXrData pointers to the WM_xr_xxx() API. */
+
+  BLI_assert((ptr->type == &RNA_XrSessionSettings) || (ptr->type == &RNA_XrSessionState));
+
+  wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
+  BLI_assert(wm && (GS(wm->id.name) == ID_WM));
+
+  return &wm->xr;
+}
+#  endif
+
+/* -------------------------------------------------------------------- */
 /** \name XR Action Map
  * \{ */
 
@@ -96,7 +113,7 @@ static XrActionMapBinding *rna_XrActionMapBinding_find(XrActionMapItem *ami, con
 #  endif
 }
 
-static int rna_XrActionMapBinding_axis0_flag_get(PointerRNA *ptr)
+static int rna_XrActionMapBinding_axis0_region_get(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = ptr->data;
@@ -112,7 +129,7 @@ static int rna_XrActionMapBinding_axis0_flag_get(PointerRNA *ptr)
   return 0;
 }
 
-static void rna_XrActionMapBinding_axis0_flag_set(PointerRNA *ptr, int value)
+static void rna_XrActionMapBinding_axis0_region_set(PointerRNA *ptr, int value)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = ptr->data;
@@ -123,7 +140,7 @@ static void rna_XrActionMapBinding_axis0_flag_set(PointerRNA *ptr, int value)
 #  endif
 }
 
-static int rna_XrActionMapBinding_axis1_flag_get(PointerRNA *ptr)
+static int rna_XrActionMapBinding_axis1_region_get(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = ptr->data;
@@ -139,7 +156,7 @@ static int rna_XrActionMapBinding_axis1_flag_get(PointerRNA *ptr)
   return 0;
 }
 
-static void rna_XrActionMapBinding_axis1_flag_set(PointerRNA *ptr, int value)
+static void rna_XrActionMapBinding_axis1_region_set(PointerRNA *ptr, int value)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = ptr->data;
@@ -289,12 +306,7 @@ static void rna_XrActionMapItem_bimanual_set(PointerRNA *ptr, bool value)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = ptr->data;
-  if (value) {
-    ami->action_flag |= XR_ACTION_BIMANUAL;
-  }
-  else {
-    ami->action_flag &= ~XR_ACTION_BIMANUAL;
-  }
+  SET_FLAG_FROM_TEST(ami->action_flag, value, XR_ACTION_BIMANUAL);
 #  else
   UNUSED_VARS(ptr, value);
 #  endif
@@ -317,18 +329,13 @@ static void rna_XrActionMapItem_haptic_match_user_paths_set(PointerRNA *ptr, boo
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = ptr->data;
-  if (value) {
-    ami->haptic_flag |= XR_HAPTIC_MATCHUSERPATHS;
-  }
-  else {
-    ami->haptic_flag &= ~XR_HAPTIC_MATCHUSERPATHS;
-  }
+  SET_FLAG_FROM_TEST(ami->haptic_flag, value, XR_HAPTIC_MATCHUSERPATHS);
 #  else
   UNUSED_VARS(ptr, value);
 #  endif
 }
 
-static int rna_XrActionMapItem_haptic_flag_get(PointerRNA *ptr)
+static int rna_XrActionMapItem_haptic_mode_get(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = ptr->data;
@@ -345,7 +352,7 @@ static int rna_XrActionMapItem_haptic_flag_get(PointerRNA *ptr)
   return XR_HAPTIC_PRESS;
 }
 
-static void rna_XrActionMapItem_haptic_flag_set(PointerRNA *ptr, int value)
+static void rna_XrActionMapItem_haptic_mode_set(PointerRNA *ptr, int value)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = ptr->data;
@@ -430,29 +437,32 @@ static void rna_XrActionMapItem_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 #  endif
 }
 
-static XrActionMap *rna_XrActionMap_new(wmXrData *xr, const char *name, bool replace_existing)
+static XrActionMap *rna_XrActionMap_new(PointerRNA *ptr, const char *name, bool replace_existing)
 {
 #  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   return WM_xr_actionmap_new(xr->runtime, name, replace_existing);
 #  else
-  UNUSED_VARS(xr, name, replace_existing);
+  UNUSED_VARS(ptr, name, replace_existing);
   return NULL;
 #  endif
 }
 
-static XrActionMap *rna_XrActionMap_new_from_actionmap(wmXrData *xr, XrActionMap *am_src)
+static XrActionMap *rna_XrActionMap_new_from_actionmap(PointerRNA *ptr, XrActionMap *am_src)
 {
 #  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   return WM_xr_actionmap_add_copy(xr->runtime, am_src);
 #  else
-  UNUSED_VARS(xr, am_src);
+  UNUSED_VARS(ptr, am_src);
   return NULL;
 #  endif
 }
 
-static void rna_XrActionMap_remove(wmXrData *xr, ReportList *reports, PointerRNA *actionmap_ptr)
+static void rna_XrActionMap_remove(ReportList *reports, PointerRNA *ptr, PointerRNA *actionmap_ptr)
 {
 #  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   XrActionMap *actionmap = actionmap_ptr->data;
   if (WM_xr_actionmap_remove(xr->runtime, actionmap) == false) {
     BKE_reportf(reports, RPT_ERROR, "ActionMap '%s' cannot be removed", actionmap->name);
@@ -460,16 +470,17 @@ static void rna_XrActionMap_remove(wmXrData *xr, ReportList *reports, PointerRNA
   }
   RNA_POINTER_INVALIDATE(actionmap_ptr);
 #  else
-  UNUSED_VARS(xr, reports, actionmap_ptr);
+  UNUSED_VARS(ptr, reports, actionmap_ptr);
 #  endif
 }
 
-static XrActionMap *rna_XrActionMap_find(wmXrData *xr, const char *name)
+static XrActionMap *rna_XrActionMap_find(PointerRNA *ptr, const char *name)
 {
 #  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   return WM_xr_actionmap_find(xr->runtime, name);
 #  else
-  UNUSED_VARS(xr, name);
+  UNUSED_VARS(ptr, name);
   return NULL;
 #  endif
 }
@@ -488,23 +499,6 @@ static void rna_XrActionMap_name_update(Main *bmain, Scene *UNUSED(scene), Point
 }
 
 /** \} */
-
-/* -------------------------------------------------------------------- */
-
-#  ifdef WITH_XR_OPENXR
-static wmXrData *rna_XrSession_wm_xr_data_get(PointerRNA *ptr)
-{
-  /* Callers could also get XrSessionState pointer through ptr->data, but prefer if we just
-   * consistently pass wmXrData pointers to the WM_xr_xxx() API. */
-
-  BLI_assert((ptr->type == &RNA_XrSessionSettings) || (ptr->type == &RNA_XrSessionState));
-
-  wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
-  BLI_assert(wm && (GS(wm->id.name) == ID_WM));
-
-  return &wm->xr;
-}
-#  endif
 
 /* -------------------------------------------------------------------- */
 /** \name XR Session Settings
@@ -622,7 +616,6 @@ static bool rna_XrSessionState_action_create(bContext *C,
   const bool is_button_action = (is_float_action || ami->type == XR_BOOLEAN_INPUT);
   wmOperatorType *ot = NULL;
   IDProperty *op_properties = NULL;
-  const char *haptic_name = NULL;
   int64_t haptic_duration_msec;
 
   if (is_button_action) {
@@ -635,7 +628,6 @@ static bool rna_XrSessionState_action_create(bContext *C,
       }
     }
 
-    haptic_name = &ami->haptic_name[0];
     haptic_duration_msec = (int64_t)(ami->haptic_duration * 1000.0f);
   }
 
@@ -647,7 +639,7 @@ static bool rna_XrSessionState_action_create(bContext *C,
                              subaction_paths,
                              ot,
                              op_properties,
-                             is_button_action ? &haptic_name : NULL,
+                             is_button_action ? ami->haptic_name : NULL,
                              is_button_action ? &haptic_duration_msec : NULL,
                              is_button_action ? &ami->haptic_frequency : NULL,
                              is_button_action ? &ami->haptic_amplitude : NULL,
@@ -803,7 +795,7 @@ bool rna_XrSessionState_haptic_action_apply(bContext *C,
   return WM_xr_haptic_action_apply(&wm->xr,
                                    action_set_name,
                                    action_name,
-                                   user_path[0] ? &user_path : NULL,
+                                   user_path[0] ? user_path : NULL,
                                    &duration_msec,
                                    &frequency,
                                    &amplitude);
@@ -820,20 +812,19 @@ void rna_XrSessionState_haptic_action_stop(bContext *C,
 {
 #  ifdef WITH_XR_OPENXR
   wmWindowManager *wm = CTX_wm_manager(C);
-  WM_xr_haptic_action_stop(
-      &wm->xr, action_set_name, action_name, user_path[0] ? &user_path : NULL);
+  WM_xr_haptic_action_stop(&wm->xr, action_set_name, action_name, user_path[0] ? user_path : NULL);
 #  else
   UNUSED_VARS(C, action_set_name, action_name, user_path);
 #  endif
 }
 
 static void rna_XrSessionState_controller_grip_location_get(bContext *C,
-                                                            int *index,
+                                                            int index,
                                                             float r_values[3])
 {
 #  ifdef WITH_XR_OPENXR
   const wmWindowManager *wm = CTX_wm_manager(C);
-  WM_xr_session_state_controller_grip_location_get(&wm->xr, *index, r_values);
+  WM_xr_session_state_controller_grip_location_get(&wm->xr, index, r_values);
 #  else
   UNUSED_VARS(C, index);
   zero_v3(r_values);
@@ -854,12 +845,12 @@ static void rna_XrSessionState_controller_grip_rotation_get(bContext *C,
 }
 
 static void rna_XrSessionState_controller_aim_location_get(bContext *C,
-                                                           int *index,
+                                                           int index,
                                                            float r_values[3])
 {
 #  ifdef WITH_XR_OPENXR
   const wmWindowManager *wm = CTX_wm_manager(C);
-  WM_xr_session_state_controller_aim_location_get(&wm->xr, *index, r_values);
+  WM_xr_session_state_controller_aim_location_get(&wm->xr, index, r_values);
 #  else
   UNUSED_VARS(C, index);
   zero_v3(r_values);
@@ -1061,7 +1052,7 @@ static void rna_def_xr_actionmap_bindings(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "XR Action Map Bindings", "Collection of XR action map bindings");
 
   func = RNA_def_function(srna, "new", "rna_XrActionMapBinding_new");
-  parm = RNA_def_string(func, "name", NULL, 0, "Name of the action map binding", "");
+  parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name of the action map binding", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func,
                          "replace_existing",
@@ -1110,7 +1101,7 @@ static void rna_def_xr_actionmap_items(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "XR Action Map Items", "Collection of XR action map items");
 
   func = RNA_def_function(srna, "new", "rna_XrActionMapItem_new");
-  parm = RNA_def_string(func, "name", NULL, 0, "Name of the action map item", "");
+  parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name of the action map item", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func,
                          "replace_existing",
@@ -1149,10 +1140,12 @@ static void rna_def_xr_actionmaps(BlenderRNA *brna, PropertyRNA *cprop)
 
   RNA_def_property_srna(cprop, "XrActionMaps");
   srna = RNA_def_struct(brna, "XrActionMaps", NULL);
-  RNA_def_struct_sdna(srna, "wmXrData");
   RNA_def_struct_ui_text(srna, "XR Action Maps", "Collection of XR action maps");
 
   func = RNA_def_function(srna, "new", "rna_XrActionMap_new");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "xr_session_state", "XrSessionState", "XR Session State", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_boolean(func,
@@ -1165,6 +1158,9 @@ static void rna_def_xr_actionmaps(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "new_from_actionmap", "rna_XrActionMap_new_from_actionmap");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "xr_session_state", "XrSessionState", "XR Session State", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_pointer(
       func, "actionmap", "XrActionMap", "Action Map", "Action map to use as a reference");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
@@ -1172,12 +1168,17 @@ static void rna_def_xr_actionmaps(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_XrActionMap_remove");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func, "xr_session_state", "XrSessionState", "XR Session State", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_pointer(func, "actionmap", "XrActionMap", "Action Map", "Removed action map");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
   func = RNA_def_function(srna, "find", "rna_XrActionMap_find");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "xr_session_state", "XrSessionState", "XR Session State", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(
@@ -1314,7 +1315,7 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "haptic_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_xr_haptic_flags);
   RNA_def_property_enum_funcs(
-      prop, "rna_XrActionMapItem_haptic_flag_get", "rna_XrActionMapItem_haptic_flag_set", NULL);
+      prop, "rna_XrActionMapItem_haptic_mode_get", "rna_XrActionMapItem_haptic_mode_set", NULL);
   RNA_def_property_ui_text(prop, "Haptic mode", "Haptic application mode");
 
   prop = RNA_def_property(srna, "bindings", PROP_COLLECTION, PROP_NONE);
@@ -1357,8 +1358,8 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "axis0_region", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_xr_axis0_flags);
   RNA_def_property_enum_funcs(prop,
-                              "rna_XrActionMapBinding_axis0_flag_get",
-                              "rna_XrActionMapBinding_axis0_flag_set",
+                              "rna_XrActionMapBinding_axis0_region_get",
+                              "rna_XrActionMapBinding_axis0_region_set",
                               NULL);
   RNA_def_property_ui_text(
       prop, "Axis 0 Region", "Action execution region for the first input axis");
@@ -1366,8 +1367,8 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "axis1_region", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_xr_axis1_flags);
   RNA_def_property_enum_funcs(prop,
-                              "rna_XrActionMapBinding_axis1_flag_get",
-                              "rna_XrActionMapBinding_axis1_flag_set",
+                              "rna_XrActionMapBinding_axis1_region_get",
+                              "rna_XrActionMapBinding_axis1_region_set",
                               NULL);
   RNA_def_property_ui_text(
       prop, "Axis 1 Region", "Action execution region for the second input axis");
@@ -1695,16 +1696,16 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_int(func, "index", 0, 0, 255, "Index", "Controller index", 0, 255);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  RNA_def_float_translation(func,
-                            "location",
-                            3,
-                            NULL,
-                            -FLT_MAX,
-                            FLT_MAX,
-                            "Location",
-                            "Controller grip location",
-                            -FLT_MAX,
-                            FLT_MAX);
+  parm = RNA_def_float_translation(func,
+                                   "location",
+                                   3,
+                                   NULL,
+                                   -FLT_MAX,
+                                   FLT_MAX,
+                                   "Location",
+                                   "Controller grip location",
+                                   -FLT_MAX,
+                                   FLT_MAX);
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_OUTPUT);
 
   func = RNA_def_function(
@@ -1739,16 +1740,16 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_int(func, "index", 0, 0, 255, "Index", "Controller index", 0, 255);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  RNA_def_float_translation(func,
-                            "location",
-                            3,
-                            NULL,
-                            -FLT_MAX,
-                            FLT_MAX,
-                            "Location",
-                            "Controller aim location",
-                            -FLT_MAX,
-                            FLT_MAX);
+  parm = RNA_def_float_translation(func,
+                                   "location",
+                                   3,
+                                   NULL,
+                                   -FLT_MAX,
+                                   FLT_MAX,
+                                   "Location",
+                                   "Controller aim location",
+                                   -FLT_MAX,
+                                   FLT_MAX);
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_OUTPUT);
 
   func = RNA_def_function(

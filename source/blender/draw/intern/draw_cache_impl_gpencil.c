@@ -553,7 +553,7 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
     gps->runtime.stroke_start = 1; /* Add one for the adjacency index. */
     copy_v4_v4(gps->vert_color_fill, gpd->runtime.vert_color_fill);
     /* Caps. */
-    gps->caps[0] = gps->caps[1] = brush->gpencil_settings->caps_type;
+    gps->caps[0] = gps->caps[1] = (short)brush->gpencil_settings->caps_type;
 
     gpd->runtime.sbuffer_gps = gps;
   }

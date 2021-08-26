@@ -2497,7 +2497,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
 
   /* get an rna string path from the operator's properties */
   char *str;
-  if (!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0))) {
+  if (!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0, NULL))) {
     return 1;
   }
 
@@ -2766,10 +2766,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   ScrArea *area = CTX_wm_area(C);
 
-  if (rc->dial) {
-    MEM_freeN(rc->dial);
-    rc->dial = NULL;
-  }
+  MEM_SAFE_FREE(rc->dial);
 
   ED_area_status_text(area, NULL);
 
@@ -2959,10 +2956,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (event->val == KM_RELEASE) {
         rc->slow_mode = false;
         handled = true;
-        if (rc->dial) {
-          MEM_freeN(rc->dial);
-          rc->dial = NULL;
-        }
+        MEM_SAFE_FREE(rc->dial);
       }
       break;
     }
@@ -3184,10 +3178,11 @@ static void redraw_timer_step(bContext *C,
     LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
       CTX_wm_area_set(C, area_iter);
       LISTBASE_FOREACH (ARegion *, region_iter, &area_iter->regionbase) {
-        if (region_iter->visible) {
-          CTX_wm_region_set(C, region_iter);
-          wm_draw_region_test(C, area_iter, region_iter);
+        if (!region_iter->visible) {
+          continue;
         }
+        CTX_wm_region_set(C, region_iter);
+        wm_draw_region_test(C, area_iter, region_iter);
       }
     }
 

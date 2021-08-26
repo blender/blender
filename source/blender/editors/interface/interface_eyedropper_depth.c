@@ -72,13 +72,14 @@ typedef struct DepthDropper {
 
   ARegionType *art;
   void *draw_handle_pixel;
+  int name_pos[2];
   char name[200];
 } DepthDropper;
 
 static void depthdropper_draw_cb(const struct bContext *C, ARegion *region, void *arg)
 {
   DepthDropper *ddr = arg;
-  eyedropper_draw_cursor_text_region(C, region, ddr->name);
+  eyedropper_draw_cursor_text_region(C, UNPACK2(ddr->name_pos), ddr->name);
 }
 
 static int depthdropper_init(bContext *C, wmOperator *op)
@@ -172,6 +173,8 @@ static void depthdropper_depth_sample_pt(
         /* weak, we could pass in some reference point */
         const float *view_co = v3d->camera ? v3d->camera->obmat[3] : rv3d->viewinv[3];
         const int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
+        copy_v2_v2_int(ddr->name_pos, mval);
+
         float co[3];
 
         CTX_wm_area_set(C, area);

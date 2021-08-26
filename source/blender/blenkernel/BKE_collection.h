@@ -65,7 +65,7 @@ void BKE_collection_add_from_collection(struct Main *bmain,
                                         struct Scene *scene,
                                         struct Collection *collection_src,
                                         struct Collection *collection_dst);
-void BKE_collection_free(struct Collection *collection);
+void BKE_collection_free_data(struct Collection *collection);
 bool BKE_collection_delete(struct Main *bmain, struct Collection *collection, bool hierarchy);
 
 struct Collection *BKE_collection_duplicate(struct Main *bmain,

@@ -249,11 +249,11 @@ bool BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md)
   return false;
 }
 
-bool BKE_modifier_depends_ontime(ModifierData *md)
+bool BKE_modifier_depends_ontime(Scene *scene, ModifierData *md, const int dag_eval_mode)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
-  return mti->dependsOnTime && mti->dependsOnTime(md);
+  return mti->dependsOnTime && mti->dependsOnTime(scene, md, dag_eval_mode);
 }
 
 bool BKE_modifier_supports_mapping(ModifierData *md)
@@ -1573,7 +1573,7 @@ void BKE_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
   BKE_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
 
   /* If linking from a library, clear 'local' library override flag. */
-  if (ob->id.lib != NULL) {
+  if (ID_IS_LINKED(ob)) {
     LISTBASE_FOREACH (ModifierData *, mod, &ob->modifiers) {
       mod->flag &= ~eModifierFlag_OverrideLibrary_Local;
     }

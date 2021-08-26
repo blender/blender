@@ -433,6 +433,7 @@ typedef struct Object {
   ObjectLineArt lineart;
 
   /** Runtime evaluation data (keep last). */
+  void *_pad9;
   Object_Runtime runtime;
 } Object;
 
@@ -465,8 +466,6 @@ typedef struct ObHook {
 
 /* used many places, should be specialized. */
 #define SELECT 1
-
-#define OBJECT_ACTIVE_MODIFIER_NONE -1
 
 /* type */
 enum {

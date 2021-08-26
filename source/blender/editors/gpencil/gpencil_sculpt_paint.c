@@ -968,10 +968,7 @@ static void gpencil_brush_clone_free(tGP_BrushEditData *gso)
   tGPSB_CloneBrushData *data = gso->customdata;
 
   /* free strokes array */
-  if (data->new_strokes) {
-    MEM_freeN(data->new_strokes);
-    data->new_strokes = NULL;
-  }
+  MEM_SAFE_FREE(data->new_strokes);
 
   /* free copybuf colormap */
   if (data->new_colors) {

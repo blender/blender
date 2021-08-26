@@ -51,9 +51,9 @@
 #  include "intern/eval/deg_eval_copy_on_write.h"
 #endif
 
-// If defined, all working data will be set to an invalid state, helping
-// to catch issues when areas accessing data which is considered to be no
-// longer available.
+/* If defined, all working data will be set to an invalid state, helping
+ * to catch issues when areas accessing data which is considered to be no
+ * longer available. */
 #undef INVALIDATE_WORK_DATA
 
 #ifndef NDEBUG
@@ -79,22 +79,20 @@ void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
 void verify_id_properties_freed(DEGObjectIterData *data)
 {
   if (data->dupli_object_current == nullptr) {
-    // We didn't enter duplication yet, so we can't have any dangling
-    // pointers.
+    /* We didn't enter duplication yet, so we can't have any dangling pointers. */
     return;
   }
   const Object *dupli_object = data->dupli_object_current->ob;
   Object *temp_dupli_object = &data->temp_dupli_object;
   if (temp_dupli_object->id.properties == nullptr) {
-    // No ID properties in temp data-block -- no leak is possible.
+    /* No ID properties in temp data-block -- no leak is possible. */
     return;
   }
   if (temp_dupli_object->id.properties == dupli_object->id.properties) {
-    // Temp copy of object did not modify ID properties.
+    /* Temp copy of object did not modify ID properties. */
     return;
   }
-  // Free memory which is owned by temporary storage which is about to
-  // get overwritten.
+  /* Free memory which is owned by temporary storage which is about to get overwritten. */
   IDP_FreeProperty(temp_dupli_object->id.properties);
   temp_dupli_object->id.properties = nullptr;
 }

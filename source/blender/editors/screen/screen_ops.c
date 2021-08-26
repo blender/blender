@@ -403,7 +403,7 @@ bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
   }
 
   if (ed_object_hidden(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit hidden obect");
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit hidden object");
     return false;
   }
 
@@ -1023,10 +1023,7 @@ AZone *ED_area_azones_update(ScrArea *area, const int xy[2])
 
 static void actionzone_exit(wmOperator *op)
 {
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
-  op->customdata = NULL;
+  MEM_SAFE_FREE(op->customdata);
 
   G.moving &= ~G_TRANSFORM_WM;
 }
@@ -1308,10 +1305,7 @@ static bool area_swap_init(wmOperator *op, const wmEvent *event)
 static void area_swap_exit(bContext *C, wmOperator *op)
 {
   WM_cursor_modal_restore(CTX_wm_window(C));
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
-  op->customdata = NULL;
+  MEM_SAFE_FREE(op->customdata);
 }
 
 static void area_swap_cancel(bContext *C, wmOperator *op)
@@ -1744,19 +1738,19 @@ static int area_snap_calc_location(const bScreen *screen,
       int snap_dist_best = INT_MAX;
       {
         const float div_array[] = {
-            /* Middle. */
-            1.0f / 2.0f,
-            /* Thirds. */
-            1.0f / 3.0f,
-            2.0f / 3.0f,
-            /* Quarters. */
-            1.0f / 4.0f,
-            3.0f / 4.0f,
-            /* Eighth. */
-            1.0f / 8.0f,
-            3.0f / 8.0f,
-            5.0f / 8.0f,
-            7.0f / 8.0f,
+            0.0f,
+            1.0f / 12.0f,
+            2.0f / 12.0f,
+            3.0f / 12.0f,
+            4.0f / 12.0f,
+            5.0f / 12.0f,
+            6.0f / 12.0f,
+            7.0f / 12.0f,
+            8.0f / 12.0f,
+            9.0f / 12.0f,
+            10.0f / 12.0f,
+            11.0f / 12.0f,
+            1.0f,
         };
         /* Test the snap to the best division. */
         for (int i = 0; i < ARRAY_SIZE(div_array); i++) {
@@ -1892,10 +1886,7 @@ static void area_move_apply(bContext *C, wmOperator *op)
 
 static void area_move_exit(bContext *C, wmOperator *op)
 {
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
-  op->customdata = NULL;
+  MEM_SAFE_FREE(op->customdata);
 
   /* this makes sure aligned edges will result in aligned grabbing */
   BKE_screen_remove_double_scrverts(CTX_wm_screen(C));
@@ -3086,7 +3077,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   /* find matching keyframe in the right direction */
-  ActKeyColumn *ak;
+  const ActKeyColumn *ak;
   if (next) {
     ak = ED_keylist_find_next(keylist, cfra);
   }

@@ -466,10 +466,7 @@ static void stats_update(Depsgraph *depsgraph,
 
 void ED_info_stats_clear(wmWindowManager *wm, ViewLayer *view_layer)
 {
-  if (view_layer->stats) {
-    MEM_freeN(view_layer->stats);
-    view_layer->stats = NULL;
-  }
+  MEM_SAFE_FREE(view_layer->stats);
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     ViewLayer *view_layer_test = WM_window_get_active_view_layer(win);

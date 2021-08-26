@@ -42,7 +42,7 @@
 #define NANOSVG_ALL_COLOR_KEYWORDS
 #define NANOSVG_IMPLEMENTATION
 
-#include "nanosvg/nanosvg.h"
+#include "nanosvg.h"
 
 using blender::MutableSpan;
 

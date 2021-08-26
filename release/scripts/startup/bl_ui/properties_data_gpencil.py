@@ -342,6 +342,11 @@ class DATA_PT_gpencil_vertex_groups(ObjectButtonsPanel, Panel):
         col.operator("object.vertex_group_add", icon='ADD', text="")
         col.operator("object.vertex_group_remove", icon='REMOVE', text="").all = False
 
+        if group:
+            col.separator()
+            col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
         if ob.vertex_groups:
             row = layout.row()
 

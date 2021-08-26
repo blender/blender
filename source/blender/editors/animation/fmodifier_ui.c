@@ -672,10 +672,7 @@ static void fmod_envelope_deletepoint_cb(bContext *UNUSED(C), void *fcm_dv, void
   }
   else {
     /* just free array, since the only vert was deleted */
-    if (env->data) {
-      MEM_freeN(env->data);
-      env->data = NULL;
-    }
+    MEM_SAFE_FREE(env->data);
     env->totvert = 0;
   }
 }

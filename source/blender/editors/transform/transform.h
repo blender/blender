@@ -94,6 +94,8 @@ typedef enum {
   CTX_OBMODE_XFORM_OBDATA = (1 << 12),
   /** Transform object parents without moving their children. */
   CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 13),
+  /** Enable edge scrolling in 2D views */
+  CTX_VIEW2D_EDGE_PAN = (1 << 14),
 } eTContext;
 
 /** #TransInfo.flag */
@@ -582,7 +584,7 @@ typedef struct TransInfo {
   short around;
   /** space-type where transforming is. */
   char spacetype;
-  /** Avoid looking inside #TransDataContainer.obedit. */
+  /** Type of active object being edited. */
   short obedit_type;
 
   /** translation, to show for widget. */
@@ -779,7 +781,6 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 
 void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
-void recalcData(TransInfo *t);
 
 void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);

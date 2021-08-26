@@ -152,8 +152,6 @@ void BKE_libblock_copy_ex(struct Main *bmain,
                           const int orig_flag);
 void *BKE_libblock_copy(struct Main *bmain, const struct ID *id) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-/* Special version: used by data-block localization. */
-void *BKE_libblock_copy_for_localize(const struct ID *id);
 
 void BKE_libblock_rename(struct Main *bmain, struct ID *id, const char *name) ATTR_NONNULL();
 void BLI_libblock_ensure_unique_name(struct Main *bmain, const char *name) ATTR_NONNULL();
@@ -168,8 +166,14 @@ struct ID *BKE_libblock_find_name(struct Main *bmain,
  */
 typedef enum eLibIDDuplicateFlags {
   /** This call to a duplicate function is part of another call for some parent ID.
-   * Therefore, this sub-process should not clear `newid` pointers, nor handle remapping itself. */
+   * Therefore, this sub-process should not clear `newid` pointers, nor handle remapping itself.
+   * NOTE: In some cases (like Object one), the duplicate function may be called on the root ID
+   * with this flag set, as remapping and/or other similar tasks need to be handled by the caller.
+   */
   LIB_ID_DUPLICATE_IS_SUBPROCESS = 1 << 0,
+  /** This call is performed on a 'root' ID, and should therefore perform some decisions regarding
+   * sub-IDs (dependencies), check for linked vs. locale data, etc. */
+  LIB_ID_DUPLICATE_IS_ROOT_ID = 1 << 1,
 } eLibIDDuplicateFlags;
 
 /* lib_remap.c (keep here since they're general functions) */
@@ -200,6 +204,8 @@ enum {
 
 void BKE_libblock_free_datablock(struct ID *id, const int flag) ATTR_NONNULL();
 void BKE_libblock_free_data(struct ID *id, const bool do_id_user) ATTR_NONNULL();
+
+void BKE_libblock_free_data_py(struct ID *id);
 
 void BKE_id_free_ex(struct Main *bmain, void *idv, int flag, const bool use_flag_from_idtag);
 void BKE_id_free(struct Main *bmain, void *idv);

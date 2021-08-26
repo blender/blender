@@ -150,28 +150,27 @@ static void texture_foreach_id(ID *id, LibraryForeachIDData *data)
 static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Tex *tex = (Tex *)id;
-  if (tex->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, Tex, id_address, &tex->id);
-    BKE_id_blend_write(writer, &tex->id);
 
-    if (tex->adt) {
-      BKE_animdata_blend_write(writer, tex->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, Tex, id_address, &tex->id);
+  BKE_id_blend_write(writer, &tex->id);
 
-    /* direct data */
-    if (tex->coba) {
-      BLO_write_struct(writer, ColorBand, tex->coba);
-    }
-
-    /* nodetree is integral part of texture, no libdata */
-    if (tex->nodetree) {
-      BLO_write_struct(writer, bNodeTree, tex->nodetree);
-      ntreeBlendWrite(writer, tex->nodetree);
-    }
-
-    BKE_previewimg_blend_write(writer, tex->preview);
+  if (tex->adt) {
+    BKE_animdata_blend_write(writer, tex->adt);
   }
+
+  /* direct data */
+  if (tex->coba) {
+    BLO_write_struct(writer, ColorBand, tex->coba);
+  }
+
+  /* nodetree is integral part of texture, no libdata */
+  if (tex->nodetree) {
+    BLO_write_struct(writer, bNodeTree, tex->nodetree);
+    ntreeBlendWrite(writer, tex->nodetree);
+  }
+
+  BKE_previewimg_blend_write(writer, tex->preview);
 }
 
 static void texture_blend_read_data(BlendDataReader *reader, ID *id)
@@ -490,9 +489,8 @@ void set_current_linestyle_texture(FreestyleLineStyle *linestyle, Tex *newtex)
     linestyle->mtex[act]->tex = newtex;
     id_us_plus(&newtex->id);
   }
-  else if (linestyle->mtex[act]) {
-    MEM_freeN(linestyle->mtex[act]);
-    linestyle->mtex[act] = NULL;
+  else {
+    MEM_SAFE_FREE(linestyle->mtex[act]);
   }
 }
 
@@ -595,9 +593,8 @@ void set_current_particle_texture(ParticleSettings *part, Tex *newtex)
     part->mtex[act]->tex = newtex;
     id_us_plus(&newtex->id);
   }
-  else if (part->mtex[act]) {
-    MEM_freeN(part->mtex[act]);
-    part->mtex[act] = NULL;
+  else {
+    MEM_SAFE_FREE(part->mtex[act]);
   }
 }
 
@@ -660,14 +657,8 @@ void BKE_texture_pointdensity_free_data(PointDensity *pd)
     BLI_bvhtree_free(pd->point_tree);
     pd->point_tree = NULL;
   }
-  if (pd->point_data) {
-    MEM_freeN(pd->point_data);
-    pd->point_data = NULL;
-  }
-  if (pd->coba) {
-    MEM_freeN(pd->coba);
-    pd->coba = NULL;
-  }
+  MEM_SAFE_FREE(pd->point_data);
+  MEM_SAFE_FREE(pd->coba);
 
   BKE_curvemapping_free(pd->falloff_curve); /* can be NULL */
 }

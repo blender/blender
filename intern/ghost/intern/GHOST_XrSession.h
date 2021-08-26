@@ -76,13 +76,13 @@ class GHOST_XrSession {
   bool syncActions(const char *action_set_name = nullptr);
   bool applyHapticAction(const char *action_set_name,
                          const char *action_name,
-                         const char **subaction_path,
+                         const char *subaction_path,
                          const int64_t &duration,
                          const float &frequency,
                          const float &amplitude);
   void stopHapticAction(const char *action_set_name,
                         const char *action_name,
-                        const char **subaction_path);
+                        const char *subaction_path);
 
   /* Custom data (owned by Blender, not GHOST) accessors. */
   void *getActionSetCustomdata(const char *action_set_name);

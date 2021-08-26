@@ -2,6 +2,7 @@
 
 #include "testing/testing.h"
 
+#include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -11,7 +12,8 @@
  * quite their share of lines, they deserved their own file. */
 
 /* -------------------------------------------------------------------- */
-/* tests */
+/** \name Test #BLI_str_utf8_invalid_strip
+ * \{ */
 
 /* Breaking strings is confusing here, prefer over-long lines. */
 /* clang-format off */
@@ -266,7 +268,7 @@ static const char *utf8_invalid_tests[][3] = {
 };
 /* clang-format on */
 
-/* BLI_utf8_invalid_strip (and indirectly, BLI_utf8_invalid_byte). */
+/* BLI_str_utf8_invalid_strip (and indirectly, BLI_str_utf8_invalid_byte). */
 TEST(string, Utf8InvalidBytes)
 {
   for (int i = 0; utf8_invalid_tests[i][0] != nullptr; i++) {
@@ -277,10 +279,117 @@ TEST(string, Utf8InvalidBytes)
     char buff[80];
     memcpy(buff, tst, sizeof(buff));
 
-    const int num_errors_found = BLI_utf8_invalid_strip(buff, sizeof(buff) - 1);
+    const int num_errors_found = BLI_str_utf8_invalid_strip(buff, sizeof(buff) - 1);
 
     printf("[%02d] -> [%02d] \"%s\"  ->  \"%s\"\n", num_errors, num_errors_found, tst, buff);
     EXPECT_EQ(num_errors_found, num_errors);
     EXPECT_STREQ(buff, tst_stripped);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Test #BLI_str_utf8_as_unicode_step
+ * \{ */
+
+static size_t utf8_as_char32(const char *str, const char str_len, char32_t *r_result)
+{
+  size_t i = 0, result_len = 0;
+  while ((i < str_len) && (str[i] != '\0')) {
+    char32_t c = BLI_str_utf8_as_unicode_step(str, str_len, &i);
+    if (c != BLI_UTF8_ERR) {
+      r_result[result_len++] = c;
+    }
+  }
+  return i;
+}
+
+template<size_t Size, size_t SizeWithPadding>
+void utf8_as_char32_test_compare_with_pad_bytes(const char utf8_src[Size])
+{
+  char utf8_src_with_pad[SizeWithPadding] = {0};
+
+  memcpy(utf8_src_with_pad, utf8_src, Size);
+
+  char32_t unicode_dst_a[Size], unicode_dst_b[Size];
+
+  memset(unicode_dst_a, 0xff, sizeof(unicode_dst_a));
+  const size_t index_a = utf8_as_char32(utf8_src, Size, unicode_dst_a);
+
+  /* Test with padded and un-padded size,
+   * to ensure that extra available space doesn't yield a different result. */
+  for (int pass = 0; pass < 2; pass++) {
+    memset(unicode_dst_b, 0xff, sizeof(unicode_dst_b));
+    const size_t index_b = utf8_as_char32(
+        utf8_src_with_pad, pass ? Size : SizeWithPadding, unicode_dst_b);
+
+    /* Check the resulting content matches. */
+    EXPECT_EQ_ARRAY(unicode_dst_a, unicode_dst_b, Size);
+    /* Check the index of the source strings match. */
+    EXPECT_EQ(index_a, index_b);
+  }
+}
+
+template<size_t Size> void utf8_as_char32_test_compare(const char utf8_src[Size])
+{
+  /* Note that 7 is a little arbitrary,
+   * chosen since it's the maximum length of multi-byte character + 1
+   * to account for any errors that read past null bytes. */
+  utf8_as_char32_test_compare_with_pad_bytes<Size, Size + 1>(utf8_src);
+  utf8_as_char32_test_compare_with_pad_bytes<Size, Size + 7>(utf8_src);
+}
+
+template<size_t Size> void utf8_as_char32_test_at_buffer_size()
+{
+  char utf8_src[Size];
+
+  /* Test uniform bytes, also with offsets ascending & descending. */
+  for (int i = 0; i <= 0xff; i++) {
+    memset(utf8_src, i, sizeof(utf8_src));
+    utf8_as_char32_test_compare<Size>(utf8_src);
+
+    /* Offset trailing bytes up and down in steps of 1, 2, 4 .. etc. */
+    if (Size > 1) {
+      for (int mul = 1; mul < 256; mul *= 2) {
+        for (int ofs = 1; ofs < (int)Size; ofs++) {
+          utf8_src[ofs] = (char)(i + (ofs * mul));
+        }
+        utf8_as_char32_test_compare<Size>(utf8_src);
+
+        for (int ofs = 1; ofs < (int)Size; ofs++) {
+          utf8_src[ofs] = (char)(i - (ofs * mul));
+        }
+        utf8_as_char32_test_compare<Size>(utf8_src);
+      }
+    }
+  }
+
+  /* Random bytes. */
+  RNG *rng = BLI_rng_new(1);
+  for (int i = 0; i < 256; i++) {
+    BLI_rng_get_char_n(rng, utf8_src, sizeof(utf8_src));
+    utf8_as_char32_test_compare<Size>(utf8_src);
+  }
+  BLI_rng_free(rng);
+}
+
+TEST(string, Utf8AsUnicodeStep)
+{
+
+  /* Run tests at different buffer sizes. */
+  utf8_as_char32_test_at_buffer_size<1>();
+  utf8_as_char32_test_at_buffer_size<2>();
+  utf8_as_char32_test_at_buffer_size<3>();
+  utf8_as_char32_test_at_buffer_size<4>();
+  utf8_as_char32_test_at_buffer_size<5>();
+  utf8_as_char32_test_at_buffer_size<6>();
+  utf8_as_char32_test_at_buffer_size<7>();
+  utf8_as_char32_test_at_buffer_size<8>();
+  utf8_as_char32_test_at_buffer_size<9>();
+  utf8_as_char32_test_at_buffer_size<10>();
+  utf8_as_char32_test_at_buffer_size<11>();
+  utf8_as_char32_test_at_buffer_size<12>();
+}
+
+/** \} */

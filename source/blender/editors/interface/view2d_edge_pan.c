@@ -71,7 +71,8 @@ void UI_view2d_edge_pan_init(bContext *C,
                              float outside_pad,
                              float speed_ramp,
                              float max_speed,
-                             float delay)
+                             float delay,
+                             float zoom_influence)
 {
   if (!UI_view2d_edge_pan_poll(C)) {
     return;
@@ -89,6 +90,7 @@ void UI_view2d_edge_pan_init(bContext *C,
   vpd->speed_ramp = speed_ramp;
   vpd->max_speed = max_speed;
   vpd->delay = delay;
+  vpd->zoom_influence = zoom_influence;
 
   /* Calculate translation factor, based on size of view. */
   const float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
@@ -104,6 +106,7 @@ void UI_view2d_edge_pan_reset(View2DEdgePanData *vpd)
   vpd->edge_pan_start_time_x = 0.0;
   vpd->edge_pan_start_time_y = 0.0;
   vpd->edge_pan_last_time = PIL_check_seconds_timer();
+  vpd->initial_rect = vpd->region->v2d.cur;
 }
 
 /**
@@ -168,9 +171,17 @@ static float edge_pan_speed(View2DEdgePanData *vpd,
 
   /* Apply a fade in to the speed based on a start time delay. */
   const double start_time = x_dir ? vpd->edge_pan_start_time_x : vpd->edge_pan_start_time_y;
-  const float delay_factor = smootherstep(vpd->delay, (float)(current_time - start_time));
+  const float delay_factor = vpd->delay > 0.01f ?
+                                 smootherstep(vpd->delay, (float)(current_time - start_time)) :
+                                 1.0f;
 
-  return distance_factor * delay_factor * vpd->max_speed * U.widget_unit * (float)U.dpi_fac;
+  /* Zoom factor increases speed when zooming in and decreases speed when zooming out. */
+  const float zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
+                      BLI_rctf_size_x(&region->v2d.cur);
+  const float zoom_factor = 1.0f + CLAMPIS(vpd->zoom_influence, 0.0f, 1.0f) * (zoomx - 1.0f);
+
+  return distance_factor * delay_factor * zoom_factor * vpd->max_speed * U.widget_unit *
+         (float)U.dpi_fac;
 }
 
 static void edge_pan_apply_delta(bContext *C, View2DEdgePanData *vpd, float dx, float dy)
@@ -264,6 +275,27 @@ void UI_view2d_edge_pan_apply_event(bContext *C, View2DEdgePanData *vpd, const w
   UI_view2d_edge_pan_apply(C, vpd, event->x, event->y);
 }
 
+void UI_view2d_edge_pan_cancel(bContext *C, View2DEdgePanData *vpd)
+{
+  View2D *v2d = vpd->v2d;
+  if (!v2d) {
+    return;
+  }
+
+  v2d->cur = vpd->initial_rect;
+
+  /* Inform v2d about changes after this operation. */
+  UI_view2d_curRect_changed(C, v2d);
+
+  /* Don't rebuild full tree in outliner, since we're just changing our view. */
+  ED_region_tag_redraw_no_rebuild(vpd->region);
+
+  /* Request updates to be done. */
+  WM_event_add_mousemove(CTX_wm_window(C));
+
+  UI_view2d_sync(vpd->screen, vpd->area, v2d, V2D_LOCK_COPY);
+}
+
 void UI_view2d_edge_pan_operator_properties(wmOperatorType *ot)
 {
   /* Default values for edge panning operators. */
@@ -272,7 +304,8 @@ void UI_view2d_edge_pan_operator_properties(wmOperatorType *ot)
                                             /*outside_pad*/ 0.0f,
                                             /*speed_ramp*/ 1.0f,
                                             /*max_speed*/ 500.0f,
-                                            /*delay*/ 1.0f);
+                                            /*delay*/ 1.0f,
+                                            /*zoom_influence*/ 0.0f);
 }
 
 void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
@@ -280,7 +313,8 @@ void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
                                                float outside_pad,
                                                float speed_ramp,
                                                float max_speed,
-                                               float delay)
+                                               float delay,
+                                               float zoom_influence)
 {
   RNA_def_float(
       ot->srna,
@@ -329,6 +363,15 @@ void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
                 "Delay in seconds before maximum speed is reached",
                 0.0f,
                 10.0f);
+  RNA_def_float(ot->srna,
+                "zoom_influence",
+                zoom_influence,
+                0.0f,
+                1.0f,
+                "Zoom Influence",
+                "Influence of the zoom factor on scroll speed",
+                0.0f,
+                1.0f);
 }
 
 void UI_view2d_edge_pan_operator_init(bContext *C, View2DEdgePanData *vpd, wmOperator *op)
@@ -339,7 +382,8 @@ void UI_view2d_edge_pan_operator_init(bContext *C, View2DEdgePanData *vpd, wmOpe
                           RNA_float_get(op->ptr, "outside_padding"),
                           RNA_float_get(op->ptr, "speed_ramp"),
                           RNA_float_get(op->ptr, "max_speed"),
-                          RNA_float_get(op->ptr, "delay"));
+                          RNA_float_get(op->ptr, "delay"),
+                          RNA_float_get(op->ptr, "zoom_influence"));
 }
 
 /** \} */

@@ -58,7 +58,9 @@ shader node_texture_coordinate(
       getattribute("geom:uv", UV);
     }
     else {
-      getattribute("geom:generated", Generated);
+      if (!getattribute("geom:generated", Generated)) {
+        Generated = transform("object", P);
+      }
       getattribute("geom:uv", UV);
     }
 

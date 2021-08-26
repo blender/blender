@@ -123,6 +123,28 @@ static PyObject *pygpu_state_blend_get(PyObject *UNUSED(self))
   return PyUnicode_FromString(PyC_StringEnum_FindIDFromValue(pygpu_state_blend_items, blend));
 }
 
+PyDoc_STRVAR(pygpu_state_clip_distances_set_doc,
+             ".. function:: clip_distances_set(distances_enabled)\n"
+             "\n"
+             "   Sets number of `gl_ClipDistance`s that will be used for clip geometry.\n"
+             "\n"
+             "   :param distances_enabled: Number of clip distances enabled.\n"
+             "   :type distances_enabled: int\n");
+static PyObject *pygpu_state_clip_distances_set(PyObject *UNUSED(self), PyObject *value)
+{
+  int distances_enabled = (int)PyLong_AsUnsignedLong(value);
+  if (distances_enabled == -1) {
+    return NULL;
+  }
+
+  if (distances_enabled > 6) {
+    PyErr_SetString(PyExc_ValueError, "too many distances enabled, max is 6");
+  }
+
+  GPU_clip_distances(distances_enabled);
+  Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(pygpu_state_depth_test_set_doc,
              ".. function:: depth_test_set(mode)\n"
              "\n"
@@ -356,6 +378,10 @@ static struct PyMethodDef pygpu_state__tp_methods[] = {
     /* Manage Stack */
     {"blend_set", (PyCFunction)pygpu_state_blend_set, METH_O, pygpu_state_blend_set_doc},
     {"blend_get", (PyCFunction)pygpu_state_blend_get, METH_NOARGS, pygpu_state_blend_get_doc},
+    {"clip_distances_set",
+     (PyCFunction)pygpu_state_clip_distances_set,
+     METH_O,
+     pygpu_state_clip_distances_set_doc},
     {"depth_test_set",
      (PyCFunction)pygpu_state_depth_test_set,
      METH_O,

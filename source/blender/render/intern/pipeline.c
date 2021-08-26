@@ -354,6 +354,7 @@ RenderResult *RE_AcquireResultWrite(Render *re)
 {
   if (re) {
     BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+    render_result_passes_allocated_ensure(re->result);
     return re->result;
   }
 
@@ -568,6 +569,7 @@ Render *RE_NewRender(const char *name)
     BLI_strncpy(re->name, name, RE_MAXNAME);
     BLI_rw_mutex_init(&re->resultmutex);
     BLI_rw_mutex_init(&re->partsmutex);
+    BLI_mutex_init(&re->highlighted_tiles_mutex);
   }
 
   RE_InitRenderCB(re);
@@ -632,11 +634,16 @@ void RE_FreeRender(Render *re)
 
   BLI_rw_mutex_end(&re->resultmutex);
   BLI_rw_mutex_end(&re->partsmutex);
+  BLI_mutex_end(&re->highlighted_tiles_mutex);
 
   BLI_freelistN(&re->view_layers);
   BLI_freelistN(&re->r.views);
 
   BKE_curvemapping_free_data(&re->r.mblur_shutter_curve);
+
+  if (re->highlighted_tiles != NULL) {
+    BLI_gset_free(re->highlighted_tiles, MEM_freeN);
+  }
 
   /* main dbase can already be invalid now, some database-free code checks it */
   re->main = NULL;

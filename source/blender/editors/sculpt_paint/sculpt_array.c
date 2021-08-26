@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
+#include "BKE_lib_id.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -211,7 +212,7 @@ static void sculpt_array_final_mesh_write(Object *ob, BMesh *final_mesh) {
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(final_mesh, NULL, sculpt_mesh);
   result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
   BKE_mesh_nomain_to_mesh(result, ob->data, ob, &CD_MASK_MESH, true);
-  BKE_mesh_free(result);
+  BKE_id_free(NULL, result);
   BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
   const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(ob->data);

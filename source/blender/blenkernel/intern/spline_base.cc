@@ -123,7 +123,7 @@ int Spline::evaluated_edges_size() const
 float Spline::length() const
 {
   Span<float> lengths = this->evaluated_lengths();
-  return (lengths.size() == 0) ? 0 : this->evaluated_lengths().last();
+  return lengths.is_empty() ? 0.0f : this->evaluated_lengths().last();
 }
 
 int Spline::segments_size() const

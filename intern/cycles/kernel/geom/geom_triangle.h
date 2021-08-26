@@ -107,6 +107,27 @@ triangle_smooth_normal(KernelGlobals *kg, float3 Ng, int prim, float u, float v)
   return is_zero(N) ? Ng : N;
 }
 
+ccl_device_inline float3 triangle_smooth_normal_unnormalized(
+    KernelGlobals *kg, ShaderData *sd, float3 Ng, int prim, float u, float v)
+{
+  /* load triangle vertices */
+  const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
+  float3 n0 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.x));
+  float3 n1 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.y));
+  float3 n2 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
+
+  /* ensure that the normals are in object space */
+  if (sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED) {
+    object_inverse_normal_transform(kg, sd, &n0);
+    object_inverse_normal_transform(kg, sd, &n1);
+    object_inverse_normal_transform(kg, sd, &n2);
+  }
+
+  float3 N = (1.0f - u - v) * n2 + u * n0 + v * n1;
+
+  return is_zero(N) ? Ng : N;
+}
+
 /* Ray differentials on triangle */
 
 ccl_device_inline void triangle_dPdudv(KernelGlobals *kg,

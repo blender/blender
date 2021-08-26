@@ -30,16 +30,16 @@ typedef struct AssetTempIDConsumer AssetTempIDConsumer;
 
 struct AssetHandle;
 struct AssetLibraryReference;
-struct bContext;
 struct Main;
 struct ReportList;
+struct bContext;
 
 AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const struct AssetHandle *handle);
 void ED_asset_temp_id_consumer_free(AssetTempIDConsumer **consumer);
 struct ID *ED_asset_temp_id_consumer_ensure_local_id(
     AssetTempIDConsumer *consumer,
     const struct bContext *C,
-    const struct AssetLibraryReference *asset_library,
+    const struct AssetLibraryReference *asset_library_ref,
     ID_Type id_type,
     struct Main *bmain,
     struct ReportList *reports);

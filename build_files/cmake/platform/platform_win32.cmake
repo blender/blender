@@ -57,8 +57,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   endif()
 endif()
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ${WINDOWS_USE_VISUAL_STUDIO_PROJECT_FOLDERS})
-
 if(NOT WITH_PYTHON_MODULE)
   set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT blender)
 endif()
@@ -153,8 +151,8 @@ if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
   string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference ")
   set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference")
 else()
-  string(APPEND CMAKE_CXX_FLAGS " /nologo /J /Gd /MP /EHsc /bigobj")
-  set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP /bigobj")
+  string(APPEND CMAKE_CXX_FLAGS " /nologo /J /Gd /MP /EHsc /bigobj /Zc:inline")
+  set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP /bigobj /Zc:inline")
 endif()
 
 # X64 ASAN is available and usable on MSVC 16.9 preview 4 and up)
@@ -875,3 +873,6 @@ if(WITH_HARU)
     set(WITH_HARU OFF)
   endif()
 endif()
+
+set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
+set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)

@@ -64,9 +64,11 @@
 #ifdef __GNUC__
 #  define _ATOMIC_LIKELY(x) __builtin_expect(!!(x), 1)
 #  define _ATOMIC_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#  define _ATOMIC_MAYBE_UNUSED __attribute__((unused))
 #else
 #  define _ATOMIC_LIKELY(x) (x)
 #  define _ATOMIC_UNLIKELY(x) (x)
+#  define _ATOMIC_MAYBE_UNUSED
 #endif
 
 #if defined(__SIZEOF_POINTER__)

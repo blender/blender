@@ -72,14 +72,14 @@ BLI_STATIC_ASSERT(sizeof(IMAGE) == HEADER_SIZE, "Invalid header size");
 
 // #define TYPEMASK        0xff00
 #define BPPMASK 0x00ff
-// #define ITYPE_VERBATIM      0x0000 // UNUSED
+// #define ITYPE_VERBATIM      0x0000 /* UNUSED */
 #define ITYPE_RLE 0x0100
 #define ISRLE(type) (((type)&0xff00) == ITYPE_RLE)
 // #define ISVERBATIM(type)    (((type) & 0xff00) == ITYPE_VERBATIM)
 #define BPP(type) ((type)&BPPMASK)
 #define RLE(bpp) (ITYPE_RLE | (bpp))
-// #define VERBATIM(bpp)       (ITYPE_VERBATIM | (bpp)) // UNUSED
-// #define IBUFSIZE(pixels)    ((pixels + (pixels >> 6)) << 2) // UNUSED
+// #define VERBATIM(bpp)       (ITYPE_VERBATIM | (bpp)) /* UNUSED */
+// #define IBUFSIZE(pixels)    ((pixels + (pixels >> 6)) << 2) /* UNUSED */
 // #define RLE_NOP         0x00
 
 /* local struct for mem access */

@@ -615,8 +615,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, numPolys);
     CustomData_set_layer_flag(pdata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
-  BKE_mesh_calc_normals_poly(
-      mvert, NULL, numVerts, mloop, mpoly, numLoops, numPolys, polynors, false);
+  BKE_mesh_calc_normals_poly_and_vertex(
+      mvert, numVerts, mloop, numLoops, mpoly, numPolys, polynors, NULL);
 
   const float split_angle = mesh->smoothresh;
   short(*clnors)[2];

@@ -45,6 +45,8 @@
 #include "WM_types.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
 #include "transform_convert.h"
 
 /* helper struct for gp-frame transforms */
@@ -140,19 +142,38 @@ static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, boo
 }
 
 /* This function assigns the information to transdata */
-static void TimeToTransData(TransData *td, float *time, AnimData *adt, float ypos)
+static void TimeToTransData(
+    TransData *td, TransData2D *td2d, BezTriple *bezt, AnimData *adt, float ypos)
 {
-  /* memory is calloc'ed, so that should zero everything nicely for us */
+  float *time = bezt->vec[1];
+
+  /* Setup #TransData2D. */
+  td2d->loc[0] = *time;
+  td2d->loc2d = time;
+  td2d->h1 = bezt->vec[0];
+  td2d->h2 = bezt->vec[2];
+  copy_v2_v2(td2d->ih1, td2d->h1);
+  copy_v2_v2(td2d->ih2, td2d->h2);
+
+  /* Setup #TransData. */
+  td->loc = time; /* Usually #td2d->loc is used here. But this is for when the original location is
+                     not float[3]. */
+  copy_v3_v3(td->iloc, td->loc);
   td->val = time;
   td->ival = *(time);
-
   td->center[0] = td->ival;
   td->center[1] = ypos;
 
-  /* store the AnimData where this keyframe exists as a keyframe of the
-   * active action as td->extra.
-   */
+  /* Store the AnimData where this keyframe exists as a keyframe of the
+   * active action as #td->extra. */
   td->extra = adt;
+
+  if (bezt->f2 & SELECT) {
+    td->flag |= TD_SELECTED;
+  }
+
+  /* Set flags to move handles as necessary. */
+  td->flag |= TD_MOVEHANDLE1 | TD_MOVEHANDLE2;
 }
 
 /* This function advances the address to which td points to, so it must return
@@ -185,19 +206,7 @@ static TransData *ActionFCurveToTransData(TransData *td,
                                                 * so can't use BEZT_ISSEL_ANY() macro */
       /* only add if on the right 'side' of the current frame */
       if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
-        TimeToTransData(td, bezt->vec[1], adt, ypos);
-
-        if (bezt->f2 & SELECT) {
-          td->flag |= TD_SELECTED;
-        }
-
-        /* Set flags to move handles as necessary. */
-        td->flag |= TD_MOVEHANDLE1 | TD_MOVEHANDLE2;
-        td2d->h1 = bezt->vec[0];
-        td2d->h2 = bezt->vec[2];
-
-        copy_v2_v2(td2d->ih1, td2d->h1);
-        copy_v2_v2(td2d->ih2, td2d->h2);
+        TimeToTransData(td, td2d, bezt, adt, ypos);
 
         td++;
         td2d++;
@@ -233,15 +242,14 @@ static int GPLayerToTransData(TransData *td,
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
     if (is_prop_edit || (gpf->flag & GP_FRAME_SELECT)) {
       if (FrameOnMouseSide(side, (float)gpf->framenum, cfra)) {
-        /* memory is calloc'ed, so that should zero everything nicely for us */
-        td->val = &tfd->val;
-        td->ival = (float)gpf->framenum;
+        tfd->val = (float)gpf->framenum;
+        tfd->sdata = &gpf->framenum;
+
+        td->val = td->loc = &tfd->val; /* XXX: It's not a 3d array. */
+        td->ival = td->iloc[0] = (float)gpf->framenum;
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
-
-        tfd->val = (float)gpf->framenum;
-        tfd->sdata = &gpf->framenum;
 
         /* Advance `td` now. */
         td++;
@@ -596,6 +604,23 @@ void recalcData_actedit(TransInfo *t)
   if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
     /* flush transform values back to actual coordinates */
     flushTransIntFrameActionData(t);
+  }
+
+  /* Flush 2d vector. */
+  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+  const short autosnap = getAnimEdit_SnapMode(t);
+  TransData *td;
+  TransData2D *td2d;
+  int i = 0;
+  for (td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
+    if ((autosnap != SACTSNAP_OFF) && (t->state != TRANS_CANCEL) && !(td->flag & TD_NOTIMESNAP)) {
+      transform_snap_anim_flush_data(t, td, autosnap, td->loc);
+    }
+
+    /* Constrain Y. */
+    td->loc[1] = td->iloc[1];
+
+    transform_convert_flush_handle2D(td, td2d, 0.0f);
   }
 
   if (ac.datatype != ANIMCONT_MASK) {

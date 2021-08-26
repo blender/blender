@@ -68,7 +68,7 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char head[FILE_MAX], tail[FILE_MAX];
     ushort digits;
-    char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+    char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
     ImageFrame *frame = MEM_callocN(sizeof(ImageFrame), "image_frame");
 
     /* use the first file in the list as base filename */
@@ -124,7 +124,7 @@ static int image_cmp_frame(const void *a, const void *b)
  *
  * udim_tiles may get filled even if the result ultimately is false!
  */
-static int image_get_udim(char *filepath, ListBase *udim_tiles)
+static bool image_get_udim(char *filepath, ListBase *udim_tiles, int *udim_start, int *udim_range)
 {
   char filename[FILE_MAX], dirname[FILE_MAXDIR];
   BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
@@ -133,12 +133,12 @@ static int image_get_udim(char *filepath, ListBase *udim_tiles)
   char base_head[FILE_MAX], base_tail[FILE_MAX];
   int id = BLI_path_sequence_decode(filename, base_head, base_tail, &digits);
 
-  if (id < 1001 || id >= IMA_UDIM_MAX) {
-    return 0;
+  if (id < 1001 || id > IMA_UDIM_MAX) {
+    return false;
   }
 
   bool is_udim = true;
-  bool has_primary = false;
+  int min_udim = IMA_UDIM_MAX + 1;
   int max_udim = 0;
 
   struct direntry *dir;
@@ -155,26 +155,27 @@ static int image_get_udim(char *filepath, ListBase *udim_tiles)
       continue;
     }
 
-    if (id < 1001 || id >= IMA_UDIM_MAX) {
+    if (id < 1001 || id > IMA_UDIM_MAX) {
       is_udim = false;
       break;
     }
-    if (id == 1001) {
-      has_primary = true;
-    }
 
     BLI_addtail(udim_tiles, BLI_genericNodeN(POINTER_FROM_INT(id)));
+    min_udim = min_ii(min_udim, id);
     max_udim = max_ii(max_udim, id);
   }
   BLI_filelist_free(dir, totfile);
 
-  if (is_udim && has_primary) {
+  if (is_udim && min_udim <= IMA_UDIM_MAX) {
     char primary_filename[FILE_MAX];
-    BLI_path_sequence_encode(primary_filename, base_head, base_tail, digits, 1001);
+    BLI_path_sequence_encode(primary_filename, base_head, base_tail, digits, min_udim);
     BLI_join_dirfile(filepath, FILE_MAX, dirname, primary_filename);
-    return max_udim - 1000;
+
+    *udim_start = min_udim;
+    *udim_range = max_udim - min_udim + 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 /**
@@ -185,11 +186,12 @@ static void image_detect_frame_range(ImageFrameRange *range, const bool detect_u
 {
   /* UDIM */
   if (detect_udim) {
-    int len_udim = image_get_udim(range->filepath, &range->udim_tiles);
+    int udim_start, udim_range;
+    bool result = image_get_udim(range->filepath, &range->udim_tiles, &udim_start, &udim_range);
 
-    if (len_udim > 0) {
-      range->offset = 1001;
-      range->length = len_udim;
+    if (result) {
+      range->offset = udim_start;
+      range->length = udim_range;
       return;
     }
   }

@@ -170,10 +170,9 @@ static void actkeys_find_key_in_list_element(bAnimContext *ac,
   /* half-size (for either side), but rounded up to nearest int (for easier targeting) */
   key_hsize = roundf(key_hsize / 2.0f);
 
-  float xmin = UI_view2d_region_to_view_x(v2d, region_x - (int)key_hsize);
-  float xmax = UI_view2d_region_to_view_x(v2d, region_x + (int)key_hsize);
-
-  const ActKeyColumn *ak = ED_keylist_find_any_between(keylist, xmin, xmax);
+  const Range2f range = {UI_view2d_region_to_view_x(v2d, region_x - (int)key_hsize),
+                         UI_view2d_region_to_view_x(v2d, region_x + (int)key_hsize)};
+  const ActKeyColumn *ak = ED_keylist_find_any_between(keylist, range);
   if (ak) {
 
     /* set the frame to use, and apply inverse-correction for NLA-mapping

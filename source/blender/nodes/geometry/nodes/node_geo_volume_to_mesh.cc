@@ -149,6 +149,9 @@ static void geo_node_volume_to_mesh_exec(GeoNodeExecParams params)
 
 #ifdef WITH_OPENVDB
   create_mesh_from_volume(geometry_set_in, geometry_set_out, params);
+#else
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenVDB"));
 #endif
 
   params.set_output("Geometry", geometry_set_out);

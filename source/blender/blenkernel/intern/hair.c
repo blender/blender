@@ -114,32 +114,31 @@ static void hair_foreach_id(ID *id, LibraryForeachIDData *data)
 static void hair_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Hair *hair = (Hair *)id;
-  if (hair->id.us > 0 || BLO_write_is_undo(writer)) {
-    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *clayers = NULL, clayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomData_blend_write_prepare(&hair->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
-    CustomData_blend_write_prepare(&hair->cdata, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
 
-    /* Write LibData */
-    BLO_write_id_struct(writer, Hair, id_address, &hair->id);
-    BKE_id_blend_write(writer, &hair->id);
+  CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
+  CustomDataLayer *clayers = NULL, clayers_buff[CD_TEMP_CHUNK_SIZE];
+  CustomData_blend_write_prepare(&hair->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+  CustomData_blend_write_prepare(&hair->cdata, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
 
-    /* Direct data */
-    CustomData_blend_write(writer, &hair->pdata, players, hair->totpoint, CD_MASK_ALL, &hair->id);
-    CustomData_blend_write(writer, &hair->cdata, clayers, hair->totcurve, CD_MASK_ALL, &hair->id);
+  /* Write LibData */
+  BLO_write_id_struct(writer, Hair, id_address, &hair->id);
+  BKE_id_blend_write(writer, &hair->id);
 
-    BLO_write_pointer_array(writer, hair->totcol, hair->mat);
-    if (hair->adt) {
-      BKE_animdata_blend_write(writer, hair->adt);
-    }
+  /* Direct data */
+  CustomData_blend_write(writer, &hair->pdata, players, hair->totpoint, CD_MASK_ALL, &hair->id);
+  CustomData_blend_write(writer, &hair->cdata, clayers, hair->totcurve, CD_MASK_ALL, &hair->id);
 
-    /* Remove temporary data. */
-    if (players && players != players_buff) {
-      MEM_freeN(players);
-    }
-    if (clayers && clayers != clayers_buff) {
-      MEM_freeN(clayers);
-    }
+  BLO_write_pointer_array(writer, hair->totcol, hair->mat);
+  if (hair->adt) {
+    BKE_animdata_blend_write(writer, hair->adt);
+  }
+
+  /* Remove temporary data. */
+  if (players && players != players_buff) {
+    MEM_freeN(players);
+  }
+  if (clayers && clayers != clayers_buff) {
+    MEM_freeN(clayers);
   }
 }
 

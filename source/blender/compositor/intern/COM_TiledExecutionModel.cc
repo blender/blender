@@ -45,7 +45,7 @@ TiledExecutionModel::TiledExecutionModel(CompositorContext &context,
     group->determineResolution(resolution);
 
     if (border_.use_render_border) {
-      const rctf *render_border = border_.viewer_border;
+      const rctf *render_border = border_.render_border;
       group->setRenderBorder(
           render_border->xmin, render_border->xmax, render_border->ymin, render_border->ymax);
     }

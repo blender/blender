@@ -43,7 +43,7 @@ void register_node_type_cmp_sepycca(void)
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, cmp_node_sepycca_in, cmp_node_sepycca_out);
   node_type_init(&ntype, node_composit_init_mode_sepycca);
 
@@ -72,7 +72,7 @@ void register_node_type_cmp_combycca(void)
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, cmp_node_combycca_in, cmp_node_combycca_out);
   node_type_init(&ntype, node_composit_init_mode_combycca);
 

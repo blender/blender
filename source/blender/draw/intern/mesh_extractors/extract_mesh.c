@@ -33,11 +33,11 @@
 
 #include "draw_cache_impl.h"
 
-void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferCache *mbc)
+void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist)
 {
   /* NOTE: POINTER_OFFSET on windows platforms casts internally to `void *`, but on GCC/CLANG to
-   * `MeshBufferCache *`. What shows a different usage versus intent. */
-  void **buffer_ptr = (void **)POINTER_OFFSET(mbc, extractor->mesh_buffer_offset);
+   * `MeshBufferList *`. What shows a different usage versus intent. */
+  void **buffer_ptr = (void **)POINTER_OFFSET(mbuflist, extractor->mesh_buffer_offset);
   void *buffer = *buffer_ptr;
   BLI_assert(buffer);
   return buffer;

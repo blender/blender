@@ -26,6 +26,7 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_rect.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -321,6 +322,14 @@ typedef struct View2DEdgePanData {
   float max_speed;
   /** Delay in seconds before maximum speed is reached. */
   float delay;
+  /** Influence factor for view zoom:
+   *    0 = Constant speed in UI units
+   *    1 = Constant speed in view space, UI speed slows down when zooming out
+   */
+  float zoom_influence;
+
+  /** Initial view rect. */
+  rctf initial_rect;
 
   /** Amount to move view relative to zoom. */
   float facx, facy;
@@ -338,7 +347,8 @@ void UI_view2d_edge_pan_init(struct bContext *C,
                              float outside_pad,
                              float speed_ramp,
                              float max_speed,
-                             float delay);
+                             float delay,
+                             float zoom_influence);
 
 void UI_view2d_edge_pan_reset(struct View2DEdgePanData *vpd);
 
@@ -350,6 +360,8 @@ void UI_view2d_edge_pan_apply_event(struct bContext *C,
                                     struct View2DEdgePanData *vpd,
                                     const struct wmEvent *event);
 
+void UI_view2d_edge_pan_cancel(struct bContext *C, struct View2DEdgePanData *vpd);
+
 void UI_view2d_edge_pan_operator_properties(struct wmOperatorType *ot);
 
 void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
@@ -357,7 +369,8 @@ void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
                                                float outside_pad,
                                                float speed_ramp,
                                                float max_speed,
-                                               float delay);
+                                               float delay,
+                                               float zoom_influence);
 
 /* Initialize panning data with operator settings. */
 void UI_view2d_edge_pan_operator_init(struct bContext *C,

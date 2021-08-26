@@ -39,6 +39,9 @@
 #include "BLT_translation.h"
 
 #include "transform.h"
+#include "transform_convert.h"
+#include "transform_snap.h"
+
 #include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
@@ -62,7 +65,6 @@ static void headerTimeScale(TransInfo *t, char str[UI_MAX_DRAW_STR])
 static void applyTimeScaleValue(TransInfo *t, float value)
 {
   Scene *scene = t->scene;
-  const short autosnap = getAnimEdit_SnapMode(t);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
@@ -86,9 +88,6 @@ static void applyTimeScaleValue(TransInfo *t, float value)
 
       /* now, calculate the new value */
       *(td->val) = ((td->ival - startx) * fac) + startx;
-
-      /* apply nearest snapping */
-      doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
     }
   }
 }

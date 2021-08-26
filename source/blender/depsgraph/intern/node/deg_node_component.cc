@@ -237,7 +237,7 @@ void ComponentNode::tag_update(Depsgraph *graph, eUpdateSource source)
   for (OperationNode *op_node : operations) {
     op_node->tag_update(graph, source);
   }
-  // It is possible that tag happens before finalization.
+  /* It is possible that tag happens before finalization. */
   if (operations_map != nullptr) {
     for (OperationNode *op_node : operations_map->values()) {
       op_node->tag_update(graph, source);

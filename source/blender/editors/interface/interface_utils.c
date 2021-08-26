@@ -535,7 +535,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
         BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
                           "Name string buffer should be big enough to hold full UI ID name");
         name = name_buf;
-        has_sep_char = (id->lib != NULL);
+        has_sep_char = ID_IS_LINKED(id);
       }
     }
     else {

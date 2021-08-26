@@ -162,7 +162,7 @@ void UnitConverter::calculate_scale(Scene &sce)
  * Translation map.
  * Used to translate every COLLADA id to a valid id, no matter what "wrong" letters may be
  * included. Look at the IDREF XSD declaration for more.
- * Follows strictly the COLLADA XSD declaration which explicitly allows non-english chars,
+ * Follows strictly the COLLADA XSD declaration which explicitly allows non-English chars,
  * like special chars (e.g. micro sign), umlauts and so on.
  * The COLLADA spec also allows additional chars for member access ('.'), these
  * must obviously be removed too, otherwise they would be heavily misinterpreted.

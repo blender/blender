@@ -18,18 +18,13 @@
 
 #pragma once
 
-#include "COM_BlurBaseOperation.h"
-#include "COM_NodeOperation.h"
+#include "COM_GaussianBlurBaseOperation.h"
 
 namespace blender::compositor {
 
-class GaussianXBlurOperation : public BlurBaseOperation {
+/* TODO(manzanilla): everything to be removed with tiled implementation except the constructor. */
+class GaussianXBlurOperation : public GaussianBlurBaseOperation {
  private:
-  float *m_gausstab;
-#ifdef BLI_HAVE_SSE2
-  __m128 *m_gausstab_sse;
-#endif
-  int m_filtersize;
   void updateGauss();
 
  public:

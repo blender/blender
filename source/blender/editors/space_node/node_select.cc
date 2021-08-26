@@ -417,6 +417,7 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_select_grouped(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
   static const EnumPropertyItem prop_select_grouped_types[] = {
       {NODE_SELECT_GROUPED_TYPE, "TYPE", 0, "Type", ""},
       {NODE_SELECT_GROUPED_COLOR, "COLOR", 0, "Color", ""},
@@ -439,11 +440,12 @@ void NODE_OT_select_grouped(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  false,
-                  "Extend",
-                  "Extend selection instead of deselecting everything first");
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         false,
+                         "Extend",
+                         "Extend selection instead of deselecting everything first");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 

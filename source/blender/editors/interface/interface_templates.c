@@ -84,6 +84,8 @@
 #include "ED_screen.h"
 #include "ED_undo.h"
 
+#include "RE_engine.h"
+
 #include "RNA_access.h"
 
 #include "WM_api.h"
@@ -395,7 +397,7 @@ static bool id_search_add(const bContext *C, TemplateID *template_ui, uiSearchIt
   char name_ui[MAX_ID_FULL_NAME_UI];
   int iconid = ui_id_icon_get(C, id, template_ui->preview);
   const bool use_lib_prefix = template_ui->preview || iconid;
-  const bool has_sep_char = (id->lib != NULL);
+  const bool has_sep_char = ID_IS_LINKED(id);
 
   /* When using previews, the library hint (linked, overridden, missing) is added with a
    * character prefix, otherwise we can use a icon. */
@@ -1110,7 +1112,7 @@ static void template_ID(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
 
-    if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
+    if (!ID_IS_LINKED(id) && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
         (hide_buttons == false)) {
       uiDefIconButR(block,
                     UI_BTYPE_ICON_TOGGLE,
@@ -2621,6 +2623,72 @@ static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
   ED_object_constraint_active_set(ob_v, con_v);
 }
 
+static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v)
+{
+  PointerRNA op_ptr;
+  uiLayout *row;
+  bConstraint *con = (bConstraint *)con_v;
+
+  PointerRNA ptr;
+  Object *ob = ED_object_active_context(C);
+
+  RNA_pointer_create(&ob->id, &RNA_Constraint, con, &ptr);
+  uiLayoutSetContextPointer(layout, "constraint", &ptr);
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+
+  uiLayoutSetUnitsX(layout, 4.0f);
+
+  /* Apply. */
+  uiItemO(layout,
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+          ICON_CHECKMARK,
+          "CONSTRAINT_OT_apply");
+
+  /* Duplicate. */
+  uiItemO(layout,
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
+          ICON_DUPLICATE,
+          "CONSTRAINT_OT_copy");
+
+  uiItemO(layout,
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
+          0,
+          "CONSTRAINT_OT_copy_to_selected");
+
+  uiItemS(layout);
+
+  /* Move to first. */
+  row = uiLayoutColumn(layout, false);
+  uiItemFullO(row,
+              "CONSTRAINT_OT_move_to_index",
+              IFACE_("Move to First"),
+              ICON_TRIA_UP,
+              NULL,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &op_ptr);
+  RNA_int_set(&op_ptr, "index", 0);
+  if (!con->prev) {
+    uiLayoutSetEnabled(row, false);
+  }
+
+  /* Move to last. */
+  row = uiLayoutColumn(layout, false);
+  uiItemFullO(row,
+              "CONSTRAINT_OT_move_to_index",
+              IFACE_("Move to Last"),
+              ICON_TRIA_DOWN,
+              NULL,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &op_ptr);
+  ListBase *constraint_list = ED_object_constraint_list_from_constraint(ob, con, NULL);
+  RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);
+  if (!con->next) {
+    uiLayoutSetEnabled(row, false);
+  }
+}
+
 static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *con)
 {
   bPoseChannel *pchan = BKE_pose_channel_active(ob);
@@ -2652,11 +2720,13 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
 
   UI_block_emboss_set(block, UI_EMBOSS);
 
+  uiLayout *row = uiLayoutRow(layout, true);
+
   if (proxy_protected == 0) {
-    uiItemR(layout, &ptr, "name", 0, "", ICON_NONE);
+    uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
   }
   else {
-    uiItemL(layout, con->name, ICON_NONE);
+    uiItemL(row, con->name, ICON_NONE);
   }
 
   /* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
@@ -2697,21 +2767,21 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
     UI_block_emboss_set(block, UI_EMBOSS);
   }
   else {
-    /* enabled */
-    UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
-    uiItemR(layout, &ptr, "mute", 0, "", 0);
-    UI_block_emboss_set(block, UI_EMBOSS);
+    /* Enabled eye icon. */
+    uiItemR(row, &ptr, "enabled", 0, "", ICON_NONE);
 
-    uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+    /* Extra operators menu. */
+    uiItemMenuF(row, "", ICON_DOWNARROW_HLT, constraint_ops_extra_draw, con);
 
     /* Close 'button' - emboss calls here disable drawing of 'button' behind X */
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
-    uiItemO(layout, "", ICON_X, "CONSTRAINT_OT_delete");
-    UI_block_emboss_set(block, UI_EMBOSS);
-
-    /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
-    uiItemS(layout);
+    sub = uiLayoutRow(row, false);
+    uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
+    uiLayoutSetOperatorContext(sub, WM_OP_INVOKE_DEFAULT);
+    uiItemO(sub, "", ICON_X, "CONSTRAINT_OT_delete");
   }
+
+  /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
+  uiItemS(layout);
 
   /* Set but-locks for protected settings (magic numbers are used here!) */
   if (proxy_protected) {
@@ -6394,6 +6464,41 @@ void uiTemplateCacheFile(uiLayout *layout,
 
   row = uiLayoutRow(layout, false);
   uiItemR(row, &fileptr, "is_sequence", 0, NULL, ICON_NONE);
+
+  /* Only enable render procedural option if the active engine supports it. */
+  const struct RenderEngineType *engine_type = CTX_data_engine_type(C);
+
+  Scene *scene = CTX_data_scene(C);
+  const bool engine_supports_procedural = RE_engine_supports_alembic_procedural(engine_type,
+                                                                                scene);
+
+  if (!engine_supports_procedural) {
+    row = uiLayoutRow(layout, false);
+    /* For Cycles, verify that experimental features are enabled. */
+    if (BKE_scene_uses_cycles(scene) && !BKE_scene_uses_cycles_experimental_features(scene)) {
+      uiItemL(row,
+              "The Cycles Alembic Procedural is only available with the experimental feature set",
+              ICON_INFO);
+    }
+    else {
+      uiItemL(row, "The active render engine does not have an Alembic Procedural", ICON_INFO);
+    }
+  }
+
+  row = uiLayoutRow(layout, false);
+  uiLayoutSetActive(row, engine_supports_procedural);
+  uiItemR(row, &fileptr, "use_render_procedural", 0, NULL, ICON_NONE);
+
+  const bool use_render_procedural = RNA_boolean_get(&fileptr, "use_render_procedural");
+  const bool use_prefetch = RNA_boolean_get(&fileptr, "use_prefetch");
+
+  row = uiLayoutRow(layout, false);
+  uiLayoutSetEnabled(row, use_render_procedural);
+  uiItemR(row, &fileptr, "use_prefetch", 0, NULL, ICON_NONE);
+
+  sub = uiLayoutRow(layout, false);
+  uiLayoutSetEnabled(sub, use_prefetch && use_render_procedural);
+  uiItemR(sub, &fileptr, "prefetch_cache_size", 0, NULL, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Override Frame"));
   sub = uiLayoutRow(row, true);

@@ -113,6 +113,9 @@ if NOT "%1" == "" (
 	) else if "%1" == "icons_geom" (
 		set ICONS_GEOM=1
 		goto EOF
+	) else if "%1" == "doc_py" (
+		set DOC_PY=1
+		goto EOF
 	) else (
 		echo Command "%1" unknown, aborting!
 		goto ERR

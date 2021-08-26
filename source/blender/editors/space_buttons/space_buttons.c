@@ -811,6 +811,9 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
       break;
     case NC_ANIMATION:
       switch (wmn->data) {
+        case ND_NLA_ACTCHANGE:
+          ED_area_tag_redraw(area);
+          break;
         case ND_KEYFRAME:
           if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED)) {
             ED_area_tag_redraw(area);

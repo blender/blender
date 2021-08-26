@@ -1741,7 +1741,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_MOUSELEAVE: {
           window->m_mousePresent = false;
           if (window->getTabletData().Active == GHOST_kTabletModeNone) {
-            processCursorEvent(window);
+            event = processCursorEvent(window);
           }
           GHOST_Wintab *wt = window->getWintab();
           if (wt) {

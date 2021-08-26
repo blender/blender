@@ -95,7 +95,9 @@ static void freeData(ModifierData *md)
   }
 }
 
-static bool dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(struct Scene *UNUSED(scene),
+                          ModifierData *UNUSED(md),
+                          const int UNUSED(dag_eval_mode))
 {
   return true;
 }
@@ -275,8 +277,8 @@ static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
 #if 0
-      // TODO: CollisionModifier should use pointcache
-      // + have proper reset events before enabling this
+      /* TODO: #CollisionModifier should use point-cache
+       * + have proper reset events before enabling this. */
       collmd->x = newdataadr(fd, collmd->x);
       collmd->xnew = newdataadr(fd, collmd->xnew);
       collmd->mfaces = newdataadr(fd, collmd->mfaces);

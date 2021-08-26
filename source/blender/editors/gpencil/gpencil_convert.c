@@ -389,9 +389,6 @@ static void gpencil_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd,
 
   *r_tot_gaps_time = (float)(*nbr_gaps) * gtd->gap_duration;
   gtd->tot_time += *r_tot_gaps_time;
-  if (G.debug & G_DEBUG) {
-    printf("%f, %f, %f, %d\n", gtd->tot_time, delta_time, *r_tot_gaps_time, *nbr_gaps);
-  }
   if (gtd->gap_randomness > 0.0f) {
     BLI_rng_srandom(rng, gtd->seed);
   }
@@ -463,9 +460,6 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
                                NULL,
                                INSERTKEY_FAST);
         last_valid_time = cfra;
-      }
-      else if (G.debug & G_DEBUG) {
-        printf("\t Skipping start point %d, too close from end point %d\n", i, end_stroke_idx);
       }
     }
     else if (i == end_stroke_idx) {
@@ -546,13 +540,6 @@ static void gpencil_stroke_path_animation(bContext *C,
   act = ED_id_action_ensure(bmain, (ID *)cu);
   fcu = ED_action_fcurve_ensure(bmain, act, NULL, &ptr, "eval_time", 0);
 
-  if (G.debug & G_DEBUG) {
-    printf("%s: tot len: %f\t\ttot time: %f\n", __func__, gtd->tot_dist, gtd->tot_time);
-    for (int i = 0; i < gtd->num_points; i++) {
-      printf("\tpoint %d:\t\tlen: %f\t\ttime: %f\n", i, gtd->dists[i], gtd->times[i]);
-    }
-  }
-
   if (gtd->mode == GP_STROKECONVERT_TIMING_LINEAR) {
     float cfra;
 
@@ -610,10 +597,6 @@ static void gpencil_stroke_path_animation(bContext *C,
       time_range = (float)(gtd->end_frame - gtd->start_frame);
     }
 
-    if (G.debug & G_DEBUG) {
-      printf("GP Stroke Path Conversion: Starting keying!\n");
-    }
-
     gpencil_stroke_path_animation_add_keyframes(
         reports, ptr, prop, depsgraph, fcu, cu, gtd, rng, time_range, nbr_gaps, tot_gaps_time);
 
@@ -622,14 +605,6 @@ static void gpencil_stroke_path_animation(bContext *C,
 
   /* As we used INSERTKEY_FAST mode, we need to recompute all curve's handles now */
   calchandles_fcurve(fcu);
-
-  if (G.debug & G_DEBUG) {
-    printf("%s: \ntot len: %f\t\ttot time: %f\n", __func__, gtd->tot_dist, gtd->tot_time);
-    for (int i = 0; i < gtd->num_points; i++) {
-      printf("\tpoint %d:\t\tlen: %f\t\ttime: %f\n", i, gtd->dists[i], gtd->times[i]);
-    }
-    printf("\n\n");
-  }
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 
@@ -1588,14 +1563,8 @@ static int gpencil_convert_layer_exec(bContext *C, wmOperator *op)
       C, op->reports, gpd, gpl, mode, norm_weights, rad_fac, link_strokes, &gtd);
 
   /* free temp memory */
-  if (gtd.dists) {
-    MEM_freeN(gtd.dists);
-    gtd.dists = NULL;
-  }
-  if (gtd.times) {
-    MEM_freeN(gtd.times);
-    gtd.times = NULL;
-  }
+  MEM_SAFE_FREE(gtd.dists);
+  MEM_SAFE_FREE(gtd.times);
 
   /* notifiers */
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);

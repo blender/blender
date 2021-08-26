@@ -562,7 +562,8 @@ void NLA_OT_action_pushdown(wmOperatorType *ot)
 static bool nla_action_unlink_poll(bContext *C)
 {
   if (ED_operator_nla_active(C)) {
-    return nla_panel_context(C, NULL, NULL, NULL);
+    PointerRNA adt_ptr;
+    return (nla_panel_context(C, &adt_ptr, NULL, NULL) && (adt_ptr.data != NULL));
   }
 
   /* something failed... */

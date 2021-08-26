@@ -133,12 +133,12 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
   }
 }
 
-static int seqbase_unique_name_recursive_fn(Sequence *seq, void *arg_pt)
+static bool seqbase_unique_name_recursive_fn(Sequence *seq, void *arg_pt)
 {
   if (seq->seqbase.first) {
     seqbase_unique_name(&seq->seqbase, (SeqUniqueInfo *)arg_pt);
   }
-  return 1;
+  return true;
 }
 
 void SEQ_sequence_base_unique_name_recursive(struct Scene *scene,
@@ -167,7 +167,7 @@ void SEQ_sequence_base_unique_name_recursive(struct Scene *scene,
   while (sui.match) {
     sui.match = 0;
     seqbase_unique_name(seqbasep, &sui);
-    SEQ_seqbase_recursive_apply(seqbasep, seqbase_unique_name_recursive_fn, &sui);
+    SEQ_for_each_callback(seqbasep, seqbase_unique_name_recursive_fn, &sui);
   }
 
   SEQ_edit_sequence_name_set(scene, seq, sui.name_dest);
@@ -431,7 +431,7 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   return best_seq;
 }
 
-/* in cases where we done know the sequence's listbase */
+/* in cases where we don't know the sequence's listbase */
 ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
 {
   Sequence *iseq;
@@ -443,25 +443,6 @@ ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
     }
     if (iseq->seqbase.first && (lb = SEQ_get_seqbase_by_seq(&iseq->seqbase, seq))) {
       return lb;
-    }
-  }
-
-  return NULL;
-}
-
-Sequence *seq_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
-{
-  Sequence *iseq;
-
-  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-    Sequence *rval;
-
-    if (seq == iseq) {
-      return meta;
-    }
-    if (iseq->seqbase.first &&
-        (rval = seq_find_metastrip_by_sequence(&iseq->seqbase, iseq, seq))) {
-      return rval;
     }
   }
 
@@ -590,34 +571,6 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
       transform->scale_y = 1.0f;
       break;
   }
-}
-
-int SEQ_seqbase_recursive_apply(ListBase *seqbase,
-                                int (*apply_fn)(Sequence *seq, void *),
-                                void *arg)
-{
-  Sequence *iseq;
-  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-    if (SEQ_recursive_apply(iseq, apply_fn, arg) == -1) {
-      return -1; /* bail out */
-    }
-  }
-  return 1;
-}
-
-int SEQ_recursive_apply(Sequence *seq, int (*apply_fn)(Sequence *, void *), void *arg)
-{
-  int ret = apply_fn(seq, arg);
-
-  if (ret == -1) {
-    return -1; /* bail out */
-  }
-
-  if (ret && seq->seqbase.first) {
-    ret = SEQ_seqbase_recursive_apply(&seq->seqbase, apply_fn, arg);
-  }
-
-  return ret;
 }
 
 /**

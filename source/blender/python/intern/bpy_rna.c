@@ -181,23 +181,13 @@ static PyMethodDef id_free_weakref_cb_def = {
 /* Adds a reference to the list, remember to decref. */
 static GHash *id_weakref_pool_get(ID *id)
 {
-  GHash *weakinfo_hash = NULL;
-
-  if (id_weakref_pool) {
-    weakinfo_hash = BLI_ghash_lookup(id_weakref_pool, (void *)id);
-  }
-  else {
-    /* First time, allocate pool. */
-    id_weakref_pool = BLI_ghash_ptr_new("rna_global_pool");
-    weakinfo_hash = NULL;
-  }
-
+  GHash *weakinfo_hash = BLI_ghash_lookup(id_weakref_pool, (void *)id);
   if (weakinfo_hash == NULL) {
-    /* We use a ghash as a set, we could use libHX's HXMAP_SINGULAR, but would be an extra dep. */
+    /* This could be a set, values are used to keep a reference back to the ID
+     * (all of them are the same). */
     weakinfo_hash = BLI_ghash_ptr_new("rna_id");
     BLI_ghash_insert(id_weakref_pool, id, weakinfo_hash);
   }
-
   return weakinfo_hash;
 }
 
@@ -283,14 +273,6 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash)
 
   BLI_ghash_remove(id_weakref_pool, (void *)id, NULL, NULL);
   BLI_ghash_free(weakinfo_hash, NULL, NULL);
-
-  if (BLI_ghash_len(id_weakref_pool) == 0) {
-    BLI_ghash_free(id_weakref_pool, NULL, NULL);
-    id_weakref_pool = NULL;
-#  ifdef DEBUG_RNA_WEAKREF
-    printf("id_release_weakref freeing pool\n");
-#  endif
-  }
 }
 
 static void id_release_weakref(struct ID *id)
@@ -310,7 +292,8 @@ void BPY_id_release(struct ID *id)
 #endif
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-  if (id_weakref_pool) {
+  /* Check for NULL since this may run before Python has been started. */
+  if (id_weakref_pool != NULL) {
     PyGILState_STATE gilstate = PyGILState_Ensure();
 
     id_release_weakref(id);
@@ -4492,7 +4475,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
   if ((ret == NULL)  /* || BPy_PropDeferred_CheckTypeExact(ret) */ ) {
     StructRNA *srna = srna_from_self(cls, "StructRNA.__getattr__");
     if (srna) {
-      PropertyRNA *prop = RNA_struct_type_find_property(srna, PyUnicode_AsUTF8(attr));
+      PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, PyUnicode_AsUTF8(attr));
       if (prop) {
         PointerRNA tptr;
         PyErr_Clear(); /* Clear error from tp_getattro. */
@@ -4514,7 +4497,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
   const char *attr_str = PyUnicode_AsUTF8(attr);
 
   if (srna && !pyrna_write_check() &&
-      (is_deferred_prop || RNA_struct_type_find_property(srna, attr_str))) {
+      (is_deferred_prop || RNA_struct_type_find_property_no_base(srna, attr_str))) {
     PyErr_Format(PyExc_AttributeError,
                  "pyrna_struct_meta_idprop_setattro() "
                  "can't set in readonly state '%.200s.%S'",
@@ -7522,7 +7505,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
     /* Newclass will now have 2 ref's, ???,
      * probably 1 is internal since #Py_DECREF here segfaults. */
 
-    /* PyC_ObSpit("new class ref", newclass); */
+    // PyC_ObSpit("new class ref", newclass);
 
     if (newclass) {
       /* srna owns one, and the other is owned by the caller. */
@@ -7775,6 +7758,32 @@ void BPY_rna_init(void)
   if (PyType_Ready(&pyrna_prop_collection_iter_Type) < 0) {
     return;
   }
+#endif
+
+#ifdef USE_PYRNA_INVALIDATE_WEAKREF
+  BLI_assert(id_weakref_pool == NULL);
+  id_weakref_pool = BLI_ghash_ptr_new("rna_global_pool");
+#endif
+}
+
+void BPY_rna_exit(void)
+{
+#ifdef USE_PYRNA_INVALIDATE_WEAKREF
+  /* This can help track down which kinds of data were not released.
+   * If they were in fact freed by Blender, printing their names
+   * will crash giving a useful error with address sanitizer. The likely cause
+   * for this list not being empty is a missing call to: #BKE_libblock_free_data_py. */
+  const int id_weakref_pool_len = BLI_ghash_len(id_weakref_pool);
+  if (id_weakref_pool_len != 0) {
+    printf("Found %d unreleased ID's\n", id_weakref_pool_len);
+    GHashIterator gh_iter;
+    GHASH_ITER (gh_iter, id_weakref_pool) {
+      ID *id = BLI_ghashIterator_getKey(&gh_iter);
+      printf("ID: %s\n", id->name);
+    }
+  }
+  BLI_ghash_free(id_weakref_pool, NULL, NULL);
+  id_weakref_pool = NULL;
 #endif
 }
 
@@ -8681,6 +8690,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       }
 
 #ifdef USE_PEDANTIC_WRITE
+      /* Handle nested draw calls, see: T89253. */
+      const bool rna_disallow_writes_prev = rna_disallow_writes;
       rna_disallow_writes = is_readonly ? true : false;
 #endif
       /* *** Main Caller *** */
@@ -8690,7 +8701,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
       /* *** Done Calling *** */
 
 #ifdef USE_PEDANTIC_WRITE
-      rna_disallow_writes = false;
+      rna_disallow_writes = rna_disallow_writes_prev;
 #endif
 
       RNA_parameter_list_end(&iter);

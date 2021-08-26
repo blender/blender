@@ -355,10 +355,7 @@ void EDBM_mesh_clear(BMEditMesh *em)
 
   /* free tessellation data */
   em->tottri = 0;
-  if (em->looptris) {
-    MEM_freeN(em->looptris);
-    em->looptris = NULL;
-  }
+  MEM_SAFE_FREE(em->looptris);
 }
 
 void EDBM_mesh_load(Main *bmain, Object *ob)

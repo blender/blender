@@ -616,6 +616,7 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #  include "BLI_string_utils.h"
 
 #  include "DNA_anim_types.h"
+#  include "DNA_cachefile_types.h"
 #  include "DNA_color_types.h"
 #  include "DNA_mesh_types.h"
 #  include "DNA_node_types.h"
@@ -1615,6 +1616,11 @@ static int rna_RenderSettings_engine_get(PointerRNA *ptr)
 static void rna_RenderSettings_engine_update(Main *bmain,
                                              Scene *UNUSED(unused),
                                              PointerRNA *UNUSED(ptr))
+{
+  ED_render_engine_changed(bmain, true);
+}
+
+static void rna_Scene_update_render_engine(Main *bmain)
 {
   ED_render_engine_changed(bmain, true);
 }
@@ -7664,6 +7670,7 @@ void RNA_def_scene(BlenderRNA *brna)
   prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
   RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree");
 
   prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
@@ -7835,6 +7842,10 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE, NULL);
   RNA_def_property_update(prop, NC_SCENE, "rna_Scene_volume_update");
 
+  func = RNA_def_function(srna, "update_render_engine", "rna_Scene_update_render_engine");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_MAIN);
+  RNA_def_function_ui_description(func, "Trigger a render engine update");
+
   /* Statistics */
   func = RNA_def_function(srna, "statistics", "rna_Scene_statistics_string_get");
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
@@ -7895,6 +7906,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "master_collection");
   RNA_def_property_struct_type(prop, "Collection");
   RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop,
                            "Collection",
                            "Scene root collection that owns all the objects and other collections "

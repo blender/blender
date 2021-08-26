@@ -345,13 +345,10 @@ elseif(APPLE)
       set(TARGETDIR_VER "${PYTHON_LIBPATH}/Resources/${BLENDER_VERSION}")
       set(INSTALL_BPY_TO_SITE_PACKAGES ON)
     endif()
-    # Dylibs folder for bpy.so.
-    set(MAC_BLENDER_TARGET_DYLIBS_DIR "${TARGETDIR_VER}/lib")
   else()
     set(TARGETDIR_VER Blender.app/Contents/Resources/${BLENDER_VERSION})
-    # Dylibs folder for Blender executable. @executable_path is an rpath.
-    set(MAC_BLENDER_TARGET_DYLIBS_DIR "$<TARGET_FILE_DIR:blender>")
   endif()
+  set(MAC_BLENDER_TARGET_DYLIBS_DIR "${TARGETDIR_VER}/lib")
   # Skip relinking on cpack / install
   set_target_properties(blender PROPERTIES BUILD_WITH_INSTALL_RPATH true)
 endif()

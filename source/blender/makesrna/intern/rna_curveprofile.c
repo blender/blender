@@ -23,9 +23,6 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_curveprofile_types.h"
-#include "DNA_texture_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 #include "rna_internal.h"
@@ -37,31 +34,7 @@
 
 #  include "RNA_access.h"
 
-#  include "DNA_image_types.h"
-#  include "DNA_material_types.h"
-#  include "DNA_movieclip_types.h"
-#  include "DNA_node_types.h"
-#  include "DNA_object_types.h"
-#  include "DNA_particle_types.h"
-#  include "DNA_sequence_types.h"
-
-#  include "MEM_guardedalloc.h"
-
-#  include "BKE_colorband.h"
 #  include "BKE_curveprofile.h"
-#  include "BKE_image.h"
-#  include "BKE_linestyle.h"
-#  include "BKE_movieclip.h"
-#  include "BKE_node.h"
-
-#  include "DEG_depsgraph.h"
-
-#  include "ED_node.h"
-
-#  include "IMB_colormanagement.h"
-#  include "IMB_imbuf.h"
-
-#  include "SEQ_sequencer.h"
 
 /**
  * Set both handle types for all selected points in the profile-- faster than changing types
