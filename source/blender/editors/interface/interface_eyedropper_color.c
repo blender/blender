@@ -342,14 +342,12 @@ void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
   ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
   if (area == NULL) {
     int mval[2] = {mx, my};
-    if (WM_window_find_under_cursor(wm, NULL, win, mval, &win, mval)) {
+    win = WM_window_find_under_cursor(wm, NULL, win, mval, mval);
+    if (win) {
       mx = mval[0];
       my = mval[1];
       screen = WM_window_get_active_screen(win);
       area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
-    }
-    else {
-      win = NULL;
     }
   }
 
