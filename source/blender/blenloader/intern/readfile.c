@@ -1625,7 +1625,7 @@ static void change_link_placeholder_to_real_ID_pointer(ListBase *mainlist,
 void blo_clear_proxy_pointers_from_lib(Main *oldmain)
 {
   LISTBASE_FOREACH (Object *, ob, &oldmain->objects) {
-    if (ob->id.lib != NULL && ob->proxy_from != NULL && ob->proxy_from->id.lib == NULL) {
+    if (ID_IS_LINKED(ob) && ob->proxy_from != NULL && !ID_IS_LINKED(ob->proxy_from)) {
       ob->proxy_from = NULL;
     }
   }

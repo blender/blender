@@ -116,7 +116,7 @@ static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
   BLI_assert((id_self->tag & LIB_TAG_UNDO_OLD_ID_REUSED) != 0);
 
   ID *id = *id_pointer;
-  if (id != NULL && id->lib == NULL && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) == 0) {
+  if (id != NULL && !ID_IS_LINKED(id) && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) == 0) {
     bool do_stop_iter = true;
     if (GS(id_self->name) == ID_OB) {
       Object *ob_self = (Object *)id_self;

@@ -1991,7 +1991,7 @@ void BKE_pose_blend_read_lib(BlendLibReader *reader, Object *ob, bPose *pose)
     if (UNLIKELY(pchan->bone == NULL)) {
       rebuild = true;
     }
-    else if ((ob->id.lib == NULL) && arm->id.lib) {
+    else if (!ID_IS_LINKED(ob) && ID_IS_LINKED(arm)) {
       /* local pose selection copied to armature, bit hackish */
       pchan->bone->flag &= ~BONE_SELECTED;
       pchan->bone->flag |= pchan->selectflag;

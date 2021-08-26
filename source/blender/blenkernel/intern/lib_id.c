@@ -970,7 +970,7 @@ void BKE_main_id_repair_duplicate_names_listbase(ListBase *lb)
 {
   int lb_len = 0;
   LISTBASE_FOREACH (ID *, id, lb) {
-    if (id->lib == NULL) {
+    if (!ID_IS_LINKED(id)) {
       lb_len += 1;
     }
   }
@@ -983,7 +983,7 @@ void BKE_main_id_repair_duplicate_names_listbase(ListBase *lb)
   GSet *gset = BLI_gset_str_new_ex(__func__, lb_len);
   int i = 0;
   LISTBASE_FOREACH (ID *, id, lb) {
-    if (id->lib == NULL) {
+    if (!ID_IS_LINKED(id)) {
       id_array[i] = id;
       i++;
     }
@@ -1840,7 +1840,7 @@ static void library_make_local_copying_check(ID *id,
       from_id = ((Key *)from_id)->from;
     }
 
-    if (from_id->lib == NULL) {
+    if (!ID_IS_LINKED(from_id)) {
       /* Local user, early out to avoid some gset querying... */
       continue;
     }
@@ -2068,7 +2068,7 @@ void BKE_library_make_local(Main *bmain,
     ID *id = it->link;
 
     BLI_assert(id->newid != NULL);
-    BLI_assert(id->lib != NULL);
+    BLI_assert(ID_IS_LINKED(id));
 
     BKE_libblock_remap(bmain, id, id->newid, ID_REMAP_SKIP_INDIRECT_USAGE);
     if (old_to_new_ids) {
@@ -2103,7 +2103,7 @@ void BKE_library_make_local(Main *bmain,
       bool is_local = false, is_lib = false;
 
       /* Proxies only work when the proxified object is linked-in from a library. */
-      if (ob->proxy->id.lib == NULL) {
+      if (!ID_IS_LINKED(ob->proxy)) {
         CLOG_WARN(&LOG,
                   "proxy object %s will lose its link to %s, because the "
                   "proxified object is local.",
@@ -2221,7 +2221,7 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id, char separa
 {
   strcpy(name, id->name + 2);
 
-  if (id->lib != NULL) {
+  if (ID_IS_LINKED(id)) {
     const size_t idname_len = strlen(id->name + 2);
     const size_t libname_len = strlen(id->lib->id.name + 2);
 
@@ -2274,7 +2274,7 @@ void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
  */
 char *BKE_id_to_unique_string_key(const struct ID *id)
 {
-  if (id->lib == NULL) {
+  if (!ID_IS_LINKED(id)) {
     return BLI_strdup(id->name);
   }
 

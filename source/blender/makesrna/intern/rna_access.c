@@ -6151,7 +6151,7 @@ char *RNA_path_full_ID_py(Main *bmain, ID *id)
   }
 
   char lib_filepath_esc[(sizeof(id->lib->filepath) * 2) + 4];
-  if (id->lib != NULL) {
+  if (ID_IS_LINKED(id)) {
     int ofs = 0;
     memcpy(lib_filepath_esc, ", \"", 3);
     ofs += 3;

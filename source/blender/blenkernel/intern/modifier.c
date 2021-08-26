@@ -1573,7 +1573,7 @@ void BKE_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
   BKE_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
 
   /* If linking from a library, clear 'local' library override flag. */
-  if (ob->id.lib != NULL) {
+  if (ID_IS_LINKED(ob)) {
     LISTBASE_FOREACH (ModifierData *, mod, &ob->modifiers) {
       mod->flag &= ~eModifierFlag_OverrideLibrary_Local;
     }

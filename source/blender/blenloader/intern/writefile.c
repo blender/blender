@@ -840,7 +840,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
   current_screen_compat(mainvar, false, &curscreen, &curscene, &view_layer);
 
   LISTBASE_FOREACH (Scene *, sce, &mainvar->scenes) {
-    if (sce->id.lib == NULL && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
+    if (!ID_IS_LINKED(sce) && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
       RenderInfo data;
       data.sfra = sce->r.sfra;
       data.efra = sce->r.efra;

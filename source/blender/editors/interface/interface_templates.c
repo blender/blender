@@ -397,7 +397,7 @@ static bool id_search_add(const bContext *C, TemplateID *template_ui, uiSearchIt
   char name_ui[MAX_ID_FULL_NAME_UI];
   int iconid = ui_id_icon_get(C, id, template_ui->preview);
   const bool use_lib_prefix = template_ui->preview || iconid;
-  const bool has_sep_char = (id->lib != NULL);
+  const bool has_sep_char = ID_IS_LINKED(id);
 
   /* When using previews, the library hint (linked, overridden, missing) is added with a
    * character prefix, otherwise we can use a icon. */
@@ -1112,7 +1112,7 @@ static void template_ID(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
 
-    if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
+    if (!ID_IS_LINKED(id) && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
         (hide_buttons == false)) {
       uiDefIconButR(block,
                     UI_BTYPE_ICON_TOGGLE,

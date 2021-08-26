@@ -444,7 +444,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
           Collection *collection = BKE_collection_add(bmain, collection_master, name);
           collection->id.lib = scene->id.lib;
-          if (collection->id.lib != NULL) {
+          if (ID_IS_LINKED(collection)) {
             collection->id.tag |= LIB_TAG_INDIRECT;
           }
           collections[layer] = collection;
@@ -574,10 +574,10 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 static void do_version_collection_propagate_lib_to_children(Collection *collection)
 {
-  if (collection->id.lib != NULL) {
+  if (ID_IS_LINKED(collection)) {
     for (CollectionChild *collection_child = collection->children.first; collection_child != NULL;
          collection_child = collection_child->next) {
-      if (collection_child->collection->id.lib == NULL) {
+      if (!ID_IS_LINKED(collection_child->collection)) {
         collection_child->collection->id.lib = collection->id.lib;
       }
       do_version_collection_propagate_lib_to_children(collection_child->collection);

@@ -845,7 +845,7 @@ void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
 
     while (i--) {
       LISTBASE_FOREACH (ID *, id, lb_array[i]) {
-        if (id->lib == NULL || id->tag & LIB_TAG_DOIT) {
+        if (!ID_IS_LINKED(id) || id->tag & LIB_TAG_DOIT) {
           /* Local or non-indirectly-used ID (so far), no need to check it further. */
           continue;
         }

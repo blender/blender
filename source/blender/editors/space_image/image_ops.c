@@ -2338,7 +2338,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
 
     if (image_should_be_saved(ima, &is_format_writable)) {
       if (BKE_image_has_packedfile(ima) || (ima->source == IMA_SRC_GENERATED)) {
-        if (ima->id.lib == NULL) {
+        if (!ID_IS_LINKED(ima)) {
           num_saveable_images++;
         }
         else {

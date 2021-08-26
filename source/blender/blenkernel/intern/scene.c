@@ -3356,7 +3356,7 @@ static char *scene_undo_depsgraph_gen_key(Scene *scene, ViewLayer *view_layer, c
   }
 
   size_t key_full_offset = BLI_strncpy_rlen(key_full, scene->id.name, MAX_ID_NAME);
-  if (scene->id.lib != NULL) {
+  if (ID_IS_LINKED(scene)) {
     key_full_offset += BLI_strncpy_rlen(
         key_full + key_full_offset, scene->id.lib->filepath, FILE_MAX);
   }

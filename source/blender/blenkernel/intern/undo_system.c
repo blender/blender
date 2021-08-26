@@ -145,7 +145,7 @@ static void undosys_id_ref_resolve(void *user_data, UndoRefID *id_ref)
   Main *bmain = user_data;
   ListBase *lb = which_libbase(bmain, GS(id_ref->name));
   LISTBASE_FOREACH (ID *, id, lb) {
-    if (STREQ(id_ref->name, id->name) && (id->lib == NULL)) {
+    if (STREQ(id_ref->name, id->name) && !ID_IS_LINKED(id)) {
       id_ref->ptr = id;
       break;
     }

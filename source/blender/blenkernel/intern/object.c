@@ -864,7 +864,7 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, ob->id.lib, &ob->proxy);
   if (ob->proxy) {
     /* paranoia check, actually a proxy_from pointer should never be written... */
-    if (ob->proxy->id.lib == NULL) {
+    if (!ID_IS_LINKED(ob->proxy)) {
       ob->proxy->proxy_from = NULL;
       ob->proxy = NULL;
 
