@@ -344,9 +344,8 @@ void BKE_mesh_remesh_sculpt_array_update(Object *ob, Mesh *target, Mesh *source)
     return;
   }
 
-  BVHTreeFromMesh bvhtree = {
-      .nearest_callback = NULL,
-  };
+  BVHTreeFromMesh bvhtree = {nullptr};
+  bvhtree.nearest_callback = nullptr;
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
   MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
 
@@ -452,9 +451,8 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
 
 void BKE_remesh_reproject_materials(Mesh *target, Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {
-      .nearest_callback = NULL,
-  };
+  BVHTreeFromMesh bvhtree = {nullptr};
+  bvhtree.nearest_callback = nullptr;
 
   const MPoly *target_polys = (MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
   const MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
