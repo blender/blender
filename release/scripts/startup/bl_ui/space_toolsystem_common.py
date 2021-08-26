@@ -942,21 +942,6 @@ class WM_MT_toolsystem_submenu(Menu):
             ).name = item.idname
 
 
-def _kmi_props_setattr(kmi_props, attr, value):
-    if type(value) is list:
-        kmi_subprop = getattr(kmi_props, attr)
-        for subattr, subvalue in value:
-            _kmi_props_setattr(kmi_subprop, subattr, subvalue)
-        return
-
-    try:
-        setattr(kmi_props, attr, value)
-    except AttributeError:
-        print(f"Warning: property '{attr}' not found in keymap item '{kmi_props.__class__.__name__}'")
-    except Exception as ex:
-        print(f"Warning: {ex!r}")
-
-
 def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
     tool = ToolSelectPanelHelper._tool_active_from_context(context, space_type, create=True)
