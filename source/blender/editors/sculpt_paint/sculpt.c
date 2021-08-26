@@ -75,6 +75,7 @@
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "IMB_colormanagement.h"
 
@@ -9743,30 +9744,170 @@ static void SCULPT_OT_loop_to_vertex_colors(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+
+#define SAMPLE_COLOR_PREVIEW_SIZE 60
+#define SAMPLE_COLOR_OFFSET_X -15
+#define SAMPLE_COLOR_OFFSET_Y -15
+typedef struct SampleColorCustomData {
+  void *draw_handle;
+  Object *active_object;
+
+  float mval[2];
+
+  float initial_color[4];
+  float sampled_color[4];
+} SampleColorCustomData;
+
+static void sculpt_sample_color_draw(const bContext *UNUSED(C),
+                                          ARegion *UNUSED(ar),
+                                          void *arg)
+{
+  SampleColorCustomData *sccd = (SampleColorCustomData *)arg;
+  GPU_line_width(2.0f);
+  GPU_line_smooth(true);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  const float origin_x = sccd->mval[0] + SAMPLE_COLOR_OFFSET_X;
+  const float origin_y = sccd->mval[1] + SAMPLE_COLOR_OFFSET_Y;
+
+
+  immUniformColor3fvAlpha(sccd->sampled_color, 1.0f);
+  immRectf(pos, origin_x, origin_y, origin_x - SAMPLE_COLOR_PREVIEW_SIZE, origin_y - SAMPLE_COLOR_PREVIEW_SIZE);
+
+  immUniformColor3fvAlpha(sccd->initial_color, 1.0f);
+  immRectf(pos, origin_x - SAMPLE_COLOR_PREVIEW_SIZE, origin_y, origin_x - 2.0f * SAMPLE_COLOR_PREVIEW_SIZE, origin_y - SAMPLE_COLOR_PREVIEW_SIZE);
+
+
+  immUnbindProgram();
+  GPU_line_smooth(false);
+}
+
+static bool sculpt_sample_color_update_from_base(bContext *C, const wmEvent *event, SampleColorCustomData *sccd) {
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    Base *base_sample = ED_view3d_give_base_under_cursor(C, event->mval);
+    if (base_sample == NULL) {
+      return false;
+    }
+
+    Object *object_sample = base_sample->object;
+    if (object_sample->type != OB_MESH) {
+      return false;
+    }
+
+    Object *ob_eval = DEG_get_evaluated_object(depsgraph, object_sample);
+    Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+    MPropCol *vcol = CustomData_get_layer(&me_eval->vdata, CD_PROP_COLOR);
+
+    if (!vcol) {
+      return false;
+    }
+
+   ARegion *region = CTX_wm_region(C);
+   Scene *scene = CTX_data_scene(C);
+   float global_loc[3];
+   if (!ED_view3d_autodist_simple(region, event->mval, global_loc, 0, NULL)) {
+     return false;
+   }
+
+   float object_loc[3];
+   mul_v3_m4v3(object_loc, ob_eval->imat, global_loc);
+
+
+  BVHTreeFromMesh bvh;
+  BKE_bvhtree_from_mesh_get(&bvh, me_eval, BVHTREE_FROM_VERTS, 2);
+  BVHTreeNearest nearest;
+  nearest.index = -1;
+  nearest.dist_sq = FLT_MAX;
+  BLI_bvhtree_find_nearest(bvh.tree, object_loc, &nearest, bvh.nearest_callback, &bvh);
+  if (nearest.index == -1) {
+    return false;
+  }
+  free_bvhtree_from_mesh(&bvh);
+
+  copy_v4_v4(sccd->sampled_color, vcol[nearest.index].color);
+  IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color);
+  return true;
+}
+
+static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event) 
+{
+  ARegion *region = CTX_wm_region(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Scene *scene = CTX_data_scene(C);
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  SampleColorCustomData *sccd = (SampleColorCustomData *)op->customdata;
+
+  /* Finish operation on release. */
+  if (event->val == KM_RELEASE) {
+    float color_srgb[3];
+    copy_v3_v3(color_srgb, sccd->sampled_color);
+    BKE_brush_color_set(scene, brush, sccd->sampled_color);
+    WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
+    ED_region_draw_cb_exit(region->type, sccd->draw_handle);
+    ED_region_tag_redraw(region);
+    MEM_freeN(sccd);
+    ss->draw_faded_cursor = false;
+    return OPERATOR_FINISHED;
+  }
+
+  SculptCursorGeometryInfo sgi;
+  sccd->mval[0] = event->mval[0];
+  sccd->mval[1] = event->mval[1];
+
+
+  const bool over_mesh = SCULPT_cursor_geometry_info_update(C, &sgi, sccd->mval, false, false);
+  if (over_mesh) {
+    const int active_vertex = SCULPT_active_vertex_get(ss);
+    copy_v4_v4(sccd->sampled_color, SCULPT_vertex_color_get(ss, active_vertex));
+    IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color);
+  }
+  else {
+    sculpt_sample_color_update_from_base(C, event, sccd);
+  }
+
+  ss->draw_faded_cursor = true;
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
 static int sculpt_sample_color_invoke(bContext *C,
-                                      wmOperator *UNUSED(op),
+                                      wmOperator *op,
                                       const wmEvent *UNUSED(e))
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Brush *brush = BKE_paint_brush(&sd->paint);
+  ARegion *region = CTX_wm_region(C);
   SculptSession *ss = ob->sculpt;
-  int active_vertex = SCULPT_active_vertex_get(ss);
-  const float *active_vertex_color = SCULPT_vertex_color_get(ss, active_vertex);
-  if (!active_vertex_color) {
+
+  if (!ss->vcol) {
     return OPERATOR_CANCELLED;
   }
 
-  float color_srgb[3];
-  copy_v3_v3(color_srgb, active_vertex_color);
-  IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb);
-  BKE_brush_color_set(scene, brush, color_srgb);
+  SampleColorCustomData *sccd = MEM_callocN(sizeof(SampleColorCustomData), "Sample Color Custom Data");
+  const int active_vertex = SCULPT_active_vertex_get(ss);
+  copy_v4_v4(sccd->sampled_color, SCULPT_vertex_color_get(ss, active_vertex));
+  copy_v4_v4(sccd->initial_color, BKE_brush_color_get(scene, brush));
 
-  WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
+  sccd->draw_handle = ED_region_draw_cb_activate(
+      region->type, sculpt_sample_color_draw, sccd, REGION_DRAW_POST_PIXEL);
 
-  return OPERATOR_FINISHED;
+  op->customdata = sccd;
+
+  WM_event_add_modal_handler(C, op);
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_RUNNING_MODAL;
 }
+
+
+
 
 static void SCULPT_OT_sample_color(wmOperatorType *ot)
 {
@@ -9777,6 +9918,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_sample_color_invoke;
+  ot->modal = sculpt_sample_color_modal;
   ot->poll = SCULPT_vertex_colors_poll;
 
   ot->flag = OPTYPE_REGISTER;
