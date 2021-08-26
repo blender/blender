@@ -304,8 +304,8 @@ typedef struct MeshBatchCache {
    MBC_EDITUV_EDGES | MBC_EDITUV_VERTS | MBC_EDITUV_FACEDOTS | MBC_WIRE_LOOPS_UVS)
 
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
-                                        MeshBatchCache *mbc,
-                                        MeshBufferCache *extraction_cache,
+                                        MeshBatchCache *cache,
+                                        MeshBufferCache *mbc,
                                         Mesh *me,
                                         const bool is_editmode,
                                         const bool is_paint_mode,

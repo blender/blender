@@ -547,6 +547,7 @@ void BlenderSync::sync_procedural(BL::Object &b_ob,
 #else
   (void)b_ob;
   (void)b_mesh_cache;
+  (void)has_subdivision_modifier;
 #endif
 }
 
