@@ -836,9 +836,8 @@ struct SocketTooltipData {
 static void create_inspection_string_for_generic_value(const geo_log::GenericValueLog &value_log,
                                                        std::stringstream &ss)
 {
-  auto id_to_inspection_string = [&](ID *id) {
-    ss << (id ? id->name + 2 : TIP_("None")) << " (" << BKE_idtype_idcode_to_name(GS(id->name))
-       << ")";
+  auto id_to_inspection_string = [&](ID *id, short idcode) {
+    ss << (id ? id->name + 2 : TIP_("None")) << " (" << BKE_idtype_idcode_to_name(idcode) << ")";
   };
 
   const GPointer value = value_log.value();
@@ -858,16 +857,16 @@ static void create_inspection_string_for_generic_value(const geo_log::GenericVal
     ss << *value.get<std::string>() << TIP_(" (String)");
   }
   else if (value.is_type<Object *>()) {
-    id_to_inspection_string((ID *)*value.get<Object *>());
+    id_to_inspection_string((ID *)*value.get<Object *>(), ID_OB);
   }
   else if (value.is_type<Material *>()) {
-    id_to_inspection_string((ID *)*value.get<Material *>());
+    id_to_inspection_string((ID *)*value.get<Material *>(), ID_MA);
   }
   else if (value.is_type<Tex *>()) {
-    id_to_inspection_string((ID *)*value.get<Tex *>());
+    id_to_inspection_string((ID *)*value.get<Tex *>(), ID_TE);
   }
   else if (value.is_type<Collection *>()) {
-    id_to_inspection_string((ID *)*value.get<Collection *>());
+    id_to_inspection_string((ID *)*value.get<Collection *>(), ID_GR);
   }
 }
 
