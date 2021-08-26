@@ -861,11 +861,8 @@ typedef union OVERLAY_CameraInstanceData {
   };
 } OVERLAY_CameraInstanceData;
 
-static void camera_view3d_reconstruction(OVERLAY_ExtraCallBuffers *cb,
-                                         Scene *scene,
-                                         View3D *v3d,
-                                         Object *ob,
-                                         const float color[4])
+static void camera_view3d_reconstruction(
+    OVERLAY_ExtraCallBuffers *cb, Scene *scene, View3D *v3d, Object *ob, const float color[4])
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_select = DRW_state_is_select();
