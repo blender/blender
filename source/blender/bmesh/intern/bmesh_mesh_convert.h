@@ -76,7 +76,7 @@ void BM_mesh_bm_to_me(struct Main *bmain,
                       struct Object *ob,
                       BMesh *bm,
                       struct Mesh *me,
-                      const struct BMeshToMeshParams *params) ATTR_NONNULL(2, 3, 4);
+                      const struct BMeshToMeshParams *params) ATTR_NONNULL(3, 4, 5);
 
 void BM_mesh_bm_to_me_for_eval(BMesh *bm,
                                struct Mesh *me,
