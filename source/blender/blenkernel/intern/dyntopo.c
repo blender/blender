@@ -2749,7 +2749,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       if (e->l) {
         BMLoop *l = e->l;
         do {
-          printf("error in collapse_edge\n");
+          printf("warning in collapse_edge\n");
           int ni = BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset);
 
           BM_log_face_removed(pbvh->bm_log, l->f);
