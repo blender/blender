@@ -521,10 +521,28 @@ static void bmesh_undo_on_edge_change(BMEdge *v, void *userdata, void *old_custo
 
 static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
 {
+  BmeshUndoData *data = (BmeshUndoData *)userdata;
+
+  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v1);
+  MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v2);
+
+  mv1->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
+               DYNVERT_NEED_VALENCE;
+  mv2->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
+               DYNVERT_NEED_VALENCE;
 }
 
 static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
 {
+  BmeshUndoData *data = (BmeshUndoData *)userdata;
+
+  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v1);
+  MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(data->cd_dyn_vert, e->v2);
+
+  mv1->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
+               DYNVERT_NEED_VALENCE;
+  mv2->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_TRIANGULATE | DYNVERT_NEED_DISK_SORT |
+               DYNVERT_NEED_VALENCE;
 }
 
 static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
@@ -884,6 +902,14 @@ static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
 static int sculpt_undo_bmesh_restore(
     bContext *C, SculptUndoNode *unode, Object *ob, SculptSession *ss, int dir)
 {
+  // handle transition from another undo type
+
+#ifdef WHEN_GLOBAL_UNDO_WORKS
+  if (!ss->bm_log && ss->bm && unode->bm_entry) {  // && BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+  }
+#endif
+
   if (ss->bm_log && ss->bm &&
       !ELEM(unode->type, SCULPT_UNDO_DYNTOPO_BEGIN, SCULPT_UNDO_DYNTOPO_END)) {
     SCULPT_dyntopo_node_layers_update_offsets(ss);
@@ -2149,9 +2175,12 @@ static void sculpt_undosys_step_decode(
         BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
         Mesh *me = ob->data;
+
+#ifndef WHEN_GLOBAL_UNDO_WORKS
         /* Don't add sculpt topology undo steps when reading back undo state.
          * The undo steps must enter/exit for us. */
         me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+#endif
         ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, NULL);
       }
 
@@ -2376,6 +2405,12 @@ static void print_sculpt_undo_step(UndoStep *us, UndoStep *active, int i)
   SculptUndoNode *node;
 
   if (us->type != BKE_UNDOSYS_TYPE_SCULPT) {
+    printf("%d %s (non-sculpt): '%s', type:%s, use_memfile_step:%s\n",
+           i,
+           us == active ? "->" : "  ",
+           us->name,
+           us->type->name,
+           us->use_memfile_step ? "true" : "false");
     return;
   }
 
@@ -2388,7 +2423,12 @@ static void print_sculpt_undo_step(UndoStep *us, UndoStep *active, int i)
 
   id = su->id;
 
-  printf("id=%d %s %d %s\n", id, us == active ? "->" : "  ", i, us->name);
+  printf("id=%d %s %d %s (use_memfile_step=%s)\n",
+         id,
+         us == active ? "->" : "  ",
+         i,
+         us->name,
+         us->use_memfile_step ? "true" : "false");
 
   if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
     UndoSculpt *usculpt = sculpt_undosys_step_get_nodes(us);

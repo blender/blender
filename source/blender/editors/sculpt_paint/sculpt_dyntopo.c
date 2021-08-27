@@ -83,6 +83,18 @@
 #include <math.h>
 #include <stdlib.h>
 
+BMesh *SCULPT_dyntopo_empty_bmesh()
+{
+  BMesh *bm = BM_mesh_create(
+      &bm_mesh_allocsize_default,
+      &((struct BMeshCreateParams){.use_toolflags = false,
+                                   .use_unique_ids = true,
+                                   .use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                   .use_id_map = true,
+                                   .no_reuse_ids = false}));
+
+  return bm;
+}
 // TODO: check if (mathematically speaking) is it really necassary
 // to sort the edge lists around verts
 

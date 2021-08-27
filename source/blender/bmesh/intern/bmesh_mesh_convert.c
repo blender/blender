@@ -229,25 +229,10 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
  * \warning This function doesn't calculate face normals.
  */
 
-/* joeedh:
-GCC under linux is doing something very weird.  In the line below:
-
-  MultiresModifierData *mmd = ob ? get_multires_modifier(NULL, ob, true) : NULL;
-
-ob is evaulating to true when optimizations are on.  The following code:
-
-  printf("ob: %p, %s\n", ob, ob ? "true" : "false");
-
-will print (nil), true.  Very strange!
-*/
-
-#ifdef __GNUC__
-__attribute__((optimize("O0")))
-#endif
 void BM_mesh_bm_from_me(Object *ob,
-                                    BMesh *bm,
-                                    const Mesh *me,
-                                    const struct BMeshFromMeshParams *params)
+                        BMesh *bm,
+                        const Mesh *me,
+                        const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
@@ -413,6 +398,7 @@ void BM_mesh_bm_from_me(Object *ob,
     BM_mesh_cd_flag_apply(bm, me->cd_flag);
   }
 
+  int *existing_id_layers[4] = {NULL, NULL, NULL, NULL};
   int use_exist_ids = 0;
   int has_ids = bm->idmap.flag & BM_HAS_IDS ?
                     (bm->idmap.flag & (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)) :
@@ -423,9 +409,9 @@ void BM_mesh_bm_from_me(Object *ob,
       const CustomData *cdatas[] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
 
       for (int i = 0; i < 4; i++) {
-        int idx = CustomData_get_layer_index(cdatas[i], CD_MESH_ID);
+        existing_id_layers[i] = (int *)CustomData_get_layer(cdatas[i], CD_MESH_ID);
 
-        if (idx >= 0) {
+        if (existing_id_layers[i]) {
           use_exist_ids |= 1 << i;
         }
       }
@@ -467,7 +453,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
     if (has_ids & BM_VERT) {
       if (use_exist_ids & BM_VERT) {
-        bm_assign_id(bm, (BMElem *)v, BM_ELEM_GET_ID(bm, v));
+        bm_assign_id(bm, (BMElem *)v, existing_id_layers[0][i]);
       }
       else {
         bm_alloc_id(bm, (BMElem *)v);
@@ -516,7 +502,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
     if (has_ids & BM_EDGE) {
       if (use_exist_ids & BM_EDGE) {
-        bm_assign_id(bm, (BMElem *)e, BM_ELEM_GET_ID(bm, e));
+        bm_assign_id(bm, (BMElem *)e, existing_id_layers[1][i]);
       }
       else {
         bm_alloc_id(bm, (BMElem *)e);
@@ -587,7 +573,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
       if (has_ids & BM_LOOP) {
         if (use_exist_ids & BM_LOOP) {
-          bm_assign_id(bm, (BMElem *)l_iter, BM_ELEM_GET_ID(bm, l_iter));
+          bm_assign_id(bm, (BMElem *)l_iter, existing_id_layers[2][j - 1]);
         }
         else {
           bm_alloc_id(bm, (BMElem *)l_iter);
@@ -600,7 +586,7 @@ void BM_mesh_bm_from_me(Object *ob,
 
     if (has_ids & BM_FACE) {
       if (use_exist_ids & BM_FACE) {
-        bm_assign_id(bm, (BMElem *)f, BM_ELEM_GET_ID(bm, f));
+        bm_assign_id(bm, (BMElem *)f, existing_id_layers[3][i]);
       }
       else {
         bm_alloc_id(bm, (BMElem *)f);

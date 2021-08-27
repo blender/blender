@@ -867,13 +867,19 @@ static void bm_log_faces_restore(
       }
 
       if (v->head.htype != BM_VERT) {
-        printf("bm_log corruption!\n");
+        printf("vert %d in face %d was not a vertex\n", (int)lf->v_ids[i], POINTER_AS_INT(key));
         continue;
       }
       BLI_array_append(vs_tmp, v);
     }
 
-    BMFace *f = BM_face_create_verts(bm, vs_tmp, (int)lf->len, NULL, BM_CREATE_SKIP_ID, true);
+    if ((int)BLI_array_len(vs_tmp) < 2) {
+      printf("severely malformed face %d in %s\n", POINTER_AS_INT(key), __func__);
+      continue;
+    }
+
+    BMFace *f = BM_face_create_verts(
+        bm, vs_tmp, (int)BLI_array_len(vs_tmp), NULL, BM_CREATE_SKIP_ID, true);
     f->head.hflag = lf->hflag;
 
     copy_v3_v3(f->no, lf->no);
@@ -916,6 +922,11 @@ static void bm_log_vert_values_swap(
     BMLogVert *lv = BLI_ghashIterator_getValue(&gh_iter);
     uint id = POINTER_AS_UINT(key);
     BMVert *v = bm_log_vert_from_id(log, id);
+
+    if (!v) {
+      printf("missing vert in bmlog! %d", id);
+      continue;
+    }
 
     swap_v3_v3(v->co, lv->co);
     swap_v3_v3(v->no, lv->no);
@@ -1370,25 +1381,23 @@ void BM_log_print_entry(BMLog *log, BMLogEntry *entry)
         printf("==element IDs snapshot\n");
         break;
       case LOG_ENTRY_PARTIAL:
-        printf(" ==entry==\n");
-        printf("   modified:\n");
-        printf("     verts: %d\n", BLI_ghash_len(first->modified_verts));
-        printf("     edges: %d\n", BLI_ghash_len(first->modified_edges));
-        printf("     faces: %d\n", BLI_ghash_len(first->modified_faces));
-        printf("   new:\n");
-        printf("     verts: %d\n", BLI_ghash_len(first->added_verts));
-        printf("     edges: %d\n", BLI_ghash_len(first->added_edges));
-        printf("     faces: %d\n", BLI_ghash_len(first->added_faces));
-        printf("   deleted:\n");
-        printf("     verts: %d\n", BLI_ghash_len(first->deleted_verts));
-        printf("     edges: %d\n", BLI_ghash_len(first->deleted_edges));
-        printf("post edges: %d\n", BLI_ghash_len(first->deleted_edges_post));
-        printf("     faces: %d\n", BLI_ghash_len(first->deleted_faces));
+        printf("==modified: ");
+        printf("v: %d ", BLI_ghash_len(first->modified_verts));
+        printf("e: %d ", BLI_ghash_len(first->modified_edges));
+        printf("f: %d ", BLI_ghash_len(first->modified_faces));
+        printf(" new: ");
+        printf("v: %d ", BLI_ghash_len(first->added_verts));
+        printf("e: %d ", BLI_ghash_len(first->added_edges));
+        printf("f: %d ", BLI_ghash_len(first->added_faces));
+        printf(" deleted: ");
+        printf("v: %d ", BLI_ghash_len(first->deleted_verts));
+        printf("e: %d ", BLI_ghash_len(first->deleted_edges));
+        printf("pe: %d ", BLI_ghash_len(first->deleted_edges_post));
+        printf("f: %d ", BLI_ghash_len(first->deleted_faces));
         printf("\n");
         break;
     }
 
-    printf("\n");
     first = first->combined_next;
   }
 }
@@ -1584,6 +1593,11 @@ BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last)
 void BM_log_entry_drop(BMLogEntry *entry)
 {
   BMLog *log = entry->log;
+
+  // go to head of entry subgroup
+  while (entry->combined_next) {
+    entry = entry->combined_next;
+  }
 
   if (!log) {
     /* Unlink */
@@ -2469,14 +2483,31 @@ void BM_log_face_removed(BMLog *log, BMFace *f)
              !!log_ghash_haskey(log, entry->added_faces, key));
 
   if (!log_ghash_remove(log, entry->added_faces, key, NULL, NULL)) {
-    BMLogFace *lf;
+    BMLogFace *lf = bm_log_face_alloc(log, f);
 
-    lf = bm_log_face_alloc(log, f);
-    log_ghash_insert(log, entry->deleted_faces, key, lf);
+    void **val;
+    if (BLI_ghash_ensure_p(entry->deleted_faces, key, &val)) {
+      BMLogFace *lf2 = (BMLogFace *)*val;
+
+      if (lf2->customdata_f) {
+        // BLI_mempool_free(entry->pdata.pool, lf2->customdata_f);
+        CustomData_bmesh_free_block(&entry->pdata, &lf2->customdata_f);
+      }
+
+      for (uint i = 0; i < lf2->len; i++) {
+        if (lf2->customdata[i]) {
+          CustomData_bmesh_free_block(&entry->ldata, &lf2->customdata[i]);
+        }
+      }
+
+      BLI_mempool_free(entry->pool_faces, (void *)lf2);
+    }
 
     if (lf) {
       bm_log_face_customdata(log->bm, log, f, lf);
     }
+
+    *val = lf;
   }
 }
 

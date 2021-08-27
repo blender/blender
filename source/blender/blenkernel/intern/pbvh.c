@@ -1418,7 +1418,9 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
 
         for (int i = 0; i < node->tot_mat_draw_buffers; i++) {
           if (i >= node->tot_tri_buffers) {
-            printf("pbvh corruption!\n");
+            printf("node->tot_mat_draw_buffers >= node->tot_tri_buffers! %d %d\n",
+                   node->tot_mat_draw_buffers,
+                   node->tot_tri_buffers);
             continue;
           }
 

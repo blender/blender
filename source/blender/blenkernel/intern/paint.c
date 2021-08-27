@@ -79,9 +79,11 @@
 
 #include "bmesh.h"
 
-// XXX todo: work our bad module cross ref
+// XXX todo: figure out bad cross module refs
 void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
+void SCULPT_dyntopo_node_layers_add(SculptSession *ss);
+BMesh *SCULPT_dyntopo_empty_bmesh();
 
 static void palette_init_data(ID *id)
 {
@@ -1383,17 +1385,29 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 
   if (ss->bm) {
     if (ob->data) {
-      if (reorder && ss->bm_log) {
-        BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
-      }
+      Mesh *me = BKE_object_get_original_mesh(ob);
 
-      BM_mesh_bm_to_me(NULL,
-                       NULL,
-                       ss->bm,
-                       ob->data,
-                       (&(struct BMeshToMeshParams){
-                           .calc_object_remap = false,
-                       }));
+      BM_mesh_bm_to_me(
+          NULL,
+          NULL,
+          ss->bm,
+          ob->data,
+          (&(struct BMeshToMeshParams){.calc_object_remap = false,
+#ifdef WHEN_GLOBAL_UNDO_WORKS
+
+                                       /*
+                                        for memfile undo steps we need to
+                                        save id and temporary layers
+                                       */
+                                       .copy_temp_cdlayers = true,
+                                       .copy_mesh_id_layers = true,
+                                       .cd_mask_extra = CD_MASK_MESH_ID | CD_MASK_DYNTOPO_VERT
+#else
+                                       .copy_temp_cdlayers = false,
+                                       .copy_mesh_id_layers = false
+#endif
+
+          }));
     }
   }
 }
@@ -2254,6 +2268,46 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     ob->sculpt->pbvh = pbvh;
   }
   else {
+#ifdef WHEN_GLOBAL_UNDO_WORKS
+    /*detect if we are loading from an undo memfile step*/
+    Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
+    bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY);
+
+    is_dyntopo = is_dyntopo && CustomData_has_layer(&mesh_orig->vdata, CD_MESH_ID);
+    is_dyntopo = is_dyntopo && CustomData_has_layer(&mesh_orig->edata, CD_MESH_ID);
+    is_dyntopo = is_dyntopo && CustomData_has_layer(&mesh_orig->pdata, CD_MESH_ID);
+
+    if (is_dyntopo) {
+      BMesh *bm = SCULPT_dyntopo_empty_bmesh();
+
+      ob->sculpt->bm = bm;
+
+      BM_mesh_bm_from_me(NULL,
+                         bm,
+                         mesh_orig,
+                         (&(struct BMeshFromMeshParams){.calc_face_normal = true,
+                                                        .use_shapekey = true,
+                                                        .active_shapekey = ob->shapenr,
+                                                        .copy_id_layers = true,
+                                                        .copy_temp_cdlayers = true,
+                                                        .cd_mask_extra = CD_MASK_DYNTOPO_VERT}));
+
+      SCULPT_dyntopo_node_layers_add(ob->sculpt);
+
+      pbvh = build_pbvh_for_dynamic_topology(ob);
+    }
+    else {
+      Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+      Mesh *mesh_eval = object_eval->data;
+      if (mesh_eval->runtime.subdiv_ccg != NULL) {
+        pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subdiv_ccg, respect_hide);
+      }
+      else if (ob->type == OB_MESH) {
+        Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
+        pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
+      }
+    }
+#else
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Mesh *mesh_eval = object_eval->data;
     if (mesh_eval->runtime.subdiv_ccg != NULL) {
@@ -2263,6 +2317,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       Mesh *me_eval_deform = object_eval->runtime.mesh_deform_eval;
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
     }
+#endif
   }
 
   ob->sculpt->pbvh = pbvh;
