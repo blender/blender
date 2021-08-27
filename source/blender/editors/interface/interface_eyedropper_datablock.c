@@ -75,10 +75,12 @@ typedef struct DataDropper {
   char name[200];
 } DataDropper;
 
-static void datadropper_draw_cb(const struct bContext *C, ARegion *region, void *arg)
+static void datadropper_draw_cb(const struct bContext *UNUSED(C),
+                                ARegion *UNUSED(region),
+                                void *arg)
 {
   DataDropper *ddr = arg;
-  eyedropper_draw_cursor_text_region(C, UNPACK2(ddr->name_pos), ddr->name);
+  eyedropper_draw_cursor_text_region(UNPACK2(ddr->name_pos), ddr->name);
 }
 
 static int datadropper_init(bContext *C, wmOperator *op)
@@ -254,7 +256,7 @@ static void datadropper_cancel(bContext *C, wmOperator *op)
 }
 
 /* To switch the draw callback when region under mouse event changes */
-static void datadropper_set_draw_callback_region(bContext *C, ScrArea *area, DataDropper *ddr)
+static void datadropper_set_draw_callback_region(ScrArea *area, DataDropper *ddr)
 {
   if (area) {
     /* If spacetype changed */
@@ -311,7 +313,7 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
     datadropper_win_area_find(C, mval, mval, &win, &area);
 
     /* Set the region for eyedropper cursor text drawing */
-    datadropper_set_draw_callback_region(C, area, ddr);
+    datadropper_set_draw_callback_region(area, ddr);
 
     datadropper_id_sample_pt(C, win, area, ddr, mval[0], mval[1], &id);
   }

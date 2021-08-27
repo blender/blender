@@ -76,10 +76,12 @@ typedef struct DepthDropper {
   char name[200];
 } DepthDropper;
 
-static void depthdropper_draw_cb(const struct bContext *C, ARegion *region, void *arg)
+static void depthdropper_draw_cb(const struct bContext *UNUSED(C),
+                                 ARegion *UNUSED(region),
+                                 void *arg)
 {
   DepthDropper *ddr = arg;
-  eyedropper_draw_cursor_text_region(C, UNPACK2(ddr->name_pos), ddr->name);
+  eyedropper_draw_cursor_text_region(UNPACK2(ddr->name_pos), ddr->name);
 }
 
 static int depthdropper_init(bContext *C, wmOperator *op)
