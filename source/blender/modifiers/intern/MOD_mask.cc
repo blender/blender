@@ -432,7 +432,7 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
 
       float weights[2] = {1.0f - fac, fac};
       CustomData_interp(
-          &src_mesh.vdata, &dst_mesh.vdata, (int *)&e_src.v1, weights, NULL, 2, vert_index);
+          &src_mesh.vdata, &dst_mesh.vdata, (int *)&e_src.v1, weights, nullptr, 2, vert_index);
       MVert &v = dst_mesh.mvert[vert_index];
       MVert &v1 = src_mesh.mvert[e_src.v1];
       MVert &v2 = src_mesh.mvert[e_src.v2];
@@ -589,7 +589,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
           start = j;
           break;
         }
-        else if (!skip) {
+        if (!skip) {
           skip = true;
         }
       }
@@ -615,7 +615,8 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
             dvert, defgrp_index, threshold, last_loop->v, loop.v);
         float weights[2] = {1.0f - fac, fac};
         int indices[2] = {i_ml_src + last_index, i_ml_src + index};
-        CustomData_interp(&src_mesh.ldata, &dst_mesh.ldata, indices, weights, NULL, 2, i_ml_dst);
+        CustomData_interp(
+            &src_mesh.ldata, &dst_mesh.ldata, indices, weights, nullptr, 2, i_ml_dst);
         MLoop &cut_dst_loop = dst_mesh.mloop[i_ml_dst];
         cut_dst_loop.e = edge_map[last_loop->e];
         cut_dst_loop.v = dst_mesh.medge[cut_dst_loop.e].v1;
@@ -634,7 +635,8 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
             dvert, defgrp_index, threshold, last_loop->v, loop.v);
         float weights[2] = {1.0f - fac, fac};
         int indices[2] = {i_ml_src + last_index, i_ml_src + index};
-        CustomData_interp(&src_mesh.ldata, &dst_mesh.ldata, indices, weights, NULL, 2, i_ml_dst);
+        CustomData_interp(
+            &src_mesh.ldata, &dst_mesh.ldata, indices, weights, nullptr, 2, i_ml_dst);
         MLoop &cut_dst_loop = dst_mesh.mloop[i_ml_dst];
         cut_dst_loop.e = edge_index;
         cut_dst_loop.v = dst_mesh.medge[edge_map[last_loop->e]].v1;
