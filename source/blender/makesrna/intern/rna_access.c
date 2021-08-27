@@ -1333,7 +1333,7 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
       *hardmax = (float)ui_data->max;
     }
     else {
-      *hardmin = FLT_MIN;
+      *hardmin = -FLT_MAX;
       *hardmax = FLT_MAX;
     }
     return;
@@ -1377,7 +1377,7 @@ void RNA_property_float_ui_range(PointerRNA *ptr,
       *precision = (float)ui_data->precision;
     }
     else {
-      *softmin = FLT_MIN;
+      *softmin = -FLT_MAX;
       *softmax = FLT_MAX;
       *step = 1.0f;
       *precision = 3.0f;
