@@ -3850,9 +3850,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
 
-    if (data->text_font) {
-      data->text_blf_id = BLF_load(data->text_font->filepath);
-    }
+    SEQ_effect_text_font_load(data, false);
   }
 
   if (data->text_blf_id >= 0) {
