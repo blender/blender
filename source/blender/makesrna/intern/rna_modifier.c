@@ -4431,6 +4431,12 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Invert", "Use vertices that are not part of region defined");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MASK_SMOOTH);
+  RNA_def_property_ui_text(
+      prop, "Smooth", "Use vertex group weights to cut faces at the weight contour");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "threshold");
   RNA_def_property_range(prop, 0.0, 1.0);

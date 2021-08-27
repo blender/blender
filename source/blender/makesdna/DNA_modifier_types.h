@@ -298,6 +298,7 @@ enum {
 /* Mask Modifier -> flag */
 enum {
   MOD_MASK_INV = (1 << 0),
+  MOD_MASK_SMOOTH = (1 << 1),
 };
 
 typedef struct ArrayModifierData {
