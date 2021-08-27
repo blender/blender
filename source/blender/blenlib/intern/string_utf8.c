@@ -686,12 +686,7 @@ size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
     else {
       *dst_w = '?';
       const char *src_c_next = BLI_str_find_next_char_utf8(src_c + index, src_c_end);
-      if (src_c_next != NULL) {
-        index = (size_t)(src_c_next - src_c);
-      }
-      else {
-        index += 1;
-      }
+      index = (size_t)(src_c_next - src_c);
     }
     dst_w++;
     len++;
@@ -758,31 +753,33 @@ size_t BLI_str_utf32_as_utf8_len(const char32_t *src)
  * \param p: pointer to some position within \a str
  *
  * Given a position \a p with a UTF-8 encoded string \a str, find the start
- * of the previous UTF-8 character starting before. \a p Returns %NULL if no
- * UTF-8 characters are present in \a str before \a p
+ * of the previous UTF-8 character starting before. \a p Returns \a str_start if no
+ * UTF-8 characters are present in \a str_start before \a p.
  *
  * \a p does not have to be at the beginning of a UTF-8 character. No check
  * is made to see if the character found is actually valid other than
  * it starts with an appropriate byte.
  *
- * Return value: a pointer to the found character or %NULL.
+ * \return A pointer to the found character.
  */
-char *BLI_str_find_prev_char_utf8(const char *str, const char *p)
+const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
 {
-  for (--p; p >= str; p--) {
-    if ((*p & 0xc0) != 0x80) {
-      return (char *)p;
+  BLI_assert(p >= str_start);
+  if (str_start < p) {
+    for (--p; p >= str_start; p--) {
+      if ((*p & 0xc0) != 0x80) {
+        return (char *)p;
+      }
     }
   }
-  return NULL;
+  return p;
 }
 
 /* was g_utf8_find_next_char */
 /**
  * BLI_str_find_next_char_utf8:
  * \param p: a pointer to a position within a UTF-8 encoded string
- * \param end: a pointer to the byte following the end of the string,
- * or %NULL to indicate that the string is nul-terminated.
+ * \param end: a pointer to the byte following the end of the string.
  *
  * Finds the start of the next UTF-8 character in the string after \a p
  *
@@ -790,50 +787,18 @@ char *BLI_str_find_prev_char_utf8(const char *str, const char *p)
  * is made to see if the character found is actually valid other than
  * it starts with an appropriate byte.
  *
- * Return value: a pointer to the found character or %NULL
+ * \return a pointer to the found character or a pointer to the null terminating character '\0'.
  */
-char *BLI_str_find_next_char_utf8(const char *p, const char *end)
+const char *BLI_str_find_next_char_utf8(const char *p, const char *str_end)
 {
-  if (*p) {
-    if (end) {
-      BLI_assert(end >= p);
-      for (++p; p < end && (*p & 0xc0) == 0x80; p++) {
-        /* do nothing */
-      }
-    }
-    else {
-      for (++p; (*p & 0xc0) == 0x80; p++) {
-        /* do nothing */
-      }
+  BLI_assert(p <= str_end);
+  if ((p < str_end) && (*p != '\0')) {
+    for (++p; p < str_end && (*p & 0xc0) == 0x80; p++) {
+      /* do nothing */
     }
   }
-  return (p == end) ? NULL : (char *)p;
+  return p;
 }
-
-/* was g_utf8_prev_char */
-/**
- * BLI_str_prev_char_utf8:
- * \param p: a pointer to a position within a UTF-8 encoded string
- *
- * Finds the previous UTF-8 character in the string before \a p
- *
- * \a p does not have to be at the beginning of a UTF-8 character. No check
- * is made to see if the character found is actually valid other than
- * it starts with an appropriate byte. If \a p might be the first
- * character of the string, you must use g_utf8_find_prev_char() instead.
- *
- * Return value: a pointer to the found character.
- */
-char *BLI_str_prev_char_utf8(const char *p)
-{
-  while (1) {
-    p--;
-    if ((*p & 0xc0) != 0x80) {
-      return (char *)p;
-    }
-  }
-}
-/* end glib copy */
 
 size_t BLI_str_partition_utf8(const char *str,
                               const uint delim[],
@@ -858,19 +823,21 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                  const char **suf,
                                  const bool from_right)
 {
-  const uint *d;
   const size_t str_len = end ? (size_t)(end - str) : strlen(str);
-  size_t index;
+  if (end == NULL) {
+    end = str + str_len;
+  }
 
   /* Note that here, we assume end points to a valid utf8 char! */
-  BLI_assert(end == NULL || (end >= str && (BLI_str_utf8_as_unicode(end) != BLI_UTF8_ERR)));
+  BLI_assert((end >= str) && (BLI_str_utf8_as_unicode(end) != BLI_UTF8_ERR));
 
   *suf = (char *)(str + str_len);
 
-  for (*sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(str, str + str_len) : str),
-      index = 0;
-       *sep >= str && (!end || *sep < end) && **sep != '\0';
-       *sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(str, *sep) : str + index)) {
+  size_t index;
+  for (*sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(end, str) : str), index = 0;
+       from_right ? (*sep > str) : ((*sep < end) && (**sep != '\0'));
+       *sep = (char *)(from_right ? (str != *sep ? BLI_str_find_prev_char_utf8(*sep, str) : NULL) :
+                                    str + index)) {
     size_t index_ofs = 0;
     const uint c = BLI_str_utf8_as_unicode_step_or_error(*sep, (size_t)(end - *sep), &index_ofs);
     index += index_ofs;
@@ -880,7 +847,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
       break;
     }
 
-    for (d = delim; *d != '\0'; d++) {
+    for (const uint *d = delim; *d != '\0'; d++) {
       if (*d == c) {
         /* *suf is already correct in case from_right is true. */
         if (!from_right) {

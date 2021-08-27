@@ -2933,8 +2933,9 @@ static int ui_text_position_from_hidden(uiBut *but, int pos)
 {
   const char *butstr = (but->editstr) ? but->editstr : but->drawstr;
   const char *strpos = butstr;
+  const char *str_end = butstr + strlen(butstr);
   for (int i = 0; i < pos; i++) {
-    strpos = BLI_str_find_next_char_utf8(strpos, NULL);
+    strpos = BLI_str_find_next_char_utf8(strpos, str_end);
   }
 
   return (strpos - butstr);

@@ -1472,7 +1472,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
     /* closing bracket, search backward for open */
     fc--;
     if (c > 0) {
-      c -= linep->line + c - BLI_str_prev_char_utf8(linep->line + c);
+      c -= linep->line + c - BLI_str_find_prev_char_utf8(linep->line + c, linep->line);
     }
     while (linep) {
       while (fc >= 0) {
@@ -1493,7 +1493,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
         }
         fc--;
         if (c > 0) {
-          c -= linep->line + c - BLI_str_prev_char_utf8(linep->line + c);
+          c -= linep->line + c - BLI_str_find_prev_char_utf8(linep->line + c, linep->line);
         }
       }
       if (endl) {
@@ -1508,7 +1508,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
           fc = -1;
         }
         if (linep->len) {
-          c = BLI_str_prev_char_utf8(linep->line + linep->len) - linep->line;
+          c = BLI_str_find_prev_char_utf8(linep->line + linep->len, linep->line) - linep->line;
         }
         else {
           fc = -1;

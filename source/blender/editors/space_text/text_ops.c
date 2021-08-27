@@ -1955,7 +1955,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
         end = MIN2(end, i);
 
         if (chop) {
-          endj = BLI_str_prev_char_utf8((*linep)->line + j) - (*linep)->line;
+          endj = BLI_str_find_prev_char_utf8((*linep)->line + j, (*linep)->line) - (*linep)->line;
         }
 
         if (endj >= oldc) {

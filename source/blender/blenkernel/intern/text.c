@@ -933,7 +933,7 @@ void txt_move_left(Text *text, const bool sel)
       (*charp) -= tabsize;
     }
     else {
-      const char *prev = BLI_str_prev_char_utf8((*linep)->line + *charp);
+      const char *prev = BLI_str_find_prev_char_utf8((*linep)->line + *charp, (*linep)->line);
       *charp = prev - (*linep)->line;
     }
   }
@@ -1938,7 +1938,8 @@ void txt_backspace_char(Text *text)
     txt_pop_sel(text);
   }
   else { /* Just backspacing a char */
-    const char *prev = BLI_str_prev_char_utf8(text->curl->line + text->curc);
+    const char *prev = BLI_str_find_prev_char_utf8(text->curl->line + text->curc,
+                                                   text->curl->line);
     size_t c_len = prev - text->curl->line;
     c = BLI_str_utf8_as_unicode_step(text->curl->line, text->curl->len, &c_len);
     c_len -= prev - text->curl->line;
