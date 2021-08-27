@@ -389,10 +389,12 @@ void ED_image_draw_info(Scene *scene,
     immRecti(pos, color_quater_x, color_quater_y, color_rect_half.xmax, color_rect_half.ymax);
     immRecti(pos, color_rect_half.xmin, color_rect_half.ymin, color_quater_x, color_quater_y);
 
-    GPU_blend(GPU_BLEND_ALPHA);
-    immUniformColor3fvAlpha(finalcol, fp ? fp[3] : (cp[3] / 255.0f));
-    immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
-    GPU_blend(GPU_BLEND_NONE);
+    if (fp != NULL || cp != NULL) {
+      GPU_blend(GPU_BLEND_ALPHA);
+      immUniformColor3fvAlpha(finalcol, fp ? fp[3] : (cp[3] / 255.0f));
+      immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+      GPU_blend(GPU_BLEND_NONE);
+    }
   }
   else {
     immUniformColor3fv(finalcol);
