@@ -143,14 +143,9 @@ bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *am
   if (idx != -1) {
     BLI_freelinkN(&ami->bindings, amb);
 
-    if (BLI_listbase_is_empty(&ami->bindings)) {
-      ami->selbinding = -1;
-    }
-    else {
-      if (idx <= ami->selbinding) {
-        if (--ami->selbinding < 0) {
-          ami->selbinding = 0;
-        }
+    if (idx <= ami->selbinding) {
+      if (--ami->selbinding < 0) {
+        ami->selbinding = 0;
       }
     }
 
@@ -181,7 +176,7 @@ XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const cha
 static void wm_xr_actionmap_item_bindings_clear(XrActionMapItem *ami)
 {
   BLI_freelistN(&ami->bindings);
-  ami->selbinding = -1;
+  ami->selbinding = 0;
 }
 
 static void wm_xr_actionmap_item_properties_set(XrActionMapItem *ami)
@@ -262,7 +257,6 @@ XrActionMapItem *WM_xr_actionmap_item_new(XrActionMap *actionmap,
   if (ami_prev) {
     WM_xr_actionmap_item_ensure_unique(actionmap, ami);
   }
-  ami->selbinding = -1;
 
   BLI_addtail(&actionmap->items, ami);
 
@@ -355,14 +349,9 @@ bool WM_xr_actionmap_item_remove(XrActionMap *actionmap, XrActionMapItem *ami)
     wm_xr_actionmap_item_properties_free(ami);
     BLI_freelinkN(&actionmap->items, ami);
 
-    if (BLI_listbase_is_empty(&actionmap->items)) {
-      actionmap->selitem = -1;
-    }
-    else {
-      if (idx <= actionmap->selitem) {
-        if (--actionmap->selitem < 0) {
-          actionmap->selitem = 0;
-        }
+    if (idx <= actionmap->selitem) {
+      if (--actionmap->selitem < 0) {
+        actionmap->selitem = 0;
       }
     }
 
@@ -403,7 +392,6 @@ XrActionMap *WM_xr_actionmap_new(wmXrRuntimeData *runtime, const char *name, boo
   if (am_prev) {
     WM_xr_actionmap_ensure_unique(runtime, am);
   }
-  am->selitem = -1;
 
   BLI_addtail(&runtime->actionmaps, am);
 
@@ -487,19 +475,14 @@ bool WM_xr_actionmap_remove(wmXrRuntimeData *runtime, XrActionMap *actionmap)
     WM_xr_actionmap_clear(actionmap);
     BLI_freelinkN(&runtime->actionmaps, actionmap);
 
-    if (BLI_listbase_is_empty(&runtime->actionmaps)) {
-      runtime->actactionmap = runtime->selactionmap = -1;
-    }
-    else {
-      if (idx <= runtime->actactionmap) {
-        if (--runtime->actactionmap < 0) {
-          runtime->actactionmap = 0;
-        }
+    if (idx <= runtime->actactionmap) {
+      if (--runtime->actactionmap < 0) {
+        runtime->actactionmap = 0;
       }
-      if (idx <= runtime->selactionmap) {
-        if (--runtime->selactionmap < 0) {
-          runtime->selactionmap = 0;
-        }
+    }
+    if (idx <= runtime->selactionmap) {
+      if (--runtime->selactionmap < 0) {
+        runtime->selactionmap = 0;
       }
     }
 
@@ -528,7 +511,7 @@ void WM_xr_actionmap_clear(XrActionMap *actionmap)
 
   BLI_freelistN(&actionmap->items);
 
-  actionmap->selitem = -1;
+  actionmap->selitem = 0;
 }
 
 void WM_xr_actionmaps_clear(wmXrRuntimeData *runtime)
@@ -539,7 +522,7 @@ void WM_xr_actionmaps_clear(wmXrRuntimeData *runtime)
 
   BLI_freelistN(&runtime->actionmaps);
 
-  runtime->actactionmap = runtime->selactionmap = -1;
+  runtime->actactionmap = runtime->selactionmap = 0;
 }
 
 ListBase *WM_xr_actionmaps_get(wmXrRuntimeData *runtime)
@@ -554,7 +537,6 @@ short WM_xr_actionmap_active_index_get(const wmXrRuntimeData *runtime)
 
 void WM_xr_actionmap_active_index_set(wmXrRuntimeData *runtime, short idx)
 {
-  BLI_assert(idx < BLI_listbase_count(&runtime->actionmaps));
   runtime->actactionmap = idx;
 }
 
@@ -565,7 +547,6 @@ short WM_xr_actionmap_selected_index_get(const wmXrRuntimeData *runtime)
 
 void WM_xr_actionmap_selected_index_set(wmXrRuntimeData *runtime, short idx)
 {
-  BLI_assert(idx < BLI_listbase_count(&runtime->actionmaps));
   runtime->selactionmap = idx;
 }
 

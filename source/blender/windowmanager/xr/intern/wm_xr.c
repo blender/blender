@@ -148,7 +148,6 @@ bool wm_xr_events_handle(wmWindowManager *wm)
 wmXrRuntimeData *wm_xr_runtime_data_create(void)
 {
   wmXrRuntimeData *runtime = MEM_callocN(sizeof(*runtime), __func__);
-  runtime->actactionmap = runtime->selactionmap = -1;
   return runtime;
 }
 
