@@ -73,6 +73,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "../generic/idprop_py_api.h" /* For IDprop lookups. */
+#include "../generic/idprop_py_ui_api.h"
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
@@ -4309,6 +4310,51 @@ static PyObject *pyrna_struct_id_properties_ensure(BPy_StructRNA *self)
   return (PyObject *)group;
 }
 
+PyDoc_STRVAR(pyrna_struct_id_properties_ui_doc,
+             ".. method:: id_properties_ui(key)\n"
+             "\n"
+             "   :return: Return an object used to manage an IDProperty's UI data.\n"
+             "   :arg key: String name of the property.\n"
+             "   :rtype: :class:`bpy.types.IDPropertyUIManager`\n");
+static PyObject *pyrna_struct_id_properties_ui(BPy_StructRNA *self, PyObject *args)
+{
+  PYRNA_STRUCT_CHECK_OBJ(self);
+
+  if (RNA_struct_idprops_check(self->ptr.type) == 0) {
+    PyErr_SetString(PyExc_TypeError, "This type doesn't support IDProperties");
+    return NULL;
+  }
+
+  const char *key;
+  if (!PyArg_ParseTuple(args, "s:ui_data", &key)) {
+    return NULL;
+  }
+
+  IDProperty *parent_group = RNA_struct_idprops(&self->ptr, true);
+
+  /* This is a paranoid check that theoretically might not be necessary.
+   * It allows the possibility that some structs can't ensure IDProperties. */
+  if (parent_group == NULL) {
+    return Py_None;
+  }
+
+  IDProperty *property = IDP_GetPropertyFromGroup(parent_group, key);
+  if (property == NULL) {
+    PyErr_SetString(PyExc_KeyError, "Property not found in IDProperty group");
+    return NULL;
+  }
+
+  if (!IDP_ui_data_supported(property)) {
+    PyErr_Format(PyExc_TypeError, "IDProperty \"%s\" does not support UI data", property->name);
+    return NULL;
+  }
+
+  BPy_IDPropertyUIManager *ui_manager = PyObject_New(BPy_IDPropertyUIManager,
+                                                     &BPy_IDPropertyUIManager_Type);
+  ui_manager->property = property;
+  return (PyObject *)ui_manager;
+}
+
 PyDoc_STRVAR(pyrna_struct_id_properties_clear_doc,
              ".. method:: id_properties_clear()\n\n"
              "   :return: Remove the parent group for an RNA struct's custom IDProperties.\n");
@@ -5829,6 +5875,10 @@ static struct PyMethodDef pyrna_struct_methods[] = {
      (PyCFunction)pyrna_struct_id_properties_clear,
      METH_NOARGS,
      pyrna_struct_id_properties_clear_doc},
+    {"id_properties_ui",
+     (PyCFunction)pyrna_struct_id_properties_ui,
+     METH_VARARGS,
+     pyrna_struct_id_properties_ui_doc},
 
 /* experimental */
 /* unused for now */

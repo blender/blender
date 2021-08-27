@@ -30,24 +30,6 @@ ARRAY_TYPES = (list, tuple, IDPropertyArray, Vector)
 MAX_DISPLAY_ROWS = 4
 
 
-def rna_idprop_ui_get(item, *, create=True):
-    try:
-        return item['_RNA_UI']
-    except:
-        if create:
-            item['_RNA_UI'] = {}
-            return item['_RNA_UI']
-        else:
-            return None
-
-
-def rna_idprop_ui_del(item):
-    try:
-        del item['_RNA_UI']
-    except KeyError:
-        pass
-
-
 def rna_idprop_quote_path(prop):
     return "[\"%s\"]" % bpy.utils.escape_identifier(prop)
 
@@ -59,32 +41,9 @@ def rna_idprop_ui_prop_update(item, prop):
         prop_rna.update()
 
 
-def rna_idprop_ui_prop_get(item, prop, *, create=True):
-
-    rna_ui = rna_idprop_ui_get(item, create=create)
-
-    if rna_ui is None:
-        return None
-
-    try:
-        return rna_ui[prop]
-    except:
-        rna_ui[prop] = {}
-        return rna_ui[prop]
-
-
-def rna_idprop_ui_prop_clear(item, prop, *, remove=True):
-    rna_ui = rna_idprop_ui_get(item, create=False)
-
-    if rna_ui is None:
-        return
-
-    try:
-        del rna_ui[prop]
-    except KeyError:
-        pass
-    if remove and len(item.keys()) == 1:
-        rna_idprop_ui_del(item)
+def rna_idprop_ui_prop_clear(item, prop):
+    ui_data = item.id_properties_ui(prop)
+    ui_data.clear()
 
 
 def rna_idprop_context_value(context, context_member, property_type):
@@ -106,8 +65,7 @@ def rna_idprop_context_value(context, context_member, property_type):
 
 def rna_idprop_has_properties(rna_item):
     keys = rna_item.keys()
-    nbr_props = len(keys)
-    return (nbr_props > 1) or (nbr_props and '_RNA_UI' not in keys)
+    return bool(keys)
 
 
 def rna_idprop_value_to_python(value):
@@ -126,31 +84,8 @@ def rna_idprop_value_item_type(value):
 
 
 def rna_idprop_ui_prop_default_set(item, prop, value):
-    defvalue = None
-    try:
-        prop_type, is_array = rna_idprop_value_item_type(item[prop])
-
-        if prop_type in {int, float, str}:
-            if is_array and isinstance(value, ARRAY_TYPES):
-                value = [prop_type(item) for item in value]
-                if any(value):
-                    defvalue = value
-            else:
-                defvalue = prop_type(value)
-    except KeyError:
-        pass
-    except ValueError:
-        pass
-
-    if defvalue:
-        rna_ui = rna_idprop_ui_prop_get(item, prop, create=True)
-        rna_ui["default"] = defvalue
-    else:
-        rna_ui = rna_idprop_ui_prop_get(item, prop)
-        if rna_ui:
-            rna_ui.pop("default", None)
-
-    return defvalue
+    ui_data = item.id_properties_ui(prop)
+    ui_data.update(default=value)
 
 
 def rna_idprop_ui_create(
@@ -163,7 +98,7 @@ def rna_idprop_ui_create(
 ):
     """Create and initialize a custom property with limits, defaults and other settings."""
 
-    proptype, is_array = rna_idprop_value_item_type(default)
+    proptype, _ = rna_idprop_value_item_type(default)
 
     # Sanitize limits
     if proptype is bool:
@@ -180,34 +115,21 @@ def rna_idprop_ui_create(
 
     rna_idprop_ui_prop_update(item, prop)
 
-    # Clear the UI settings
-    rna_ui_group = rna_idprop_ui_get(item, create=True)
-    rna_ui_group[prop] = {}
-    rna_ui = rna_ui_group[prop]
-
-    # Assign limits and default
-    if proptype in {int, float, bool}:
-        # The type must be exactly the same
-        rna_ui["min"] = proptype(min)
-        rna_ui["soft_min"] = proptype(soft_min)
-        rna_ui["max"] = proptype(max)
-        rna_ui["soft_max"] = proptype(soft_max)
-
-        if default and (not is_array or any(default)):
-            rna_ui["default"] = default
-
-        if is_array and subtype and subtype != 'NONE':
-            rna_ui["subtype"] = subtype
-
-    # Assign other settings
-    if description is not None:
-        rna_ui["description"] = description
+    # Update the UI settings.
+    ui_data = item.id_properties_ui(prop)
+    ui_data.update(
+        subtype=subtype,
+        min=min,
+        max=max,
+        soft_min=soft_min,
+        soft_max=soft_max,
+        description=description,
+        default=default,
+    )
 
     prop_path = rna_idprop_quote_path(prop)
 
     item.property_overridable_library_set(prop_path, overridable)
-
-    return rna_ui
 
 
 def draw(layout, context, context_member, property_type, *, use_edit=True):
@@ -254,10 +176,6 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
     flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
     for key, val in items:
-
-        if key == '_RNA_UI':
-            continue
-
         is_rna = (key in rna_properties)
 
         # only show API defined for developers

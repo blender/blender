@@ -60,9 +60,6 @@ void CustomPropertiesExporter::write_all(const IDProperty *group)
 
   /* Loop over the properties, just like IDP_foreach_property() does, but without the recursion. */
   LISTBASE_FOREACH (IDProperty *, id_property, &group->data.group) {
-    if (STREQ(id_property->name, "_RNA_UI")) {
-      continue;
-    }
     write(id_property);
   }
 }
