@@ -50,7 +50,7 @@ struct Object;
 void BM_mesh_bm_from_me(struct Object *ob,
                         BMesh *bm,
                         const struct Mesh *me,
-                        const struct BMeshFromMeshParams *params) ATTR_NONNULL(1, 3);
+                        const struct BMeshFromMeshParams *params) ATTR_NONNULL(2, 3);
 
 struct BMeshToMeshParams {
   /** Update object hook indices & vertex parents. */
