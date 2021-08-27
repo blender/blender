@@ -149,8 +149,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
  *
  * \note ob is needed by multires
  */
-ATTR_NO_OPT BMesh *BM_mesh_create(const BMAllocTemplate *allocsize,
-                                  const struct BMeshCreateParams *params)
+BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreateParams *params)
 {
   /* allocate the structure */
   BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);

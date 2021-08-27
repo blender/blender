@@ -41,7 +41,7 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-ATTR_NO_OPT int bm_save_id(BMesh *bm, BMElem *elem)
+int bm_save_id(BMesh *bm, BMElem *elem)
 {
   if (!elem->head.data) {
     return -1;
@@ -55,7 +55,7 @@ ATTR_NO_OPT int bm_save_id(BMesh *bm, BMElem *elem)
   }
 }
 
-ATTR_NO_OPT void bm_restore_id(BMesh *bm, BMElem *elem, int id)
+void bm_restore_id(BMesh *bm, BMElem *elem, int id)
 {
   if (!elem->head.data || id == -1) {
     return;

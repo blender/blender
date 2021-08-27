@@ -156,7 +156,8 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
 
 static bool check_face_is_tri(PBVH *pbvh, BMFace *f);
 static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v);
-static void pbvh_split_edges(PBVH *pbvh, BMesh *bm, BMEdge **edges, int totedge);
+static void pbvh_split_edges(
+    PBVH *pbvh, BMesh *bm, BMEdge **edges, int totedge, bool ignore_isolated_edges);
 void bm_log_message(const char *fmt, ...);
 
 static BMEdge *bmesh_edge_create_log(PBVH *pbvh, BMVert *v1, BMVert *v2, BMEdge *e_example)
@@ -241,7 +242,7 @@ BLI_INLINE void surface_smooth_v_safe(PBVH *pbvh, BMVert *v)
   atomic_cas_float(&v->co[2], z, z + co[2] * DYNTOPO_SAFE_SMOOTH_FAC);
 }
 
-ATTR_NO_OPT static void pbvh_kill_vert(PBVH *pbvh, BMVert *v)
+static void pbvh_kill_vert(PBVH *pbvh, BMVert *v)
 {
   BMEdge *e = v->e;
 
@@ -255,7 +256,7 @@ ATTR_NO_OPT static void pbvh_kill_vert(PBVH *pbvh, BMVert *v)
   BM_vert_kill(pbvh->bm, v);
 }
 
-ATTR_NO_OPT static void pbvh_log_vert_edges_kill(PBVH *pbvh, BMVert *v)
+static void pbvh_log_vert_edges_kill(PBVH *pbvh, BMVert *v)
 {
   BMEdge *e = v->e;
 
@@ -1619,7 +1620,7 @@ static void short_edge_queue_task_cb(void *__restrict userdata,
   TGSET_ITER_END
 }
 
-ATTR_NO_OPT static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
+static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 {
   bool origlen = f->len;
 
@@ -2269,10 +2270,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   // pbvh_bmesh_check_nodes(pbvh);
 }
 
-static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
-                                            PBVH *pbvh,
-                                            BLI_Buffer *edge_loops,
-                                            int max_steps)
+static bool pbvh_bmesh_subdivide_long_edges(
+    EdgeQueueContext *eq_ctx, PBVH *pbvh, BLI_Buffer *edge_loops, int max_steps, bool has_cleanup)
 {
   bool any_subdivided = false;
   double time = PIL_check_seconds_timer();
@@ -2370,7 +2369,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
 #endif
 
 #ifdef USE_NEW_SPLIT
-  pbvh_split_edges(pbvh, pbvh->bm, edges, BLI_array_len(edges));
+  pbvh_split_edges(pbvh, pbvh->bm, edges, BLI_array_len(edges), has_cleanup);
   BLI_array_free(edges);
 #endif
 
@@ -2379,13 +2378,13 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
   return any_subdivided;
 }
 
-ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
-                                                 BMEdge *e,
-                                                 BMVert *v1,
-                                                 BMVert *v2,
-                                                 GHash *deleted_verts,
-                                                 BLI_Buffer *deleted_faces,
-                                                 EdgeQueueContext *eq_ctx)
+static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
+                                     BMEdge *e,
+                                     BMVert *v1,
+                                     BMVert *v2,
+                                     GHash *deleted_verts,
+                                     BLI_Buffer *deleted_faces,
+                                     EdgeQueueContext *eq_ctx)
 {
   BMVert *v_del, *v_conn;
 
@@ -2738,10 +2737,10 @@ ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BLI_array_free(ls);
 }
 
-ATTR_NO_OPT static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
-                                                        PBVH *pbvh,
-                                                        BLI_Buffer *deleted_faces,
-                                                        int max_steps)
+static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
+                                            PBVH *pbvh,
+                                            BLI_Buffer *deleted_faces,
+                                            int max_steps)
 {
   const float min_len_squared = pbvh->bm_min_edge_len * pbvh->bm_min_edge_len;
   bool any_collapsed = false;
@@ -3146,6 +3145,38 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     BLI_assert(len_squared_v3(view_normal) != 0.0f);
   }
 
+#if 1
+  {
+    size_t totmem;
+    BMesh *bm = pbvh->bm;
+
+    int vmem = (int)((size_t)bm->totvert * (sizeof(BMVert) + bm->vdata.totsize));
+    int emem = (int)((size_t)bm->totedge * (sizeof(BMEdge) + bm->edata.totsize));
+    int lmem = (int)((size_t)bm->totloop * (sizeof(BMLoop) + bm->ldata.totsize));
+    int fmem = (int)((size_t)bm->totface * (sizeof(BMFace) + bm->pdata.totsize));
+
+    double fvmem = (double)vmem / 1024.0 / 1024.0;
+    double femem = (double)emem / 1024.0 / 1024.0;
+    double flmem = (double)lmem / 1024.0 / 1024.0;
+    double ffmem = (double)fmem / 1024.0 / 1024.0;
+
+    printf("totmem: %.2fmb\n", fvmem + femem + flmem + ffmem);
+    printf("v: %.2f e: %.2f l: %.2f f: %.2f\n", fvmem, femem, flmem, ffmem);
+
+    printf("custom attributes only:\n");
+    vmem = (int)((size_t)bm->totvert * (bm->vdata.totsize));
+    emem = (int)((size_t)bm->totedge * (bm->edata.totsize));
+    lmem = (int)((size_t)bm->totloop * (bm->ldata.totsize));
+    fmem = (int)((size_t)bm->totface * (bm->pdata.totsize));
+
+    fvmem = (double)vmem / 1024.0 / 1024.0;
+    femem = (double)emem / 1024.0 / 1024.0;
+    flmem = (double)lmem / 1024.0 / 1024.0;
+    ffmem = (double)fmem / 1024.0 / 1024.0;
+
+    printf("v: %.2f e: %.2f l: %.2f f: %.2f\n", fvmem, femem, flmem, ffmem);
+  }
+#endif
   EdgeQueueContext eq_ctx = {NULL,
                              NULL,
                              pbvh->bm,
@@ -3259,7 +3290,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     printf("max_steps %d\n", max_steps);
 
     pbvh_bmesh_check_nodes(pbvh);
-    modified |= pbvh_bmesh_subdivide_long_edges(&eq_ctx, pbvh, &edge_loops, max_steps);
+    modified |= pbvh_bmesh_subdivide_long_edges(
+        &eq_ctx, pbvh, &edge_loops, max_steps, (mode & PBVH_Cleanup));
     pbvh_bmesh_check_nodes(pbvh);
 
     if (q.elems) {
@@ -3508,7 +3540,8 @@ static const int splitmap[43][16] = {
     {6, -1, 3, -1, 5, -1, 1, -1},  // 42
 };
 
-ATTR_NO_OPT static void pbvh_split_edges(PBVH *pbvh, BMesh *bm, BMEdge **edges, int totedge)
+static void pbvh_split_edges(
+    PBVH *pbvh, BMesh *bm, BMEdge **edges, int totedge, bool ignore_isolated_edges)
 {
   BMFace **faces = NULL;
   BLI_array_staticdeclare(faces, 512);
@@ -3567,6 +3600,7 @@ ATTR_NO_OPT static void pbvh_split_edges(PBVH *pbvh, BMesh *bm, BMEdge **edges, 
     BMEdge *e = edges[i];
     BMLoop *l = e->l;
 
+    e->head.index = 0;
     e->head.hflag |= SPLIT_TAG;
 
     if (!l) {
@@ -3588,18 +3622,32 @@ ATTR_NO_OPT static void pbvh_split_edges(PBVH *pbvh, BMesh *bm, BMEdge **edges, 
     BMLoop *l = f->l_first;
 
     // pbvh_bmesh_face_remove(pbvh, f, true, false, false);
-    BM_log_face_removed(pbvh->bm_log, f);
+    if (!ignore_isolated_edges) {
+      f->head.hflag |= SPLIT_TAG;
+      BM_log_face_removed(pbvh->bm_log, f);
+    }
+    else {
+      f->head.hflag &= ~SPLIT_TAG;
+    }
 
     int mask = 0;
     int j = 0;
+    int count = 0;
 
     do {
       if (l->e->head.hflag & SPLIT_TAG) {
         mask |= 1 << j;
+        count++;
       }
 
       j++;
     } while ((l = l->next) != f->l_first);
+
+    if (ignore_isolated_edges) {
+      do {
+        l->e->head.index = MAX2(l->e->head.index, count);
+      } while ((l = l->next) != f->l_first);
+    }
 
     f->head.index = mask;
   }
@@ -3615,6 +3663,26 @@ ATTR_NO_OPT static void pbvh_split_edges(PBVH *pbvh, BMesh *bm, BMEdge **edges, 
     if (!(e->head.hflag & SPLIT_TAG)) {
       // printf("error split\n");
       continue;
+    }
+
+    if (ignore_isolated_edges && e->head.index < 2) {
+      BMLoop *l = e->l;
+
+      do {
+        l->f->head.hflag &= ~SPLIT_TAG;
+      } while ((l = l->radial_next) != e->l);
+
+      continue;
+    }
+
+    if (ignore_isolated_edges) {
+      BMLoop *l = e->l;
+      do {
+        if (!(l->f->head.hflag & SPLIT_TAG)) {
+          l->f->head.hflag |= SPLIT_TAG;
+          BM_log_face_removed(pbvh->bm_log, l->f);
+        }
+      } while ((l = l->radial_next) != e->l);
     }
 
     e->head.hflag &= ~SPLIT_TAG;
@@ -3720,6 +3788,10 @@ ATTR_NO_OPT static void pbvh_split_edges(PBVH *pbvh, BMesh *bm, BMEdge **edges, 
   for (int i = 0; i < totface; i++) {
     BMFace *f = faces[i];
     int mask = 0;
+
+    if (!(f->head.hflag & SPLIT_TAG)) {
+      continue;
+    }
 
     int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
 

@@ -149,7 +149,7 @@ BMVert *BM_vert_create(BMesh *bm,
  * so unless you need a unique edge or know the edge won't exist,
  * you should call with \a no_double = true.
  */
-ATTR_NO_OPT BMEdge *BM_edge_create(
+BMEdge *BM_edge_create(
     BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *e_example, const eBMCreateFlag create_flag)
 {
   BMEdge *e;

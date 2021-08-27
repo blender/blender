@@ -70,7 +70,7 @@ static char msg_buffer[256] = {0};
     printf(__VA_ARGS__)
 struct Mesh;
 #else
-#  define GET_MSG(le) ""
+#  define GET_MSG(le) le ? "" : " "
 #  define SET_MSG(le)
 #  define LOGPRINT(...)
 #endif
@@ -598,7 +598,7 @@ static void bm_log_verts_unmake_pre(
 }
 
 // exec vert kill callbacks before killing faces
-ATTR_NO_OPT static void bm_log_edges_unmake_pre(
+static void bm_log_edges_unmake_pre(
     BMesh *bm, BMLog *log, GHash *edges, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -609,14 +609,14 @@ ATTR_NO_OPT static void bm_log_edges_unmake_pre(
     BMEdge *e = bm_log_edge_from_id(log, id);
 
     if (!e) {
-      printf("%s: missing edge; id: %d [%s]\n", __func__, (int)key, GET_MSG(le));
+      printf("%s: missing edge; id: %d [%s]\n", __func__, id, GET_MSG(le));
       continue;
     }
 
     if (e->head.htype != BM_EDGE) {
       printf("%s: not an edge; edge id: %d, type was: %d [%s]\n",
              __func__,
-             (int)key,
+             id,
              e->head.htype,
              GET_MSG(le));
       continue;
@@ -632,7 +632,7 @@ ATTR_NO_OPT static void bm_log_edges_unmake_pre(
   }
 }
 
-ATTR_NO_OPT static void bm_log_edges_unmake(
+static void bm_log_edges_unmake(
     BMesh *bm, BMLog *log, GHash *edges, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -643,14 +643,14 @@ ATTR_NO_OPT static void bm_log_edges_unmake(
     BMEdge *e = bm_log_edge_from_id(log, id);
 
     if (!e) {
-      printf("%s: missing edge; edge id: %d [%s]\n", __func__, (int)key, GET_MSG(le));
+      printf("%s: missing edge; edge id: %d [%s]\n", __func__, id, GET_MSG(le));
       continue;
     }
 
     if (e->head.htype != BM_EDGE) {
       printf("%s: not an edge; edge id: %d, type: %d [%s]\n",
              __func__,
-             (int)key,
+             id,
              e->head.htype,
              GET_MSG(le));
       continue;
@@ -678,7 +678,7 @@ static void bm_log_verts_unmake(
   }
 }
 
-ATTR_NO_OPT static void bm_log_faces_unmake(
+static void bm_log_faces_unmake(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -692,7 +692,7 @@ ATTR_NO_OPT static void bm_log_faces_unmake(
     BMFace *f = bm_log_face_from_id(log, id);
 
     if (!f) {
-      printf("bmlog error in %s: missing face %d\n", __func__, key);
+      printf("bmlog error in %s: missing face %d\n", __func__, id);
       continue;
     }
 
@@ -771,7 +771,7 @@ static void bm_log_verts_restore(
   }
 }
 
-ATTR_NO_OPT static void bm_log_edges_restore(
+static void bm_log_edges_restore(
     BMesh *bm, BMLog *log, GHash *edges, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -1666,7 +1666,7 @@ static void log_idmap_free(BMLogEntry *entry)
   }
 }
 
-ATTR_NO_OPT static void log_idmap_save(BMesh *bm, BMLog *log, BMLogEntry *entry)
+static void log_idmap_save(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
   log_idmap_free(entry);
 
@@ -2296,7 +2296,7 @@ void BM_log_vert_removed(BMLog *log, BMVert *v, const int cd_vert_mask_offset)
   }
 }
 
-ATTR_NO_OPT void BM_log_edge_removed_post(BMLog *log, BMEdge *e)
+void BM_log_edge_removed_post(BMLog *log, BMEdge *e)
 {
   BMLogEntry *entry = log->current_entry;
   uint e_id = (uint)BM_ELEM_GET_ID(log->bm, e);
@@ -2346,7 +2346,7 @@ ATTR_NO_OPT void BM_log_edge_removed_post(BMLog *log, BMEdge *e)
 Splits e and logs the new edge and vertex.
 e is assigned a new ID.
 */
-ATTR_NO_OPT BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, float t)
+BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, float t)
 {
 #if 0
   BMVert *newv = BM_edge_split(log->bm, e, v, newe, t);

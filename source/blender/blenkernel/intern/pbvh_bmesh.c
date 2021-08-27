@@ -70,7 +70,7 @@ Topology rake:
 #include <stdio.h>
 #include <stdlib.h>
 
-ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
+void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
 #if 0
   for (int i = 0; i < pbvh->totnode; i++) {
@@ -791,7 +791,7 @@ void BKE_pbvh_bmesh_update_origvert(
 
 /************************* Called from pbvh.c *************************/
 
-ATTR_NO_OPT bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
+bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
 {
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
@@ -2156,13 +2156,11 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       tri->eflag = mat_tri->eflag = 0;
 
       for (int j = 0; j < 3; j++) {
-        BMLoop *l0 = loops[loops_idx[i][(j + 2) % 3]];
+        // BMLoop *l0 = loops[loops_idx[i][(j + 2) % 3]];
         BMLoop *l = loops[loops_idx[i][j]];
         BMLoop *l2 = loops[loops_idx[i][(j + 1) % 3]];
 
         void **val = NULL;
-
-        bool has_edge = false;
 
         if (BM_edge_exists(l->v, l2->v)) {
           tri->eflag |= 1 << j;
@@ -2759,7 +2757,7 @@ static void recursive_delete_nodes(PBVH *pbvh, int ni)
 // static float bbox_overlap()
 /* works by detect overlay of leaf nodes, destroying them
   and then re-inserting them*/
-ATTR_NO_OPT static void pbvh_bmesh_balance_tree(PBVH *pbvh)
+static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 {
   PBVHNode **stack = NULL;
   float *overlaps = MEM_calloc_arrayN(pbvh->totnode, sizeof(float), "overlaps");
@@ -3370,8 +3368,6 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   const int limit = 1024;
   int leaf_limit = MAX2(limit / vsize, 4);
 
-  const int cd_vcol = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
-
   BLI_mempool *pool = BLI_mempool_create(sizeof(ReVertNode) + sizeof(void *) * vsize, 0, 8192, 0);
   ReVertNode **vnodemap = MEM_calloc_arrayN(pbvh->bm->totvert, sizeof(void *), "vnodemap");
 
@@ -3457,8 +3453,6 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
       if (node->parent) {
         continue;
       }
-
-      ReVertNode *other_node = NULL;
 
       ReVertNode *parent = BLI_mempool_calloc(pool);
       parent->children[0] = node;
@@ -4232,7 +4226,6 @@ static MeshTest2 *meshtest2_from_bm(BMesh *bm)
 
   BMVert *v;
   BMEdge *e;
-  BMLoop *l;
   BMFace *f;
   BMIter iter;
 
@@ -4342,7 +4335,6 @@ static MeshTest *meshtest_from_bm(BMesh *bm)
 
   BMVert *v;
   BMEdge *e;
-  BMLoop *l;
   BMFace *f;
   BMIter iter;
 
@@ -4376,7 +4368,7 @@ static MeshTest *meshtest_from_bm(BMesh *bm)
   }
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    m->f_l = f->l_first->head.index;
+    m->f_l[f->head.index] = f->l_first->head.index;
 
     BMLoop *l = f->l_first;
     do {
@@ -4802,10 +4794,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   cd_face_node = bm->pdata.layers[cd_face_node].offset;
   cd_face_area = bm->pdata.layers[cd_face_area].offset;
 
-  const int cd_fset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
   const int cd_dyn_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
-  const int cd_mask = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  const int cd_vcol = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
   BMLog *bmlog = BM_log_create(bm, cd_dyn_vert);
 
   PBVH *pbvh = BKE_pbvh_new();
