@@ -3755,34 +3755,39 @@ static void init_text_effect(Sequence *seq)
 
 void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
 {
-  if (data) {
-    /* Unlink the VFont */
-    if (do_id_user && data->text_font != NULL) {
-      id_us_min(&data->text_font->id);
-      data->text_font = NULL;
-    }
+  if (data == NULL) {
+    return;
+  }
 
-    /* Unload the BLF font. */
-    if (data->text_blf_id >= 0) {
-      BLF_unload_id(data->text_blf_id);
-    }
+  /* Unlink the VFont */
+  if (do_id_user && data->text_font != NULL) {
+    id_us_min(&data->text_font->id);
+    data->text_font = NULL;
+  }
+
+  /* Unload the BLF font. */
+  if (data->text_blf_id >= 0) {
+    BLF_unload_id(data->text_blf_id);
   }
 }
 
 void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
 {
-  if (data->text_font != NULL) {
-    if (do_id_user) {
-      id_us_plus(&data->text_font->id);
-    }
-
-    char path[FILE_MAX];
-    STRNCPY(path, data->text_font->filepath);
-    BLI_assert(BLI_thread_is_main());
-    BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&data->text_font->id));
-
-    data->text_blf_id = BLF_load(path);
+  VFont *vfont = data->text_font;
+  if (vfont == NULL) {
+    return;
   }
+
+  if (do_id_user) {
+    id_us_plus(&vfont->id);
+  }
+
+  char path[FILE_MAX];
+  STRNCPY(path, vfont->filepath);
+  BLI_assert(BLI_thread_is_main());
+  BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+
+  data->text_blf_id = BLF_load(path);
 }
 
 static void free_text_effect(Sequence *seq, const bool do_id_user)
