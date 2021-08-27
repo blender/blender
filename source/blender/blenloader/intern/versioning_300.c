@@ -252,9 +252,6 @@ static void do_versions_idproperty_ui_data(Main *bmain)
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     IDProperty *idprop_group = IDP_GetProperties(id, false);
-    if (idprop_group == NULL) {
-      continue;
-    }
     version_idproperty_ui_data(idprop_group);
   }
   FOREACH_MAIN_ID_END;
