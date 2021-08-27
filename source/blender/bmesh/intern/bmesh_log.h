@@ -33,6 +33,10 @@ typedef struct BMLogCallbacks {
   void (*on_vert_kill)(struct BMVert *v, void *userdata);
   void (*on_vert_change)(struct BMVert *v, void *userdata, void *old_customdata);
 
+  void (*on_edge_add)(struct BMEdge *e, void *userdata);
+  void (*on_edge_kill)(struct BMEdge *e, void *userdata);
+  void (*on_edge_change)(struct BMEdge *e, void *userdata, void *old_customdata);
+
   void (*on_face_add)(struct BMFace *f, void *userdata);
   void (*on_face_kill)(struct BMFace *f, void *userdata);
   void (*on_face_change)(struct BMFace *f, void *userdata, void *old_customdata);
@@ -88,8 +92,14 @@ void BM_log_vert_before_modified(BMLog *log,
                                  const int cd_vert_mask_offset,
                                  bool log_customdata);
 
+/* Log an edge before it is modified */
+void BM_log_edge_before_modified(BMLog *log, BMEdge *v, bool log_customdata);
+
 /* Log a new vertex as added to the BMesh */
 void BM_log_vert_added(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
+
+/* Log a new edge as added to the BMesh */
+void BM_log_edge_added(BMLog *log, BMEdge *e);
 
 /* Log a face before it is modified */
 void BM_log_face_modified(BMLog *log, struct BMFace *f);
@@ -99,6 +109,9 @@ void BM_log_face_added(BMLog *log, struct BMFace *f);
 
 /* Log a vertex as removed from the BMesh */
 void BM_log_vert_removed(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
+
+/* Log an edge as removed from the BMesh */
+void BM_log_edge_removed(BMLog *log, BMEdge *e);
 
 /* Log a face as removed from the BMesh */
 void BM_log_face_removed(BMLog *log, struct BMFace *f);
@@ -137,3 +150,4 @@ BMFace *BM_log_id_face_get(BMLog *log, uint id);
 void BM_log_print_entry(BMLog *log, BMLogEntry *entry);
 void BM_log_redo_skip(BMesh *bm, BMLog *log);
 void BM_log_undo_skip(BMesh *bm, BMLog *log);
+BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, float t);

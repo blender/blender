@@ -554,8 +554,11 @@ enum {
   DYNVERT_FSET_CORNER = (1 << 7),
   DYNVERT_CORNER = (1 << 8),
   DYNVERT_API_TEMP1 = (1 << 9),
-  DYNVERT_API_TEMP2 = (1 << 10),
-  DYNVERT_SPLIT_TEMP = (1 << 15)
+  DYNVERT_SEAM_BOUNDARY = (1 << 10),
+  DYNVERT_SHARP_BOUNDARY = (1 << 11),
+  DYNVERT_SEAM_CORNER = (1 << 12),
+  DYNVERT_SHARP_CORNER = (1 << 13),
+  DYNVERT_SPLIT_TEMP = (1 << 15),
 };
 
 #ifdef __cplusplus

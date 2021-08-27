@@ -188,7 +188,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_BOUNDARY_EDGES) {
-    if (SCULPT_vertex_is_boundary(ss, vert, false)) {
+    if (SCULPT_vertex_is_boundary(ss, vert, SCULPT_BOUNDARY_MESH)) {
       return 0.0f;
     }
   }
@@ -342,7 +342,7 @@ void SCULPT_boundary_automasking_init(Object *ob,
     edge_distance[i] = EDGE_DISTANCE_INF;
     switch (mode) {
       case AUTOMASK_INIT_BOUNDARY_EDGES:
-        if (SCULPT_vertex_is_boundary(ss, vertex, false)) {
+        if (SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_MESH)) {
           edge_distance[i] = 0;
         }
         break;

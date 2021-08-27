@@ -210,6 +210,7 @@ struct PBVH {
   bool need_full_render;  // used by pbvh drawing for PBVH_BMESH
 
   int balance_counter;
+  int stroke_id;  // used to keep origdata up to date in PBVH_BMESH
 };
 
 /* pbvh.c */
@@ -329,3 +330,5 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 
   return false;
 }
+
+void pbvh_bmesh_check_other_verts(PBVHNode *node);

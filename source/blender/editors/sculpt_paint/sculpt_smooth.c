@@ -81,7 +81,13 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   int neighbor_count = 0;
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex, check_fsets);
+  int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
+
+  if (check_fsets) {
+    bflag |= SCULPT_BOUNDARY_FACE_SET;
+  }
+
+  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
 
   const float *co = SCULPT_vertex_co_get(ss, vertex);
   float no[3];
@@ -116,7 +122,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
     if (is_boundary) {
       /* Boundary vertices use only other boundary vertices. */
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex, check_fsets)) {
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex, bflag)) {
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
         ok = true;
       }
@@ -174,7 +180,13 @@ void SCULPT_neighbor_coords_average_interior_velocity(SculptSession *ss,
   int total = 0;
   int neighbor_count = 0;
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex, check_fsets);
+  int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
+
+  if (check_fsets) {
+    bflag |= SCULPT_BOUNDARY_FACE_SET;
+  }
+
+  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bflag);
   const float *co = SCULPT_vertex_co_get(ss, vertex);
   float no[3];
 
@@ -201,7 +213,7 @@ void SCULPT_neighbor_coords_average_interior_velocity(SculptSession *ss,
 
     if (is_boundary) {
       /* Boundary vertices use only other boundary vertices. */
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex, check_fsets)) {
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex, bflag)) {
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
         ok = true;
       }
@@ -669,6 +681,11 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
   const bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
+  SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
+  if (check_fsets) {
+    ctype |= SCULPT_CORNER_FACE_SET;
+  }
+
   if (weighted) {
     BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
   }
@@ -698,7 +715,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     else {
       float avg[3], val[3];
 
-      if (SCULPT_vertex_is_corner(ss, vd.vertex, check_fsets)) {
+      if (SCULPT_vertex_is_corner(ss, vd.vertex, ctype)) {
         continue;
       }
 

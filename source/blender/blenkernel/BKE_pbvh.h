@@ -213,7 +213,8 @@ typedef enum {
 
   /* tri areas are not guaranteed to be up to date, tools should
      update all nodes on first step of brush*/
-  PBVH_UpdateTriAreas = 1 << 19
+  PBVH_UpdateTriAreas = 1 << 19,
+  PBVH_UpdateOtherVerts = 1 << 20
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -288,6 +289,10 @@ is provided by the sculpt code and is used to detect updates.  The reason we do 
 inside the verts and not in the nodes is to allow splitting of the pbvh during the stroke.
 */
 bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, struct BMVert *v, int stroke_id);
+
+/** used so pbvh can differentiate between different strokes,
+    see BKE_pbvh_bmesh_check_origdata */
+void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id);
 
 /* Hierarchical Search in the BVH, two methods:
  * - for each hit calling a callback

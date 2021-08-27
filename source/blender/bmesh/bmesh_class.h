@@ -399,7 +399,8 @@ typedef struct BMesh {
     struct RangeTreeUInt *idtree;
 #endif
     uint maxid;
-    struct BMElem **map;
+    struct BMElem **map;  // used if BM_NO_REUSE_IDS is false
+    struct GHash *ghash;  // used if BM_NO_REUSE_IDS is true
     int map_size;
     int cd_id_off[15];
   } idmap;
@@ -409,6 +410,7 @@ enum {
   // firsst four bits are reserved for BM_VERT/EDGE/LOOP/FACE
   BM_HAS_IDS = 1 << 4,
   BM_HAS_ID_MAP = 1 << 5,
+  BM_NO_REUSE_IDS = 1 << 6
 };
 
 /** #BMHeader.htype (char) */

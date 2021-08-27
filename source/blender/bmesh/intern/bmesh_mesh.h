@@ -40,7 +40,13 @@ struct BMeshCreateParams {
   uint use_id_elem_mask : 4;  // which element types to make unique ids for
   uint use_id_map : 1;        // maintain an id to element lookup table
   uint use_toolflags : 1;
+  uint no_reuse_ids : 1;
 };
+
+// used to temporary save/restore element IDs
+// when changing out customdata
+int bm_save_id(BMesh *bm, BMElem *elem);
+void bm_restore_id(BMesh *bm, BMElem *elem, int id);
 
 BMesh *BM_mesh_create(const struct BMAllocTemplate *allocsize,
                       const struct BMeshCreateParams *params);
@@ -146,3 +152,8 @@ void BM_mesh_vert_coords_apply(BMesh *bm, const float (*vert_coords)[3]);
 void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
                                          const float (*vert_coords)[3],
                                          const float mat[4][4]);
+
+#define BM_ELEM_FROM_ID(bm, id) \
+  ((bm->idmap.flag & BM_NO_REUSE_IDS) ? \
+       BLI_ghash_lookup(bm->idmap.ghash, POINTER_FROM_UINT(id)) : \
+       bm->idmap.map[id])

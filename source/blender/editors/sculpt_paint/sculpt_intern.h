@@ -226,18 +226,27 @@ void SCULPT_boundary_info_ensure(Object *object);
 /* this is a bitmask */
 typedef enum SculptCornerType {
   SCULPT_CORNER_NONE = 0,
-  SCULPT_CORNER_BOUNDARY = 1,
-  SCULPT_CORNER_FACE_SET = 2
+  SCULPT_CORNER_MESH = 1 << 0,
+  SCULPT_CORNER_FACE_SET = 1 << 1,
+  SCULPT_CORNER_SEAM = 1 << 2,
+  SCULPT_CORNER_SHARP = 1 << 3
 } SculptCornerType;
 
 SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          const SculptVertRef index,
-                                         bool check_facesets);
+                                         SculptCornerType cornertype);
+
+typedef enum SculptBoundaryType {
+  SCULPT_BOUNDARY_MESH = 1 << 0,
+  SCULPT_BOUNDARY_FACE_SET = 1 << 1,
+  SCULPT_BOUNDARY_SEAM = 1 << 2,
+  SCULPT_BOUNDARY_SHARP = 1 << 3
+} SculptBoundaryType;
 
 /* Boundary Info needs to be initialized in order to use this function. */
-bool SCULPT_vertex_is_boundary(const SculptSession *ss,
-                               const SculptVertRef index,
-                               bool check_facesets);
+SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
+                                             const SculptVertRef index,
+                                             SculptBoundaryType boundary_types);
 
 void SCULPT_connected_components_ensure(Object *ob);
 

@@ -1403,6 +1403,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
           pbvh_free_all_draw_buffers(node);
           node->tot_mat_draw_buffers = node->tot_tri_buffers;
 
+          pbvh_bmesh_check_other_verts(node);
+
           if (node->tot_tri_buffers) {
             node->mat_draw_buffers = MEM_malloc_arrayN(
                 node->tot_tri_buffers, sizeof(void *), "node->mat_draw_buffers");
@@ -2099,6 +2101,8 @@ void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int 
 
         return;
       }
+
+      pbvh_bmesh_check_other_verts(node);
 
       tot = BLI_table_gset_len(node->bm_unique_verts);
       if (r_totvert) {
@@ -3259,6 +3263,10 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->mverts = verts;
 
   if (pbvh->type == PBVH_BMESH) {
+    if (mode == PBVH_ITER_ALL) {
+      pbvh_bmesh_check_other_verts(node);
+    }
+
     vi->bi = 0;
     vi->bm_cur_set = node->bm_unique_verts;
     vi->bm_unique_verts = node->bm_unique_verts;
@@ -3990,4 +3998,9 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_are
 
     e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
   } while (e != v->e);
+}
+
+void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id)
+{
+  pbvh->stroke_id = stroke_id;
 }

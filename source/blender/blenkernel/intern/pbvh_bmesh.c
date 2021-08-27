@@ -70,9 +70,17 @@ Topology rake:
 #include <stdio.h>
 #include <stdlib.h>
 
-void pbvh_bmesh_check_nodes(PBVH *pbvh)
+ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
 #if 0
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (node->flag & PBVH_Leaf) {
+      pbvh_bmesh_check_other_verts(node);
+    }
+  }
+
   BMVert *v;
   BMIter iter;
 
@@ -688,16 +696,20 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
 
   if (usize != BLI_table_gset_len(node->bm_unique_verts)) {
     update = true;
+#if 0
     printf("possible pbvh error: bm_unique_verts might have had bad data. old: %d, new: %d\n",
            usize,
            BLI_table_gset_len(node->bm_unique_verts));
+#endif
   }
 
   if (osize != BLI_table_gset_len(node->bm_other_verts)) {
     update = true;
+#if 0
     printf("possible pbvh error: bm_other_verts might have had bad data. old: %d, new: %d\n",
            osize,
            BLI_table_gset_len(node->bm_other_verts));
+#endif
   }
 
   if (update) {
@@ -779,7 +791,7 @@ void BKE_pbvh_bmesh_update_origvert(
 
 /************************* Called from pbvh.c *************************/
 
-bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
+ATTR_NO_OPT bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
 {
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
@@ -1319,7 +1331,8 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
   BMEdge *e = v->e;
   mv->flag &= ~(DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY | DYNVERT_NEED_BOUNDARY |
                 DYNVERT_NEED_TRIANGULATE | DYNVERT_FSET_CORNER | DYNVERT_CORNER |
-                DYNVERT_NEED_VALENCE);
+                DYNVERT_NEED_VALENCE | DYNVERT_SEAM_BOUNDARY | DYNVERT_SHARP_BOUNDARY |
+                DYNVERT_SEAM_CORNER | DYNVERT_SHARP_CORNER);
 
   if (!e) {
     mv->flag |= DYNVERT_BOUNDARY;
@@ -1341,9 +1354,29 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
 
   FSetTemp *fsets = NULL;
   BLI_array_staticdeclare(fsets, 32);
+  int sharpcount = 0;
+  int seamcount = 0;
 
   do {
     BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
+
+    if (e->head.hflag & BM_ELEM_SEAM) {
+      mv->flag |= DYNVERT_SEAM_BOUNDARY;
+      seamcount++;
+
+      if (seamcount > 2) {
+        mv->flag |= DYNVERT_SEAM_CORNER;
+      }
+    }
+
+    if (!(e->head.hflag & BM_ELEM_SMOOTH)) {
+      mv->flag |= DYNVERT_SHARP_BOUNDARY;
+      sharpcount++;
+
+      if (sharpcount > 2) {
+        mv->flag |= DYNVERT_SHARP_CORNER;
+      }
+    }
 
     if (e->l) {
       int fset = abs(BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset));
@@ -1477,6 +1510,14 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
 
   if (fset1 && fset2) {
     mv->flag |= DYNVERT_FSET_BOUNDARY;
+  }
+
+  if (sharpcount == 1) {
+    mv->flag |= DYNVERT_SHARP_CORNER;
+  }
+
+  if (seamcount == 1) {
+    mv->flag |= DYNVERT_SEAM_CORNER;
   }
 
   mv->valence = val;
@@ -1991,6 +2032,33 @@ BLI_INLINE void pbvh_tribuf_add_edge(PBVHTriBuf *tribuf, int v1, int v2)
   tribuf->edges[i + 1] = v2;
 }
 
+void pbvh_bmesh_check_other_verts(PBVHNode *node)
+{
+  if (!(node->flag & PBVH_UpdateOtherVerts)) {
+    return;
+  }
+
+  node->flag &= ~PBVH_UpdateOtherVerts;
+
+  if (node->bm_other_verts) {
+    BLI_table_gset_free(node->bm_other_verts, NULL);
+  }
+
+  node->bm_other_verts = BLI_table_gset_new("bm_other_verts");
+  BMFace *f;
+
+  TGSET_ITER (f, node->bm_faces) {
+    BMLoop *l = f->l_first;
+
+    do {
+      if (!BLI_table_gset_haskey(node->bm_unique_verts, l->v)) {
+        BLI_table_gset_add(node->bm_other_verts, l->v);
+      }
+    } while ((l = l->next) != f->l_first);
+  }
+  TGSET_ITER_END;
+}
+
 /* In order to perform operations on the original node coordinates
  * (currently just raycast), store the node's triangles and vertices.
  *
@@ -2002,6 +2070,8 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   if (!(node->flag & PBVH_UpdateTris) && node->tribuf) {
     return false;
   }
+
+  node->flag |= PBVH_UpdateOtherVerts;
 
   GHash *vmap = BLI_ghash_ptr_new("pbvh_bmesh.c vmap");
   GHash *mat_vmaps[MAXMAT];
@@ -3055,7 +3125,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh)
 
   BKE_pbvh_update_bounds(pbvh, (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
 
-  if (1 || pbvh->balance_counter++ == 5) {
+  if (pbvh->balance_counter++ == 5) {
     pbvh_bmesh_balance_tree(pbvh);
     pbvh_bmesh_check_nodes(pbvh);
     pbvh->balance_counter = 0;
@@ -3098,6 +3168,7 @@ TableGSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node)
 
 TableGSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node)
 {
+  pbvh_bmesh_check_other_verts(node);
   return node->bm_other_verts;
 }
 
@@ -4575,10 +4646,12 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 
   BMAllocTemplate templ = {0, 0, 0, 0};
 
-  BMesh *bm = BM_mesh_create(&templ,
-                             &((struct BMeshCreateParams){.use_id_elem_mask = BM_VERT | BM_FACE,
-                                                          .use_id_map = true,
-                                                          .use_unique_ids = true}));
+  BMesh *bm = BM_mesh_create(
+      &templ,
+      &((struct BMeshCreateParams){.use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                   .use_id_map = true,
+                                   .use_unique_ids = true,
+                                   .no_reuse_ids = false}));
 
   // reinit pools
   BLI_mempool_destroy(bm->vpool);

@@ -149,7 +149,8 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreateParams *params)
+ATTR_NO_OPT BMesh *BM_mesh_create(const BMAllocTemplate *allocsize,
+                                  const struct BMeshCreateParams *params)
 {
   /* allocate the structure */
   BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
@@ -161,8 +162,16 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
 
   if (params->use_unique_ids) {
     bm->idmap.flag |= BM_HAS_IDS;
-    bm->idmap.flag |= params->use_id_elem_mask * BM_HAS_ID_MAP;
+
+    if (params->use_id_map) {
+      bm->idmap.flag |= BM_HAS_ID_MAP;
+    }
+
     bm->idmap.flag |= params->use_id_elem_mask;
+
+    if (params->no_reuse_ids) {
+      bm->idmap.flag |= BM_NO_REUSE_IDS;
+    }
 
 #ifndef WITH_BM_ID_FREELIST
     bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
@@ -170,11 +179,18 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   }
 
   if (bm->idmap.flag & BM_HAS_ID_MAP) {
-    bm->idmap.map_size = BM_DEFAULT_IDMAP_SIZE;
-    bm->idmap.map = MEM_callocN(sizeof(void *) * bm->idmap.map_size, "bmesh idmap");
+    if (bm->idmap.flag & BM_NO_REUSE_IDS) {
+      bm->idmap.ghash = BLI_ghash_ptr_new("idmap.ghash");
+    }
+    else {
+      bm->idmap.map_size = BM_DEFAULT_IDMAP_SIZE;
+      bm->idmap.map = MEM_callocN(sizeof(void *) * bm->idmap.map_size, "bmesh idmap");
+      bm->idmap.ghash = NULL;
+    }
   }
   else {
     bm->idmap.map = NULL;
+    bm->idmap.ghash = NULL;
   }
 
   /* allocate one flag pool that we don't get rid of. */
@@ -237,6 +253,10 @@ void BM_mesh_data_free(BMesh *bm)
 #endif
 
   MEM_SAFE_FREE(bm->idmap.map);
+
+  if (bm->idmap.ghash) {
+    BLI_ghash_free(bm->idmap.ghash, NULL, NULL);
+  }
 
   const bool is_ldata_free = CustomData_bmesh_has_free(&bm->ldata);
   const bool is_pdata_free = CustomData_bmesh_has_free(&bm->pdata);
@@ -1323,7 +1343,16 @@ void BM_mesh_remap(BMesh *bm,
 
           do {
             int id_loop = BM_ELEM_CD_GET_INT(l, cd_loop_id);
-            bm->idmap.map[id_loop] = (BMElem *)l;
+
+            if (bm->idmap.ghash) {
+              void **l_val;
+
+              BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_INT(id_loop), &l_val);
+              *l_val = (void *)l;
+            }
+            else {
+              bm->idmap.map[id_loop] = (BMElem *)l;
+            }
           } while ((l = l->next) != f->l_first);
         }
 
@@ -1332,7 +1361,16 @@ void BM_mesh_remap(BMesh *bm,
         }
 
         int id = BM_ELEM_CD_GET_INT(elem, cd_id);
-        bm->idmap.map[id] = elem;
+
+        if (bm->idmap.ghash) {
+          void **val;
+
+          BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_INT(id), &val);
+          *val = (void *)elem;
+        }
+        else {
+          bm->idmap.map[id] = elem;
+        }
       }
     }
   }

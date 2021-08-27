@@ -1575,7 +1575,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    fair_vertices[i] = !SCULPT_vertex_is_boundary(ss, vref, false) &&
+    fair_vertices[i] = !SCULPT_vertex_is_boundary(ss, vref, SCULPT_BOUNDARY_MESH) &&
                        SCULPT_vertex_has_face_set(ss, vref, active_face_set_id) &&
                        SCULPT_vertex_has_unique_face_set(ss, vref);
   }

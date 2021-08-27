@@ -456,7 +456,8 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(data->cd_dyn_vert, v);
-  mv->flag |= DYNVERT_NEED_DISK_SORT;
+  mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_TRIANGULATE |
+              DYNVERT_NEED_BOUNDARY;
 }
 
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
@@ -512,6 +513,18 @@ static void bmesh_undo_full_mesh(void *userdata)
   }
 
   data->do_full_recalc = true;
+}
+
+static void bmesh_undo_on_edge_change(BMEdge *v, void *userdata, void *old_customdata)
+{
+}
+
+static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
+{
+}
+
+static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
+{
 }
 
 static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
@@ -598,6 +611,9 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
   BMLogCallbacks callbacks = {bmesh_undo_on_vert_add,
                               bmesh_undo_on_vert_kill,
                               bmesh_undo_on_vert_change,
+                              bmesh_undo_on_edge_add,
+                              bmesh_undo_on_edge_kill,
+                              bmesh_undo_on_edge_change,
                               bmesh_undo_on_face_add,
                               bmesh_undo_on_face_kill,
                               bmesh_undo_on_face_change,
@@ -661,11 +677,13 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   ss->active_face_index.i = ss->active_vertex_index.i = 0;
 
   /* Create empty BMesh and enable logging. */
-  ss->bm = BM_mesh_create(&bm_mesh_allocsize_default,
-                          &((struct BMeshCreateParams){.use_toolflags = false,
-                                                       .use_unique_ids = true,
-                                                       .use_id_elem_mask = BM_VERT | BM_FACE,
-                                                       .use_id_map = true}));
+  ss->bm = BM_mesh_create(
+      &bm_mesh_allocsize_default,
+      &((struct BMeshCreateParams){.use_toolflags = false,
+                                   .use_unique_ids = true,
+                                   .use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                   .use_id_map = true,
+                                   .no_reuse_ids = false}));
 
   BM_mesh_bm_from_me(NULL,
                      ss->bm,

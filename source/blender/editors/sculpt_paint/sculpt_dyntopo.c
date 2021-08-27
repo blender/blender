@@ -759,11 +759,13 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BKE_mesh_mselect_clear(me);
 
 #if 1
-  ss->bm = BM_mesh_create(&allocsize,
-                          &((struct BMeshCreateParams){.use_toolflags = false,
-                                                       .use_unique_ids = true,
-                                                       .use_id_elem_mask = BM_VERT | BM_FACE,
-                                                       .use_id_map = true}));
+  ss->bm = BM_mesh_create(
+      &allocsize,
+      &((struct BMeshCreateParams){.use_toolflags = false,
+                                   .use_unique_ids = true,
+                                   .use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
+                                   .use_id_map = true,
+                                   .no_reuse_ids = false}));
 
   BM_mesh_bm_from_me(NULL,
                      ss->bm,

@@ -117,21 +117,29 @@ static void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
   bm->idmap.maxid = MAX2(bm->idmap.maxid, id);
 
   if (bm->idmap.flag & BM_HAS_ID_MAP) {
-    if (!bm->idmap.map || bm->idmap.map_size <= bm->idmap.maxid) {
-      int size = 2 + bm->idmap.maxid + (bm->idmap.maxid >> 1);
+    if (!(bm->idmap.flag & BM_NO_REUSE_IDS)) {
+      if (!bm->idmap.map || bm->idmap.map_size <= bm->idmap.maxid) {
+        int size = 2 + bm->idmap.maxid + (bm->idmap.maxid >> 1);
 
-      BMElem **idmap = MEM_callocN(sizeof(void *) * size, "bmesh idmap");
+        BMElem **idmap = MEM_callocN(sizeof(void *) * size, "bmesh idmap");
 
-      if (bm->idmap.map) {
-        memcpy((void *)idmap, (void *)bm->idmap.map, sizeof(void *) * bm->idmap.map_size);
-        MEM_freeN(bm->idmap.map);
+        if (bm->idmap.map) {
+          memcpy((void *)idmap, (void *)bm->idmap.map, sizeof(void *) * bm->idmap.map_size);
+          MEM_freeN(bm->idmap.map);
+        }
+
+        bm->idmap.map = idmap;
+        bm->idmap.map_size = size;
       }
 
-      bm->idmap.map = idmap;
-      bm->idmap.map_size = size;
+      bm->idmap.map[id] = elem;
     }
+    else {
+      void **val = NULL;
 
-    bm->idmap.map[id] = elem;
+      BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_UINT(id), &val);
+      *val = (void *)elem;
+    }
   }
 }
 
@@ -176,15 +184,22 @@ void bm_free_id(BMesh *bm, BMElem *elem)
   uint id = (uint)BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[elem->head.htype]);
 
 #ifndef WITH_BM_ID_FREELIST
-  if (!range_tree_uint_has(bm->idmap.idtree, id)) {
+
+  if (!(bm->idmap.flag & BM_NO_REUSE_IDS) && !range_tree_uint_has(bm->idmap.idtree, id)) {
     range_tree_uint_release(bm->idmap.idtree, id);
   }
 #else
 
 #endif
 
-  if ((bm->idmap.flag & BM_HAS_ID_MAP) && bm->idmap.map && id >= 0 && id < bm->idmap.map_size) {
-    bm->idmap.map[id] = NULL;
+  if ((bm->idmap.flag & BM_HAS_ID_MAP)) {
+    if (!(bm->idmap.flag & BM_NO_REUSE_IDS) && bm->idmap.map && id >= 0 &&
+        id < bm->idmap.map_size) {
+      bm->idmap.map[id] = NULL;
+    }
+    else if (bm->idmap.flag & BM_NO_REUSE_IDS) {
+      BLI_ghash_remove(bm->idmap.ghash, POINTER_FROM_UINT(id), NULL, NULL);
+    }
   }
 }
 
@@ -644,9 +659,14 @@ static void bm_vert_attrs_copy(
   if ((mask_exclude & CD_MASK_NORMAL) == 0) {
     copy_v3_v3(v_dst->no, v_src->no);
   }
+
+  int id = bm_save_id(bm_dst, (BMElem *)v_dst);
+
   CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->vdata, v_dst->head.data, mask_exclude);
   CustomData_bmesh_copy_data_exclude_by_type(
       &bm_src->vdata, &bm_dst->vdata, v_src->head.data, &v_dst->head.data, mask_exclude);
+
+  bm_restore_id(bm_dst, (BMElem *)v_dst, id);
 }
 
 static void bm_edge_attrs_copy(
@@ -656,9 +676,14 @@ static void bm_edge_attrs_copy(
     BLI_assert_msg(0, "BMEdge: source and target match");
     return;
   }
+
+  int id = bm_save_id(bm_dst, (BMElem *)e_dst);
+
   CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->edata, e_dst->head.data, mask_exclude);
   CustomData_bmesh_copy_data_exclude_by_type(
       &bm_src->edata, &bm_dst->edata, e_src->head.data, &e_dst->head.data, mask_exclude);
+
+  bm_restore_id(bm_dst, (BMElem *)e_dst, id);
 }
 
 static void bm_loop_attrs_copy(
@@ -668,9 +693,14 @@ static void bm_loop_attrs_copy(
     BLI_assert_msg(0, "BMLoop: source and target match");
     return;
   }
+
+  int id = bm_save_id(bm_dst, (BMElem *)l_dst);
+
   CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->ldata, l_dst->head.data, mask_exclude);
   CustomData_bmesh_copy_data_exclude_by_type(
       &bm_src->ldata, &bm_dst->ldata, l_src->head.data, &l_dst->head.data, mask_exclude);
+
+  bm_restore_id(bm_dst, (BMElem *)l_dst, id);
 }
 
 static void bm_face_attrs_copy(
@@ -683,10 +713,15 @@ static void bm_face_attrs_copy(
   if ((mask_exclude & CD_MASK_NORMAL) == 0) {
     copy_v3_v3(f_dst->no, f_src->no);
   }
+
+  int id = bm_save_id(bm_dst, (BMElem *)f_dst);
+
   CustomData_bmesh_free_block_data_exclude_by_type(&bm_dst->pdata, f_dst->head.data, mask_exclude);
   CustomData_bmesh_copy_data_exclude_by_type(
       &bm_src->pdata, &bm_dst->pdata, f_src->head.data, &f_dst->head.data, mask_exclude);
   f_dst->mat_nr = f_src->mat_nr;
+
+  bm_restore_id(bm_dst, (BMElem *)f_dst, id);
 }
 
 /* BMESH_TODO: Special handling for hide flags? */
@@ -934,21 +969,31 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
                                    .use_id_elem_mask = bm_old->idmap.flag &
                                                        (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE),
                                    .use_unique_ids = !!(bm_old->idmap.flag & BM_HAS_IDS),
-                                   .use_id_map = !!(bm_old->idmap.flag & BM_HAS_ID_MAP)}));
+                                   .use_id_map = !!(bm_old->idmap.flag & BM_HAS_ID_MAP),
+                                   .no_reuse_ids = !!(bm_old->idmap.flag & BM_NO_REUSE_IDS)}));
 
   BM_mesh_copy_init_customdata(bm_new, bm_old, &allocsize);
 
   if (bm_old->idmap.flag & BM_HAS_IDS) {
     MEM_SAFE_FREE(bm_new->idmap.map);
 
-    bm_new->idmap.map_size = bm_old->idmap.map_size;
-    bm_new->idmap.flag = bm_old->idmap.flag;
+    if ((bm_old->idmap.flag & BM_HAS_ID_MAP)) {
+      if (!(bm_old->idmap.flag & BM_NO_REUSE_IDS)) {
+        bm_new->idmap.map_size = bm_old->idmap.map_size;
+        bm_new->idmap.flag = bm_old->idmap.flag;
 
-    if (bm_new->idmap.map_size) {
-      bm_new->idmap.map = MEM_callocN(sizeof(void *) * bm_old->idmap.map_size, "bm idmap");
-    }
-    else {
-      bm_new->idmap.map = NULL;
+        if (bm_new->idmap.map_size) {
+          bm_new->idmap.map = MEM_callocN(sizeof(void *) * bm_old->idmap.map_size, "bm idmap");
+        }
+        else {
+          bm_new->idmap.map = NULL;
+        }
+      }
+      else {
+        BLI_ghash_free(bm_new->idmap.ghash, NULL, NULL);
+        bm_new->idmap.ghash = BLI_ghash_ptr_new_ex(
+            "idmap.ghash", bm_old->totvert + bm_old->totedge + bm_old->totface);
+      }
     }
 
     bm_init_idmap_cdlayers(bm_new);

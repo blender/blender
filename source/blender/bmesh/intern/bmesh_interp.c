@@ -41,8 +41,34 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
+ATTR_NO_OPT int bm_save_id(BMesh *bm, BMElem *elem)
+{
+  if (!elem->head.data) {
+    return -1;
+  }
+
+  if (bm->idmap.flag & elem->head.htype) {
+    return BM_ELEM_GET_ID(bm, elem);
+  }
+  else {
+    return -1;
+  }
+}
+
+ATTR_NO_OPT void bm_restore_id(BMesh *bm, BMElem *elem, int id)
+{
+  if (!elem->head.data || id == -1) {
+    return;
+  }
+
+  if (bm->idmap.flag & elem->head.htype) {
+    BM_ELEM_CD_SET_INT(elem, bm->idmap.cd_id_off[elem->head.htype], id);
+  }
+}
+
 /* edge and vertex share, currently there's no need to have different logic */
-static void bm_data_interp_from_elem(CustomData *data_layer,
+static void bm_data_interp_from_elem(BMesh *bm,
+                                     CustomData *data_layer,
                                      const BMElem *ele_src_1,
                                      const BMElem *ele_src_2,
                                      BMElem *ele_dst,
@@ -55,9 +81,13 @@ static void bm_data_interp_from_elem(CustomData *data_layer,
         /* do nothing */
       }
       else {
+        int id = bm_save_id(bm, ele_dst);
+
         CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
         CustomData_bmesh_copy_data(
             data_layer, data_layer, ele_src_1->head.data, &ele_dst->head.data);
+
+        bm_restore_id(bm, ele_dst, id);
       }
     }
     else if (fac >= 1.0f) {
@@ -65,9 +95,13 @@ static void bm_data_interp_from_elem(CustomData *data_layer,
         /* do nothing */
       }
       else {
+        int id = bm_save_id(bm, ele_dst);
+
         CustomData_bmesh_free_block_data(data_layer, ele_dst->head.data);
         CustomData_bmesh_copy_data(
             data_layer, data_layer, ele_src_2->head.data, &ele_dst->head.data);
+
+        bm_restore_id(bm, ele_dst, id);
       }
     }
     else {
@@ -94,7 +128,7 @@ void BM_data_interp_from_verts(
     BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v_dst, const float fac)
 {
   bm_data_interp_from_elem(
-      &bm->vdata, (const BMElem *)v_src_1, (const BMElem *)v_src_2, (BMElem *)v_dst, fac);
+      bm, &bm->vdata, (const BMElem *)v_src_1, (const BMElem *)v_src_2, (BMElem *)v_dst, fac);
 }
 
 /**
@@ -108,7 +142,7 @@ void BM_data_interp_from_edges(
     BMesh *bm, const BMEdge *e_src_1, const BMEdge *e_src_2, BMEdge *e_dst, const float fac)
 {
   bm_data_interp_from_elem(
-      &bm->edata, (const BMElem *)e_src_1, (const BMElem *)e_src_2, (BMElem *)e_dst, fac);
+      bm, &bm->edata, (const BMElem *)e_src_1, (const BMElem *)e_src_2, (BMElem *)e_dst, fac);
 }
 
 /**
