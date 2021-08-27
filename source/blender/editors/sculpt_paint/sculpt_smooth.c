@@ -82,6 +82,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
   int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
+  float bound_smooth = ss->cache->brush->boundary_smooth_factor;
 
   if (check_fsets) {
     bflag |= SCULPT_BOUNDARY_FACE_SET;
@@ -92,12 +93,17 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   const float *co = SCULPT_vertex_co_get(ss, vertex);
   float no[3];
 
-  if (projection > 0.0f) {
+  if (true || projection > 0.0f) {
     SCULPT_vertex_normal_get(ss, vertex, no);
   }
 
   const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) && !is_boundary;
   float *areas;
+
+  SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
+  if (check_fsets) {
+    ctype |= SCULPT_CORNER_FACE_SET;
+  }
 
   if (weighted) {
     int val = SCULPT_vertex_valence_get(ss, vertex);
@@ -124,6 +130,15 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       /* Boundary vertices use only other boundary vertices. */
       if (SCULPT_vertex_is_boundary(ss, ni.vertex, bflag)) {
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
+        ok = true;
+      }
+      else {
+        float t[3];
+
+        w *= bound_smooth;
+
+        sub_v3_v3v3(t, SCULPT_vertex_co_get(ss, ni.vertex), co);
+        madd_v3_v3v3fl(tmp, co, no, dot_v3v3(t, no));
         ok = true;
       }
     }
@@ -167,6 +182,10 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   if (projection > 0.0f) {
     add_v3_v3(result, co);
+  }
+
+  if (SCULPT_vertex_is_corner(ss, vertex, ctype)) {
+    interp_v3_v3v3(result, result, co, 1.0f - bound_smooth);
   }
 }
 
@@ -691,6 +710,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   }
 
   bool modified = false;
+  const float bound_smooth = ss->cache->brush->boundary_smooth_factor;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -715,7 +735,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     else {
       float avg[3], val[3];
 
-      if (SCULPT_vertex_is_corner(ss, vd.vertex, ctype)) {
+      if (bound_smooth == 0.0f && SCULPT_vertex_is_corner(ss, vd.vertex, ctype)) {
         continue;
       }
 

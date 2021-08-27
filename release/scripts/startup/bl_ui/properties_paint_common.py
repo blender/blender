@@ -567,6 +567,7 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
+            box.prop(brush, "boundary_smooth_factor");
             box.prop(brush, "use_weighted_smooth")
             box.prop(brush, "preserve_faceset_boundary")
 

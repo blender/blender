@@ -2570,6 +2570,22 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     // BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
     BMFace *f = l->f;
 
+    bool ok = true;
+
+    for (int j = 0; j < (int)deleted_faces->count; j++) {
+      if (BLI_buffer_at(deleted_faces, BMFace *, j) == f) {
+        ok = false;
+      }
+    }
+
+    if (ok) {
+      BLI_buffer_append(deleted_faces, BMFace *, f);
+    }
+    else {
+      printf("tried to add same face to deleted list twice. %x %d\n", f, f->len);
+      continue;
+    }
+
     /* Check if a face using these vertices already exists. If so,
      * skip adding this face and mark the existing one for
      * deletion as well. Prevents extraneous "flaps" from being
@@ -2580,17 +2596,17 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     if (UNLIKELY(existing_face = bm_face_exists_tri_from_loop_vert(l->next, v_conn)))
 #  endif
     {
-      bool ok = true;
+      bool ok2 = true;
 
       // check we're not already in deleted_faces
       for (int i = 0; i < (int)deleted_faces->count; i++) {
         if (BLI_buffer_at(deleted_faces, BMFace *, i) == existing_face) {
-          ok = false;
+          ok2 = false;
           break;
         }
       }
 
-      if (ok) {
+      if (ok2) {
         BLI_buffer_append(deleted_faces, BMFace *, existing_face);
       }
     }
@@ -2638,8 +2654,6 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       CustomData_bmesh_copy_data(
           &pbvh->bm->ldata, &pbvh->bm->ldata, l->prev->head.data, &l2->prev->head.data);
     }
-
-    BLI_buffer_append(deleted_faces, BMFace *, f);
   }
   BM_LOOPS_OF_VERT_ITER_END;
 #endif

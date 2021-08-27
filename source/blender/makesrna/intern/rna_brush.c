@@ -3099,6 +3099,14 @@ static void rna_def_brush(BlenderRNA *brna)
                            "to generate sharper features. ");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "boundary_smooth_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "boundary_smooth_factor");
+  RNA_def_property_float_default(prop, 0);
+  RNA_def_property_range(prop, -2.0f, 2.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(prop, "Boundary Smoothing", "How much to smooth sharp boundaries ");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "vcol_boundary_exponent", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "vcol_boundary_exponent");
   RNA_def_property_float_default(prop, 0);
