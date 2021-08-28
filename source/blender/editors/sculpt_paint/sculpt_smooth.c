@@ -137,9 +137,20 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       w = 1.0f;
     }
 
-    if (is_boundary) {
+    /*use the new edge api if edges are available, if not estimate boundary
+      from verts*/
+    if (is_boundary || ni.has_edge) {
+      bool is_boundary2;
+
+      if (ni.has_edge) {
+        is_boundary2 = SCULPT_edge_is_boundary(ss, ni.edge, bflag);
+      }
+      else {
+        is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bflag);
+      }
+
       /* Boundary vertices use only other boundary vertices. */
-      if (SCULPT_vertex_is_boundary(ss, ni.vertex, bflag)) {
+      if (is_boundary2 || !is_boundary) {
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
         ok = true;
       }

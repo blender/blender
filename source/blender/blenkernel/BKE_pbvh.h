@@ -37,6 +37,10 @@ typedef struct SculptVertRef {
   intptr_t i;
 } SculptVertRef;
 
+typedef struct SculptEdgeRef {
+  intptr_t i;
+} SculptEdgeRef;
+
 typedef struct SculptFaceRef {
   intptr_t i;
 } SculptFaceRef;
@@ -53,11 +57,19 @@ BLI_INLINE SculptVertRef BKE_pbvh_make_vref(intptr_t i)
   return ret;
 }
 
+BLI_INLINE SculptEdgeRef BKE_pbvh_make_eref(intptr_t i)
+{
+  SculptEdgeRef ret = {i};
+  return ret;
+}
+
 BLI_INLINE SculptFaceRef BKE_pbvh_make_fref(intptr_t i)
 {
   SculptFaceRef ret = {i};
   return ret;
 }
+
+#define SCULPT_REF_NONE ((intptr_t)-1)
 
 typedef struct PBVHTri {
   int v[3];       // references into PBVHTriBuf->verts

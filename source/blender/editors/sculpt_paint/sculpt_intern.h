@@ -150,15 +150,20 @@ float *SCULPT_brush_deform_target_vertex_co_get(SculptSession *ss,
                                                 const int deform_target,
                                                 PBVHVertexIter *iter);
 
+struct _SculptNeighborRef {
+  SculptVertRef vertex;
+  SculptEdgeRef edge;
+};
+
 #define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
 typedef struct SculptVertexNeighborIter {
   /* Storage */
-  SculptVertRef *neighbors;
+  struct _SculptNeighborRef *neighbors;
   int *neighbor_indices;
 
   int size;
   int capacity;
-  SculptVertRef neighbors_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
+  struct _SculptNeighborRef neighbors_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
   int neighbor_indices_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
 
   /* Internal iterator. */
@@ -167,7 +172,9 @@ typedef struct SculptVertexNeighborIter {
 
   /* Public */
   SculptVertRef vertex;
+  SculptEdgeRef edge;
   int index;
+  bool has_edge;  // does this iteration step have an edge, fake neighbors do not
   bool is_duplicate;
 } SculptVertexNeighborIter;
 
@@ -181,7 +188,10 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
        neighbor_iterator.i++) { \
-    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
+    neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
+                                 SCULPT_REF_NONE; \
+    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
+    neighbor_iterator.edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge; \
     neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i];
 
 /* Iterate over neighboring and duplicate vertices (for PBVH_GRIDS). Duplicates come
@@ -190,7 +200,10 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
   SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
   for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
        neighbor_iterator.i--) { \
-    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
+    neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
+                                 SCULPT_REF_NONE; \
+    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
+    neighbor_iterator.edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge; \
     neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i]; \
     neighbor_iterator.is_duplicate = (neighbor_iterator.i >= \
                                       neighbor_iterator.size - neighbor_iterator.num_duplicates);
@@ -1639,3 +1652,16 @@ char SCULPT_mesh_fset_boundary_symmetry_get(struct Object *object);
 
 // exponent to make boundary_smooth_factor more user-friendly
 #define BOUNDARY_SMOOTH_EXP 2.0
+
+// edges
+
+SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
+                                           const SculptEdgeRef edge,
+                                           SculptBoundaryType typemask);
+void SCULPT_edge_get_verts(const SculptSession *ss,
+                           const SculptEdgeRef edge,
+                           SculptVertRef *r_v1,
+                           SculptVertRef *r_v2);
+SculptVertRef SCULPT_edge_other_vertex(const SculptSession *ss,
+                                       const SculptEdgeRef edge,
+                                       const SculptVertRef vertex);

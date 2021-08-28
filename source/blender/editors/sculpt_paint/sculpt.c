@@ -1322,10 +1322,11 @@ int SCULPT_face_set_next_available_get(SculptSession *ss)
 
 static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter,
                                        SculptVertRef neighbor,
+                                       SculptEdgeRef edge,
                                        int neighbor_index)
 {
   for (int i = 0; i < iter->size; i++) {
-    if (iter->neighbors[i].i == neighbor.i) {
+    if (iter->neighbors[i].vertex.i == neighbor.i) {
       return;
     }
   }
@@ -1334,48 +1335,55 @@ static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter,
     iter->capacity += SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
 
     if (iter->neighbors == iter->neighbors_fixed) {
-      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(SculptVertRef), "neighbor array");
+      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(struct _SculptNeighborRef),
+                                    "neighbor array");
       iter->neighbor_indices = MEM_mallocN(iter->capacity * sizeof(int), "neighbor array");
 
-      memcpy(iter->neighbors, iter->neighbors_fixed, sizeof(SculptVertRef) * iter->size);
+      memcpy(
+          iter->neighbors, iter->neighbors_fixed, sizeof(struct _SculptNeighborRef) * iter->size);
       memcpy(iter->neighbor_indices, iter->neighbor_indices_fixed, sizeof(int) * iter->size);
     }
     else {
       iter->neighbors = MEM_reallocN_id(
-          iter->neighbors, iter->capacity * sizeof(SculptVertRef), "neighbor array");
+          iter->neighbors, iter->capacity * sizeof(struct _SculptNeighborRef), "neighbor array");
       iter->neighbor_indices = MEM_reallocN_id(
           iter->neighbor_indices, iter->capacity * sizeof(int), "neighbor array");
     }
   }
 
-  iter->neighbors[iter->size] = neighbor;
+  iter->neighbors[iter->size].vertex = neighbor;
+  iter->neighbors[iter->size].edge = edge;
   iter->neighbor_indices[iter->size] = neighbor_index;
   iter->size++;
 }
 
 static void sculpt_vertex_neighbor_add_nocheck(SculptVertexNeighborIter *iter,
                                                SculptVertRef neighbor,
+                                               SculptEdgeRef edge,
                                                int neighbor_index)
 {
   if (iter->size >= iter->capacity) {
     iter->capacity += SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
 
     if (iter->neighbors == iter->neighbors_fixed) {
-      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(SculptVertRef), "neighbor array");
+      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(struct _SculptNeighborRef),
+                                    "neighbor array");
       iter->neighbor_indices = MEM_mallocN(iter->capacity * sizeof(int), "neighbor array");
 
-      memcpy(iter->neighbors, iter->neighbors_fixed, sizeof(SculptVertRef) * iter->size);
+      memcpy(
+          iter->neighbors, iter->neighbors_fixed, sizeof(struct _SculptNeighborRef) * iter->size);
       memcpy(iter->neighbor_indices, iter->neighbor_indices_fixed, sizeof(int) * iter->size);
     }
     else {
       iter->neighbors = MEM_reallocN_id(
-          iter->neighbors, iter->capacity * sizeof(SculptVertRef), "neighbor array");
+          iter->neighbors, iter->capacity * sizeof(struct _SculptNeighborRef), "neighbor array");
       iter->neighbor_indices = MEM_reallocN_id(
           iter->neighbor_indices, iter->capacity * sizeof(int), "neighbor array");
     }
   }
 
-  iter->neighbors[iter->size] = neighbor;
+  iter->neighbors[iter->size].vertex = neighbor;
+  iter->neighbors[iter->size].edge = edge;
   iter->neighbor_indices[iter->size] = neighbor_index;
   iter->size++;
 }
@@ -1416,12 +1424,27 @@ static void sculpt_vertex_neighbors_get_bmesh(const SculptSession *ss,
 
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v2);
 
-    e = e2;
     if (!(mv->flag & DYNVERT_VERT_FSET_HIDDEN)) {
-      sculpt_vertex_neighbor_add_nocheck(
-          iter, BKE_pbvh_make_vref((intptr_t)v2), BM_elem_index_get(v2));
+      sculpt_vertex_neighbor_add_nocheck(iter,
+                                         BKE_pbvh_make_vref((intptr_t)v2),
+                                         BKE_pbvh_make_eref((intptr_t)e),
+                                         BM_elem_index_get(v2));
     }
+
+    e = e2;
   } while (e != v->e);
+
+  if (ss->fake_neighbors.use_fake_neighbors) {
+    int index = BM_elem_index_get(v);
+
+    BLI_assert(ss->fake_neighbors.fake_neighbor_index != NULL);
+    if (ss->fake_neighbors.fake_neighbor_index[index].i != FAKE_NEIGHBOR_NONE) {
+      sculpt_vertex_neighbor_add(iter,
+                                 ss->fake_neighbors.fake_neighbor_index[index],
+                                 BKE_pbvh_make_eref(SCULPT_REF_NONE),
+                                 ss->fake_neighbors.fake_neighbor_index[index].i);
+    }
+  }
 }
 
 static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
@@ -1447,8 +1470,21 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
     uint f_adj_v[2];
     if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
       for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
+        int e = 0;
+
         if (f_adj_v[j] != index) {
-          sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
+          int loopidx = p->loopstart;
+
+          for (int k = 0; k < p->totloop; k++, loopidx++) {
+            const MEdge *e2 = &ss->medge[ss->mloop[loopidx].e];
+            if ((e2->v1 == index && e2->v2 == f_adj_v[j]) ||
+                (e2->v2 == index && e2->v1 == f_adj_v[j])) {
+              e = e2 - ss->medge;
+            }
+          }
+
+          sculpt_vertex_neighbor_add(
+              iter, BKE_pbvh_make_vref(f_adj_v[j]), BKE_pbvh_make_eref(e), f_adj_v[j]);
         }
       }
     }
@@ -1459,6 +1495,7 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
     if (ss->fake_neighbors.fake_neighbor_index[index].i != FAKE_NEIGHBOR_NONE) {
       sculpt_vertex_neighbor_add(iter,
                                  ss->fake_neighbors.fake_neighbor_index[index],
+                                 BKE_pbvh_make_eref(SCULPT_REF_NONE),
                                  ss->fake_neighbors.fake_neighbor_index[index].i);
     }
   }
@@ -1488,7 +1525,8 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
       continue;
     }
 
-    sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(v), v);
+    sculpt_vertex_neighbor_add(
+        iter, BKE_pbvh_make_vref(v), BKE_pbvh_make_eref(vert_map->indices[i]), v);
   }
 
   if (ss->fake_neighbors.use_fake_neighbors) {
@@ -1496,6 +1534,7 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
     if (ss->fake_neighbors.fake_neighbor_index[index].i != FAKE_NEIGHBOR_NONE) {
       sculpt_vertex_neighbor_add(iter,
                                  ss->fake_neighbors.fake_neighbor_index[index],
+                                 BKE_pbvh_make_eref(SCULPT_REF_NONE),
                                  ss->fake_neighbors.fake_neighbor_index[index].i);
     }
   }
@@ -1534,7 +1573,8 @@ static void sculpt_vertex_neighbors_get_grids(const SculptSession *ss,
     int idx = neighbors.coords[i].grid_index * key->grid_area +
               neighbors.coords[i].y * key->grid_size + neighbors.coords[i].x;
 
-    sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(idx), idx);
+    sculpt_vertex_neighbor_add(
+        iter, BKE_pbvh_make_vref(idx), BKE_pbvh_make_eref(SCULPT_REF_NONE), idx);
   }
 
   if (ss->fake_neighbors.use_fake_neighbors) {
@@ -1542,6 +1582,7 @@ static void sculpt_vertex_neighbors_get_grids(const SculptSession *ss,
     if (ss->fake_neighbors.fake_neighbor_index[index].i != FAKE_NEIGHBOR_NONE) {
       sculpt_vertex_neighbor_add(iter,
                                  ss->fake_neighbors.fake_neighbor_index[index],
+                                 BKE_pbvh_make_eref(SCULPT_REF_NONE),
                                  ss->fake_neighbors.fake_neighbor_index[index].i);
     }
   }
@@ -1573,6 +1614,110 @@ void SCULPT_vertex_neighbors_get(const SculptSession *ss,
       sculpt_vertex_neighbors_get_grids(ss, vertex, include_duplicates, iter);
       return;
   }
+}
+
+SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
+                                           const SculptEdgeRef edge,
+                                           SculptBoundaryType typemask)
+{
+
+  int ret = 0;
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMEdge *e = (BMEdge *)edge.i;
+
+      if (typemask & SCULPT_BOUNDARY_MESH) {
+        ret |= (!e->l || e->l == e->l->radial_next) ? SCULPT_BOUNDARY_MESH : 0;
+      }
+
+      if ((typemask & SCULPT_BOUNDARY_FACE_SET) && e->l && e->l != e->l->radial_next) {
+        int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
+        int fset2 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
+
+        bool ok = (fset1 < 0) != (fset2 < 0);
+        ok = ok || fset1 != fset2;
+
+        ret |= ok ? SCULPT_BOUNDARY_FACE_SET : 0;
+      }
+
+      if (typemask & SCULPT_BOUNDARY_SHARP) {
+        ret |= !BM_elem_flag_test(e, BM_ELEM_SMOOTH) ? SCULPT_BOUNDARY_SHARP : 0;
+      }
+
+      if (typemask & SCULPT_BOUNDARY_SEAM) {
+        ret |= BM_elem_flag_test(e, BM_ELEM_SEAM) ? SCULPT_BOUNDARY_SEAM : 0;
+      }
+
+      break;
+    }
+    case PBVH_FACES: {
+      int mask = typemask & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET);
+      SculptVertRef v1, v2;
+
+      SCULPT_edge_get_verts(ss, edge, &v1, &v2);
+
+      if (mask) {  // use less accurate approximation for now
+        SculptBoundaryType a = SCULPT_vertex_is_boundary(ss, v1, mask);
+        SculptBoundaryType b = SCULPT_vertex_is_boundary(ss, v2, mask);
+
+        ret |= a & b;
+      }
+
+      if (typemask & SCULPT_BOUNDARY_SHARP) {
+        ret |= ss->medge[edge.i].flag & ME_SHARP ? SCULPT_BOUNDARY_SHARP : 0;
+      }
+
+      if (typemask & SCULPT_BOUNDARY_SEAM) {
+        ret |= ss->medge[edge.i].flag & ME_SEAM ? SCULPT_BOUNDARY_SEAM : 0;
+      }
+
+      break;
+    }
+    case PBVH_GRIDS: {
+      // not implemented
+      break;
+    }
+  }
+
+  return (SculptBoundaryType)ret;
+}
+
+void SCULPT_edge_get_verts(const SculptSession *ss,
+                           const SculptEdgeRef edge,
+                           SculptVertRef *r_v1,
+                           SculptVertRef *r_v2)
+
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMEdge *e = (BMEdge *)edge.i;
+      r_v1->i = (intptr_t)e->v1;
+      r_v2->i = (intptr_t)e->v2;
+      break;
+    }
+
+    case PBVH_FACES: {
+      r_v1->i = (intptr_t)ss->medge[edge.i].v1;
+      r_v2->i = (intptr_t)ss->medge[edge.i].v2;
+      break;
+    }
+    case PBVH_GRIDS:
+      // not supported yet
+      r_v1->i = r_v2->i = SCULPT_REF_NONE;
+      break;
+  }
+}
+
+SculptVertRef SCULPT_edge_other_vertex(const SculptSession *ss,
+                                       const SculptEdgeRef edge,
+                                       const SculptVertRef vertex)
+{
+  SculptVertRef v1, v2;
+
+  SCULPT_edge_get_verts(ss, edge, &v1, &v2);
+
+  return v1.i == vertex.i ? v2 : v1;
 }
 
 static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss,
