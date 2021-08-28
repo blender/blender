@@ -259,17 +259,18 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
           else {
             color = sel ? col1 : col2;
           }
-          /* frames less than one get less saturated background */
-          immUniformColor4ubv(color);
-          immRectf(pos, 0.0f, ymin, v2d->cur.xmin, ymax);
 
-          /* frames one and higher get a saturated background */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] * 2));
-          immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+          /* Color overlay on frames between the start/end frames. */
+          immUniformColor4ubv(color);
+          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+          /* Color overlay outside the start/end frame range get a more transparent overlay. */
+          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
         }
         else if (ac->datatype == ANIMCONT_MASK) {
           /* TODO: this is a copy of gpencil. */
-          /* frames less than one get less saturated background */
           uchar *color;
           if (ale->type == ANIMTYPE_SUMMARY) {
             color = col_summary;
@@ -277,12 +278,15 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
           else {
             color = sel ? col1 : col2;
           }
-          immUniformColor4ubv(color);
-          immRectf(pos, 0.0f, ymin, v2d->cur.xmin, ymax);
 
-          /* frames one and higher get a saturated background */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] * 2));
-          immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+          /* Color overlay on frames between the start/end frames. */
+          immUniformColor4ubv(color);
+          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+          /* Color overlay outside the start/end frame range get a more transparent overlay. */
+          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
         }
       }
     }

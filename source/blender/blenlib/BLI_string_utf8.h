@@ -48,7 +48,9 @@ unsigned int BLI_str_utf8_as_unicode_step_or_error(
     const char *__restrict p, size_t p_len, size_t *__restrict index) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 3);
 
-size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf);
+size_t BLI_str_utf8_from_unicode_len(unsigned int c) ATTR_WARN_UNUSED_RESULT;
+size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf, const size_t outbuf_len)
+    ATTR_NONNULL(2);
 size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
                              const char *__restrict src_c,
                              const size_t maxncpy) ATTR_NONNULL(1, 2);
@@ -57,11 +59,10 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
                              const size_t maxncpy) ATTR_NONNULL(1, 2);
 size_t BLI_str_utf32_as_utf8_len(const char32_t *src) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
-char *BLI_str_find_prev_char_utf8(const char *str, const char *p) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 2);
-char *BLI_str_find_next_char_utf8(const char *p, const char *end) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-char *BLI_str_prev_char_utf8(const char *p) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+const char *BLI_str_find_prev_char_utf8(const char *p, const char *str_start)
+    ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL ATTR_NONNULL(1, 2);
+const char *BLI_str_find_next_char_utf8(const char *p, const char *str_end)
+    ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL ATTR_NONNULL(1, 2);
 
 /* wchar_t functions, copied from blenders own font.c originally */
 size_t BLI_wstrlen_utf8(const wchar_t *src) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;

@@ -1347,11 +1347,18 @@ typedef struct SequencerToolSettings {
   int fit_method;
   short snap_mode;
   short snap_flag;
-  int _pad0;
+  /* eSeqOverlapMode */
+  int overlap_mode;
   /** When there are many snap points, 0-1 range corresponds to resolution from boundbox to all
    * possible snap points. */
   int snap_distance;
 } SequencerToolSettings;
+
+typedef enum eSeqOverlapMode {
+  SEQ_OVERLAP_EXPAND,
+  SEQ_OVERLAP_OVERWRITE,
+  SEQ_OVERLAP_SHUFFLE,
+} eSeqOverlapMode;
 
 typedef enum eSeqImageFitMethod {
   SEQ_SCALE_TO_FIT,

@@ -125,10 +125,7 @@ void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const cha
   eyedropper_draw_cursor_text_ex(x, y, name);
 }
 
-void eyedropper_draw_cursor_text_region(const struct bContext *C,
-                                        const int x,
-                                        const int y,
-                                        const char *name)
+void eyedropper_draw_cursor_text_region(const int x, const int y, const char *name)
 {
   if (name[0] == '\0') {
     return;

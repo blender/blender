@@ -1955,7 +1955,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
         end = MIN2(end, i);
 
         if (chop) {
-          endj = BLI_str_prev_char_utf8((*linep)->line + j) - (*linep)->line;
+          endj = BLI_str_find_prev_char_utf8((*linep)->line + j, (*linep)->line) - (*linep)->line;
         }
 
         if (endj >= oldc) {
@@ -3486,7 +3486,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
     else {
       /* in theory, ghost can set value to extended ascii here */
-      len = BLI_str_utf8_from_unicode(event->ascii, str);
+      len = BLI_str_utf8_from_unicode(event->ascii, str, sizeof(str) - 1);
     }
     str[len] = '\0';
     RNA_string_set(op->ptr, "text", str);

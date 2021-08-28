@@ -737,7 +737,8 @@ static void draw_seq_handle(View2D *v2d,
   }
 }
 
-static void draw_seq_outline(Sequence *seq,
+static void draw_seq_outline(Scene *scene,
+                             Sequence *seq,
                              uint pos,
                              float x1,
                              float x2,
@@ -765,7 +766,9 @@ static void draw_seq_outline(Sequence *seq,
    *  - Slightly lighter.
    *  - Red when overlapping with other strips.
    */
-  if ((G.moving & G_TRANSFORM_SEQ) && (seq->flag & SELECT)) {
+  const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(scene);
+  if ((G.moving & G_TRANSFORM_SEQ) && (seq->flag & SELECT) &&
+      overlap_mode != SEQ_OVERLAP_OVERWRITE) {
     if (seq->flag & SEQ_OVERLAP) {
       col[0] = 255;
       col[1] = col[2] = 33;
@@ -1383,7 +1386,7 @@ static void draw_seq_strip(const bContext *C,
         v2d, seq, handsize_clamped, SEQ_RIGHTHANDLE, pos, seq_active, pixelx, y_threshold);
   }
 
-  draw_seq_outline(seq, pos, x1, x2, y1, y2, pixelx, pixely, seq_active);
+  draw_seq_outline(scene, seq, pos, x1, x2, y1, y2, pixelx, pixely, seq_active);
 
   immUnbindProgram();
 

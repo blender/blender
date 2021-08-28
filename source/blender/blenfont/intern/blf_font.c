@@ -673,23 +673,23 @@ size_t blf_font_width_to_rstrlen(
   GlyphBLF *g, *g_prev;
   int pen_x, width_new;
   size_t i, i_prev, i_tmp;
-  char *s, *s_prev;
+  const char *s, *s_prev;
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   const int width_i = (int)width;
 
   i = BLI_strnlen(str, str_len);
-  s = BLI_str_find_prev_char_utf8(str, &str[i]);
-  i = (size_t)((s != NULL) ? s - str : 0);
-  s_prev = BLI_str_find_prev_char_utf8(str, s);
-  i_prev = (size_t)((s_prev != NULL) ? s_prev - str : 0);
+  s = BLI_str_find_prev_char_utf8(&str[i], str);
+  i = (size_t)(s - str);
+  s_prev = BLI_str_find_prev_char_utf8(s, str);
+  i_prev = (size_t)(s_prev - str);
 
   i_tmp = i;
   g = blf_utf8_next_fast(font, gc, str, str_len, &i_tmp, &c);
   for (width_new = pen_x = 0; (s != NULL);
        i = i_prev, s = s_prev, c = c_prev, g = g_prev, g_prev = NULL, width_new = pen_x) {
-    s_prev = BLI_str_find_prev_char_utf8(str, s);
-    i_prev = (size_t)((s_prev != NULL) ? s_prev - str : 0);
+    s_prev = BLI_str_find_prev_char_utf8(s, str);
+    i_prev = (size_t)(s_prev - str);
 
     if (s_prev != NULL) {
       i_tmp = i_prev;

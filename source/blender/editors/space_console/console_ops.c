@@ -435,7 +435,7 @@ static int console_insert_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     }
     else {
       /* in theory, ghost can set value to extended ascii here */
-      len = BLI_str_utf8_from_unicode(event->ascii, str);
+      len = BLI_str_utf8_from_unicode(event->ascii, str, sizeof(str) - 1);
     }
     str[len] = '\0';
     RNA_string_set(op->ptr, "text", str);

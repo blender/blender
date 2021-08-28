@@ -34,10 +34,24 @@ struct GSet;
 struct GSetIterator;
 struct Sequence;
 
+/* Utility macro to construct an unique (within a file) variable name for iterator macro.
+ * Use indirect macro evaluation to ensure the `__LINE__` is expanded (rather than being
+ * treated as a name token),
+ *
+ * The `__LINE__` is defined at the invocation of the `SEQ_ITERATOR_FOREACH` and is not changed
+ * afterwards. This makes it safe to expand it several times in the `SEQ_ITERATOR_FOREACH`.
+ *
+ * This allows to have nested foreach loops.
+ *
+ * NOTE: Putting nested loop to a wrapper macro is not supported. */
+#define _SEQ_ITERATOR_NAME_JOIN(x, y) x##_##y
+#define _SEQ_ITERATOR_NAME_EVALUATE(x, y) _SEQ_ITERATOR_NAME_JOIN(x, y)
+#define _SEQ_ITERATOR_NAME(prefix) _SEQ_ITERATOR_NAME_EVALUATE(prefix, __LINE__)
+
 #define SEQ_ITERATOR_FOREACH(var, collection) \
-  for (SeqIterator iter = {{{NULL}}}; \
-       SEQ_iterator_ensure(collection, &iter, &var) && var != NULL; \
-       var = SEQ_iterator_yield(&iter))
+  for (SeqIterator _SEQ_ITERATOR_NAME(iter) = {{{NULL}}}; \
+       SEQ_iterator_ensure(collection, &_SEQ_ITERATOR_NAME(iter), &var) && var != NULL; \
+       var = SEQ_iterator_yield(&_SEQ_ITERATOR_NAME(iter)))
 
 typedef struct SeqCollection {
   struct GSet *set;
@@ -79,6 +93,7 @@ SeqCollection *SEQ_query_by_reference(struct Sequence *seq_reference,
                                                           struct ListBase *seqbase,
                                                           SeqCollection *collection));
 SeqCollection *SEQ_query_selected_strips(struct ListBase *seqbase);
+SeqCollection *SEQ_query_unselected_strips(struct ListBase *seqbase);
 SeqCollection *SEQ_query_all_strips(struct ListBase *seqbase);
 SeqCollection *SEQ_query_all_strips_recursive(struct ListBase *seqbase);
 void SEQ_query_strip_effect_chain(struct Sequence *seq_reference,

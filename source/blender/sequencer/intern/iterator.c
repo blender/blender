@@ -341,6 +341,24 @@ SeqCollection *SEQ_query_selected_strips(ListBase *seqbase)
 }
 
 /**
+ * Query all unselected strips in seqbase.
+ *
+ * \param seqbase: ListBase in which strips are queried
+ * \return strip collection
+ */
+SeqCollection *SEQ_query_unselected_strips(ListBase *seqbase)
+{
+  SeqCollection *collection = SEQ_collection_create(__func__);
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if ((seq->flag & SELECT) != 0) {
+      continue;
+    }
+    SEQ_collection_append_strip(seq, collection);
+  }
+  return collection;
+}
+
+/**
  * Query all effect strips that are directly or indirectly connected to seq_reference.
  * This includes all effects of seq_reference, strips used by another inputs and their effects, so
  * that whole chain is fully independent of other strips.

@@ -360,7 +360,11 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
   /* Get "global" coordinates. */
   float locx, locy;
   node_to_view(node, 0.0f, 0.0f, &locx, &locy);
-  float dy = locy;
+  /* Round the node origin because text contents are always pixel-aligned. */
+  locx = round(locx);
+  locy = round(locy);
+
+  int dy = locy;
 
   /* Header. */
   dy -= NODE_DY;
@@ -412,9 +416,9 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     /* Ensure minimum socket height in case layout is empty. */
     buty = min_ii(buty, dy - NODE_DY);
 
-    nsock->locx = locx + NODE_WIDTH(node);
-    /* Place the socket circle in the middle of the layout. */
-    nsock->locy = 0.5f * (dy + buty);
+    /* Round the socket location to stop it from jiggling. */
+    nsock->locx = round(locx + NODE_WIDTH(node));
+    nsock->locy = round(0.5f * (dy + buty));
 
     dy = buty;
     if (nsock->next) {
@@ -549,8 +553,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
     buty = min_ii(buty, dy - NODE_DY);
 
     nsock->locx = locx;
-    /* Place the socket circle in the middle of the layout. */
-    nsock->locy = 0.5f * (dy + buty);
+    /* Round the socket vertical position to stop it from jiggling. */
+    nsock->locy = round(0.5f * (dy + buty));
 
     dy = buty - multi_input_socket_offset * 0.5;
     if (nsock->next) {
@@ -587,6 +591,9 @@ static void node_update_hidden(bNode *node)
   /* Get "global" coords. */
   float locx, locy;
   node_to_view(node, 0.0f, 0.0f, &locx, &locy);
+  /* Round the node origin because text contents are always pixel-aligned. */
+  locx = round(locx);
+  locy = round(locy);
 
   /* Calculate minimal radius. */
   LISTBASE_FOREACH (bNodeSocket *, nsock, &node->inputs) {
@@ -617,8 +624,9 @@ static void node_update_hidden(bNode *node)
 
   LISTBASE_FOREACH (bNodeSocket *, nsock, &node->outputs) {
     if (!nodeSocketIsHidden(nsock)) {
-      nsock->locx = node->totr.xmax - hiddenrad + sinf(rad) * hiddenrad;
-      nsock->locy = node->totr.ymin + hiddenrad + cosf(rad) * hiddenrad;
+      /* Round the socket location to stop it from jiggling. */
+      nsock->locx = round(node->totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
+      nsock->locy = round(node->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
       rad += drad;
     }
   }
@@ -628,8 +636,9 @@ static void node_update_hidden(bNode *node)
 
   LISTBASE_FOREACH (bNodeSocket *, nsock, &node->inputs) {
     if (!nodeSocketIsHidden(nsock)) {
-      nsock->locx = node->totr.xmin + hiddenrad + sinf(rad) * hiddenrad;
-      nsock->locy = node->totr.ymin + hiddenrad + cosf(rad) * hiddenrad;
+      /* Round the socket location to stop it from jiggling. */
+      nsock->locx = round(node->totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
+      nsock->locy = round(node->totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
       rad += drad;
     }
   }

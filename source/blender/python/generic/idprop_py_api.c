@@ -25,6 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "idprop_py_api.h"
+#include "idprop_py_ui_api.h"
 
 #include "BKE_idprop.h"
 
@@ -2135,6 +2136,7 @@ static PyObject *BPyInit_idprop_types(void)
   submodule = PyModule_Create(&IDProp_types_module_def);
 
   IDProp_Init_Types();
+  IDPropertyUIData_Init_Types();
 
   /* bmesh_py_types.c */
   PyModule_AddType(submodule, &BPy_IDGroup_Type);

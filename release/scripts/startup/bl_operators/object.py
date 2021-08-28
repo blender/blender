@@ -970,7 +970,7 @@ class OBJECT_OT_assign_property_defaults(Operator):
     def assign_defaults(obj):
         from rna_prop_ui import rna_idprop_ui_prop_default_set
 
-        rna_properties = {'_RNA_UI'} | {prop.identifier for prop in obj.bl_rna.properties if prop.is_runtime}
+        rna_properties = {prop.identifier for prop in obj.bl_rna.properties if prop.is_runtime}
 
         for prop, value in obj.items():
             if prop not in rna_properties:

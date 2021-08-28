@@ -987,7 +987,8 @@ int /*eContextResult*/ buttons_context(const bContext *C,
           matnr = 0;
         }
         /* Keep aligned with rna_Object_material_slots_get. */
-        CTX_data_pointer_set(result, &ob->id, &RNA_MaterialSlot, POINTER_FROM_INT(matnr + 1));
+        CTX_data_pointer_set(
+            result, &ob->id, &RNA_MaterialSlot, (void *)(matnr + (uintptr_t)&ob->id));
       }
     }
 

@@ -117,7 +117,7 @@ bool BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos)
   const char *str_end = str + (maxlen + 1);
   const char *str_pos = str + (*pos);
   const char *str_next = BLI_str_find_next_char_utf8(str_pos, str_end);
-  if (str_next) {
+  if (str_next != str_end) {
     (*pos) += (str_next - str_pos);
     if ((*pos) > (int)maxlen) {
       (*pos) = (int)maxlen;
@@ -132,11 +132,9 @@ bool BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *
 {
   if ((*pos) > 0) {
     const char *str_pos = str + (*pos);
-    const char *str_prev = BLI_str_find_prev_char_utf8(str, str_pos);
-    if (str_prev) {
-      (*pos) -= (str_pos - str_prev);
-      return true;
-    }
+    const char *str_prev = BLI_str_find_prev_char_utf8(str_pos, str);
+    (*pos) -= (str_pos - str_prev);
+    return true;
   }
 
   return false;
