@@ -655,7 +655,7 @@ typedef struct SculptSession {
 
   // id of current stroke, used to detect
   // if vertex original data needs to be updated
-  int stroke_id;
+  int stroke_id, boundary_symmetry;
 
   bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
 } SculptSession;
@@ -700,6 +700,8 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(struct Mesh *mesh);
 void BKE_sculpt_ensure_orig_mesh_data(struct Scene *scene, struct Object *object);
 
 bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct View3D *v3d);
+
+char BKE_get_fset_boundary_symflag(struct Object *object);
 
 enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),

@@ -839,7 +839,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
     mv->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE;
 
-    BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, v);
+    BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, v, ss->boundary_symmetry);
     BKE_pbvh_bmesh_update_valence(ss->cd_dyn_vert, (SculptVertRef){.i = (intptr_t)v});
 
     // persistent base

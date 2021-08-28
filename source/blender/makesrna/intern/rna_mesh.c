@@ -3337,6 +3337,12 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Mirror the left/right vertex groups when painting. The symmetry axis "
                            "is determined by the symmetry settings");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+  prop = RNA_def_property(srna, "use_fset_boundary_mirror", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SCULPT_MIRROR_FSET_BOUNDARIES);
+  RNA_def_property_ui_text(prop, "Split Face Sets", "Use mirroring to split face sets for some tools (e.g. boundary smoothing)");
+  //RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
   /* End Symmetry */
 
   prop = RNA_def_property(srna, "use_auto_smooth", PROP_BOOLEAN, PROP_NONE);

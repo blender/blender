@@ -768,13 +768,17 @@ PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
 struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
-void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, struct BMVert *v);
+void BKE_pbvh_update_vert_boundary(int cd_dyn_vert,
+                                   int cd_faceset_offset,
+                                   struct BMVert *v,
+                                   int symmetry);
 
 #define DYNTOPO_DYNAMIC_TESS
 
 PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
 
 void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_areas, int valence);
+void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry);
 
 #if 0
 typedef enum {
@@ -870,3 +874,4 @@ typedef struct SculptLayerEntry {
 #ifdef __cplusplus
 }
 #endif
+

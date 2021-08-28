@@ -1090,6 +1090,7 @@ typedef struct StrokeCache {
   /* Symmetry index between 0 and 7 bit combo 0 is Brush only;
    * 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   int symmetry;
+  int boundary_symmetry; //controls splitting face sets by mirror axis
   int mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
   float true_view_normal[3];
   float view_normal[3];
@@ -1634,6 +1635,7 @@ void SCULPT_get_cotangents(SculptSession *ss,
 
 // call this in the main thread before any calls to SCULPT_get_cotangents
 void SCULPT_cotangents_begin(struct Object *ob, SculptSession *ss);
+char SCULPT_mesh_fset_boundary_symmetry_get(struct Object *object);
 
 // exponent to make boundary_smooth_factor more user-friendly
 #define BOUNDARY_SMOOTH_EXP 2.0

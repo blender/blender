@@ -1630,6 +1630,12 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
   return false;
 }
 
+char BKE_get_fset_boundary_symflag(Object *object) 
+{
+  const Mesh *mesh = BKE_mesh_from_object(object);
+  return mesh->flag & ME_SCULPT_MIRROR_FSET_BOUNDARIES ? mesh->symmetry : 0;
+}
+
 /**
  * \param need_mask: So that the evaluated mesh that is returned has mask data.
  */
@@ -1667,6 +1673,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   ss->shapekey_active = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
+
+  ss->boundary_symmetry = (int) BKE_get_fset_boundary_symflag(ob);
 
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
    * so no extra checks is needed here. */
@@ -2146,6 +2154,9 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
 static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
 {
   PBVH *pbvh = BKE_pbvh_new();
+
+  BKE_pbvh_set_symmetry(pbvh, 0, (int)BKE_get_fset_boundary_symflag(ob));
+
   BKE_pbvh_build_bmesh(pbvh,
                        ob->sculpt->bm,
                        ob->sculpt->bm_smooth_shading,
