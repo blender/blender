@@ -1779,7 +1779,7 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
         // can't check face sets in this case
       }
       break;
-    case PBVH_GRIDS:
+    case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = vertex.i / key->grid_area;
       const int vertex_index = vertex.i - grid_index * key->grid_area;
@@ -1798,6 +1798,7 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
           return false;
           break;
       }
+    }
   }
 
   return ret;
