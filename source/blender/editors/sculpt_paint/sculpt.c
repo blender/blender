@@ -1632,13 +1632,23 @@ SculptBoundaryType SCULPT_edge_is_boundary(const SculptSession *ss,
       }
 
       if ((typemask & SCULPT_BOUNDARY_FACE_SET) && e->l && e->l != e->l->radial_next) {
-        int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
-        int fset2 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
+        if (ss->boundary_symmetry) {
+          // TODO: calc and cache this properly
+          MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, e->v1);
+          MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, e->v2);
 
-        bool ok = (fset1 < 0) != (fset2 < 0);
-        ok = ok || fset1 != fset2;
+          return (mv1->flag & DYNVERT_FSET_BOUNDARY) && (mv2->flag & DYNVERT_FSET_BOUNDARY);
+        }
+        else {
+          int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
+          int fset2 = BM_ELEM_CD_GET_INT(e->l->radial_next->f, ss->cd_faceset_offset);
 
-        ret |= ok ? SCULPT_BOUNDARY_FACE_SET : 0;
+          bool ok = (fset1 < 0) != (fset2 < 0);
+
+          ok = ok || fset1 != fset2;
+
+          ret |= ok ? SCULPT_BOUNDARY_FACE_SET : 0;
+        }
       }
 
       if (typemask & SCULPT_BOUNDARY_SHARP) {

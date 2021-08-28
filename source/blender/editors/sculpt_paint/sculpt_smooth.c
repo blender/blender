@@ -137,6 +137,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       w = 1.0f;
     }
 
+    bool do_diffuse = false;
+
     /*use the new edge api if edges are available, if not estimate boundary
       from verts*/
     if (is_boundary || ni.has_edge) {
@@ -154,7 +156,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
         ok = true;
       }
-      else {
+      else if (bound_scl) {
         float t[3];
 
         w *= bound_smooth;
@@ -162,9 +164,15 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
         sub_v3_v3v3(t, SCULPT_vertex_co_get(ss, ni.vertex), co);
         madd_v3_v3v3fl(tmp, co, no, dot_v3v3(t, no));
         ok = true;
+
+        do_diffuse = true;
+      }
+      else {
+        ok = false;
       }
     }
-    else if (bound_scl) {
+
+    if (do_diffuse && bound_scl) {
       /*
       simple boundary inflator using an ad-hoc diffusion-based pseudo-geodesic field
 
@@ -212,11 +220,6 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
         madd_v3_v3fl(tmp, no2, th * dot_v3v3(no2, tmp));
         add_v3_v3(tmp, co);
       }
-    }
-    else {
-      /* Interior vertices use all neighbors. */
-      copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
-      ok = true;
     }
 
     if (!ok) {

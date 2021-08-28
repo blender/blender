@@ -883,6 +883,8 @@ typedef struct SculptLayerEntry {
 
 #endif
 
+int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
+
 #ifdef __cplusplus
 }
 #endif

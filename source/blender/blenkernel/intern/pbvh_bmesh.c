@@ -1362,7 +1362,7 @@ typedef struct FSetTemp {
   bool boundary;
 } FSetTemp;
 
-static int do_fset_sym(int fset, const int symflag, const float *co)
+int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co)
 {
   fset = abs(fset);
 
@@ -1445,7 +1445,7 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
     }
 
     if (e->l) {
-      int fset = do_fset_sym(
+      int fset = BKE_pbvh_do_fset_symmetry(
           BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset), bound_symmetry, v2->co);
 
       if (e->l->f->len > 3) {
@@ -1488,7 +1488,7 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
       // which can mess up the loop order
       if (e->l->radial_next != e->l) {
         // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
-        fset = do_fset_sym(
+        fset = BKE_pbvh_do_fset_symmetry(
             BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset), bound_symmetry, v2->co);
 
         if (e->l->radial_next->f->len > 3) {
