@@ -322,6 +322,8 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 #define SCULPT_IPMASK_FILTER_MIN_MULTITHREAD 1000
 #define SCULPT_IPMASK_FILTER_GRANULARITY 100
 
+#define SCULPT_IPMASK_FILTER_QUANTIZE_STEP 0.1
+
 typedef enum eSculptIPMaskFilterType {
   IPMASK_FILTER_SMOOTH_SHARPEN,
   IPMASK_FILTER_GROW_SHRINK,
@@ -329,6 +331,7 @@ typedef enum eSculptIPMaskFilterType {
   IPMASK_FILTER_CONTRAST,
   IPMASK_FILTER_ADD_SUBSTRACT,
   IPMASK_FILTER_INVERT,
+  IPMASK_FILTER_QUANTIZE,
 } eSculptIPMaskFilterType;
 
 typedef enum MaskFilterStepDirectionType {
@@ -791,6 +794,14 @@ static void ipmask_filter_apply_from_original_task_cb(
   SculptOrigVertData orig_data;
   const eSculptIPMaskFilterType filter_type = data->filter_type;
   bool update = false;
+
+  /* Used for quantize filter. */
+  const int steps = data->filter_strength / SCULPT_IPMASK_FILTER_QUANTIZE_STEP;
+  if (steps == 0) {
+    return;
+  }
+  const float step_size = 1.0f/steps;
+
   SCULPT_orig_vert_data_init(&orig_data, data->ob, node);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (SCULPT_automasking_factor_get(filter_cache->automasking, ss, vd.index) < 0.5f) {
@@ -806,6 +817,12 @@ static void ipmask_filter_apply_from_original_task_cb(
         const float strength = clamp_f(data->filter_strength, 0.0f, 1.0f);
         const float mask_invert = 1.0f - orig_data.mask;
         new_mask = interpf(mask_invert, orig_data.mask, strength);
+        break;
+      }
+      case IPMASK_FILTER_QUANTIZE: {
+        const float remainder = fmod(orig_data.mask, step_size);
+        const float total_steps = (orig_data.mask - remainder) / step_size;
+        new_mask = total_steps * step_size;
         break;
       }
       default:
@@ -853,7 +870,7 @@ static void sculpt_ipmask_apply_from_original_mask_data(Object *ob,
 static bool sculpt_ipmask_filter_uses_apply_from_original(
     const eSculptIPMaskFilterType filter_type)
 {
-  return ELEM(filter_type, IPMASK_FILTER_INVERT, IPMASK_FILTER_ADD_SUBSTRACT);
+  return ELEM(filter_type, IPMASK_FILTER_INVERT, IPMASK_FILTER_ADD_SUBSTRACT, IPMASK_FILTER_QUANTIZE);
 }
 
 static void ipmask_filter_restore_original_mask_task_cb(
@@ -1099,6 +1116,7 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
        "Contrast",
        "Increases or decreases the contrast of the mask"},
       {IPMASK_FILTER_INVERT, "INVERT", 0, "Invert", "Inverts the mask"},
+      {IPMASK_FILTER_QUANTIZE, "QUANTIZE", 0, "Quantize", "Quantizes the mask to intervals"},
       {0, NULL, 0, NULL, NULL},
   };
 
