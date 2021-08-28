@@ -641,7 +641,8 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVer
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              SculptVertRef index,
-                                             float projection);
+                                             float projection,
+                                             SculptCustomLayer *bound_scl);
 
 void SCULPT_smooth_vcol_boundary(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength);
@@ -904,7 +905,7 @@ typedef struct SculptThreadedTaskData {
 
   float smooth_projection;
   float rake_projection;
-  SculptCustomLayer *scl;
+  SculptCustomLayer *scl, *scl2;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -1633,3 +1634,6 @@ void SCULPT_get_cotangents(SculptSession *ss,
 
 // call this in the main thread before any calls to SCULPT_get_cotangents
 void SCULPT_cotangents_begin(struct Object *ob, SculptSession *ss);
+
+// exponent to make boundary_smooth_factor more user-friendly
+#define BOUNDARY_SMOOTH_EXP 2.0

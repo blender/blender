@@ -816,6 +816,8 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'SMOOTH':
             col = layout.column()
+            col.prop(brush, "boundary_smooth_factor")
+
             col.prop(brush, "use_weighted_smooth")
             col.prop(brush, "preserve_faceset_boundary")
 

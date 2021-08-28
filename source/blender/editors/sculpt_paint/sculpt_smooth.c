@@ -74,7 +74,8 @@
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              SculptVertRef vertex,
-                                             float projection)
+                                             float projection,
+                                             SculptCustomLayer *bound_scl)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float total = 0.0f;
@@ -82,7 +83,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
 
   int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
-  float bound_smooth = ss->cache->brush->boundary_smooth_factor;
+  float bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
 
   if (check_fsets) {
     bflag |= SCULPT_BOUNDARY_FACE_SET;
@@ -105,11 +106,21 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     ctype |= SCULPT_CORNER_FACE_SET;
   }
 
-  if (weighted) {
+  bool have_bmesh = ss->bm;
+
+  if (weighted || bound_scl) {
     int val = SCULPT_vertex_valence_get(ss, vertex);
     areas = BLI_array_alloca(areas, val);
 
     BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+  }
+
+  float *b1 = NULL, btot = 0.0f, b1_orig;
+
+  if (bound_scl) {
+    b1 = SCULPT_temp_cdata_get(vertex, bound_scl);
+    b1_orig = *b1;
+    *b1 = 0.0f;
   }
 
   SculptVertexNeighborIter ni;
@@ -142,6 +153,55 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
         ok = true;
       }
     }
+    else if (bound_scl) {
+      /*
+      simple boundary inflator using an ad-hoc diffusion-based pseudo-geodesic field
+
+      makes more rounded edges.
+      */
+      copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
+      ok = true;
+
+      if (bound_scl) {
+        float len = len_v3v3(co, tmp);
+        float w2 = 1.0f;
+
+        float *b2 = SCULPT_temp_cdata_get(ni.vertex, bound_scl);
+        float b2_val = *b2 + len;
+
+        if (SCULPT_vertex_is_boundary(ss, ni.vertex, bflag)) {
+          w2 = 1000.0f;
+          b2_val = len;
+        }
+
+        *b1 += b2_val * w2;
+        btot += w2;
+
+        float no2[3];
+        SCULPT_vertex_normal_get(ss, ni.vertex, no2);
+
+        float radius = ss->cache->radius * 10.0f;
+
+        float th = radius - b1_orig;
+        th = MAX2(th, 0.0f);
+        th /= radius;
+
+#if 0
+        float *color = (float *)SCULPT_vertex_color_get(ss, ni.vertex);
+        color[0] = color[1] = color[2] = th;
+        color[3] = 1.0f;
+#endif
+
+        float fac = ss->cache->brush->boundary_smooth_factor;
+        fac = MIN2(fac * 4.0f, 1.0f);
+        fac = powf(fac, 0.2);
+        th *= fac;
+
+        sub_v3_v3(tmp, co);
+        madd_v3_v3fl(tmp, no2, th * dot_v3v3(no2, tmp));
+        add_v3_v3(tmp, co);
+      }
+    }
     else {
       /* Interior vertices use all neighbors. */
       copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
@@ -165,6 +225,14 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     total += w;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  if (btot != 0.0f) {
+    *b1 /= btot;
+    //*b1 += (b1_orig - *b1) * 0.95f;
+  }
+  else if (b1) {
+    *b1 = b1_orig;
+  }
 
   /* Do not modify corner vertices. */
   if (neighbor_count <= 2 && is_boundary) {
@@ -705,12 +773,13 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     ctype |= SCULPT_CORNER_FACE_SET;
   }
 
-  if (weighted) {
+  if (weighted || ss->cache->brush->boundary_smooth_factor > 0.0f) {
     BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
   }
 
   bool modified = false;
-  const float bound_smooth = ss->cache->brush->boundary_smooth_factor;
+  const float bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
+  SculptCustomLayer *bound_scl = data->scl2;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -739,7 +808,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
         continue;
       }
 
-      SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, projection);
+      SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, projection, bound_scl);
       sub_v3_v3v3(val, avg, vd.co);
       madd_v3_v3v3fl(val, vd.co, val, fade);
       SCULPT_clip(sd, ss, vd.co, val);
@@ -832,6 +901,12 @@ void SCULPT_smooth(Sculpt *sd,
   int iteration, count;
   float last;
 
+  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
+      ((ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) ||
+       ss->cache->brush->boundary_smooth_factor > 0.0f)) {
+    BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
+
   CLAMP(bstrength, 0.0f, 1.0f);
 
   count = (int)(bstrength * max_iterations);
@@ -857,6 +932,17 @@ void SCULPT_smooth(Sculpt *sd,
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
+  SculptCustomLayer _scl, *bound_scl = NULL;
+
+  /* create temp layer for psuedo-geodesic field */
+  if (ss->cache->brush->boundary_smooth_factor > 0.0f) {
+    float bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
+
+    bound_scl = &_scl;
+    SCULPT_temp_customlayer_ensure(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist");
+    SCULPT_temp_customlayer_get(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "__smooth_bdist", bound_scl);
+  }
+
 #ifdef PROXY_ADVANCED
   int datamask = PV_CO | PV_NEIGHBORS | PV_NO | PV_INDEX | PV_MASK;
   BKE_pbvh_ensure_proxyarrays(ss, ss->pbvh, nodes, totnode, datamask);
@@ -873,11 +959,12 @@ void SCULPT_smooth(Sculpt *sd,
                                    .smooth_mask = smooth_mask,
                                    .strength = strength,
                                    .smooth_projection = projection,
-                                   .scl = have_scl ? &scl : NULL};
+                                   .scl = have_scl ? &scl : NULL,
+                                   .scl2 = bound_scl};
 
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    if (have_scl) {
+    if (0) {  // have_scl) {
       BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_task_cb_ex_scl, &settings);
     }
     else {
@@ -896,7 +983,8 @@ void SCULPT_do_smooth_brush(
   SculptSession *ss = ob->sculpt;
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
-      (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
+      ((ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) ||
+       ss->cache->brush->boundary_smooth_factor > 0.0f)) {
     BKE_pbvh_update_all_tri_areas(ss->pbvh);
   }
 
