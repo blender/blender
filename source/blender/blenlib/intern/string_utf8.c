@@ -296,36 +296,19 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  const wchar_t *__restrict src,
                                  const size_t maxncpy)
 {
-  const size_t maxlen = maxncpy - 1;
-  /* #BLI_UTF8_MAX is max utf8 length of an unicode char. */
-  const int64_t maxlen_secured = (int64_t)maxlen - BLI_UTF8_MAX;
-  size_t len = 0;
-
   BLI_assert(maxncpy != 0);
-
+  size_t len = 0;
 #ifdef DEBUG_STRSIZE
   memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
-
-  while (*src && len <= maxlen_secured) {
-    len += BLI_str_utf8_from_unicode((uint)*src++, dst + len);
+  while (*src && len < maxncpy) {
+    len += BLI_str_utf8_from_unicode((uint)*src++, dst + len, maxncpy - len);
   }
-
-  /* We have to be more careful for the last six bytes,
-   * to avoid buffer overflow in case utf8-encoded char would be too long for our dst buffer. */
-  while (*src) {
-    char t[BLI_UTF8_MAX];
-    size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);
-    BLI_assert(l <= BLI_UTF8_MAX);
-    if (len + l > maxlen) {
-      break;
-    }
-    memcpy(dst + len, t, l);
-    len += l;
-  }
-
   dst[len] = '\0';
-
+  /* Return the correct length when part of the final byte did not fit into the string. */
+  while ((len > 0) && UNLIKELY(dst[len - 1] == '\0')) {
+    len--;
+  }
   return len;
 }
 
@@ -335,7 +318,7 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
   size_t len = 0;
 
   while (*src) {
-    len += BLI_str_utf8_from_unicode((uint)*src++, NULL);
+    len += BLI_str_utf8_from_unicode_len((uint)*src++);
   }
 
   return len;
@@ -608,56 +591,78 @@ uint BLI_str_utf8_as_unicode_step(const char *__restrict p,
 }
 
 /* was g_unichar_to_utf8 */
-/**
- * BLI_str_utf8_from_unicode:
- * \param c: a Unicode character code
- * \param outbuf: output buffer, must have at least 6 bytes of space.
- *       If %NULL, the length will be computed and returned
- *       and nothing will be written to outbuf.
- *
- * Converts a single character to UTF-8.
- *
- * \return number of bytes written
- */
-size_t BLI_str_utf8_from_unicode(uint c, char *outbuf)
+
+#define UTF8_VARS_FROM_CHAR32(Char, First, Len) \
+  if (Char < 0x80) { \
+    First = 0; \
+    Len = 1; \
+  } \
+  else if (Char < 0x800) { \
+    First = 0xc0; \
+    Len = 2; \
+  } \
+  else if (Char < 0x10000) { \
+    First = 0xe0; \
+    Len = 3; \
+  } \
+  else if (Char < 0x200000) { \
+    First = 0xf0; \
+    Len = 4; \
+  } \
+  else if (Char < 0x4000000) { \
+    First = 0xf8; \
+    Len = 5; \
+  } \
+  else { \
+    First = 0xfc; \
+    Len = 6; \
+  } \
+  (void)0
+
+size_t BLI_str_utf8_from_unicode_len(const uint c)
 {
   /* If this gets modified, also update the copy in g_string_insert_unichar() */
   uint len = 0;
   uint first;
-  uint i;
 
-  if (c < 0x80) {
-    first = 0;
-    len = 1;
-  }
-  else if (c < 0x800) {
-    first = 0xc0;
-    len = 2;
-  }
-  else if (c < 0x10000) {
-    first = 0xe0;
-    len = 3;
-  }
-  else if (c < 0x200000) {
-    first = 0xf0;
-    len = 4;
-  }
-  else if (c < 0x4000000) {
-    first = 0xf8;
-    len = 5;
-  }
-  else {
-    first = 0xfc;
-    len = 6;
+  UTF8_VARS_FROM_CHAR32(c, first, len);
+  (void)first;
+
+  return len;
+}
+
+/**
+ * BLI_str_utf8_from_unicode:
+ *
+ * \param c: a Unicode character code
+ * \param outbuf: output buffer, must have at least `outbuf_len` bytes of space.
+ * If the length required by `c` exceeds `outbuf_len`,
+ * the bytes available bytes will be zeroed and `outbuf_len` returned.
+ *
+ * Converts a single character to UTF-8.
+ *
+ * \return number of bytes written.
+ */
+size_t BLI_str_utf8_from_unicode(uint c, char *outbuf, const size_t outbuf_len)
+
+{
+  /* If this gets modified, also update the copy in g_string_insert_unichar() */
+  uint len = 0;
+  uint first;
+
+  UTF8_VARS_FROM_CHAR32(c, first, len);
+
+  if (UNLIKELY(outbuf_len < len)) {
+    /* NULL terminate instead of writing a partial byte. */
+    memset(outbuf, 0x0, outbuf_len);
+    return outbuf_len;
   }
 
-  if (outbuf) {
-    for (i = len - 1; i > 0; i--) {
-      outbuf[i] = (c & 0x3f) | 0x80;
-      c >>= 6;
-    }
-    outbuf[0] = c | first;
+  for (uint i = len - 1; i > 0; i--) {
+    outbuf[i] = (c & 0x3f) | 0x80;
+    c >>= 6;
   }
+  outbuf[0] = c | first;
 
   return len;
 }
@@ -701,36 +706,19 @@ size_t BLI_str_utf32_as_utf8(char *__restrict dst,
                              const char32_t *__restrict src,
                              const size_t maxncpy)
 {
-  const size_t maxlen = maxncpy - 1;
-  /* #BLI_UTF8_MAX is max utf8 length of an unicode char. */
-  const int64_t maxlen_secured = (int64_t)maxlen - BLI_UTF8_MAX;
-  size_t len = 0;
-
   BLI_assert(maxncpy != 0);
-
+  size_t len = 0;
 #ifdef DEBUG_STRSIZE
   memset(dst, 0xff, sizeof(*dst) * maxncpy);
 #endif
-
-  while (*src && len <= maxlen_secured) {
-    len += BLI_str_utf8_from_unicode((uint)*src++, dst + len);
+  while (*src && len < maxncpy) {
+    len += BLI_str_utf8_from_unicode((uint)*src++, dst + len, maxncpy - len);
   }
-
-  /* We have to be more careful for the last six bytes,
-   * to avoid buffer overflow in case utf8-encoded char would be too long for our dst buffer. */
-  while (*src) {
-    char t[BLI_UTF8_MAX];
-    size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);
-    BLI_assert(l <= BLI_UTF8_MAX);
-    if (len + l > maxlen) {
-      break;
-    }
-    memcpy(dst + len, t, l);
-    len += l;
-  }
-
   dst[len] = '\0';
-
+  /* Return the correct length when part of the final byte did not fit into the string. */
+  while ((len > 0) && UNLIKELY(dst[len - 1] == '\0')) {
+    len--;
+  }
   return len;
 }
 
@@ -740,7 +728,7 @@ size_t BLI_str_utf32_as_utf8_len(const char32_t *src)
   size_t len = 0;
 
   while (*src) {
-    len += BLI_str_utf8_from_unicode((uint)*src++, NULL);
+    len += BLI_str_utf8_from_unicode_len((uint)*src++);
   }
 
   return len;

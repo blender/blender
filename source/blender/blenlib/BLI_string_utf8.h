@@ -48,7 +48,9 @@ unsigned int BLI_str_utf8_as_unicode_step_or_error(
     const char *__restrict p, size_t p_len, size_t *__restrict index) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 3);
 
-size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf);
+size_t BLI_str_utf8_from_unicode_len(unsigned int c) ATTR_WARN_UNUSED_RESULT;
+size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf, const size_t outbuf_len)
+    ATTR_NONNULL(2);
 size_t BLI_str_utf8_as_utf32(char32_t *__restrict dst_w,
                              const char *__restrict src_c,
                              const size_t maxncpy) ATTR_NONNULL(1, 2);
