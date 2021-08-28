@@ -71,11 +71,11 @@
 #include <math.h>
 #include <stdlib.h>
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                             float result[3],
-                                             SculptVertRef vertex,
-                                             float projection,
-                                             SculptCustomLayer *bound_scl)
+ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                                         float result[3],
+                                                         SculptVertRef vertex,
+                                                         float projection,
+                                                         SculptCustomLayer *bound_scl)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float total = 0.0f;
@@ -151,10 +151,15 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
         is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bflag);
       }
 
-      /* Boundary vertices use only other boundary vertices. */
+      /* Boundary vertices use only other boundary vertices.
+
+      This if statement needs to be refactored a bit, it's confusing.
+      
+      */
       if (is_boundary2 || !is_boundary) {
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
         ok = true;
+        do_diffuse = !is_boundary;
       }
       else if (bound_scl) {
         float t[3];
@@ -181,45 +186,43 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));
       ok = true;
 
-      if (bound_scl) {
-        float len = len_v3v3(co, tmp);
-        float w2 = 1.0f;
+      float len = len_v3v3(co, tmp);
+      float w2 = 1.0f;
 
-        float *b2 = SCULPT_temp_cdata_get(ni.vertex, bound_scl);
-        float b2_val = *b2 + len;
+      float *b2 = SCULPT_temp_cdata_get(ni.vertex, bound_scl);
+      float b2_val = *b2 + len;
 
-        if (SCULPT_vertex_is_boundary(ss, ni.vertex, bflag)) {
-          w2 = 1000.0f;
-          b2_val = len;
-        }
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex, bflag)) {
+        w2 = 1000.0f;
+        b2_val = len;
+      }
 
-        *b1 += b2_val * w2;
-        btot += w2;
+      *b1 += b2_val * w2;
+      btot += w2;
 
-        float no2[3];
-        SCULPT_vertex_normal_get(ss, ni.vertex, no2);
+      float no2[3];
+      SCULPT_vertex_normal_get(ss, ni.vertex, no2);
 
-        float radius = ss->cache->radius * 10.0f;
+      float radius = ss->cache->radius * 10.0f;
 
-        float th = radius - b1_orig;
-        th = MAX2(th, 0.0f);
-        th /= radius;
+      float th = radius - b1_orig;
+      th = MAX2(th, 0.0f);
+      th /= radius;
 
 #if 0
-        float *color = (float *)SCULPT_vertex_color_get(ss, ni.vertex);
-        color[0] = color[1] = color[2] = th;
-        color[3] = 1.0f;
+      float *color = (float *)SCULPT_vertex_color_get(ss, ni.vertex);
+      color[0] = color[1] = color[2] = th;
+      color[3] = 1.0f;
 #endif
 
-        float fac = ss->cache->brush->boundary_smooth_factor;
-        fac = MIN2(fac * 4.0f, 1.0f);
-        fac = powf(fac, 0.2);
-        th *= fac;
+      float fac = ss->cache->brush->boundary_smooth_factor;
+      fac = MIN2(fac * 4.0f, 1.0f);
+      fac = powf(fac, 0.2);
+      th *= fac;
 
-        sub_v3_v3(tmp, co);
-        madd_v3_v3fl(tmp, no2, th * dot_v3v3(no2, tmp));
-        add_v3_v3(tmp, co);
-      }
+      sub_v3_v3(tmp, co);
+      madd_v3_v3fl(tmp, no2, th * dot_v3v3(no2, tmp));
+      add_v3_v3(tmp, co);
     }
 
     if (!ok) {
