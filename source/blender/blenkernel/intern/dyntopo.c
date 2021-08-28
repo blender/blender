@@ -2452,24 +2452,12 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     int eflag = 0;
 
-    // propegate flags to merged edges
     BMLoop *l = f_adj->l_first;
     do {
       BMEdge *e2 = l->e;
 
-      if (e2 != e) {
-        eflag |= e2->head.hflag & ~BM_ELEM_HIDDEN;
-      }
-
       MDynTopoVert *mv_l = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
       mv_l->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE;
-
-      l = l->next;
-    } while (l != f_adj->l_first);
-
-    do {
-      BMEdge *e2 = l->e;
-      e2->head.hflag |= eflag;
 
       l = l->next;
     } while (l != f_adj->l_first);
@@ -2628,23 +2616,25 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
       n->flag |= PBVH_UpdateOtherVerts;
 
-      bm_edges_from_tri(pbvh, old_tri, e_tri);
+      e_tri[0] = BM_edge_exists(old_tri[0], old_tri[1]);
+      e_tri[1] = BM_edge_exists(old_tri[1], old_tri[2]);
+      e_tri[2] = BM_edge_exists(old_tri[2], old_tri[0]);
+      if (!e_tri[0] || !e_tri[1] || !e_tri[2]) {
+        printf("%s: missing edges!\n", __func__);
+        bm_edges_from_tri(pbvh, old_tri, e_tri);
+      }
+
       bm_edges_from_tri_example(pbvh, v_tri, e_tri);
 
       BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f, false, true);
 
       BMLoop *l2 = f2->l_first;
 
-      // sync edge flags
-      // l2->next->e->head.hflag |= (l->next->e->head.hflag & ~BM_ELEM_HIDDEN);
-      // l2->prev->e->head.hflag |= (l->prev->e->head.hflag & ~BM_ELEM_HIDDEN);
-
       CustomData_bmesh_swap_data_simple(&pbvh->bm->edata, &l2->e->head.data, &l->e->head.data);
       CustomData_bmesh_swap_data_simple(
           &pbvh->bm->edata, &l2->next->e->head.data, &l->next->e->head.data);
       CustomData_bmesh_swap_data_simple(
           &pbvh->bm->edata, &l2->prev->e->head.data, &l->prev->e->head.data);
-      // l2->prev->e->head.hflag |= (l->prev->e->head.hflag & ~BM_ELEM_HIDDEN);
 
       pbvh_bmesh_copy_facedata(pbvh, pbvh->bm, f2, f);
 

@@ -493,6 +493,10 @@ static BMLogVert *bm_log_vert_alloc(BMLog *log,
 static void bm_log_edge_bmedge_copy(
     BMLog *log, BMLogEntry *entry, BMLogEdge *le, BMEdge *e, bool copy_customdata)
 {
+  if (e->head.htype != BM_EDGE) {
+    printf("%s: e is not an edge; htype: %d\n", __func__, (int)e->head.htype);
+  }
+
   le->v1 = (uint)BM_ELEM_GET_ID(log->bm, e->v1);
   le->v2 = (uint)BM_ELEM_GET_ID(log->bm, e->v2);
 
@@ -797,7 +801,14 @@ static void bm_log_edges_restore(
       continue;
     }
 
-    BMEdge *e = BM_edge_create(bm, v1, v2, NULL, BM_CREATE_SKIP_ID);
+    BMEdge *e = BM_edge_exists(v1, v2);
+    if (e) {
+      printf("%s: edge already %d existed\n", __func__, (int)id);
+      bm_free_id(bm, (BMElem *)e);
+    }
+    else {
+      e = BM_edge_create(bm, v1, v2, NULL, BM_CREATE_SKIP_ID);
+    }
 
     e->head.hflag = le->hflag;
 
@@ -877,6 +888,22 @@ static void bm_log_faces_restore(
       printf("severely malformed face %d in %s\n", POINTER_AS_INT(key), __func__);
       continue;
     }
+
+#if 0
+    for (size_t j = 0; j < lf->len; j++) {
+      BMVert *v1 = bm_log_vert_from_id(log, lf->v_ids[j]);
+      BMVert *v2 = bm_log_vert_from_id(log, lf->v_ids[(j + 1) % lf->len]);
+
+      if (!v1 || !v2) {
+        continue;
+      }
+
+      if (!BM_edge_exists(v1, v2)) {
+        int id = POINTER_AS_INT(key);
+        printf("%s: missing edge, face %d had to create it\n", __func__, (int)id);
+      }
+    }
+#endif
 
     BMFace *f = BM_face_create_verts(
         bm, vs_tmp, (int)BLI_array_len(vs_tmp), NULL, BM_CREATE_SKIP_ID, true);
@@ -1542,7 +1569,6 @@ BMLogEntry *bm_log_entry_add_ex(
 
   log->refcount++;
 
-#ifdef CUSTOMDATA
   if (combine_with_last) {
     if (!last_entry || last_entry == log->current_entry) {
       if (log->current_entry) {
@@ -1569,7 +1595,6 @@ BMLogEntry *bm_log_entry_add_ex(
     CustomData_bmesh_init_pool(&entry->ldata, 0, BM_LOOP);
     CustomData_bmesh_init_pool(&entry->pdata, 0, BM_FACE);
   }
-#endif
 
   log->current_entry = entry;
 
@@ -2434,7 +2459,7 @@ void BM_log_edge_removed(BMLog *log, BMEdge *e)
     *val = (void *)le;
 
 #if 1
-    /* If the vertex was modified before deletion, ensure that the
+    /* If the edge was modified before deletion, ensure that the
      * original edge values are stored */
     if ((le_mod = log_ghash_lookup(log, entry->modified_edges, key))) {
       if (le->customdata) {
