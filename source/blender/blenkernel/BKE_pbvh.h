@@ -874,4 +874,3 @@ typedef struct SculptLayerEntry {
 #ifdef __cplusplus
 }
 #endif
-

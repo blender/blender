@@ -1230,7 +1230,8 @@ bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, SculptVertRef in
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
       if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, v, ss->cache->boundary_symmetry);
+        BKE_pbvh_update_vert_boundary(
+            ss->cd_dyn_vert, ss->cd_faceset_offset, v, ss->cache->boundary_symmetry);
       }
 
       return !(mv->flag & DYNVERT_FSET_BOUNDARY);
@@ -1595,7 +1596,10 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
       if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, (BMVert *)vertex.i, ss->cache->boundary_symmetry);
+        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
+                                      ss->cd_faceset_offset,
+                                      (BMVert *)vertex.i,
+                                      ss->cache->boundary_symmetry);
       }
 
       ret = 0;
@@ -1665,7 +1669,10 @@ SculptBoundaryType SCULPT_vertex_is_boundary(const SculptSession *ss,
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, ((BMVert *)(vertex.i)));
 
       if (mv->flag & DYNVERT_NEED_BOUNDARY) {
-        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert, ss->cd_faceset_offset, (BMVert *)vertex.i, ss->cache->boundary_symmetry);
+        BKE_pbvh_update_vert_boundary(ss->cd_dyn_vert,
+                                      ss->cd_faceset_offset,
+                                      (BMVert *)vertex.i,
+                                      ss->cache->boundary_symmetry);
       }
 
       int flag = 0;

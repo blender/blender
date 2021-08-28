@@ -4007,7 +4007,8 @@ void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id)
   pbvh->stroke_id = stroke_id;
 }
 
-void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry) {
+void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
+{
   if (symmetry == pbvh->symmetry && boundary_symmetry == pbvh->boundary_symmetry) {
     return;
   }
@@ -4019,7 +4020,7 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry) {
     BMIter iter;
     BMVert *v;
 
-    BM_ITER_MESH(v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
       mv->flag |= DYNVERT_NEED_BOUNDARY;

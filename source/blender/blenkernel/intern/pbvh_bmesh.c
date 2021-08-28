@@ -1362,26 +1362,35 @@ typedef struct FSetTemp {
   bool boundary;
 } FSetTemp;
 
-static int do_fset_sym(int fset, const int symflag, const float *co) {
+static int do_fset_sym(int fset, const int symflag, const float *co)
+{
   fset = abs(fset);
 
-  //surely we don't need more then 8 million face sets?
+  // don't affect base face set
+  if (fset == 1) {
+    return 1;
+  }
+
+  // surely we don't need more then 8 million face sets?
   if (co[0] < 0.0f) {
-    fset |= (symflag&1) << 24;
+    fset |= (symflag & 1) << 24;
   }
 
   if (co[1] < 0.0f) {
-    fset |= (symflag&2) << 24;
+    fset |= (symflag & 2) << 24;
   }
 
   if (co[2] < 0.0f) {
-    fset |= (symflag&4) << 24;
+    fset |= (symflag & 4) << 24;
   }
 
   return fset;
 }
 
-void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVert *v, int bound_symmetry)
+void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
+                                   int cd_faceset_offset,
+                                   BMVert *v,
+                                   int bound_symmetry)
 {
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
 
@@ -1436,7 +1445,8 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
     }
 
     if (e->l) {
-      int fset = do_fset_sym(BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset), bound_symmetry, v2->co);
+      int fset = do_fset_sym(
+          BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset), bound_symmetry, v2->co);
 
       if (e->l->f->len > 3) {
         mv->flag |= DYNVERT_NEED_TRIANGULATE;
@@ -1477,8 +1487,9 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
       // also check e->l->radial_next, in case we are not manifold
       // which can mess up the loop order
       if (e->l->radial_next != e->l) {
-        //fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
-        fset = do_fset_sym(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset), bound_symmetry, v2->co);
+        // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
+        fset = do_fset_sym(
+            BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset), bound_symmetry, v2->co);
 
         if (e->l->radial_next->f->len > 3) {
           mv->flag |= DYNVERT_NEED_TRIANGULATE;
@@ -1586,7 +1597,10 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVer
   BLI_array_free(fsets);
 }
 
-void BKE_pbvh_update_vert_boundary(int cd_dyn_vert, int cd_faceset_offset, BMVert *v, int bound_symmetry)
+void BKE_pbvh_update_vert_boundary(int cd_dyn_vert,
+                                   int cd_faceset_offset,
+                                   BMVert *v,
+                                   int bound_symmetry)
 {
   bke_pbvh_update_vert_boundary(cd_dyn_vert, cd_faceset_offset, v, bound_symmetry);
 }
@@ -1598,7 +1612,8 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
   BMIter iter;
 
   BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
-    bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v, pbvh->boundary_symmetry);
+    bke_pbvh_update_vert_boundary(
+        pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v, pbvh->boundary_symmetry);
   }
 }
 
@@ -1728,7 +1743,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
     mv->flag = DYNVERT_NEED_DISK_SORT;
 
-    bke_pbvh_update_vert_boundary(pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v, pbvh->boundary_symmetry);
+    bke_pbvh_update_vert_boundary(
+        pbvh->cd_dyn_vert, pbvh->cd_faceset_offset, v, pbvh->boundary_symmetry);
     BKE_pbvh_bmesh_update_valence(pbvh->cd_dyn_vert, (SculptVertRef){(intptr_t)v});
 
     copy_v3_v3(mv->origco, v->co);

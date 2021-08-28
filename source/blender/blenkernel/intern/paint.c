@@ -1630,7 +1630,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
   return false;
 }
 
-char BKE_get_fset_boundary_symflag(Object *object) 
+char BKE_get_fset_boundary_symflag(Object *object)
 {
   const Mesh *mesh = BKE_mesh_from_object(object);
   return mesh->flag & ME_SCULPT_MIRROR_FSET_BOUNDARIES ? mesh->symmetry : 0;
@@ -1674,7 +1674,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   ss->shapekey_active = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
 
-  ss->boundary_symmetry = (int) BKE_get_fset_boundary_symflag(ob);
+  ss->boundary_symmetry = (int)BKE_get_fset_boundary_symflag(ob);
 
   /* NOTE: Weight pPaint require mesh info for loop lookup, but it never uses multires code path,
    * so no extra checks is needed here. */
