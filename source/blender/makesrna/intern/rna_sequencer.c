@@ -1440,7 +1440,7 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem seq_tc_items[] = {
-      {SEQ_PROXY_TC_NONE, "NONE", 0, "No TC in use", ""},
+      {SEQ_PROXY_TC_NONE, "NONE", 0, "None", ""},
       {SEQ_PROXY_TC_RECORD_RUN,
        "RECORD_RUN",
        0,
