@@ -4644,7 +4644,18 @@ void SCULPT_relax_vertex(SculptSession *ss,
   int neighbor_count = 0;
   zero_v3(smooth_pos);
   zero_v3(boundary_normal);
-  const bool is_boundary = SCULPT_vertex_is_boundary(ss, vd->vertex, SCULPT_BOUNDARY_MESH);
+
+  int bset = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
+  if (ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS) {
+    bset |= SCULPT_BOUNDARY_FACE_SET;
+  }
+
+  if (SCULPT_vertex_is_corner(ss, vd->vertex, (SculptCornerType)bset)) {
+    copy_v3_v3(r_final_pos, vd->co);
+    return;
+  }
+
+  const int is_boundary = SCULPT_vertex_is_boundary(ss, vd->vertex, bset);
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->vertex, ni) {
@@ -4655,7 +4666,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
       /* When the vertex to relax is boundary, use only connected boundary vertices for the
        * average position. */
       if (is_boundary) {
-        if (!SCULPT_vertex_is_boundary(ss, ni.vertex, SCULPT_BOUNDARY_MESH)) {
+        if (!SCULPT_vertex_is_boundary(ss, ni.vertex, bset)) {
           continue;
         }
         add_v3_v3(smooth_pos, SCULPT_vertex_co_get(ss, ni.vertex));
@@ -4693,7 +4704,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
   float smooth_closest_plane[3];
   float vno[3];
 
-  if (is_boundary && avg_count == 2) {
+  if ((is_boundary & SCULPT_BOUNDARY_MESH) && avg_count == 2) {
     normalize_v3_v3(vno, boundary_normal);
   }
   else {

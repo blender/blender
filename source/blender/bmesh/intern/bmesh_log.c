@@ -2438,6 +2438,11 @@ BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, fl
 
 void BM_log_edge_removed(BMLog *log, BMEdge *e)
 {
+  if (e->head.htype != BM_EDGE) {
+    printf("%s: e is not an edge; htype: %d\n", __func__, (int)e->head.htype);
+    return;
+  }
+
   // return;  // XXX
   BMLogEntry *entry = log->current_entry;
   uint e_id = (uint)BM_ELEM_GET_ID(log->bm, e);

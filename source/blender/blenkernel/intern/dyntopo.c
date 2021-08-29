@@ -109,8 +109,7 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
  * Take care since 'break' won't works as expected within these macros!
  */
 
-#define BM_DISK_EDGE(e, v) \
-   &(((&e->v1_disk_link)[v == e->v2])))
+#define BM_DISK_EDGE(e, v) (&((&(e)->v1_disk_link)[(v) == (e)->v2]))
 
 #define BM_LOOPS_OF_VERT_ITER_BEGIN(l_iter_radial_, v_) \
   { \
@@ -160,6 +159,275 @@ static void pbvh_split_edges(
     PBVH *pbvh, BMesh *bm, BMEdge **edges, int totedge, bool ignore_isolated_edges);
 void bm_log_message(const char *fmt, ...);
 void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);
+
+//#define CHECKMESH
+//#define TEST_INVALID_NORMALS
+
+#ifndef CHECKMESH
+#  define fix_mesh(bm)
+#  define validate_vert(bm, v, autofix, check_manifold) true
+#  define validate_edge(bm, e, autofix, check_manifold) true
+#  define validate_face(bm, f, autofix, check_manifold) true
+#  define validate_vert_faces(bm, v, autofix, check_manifold) true
+#  define check_face_is_manifold(bm, f) true
+#else
+
+#  define CHECKMESH_ATTR ATTR_NO_OPT
+
+CHECKMESH_ATTR static void _debugprint(const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  vprintf(fmt, args);
+  va_end(args);
+}
+
+void bmesh_disk_edge_append(BMEdge *e, BMVert *v);
+void bmesh_radial_loop_append(BMEdge *e, BMLoop *l);
+
+CHECKMESH_ATTR static bool check_face_is_manifold(BMesh *bm, BMFace *f)
+{
+  BMLoop *l = f->l_first;
+
+  do {
+    if (l->radial_next != l && l->radial_next->radial_next != l) {
+      _debugprint("non-manifold edge in loop\n");
+      return false;
+    }
+
+#  ifdef TEST_INVALID_NORMALS
+    if (l != l->radial_next && l->v == l->radial_next->v) {
+      _debugprint("invalid normals\n");
+      return false;
+    }
+#  endif
+  } while ((l = l->next) != f->l_first);
+
+  return true;
+}
+
+CHECKMESH_ATTR
+static void fix_mesh(BMesh *bm)
+{
+  BMIter iter;
+  BMVert *v;
+  BMEdge *e;
+  BMFace *f;
+
+  _debugprint("fixing mesh. . .\n");
+
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    v->e = NULL;
+  }
+
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    e->v1_disk_link.next = e->v1_disk_link.prev = NULL;
+    e->v2_disk_link.next = e->v2_disk_link.prev = NULL;
+  }
+
+  // rebuild disk cycles
+  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+    e->l = NULL;
+
+    bmesh_disk_edge_append(e, e->v1);
+    bmesh_disk_edge_append(e, e->v2);
+  }
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+
+    do {
+      l->e = BM_edge_exists(l->v, l->next->v);
+
+      bmesh_radial_loop_append(l->e, l);
+    } while ((l = l->next) != f->l_first);
+  }
+  _debugprint("done fixing mesh.\n");
+}
+
+CHECKMESH_ATTR
+static bool validate_vert(BMesh *bm, BMVert *v, bool autofix, bool check_manifold)
+{
+  if (v->head.htype != BM_VERT) {
+    _debugprint("bad vertex\n");
+    return false;
+  }
+
+  BMEdge *e = v->e;
+  int i = 0;
+
+  if (!e) {
+    return true;
+  }
+
+  do {
+    if (e->v1 != v && e->v2 != v) {
+      _debugprint("edge does not contain v\n");
+      goto error;
+    }
+
+    if (e->l) {
+      int j = 0;
+
+      BMLoop *l = e->l;
+      do {
+        if (l->e->v1 != v && l->e->v2 != v) {
+          _debugprint("loop's edges doesn't contain v\n");
+          goto error;
+        }
+
+        if (l->v != v && l->next->v != v) {
+          _debugprint("loop and loop->next don't contain v\n");
+          goto error;
+        }
+
+        j++;
+        if (j > 1000) {
+          _debugprint("corrupted radial cycle\n");
+          goto error;
+        }
+
+        if (check_manifold) {
+          check_face_is_manifold(bm, l->f);
+        }
+      } while ((l = l->radial_next) != e->l);
+    }
+    if (i > 10000) {
+      _debugprint("corrupted disk cycle\n");
+      goto error;
+    }
+
+    e = BM_DISK_EDGE_NEXT(e, v);
+    i++;
+  } while (e != v->e);
+
+  return true;
+
+error:
+
+  if (autofix) {
+    fix_mesh(bm);
+  }
+
+  return false;
+}
+
+CHECKMESH_ATTR
+static bool validate_edge(BMesh *bm, BMEdge *e, bool autofix, bool check_manifold)
+{
+  if (e->head.htype != BM_EDGE) {
+    _debugprint("corrupted edge!\n");
+    return false;
+  }
+
+  bool ret = validate_vert(bm, e->v1, false, check_manifold) &&
+             validate_vert(bm, e->v2, false, check_manifold);
+
+  if (!ret && autofix) {
+    fix_mesh(bm);
+  }
+
+  return ret;
+}
+
+CHECKMESH_ATTR
+static bool validate_face(BMesh *bm, BMFace *f, bool autofix, bool check_manifold)
+{
+  if (f->head.htype != BM_FACE) {
+    _debugprint("corrupted edge!\n");
+    return false;
+  }
+
+  BMLoop **ls = NULL;
+  BLI_array_staticdeclare(ls, 32);
+
+  BMLoop *l = f->l_first;
+  int i = 0;
+  do {
+    i++;
+
+    if (i > 100000) {
+      _debugprint("Very corrupted face!\n");
+      goto error;
+    }
+
+    if (!validate_edge(bm, l->e, false, check_manifold)) {
+      goto error;
+    }
+
+    BLI_array_append(ls, l);
+  } while ((l = l->next) != f->l_first);
+
+  for (int i = 0; i < BLI_array_len(ls); i++) {
+    BMLoop *l1 = ls[i];
+    for (int j = 0; j < BLI_array_len(ls); j++) {
+      BMLoop *l2 = ls[j];
+
+      if (i != j && l1->v == l2->v) {
+        _debugprint("duplicate verts in face!\n");
+        goto error;
+      }
+
+      if (BM_edge_exists(l->v, l->next->v) != l->e) {
+        _debugprint("loop has wrong edge!\n");
+        goto error;
+      }
+    }
+  }
+
+  BLI_array_free(ls);
+  return true;
+
+error:
+  BLI_array_free(ls);
+
+  if (autofix) {
+    fix_mesh(bm);
+  }
+
+  return false;
+}
+
+CHECKMESH_ATTR bool validate_vert_faces(BMesh *bm, BMVert *v, int autofix, bool check_manifold)
+{
+  if (!validate_vert(bm, v, autofix, check_manifold)) {
+    return false;
+  }
+
+  if (!v->e) {
+    return true;
+  }
+
+  BMEdge *e = v->e;
+  do {
+    BMLoop *l = e->l;
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      if (!validate_edge(bm, l->e, false, false)) {
+        goto error;
+      }
+
+      if (!validate_face(bm, l->f, false, check_manifold)) {
+        goto error;
+      }
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  return true;
+
+error:
+
+  if (autofix) {
+    fix_mesh(bm);
+  }
+
+  return false;
+}
+#endif
 
 static BMEdge *bmesh_edge_create_log(PBVH *pbvh, BMVert *v1, BMVert *v2, BMEdge *e_example)
 {
@@ -1643,6 +1911,8 @@ static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
   BMLoop *l = f->l_first;
   do {
+    validate_vert(pbvh->bm, l->v, true, true);
+
     if (l->e->head.index == -1) {
       l->e->head.index = 0;
     }
@@ -1719,6 +1989,7 @@ static bool check_face_is_tri(PBVH *pbvh, BMFace *f)
       }
     } while ((l = l->next) != f2->l_first);
 
+    validate_face(pbvh->bm, f2, false, true);
     BKE_pbvh_bmesh_add_face(pbvh, f2, true, true);
   }
 
@@ -1752,6 +2023,13 @@ static bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
 
   BMFace **fs = NULL;
   BLI_array_staticdeclare(fs, 32);
+
+  validate_vert(pbvh->bm, v, true, true);
+
+  if (v->head.htype != BM_VERT) {
+    printf("non-vert %p fed to %s\n", v, __func__);
+    return false;
+  }
 
   BMIter iter;
   BMFace *f;
@@ -2235,6 +2513,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     e_tri[1] = bmesh_edge_create_log(pbvh, v_tri[1], v_tri[2], NULL);
 
     f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj, false, true);
+
     long_edge_queue_face_add(eq_ctx, f_new, true);
 
     pbvh_bmesh_copy_facedata(pbvh, bm, f_new, f_adj);
@@ -2389,9 +2668,12 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 {
   BMVert *v_del, *v_conn;
 
+  validate_edge(pbvh->bm, e, true, true);
+
   check_vert_fan_are_tris(pbvh, e->v1);
   check_vert_fan_are_tris(pbvh, e->v2);
 
+  validate_edge(pbvh->bm, e, true, true);
   // pbvh_bmesh_check_nodes_simple(pbvh);
 
   bm_log_message("  == collapse == ");
@@ -2434,6 +2716,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     v_conn = v1;
   }
 
+  validate_vert_faces(pbvh->bm, v_conn, false, true);
+
   int ni_conn = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset);
   const float v_ws[2] = {0.5f, 0.5f};
   const void *v_blocks[2] = {v_del->head.data, v_conn->head.data};
@@ -2443,6 +2727,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   /* Remove the merge vertex from the PBVH */
   pbvh_bmesh_vert_remove(pbvh, v_del);
 
+  validate_vert_faces(pbvh->bm, v_conn, false, true);
   // pbvh_bmesh_check_nodes_simple(pbvh);
 
   /* Remove all faces adjacent to the edge */
@@ -2466,13 +2751,19 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     BM_face_kill(pbvh->bm, f_adj);
   }
 
+  validate_vert_faces(pbvh->bm, v_conn, false, false);
+
   // pbvh_bmesh_check_nodes_simple(pbvh);
 
   /* Kill the edge */
   BLI_assert(BM_edge_is_wire(e));
 
+  validate_edge(pbvh->bm, e, true, true);
+
   BM_log_edge_removed(pbvh->bm_log, e);
   BM_edge_kill(pbvh->bm, e);
+
+  validate_vert_faces(pbvh->bm, v_conn, false, false);
 
   /* For all remaining faces of v_del, create a new face that is the
    * same except it uses v_conn instead of v_del */
@@ -2548,6 +2839,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     //*/
   }
 
+  validate_vert_faces(pbvh->bm, v_conn, false, false);
+
   // pbvh_bmesh_check_nodes_simple(pbvh);
 
 #if 1
@@ -2603,8 +2896,41 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       BMVert *old_tri[3] = {v_del, l->next->v, l->prev->v};
       BMVert *v_tri[3] = {v_conn, l->next->v, l->prev->v};
 
-      MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->next->v);
-      MDynTopoVert *mv3 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->prev->v);
+      if (v_conn == l->next->v || v_conn == l->prev->v) {
+        // this can happen on non-manifold meshes
+        continue;
+      }
+
+#  ifdef CHECKMESH
+
+      int m = 0;
+#    define LTEST1(l, bit) \
+      if ((l) != (l)->radial_next && (l) == (l)->radial_next->radial_next && \
+          (l)->v == (l)->radial_next->v) { \
+        m |= 1 << bit; \
+      }
+
+      if (l->f->len != 3) {
+        printf("error in %s!!\n", __func__);
+      }
+
+      if (BM_face_exists(v_tri, 3)) {
+        printf("face exists\n");
+      }
+
+      LTEST1(l, 0)
+      LTEST1(l->next, 0)
+      LTEST1(l->prev, 0)
+
+      if (m) {
+        printf("non manifold error! %d\n", m);
+        // SWAP(BMVert *, v_tri[0], v_tri[2]);
+        // SWAP(BMVert *, old_tri[0], old_tri[2]);
+      }
+#  endif
+
+      MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_tri[1]);
+      MDynTopoVert *mv3 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_tri[2]);
 
       mv2->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_TRIANGULATE;
       mv3->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_TRIANGULATE;
@@ -2619,14 +2945,20 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       e_tri[0] = BM_edge_exists(old_tri[0], old_tri[1]);
       e_tri[1] = BM_edge_exists(old_tri[1], old_tri[2]);
       e_tri[2] = BM_edge_exists(old_tri[2], old_tri[0]);
+
+      validate_vert_faces(pbvh->bm, v_conn, false, false);
+
       if (!e_tri[0] || !e_tri[1] || !e_tri[2]) {
         printf("%s: missing edges!\n", __func__);
         bm_edges_from_tri(pbvh, old_tri, e_tri);
+        validate_vert_faces(pbvh->bm, v_conn, false, false);
       }
 
       bm_edges_from_tri_example(pbvh, v_tri, e_tri);
+      validate_vert_faces(pbvh->bm, v_conn, false, false);
 
       BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f, false, true);
+      validate_vert_faces(pbvh->bm, v_conn, false, false);
 
       BMLoop *l2 = f2->l_first;
 
@@ -2637,12 +2969,22 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
           &pbvh->bm->edata, &l2->prev->e->head.data, &l->prev->e->head.data);
 
       pbvh_bmesh_copy_facedata(pbvh, pbvh->bm, f2, f);
+      validate_vert_faces(pbvh->bm, v_conn, false, false);
 
       CustomData_bmesh_copy_data(&pbvh->bm->ldata, &pbvh->bm->ldata, l->head.data, &l2->head.data);
       CustomData_bmesh_copy_data(
           &pbvh->bm->ldata, &pbvh->bm->ldata, l->next->head.data, &l2->next->head.data);
       CustomData_bmesh_copy_data(
           &pbvh->bm->ldata, &pbvh->bm->ldata, l->prev->head.data, &l2->prev->head.data);
+
+      BMLoop *l3 = f2->l_first;
+      do {
+        if (l3->v == f2->l_first->v && l3->f != f2 && l3->f != l->f) {
+          printf("manifold error %s\n", __func__);
+          BM_face_normal_flip(pbvh->bm, f2);
+          break;
+        }
+      } while ((l3 = l3->radial_next) != f2->l_first);
     }
   }
   BM_LOOPS_OF_VERT_ITER_END;
@@ -2652,6 +2994,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   /* Delete the tagged faces */
   for (int i = 0; i < (int)deleted_faces->count; i++) {
+    v_conn ? validate_vert_faces(pbvh->bm, v_conn, false, false) : NULL;
+
     BMFace *f_del = BLI_buffer_at(deleted_faces, BMFace *, i);
 
     /* Get vertices and edges of face */
@@ -2662,8 +3006,10 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     v_tri[0] = l_iter->v;
     e_tri[0] = l_iter->e;
     l_iter = l_iter->next;
+
     v_tri[1] = l_iter->v;
     e_tri[1] = l_iter->e;
+
     l_iter = l_iter->next;
     v_tri[2] = l_iter->v;
     e_tri[2] = l_iter->e;
@@ -2683,14 +3029,27 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     /* Remove the face */
     pbvh_bmesh_face_remove(pbvh, f_del, true, true, true);
+    v_conn ? validate_vert_faces(pbvh->bm, v_conn, false, false) : NULL;
     BM_face_kill(pbvh->bm, f_del);
+    v_conn ? validate_vert_faces(pbvh->bm, v_conn, false, false) : NULL;
 
     /* Check if any of the face's edges are now unused by any
      * face, if so delete them */
-    for (int j = 0; j < 3; j++) {
-      if (BM_edge_is_wire(e_tri[j])) {
-        BM_log_edge_removed(pbvh->bm_log, e_tri[j]);
-        BM_edge_kill(pbvh->bm, e_tri[j]);
+    if (e_tri[0] == e_tri[1] || e_tri[1] == e_tri[2] || e_tri[0] == e_tri[2]) {
+      printf("%s: error: duplicate edges in e_tri %p %p %p\n",
+             __func__,
+             e_tri[0],
+             e_tri[1],
+             e_tri[2]);
+    }
+    else {
+      for (int j = 0; j < 3; j++) {
+        if (BM_edge_is_wire(e_tri[j])) {
+          BM_log_edge_removed(pbvh->bm_log, e_tri[j]);
+          v_conn ? validate_vert_faces(pbvh->bm, v_conn, false, false) : NULL;
+          BM_edge_kill(pbvh->bm, e_tri[j]);
+          v_conn ? validate_vert_faces(pbvh->bm, v_conn, false, false) : NULL;
+        }
       }
     }
 
@@ -2744,7 +3103,11 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
     MDynTopoVert *mv_conn = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
     mv_conn->flag |= DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY;
+
+    validate_vert(pbvh->bm, v_conn, true, false);
   }
+
+  validate_vert(pbvh->bm, v_del, true, false);
 
   if (v_del->e) {
     BMEdge *e = v_del->e;
@@ -2771,15 +3134,21 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
       e = BM_DISK_EDGE_NEXT(e, v_del);
     } while (e != v_del->e);
+
+    validate_vert(pbvh->bm, v_del, true, false);
   }
 
   /* Delete v_del */
+  validate_vert(pbvh->bm, v_del, true, false);
   pbvh_kill_vert(pbvh, v_del);
 
   BLI_array_free(ws);
   BLI_array_free(blocks);
   BLI_array_free(ls);
 
+  if (v_conn) {
+    validate_vert_faces(pbvh->bm, v_conn, false, true);
+  }
   // pbvh_bmesh_check_nodes_simple(pbvh);
 }
 
@@ -2936,7 +3305,10 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
 
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
+    validate_vert(pbvh->bm, v, false, true);
     check_vert_fan_are_tris(pbvh, v);
+    validate_vert(pbvh->bm, v, true, true);
+
     BKE_pbvh_bmesh_check_valence(pbvh, (SculptVertRef){.i = (intptr_t)v});
 
     const int val = mv->valence;
@@ -2977,10 +3349,15 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
         l = l->next;
       }
 
-      /*ignore non-manifold edges*/
-
-      if (l->radial_next == l || l->radial_next->radial_next != l) {
+      /*ignore non-manifold edges along with ones flagged as sharp*/
+      if (l->radial_next == l || l->radial_next->radial_next != l ||
+          !(l->e->head.hflag & BM_ELEM_SMOOTH)) {
         bad = true;
+        break;
+      }
+
+      if (l->radial_next != l && l->radial_next->v == l->v) {
+        bad = true;  // bad normals
         break;
       }
 
@@ -3054,6 +3431,8 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       continue;
     }
 
+    validate_vert(pbvh->bm, v, false, true);
+
     l = v->e->l;
 
     bool flipped = false;
@@ -3087,21 +3466,32 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
     vs[1] = ls[1]->v;
     vs[2] = ls[2]->v;
 
+    validate_vert(pbvh->bm, v, false, false);
+
     BKE_pbvh_bmesh_mark_update_valence(pbvh, (SculptVertRef){.i = (intptr_t)vs[0]});
     BKE_pbvh_bmesh_mark_update_valence(pbvh, (SculptVertRef){.i = (intptr_t)vs[1]});
     BKE_pbvh_bmesh_mark_update_valence(pbvh, (SculptVertRef){.i = (intptr_t)vs[2]});
 
     BMFace *f1 = NULL;
-    if (vs[0] != vs[1] && vs[1] != vs[2] && vs[0] != vs[2]) {
+    bool ok1 = vs[0] != vs[1] && vs[1] != vs[2] && vs[0] != vs[2];
+    // ok1 = ok1 && !BM_face_exists(vs, 3);
+
+    if (ok1) {
       f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f, true, false);
       normal_tri_v3(
           f1->no, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->prev->v->co);
+
+      validate_face(pbvh->bm, f1, false, false);
     }
     else {
       // printf("eek1!\n");
     }
 
-    if (val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3]) {
+    BMFace *f2 = NULL;
+
+    bool ok2 = val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3];
+    // ok2 = ok2 && !BM_face_exists(vs, 3);
+    if (ok2) {
       vs[0] = ls[0]->v;
       vs[1] = ls[2]->v;
       vs[2] = ls[3]->v;
@@ -3115,7 +3505,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
         example = v->e->l->f;
       }
 
-      BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, example, true, false);
+      f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, example, true, false);
 
       CustomData_bmesh_swap_data_simple(
           &pbvh->bm->ldata, &f2->l_first->prev->head.data, &ls[3]->head.data);
@@ -3127,6 +3517,8 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       normal_tri_v3(
           f2->no, f2->l_first->v->co, f2->l_first->next->v->co, f2->l_first->prev->v->co);
       BM_log_face_added(pbvh->bm_log, f2);
+
+      validate_face(pbvh->bm, f2, false, false);
     }
 
     if (f1) {
@@ -3140,7 +3532,15 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
       BM_log_face_added(pbvh->bm_log, f1);
     }
 
+    validate_vert(pbvh->bm, v, false, false);
     pbvh_kill_vert(pbvh, v);
+
+    if (f1) {
+      check_face_is_manifold(pbvh->bm, f1);
+    }
+    if (f2) {
+      check_face_is_manifold(pbvh->bm, f2);
+    }
   }
 
   BLI_gset_free(vset, NULL);
@@ -3747,7 +4147,13 @@ static void pbvh_split_edges(
       printf("stroke_id error\n");
     }
 
+    validate_edge(pbvh->bm, e, true, true);
+
     BMVert *newv = BM_log_edge_split_do(pbvh->bm_log, e, e->v1, &newe, 0.5f);
+
+    validate_edge(pbvh->bm, e, true, true);
+    validate_edge(pbvh->bm, newe, true, true);
+    validate_vert(pbvh->bm, newv, true, true);
 
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, newv);
 
@@ -3907,6 +4313,13 @@ static void pbvh_split_edges(
 
       BMFace *newf = BM_face_split(bm, f2, l1, l2, &rl, NULL, false);
       if (newf) {
+        check_face_is_manifold(bm, newf);
+        check_face_is_manifold(bm, f2);
+        check_face_is_manifold(bm, f);
+
+        validate_face(bm, f2, false, true);
+        validate_face(bm, newf, false, true);
+
         if (log_edge) {
           BM_log_edge_added(pbvh->bm_log, rl->e);
         }

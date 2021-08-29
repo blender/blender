@@ -71,11 +71,11 @@
 #include <math.h>
 #include <stdlib.h>
 
-ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
-                                                         float result[3],
-                                                         SculptVertRef vertex,
-                                                         float projection,
-                                                         SculptCustomLayer *bound_scl)
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                             float result[3],
+                                             SculptVertRef vertex,
+                                             float projection,
+                                             SculptCustomLayer *bound_scl)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float total = 0.0f;
@@ -154,7 +154,7 @@ ATTR_NO_OPT void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       /* Boundary vertices use only other boundary vertices.
 
       This if statement needs to be refactored a bit, it's confusing.
-      
+
       */
       if (is_boundary2 || !is_boundary) {
         copy_v3_v3(tmp, SCULPT_vertex_co_get(ss, ni.vertex));

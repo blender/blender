@@ -509,7 +509,6 @@ typedef enum eBrushUVSculptTool {
 #define SCULPT_TOOL_HAS_DYNTOPO(t) \
   (ELEM(t, /* These brushes, as currently coded, cannot support dynamic topology */ \
         SCULPT_TOOL_GRAB, \
-        SCULPT_TOOL_ROTATE, \
         SCULPT_TOOL_CLOTH, \
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
         SCULPT_TOOL_SLIDE_RELAX, \
