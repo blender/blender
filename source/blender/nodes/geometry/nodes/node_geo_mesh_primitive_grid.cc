@@ -65,7 +65,7 @@ static Mesh *create_grid_mesh(const int verts_x,
                               const float size_x,
                               const float size_y)
 {
-  BLI_assert(verts_x > 1 && verts_y > 1);
+  BLI_assert(verts_x > 0 && verts_y > 0);
   const int edges_x = verts_x - 1;
   const int edges_y = verts_y - 1;
   Mesh *mesh = BKE_mesh_new_nomain(verts_x * verts_y,
@@ -101,6 +101,8 @@ static Mesh *create_grid_mesh(const int verts_x,
 
   /* Build the horizontal edges in the X direction. */
   const int y_edges_start = 0;
+  const short edge_flag = (edges_x == 0 || edges_y == 0) ? ME_LOOSEEDGE :
+                                                           ME_EDGEDRAW | ME_EDGERENDER;
   int edge_index = 0;
   for (const int x : IndexRange(verts_x)) {
     for (const int y : IndexRange(edges_y)) {
@@ -108,7 +110,7 @@ static Mesh *create_grid_mesh(const int verts_x,
       MEdge &edge = edges[edge_index++];
       edge.v1 = vert_index;
       edge.v2 = vert_index + 1;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = edge_flag;
     }
   }
 
@@ -120,7 +122,7 @@ static Mesh *create_grid_mesh(const int verts_x,
       MEdge &edge = edges[edge_index++];
       edge.v1 = vert_index;
       edge.v2 = vert_index + verts_y;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = edge_flag;
     }
   }
 
@@ -148,7 +150,9 @@ static Mesh *create_grid_mesh(const int verts_x,
     }
   }
 
-  calculate_uvs(mesh, verts, loops, size_x, size_y);
+  if (mesh->totpoly != 0) {
+    calculate_uvs(mesh, verts, loops, size_x, size_y);
+  }
 
   return mesh;
 }
@@ -159,13 +163,7 @@ static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
   const float size_y = params.extract_input<float>("Size Y");
   const int verts_x = params.extract_input<int>("Vertices X");
   const int verts_y = params.extract_input<int>("Vertices Y");
-  if (verts_x < 2 || verts_y < 2) {
-    if (verts_x < 2) {
-      params.error_message_add(NodeWarningType::Info, TIP_("Vertices X must be at least 2"));
-    }
-    if (verts_y < 2) {
-      params.error_message_add(NodeWarningType::Info, TIP_("Vertices Y must be at least 2"));
-    }
+  if (verts_x < 1 || verts_y < 1) {
     params.set_output("Geometry", GeometrySet());
     return;
   }
