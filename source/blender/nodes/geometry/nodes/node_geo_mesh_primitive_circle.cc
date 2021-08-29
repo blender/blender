@@ -143,18 +143,14 @@ static Mesh *create_circle_mesh(const float radius,
   }
 
   /* Create outer edges. */
+  const short edge_flag = (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE) ?
+                              ME_LOOSEEDGE :
+                              (ME_EDGEDRAW | ME_EDGERENDER); /* NGON or TRIANGLE_FAN */
   for (const int i : IndexRange(verts_num)) {
     MEdge &edge = edges[i];
     edge.v1 = i;
     edge.v2 = (i + 1) % verts_num;
-  }
-
-  /* Set loose edge flags. */
-  if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE) {
-    for (const int i : IndexRange(verts_num)) {
-      MEdge &edge = edges[i];
-      edge.flag |= ME_LOOSEEDGE;
-    }
+    edge.flag = edge_flag;
   }
 
   /* Create triangle fan edges. */
