@@ -37,13 +37,6 @@ from bl_ui.space_toolsystem_common import (
 from rna_prop_ui import PropertyPanel
 
 
-def act_strip(context):
-    try:
-        return context.scene.sequence_editor.active_strip
-    except AttributeError:
-        return None
-
-
 def selected_sequences_len(context):
     selected_sequences = getattr(context, "selected_sequences", None)
     if selected_sequences is None:
@@ -533,7 +526,7 @@ class SEQUENCER_MT_change(Menu):
 
     def draw(self, context):
         layout = self.layout
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -760,7 +753,7 @@ class SEQUENCER_MT_strip_input(Menu):
 
     def draw(self, context):
         layout = self.layout
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         layout.operator("sequencer.reload", text="Reload Strips")
         layout.operator("sequencer.reload", text="Reload Strips and Adjust Length").adjust_length = True
@@ -839,7 +832,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.duplicate_move")
         layout.operator("sequencer.delete", text="Delete")
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         if strip:
             strip_type = strip.type
@@ -920,7 +913,7 @@ class SEQUENCER_MT_context_menu(Menu):
 
         layout.separator()
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         if strip:
             strip_type = strip.type
@@ -988,7 +981,7 @@ class SequencerButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        return cls.has_sequencer(context) and (act_strip(context) is not None)
+        return cls.has_sequencer(context) and (context.active_sequence_strip is not None)
 
 
 class SequencerButtonsPanel_Output:
@@ -1012,7 +1005,7 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         strip_type = strip.type
 
         if strip_type in {
@@ -1064,15 +1057,14 @@ class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
-        strip = act_strip(context)
         return strip.type != 'SOUND'
 
     def draw(self, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         layout = self.layout
         layout.use_property_split = True
         layout.active = not strip.mute
@@ -1093,7 +1085,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
@@ -1108,7 +1100,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         layout.active = not strip.mute
 
@@ -1253,11 +1245,11 @@ class SEQUENCER_PT_effect_text_layout(SequencerButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         return strip.type == 'TEXT'
 
     def draw(self, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         layout = self.layout
         layout.use_property_split = True
         col = layout.column()
@@ -1273,11 +1265,11 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         return strip.type == 'TEXT'
 
     def draw(self, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         layout = self.layout
         layout.use_property_split = True
         col = layout.column()
@@ -1325,7 +1317,7 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
@@ -1337,7 +1329,7 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         scene = context.scene
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         strip_type = strip.type
 
         layout.active = not strip.mute
@@ -1429,14 +1421,14 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
         return (strip.type == 'SCENE')
 
     def draw(self, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         scene = strip.scene
 
         layout = self.layout
@@ -1478,7 +1470,7 @@ class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
@@ -1488,7 +1480,7 @@ class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         layout.active = not strip.mute
 
@@ -1512,7 +1504,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
@@ -1521,7 +1513,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
     def draw_header_preset(self, context):
         layout = self.layout
         layout.alignment = 'RIGHT'
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         layout.prop(strip, "lock", text="", icon_only=True, emboss=False)
 
@@ -1534,7 +1526,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
 
         scene = context.scene
         frame_current = scene.frame_current
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         is_effect = isinstance(strip, bpy.types.EffectSequence)
 
@@ -1659,11 +1651,10 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
-        strip = act_strip(context)
         return strip.type == 'SOUND'
 
     def draw(self, context):
@@ -1671,7 +1662,7 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
 
         st = context.space_data
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         sound = strip.sound
 
         layout.active = not strip.mute
@@ -1701,18 +1692,17 @@ class SEQUENCER_PT_adjust_comp(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
-        strip = act_strip(context)
         return strip.type != 'SOUND'
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         layout.active = not strip.mute
 
@@ -1731,15 +1721,14 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
-        strip = act_strip(context)
         return strip.type != 'SOUND'
 
     def draw(self, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         layout = self.layout
         layout.use_property_split = True
         layout.active = not strip.mute
@@ -1771,7 +1760,7 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
@@ -1790,7 +1779,7 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
 
         col = layout.column()
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         layout.active = not strip.mute
 
@@ -1819,7 +1808,7 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context):
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
@@ -1835,7 +1824,7 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         layout.active = not strip.mute
 
@@ -1903,14 +1892,14 @@ class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
         if not cls.has_sequencer(context) and context.scene.sequence_editor:
             return False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         if not strip:
             return False
 
         return strip.type in {'MOVIE', 'IMAGE'}
 
     def draw_header(self, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         self.layout.prop(strip, "use_proxy", text="")
 
@@ -1921,7 +1910,7 @@ class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
 
         ed = context.scene.sequence_editor
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
 
         if strip.proxy:
             proxy = strip.proxy
@@ -1965,12 +1954,12 @@ class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
         show_developer_ui = context.preferences.view.show_developer_ui
         if not cls.has_sequencer(context):
             return False
-        if act_strip(context) is not None and show_developer_ui:
+        if context.active_sequence_strip is not None and show_developer_ui:
             return True
         return False
 
     def draw_header(self, context):
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         self.layout.prop(strip, "override_cache_settings", text="")
 
     def draw(self, context):
@@ -1978,7 +1967,7 @@ class SEQUENCER_PT_strip_cache(SequencerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         layout.active = strip.override_cache_settings
 
         col = layout.column(heading="Cache")
@@ -2144,7 +2133,7 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        strip = act_strip(context)
+        strip = context.active_sequence_strip
         ed = context.scene.sequence_editor
 
         layout.prop(strip, "use_linear_modifiers")
@@ -2262,7 +2251,7 @@ class SEQUENCER_PT_annotation_onion(AnnotationOnionSkin, SequencerButtonsPanel_O
 
 class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
-    _context_path = "scene.sequence_editor.active_strip"
+    _context_path = "active_sequence_strip"
     _property_type = (bpy.types.Sequence,)
     bl_category = "Strip"
 

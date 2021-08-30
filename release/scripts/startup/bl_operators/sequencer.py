@@ -37,10 +37,8 @@ class SequencerCrossfadeSounds(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
-            return context.scene.sequence_editor.active_strip.type == 'SOUND'
-        else:
-            return False
+        strip = context.active_sequence_strip
+        return strip and (strip.type == 'SOUND')
 
     def execute(self, context):
         seq1 = None
@@ -95,15 +93,13 @@ class SequencerSplitMulticam(Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
-            return context.scene.sequence_editor.active_strip.type == 'MULTICAM'
-        else:
-            return False
+        strip = context.active_sequence_strip
+        return strip and (strip.type == 'MULTICAM')
 
     def execute(self, context):
         camera = self.camera
 
-        s = context.scene.sequence_editor.active_strip
+        s = context.active_sequence_strip
 
         if s.multicam_source == camera or camera >= s.channel:
             return {'FINISHED'}
@@ -116,7 +112,7 @@ class SequencerSplitMulticam(Operator):
             right_strip.select = True
             context.scene.sequence_editor.active_strip = right_strip
 
-        context.scene.sequence_editor.active_strip.multicam_source = camera
+        context.active_sequence_strip.multicam_source = camera
         return {'FINISHED'}
 
 
@@ -147,7 +143,8 @@ class SequencerFadesClear(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip
+        strip = context.active_sequence_strip
+        return strip is not None
 
     def execute(self, context):
         animation_data = context.scene.animation_data
@@ -202,7 +199,8 @@ class SequencerFadesAdd(Operator):
     @classmethod
     def poll(cls, context):
         # Can't use context.selected_sequences as it can have an impact on performances
-        return context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip
+        strip = context.active_sequence_strip
+        return strip is not None
 
     def execute(self, context):
         from math import floor
