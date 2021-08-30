@@ -424,9 +424,11 @@ struct BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);
 void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_range);
 
 typedef enum {
-  PBVH_Subdivide = 1,
-  PBVH_Collapse = 2,
-  PBVH_Cleanup = 4,  // dissolve verts surrounded by either 3 or 4 triangles then triangulate
+  PBVH_Subdivide = 1 << 0,
+  PBVH_Collapse = 1 << 1,
+  PBVH_Cleanup = 1 << 2,  // dissolve verts surrounded by either 3 or 4 triangles then triangulate
+  PBVH_LocalSubdivide = 1 << 3,
+  PBVH_LocalCollapse = 1 << 4
 } PBVHTopologyUpdateMode;
 
 typedef float (*DyntopoMaskCB)(SculptVertRef vertex, void *userdata);

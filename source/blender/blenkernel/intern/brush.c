@@ -1800,8 +1800,10 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
-      br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK & ~(DYNTOPO_INHERIT_ALL | DYNTOPO_COLLAPSE);
-      br->dyntopo.flag |= DYNTOPO_COLLAPSE;
+      br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
+                            ~(DYNTOPO_INHERIT_ALL | DYNTOPO_LOCAL_COLLAPSE | DYNTOPO_INHERIT_DETAIL_RANGE);
+      br->dyntopo.flag |= DYNTOPO_LOCAL_COLLAPSE;
+      br->dyntopo.detail_range = 0.5f;
       break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;
@@ -2698,6 +2700,24 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
     }
     else {
       out->flag &= ~DYNTOPO_SUBDIVIDE;
+    }
+  }
+
+  if (inherit & DYNTOPO_LOCAL_COLLAPSE) {
+    if (sd->flags & SCULPT_DYNTOPO_LOCAL_COLLAPSE) {
+      out->flag |= DYNTOPO_LOCAL_COLLAPSE;
+    }
+    else {
+      out->flag &= ~DYNTOPO_LOCAL_COLLAPSE;
+    }
+  }
+
+  if (inherit & DYNTOPO_LOCAL_SUBDIVIDE) {
+    if (sd->flags & SCULPT_DYNTOPO_LOCAL_SUBDIVIDE) {
+      out->flag |= DYNTOPO_LOCAL_SUBDIVIDE;
+    }
+    else {
+      out->flag &= ~DYNTOPO_LOCAL_SUBDIVIDE;
     }
   }
 

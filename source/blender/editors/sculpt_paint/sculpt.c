@@ -4020,9 +4020,9 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
       BMVert *v = (BMVert *)vd.vertex.i;
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
-      if (mv->flag & (DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY)) {
-        continue;
-      }
+      // if (mv->flag & (DYNVERT_BOUNDARY | DYNVERT_FSET_BOUNDARY)) {
+      //  continue;
+      //}
     }
 
     float direction2[3];
@@ -4041,6 +4041,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
       copy_v3_v3(direction2, direction);
     }
 
+#if 0
     if (SCULPT_vertex_is_boundary(
             ss, vd.vertex, SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_MESH | check_fsets)) {
       continue;
@@ -4054,9 +4055,16 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     if (mv->flag & (DYNVERT_CORNER | DYNVERT_SHARP_CORNER)) {
       continue;
     }
+#endif
 
-    SCULPT_bmesh_four_neighbor_average(
-        avg, direction2, vd.bm_vert, data->rake_projection, check_fsets);
+    SCULPT_bmesh_four_neighbor_average(ss,
+                                       avg,
+                                       direction2,
+                                       vd.bm_vert,
+                                       data->rake_projection,
+                                       check_fsets,
+                                       data->cd_temp,
+                                       data->cd_dyn_vert);
 
     sub_v3_v3v3(val, avg, vd.co);
 
@@ -4074,10 +4082,15 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 static void bmesh_topology_rake(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength)
 {
+  SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   const float strength = clamp_f(bstrength, 0.0f, 1.0f);
 
   Brush local_brush;
+
+  // vector4, nto color
+  SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_COLOR, "_rake_temp");
+  int cd_temp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_COLOR, "_rake_temp");
 
   if (brush->flag2 & BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF) {
     local_brush = *brush;
@@ -4103,6 +4116,8 @@ static void bmesh_topology_rake(
                                    .brush = brush,
                                    .nodes = nodes,
                                    .strength = factor,
+                                   .cd_temp = cd_temp,
+                                   .cd_dyn_vert = ss->cd_dyn_vert,
                                    .rake_projection = brush->topology_rake_projection};
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -7241,9 +7256,15 @@ static void sculpt_topology_update(Sculpt *sd,
     if (brush->cached_dyntopo.flag & DYNTOPO_SUBDIVIDE) {
       mode |= PBVH_Subdivide;
     }
+    else if (brush->cached_dyntopo.flag & DYNTOPO_LOCAL_SUBDIVIDE) {
+      mode |= PBVH_LocalSubdivide | PBVH_Subdivide;
+    }
 
     if (brush->cached_dyntopo.flag & DYNTOPO_COLLAPSE) {
       mode |= PBVH_Collapse;
+    }
+    else if (brush->cached_dyntopo.flag & DYNTOPO_LOCAL_COLLAPSE) {
+      mode |= PBVH_LocalCollapse | PBVH_Collapse;
     }
   }
 

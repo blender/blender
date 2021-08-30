@@ -283,13 +283,14 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[2];
+  char _pad1[6];
 
   float autosmooth_factor;
   float autosmooth_radius_factor;
   float autosmooth_projection;
   int autosmooth_spacing;  // spacing for BRUSH_CUSTOM_AUTOSMOOTH_SPACING
   float boundary_smooth_factor;
+  float autosmooth_fset_slide;
 
   float tilt_strength_factor;
 

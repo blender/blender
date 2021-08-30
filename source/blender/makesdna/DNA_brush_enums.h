@@ -416,7 +416,10 @@ typedef enum eBrushFlags2 {
   BRUSH_SMOOTH_USE_AREA_WEIGHT = (1 << 13),
 
   /*preserve face set boundaries*/
-  BRUSH_SMOOTH_PRESERVE_FACE_SETS = (1 << 14)
+  BRUSH_SMOOTH_PRESERVE_FACE_SETS = (1 << 14),
+
+   /*topology rake in dynamic mode*/
+  BRUSH_DYNAMIC_RAKE = (1<<15),
 } eBrushFlags2;
 
 typedef enum {
@@ -626,7 +629,9 @@ enum {
   DYNTOPO_SUBDIVIDE = 1 << 0,
   DYNTOPO_COLLAPSE = 1 << 1,
   DYNTOPO_DISABLED = 1 << 2,
-  DYNTOPO_CLEANUP = 1 << 3
+  DYNTOPO_CLEANUP = 1 << 3,
+  DYNTOPO_LOCAL_COLLAPSE = 1 << 4,
+  DYNTOPO_LOCAL_SUBDIVIDE = 1 << 5
 };
 
 // dyntopo override flags, copies all flags from dyntopo flags

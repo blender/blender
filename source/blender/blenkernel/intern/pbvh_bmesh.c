@@ -3226,6 +3226,7 @@ void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_
 {
   pbvh->bm_max_edge_len = detail_size;
   pbvh->bm_min_edge_len = pbvh->bm_max_edge_len * detail_range;
+  pbvh->bm_detail_range = detail_range;
 }
 
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node)

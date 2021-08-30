@@ -567,9 +567,12 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
-            box.prop(brush, "boundary_smooth_factor");
+            box.prop(brush, "boundary_smooth_factor")
             box.prop(brush, "use_weighted_smooth")
             box.prop(brush, "preserve_faceset_boundary")
+
+            if brush.preserve_faceset_boundary:
+                box.prop(brush, "autosmooth_fset_slide")
 
             box.prop(brush, "use_custom_auto_smooth_spacing", text="Custom Spacing")
             if brush.use_custom_auto_smooth_spacing:
@@ -619,7 +622,7 @@ def brush_settings(layout, context, brush, popover=False):
 
             if brush.use_custom_topology_rake_spacing:
                 box.prop(brush, "topology_rake_spacing", text="Spacing")
-            box.prop(brush, "topology_rake_projection");
+            box.prop(brush, "topology_rake_projection")
 
             box.prop(brush, "topology_rake_radius_factor", slider=True)
             box.prop(brush, "use_curvature_rake")
@@ -820,6 +823,8 @@ def brush_settings(layout, context, brush, popover=False):
 
             col.prop(brush, "use_weighted_smooth")
             col.prop(brush, "preserve_faceset_boundary")
+            if brush.preserve_faceset_boundary:
+                col.prop(brush, "autosmooth_fset_slide")
 
             col.prop(brush, "smooth_deform_type")
 

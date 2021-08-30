@@ -641,8 +641,14 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
 /* Topology rake */
-void SCULPT_bmesh_four_neighbor_average(
-    float avg[3], float direction[3], struct BMVert *v, float projection, bool check_fsets);
+void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
+                                        float avg[3],
+                                        float direction[3],
+                                        struct BMVert *v,
+                                        float projection,
+                                        bool check_fsets,
+                                        int cd_temp,
+                                        int cd_dyn_vert);
 
 /* Smoothing api */
 void SCULPT_neighbor_coords_average(
@@ -914,7 +920,7 @@ typedef struct SculptThreadedTaskData {
 
   // Layer brush
   int cd_pers_co, cd_pers_no, cd_pers_disp;
-  int cd_layer_disp;
+  int cd_layer_disp, cd_temp, cd_dyn_vert;
 
   float smooth_projection;
   float rake_projection;

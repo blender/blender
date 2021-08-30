@@ -191,6 +191,7 @@ struct PBVH {
   BMesh *bm;
   float bm_max_edge_len;
   float bm_min_edge_len;
+  float bm_detail_range;
 
   int cd_dyn_vert;
   int cd_vert_node_offset;

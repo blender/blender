@@ -790,7 +790,6 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
 
         col.prop_enum(brush.dyntopo, "inherit", value="ALL", text="Use All Defaults", icon="LOCKED" if inherit_all else "UNLOCKED")
 
-
         def do_prop(key):
             row = col.row()
             if key.upper() in brush.dyntopo.inherit:
@@ -814,6 +813,8 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         do_prop("collapse")
         do_prop("cleanup")
         do_prop("spacing")
+        do_prop("local_subdivide")
+        do_prop("local_collapse")
         do_prop("detail_size")
         do_prop("detail_range")
         do_prop("detail_percent")

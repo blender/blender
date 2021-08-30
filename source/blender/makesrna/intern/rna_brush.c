@@ -356,6 +356,8 @@ static EnumPropertyItem rna_enum_brush_dyntopo_flag[] = {
     {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
     {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
     {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
+    {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
+    {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -363,6 +365,8 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
     {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
     {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
+    {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
+    {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
     {DYNTOPO_INHERIT_ALL, "ALL", ICON_NONE, "All", "Inherit All"},
     {DYNTOPO_INHERIT_DETAIL_RANGE, "DETAIL_RANGE", ICON_NONE, "All", ""},
     {DYNTOPO_INHERIT_DETAIL_PERCENT, "DETAIL_PERCENT", ICON_NONE, "Percent", ""},
@@ -1245,6 +1249,26 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_COLLAPSE);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);
   RNA_def_property_ui_text(prop, "Collapse", "Enable Dyntopo Decimation");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
+
+  prop = RNA_def_property(srna, "local_collapse", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_LOCAL_COLLAPSE);
+  RNA_def_property_ui_icon(prop, ICON_NONE, 0);
+  RNA_def_property_ui_text(
+      prop,
+      "Local Collapse",
+      "When collapse is disabled, collapse anyway based on local edge lengths under brush");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
+
+  prop = RNA_def_property(srna, "local_subdivide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_LOCAL_SUBDIVIDE);
+  RNA_def_property_ui_icon(prop, ICON_NONE, 0);
+  RNA_def_property_ui_text(
+      prop,
+      "Local Subdivide",
+      "When subdivide is disabled, subdivide anyway based on local edge lengths under brush");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
@@ -3105,6 +3129,15 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_range(prop, -2.0f, 2.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(prop, "Boundary Smoothing", "How much to smooth sharp boundaries ");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "autosmooth_fset_slide", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "autosmooth_fset_slide");
+  RNA_def_property_float_default(prop, 0);
+  RNA_def_property_range(prop, -2.0f, 2.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(
+      prop, "Face Set Slide", "Slide face set boundaries instead of sharpening them");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "vcol_boundary_exponent", PROP_FLOAT, PROP_FACTOR);
