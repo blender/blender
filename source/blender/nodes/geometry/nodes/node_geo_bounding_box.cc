@@ -156,8 +156,8 @@ static void geo_node_bounding_box_exec(GeoNodeExecParams params)
   else {
     const float3 scale = max - min;
     const float3 center = min + scale / 2.0f;
-    Mesh *mesh = create_cube_mesh(1.0f);
-    transform_mesh(mesh, center, float3(0), scale);
+    Mesh *mesh = create_cuboid_mesh(scale, 2, 2, 2);
+    transform_mesh(mesh, center, float3(0), float3(1));
     params.set_output("Bounding Box", GeometrySet::create_with_mesh(mesh));
     params.set_output("Min", min);
     params.set_output("Max", max);

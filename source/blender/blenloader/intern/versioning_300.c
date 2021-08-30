@@ -636,6 +636,20 @@ static void do_version_constraints_spline_ik_joint_bindings(ListBase *lb)
   }
 }
 
+static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
+                                                              bNode *node,
+                                                              bNodeSocket *socket)
+{
+  const bNodeSocketValueFloat *socket_value = (const bNodeSocketValueFloat *)socket->default_value;
+  const float old_value = socket_value->value;
+  nodeRemoveSocket(ntree, node, socket);
+  bNodeSocket *new_socket = nodeAddSocket(
+      ntree, node, SOCK_IN, nodeStaticSocketType(SOCK_VECTOR, PROP_TRANSLATION), "Size", "Size");
+  bNodeSocketValueVector *value_vector = (bNodeSocketValueVector *)new_socket->default_value;
+  copy_v3_fl(value_vector->value, old_value);
+  return new_socket;
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -1049,6 +1063,43 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
       sequencer_tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 20)) {
+    /* Use new vector Size socket in Cube Mesh Primitive node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+
+      LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+        if (link->tonode->type == GEO_NODE_MESH_PRIMITIVE_CUBE) {
+          bNode *node = link->tonode;
+          if (STREQ(link->tosock->identifier, "Size") && link->tosock->type == SOCK_FLOAT) {
+            bNode *link_fromnode = link->fromnode;
+            bNodeSocket *link_fromsock = link->fromsock;
+            bNodeSocket *socket = link->tosock;
+            BLI_assert(socket);
+
+            bNodeSocket *new_socket = do_version_replace_float_size_with_vector(
+                ntree, node, socket);
+            nodeAddLink(ntree, link_fromnode, link_fromsock, node, new_socket);
+          }
+        }
+      }
+
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_MESH_PRIMITIVE_CUBE) {
+          continue;
+        }
+        LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+          if (STREQ(socket->identifier, "Size") && (socket->type == SOCK_FLOAT)) {
+            do_version_replace_float_size_with_vector(ntree, node, socket);
+            break;
+          }
+        }
+      }
     }
   }
 

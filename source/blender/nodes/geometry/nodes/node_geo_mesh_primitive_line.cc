@@ -104,7 +104,7 @@ static void fill_edge_data(MutableSpan<MEdge> edges)
   }
 }
 
-static Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
+Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
 {
   if (count < 1) {
     return nullptr;

@@ -60,10 +60,10 @@ static void calculate_uvs(
   uv_attribute.save();
 }
 
-static Mesh *create_grid_mesh(const int verts_x,
-                              const int verts_y,
-                              const float size_x,
-                              const float size_y)
+Mesh *create_grid_mesh(const int verts_x,
+                       const int verts_y,
+                       const float size_x,
+                       const float size_y)
 {
   BLI_assert(verts_x > 0 && verts_y > 0);
   const int edges_x = verts_x - 1;
