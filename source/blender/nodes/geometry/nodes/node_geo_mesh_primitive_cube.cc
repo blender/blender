@@ -90,6 +90,10 @@ static void calculate_vertices(const CuboidConfig &config, MutableSpan<MVert> ve
 
   int vert_index = 0;
 
+  /* Though looping over all possible coordinates inside the cube only to skip them may be slow,
+   * the alternative is similar complexity to below in the poly index calculation. If this loop
+   * becomes a problem in the future it could be optimized, though only after proper performance
+   * testing. */
   for (const int z : IndexRange(config.verts_z)) {
     for (const int y : IndexRange(config.verts_y)) {
       for (const int x : IndexRange(config.verts_x)) {
