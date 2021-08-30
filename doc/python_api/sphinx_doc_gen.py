@@ -1045,6 +1045,7 @@ context_type_map = {
     "active_object": ("Object", False),
     "active_operator": ("Operator", False),
     "active_pose_bone": ("PoseBone", False),
+    "active_sequence_strip": ("Sequence", False),
     "active_editable_fcurve": ("FCurve", False),
     "annotation_data": ("GreasePencil", False),
     "annotation_data_owner": ("ID", False),
