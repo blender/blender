@@ -1995,7 +1995,7 @@ def write_rst_importable_modules(basepath):
         "blf": "Font Drawing",
         "imbuf": "Image Buffer",
         "imbuf.types": "Image Buffer Types",
-        "gpu": "GPU Shader Module",
+        "gpu": "GPU Module",
         "gpu.types": "GPU Types",
         "gpu.matrix": "GPU Matrix Utilities",
         "gpu.select": "GPU Select Utilities",
