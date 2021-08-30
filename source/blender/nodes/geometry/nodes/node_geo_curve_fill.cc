@@ -41,14 +41,14 @@ static bNodeSocketTemplate geo_node_curve_fill_out[] = {
     {-1, ""},
 };
 
-static void geo_node_curve_fill_layout(uiLayout *layout, bContext *, PointerRNA *ptr)
+static void geo_node_curve_fill_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
 namespace blender::nodes {
 
-static void geo_node_curve_fill_init(bNodeTree *, bNode *node)
+static void geo_node_curve_fill_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeGeometryCurveFill *data = (NodeGeometryCurveFill *)MEM_callocN(sizeof(NodeGeometryCurveFill),
                                                                      __func__);
