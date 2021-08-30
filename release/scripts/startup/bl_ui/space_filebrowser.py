@@ -655,7 +655,10 @@ class ASSETBROWSER_PT_navigation_bar(asset_utils.AssetBrowserPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.preferences.experimental.use_extended_asset_browser
+        return (
+            asset_utils.AssetBrowserPanel.poll(context) and
+            context.preferences.experimental.use_extended_asset_browser
+        )
 
     def draw(self, context):
         layout = self.layout
