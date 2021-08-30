@@ -52,8 +52,10 @@ public:
 	 */
 	static void registerPlugin();
 
-	virtual std::shared_ptr<IReader> createReader(std::string filename);
-	virtual std::shared_ptr<IReader> createReader(std::shared_ptr<Buffer> buffer);
+	virtual std::shared_ptr<IReader> createReader(std::string filename, int stream = 0);
+	virtual std::shared_ptr<IReader> createReader(std::shared_ptr<Buffer> buffer, int stream = 0);
+	virtual std::vector<StreamInfo> queryStreams(std::string filename);
+	virtual std::vector<StreamInfo> queryStreams(std::shared_ptr<Buffer> buffer);
 	virtual std::shared_ptr<IWriter> createWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
 };
 

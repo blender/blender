@@ -152,6 +152,7 @@ set(PUBLIC_HDR
 	include/devices/ThreadedDevice.h
 	include/Exception.h
 	include/file/File.h
+	include/file/FileInfo.h
 	include/file/FileManager.h
 	include/file/FileWriter.h
 	include/file/IFileInput.h
@@ -960,7 +961,10 @@ endif()
 if(BUILD_DEMOS)
 	include_directories(${INCLUDE})
 
-	set(DEMOS audaplay audaconvert audaremap signalgen randsounds dynamicmusic playbackmanager)
+	set(DEMOS audainfo audaplay audaconvert audaremap signalgen randsounds dynamicmusic playbackmanager)
+
+	add_executable(audainfo demos/audainfo.cpp)
+	target_link_libraries(audainfo audaspace)
 
 	add_executable(audaplay demos/audaplay.cpp)
 	target_link_libraries(audaplay audaspace)

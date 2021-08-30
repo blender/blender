@@ -403,26 +403,8 @@ Sequence *SEQ_add_sound_strip(Main *bmain,
     return NULL;
   }
 
-  /* If this sound it part of a video, then the sound might start after the video.
-   * In this case we need to then offset the start frame of the audio so it syncs up
-   * properly with the video.
-   */
-  int start_frame_offset = info.start_offset * FPS;
-  double start_frame_offset_remainer = (info.start_offset * FPS - start_frame_offset) / FPS;
-
-  if (start_frame_offset_remainer > FLT_EPSILON) {
-    /* We can't represent a fraction of a frame, so skip the first frame fraction of sound so we
-     * start on a "whole" frame.
-     */
-    start_frame_offset++;
-  }
-
-  sound->offset_time += start_frame_offset_remainer;
-
-  Sequence *seq = SEQ_sequence_alloc(seqbase,
-                                     load_data->start_frame + start_frame_offset,
-                                     load_data->channel,
-                                     SEQ_TYPE_SOUND_RAM);
+  Sequence *seq = SEQ_sequence_alloc(
+      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SOUND_RAM);
   seq->sound = sound;
   seq->scene_sound = NULL;
 
@@ -508,7 +490,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain,
                               Scene *scene,
                               ListBase *seqbase,
                               SeqLoadData *load_data,
-                              double *r_video_start_offset)
+                              double *r_start_offset)
 {
   char path[sizeof(load_data->path)];
   BLI_strncpy(path, load_data->path, sizeof(path));
@@ -554,8 +536,40 @@ Sequence *SEQ_add_movie_strip(Main *bmain,
     return NULL;
   }
 
+  int video_frame_offset = 0;
+  float video_fps = 0.0f;
+
+  if (anim_arr[0] != NULL) {
+    short fps_denom;
+    float fps_num;
+
+    IMB_anim_get_fps(anim_arr[0], &fps_denom, &fps_num, true);
+
+    video_fps = fps_denom / fps_num;
+
+    /* Adjust scene's frame rate settings to match. */
+    if (load_data->flags & SEQ_LOAD_MOVIE_SYNC_FPS) {
+      scene->r.frs_sec = fps_denom;
+      scene->r.frs_sec_base = fps_num;
+    }
+
+    double video_start_offset = IMD_anim_get_offset(anim_arr[0]);
+    int minimum_frame_offset;
+
+    if (*r_start_offset >= 0) {
+      minimum_frame_offset = MIN2(video_start_offset, *r_start_offset) * FPS;
+    }
+    else {
+      minimum_frame_offset = video_start_offset * FPS;
+    }
+
+    video_frame_offset = video_start_offset * FPS - minimum_frame_offset;
+
+    *r_start_offset = video_start_offset;
+  }
+
   Sequence *seq = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MOVIE);
+      seqbase, load_data->start_frame + video_frame_offset, load_data->channel, SEQ_TYPE_MOVIE);
 
   /* Multiview settings. */
   if (load_data->use_multiview) {
@@ -579,26 +593,10 @@ Sequence *SEQ_add_movie_strip(Main *bmain,
 
   seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
 
-  float video_fps = 0.0f;
-
   if (anim_arr[0] != NULL) {
     seq->len = IMB_anim_get_duration(anim_arr[0], IMB_TC_RECORD_RUN);
-    *r_video_start_offset = IMD_anim_get_offset(anim_arr[0]);
 
     IMB_anim_load_metadata(anim_arr[0]);
-
-    short fps_denom;
-    float fps_num;
-
-    IMB_anim_get_fps(anim_arr[0], &fps_denom, &fps_num, true);
-
-    video_fps = fps_denom / fps_num;
-
-    /* Adjust scene's frame rate settings to match. */
-    if (load_data->flags & SEQ_LOAD_MOVIE_SYNC_FPS) {
-      scene->r.frs_sec = fps_denom;
-      scene->r.frs_sec_base = fps_num;
-    }
 
     /* Set initial scale based on load_data->fit_method. */
     orig_width = IMB_anim_get_image_width(anim_arr[0]);

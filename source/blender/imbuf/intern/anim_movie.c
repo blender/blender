@@ -664,11 +664,6 @@ static int startffmpeg(struct anim *anim)
     anim->duration_in_frames = (int)(stream_dur * av_q2d(frame_rate) + 0.5f);
   }
 
-  double ctx_start = 0;
-  if (pFormatCtx->start_time != AV_NOPTS_VALUE) {
-    ctx_start = (double)pFormatCtx->start_time / AV_TIME_BASE;
-  }
-
   frs_num = frame_rate.num;
   frs_den = frame_rate.den;
 
@@ -683,7 +678,7 @@ static int startffmpeg(struct anim *anim)
   anim->frs_sec_base = frs_den;
   /* Save the relative start time for the video. IE the start time in relation to where playback
    * starts. */
-  anim->start_offset = video_start - ctx_start;
+  anim->start_offset = video_start;
 
   anim->params = 0;
 

@@ -118,6 +118,21 @@ SndFileReader::~SndFileReader()
 	sf_close(m_sndfile);
 }
 
+std::vector<StreamInfo> SndFileReader::queryStreams()
+{
+	std::vector<StreamInfo> result;
+
+	StreamInfo info;
+	info.start = 0;
+	info.duration = double(getLength()) / m_specs.rate;
+	info.specs.specs = m_specs;
+	info.specs.format = FORMAT_FLOAT32;
+
+	result.emplace_back(info);
+
+	return result;
+}
+
 bool SndFileReader::isSeekable() const
 {
 	return m_seekable;

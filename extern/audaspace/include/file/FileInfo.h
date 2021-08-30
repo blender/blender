@@ -14,40 +14,29 @@
  * limitations under the License.
  ******************************************************************************/
 
-#include "file/File.h"
-#include "file/FileManager.h"
-#include "util/Buffer.h"
-#include "Exception.h"
+#pragma once
 
-#include <cstring>
+/**
+ * @file FileInfo.h
+ * @ingroup file
+ * The FileInfo data structures.
+ */
+
+#include "respec/Specification.h"
 
 AUD_NAMESPACE_BEGIN
 
-File::File(std::string filename, int stream) :
-	m_filename(filename), m_stream(stream)
+/// Specification of a sound source.
+struct StreamInfo
 {
-}
+	/// Start time in seconds.
+	double start;
 
-File::File(const data_t* buffer, int size, int stream) :
-	m_buffer(new Buffer(size)), m_stream(stream)
-{
-	std::memcpy(m_buffer->getBuffer(), buffer, size);
-}
+	/// Duration in seconds. May be estimated or 0 if unknown.
+	double duration;
 
-std::vector<StreamInfo> File::queryStreams()
-{
-	if(m_buffer.get())
-		return FileManager::queryStreams(m_buffer);
-	else
-		return FileManager::queryStreams(m_filename);
-}
-
-std::shared_ptr<IReader> File::createReader()
-{
-	if(m_buffer.get())
-		return FileManager::createReader(m_buffer, m_stream);
-	else
-		return FileManager::createReader(m_filename, m_stream);
-}
+	/// Audio data parameters.
+	DeviceSpecs specs;
+};
 
 AUD_NAMESPACE_END

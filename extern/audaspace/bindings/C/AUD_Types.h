@@ -176,5 +176,17 @@ typedef struct
 {
 	AUD_Specs specs;
 	float length;
-	double start_offset;
 } AUD_SoundInfo;
+
+/// Specification of a sound source.
+typedef struct
+{
+	/// Start time in seconds.
+	double start;
+
+	/// Duration in seconds. May be estimated or 0 if unknown.
+	double duration;
+
+	/// Audio data parameters.
+	AUD_DeviceSpecs specs;
+} AUD_StreamInfo;

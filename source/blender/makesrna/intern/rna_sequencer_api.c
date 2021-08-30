@@ -323,8 +323,8 @@ static Sequence *rna_Sequences_new_movie(ID *id,
   SEQ_add_load_data_init(&load_data, name, file, frame_start, channel);
   load_data.fit_method = fit_method;
   load_data.allow_invalid_file = true;
-  double video_start_offset;
-  Sequence *seq = SEQ_add_movie_strip(bmain, scene, seqbase, &load_data, &video_start_offset);
+  double start_offset = -1;
+  Sequence *seq = SEQ_add_movie_strip(bmain, scene, seqbase, &load_data, &start_offset);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);

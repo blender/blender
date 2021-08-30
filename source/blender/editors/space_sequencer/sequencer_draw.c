@@ -420,6 +420,10 @@ static void draw_seq_waveform_overlay(View2D *v2d,
       float sample_offset = start_sample + i * samples_per_pix;
       int p = sample_offset;
 
+      if (p < 0) {
+        continue;
+      }
+
       if (p >= waveform->length) {
         break;
       }
