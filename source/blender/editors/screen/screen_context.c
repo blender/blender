@@ -56,6 +56,7 @@
 #include "ED_armature.h"
 #include "ED_gpencil.h"
 
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
 #include "UI_interface.h"
@@ -91,6 +92,7 @@ const char *screen_context_dir[] = {
     "image_paint_object",
     "particle_edit_object",
     "pose_object",
+    "active_sequence_strip",
     "sequences",
     "selected_sequences",
     "selected_editable_sequences", /* sequencer */
@@ -603,6 +605,18 @@ static eContextResult screen_ctx_pose_object(const bContext *C, bContextDataResu
   }
   return CTX_RESULT_OK;
 }
+static eContextResult screen_ctx_active_sequence_strip(const bContext *C,
+                                                       bContextDataResult *result)
+{
+  wmWindow *win = CTX_wm_window(C);
+  Scene *scene = WM_window_get_active_scene(win);
+  Sequence *seq = SEQ_select_active_get(scene);
+  if (seq) {
+    CTX_data_pointer_set(result, &scene->id, &RNA_Sequence, seq);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
 static eContextResult screen_ctx_sequences(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -1097,6 +1111,7 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("image_paint_object", screen_ctx_image_paint_object);
   register_context_function("particle_edit_object", screen_ctx_particle_edit_object);
   register_context_function("pose_object", screen_ctx_pose_object);
+  register_context_function("active_sequence_strip", screen_ctx_active_sequence_strip);
   register_context_function("sequences", screen_ctx_sequences);
   register_context_function("selected_sequences", screen_ctx_selected_sequences);
   register_context_function("selected_editable_sequences", screen_ctx_selected_editable_sequences);
