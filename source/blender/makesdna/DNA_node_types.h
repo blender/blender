@@ -1437,6 +1437,10 @@ typedef struct NodeGeometryRaycast {
   char _pad[1];
 } NodeGeometryRaycast;
 
+typedef struct NodeGeometryCurveFill {
+  uint8_t mode;
+} NodeGeometryCurveFill;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -2007,6 +2011,11 @@ typedef enum GeometryNodeRaycastMapMode {
   GEO_NODE_RAYCAST_INTERPOLATED = 0,
   GEO_NODE_RAYCAST_NEAREST = 1,
 } GeometryNodeRaycastMapMode;
+
+typedef enum GeometryNodeCurveFillMode {
+  GEO_NODE_CURVE_FILL_MODE_TRIANGULATED = 0,
+  GEO_NODE_CURVE_FILL_MODE_NGONS = 1,
+} GeometryNodeCurveFillMode;
 
 #ifdef __cplusplus
 }
