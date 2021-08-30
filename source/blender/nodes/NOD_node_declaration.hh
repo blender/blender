@@ -35,6 +35,8 @@ class SocketDeclaration {
   friend NodeDeclarationBuilder;
 
  public:
+  virtual ~SocketDeclaration() = default;
+
   virtual bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const = 0;
   virtual bool matches(const bNodeSocket &socket) const = 0;
   virtual bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const;
