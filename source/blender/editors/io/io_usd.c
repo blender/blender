@@ -100,8 +100,16 @@ const EnumPropertyItem rna_enum_usd_import_shaders_mode_items_no_umm[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_xform_op_mode_items[] = {
-    {USD_XFORM_OP_SRT, "SRT", 0, "Scale, Rotate, Translate", "Export scale, rotate, and translate Xform operators"},
-    {USD_XFORM_OP_SOT, "SOT", 0, "Scale, Orient, Translate", "Export scale, orient, and translate Xform operators"},
+    {USD_XFORM_OP_SRT,
+     "SRT",
+     0,
+     "Scale, Rotate, Translate",
+     "Export scale, rotate, and translate Xform operators"},
+    {USD_XFORM_OP_SOT,
+     "SOT",
+     0,
+     "Scale, Orient, Translate",
+     "Export scale, orient, and translate Xform operators"},
     {USD_XFORM_OP_MAT, "MAT", 0, "Matrix", "Export matrix operator"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -123,6 +131,20 @@ const EnumPropertyItem prop_usd_export_global_up[] = {
     {USD_GLOBAL_UP_MINUS_X, "-X", 0, "-X Up", "Global UP is negative X Axis"},
     {USD_GLOBAL_UP_MINUS_Y, "-Y", 0, "-Y Up", "Global UP is negative Y Axis"},
     {USD_GLOBAL_UP_MINUS_Z, "-Z", 0, "-Z Up", "Global UP is negative Z Axis"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
+    {USD_MTL_NAME_COLLISION_MODIFY,
+     "MODIFY",
+     0,
+     "Modify",
+     "Create a unique name for the imported material"},
+    {USD_MTL_NAME_COLLISION_SKIP,
+     "SKIP",
+     0,
+     "Skip",
+     "Keep the existing material and discard the imported material"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -813,11 +835,11 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
       "connected to a background shader, with an optional vector multiply of the texture color.");
 
   RNA_def_enum(ot->srna,
-    "xform_op_mode",
-    rna_enum_usd_xform_op_mode_items,
-    USD_XFORM_OP_SRT,
-    "Xform Ops",
-    "The type of transform operators to write");
+               "xform_op_mode",
+               rna_enum_usd_xform_op_mode_items,
+               USD_XFORM_OP_SRT,
+               "Xform Ops",
+               "The type of transform operators to write");
 }
 
 /* ====== USD Import ====== */
@@ -901,6 +923,9 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool create_background_shader = RNA_boolean_get(op->ptr, "create_background_shader");
 
+  const eUSDMtlNameCollisionMode mtl_name_collision_mode = RNA_enum_get(op->ptr,
+                                                                        "mtl_name_collision_mode");
+
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
   int offset = 0;
@@ -942,7 +967,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .apply_unit_conversion_scale = apply_unit_conversion_scale,
                                    .convert_light_from_nits = convert_light_from_nits,
                                    .scale_light_radius = scale_light_radius,
-                                   .create_background_shader = create_background_shader};
+                                   .create_background_shader = create_background_shader,
+                                   .mtl_name_collision_mode = mtl_name_collision_mode};
 
   const bool ok = USD_import(C, filename, &params, as_background_job);
 
@@ -989,6 +1015,7 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(box, ptr, "convert_light_from_nits", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "scale_light_radius", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "create_background_shader", 0, NULL, ICON_NONE);
+  uiItemR(box, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Experimental"));
@@ -1161,6 +1188,14 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
                   true,
                   "Create Background Shader",
                   "Convert USD dome lights to world background shaders");
+
+  RNA_def_enum(
+      ot->srna,
+      "mtl_name_collision_mode",
+      rna_enum_usd_mtl_name_collision_mode_items,
+      USD_MTL_NAME_COLLISION_MODIFY,
+      "Material Name Collision",
+      "Behavior when the name of an imported material conflicts with an existing material");
 }
 
 #endif /* WITH_USD */

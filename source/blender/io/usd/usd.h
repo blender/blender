@@ -64,6 +64,11 @@ typedef enum eUSDXformOpMode {
 static const USD_global_forward_axis USD_DEFAULT_FORWARD = USD_GLOBAL_FORWARD_MINUS_Z;
 static const USD_global_up_axis USD_DEFAULT_UP = USD_GLOBAL_UP_Y;
 
+typedef enum eUSDMtlNameCollisionMode {
+  USD_MTL_NAME_COLLISION_MODIFY = 0,
+  USD_MTL_NAME_COLLISION_SKIP = 1,
+} eUSDMtlNameCollisionMode;
+
 struct USDExportParams {
   double frame_start;
   double frame_end;
@@ -152,6 +157,7 @@ struct USDImportParams {
   bool convert_light_from_nits;
   bool scale_light_radius;
   bool create_background_shader;
+  eUSDMtlNameCollisionMode mtl_name_collision_mode;
 };
 
 /* The USD_export takes a as_background_job parameter, and returns a boolean.

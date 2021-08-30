@@ -24,6 +24,9 @@
 
 #include <pxr/usd/usd/prim.h>
 
+#include <map>
+#include <string>
+
 struct CacheFile;
 struct Main;
 struct Object;
@@ -48,6 +51,14 @@ struct ImportSettings {
   int read_flag;
 
   bool validate_meshes;
+
+  /* Map a USD matrial prim path to a Blender material name.
+   * This map might be updated by readers during stage traversal.
+   * TODO(makowalski): Is the ImportSettings struct the best place
+   * to store this map? Maybe we should define an ImportContext
+   * struct that stores USDImportParams, ImportSettings and
+   * mutable values such as this. */
+  mutable std::map<std::string, std::string> usd_path_to_mat_name;
 
   ImportSettings()
       : do_convert_mat(false),

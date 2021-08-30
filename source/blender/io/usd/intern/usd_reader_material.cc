@@ -26,12 +26,15 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 
+#include "BLI_fileops.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "DNA_material_types.h"
 
 #include <pxr/base/gf/vec3f.h>
+#include <pxr/usd/ar/resolver.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/shader.h>
 
@@ -109,6 +112,62 @@ static void link_nodes(
   }
 
   nodeAddLink(ntree, source, source_socket, dest, dest_socket);
+}
+
+static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &Attribute)
+{
+  for (auto PropertySpec : Attribute.GetPropertyStack(pxr::UsdTimeCode::EarliestTime())) {
+    if (PropertySpec->HasDefaultValue() ||
+        PropertySpec->GetLayer()->GetNumTimeSamplesForPath(PropertySpec->GetPath()) > 0) {
+      return PropertySpec->GetLayer();
+    }
+  }
+
+  return pxr::SdfLayerHandle();
+}
+
+static void add_udim_tiles(Image *image)
+{
+  if (!image || strlen(image->filepath) == 0) {
+    return;
+  }
+
+  char filename[FILE_MAX], dirname[FILE_MAXDIR];
+  BLI_split_dirfile(image->filepath, dirname, filename, sizeof(dirname), sizeof(filename));
+
+  ushort digits;
+  char base_head[FILE_MAX], base_tail[FILE_MAX];
+  int id = BLI_path_sequence_decode(filename, base_head, base_tail, &digits);
+
+  if (id != 1001) {
+    return;
+  }
+
+  image->source = IMA_SRC_TILED;
+
+  struct direntry *dir;
+  uint totfile = BLI_filelist_dir_contents(dirname, &dir);
+
+  for (int i = 0; i < totfile; i++) {
+    if (!(dir[i].type & S_IFREG)) {
+      continue;
+    }
+    char head[FILE_MAX], tail[FILE_MAX];
+    id = BLI_path_sequence_decode(dir[i].relname, head, tail, &digits);
+
+    if (digits > 4 || !(STREQLEN(base_head, head, FILE_MAX)) ||
+        !(STREQLEN(base_tail, tail, FILE_MAX))) {
+      continue;
+    }
+
+    if (id < 1001 || id >= IMA_UDIM_MAX) {
+      continue;
+    }
+
+    BKE_image_add_tile(image, id, nullptr);
+  }
+
+  BLI_filelist_free(dir, totfile);
 }
 
 /* Returns true if the given shader may have opacity < 1.0, based
@@ -627,7 +686,26 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   }
 
   const pxr::SdfAssetPath &asset_path = file_val.Get<pxr::SdfAssetPath>();
+
   std::string file_path = asset_path.GetResolvedPath();
+
+  bool have_udim = false;
+
+  if (file_path.empty()) {
+    file_path = asset_path.GetAssetPath();
+
+    /* Check if we have a UDIM path. */
+    std::size_t udim_token_offset = file_path.find("<UDIM>");
+
+    if (udim_token_offset != std::string::npos) {
+      have_udim = true;
+      file_path.replace(udim_token_offset, 6, "1001");
+      if (pxr::SdfLayerHandle layer_handle = get_layer_handle(file_input.GetAttr())) {
+        file_path = layer_handle->ComputeAbsolutePath(file_path);
+      }
+    }
+  }
+
   if (file_path.empty()) {
     std::cerr << "WARNING: Couldn't resolve image asset '" << asset_path
               << "' for Texture Image node." << std::endl;
@@ -635,11 +713,17 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   }
 
   const char *im_file = file_path.c_str();
+
   Image *image = BKE_image_load_exists(bmain_, im_file);
+
   if (!image) {
     std::cerr << "WARNING: Couldn't open image file '" << im_file << "' for Texture Image node."
               << std::endl;
     return;
+  }
+
+  if (have_udim) {
+    add_udim_tiles(image);
   }
 
   tex_image->id = &image->id;

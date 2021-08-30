@@ -147,7 +147,7 @@ static void export_in_memory_texture(Image *ima, const std::string &export_dir)
     return;
   }
 
-  char file_name[FILE_MAX] = { 0 };
+  char file_name[FILE_MAX] = {0};
 
   if (strlen(ima->filepath) > 0) {
     BLI_split_file_part(ima->filepath, file_name, FILE_MAX);
@@ -2204,10 +2204,8 @@ void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
                      usd_material.GetPath().AppendChild(cyclestokens::cycles),
                      &output,
                      export_params);
-  link_cycles_nodes(a_stage,
-                    usd_material,
-                    localtree,
-                    usd_material.GetPath().AppendChild(cyclestokens::cycles));
+  link_cycles_nodes(
+      a_stage, usd_material, localtree, usd_material.GetPath().AppendChild(cyclestokens::cycles));
 
   ntreeFreeLocalTree(localtree);
   MEM_freeN(localtree);

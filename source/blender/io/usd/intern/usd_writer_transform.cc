@@ -194,7 +194,7 @@ bool USDTransformWriter::check_is_animated(const HierarchyContext &context) cons
   return BKE_object_moves_in_time(context.object, context.animation_check_include_parent);
 }
 
-void  USDTransformWriter::set_xform_ops(float xf_matrix[4][4], pxr::UsdGeomXformable &xf)
+void USDTransformWriter::set_xform_ops(float xf_matrix[4][4], pxr::UsdGeomXformable &xf)
 {
   if (!xf) {
     return;
@@ -204,24 +204,24 @@ void  USDTransformWriter::set_xform_ops(float xf_matrix[4][4], pxr::UsdGeomXform
 
   if (xformOps_.empty()) {
     switch (xfOpMode) {
-    case USD_XFORM_OP_SRT:
-      xformOps_.push_back(xf.AddTranslateOp());
-      xformOps_.push_back(xf.AddRotateXYZOp());
-      xformOps_.push_back(xf.AddScaleOp());
+      case USD_XFORM_OP_SRT:
+        xformOps_.push_back(xf.AddTranslateOp());
+        xformOps_.push_back(xf.AddRotateXYZOp());
+        xformOps_.push_back(xf.AddScaleOp());
 
-      break;
-    case USD_XFORM_OP_SOT:
-      xformOps_.push_back(xf.AddTranslateOp());
-      xformOps_.push_back(xf.AddOrientOp());
-      xformOps_.push_back(xf.AddScaleOp());
-      break;
-    case USD_XFORM_OP_MAT:
-      xformOps_.push_back(xf.AddTransformOp());
-      break;
-    default:
-      printf("Warning: unknown XformOp type\n");
-      xformOps_.push_back(xf.AddTransformOp());
-      break;
+        break;
+      case USD_XFORM_OP_SOT:
+        xformOps_.push_back(xf.AddTranslateOp());
+        xformOps_.push_back(xf.AddOrientOp());
+        xformOps_.push_back(xf.AddScaleOp());
+        break;
+      case USD_XFORM_OP_MAT:
+        xformOps_.push_back(xf.AddTransformOp());
+        break;
+      default:
+        printf("Warning: unknown XformOp type\n");
+        xformOps_.push_back(xf.AddTransformOp());
+        break;
     }
   }
 

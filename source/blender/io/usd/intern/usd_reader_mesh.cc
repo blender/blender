@@ -80,41 +80,61 @@ static void assign_materials(Main *bmain,
                              Object *ob,
                              const std::map<pxr::SdfPath, int> &mat_index_map,
                              const USDImportParams &params,
-                             pxr::UsdStageRefPtr stage)
+                             pxr::UsdStageRefPtr stage,
+                             std::map<std::string, std::string> &usd_path_to_mat_name)
 {
   if (!(stage && bmain && ob)) {
     return;
   }
 
-  bool can_assign = true;
   std::map<pxr::SdfPath, int>::const_iterator it = mat_index_map.begin();
 
-  int matcount = 0;
-  for (; it != mat_index_map.end(); ++it, matcount++) {
+  for (; it != mat_index_map.end(); ++it) {
     if (!BKE_object_material_slot_add(bmain, ob)) {
-      can_assign = false;
-      break;
+      std::cout << "WARNING: couldn't create slot for material " << it->first << " on object "
+                << ob->id.name << std::endl;
+      return;
     }
   }
 
-  if (!can_assign) {
-    return;
-  }
-
-  /* TODO(kevin): use global map? */
+  /* TODO(makowalski): use global map? */
   std::map<std::string, Material *> mat_map;
   build_mat_map(bmain, &mat_map);
 
   blender::io::usd::USDMaterialReader mat_reader(params, bmain);
 
   for (it = mat_index_map.begin(); it != mat_index_map.end(); ++it) {
-    std::string mat_name = it->first.GetName();
-
-    std::map<std::string, Material *>::iterator mat_iter = mat_map.find(mat_name);
 
     Material *assigned_mat = nullptr;
 
-    if (mat_iter == mat_map.end()) {
+    if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MODIFY) {
+      /* Check if we've already created the Blender material with a modified name. */
+      std::map<std::string, std::string>::const_iterator path_to_name_iter =
+          usd_path_to_mat_name.find(it->first.GetAsString());
+
+      if (path_to_name_iter != usd_path_to_mat_name.end()) {
+        std::string mat_name = path_to_name_iter->second;
+        std::map<std::string, Material *>::iterator mat_iter = mat_map.find(mat_name);
+        if (mat_iter != mat_map.end()) {
+          assigned_mat = mat_iter->second;
+        }
+        else {
+          std::cout
+              << "WARNING: Couldn't find previously assigned Blender material for USD material "
+              << it->first << std::endl;
+        }
+      }
+    }
+    else {
+      std::string mat_name = it->first.GetName();
+      std::map<std::string, Material *>::iterator mat_iter = mat_map.find(mat_name);
+
+      if (mat_iter != mat_map.end()) {
+        assigned_mat = mat_iter->second;
+      }
+    }
+
+    if (!assigned_mat) {
       /* Blender material doesn't exist, so create it now. */
 
       /* Look up the USD material. */
@@ -136,11 +156,14 @@ static void assign_materials(Main *bmain,
         continue;
       }
 
+      std::string mat_name = pxr::TfMakeValidIdentifier(assigned_mat->id.name + 2);
       mat_map[mat_name] = assigned_mat;
-    }
-    else {
-      /* We found an existing Blender material. */
-      assigned_mat = mat_iter->second;
+
+      if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MODIFY) {
+        /* Record the name of the Blender material we created for the USD material
+         * with the given path. */
+        usd_path_to_mat_name[it->first.GetAsString()] = mat_name;
+      }
     }
 
     if (assigned_mat) {
@@ -148,7 +171,7 @@ static void assign_materials(Main *bmain,
     }
     else {
       /* This shouldn't happen. */
-      std::cout << "WARNING: Couldn't assign material " << mat_name << std::endl;
+      std::cout << "WARNING: Couldn't assign material " << it->first << std::endl;
     }
   }
 }
@@ -749,7 +772,12 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
 
   std::map<pxr::SdfPath, int> mat_map;
   assign_facesets_to_mpoly(motionSampleTime, mesh->mpoly, mesh->totpoly, &mat_map);
-  utils::assign_materials(bmain, object_, mat_map, this->import_params_, this->prim_.GetStage());
+  utils::assign_materials(bmain,
+                          object_,
+                          mat_map,
+                          this->import_params_,
+                          this->prim_.GetStage(),
+                          this->settings_->usd_path_to_mat_name);
 }
 
 Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
