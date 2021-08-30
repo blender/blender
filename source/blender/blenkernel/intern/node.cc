@@ -79,6 +79,7 @@
 #include "NOD_composite.h"
 #include "NOD_function.h"
 #include "NOD_geometry.h"
+#include "NOD_node_declaration.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.h"
 #include "NOD_texture.h"
@@ -887,7 +888,7 @@ void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree)
    * to match the static layout. */
   if (!BLO_read_lib_is_undo(reader)) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      node_verify_socket_templates(ntree, node);
+      node_verify_sockets(ntree, node, false);
     }
   }
 }
@@ -1011,6 +1012,13 @@ IDTypeInfo IDType_ID_NT = {
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
+  if (ntype->declare != nullptr) {
+    blender::nodes::NodeDeclaration node_decl;
+    blender::nodes::NodeDeclarationBuilder builder{node_decl};
+    ntype->declare(builder);
+    node_decl.build(*ntree, *node);
+    return;
+  }
   bNodeSocketTemplate *sockdef;
   /* bNodeSocket *sock; */ /* UNUSED */
 
@@ -1916,6 +1924,14 @@ static void node_socket_free(bNodeTree *UNUSED(ntree),
 
 void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 {
+  nodeRemoveSocketEx(ntree, node, sock, true);
+}
+
+void nodeRemoveSocketEx(struct bNodeTree *ntree,
+                        struct bNode *node,
+                        struct bNodeSocket *sock,
+                        bool do_id_user)
+{
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     if (link->fromsock == sock || link->tosock == sock) {
       nodeRemLink(ntree, link);
@@ -1926,7 +1942,7 @@ void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
   BLI_remlink(&node->inputs, sock);
   BLI_remlink(&node->outputs, sock);
 
-  node_socket_free(ntree, sock, node, true);
+  node_socket_free(ntree, sock, node, do_id_user);
   MEM_freeN(sock);
 
   node->update |= NODE_UPDATE;

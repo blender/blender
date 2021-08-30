@@ -19,17 +19,17 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_input_material_out[] = {
-    {SOCK_MATERIAL, N_("Material")},
-    {-1, ""},
-};
+namespace blender::nodes {
+
+static void geo_node_input_material_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Material>("Material");
+}
 
 static void geo_node_input_material_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "material", 0, "", ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_input_material_exec(GeoNodeExecParams params)
 {
@@ -44,8 +44,8 @@ void register_node_type_geo_input_material()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_MATERIAL, "Material", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, geo_node_input_material_out);
-  ntype.draw_buttons = geo_node_input_material_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_input_material_layout;
+  ntype.declare = blender::nodes::geo_node_input_material_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_input_material_exec;
   nodeRegisterType(&ntype);
 }

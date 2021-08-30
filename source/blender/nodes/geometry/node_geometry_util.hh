@@ -31,6 +31,7 @@
 
 #include "NOD_geometry.h"
 #include "NOD_geometry_exec.hh"
+#include "NOD_socket_declarations.hh"
 
 #include "node_util.h"
 

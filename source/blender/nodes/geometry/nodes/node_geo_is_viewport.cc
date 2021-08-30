@@ -18,12 +18,12 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_is_viewport_out[] = {
-    {SOCK_BOOLEAN, N_("Is Viewport")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_is_viewport_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Bool>("Is Viewport");
+}
 
 static void geo_node_is_viewport_exec(GeoNodeExecParams params)
 {
@@ -41,7 +41,7 @@ void register_node_type_geo_is_viewport()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_IS_VIEWPORT, "Is Viewport", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, nullptr, geo_node_is_viewport_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_is_viewport_exec;
+  ntype.declare = blender::nodes::geo_node_is_viewport_declare;
   nodeRegisterType(&ntype);
 }

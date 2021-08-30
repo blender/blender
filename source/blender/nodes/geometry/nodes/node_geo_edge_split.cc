@@ -22,28 +22,20 @@ extern "C" {
 Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd);
 }
 
-static bNodeSocketTemplate geo_node_edge_split_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_BOOLEAN, N_("Edge Angle"), true},
-    {SOCK_FLOAT,
-     N_("Angle"),
-     DEG2RADF(30.0f),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     DEG2RADF(180.0f),
-     PROP_ANGLE},
-    {SOCK_BOOLEAN, N_("Sharp Edges")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_edge_split_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_edge_split_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Bool>("Edge Angle").default_value(true);
+  b.add_input<decl::Float>("Angle")
+      .default_value(DEG2RADF(30.0f))
+      .min(0.0f)
+      .max(DEG2RADF(180.0f))
+      .subtype(PROP_ANGLE);
+  b.add_input<decl::Bool>("Sharp Edges");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_edge_split_exec(GeoNodeExecParams params)
 {
@@ -91,7 +83,7 @@ void register_node_type_geo_edge_split()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_EDGE_SPLIT, "Edge Split", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_edge_split_in, geo_node_edge_split_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_edge_split_exec;
+  ntype.declare = blender::nodes::geo_node_edge_split_declare;
   nodeRegisterType(&ntype);
 }
