@@ -267,6 +267,7 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
     SEQ_relations_invalidate_cache_preprocessed(scene, seq);
 
     /* Update meta. */
+    SEQ_time_update_meta_strip_range(scene, dst_seqm);
     SEQ_time_update_sequence(scene, dst_seqm);
     if (SEQ_transform_test_overlap(&dst_seqm->seqbase, seq)) {
       SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, seq, scene);
