@@ -489,7 +489,7 @@ static void idprop_ui_data_to_dict_float(IDProperty *property, PyObject *dict)
   Py_DECREF(item);
   PyDict_SetItemString(dict, "step", item = PyFloat_FromDouble((double)ui_data->step));
   Py_DECREF(item);
-  PyDict_SetItemString(dict, "precision", item = PyFloat_FromDouble((double)ui_data->precision));
+  PyDict_SetItemString(dict, "precision", item = PyLong_FromDouble((double)ui_data->precision));
   Py_DECREF(item);
   if (property->type == IDP_ARRAY) {
     PyObject *list = PyList_New(ui_data->default_array_len);
