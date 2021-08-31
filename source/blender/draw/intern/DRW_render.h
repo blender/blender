@@ -63,6 +63,10 @@
 
 #include "DEG_depsgraph.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct GPUBatch;
 struct GPUMaterial;
 struct GPUShader;
@@ -774,3 +778,7 @@ typedef struct DRWContextState {
 } DRWContextState;
 
 const DRWContextState *DRW_context_state_get(void);
+
+#ifdef __cplusplus
+}
+#endif

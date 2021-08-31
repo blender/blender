@@ -39,85 +39,147 @@
 
 #include "draw_color_management.h"
 
+namespace blender::draw::color_management {
+
+enum class eDRWColorManagementType {
+  Off = 0,
+  OnlyViewTransform,
+  UseRenderSettings,
+};
+
+static float dither_get(eDRWColorManagementType color_management_type, const Scene *scene)
+{
+  if (ELEM(color_management_type,
+           eDRWColorManagementType::OnlyViewTransform,
+           eDRWColorManagementType::UseRenderSettings)) {
+    return scene->r.dither_intensity;
+  }
+  return 0.0f;
+}
+
+static eDRWColorManagementType drw_color_management_type_for_v3d(const Scene *scene,
+                                                                 const View3D *v3d)
+{
+
+  const bool use_workbench = BKE_scene_uses_blender_workbench(scene);
+  const bool use_scene_lights = ((v3d->shading.type == OB_MATERIAL) &&
+                                 (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS)) ||
+                                ((v3d->shading.type == OB_RENDER) &&
+                                 (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER));
+  const bool use_scene_world = ((v3d->shading.type == OB_MATERIAL) &&
+                                (v3d->shading.flag & V3D_SHADING_SCENE_WORLD)) ||
+                               ((v3d->shading.type == OB_RENDER) &&
+                                (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER));
+
+  if ((use_workbench && v3d->shading.type == OB_RENDER) || use_scene_lights || use_scene_world) {
+    return eDRWColorManagementType::UseRenderSettings;
+  }
+  if (v3d->shading.type >= OB_MATERIAL) {
+    return eDRWColorManagementType::OnlyViewTransform;
+  }
+  return eDRWColorManagementType::Off;
+}
+
+static eDRWColorManagementType drw_color_management_type_for_space_image(const SpaceImage &sima)
+{
+  Image *image = sima.image;
+
+  /* Use inverse logic as there isn't a setting for `Color And Alpha`. */
+  const eSpaceImage_Flag display_channels_mode = static_cast<eSpaceImage_Flag>(sima.flag);
+  const bool display_color_channel = (display_channels_mode & (SI_SHOW_ALPHA | SI_SHOW_ZBUF)) == 0;
+
+  if (display_color_channel && image && (image->source != IMA_SRC_GENERATED) &&
+      ((image->flag & IMA_VIEW_AS_RENDER) != 0)) {
+    return eDRWColorManagementType::UseRenderSettings;
+  }
+  return eDRWColorManagementType::Off;
+}
+
+static eDRWColorManagementType drw_color_management_type_for_space_node(const SpaceNode &snode)
+{
+  const eSpaceNode_Flag display_channels_mode = static_cast<eSpaceNode_Flag>(snode.flag);
+  const bool display_color_channel = (display_channels_mode & SNODE_SHOW_ALPHA) == 0;
+  if (display_color_channel) {
+    return eDRWColorManagementType::UseRenderSettings;
+  }
+  return eDRWColorManagementType::Off;
+}
+
+static eDRWColorManagementType drw_color_management_type_get(const Scene *scene,
+                                                             const View3D *v3d,
+                                                             const SpaceLink *space_data)
+{
+  if (v3d) {
+    return drw_color_management_type_for_v3d(scene, v3d);
+  }
+  if (space_data) {
+    switch (space_data->spacetype) {
+      case SPACE_IMAGE: {
+        const SpaceImage *sima = static_cast<const SpaceImage *>(
+            static_cast<const void *>(space_data));
+        return drw_color_management_type_for_space_image(*sima);
+      }
+      case SPACE_NODE: {
+        const SpaceNode *snode = static_cast<const SpaceNode *>(
+            static_cast<const void *>(space_data));
+        return drw_color_management_type_for_space_node(*snode);
+      }
+    }
+  }
+  return eDRWColorManagementType::UseRenderSettings;
+}
+
+static void viewport_settings_apply(GPUViewport *viewport,
+                                    const Scene *scene,
+                                    const eDRWColorManagementType color_management_type)
+{
+  const ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+  ColorManagedViewSettings view_settings;
+
+  switch (color_management_type) {
+    case eDRWColorManagementType::Off: {
+      /* For workbench use only default view transform in configuration,
+       * using no scene settings. */
+      BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
+      break;
+    }
+    case eDRWColorManagementType::OnlyViewTransform: {
+      /* Use only view transform + look and nothing else for lookdev without
+       * scene lighting, as exposure depends on scene light intensity. */
+      BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
+      STRNCPY(view_settings.view_transform, scene->view_settings.view_transform);
+      STRNCPY(view_settings.look, scene->view_settings.look);
+      break;
+    }
+    case eDRWColorManagementType::UseRenderSettings: {
+      /* Use full render settings, for renders with scene lighting. */
+      view_settings = scene->view_settings;
+      break;
+    }
+  }
+
+  const float dither = dither_get(color_management_type, scene);
+  GPU_viewport_colorspace_set(viewport, &view_settings, display_settings, dither);
+}
+
+static void viewport_color_management_set(GPUViewport *viewport)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+
+  const eDRWColorManagementType color_management_type = drw_color_management_type_get(
+      draw_ctx->scene, draw_ctx->v3d, draw_ctx->space_data);
+  viewport_settings_apply(viewport, draw_ctx->scene, color_management_type);
+}
+
+}  // namespace blender::draw::color_management
+
 /* -------------------------------------------------------------------- */
 /** \name Color Management
  * \{ */
 
-void DRW_viewport_colormanagement_set(GPUViewport *viewport, DRWContextState *draw_ctx)
+void DRW_viewport_colormanagement_set(GPUViewport *viewport)
 {
-  const Scene *scene = draw_ctx->scene;
-  const View3D *v3d = draw_ctx->v3d;
-
-  const ColorManagedDisplaySettings *display_settings = &scene->display_settings;
-  ColorManagedViewSettings view_settings;
-  float dither = 0.0f;
-
-  bool use_render_settings = false;
-  bool use_view_transform = false;
-
-  if (v3d) {
-    bool use_workbench = BKE_scene_uses_blender_workbench(scene);
-
-    bool use_scene_lights = (!v3d ||
-                             ((v3d->shading.type == OB_MATERIAL) &&
-                              (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS)) ||
-                             ((v3d->shading.type == OB_RENDER) &&
-                              (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER)));
-    bool use_scene_world = (!v3d ||
-                            ((v3d->shading.type == OB_MATERIAL) &&
-                             (v3d->shading.flag & V3D_SHADING_SCENE_WORLD)) ||
-                            ((v3d->shading.type == OB_RENDER) &&
-                             (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER)));
-    use_view_transform = v3d && (v3d->shading.type >= OB_MATERIAL);
-    use_render_settings = v3d && ((use_workbench && use_view_transform) || use_scene_lights ||
-                                  use_scene_world);
-  }
-  else if (DST.draw_ctx.space_data && DST.draw_ctx.space_data->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = (SpaceImage *)DST.draw_ctx.space_data;
-    Image *image = sima->image;
-
-    /* Use inverse logic as there isn't a setting for `Color And Alpha`. */
-    const eSpaceImage_Flag display_channels_mode = static_cast<eSpaceImage_Flag>(sima->flag);
-    const bool display_color_channel = (display_channels_mode & (SI_SHOW_ALPHA | SI_SHOW_ZBUF)) ==
-                                       0;
-    if (display_color_channel && image && (image->source != IMA_SRC_GENERATED) &&
-        ((image->flag & IMA_VIEW_AS_RENDER) != 0)) {
-      use_render_settings = true;
-    }
-  }
-  else if (DST.draw_ctx.space_data && DST.draw_ctx.space_data->spacetype == SPACE_NODE) {
-    SpaceNode *snode = (SpaceNode *)DST.draw_ctx.space_data;
-    const eSpaceNode_Flag display_channels_mode = static_cast<eSpaceNode_Flag>(snode->flag);
-    const bool display_color_channel = (display_channels_mode & SNODE_SHOW_ALPHA) == 0;
-    if (display_color_channel) {
-      use_render_settings = true;
-    }
-  }
-  else {
-    use_render_settings = true;
-    use_view_transform = false;
-  }
-
-  if (use_render_settings) {
-    /* Use full render settings, for renders with scene lighting. */
-    view_settings = scene->view_settings;
-    dither = scene->r.dither_intensity;
-  }
-  else if (use_view_transform) {
-    /* Use only view transform + look and nothing else for lookdev without
-     * scene lighting, as exposure depends on scene light intensity. */
-    BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
-    STRNCPY(view_settings.view_transform, scene->view_settings.view_transform);
-    STRNCPY(view_settings.look, scene->view_settings.look);
-    dither = scene->r.dither_intensity;
-  }
-  else {
-    /* For workbench use only default view transform in configuration,
-     * using no scene settings. */
-    BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
-  }
-
-  GPU_viewport_colorspace_set(viewport, &view_settings, display_settings, dither);
+  blender::draw::color_management::viewport_color_management_set(viewport);
 }
 
 /* Draw texture to framebuffer without any color transforms */

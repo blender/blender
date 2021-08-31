@@ -29,8 +29,7 @@ extern "C" {
 struct GPUViewport;
 
 void DRW_transform_none(struct GPUTexture *tex);
-void DRW_viewport_colormanagement_set(struct GPUViewport *viewport,
-                                      struct DRWContextState *draw_ctx);
+void DRW_viewport_colormanagement_set(struct GPUViewport *viewport);
 
 #ifdef __cplusplus
 }
