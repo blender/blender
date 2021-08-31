@@ -57,7 +57,7 @@ Image *ED_space_image(SpaceImage *sima)
   return sima->image;
 }
 
-void ED_space_image_set(Main *bmain, SpaceImage *sima, Object *obedit, Image *ima, bool automatic)
+void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automatic)
 {
   /* Automatically pin image when manually assigned, otherwise it follows object. */
   if (!automatic && sima->image != ima && sima->mode == SI_MODE_UV) {
@@ -77,10 +77,6 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Object *obedit, Image *im
   }
 
   id_us_ensure_real((ID *)sima->image);
-
-  if (obedit) {
-    WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
-  }
 
   WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, NULL);
 }
