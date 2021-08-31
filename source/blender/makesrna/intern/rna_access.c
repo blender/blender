@@ -5690,7 +5690,7 @@ char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, IDProperty *needle)
   return NULL;
 }
 
-static char *rna_path_from_ID_to_idpgroup(PointerRNA *ptr)
+static char *rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
 {
   PointerRNA id_ptr;
 
@@ -5775,7 +5775,7 @@ static char *rna_prepend_real_ID_path(Main *bmain, ID *id, char *path, ID **r_re
   return prefix[0] != '\0' ? BLI_strdup(prefix) : NULL;
 }
 
-char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
+char *RNA_path_from_ID_to_struct(const PointerRNA *ptr)
 {
   char *ptrpath = NULL;
 
@@ -5786,7 +5786,7 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
   if (!RNA_struct_is_ID(ptr->type)) {
     if (ptr->type->path) {
       /* if type has a path to some ID, use it */
-      ptrpath = ptr->type->path(ptr);
+      ptrpath = ptr->type->path((PointerRNA *)ptr);
     }
     else if (ptr->type->nested && RNA_struct_is_ID(ptr->type->nested)) {
       PointerRNA parentptr;
@@ -6156,7 +6156,7 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
  * Get the struct.property as a python representation, eg:
  *   some_prop[10]
  */
-char *RNA_path_property_py(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index)
+char *RNA_path_property_py(const PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index)
 {
   char *ret;
 

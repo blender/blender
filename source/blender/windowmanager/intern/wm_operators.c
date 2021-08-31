@@ -55,6 +55,7 @@
 #include "BLI_dial_2d.h"
 #include "BLI_dynstr.h" /* For #WM_operator_pystring. */
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_brush.h"
@@ -347,7 +348,7 @@ bool WM_operator_pystring_abbreviate(char *str, int str_len_max)
 
 /* return NULL if no match is found */
 #if 0
-static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
+static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr, bool *r_is_id)
 {
   /* loop over all context items and do 2 checks
    *
@@ -362,6 +363,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 
   const char *member_found = NULL;
   const char *member_id = NULL;
+  bool member_found_is_id = false;
 
   for (link = lb.first; link; link = link->next) {
     const char *identifier = link->data;
@@ -373,14 +375,15 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
     }
 
     if (ptr->owner_id == ctx_item_ptr.owner_id) {
+      const bool is_id = RNA_struct_is_ID(ctx_item_ptr.type);
       if ((ptr->data == ctx_item_ptr.data) && (ptr->type == ctx_item_ptr.type)) {
         /* found! */
         member_found = identifier;
+        member_found_is_id = is_id;
         break;
       }
-      else if (RNA_struct_is_ID(ctx_item_ptr.type)) {
-        /* we found a reference to this ID,
-         * so fallback to it if there is no direct reference */
+      if (is_id) {
+        /* Found a reference to this ID, so fallback to it if there is no direct reference. */
         member_id = identifier;
       }
     }
@@ -388,9 +391,11 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
   BLI_freelistN(&lb);
 
   if (member_found) {
+    *r_is_id = member_found_is_id;
     return member_found;
   }
   else if (member_id) {
+    *r_is_id = true;
     return member_id;
   }
   else {
@@ -402,9 +407,24 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 
 /* use hard coded checks for now */
 
-static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
+/**
+ * \param: r_is_id:
+ * - When set to true, the returned member is an ID type.
+ *   This is a signal that #RNA_path_from_ID_to_struct needs to be used to calculate
+ *   the remainder of the RNA path.
+ * - When set to false, the returned member is not an ID type.
+ *   In this case the context path *must* resolve to `ptr`,
+ *   since there is no convenient way to calculate partial RNA paths.
+ *
+ * \note While the path to the ID is typically sufficient to calculate the remainder of the path,
+ * in practice this would cause #WM_context_path_resolve_property_full to crate a path such as:
+ * `object.data.bones["Bones"].use_deform` such paths are not useful for key-shortcuts,
+ * so this function supports returning data-paths directly to context members that aren't ID types.
+ */
+static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr, bool *r_is_id)
 {
   const char *member_id = NULL;
+  bool is_id = false;
 
   if (ptr->owner_id) {
 
@@ -414,6 +434,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, ctx_member); \
       if (ctx_item_ptr.owner_id == idptr) { \
         member_id = ctx_member; \
+        is_id = true; \
         break; \
       } \
     } \
@@ -426,6 +447,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, ctx_member); \
       if (ctx_item_ptr.owner_id && (ID *)cast(ctx_item_ptr.owner_id) == idptr) { \
         member_id = ctx_member_full; \
+        is_id = true; \
         break; \
       } \
     } \
@@ -530,30 +552,69 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 #  undef TEST_PTR_DATA_TYPE
   }
 
+  *r_is_id = is_id;
+
   return member_id;
 }
 #endif
+
+/**
+ * Calculate the path to `ptr` from constex `C`, or return NULL if it can't be calculated.
+ */
+char *WM_context_path_resolve_property_full(bContext *C,
+                                            const PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            int index)
+{
+  bool is_id;
+  const char *member_id = wm_context_member_from_ptr(C, ptr, &is_id);
+  char *member_id_data_path = NULL;
+  if (member_id != NULL) {
+    if (is_id && !RNA_struct_is_ID(ptr->type)) {
+      char *data_path = RNA_path_from_ID_to_struct(ptr);
+      if (data_path != NULL) {
+        if (prop != NULL) {
+          char *prop_str = RNA_path_property_py(ptr, prop, index);
+          member_id_data_path = BLI_string_join_by_sep_charN('.', member_id, data_path, prop_str);
+          MEM_freeN(prop_str);
+        }
+        else {
+          member_id_data_path = BLI_string_join_by_sep_charN('.', member_id, data_path);
+        }
+        MEM_freeN(data_path);
+      }
+    }
+    else {
+      if (prop != NULL) {
+        char *prop_str = RNA_path_property_py(ptr, prop, index);
+        member_id_data_path = BLI_string_join_by_sep_charN('.', member_id, prop_str);
+        MEM_freeN(prop_str);
+      }
+      else {
+        member_id_data_path = BLI_strdup(member_id);
+      }
+    }
+  }
+  return member_id_data_path;
+}
+
+char *WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr)
+{
+  return WM_context_path_resolve_property_full(C, ptr, NULL, -1);
+}
 
 static char *wm_prop_pystring_from_context(bContext *C,
                                            PointerRNA *ptr,
                                            PropertyRNA *prop,
                                            int index)
 {
-  const char *member_id = wm_context_member_from_ptr(C, ptr);
+  char *member_id_data_path = WM_context_path_resolve_property_full(C, ptr, prop, index);
   char *ret = NULL;
-  if (member_id != NULL) {
-    char *prop_str = RNA_path_struct_property_py(ptr, prop, index);
-    if (prop_str) {
-      ret = BLI_sprintfN("bpy.context.%s.%s", member_id, prop_str);
-      MEM_freeN(prop_str);
-    }
+  if (member_id_data_path != NULL) {
+    ret = BLI_sprintfN("bpy.context.%s", member_id_data_path);
+    MEM_freeN(member_id_data_path);
   }
   return ret;
-}
-
-const char *WM_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
-{
-  return wm_context_member_from_ptr(C, ptr);
 }
 
 char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)

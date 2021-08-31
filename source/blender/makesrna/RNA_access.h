@@ -1162,7 +1162,7 @@ char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, struct IDProperty *nee
 
 struct ID *RNA_find_real_ID_and_path(struct Main *bmain, struct ID *id, const char **r_path);
 
-char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
+char *RNA_path_from_ID_to_struct(const PointerRNA *ptr);
 
 char *RNA_path_from_real_ID_to_struct(struct Main *bmain, PointerRNA *ptr, struct ID **r_real);
 
@@ -1192,7 +1192,7 @@ char *RNA_path_full_property_py(struct Main *bmain,
                                 struct PropertyRNA *prop,
                                 int index);
 char *RNA_path_struct_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
-char *RNA_path_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
+char *RNA_path_property_py(const struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 
 /* Quick name based property access
  *
