@@ -20,8 +20,6 @@
  * \ingroup draw
  */
 
-#include <stdio.h>
-
 #include "draw_manager.h"
 
 #include "DRW_render.h"
@@ -47,34 +45,34 @@ enum class eDRWColorManagementType {
   UseRenderSettings,
 };
 
-static float dither_get(eDRWColorManagementType color_management_type, const Scene *scene)
+static float dither_get(eDRWColorManagementType color_management_type, const Scene &scene)
 {
   if (ELEM(color_management_type,
            eDRWColorManagementType::OnlyViewTransform,
            eDRWColorManagementType::UseRenderSettings)) {
-    return scene->r.dither_intensity;
+    return scene.r.dither_intensity;
   }
   return 0.0f;
 }
 
-static eDRWColorManagementType drw_color_management_type_for_v3d(const Scene *scene,
-                                                                 const View3D *v3d)
+static eDRWColorManagementType drw_color_management_type_for_v3d(const Scene &scene,
+                                                                 const View3D &v3d)
 {
 
-  const bool use_workbench = BKE_scene_uses_blender_workbench(scene);
-  const bool use_scene_lights = ((v3d->shading.type == OB_MATERIAL) &&
-                                 (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS)) ||
-                                ((v3d->shading.type == OB_RENDER) &&
-                                 (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER));
-  const bool use_scene_world = ((v3d->shading.type == OB_MATERIAL) &&
-                                (v3d->shading.flag & V3D_SHADING_SCENE_WORLD)) ||
-                               ((v3d->shading.type == OB_RENDER) &&
-                                (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER));
+  const bool use_workbench = BKE_scene_uses_blender_workbench(&scene);
+  const bool use_scene_lights = ((v3d.shading.type == OB_MATERIAL) &&
+                                 (v3d.shading.flag & V3D_SHADING_SCENE_LIGHTS)) ||
+                                ((v3d.shading.type == OB_RENDER) &&
+                                 (v3d.shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER));
+  const bool use_scene_world = ((v3d.shading.type == OB_MATERIAL) &&
+                                (v3d.shading.flag & V3D_SHADING_SCENE_WORLD)) ||
+                               ((v3d.shading.type == OB_RENDER) &&
+                                (v3d.shading.flag & V3D_SHADING_SCENE_WORLD_RENDER));
 
-  if ((use_workbench && v3d->shading.type == OB_RENDER) || use_scene_lights || use_scene_world) {
+  if ((use_workbench && v3d.shading.type == OB_RENDER) || use_scene_lights || use_scene_world) {
     return eDRWColorManagementType::UseRenderSettings;
   }
-  if (v3d->shading.type >= OB_MATERIAL) {
+  if (v3d.shading.type >= OB_MATERIAL) {
     return eDRWColorManagementType::OnlyViewTransform;
   }
   return eDRWColorManagementType::Off;
@@ -105,12 +103,12 @@ static eDRWColorManagementType drw_color_management_type_for_space_node(const Sp
   return eDRWColorManagementType::Off;
 }
 
-static eDRWColorManagementType drw_color_management_type_get(const Scene *scene,
+static eDRWColorManagementType drw_color_management_type_get(const Scene &scene,
                                                              const View3D *v3d,
                                                              const SpaceLink *space_data)
 {
   if (v3d) {
-    return drw_color_management_type_for_v3d(scene, v3d);
+    return drw_color_management_type_for_v3d(scene, *v3d);
   }
   if (space_data) {
     switch (space_data->spacetype) {
@@ -129,11 +127,11 @@ static eDRWColorManagementType drw_color_management_type_get(const Scene *scene,
   return eDRWColorManagementType::UseRenderSettings;
 }
 
-static void viewport_settings_apply(GPUViewport *viewport,
-                                    const Scene *scene,
+static void viewport_settings_apply(GPUViewport &viewport,
+                                    const Scene &scene,
                                     const eDRWColorManagementType color_management_type)
 {
-  const ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+  const ColorManagedDisplaySettings *display_settings = &scene.display_settings;
   ColorManagedViewSettings view_settings;
 
   switch (color_management_type) {
@@ -147,28 +145,28 @@ static void viewport_settings_apply(GPUViewport *viewport,
       /* Use only view transform + look and nothing else for lookdev without
        * scene lighting, as exposure depends on scene light intensity. */
       BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
-      STRNCPY(view_settings.view_transform, scene->view_settings.view_transform);
-      STRNCPY(view_settings.look, scene->view_settings.look);
+      STRNCPY(view_settings.view_transform, scene.view_settings.view_transform);
+      STRNCPY(view_settings.look, scene.view_settings.look);
       break;
     }
     case eDRWColorManagementType::UseRenderSettings: {
       /* Use full render settings, for renders with scene lighting. */
-      view_settings = scene->view_settings;
+      view_settings = scene.view_settings;
       break;
     }
   }
 
   const float dither = dither_get(color_management_type, scene);
-  GPU_viewport_colorspace_set(viewport, &view_settings, display_settings, dither);
+  GPU_viewport_colorspace_set(&viewport, &view_settings, display_settings, dither);
 }
 
-static void viewport_color_management_set(GPUViewport *viewport)
+static void viewport_color_management_set(GPUViewport &viewport)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
   const eDRWColorManagementType color_management_type = drw_color_management_type_get(
-      draw_ctx->scene, draw_ctx->v3d, draw_ctx->space_data);
-  viewport_settings_apply(viewport, draw_ctx->scene, color_management_type);
+      *draw_ctx->scene, draw_ctx->v3d, draw_ctx->space_data);
+  viewport_settings_apply(viewport, *draw_ctx->scene, color_management_type);
 }
 
 }  // namespace blender::draw::color_management
@@ -179,7 +177,7 @@ static void viewport_color_management_set(GPUViewport *viewport)
 
 void DRW_viewport_colormanagement_set(GPUViewport *viewport)
 {
-  blender::draw::color_management::viewport_color_management_set(viewport);
+  blender::draw::color_management::viewport_color_management_set(*viewport);
 }
 
 /* Draw texture to framebuffer without any color transforms */
