@@ -96,7 +96,9 @@ const char *screen_context_dir[] = {
     "sequences",
     "selected_sequences",
     "selected_editable_sequences", /* sequencer */
-    "selected_nla_strips",         /* nla editor */
+    "active_nla_track",
+    "active_nla_strip",
+    "selected_nla_strips", /* nla editor */
     "gpencil_data",
     "gpencil_data_owner", /* grease pencil data */
     "annotation_data",
@@ -664,6 +666,24 @@ static eContextResult screen_ctx_selected_editable_sequences(const bContext *C,
   }
   return CTX_RESULT_NO_DATA;
 }
+static eContextResult screen_ctx_active_nla_track(const bContext *C, bContextDataResult *result)
+{
+  PointerRNA ptr;
+  if (ANIM_nla_context_track_ptr(C, &ptr)) {
+    CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
+static eContextResult screen_ctx_active_nla_strip(const bContext *C, bContextDataResult *result)
+{
+  PointerRNA ptr;
+  if (ANIM_nla_context_strip_ptr(C, &ptr)) {
+    CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
 static eContextResult screen_ctx_selected_nla_strips(const bContext *C, bContextDataResult *result)
 {
   bAnimContext ac;
@@ -1115,6 +1135,8 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("sequences", screen_ctx_sequences);
   register_context_function("selected_sequences", screen_ctx_selected_sequences);
   register_context_function("selected_editable_sequences", screen_ctx_selected_editable_sequences);
+  register_context_function("active_nla_track", screen_ctx_active_nla_track);
+  register_context_function("active_nla_strip", screen_ctx_active_nla_strip);
   register_context_function("selected_nla_strips", screen_ctx_selected_nla_strips);
   register_context_function("gpencil_data", screen_ctx_gpencil_data);
   register_context_function("gpencil_data_owner", screen_ctx_gpencil_data_owner);

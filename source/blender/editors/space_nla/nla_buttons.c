@@ -185,10 +185,31 @@ bool nla_panel_context(const bContext *C,
   return (found != 0);
 }
 
+bool ANIM_nla_context_track_ptr(const bContext *C, PointerRNA *r_ptr)
+{
+  return nla_panel_context(C, NULL, r_ptr, NULL);
+}
+
+bool ANIM_nla_context_strip_ptr(const bContext *C, PointerRNA *r_ptr)
+{
+  return nla_panel_context(C, NULL, NULL, r_ptr);
+}
+
+NlaTrack *ANIM_nla_context_track(const bContext *C)
+{
+  PointerRNA track_ptr;
+  if (!ANIM_nla_context_track_ptr(C, &track_ptr)) {
+    return NULL;
+  }
+  NlaTrack *track = track_ptr.data;
+
+  return track;
+}
+
 NlaStrip *ANIM_nla_context_strip(const bContext *C)
 {
   PointerRNA strip_ptr;
-  if (!nla_panel_context(C, NULL, NULL, &strip_ptr)) {
+  if (!ANIM_nla_context_strip_ptr(C, &strip_ptr)) {
     return NULL;
   }
   NlaStrip *strip = strip_ptr.data;

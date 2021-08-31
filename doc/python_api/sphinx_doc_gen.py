@@ -1047,6 +1047,8 @@ context_type_map = {
     "active_pose_bone": ("PoseBone", False),
     "active_sequence_strip": ("Sequence", False),
     "active_editable_fcurve": ("FCurve", False),
+    "active_nla_strip": ("NlaStrip", False),
+    "active_nla_track": ("NlaTrack", False),
     "annotation_data": ("GreasePencil", False),
     "annotation_data_owner": ("ID", False),
     "armature": ("Armature", False),
