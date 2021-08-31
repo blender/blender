@@ -40,6 +40,7 @@
 #include "CLG_log.h"
 
 #include "DNA_ID.h"
+#include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -58,6 +59,7 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -426,8 +428,6 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
   const char *member_id = NULL;
   bool is_id = false;
 
-  if (ptr->owner_id) {
-
 #  define CTX_TEST_PTR_ID(C, member, idptr) \
     { \
       const char *ctx_member = member; \
@@ -463,17 +463,62 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
     } \
     (void)0
 
-    switch (GS(ptr->owner_id->name)) {
+  /* A version of #TEST_PTR_DATA_TYPE that calls `CTX_data_pointer_get_type(C, member)`. */
+#  define TEST_PTR_DATA_TYPE_FROM_CONTEXT(member, rna_type, rna_ptr) \
+    { \
+      const char *ctx_member = member; \
+      if (RNA_struct_is_a((rna_ptr)->type, &(rna_type)) && \
+          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) { \
+        member_id = ctx_member; \
+        break; \
+      } \
+    } \
+    (void)0
+
+  /* General checks (multiple ID types). */
+  if (ptr->owner_id) {
+    const ID_Type ptr_id_type = GS(ptr->owner_id->name);
+
+    /* Support break in the macros for an early exit. */
+    do {
+      /* Animation Data. */
+      if (id_type_can_have_animdata(ptr_id_type)) {
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_nla_track", RNA_NlaTrack, ptr);
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_nla_strip", RNA_NlaStrip, ptr);
+      }
+    } while (0);
+  }
+
+  /* Specific ID type checks. */
+  if (ptr->owner_id && (member_id == NULL)) {
+
+    const ID_Type ptr_id_type = GS(ptr->owner_id->name);
+    switch (ptr_id_type) {
       case ID_SCE: {
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_sequence_strip", RNA_Sequence, ptr);
+
         CTX_TEST_PTR_ID(C, "scene", ptr->owner_id);
         break;
       }
       case ID_OB: {
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_pose_bone", RNA_PoseBone, ptr);
+
         CTX_TEST_PTR_ID(C, "object", ptr->owner_id);
         break;
       }
       /* from rna_Main_objects_new */
       case OB_DATA_SUPPORT_ID_CASE: {
+
+        if (ptr_id_type == ID_AR) {
+          const bArmature *arm = (bArmature *)ptr->owner_id;
+          if (arm->edbo != NULL) {
+            TEST_PTR_DATA_TYPE("active_bone", RNA_EditBone, ptr, arm->act_edbone);
+          }
+          else {
+            TEST_PTR_DATA_TYPE("active_bone", RNA_Bone, ptr, arm->act_bone);
+          }
+        }
+
 #  define ID_CAST_OBDATA(id_pt) (((Object *)(id_pt))->data)
         CTX_TEST_PTR_ID_CAST(C, "object", "object.data", ID_CAST_OBDATA, ptr->owner_id);
         break;
