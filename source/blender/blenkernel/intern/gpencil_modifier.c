@@ -660,7 +660,7 @@ static void gpencil_copy_activeframe_to_eval(
       bGPDframe *gpf_orig = gpl_orig->actframe;
 
       int remap_cfra = gpencil_remap_time_get(depsgraph, scene, ob, gpl_orig);
-      if (gpf_orig && gpf_orig->framenum != remap_cfra) {
+      if ((gpf_orig == NULL) || (gpf_orig && gpf_orig->framenum != remap_cfra)) {
         gpf_orig = BKE_gpencil_layer_frame_get(gpl_orig, remap_cfra, GP_GETFRAME_USE_PREV);
       }
 
