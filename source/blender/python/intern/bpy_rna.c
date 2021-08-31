@@ -3151,7 +3151,6 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr,
 {
   const int length_flat = RNA_property_array_length(ptr, prop);
   PyObject *value;
-  PyObject **value_items;
   void *values_alloc = NULL;
   int ret = 0;
 
@@ -3187,7 +3186,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr,
     }
   }
 
-  value_items = PySequence_Fast_ITEMS(value);
+  PyObject **value_items = PySequence_Fast_ITEMS(value);
   switch (RNA_property_type(prop)) {
     case PROP_FLOAT: {
       float values_stack[PYRNA_STACK_ARRAY];
@@ -3289,11 +3288,9 @@ static int prop_subscript_ass_array_int(BPy_PropertyArrayRNA *self,
                                         Py_ssize_t keynum,
                                         PyObject *value)
 {
-  int len;
-
   PYRNA_PROP_CHECK_INT((BPy_PropertyRNA *)self);
 
-  len = pyrna_prop_array_length(self);
+  int len = pyrna_prop_array_length(self);
 
   if (keynum < 0) {
     keynum += len;
@@ -3438,7 +3435,6 @@ static int pyrna_prop_collection_contains(BPy_PropertyRNA *self, PyObject *key)
 
 static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
 {
-  IDProperty *group;
   const char *name = PyUnicode_AsUTF8(value);
 
   PYRNA_STRUCT_CHECK_INT(self);
@@ -3453,7 +3449,7 @@ static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
     return -1;
   }
 
-  group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
 
   if (!group) {
     return 0;
@@ -3508,7 +3504,6 @@ static PySequenceMethods pyrna_struct_as_sequence = {
 static PyObject *pyrna_struct_subscript(BPy_StructRNA *self, PyObject *key)
 {
   /* Mostly copied from BPy_IDGroup_Map_GetItem. */
-  IDProperty *group, *idprop;
   const char *name = PyUnicode_AsUTF8(key);
 
   PYRNA_STRUCT_CHECK_OBJ(self);
@@ -3524,14 +3519,14 @@ static PyObject *pyrna_struct_subscript(BPy_StructRNA *self, PyObject *key)
     return NULL;
   }
 
-  group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
 
   if (group == NULL) {
     PyErr_Format(PyExc_KeyError, "bpy_struct[key]: key \"%s\" not found", name);
     return NULL;
   }
 
-  idprop = IDP_GetPropertyFromGroup(group, name);
+  IDProperty *idprop = IDP_GetPropertyFromGroup(group, name);
 
   if (idprop == NULL) {
     PyErr_Format(PyExc_KeyError, "bpy_struct[key]: key \"%s\" not found", name);
@@ -3543,11 +3538,9 @@ static PyObject *pyrna_struct_subscript(BPy_StructRNA *self, PyObject *key)
 
 static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObject *value)
 {
-  IDProperty *group;
-
   PYRNA_STRUCT_CHECK_INT(self);
 
-  group = RNA_struct_idprops(&self->ptr, 1);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, 1);
 
 #ifdef USE_PEDANTIC_WRITE
   if (rna_disallow_writes && rna_id_write_error(&self->ptr, key)) {
@@ -3594,15 +3587,13 @@ PyDoc_STRVAR(pyrna_struct_keys_doc,
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 {
-  IDProperty *group;
-
   if (RNA_struct_idprops_check(self->ptr.type) == 0) {
     PyErr_SetString(PyExc_TypeError, "bpy_struct.keys(): this type doesn't support IDProperties");
     return NULL;
   }
 
   /* `group` may be NULL. */
-  group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
   return BPy_Wrap_GetKeys_View_WithID(self->ptr.owner_id, group);
 }
 
@@ -3617,15 +3608,13 @@ PyDoc_STRVAR(pyrna_struct_items_doc,
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 {
-  IDProperty *group;
-
   if (RNA_struct_idprops_check(self->ptr.type) == 0) {
     PyErr_SetString(PyExc_TypeError, "bpy_struct.items(): this type doesn't support IDProperties");
     return NULL;
   }
 
   /* `group` may be NULL. */
-  group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
   return BPy_Wrap_GetItems_View_WithID(self->ptr.owner_id, group);
 }
 
@@ -3640,8 +3629,6 @@ PyDoc_STRVAR(pyrna_struct_values_doc,
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 {
-  IDProperty *group;
-
   if (RNA_struct_idprops_check(self->ptr.type) == 0) {
     PyErr_SetString(PyExc_TypeError,
                     "bpy_struct.values(): this type doesn't support IDProperties");
@@ -3649,7 +3636,7 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
   }
 
   /* `group` may be NULL. */
-  group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
   return BPy_Wrap_GetValues_View_WithID(self->ptr.owner_id, group);
 }
 
