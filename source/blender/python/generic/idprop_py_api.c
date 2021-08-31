@@ -714,8 +714,12 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
       prop->next = prop_exist->next;
       prop->flag = prop_exist->flag;
 
+      /* Don't free and reset the existing property's UI data, since this only assigns a value. */
+      IDPropertyUIData *ui_data = prop_exist->ui_data;
+      prop_exist->ui_data = NULL;
       IDP_FreePropertyContent(prop_exist);
       *prop_exist = *prop;
+      prop_exist->ui_data = ui_data;
       MEM_freeN(prop);
     }
     else {
