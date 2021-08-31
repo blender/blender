@@ -1041,6 +1041,7 @@ static void render_result_uncrop(Render *re)
       render_result_disprect_to_full_resolution(re);
 
       rres = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+      render_result_passes_allocated_ensure(rres);
       rres->stamp_data = BKE_stamp_data_copy(re->result->stamp_data);
 
       render_result_clone_passes(re, rres, NULL);
