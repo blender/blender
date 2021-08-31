@@ -724,6 +724,11 @@ void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
       pxr::UsdShadeMaterial subset_mtl = subset_api.ComputeBoundMaterial();
 
       if (!subset_mtl) {
+        /* Check for a preview material as fallback. */
+        subset_mtl = subset_api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
+      }
+
+      if (!subset_mtl) {
         continue;
       }
 
@@ -753,7 +758,14 @@ void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
   if (r_mat_map->empty()) {
     pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim_);
 
-    if (pxr::UsdShadeMaterial mtl = api.ComputeBoundMaterial()) {
+    pxr::UsdShadeMaterial mtl = api.ComputeBoundMaterial();
+
+    if (!mtl) {
+      /* Check for a preview material as fallback. */
+      mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
+    }
+
+    if (mtl) {
 
       pxr::SdfPath mtl_path = mtl.GetPath();
 
