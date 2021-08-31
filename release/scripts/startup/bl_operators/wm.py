@@ -1429,10 +1429,8 @@ class WM_OT_properties_edit(Operator):
         prop_type_new = type(prop_value)
         prop_type, is_array = rna_idprop_value_item_type(prop_value)
 
-        ui_data = item.id_properties_ui(prop)
-        ui_data.update(subtype=self.subtype, description=self.description)
-
         if prop_type == int:
+            ui_data = item.id_properties_ui(prop)
             if type(default_eval) == str:
                 self.report({'WARNING'}, "Could not evaluate number from default value")
                 default_eval = None
@@ -1444,8 +1442,11 @@ class WM_OT_properties_edit(Operator):
                 soft_min=int(round(self.soft_min)),
                 soft_max=int(round(self.soft_max)),
                 default=default_eval,
+                subtype=self.subtype,
+                description=self.description
             )
         elif prop_type == float:
+            ui_data = item.id_properties_ui(prop)
             if type(default_eval) == str:
                 self.report({'WARNING'}, "Could not evaluate number from default value")
                 default_eval = None
@@ -1455,9 +1456,16 @@ class WM_OT_properties_edit(Operator):
                 soft_min=self.soft_min,
                 soft_max=self.soft_max,
                 default=default_eval,
+                subtype=self.subtype,
+                description=self.description
             )
-        elif prop_type == str:
-            ui_data.update(default=self.default)
+        elif prop_type == str and not is_array: # String arrays do not support UI data.
+            ui_data = item.id_properties_ui(prop)
+            ui_data.update(
+                default=self.default,
+                subtype=self.subtype,
+                description=self.description
+            )
 
         # If we have changed the type of the property, update its potential anim curves!
         if prop_type_old != prop_type_new:
@@ -1531,10 +1539,10 @@ class WM_OT_properties_edit(Operator):
             self.default = ""
 
         # setup defaults
-        ui_data = item.id_properties_ui(prop)
-        rna_data = ui_data.as_dict()
-        self.subtype =  rna_data["subtype"]
         if prop_type in {int, float}:
+            ui_data = item.id_properties_ui(prop)
+            rna_data = ui_data.as_dict()
+            self.subtype =  rna_data["subtype"]
             self.min = rna_data["min"]
             self.max = rna_data["max"]
             self.soft_min = rna_data["soft_min"]
@@ -1543,7 +1551,11 @@ class WM_OT_properties_edit(Operator):
                 self.min != self.soft_min or
                 self.max != self.soft_max
             )
-        if prop_type in {int, float, str}:
+            self.default = str(rna_data["default"])
+        if prop_type == str and not is_array: # String arrays do not support UI data.
+            ui_data = item.id_properties_ui(prop)
+            rna_data = ui_data.as_dict()
+            self.subtype =  rna_data["subtype"]
             self.default = str(rna_data["default"])
 
         self._init_subtype(prop_type, is_array, self.subtype)
