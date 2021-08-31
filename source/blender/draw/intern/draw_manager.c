@@ -2838,14 +2838,6 @@ bool DRW_state_is_image_render(void)
 }
 
 /**
- * Whether the view transform should be applied.
- */
-bool DRW_state_do_color_management(void)
-{
-  return DST.options.do_color_management;
-}
-
-/**
  * Whether we are rendering only the render engine,
  * or if we should also render the mode engines.
  */
