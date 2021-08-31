@@ -1580,7 +1580,7 @@ static void emit_from_particles(Object *flow_ob,
 
     /* initialize particle cache */
     if (psys->part->type == PART_HAIR) {
-      // TODO: PART_HAIR not supported whatsoever
+      /* TODO: PART_HAIR not supported whatsoever. */
       totchild = 0;
     }
     else {
@@ -1674,9 +1674,9 @@ static void emit_from_particles(Object *flow_ob,
         if (ffs->flags & FLUID_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO)) {
           madd_v3_v3fl(&bb->velocity[index * 3], &particle_vel[p * 3], ffs->vel_multi);
         }
-      }  // particles loop
+      } /* particles loop */
     }
-    else if (valid_particles > 0) {  // FLUID_FLOW_USE_PART_SIZE
+    else if (valid_particles > 0) { /* #FLUID_FLOW_USE_PART_SIZE */
       int min[3], max[3], res[3];
 
       /* setup loop bounds */
@@ -3171,7 +3171,7 @@ static void update_effectors_task_cb(void *__restrict userdata,
       if ((data->fuel && MAX2(data->density[index], data->fuel[index]) < FLT_EPSILON) ||
           (data->density && data->density[index] < FLT_EPSILON) ||
           (data->phi_obs_in && data->phi_obs_in[index] < 0.0f) ||
-          data->flags[index] & 2)  // mantaflow convention: 2 == FlagObstacle
+          data->flags[index] & 2) /* Manta-flow convention: `2 == FlagObstacle`. */
       {
         continue;
       }
@@ -4253,7 +4253,7 @@ static float calc_voxel_transp(
 {
   const size_t index = manta_get_index(pixel[0], res[0], pixel[1], res[1], pixel[2]);
 
-  // T_ray *= T_vox
+  /* `T_ray *= T_vox`. */
   *t_ray *= expf(input[index] * correct);
 
   if (result[index] < 0.0f) {

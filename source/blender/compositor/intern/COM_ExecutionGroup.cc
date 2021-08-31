@@ -446,7 +446,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
     MEM_freeN(memoryBuffers);
   }
   if (this->m_bTree) {
-    // status report is only performed for top level Execution Groups.
+    /* Status report is only performed for top level Execution Groups. */
     float progress = this->m_chunks_finished;
     progress /= this->m_chunks_len;
     this->m_bTree->progress(this->m_bTree->prh, progress);
@@ -494,7 +494,7 @@ void ExecutionGroup::determineChunkRect(rcti *r_rect, const unsigned int chunkNu
 
 MemoryBuffer *ExecutionGroup::allocateOutputBuffer(rcti &rect)
 {
-  // we assume that this method is only called from complex execution groups.
+  /* We assume that this method is only called from complex execution groups. */
   NodeOperation *operation = this->getOutputOperation();
   if (operation->get_flags().is_write_buffer_operation) {
     WriteBufferOperation *writeOperation = (WriteBufferOperation *)operation;
@@ -510,8 +510,9 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
   if (this->m_flags.single_threaded) {
     return scheduleChunkWhenPossible(graph, 0, 0);
   }
-  // find all chunks inside the rect
-  // determine minxchunk, minychunk, maxxchunk, maxychunk where x and y are chunknumbers
+  /* Find all chunks inside the rect
+   * determine `minxchunk`, `minychunk`, `maxxchunk`, `maxychunk`
+   * where x and y are chunk-numbers. */
 
   int indexx, indexy;
   int minx = max_ii(area->xmin - m_viewerBorder.xmin, 0);

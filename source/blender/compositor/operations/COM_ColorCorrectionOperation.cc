@@ -132,7 +132,7 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   g = color_correct_powf_safe(g * gain + lift, invgamma, g);
   b = color_correct_powf_safe(b * gain + lift, invgamma, b);
 
-  // mix with mask
+  /* Mix with mask. */
   r = mvalue * inputImageColor[0] + value * r;
   g = mvalue * inputImageColor[1] + value * g;
   b = mvalue * inputImageColor[2] + value * b;

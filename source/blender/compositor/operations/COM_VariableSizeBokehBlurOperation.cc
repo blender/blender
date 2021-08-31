@@ -28,11 +28,11 @@ namespace blender::compositor {
 VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Color, ResizeMode::None);  // do not resize the bokeh image.
-  this->addInputSocket(DataType::Value);                    // radius
+  this->addInputSocket(DataType::Color, ResizeMode::None); /* Do not resize the bokeh image. */
+  this->addInputSocket(DataType::Value);                   /* Radius. */
 #ifdef COM_DEFOCUS_SEARCH
-  this->addInputSocket(DataType::Color,
-                       ResizeMode::None);  // inverse search radius optimization structure.
+  /* Inverse search radius optimization structure. */
+  this->addInputSocket(DataType::Color, ResizeMode::None);
 #endif
   this->addOutputSocket(DataType::Color);
   flags.complex = true;
@@ -438,10 +438,10 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
 }
 
 #ifdef COM_DEFOCUS_SEARCH
-// InverseSearchRadiusOperation
+/* #InverseSearchRadiusOperation. */
 InverseSearchRadiusOperation::InverseSearchRadiusOperation()
 {
-  this->addInputSocket(DataType::Value, ResizeMode::None);  // radius
+  this->addInputSocket(DataType::Value, ResizeMode::None); /* Radius. */
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
   this->m_inputRadius = nullptr;
@@ -472,37 +472,39 @@ void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
       offset += 4;
     }
   }
-  //  for (x = rect->xmin; x < rect->xmax ; x++) {
-  //      for (y = rect->ymin; y < rect->ymax ; y++) {
-  //          int rx = x * DIVIDER;
-  //          int ry = y * DIVIDER;
-  //          float radius = 0.0f;
-  //          float maxx = x;
-  //          float maxy = y;
+#  if 0
+  for (x = rect->xmin; x < rect->xmax; x++) {
+    for (y = rect->ymin; y < rect->ymax; y++) {
+      int rx = x * DIVIDER;
+      int ry = y * DIVIDER;
+      float radius = 0.0f;
+      float maxx = x;
+      float maxy = y;
 
-  //          for (int x2 = 0 ; x2 < DIVIDER ; x2 ++) {
-  //              for (int y2 = 0 ; y2 < DIVIDER ; y2 ++) {
-  //                  this->m_inputRadius->read(temp, rx+x2, ry+y2, PixelSampler::Nearest);
-  //                  if (radius < temp[0]) {
-  //                      radius = temp[0];
-  //                      maxx = x2;
-  //                      maxy = y2;
-  //                  }
-  //              }
-  //          }
-  //          int impactRadius = ceil(radius / DIVIDER);
-  //          for (int x2 = x - impactRadius ; x2 < x + impactRadius ; x2 ++) {
-  //              for (int y2 = y - impactRadius ; y2 < y + impactRadius ; y2 ++) {
-  //                  data->read(temp, x2, y2);
-  //                  temp[0] = MIN2(temp[0], maxx);
-  //                  temp[1] = MIN2(temp[1], maxy);
-  //                  temp[2] = MAX2(temp[2], maxx);
-  //                  temp[3] = MAX2(temp[3], maxy);
-  //                  data->writePixel(x2, y2, temp);
-  //              }
-  //          }
-  //      }
-  //  }
+      for (int x2 = 0; x2 < DIVIDER; x2++) {
+        for (int y2 = 0; y2 < DIVIDER; y2++) {
+          this->m_inputRadius->read(temp, rx + x2, ry + y2, PixelSampler::Nearest);
+          if (radius < temp[0]) {
+            radius = temp[0];
+            maxx = x2;
+            maxy = y2;
+          }
+        }
+      }
+      int impactRadius = ceil(radius / DIVIDER);
+      for (int x2 = x - impactRadius; x2 < x + impactRadius; x2++) {
+        for (int y2 = y - impactRadius; y2 < y + impactRadius; y2++) {
+          data->read(temp, x2, y2);
+          temp[0] = MIN2(temp[0], maxx);
+          temp[1] = MIN2(temp[1], maxy);
+          temp[2] = MAX2(temp[2], maxx);
+          temp[3] = MAX2(temp[3], maxy);
+          data->writePixel(x2, y2, temp);
+        }
+      }
+    }
+  }
+#  endif
   return data;
 }
 

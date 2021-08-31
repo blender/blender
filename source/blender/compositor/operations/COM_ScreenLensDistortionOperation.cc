@@ -369,7 +369,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(
 void ScreenLensDistortionOperation::updateVariables(float distortion, float dispersion)
 {
   m_k[1] = max_ff(min_ff(distortion, 1.0f), -0.999f);
-  // smaller dispersion range for somewhat more control
+  /* Smaller dispersion range for somewhat more control. */
   float d = 0.25f * max_ff(min_ff(dispersion, 1.0f), 0.0f);
   m_k[0] = max_ff(min_ff((m_k[1] + d), 1.0f), -0.999f);
   m_k[2] = max_ff(min_ff((m_k[1] - d), 1.0f), -0.999f);

@@ -50,7 +50,7 @@
 
 #include "readfile.h"
 
-#include "BLI_sys_types.h"  // needed for intptr_t
+#include "BLI_sys_types.h" /* Needed for `intptr_t`. */
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"

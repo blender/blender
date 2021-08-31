@@ -170,10 +170,10 @@ static void deformVerts(ModifierData *md,
         mul_m4_v3(ob->obmat, collmd->x[i].co);
       }
 
-      collmd->xnew = MEM_dupallocN(collmd->x);          // frame end position
-      collmd->current_x = MEM_dupallocN(collmd->x);     // inter-frame
-      collmd->current_xnew = MEM_dupallocN(collmd->x);  // inter-frame
-      collmd->current_v = MEM_dupallocN(collmd->x);     // inter-frame
+      collmd->xnew = MEM_dupallocN(collmd->x);         /* Frame end position. */
+      collmd->current_x = MEM_dupallocN(collmd->x);    /* Inter-frame. */
+      collmd->current_xnew = MEM_dupallocN(collmd->x); /* Inter-frame. */
+      collmd->current_v = MEM_dupallocN(collmd->x);    /* Inter-frame. */
 
       collmd->mvert_num = mvert_num;
 
