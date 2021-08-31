@@ -674,7 +674,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   if (ob) {
     float mat[3][3];
     ED_transform_calc_orientation_from_type_ex(
-        C, mat, scene, rv3d, ob, obedit, orient_index, pivot_point);
+        scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat);
     copy_m4_m3(rv3d->twmat, mat);
   }
 

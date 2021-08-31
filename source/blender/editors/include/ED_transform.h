@@ -109,7 +109,8 @@ bool BIF_createTransformOrientation(struct bContext *C,
                                     const bool overwrite);
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *target);
 
-void ED_getTransformOrientationMatrix(const struct bContext *C,
+void ED_getTransformOrientationMatrix(struct ViewLayer *view_layer,
+                                      const struct View3D *v3d,
                                       struct Object *ob,
                                       struct Object *obedit,
                                       const short around,
@@ -145,15 +146,15 @@ void Transform_Properties(struct wmOperatorType *ot, int flags);
 
 /* *** transform_orientations.c *** */
 void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_mat[3][3]);
-short ED_transform_calc_orientation_from_type_ex(const struct bContext *C,
-                                                 float r_mat[3][3],
-                                                 /* extra args */
-                                                 struct Scene *scene,
-                                                 struct RegionView3D *rv3d,
+short ED_transform_calc_orientation_from_type_ex(const struct Scene *scene,
+                                                 struct ViewLayer *view_layer,
+                                                 const struct View3D *v3d,
+                                                 const struct RegionView3D *rv3d,
                                                  struct Object *ob,
                                                  struct Object *obedit,
                                                  const short orientation_index,
-                                                 const int pivot_point);
+                                                 const int pivot_point,
+                                                 float r_mat[3][3]);
 
 /* transform gizmos */
 

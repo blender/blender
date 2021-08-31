@@ -1232,14 +1232,24 @@ void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
     return;
   }
 
+  View3D *v3d = NULL;
   RegionView3D *rv3d = NULL;
   if ((type == V3D_ORIENT_VIEW) && (t->spacetype == SPACE_VIEW3D) && t->region &&
       (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    v3d = t->view;
     rv3d = t->region->regiondata;
   }
 
   t->orient[O_DEFAULT].type = ED_transform_calc_orientation_from_type_ex(
-      NULL, t->orient[O_DEFAULT].matrix, NULL, rv3d, NULL, NULL, type, 0);
+      t->scene,
+      t->view_layer,
+      v3d,
+      rv3d,
+      NULL,
+      NULL,
+      type,
+      V3D_AROUND_CENTER_BOUNDS,
+      t->orient[O_DEFAULT].matrix);
 
   if (t->orient_curr == O_DEFAULT) {
     /* Update Orientation. */
