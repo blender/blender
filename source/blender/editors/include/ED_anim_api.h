@@ -678,7 +678,6 @@ void ANIM_draw_framerange(struct Scene *scene, struct View2D *v2d);
 
 /* ------------- UI Panel Drawing -------------- */
 
-
 bool ANIM_nla_context_track_ptr(const struct bContext *C, struct PointerRNA *r_ptr);
 bool ANIM_nla_context_strip_ptr(const struct bContext *C, struct PointerRNA *r_ptr);
 

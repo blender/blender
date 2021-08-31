@@ -670,7 +670,7 @@ static eContextResult screen_ctx_active_nla_track(const bContext *C, bContextDat
 {
   PointerRNA ptr;
   if (ANIM_nla_context_track_ptr(C, &ptr)) {
-    CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+    CTX_data_pointer_set_ptr(result, &ptr);
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_NO_DATA;
@@ -679,7 +679,7 @@ static eContextResult screen_ctx_active_nla_strip(const bContext *C, bContextDat
 {
   PointerRNA ptr;
   if (ANIM_nla_context_strip_ptr(C, &ptr)) {
-    CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+    CTX_data_pointer_set_ptr(result, &ptr);
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_NO_DATA;
@@ -741,7 +741,7 @@ static eContextResult screen_ctx_gpencil_data_owner(const bContext *C, bContextD
   bGPdata **gpd_ptr = ED_gpencil_data_get_pointers_direct(area, obact, &ptr);
 
   if (gpd_ptr) {
-    CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+    CTX_data_pointer_set_ptr(result, &ptr);
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_NO_DATA;
@@ -773,7 +773,7 @@ static eContextResult screen_ctx_annotation_data_owner(const bContext *C,
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)screen, area, scene, &ptr);
 
   if (gpd_ptr) {
-    CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
+    CTX_data_pointer_set_ptr(result, &ptr);
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_NO_DATA;
