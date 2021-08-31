@@ -126,7 +126,7 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
   }
   IDProperty *max = IDP_GetPropertyFromGroup(prop_ui_data, "max");
   if (max != NULL) {
-    ui_data->max = ui_data->soft_max = IDP_coerce_to_double_or_zero(min);
+    ui_data->max = ui_data->soft_max = IDP_coerce_to_double_or_zero(max);
   }
   IDProperty *soft_min = IDP_GetPropertyFromGroup(prop_ui_data, "soft_min");
   if (soft_min != NULL) {
