@@ -71,7 +71,7 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
   /* If this returns null, we won't be able to bind shortcuts to these RNA properties.
    * Support can be added at #wm_context_member_from_ptr. */
   char *final_data_path = WM_context_path_resolve_property_full(
-      C, &but->rnapoin, but->rnaprop, -1);
+      C, &but->rnapoin, but->rnaprop, but->rnaindex);
   if (final_data_path == NULL) {
     return NULL;
   }
