@@ -276,13 +276,20 @@ static void do_versions_idproperty_ui_data(Main *bmain)
     }
   }
 
-  /* The UI data from exposed node modifier properties is just copied from the corresponding node
-   * group, but the copying only runs when necessary, so we still need to version UI data here. */
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    /* The UI data from exposed node modifier properties is just copied from the corresponding node
+     * group, but the copying only runs when necessary, so we still need to version data here. */
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = (NodesModifierData *)md;
         version_idproperty_ui_data(nmd->settings.properties);
+      }
+    }
+
+    /* Object post bones. */
+    if (ob->type == OB_ARMATURE && ob->pose != NULL) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        version_idproperty_ui_data(pchan->prop);
       }
     }
   }
@@ -979,7 +986,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Fix SplineIK constraint's inconsistency between binding points array and its stored size. */
+    /* Fix SplineIK constraint's inconsistency between binding points array and its stored size.
+     */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       /* NOTE: Objects should never have SplineIK constraint, so no need to apply this fix on
        * their constraints. */
@@ -1047,8 +1055,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
     FOREACH_NODETREE_END;
 
-    /* Disable Fade Inactive Overlay by default as it is redundant after introducing flash on mode
-     * transfer. */
+    /* Disable Fade Inactive Overlay by default as it is redundant after introducing flash on
+     * mode transfer. */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
