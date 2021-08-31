@@ -1524,7 +1524,6 @@ void DRW_draw_view(const bContext *C)
                              (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) != 0);
     DST.options.draw_background = (scene->r.alphamode == R_ADDSKY) ||
                                   (v3d->shading.type != OB_RENDER);
-    DST.options.do_color_management = true;
     DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, viewport, C);
   }
   else {
@@ -1716,7 +1715,6 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
   DST.options.is_image_render = is_image_render;
-  DST.options.do_color_management = do_color_management;
   DST.options.draw_background = draw_background;
   DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, render_viewport, NULL);
 
