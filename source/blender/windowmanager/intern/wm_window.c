@@ -1943,7 +1943,7 @@ bool WM_window_find_under_cursor(const wmWindowManager *wm,
     int scr_pos[2];
     wm_window_screen_pos_get(win_iter, desk_pos, scr_pos);
 
-    if (scr_pos[0] >= 0 && win_iter->posy >= 0 && scr_pos[0] <= WM_window_pixels_x(win_iter) &&
+    if (scr_pos[0] >= 0 && scr_pos[1] >= 0 && scr_pos[0] <= WM_window_pixels_x(win_iter) &&
         scr_pos[1] <= WM_window_pixels_y(win_iter)) {
 
       *r_win = win_iter;
