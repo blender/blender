@@ -22,4 +22,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void DRW_transform_none(struct GPUTexture *tex);
+
+#ifdef __cplusplus
+}
+#endif

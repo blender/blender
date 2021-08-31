@@ -43,6 +43,10 @@
 
 #include "draw_instance_data.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct DupliObject;
 struct Object;
 
@@ -626,3 +630,7 @@ void drw_uniform_attrs_pool_update(struct GHash *table,
                                    struct Object *ob,
                                    struct Object *dupli_parent,
                                    struct DupliObject *dupli_source);
+
+#ifdef __cplusplus
+}
+#endif

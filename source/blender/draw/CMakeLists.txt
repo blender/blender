@@ -91,7 +91,7 @@ set(SRC
   intern/draw_cache_impl_particles.c
   intern/draw_cache_impl_pointcloud.c
   intern/draw_cache_impl_volume.c
-  intern/draw_color_management.c
+  intern/draw_color_management.cc
   intern/draw_common.c
   intern/draw_debug.c
   intern/draw_fluid.c
