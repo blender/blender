@@ -32,6 +32,20 @@ int pyrna_enum_value_from_id(const struct EnumPropertyItem *item,
                              int *value,
                              const char *error_prefix);
 
+unsigned int *pyrna_enum_bitmap_from_set(const struct EnumPropertyItem *items,
+                                         PyObject *value,
+                                         int type_size,
+                                         bool type_convert_sign,
+                                         int bitmap_size,
+                                         const char *error_prefix);
+
+int pyrna_enum_bitfield_from_set(const struct EnumPropertyItem *items,
+                                 PyObject *value,
+                                 int *r_value,
+                                 const char *error_prefix);
+
+PyObject *pyrna_enum_bitfield_as_set(const struct EnumPropertyItem *items, int value);
+
 /**
  * Data for #pyrna_enum_value_parse_string & #pyrna_enum_bitfield_parse_set parsing utilities.
  * Use with #PyArg_ParseTuple's `O&` formatting.
@@ -50,17 +64,3 @@ struct BPy_EnumProperty_Parse {
 };
 int pyrna_enum_value_parse_string(PyObject *o, void *p);
 int pyrna_enum_bitfield_parse_set(PyObject *o, void *p);
-
-unsigned int *pyrna_enum_bitmap_from_set(const struct EnumPropertyItem *items,
-                                         PyObject *value,
-                                         int type_size,
-                                         bool type_convert_sign,
-                                         int bitmap_size,
-                                         const char *error_prefix);
-
-int pyrna_enum_bitfield_from_set(const struct EnumPropertyItem *items,
-                                 PyObject *value,
-                                 int *r_value,
-                                 const char *error_prefix);
-
-PyObject *pyrna_enum_bitfield_as_set(const struct EnumPropertyItem *items, int value);
