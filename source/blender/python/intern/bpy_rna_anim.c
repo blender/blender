@@ -54,6 +54,7 @@
 #include "bpy_rna.h"
 #include "bpy_rna_anim.h"
 
+#include "../generic/py_capi_rna.h"
 #include "../generic/python_utildefines.h"
 
 #include "DEG_depsgraph_build.h"

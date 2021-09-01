@@ -34,13 +34,12 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
-#include "../intern/bpy_rna.h"
-
 #define USE_STRING_COERCE
 
 #ifdef USE_STRING_COERCE
 #  include "py_capi_utils.h"
 #endif
+#include "py_capi_rna.h"
 
 #include "python_utildefines.h"
 

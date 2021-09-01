@@ -32,6 +32,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 #include "BPY_extern.h"

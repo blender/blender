@@ -45,6 +45,7 @@
 #include "bpy_capi_utils.h"
 #include "bpy_rna_id_collection.h"
 
+#include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 

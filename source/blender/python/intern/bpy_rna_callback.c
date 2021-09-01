@@ -23,6 +23,7 @@
 
 #include <Python.h>
 
+#include "../generic/py_capi_rna.h"
 #include "../generic/python_utildefines.h"
 
 #include "DNA_space_types.h"

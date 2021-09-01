@@ -39,6 +39,7 @@ set(SRC
   idprop_py_api.c
   idprop_py_ui_api.c
   imbuf_py_api.c
+  py_capi_rna.c
   py_capi_utils.c
 
   bgl.h
@@ -47,6 +48,7 @@ set(SRC
   idprop_py_api.h
   idprop_py_ui_api.h
   imbuf_py_api.h
+  py_capi_rna.h
   py_capi_utils.h
 
   # header-only
