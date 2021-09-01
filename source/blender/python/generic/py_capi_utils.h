@@ -119,13 +119,13 @@ typedef struct PyC_FlagSet {
   const char *identifier;
 } PyC_FlagSet;
 
-PyObject *PyC_FlagSet_AsString(PyC_FlagSet *item);
-int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *r_value);
-int PyC_FlagSet_ValueFromID(PyC_FlagSet *item,
+PyObject *PyC_FlagSet_AsString(const PyC_FlagSet *item);
+int PyC_FlagSet_ValueFromID_int(const PyC_FlagSet *item, const char *identifier, int *r_value);
+int PyC_FlagSet_ValueFromID(const PyC_FlagSet *item,
                             const char *identifier,
                             int *r_value,
                             const char *error_prefix);
-int PyC_FlagSet_ToBitfield(PyC_FlagSet *items,
+int PyC_FlagSet_ToBitfield(const PyC_FlagSet *items,
                            PyObject *value,
                            int *r_value,
                            const char *error_prefix);
