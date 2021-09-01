@@ -1388,7 +1388,6 @@ class WM_OT_properties_edit(Operator):
 
     def execute(self, context):
         from rna_prop_ui import (
-            rna_idprop_ui_prop_clear,
             rna_idprop_ui_prop_update,
             rna_idprop_value_item_type,
         )
@@ -1415,7 +1414,7 @@ class WM_OT_properties_edit(Operator):
 
         prop_type_old = type(item[prop_old])
 
-        rna_idprop_ui_prop_clear(item, prop_old)
+        # Deleting the property will also remove the UI data
         del item[prop_old]
 
         # Reassign
