@@ -1213,7 +1213,7 @@ static const char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 
   RNA_property_enum_items(BPY_context_get(), ptr, prop, &item, NULL, &free);
   if (item) {
-    result = BPy_enum_as_string(item);
+    result = pyrna_enum_repr(item);
   }
   else {
     result = "";
@@ -1275,7 +1275,7 @@ static int pyrna_prop_to_enum_bitfield(
   RNA_property_enum_items(BPY_context_get(), ptr, prop, &item, NULL, &free);
 
   if (item) {
-    ret = pyrna_set_to_enum_bitfield(item, value, r_value, error_prefix);
+    ret = pyrna_enum_bitfield_from_set(item, value, r_value, error_prefix);
   }
   else {
     if (PySet_GET_SIZE(value)) {

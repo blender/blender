@@ -37,7 +37,11 @@
 
 #include "MEM_guardedalloc.h"
 
-char *BPy_enum_as_string(const EnumPropertyItem *item)
+/**
+ * Convert all items into a single comma separated string.
+ * Use for creating useful error messages.
+ */
+char *pyrna_enum_repr(const EnumPropertyItem *item)
 {
   DynStr *dynstr = BLI_dynstr_new();
 
@@ -64,7 +68,7 @@ int pyrna_enum_value_from_id(const EnumPropertyItem *item,
                              const char *error_prefix)
 {
   if (RNA_enum_value_from_id(item, identifier, r_value) == 0) {
-    const char *enum_str = BPy_enum_as_string(item);
+    const char *enum_str = pyrna_enum_repr(item);
     PyErr_Format(
         PyExc_ValueError, "%s: '%.200s' not found in (%s)", error_prefix, identifier, enum_str);
     MEM_freeN((void *)enum_str);
@@ -106,7 +110,7 @@ int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
   }
 
   struct BPy_EnumProperty_Parse *parse_data = p;
-  if (pyrna_set_to_enum_bitfield(
+  if (pyrna_enum_bitfield_from_set(
           parse_data->items, o, &parse_data->value, "enum identifier set") == -1) {
     return 0;
   }
@@ -123,12 +127,12 @@ int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
  * \param type_convert_sign: Maps signed to unsigned range,
  * needed when we want to use the full range of a signed short/char.
  */
-BLI_bitmap *pyrna_set_to_enum_bitmap(const EnumPropertyItem *items,
-                                     PyObject *value,
-                                     int type_size,
-                                     bool type_convert_sign,
-                                     int bitmap_size,
-                                     const char *error_prefix)
+BLI_bitmap *pyrna_enum_bitmap_from_set(const EnumPropertyItem *items,
+                                       PyObject *value,
+                                       int type_size,
+                                       bool type_convert_sign,
+                                       int bitmap_size,
+                                       const char *error_prefix)
 {
   /* Set looping. */
   Py_ssize_t pos = 0;
@@ -189,10 +193,10 @@ error:
 /**
  * 'value' _must_ be a set type, error check before calling.
  */
-int pyrna_set_to_enum_bitfield(const EnumPropertyItem *items,
-                               PyObject *value,
-                               int *r_value,
-                               const char *error_prefix)
+int pyrna_enum_bitfield_from_set(const EnumPropertyItem *items,
+                                 PyObject *value,
+                                 int *r_value,
+                                 const char *error_prefix)
 {
   /* Set of enum items, concatenate all values with OR. */
   int ret, flag = 0;
@@ -226,7 +230,7 @@ int pyrna_set_to_enum_bitfield(const EnumPropertyItem *items,
   return 0;
 }
 
-PyObject *pyrna_enum_bitfield_to_py(const EnumPropertyItem *items, int value)
+PyObject *pyrna_enum_bitfield_as_set(const EnumPropertyItem *items, int value)
 {
   PyObject *ret = PySet_New(NULL);
   const char *identifier[RNA_ENUM_BITFLAG_SIZE + 1];

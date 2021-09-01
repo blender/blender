@@ -179,7 +179,7 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
   }
 
   if (key_types) {
-    key_types_bitmap = pyrna_set_to_enum_bitmap(
+    key_types_bitmap = pyrna_enum_bitmap_from_set(
         rna_enum_id_type_items, key_types, sizeof(short), true, USHRT_MAX, "key types");
     if (key_types_bitmap == NULL) {
       goto error;
@@ -187,7 +187,7 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
   }
 
   if (val_types) {
-    val_types_bitmap = pyrna_set_to_enum_bitmap(
+    val_types_bitmap = pyrna_enum_bitmap_from_set(
         rna_enum_id_type_items, val_types, sizeof(short), true, USHRT_MAX, "value types");
     if (val_types_bitmap == NULL) {
       goto error;
