@@ -1789,6 +1789,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     case SCULPT_TOOL_SMOOTH:
       br->flag &= ~BRUSH_SPACE_ATTEN;
+      br->flag2 |= BRUSH_SMOOTH_PRESERVE_FACE_SETS | BRUSH_SMOOTH_USE_AREA_WEIGHT;
+
       br->spacing = 5;
       br->alpha = 0.7f;
       br->surface_smooth_shape_preservation = 0.5f;
@@ -1801,9 +1803,10 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
       br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
-                            ~(DYNTOPO_INHERIT_ALL | DYNTOPO_LOCAL_COLLAPSE | DYNTOPO_INHERIT_DETAIL_RANGE);
+                            ~(DYNTOPO_INHERIT_ALL | DYNTOPO_LOCAL_COLLAPSE |
+                              DYNTOPO_INHERIT_DETAIL_RANGE);
       br->dyntopo.flag |= DYNTOPO_LOCAL_COLLAPSE;
-      br->dyntopo.detail_range = 0.5f;
+      br->dyntopo.detail_range = 0.4f;
       break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;
@@ -1980,13 +1983,14 @@ void BKE_brush_sculpt_reset(Brush *br)
       // don't use DYNTOPO_INHERIT_BITMASK, we want to include
       // future bits
 
-      br->flag |= BRUSH_SMOOTH_PRESERVE_FACE_SETS | BRUSH_SMOOTH_USE_AREA_WEIGHT |
-                  BRUSH_CURVATURE_RAKE;
+      br->flag2 |= BRUSH_SMOOTH_PRESERVE_FACE_SETS | BRUSH_SMOOTH_USE_AREA_WEIGHT |
+                   BRUSH_CURVATURE_RAKE;
       br->dyntopo.inherit = 0x7FFFFFFF &
                             ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
       br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
       br->autosmooth_factor = 0.05;
       br->topology_rake_factor = 0.35;
+      br->topology_rake_projection = 0.975;
 
       break;
     case SCULPT_TOOL_VCOL_BOUNDARY:

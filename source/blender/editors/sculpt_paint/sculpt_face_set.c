@@ -77,8 +77,6 @@
 
 static int sculpt_face_material_get(SculptSession *ss, SculptFaceRef face)
 {
-  int ret = 0;
-
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       BMFace *f = (BMFace *)face.i;
@@ -94,8 +92,6 @@ static int sculpt_face_material_get(SculptSession *ss, SculptFaceRef face)
 
 int SCULPT_face_set_get(SculptSession *ss, SculptFaceRef face)
 {
-  int ret = 0;
-
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       BMFace *f = (BMFace *)face.i;
@@ -268,6 +264,30 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   const int active_fset = abs(ss->cache->paint_face_set);
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  const float test_limit = 0.05f;
+  int cd_mask = -1;
+
+  if (ss->bm) {
+    cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
+  }
+
+  /*check if we need to sample the current face set*/
+
+  bool set_active_faceset = ss->cache->automasking &&
+                            (brush->automasking_flags & BRUSH_AUTOMASKING_FACE_SETS);
+  set_active_faceset = set_active_faceset && ss->cache->invert;
+  set_active_faceset = set_active_faceset && ss->cache->automasking->settings.initial_face_set ==
+                                                 ss->cache->automasking->settings.current_face_set;
+
+  int automasking_fset_flag = 0;
+
+  if (set_active_faceset) {
+    // temporarily clear faceset flag
+    automasking_fset_flag = ss->cache->automasking ? ss->cache->automasking->settings.flags &
+                                                         BRUSH_AUTOMASKING_FACE_SETS :
+                                                     0;
+    ss->cache->automasking->settings.flags &= ~BRUSH_AUTOMASKING_FACE_SETS;
+  }
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
@@ -291,8 +311,60 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                     vd.vertex,
                                                                     thread_id);
 
-        if (fade > 0.05f && ss->face_sets[vert_map->indices[j]] > 0) {
-          ss->face_sets[vert_map->indices[j]] = abs(ss->cache->paint_face_set);
+        if (fade > test_limit && ss->face_sets[vert_map->indices[j]] > 0) {
+          bool ok = true;
+
+          int fset = abs(ss->face_sets[vert_map->indices[j]]);
+
+          // XXX kind of hackish, tries to sample faces that are within
+          // 8 pixels of the center of the brush, and using a crude linear
+          // scale at that - joeedh
+          if (set_active_faceset &&
+              fset != abs(ss->cache->automasking->settings.initial_face_set)) {
+
+            float radius = ss->cache->radius;
+            float pixels = 8;  // TODO: multiply with DPI
+            radius = pixels * (radius / (float)ss->cache->dyntopo_pixel_radius);
+
+            if (sqrtf(test.dist) < radius) {
+              ss->cache->automasking->settings.initial_face_set = abs(fset);
+              set_active_faceset = false;
+              ss->cache->automasking->settings.flags |= BRUSH_AUTOMASKING_FACE_SETS;
+            }
+            else {
+              ok = false;
+            }
+          }
+
+          MLoop *ml = &ss->mloop[p->loopstart];
+
+          for (int i = 0; i < p->totloop; i++, ml++) {
+            MVert *v = &ss->mvert[ml->v];
+            float fno[3];
+
+            normal_short_to_float_v3(fno, v->no);
+            float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
+
+            const float fade2 = bstrength *
+                                SCULPT_brush_strength_factor(ss,
+                                                             brush,
+                                                             v->co,
+                                                             sqrtf(test.dist),
+                                                             v->no,
+                                                             fno,
+                                                             mask,
+                                                             (SculptVertRef){.i = ml->v},
+                                                             thread_id);
+
+            if (fade2 < test_limit) {
+              ok = false;
+              break;
+            }
+          }
+
+          if (ok) {
+            ss->face_sets[vert_map->indices[j]] = abs(ss->cache->paint_face_set);
+          }
         }
       }
     }
@@ -318,15 +390,60 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
           int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
 
-          if (fade > 0.05f && fset > 0) {
+          if (fade > test_limit && fset > 0) {
             BMLoop *l = f->l_first;
 
+            bool ok = true;
+
+            // XXX kind of hackish, tries to sample faces that are within
+            // 8 pixels of the center of the brush, and using a crude linear
+            // scale at that - joeedh
+            if (set_active_faceset &&
+                abs(fset) != abs(ss->cache->automasking->settings.initial_face_set)) {
+
+              float radius = ss->cache->radius;
+              float pixels = 8;  // TODO: multiple with DPI
+              radius = pixels * (radius / (float)ss->cache->dyntopo_pixel_radius);
+
+              if (sqrtf(test.dist) < radius) {
+                ss->cache->automasking->settings.initial_face_set = abs(fset);
+                set_active_faceset = false;
+                ss->cache->automasking->settings.flags |= BRUSH_AUTOMASKING_FACE_SETS;
+              }
+              else {
+                ok = false;
+              }
+            }
+
             do {
+              short sno[3];
+              float mask = cd_mask >= 0 ? BM_ELEM_CD_GET_FLOAT(l->v, cd_mask) : 0.0f;
+
+              normal_float_to_short_v3(sno, l->v->no);
+
+              const float fade2 = bstrength * SCULPT_brush_strength_factor(
+                                                  ss,
+                                                  brush,
+                                                  l->v->co,
+                                                  sqrtf(test.dist),
+                                                  sno,
+                                                  l->v->no,
+                                                  mask,
+                                                  (SculptVertRef){.i = (intptr_t)l->v},
+                                                  thread_id);
+
+              if (fade2 < test_limit) {
+                ok = false;
+                break;
+              }
+
               MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, l->v);
               mv->flag |= DYNVERT_NEED_BOUNDARY;
             } while ((l = l->next) != f->l_first);
 
-            BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, active_fset);
+            if (ok) {
+              BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, active_fset);
+            }
           }
         }
       }
@@ -353,6 +470,11 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  // restore automasking flag
+  if (set_active_faceset) {
+    ss->cache->automasking->settings.flags |= automasking_fset_flag;
+  }
 }
 
 static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
@@ -419,8 +541,27 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
       .nodes = nodes,
   };
 
+  bool threaded = true;
+
+  /*for ctrl invert mode we have to set the automasking initial_face_set
+    to the first non-current faceset that is found*/
+  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    if (ss->cache->invert && ss->cache->automasking &&
+        (brush->automasking_flags & BRUSH_AUTOMASKING_FACE_SETS)) {
+      ss->cache->automasking->settings.current_face_set =
+          ss->cache->automasking->settings.initial_face_set;
+    }
+  }
+
+  if (ss->cache->invert && !ss->cache->alt_smooth && ss->cache->automasking &&
+      ss->cache->automasking->settings.initial_face_set ==
+          ss->cache->automasking->settings.current_face_set) {
+    threaded = false;
+  }
+
+  // ctrl-click is single threaded since the tasks will set the initial face set
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, threaded, totnode);
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
     for (int i = 0; i < 4; i++) {
@@ -554,10 +695,6 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   }
 
   if (mode == SCULPT_FACE_SET_SELECTION) {
-    Mesh *mesh = ob->data;
-    BMesh *bm;
-    BMFace *f;
-    BMIter iter;
     const int totface = ss->totfaces;
 
     for (int i = 0; i < totface; i++) {
@@ -861,8 +998,6 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
         }
         case PBVH_FACES:
         case PBVH_GRIDS: {
-          int f_i = fref.i;
-
           if (fmaps) {
             fmap = fmaps[i] + 2;
           }

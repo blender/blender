@@ -1764,11 +1764,15 @@ static void log_idmap_save(BMesh *bm, BMLog *log, BMLogEntry *entry)
     int cd_loop_off = cd_id_offs[2];
     int *lmap = idmap->maps[2];
 
+    bool reported = false;
+
     BM_ITER_MESH_INDEX (elem, &iter, bm, iters[i], j) {
       int id = BM_ELEM_CD_GET_INT(elem, cd_off);
 
-      if ((BMElem *)BM_ELEM_FROM_ID(bm, id) != elem) {
+      if (!reported && (BMElem *)BM_ELEM_FROM_ID(bm, id) != elem) {
         printf("IDMap error for elem type %d\n", elem->head.htype);
+        printf("  further errors suppressed\n");
+        reported = true;
       }
 
       map[j] = id;

@@ -26,8 +26,10 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
@@ -137,6 +139,23 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
   if (bm->ftoolflagpool) {
     BLI_mempool_destroy(bm->ftoolflagpool);
     bm->ftoolflagpool = NULL;
+  }
+}
+
+// int cdmap[8] = {0, 1, -1, -1, 2, -1, -1, -1, 3};
+
+static void bm_swap_cd_data(int htype, BMesh *bm, CustomData *cd, void *a, void *b)
+{
+  int tot = cd->totsize;
+  // int cd_id = bm->idmap.cd_id_off[htype];
+
+  char *sa = (char *)a;
+  char *sb = (char *)b;
+
+  for (int i = 0; i < tot; i++, sa++, sb++) {
+    char tmp = *sa;
+    *sa = *sb;
+    *sb = tmp;
   }
 }
 
@@ -881,12 +900,6 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
   }
 }
 
-static void swap_block(void *tmp, void *a, void *b, int size)
-{
-  memcpy(tmp, b, size);
-  memcpy(b, a, size);
-  memcpy(a, tmp, size);
-}
 /**
  * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
  * (xxx_idx[org_index] = new_index).
@@ -923,25 +936,18 @@ void BM_mesh_remap(BMesh *bm,
       bm, (vert_idx ? BM_VERT : 0) | (edge_idx ? BM_EDGE : 0) | (face_idx ? BM_FACE : 0));
 
   CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-  void *swap_temps[4];
 
-  for (int i = 0; i < 4; i++) {
-    if (cdatas[i]->totsize) {
-      swap_temps[i] = MEM_mallocN(cdatas[i]->totsize, "cdata temp");
-    }
-    else {
-      swap_temps[i] = NULL;
-    }
-  }
+#define DO_SWAP(ci, cdata, v, vp) *(v) = *(vp);
 
-#define DO_SWAP(ci, cdata, v, vp) \
-  void *cdold = v->head.data; \
+// NOT WORKING
+/* unswaps customdata blocks*/
+#define DO_SWAP2(ci, cdata, v, vp) \
+  void *cdold = (v)->head.data; \
   void *cdnew = (vp)->head.data; \
-  *v = *(vp); \
-  /* swap customdata blocks*/ \
+  *(v) = *(vp); \
   if (cdold) { \
-    v->head.data = cdold; \
-    swap_block(swap_temps[ci], cdold, cdnew, bm->cdata.totsize); \
+    (v)->head.data = cdold; \
+    memcpy(cdold, cdnew, bm->cdata.totsize); \
   }
 
   /* Remap Verts */
@@ -981,11 +987,12 @@ void BM_mesh_remap(BMesh *bm,
 
       DO_SWAP(0, vdata, new_vep, ve);
 
+      BLI_ghash_insert(vptr_map, *vep, new_vep);
 #if 0
       printf(
           "mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);
 #endif
-      BLI_ghash_insert(vptr_map, *vep, new_vep);
+
       if (cd_vert_pyptr != -1) {
         void **pyptr = BM_ELEM_CD_GET_VOID_P(((BMElem *)new_vep), cd_vert_pyptr);
         *pyptr = pyptrs[*new_idx];
@@ -1373,10 +1380,6 @@ void BM_mesh_remap(BMesh *bm,
       }
     }
   }
-
-  for (int i = 0; i < 4; i++) {
-    MEM_SAFE_FREE(swap_temps[i]);
-  }
 }
 
 /**
@@ -1719,4 +1722,405 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
   }
 }
 
+void bm_swap_ids(BMesh *bm, BMElem *e1, BMElem *e2)
+{
+  int cd_id = bm->idmap.cd_id_off[e1->head.htype];
+
+  if (cd_id < 0) {
+    return;
+  }
+
+  int id1 = BM_ELEM_CD_GET_INT(e1, cd_id);
+  int id2 = BM_ELEM_CD_GET_INT(e2, cd_id);
+
+  if (bm->idmap.map) {
+    SWAP(BMElem *, bm->idmap.map[id1], bm->idmap.map[id2]);
+  }
+  else if (bm->idmap.ghash) {
+    void **val1, **val2;
+
+    BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_INT(id1), &val1);
+    BLI_ghash_ensure_p(bm->idmap.ghash, POINTER_FROM_INT(id2), &val2);
+
+    *val1 = (void *)e2;
+    *val2 = (void *)e1;
+  }
+}
+static void bm_swap_elements_post(BMesh *bm, CustomData *cdata, BMElem *e1, BMElem *e2)
+{
+  // unswap customdata pointers
+  SWAP(void *, e1->head.data, e2->head.data);
+
+  // swap contents of customdata instead
+  bm_swap_cd_data(e1->head.htype, bm, cdata, e1->head.data, e2->head.data);
+
+  // unswap index
+  SWAP(int, e1->head.index, e2->head.index);
+
+  bm_swap_ids(bm, e1, e2);
+}
+
+void BM_swap_verts(BMesh *bm, BMVert *v1, BMVert *v2)
+{
+  if (v1 == v2) {
+    return;
+  }
+
+  BMLoop **ls1 = NULL;
+  BLI_array_staticdeclare(ls1, 64);
+  BMLoop **ls2 = NULL;
+  BLI_array_staticdeclare(ls2, 64);
+
+  BMEdge **es1 = NULL;
+  int *sides1 = NULL;
+
+  BLI_array_staticdeclare(es1, 32);
+  BLI_array_staticdeclare(sides1, 32);
+
+  BMEdge **es2 = NULL;
+  int *sides2 = NULL;
+
+  BLI_array_staticdeclare(es2, 32);
+  BLI_array_staticdeclare(sides2, 32);
+
+  for (int i = 0; i < 2; i++) {
+    BMVert *v = i ? v2 : v1;
+    BMVert *v_2 = i ? v1 : v2;
+
+    BMEdge *e = v->e, *starte = e;
+
+    if (!e) {
+      continue;
+    }
+
+    // int count = 0;
+
+    do {
+      // if (count++ > 10000) {
+      // printf("error!\n");
+      //        break;
+      //    }
+
+      int side = 0;
+      if (e->v1 == v) {
+        side |= 1;
+      }
+
+      if (e->v2 == v) {
+        side |= 2;
+      }
+
+      if (i) {
+        BLI_array_append(es2, e);
+        BLI_array_append(sides2, side);
+      }
+      else {
+        BLI_array_append(es1, e);
+        BLI_array_append(sides1, side);
+      }
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != starte);
+  }
+
+  for (int i = 0; i < 2; i++) {
+    BMVert *v = i ? v2 : v1;
+    BMVert *v_2 = i ? v1 : v2;
+
+    BMEdge **es = i ? es2 : es1;
+    BMLoop **ls = i ? ls2 : ls1;
+    int elen = i ? BLI_array_len(es2) : BLI_array_len(es1);
+    int *sides = i ? sides2 : sides1;
+
+    for (int j = 0; j < elen; j++) {
+      BMEdge *e = es[j];
+      int side = sides[j];
+
+      // if (side == 3) {
+      // printf("edge had duplicate verts!\n");
+      //}
+
+      if (side & 1) {
+        e->v1 = v_2;
+      }
+
+      if (side & 2) {
+        e->v2 = v_2;
+      }
+
+#if 1
+      BMLoop *l = e->l;
+      if (l) {
+
+        do {
+          BMLoop *l2 = l;
+
+          do {
+            if (l2->v == v) {
+              if (i) {
+                BLI_array_append(ls2, l2);
+              }
+              else {
+                BLI_array_append(ls1, l2);
+              }
+            }
+          } while ((l2 = l2->next) != l);
+        } while ((l = l->radial_next) != e->l);
+      }
+#endif
+      // e = enext;
+    }  // while (e != starte);
+  }
+
+  for (int i = 0; i < 2; i++) {
+    BMVert *v = i ? v2 : v1;
+    BMVert *v_2 = i ? v1 : v2;
+
+    BMLoop **ls = i ? ls2 : ls1;
+
+    int llen = i ? BLI_array_len(ls2) : BLI_array_len(ls1);
+
+    for (int j = 0; j < llen; j++) {
+      ls[j]->v = v_2;
+    }
+  }
+
+  BLI_array_free(ls1);
+  BLI_array_free(ls2);
+  // BMVert tmp = *v1;
+  //*v1 = *v2;
+  //*v2 = tmp;
+
+  SWAP(BMVert, (*v1), (*v2));
+  // swap contents of customdata, don't swap pointers
+  bm_swap_elements_post(bm, &bm->vdata, (BMElem *)v1, (BMElem *)v2);
+
+  bm->elem_table_dirty |= BM_VERT;
+  bm->elem_index_dirty |= BM_VERT;
+
+  BLI_array_free(es1);
+  BLI_array_free(sides1);
+  BLI_array_free(es2);
+  BLI_array_free(sides2);
+}
+
+void BM_swap_edges(BMesh *bm, BMEdge *e1, BMEdge *e2)
+{
+  for (int i = 0; i < 2; i++) {
+    BMEdge *e = i ? e2 : e1;
+    BMEdge *e_2 = i ? e1 : e2;
+
+    for (int j = 0; j < 2; j++) {
+      BMVert *v = j ? e->v2 : e->v1;
+
+      if (v->e == e) {
+        v->e = e_2;
+      }
+    }
+
+    BMLoop *l = e->l;
+    if (l) {
+      do {
+        l->e = e_2;
+      } while ((l = l->radial_next) != e->l);
+    }
+  }
+
+  SWAP(BMEdge, *e1, *e2);
+  // swap contents of customdata, don't swap pointers
+  bm_swap_elements_post(bm, &bm->edata, (BMElem *)e1, (BMElem *)e2);
+}
+
+void BM_swap_loops(BMesh *bm, BMLoop *l1, BMLoop *l2)
+{
+  for (int i = 0; i < 2; i++) {
+    BMLoop *l = i ? l2 : l1;
+    BMLoop *l_2 = i ? l1 : l2;
+
+    l->prev->next = l2;
+    l->next->prev = l2;
+
+    if (l != l->radial_next) {
+      l->radial_next->radial_prev = l2;
+      l->radial_prev->radial_next = l2;
+    }
+
+    if (l == l->e->l) {
+      l->e->l = l2;
+    }
+
+    if (l == l->f->l_first) {
+      l->f->l_first = l2;
+    }
+  }
+
+  // swap contents of customdata, don't swap pointers
+  SWAP(BMLoop, *l1, *l2);
+  // swap contents of customdata, don't swap pointers
+  bm_swap_elements_post(bm, &bm->ldata, (BMElem *)l1, (BMElem *)l2);
+}
+
+// memory coherence defragmentation
+
+#ifndef ABSLL
+#  define ABSLL(a) ((a) < 0LL ? -(a) : (a))
+#endif
+
+#define DEFRAG_FLAG BM_ELEM_TAG_ALT
+
+bool BM_defragment_vertex(BMesh *bm,
+                          BMVert *v,
+                          RNG *rand,
+                          void (*on_vert_swap)(BMVert *a, BMVert *b, void *userdata),
+                          void *userdata)
+{
+  BMEdge *e = v->e;
+
+  int cd_vcol = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+
+#if 0
+  if (cd_vcol >= 0) {
+    float *color = BM_ELEM_CD_GET_VOID_P(v, cd_vcol);
+    int idx = BLI_mempool_find_real_index(bm->vpool, (void *)v);
+    int size = BLI_mempool_get_size(bm->vpool);
+
+    float f = (float)idx / (float)size / 2.0f;
+
+    color[0] = color[1] = color[2] = f;
+    color[3] = 1.0f;
+  }
+#endif
+
+  return false;
+
+  // return false;
+
+  // BM_mesh_elem_table_ensure(bm, BM_VERT|BM_EDGE|BM_FACE);
+  if (!e) {
+    return false;
+  }
+
+  bool bad = false;
+  int limit = 128;
+
+  int vlimit = sizeof(BMVert *) * limit;
+  int elimit = sizeof(BMEdge *) * limit;
+  int llimit = sizeof(BMLoop *) * limit;
+  int flimit = sizeof(BMFace *) * limit;
+
+  intptr_t iv = (intptr_t)v;
+
+  BMEdge *laste = NULL;
+  do {
+    BMVert *v2 = BM_edge_other_vert(e, v);
+    intptr_t iv2 = (intptr_t)v2;
+    intptr_t ie = (intptr_t)e;
+
+    v2->head.hflag &= DEFRAG_FLAG;
+    e->head.hflag &= ~DEFRAG_FLAG;
+
+    if (ABSLL(iv2 - iv) > vlimit) {
+      bad = true;
+      break;
+    }
+
+    if (laste) {
+      intptr_t ilaste = (intptr_t)laste;
+      if (ABSLL(ilaste - ie) > elimit) {
+        bad = true;
+        break;
+      }
+    }
+
+    BMLoop *l = e->l;
+    if (l) {
+      do {
+        intptr_t il = (intptr_t)l;
+        intptr_t ilnext = (intptr_t)l->next;
+
+        if (ABSLL(il - ilnext) > llimit) {
+          bad = true;
+          break;
+        }
+
+        BMLoop *l2 = l->f->l_first;
+        do {
+          l2->head.hflag &= ~DEFRAG_FLAG;
+        } while ((l2 = l2->next) != l->f->l_first);
+
+        l2->f->head.hflag &= ~DEFRAG_FLAG;
+
+        l = l->radial_next;
+      } while (l != e->l);
+    }
+    laste = e;
+  } while (!bad && (e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  float prob = 1.0;
+
+  if (!bad || BLI_rng_get_float(rand) > prob) {
+    return false;
+  }
+
+  // find sort candidates
+  // BLI_mempool_find_elems_fuzzy
+
+  int vidx = BLI_mempool_find_real_index(bm->vpool, (void *)v);
+  const int count = 5;
+  BMVert **elems = BLI_array_alloca(elems, count);
+
+  do {
+    BMVert *v2 = BM_edge_other_vert(e, v);
+    int totelem = BLI_mempool_find_elems_fuzzy(bm->vpool, vidx, 4, (void **)elems, count);
+
+    for (int i = 0; i < totelem; i++) {
+      if (elems[i] == v2 || elems[i] == v) {
+        continue;
+      }
+
+      elems[i]->head.hflag &= ~DEFRAG_FLAG;
+    }
+
+    bool ok = false;
+
+    for (int i = 0; i < totelem; i++) {
+      if (elems[i] == v2 || elems[i] == v || (elems[i]->head.hflag & DEFRAG_FLAG)) {
+        continue;
+      }
+
+      if (elems[i]->head.htype != BM_VERT) {
+        printf("ERROR!\n");
+      }
+      // found one
+      v2->head.hflag |= DEFRAG_FLAG;
+      elems[i]->head.hflag |= DEFRAG_FLAG;
+
+      on_vert_swap(v2, elems[i], userdata);
+      BM_swap_verts(bm, v2, elems[i]);
+
+      BMIter iter;
+      BMEdge *et;
+      int f = 0;
+#if 0
+      BM_ITER_ELEM (et, &iter, v2, BM_EDGES_OF_VERT) {
+        printf("an edge %d\n", f++);
+      }
+
+      f = 0;
+      BM_ITER_ELEM (et, &iter, v, BM_EDGES_OF_VERT) {
+        printf("an 1edge %d\n", f++);
+      }
+#endif
+
+      // BM_swap_verts(bm, v2, elems[i]);
+
+      ok = true;
+      break;
+    }
+
+    if (ok) {
+      break;
+    }
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  return true;
+}
 /** \} */

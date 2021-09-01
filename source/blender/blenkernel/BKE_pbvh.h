@@ -33,6 +33,9 @@
 extern "C" {
 #endif
 
+// experimental feature to detect quad diagonals and mark (but not dissolve) them
+//#define SCULPT_DIAGONAL_EDGE_MARKS
+
 typedef struct SculptVertRef {
   intptr_t i;
 } SculptVertRef;

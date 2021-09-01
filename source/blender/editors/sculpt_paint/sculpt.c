@@ -1409,30 +1409,22 @@ static void sculpt_vertex_neighbors_get_bmesh(const SculptSession *ss,
     return;
   }
 
+  BMEdge *e2 = NULL;
+
   do {
     BMVert *v2;
-    BMEdge *e2;
-
-    if (v == e->v1) {
-      v2 = e->v2;
-      e2 = e->v1_disk_link.next;
-    }
-    else {
-      v2 = e->v1;
-      e2 = e->v2_disk_link.next;
-    }
+    e2 = BM_DISK_EDGE_NEXT(e, v);
+    v2 = v == e->v1 ? e->v2 : e->v1;
 
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v2);
 
-    if (!(mv->flag & DYNVERT_VERT_FSET_HIDDEN)) {
+    if (!(mv->flag & DYNVERT_VERT_FSET_HIDDEN)) {  // && (e->head.hflag & BM_ELEM_DRAW)) {
       sculpt_vertex_neighbor_add_nocheck(iter,
                                          BKE_pbvh_make_vref((intptr_t)v2),
                                          BKE_pbvh_make_eref((intptr_t)e),
                                          BM_elem_index_get(v2));
     }
-
-    e = e2;
-  } while (e != v->e);
+  } while ((e = e2) != v->e);
 
   if (ss->fake_neighbors.use_fake_neighbors) {
     int index = BM_elem_index_get(v);
@@ -4005,6 +3997,11 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
   const bool have_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
 
+  const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  if (weighted || ss->cache->brush->boundary_smooth_factor > 0.0f) {
+    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
+  }
+
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -4091,6 +4088,41 @@ static void bmesh_topology_rake(
   // vector4, nto color
   SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_COLOR, "_rake_temp");
   int cd_temp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_COLOR, "_rake_temp");
+
+#ifdef SCULPT_DIAGONAL_EDGE_MARKS
+  // reset edge flags, single threaded
+  for (int i = 0; i < totnode; i++) {
+    PBVHNode *node = nodes[i];
+    PBVHVertexIter vd;
+
+    SculptBrushTest test;
+    SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+        ss, &test, brush->falloff_shape);
+
+    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+      if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+        continue;
+      }
+
+      BMVert *v = vd.bm_vert;
+      BMEdge *e = v->e;
+
+      if (!e) {
+        continue;
+      }
+
+      do {
+        e->head.hflag |= BM_ELEM_DRAW;
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+    }
+    BKE_pbvh_vertex_iter_end;
+  }
+#endif
+
+  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
+      (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
+    BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
 
   if (brush->flag2 & BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF) {
     local_brush = *brush;
@@ -9960,6 +9992,9 @@ static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
       ss->active_vertex_index.i = 0;
       ss->active_face_index.i = 0;
 
+      BKE_pbvh_free(ss->pbvh);
+      ss->pbvh = NULL;
+
       /* Finish undo. */
       SCULPT_undo_push_end();
 
@@ -9971,7 +10006,8 @@ static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
   }
 
   /* Redraw. */
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, ND_DATA | NC_OBJECT | ND_DRAW, ob);
 
   return OPERATOR_FINISHED;
 }
@@ -11552,6 +11588,7 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vert
   int tot = 0;
   int mval = -1;
 
+#if 0
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BMVert *v = (BMVert *)vertex.i;
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
@@ -11562,10 +11599,17 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vert
 
     mval = mv->valence;
 
-#ifdef NDEBUG
-    // return mval;
-#endif
+#  ifdef NDEBUG
+    return mval;
+#  endif
   }
+#else
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    BMVert *v = (BMVert *)vertex.i;
+
+    return BM_vert_edge_count(v);
+  }
+#endif
 
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     tot++;

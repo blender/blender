@@ -1948,9 +1948,12 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
     sd->detail_size = 12;
   }
 
+  if (!sd->detail_range || !sd->dyntopo_spacing) {
+    sd->flags |= SCULPT_DYNTOPO_CLEANUP;  // should really do this in do_versions_290.c
+  }
+
   if (!sd->detail_range) {
     sd->detail_range = 0.4f;
-    sd->flags |= SCULPT_DYNTOPO_CLEANUP;  // should really do this in do_versions_290.c
   }
 
   if (!sd->detail_percent) {
@@ -1958,7 +1961,7 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
   }
 
   if (!sd->dyntopo_spacing) {
-    sd->dyntopo_spacing = 25;
+    sd->dyntopo_spacing = 35;
   }
 
   if (sd->constant_detail == 0.0f) {

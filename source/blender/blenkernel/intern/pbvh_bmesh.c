@@ -2193,9 +2193,21 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       continue;
     }
 
+#ifdef SCULPT_DIAGONAL_EDGE_MARKS
+    int ecount = 0;
+#endif
+
     // clear edgeflag for building edge indices later
     BMLoop *l = f->l_first;
     do {
+#ifdef SCULPT_DIAGONAL_EDGE_MARKS
+      BMEdge *e2 = l->v->e;
+      do {
+        if (e2->head.hflag & BM_ELEM_DRAW) {
+          ecount++;
+        }
+      } while ((e2 = BM_DISK_EDGE_NEXT(e2, l->v)) != l->v->e);
+#endif
       l->e->head.hflag &= ~edgeflag;
     } while ((l = l->next) != f->l_first);
 
@@ -2235,8 +2247,13 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
         BMLoop *l2 = loops[loops_idx[i][(j + 1) % 3]];
 
         void **val = NULL;
+        BMEdge *e = BM_edge_exists(l->v, l2->v);
 
-        if (BM_edge_exists(l->v, l2->v)) {
+#  ifdef SCULPT_DIAGONAL_EDGE_MARKS
+        if (e && (e->head.hflag & BM_ELEM_DRAW)) {
+#  else
+        if (e) {
+#  endif
           tri->eflag |= 1 << j;
           mat_tri->eflag |= 1 << j;
         }
@@ -3609,20 +3626,27 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
           v = node2->verts[j];
 
 #if 0
+          const int cd_vcol = CustomData_get_offset(&pbvh->bm->vdata, CD_PROP_COLOR);
+
           if (cd_vcol >= 0) {
             MPropCol *col = BM_ELEM_CD_GET_VOID_P(node2->verts[j], cd_vcol);
 
             float r = 0.0f, g = 0.0f, b = 0.0f;
 
+            ReVertNode *parent = node2->parent;
+            for (int j = 0; parent->parent && j < 2; j++) {
+              parent = parent->parent;
+            }
+
             unsigned int p = (unsigned int)node2->parent;
             p = p % 65535;
 
-            unsigned int p2 = (unsigned int)node2->parent;
+            unsigned int p2 = (unsigned int)parent;
             p2 = p2 % 65535;
 
             r = ((float)vorder) * 0.01;
             g = ((float)p2) / 65535.0f;
-            b = ((float)p) / 65535.0f;
+            b = ((float)p2) / 65535.0f;
 
             r = cosf(r * 17.2343) * 0.5 + 0.5;
             g = cosf(g * 11.2343) * 0.5 + 0.5;

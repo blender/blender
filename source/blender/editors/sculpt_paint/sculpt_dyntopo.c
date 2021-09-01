@@ -85,8 +85,11 @@
 
 BMesh *SCULPT_dyntopo_empty_bmesh()
 {
+  const BMAllocTemplate allocsize = {
+      .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
+
   BMesh *bm = BM_mesh_create(
-      &bm_mesh_allocsize_default,
+      &allocsize,
       &((struct BMeshCreateParams){.use_toolflags = false,
                                    .use_unique_ids = true,
                                    .use_id_elem_mask = BM_VERT | BM_EDGE | BM_FACE,
@@ -760,7 +763,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
+  const BMAllocTemplate allocsize = {
+      .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
 
   SCULPT_pbvh_clear(ob);
 
@@ -833,6 +837,11 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   SCULPT_dyntopo_node_layers_update_offsets(ss);
 
   int i = 0;
+  BMEdge *e;
+
+  BM_ITER_MESH (e, &iter, ss->bm, BM_EDGES_OF_MESH) {
+    e->head.hflag |= BM_ELEM_DRAW;
+  }
 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);

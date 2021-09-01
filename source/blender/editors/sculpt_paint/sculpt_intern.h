@@ -1027,6 +1027,7 @@ typedef struct AutomaskingSettings {
   /* Flags from eAutomasking_flag. */
   int flags;
   int initial_face_set;
+  int current_face_set;  // used by faceset draw tool
   float concave_factor;
 } AutomaskingSettings;
 

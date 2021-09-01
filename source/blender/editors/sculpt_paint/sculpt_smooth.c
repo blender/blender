@@ -29,7 +29,9 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_task.h"
+#include "BLI_threads.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
@@ -61,6 +63,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "atomic_ops.h"
 #include "bmesh.h"
 #ifdef PROXY_ADVANCED
 /* clang-format off */
@@ -102,7 +105,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
   }
 
   const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) && !is_boundary;
-  float *areas;
+  float *areas = NULL;
 
   SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
   if (check_fsets) {
@@ -146,8 +149,19 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       from verts*/
 
     SculptBoundaryType final_boundary = 0;
+
     if (ni.has_edge) {
       final_boundary = SCULPT_edge_is_boundary(ss, ni.edge, bflag);
+
+#ifdef SCULPT_DIAGONAL_EDGE_MARKS
+      if (ss->bm) {
+        BMEdge *e = (BMEdge *)ni.edge.i;
+        if (!(e->head.hflag & BM_ELEM_DRAW)) {
+          neighbor_count--;
+          continue;
+        }
+      }
+#endif
     }
     else {
       final_boundary = is_boundary & SCULPT_vertex_is_boundary(ss, ni.vertex, bflag);
@@ -162,7 +176,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
       */
 
-      bool slide = slide_fset > 0.0f && is_boundary == SCULPT_BOUNDARY_FACE_SET;
+      bool slide = (slide_fset > 0.0f && is_boundary == SCULPT_BOUNDARY_FACE_SET) ||
+                   bound_smooth > 0.0f;
       slide = slide && !final_boundary;
 
       if (slide) {
@@ -189,7 +204,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       ok = true;
     }
 
-    if (do_diffuse && bound_scl) {
+    if (do_diffuse && bound_scl && !is_boundary) {
       /*
       simple boundary inflator using an ad-hoc diffusion-based pseudo-geodesic field
 
@@ -429,6 +444,16 @@ static void vec_transform(float r_dir2[3], float no[3], int bits)
   }
 }
 
+volatile int blehrand = 0;
+static int blehrand_get()
+{
+  int i = blehrand;
+  i = (i * 124325 + 231423322) & 524287;
+
+  blehrand = i;
+  return i;
+}
+
 /* For bmesh: Average surrounding verts based on an orthogonality measure.
  * Naturally converges to a quad-like structure. */
 void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
@@ -453,6 +478,18 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   float dir[3];
   float dir3[3] = {0.0f, 0.0f, 0.0f};
 
+  const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT);
+  float *areas;
+
+  if (weighted) {
+    SculptVertRef vertex = {.i = (intptr_t)v};
+
+    int val = SCULPT_vertex_valence_get(ss, vertex);
+    areas = BLI_array_alloca(areas, val);
+
+    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
+  }
+
   copy_v3_v3(dir, col);
 
   if (dot_v3v3(dir, dir) == 0.0f) {
@@ -471,12 +508,23 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   BMIter eiter;
   BMEdge *e;
   bool had_bound = false;
+  int area_i = 0;
 
-  BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+  BM_ITER_ELEM_INDEX (e, &eiter, v, BM_EDGES_OF_VERT, area_i) {
     BMVert *v_other = (e->v1 == v) ? e->v2 : e->v1;
 
     float dir2[3];
     float *col2 = BM_ELEM_CD_GET_VOID_P(v_other, cd_temp);
+
+    float bucketw = 1.0f;  // col2[3] < col[3] ? 2.0f : 1.0f;
+    // bucketw /= 0.00001f + len_v3v3(e->v1->co, e->v2->co);
+    // if (weighted) {
+    // bucketw = 1.0 / (0.000001 + areas[area_i]);
+    //}
+    // if (e == v->e) {
+    // bucketw *= 2.0;
+    //}
+
     MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(cd_dyn_vert, v_other);
     // bool bound = (mv2->flag &
     //             (DYNVERT_BOUNDARY));  // | DYNVERT_FSET_BOUNDARY | DYNVERT_SHARP_BOUNDARY));
@@ -506,7 +554,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       }
     }
 
-    closest_vec_to_perp(dir, dir2, v->no, buckets, 1.0f);  // col2[3]);
+    closest_vec_to_perp(dir, dir2, v->no, buckets, bucketw);  // col2[3]);
 
     madd_v3_v3fl(dir3, dir2, dirw);
     totdir3 += dirw;
@@ -525,8 +573,31 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     /* fac is a measure of how orthogonal or parallel the edge is
      * relative to the direction. */
     float fac = dot_v3v3(vec, dir);
+#ifdef SCULPT_DIAGONAL_EDGE_MARKS
+    float th = fabsf(saacos(fac)) / M_PI + 0.5f;
+    th -= floorf(th);
+
+    const float limit = 0.045;
+
+    if (fabsf(th - 0.25) < limit || fabsf(th - 0.75) < limit) {
+      BMEdge enew = *e, eold = *e;
+
+      enew.head.hflag &= ~BM_ELEM_DRAW;
+      // enew.head.hflag |= BM_ELEM_SEAM;  // XXX debug
+
+      atomic_cas_int64((intptr_t *)(&e->head.index),
+                       *(intptr_t *)(&eold.head.index),
+                       *(intptr_t *)(&enew.head.index));
+    }
+#endif
+
     fac = fac * fac - 0.5f;
     fac *= fac;
+
+    if (weighted) {
+      fac *= areas[area_i];
+    }
+
     madd_v3_v3fl(avg_co, v_other->co, fac);
     tot_co += fac;
   }
@@ -574,9 +645,9 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       }
     }
 
-    negate_v3(col);
+    // negate_v3(col);
     vec_transform(col, v->no, bi);
-    negate_v3(col);
+    // negate_v3(col);
   }
 }
 

@@ -87,6 +87,10 @@ enum {
    * order of allocation when no chunks have been freed.
    */
   BLI_MEMPOOL_ALLOW_ITER = (1 << 0),
+
+  /* allow random access, implies BLI_MEMPOOL_ALLOW_ITER since we
+     need the freewords to detect free state of elements*/
+  BLI_MEMPOOL_RANDOM_ACCESS = (1 << 1) | (1 << 0)
 };
 
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter) ATTR_NONNULL();
@@ -104,6 +108,13 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
                                           int *r_totchunk,
                                           int *r_esize,
                                           int flag);
+
+// memory coherence stuff
+int BLI_mempool_find_elems_fuzzy(
+    BLI_mempool *pool, int idx, int range, void **r_elems, int r_elems_size);
+
+int BLI_mempool_get_size(BLI_mempool *pool);
+int BLI_mempool_find_real_index(BLI_mempool *pool, void *ptr);
 
 #ifdef __cplusplus
 }
