@@ -40,15 +40,15 @@
 namespace blender::draw::color_management {
 
 enum class eDRWColorManagementType {
-  Off = 0,
-  OnlyViewTransform,
+  ViewTransform = 0,
+  ViewTransformAndLook,
   UseRenderSettings,
 };
 
 static float dither_get(eDRWColorManagementType color_management_type, const Scene &scene)
 {
   if (ELEM(color_management_type,
-           eDRWColorManagementType::OnlyViewTransform,
+           eDRWColorManagementType::ViewTransformAndLook,
            eDRWColorManagementType::UseRenderSettings)) {
     return scene.r.dither_intensity;
   }
@@ -73,9 +73,9 @@ static eDRWColorManagementType drw_color_management_type_for_v3d(const Scene &sc
     return eDRWColorManagementType::UseRenderSettings;
   }
   if (v3d.shading.type >= OB_MATERIAL) {
-    return eDRWColorManagementType::OnlyViewTransform;
+    return eDRWColorManagementType::ViewTransformAndLook;
   }
-  return eDRWColorManagementType::Off;
+  return eDRWColorManagementType::ViewTransform;
 }
 
 static eDRWColorManagementType drw_color_management_type_for_space_image(const SpaceImage &sima)
@@ -90,7 +90,7 @@ static eDRWColorManagementType drw_color_management_type_for_space_image(const S
       ((image->flag & IMA_VIEW_AS_RENDER) != 0)) {
     return eDRWColorManagementType::UseRenderSettings;
   }
-  return eDRWColorManagementType::Off;
+  return eDRWColorManagementType::ViewTransform;
 }
 
 static eDRWColorManagementType drw_color_management_type_for_space_node(const SpaceNode &snode)
@@ -100,7 +100,7 @@ static eDRWColorManagementType drw_color_management_type_for_space_node(const Sp
   if (display_color_channel) {
     return eDRWColorManagementType::UseRenderSettings;
   }
-  return eDRWColorManagementType::Off;
+  return eDRWColorManagementType::ViewTransform;
 }
 
 static eDRWColorManagementType drw_color_management_type_get(const Scene &scene,
@@ -135,13 +135,13 @@ static void viewport_settings_apply(GPUViewport &viewport,
   ColorManagedViewSettings view_settings;
 
   switch (color_management_type) {
-    case eDRWColorManagementType::Off: {
+    case eDRWColorManagementType::ViewTransform: {
       /* For workbench use only default view transform in configuration,
        * using no scene settings. */
       BKE_color_managed_view_settings_init_render(&view_settings, display_settings, nullptr);
       break;
     }
-    case eDRWColorManagementType::OnlyViewTransform: {
+    case eDRWColorManagementType::ViewTransformAndLook: {
       /* Use only view transform + look and nothing else for lookdev without
        * scene lighting, as exposure depends on scene light intensity. */
       BKE_color_managed_view_settings_init_render(&view_settings, display_settings, nullptr);
