@@ -3100,7 +3100,7 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 /** \} */
 
 /* ------------------------------------------------------------------- */
-/** \name Laplaciandeform Bind Operator
+/** \name Laplacian-Deform Bind Operator
  * \{ */
 
 static bool laplaciandeform_poll(bContext *C)

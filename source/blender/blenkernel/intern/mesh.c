@@ -1591,7 +1591,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
   MVert *mvert = CustomData_duplicate_referenced_layer(&me->vdata, CD_MVERT, me->totvert);
   float(*lnors)[3] = CustomData_duplicate_referenced_layer(&me->ldata, CD_NORMAL, me->totloop);
 
-  /* If the referenced l;ayer has been re-allocated need to update pointers stored in the mesh. */
+  /* If the referenced layer has been re-allocated need to update pointers stored in the mesh. */
   BKE_mesh_update_customdata_pointers(me, false);
 
   for (i = 0; i < me->totvert; i++, mvert++) {

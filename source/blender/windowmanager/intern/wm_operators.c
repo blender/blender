@@ -604,7 +604,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 #endif
 
 /**
- * Calculate the path to `ptr` from constex `C`, or return NULL if it can't be calculated.
+ * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
  */
 char *WM_context_path_resolve_property_full(bContext *C,
                                             const PointerRNA *ptr,

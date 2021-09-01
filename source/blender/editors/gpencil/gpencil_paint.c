@@ -3568,7 +3568,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   // ToolSettings *ts = CTX_data_tool_settings(C);
   GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
 
-  /* default exit state - pass through to support MMB view nav, etc. */
+  /* Default exit state - pass through to support MMB view navigation, etc. */
   int estate = OPERATOR_PASS_THROUGH;
 
   /* NOTE(mike erwin): Not quite what I was looking for, but a good start!

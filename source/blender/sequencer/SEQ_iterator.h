@@ -41,7 +41,7 @@ struct Sequence;
  * The `__LINE__` is defined at the invocation of the `SEQ_ITERATOR_FOREACH` and is not changed
  * afterwards. This makes it safe to expand it several times in the `SEQ_ITERATOR_FOREACH`.
  *
- * This allows to have nested foreach loops.
+ * This allows to have nested `foreach` loops.
  *
  * NOTE: Putting nested loop to a wrapper macro is not supported. */
 #define _SEQ_ITERATOR_NAME_JOIN(x, y) x##_##y
