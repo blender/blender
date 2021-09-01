@@ -365,6 +365,17 @@ RenderResult *RE_engine_begin_result(
   return result;
 }
 
+static void re_ensure_passes_allocated_thread_safe(Render *re)
+{
+  if (!re->result->passes_allocated) {
+    BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+    if (!re->result->passes_allocated) {
+      render_result_passes_allocated_ensure(re->result);
+    }
+    BLI_rw_mutex_unlock(&re->resultmutex);
+  }
+}
+
 void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
 {
   if (engine->bake.pixels) {
@@ -375,6 +386,7 @@ void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
   Render *re = engine->re;
 
   if (result) {
+    re_ensure_passes_allocated_thread_safe(re);
     render_result_merge(re->result, result);
     result->renlay = result->layers.first; /* weak, draws first layer always */
     re->display_update(re->duh, result, NULL);
@@ -412,13 +424,7 @@ void RE_engine_end_result(
     return;
   }
 
-  if (!re->result->passes_allocated) {
-    BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-    if (!re->result->passes_allocated) {
-      render_result_passes_allocated_ensure(re->result);
-    }
-    BLI_rw_mutex_unlock(&re->resultmutex);
-  }
+  re_ensure_passes_allocated_thread_safe(re);
 
   /* merge. on break, don't merge in result for preview renders, looks nicer */
   if (!highlight) {
