@@ -871,7 +871,7 @@ static void file_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
 }
 
-static const char *file_context_dir[] = {
+const char *file_context_dir[] = {
     "active_file",
     "selected_files",
     "asset_library_ref",

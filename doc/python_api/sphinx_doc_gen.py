@@ -1039,6 +1039,7 @@ context_type_map = {
     # context_member: (RNA type, is_collection)
     "active_annotation_layer": ("GPencilLayer", False),
     "active_bone": ("EditBone", False),
+    "active_file": ("FileSelectEntry", False),
     "active_gpencil_frame": ("GreasePencilLayer", True),
     "active_gpencil_layer": ("GPencilLayer", True),
     "active_node": ("Node", False),
@@ -1077,6 +1078,7 @@ context_type_map = {
     "gpencil_data": ("GreasePencil", False),
     "gpencil_data_owner": ("ID", False),
     "hair": ("Hair", False),
+    "id": ("ID", False),
     "image_paint_object": ("Object", False),
     "lattice": ("Lattice", False),
     "light": ("Light", False),
@@ -1105,6 +1107,7 @@ context_type_map = {
     "selected_editable_keyframes": ("Keyframe", True),
     "selected_editable_objects": ("Object", True),
     "selected_editable_sequences": ("Sequence", True),
+    "selected_files": ("FileSelectEntry", True),
     "selected_nla_strips": ("NlaStrip", True),
     "selected_nodes": ("Node", True),
     "selected_objects": ("Object", True),
@@ -1201,6 +1204,7 @@ def pycontext2sphinx(basepath):
         "text_context_dir",
         "clip_context_dir",
         "sequencer_context_dir",
+        "file_context_dir",
     )
 
     unique = set()
