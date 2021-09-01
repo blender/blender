@@ -424,6 +424,11 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* remove tessface to ensure we don't hold references to invalid faces */
   BKE_mesh_tessface_clear(me);
 
+  /* Clear any run-time data.
+   * Even though this mesh wont typically have run-time data, the Python API can for e.g.
+   * create loop-triangle cache here, which is confusing when left in the mesh, see: T90798. */
+  BKE_mesh_runtime_clear_geometry(me);
+
   /* new material indices and material array */
   if (totmat) {
     matar = MEM_callocN(sizeof(*matar) * totmat, "join_mesh matar");
