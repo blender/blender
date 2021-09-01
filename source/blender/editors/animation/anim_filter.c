@@ -1061,20 +1061,16 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
   if (GS(owner_id->name) == ID_OB) {
     Object *ob = (Object *)owner_id;
+    char *bone_name;
 
-    /* only consider if F-Curve involves pose.bones */
-    if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
-
-      /* get bone-name, and check if this bone is selected */
-      bPoseChannel *pchan = NULL;
-      char *bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-      if (bone_name) {
-        pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-        MEM_freeN(bone_name);
-      }
+    /* Only consider if F-Curve involves `pose.bones`. */
+    if (fcu->rna_path && (bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones["))) {
+      /* Get bone-name, and check if this bone is selected. */
+      bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+      MEM_freeN(bone_name);
 
       /* check whether to continue or skip */
-      if ((pchan) && (pchan->bone)) {
+      if (pchan && pchan->bone) {
         /* If only visible channels,
          * skip if bone not visible unless user wants channels from hidden data too. */
         if (skip_hidden) {
@@ -1101,22 +1097,19 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
   }
   else if (GS(owner_id->name) == ID_SCE) {
     Scene *scene = (Scene *)owner_id;
+    char *seq_name;
 
-    /* only consider if F-Curve involves sequence_editor.sequences */
-    if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
-      Editing *ed = SEQ_editing_get(scene, false);
+    /* Only consider if F-Curve involves `sequence_editor.sequences`. */
+    if (fcu->rna_path && (seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all["))) {
+      /* Get strip name, and check if this strip is selected. */
       Sequence *seq = NULL;
-
+      Editing *ed = SEQ_editing_get(scene, false);
       if (ed) {
-        /* get strip name, and check if this strip is selected */
-        char *seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-        if (seq_name) {
-          seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
-          MEM_freeN(seq_name);
-        }
+        seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
       }
+      MEM_freeN(seq_name);
 
-      /* can only add this F-Curve if it is selected */
+      /* Can only add this F-Curve if it is selected. */
       if (ads->filterflag & ADS_FILTER_ONLYSEL) {
         if ((seq == NULL) || (seq->flag & SELECT) == 0) {
           return true;
@@ -1126,22 +1119,21 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
   }
   else if (GS(owner_id->name) == ID_NT) {
     bNodeTree *ntree = (bNodeTree *)owner_id;
+    char *node_name;
 
-    /* check for selected nodes */
-    if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
+    /* Check for selected nodes. */
+    if (fcu->rna_path && (node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes["))) {
       bNode *node = NULL;
+      /* Get strip name, and check if this strip is selected. */
+      node = nodeFindNodebyName(ntree, node_name);
+      MEM_freeN(node_name);
 
-      /* get strip name, and check if this strip is selected */
-      char *node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
-      if (node_name) {
-        node = nodeFindNodebyName(ntree, node_name);
-        MEM_freeN(node_name);
-      }
-
-      /* can only add this F-Curve if it is selected */
-      if (ads->filterflag & ADS_FILTER_ONLYSEL) {
-        if ((node) && (node->flag & NODE_SELECT) == 0) {
-          return true;
+      /* Can only add this F-Curve if it is selected. */
+      if (node) {
+        if (ads->filterflag & ADS_FILTER_ONLYSEL) {
+          if ((node->flag & NODE_SELECT) == 0) {
+            return true;
+          }
         }
       }
     }

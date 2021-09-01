@@ -145,31 +145,29 @@ static void autokeyframe_pose(
       if (act) {
         for (fcu = act->curves.first; fcu; fcu = fcu->next) {
           /* only insert keyframes for this F-Curve if it affects the current bone */
-          if (strstr(fcu->rna_path, "bones") == NULL) {
+          char *pchanName = BLI_str_quoted_substrN(fcu->rna_path, "bones[");
+          if (pchanName == NULL) {
             continue;
           }
-          char *pchanName = BLI_str_quoted_substrN(fcu->rna_path, "bones[");
 
           /* only if bone name matches too...
            * NOTE: this will do constraints too, but those are ok to do here too?
            */
-          if (pchanName) {
-            if (STREQ(pchanName, pchan->name)) {
-              insert_keyframe(bmain,
-                              reports,
-                              id,
-                              act,
-                              ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-                              fcu->rna_path,
-                              fcu->array_index,
-                              &anim_eval_context,
-                              ts->keyframe_type,
-                              &nla_cache,
-                              flag);
-            }
-
-            MEM_freeN(pchanName);
+          if (STREQ(pchanName, pchan->name)) {
+            insert_keyframe(bmain,
+                            reports,
+                            id,
+                            act,
+                            ((fcu->grp) ? (fcu->grp->name) : (NULL)),
+                            fcu->rna_path,
+                            fcu->array_index,
+                            &anim_eval_context,
+                            ts->keyframe_type,
+                            &nla_cache,
+                            flag);
           }
+
+          MEM_freeN(pchanName);
         }
       }
     }
