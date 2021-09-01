@@ -138,13 +138,13 @@ static void viewport_settings_apply(GPUViewport &viewport,
     case eDRWColorManagementType::Off: {
       /* For workbench use only default view transform in configuration,
        * using no scene settings. */
-      BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
+      BKE_color_managed_view_settings_init_render(&view_settings, display_settings, nullptr);
       break;
     }
     case eDRWColorManagementType::OnlyViewTransform: {
       /* Use only view transform + look and nothing else for lookdev without
        * scene lighting, as exposure depends on scene light intensity. */
-      BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
+      BKE_color_managed_view_settings_init_render(&view_settings, display_settings, nullptr);
       STRNCPY(view_settings.view_transform, scene.view_settings.view_transform);
       STRNCPY(view_settings.look, scene.view_settings.look);
       break;
