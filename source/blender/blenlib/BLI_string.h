@@ -57,6 +57,11 @@ size_t BLI_strncpy_rlen(char *__restrict dst,
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 
+bool BLI_str_quoted_substr_range(const char *__restrict str,
+                                 const char *__restrict prefix,
+                                 int *__restrict r_start,
+                                 int *__restrict r_end) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2, 3, 4);
 char *BLI_str_quoted_substrN(const char *__restrict str,
                              const char *__restrict prefix) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL() ATTR_MALLOC;

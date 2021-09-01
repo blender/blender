@@ -420,6 +420,53 @@ const char *BLI_str_escape_find_quote(const char *str)
 }
 
 /**
+ * Return the range of the quoted string (excluding quotes) `str` after `prefix`.
+ *
+ * A version of #BLI_str_quoted_substrN that calculates the range
+ * instead of un-escaping and allocating the result.
+ *
+ * \param str: String potentially including `prefix`.
+ * \param prefix: Quoted string prefix.
+ * \param r_start: The start of the quoted string (after the first quote).
+ * \param r_end: The end of the quoted string (before the last quote).
+ * \return True when a quoted string range could be found after `prefix`.
+ */
+bool BLI_str_quoted_substr_range(const char *__restrict str,
+                                 const char *__restrict prefix,
+                                 int *__restrict r_start,
+                                 int *__restrict r_end)
+{
+  const char *str_start = strstr(str, prefix);
+  if (str_start == NULL) {
+    return false;
+  }
+  const size_t prefix_len = strlen(prefix);
+  if (UNLIKELY(prefix_len == 0)) {
+    BLI_assert_msg(0,
+                   "Zero length prefix passed in, "
+                   "caller must prevent this from happening!");
+    return false;
+  }
+  BLI_assert_msg(prefix[prefix_len - 1] != '"',
+                 "Prefix includes trailing quote, "
+                 "caller must prevent this from happening!");
+
+  str_start += prefix_len;
+  if (UNLIKELY(*str_start != '\"')) {
+    return false;
+  }
+  str_start += 1;
+  const char *str_end = BLI_str_escape_find_quote(str_start);
+  if (UNLIKELY(str_end == NULL)) {
+    return false;
+  }
+
+  *r_start = (int)(str_start - str);
+  *r_end = (int)(str_end - str);
+  return true;
+}
+
+/**
  * Makes a copy of the text within the "" that appear after some text `blahblah`.
  * i.e. for string `pose["apples"]` with prefix `pose[`, it will return `apples`.
  *
@@ -431,27 +478,17 @@ const char *BLI_str_escape_find_quote(const char *str)
  */
 char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 {
-  const char *start_match, *end_match;
-
-  /* get the starting point (i.e. where prefix starts, and add prefix_len+1
-   * to it to get be after the first " */
-  start_match = strstr(str, prefix);
-  if (start_match) {
-    const size_t prefix_len = strlen(prefix);
-    start_match += prefix_len + 1;
-    /* get the end point (i.e. where the next occurrence of " is after the starting point) */
-    end_match = BLI_str_escape_find_quote(start_match);
-    if (end_match) {
-      const size_t escaped_len = (size_t)(end_match - start_match);
-      char *result = MEM_mallocN(sizeof(char) * (escaped_len + 1), __func__);
-      const size_t unescaped_len = BLI_str_unescape(result, start_match, escaped_len);
-      if (unescaped_len != escaped_len) {
-        result = MEM_reallocN(result, sizeof(char) * (unescaped_len + 1));
-      }
-      return result;
-    }
+  int start_match_ofs, end_match_ofs;
+  if (!BLI_str_quoted_substr_range(str, prefix, &start_match_ofs, &end_match_ofs)) {
+    return NULL;
   }
-  return NULL;
+  const size_t escaped_len = (size_t)(end_match_ofs - start_match_ofs);
+  char *result = MEM_mallocN(sizeof(char) * (escaped_len + 1), __func__);
+  const size_t unescaped_len = BLI_str_unescape(result, str + start_match_ofs, escaped_len);
+  if (unescaped_len != escaped_len) {
+    result = MEM_reallocN(result, sizeof(char) * (unescaped_len + 1));
+  }
+  return result;
 }
 
 /**
