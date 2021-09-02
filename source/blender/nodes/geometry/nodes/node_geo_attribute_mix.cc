@@ -25,26 +25,24 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_mix_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Factor")},
-    {SOCK_FLOAT, N_("Factor"), 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, PROP_FACTOR},
-    {SOCK_STRING, N_("A")},
-    {SOCK_FLOAT, N_("A"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("A"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_RGBA, N_("A"), 0.5, 0.5, 0.5, 1.0},
-    {SOCK_STRING, N_("B")},
-    {SOCK_FLOAT, N_("B"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("B"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_RGBA, N_("B"), 0.5, 0.5, 0.5, 1.0},
-    {SOCK_STRING, N_("Result")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_mix_attribute_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_mix_attribute_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Factor");
+  b.add_input<decl::Float>("Factor").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::String>("A");
+  b.add_input<decl::Float>("A", "A_001");
+  b.add_input<decl::Vector>("A", "A_002");
+  b.add_input<decl::Color>("A", "A_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::String>("B");
+  b.add_input<decl::Float>("B", "B_001");
+  b.add_input<decl::Vector>("B", "B_002");
+  b.add_input<decl::Color>("B", "B_003").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::String>("Result");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_mix_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -56,8 +54,6 @@ static void geo_node_attribute_mix_layout(uiLayout *layout, bContext *UNUSED(C),
   uiItemR(col, ptr, "input_type_a", 0, IFACE_("A"), ICON_NONE);
   uiItemR(col, ptr, "input_type_b", 0, IFACE_("B"), ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_attribute_mix_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -243,12 +239,11 @@ static void geo_node_attribute_mix_exec(GeoNodeExecParams params)
 void register_node_type_geo_attribute_mix()
 {
   static bNodeType ntype;
-
   geo_node_type_base(&ntype, GEO_NODE_ATTRIBUTE_MIX, "Attribute Mix", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(&ntype, geo_node_attribute_mix_in, geo_node_mix_attribute_out);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_mix_init);
   node_type_update(&ntype, blender::nodes::geo_node_attribute_mix_update);
-  ntype.draw_buttons = geo_node_attribute_mix_layout;
+  ntype.declare = blender::nodes::geo_node_mix_attribute_declare;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_mix_layout;
   node_type_storage(
       &ntype, "NodeAttributeMix", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_mix_exec;

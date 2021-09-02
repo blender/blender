@@ -19,25 +19,23 @@
 #include "UI_resources.h"
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_primitive_quadrilateral_in[] = {
-    {SOCK_FLOAT, N_("Width"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Height"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Bottom Width"), 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Top Width"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Offset"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Bottom Height"), 3.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Top Height"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Point 1"), -1.0f, 1.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Point 2"), 1.0f, 1.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Point 3"), 1.0f, -1.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Point 4"), -1.0f, -1.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_primitive_quadrilateral_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
+static void geo_node_curve_primitive_quadrilateral_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Width").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Height").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Bottom Width").default_value(4.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Top Width").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Offset").default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Bottom Height").default_value(3.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Top Height").default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Point 1").default_value({-1.0f, 1.0f, 0.0f}).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Point 2").default_value({1.0f, 1.0f, 0.0f}).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Point 3").default_value({1.0f, -1.0f, 0.0f}).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Point 4").default_value({-1.0f, -1.0f, 0.0f}).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Curve");
+}
 
 static void geo_node_curve_primitive_quadrilateral_layout(uiLayout *layout,
                                                           bContext *UNUSED(C),
@@ -53,8 +51,6 @@ static void geo_node_curve_primitive_quadrilateral_init(bNodeTree *UNUSED(tree),
   data->mode = GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE;
   node->storage = data;
 }
-
-namespace blender::nodes {
 
 static void geo_node_curve_primitive_quadrilateral_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -226,13 +222,11 @@ void register_node_type_geo_curve_primitive_quadrilateral()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL, "Quadrilateral", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype,
-                             geo_node_curve_primitive_quadrilateral_in,
-                             geo_node_curve_primitive_quadrilateral_out);
+  ntype.declare = blender::nodes::geo_node_curve_primitive_quadrilateral_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_quadrilateral_exec;
-  ntype.draw_buttons = geo_node_curve_primitive_quadrilateral_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_primitive_quadrilateral_layout;
   node_type_update(&ntype, blender::nodes::geo_node_curve_primitive_quadrilateral_update);
-  node_type_init(&ntype, geo_node_curve_primitive_quadrilateral_init);
+  node_type_init(&ntype, blender::nodes::geo_node_curve_primitive_quadrilateral_init);
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveQuad",
                     node_free_standard_storage,

@@ -30,17 +30,15 @@ using blender::fn::GVArray_For_GSpan;
 using blender::fn::GVArray_For_Span;
 using blender::fn::GVArray_Typed;
 
-static bNodeSocketTemplate geo_node_curve_resample_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_INT, N_("Count"), 10, 0, 0, 0, 1, 100000},
-    {SOCK_FLOAT, N_("Length"), 0.1f, 0.0f, 0.0f, 0.0f, 0.001f, FLT_MAX, PROP_DISTANCE},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_resample_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_curve_resample_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000);
+  b.add_input<decl::Float>("Length").default_value(0.1f).min(0.001f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_curve_resample_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -67,8 +65,6 @@ static void geo_node_curve_resample_update(bNodeTree *UNUSED(ntree), bNode *node
   nodeSetSocketAvailability(count_socket, mode == GEO_NODE_CURVE_SAMPLE_COUNT);
   nodeSetSocketAvailability(length_socket, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
-
-namespace blender::nodes {
 
 struct SampleModeParam {
   GeometryNodeCurveSampleMode mode;
@@ -226,12 +222,12 @@ void register_node_type_geo_curve_resample()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_RESAMPLE, "Resample Curve", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_resample_in, geo_node_curve_resample_out);
-  ntype.draw_buttons = geo_node_curve_resample_layout;
+  ntype.declare = blender::nodes::geo_node_curve_resample_declare;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_resample_layout;
   node_type_storage(
       &ntype, "NodeGeometryCurveResample", node_free_standard_storage, node_copy_standard_storage);
-  node_type_init(&ntype, geo_node_curve_resample_init);
-  node_type_update(&ntype, geo_node_curve_resample_update);
+  node_type_init(&ntype, blender::nodes::geo_node_curve_resample_init);
+  node_type_update(&ntype, blender::nodes::geo_node_curve_resample_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_resample_exec;
   nodeRegisterType(&ntype);
 }

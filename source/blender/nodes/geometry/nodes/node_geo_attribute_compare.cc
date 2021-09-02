@@ -21,25 +21,23 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_compare_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("A")},
-    {SOCK_FLOAT, N_("A"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("A"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_RGBA, N_("A"), 0.5, 0.5, 0.5, 1.0},
-    {SOCK_STRING, N_("B")},
-    {SOCK_FLOAT, N_("B"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("B"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_RGBA, N_("B"), 0.5, 0.5, 0.5, 1.0},
-    {SOCK_FLOAT, N_("Threshold"), 0.01f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
-    {SOCK_STRING, N_("Result")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_compare_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_compare_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("A");
+  b.add_input<decl::Float>("A", "A_001");
+  b.add_input<decl::Vector>("A", "A_002");
+  b.add_input<decl::Color>("A", "A_003").default_value({0.5, 0.5, 0.5, 1.0});
+  b.add_input<decl::String>("B");
+  b.add_input<decl::Float>("B", "B_001");
+  b.add_input<decl::Vector>("B", "B_002");
+  b.add_input<decl::Color>("B", "B_003").default_value({0.5, 0.5, 0.5, 1.0});
+  b.add_input<decl::Float>("Threshold").default_value(0.01f).min(0.0f);
+  b.add_input<decl::String>("Result");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_compare_layout(uiLayout *layout,
                                               bContext *UNUSED(C),
@@ -66,8 +64,6 @@ static bool operation_tests_equality(const NodeAttributeCompare &node_storage)
 {
   return ELEM(node_storage.operation, NODE_FLOAT_COMPARE_EQUAL, NODE_FLOAT_COMPARE_NOT_EQUAL);
 }
-
-namespace blender::nodes {
 
 static void geo_node_attribute_compare_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -353,13 +349,12 @@ void register_node_type_geo_attribute_compare()
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_COMPARE, "Attribute Compare", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_compare_in, geo_node_attribute_compare_out);
+  ntype.declare = blender::nodes::geo_node_attribute_compare_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_compare_exec;
-  ntype.draw_buttons = geo_node_attribute_compare_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_compare_layout;
   node_type_update(&ntype, blender::nodes::geo_node_attribute_compare_update);
   node_type_storage(
       &ntype, "NodeAttributeCompare", node_free_standard_storage, node_copy_standard_storage);
-  node_type_init(&ntype, geo_node_attribute_compare_init);
+  node_type_init(&ntype, blender::nodes::geo_node_attribute_compare_init);
   nodeRegisterType(&ntype);
 }

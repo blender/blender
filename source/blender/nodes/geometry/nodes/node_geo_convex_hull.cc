@@ -28,17 +28,13 @@
 #  include "RBI_hull_api.h"
 #endif
 
-static bNodeSocketTemplate geo_node_convex_hull_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_convex_hull_out[] = {
-    {SOCK_GEOMETRY, N_("Convex Hull")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_convex_hull_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Convex Hull");
+}
 
 using bke::GeometryInstanceGroup;
 
@@ -317,7 +313,7 @@ void register_node_type_geo_convex_hull()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CONVEX_HULL, "Convex Hull", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_convex_hull_in, geo_node_convex_hull_out);
+  ntype.declare = blender::nodes::geo_node_convex_hull_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_convex_hull_exec;
   nodeRegisterType(&ntype);
 }

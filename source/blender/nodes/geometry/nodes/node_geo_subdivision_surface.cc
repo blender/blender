@@ -23,17 +23,15 @@
 #include "UI_resources.h"
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_subdivision_surface_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_INT, N_("Level"), 1, 0, 0, 0, 0, 6},
-    {SOCK_BOOLEAN, N_("Use Creases")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_subdivision_surface_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_subdivision_surface_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
+  b.add_input<decl::Bool>("Use Creases");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_subdivision_surface_layout(uiLayout *layout,
                                                 bContext *UNUSED(C),
@@ -59,7 +57,6 @@ static void geo_node_subdivision_surface_init(bNodeTree *UNUSED(ntree), bNode *n
   node->storage = data;
 }
 
-namespace blender::nodes {
 static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
@@ -138,11 +135,10 @@ void register_node_type_geo_subdivision_surface()
 
   geo_node_type_base(
       &ntype, GEO_NODE_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_subdivision_surface_in, geo_node_subdivision_surface_out);
+  ntype.declare = blender::nodes::geo_node_subdivision_surface_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_exec;
-  ntype.draw_buttons = geo_node_subdivision_surface_layout;
-  node_type_init(&ntype, geo_node_subdivision_surface_init);
+  ntype.draw_buttons = blender::nodes::geo_node_subdivision_surface_layout;
+  node_type_init(&ntype, blender::nodes::geo_node_subdivision_surface_init);
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
   node_type_storage(&ntype,
                     "NodeGeometrySubdivisionSurface",

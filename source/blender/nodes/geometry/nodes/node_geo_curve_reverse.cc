@@ -20,18 +20,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_reverse_in[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {SOCK_STRING, N_("Selection")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_reverse_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_reverse_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::String>("Selection");
+  b.add_output<decl::Geometry>("Curve");
+}
 
 /**
  * Reverse the data in a MutableSpan object.
@@ -126,7 +122,7 @@ void register_node_type_geo_curve_reverse()
 {
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_REVERSE, "Curve Reverse", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_reverse_in, geo_node_curve_reverse_out);
+  ntype.declare = blender::nodes::geo_node_curve_reverse_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_reverse_exec;
   nodeRegisterType(&ntype);
 }

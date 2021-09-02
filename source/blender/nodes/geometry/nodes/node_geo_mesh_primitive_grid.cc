@@ -25,20 +25,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_grid_in[] = {
-    {SOCK_FLOAT, N_("Size X"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Size Y"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_INT, N_("Vertices X"), 3, 0.0f, 0.0f, 0.0f, 2, 1000},
-    {SOCK_INT, N_("Vertices Y"), 3, 0.0f, 0.0f, 0.0f, 2, 1000},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_mesh_primitive_grid_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_mesh_primitive_grid_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Size X").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Size Y").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>("Vertices X").default_value(3).min(2).max(1000);
+  b.add_input<decl::Int>("Vertices Y").default_value(3).min(2).max(1000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void calculate_uvs(
     Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, const float size_x, const float size_y)
@@ -182,8 +178,7 @@ void register_node_type_geo_mesh_primitive_grid()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_GRID, "Grid", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_grid_in, geo_node_mesh_primitive_grid_out);
+  ntype.declare = blender::nodes::geo_node_mesh_primitive_grid_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_grid_exec;
   nodeRegisterType(&ntype);
 }

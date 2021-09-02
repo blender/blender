@@ -27,18 +27,14 @@
 
 using blender::Array;
 
-static bNodeSocketTemplate geo_node_mesh_to_curve_in[] = {
-    {SOCK_GEOMETRY, N_("Mesh")},
-    {SOCK_STRING, N_("Selection")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_mesh_to_curve_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_mesh_to_curve_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Mesh");
+  b.add_input<decl::String>("Selection");
+  b.add_output<decl::Geometry>("Curve");
+}
 
 template<typename T>
 static void copy_attribute_to_points(const VArray<T> &source_data,
@@ -310,7 +306,7 @@ void register_node_type_geo_mesh_to_curve()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_TO_CURVE, "Mesh to Curve", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_mesh_to_curve_in, geo_node_mesh_to_curve_out);
+  ntype.declare = blender::nodes::geo_node_mesh_to_curve_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_to_curve_exec;
   nodeRegisterType(&ntype);
 }

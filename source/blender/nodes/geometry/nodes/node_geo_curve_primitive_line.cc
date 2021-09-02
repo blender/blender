@@ -21,18 +21,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_primitive_line_in[] = {
-    {SOCK_VECTOR, N_("Start"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("End"), 0.0f, 0.0f, 1.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Direction"), 0.0f, 0.0f, 1.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("Length"), 1.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_DISTANCE},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_primitive_line_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
+static void geo_node_curve_primitive_line_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>("Start").subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("End").default_value({0.0f, 0.0f, 1.0f}).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Vector>("Direction").default_value({0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>("Length").default_value(1.0f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Curve");
+}
 
 static void geo_node_curve_primitive_line_layout(uiLayout *layout,
                                                  bContext *UNUSED(C),
@@ -40,8 +38,6 @@ static void geo_node_curve_primitive_line_layout(uiLayout *layout,
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_curve_primitive_line_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -132,15 +128,14 @@ void register_node_type_geo_curve_primitive_line()
 {
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_LINE, "Curve Line", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_curve_primitive_line_in, geo_node_curve_primitive_line_out);
   node_type_init(&ntype, blender::nodes::geo_node_curve_primitive_line_init);
   node_type_update(&ntype, blender::nodes::geo_node_curve_primitive_line_update);
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveLine",
                     node_free_standard_storage,
                     node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_curve_primitive_line_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_line_exec;
-  ntype.draw_buttons = geo_node_curve_primitive_line_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_primitive_line_layout;
   nodeRegisterType(&ntype);
 }

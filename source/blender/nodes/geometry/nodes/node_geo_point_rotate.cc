@@ -21,21 +21,19 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_point_rotate_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Axis")},
-    {SOCK_VECTOR, N_("Axis"), 0.0, 0.0, 1.0, 0.0, -FLT_MAX, FLT_MAX, PROP_XYZ},
-    {SOCK_STRING, N_("Angle")},
-    {SOCK_FLOAT, N_("Angle"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX, PROP_ANGLE},
-    {SOCK_STRING, N_("Rotation")},
-    {SOCK_VECTOR, N_("Rotation"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX, PROP_EULER},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_point_rotate_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_point_rotate_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Axis");
+  b.add_input<decl::Vector>("Axis", "Axis_001").default_value({0.0, 0.0, 1.0}).subtype(PROP_XYZ);
+  b.add_input<decl::String>("Angle");
+  b.add_input<decl::Float>("Angle", "Angle_001").subtype(PROP_ANGLE);
+  b.add_input<decl::String>("Rotation");
+  b.add_input<decl::Vector>("Rotation", "Rotation_001").subtype(PROP_EULER);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -56,8 +54,6 @@ static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), 
     uiItemR(col, ptr, "input_type_rotation", 0, IFACE_("Rotation"), ICON_NONE);
   }
 }
-
-namespace blender::nodes {
 
 static void geo_node_point_rotate_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -224,12 +220,12 @@ void register_node_type_geo_point_rotate()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_POINT_ROTATE, "Point Rotate", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_point_rotate_in, geo_node_point_rotate_out);
   node_type_init(&ntype, blender::nodes::geo_node_point_rotate_init);
   node_type_update(&ntype, blender::nodes::geo_node_point_rotate_update);
   node_type_storage(
       &ntype, "NodeGeometryRotatePoints", node_free_standard_storage, node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_point_rotate_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_point_rotate_exec;
-  ntype.draw_buttons = geo_node_point_rotate_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_point_rotate_layout;
   nodeRegisterType(&ntype);
 }

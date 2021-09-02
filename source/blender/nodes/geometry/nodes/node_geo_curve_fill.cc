@@ -31,22 +31,18 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_fill_in[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_curve_fill_out[] = {
-    {SOCK_GEOMETRY, N_("Mesh")},
-    {-1, ""},
-};
+static void geo_node_curve_fill_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Curve");
+  b.add_output<decl::Geometry>("Mesh");
+}
 
 static void geo_node_curve_fill_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void geo_node_curve_fill_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -168,11 +164,12 @@ void register_node_type_geo_curve_fill()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_FILL, "Curve Fill", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_fill_in, geo_node_curve_fill_out);
+
   node_type_init(&ntype, blender::nodes::geo_node_curve_fill_init);
   node_type_storage(
       &ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_curve_fill_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_fill_exec;
-  ntype.draw_buttons = geo_node_curve_fill_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_fill_layout;
   nodeRegisterType(&ntype);
 }

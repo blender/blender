@@ -23,16 +23,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_select_by_handle_type_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Selection")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_select_by_handle_type_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_select_by_handle_type_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Selection");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_curve_select_by_handle_type_layout(uiLayout *layout,
                                                         bContext *UNUSED(C),
@@ -67,8 +65,6 @@ static BezierSpline::HandleType handle_type_from_input_type(const GeometryNodeCu
   BLI_assert_unreachable();
   return BezierSpline::HandleType::Auto;
 }
-
-namespace blender::nodes {
 
 static void select_curve_by_handle_type(const CurveEval &curve,
                                         const BezierSpline::HandleType type,
@@ -133,15 +129,14 @@ void register_node_type_geo_select_by_handle_type()
 
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_SELECT_HANDLES, "Select by Handle Type", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_select_by_handle_type_in, geo_node_select_by_handle_type_out);
+  ntype.declare = blender::nodes::geo_node_select_by_handle_type_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_select_by_handle_type_exec;
-  node_type_init(&ntype, geo_node_curve_select_by_handle_type_init);
+  node_type_init(&ntype, blender::nodes::geo_node_curve_select_by_handle_type_init);
   node_type_storage(&ntype,
                     "NodeGeometryCurveSelectHandles",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = geo_node_curve_select_by_handle_type_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_curve_select_by_handle_type_layout;
 
   nodeRegisterType(&ntype);
 }

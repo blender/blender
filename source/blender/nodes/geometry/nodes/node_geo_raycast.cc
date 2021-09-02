@@ -24,26 +24,28 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_raycast_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_GEOMETRY, N_("Target Geometry")},
-    {SOCK_STRING, N_("Ray Direction")},
-    {SOCK_VECTOR, N_("Ray Direction"), 0.0, 0.0, 1.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_STRING, N_("Ray Length")},
-    {SOCK_FLOAT, N_("Ray Length"), 100.0, 0.0, 0.0, 0.0, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_STRING, N_("Target Attribute")},
-    {SOCK_STRING, N_("Is Hit")},
-    {SOCK_STRING, N_("Hit Position")},
-    {SOCK_STRING, N_("Hit Normal")},
-    {SOCK_STRING, N_("Hit Distance")},
-    {SOCK_STRING, N_("Hit Attribute")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_raycast_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_raycast_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Target Geometry");
+  b.add_input<decl::String>("Ray Direction");
+  b.add_input<decl::Vector>("Ray Direction", "Ray Direction_001")
+      .default_value({0.0f, 0.0f, 1.0f});
+  b.add_input<decl::String>("Ray Length");
+  b.add_input<decl::Float>("Ray Length", "Ray Length_001")
+      .default_value(100.0f)
+      .min(0.0f)
+      .subtype(PROP_DISTANCE);
+  b.add_input<decl::String>("Target Attribute");
+  b.add_input<decl::String>("Is Hit");
+  b.add_input<decl::String>("Hit Position");
+  b.add_input<decl::String>("Hit Normal");
+  b.add_input<decl::String>("Hit Distance");
+  b.add_input<decl::String>("Hit Attribute");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_raycast_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -62,8 +64,6 @@ static void geo_node_raycast_init(bNodeTree *UNUSED(tree), bNode *node)
   data->input_type_ray_length = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
   node->storage = data;
 }
-
-namespace blender::nodes {
 
 static void geo_node_raycast_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -309,13 +309,13 @@ void register_node_type_geo_raycast()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_raycast_in, geo_node_raycast_out);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  node_type_init(&ntype, geo_node_raycast_init);
+  node_type_init(&ntype, blender::nodes::geo_node_raycast_init);
   node_type_update(&ntype, blender::nodes::geo_node_raycast_update);
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_raycast_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_raycast_exec;
-  ntype.draw_buttons = geo_node_raycast_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_raycast_layout;
   nodeRegisterType(&ntype);
 }

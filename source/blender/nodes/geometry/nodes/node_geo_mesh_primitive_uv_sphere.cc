@@ -25,19 +25,15 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_uv_sphere_in[] = {
-    {SOCK_INT, N_("Segments"), 32, 0.0f, 0.0f, 0.0f, 3, 1024},
-    {SOCK_INT, N_("Rings"), 16, 0.0f, 0.0f, 0.0f, 2, 1024},
-    {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_mesh_primitive_uv_sphere_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_mesh_primitive_uv_shpere_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>("Segments").default_value(32).min(3).max(1024);
+  b.add_input<decl::Int>("Rings").default_value(16).min(2).max(1024);
+  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static int sphere_vert_total(const int segments, const int rings)
 {
@@ -313,8 +309,7 @@ void register_node_type_geo_mesh_primitive_uv_sphere()
 
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, "UV Sphere", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_uv_sphere_in, geo_node_mesh_primitive_uv_sphere_out);
+  ntype.declare = blender::nodes::geo_node_mesh_primitive_uv_shpere_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_uv_sphere_exec;
   nodeRegisterType(&ntype);
 }

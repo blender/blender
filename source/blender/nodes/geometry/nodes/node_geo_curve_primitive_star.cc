@@ -18,20 +18,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_primitive_star_in[] = {
-    {SOCK_INT, N_("Points"), 8.0f, 0.0f, 0.0f, 0.0f, 3, 256, PROP_UNSIGNED},
-    {SOCK_FLOAT, N_("Inner Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Outer Radius"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Twist"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_ANGLE},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_primitive_star_out[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_primitive_star_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>("Points").default_value(8).min(3).max(256).subtype(PROP_UNSIGNED);
+  b.add_input<decl::Float>("Inner Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Outer Radius").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Twist").subtype(PROP_ANGLE);
+  b.add_output<decl::Geometry>("Curve");
+}
 
 static std::unique_ptr<CurveEval> create_star_curve(const float inner_radius,
                                                     const float outer_radius,
@@ -74,8 +70,7 @@ void register_node_type_geo_curve_primitive_star()
 {
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_STAR, "Star", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_curve_primitive_star_in, geo_node_curve_primitive_star_out);
+  ntype.declare = blender::nodes::geo_node_curve_primitive_star_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_star_exec;
   nodeRegisterType(&ntype);
 }

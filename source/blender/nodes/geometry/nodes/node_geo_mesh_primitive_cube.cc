@@ -22,20 +22,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_cube_in[] = {
-    {SOCK_VECTOR, N_("Size"), 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_INT, N_("Vertices X"), 2, 0.0f, 0.0f, 0.0f, 2, 1000},
-    {SOCK_INT, N_("Vertices Y"), 2, 0.0f, 0.0f, 0.0f, 2, 1000},
-    {SOCK_INT, N_("Vertices Z"), 2, 0.0f, 0.0f, 0.0f, 2, 1000},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_mesh_primitive_cube_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_mesh_primitive_cube_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>("Size").default_value({1.0f, 1.0f, 1.0f}).subtype(PROP_TRANSLATION);
+  b.add_input<decl::Int>("Vertices X").default_value(2).min(2).max(1000);
+  b.add_input<decl::Int>("Vertices Y").default_value(2).min(2).max(1000);
+  b.add_input<decl::Int>("Vertices Z").default_value(2).min(2).max(1000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 struct CuboidConfig {
   float3 size;
@@ -496,8 +492,7 @@ void register_node_type_geo_mesh_primitive_cube()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CUBE, "Cube", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_cube_in, geo_node_mesh_primitive_cube_out);
+  ntype.declare = blender::nodes::geo_node_mesh_primitive_cube_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_cube_exec;
   nodeRegisterType(&ntype);
 }

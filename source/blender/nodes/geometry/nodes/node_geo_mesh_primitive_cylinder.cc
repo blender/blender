@@ -25,17 +25,15 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_cylinder_in[] = {
-    {SOCK_INT, N_("Vertices"), 32, 0.0f, 0.0f, 0.0f, 3, 4096},
-    {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Depth"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_mesh_primitive_cylinder_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_mesh_primitive_cylinder_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Int>("Vertices").default_value(32).min(3).max(4096);
+  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Depth").default_value(2.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_mesh_primitive_cylinder_layout(uiLayout *layout,
                                                     bContext *UNUSED(C),
@@ -55,8 +53,6 @@ static void geo_node_mesh_primitive_cylinder_init(bNodeTree *UNUSED(ntree), bNod
 
   node->storage = node_storage;
 }
-
-namespace blender::nodes {
 
 static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
 {
@@ -86,14 +82,12 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
 void register_node_type_geo_mesh_primitive_cylinder()
 {
   static bNodeType ntype;
-
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Cylinder", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_cylinder_in, geo_node_mesh_primitive_cylinder_out);
-  node_type_init(&ntype, geo_node_mesh_primitive_cylinder_init);
+  node_type_init(&ntype, blender::nodes::geo_node_mesh_primitive_cylinder_init);
   node_type_storage(
       &ntype, "NodeGeometryMeshCylinder", node_free_standard_storage, node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_mesh_primitive_cylinder_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_cylinder_exec;
-  ntype.draw_buttons = geo_node_mesh_primitive_cylinder_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_mesh_primitive_cylinder_layout;
   nodeRegisterType(&ntype);
 }
