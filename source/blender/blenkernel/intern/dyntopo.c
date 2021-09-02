@@ -2463,6 +2463,11 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
       continue;
     }
 
+    // check seam/sharp flags here
+    if (!(e->head.hflag & BM_ELEM_SMOOTH) || e->head.hflag & BM_ELEM_SEAM) {
+      continue;
+    }
+
     float limit = lens[i];
 
     // limit *= detail_range;
@@ -2615,6 +2620,11 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
       }
 
       if ((mv1->flag & DYNVERT_ALL_BOUNDARY) != (mv2->flag & DYNVERT_ALL_BOUNDARY)) {
+        continue;
+      }
+
+      // check seam/sharp flags in edge itself, not just verts
+      if (!(e->head.hflag & BM_ELEM_SMOOTH) || e->head.hflag & BM_ELEM_SEAM) {
         continue;
       }
 
