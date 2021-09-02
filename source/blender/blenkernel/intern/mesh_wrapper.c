@@ -69,7 +69,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
 
   /* Use edit-mesh directly where possible. */
   me->runtime.is_original = true;
-  me->edit_mesh = MEM_dupallocN(em);
+  me->edit_mesh = em;
 
 /* Make sure, we crash if these are ever used. */
 #ifdef DEBUG

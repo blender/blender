@@ -212,12 +212,12 @@ void BKE_editmesh_free_derived_caches(BMEditMesh *em)
 {
   if (em->mesh_eval_cage) {
     Mesh *me = em->mesh_eval_cage;
-    MEM_SAFE_FREE(me->edit_mesh);
+    me->edit_mesh = NULL;
     BKE_id_free(NULL, me);
   }
   if (em->mesh_eval_final && em->mesh_eval_final != em->mesh_eval_cage) {
     Mesh *me = em->mesh_eval_final;
-    MEM_SAFE_FREE(me->edit_mesh);
+    me->edit_mesh = NULL;
     BKE_id_free(NULL, me);
   }
   em->mesh_eval_cage = em->mesh_eval_final = NULL;
