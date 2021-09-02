@@ -56,7 +56,7 @@
 static void seq_proxy_build_job(const bContext *C, ReportList *reports)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   ScrArea *area = CTX_wm_area(C);
 
   if (ed == NULL) {
@@ -121,7 +121,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
   Main *bmain = CTX_data_main(C);
   struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   GSet *file_list;
 
   if (ed == NULL) {
@@ -184,7 +184,7 @@ static int sequencer_enable_proxies_invoke(bContext *C,
 static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   bool proxy_25 = RNA_boolean_get(op->ptr, "proxy_25");
   bool proxy_50 = RNA_boolean_get(op->ptr, "proxy_50");
   bool proxy_75 = RNA_boolean_get(op->ptr, "proxy_75");

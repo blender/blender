@@ -240,11 +240,8 @@ void seq_free_sequence_recurse(Scene *scene,
   seq_sequence_free_ex(scene, seq, false, do_id_user, do_clean_animdata);
 }
 
-Editing *SEQ_editing_get(Scene *scene, bool alloc)
+Editing *SEQ_editing_get(const Scene *scene)
 {
-  if (alloc) {
-    SEQ_editing_ensure(scene);
-  }
   return scene->ed;
 }
 

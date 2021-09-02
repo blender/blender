@@ -2274,7 +2274,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 
   SpaceSeq *sseq = ptr->data;
   Scene *scene = CTX_data_scene(C);
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene, false));
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
   GSet *file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
   wmJob *wm_job = ED_seq_proxy_wm_job_get(C);

@@ -105,7 +105,7 @@ static Sequence *rna_Sequence_split(
     ID *id, Sequence *seq, Main *bmain, ReportList *reports, int frame, int split_method)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
 
   const char *error_msg = NULL;
@@ -127,7 +127,7 @@ static Sequence *rna_Sequence_split(
 static Sequence *rna_Sequence_parent_meta(ID *id, Sequence *seq_self)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   return SEQ_find_metastrip_by_sequence(&ed->seqbase, NULL, seq_self);
 }

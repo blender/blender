@@ -1921,7 +1921,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, int chanshown)
 {
   Scene *scene = context->scene;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbasep;
 
   if (ed == NULL) {

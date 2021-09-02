@@ -2275,9 +2275,9 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
   }
 }
 
-static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
+static void seq_draw_sfra_efra(const Scene *scene, View2D *v2d)
 {
-  const Editing *ed = SEQ_editing_get(scene, false);
+  const Editing *ed = SEQ_editing_get(scene);
   const int frame_sta = scene->r.sfra;
   const int frame_end = scene->r.efra + 1;
 
@@ -2312,7 +2312,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
   /* While in meta strip, draw a checkerboard overlay outside of frame range. */
   if (ed && !BLI_listbase_is_empty(&ed->metastack)) {
-    MetaStack *ms = ed->metastack.last;
+    const MetaStack *ms = ed->metastack.last;
     immUnbindProgram();
 
     immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
@@ -2586,7 +2586,7 @@ static void draw_overlap_frame_indicator(const struct Scene *scene, const View2D
 void draw_timeline_seq(const bContext *C, ARegion *region)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
   short cfra_flag = 0;

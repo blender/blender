@@ -1103,7 +1103,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
     if (fcu->rna_path && (seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all["))) {
       /* Get strip name, and check if this strip is selected. */
       Sequence *seq = NULL;
-      Editing *ed = SEQ_editing_get(scene, false);
+      Editing *ed = SEQ_editing_get(scene);
       if (ed) {
         seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
       }

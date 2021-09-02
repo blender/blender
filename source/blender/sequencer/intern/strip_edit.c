@@ -227,7 +227,7 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
                                  const char **error_str)
 {
   /* Find the appropriate seqbase */
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, src_seq);
 
   if (dst_seqm->type != SEQ_TYPE_META) {

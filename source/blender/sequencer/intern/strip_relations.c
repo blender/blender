@@ -134,7 +134,7 @@ static bool seq_relations_find_and_invalidate_metas(Scene *scene,
   ListBase *seqbase;
 
   if (meta_seq == NULL) {
-    Editing *ed = SEQ_editing_get(scene, false);
+    Editing *ed = SEQ_editing_get(scene);
     seqbase = &ed->seqbase;
   }
   else {
@@ -342,7 +342,7 @@ void SEQ_relations_update_changed_seq_and_deps(Scene *scene,
                                                int len_change,
                                                int ibuf_change)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
 
   if (ed == NULL) {
@@ -370,7 +370,7 @@ static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
 /* Unused */
 void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   if (ed == NULL) {
     return;
   }
@@ -401,7 +401,7 @@ static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase
 
 bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   if (ed == NULL) {
     return false;
   }

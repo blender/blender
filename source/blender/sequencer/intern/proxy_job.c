@@ -79,7 +79,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 static void proxy_endjob(void *pjv)
 {
   ProxyJob *pj = pjv;
-  Editing *ed = SEQ_editing_get(pj->scene, false);
+  Editing *ed = SEQ_editing_get(pj->scene);
   LinkData *link;
 
   for (link = pj->queue.first; link; link = link->next) {

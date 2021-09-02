@@ -265,7 +265,7 @@ static void free_transform_custom_data(TransCustomData *custom_data)
 /* Canceled, need to update the strips display. */
 static void seq_transform_cancel(TransInfo *t, SeqCollection *transformed_strips)
 {
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene, false));
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
 
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
@@ -346,7 +346,7 @@ static bool seq_transform_check_strip_effects(SeqCollection *transformed_strips)
 
 static ListBase *seqbase_active_get(const TransInfo *t)
 {
-  Editing *ed = SEQ_editing_get(t->scene, false);
+  Editing *ed = SEQ_editing_get(t->scene);
   return SEQ_active_seqbase_get(ed);
 }
 
@@ -589,7 +589,7 @@ static SeqCollection *seq_transform_collection_from_transdata(TransDataContainer
 
 static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data)
 {
-  Editing *ed = SEQ_editing_get(t->scene, false);
+  Editing *ed = SEQ_editing_get(t->scene);
   if (ed == NULL) {
     free_transform_custom_data(custom_data);
     return;
@@ -622,7 +622,7 @@ void createTransSeqData(TransInfo *t)
 #define XXX_DURIAN_ANIM_TX_HACK
 
   Scene *scene = t->scene;
-  Editing *ed = SEQ_editing_get(t->scene, false);
+  Editing *ed = SEQ_editing_get(t->scene);
   TransData *td = NULL;
   TransData2D *td2d = NULL;
   TransDataSeq *tdsq = NULL;

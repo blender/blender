@@ -185,7 +185,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   Sequence *tgt = NULL;
   Sequence *seq;
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, true);
+  Editing *ed = SEQ_editing_ensure(scene);
   int timeline_frame = (int)CFRA;
   int proximity = INT_MAX;
 
@@ -314,7 +314,7 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
 static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Sequence *seq)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (seq == NULL) {
     return;
@@ -356,7 +356,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  const Editing *ed = SEQ_editing_get(scene, true);
+  const Editing *ed = SEQ_editing_ensure(scene);
   Scene *sce_seq = BLI_findlink(&bmain->scenes, RNA_enum_get(op->ptr, "scene"));
 
   if (sce_seq == NULL) {
@@ -384,7 +384,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 
 static void sequencer_disable_one_time_properties(bContext *C, wmOperator *op)
 {
-  Editing *ed = SEQ_editing_get(CTX_data_scene(C), false);
+  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
   /* Disable following properties if there are any existing strips, unless overridden by user. */
   if (ed && ed->seqbasep && ed->seqbasep->first) {
     if (RNA_struct_find_property(op->ptr, "use_framerate")) {
@@ -435,7 +435,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  const Editing *ed = SEQ_editing_get(scene, true);
+  const Editing *ed = SEQ_editing_ensure(scene);
   MovieClip *clip = BLI_findlink(&bmain->movieclips, RNA_enum_get(op->ptr, "clip"));
 
   if (clip == NULL) {
@@ -499,7 +499,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  const Editing *ed = SEQ_editing_get(scene, true);
+  const Editing *ed = SEQ_editing_ensure(scene);
   Mask *mask = BLI_findlink(&bmain->masks, RNA_enum_get(op->ptr, "mask"));
 
   if (mask == NULL) {
@@ -632,7 +632,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  const Editing *ed = SEQ_editing_get(scene, true);
+  const Editing *ed = SEQ_editing_ensure(scene);
 
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char dir_only[FILE_MAX];
@@ -668,7 +668,7 @@ static bool sequencer_add_movie_single_strip(bContext *C, wmOperator *op, SeqLoa
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  const Editing *ed = SEQ_editing_get(scene, true);
+  const Editing *ed = SEQ_editing_ensure(scene);
 
   Sequence *seq_movie = NULL;
   Sequence *seq_sound = NULL;
@@ -817,7 +817,7 @@ static void sequencer_add_sound_multiple_strips(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, true);
+  Editing *ed = SEQ_editing_ensure(scene);
 
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char dir_only[FILE_MAX];
@@ -842,7 +842,7 @@ static bool sequencer_add_sound_single_strip(bContext *C, wmOperator *op, SeqLoa
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, true);
+  Editing *ed = SEQ_editing_ensure(scene);
 
   Sequence *seq = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data, 0.0f);
   if (seq == NULL) {
@@ -1035,7 +1035,7 @@ static void sequencer_add_image_strip_load_files(
 static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, true);
+  Editing *ed = SEQ_editing_ensure(scene);
 
   SeqLoadData load_data;
   load_data_init_from_operator(&load_data, C, op);
@@ -1141,7 +1141,7 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, true);
+  Editing *ed = SEQ_editing_ensure(scene);
   const char *error_msg;
 
   SeqLoadData load_data;
