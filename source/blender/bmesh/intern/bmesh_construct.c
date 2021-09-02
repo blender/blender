@@ -106,7 +106,7 @@ void bm_id_freelist_push(BMesh *bm, uint id)
 }
 #endif
 
-static const int _typemap[] = {0, 0, 1, 0, 2, 0, 0, 0, 3};
+// static const int _typemap[] = {0, 0, 1, 0, 2, 0, 0, 0, 3};
 
 static void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 {
@@ -118,7 +118,7 @@ static void bm_assign_id_intern(BMesh *bm, BMElem *elem, uint id)
 
   if (bm->idmap.flag & BM_HAS_ID_MAP) {
     if (!(bm->idmap.flag & BM_NO_REUSE_IDS)) {
-      if (!bm->idmap.map || bm->idmap.map_size <= bm->idmap.maxid) {
+      if (!bm->idmap.map || bm->idmap.map_size <= (int)bm->idmap.maxid) {
         int size = 2 + bm->idmap.maxid + (bm->idmap.maxid >> 1);
 
         BMElem **idmap = MEM_callocN(sizeof(void *) * size, "bmesh idmap");
@@ -193,8 +193,7 @@ void bm_free_id(BMesh *bm, BMElem *elem)
 #endif
 
   if ((bm->idmap.flag & BM_HAS_ID_MAP)) {
-    if (!(bm->idmap.flag & BM_NO_REUSE_IDS) && bm->idmap.map && id >= 0 &&
-        id < bm->idmap.map_size) {
+    if (!(bm->idmap.flag & BM_NO_REUSE_IDS) && bm->idmap.map && (int)id < bm->idmap.map_size) {
       bm->idmap.map[id] = NULL;
     }
     else if (bm->idmap.flag & BM_NO_REUSE_IDS) {

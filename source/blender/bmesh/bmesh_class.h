@@ -623,4 +623,5 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #endif
 
 /* note does not check if ids are enabled for a given element type */
-#define BM_ELEM_GET_ID(bm, elem) BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[elem->head.htype])
+#define BM_ELEM_GET_ID(bm, elem) \
+  BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[(int)(elem)->head.htype])

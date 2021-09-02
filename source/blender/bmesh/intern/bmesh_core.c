@@ -2833,7 +2833,7 @@ BMVert *bmesh_kernel_unglue_region_make_vert(BMesh *bm, BMLoop *l_sep)
   edges[0] = l_sep->e;
   edges[1] = l_sep->prev->e;
 
-  for (i = 0; i < ARRAY_SIZE(edges); i++) {
+  for (i = 0; i < (int)ARRAY_SIZE(edges); i++) {
     BMEdge *e = edges[i];
     bmesh_edge_vert_swap(e, v_new, v_sep);
   }
@@ -2886,7 +2886,7 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
     BM_ELEM_API_FLAG_ENABLE(l_sep->prev, LOOP_VISIT);
 
     BMLoop *loop_pair[2] = {l_sep, l_sep->prev};
-    for (int j = 0; j < ARRAY_SIZE(loop_pair); j++) {
+    for (int j = 0; j < (int)ARRAY_SIZE(loop_pair); j++) {
       BMEdge *e = loop_pair[j]->e;
       if (!BM_ELEM_API_FLAG_TEST(e, EDGE_VISIT)) {
         BM_ELEM_API_FLAG_ENABLE(e, EDGE_VISIT);
@@ -2943,7 +2943,7 @@ BMVert *bmesh_kernel_unglue_region_make_vert_multi(BMesh *bm, BMLoop **larr, int
   else {
     v_new = BM_vert_create(bm, v_sep->co, v_sep, BM_CREATE_NOP);
 
-    for (i = 0; i < STACK_SIZE(edges); i++) {
+    for (i = 0; i < (int)STACK_SIZE(edges); i++) {
       BMEdge *e = edges[i];
       BMLoop *l_iter, *l_first, *l_next;
       BMEdge *e_new;
