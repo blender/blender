@@ -247,10 +247,10 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
         MEM_allocN_len(pool->chunktable) / sizeof(void *) <= (size_t)pool->totchunk) {
       void *old = pool->chunktable;
 
-      size_t size = (size_t)pool->totchunk + 2ULL;
-      size += size >> 1ULL;
+      int size = (int)pool->totchunk + 2;
+      size += size >> 1;
 
-      pool->chunktable = MEM_mallocN(sizeof(void *) * size, "mempool chunktable");
+      pool->chunktable = MEM_mallocN(sizeof(void *) * (size_t)size, "mempool chunktable");
 
       if (old) {
         memcpy(pool->chunktable, old, sizeof(void *) * (size_t)pool->totchunk);
@@ -630,7 +630,7 @@ int BLI_mempool_get_size(BLI_mempool *pool)
   while (chunk) {
     chunk = chunk->next;
 
-    ret += pool->pchunk;
+    ret += (int)pool->pchunk;
   }
 
   return ret;
