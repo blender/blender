@@ -574,7 +574,12 @@ static bool ed_undo_is_init_poll(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm->undo_stack == NULL) {
-    CTX_wm_operator_poll_msg_set(C, "Undo disabled at startup");
+    /* This message is intended for Python developers,
+     * it will be part of the exception when attempting to call undo in background mode. */
+    CTX_wm_operator_poll_msg_set(
+        C,
+        "Undo disabled at startup in background-mode. "
+        "Call `ed.undo_push()` to explicitly initialize the undo-system.");
     return false;
   }
   return true;
