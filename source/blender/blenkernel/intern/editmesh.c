@@ -211,14 +211,10 @@ void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em,
 void BKE_editmesh_free_derived_caches(BMEditMesh *em)
 {
   if (em->mesh_eval_cage) {
-    Mesh *me = em->mesh_eval_cage;
-    me->edit_mesh = NULL;
-    BKE_id_free(NULL, me);
+    BKE_id_free(NULL, em->mesh_eval_cage);
   }
   if (em->mesh_eval_final && em->mesh_eval_final != em->mesh_eval_cage) {
-    Mesh *me = em->mesh_eval_final;
-    me->edit_mesh = NULL;
-    BKE_id_free(NULL, me);
+    BKE_id_free(NULL, em->mesh_eval_final);
   }
   em->mesh_eval_cage = em->mesh_eval_final = NULL;
 

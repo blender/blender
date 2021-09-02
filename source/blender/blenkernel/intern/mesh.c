@@ -161,7 +161,9 @@ static void mesh_free_data(ID *id)
   BLI_freelistN(&mesh->vertex_group_names);
 
   if (mesh->edit_mesh) {
-    BKE_editmesh_free_data(mesh->edit_mesh);
+    if (mesh->edit_mesh->is_shallow_copy == false) {
+      BKE_editmesh_free_data(mesh->edit_mesh);
+    }
     MEM_freeN(mesh->edit_mesh);
     mesh->edit_mesh = NULL;
   }
