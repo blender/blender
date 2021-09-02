@@ -886,6 +886,18 @@ void BKE_mesh_free_data_for_undo(Mesh *me)
   mesh_free_data(&me->id);
 }
 
+/**
+ * \note on data that this function intentionally doesn't free:
+ *
+ * - Materials and shape keys are not freed here (#Mesh.mat & #Mesh.key).
+ *   As freeing shape keys requires tagging the depsgraph for updated relations,
+ *   which is expensive.
+ *   Material slots should be kept in sync with the object.
+ *
+ * - Edit-Mesh (#Mesh.edit_mesh)
+ *   Since edit-mesh is tied to the objects mode,
+ *   which crashes when called in edit-mode, see: T90972.
+ */
 static void mesh_clear_geometry(Mesh *mesh)
 {
   CustomData_free(&mesh->vdata, mesh->totvert);
@@ -895,11 +907,6 @@ static void mesh_clear_geometry(Mesh *mesh)
   CustomData_free(&mesh->pdata, mesh->totpoly);
 
   MEM_SAFE_FREE(mesh->mselect);
-  MEM_SAFE_FREE(mesh->edit_mesh);
-
-  /* Note that materials and shape keys are not freed here. This is intentional, as freeing
-   * shape keys requires tagging the depsgraph for updated relations, which is expensive.
-   * Material slots should be kept in sync with the object. */
 
   mesh->totvert = 0;
   mesh->totedge = 0;
