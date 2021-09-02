@@ -1943,7 +1943,7 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
 
   Sculpt *sd = scene->toolsettings->sculpt;
   if (!sd->detail_size) {
-    sd->detail_size = 12;
+    sd->detail_size = 8.0f;
   }
 
   if (!sd->detail_range || !sd->dyntopo_spacing) {

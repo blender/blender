@@ -1437,16 +1437,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 293, 0)) {
-    for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
-      if (br->sculpt_tool == SCULPT_TOOL_VCOL_BOUNDARY) {
-        if (br->vcol_boundary_exponent == 0.0f) {
-          br->vcol_boundary_exponent = 1.0f;
-        }
-      }
-    }
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 5)) {
     /* Initialize the opacity of the overlay wireframe */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "wireframe_opacity")) {
@@ -1963,44 +1953,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 293, 17)) {
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->dyntopo.detail_range == 0.0f) {
-        Brush defbrush = *brush;
-
-        BKE_brush_sculpt_reset(&defbrush);
-        brush->dyntopo = defbrush.dyntopo;
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 293, 18)) {
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
-        brush->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
-                                 ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
-        brush->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE | DYNTOPO_CLEANUP;
-      }
-    }
-
-    Scene *scene;
-    for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
-      ToolSettings *ts = scene->toolsettings;
-
-      if (ts->sculpt) {
-        ts->sculpt->flags |= SCULPT_DYNTOPO_CLEANUP;
-      }
-    }
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 14)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      ToolSettings *ts = scene->toolsettings;
-      if (ts && ts->sculpt) {
-        ts->sculpt->detail_range = 0.4f;
-      }
-    }
-
     if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "diff_fac")) {
       LISTBASE_FOREACH (Light *, light, &bmain->lights) {
         light->diff_fac = 1.0f;

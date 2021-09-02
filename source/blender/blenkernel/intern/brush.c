@@ -1715,6 +1715,10 @@ void BKE_brush_sculpt_reset(Brush *br)
 
   bool disable_dyntopo = false;
 
+  // basic face set setup for all organic brushes
+  br->autosmooth_fset_slide = 1.0f;
+  br->flag2 |= BRUSH_SMOOTH_PRESERVE_FACE_SETS | BRUSH_SMOOTH_USE_AREA_WEIGHT;
+
   /* Brush settings */
   switch (br->sculpt_tool) {
     case SCULPT_TOOL_DRAW_SHARP:
@@ -2653,7 +2657,7 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
   }
   else if (!out->detail_size) {
     brush->dyntopo.inherit |= DYNTOPO_INHERIT_DETAIL_SIZE;
-    brush->dyntopo.detail_size = 12.0;
+    brush->dyntopo.detail_size = 8.0f;
   }
 
   int inherit = out->inherit;

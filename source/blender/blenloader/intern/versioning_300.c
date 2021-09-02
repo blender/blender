@@ -46,6 +46,7 @@
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_asset.h"
+#include "BKE_brush.h"
 #include "BKE_collection.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
@@ -1107,6 +1108,59 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             break;
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 21)) {
+    LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+      if (br->autosmooth_fset_slide == 0.0f) {
+        Brush defbrush = *br;
+
+        BKE_brush_sculpt_reset(&defbrush);
+        br->dyntopo = defbrush.dyntopo;
+
+        br->flag2 |= defbrush.flag2 & (BRUSH_SMOOTH_PRESERVE_FACE_SETS |
+                                       BRUSH_SMOOTH_USE_AREA_WEIGHT | BRUSH_CURVATURE_RAKE);
+
+        br->autosmooth_fset_slide = defbrush.autosmooth_fset_slide;
+        br->boundary_smooth_factor = defbrush.boundary_smooth_factor;
+        br->autosmooth_spacing = defbrush.autosmooth_spacing;
+        br->autosmooth_radius_factor = defbrush.autosmooth_radius_factor;
+        br->topology_rake_radius_factor = defbrush.topology_rake_radius_factor;
+        br->topology_rake_projection = defbrush.topology_rake_projection;
+        br->topology_rake_spacing = defbrush.topology_rake_spacing;
+
+        if (br->autosmooth_projection == 0.0f) {
+          br->autosmooth_projection = defbrush.autosmooth_projection;
+        }
+      }
+
+      if (br->sculpt_tool == SCULPT_TOOL_VCOL_BOUNDARY) {
+        if (br->vcol_boundary_exponent == 0.0f) {
+          br->vcol_boundary_exponent = 1.0f;
+        }
+      }
+      else if (br->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
+        br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
+                              ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
+        br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE | DYNTOPO_CLEANUP;
+      }
+    }
+
+    Scene *scene;
+    for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
+      ToolSettings *ts = scene->toolsettings;
+
+      if (ts->sculpt) {
+        ts->sculpt->flags |= SCULPT_DYNTOPO_CLEANUP;
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      if (ts && ts->sculpt) {
+        ts->sculpt->detail_range = 0.4f;
       }
     }
   }
