@@ -335,6 +335,11 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     return NULL;
   }
 
+  ReportList reports;
+  bool result = false;
+
+  BKE_reports_init(&reports, RPT_STORE);
+
   /* This assumes that keyframes are only added on original data & using the active depsgraph. If
    * it turns out to be necessary for some reason to insert keyframes on evaluated objects, we can
    * revisit this and add an explicit `depsgraph` keyword argument to the function call.
@@ -352,14 +357,10 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
      * strips themselves. These are stored separately or else the properties will
      * not have any effect.
      */
-    ReportList reports;
-    bool result = false;
 
     PointerRNA ptr = self->ptr;
     PropertyRNA *prop = NULL;
     const char *prop_name;
-
-    BKE_reports_init(&reports, RPT_STORE);
 
     /* Retrieve the property identifier from the full path, since we can't get it any other way */
     prop_name = strrchr(path_full, '.');
@@ -376,33 +377,24 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     else {
       BKE_reportf(&reports, RPT_ERROR, "Could not resolve path (%s)", path_full);
     }
-    MEM_freeN((void *)path_full);
+  }
+  else {
+    ID *id = self->ptr.owner_id;
 
-    if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
-      return NULL;
-    }
-
-    return PyBool_FromLong(result);
+    BLI_assert(BKE_id_is_in_global_main(id));
+    result = (insert_keyframe(G_MAIN,
+                              &reports,
+                              id,
+                              NULL,
+                              group_name,
+                              path_full,
+                              index,
+                              &anim_eval_context,
+                              keytype,
+                              NULL,
+                              options) != 0);
   }
 
-  ID *id = self->ptr.owner_id;
-  ReportList reports;
-  bool result;
-
-  BKE_reports_init(&reports, RPT_STORE);
-
-  BLI_assert(BKE_id_is_in_global_main(id));
-  result = (insert_keyframe(G_MAIN,
-                            &reports,
-                            id,
-                            NULL,
-                            group_name,
-                            path_full,
-                            index,
-                            &anim_eval_context,
-                            keytype,
-                            NULL,
-                            options) != 0);
   MEM_freeN((void *)path_full);
 
   if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
@@ -453,19 +445,21 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
                                   NULL) == -1) {
     return NULL;
   }
+
+  ReportList reports;
+  bool result = false;
+
+  BKE_reports_init(&reports, RPT_STORE);
+
   if (self->ptr.type == &RNA_NlaStrip) {
     /* Handle special properties for NLA Strips, whose F-Curves are stored on the
      * strips themselves. These are stored separately or else the properties will
      * not have any effect.
      */
-    ReportList reports;
-    bool result = false;
 
     PointerRNA ptr = self->ptr;
     PropertyRNA *prop = NULL;
     const char *prop_name;
-
-    BKE_reports_init(&reports, RPT_STORE);
 
     /* Retrieve the property identifier from the full path, since we can't get it any other way */
     prop_name = strrchr(path_full, '.');
@@ -510,22 +504,12 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
     else {
       BKE_reportf(&reports, RPT_ERROR, "Could not resolve path (%s)", path_full);
     }
-    MEM_freeN((void *)path_full);
-
-    if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
-      return NULL;
-    }
-
-    return PyBool_FromLong(result);
+  }
+  else {
+    result = (delete_keyframe(
+                  G.main, &reports, self->ptr.owner_id, NULL, path_full, index, cfra) != 0);
   }
 
-  bool result;
-  ReportList reports;
-
-  BKE_reports_init(&reports, RPT_STORE);
-
-  result = (delete_keyframe(G.main, &reports, self->ptr.owner_id, NULL, path_full, index, cfra) !=
-            0);
   MEM_freeN((void *)path_full);
 
   if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
