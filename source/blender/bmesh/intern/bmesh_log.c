@@ -535,8 +535,8 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
   bool have_loop_ids = (log->bm->idmap.flag & BM_LOOP);
 
   if (f->len > MAX_FACE_RESERVED) {
-    lf->v_ids = (int *)BLI_memarena_alloc(entry->arena, sizeof(*lf->v_ids) * lf->len);
-    lf->l_ids = (int *)BLI_memarena_alloc(entry->arena, sizeof(*lf->l_ids) * lf->len);
+    lf->v_ids = (uint *)BLI_memarena_alloc(entry->arena, sizeof(*lf->v_ids) * lf->len);
+    lf->l_ids = (uint *)BLI_memarena_alloc(entry->arena, sizeof(*lf->l_ids) * lf->len);
     lf->customdata = (void **)BLI_memarena_alloc(entry->arena, sizeof(void *) * lf->len);
   }
   else {

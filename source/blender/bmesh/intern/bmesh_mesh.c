@@ -1785,7 +1785,6 @@ void BM_swap_verts(BMesh *bm, BMVert *v1, BMVert *v2)
 
   for (int i = 0; i < 2; i++) {
     BMVert *v = i ? v2 : v1;
-    BMVert *v_2 = i ? v1 : v2;
 
     BMEdge *e = v->e, *starte = e;
 
@@ -1826,7 +1825,6 @@ void BM_swap_verts(BMesh *bm, BMVert *v1, BMVert *v2)
     BMVert *v_2 = i ? v1 : v2;
 
     BMEdge **es = i ? es2 : es1;
-    BMLoop **ls = i ? ls2 : ls1;
     int elen = i ? BLI_array_len(es2) : BLI_array_len(es1);
     int *sides = i ? sides2 : sides1;
 
@@ -1871,7 +1869,6 @@ void BM_swap_verts(BMesh *bm, BMVert *v1, BMVert *v2)
   }
 
   for (int i = 0; i < 2; i++) {
-    BMVert *v = i ? v2 : v1;
     BMVert *v_2 = i ? v1 : v2;
 
     BMLoop **ls = i ? ls2 : ls1;
@@ -1933,7 +1930,6 @@ void BM_swap_loops(BMesh *bm, BMLoop *l1, BMLoop *l2)
 {
   for (int i = 0; i < 2; i++) {
     BMLoop *l = i ? l2 : l1;
-    BMLoop *l_2 = i ? l1 : l2;
 
     l->prev->next = l2;
     l->next->prev = l2;
@@ -1974,9 +1970,9 @@ bool BM_defragment_vertex(BMesh *bm,
 {
   BMEdge *e = v->e;
 
+#if 0
   int cd_vcol = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
-#if 0
   if (cd_vcol >= 0) {
     float *color = BM_ELEM_CD_GET_VOID_P(v, cd_vcol);
     int idx = BLI_mempool_find_real_index(bm->vpool, (void *)v);
@@ -2004,7 +2000,7 @@ bool BM_defragment_vertex(BMesh *bm,
   int vlimit = sizeof(BMVert *) * limit;
   int elimit = sizeof(BMEdge *) * limit;
   int llimit = sizeof(BMLoop *) * limit;
-  int flimit = sizeof(BMFace *) * limit;
+  // int flimit = sizeof(BMFace *) * limit;
 
   intptr_t iv = (intptr_t)v;
 
@@ -2096,10 +2092,10 @@ bool BM_defragment_vertex(BMesh *bm,
       on_vert_swap(v2, elems[i], userdata);
       BM_swap_verts(bm, v2, elems[i]);
 
+#if 0
       BMIter iter;
       BMEdge *et;
       int f = 0;
-#if 0
       BM_ITER_ELEM (et, &iter, v2, BM_EDGES_OF_VERT) {
         printf("an edge %d\n", f++);
       }
