@@ -1114,6 +1114,10 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 21)) {
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+      /* try to detect beta testers' files by seeing
+        if autosmooth_fset_slide is 0; this will
+        not work once it is added to DNA defaults
+        (right now it's being set in BKE_brush_sculpt_reset).*/
       if (br->autosmooth_fset_slide == 0.0f) {
         Brush defbrush = *br;
 
