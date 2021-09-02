@@ -80,7 +80,7 @@ constexpr MeshExtract create_extractor_skin_roots()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.skin_roots);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.skin_roots);
   return extractor;
 }
 

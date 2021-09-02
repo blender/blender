@@ -1590,7 +1590,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   preview->flags = entry->typeflag;
   preview->in_memory_preview = intern_entry->local_data.preview_image;
   preview->icon_id = 0;
-  //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
+  // printf("%s: %d - %s\n", __func__, preview->index, preview->path);
 
   filelist_cache_preview_ensure_running(cache);
 
@@ -3055,7 +3055,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
       ok = 1;
       if (ok) {
         if (!(filelist->filter_data.flags & FLF_HIDE_DOT) || id->name[2] != '.') {
-          if (id->lib == NULL) {
+          if (!ID_IS_LINKED(id)) {
             files->entry->relpath = BLI_strdup(id->name + 2);
           }
           else {

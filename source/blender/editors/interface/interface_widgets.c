@@ -1498,15 +1498,15 @@ static void widget_draw_submenu_tria(const uiBut *but,
 
 static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
 {
-  const char *prev_utf8 = BLI_str_find_prev_char_utf8(str, str + but->ofs);
+  const char *prev_utf8 = BLI_str_find_prev_char_utf8(str + but->ofs, str);
   const int bytes = str + but->ofs - prev_utf8;
 
   but->ofs -= bytes;
 }
 
-static void ui_text_clip_give_next_off(uiBut *but, const char *str)
+static void ui_text_clip_give_next_off(uiBut *but, const char *str, const char *str_end)
 {
-  const char *next_utf8 = BLI_str_find_next_char_utf8(str + but->ofs, NULL);
+  const char *next_utf8 = BLI_str_find_next_char_utf8(str + but->ofs, str_end);
   const int bytes = next_utf8 - (str + but->ofs);
 
   but->ofs += bytes;
@@ -1575,11 +1575,6 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
 
   /* need to set this first */
   UI_fontstyle_set(fstyle);
-
-  if (fstyle->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
 
   float strwidth = BLF_width(fstyle->uifont_id, str, max_len);
 
@@ -1674,10 +1669,6 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
     strwidth = BLF_width(fstyle->uifont_id, str, max_len);
   }
 
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   BLI_assert(strwidth <= okwidth);
 
   return strwidth;
@@ -1736,11 +1727,6 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
   /* need to set this first */
   UI_fontstyle_set(fstyle);
 
-  if (fstyle->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   /* define ofs dynamically */
   if (but->ofs > but->pos) {
     but->ofs = but->pos;
@@ -1753,7 +1739,8 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
   but->strwidth = BLF_width(fstyle->uifont_id, but->editstr + but->ofs, INT_MAX);
 
   if (but->strwidth > okwidth) {
-    int len = strlen(but->editstr);
+    const int editstr_len = strlen(but->editstr);
+    int len = editstr_len;
 
     while (but->strwidth > okwidth) {
       float width;
@@ -1763,7 +1750,7 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
 
       /* if cursor is at 20 pixels of right side button we clip left */
       if (width > okwidth - 20) {
-        ui_text_clip_give_next_off(but, but->editstr);
+        ui_text_clip_give_next_off(but, but->editstr, but->editstr + editstr_len);
       }
       else {
         int bytes;
@@ -1771,7 +1758,7 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
         if (width < 20 && but->ofs > 0) {
           ui_text_clip_give_prev_off(but, but->editstr);
         }
-        bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->editstr, but->editstr + len));
+        bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->editstr + len, but->editstr));
         if (bytes == -1) {
           bytes = 1;
         }
@@ -1784,10 +1771,6 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
         break;
       }
     }
-  }
-
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
   }
 }
 
@@ -1806,11 +1789,6 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
   /* need to set this first */
   UI_fontstyle_set(fstyle);
 
-  if (fstyle->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
   but->ofs = 0;
 
@@ -1828,7 +1806,7 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 
     /* chop off the leading text, starting from the right */
     while (but->strwidth > okwidth && cp2 > but->drawstr) {
-      const char *prev_utf8 = BLI_str_find_prev_char_utf8(but->drawstr, cp2);
+      const char *prev_utf8 = BLI_str_find_prev_char_utf8(cp2, but->drawstr);
       const int bytes = cp2 - prev_utf8;
 
       /* shift the text after and including cp2 back by 1 char,
@@ -1848,7 +1826,7 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 
     /* after the leading text is gone, chop off the : and following space, with ofs */
     while ((but->strwidth > okwidth) && (but->ofs < 2)) {
-      ui_text_clip_give_next_off(but, but->drawstr);
+      ui_text_clip_give_next_off(but, but->drawstr, but->drawstr + drawstr_len);
       but->strwidth = BLF_width(
           fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
       if (but->strwidth < 10) {
@@ -1869,10 +1847,6 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
                   but->ofs;
     but->strwidth = strwidth;
     but->drawstr[drawstr_len] = 0;
-  }
-
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
   }
 }
 
@@ -1983,11 +1957,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   }
   else {
     align = UI_STYLE_TEXT_CENTER;
-  }
-
-  if (fstyle->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
   }
 
   /* Special case: when we're entering text for multiple buttons,
@@ -2151,10 +2120,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 #endif
   }
 
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
 #if 0
   ui_rasterpos_safe(x, y, but->aspect);
   transopts = ui_translate_buttons();
@@ -2232,10 +2197,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         }
 
         if (ul_index != -1) {
-          if (fstyle->kerning == 1) {
-            BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-          }
-
           int ul_width = round_fl_to_int(BLF_width(fstyle->uifont_id, "_", 2));
 
           struct UnderlineData ul_data = {
@@ -2256,10 +2217,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           BLF_position(fstyle->uifont_id, pos_x, pos_y, 0.0f);
           BLF_color4ubv(fstyle->uifont_id, wcol->text);
           BLF_draw(fstyle->uifont_id, "_", 2);
-
-          if (fstyle->kerning == 1) {
-            BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-          }
         }
       }
     }
@@ -5369,11 +5326,6 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
       /* need to set this first */
       UI_fontstyle_set(fstyle);
 
-      if (fstyle->kerning == 1) {
-        /* for BLF_width */
-        BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-      }
-
       if (separator_type == UI_MENU_ITEM_SEPARATOR_SHORTCUT) {
         /* Shrink rect to exclude the shortcut string. */
         rect->xmax -= BLF_width(fstyle->uifont_id, cpoin + 1, INT_MAX) + UI_DPI_ICON_SIZE;
@@ -5397,10 +5349,6 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
       }
       else {
         BLI_assert_msg(0, "Unknwon menu item separator type");
-      }
-
-      if (fstyle->kerning == 1) {
-        BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
       }
     }
   }

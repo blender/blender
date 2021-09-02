@@ -179,95 +179,90 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 {
   Mesh *mesh = (Mesh *)id;
   const bool is_undo = BLO_write_is_undo(writer);
-  if (mesh->id.us > 0 || is_undo) {
-    CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *llayers = NULL, llayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
 
-    /* cache only - don't write */
-    mesh->mface = NULL;
-    mesh->totface = 0;
-    memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-    memset(&mesh->runtime, 0, sizeof(mesh->runtime));
-    flayers = flayers_buff;
+  CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
+  CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
+  CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
+  CustomDataLayer *llayers = NULL, llayers_buff[CD_TEMP_CHUNK_SIZE];
+  CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
 
-    /* Do not store actual geometry data in case this is a library override ID. */
-    if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
-      mesh->mvert = NULL;
-      mesh->totvert = 0;
-      memset(&mesh->vdata, 0, sizeof(mesh->vdata));
-      vlayers = vlayers_buff;
+  /* cache only - don't write */
+  mesh->mface = NULL;
+  mesh->totface = 0;
+  memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+  memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+  flayers = flayers_buff;
 
-      mesh->medge = NULL;
-      mesh->totedge = 0;
-      memset(&mesh->edata, 0, sizeof(mesh->edata));
-      elayers = elayers_buff;
+  /* Do not store actual geometry data in case this is a library override ID. */
+  if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
+    mesh->mvert = NULL;
+    mesh->totvert = 0;
+    memset(&mesh->vdata, 0, sizeof(mesh->vdata));
+    vlayers = vlayers_buff;
 
-      mesh->mloop = NULL;
-      mesh->totloop = 0;
-      memset(&mesh->ldata, 0, sizeof(mesh->ldata));
-      llayers = llayers_buff;
+    mesh->medge = NULL;
+    mesh->totedge = 0;
+    memset(&mesh->edata, 0, sizeof(mesh->edata));
+    elayers = elayers_buff;
 
-      mesh->mpoly = NULL;
-      mesh->totpoly = 0;
-      memset(&mesh->pdata, 0, sizeof(mesh->pdata));
-      players = players_buff;
-    }
-    else {
-      CustomData_blend_write_prepare(
-          &mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
-      CustomData_blend_write_prepare(
-          &mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
-      CustomData_blend_write_prepare(
-          &mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
-      CustomData_blend_write_prepare(
-          &mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
-    }
+    mesh->mloop = NULL;
+    mesh->totloop = 0;
+    memset(&mesh->ldata, 0, sizeof(mesh->ldata));
+    llayers = llayers_buff;
 
-    BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
-    BKE_id_blend_write(writer, &mesh->id);
+    mesh->mpoly = NULL;
+    mesh->totpoly = 0;
+    memset(&mesh->pdata, 0, sizeof(mesh->pdata));
+    players = players_buff;
+  }
+  else {
+    CustomData_blend_write_prepare(&mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
+    CustomData_blend_write_prepare(&mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
+    CustomData_blend_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
+    CustomData_blend_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+  }
 
-    /* direct data */
-    if (mesh->adt) {
-      BKE_animdata_blend_write(writer, mesh->adt);
-    }
+  BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
+  BKE_id_blend_write(writer, &mesh->id);
 
-    BKE_defbase_blend_write(writer, &mesh->vertex_group_names);
+  /* direct data */
+  if (mesh->adt) {
+    BKE_animdata_blend_write(writer, mesh->adt);
+  }
 
-    BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
-    BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
+  BKE_defbase_blend_write(writer, &mesh->vertex_group_names);
 
-    CustomData_blend_write(
-        writer, &mesh->vdata, vlayers, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
-    CustomData_blend_write(
-        writer, &mesh->edata, elayers, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
-    /* fdata is really a dummy - written so slots align */
-    CustomData_blend_write(
-        writer, &mesh->fdata, flayers, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
-    CustomData_blend_write(
-        writer, &mesh->ldata, llayers, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
-    CustomData_blend_write(
-        writer, &mesh->pdata, players, mesh->totpoly, CD_MASK_MESH.pmask, &mesh->id);
+  BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
+  BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
-    /* Free temporary data */
+  CustomData_blend_write(
+      writer, &mesh->vdata, vlayers, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
+  CustomData_blend_write(
+      writer, &mesh->edata, elayers, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
+  /* fdata is really a dummy - written so slots align */
+  CustomData_blend_write(
+      writer, &mesh->fdata, flayers, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
+  CustomData_blend_write(
+      writer, &mesh->ldata, llayers, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
+  CustomData_blend_write(
+      writer, &mesh->pdata, players, mesh->totpoly, CD_MASK_MESH.pmask, &mesh->id);
 
-/* Free custom-data layers, when not assigned a buffer value. */
+  /* Free temporary data */
+
+  /* Free custom-data layers, when not assigned a buffer value. */
 #define CD_LAYERS_FREE(id) \
   if (id && id != id##_buff) { \
     MEM_freeN(id); \
   } \
   ((void)0)
 
-    CD_LAYERS_FREE(vlayers);
-    CD_LAYERS_FREE(elayers);
-    // CD_LAYER_FREE(flayers); /* Never allocated. */
-    CD_LAYERS_FREE(llayers);
-    CD_LAYERS_FREE(players);
+  CD_LAYERS_FREE(vlayers);
+  CD_LAYERS_FREE(elayers);
+  // CD_LAYER_FREE(flayers); /* Never allocated. */
+  CD_LAYERS_FREE(llayers);
+  CD_LAYERS_FREE(players);
 
 #undef CD_LAYERS_FREE
-  }
 }
 
 static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
@@ -471,8 +466,10 @@ static int customdata_compare(
           int vtot = m1->totvert;
 
           for (j = 0; j < vtot; j++, v1++, v2++) {
-            if (len_squared_v3v3(v1->co, v2->co) > thresh_sq) {
-              return MESHCMP_VERTCOMISMATCH;
+            for (int k = 0; k < 3; k++) {
+              if (compare_threshold_relative(v1->co[k], v2->co[k], thresh)) {
+                return MESHCMP_VERTCOMISMATCH;
+              }
             }
             /* I don't care about normals, let's just do coordinates. */
           }
@@ -552,8 +549,7 @@ static int customdata_compare(
           int ltot = m1->totloop;
 
           for (j = 0; j < ltot; j++, lp1++, lp2++) {
-            if (abs(lp1->r - lp2->r) > thresh || abs(lp1->g - lp2->g) > thresh ||
-                abs(lp1->b - lp2->b) > thresh || abs(lp1->a - lp2->a) > thresh) {
+            if (lp1->r != lp2->r || lp1->g != lp2->g || lp1->b != lp2->b || lp1->a != lp2->a) {
               return MESHCMP_LOOPCOLMISMATCH;
             }
           }
@@ -588,7 +584,7 @@ static int customdata_compare(
           const float *l2_data = l2->data;
 
           for (int i = 0; i < total_length; i++) {
-            if (fabsf(l1_data[i] - l2_data[i]) > thresh) {
+            if (compare_threshold_relative(l1_data[i], l2_data[i], thresh)) {
               return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
             }
           }
@@ -599,7 +595,10 @@ static int customdata_compare(
           const float(*l2_data)[2] = l2->data;
 
           for (int i = 0; i < total_length; i++) {
-            if (len_squared_v2v2(l1_data[i], l2_data[i]) > thresh_sq) {
+            if (compare_threshold_relative(l1_data[i][0], l2_data[i][0], thresh)) {
+              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+            }
+            if (compare_threshold_relative(l1_data[i][1], l2_data[i][1], thresh)) {
               return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
             }
           }
@@ -610,7 +609,13 @@ static int customdata_compare(
           const float(*l2_data)[3] = l2->data;
 
           for (int i = 0; i < total_length; i++) {
-            if (len_squared_v3v3(l1_data[i], l2_data[i]) > thresh_sq) {
+            if (compare_threshold_relative(l1_data[i][0], l2_data[i][0], thresh)) {
+              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+            }
+            if (compare_threshold_relative(l1_data[i][1], l2_data[i][1], thresh)) {
+              return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+            }
+            if (compare_threshold_relative(l1_data[i][2], l2_data[i][2], thresh)) {
               return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
             }
           }
@@ -634,6 +639,19 @@ static int customdata_compare(
           for (int i = 0; i < total_length; i++) {
             if (l1_data[i] != l2_data[i]) {
               return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+            }
+          }
+          break;
+        }
+        case CD_PROP_COLOR: {
+          const MPropCol *l1_data = l1->data;
+          const MPropCol *l2_data = l2->data;
+
+          for (int i = 0; i < total_length; i++) {
+            for (j = 0; j < 4; j++) {
+              if (compare_threshold_relative(l1_data[i].color[j], l2_data[i].color[j], thresh)) {
+                return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
+              }
             }
           }
           break;
@@ -853,8 +871,11 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *me)
   return CustomData_has_layer(&me->ldata, CD_CUSTOMLOOPNORMAL);
 }
 
-/** Free (or release) any data used by this mesh (does not free the mesh itself). */
-void BKE_mesh_free(Mesh *me)
+/**
+ * Free (or release) any data used by this mesh (does not free the mesh itself).
+ * Only use for undo, in most cases `BKE_id_free(NULL, me)` should be used.
+ */
+void BKE_mesh_free_data_for_undo(Mesh *me)
 {
   mesh_free_data(&me->id);
 }
@@ -1070,7 +1091,7 @@ void BKE_mesh_eval_delete(struct Mesh *mesh_eval)
 {
   /* Evaluated mesh may point to edit mesh, but never owns it. */
   mesh_eval->edit_mesh = NULL;
-  BKE_mesh_free(mesh_eval);
+  mesh_free_data(&mesh_eval->id);
   BKE_libblock_free_data(&mesh_eval->id, false);
   MEM_freeN(mesh_eval);
 }
@@ -1577,7 +1598,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
   MVert *mvert = CustomData_duplicate_referenced_layer(&me->vdata, CD_MVERT, me->totvert);
   float(*lnors)[3] = CustomData_duplicate_referenced_layer(&me->ldata, CD_NORMAL, me->totloop);
 
-  /* If the referenced l;ayer has been re-allocated need to update pointers stored in the mesh. */
+  /* If the referenced layer has been re-allocated need to update pointers stored in the mesh. */
   BKE_mesh_update_customdata_pointers(me, false);
 
   for (i = 0; i < me->totvert; i++, mvert++) {

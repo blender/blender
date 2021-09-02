@@ -24,27 +24,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_point_instance_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_OBJECT, N_("Object"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, PROP_NONE, SOCK_HIDE_LABEL},
-    {SOCK_COLLECTION,
-     N_("Collection"),
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     PROP_NONE,
-     SOCK_HIDE_LABEL},
-    {SOCK_INT, N_("Seed"), 0, 0, 0, 0, -10000, 10000},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_point_instance_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Object>("Object").hide_label(true);
+  b.add_input<decl::Collection>("Collection").hide_label(true);
+  b.add_input<decl::Int>("Seed").min(-10000).max(10000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -53,8 +42,6 @@ static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C)
     uiItemR(layout, ptr, "use_whole_collection", 0, nullptr, ICON_NONE);
   }
 }
-
-namespace blender::nodes {
 
 static void geo_node_point_instance_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -259,11 +246,11 @@ void register_node_type_geo_point_instance()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_POINT_INSTANCE, "Point Instance", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_point_instance_in, geo_node_point_instance_out);
   node_type_init(&ntype, blender::nodes::geo_node_point_instance_init);
   node_type_storage(
       &ntype, "NodeGeometryPointInstance", node_free_standard_storage, node_copy_standard_storage);
-  ntype.draw_buttons = geo_node_point_instance_layout;
+  ntype.declare = blender::nodes::geo_node_point_instance_declare;
+  ntype.draw_buttons = blender::nodes::geo_node_point_instance_layout;
   node_type_update(&ntype, blender::nodes::geo_node_point_instance_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_instance_exec;
   nodeRegisterType(&ntype);

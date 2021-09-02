@@ -55,6 +55,12 @@ static bool paint_object_is_rendered_transparent(View3D *v3d, Object *ob)
       }
     }
   }
+
+  /* Check object display types. */
+  if (ob && ELEM(ob->dt, OB_WIRE, OB_BOUNDBOX)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -92,17 +98,25 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
     case CTX_MODE_PAINT_WEIGHT: {
       opacity = is_edit_mode ? 1.0 : pd->overlay.weight_paint_mode_opacity;
       if (opacity > 0.0f) {
-        state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
-        state |= pd->painting.alpha_blending ? DRW_STATE_BLEND_ALPHA : DRW_STATE_BLEND_MUL;
+        state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA;
         DRW_PASS_CREATE(psl->paint_color_ps, state | pd->clipping_state);
 
-        sh = OVERLAY_shader_paint_weight();
+        const bool do_shading = draw_ctx->v3d->shading.type != OB_WIRE;
+
+        sh = OVERLAY_shader_paint_weight(do_shading);
         pd->paint_surf_grp = grp = DRW_shgroup_create(sh, psl->paint_color_ps);
         DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
         DRW_shgroup_uniform_bool_copy(grp, "drawContours", draw_contours);
-        DRW_shgroup_uniform_bool_copy(grp, "useAlphaBlend", pd->painting.alpha_blending);
         DRW_shgroup_uniform_float_copy(grp, "opacity", opacity);
         DRW_shgroup_uniform_texture(grp, "colorramp", G_draw.weight_ramp);
+
+        /* Arbitrary light to give a hint of the geometry behind the weights. */
+        if (do_shading) {
+          float light_dir[3];
+          copy_v3_fl3(light_dir, 0.0f, 0.5f, 0.86602f);
+          normalize_v3(light_dir);
+          DRW_shgroup_uniform_vec3_copy(grp, "light_dir", light_dir);
+        }
 
         if (pd->painting.alpha_blending) {
           state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
@@ -257,17 +271,10 @@ void OVERLAY_paint_draw(OVERLAY_Data *vedata)
 
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_FramebufferList *fbl = vedata->fbl;
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   if (DRW_state_is_fbo()) {
-    if (pd->painting.alpha_blending) {
-      GPU_framebuffer_bind(pd->painting.in_front ? fbl->overlay_in_front_fb :
-                                                   fbl->overlay_default_fb);
-    }
-    else {
-      /* Paint overlay needs final color because of multiply blend mode. */
-      GPU_framebuffer_bind(pd->painting.in_front ? dfbl->in_front_fb : dfbl->default_fb);
-    }
+    GPU_framebuffer_bind(pd->painting.in_front ? fbl->overlay_in_front_fb :
+                                                 fbl->overlay_default_fb);
   }
 
   if (psl->paint_depth_ps) {

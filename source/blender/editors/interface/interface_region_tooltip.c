@@ -1175,9 +1175,6 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   data->wrap_width = min_ii(UI_TIP_MAXWIDTH * U.pixelsize / aspect, winx - (UI_TIP_PADDING * 2));
 
   font_flag |= BLF_WORD_WRAP;
-  if (data->fstyle.kerning == 1) {
-    font_flag |= BLF_KERNING_DEFAULT;
-  }
   BLF_enable(data->fstyle.uifont_id, font_flag);
   BLF_enable(blf_mono_font, font_flag);
   BLF_wordwrap(data->fstyle.uifont_id, data->wrap_width);

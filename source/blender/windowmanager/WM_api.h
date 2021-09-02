@@ -111,12 +111,11 @@ void WM_reinit_gizmomap_all(struct Main *bmain);
 
 void WM_script_tag_reload(void);
 
-bool WM_window_find_under_cursor(const wmWindowManager *wm,
-                                 const wmWindow *win_ignore,
-                                 const wmWindow *win,
-                                 const int mval[2],
-                                 wmWindow **r_win,
-                                 int r_mval[2]);
+wmWindow *WM_window_find_under_cursor(const wmWindowManager *wm,
+                                      const wmWindow *win_ignore,
+                                      const wmWindow *win,
+                                      const int mval[2],
+                                      int r_mval[2]);
 void WM_window_pixel_sample_read(const wmWindowManager *wm,
                                  const wmWindow *win,
                                  const int pos[2],
@@ -575,7 +574,11 @@ void WM_operator_py_idname(char *to, const char *from);
 bool WM_operator_py_idname_ok_or_report(struct ReportList *reports,
                                         const char *classname,
                                         const char *idname);
-const char *WM_context_member_from_ptr(struct bContext *C, const struct PointerRNA *ptr);
+char *WM_context_path_resolve_property_full(struct bContext *C,
+                                            const PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            int index);
+char *WM_context_path_resolve_full(struct bContext *C, const PointerRNA *ptr);
 
 /* wm_operator_type.c */
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);

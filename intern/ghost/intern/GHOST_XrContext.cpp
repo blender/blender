@@ -410,6 +410,11 @@ void GHOST_XrContext::getExtensionsToEnable(
     try_ext.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
+  /* Try enabling interaction profile extensions. */
+  try_ext.push_back(XR_EXT_HP_MIXED_REALITY_CONTROLLER_EXTENSION_NAME);
+  try_ext.push_back(XR_HTC_VIVE_COSMOS_CONTROLLER_INTERACTION_EXTENSION_NAME);
+  try_ext.push_back(XR_HUAWEI_CONTROLLER_INTERACTION_EXTENSION_NAME);
+
   r_ext_names.reserve(try_ext.size() + graphics_binding_types.size());
 
   /* Add graphics binding extensions (may be multiple ones, we'll settle for one to use later, once

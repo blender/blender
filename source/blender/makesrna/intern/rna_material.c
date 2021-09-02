@@ -173,12 +173,6 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
         continue;
       }
 
-      Object *obedit = NULL;
-      {
-        ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-        obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-      }
-
       ScrArea *area;
       for (area = screen->areabase.first; area; area = area->next) {
         SpaceLink *sl;
@@ -186,7 +180,7 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
           if (sl->spacetype == SPACE_IMAGE) {
             SpaceImage *sima = (SpaceImage *)sl;
             if (!sima->pin) {
-              ED_space_image_set(bmain, sima, obedit, image, true);
+              ED_space_image_set(bmain, sima, image, true);
             }
           }
         }
@@ -849,8 +843,7 @@ void RNA_def_material(BlenderRNA *brna)
   prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
   RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
-  /* XXX: remove once overrides in material node trees are supported. */
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based materials");
 
   prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);

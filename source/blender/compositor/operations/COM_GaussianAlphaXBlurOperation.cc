@@ -24,11 +24,9 @@
 
 namespace blender::compositor {
 
-GaussianAlphaXBlurOperation::GaussianAlphaXBlurOperation() : BlurBaseOperation(DataType::Value)
+GaussianAlphaXBlurOperation::GaussianAlphaXBlurOperation()
+    : GaussianAlphaBlurBaseOperation(eDimension::X)
 {
-  this->m_gausstab = nullptr;
-  this->m_filtersize = 0;
-  this->m_falloff = -1; /* intentionally invalid, so we can detect uninitialized values */
 }
 
 void *GaussianAlphaXBlurOperation::initializeTileData(rcti * /*rect*/)
@@ -44,12 +42,11 @@ void *GaussianAlphaXBlurOperation::initializeTileData(rcti * /*rect*/)
 
 void GaussianAlphaXBlurOperation::initExecution()
 {
-  /* Until we support size input - comment this. */
-  // BlurBaseOperation::initExecution();
+  GaussianAlphaBlurBaseOperation::initExecution();
 
   initMutex();
 
-  if (this->m_sizeavailable) {
+  if (this->m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
     float rad = max_ff(m_size * m_data.sizex, 0.0f);
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
@@ -144,7 +141,7 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
 
 void GaussianAlphaXBlurOperation::deinitExecution()
 {
-  BlurBaseOperation::deinitExecution();
+  GaussianAlphaBlurBaseOperation::deinitExecution();
 
   if (this->m_gausstab) {
     MEM_freeN(this->m_gausstab);

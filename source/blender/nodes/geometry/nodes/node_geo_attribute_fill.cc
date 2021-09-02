@@ -19,21 +19,19 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_fill_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute")},
-    {SOCK_VECTOR, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_RGBA, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_BOOLEAN, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
-    {SOCK_INT, N_("Value"), 0, 0, 0, 0, -10000000.0f, 10000000.0f},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_fill_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_fill_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Attribute");
+  b.add_input<decl::Vector>("Value", "Value");
+  b.add_input<decl::Float>("Value", "Value_001");
+  b.add_input<decl::Color>("Value", "Value_002");
+  b.add_input<decl::Bool>("Value", "Value_003");
+  b.add_input<decl::Int>("Value", "Value_004");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_fill_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -65,8 +63,6 @@ static void geo_node_attribute_fill_update(bNodeTree *UNUSED(ntree), bNode *node
   nodeSetSocketAvailability(socket_value_boolean, data_type == CD_PROP_BOOL);
   nodeSetSocketAvailability(socket_value_int32, data_type == CD_PROP_INT32);
 }
-
-namespace blender::nodes {
 
 static AttributeDomain get_result_domain(const GeometryComponent &component, const StringRef name)
 {
@@ -157,10 +153,10 @@ void register_node_type_geo_attribute_fill()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_ATTRIBUTE_FILL, "Attribute Fill", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(&ntype, geo_node_attribute_fill_in, geo_node_attribute_fill_out);
-  node_type_init(&ntype, geo_node_attribute_fill_init);
-  node_type_update(&ntype, geo_node_attribute_fill_update);
+  node_type_init(&ntype, blender::nodes::geo_node_attribute_fill_init);
+  node_type_update(&ntype, blender::nodes::geo_node_attribute_fill_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_fill_exec;
-  ntype.draw_buttons = geo_node_attribute_fill_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_fill_layout;
+  ntype.declare = blender::nodes::geo_node_attribute_fill_declare;
   nodeRegisterType(&ntype);
 }

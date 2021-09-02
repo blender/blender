@@ -32,6 +32,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 #include "BPY_extern.h"
@@ -107,7 +108,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 
   if (context_str) {
     if (RNA_enum_value_from_id(rna_enum_operator_context_items, context_str, &context) == 0) {
-      char *enum_str = BPy_enum_as_string(rna_enum_operator_context_items);
+      char *enum_str = pyrna_enum_repr(rna_enum_operator_context_items);
       PyErr_Format(PyExc_TypeError,
                    "Calling operator \"bpy.ops.%s.poll\" error, "
                    "expected a string enum in (%s)",
@@ -209,7 +210,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 
   if (context_str) {
     if (RNA_enum_value_from_id(rna_enum_operator_context_items, context_str, &context) == 0) {
-      char *enum_str = BPy_enum_as_string(rna_enum_operator_context_items);
+      char *enum_str = pyrna_enum_repr(rna_enum_operator_context_items);
       PyErr_Format(PyExc_TypeError,
                    "Calling operator \"bpy.ops.%s\" error, "
                    "expected a string enum in (%s)",
@@ -346,7 +347,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   BPY_modules_update();
 
   /* return operator_ret as a bpy enum */
-  return pyrna_enum_bitfield_to_py(rna_enum_operator_return_items, operator_ret);
+  return pyrna_enum_bitfield_as_set(rna_enum_operator_return_items, operator_ret);
 }
 
 static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
@@ -459,7 +460,7 @@ static PyObject *pyop_get_bl_options(PyObject *UNUSED(self), PyObject *value)
   if ((ot = ot_lookup_from_py_string(value, "get_bl_options")) == NULL) {
     return NULL;
   }
-  return pyrna_enum_bitfield_to_py(rna_enum_operator_type_flag_items, ot->flag);
+  return pyrna_enum_bitfield_as_set(rna_enum_operator_type_flag_items, ot->flag);
 }
 
 static struct PyMethodDef bpy_ops_methods[] = {

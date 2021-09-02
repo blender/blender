@@ -349,7 +349,7 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
   /* Search each F-Curve one by one. */
   for (fcu = src->first; fcu; fcu = fcu->next) {
     /* Check if quoted string matches the path. */
-    if (fcu->rna_path == NULL || !strstr(fcu->rna_path, dataPrefix)) {
+    if (fcu->rna_path == NULL) {
       continue;
     }
 

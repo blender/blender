@@ -824,31 +824,35 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
   return 0;
 }
 
-static void flip_names(tAnimCopybufItem *aci, char **name)
+static void flip_names(tAnimCopybufItem *aci, char **r_name)
 {
   if (aci->is_bone) {
-    char *str_start;
-    if ((str_start = strstr(aci->rna_path, "pose.bones["))) {
-      /* ninja coding, try to change the name */
+    int ofs_start;
+    int ofs_end;
+
+    if (BLI_str_quoted_substr_range(aci->rna_path, "pose.bones[", &ofs_start, &ofs_end)) {
+      char *str_start = aci->rna_path + ofs_start;
+      const char *str_end = aci->rna_path + ofs_end;
+
+      /* Swap out the name.
+       * Note that there is no need to un-escape the string to flip it. */
       char bname_new[MAX_VGROUP_NAME];
-      char *str_iter, *str_end;
+      char *str_iter;
       int length, prefix_l, postfix_l;
 
-      str_start += 12;
       prefix_l = str_start - aci->rna_path;
-
-      str_end = strchr(str_start, '\"');
 
       length = str_end - str_start;
       postfix_l = strlen(str_end);
 
-      /* more ninja stuff, temporary substitute with NULL terminator */
+      /* Temporary substitute with NULL terminator. */
+      BLI_assert(str_start[length] == '\"');
       str_start[length] = 0;
       BLI_string_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
       str_start[length] = '\"';
 
-      str_iter = *name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1),
-                                     "flipped_path");
+      str_iter = *r_name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1),
+                                       "flipped_path");
 
       BLI_strncpy(str_iter, aci->rna_path, prefix_l + 1);
       str_iter += prefix_l;

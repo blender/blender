@@ -36,7 +36,7 @@ struct Object;
 extern "C" {
 #endif
 
-void BKE_key_free(struct Key *key);
+void BKE_key_free_data(struct Key *key);
 void BKE_key_free_nolib(struct Key *key);
 struct Key *BKE_key_add(struct Main *bmain, struct ID *id);
 void BKE_key_sort(struct Key *key);

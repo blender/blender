@@ -114,8 +114,8 @@ typedef struct IDTypeInfo {
   /* ********** General IDType data. ********** */
 
   /**
-   * Unique identifier of this type, either as a short or an array of two chars, see DNA_ID.h's
-   * ID_XX enums.
+   * Unique identifier of this type, either as a short or an array of two chars, see
+   * DNA_ID_enums.h's ID_XX enums.
    */
   short id_code;
   /**

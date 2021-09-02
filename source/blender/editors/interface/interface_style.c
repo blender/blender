@@ -83,7 +83,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
   style->paneltitle.uifont_id = uifont_id;
   style->paneltitle.points = UI_DEFAULT_TITLE_POINTS;
-  style->paneltitle.kerning = 1;
   style->paneltitle.shadow = 3;
   style->paneltitle.shadx = 0;
   style->paneltitle.shady = -1;
@@ -92,7 +91,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
   style->grouplabel.uifont_id = uifont_id;
   style->grouplabel.points = UI_DEFAULT_TITLE_POINTS;
-  style->grouplabel.kerning = 1;
   style->grouplabel.shadow = 3;
   style->grouplabel.shadx = 0;
   style->grouplabel.shady = -1;
@@ -101,7 +99,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
   style->widgetlabel.uifont_id = uifont_id;
   style->widgetlabel.points = UI_DEFAULT_TEXT_POINTS;
-  style->widgetlabel.kerning = 1;
   style->widgetlabel.shadow = 3;
   style->widgetlabel.shadx = 0;
   style->widgetlabel.shady = -1;
@@ -110,7 +107,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
   style->widget.uifont_id = uifont_id;
   style->widget.points = UI_DEFAULT_TEXT_POINTS;
-  style->widget.kerning = 1;
   style->widget.shadow = 1;
   style->widget.shady = -1;
   style->widget.shadowalpha = 0.5f;
@@ -163,9 +159,6 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
         fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
     BLF_shadow(fs->uifont_id, fs->shadow, shadow_color);
     BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
-  }
-  if (fs->kerning == 1) {
-    font_flag |= BLF_KERNING_DEFAULT;
   }
   if (fs_params->word_wrap == 1) {
     font_flag |= BLF_WORD_WRAP;
@@ -278,18 +271,11 @@ void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
     BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
   }
 
-  if (fs->kerning == 1) {
-    BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
   BLF_disable(fs->uifont_id, BLF_ROTATION);
   BLF_disable(fs->uifont_id, BLF_CLIPPING);
   if (fs->shadow) {
     BLF_disable(fs->uifont_id, BLF_SHADOW);
-  }
-  if (fs->kerning == 1) {
-    BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
   }
 }
 
@@ -302,18 +288,10 @@ void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
 void UI_fontstyle_draw_simple(
     const uiFontStyle *fs, float x, float y, const char *str, const uchar col[4])
 {
-  if (fs->kerning == 1) {
-    BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   UI_fontstyle_set(fs);
   BLF_position(fs->uifont_id, x, y, 0.0f);
   BLF_color4ubv(fs->uifont_id, col);
   BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
-
-  if (fs->kerning == 1) {
-    BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
-  }
 }
 
 /**
@@ -326,10 +304,6 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
                                        const float col_fg[4],
                                        const float col_bg[4])
 {
-  if (fs->kerning == 1) {
-    BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   UI_fontstyle_set(fs);
 
   {
@@ -357,10 +331,6 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
   BLF_position(fs->uifont_id, x, y, 0.0f);
   BLF_color4fv(fs->uifont_id, col_fg);
   BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
-
-  if (fs->kerning == 1) {
-    BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
-  }
 }
 
 /* ************** helpers ************************ */
@@ -405,21 +375,8 @@ const uiStyle *UI_style_get_dpi(void)
 
 int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
 {
-  int width;
-
-  if (fs->kerning == 1) {
-    /* for BLF_width */
-    BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
   UI_fontstyle_set(fs);
-  width = BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
-
-  if (fs->kerning == 1) {
-    BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
-  return width;
+  return (int)BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
 int UI_fontstyle_height_max(const uiFontStyle *fs)

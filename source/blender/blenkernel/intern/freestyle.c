@@ -34,7 +34,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
 
-// function declarations
+/* Function declarations. */
 static FreestyleLineSet *alloc_lineset(void);
 static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset, const int flag);
 static FreestyleModuleConfig *alloc_module(void);

@@ -22,6 +22,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct GPUBatch;
 struct GPUMaterial;
 struct ModifierData;
@@ -263,3 +267,7 @@ struct GPUBatch *DRW_cache_gpencil_face_wireframe_get(struct Object *ob);
 
 struct bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(struct Object *ob);
 void DRW_cache_gpencil_sbuffer_clear(struct Object *ob);
+
+#ifdef __cplusplus
+}
+#endif

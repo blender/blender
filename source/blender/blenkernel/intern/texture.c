@@ -150,28 +150,27 @@ static void texture_foreach_id(ID *id, LibraryForeachIDData *data)
 static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Tex *tex = (Tex *)id;
-  if (tex->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, Tex, id_address, &tex->id);
-    BKE_id_blend_write(writer, &tex->id);
 
-    if (tex->adt) {
-      BKE_animdata_blend_write(writer, tex->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, Tex, id_address, &tex->id);
+  BKE_id_blend_write(writer, &tex->id);
 
-    /* direct data */
-    if (tex->coba) {
-      BLO_write_struct(writer, ColorBand, tex->coba);
-    }
-
-    /* nodetree is integral part of texture, no libdata */
-    if (tex->nodetree) {
-      BLO_write_struct(writer, bNodeTree, tex->nodetree);
-      ntreeBlendWrite(writer, tex->nodetree);
-    }
-
-    BKE_previewimg_blend_write(writer, tex->preview);
+  if (tex->adt) {
+    BKE_animdata_blend_write(writer, tex->adt);
   }
+
+  /* direct data */
+  if (tex->coba) {
+    BLO_write_struct(writer, ColorBand, tex->coba);
+  }
+
+  /* nodetree is integral part of texture, no libdata */
+  if (tex->nodetree) {
+    BLO_write_struct(writer, bNodeTree, tex->nodetree);
+    ntreeBlendWrite(writer, tex->nodetree);
+  }
+
+  BKE_previewimg_blend_write(writer, tex->preview);
 }
 
 static void texture_blend_read_data(BlendDataReader *reader, ID *id)

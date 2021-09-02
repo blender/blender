@@ -137,26 +137,25 @@ static void lattice_foreach_id(ID *id, LibraryForeachIDData *data)
 static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Lattice *lt = (Lattice *)id;
-  if (lt->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    lt->editlatt = NULL;
-    lt->batch_cache = NULL;
 
-    /* write LibData */
-    BLO_write_id_struct(writer, Lattice, id_address, &lt->id);
-    BKE_id_blend_write(writer, &lt->id);
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  lt->editlatt = NULL;
+  lt->batch_cache = NULL;
 
-    /* write animdata */
-    if (lt->adt) {
-      BKE_animdata_blend_write(writer, lt->adt);
-    }
+  /* write LibData */
+  BLO_write_id_struct(writer, Lattice, id_address, &lt->id);
+  BKE_id_blend_write(writer, &lt->id);
 
-    /* direct data */
-    BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
-
-    BKE_defbase_blend_write(writer, &lt->vertex_group_names);
-    BKE_defvert_blend_write(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
+  /* write animdata */
+  if (lt->adt) {
+    BKE_animdata_blend_write(writer, lt->adt);
   }
+
+  /* direct data */
+  BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
+
+  BKE_defbase_blend_write(writer, &lt->vertex_group_names);
+  BKE_defvert_blend_write(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
 }
 
 static void lattice_blend_read_data(BlendDataReader *reader, ID *id)

@@ -48,8 +48,8 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 VectorBlurOperation::VectorBlurOperation()
 {
   this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Value);  // ZBUF
-  this->addInputSocket(DataType::Color);  // SPEED
+  this->addInputSocket(DataType::Value); /* ZBUF */
+  this->addInputSocket(DataType::Color); /* SPEED */
   this->addOutputSocket(DataType::Color);
   this->m_settings = nullptr;
   this->m_cachedInstance = nullptr;

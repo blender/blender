@@ -43,7 +43,7 @@ void register_node_type_cmp_valtorgb(void)
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "ColorRamp", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, cmp_node_valtorgb_in, cmp_node_valtorgb_out);
   node_type_size(&ntype, 240, 200, 320);
   node_type_init(&ntype, node_composit_init_valtorgb);
@@ -66,7 +66,7 @@ void register_node_type_cmp_rgbtobw(void)
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, cmp_node_rgbtobw_in, cmp_node_rgbtobw_out);
   node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 

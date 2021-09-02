@@ -25,11 +25,11 @@
 extern "C" {
 #endif
 
-struct bContext;
-struct Object;
 struct CacheArchiveHandle;
-struct CacheReader;
 struct CacheFile;
+struct CacheReader;
+struct Object;
+struct bContext;
 
 struct USDExportParams {
   bool export_animation;

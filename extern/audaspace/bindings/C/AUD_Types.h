@@ -176,4 +176,5 @@ typedef struct
 {
 	AUD_Specs specs;
 	float length;
+	double start_offset;
 } AUD_SoundInfo;

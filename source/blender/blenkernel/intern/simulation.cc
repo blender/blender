@@ -49,13 +49,9 @@
 #include "BKE_simulation.h"
 
 #include "NOD_geometry.h"
-#include "NOD_node_tree_multi_function.hh"
 
 #include "BLI_map.hh"
 #include "BLT_translation.h"
-
-#include "FN_multi_function_network_evaluation.hh"
-#include "FN_multi_function_network_optimization.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -114,19 +110,18 @@ static void simulation_foreach_id(ID *id, LibraryForeachIDData *data)
 static void simulation_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Simulation *simulation = (Simulation *)id;
-  if (simulation->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, Simulation, id_address, &simulation->id);
-    BKE_id_blend_write(writer, &simulation->id);
 
-    if (simulation->adt) {
-      BKE_animdata_blend_write(writer, simulation->adt);
-    }
+  BLO_write_id_struct(writer, Simulation, id_address, &simulation->id);
+  BKE_id_blend_write(writer, &simulation->id);
 
-    /* nodetree is integral part of simulation, no libdata */
-    if (simulation->nodetree) {
-      BLO_write_struct(writer, bNodeTree, simulation->nodetree);
-      ntreeBlendWrite(writer, simulation->nodetree);
-    }
+  if (simulation->adt) {
+    BKE_animdata_blend_write(writer, simulation->adt);
+  }
+
+  /* nodetree is integral part of simulation, no libdata */
+  if (simulation->nodetree) {
+    BLO_write_struct(writer, bNodeTree, simulation->nodetree);
+    ntreeBlendWrite(writer, simulation->nodetree);
   }
 }
 

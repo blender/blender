@@ -3961,9 +3961,10 @@ static int view_axis_exec(bContext *C, wmOperator *op)
     Object *obact = CTX_data_active_object(C);
     if (obact != NULL) {
       float twmat[3][3];
+      ViewLayer *view_layer = CTX_data_view_layer(C);
       Object *obedit = CTX_data_edit_object(C);
       /* same as transform gizmo when normal is set */
-      ED_getTransformOrientationMatrix(C, obact, obedit, V3D_AROUND_ACTIVE, twmat);
+      ED_getTransformOrientationMatrix(view_layer, v3d, obact, obedit, V3D_AROUND_ACTIVE, twmat);
       align_quat = align_quat_buf;
       mat3_to_quat(align_quat, twmat);
       invert_qt_normalized(align_quat);
@@ -5292,7 +5293,7 @@ static int toggle_shading_exec(bContext *C, wmOperator *op)
   }
 
   ED_view3d_shade_update(bmain, v3d, area);
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, v3d);
 
   return OPERATOR_FINISHED;
 }
@@ -5347,6 +5348,7 @@ static int toggle_xray_exec(bContext *C, wmOperator *op)
   }
 
   ED_area_tag_redraw(area);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, v3d);
 
   return OPERATOR_FINISHED;
 }

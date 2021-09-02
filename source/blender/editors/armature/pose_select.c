@@ -503,6 +503,8 @@ static bool pose_select_linked_pick_poll(bContext *C)
 
 void POSE_OT_select_linked_pick(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Select Connected";
   ot->idname = "POSE_OT_select_linked_pick";
@@ -517,11 +519,12 @@ void POSE_OT_select_linked_pick(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  false,
-                  "Extend",
-                  "Extend selection instead of deselecting everything first");
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         false,
+                         "Extend",
+                         "Extend selection instead of deselecting everything first");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int pose_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1103,20 +1106,18 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
     for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
       /* only items related to this object will be relevant */
       if ((ksp->id == &ob->id) && (ksp->rna_path != NULL)) {
-        if (strstr(ksp->rna_path, "bones")) {
-          char *boneName = BLI_str_quoted_substrN(ksp->rna_path, "bones[");
+        char *boneName = BLI_str_quoted_substrN(ksp->rna_path, "bones[");
+        if (boneName == NULL) {
+          continue;
+        }
+        bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
+        MEM_freeN(boneName);
 
-          if (boneName) {
-            bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
-            MEM_freeN(boneName);
-
-            if (pchan) {
-              /* select if bone is visible and can be affected */
-              if (PBONE_SELECTABLE(arm, pchan->bone)) {
-                pchan->bone->flag |= BONE_SELECTED;
-                changed = true;
-              }
-            }
+        if (pchan) {
+          /* select if bone is visible and can be affected */
+          if (PBONE_SELECTABLE(arm, pchan->bone)) {
+            pchan->bone->flag |= BONE_SELECTED;
+            changed = true;
           }
         }
       }

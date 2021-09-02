@@ -104,7 +104,7 @@ constexpr MeshExtract create_extractor_edituv_tris()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_tris);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.edituv_tris);
   return extractor;
 }
 
@@ -194,7 +194,7 @@ constexpr MeshExtract create_extractor_edituv_lines()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_lines);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.edituv_lines);
   return extractor;
 }
 
@@ -278,7 +278,7 @@ constexpr MeshExtract create_extractor_edituv_points()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_points);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.edituv_points);
   return extractor;
 }
 
@@ -374,7 +374,7 @@ constexpr MeshExtract create_extractor_edituv_fdots()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_fdots);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.edituv_fdots);
   return extractor;
 }
 

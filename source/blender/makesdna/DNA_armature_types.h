@@ -207,9 +207,8 @@ typedef enum eArmature_DeformFlag {
   ARM_DEF_INVERT_VGROUP = (1 << 4),
 } eArmature_DeformFlag;
 
-/* armature->pathflag */
-// XXX deprecated... old animation system (armature only viz)
-#ifdef DNA_DEPRECATED_ALLOW
+#ifdef DNA_DEPRECATED_ALLOW /* Old animation system (armature only viz). */
+/** #bArmature.pathflag */
 typedef enum eArmature_PathFlag {
   ARM_PATH_FNUMS = (1 << 0),
   ARM_PATH_KFRAS = (1 << 1),

@@ -112,7 +112,7 @@ void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 
   read_curve_sample(cu, m_curves_schema, sample_sel);
 
-  if (has_animations(m_curves_schema, m_settings)) {
+  if (m_settings->always_add_cache_reader || has_animations(m_curves_schema, m_settings)) {
     addCacheModifier();
   }
 }

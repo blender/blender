@@ -29,6 +29,7 @@ DistanceRGBMatteOperation::DistanceRGBMatteOperation()
 
   this->m_inputImageProgram = nullptr;
   this->m_inputKeyProgram = nullptr;
+  flags.can_be_constant = true;
 }
 
 void DistanceRGBMatteOperation::initExecution()
@@ -43,7 +44,7 @@ void DistanceRGBMatteOperation::deinitExecution()
   this->m_inputKeyProgram = nullptr;
 }
 
-float DistanceRGBMatteOperation::calculateDistance(float key[4], float image[4])
+float DistanceRGBMatteOperation::calculateDistance(const float key[4], const float image[4])
 {
   return len_v3v3(key, image);
 }
@@ -90,6 +91,45 @@ void DistanceRGBMatteOperation::executePixelSampled(float output[4],
   else {
     /* leave as before */
     output[0] = inImage[3];
+  }
+}
+
+void DistanceRGBMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                             const rcti &area,
+                                                             Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float *in_image = it.in(0);
+    const float *in_key = it.in(1);
+
+    float distance = this->calculateDistance(in_key, in_image);
+    const float tolerance = this->m_settings->t1;
+    const float falloff = this->m_settings->t2;
+
+    /* Store matte(alpha) value in [0] to go with
+     * COM_SetAlphaMultiplyOperation and the Value output.
+     */
+
+    /* Make 100% transparent. */
+    if (distance < tolerance) {
+      it.out[0] = 0.0f;
+    }
+    /* In the falloff region, make partially transparent. */
+    else if (distance < falloff + tolerance) {
+      distance = distance - tolerance;
+      const float alpha = distance / falloff;
+      /* Only change if more transparent than before. */
+      if (alpha < in_image[3]) {
+        it.out[0] = alpha;
+      }
+      else { /* Leave as before. */
+        it.out[0] = in_image[3];
+      }
+    }
+    else {
+      /* Leave as before. */
+      it.out[0] = in_image[3];
+    }
   }
 }
 

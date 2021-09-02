@@ -456,7 +456,7 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
        * depth or multisample buffers. 3D view creates own buffers with
        * the data it needs. */
       GPUOffScreen *offscreen = GPU_offscreen_create(
-          region->winx, region->winy, false, false, NULL);
+          region->winx, region->winy, false, GPU_RGBA8, NULL);
       if (!offscreen) {
         WM_report(RPT_ERROR, "Region could not be drawn!");
         return;
@@ -692,46 +692,48 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
     /* Then do actual drawing of regions. */
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region->visible && region->do_draw) {
-        CTX_wm_region_set(C, region);
-        bool use_viewport = WM_region_use_viewport(area, region);
+      if (!region->visible || !region->do_draw) {
+        continue;
+      }
 
-        GPU_debug_group_begin(use_viewport ? "Viewport" : "ARegion");
+      CTX_wm_region_set(C, region);
+      bool use_viewport = WM_region_use_viewport(area, region);
 
-        if (stereo && wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID)) {
-          wm_draw_region_buffer_create(region, true, use_viewport);
+      GPU_debug_group_begin(use_viewport ? "Viewport" : "ARegion");
 
-          for (int view = 0; view < 2; view++) {
-            eStereoViews sview;
-            if (view == 0) {
-              sview = STEREO_LEFT_ID;
-            }
-            else {
-              sview = STEREO_RIGHT_ID;
-              wm_draw_region_stereo_set(bmain, area, region, sview);
-            }
+      if (stereo && wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID)) {
+        wm_draw_region_buffer_create(region, true, use_viewport);
 
-            wm_draw_region_bind(region, view);
-            ED_region_do_draw(C, region);
-            wm_draw_region_unbind(region);
+        for (int view = 0; view < 2; view++) {
+          eStereoViews sview;
+          if (view == 0) {
+            sview = STEREO_LEFT_ID;
           }
-          if (use_viewport) {
-            GPUViewport *viewport = region->draw_buffer->viewport;
-            GPU_viewport_stereo_composite(viewport, win->stereo3d_format);
+          else {
+            sview = STEREO_RIGHT_ID;
+            wm_draw_region_stereo_set(bmain, area, region, sview);
           }
-        }
-        else {
-          wm_draw_region_buffer_create(region, false, use_viewport);
-          wm_draw_region_bind(region, 0);
+
+          wm_draw_region_bind(region, view);
           ED_region_do_draw(C, region);
           wm_draw_region_unbind(region);
         }
-
-        GPU_debug_group_end();
-
-        region->do_draw = false;
-        CTX_wm_region_set(C, NULL);
+        if (use_viewport) {
+          GPUViewport *viewport = region->draw_buffer->viewport;
+          GPU_viewport_stereo_composite(viewport, win->stereo3d_format);
+        }
       }
+      else {
+        wm_draw_region_buffer_create(region, false, use_viewport);
+        wm_draw_region_bind(region, 0);
+        ED_region_do_draw(C, region);
+        wm_draw_region_unbind(region);
+      }
+
+      GPU_debug_group_end();
+
+      region->do_draw = false;
+      CTX_wm_region_set(C, NULL);
     }
 
     CTX_wm_area_set(C, NULL);
@@ -741,29 +743,30 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
   /* Draw menus into their own framebuffer. */
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
-    if (region->visible) {
-      CTX_wm_menu_set(C, region);
-
-      GPU_debug_group_begin("Menu");
-
-      if (region->type && region->type->layout) {
-        /* UI code reads the OpenGL state, but we have to refresh
-         * the UI layout beforehand in case the menu size changes. */
-        wmViewport(&region->winrct);
-        region->type->layout(C, region);
-      }
-
-      wm_draw_region_buffer_create(region, false, false);
-      wm_draw_region_bind(region, 0);
-      GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-      ED_region_do_draw(C, region);
-      wm_draw_region_unbind(region);
-
-      GPU_debug_group_end();
-
-      region->do_draw = false;
-      CTX_wm_menu_set(C, NULL);
+    if (!region->visible) {
+      continue;
     }
+    CTX_wm_menu_set(C, region);
+
+    GPU_debug_group_begin("Menu");
+
+    if (region->type && region->type->layout) {
+      /* UI code reads the OpenGL state, but we have to refresh
+       * the UI layout beforehand in case the menu size changes. */
+      wmViewport(&region->winrct);
+      region->type->layout(C, region);
+    }
+
+    wm_draw_region_buffer_create(region, false, false);
+    wm_draw_region_bind(region, 0);
+    GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+    ED_region_do_draw(C, region);
+    wm_draw_region_unbind(region);
+
+    GPU_debug_group_end();
+
+    region->do_draw = false;
+    CTX_wm_menu_set(C, NULL);
   }
 }
 
@@ -787,8 +790,12 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* Blit non-overlapping area regions. */
   ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region->visible && region->overlap == false) {
-        /* Blit from offscreen buffer. */
+      if (!region->visible) {
+        continue;
+      }
+
+      if (region->overlap == false) {
+        /* Blit from off-screen buffer. */
         wm_draw_region_blit(region, view);
       }
     }
@@ -797,24 +804,25 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* Draw overlays and paint cursors. */
   ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region->visible) {
-        const bool do_paint_cursor = (wm->paintcursors.first && region == screen->active_region);
-        const bool do_draw_overlay = (region->type && region->type->draw_overlay);
-        if (!(do_paint_cursor || do_draw_overlay)) {
-          continue;
-        }
-
-        CTX_wm_area_set(C, area);
-        CTX_wm_region_set(C, region);
-        if (do_draw_overlay) {
-          wm_region_draw_overlay(C, area, region);
-        }
-        if (do_paint_cursor) {
-          wm_paintcursor_draw(C, area, region);
-        }
-        CTX_wm_region_set(C, NULL);
-        CTX_wm_area_set(C, NULL);
+      if (!region->visible) {
+        continue;
       }
+      const bool do_paint_cursor = (wm->paintcursors.first && region == screen->active_region);
+      const bool do_draw_overlay = (region->type && region->type->draw_overlay);
+      if (!(do_paint_cursor || do_draw_overlay)) {
+        continue;
+      }
+
+      CTX_wm_area_set(C, area);
+      CTX_wm_region_set(C, region);
+      if (do_draw_overlay) {
+        wm_region_draw_overlay(C, area, region);
+      }
+      if (do_paint_cursor) {
+        wm_paintcursor_draw(C, area, region);
+      }
+      CTX_wm_region_set(C, NULL);
+      CTX_wm_area_set(C, NULL);
     }
   }
   wmWindowViewport(win);
@@ -822,7 +830,10 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* Blend in overlapping area regions */
   ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region->visible && region->overlap) {
+      if (!region->visible) {
+        continue;
+      }
+      if (region->overlap) {
         wm_draw_region_blend(region, 0, true);
       }
     }
@@ -835,9 +846,10 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 
   /* Blend in floating regions (menus). */
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
-    if (region->visible) {
-      wm_draw_region_blend(region, 0, true);
+    if (!region->visible) {
+      continue;
     }
+    wm_draw_region_blend(region, 0, true);
   }
 
   /* always draw, not only when screen tagged */
@@ -889,7 +901,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
      * stereo methods, but it's less efficient than drawing directly. */
     const int width = WM_window_pixels_x(win);
     const int height = WM_window_pixels_y(win);
-    GPUOffScreen *offscreen = GPU_offscreen_create(width, height, false, false, NULL);
+    GPUOffScreen *offscreen = GPU_offscreen_create(width, height, false, GPU_RGBA8, NULL);
 
     if (offscreen) {
       GPUTexture *texture = GPU_offscreen_color_texture(offscreen);

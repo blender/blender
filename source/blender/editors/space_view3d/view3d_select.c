@@ -2521,6 +2521,7 @@ static bool ed_object_select_pick(bContext *C,
     }
     /* also prevent making it active on mouse selection */
     else if (BASE_SELECTABLE(v3d, basact)) {
+      const bool use_activate_selected_base = (oldbasact != basact) && (is_obedit == false);
       if (extend) {
         ED_object_base_select(basact, BA_SELECT);
       }
@@ -2529,7 +2530,8 @@ static bool ed_object_select_pick(bContext *C,
       }
       else if (toggle) {
         if (basact->flag & BASE_SELECTED) {
-          if (basact == oldbasact) {
+          /* Keep selected if the base is to be activated. */
+          if (use_activate_selected_base == false) {
             ED_object_base_select(basact, BA_DESELECT);
           }
         }
@@ -2545,7 +2547,7 @@ static bool ed_object_select_pick(bContext *C,
         }
       }
 
-      if ((oldbasact != basact) && (is_obedit == false)) {
+      if (use_activate_selected_base) {
         ED_object_base_activate(C, basact); /* adds notifier */
         if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) == 0) {
           WM_toolsystem_update_from_context_view3d(C);

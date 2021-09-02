@@ -441,6 +441,9 @@ if(WITH_HARU)
   endif()
 endif()
 
+set(ZSTD_ROOT_DIR ${LIBDIR}/zstd)
+find_package(Zstd REQUIRED)
+
 if(EXISTS ${LIBDIR})
   without_system_libs_end()
 endif()

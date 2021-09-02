@@ -31,6 +31,7 @@
 
 #include "NOD_geometry.h"
 #include "NOD_geometry_exec.hh"
+#include "NOD_socket_declarations.hh"
 
 #include "node_util.h"
 
@@ -54,13 +55,20 @@ void transform_mesh(Mesh *mesh,
                     const float3 rotation,
                     const float3 scale);
 
+Mesh *create_line_mesh(const float3 start, const float3 delta, const int count);
+
+Mesh *create_grid_mesh(const int verts_x,
+                       const int verts_y,
+                       const float size_x,
+                       const float size_y);
+
 Mesh *create_cylinder_or_cone_mesh(const float radius_top,
                                    const float radius_bottom,
                                    const float depth,
                                    const int verts_num,
                                    const GeometryNodeMeshCircleFillType fill_type);
 
-Mesh *create_cube_mesh(const float size);
+Mesh *create_cuboid_mesh(float3 size, int verts_x, int verts_y, int verts_z);
 
 /**
  * Copies the point domain attributes from `in_component` that are in the mask to `out_component`.

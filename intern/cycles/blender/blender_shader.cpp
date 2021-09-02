@@ -1020,9 +1020,20 @@ static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::NodeSocket &b_
     input = node->input(name.c_str());
 
     if (!input) {
-      /* Different internal numbering of two sockets with same name. */
+      /* Different internal numbering of two sockets with same name.
+       * Note that the Blender convention for unique socket names changed
+       * from . to _ at some point, so we check both to handle old files. */
       if (string_endswith(name, "_001")) {
         string_replace(name, "_001", "2");
+      }
+      else if (string_endswith(name, ".001")) {
+        string_replace(name, ".001", "2");
+      }
+      else if (string_endswith(name, "_002")) {
+        string_replace(name, "_002", "3");
+      }
+      else if (string_endswith(name, ".002")) {
+        string_replace(name, ".002", "3");
       }
       else {
         name += "1";

@@ -580,7 +580,7 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[],
   if (loopbreaker == (maxloop - 1)) {
     CLOG_ERROR(&LOG, "binary search was taking too long");
 
-    // include debug info
+    /* Include debug info. */
     CLOG_ERROR(&LOG,
                "\tround = %d: start = %d, end = %d, arraylen = %d",
                loopbreaker,

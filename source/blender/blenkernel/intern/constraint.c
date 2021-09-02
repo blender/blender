@@ -5430,6 +5430,11 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
     return;
   }
 
+  /* Do not process data if using a render time procedural. */
+  if (BKE_cache_file_uses_render_procedural(cache_file, scene, DEG_get_mode(cob->depsgraph))) {
+    return;
+  }
+
   const float frame = DEG_get_ctime(cob->depsgraph);
   const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
 
@@ -6652,7 +6657,7 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
     BLO_read_id_address(reader, id->lib, &con->ipo); /* XXX deprecated - old animation system */
 
     /* If linking from a library, clear 'local' library override flag. */
-    if (id->lib != NULL) {
+    if (ID_IS_LINKED(id)) {
       con->flag &= ~CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
     }
   }

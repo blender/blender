@@ -512,7 +512,6 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
-  Object *obedit = OBEDIT_FROM_OBACT(ob);
   bScreen *screen;
   Image *ima = scene->toolsettings->imapaint.canvas;
 
@@ -525,7 +524,7 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
           SpaceImage *sima = (SpaceImage *)slink;
 
           if (!sima->pin) {
-            ED_space_image_set(bmain, sima, obedit, ima, true);
+            ED_space_image_set(bmain, sima, ima, true);
           }
         }
       }

@@ -56,7 +56,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
-#include "BLI_sys_types.h"  // for intptr_t support
+#include "BLI_sys_types.h" /* For #intptr_t support. */
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -655,7 +655,7 @@ static float displist_calc_taper(Depsgraph *depsgraph,
           return fp[1];
         }
       }
-      return fp[-2];  // last y coord
+      return fp[-2]; /* Last y coordinate. */
     }
   }
 

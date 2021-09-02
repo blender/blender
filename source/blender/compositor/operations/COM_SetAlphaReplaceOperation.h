@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
@@ -26,7 +26,7 @@ namespace blender::compositor {
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-class SetAlphaReplaceOperation : public NodeOperation {
+class SetAlphaReplaceOperation : public MultiThreadedOperation {
  private:
   SocketReader *m_inputColor;
   SocketReader *m_inputAlpha;
@@ -44,6 +44,10 @@ class SetAlphaReplaceOperation : public NodeOperation {
 
   void initExecution() override;
   void deinitExecution() override;
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

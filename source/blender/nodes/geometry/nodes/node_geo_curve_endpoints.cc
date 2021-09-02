@@ -25,18 +25,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_endpoints_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_endpoints_out[] = {
-    {SOCK_GEOMETRY, N_("Start Points")},
-    {SOCK_GEOMETRY, N_("End Points")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_endpoints_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Start Points");
+  b.add_output<decl::Geometry>("End Points");
+}
 
 /**
  * Evaluate splines in parallel to speed up the rest of the node's execution.
@@ -216,7 +212,7 @@ void register_node_type_geo_curve_endpoints()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_ENDPOINTS, "Curve Endpoints", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_endpoints_in, geo_node_curve_endpoints_out);
+  ntype.declare = blender::nodes::geo_node_curve_endpoints_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_endpoints_exec;
 
   nodeRegisterType(&ntype);

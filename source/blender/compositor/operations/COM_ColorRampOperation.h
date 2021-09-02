@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "DNA_texture_types.h"
 
 namespace blender::compositor {
 
-class ColorRampOperation : public NodeOperation {
+class ColorRampOperation : public MultiThreadedOperation {
  private:
   /**
    * Cached reference to the inputProgram
@@ -53,6 +53,10 @@ class ColorRampOperation : public NodeOperation {
   {
     this->m_colorBand = colorBand;
   }
+
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

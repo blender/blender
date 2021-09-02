@@ -314,90 +314,6 @@ struct DupliObject *DRW_object_get_dupli(const Object *UNUSED(ob))
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Color Management
- * \{ */
-
-/* TODO(fclem): This should be a render engine callback to determine if we need CM or not. */
-static void drw_viewport_colormanagement_set(void)
-{
-  Scene *scene = DST.draw_ctx.scene;
-  View3D *v3d = DST.draw_ctx.v3d;
-
-  ColorManagedDisplaySettings *display_settings = &scene->display_settings;
-  ColorManagedViewSettings view_settings;
-  float dither = 0.0f;
-
-  bool use_render_settings = false;
-  bool use_view_transform = false;
-
-  if (v3d) {
-    bool use_workbench = BKE_scene_uses_blender_workbench(scene);
-
-    bool use_scene_lights = (!v3d ||
-                             ((v3d->shading.type == OB_MATERIAL) &&
-                              (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS)) ||
-                             ((v3d->shading.type == OB_RENDER) &&
-                              (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER)));
-    bool use_scene_world = (!v3d ||
-                            ((v3d->shading.type == OB_MATERIAL) &&
-                             (v3d->shading.flag & V3D_SHADING_SCENE_WORLD)) ||
-                            ((v3d->shading.type == OB_RENDER) &&
-                             (v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER)));
-    use_view_transform = v3d && (v3d->shading.type >= OB_MATERIAL);
-    use_render_settings = v3d && ((use_workbench && use_view_transform) || use_scene_lights ||
-                                  use_scene_world);
-  }
-  else if (DST.draw_ctx.space_data && DST.draw_ctx.space_data->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = (SpaceImage *)DST.draw_ctx.space_data;
-    Image *image = sima->image;
-
-    /* Use inverse logic as there isn't a setting for `Color And Alpha`. */
-    const eSpaceImage_Flag display_channels_mode = sima->flag;
-    const bool display_color_channel = (display_channels_mode & (SI_SHOW_ALPHA | SI_SHOW_ZBUF)) ==
-                                       0;
-    if (display_color_channel && image && (image->source != IMA_SRC_GENERATED) &&
-        ((image->flag & IMA_VIEW_AS_RENDER) != 0)) {
-      use_render_settings = true;
-    }
-  }
-  else if (DST.draw_ctx.space_data && DST.draw_ctx.space_data->spacetype == SPACE_NODE) {
-    SpaceNode *snode = (SpaceNode *)DST.draw_ctx.space_data;
-    const eSpaceNode_Flag display_channels_mode = snode->flag;
-    const bool display_color_channel = (display_channels_mode & SNODE_SHOW_ALPHA) == 0;
-    if (display_color_channel) {
-      use_render_settings = true;
-    }
-  }
-  else {
-    use_render_settings = true;
-    use_view_transform = false;
-  }
-
-  if (use_render_settings) {
-    /* Use full render settings, for renders with scene lighting. */
-    view_settings = scene->view_settings;
-    dither = scene->r.dither_intensity;
-  }
-  else if (use_view_transform) {
-    /* Use only view transform + look and nothing else for lookdev without
-     * scene lighting, as exposure depends on scene light intensity. */
-    BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
-    STRNCPY(view_settings.view_transform, scene->view_settings.view_transform);
-    STRNCPY(view_settings.look, scene->view_settings.look);
-    dither = scene->r.dither_intensity;
-  }
-  else {
-    /* For workbench use only default view transform in configuration,
-     * using no scene settings. */
-    BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
-  }
-
-  GPU_viewport_colorspace_set(DST.viewport, &view_settings, display_settings, dither);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Viewport (DRW_viewport)
  * \{ */
 
@@ -1526,7 +1442,6 @@ void DRW_draw_view(const bContext *C)
                              (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) != 0);
     DST.options.draw_background = (scene->r.alphamode == R_ADDSKY) ||
                                   (v3d->shading.type != OB_RENDER);
-    DST.options.do_color_management = true;
     DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, viewport, C);
   }
   else {
@@ -1574,7 +1489,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   drw_context_state_init();
 
   drw_viewport_var_init();
-  drw_viewport_colormanagement_set();
+  DRW_viewport_colormanagement_set(DST.viewport);
 
   const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
   /* Check if scene needs to perform the populate loop */
@@ -1718,7 +1633,6 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
   /* Reset before using it. */
   drw_state_prepare_clean_for_draw(&DST);
   DST.options.is_image_render = is_image_render;
-  DST.options.do_color_management = do_color_management;
   DST.options.draw_background = draw_background;
   DRW_draw_render_loop_ex(depsgraph, engine_type, region, v3d, render_viewport, NULL);
 
@@ -2095,7 +2009,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
 
   drw_context_state_init();
   drw_viewport_var_init();
-  drw_viewport_colormanagement_set();
+  DRW_viewport_colormanagement_set(DST.viewport);
 
   /* TODO(jbakker): Only populate when editor needs to draw object.
    * for the image editor this is when showing UV's. */
@@ -2837,14 +2751,6 @@ bool DRW_state_is_depth(void)
 bool DRW_state_is_image_render(void)
 {
   return DST.options.is_image_render;
-}
-
-/**
- * Whether the view transform should be applied.
- */
-bool DRW_state_do_color_management(void)
-{
-  return DST.options.do_color_management;
 }
 
 /**

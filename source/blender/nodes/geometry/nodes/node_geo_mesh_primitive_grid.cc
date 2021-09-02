@@ -25,20 +25,16 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_grid_in[] = {
-    {SOCK_FLOAT, N_("Size X"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_FLOAT, N_("Size Y"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_INT, N_("Vertices X"), 3, 0.0f, 0.0f, 0.0f, 2, 1000},
-    {SOCK_INT, N_("Vertices Y"), 3, 0.0f, 0.0f, 0.0f, 2, 1000},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_mesh_primitive_grid_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_mesh_primitive_grid_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Size X").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Size Y").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>("Vertices X").default_value(3).min(2).max(1000);
+  b.add_input<decl::Int>("Vertices Y").default_value(3).min(2).max(1000);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void calculate_uvs(
     Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, const float size_x, const float size_y)
@@ -60,12 +56,12 @@ static void calculate_uvs(
   uv_attribute.save();
 }
 
-static Mesh *create_grid_mesh(const int verts_x,
-                              const int verts_y,
-                              const float size_x,
-                              const float size_y)
+Mesh *create_grid_mesh(const int verts_x,
+                       const int verts_y,
+                       const float size_x,
+                       const float size_y)
 {
-  BLI_assert(verts_x > 1 && verts_y > 1);
+  BLI_assert(verts_x > 0 && verts_y > 0);
   const int edges_x = verts_x - 1;
   const int edges_y = verts_y - 1;
   Mesh *mesh = BKE_mesh_new_nomain(verts_x * verts_y,
@@ -101,6 +97,8 @@ static Mesh *create_grid_mesh(const int verts_x,
 
   /* Build the horizontal edges in the X direction. */
   const int y_edges_start = 0;
+  const short edge_flag = (edges_x == 0 || edges_y == 0) ? ME_LOOSEEDGE :
+                                                           ME_EDGEDRAW | ME_EDGERENDER;
   int edge_index = 0;
   for (const int x : IndexRange(verts_x)) {
     for (const int y : IndexRange(edges_y)) {
@@ -108,7 +106,7 @@ static Mesh *create_grid_mesh(const int verts_x,
       MEdge &edge = edges[edge_index++];
       edge.v1 = vert_index;
       edge.v2 = vert_index + 1;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = edge_flag;
     }
   }
 
@@ -120,7 +118,7 @@ static Mesh *create_grid_mesh(const int verts_x,
       MEdge &edge = edges[edge_index++];
       edge.v1 = vert_index;
       edge.v2 = vert_index + verts_y;
-      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      edge.flag = edge_flag;
     }
   }
 
@@ -148,7 +146,9 @@ static Mesh *create_grid_mesh(const int verts_x,
     }
   }
 
-  calculate_uvs(mesh, verts, loops, size_x, size_y);
+  if (mesh->totpoly != 0) {
+    calculate_uvs(mesh, verts, loops, size_x, size_y);
+  }
 
   return mesh;
 }
@@ -159,13 +159,7 @@ static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
   const float size_y = params.extract_input<float>("Size Y");
   const int verts_x = params.extract_input<int>("Vertices X");
   const int verts_y = params.extract_input<int>("Vertices Y");
-  if (verts_x < 2 || verts_y < 2) {
-    if (verts_x < 2) {
-      params.error_message_add(NodeWarningType::Info, TIP_("Vertices X must be at least 2"));
-    }
-    if (verts_y < 2) {
-      params.error_message_add(NodeWarningType::Info, TIP_("Vertices Y must be at least 2"));
-    }
+  if (verts_x < 1 || verts_y < 1) {
     params.set_output("Geometry", GeometrySet());
     return;
   }
@@ -184,8 +178,7 @@ void register_node_type_geo_mesh_primitive_grid()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_GRID, "Grid", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_grid_in, geo_node_mesh_primitive_grid_out);
+  ntype.declare = blender::nodes::geo_node_mesh_primitive_grid_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_grid_exec;
   nodeRegisterType(&ntype);
 }

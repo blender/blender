@@ -28,10 +28,9 @@
  * winsock stuff.
  */
 #include <errno.h>
+#include <fcntl.h> /* for open flags (O_BINARY, O_RDONLY). */
 #include <stddef.h>
 #include <string.h>
-
-#include "zlib.h" /* wm_read_exotic() */
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
@@ -51,6 +50,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
+#include "BLI_filereader.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_system.h"
@@ -481,53 +481,64 @@ static void wm_init_userdef(Main *bmain)
 /* intended to check for non-blender formats but for now it only reads blends */
 static int wm_read_exotic(const char *name)
 {
-  int len;
-  gzFile gzfile;
-  char header[7];
-  int retval;
-
   /* make sure we're not trying to read a directory.... */
 
-  len = strlen(name);
-  if (len > 0 && ELEM(name[len - 1], '/', '\\')) {
-    retval = BKE_READ_EXOTIC_FAIL_PATH;
+  int namelen = strlen(name);
+  if (namelen > 0 && ELEM(name[namelen - 1], '/', '\\')) {
+    return BKE_READ_EXOTIC_FAIL_PATH;
+  }
+
+  /* open the file. */
+  const int filedes = BLI_open(name, O_BINARY | O_RDONLY, 0);
+  if (filedes == -1) {
+    return BKE_READ_EXOTIC_FAIL_OPEN;
+  }
+
+  FileReader *rawfile = BLI_filereader_new_file(filedes);
+  if (rawfile == NULL) {
+    return BKE_READ_EXOTIC_FAIL_OPEN;
+  }
+
+  /* read the header (7 bytes are enough to identify all known types). */
+  char header[7];
+  if (rawfile->read(rawfile, header, sizeof(header)) != sizeof(header)) {
+    rawfile->close(rawfile);
+    return BKE_READ_EXOTIC_FAIL_FORMAT;
+  }
+  rawfile->seek(rawfile, 0, SEEK_SET);
+
+  /* check for uncompressed .blend */
+  if (STREQLEN(header, "BLENDER", 7)) {
+    rawfile->close(rawfile);
+    return BKE_READ_EXOTIC_OK_BLEND;
+  }
+
+  /* check for compressed .blend */
+  FileReader *compressed_file = NULL;
+  if (BLI_file_magic_is_gzip(header)) {
+    /* In earlier versions of Blender (before 3.0), compressed files used Gzip instead of Zstd.
+     * While these files will no longer be written, there still needs to be reading support. */
+    compressed_file = BLI_filereader_new_gzip(rawfile);
+  }
+  else if (BLI_file_magic_is_zstd(header)) {
+    compressed_file = BLI_filereader_new_zstd(rawfile);
+  }
+
+  /* If a compression signature matches, try decompressing the start and check if it's a .blend */
+  if (compressed_file != NULL) {
+    size_t len = compressed_file->read(compressed_file, header, sizeof(header));
+    compressed_file->close(compressed_file);
+    if (len == sizeof(header) && STREQLEN(header, "BLENDER", 7)) {
+      return BKE_READ_EXOTIC_OK_BLEND;
+    }
   }
   else {
-    gzfile = BLI_gzopen(name, "rb");
-    if (gzfile == NULL) {
-      retval = BKE_READ_EXOTIC_FAIL_OPEN;
-    }
-    else {
-      len = gzread(gzfile, header, sizeof(header));
-      gzclose(gzfile);
-      if (len == sizeof(header) && STREQLEN(header, "BLENDER", 7)) {
-        retval = BKE_READ_EXOTIC_OK_BLEND;
-      }
-      else {
-        /* We may want to support loading other file formats
-         * from their header bytes or file extension.
-         * This used to be supported in the code below and may be added
-         * back at some point. */
-#if 0
-        WM_cursor_wait(true);
-
-        if (is_foo_format(name)) {
-          read_foo(name);
-          retval = BKE_READ_EXOTIC_OK_OTHER;
-        }
-        else
-#endif
-        {
-          retval = BKE_READ_EXOTIC_FAIL_FORMAT;
-        }
-#if 0
-        WM_cursor_wait(false);
-#endif
-      }
-    }
+    rawfile->close(rawfile);
   }
 
-  return retval;
+  /* Add check for future file formats here. */
+
+  return BKE_READ_EXOTIC_FAIL_FORMAT;
 }
 
 /** \} */

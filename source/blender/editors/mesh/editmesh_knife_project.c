@@ -33,6 +33,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
@@ -115,7 +116,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C,
     BKE_nurbList_free(&nurbslist);
 
     if (me_eval_needs_free) {
-      BKE_mesh_free((struct Mesh *)me_eval);
+      BKE_id_free(NULL, (ID *)me_eval);
     }
   }
 

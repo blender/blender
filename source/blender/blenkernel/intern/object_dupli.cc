@@ -653,10 +653,10 @@ static Object *find_family_object(
     return *ob_pt;
   }
 
-  char ch_utf8[7];
+  char ch_utf8[BLI_UTF8_MAX + 1];
   size_t ch_utf8_len;
 
-  ch_utf8_len = BLI_str_utf8_from_unicode(ch, ch_utf8);
+  ch_utf8_len = BLI_str_utf8_from_unicode(ch, ch_utf8, sizeof(ch_utf8) - 1);
   ch_utf8[ch_utf8_len] = '\0';
   ch_utf8_len += 1; /* Compare with null terminator. */
 

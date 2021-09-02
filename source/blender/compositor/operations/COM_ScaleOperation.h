@@ -46,6 +46,9 @@ class BaseScaleOperation : public MultiThreadedOperation {
 };
 
 class ScaleOperation : public BaseScaleOperation {
+ public:
+  static constexpr float MIN_SCALE = 0.0001f;
+
  protected:
   SocketReader *m_inputOperation;
   SocketReader *m_inputXOperation;
@@ -56,6 +59,12 @@ class ScaleOperation : public BaseScaleOperation {
  public:
   ScaleOperation();
   ScaleOperation(DataType data_type);
+
+  static float scale_coord(const float coord, const float center, const float relative_scale)
+  {
+    return center + (coord - center) / MAX2(relative_scale, MIN_SCALE);
+  }
+  static void scale_area(rcti &rect, float center_x, float center_y, float scale_x, float scale_y);
 
   void init_data() override;
   void initExecution() override;

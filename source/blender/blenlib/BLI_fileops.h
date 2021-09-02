@@ -154,18 +154,17 @@ bool BLI_file_is_writable(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL
 bool BLI_file_touch(const char *file) ATTR_NONNULL();
 bool BLI_file_alias_target(const char *filepath, char *r_targetpath) ATTR_WARN_UNUSED_RESULT;
 
-#if 0 /* UNUSED */
-int BLI_file_gzip(const char *from, const char *to) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-#endif
-char *BLI_file_ungzip_to_mem(const char *from_file, int *r_size) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
-size_t BLI_gzip_mem_to_file_at_pos(void *buf,
-                                   size_t len,
-                                   FILE *file,
-                                   size_t gz_stream_offset,
-                                   int compression_level) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-size_t BLI_ungzip_file_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t gz_stream_offset)
+bool BLI_file_magic_is_gzip(const char header[4]);
+
+size_t BLI_file_zstd_from_mem_at_pos(void *buf,
+                                     size_t len,
+                                     FILE *file,
+                                     size_t file_offset,
+                                     int compression_level) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t file_offset)
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+bool BLI_file_magic_is_zstd(const char header[4]);
+
 size_t BLI_file_descriptor_size(int file) ATTR_WARN_UNUSED_RESULT;
 size_t BLI_file_size(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

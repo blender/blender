@@ -165,6 +165,7 @@ set(SRC
   geometry/nodes/node_geo_common.cc
   geometry/nodes/node_geo_convex_hull.cc
   geometry/nodes/node_geo_curve_endpoints.cc
+  geometry/nodes/node_geo_curve_fill.cc
   geometry/nodes/node_geo_curve_length.cc
   geometry/nodes/node_geo_curve_primitive_bezier_segment.cc
   geometry/nodes/node_geo_curve_primitive_circle.cc
@@ -345,11 +346,12 @@ set(SRC
   intern/node_common.c
   intern/node_exec.cc
   intern/node_geometry_exec.cc
+  intern/node_multi_function.cc
+  intern/node_declaration.cc
+  intern/node_socket_declarations.cc
   intern/node_socket.cc
-  intern/node_tree_multi_function.cc
   intern/node_tree_ref.cc
   intern/node_util.c
-  intern/type_callbacks.cc
   intern/type_conversions.cc
 
   composite/node_composite_util.h
@@ -366,13 +368,14 @@ set(SRC
   NOD_geometry_exec.hh
   NOD_geometry_nodes_eval_log.hh
   NOD_math_functions.hh
-  NOD_node_tree_multi_function.hh
+  NOD_multi_function.hh
+  NOD_node_declaration.hh
+  NOD_socket_declarations.hh
   NOD_node_tree_ref.hh
   NOD_shader.h
   NOD_socket.h
   NOD_static_types.h
   NOD_texture.h
-  NOD_type_callbacks.hh
   NOD_type_conversions.hh
   intern/node_common.h
   intern/node_exec.h

@@ -33,6 +33,8 @@ enum class eExecutionModel {
   FullFrame
 };
 
+enum class eDimension { X, Y };
+
 /**
  * \brief possible data types for sockets
  * \ingroup Model
@@ -93,11 +95,11 @@ constexpr DataType COM_num_channels_data_type(const int num_channels)
   }
 }
 
-// configurable items
-
-// chunk size determination
-
-// chunk order
+/* Configurable items.
+ *
+ * Chunk size determination.
+ *
+ * Chunk order. */
 /**
  * \brief The order of chunks to be scheduled
  * \ingroup Execution
@@ -118,6 +120,8 @@ enum class ChunkOrdering {
 constexpr float COM_PREVIEW_SIZE = 140.f;
 constexpr float COM_RULE_OF_THIRDS_DIVIDER = 100.0f;
 constexpr float COM_BLUR_BOKEH_PIXELS = 512;
+
+constexpr rcti COM_SINGLE_ELEM_AREA = {0, 1, 0, 1};
 
 constexpr IndexRange XRange(const rcti &area)
 {

@@ -21,6 +21,7 @@
 
 #include <Python.h>
 
+#include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
@@ -270,7 +271,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
   }
 
   if (py_options &&
-      (pyrna_set_to_enum_bitfield(py_options_enum, py_options, &options, error_prefix)) == -1) {
+      (pyrna_enum_bitfield_from_set(py_options_enum, py_options, &options, error_prefix)) == -1) {
     return NULL;
   }
 

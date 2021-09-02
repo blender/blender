@@ -493,7 +493,6 @@ PyObject *BPyInit_blf(void)
   PyModule_AddIntConstant(submodule, "ROTATION", BLF_ROTATION);
   PyModule_AddIntConstant(submodule, "CLIPPING", BLF_CLIPPING);
   PyModule_AddIntConstant(submodule, "SHADOW", BLF_SHADOW);
-  PyModule_AddIntConstant(submodule, "KERNING_DEFAULT", BLF_KERNING_DEFAULT);
   PyModule_AddIntConstant(submodule, "WORD_WRAP", BLF_WORD_WRAP);
   PyModule_AddIntConstant(submodule, "MONOCHROME", BLF_MONOCHROME);
 

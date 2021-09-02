@@ -253,7 +253,7 @@ constexpr MeshExtract create_extractor_edit_data()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(EditLoopData *);
   extractor.use_threading = true;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edit_data);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.edit_data);
   return extractor;
 }
 

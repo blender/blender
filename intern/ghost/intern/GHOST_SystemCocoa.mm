@@ -424,7 +424,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 {
   /* TODO: implement graceful termination through Cocoa mechanism
    * to avoid session log off to be canceled. */
-  /* Note that Cmd+Q is already handled by keyhandler. */
+  /* Note that Cmd+Q is already handled by key-handler. */
   systemCocoa->handleQuitRequest();
   return NSTerminateCancel;
 }

@@ -96,7 +96,7 @@ void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh,
                                      const struct MLoopTri *looptri,
                                      int r_edges[3]);
 
-void BKE_mesh_free(struct Mesh *me);
+void BKE_mesh_free_data_for_undo(struct Mesh *me);
 void BKE_mesh_clear_geometry(struct Mesh *me);
 struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
 void BKE_mesh_copy_parameters_for_eval(struct Mesh *me_dst, const struct Mesh *me_src);
@@ -144,11 +144,6 @@ int BKE_mesh_mface_index_validate(struct MFace *mface,
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
-void BKE_mesh_from_nurbs_displist(struct Main *bmain,
-                                  struct Object *ob,
-                                  struct ListBase *dispbase,
-                                  const char *obdata_name,
-                                  bool temporary);
 void BKE_mesh_to_curve_nurblist(const struct Mesh *me,
                                 struct ListBase *nurblist,
                                 const int edge_users_test);

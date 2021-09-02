@@ -19,17 +19,15 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_point_translate_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Translation")},
-    {SOCK_VECTOR, N_("Translation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_point_translate_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_point_translate_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Translation");
+  b.add_input<decl::Vector>("Translation", "Translation_001").subtype(PROP_TRANSLATION);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_point_translate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -37,8 +35,6 @@ static void geo_node_point_translate_layout(uiLayout *layout, bContext *UNUSED(C
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "input_type", 0, IFACE_("Type"), ICON_NONE);
 }
-
-namespace blender::nodes {
 
 static void execute_on_component(GeoNodeExecParams params, GeometryComponent &component)
 {
@@ -100,14 +96,14 @@ void register_node_type_geo_point_translate()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_POINT_TRANSLATE, "Point Translate", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_point_translate_in, geo_node_point_translate_out);
   node_type_init(&ntype, blender::nodes::geo_node_point_translate_init);
   node_type_update(&ntype, blender::nodes::geo_node_point_translate_update);
   node_type_storage(&ntype,
                     "NodeGeometryPointTranslate",
                     node_free_standard_storage,
                     node_copy_standard_storage);
+  ntype.declare = blender::nodes::geo_node_point_translate_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_point_translate_exec;
-  ntype.draw_buttons = geo_node_point_translate_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_point_translate_layout;
   nodeRegisterType(&ntype);
 }

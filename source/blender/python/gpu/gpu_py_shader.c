@@ -70,6 +70,27 @@ static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
     {0, NULL},
 };
 
+static const struct PyC_StringEnumItems pygpu_shader_config_items[] = {
+    {GPU_SHADER_CFG_DEFAULT, "DEFAULT"},
+    {GPU_SHADER_CFG_CLIPPED, "CLIPPED"},
+    {0, NULL},
+};
+
+static const struct PyC_FlagSet pygpu_texture_samplerstate_items[] = {
+    {GPU_SAMPLER_DEFAULT, "DEFAULT"},
+    {GPU_SAMPLER_FILTER, "FILTER"},
+    {GPU_SAMPLER_MIPMAP, "MIPMAP"},
+    {GPU_SAMPLER_REPEAT_S, "REPEAT_S"},
+    {GPU_SAMPLER_REPEAT_T, "REPEAT_T"},
+    {GPU_SAMPLER_REPEAT_R, "REPEAT_R"},
+    {GPU_SAMPLER_CLAMP_BORDER, "CLAMP_BORDER"},
+    {GPU_SAMPLER_COMPARE, "COMPARE"},
+    {GPU_SAMPLER_ANISO, "ANISO"},
+    {GPU_SAMPLER_ICON, "ICON"},
+    {GPU_SAMPLER_REPEAT, "REPEAT"},
+    {0, NULL},
+};
+
 static int pygpu_shader_uniform_location_get(GPUShader *shader,
                                              const char *name,
                                              const char *error_prefix)
@@ -211,8 +232,9 @@ static bool pygpu_shader_uniform_vector_impl(PyObject *args,
     return false;
   }
 
-  if (r_pybuffer->len != (*r_length * *r_count * elem_size)) {
-    PyErr_SetString(PyExc_BufferError, "GPUShader.uniform_vector_*: buffer size does not match.");
+  if (r_pybuffer->len < (*r_length * *r_count * elem_size)) {
+    PyErr_SetString(PyExc_OverflowError,
+                    "GPUShader.uniform_vector_*: buffer size smaller than required.");
     return false;
   }
 
@@ -485,25 +507,53 @@ static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
 }
 
 PyDoc_STRVAR(pygpu_shader_uniform_sampler_doc,
-             ".. method:: uniform_sampler(name, texture)\n"
+             ".. method:: uniform_sampler(name, texture, state={'DEFAULT'})\n"
              "\n"
-             "   Specify the value of a texture uniform variable for the current GPUShader.\n"
+             "   Specify the texture and state for an uniform sampler in the current GPUShader.\n"
              "\n"
              "   :param name: name of the uniform variable whose texture is to be specified.\n"
              "   :type name: str\n"
              "   :param texture: Texture to attach.\n"
-             "   :type texture: :class:`gpu.types.GPUTexture`\n");
-static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args)
+             "   :type texture: :class:`gpu.types.GPUTexture`\n"
+             "   :param state: set of values in:\n"
+             "\n"
+             "      - ``DEFAULT``\n"
+             "      - ``FILTER``\n"
+             "      - ``MIPMAP``\n"
+             "      - ``REPEAT_S``\n"
+             "      - ``REPEAT_T``\n"
+             "      - ``REPEAT_R``\n"
+             "      - ``CLAMP_BORDER``\n"
+             "      - ``COMPARE``\n"
+             "      - ``ANISO``\n"
+             "      - ``ICON``\n"
+             "      - ``REPEAT``\n"
+             "   :type state: set\n");
+static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args, PyObject *kwds)
 {
   const char *name;
   BPyGPUTexture *py_texture;
-  if (!PyArg_ParseTuple(
-          args, "sO!:GPUShader.uniform_sampler", &name, &BPyGPUTexture_Type, &py_texture)) {
+  PyObject *py_samplerstate = NULL;
+
+  static const char *_keywords[] = {"name", "texture", "state", NULL};
+  static _PyArg_Parser _parser = {"sO!|$O:uniform_sampler", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kwds, &_parser, &name, &BPyGPUTexture_Type, &py_texture, &py_samplerstate)) {
     return NULL;
   }
 
+  int sampler_state = GPU_SAMPLER_DEFAULT;
+  if (py_samplerstate) {
+    if (PyC_FlagSet_ToBitfield(pygpu_texture_samplerstate_items,
+                               py_samplerstate,
+                               &sampler_state,
+                               "shader.uniform_sampler") == -1) {
+      return NULL;
+    }
+  }
+
   int slot = GPU_shader_get_texture_binding(self->shader, name);
-  GPU_texture_bind(py_texture->tex, slot);
+  GPU_texture_bind_ex(py_texture->tex, (eGPUSamplerState)sampler_state, slot, false);
   GPU_shader_uniform_1i(self->shader, name, slot);
 
   Py_RETURN_NONE;
@@ -615,7 +665,7 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
      pygpu_shader_uniform_int_doc},
     {"uniform_sampler",
      (PyCFunction)pygpu_shader_uniform_sampler,
-     METH_VARARGS,
+     METH_VARARGS | METH_KEYWORDS,
      pygpu_shader_uniform_sampler_doc},
     {"uniform_block",
      (PyCFunction)pygpu_shader_uniform_block,
@@ -658,7 +708,7 @@ PyDoc_STRVAR(
     ".. class:: GPUShader(vertexcode, fragcode, geocode=None, libcode=None, defines=None)\n"
     "\n"
     "   GPUShader combines multiple GLSL shaders into a program used for drawing.\n"
-    "   It must contain a vertex and fragment shaders, with an optional geometry shader.\n"
+    "   It must contain at least a vertex and fragment shaders.\n"
     "\n"
     "   The GLSL ``#version`` directive is automatically included at the top of shaders,\n"
     "   and set to 330. Some preprocessor directives are automatically added according to\n"
@@ -710,29 +760,50 @@ static PyObject *pygpu_shader_unbind(BPyGPUShader *UNUSED(self))
 }
 
 PyDoc_STRVAR(pygpu_shader_from_builtin_doc,
-             ".. function:: from_builtin(pygpu_shader_name)\n"
+             ".. function:: from_builtin(shader_name, config='DEFAULT')\n"
              "\n"
              "   Shaders that are embedded in the blender internal code.\n"
              "   They all read the uniform ``mat4 ModelViewProjectionMatrix``,\n"
              "   which can be edited by the :mod:`gpu.matrix` module.\n"
+             "\n"
+             "   You can also choose a shader configuration that uses clip_planes by setting the "
+             "``CLIPPED`` value to the config parameter. Note that in this case you also need to "
+             "manually set the value of ``mat4 ModelMatrix``.\n"
+             "\n"
              "   For more details, you can check the shader code with the\n"
              "   :func:`gpu.shader.code_from_builtin` function.\n"
              "\n"
-             "   :param pygpu_shader_name: One of these builtin shader names:\n"
+             "   :param shader_name: One of these builtin shader names:\n"
              "\n" PYDOC_BUILTIN_SHADER_LIST
-             "   :type pygpu_shader_name: str\n"
+             "   :type shader_name: str\n"
+             "   :param config: One of these types of shader configuration:\n"
+             "\n"
+             "      - ``DEFAULT``\n"
+             "      - ``CLIPPED``\n"
+             "   :type config: str\n"
              "   :return: Shader object corresponding to the given name.\n"
              "   :rtype: :class:`bpy.types.GPUShader`\n");
-static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg)
+static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
   struct PyC_StringEnum pygpu_bultinshader = {pygpu_shader_builtin_items};
-  if (!PyC_ParseStringEnum(arg, &pygpu_bultinshader)) {
+  struct PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
+
+  static const char *_keywords[] = {"shader_name", "config", NULL};
+  static _PyArg_Parser _parser = {"O&|$O&:from_builtin", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kwds,
+                                        &_parser,
+                                        PyC_ParseStringEnum,
+                                        &pygpu_bultinshader,
+                                        PyC_ParseStringEnum,
+                                        &pygpu_config)) {
     return NULL;
   }
 
-  GPUShader *shader = GPU_shader_get_builtin_shader(pygpu_bultinshader.value_found);
+  GPUShader *shader = GPU_shader_get_builtin_shader_with_config(pygpu_bultinshader.value_found,
+                                                                pygpu_config.value_found);
 
   return BPyGPUShader_CreatePyObject(shader, true);
 }
@@ -740,7 +811,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg
 PyDoc_STRVAR(pygpu_shader_code_from_builtin_doc,
              ".. function:: code_from_builtin(pygpu_shader_name)\n"
              "\n"
-             "   Exposes the internal shader code for query.\n"
+             "   Exposes the internal shader code for consultation.\n"
              "\n"
              "   :param pygpu_shader_name: One of these builtin shader names:\n"
              "\n" PYDOC_BUILTIN_SHADER_LIST
@@ -787,7 +858,7 @@ static struct PyMethodDef pygpu_shader_module__tp_methods[] = {
     {"unbind", (PyCFunction)pygpu_shader_unbind, METH_NOARGS, pygpu_shader_unbind_doc},
     {"from_builtin",
      (PyCFunction)pygpu_shader_from_builtin,
-     METH_O,
+     METH_VARARGS | METH_KEYWORDS,
      pygpu_shader_from_builtin_doc},
     {"code_from_builtin",
      (PyCFunction)pygpu_shader_code_from_builtin,
@@ -802,27 +873,28 @@ PyDoc_STRVAR(pygpu_shader_module__tp_doc,
              ".. rubric:: Built-in shaders\n"
              "\n"
              "All built-in shaders have the ``mat4 ModelViewProjectionMatrix`` uniform.\n"
-             "The value of it can only be modified using the :class:`gpu.matrix` module.\n"
              "\n"
-             "2D_UNIFORM_COLOR\n"
+             "Its value must be modified using the :class:`gpu.matrix` module.\n"
+             "\n"
+             "``2D_UNIFORM_COLOR``\n"
              "   :Attributes: vec3 pos\n"
              "   :Uniforms: vec4 color\n"
-             "2D_FLAT_COLOR\n"
+             "``2D_FLAT_COLOR``\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n"
-             "2D_SMOOTH_COLOR\n"
+             "``2D_SMOOTH_COLOR``\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n"
-             "2D_IMAGE\n"
+             "``2D_IMAGE``\n"
              "   :Attributes: vec3 pos, vec2 texCoord\n"
              "   :Uniforms: sampler2D image\n"
-             "3D_UNIFORM_COLOR\n"
+             "``3D_UNIFORM_COLOR``\n"
              "   :Attributes: vec3 pos\n"
              "   :Uniforms: vec4 color\n"
-             "3D_FLAT_COLOR\n"
+             "``3D_FLAT_COLOR``\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n"
-             "3D_SMOOTH_COLOR\n"
+             "``3D_SMOOTH_COLOR``\n"
              "   :Attributes: vec3 pos, vec4 color\n"
              "   :Uniforms: none\n");
 static PyModuleDef pygpu_shader_module_def = {

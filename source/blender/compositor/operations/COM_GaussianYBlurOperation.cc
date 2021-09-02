@@ -25,13 +25,8 @@
 
 namespace blender::compositor {
 
-GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(DataType::Color)
+GaussianYBlurOperation::GaussianYBlurOperation() : GaussianBlurBaseOperation(eDimension::Y)
 {
-  this->m_gausstab = nullptr;
-#ifdef BLI_HAVE_SSE2
-  this->m_gausstab_sse = nullptr;
-#endif
-  this->m_filtersize = 0;
 }
 
 void *GaussianYBlurOperation::initializeTileData(rcti * /*rect*/)
@@ -47,11 +42,11 @@ void *GaussianYBlurOperation::initializeTileData(rcti * /*rect*/)
 
 void GaussianYBlurOperation::initExecution()
 {
-  BlurBaseOperation::initExecution();
+  GaussianBlurBaseOperation::initExecution();
 
   initMutex();
 
-  if (this->m_sizeavailable) {
+  if (this->m_sizeavailable && execution_model_ == eExecutionModel::Tiled) {
     float rad = max_ff(m_size * m_data.sizey, 0.0f);
     m_filtersize = min_ii(ceil(rad), MAX_GAUSSTAB_RADIUS);
 
@@ -158,7 +153,7 @@ void GaussianYBlurOperation::executeOpenCL(OpenCLDevice *device,
 
 void GaussianYBlurOperation::deinitExecution()
 {
-  BlurBaseOperation::deinitExecution();
+  GaussianBlurBaseOperation::deinitExecution();
 
   if (this->m_gausstab) {
     MEM_freeN(this->m_gausstab);

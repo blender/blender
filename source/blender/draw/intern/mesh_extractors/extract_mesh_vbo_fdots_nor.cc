@@ -105,7 +105,7 @@ constexpr MeshExtract create_extractor_fdots_nor()
   extractor.data_type = MR_DATA_LOOP_NOR;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_nor);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdots_nor);
   return extractor;
 }
 
@@ -186,7 +186,7 @@ constexpr MeshExtract create_extractor_fdots_nor_hq()
   extractor.data_type = MR_DATA_LOOP_NOR;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_nor);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdots_nor);
   return extractor;
 }
 

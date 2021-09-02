@@ -719,7 +719,7 @@ static void gpencil_copy_activeframe_to_eval(
       bGPDframe *gpf_orig = gpl_orig->actframe;
 
       int remap_cfra = gpencil_remap_time_get(depsgraph, scene, ob, gpl_orig);
-      if (gpf_orig && gpf_orig->framenum != remap_cfra) {
+      if ((gpf_orig == NULL) || (gpf_orig && gpf_orig->framenum != remap_cfra)) {
         gpf_orig = BKE_gpencil_layer_frame_get(gpl_orig, remap_cfra, GP_GETFRAME_USE_PREV);
       }
 
@@ -1025,7 +1025,7 @@ void BKE_gpencil_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
   BKE_gpencil_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
 
   /* If linking from a library, clear 'local' library override flag. */
-  if (ob->id.lib != NULL) {
+  if (ID_IS_LINKED(ob)) {
     LISTBASE_FOREACH (GpencilModifierData *, mod, &ob->greasepencil_modifiers) {
       mod->flag &= ~eGpencilModifierFlag_OverrideLibrary_Local;
     }

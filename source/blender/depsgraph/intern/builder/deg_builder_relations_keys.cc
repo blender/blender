@@ -28,7 +28,7 @@
 namespace blender::deg {
 
 ////////////////////////////////////////////////////////////////////////////////
-// Time source.
+/* Time source. */
 
 TimeSourceKey::TimeSourceKey() : id(nullptr)
 {

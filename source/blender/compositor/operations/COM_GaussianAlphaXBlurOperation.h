@@ -18,18 +18,13 @@
 
 #pragma once
 
-#include "COM_BlurBaseOperation.h"
-#include "COM_NodeOperation.h"
+#include "COM_GaussianAlphaBlurBaseOperation.h"
 
 namespace blender::compositor {
 
-class GaussianAlphaXBlurOperation : public BlurBaseOperation {
+/* TODO(manzanilla): everything to be removed with tiled implementation except the constructor. */
+class GaussianAlphaXBlurOperation : public GaussianAlphaBlurBaseOperation {
  private:
-  float *m_gausstab;
-  float *m_distbuf_inv;
-  int m_falloff; /* falloff for distbuf_inv */
-  bool m_do_subtract;
-  int m_filtersize;
   void updateGauss();
 
  public:
@@ -54,18 +49,6 @@ class GaussianAlphaXBlurOperation : public BlurBaseOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
-
-  /**
-   * Set subtract for Dilate/Erode functionality
-   */
-  void setSubtract(bool subtract)
-  {
-    this->m_do_subtract = subtract;
-  }
-  void setFalloff(int falloff)
-  {
-    this->m_falloff = falloff;
-  }
 };
 
 }  // namespace blender::compositor

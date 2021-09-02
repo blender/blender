@@ -24,10 +24,10 @@
 
 #include "BLI_function_ref.hh"
 
-struct AssetLibraryReference;
 struct AssetHandle;
-struct bContext;
+struct AssetLibraryReference;
 struct FileDirEntry;
+struct bContext;
 
 std::string ED_assetlist_asset_filepath_get(const bContext *C,
                                             const AssetLibraryReference &library_reference,

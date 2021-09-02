@@ -85,10 +85,9 @@ BLI_INLINE void bm_vert_calc_normals_accum_loop(const BMLoop *l_iter,
     dotprod = -dotprod;
   }
   const float fac = saacos(-dotprod);
-  /* NAN detection, otherwise this is a degenerated case, ignore that vertex in this case. */
-  if (fac == fac) {
-    madd_v3_v3fl(v_no, f_no, fac);
-  }
+  /* Shouldn't happen as normalizing edge-vectors cause degenerate values to be zeroed out. */
+  BLI_assert(!isnan(fac));
+  madd_v3_v3fl(v_no, f_no, fac);
 }
 
 static void bm_vert_calc_normals_impl(BMVert *v)

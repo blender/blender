@@ -71,14 +71,13 @@ typedef struct uiFontStyle {
   short uifont_id;
   /** Actual size depends on 'global' dpi. */
   short points;
-  /** Unfitted or default kerning value. */
-  short kerning;
   /** Style hint. */
   short italic, bold;
   /** Value is amount of pixels blur. */
   short shadow;
   /** Shadow offset in pixels. */
   short shadx, shady;
+  char _pad0[2];
   /** Total alpha. */
   float shadowalpha;
   /** 1 value, typically white or black anyway. */

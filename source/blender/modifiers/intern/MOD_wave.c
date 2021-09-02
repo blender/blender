@@ -70,7 +70,9 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WaveModifierData), modifier);
 }
 
-static bool dependsOnTime(ModifierData *UNUSED(md))
+static bool dependsOnTime(struct Scene *UNUSED(scene),
+                          ModifierData *UNUSED(md),
+                          const int UNUSED(dag_eval_mode))
 {
   return true;
 }

@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.h"
 #include "BLI_blenlib.h"
 #include "BLI_float3.hh"
 #include "BLI_ghash.h"
@@ -619,7 +620,10 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
   }
 
   if (new_count == 1) {
-    BKE_gpencil_free_stroke_weights(gps);
+    if (gps->dvert) {
+      BKE_gpencil_free_stroke_weights(gps);
+      MEM_freeN(gps->dvert);
+    }
     MEM_freeN(gps->points);
     gps->points = nullptr;
     gps->dvert = nullptr;
@@ -627,27 +631,24 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
     return false;
   }
 
-  new_pt = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * new_count, "gp_stroke_points_trimmed");
-
-  for (int i = 0; i < new_count; i++) {
-    memcpy(&new_pt[i], &pt[i + index_from], sizeof(bGPDspoint));
-  }
+  new_pt = (bGPDspoint *)MEM_mallocN(sizeof(bGPDspoint) * new_count, "gp_stroke_points_trimmed");
+  memcpy(new_pt, &pt[index_from], sizeof(bGPDspoint) * new_count);
 
   if (gps->dvert) {
-    new_dv = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * new_count,
+    new_dv = (MDeformVert *)MEM_mallocN(sizeof(MDeformVert) * new_count,
                                         "gp_stroke_dverts_trimmed");
     for (int i = 0; i < new_count; i++) {
       dv = &gps->dvert[i + index_from];
       new_dv[i].flag = dv->flag;
       new_dv[i].totweight = dv->totweight;
-      new_dv[i].dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+      new_dv[i].dw = (MDeformWeight *)MEM_mallocN(sizeof(MDeformWeight) * dv->totweight,
                                                   "gp_stroke_dverts_dw_trimmed");
       for (int j = 0; j < dv->totweight; j++) {
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
       }
-      BKE_defvert_clear(dv);
     }
+    BKE_gpencil_free_stroke_weights(gps);
     MEM_freeN(gps->dvert);
     gps->dvert = new_dv;
   }
@@ -691,25 +692,21 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
       gpf, gps, gps->mat_nr, new_count, gps->thickness);
 
   new_pt = new_gps->points; /* Allocated from above. */
-
-  for (int i = 0; i < new_count; i++) {
-    memcpy(&new_pt[i], &pt[i + before_index], sizeof(bGPDspoint));
-  }
+  memcpy(new_pt, &pt[before_index], sizeof(bGPDspoint) * new_count);
 
   if (gps->dvert) {
-    new_dv = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * new_count,
+    new_dv = (MDeformVert *)MEM_mallocN(sizeof(MDeformVert) * new_count,
                                         "gp_stroke_dverts_remaining(MDeformVert)");
     for (int i = 0; i < new_count; i++) {
       dv = &gps->dvert[i + before_index];
       new_dv[i].flag = dv->flag;
       new_dv[i].totweight = dv->totweight;
-      new_dv[i].dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+      new_dv[i].dw = (MDeformWeight *)MEM_mallocN(sizeof(MDeformWeight) * dv->totweight,
                                                   "gp_stroke_dverts_dw_remaining(MDeformWeight)");
       for (int j = 0; j < dv->totweight; j++) {
         new_dv[i].dw[j].weight = dv->dw[j].weight;
         new_dv[i].dw[j].def_nr = dv->dw[j].def_nr;
       }
-      BKE_defvert_clear(dv);
     }
     new_gps->dvert = new_dv;
   }
@@ -2269,7 +2266,8 @@ static void gpencil_generate_edgeloops(Object *ob,
                                        const int thickness,
                                        const float offset,
                                        const float matrix[4][4],
-                                       const bool use_seams)
+                                       const bool use_seams,
+                                       const bool use_vgroups)
 {
   Mesh *me = (Mesh *)ob->data;
   if (me->totedge == 0) {
@@ -2278,9 +2276,9 @@ static void gpencil_generate_edgeloops(Object *ob,
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
    * This is reused for each edge-loop to create gpencil stroke. */
-  uint *stroke = (uint *)MEM_callocN(sizeof(uint) * me->totedge * 2, __func__);
-  uint *stroke_fw = (uint *)MEM_callocN(sizeof(uint) * me->totedge, __func__);
-  uint *stroke_bw = (uint *)MEM_callocN(sizeof(uint) * me->totedge, __func__);
+  uint *stroke = (uint *)MEM_mallocN(sizeof(uint) * me->totedge * 2, __func__);
+  uint *stroke_fw = (uint *)MEM_mallocN(sizeof(uint) * me->totedge, __func__);
+  uint *stroke_bw = (uint *)MEM_mallocN(sizeof(uint) * me->totedge, __func__);
 
   /* Create array with all edges. */
   GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
@@ -2311,11 +2309,6 @@ static void gpencil_generate_edgeloops(Object *ob,
   bool pending = true;
   int e = 0;
   while (pending) {
-    /* Clear arrays of stroke. */
-    memset(stroke_fw, 0, sizeof(uint) * me->totedge);
-    memset(stroke_bw, 0, sizeof(uint) * me->totedge);
-    memset(stroke, 0, sizeof(uint) * me->totedge * 2);
-
     gped = &gp_edges[e];
     /* Look first unused edge. */
     if (gped->flag != 0) {
@@ -2330,7 +2323,7 @@ static void gpencil_generate_edgeloops(Object *ob,
     stroke_bw[0] = e;
     gped->flag = 1;
 
-    /* Hash used to avoid loop over same vertice. */
+    /* Hash used to avoid loop over same vertices. */
     GHash *v_table = BLI_ghash_int_new(__func__);
     /* Look forward edges. */
     int totedges = gpencil_walk_edge(v_table, gp_edges, me->totedge, stroke_fw, e, angle, false);
@@ -2354,38 +2347,41 @@ static void gpencil_generate_edgeloops(Object *ob,
     bGPDstroke *gps_stroke = BKE_gpencil_stroke_add(
         gpf_stroke, MAX2(stroke_mat_index, 0), array_len + 1, thickness * thickness, false);
 
+    /* Create dvert data. */
+    MDeformVert *me_dvert = me->dvert;
+    if (use_vgroups && me_dvert) {
+      gps_stroke->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * (array_len + 1),
+                                                     "gp_stroke_dverts");
+    }
+
     /* Create first segment. */
     float fpt[3];
-    uint v = stroke[0];
-    gped = &gp_edges[v];
-    bGPDspoint *pt = &gps_stroke->points[0];
-    mul_v3_v3fl(fpt, gped->n1, offset);
-    add_v3_v3v3(&pt->x, gped->v1_co, fpt);
-    mul_m4_v3(matrix, &pt->x);
+    for (int i = 0; i < array_len + 1; i++) {
+      int vertex_index = i == 0 ? gp_edges[stroke[0]].v1 : gp_edges[stroke[i - 1]].v2;
+      MVert *mv = &me->mvert[vertex_index];
 
-    pt->pressure = 1.0f;
-    pt->strength = 1.0f;
-
-    pt = &gps_stroke->points[1];
-    mul_v3_v3fl(fpt, gped->n2, offset);
-    add_v3_v3v3(&pt->x, gped->v2_co, fpt);
-    mul_m4_v3(matrix, &pt->x);
-
-    pt->pressure = 1.0f;
-    pt->strength = 1.0f;
-
-    /* Add next segments. */
-    for (int i = 1; i < array_len; i++) {
-      v = stroke[i];
-      gped = &gp_edges[v];
-
-      pt = &gps_stroke->points[i + 1];
-      mul_v3_v3fl(fpt, gped->n2, offset);
-      add_v3_v3v3(&pt->x, gped->v2_co, fpt);
+      /* Add segment. */
+      bGPDspoint *pt = &gps_stroke->points[i];
+      normal_short_to_float_v3(fpt, mv->no);
+      mul_v3_v3fl(fpt, fpt, offset);
+      add_v3_v3v3(&pt->x, mv->co, fpt);
       mul_m4_v3(matrix, &pt->x);
 
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
+
+      /* Copy vertex groups from mesh. Assuming they already exist in the same order. */
+      if (use_vgroups && me_dvert) {
+        MDeformVert *dv = &gps_stroke->dvert[i];
+        MDeformVert *src_dv = &me_dvert[vertex_index];
+        dv->totweight = src_dv->totweight;
+        dv->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+                                              "gp_stroke_dverts_dw");
+        for (int j = 0; j < dv->totweight; j++) {
+          dv->dw[j].weight = src_dv->dw[j].weight;
+          dv->dw[j].def_nr = src_dv->dw[j].def_nr;
+        }
+      }
     }
 
     BKE_gpencil_stroke_geometry_update(gpd, gps_stroke);
@@ -2488,7 +2484,8 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
                               const float matrix[4][4],
                               const int frame_offset,
                               const bool use_seams,
-                              const bool use_faces)
+                              const bool use_faces,
+                              const bool use_vgroups)
 {
   if (ELEM(nullptr, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == nullptr)) {
     return false;
@@ -2505,83 +2502,105 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   char element_name[200];
 
   /* Need at least an edge. */
-  if (me_eval->totvert < 2) {
+  if (me_eval->totedge < 1) {
     return false;
   }
 
+  /* Create matching vertex groups. */
+  BKE_defgroup_copy_list(&gpd->vertex_group_names, &me_eval->vertex_group_names);
+  gpd->vertex_group_active_index = me_eval->vertex_group_active_index;
+
   const float default_colors[2][4] = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.7f, 0.7f, 0.7f, 1.0f}};
-  /* Create stroke material. */
+  /* Lookup existing stroke material on gp object. */
   make_element_name(ob_mesh->id.name + 2, "Stroke", 64, element_name);
   int stroke_mat_index = gpencil_material_find_index_by_name(ob_gp, element_name);
 
   if (stroke_mat_index == -1) {
+    /* Create new default stroke material as there is no existing material. */
     gpencil_add_material(
         bmain, ob_gp, element_name, default_colors[0], true, false, &stroke_mat_index);
   }
 
   /* Export faces as filled strokes. */
-  if (use_faces) {
-
+  if (use_faces && mpoly_len > 0) {
     /* Read all polygons and create fill for each. */
-    if (mpoly_len > 0) {
-      make_element_name(ob_mesh->id.name + 2, "Fills", 128, element_name);
-      /* Create Layer and Frame. */
-      bGPDlayer *gpl_fill = BKE_gpencil_layer_named_get(gpd, element_name);
-      if (gpl_fill == nullptr) {
-        gpl_fill = BKE_gpencil_layer_addnew(gpd, element_name, true, false);
+    make_element_name(ob_mesh->id.name + 2, "Fills", 128, element_name);
+    /* Create Layer and Frame. */
+    bGPDlayer *gpl_fill = BKE_gpencil_layer_named_get(gpd, element_name);
+    if (gpl_fill == nullptr) {
+      gpl_fill = BKE_gpencil_layer_addnew(gpd, element_name, true, false);
+    }
+    bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
+        gpl_fill, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
+    int i;
+    for (i = 0; i < mpoly_len; i++) {
+      const MPoly *mp = &mpoly[i];
+
+      /* Find material. */
+      int mat_idx = 0;
+      Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
+      make_element_name(
+          ob_mesh->id.name + 2, (ma != nullptr) ? ma->id.name + 2 : "Fill", 64, element_name);
+      mat_idx = BKE_gpencil_material_find_index_by_name_prefix(ob_gp, element_name);
+      if (mat_idx == -1) {
+        float color[4];
+        if (ma != nullptr) {
+          copy_v3_v3(color, &ma->r);
+          color[3] = 1.0f;
+        }
+        else {
+          copy_v4_v4(color, default_colors[1]);
+        }
+        gpencil_add_material(bmain, ob_gp, element_name, color, false, true, &mat_idx);
       }
-      bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
-          gpl_fill, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
-      int i;
-      for (i = 0; i < mpoly_len; i++) {
-        const MPoly *mp = &mpoly[i];
 
-        /* Find material. */
-        int mat_idx = 0;
-        Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
-        make_element_name(
-            ob_mesh->id.name + 2, (ma != nullptr) ? ma->id.name + 2 : "Fill", 64, element_name);
-        mat_idx = BKE_gpencil_material_find_index_by_name_prefix(ob_gp, element_name);
-        if (mat_idx == -1) {
-          float color[4];
-          if (ma != nullptr) {
-            copy_v3_v3(color, &ma->r);
-            color[3] = 1.0f;
-          }
-          else {
-            copy_v4_v4(color, default_colors[1]);
-          }
-          gpencil_add_material(bmain, ob_gp, element_name, color, false, true, &mat_idx);
-        }
+      bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, mp->totloop, 10, false);
+      gps_fill->flag |= GP_STROKE_CYCLIC;
 
-        bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, mp->totloop, 10, false);
-        gps_fill->flag |= GP_STROKE_CYCLIC;
-
-        /* Add points to strokes. */
-        for (int j = 0; j < mp->totloop; j++) {
-          const MLoop *ml = &mloop[mp->loopstart + j];
-          const MVert *mv = &me_eval->mvert[ml->v];
-
-          bGPDspoint *pt = &gps_fill->points[j];
-          copy_v3_v3(&pt->x, mv->co);
-          mul_m4_v3(matrix, &pt->x);
-          pt->pressure = 1.0f;
-          pt->strength = 1.0f;
-        }
-        /* If has only 3 points subdivide. */
-        if (mp->totloop == 3) {
-          BKE_gpencil_stroke_subdivide(gpd, gps_fill, 1, GP_SUBDIV_SIMPLE);
-        }
-
-        BKE_gpencil_stroke_geometry_update(gpd, gps_fill);
+      /* Create dvert data. */
+      MDeformVert *me_dvert = me_eval->dvert;
+      if (use_vgroups && me_dvert) {
+        gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * mp->totloop,
+                                                     "gp_fill_dverts");
       }
+
+      /* Add points to strokes. */
+      for (int j = 0; j < mp->totloop; j++) {
+        const MLoop *ml = &mloop[mp->loopstart + j];
+        const MVert *mv = &me_eval->mvert[ml->v];
+
+        bGPDspoint *pt = &gps_fill->points[j];
+        copy_v3_v3(&pt->x, mv->co);
+        mul_m4_v3(matrix, &pt->x);
+        pt->pressure = 1.0f;
+        pt->strength = 1.0f;
+
+        /* Copy vertex groups from mesh. Assuming they already exist in the same order. */
+        if (use_vgroups && me_dvert) {
+          MDeformVert *dv = &gps_fill->dvert[j];
+          MDeformVert *src_dv = &me_dvert[ml->v];
+          dv->totweight = src_dv->totweight;
+          dv->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+                                                "gp_fill_dverts_dw");
+          for (int k = 0; k < dv->totweight; k++) {
+            dv->dw[k].weight = src_dv->dw[k].weight;
+            dv->dw[k].def_nr = src_dv->dw[k].def_nr;
+          }
+        }
+      }
+      /* If has only 3 points subdivide. */
+      if (mp->totloop == 3) {
+        BKE_gpencil_stroke_subdivide(gpd, gps_fill, 1, GP_SUBDIV_SIMPLE);
+      }
+
+      BKE_gpencil_stroke_geometry_update(gpd, gps_fill);
     }
   }
 
   /* Create stroke from edges. */
-  make_element_name(ob_mesh->id.name + 2, "Lines", 128, element_name);
 
   /* Create Layer and Frame. */
+  make_element_name(ob_mesh->id.name + 2, "Lines", 128, element_name);
   bGPDlayer *gpl_stroke = BKE_gpencil_layer_named_get(gpd, element_name);
   if (gpl_stroke == nullptr) {
     gpl_stroke = BKE_gpencil_layer_addnew(gpd, element_name, true, false);
@@ -2589,8 +2608,16 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   bGPDframe *gpf_stroke = BKE_gpencil_layer_frame_get(
       gpl_stroke, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
 
-  gpencil_generate_edgeloops(
-      ob_eval, gpd, gpf_stroke, stroke_mat_index, angle, thickness, offset, matrix, use_seams);
+  gpencil_generate_edgeloops(ob_eval,
+                             gpd,
+                             gpf_stroke,
+                             stroke_mat_index,
+                             angle,
+                             thickness,
+                             offset,
+                             matrix,
+                             use_seams,
+                             use_vgroups);
 
   /* Tag for recalculation */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
@@ -2787,46 +2814,12 @@ void BKE_gpencil_stroke_set_random_color(bGPDstroke *gps)
 /* Flip stroke. */
 void BKE_gpencil_stroke_flip(bGPDstroke *gps)
 {
-  int end = gps->totpoints - 1;
+  /* Reverse points. */
+  BLI_array_reverse(gps->points, gps->totpoints);
 
-  for (int i = 0; i < gps->totpoints / 2; i++) {
-    bGPDspoint *point, *point2;
-    bGPDspoint pt;
-
-    /* save first point */
-    point = &gps->points[i];
-    pt.x = point->x;
-    pt.y = point->y;
-    pt.z = point->z;
-    pt.flag = point->flag;
-    pt.pressure = point->pressure;
-    pt.strength = point->strength;
-    pt.time = point->time;
-    copy_v4_v4(pt.vert_color, point->vert_color);
-
-    /* replace first point with last point */
-    point2 = &gps->points[end];
-    point->x = point2->x;
-    point->y = point2->y;
-    point->z = point2->z;
-    point->flag = point2->flag;
-    point->pressure = point2->pressure;
-    point->strength = point2->strength;
-    point->time = point2->time;
-    copy_v4_v4(point->vert_color, point2->vert_color);
-
-    /* replace last point with first saved before */
-    point = &gps->points[end];
-    point->x = pt.x;
-    point->y = pt.y;
-    point->z = pt.z;
-    point->flag = pt.flag;
-    point->pressure = pt.pressure;
-    point->strength = pt.strength;
-    point->time = pt.time;
-    copy_v4_v4(point->vert_color, pt.vert_color);
-
-    end--;
+  /* Reverse vertex groups if available. */
+  if (gps->dvert) {
+    BLI_array_reverse(gps->dvert, gps->totpoints);
   }
 }
 

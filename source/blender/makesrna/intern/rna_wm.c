@@ -649,10 +649,9 @@ static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
   size_t len = 0;
 
   if (event->utf8_buf[0]) {
-    BLI_str_utf8_as_unicode_and_size(event->utf8_buf, &len);
-    if (len > 0) {
+    if (BLI_str_utf8_as_unicode_step_or_error(event->utf8_buf, sizeof(event->utf8_buf), &len) !=
+        BLI_UTF8_ERR)
       memcpy(value, event->utf8_buf, len);
-    }
   }
 
   value[len] = '\0';

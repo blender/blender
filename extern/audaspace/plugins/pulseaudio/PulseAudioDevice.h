@@ -59,7 +59,7 @@ private:
 	 * \param num_bytes The length in bytes to be supplied.
 	 * \param data The PulseAudio device.
 	 */
-	AUD_LOCAL static void PulseAudio_request(pa_stream* stream, size_t num_bytes, void* data);
+	AUD_LOCAL static void PulseAudio_request(pa_stream* stream, size_t total_bytes, void* data);
 
 	/**
 	 * Reports an underflow from the PulseAudio server.

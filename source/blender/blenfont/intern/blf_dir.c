@@ -47,9 +47,6 @@
 #include "blf_internal.h"
 #include "blf_internal_types.h"
 
-#include "BKE_global.h"
-#include "BKE_main.h"
-
 static ListBase global_font_dir = {NULL, NULL};
 
 static DirBLF *blf_dir_find(const char *path)
@@ -127,6 +124,8 @@ void BLF_dir_free(char **dirs, int count)
 
 char *blf_dir_search(const char *file)
 {
+  BLI_assert_msg(!BLI_path_is_rel(file), "Relative paths must always be expanded!");
+
   DirBLF *dir;
   char full_path[FILE_MAX];
   char *s = NULL;
@@ -140,11 +139,9 @@ char *blf_dir_search(const char *file)
   }
 
   if (!s) {
-    /* Assume file is either an absolute path, or a relative path to current directory. */
-    BLI_strncpy(full_path, file, sizeof(full_path));
-    BLI_path_abs(full_path, BKE_main_blendfile_path(G_MAIN));
-    if (BLI_exists(full_path)) {
-      s = BLI_strdup(full_path);
+    /* This may be an absolute path which exists. */
+    if (BLI_exists(file)) {
+      s = BLI_strdup(file);
     }
   }
 
@@ -172,12 +169,12 @@ char *blf_dir_metrics_search(const char *filename)
     s[1] = 'f';
     s[2] = 'm';
 
-    /* first check .afm */
+    /* First check `.afm`. */
     if (BLI_exists(mfile)) {
       return mfile;
     }
 
-    /* and now check .pfm */
+    /* And now check `.pfm`. */
     s[0] = 'p';
 
     if (BLI_exists(mfile)) {

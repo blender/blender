@@ -1362,7 +1362,7 @@ void *PyC_RNA_AsPointer(PyObject *value, const char *type_name)
  * Convert to/from Python set of strings to an int flag.
  * \{ */
 
-PyObject *PyC_FlagSet_AsString(PyC_FlagSet *item)
+PyObject *PyC_FlagSet_AsString(const PyC_FlagSet *item)
 {
   PyObject *py_items = PyList_New(0);
   for (; item->identifier; item++) {
@@ -1373,7 +1373,7 @@ PyObject *PyC_FlagSet_AsString(PyC_FlagSet *item)
   return py_string;
 }
 
-int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *r_value)
+int PyC_FlagSet_ValueFromID_int(const PyC_FlagSet *item, const char *identifier, int *r_value)
 {
   for (; item->identifier; item++) {
     if (STREQ(item->identifier, identifier)) {
@@ -1385,7 +1385,7 @@ int PyC_FlagSet_ValueFromID_int(PyC_FlagSet *item, const char *identifier, int *
   return 0;
 }
 
-int PyC_FlagSet_ValueFromID(PyC_FlagSet *item,
+int PyC_FlagSet_ValueFromID(const PyC_FlagSet *item,
                             const char *identifier,
                             int *r_value,
                             const char *error_prefix)
@@ -1401,7 +1401,7 @@ int PyC_FlagSet_ValueFromID(PyC_FlagSet *item,
   return 0;
 }
 
-int PyC_FlagSet_ToBitfield(PyC_FlagSet *items,
+int PyC_FlagSet_ToBitfield(const PyC_FlagSet *items,
                            PyObject *value,
                            int *r_value,
                            const char *error_prefix)

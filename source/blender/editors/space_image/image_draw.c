@@ -196,21 +196,21 @@ void ED_image_draw_info(Scene *scene,
   BLF_color3ub(blf_mono_font, 255, 255, 255);
   SNPRINTF(str, "X:%-4d  Y:%-4d |", x, y);
   BLF_position(blf_mono_font, dx, dy, 0);
-  BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+  BLF_draw(blf_mono_font, str, sizeof(str));
   dx += BLF_width(blf_mono_font, str, sizeof(str));
 
   if (zp) {
     BLF_color3ub(blf_mono_font, 255, 255, 255);
     SNPRINTF(str, " Z:%-.4f |", 0.5f + 0.5f * (((float)*zp) / (float)0x7fffffff));
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
   }
   if (zpf) {
     BLF_color3ub(blf_mono_font, 255, 255, 255);
     SNPRINTF(str, " Z:%-.3f |", *zpf);
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
   }
 
@@ -223,7 +223,7 @@ void ED_image_draw_info(Scene *scene,
     }
     BLF_color3ub(blf_mono_font, 255, 255, 255);
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
   }
 
@@ -239,7 +239,7 @@ void ED_image_draw_info(Scene *scene,
       STRNCPY(str, "  R:-");
     }
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
 
     BLF_color3ubv(blf_mono_font, green);
@@ -253,7 +253,7 @@ void ED_image_draw_info(Scene *scene,
       STRNCPY(str, "  G:-");
     }
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
 
     BLF_color3ubv(blf_mono_font, blue);
@@ -267,7 +267,7 @@ void ED_image_draw_info(Scene *scene,
       STRNCPY(str, "  B:-");
     }
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
 
     if (channels == 4) {
@@ -282,7 +282,7 @@ void ED_image_draw_info(Scene *scene,
         STRNCPY(str, "- ");
       }
       BLF_position(blf_mono_font, dx, dy, 0);
-      BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+      BLF_draw(blf_mono_font, str, sizeof(str));
       dx += BLF_width(blf_mono_font, str, sizeof(str));
     }
 
@@ -307,7 +307,7 @@ void ED_image_draw_info(Scene *scene,
 
       SNPRINTF(str, "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", rgba[0], rgba[1], rgba[2]);
       BLF_position(blf_mono_font, dx, dy, 0);
-      BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+      BLF_draw(blf_mono_font, str, sizeof(str));
       dx += BLF_width(blf_mono_font, str, sizeof(str));
     }
   }
@@ -389,10 +389,12 @@ void ED_image_draw_info(Scene *scene,
     immRecti(pos, color_quater_x, color_quater_y, color_rect_half.xmax, color_rect_half.ymax);
     immRecti(pos, color_rect_half.xmin, color_rect_half.ymin, color_quater_x, color_quater_y);
 
-    GPU_blend(GPU_BLEND_ALPHA);
-    immUniformColor3fvAlpha(finalcol, fp ? fp[3] : (cp[3] / 255.0f));
-    immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
-    GPU_blend(GPU_BLEND_NONE);
+    if (fp != NULL || cp != NULL) {
+      GPU_blend(GPU_BLEND_ALPHA);
+      immUniformColor3fvAlpha(finalcol, fp ? fp[3] : (cp[3] / 255.0f));
+      immRecti(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+      GPU_blend(GPU_BLEND_NONE);
+    }
   }
   else {
     immUniformColor3fv(finalcol);
@@ -429,12 +431,12 @@ void ED_image_draw_info(Scene *scene,
 
     SNPRINTF(str, "V:%-.4f", val);
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
 
     SNPRINTF(str, "   L:%-.4f", lum);
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
   }
   else if (channels >= 3) {
     rgb_to_hsv(finalcol[0], finalcol[1], finalcol[2], &hue, &sat, &val);
@@ -442,22 +444,22 @@ void ED_image_draw_info(Scene *scene,
 
     SNPRINTF(str, "H:%-.4f", hue);
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
 
     SNPRINTF(str, "  S:%-.4f", sat);
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
 
     SNPRINTF(str, "  V:%-.4f", val);
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
     dx += BLF_width(blf_mono_font, str, sizeof(str));
 
     SNPRINTF(str, "   L:%-.4f", lum);
     BLF_position(blf_mono_font, dx, dy, 0);
-    BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+    BLF_draw(blf_mono_font, str, sizeof(str));
   }
 }
 void draw_image_sample_line(SpaceImage *sima)

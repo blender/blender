@@ -23,17 +23,15 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_color_ramp_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute")},
-    {SOCK_STRING, N_("Result")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_color_ramp_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_color_ramp_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Attribute");
+  b.add_input<decl::String>("Result");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_color_ramp_layout(uiLayout *layout,
                                                  bContext *UNUSED(C),
@@ -41,8 +39,6 @@ static void geo_node_attribute_color_ramp_layout(uiLayout *layout,
 {
   uiTemplateColorRamp(layout, ptr, "color_ramp", false);
 }
-
-namespace blender::nodes {
 
 static void geo_node_attribute_color_ramp_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -131,13 +127,12 @@ void register_node_type_geo_attribute_color_ramp()
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_COLOR_RAMP, "Attribute Color Ramp", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_color_ramp_in, geo_node_attribute_color_ramp_out);
   node_type_storage(
       &ntype, "NodeAttributeColorRamp", node_free_standard_storage, node_copy_standard_storage);
   node_type_init(&ntype, blender::nodes::geo_node_attribute_color_ramp_init);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  ntype.declare = blender::nodes::geo_node_attribute_color_ramp_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_color_ramp_exec;
-  ntype.draw_buttons = geo_node_attribute_color_ramp_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_color_ramp_layout;
   nodeRegisterType(&ntype);
 }

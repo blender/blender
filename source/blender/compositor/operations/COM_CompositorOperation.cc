@@ -62,7 +62,7 @@ void CompositorOperation::initExecution()
     return;
   }
 
-  // When initializing the tree during initial load the width and height can be zero.
+  /* When initializing the tree during initial load the width and height can be zero. */
   this->m_imageInput = getInputSocketReader(0);
   this->m_alphaInput = getInputSocketReader(1);
   this->m_depthInput = getInputSocketReader(2);
@@ -242,8 +242,8 @@ void CompositorOperation::determineResolution(unsigned int resolution[2],
   int width = this->m_rd->xsch * this->m_rd->size / 100;
   int height = this->m_rd->ysch * this->m_rd->size / 100;
 
-  // check actual render resolution with cropping it may differ with cropped border.rendering
-  // FIX for: [31777] Border Crop gives black (easy)
+  /* Check actual render resolution with cropping it may differ with cropped border.rendering
+   * Fix for T31777 Border Crop gives black (easy). */
   Render *re = RE_GetSceneRender(this->m_scene);
   if (re) {
     RenderResult *rr = RE_AcquireResultRead(re);

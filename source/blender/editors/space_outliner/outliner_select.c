@@ -673,7 +673,7 @@ static void tree_element_sequence_activate(bContext *C,
                                            const eOLSetState set)
 {
   Sequence *seq = (Sequence *)te->directdata;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
     if (set == OL_SETSEL_EXTEND) {
@@ -695,7 +695,7 @@ static void tree_element_sequence_activate(bContext *C,
 
 static void tree_element_sequence_dup_activate(Scene *scene, TreeElement *UNUSED(te))
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
 #if 0
   select_single_seq(seq, 1);
@@ -1682,7 +1682,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
   ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
 
   PropertyRNA *prop;
-  prop = RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection for activation");
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection for activation");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "extend_range", false, "Extend Range", "Select a range from active element");

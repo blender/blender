@@ -889,7 +889,9 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
 
   bm = sculpt_faceset_bm_begin(ss, mesh);
 
-  BLI_bitmap *visited_faces = BLI_BITMAP_NEW(mesh->totpoly, "visited faces");
+  int totface = bm->totface;
+
+  BLI_bitmap *visited_faces = BLI_BITMAP_NEW(ss->totfaces, "visited faces");
   const int totfaces = ss->totfaces;  // mesh->totpoly;
 
   if (!ss->bm) {

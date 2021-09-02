@@ -597,6 +597,27 @@ static const EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_ite
   return items;
 }
 
+typedef struct Seq_colorspace_cb_data {
+  ColorManagedColorspaceSettings *colorspace_settings;
+  Sequence *r_seq;
+} Seq_colorspace_cb_data;
+
+static bool seq_find_colorspace_settings_cb(Sequence *seq, void *user_data)
+{
+  Seq_colorspace_cb_data *cd = (Seq_colorspace_cb_data *)user_data;
+  if (seq->strip && &seq->strip->colorspace_settings == cd->colorspace_settings) {
+    cd->r_seq = seq;
+    return false;
+  }
+  return true;
+}
+
+static bool seq_free_anim_cb(Sequence *seq, void *UNUSED(user_data))
+{
+  SEQ_relations_sequence_free_anim(seq);
+  return true;
+}
+
 static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
                                                              Scene *UNUSED(scene),
                                                              PointerRNA *ptr)
@@ -629,20 +650,14 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
     if (scene->ed) {
       ColorManagedColorspaceSettings *colorspace_settings = (ColorManagedColorspaceSettings *)
                                                                 ptr->data;
-      Sequence *seq;
-      bool seq_found = false;
+      Seq_colorspace_cb_data cb_data = {colorspace_settings, NULL};
 
       if (&scene->sequencer_colorspace_settings != colorspace_settings) {
-        SEQ_ALL_BEGIN (scene->ed, seq) {
-          if (seq->strip && &seq->strip->colorspace_settings == colorspace_settings) {
-            seq_found = true;
-            break;
-          }
-        }
-        SEQ_ALL_END;
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_find_colorspace_settings_cb, &cb_data);
       }
+      Sequence *seq = cb_data.r_seq;
 
-      if (seq_found) {
+      if (seq) {
         SEQ_relations_sequence_free_anim(seq);
 
         if (seq->strip->proxy && seq->strip->proxy->anim) {
@@ -653,10 +668,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
         SEQ_relations_invalidate_cache_raw(scene, seq);
       }
       else {
-        SEQ_ALL_BEGIN (scene->ed, seq) {
-          SEQ_relations_sequence_free_anim(seq);
-        }
-        SEQ_ALL_END;
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_free_anim_cb, NULL);
       }
 
       WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
@@ -701,11 +713,7 @@ static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
   }
 
   if (!cuma->table) {
-    BKE_report(
-        reports,
-        RPT_ERROR,
-        "CurveMap table not initialized, call initialize() on CurveMapping owner of the CurveMap");
-    return 0.0f;
+    BKE_curvemapping_init(cumap);
   }
   return BKE_curvemap_evaluateF(cumap, cuma, value);
 }

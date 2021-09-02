@@ -42,6 +42,7 @@
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -1574,7 +1575,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
           BLI_edgeset_free(existing_vert_pairs);
           free_bvhtree_from_mesh(&treedata);
           if (tmp_mesh) {
-            BKE_mesh_free(tmp_mesh);
+            BKE_id_free(NULL, &tmp_mesh->id);
           }
           return false;
         }
@@ -1583,7 +1584,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     BLI_edgeset_free(existing_vert_pairs);
     free_bvhtree_from_mesh(&treedata);
     if (tmp_mesh) {
-      BKE_mesh_free(tmp_mesh);
+      BKE_id_free(NULL, &tmp_mesh->id);
     }
     BLI_rng_free(rng);
   }

@@ -28,10 +28,10 @@
 #  include "BLI_winstuff.h"
 #endif
 
+#include "BLI_filereader.h"
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h" /* for ReportType */
-#include "zlib.h"
 
 struct BLI_mmap_file;
 struct BLOCacheStorage;
@@ -50,7 +50,7 @@ enum eFileDataFlag {
   FD_FLAGS_FILE_POINTSIZE_IS_4 = 1 << 1,
   FD_FLAGS_POINTSIZE_DIFFERS = 1 << 2,
   FD_FLAGS_FILE_OK = 1 << 3,
-  FD_FLAGS_NOT_MY_BUFFER = 1 << 4,
+  FD_FLAGS_IS_MEMFILE = 1 << 4,
   /* XXX Unused in practice (checked once but never set). */
   FD_FLAGS_NOT_MY_LIBMAP = 1 << 5,
 };
@@ -60,43 +60,17 @@ enum eFileDataFlag {
 #  pragma GCC poison off_t
 #endif
 
-#if defined(_MSC_VER) || defined(__APPLE__) || defined(__HAIKU__) || defined(__NetBSD__)
-typedef int64_t off64_t;
-#endif
-
-typedef ssize_t(FileDataReadFn)(struct FileData *filedata,
-                                void *buffer,
-                                size_t size,
-                                bool *r_is_memchunk_identical);
-typedef off64_t(FileDataSeekFn)(struct FileData *filedata, off64_t offset, int whence);
-
 typedef struct FileData {
   /** Linked list of BHeadN's. */
   ListBase bhead_list;
   enum eFileDataFlag flags;
   bool is_eof;
-  size_t buffersize;
-  off64_t file_offset;
 
-  FileDataReadFn *read;
-  FileDataSeekFn *seek;
+  FileReader *file;
 
-  /** Regular file reading. */
-  int filedes;
-
-  /** Variables needed for reading from memory / stream / memory-mapped files. */
-  const char *buffer;
-  struct BLI_mmap_file *mmap_file;
-  /** Variables needed for reading from memfile (undo). */
-  struct MemFile *memfile;
   /** Whether we are undoing (< 0) or redoing (> 0), used to choose which 'unchanged' flag to use
    * to detect unchanged data from memfile. */
   int undo_direction; /* eUndoStepDir */
-
-  /** Variables needed for reading from file. */
-  gzFile gzfiledes;
-  /** Gzip stream for memory decompression. */
-  z_stream strm;
 
   /** Now only in use for library appending. */
   char relabase[FILE_MAX];

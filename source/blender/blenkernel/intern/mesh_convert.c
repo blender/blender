@@ -548,11 +548,12 @@ Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob)
   return BKE_mesh_new_nomain_from_curve_displist(ob, &disp);
 }
 
-/* this may fail replacing ob->data, be sure to check ob->type */
-void BKE_mesh_from_nurbs_displist(
-    Main *bmain, Object *ob, ListBase *dispbase, const char *obdata_name, bool temporary)
+static void mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const char *obdata_name)
 {
-  Object *ob1;
+  if (ob->runtime.data_eval && GS(((ID *)ob->runtime.data_eval)->name) != ID_ME) {
+    return;
+  }
+
   Mesh *me_eval = (Mesh *)ob->runtime.data_eval;
   Mesh *me;
   MVert *allvert = NULL;
@@ -581,12 +582,7 @@ void BKE_mesh_from_nurbs_displist(
     }
 
     /* make mesh */
-    if (bmain != NULL) {
-      me = BKE_mesh_add(bmain, obdata_name);
-    }
-    else {
-      me = BKE_id_new_nomain(ID_ME, obdata_name);
-    }
+    me = BKE_id_new_nomain(ID_ME, obdata_name);
 
     me->totvert = totvert;
     me->totedge = totedge;
@@ -607,12 +603,7 @@ void BKE_mesh_from_nurbs_displist(
     BKE_mesh_calc_normals(me);
   }
   else {
-    if (bmain != NULL) {
-      me = BKE_mesh_add(bmain, obdata_name);
-    }
-    else {
-      me = BKE_id_new_nomain(ID_ME, obdata_name);
-    }
+    me = BKE_id_new_nomain(ID_ME, obdata_name);
 
     ob->runtime.data_eval = NULL;
     BKE_mesh_nomain_to_mesh(me_eval, me, ob, &CD_MASK_MESH, true);
@@ -641,30 +632,10 @@ void BKE_mesh_from_nurbs_displist(
   ob->data = me;
   ob->type = OB_MESH;
 
-  /* other users */
-  if (bmain != NULL) {
-    ob1 = bmain->objects.first;
-    while (ob1) {
-      if (ob1->data == cu) {
-        ob1->type = OB_MESH;
-
-        id_us_min((ID *)ob1->data);
-        ob1->data = ob->data;
-        id_us_plus((ID *)ob1->data);
-      }
-      ob1 = ob1->id.next;
-    }
-  }
-
-  if (temporary) {
-    /* For temporary objects in BKE_mesh_new_from_object don't remap
-     * the entire scene with associated depsgraph updates, which are
-     * problematic for renderers exporting data. */
-    BKE_id_free(NULL, cu);
-  }
-  else {
-    BKE_id_free_us(bmain, cu);
-  }
+  /* For temporary objects in BKE_mesh_new_from_object don't remap
+   * the entire scene with associated depsgraph updates, which are
+   * problematic for renderers exporting data. */
+  BKE_id_free(NULL, cu);
 }
 
 typedef struct EdgeLink {
@@ -965,7 +936,7 @@ void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(sce
 
 /* Create a temporary object to be used for nurbs-to-mesh conversion.
  *
- * This is more complex that it should be because BKE_mesh_from_nurbs_displist() will do more than
+ * This is more complex that it should be because #mesh_from_nurbs_displist will do more than
  * simply conversion and will attempt to take over ownership of evaluated result and will also
  * modify the input object. */
 static Object *object_for_curve_to_mesh_create(Object *object)
@@ -1063,7 +1034,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
    * they are only used for modifier stack, which we have explicitly disabled for all objects.
    *
    * TODO(sergey): This is a very fragile logic, but proper solution requires re-writing quite a
-   * bit of internal functions (BKE_mesh_from_nurbs_displist, BKE_mesh_nomain_to_mesh) and also
+   * bit of internal functions (#mesh_from_nurbs_displist, BKE_mesh_nomain_to_mesh) and also
    * Mesh From Curve operator.
    * Brecht says hold off with that. */
   Mesh *mesh_eval = NULL;
@@ -1102,10 +1073,10 @@ static Mesh *mesh_new_from_curve_type_object(Object *object)
   temp_curve->editnurb = NULL;
 
   /* Convert to mesh. */
-  BKE_mesh_from_nurbs_displist(
-      NULL, temp_object, &temp_object->runtime.curve_cache->disp, curve->id.name + 2, true);
+  mesh_from_nurbs_displist(
+      temp_object, &temp_object->runtime.curve_cache->disp, curve->id.name + 2);
 
-  /* BKE_mesh_from_nurbs_displist changes the type to a mesh, check it worked. If it didn't
+  /* #mesh_from_nurbs_displist changes the type to a mesh, check it worked. If it didn't
    * the curve did not have any segments or otherwise would have generated an empty mesh. */
   if (temp_object->type != OB_MESH) {
     BKE_id_free(NULL, temp_object->data);
@@ -1117,7 +1088,7 @@ static Mesh *mesh_new_from_curve_type_object(Object *object)
 
   BKE_id_free(NULL, temp_object);
 
-  /* NOTE: Materials are copied in BKE_mesh_from_nurbs_displist(). */
+  /* NOTE: Materials are copied in #mesh_from_nurbs_displist(). */
 
   return mesh_result;
 }

@@ -35,7 +35,7 @@
 /* We may want to load direct from file. */
 PyDoc_STRVAR(
     bpy_app_icons_new_triangles_doc,
-    ".. function:: new_triangles(range, coords, colors)"
+    ".. function:: new_triangles(range, coords, colors)\n"
     "\n"
     "   Create a new icon from triangle geometry.\n"
     "\n"
@@ -91,7 +91,7 @@ static PyObject *bpy_app_icons_new_triangles(PyObject *UNUSED(self), PyObject *a
 }
 
 PyDoc_STRVAR(bpy_app_icons_new_triangles_from_file_doc,
-             ".. function:: new_triangles_from_file(filename)"
+             ".. function:: new_triangles_from_file(filename)\n"
              "\n"
              "   Create a new icon from triangle geometry.\n"
              "\n"
@@ -122,7 +122,7 @@ static PyObject *bpy_app_icons_new_triangles_from_file(PyObject *UNUSED(self),
 }
 
 PyDoc_STRVAR(bpy_app_icons_release_doc,
-             ".. function:: release(icon_id)"
+             ".. function:: release(icon_id)\n"
              "\n"
              "   Release the icon.\n");
 static PyObject *bpy_app_icons_release(PyObject *UNUSED(self), PyObject *args, PyObject *kw)

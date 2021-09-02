@@ -689,7 +689,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 16)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      seq_update_meta_disp_range(SEQ_editing_get(scene, false));
+      seq_update_meta_disp_range(SEQ_editing_get(scene));
     }
 
     /* Add a separate socket for Grid node X and Y size. */
@@ -1662,7 +1662,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene, false);
+      Editing *ed = SEQ_editing_get(scene);
       if (ed == NULL) {
         continue;
       }

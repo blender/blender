@@ -58,7 +58,7 @@ template<class T> static const char *bc_get_joint_name(T *node)
 FCurve *AnimationImporter::create_fcurve(int array_index, const char *rna_path)
 {
   FCurve *fcu = BKE_fcurve_create();
-  fcu->flag = (FCURVE_VISIBLE | FCURVE_AUTO_HANDLES | FCURVE_SELECTED);
+  fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
   fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
   fcu->array_index = array_index;
   return fcu;
@@ -102,7 +102,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
       for (i = 0; i < dim; i++) {
         FCurve *fcu = BKE_fcurve_create();
 
-        fcu->flag = (FCURVE_VISIBLE | FCURVE_AUTO_HANDLES | FCURVE_SELECTED);
+        fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
         fcu->array_index = 0;
         fcu->auto_smoothing = U.auto_smoothing_new;
 

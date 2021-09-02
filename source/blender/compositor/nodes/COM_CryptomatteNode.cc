@@ -124,6 +124,10 @@ void CryptomatteNode::input_operations_from_render_source(
     RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
     if (render_layer) {
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
+        if (context.has_explicit_view() && !STREQ(render_pass->view, context.getViewName())) {
+          continue;
+        }
+
         const std::string combined_name = combined_layer_pass_name(render_layer, render_pass);
         if (blender::StringRef(combined_name).startswith(prefix)) {
           RenderLayersProg *op = new RenderLayersProg(

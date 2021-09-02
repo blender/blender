@@ -227,7 +227,7 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject *UNUSED(self),
   }
 
   if (GPU_context_active_get()) {
-    ofs = GPU_offscreen_create(width, height, true, false, err_out);
+    ofs = GPU_offscreen_create(width, height, true, GPU_RGBA8, err_out);
   }
   else {
     STRNCPY(err_out, "No active GPU context found");

@@ -495,6 +495,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeTransfer"),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
+        NodeItem("ShaderNodeMixRGB"),
         NodeItem("ShaderNodeRGBCurve"),
         NodeItem("ShaderNodeValToRGB"),
         NodeItem("ShaderNodeSeparateRGB"),
@@ -507,6 +508,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeMeshToCurve"),
         NodeItem("GeometryNodeCurveToPoints"),
         NodeItem("GeometryNodeCurveEndpoints"),
+        NodeItem("GeometryNodeCurveFill"),
         NodeItem("GeometryNodeCurveTrim"),
         NodeItem("GeometryNodeCurveLength"),
         NodeItem("GeometryNodeCurveReverse"),

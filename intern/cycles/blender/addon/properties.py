@@ -227,6 +227,11 @@ def update_render_passes(self, context):
     view_layer.update_render_passes()
 
 
+def update_render_engine(self, context):
+    scene = context.scene
+    scene.update_render_engine()
+
+
 class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     device: EnumProperty(
@@ -240,6 +245,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Feature set to use for rendering",
         items=enum_feature_set,
         default='SUPPORTED',
+        update=update_render_engine,
     )
     shading_system: BoolProperty(
         name="Open Shading Language",
@@ -402,7 +408,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     adaptive_threshold: FloatProperty(
         name="Adaptive Sampling Threshold",
-        description="Noise level step to stop sampling at, lower values reduce noise the cost of render time. Zero for automatic setting based on number of AA samples",
+        description="Noise level step to stop sampling at, lower values reduce noise at the cost of render time. Zero for automatic setting based on number of AA samples",
         min=0.0, max=1.0,
         default=0.0,
         precision=4,

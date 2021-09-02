@@ -130,4 +130,89 @@ bool KeyingClipOperation::determineDependingAreaOfInterest(rcti *input,
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
+void KeyingClipOperation::get_area_of_interest(const int input_idx,
+                                               const rcti &output_area,
+                                               rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  r_input_area.xmin = output_area.xmin - m_kernelRadius;
+  r_input_area.xmax = output_area.xmax + m_kernelRadius;
+  r_input_area.ymin = output_area.ymin - m_kernelRadius;
+  r_input_area.ymax = output_area.ymax + m_kernelRadius;
+}
+
+void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                       const rcti &area,
+                                                       Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input = inputs[0];
+  BuffersIterator<float> it = output->iterate_with(inputs, area);
+
+  const int delta = m_kernelRadius;
+  const float tolerance = m_kernelTolerance;
+  const int width = this->getWidth();
+  const int height = this->getHeight();
+  const int row_stride = input->row_stride;
+  const int elem_stride = input->elem_stride;
+  for (; !it.is_end(); ++it) {
+    const int x = it.x;
+    const int y = it.y;
+
+    const int start_x = MAX2(0, x - delta + 1);
+    const int start_y = MAX2(0, y - delta + 1);
+    const int end_x = MIN2(x + delta, width);
+    const int end_y = MIN2(y + delta, height);
+    const int x_len = end_x - start_x;
+    const int y_len = end_y - start_y;
+
+    const int total_count = x_len * y_len - 1;
+    const int threshold_count = ceil((float)total_count * 0.9f);
+    bool ok = false;
+    if (delta == 0) {
+      ok = true;
+    }
+
+    const float *main_elem = it.in(0);
+    const float value = *main_elem;
+    const float *row = input->get_elem(start_x, start_y);
+    const float *end_row = row + y_len * row_stride;
+    int count = 0;
+    for (; ok == false && row < end_row; row += row_stride) {
+      const float *end_elem = row + x_len * elem_stride;
+      for (const float *elem = row; ok == false && elem < end_elem; elem += elem_stride) {
+        if (UNLIKELY(elem == main_elem)) {
+          continue;
+        }
+
+        const float current_value = *elem;
+        if (fabsf(current_value - value) < tolerance) {
+          count++;
+          if (count >= threshold_count) {
+            ok = true;
+          }
+        }
+      }
+    }
+
+    if (m_isEdgeMatte) {
+      *it.out = ok ? 0.0f : 1.0f;
+    }
+    else {
+      if (!ok) {
+        *it.out = value;
+      }
+      else if (value < m_clipBlack) {
+        *it.out = 0.0f;
+      }
+      else if (value >= m_clipWhite) {
+        *it.out = 1.0f;
+      }
+      else {
+        *it.out = (value - m_clipBlack) / (m_clipWhite - m_clipBlack);
+      }
+    }
+  }
+}
+
 }  // namespace blender::compositor

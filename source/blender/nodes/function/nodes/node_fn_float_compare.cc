@@ -64,7 +64,7 @@ static void node_float_compare_label(bNodeTree *UNUSED(ntree),
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-static const blender::fn::MultiFunction &get_multi_function(bNode &node)
+static const blender::fn::MultiFunction *get_multi_function(bNode &node)
 {
   static blender::fn::CustomMF_SI_SI_SO<float, float, bool> less_than_fn{
       "Less Than", [](float a, float b) { return a < b; }};
@@ -81,26 +81,27 @@ static const blender::fn::MultiFunction &get_multi_function(bNode &node)
 
   switch (node.custom1) {
     case NODE_FLOAT_COMPARE_LESS_THAN:
-      return less_than_fn;
+      return &less_than_fn;
     case NODE_FLOAT_COMPARE_LESS_EQUAL:
-      return less_equal_fn;
+      return &less_equal_fn;
     case NODE_FLOAT_COMPARE_GREATER_THAN:
-      return greater_than_fn;
+      return &greater_than_fn;
     case NODE_FLOAT_COMPARE_GREATER_EQUAL:
-      return greater_equal_fn;
+      return &greater_equal_fn;
     case NODE_FLOAT_COMPARE_EQUAL:
-      return equal_fn;
+      return &equal_fn;
     case NODE_FLOAT_COMPARE_NOT_EQUAL:
-      return not_equal_fn;
+      return &not_equal_fn;
   }
 
-  BLI_assert(false);
-  return blender::fn::dummy_multi_function;
+  BLI_assert_unreachable();
+  return nullptr;
 }
 
-static void node_float_compare_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
+static void fn_node_float_compare_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  const blender::fn::MultiFunction &fn = get_multi_function(builder.bnode());
+  const blender::fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 
@@ -108,11 +109,11 @@ void register_node_type_fn_float_compare()
 {
   static bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_FLOAT_COMPARE, "Float Compare", NODE_CLASS_CONVERTOR, 0);
+  fn_node_type_base(&ntype, FN_NODE_FLOAT_COMPARE, "Float Compare", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, fn_node_float_compare_in, fn_node_float_compare_out);
   node_type_label(&ntype, node_float_compare_label);
   node_type_update(&ntype, node_float_compare_update);
-  ntype.expand_in_mf_network = node_float_compare_expand_in_mf_network;
+  ntype.build_multi_function = fn_node_float_compare_build_multi_function;
   ntype.draw_buttons = geo_node_float_compare_layout;
   nodeRegisterType(&ntype);
 }

@@ -40,7 +40,7 @@ static bNodeSocketTemplate cmp_node_doubleedgemask_out[] = {
 
 void register_node_type_cmp_doubleedgemask(void)
 {
-  static bNodeType ntype;  // allocate a node type data structure
+  static bNodeType ntype; /* Allocate a node type data structure. */
 
   cmp_node_type_base(&ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, 0);
   node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);

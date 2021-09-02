@@ -352,7 +352,7 @@ static bool object_modifier_remove(
 
   /* special cases */
   if (md->type == eModifierType_ParticleSystem) {
-    object_remove_particle_system(bmain, scene, ob);
+    object_remove_particle_system(bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
     return true;
   }
 
@@ -3114,7 +3114,7 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 /** \} */
 
 /* ------------------------------------------------------------------- */
-/** \name Laplaciandeform Bind Operator
+/** \name Laplacian-Deform Bind Operator
  * \{ */
 
 static bool laplaciandeform_poll(bContext *C)

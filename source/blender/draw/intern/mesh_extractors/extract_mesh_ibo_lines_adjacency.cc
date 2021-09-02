@@ -185,7 +185,7 @@ constexpr MeshExtract create_extractor_lines_adjacency()
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_LineAdjacency_Data);
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_adjacency);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, ibo.lines_adjacency);
   return extractor;
 }
 

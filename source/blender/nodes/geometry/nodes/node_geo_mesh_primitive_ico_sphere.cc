@@ -24,18 +24,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_ico_sphere_in[] = {
-    {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_INT, N_("Subdivisions"), 1, 0, 0, 0, 1, 7},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_mesh_primitive_ico_sphere_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_mesh_primitive_ico_sphere_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Int>("Subdivisions").default_value(1).min(1).max(7);
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static Mesh *create_ico_sphere_mesh(const int subdivisions, const float radius)
 {
@@ -83,8 +79,7 @@ void register_node_type_geo_mesh_primitive_ico_sphere()
 
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, "Ico Sphere", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_ico_sphere_in, geo_node_mesh_primitive_ico_sphere_out);
+  ntype.declare = blender::nodes::geo_node_mesh_primitive_ico_sphere_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_ico_sphere_exec;
   nodeRegisterType(&ntype);
 }

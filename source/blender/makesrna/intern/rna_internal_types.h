@@ -42,9 +42,6 @@ struct bContext;
 
 typedef struct IDProperty IDProperty;
 
-/* store local properties here */
-#define RNA_IDP_UI "_RNA_UI"
-
 /* Function Callbacks */
 
 typedef void (*UpdateFunc)(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);

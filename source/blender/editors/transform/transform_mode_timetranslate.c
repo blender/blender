@@ -39,8 +39,10 @@
 #include "BLT_translation.h"
 
 #include "transform.h"
-#include "transform_mode.h"
+#include "transform_convert.h"
 #include "transform_snap.h"
+
+#include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Animation Translation)
@@ -57,10 +59,18 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
   }
   else {
     const short autosnap = getAnimEdit_SnapMode(t);
-    float val = t->values_final[0];
+    float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->data->ival;
+    float val = ival + t->values_final[0];
 
-    float snap_val;
-    snapFrameTransform(t, autosnap, false, val, &snap_val);
+    float snap_val = val;
+    snapFrameTransform(t, autosnap, ival, val, &snap_val);
+
+    if (ELEM(autosnap, SACTSNAP_SECOND, SACTSNAP_TSTEP)) {
+      /* Convert to seconds. */
+      const Scene *scene = t->scene;
+      const double secf = FPS;
+      snap_val /= secf;
+    }
 
     if (autosnap == SACTSNAP_FRAME) {
       BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f (%.4f)", snap_val, val);
@@ -86,24 +96,11 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
 
 static void applyTimeTranslateValue(TransInfo *t, const float deltax)
 {
-  const short autosnap = getAnimEdit_SnapMode(t);
-
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    /* It doesn't matter whether we apply to t->data. */
     TransData *td = tc->data;
-    TransData2D *td2d = tc->data_2d;
-    /* It doesn't matter whether we apply to t->data or
-     * t->data2d, but t->data2d is more convenient. */
-    for (int i = 0; i < tc->data_len; i++, td++, td2d++) {
-      /* It is assumed that td->extra is a pointer to the AnimData,
-       * whose active action is where this keyframe comes from.
-       * (this is only valid when not in NLA)
-       * (also: masks and gpencil don't have animadata)
-       */
-      AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
-
-      /* apply nearest snapping */
-      *(td->val) = td->ival + deltax * td->factor;
-      doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
+    for (int i = 0; i < tc->data_len; i++, td++) {
+      *(td->val) = td->loc[0] = td->ival + deltax * td->factor;
     }
   }
 }

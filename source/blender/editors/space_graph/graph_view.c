@@ -219,7 +219,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   scene->r.pefra = round_fl_to_int(max);
 
   /* Set notifier that things have changed. */
-  // XXX Err... there's nothing for frame ranges yet, but this should do fine too.
+  /* XXX: Err... there's nothing for frame ranges yet, but this should do fine too. */
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
 
   return OPERATOR_FINISHED;

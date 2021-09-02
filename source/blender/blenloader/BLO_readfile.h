@@ -172,6 +172,9 @@ struct LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
                                                     int ofblocktype,
                                                     int *r_tot_info_items);
 struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev);
+struct PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
+                                                        int ofblocktype,
+                                                        const char *name);
 struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
 
 void BLO_blendhandle_close(BlendHandle *bh);

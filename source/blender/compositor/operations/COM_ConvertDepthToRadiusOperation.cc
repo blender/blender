@@ -58,7 +58,7 @@ void ConvertDepthToRadiusOperation::initExecution()
   this->m_inputOperation = this->getInputSocketReader(0);
   float focalDistance = determineFocalDistance();
   if (focalDistance == 0.0f) {
-    focalDistance = 1e10f; /* if the dof is 0.0 then set it to be far away */
+    focalDistance = 1e10f; /* If the DOF is 0.0 then set it to be far away. */
   }
   this->m_inverseFocalDistance = 1.0f / focalDistance;
   this->m_aspect = (this->getWidth() > this->getHeight()) ?
@@ -66,9 +66,9 @@ void ConvertDepthToRadiusOperation::initExecution()
                        (this->getWidth() / (float)this->getHeight());
   this->m_aperture = 0.5f * (this->m_cam_lens / (this->m_aspect * cam_sensor)) / this->m_fStop;
   const float minsz = MIN2(getWidth(), getHeight());
-  this->m_dof_sp = minsz /
-                   ((cam_sensor / 2.0f) /
-                    this->m_cam_lens);  // <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
+  this->m_dof_sp =
+      minsz / ((cam_sensor / 2.0f) /
+               this->m_cam_lens); /* <- == `aspect * MIN2(img->x, img->y) / tan(0.5f * fov)` */
 
   if (this->m_blurPostOperation) {
     m_blurPostOperation->setSigma(MIN2(m_aperture * 128.0f, this->m_maxRadius));
@@ -91,7 +91,7 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4],
     /* bug T6656 part 2b, do not re-scale. */
 #if 0
     bcrad = 0.5f * fabs(aperture * (dof_sp * (cam_invfdist - iZ) - 1.0f));
-    // scale crad back to original maximum and blend
+    /* Scale crad back to original maximum and blend. */
     crad->rect[px] = bcrad + wts->rect[px] * (scf * crad->rect[px] - bcrad);
 #endif
     radius = 0.5f * fabsf(this->m_aperture *

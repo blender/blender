@@ -1305,7 +1305,7 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
 
   BLI_task_parallel_range(0, totpoly, &data, multires_bmesh_space_set_cb, &settings);
 
-  BKE_mesh_free(me);
+  BKE_mesh_free_data_for_undo(me);
   BKE_subdiv_free(sd);
 
   bm->elem_index_dirty |= BM_FACE | BM_LOOP;

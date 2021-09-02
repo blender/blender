@@ -272,6 +272,21 @@ template<typename T> class DataStore {
     node->set(*socket, value);
   }
 
+  size_t memory_used() const
+  {
+    if constexpr (is_array<T>::value) {
+      size_t mem_used = 0;
+
+      for (const T &array : data) {
+        mem_used += array.size() * sizeof(array[0]);
+      }
+
+      return mem_used;
+    }
+
+    return data.size() * sizeof(T);
+  }
+
  private:
   const TimeIndexPair &get_index_for_time(double time) const
   {
@@ -332,6 +347,8 @@ struct CachedData {
   void invalidate_last_loaded_time(bool attributes_only = false);
 
   void set_time_sampling(Alembic::AbcCoreAbstract::TimeSampling time_sampling);
+
+  size_t memory_used() const;
 };
 
 /* Representation of an Alembic object for the AlembicProcedural.
@@ -352,6 +369,10 @@ class AlembicObject : public Node {
 
   /* Shaders used for rendering. */
   NODE_SOCKET_API_ARRAY(array<Node *>, used_shaders)
+
+  /* Treat this subdivision object as a regular polygon mesh, so no subdivision will be performed.
+   */
+  NODE_SOCKET_API(bool, ignore_subdivision)
 
   /* Maximum number of subdivisions for ISubD objects. */
   NODE_SOCKET_API(int, subd_max_level)
@@ -416,6 +437,11 @@ class AlembicObject : public Node {
     return cached_data_.is_constant();
   }
 
+  void clear_cache()
+  {
+    cached_data_.clear();
+  }
+
   Object *object = nullptr;
 
   bool data_loaded = false;
@@ -473,6 +499,13 @@ class AlembicProcedural : public Procedural {
    * software. */
   NODE_SOCKET_API(float, scale)
 
+  /* Cache controls */
+  NODE_SOCKET_API(bool, use_prefetch)
+
+  /* Memory limit for the cache, if the data does not fit within this limit, rendering is aborted.
+   */
+  NODE_SOCKET_API(int, prefetch_cache_size)
+
   AlembicProcedural();
   ~AlembicProcedural();
 
@@ -522,6 +555,12 @@ class AlembicProcedural : public Procedural {
   void read_subd(AlembicObject *abc_object, Alembic::AbcGeom::Abc::chrono_t frame_time);
 
   void build_caches(Progress &progress);
+
+  size_t get_prefetch_cache_size_in_bytes() const
+  {
+    /* prefetch_cache_size is in megabytes, so convert to bytes. */
+    return static_cast<size_t>(prefetch_cache_size) * 1024 * 1024;
+  }
 };
 
 CCL_NAMESPACE_END

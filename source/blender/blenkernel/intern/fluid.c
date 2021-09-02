@@ -557,7 +557,7 @@ static bool BKE_fluid_modifier_init(
   return false;
 }
 
-// forward declaration
+/* Forward declarations. */
 static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *view_layer);
 static float calc_voxel_transp(
     float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct);
@@ -1580,7 +1580,7 @@ static void emit_from_particles(Object *flow_ob,
 
     /* initialize particle cache */
     if (psys->part->type == PART_HAIR) {
-      // TODO: PART_HAIR not supported whatsoever
+      /* TODO: PART_HAIR not supported whatsoever. */
       totchild = 0;
     }
     else {
@@ -1674,9 +1674,9 @@ static void emit_from_particles(Object *flow_ob,
         if (ffs->flags & FLUID_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO)) {
           madd_v3_v3fl(&bb->velocity[index * 3], &particle_vel[p * 3], ffs->vel_multi);
         }
-      }  // particles loop
+      } /* particles loop */
     }
-    else if (valid_particles > 0) {  // FLUID_FLOW_USE_PART_SIZE
+    else if (valid_particles > 0) { /* #FLUID_FLOW_USE_PART_SIZE */
       int min[3], max[3], res[3];
 
       /* setup loop bounds */
@@ -3171,7 +3171,7 @@ static void update_effectors_task_cb(void *__restrict userdata,
       if ((data->fuel && MAX2(data->density[index], data->fuel[index]) < FLT_EPSILON) ||
           (data->density && data->density[index] < FLT_EPSILON) ||
           (data->phi_obs_in && data->phi_obs_in[index] < 0.0f) ||
-          data->flags[index] & 2)  // mantaflow convention: 2 == FlagObstacle
+          data->flags[index] & 2) /* Manta-flow convention: `2 == FlagObstacle`. */
       {
         continue;
       }
@@ -4253,7 +4253,7 @@ static float calc_voxel_transp(
 {
   const size_t index = manta_get_index(pixel[0], res[0], pixel[1], res[1], pixel[2]);
 
-  // T_ray *= T_vox
+  /* `T_ray *= T_vox`. */
   *t_ray *= expf(input[index] * correct);
 
   if (result[index] < 0.0f) {
@@ -4380,10 +4380,10 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
   light[2] = (light[2] - fds->p0[2]) / fds->cell_size[2] - 0.5f - (float)fds->res_min[2];
 
   /* Calculate domain bounds in sim cell space. */
-  // 0,2,4 = 0.0f
-  bv[1] = (float)fds->res[0];  // x
-  bv[3] = (float)fds->res[1];  // y
-  bv[5] = (float)fds->res[2];  // z
+  /* 0,2,4 = 0.0f */
+  bv[1] = (float)fds->res[0]; /* X */
+  bv[3] = (float)fds->res[1]; /* Y */
+  bv[5] = (float)fds->res[2]; /* Z */
 
   for (int z = 0; z < fds->res[2]; z++) {
     size_t index = z * slabsize;

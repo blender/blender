@@ -102,7 +102,7 @@
 /* <cache type>-<resolution X>x<resolution Y>-<rendersize>%(<view_id>)-<frame no>.dcf */
 #define DCACHE_FNAME_FORMAT "%d-%dx%d-%d%%(%d)-%d.dcf"
 #define DCACHE_IMAGES_PER_FILE 100
-#define DCACHE_CURRENT_VERSION 1
+#define DCACHE_CURRENT_VERSION 2
 #define COLORSPACE_NAME_MAX 64 /* XXX: defined in imb intern */
 
 typedef struct DiskCacheHeaderEntry {
@@ -496,24 +496,34 @@ static size_t deflate_imbuf_to_file(ImBuf *ibuf,
                                     int level,
                                     DiskCacheHeaderEntry *header_entry)
 {
-  if (ibuf->rect) {
-    return BLI_gzip_mem_to_file_at_pos(
-        ibuf->rect, header_entry->size_raw, file, header_entry->offset, level);
+  void *data = (ibuf->rect != NULL) ? (void *)ibuf->rect : (void *)ibuf->rect_float;
+
+  /* Apply compression if wanted, otherwise just write directly to the file. */
+  if (level > 0) {
+    return BLI_file_zstd_from_mem_at_pos(
+        data, header_entry->size_raw, file, header_entry->offset, level);
   }
 
-  return BLI_gzip_mem_to_file_at_pos(
-      ibuf->rect_float, header_entry->size_raw, file, header_entry->offset, level);
+  fseek(file, header_entry->offset, SEEK_SET);
+  return fwrite(data, 1, header_entry->size_raw, file);
 }
 
 static size_t inflate_file_to_imbuf(ImBuf *ibuf, FILE *file, DiskCacheHeaderEntry *header_entry)
 {
-  if (ibuf->rect) {
-    return BLI_ungzip_file_to_mem_at_pos(
-        ibuf->rect, header_entry->size_raw, file, header_entry->offset);
+  void *data = (ibuf->rect != NULL) ? (void *)ibuf->rect : (void *)ibuf->rect_float;
+  char header[4];
+  fseek(file, header_entry->offset, SEEK_SET);
+  if (fread(header, 1, sizeof(header), file) != sizeof(header)) {
+    return 0;
   }
 
-  return BLI_ungzip_file_to_mem_at_pos(
-      ibuf->rect_float, header_entry->size_raw, file, header_entry->offset);
+  /* Check if the data is compressed or raw. */
+  if (BLI_file_magic_is_zstd(header)) {
+    return BLI_file_unzstd_to_mem_at_pos(data, header_entry->size_raw, file, header_entry->offset);
+  }
+
+  fseek(file, header_entry->offset, SEEK_SET);
+  return fread(data, 1, header_entry->size_raw, file);
 }
 
 static bool seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)

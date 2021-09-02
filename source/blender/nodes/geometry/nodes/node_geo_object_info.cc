@@ -21,25 +21,22 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_object_info_in[] = {
-    {SOCK_OBJECT, N_("Object"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, PROP_NONE, SOCK_HIDE_LABEL},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_object_info_out[] = {
-    {SOCK_VECTOR, N_("Location")},
-    {SOCK_VECTOR, N_("Rotation")},
-    {SOCK_VECTOR, N_("Scale")},
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_object_info_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Object>("Object").hide_label(true);
+  b.add_output<decl::Vector>("Location");
+  b.add_output<decl::Vector>("Rotation");
+  b.add_output<decl::Vector>("Scale");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_object_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-namespace blender::nodes {
 static void geo_node_object_info_exec(GeoNodeExecParams params)
 {
   const bNode &bnode = params.node();
@@ -105,11 +102,11 @@ void register_node_type_geo_object_info()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_OBJECT_INFO, "Object Info", NODE_CLASS_INPUT, 0);
-  node_type_socket_templates(&ntype, geo_node_object_info_in, geo_node_object_info_out);
   node_type_init(&ntype, blender::nodes::geo_node_object_info_node_init);
   node_type_storage(
       &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_object_info_exec;
-  ntype.draw_buttons = geo_node_object_info_layout;
+  ntype.draw_buttons = blender::nodes::geo_node_object_info_layout;
+  ntype.declare = blender::nodes::geo_node_object_info_declare;
   nodeRegisterType(&ntype);
 }

@@ -214,20 +214,19 @@ void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collectio
 static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Collection *collection = (Collection *)id;
-  if (collection->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-    collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
-    collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
-    collection->tag = 0;
-    BLI_listbase_clear(&collection->object_cache);
-    BLI_listbase_clear(&collection->object_cache_instanced);
-    BLI_listbase_clear(&collection->parents);
 
-    /* write LibData */
-    BLO_write_id_struct(writer, Collection, id_address, &collection->id);
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
+  collection->tag = 0;
+  BLI_listbase_clear(&collection->object_cache);
+  BLI_listbase_clear(&collection->object_cache_instanced);
+  BLI_listbase_clear(&collection->parents);
 
-    BKE_collection_blend_write_nolib(writer, collection);
-  }
+  /* write LibData */
+  BLO_write_id_struct(writer, Collection, id_address, &collection->id);
+
+  BKE_collection_blend_write_nolib(writer, collection);
 }
 
 #ifdef USE_COLLECTION_COMPAT_28
@@ -689,19 +688,25 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
                                      Collection *collection,
-                                     const uint duplicate_flags_in, //it's not const!! - joeedh
-                                     const uint duplicate_options)
+                                     const uint duplicate_flags_in,    // it's not const!! - joeedh
+                                     const uint duplicate_options_in)  // not const!
 {
+  uint duplicate_flags = duplicate_flags_in;
+  uint duplicate_options = duplicate_options_in;
+
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
-  uint duplicate_flags = duplicate_flags_in; 
+  const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
 
   if (!is_subprocess) {
     BKE_main_id_newptr_and_tag_clear(bmain);
+  }
+  if (is_root_id) {
     /* In case root duplicated ID is linked, assume we want to get a local copy of it and duplicate
      * all expected linked data. */
     if (ID_IS_LINKED(collection)) {
       duplicate_flags |= USER_DUP_LINKED_ID;
     }
+    duplicate_options &= ~LIB_ID_DUPLICATE_IS_ROOT_ID;
   }
 
   Collection *collection_new = collection_duplicate_recursive(

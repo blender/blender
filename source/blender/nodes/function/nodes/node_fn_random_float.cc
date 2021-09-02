@@ -67,10 +67,11 @@ class RandomFloatFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void fn_node_random_float_expand_in_mf_network(
-    blender::nodes::NodeMFNetworkBuilder &builder)
+static void fn_node_random_float_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  builder.construct_and_set_matching_fn<RandomFloatFunction>();
+  static RandomFloatFunction fn;
+  builder.set_matching_fn(fn);
 }
 
 void register_node_type_fn_random_float()
@@ -79,6 +80,6 @@ void register_node_type_fn_random_float()
 
   fn_node_type_base(&ntype, FN_NODE_RANDOM_FLOAT, "Random Float", 0, 0);
   node_type_socket_templates(&ntype, fn_node_random_float_in, fn_node_random_float_out);
-  ntype.expand_in_mf_network = fn_node_random_float_expand_in_mf_network;
+  ntype.build_multi_function = fn_node_random_float_build_multi_function;
   nodeRegisterType(&ntype);
 }

@@ -595,6 +595,44 @@ const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_subdivision_uv_smooth_items[] = {
+    {SUBSURF_UV_SMOOTH_NONE, "NONE", 0, "None", "UVs are not smoothed, boundaries are kept sharp"},
+    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS,
+     "PRESERVE_CORNERS",
+     0,
+     "Keep Corners",
+     "UVs are smoothed, corners on discontinuous boundary are kept sharp"},
+    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS,
+     "PRESERVE_CORNERS_AND_JUNCTIONS",
+     0,
+     "Keep Corners, Junctions",
+     "UVs are smoothed, corners on discontinuous boundary and "
+     "junctions of 3 or more regions are kept sharp"},
+    {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE,
+     "PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE",
+     0,
+     "Keep Corners, Junctions, Concave",
+     "UVs are smoothed, corners on discontinuous boundary, "
+     "junctions of 3 or more regions and darts and concave corners are kept sharp"},
+    {SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES,
+     "PRESERVE_BOUNDARIES",
+     0,
+     "Keep Boundaries",
+     "UVs are smoothed, boundaries are kept sharp"},
+    {SUBSURF_UV_SMOOTH_ALL, "SMOOTH_ALL", 0, "All", "UVs and boundaries are smoothed"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_subdivision_boundary_smooth_items[] = {
+    {SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS,
+     "PRESERVE_CORNERS",
+     0,
+     "Keep Corners",
+     "Smooth boundaries, but corners are kept sharp"},
+    {SUBSURF_BOUNDARY_SMOOTH_ALL, "ALL", 0, "All", "Smooth boundaries, including corners"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 #  include "DNA_curve_types.h"
 #  include "DNA_fluid_types.h"
@@ -1631,55 +1669,12 @@ static IDProperty **rna_NodesModifier_properties(PointerRNA *ptr)
 
 static void rna_def_property_subdivision_common(StructRNA *srna)
 {
-  static const EnumPropertyItem prop_uv_smooth_items[] = {
-      {SUBSURF_UV_SMOOTH_NONE,
-       "NONE",
-       0,
-       "None",
-       "UVs are not smoothed, boundaries are kept sharp"},
-      {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS,
-       "PRESERVE_CORNERS",
-       0,
-       "Keep Corners",
-       "UVs are smoothed, corners on discontinuous boundary are kept sharp"},
-      {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS,
-       "PRESERVE_CORNERS_AND_JUNCTIONS",
-       0,
-       "Keep Corners, Junctions",
-       "UVs are smoothed, corners on discontinuous boundary and "
-       "junctions of 3 or more regions are kept sharp"},
-      {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE,
-       "PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE",
-       0,
-       "Keep Corners, Junctions, Concave",
-       "UVs are smoothed, corners on discontinuous boundary, "
-       "junctions of 3 or more regions and darts and concave corners are kept sharp"},
-      {SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES,
-       "PRESERVE_BOUNDARIES",
-       0,
-       "Keep Boundaries",
-       "UVs are smoothed, boundaries are kept sharp"},
-      {SUBSURF_UV_SMOOTH_ALL, "SMOOTH_ALL", 0, "All", "UVs and boundaries are smoothed"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  static const EnumPropertyItem prop_boundary_smooth_items[] = {
-      {SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS,
-       "PRESERVE_CORNERS",
-       0,
-       "Keep Corners",
-       "Smooth boundaries, but corners are kept sharp"},
-      {SUBSURF_BOUNDARY_SMOOTH_ALL, "ALL", 0, "All", "Smooth boundaries, including corners"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   PropertyRNA *prop;
-
   RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "uv_smooth", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "uv_smooth");
-  RNA_def_property_enum_items(prop, prop_uv_smooth_items);
+  RNA_def_property_enum_items(prop, rna_enum_subdivision_uv_smooth_items);
   RNA_def_property_ui_text(prop, "UV Smooth", "Controls how smoothing is applied to UVs");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1693,7 +1688,7 @@ static void rna_def_property_subdivision_common(StructRNA *srna)
 
   prop = RNA_def_property(srna, "boundary_smooth", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "boundary_smooth");
-  RNA_def_property_enum_items(prop, prop_boundary_smooth_items);
+  RNA_def_property_enum_items(prop, rna_enum_subdivision_boundary_smooth_items);
   RNA_def_property_ui_text(prop, "Boundary Smooth", "Controls how open boundaries are smoothed");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -4441,6 +4436,12 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
   prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MASK_INV);
   RNA_def_property_ui_text(prop, "Invert", "Use vertices that are not part of region defined");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MASK_SMOOTH);
+  RNA_def_property_ui_text(
+      prop, "Smooth", "Use vertex group weights to cut faces at the weight contour");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_FACTOR);

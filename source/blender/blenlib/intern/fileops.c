@@ -31,6 +31,7 @@
 #include <errno.h>
 
 #include "zlib.h"
+#include "zstd.h"
 
 #ifdef WIN32
 #  include "BLI_fileops_types.h"
@@ -61,199 +62,123 @@
 #include "BLI_sys_types.h" /* for intptr_t support */
 #include "BLI_utildefines.h"
 
-#if 0 /* UNUSED */
-/* gzip the file in from and write it to "to".
- * return -1 if zlib fails, -2 if the originating file does not exist
- * NOTE: will remove the "from" file
- */
-int BLI_file_gzip(const char *from, const char *to)
+size_t BLI_file_zstd_from_mem_at_pos(
+    void *buf, size_t len, FILE *file, size_t file_offset, int compression_level)
 {
-  char buffer[10240];
-  int file;
-  int readsize = 0;
-  int rval = 0, err;
-  gzFile gzfile;
+  fseek(file, file_offset, SEEK_SET);
 
-  /* level 1 is very close to 3 (the default) in terms of file size,
-   * but about twice as fast, best use for speedy saving - campbell */
-  gzfile = BLI_gzopen(to, "wb1");
-  if (gzfile == NULL) {
-    return -1;
-  }
-  file = BLI_open(from, O_BINARY | O_RDONLY, 0);
-  if (file == -1) {
-    return -2;
-  }
+  ZSTD_CCtx *ctx = ZSTD_createCCtx();
+  ZSTD_CCtx_setParameter(ctx, ZSTD_c_compressionLevel, compression_level);
 
-  while (1) {
-    readsize = read(file, buffer, sizeof(buffer));
+  ZSTD_inBuffer input = {buf, len, 0};
 
-    if (readsize < 0) {
-      rval = -2; /* error happened in reading */
-      fprintf(stderr, "Error reading file %s: %s.\n", from, strerror(errno));
+  size_t out_len = ZSTD_CStreamOutSize();
+  void *out_buf = MEM_mallocN(out_len, __func__);
+  size_t total_written = 0;
+
+  /* Compress block and write it out until the input has been consumed. */
+  while (input.pos < input.size) {
+    ZSTD_outBuffer output = {out_buf, out_len, 0};
+    size_t ret = ZSTD_compressStream2(ctx, &output, &input, ZSTD_e_continue);
+    if (ZSTD_isError(ret)) {
       break;
     }
-    else if (readsize == 0) {
-      break; /* done reading */
-    }
-
-    if (gzwrite(gzfile, buffer, readsize) <= 0) {
-      rval = -1; /* error happened in writing */
-      fprintf(stderr, "Error writing gz file %s: %s.\n", to, gzerror(gzfile, &err));
+    if (fwrite(out_buf, 1, output.pos, file) != output.pos) {
       break;
     }
+    total_written += output.pos;
   }
 
-  gzclose(gzfile);
-  close(file);
-
-  return rval;
-}
-#endif
-
-/* gzip the file in from_file and write it to memory to_mem, at most size bytes.
- * return the unzipped size
- */
-char *BLI_file_ungzip_to_mem(const char *from_file, int *r_size)
-{
-  gzFile gzfile;
-  int readsize, size, alloc_size = 0;
-  char *mem = NULL;
-  const int chunk_size = 512 * 1024;
-
-  size = 0;
-
-  gzfile = BLI_gzopen(from_file, "rb");
-  for (;;) {
-    if (mem == NULL) {
-      mem = MEM_callocN(chunk_size, "BLI_ungzip_to_mem");
-      alloc_size = chunk_size;
-    }
-    else {
-      mem = MEM_reallocN(mem, size + chunk_size);
-      alloc_size += chunk_size;
-    }
-
-    readsize = gzread(gzfile, mem + size, chunk_size);
-    if (readsize > 0) {
-      size += readsize;
-    }
-    else {
+  /* Finalize the Zstd frame. */
+  size_t ret = 1;
+  while (ret != 0) {
+    ZSTD_outBuffer output = {out_buf, out_len, 0};
+    ret = ZSTD_compressStream2(ctx, &output, &input, ZSTD_e_end);
+    if (ZSTD_isError(ret)) {
       break;
     }
+    if (fwrite(out_buf, 1, output.pos, file) != output.pos) {
+      break;
+    }
+    total_written += output.pos;
   }
 
-  gzclose(gzfile);
+  MEM_freeN(out_buf);
+  ZSTD_freeCCtx(ctx);
 
-  if (size == 0) {
-    MEM_freeN(mem);
-    mem = NULL;
-  }
-  else if (alloc_size != size) {
-    mem = MEM_reallocN(mem, size);
-  }
-
-  *r_size = size;
-
-  return mem;
+  return ZSTD_isError(ret) ? 0 : total_written;
 }
 
-#define CHUNK (256 * 1024)
-
-/* gzip byte array from memory and write it to file at certain position.
- * return size of gzip stream.
- */
-size_t BLI_gzip_mem_to_file_at_pos(
-    void *buf, size_t len, FILE *file, size_t gz_stream_offset, int compression_level)
+size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t file_offset)
 {
-  int ret, flush;
-  unsigned have;
-  z_stream strm;
-  unsigned char out[CHUNK];
+  fseek(file, file_offset, SEEK_SET);
 
-  BLI_fseek(file, gz_stream_offset, 0);
+  ZSTD_DCtx *ctx = ZSTD_createDCtx();
 
-  strm.zalloc = Z_NULL;
-  strm.zfree = Z_NULL;
-  strm.opaque = Z_NULL;
-  ret = deflateInit(&strm, compression_level);
-  if (ret != Z_OK) {
-    return 0;
-  }
+  size_t in_len = ZSTD_DStreamInSize();
+  void *in_buf = MEM_mallocN(in_len, __func__);
+  ZSTD_inBuffer input = {in_buf, in_len, 0};
 
-  strm.avail_in = len;
-  strm.next_in = (Bytef *)buf;
-  flush = Z_FINISH;
+  ZSTD_outBuffer output = {buf, len, 0};
 
-  do {
-    strm.avail_out = CHUNK;
-    strm.next_out = out;
-    ret = deflate(&strm, flush);
-    if (ret == Z_STREAM_ERROR) {
-      return 0;
-    }
-    have = CHUNK - strm.avail_out;
-    if (fwrite(out, 1, have, file) != have || ferror(file)) {
-      deflateEnd(&strm);
-      return 0;
-    }
-  } while (strm.avail_out == 0);
-
-  if (strm.avail_in != 0 || ret != Z_STREAM_END) {
-    return 0;
-  }
-
-  deflateEnd(&strm);
-  return (size_t)strm.total_out;
-}
-
-/* read and decompress gzip stream from file at certain position to buffer.
- * return size of decompressed data.
- */
-size_t BLI_ungzip_file_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t gz_stream_offset)
-{
-  int ret;
-  z_stream strm;
-  size_t chunk = 256 * 1024;
-  unsigned char in[CHUNK];
-
-  BLI_fseek(file, gz_stream_offset, 0);
-
-  strm.zalloc = Z_NULL;
-  strm.zfree = Z_NULL;
-  strm.opaque = Z_NULL;
-  strm.avail_in = 0;
-  strm.next_in = Z_NULL;
-  ret = inflateInit(&strm);
-  if (ret != Z_OK) {
-    return 0;
-  }
-
-  do {
-    strm.avail_in = fread(in, 1, chunk, file);
-    strm.next_in = in;
-    if (ferror(file)) {
-      inflateEnd(&strm);
-      return 0;
+  size_t ret = 0;
+  /* Read and decompress chunks of input data until we have enough output. */
+  while (output.pos < output.size && !ZSTD_isError(ret)) {
+    input.size = fread(in_buf, 1, in_len, file);
+    if (input.size == 0) {
+      break;
     }
 
-    do {
-      strm.avail_out = len;
-      strm.next_out = (Bytef *)buf + strm.total_out;
+    /* Consume input data until we run out or have enough output. */
+    input.pos = 0;
+    while (input.pos < input.size && output.pos < output.size) {
+      ret = ZSTD_decompressStream(ctx, &output, &input);
 
-      ret = inflate(&strm, Z_NO_FLUSH);
-      if (ret == Z_STREAM_ERROR) {
-        return 0;
+      if (ZSTD_isError(ret)) {
+        break;
       }
-    } while (strm.avail_out == 0);
+    }
+  }
 
-  } while (ret != Z_STREAM_END);
+  MEM_freeN(in_buf);
+  ZSTD_freeDCtx(ctx);
 
-  inflateEnd(&strm);
-  return (size_t)strm.total_out;
+  return ZSTD_isError(ret) ? 0 : output.pos;
 }
 
-#undef CHUNK
+bool BLI_file_magic_is_gzip(const char header[4])
+{
+  /* GZIP itself starts with the magic bytes 0x1f 0x8b.
+   * The third byte indicates the compression method, which is 0x08 for DEFLATE. */
+  return header[0] == 0x1f && header[1] == 0x8b && header[2] == 0x08;
+}
+
+bool BLI_file_magic_is_zstd(const char header[4])
+{
+  /* ZSTD files consist of concatenated frames, each either a Zstd frame or a skippable frame.
+   * Both types of frames start with a magic number: 0xFD2FB528 for Zstd frames and 0x184D2A5*
+   * for skippable frames, with the * being anything from 0 to F.
+   *
+   * To check whether a file is Zstd-compressed, we just check whether the first frame matches
+   * either. Seeking through the file until a Zstd frame is found would make things more
+   * complicated and the probability of a false positive is rather low anyways.
+   *
+   * Note that LZ4 uses a compatible format, so even though its compressed frames have a
+   * different magic number, a valid LZ4 file might also start with a skippable frame matching
+   * the second check here.
+   *
+   * For more details, see https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md
+   */
+
+  uint32_t magic = *((uint32_t *)header);
+  if (magic == 0xFD2FB528) {
+    return true;
+  }
+  if ((magic >> 4) == 0x184D2A5) {
+    return true;
+  }
+  return false;
+}
 
 /**
  * Returns true if the file with the specified name can be written.

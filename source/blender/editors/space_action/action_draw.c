@@ -144,12 +144,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   uchar col1[4], col2[4];
   uchar col1a[4], col2a[4];
   uchar col1b[4], col2b[4];
+  uchar col_summary[4];
 
   const bool show_group_colors = U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
 
   /* get theme colors */
   UI_GetThemeColor4ubv(TH_SHADE2, col2);
   UI_GetThemeColor4ubv(TH_HILITE, col1);
+  UI_GetThemeColor4ubv(TH_ANIM_ACTIVE, col_summary);
 
   UI_GetThemeColor4ubv(TH_GROUP, col2a);
   UI_GetThemeColor4ubv(TH_GROUP_ACTIVE, col1a);
@@ -244,7 +246,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
         else if (ac->datatype == ANIMCONT_GPENCIL) {
           uchar *color;
           uchar gpl_col[4];
-          if ((show_group_colors) && (ale->type == ANIMTYPE_GPLAYER)) {
+          if (ale->type == ANIMTYPE_SUMMARY) {
+            color = col_summary;
+          }
+          else if ((show_group_colors) && (ale->type == ANIMTYPE_GPLAYER)) {
             bGPDlayer *gpl = (bGPDlayer *)ale->data;
             rgb_float_to_uchar(gpl_col, gpl->color);
             gpl_col[3] = col1[3];
@@ -254,24 +259,34 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
           else {
             color = sel ? col1 : col2;
           }
-          /* frames less than one get less saturated background */
-          immUniformColor4ubv(color);
-          immRectf(pos, 0.0f, ymin, v2d->cur.xmin, ymax);
 
-          /* frames one and higher get a saturated background */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] * 2));
-          immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+          /* Color overlay on frames between the start/end frames. */
+          immUniformColor4ubv(color);
+          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+          /* Color overlay outside the start/end frame range get a more transparent overlay. */
+          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
         }
         else if (ac->datatype == ANIMCONT_MASK) {
           /* TODO: this is a copy of gpencil. */
-          /* frames less than one get less saturated background */
-          uchar *color = sel ? col1 : col2;
-          immUniformColor4ubv(color);
-          immRectf(pos, 0.0f, ymin, v2d->cur.xmin, ymax);
+          uchar *color;
+          if (ale->type == ANIMTYPE_SUMMARY) {
+            color = col_summary;
+          }
+          else {
+            color = sel ? col1 : col2;
+          }
 
-          /* frames one and higher get a saturated background */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] * 2));
-          immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+          /* Color overlay on frames between the start/end frames. */
+          immUniformColor4ubv(color);
+          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+          /* Color overlay outside the start/end frame range get a more transparent overlay. */
+          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
         }
       }
     }

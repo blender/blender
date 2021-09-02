@@ -43,19 +43,15 @@ extern void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           blender::Span<int> masked_poly_indices,
                                           blender::Span<int> new_loop_starts);
 
-static bNodeSocketTemplate geo_node_delete_geometry_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Selection")},
-    {SOCK_BOOLEAN, N_("Invert")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_delete_geometry_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_delete_geometry_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Selection");
+  b.add_input<decl::Bool>("Invert");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 template<typename T> static void copy_data(Span<T> data, MutableSpan<T> r_data, IndexMask mask)
 {
@@ -102,7 +98,8 @@ static void copy_dynamic_attributes(const CustomDataAttributes &src,
         BLI_assert(src_attribute);
 
         if (!dst.create(name, meta_data.data_type)) {
-          /* Since the source spline of the same type had the attribute, adding it should work. */
+          /* Since the source spline of the same type had the attribute, adding it should work.
+           */
           BLI_assert_unreachable();
         }
 
@@ -304,8 +301,8 @@ static void compute_selected_polygons_from_vertex_selection(const Mesh &mesh,
 }
 
 /**
- * Checks for every edge if it is in `edge_selection`. If it is, then the two vertices of the edge
- * are kept along with the edge.
+ * Checks for every edge if it is in `edge_selection`. If it is, then the two vertices of the
+ * edge are kept along with the edge.
  */
 static void compute_selected_vertices_and_edges_from_edge_selection(
     const Mesh &mesh,
@@ -672,7 +669,8 @@ void register_node_type_geo_delete_geometry()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_delete_geometry_in, geo_node_delete_geometry_out);
+
+  ntype.declare = blender::nodes::geo_node_delete_geometry_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_delete_geometry_exec;
   nodeRegisterType(&ntype);
 }

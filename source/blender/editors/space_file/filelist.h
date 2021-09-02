@@ -27,9 +27,9 @@
 extern "C" {
 #endif
 
+struct AssetLibraryReference;
 struct BlendHandle;
 struct FileList;
-struct AssetLibraryReference;
 struct FileSelection;
 struct wmWindowManager;
 

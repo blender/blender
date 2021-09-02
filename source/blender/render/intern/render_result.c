@@ -222,7 +222,6 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
 {
   const int view_id = BLI_findstringindex(&rr->views, viewname, offsetof(RenderView, name));
   RenderPass *rpass = MEM_callocN(sizeof(RenderPass), name);
-  size_t rectsize = ((size_t)rr->rectx) * rr->recty * channels;
 
   rpass->channels = channels;
   rpass->rectx = rl->rectx;
@@ -246,33 +245,6 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
                           0,
                           NULL,
                           false);
-    }
-  }
-
-  /* Always allocate combined for display, in case of save buffers
-   * other passes are not allocated and only saved to the EXR file. */
-  if (rl->exrhandle == NULL || STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
-    float *rect;
-    int x;
-
-    rpass->rect = MEM_callocN(sizeof(float) * rectsize, name);
-    if (rpass->rect == NULL) {
-      MEM_freeN(rpass);
-      return NULL;
-    }
-
-    if (STREQ(rpass->name, RE_PASSNAME_VECTOR)) {
-      /* initialize to max speed */
-      rect = rpass->rect;
-      for (x = rectsize - 1; x >= 0; x--) {
-        rect[x] = PASS_VECTOR_MAX;
-      }
-    }
-    else if (STREQ(rpass->name, RE_PASSNAME_Z)) {
-      rect = rpass->rect;
-      for (x = rectsize - 1; x >= 0; x--) {
-        rect[x] = 10e10;
-      }
     }
   }
 
@@ -315,6 +287,8 @@ RenderResult *render_result_new(
   if (savebuffers) {
     rr->do_exr_tile = true;
   }
+
+  rr->passes_allocated = false;
 
   render_result_views_new(rr, &re->r);
 
@@ -482,6 +456,40 @@ RenderResult *render_result_new(
   rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
 
   return rr;
+}
+
+void render_result_passes_allocated_ensure(RenderResult *rr)
+{
+  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
+    LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
+      if (rl->exrhandle != NULL && !STREQ(rp->name, RE_PASSNAME_COMBINED)) {
+        continue;
+      }
+
+      if (rp->rect != NULL) {
+        continue;
+      }
+
+      const size_t rectsize = ((size_t)rr->rectx) * rr->recty * rp->channels;
+      rp->rect = MEM_callocN(sizeof(float) * rectsize, rp->name);
+
+      if (STREQ(rp->name, RE_PASSNAME_VECTOR)) {
+        /* initialize to max speed */
+        float *rect = rp->rect;
+        for (int x = rectsize - 1; x >= 0; x--) {
+          rect[x] = PASS_VECTOR_MAX;
+        }
+      }
+      else if (STREQ(rp->name, RE_PASSNAME_Z)) {
+        float *rect = rp->rect;
+        for (int x = rectsize - 1; x >= 0; x--) {
+          rect[x] = 10e10;
+        }
+      }
+    }
+  }
+
+  rr->passes_allocated = true;
 }
 
 void render_result_clone_passes(Render *re, RenderResult *rr, const char *viewname)
@@ -1243,6 +1251,7 @@ void render_result_exr_file_end(Render *re, RenderEngine *engine)
   render_result_free_list(&re->fullresult, re->result);
   re->result = render_result_new(re, &re->disprect, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
   re->result->stamp_data = stamp_data;
+  render_result_passes_allocated_ensure(re->result);
   BLI_rw_mutex_unlock(&re->resultmutex);
 
   LISTBASE_FOREACH (RenderLayer *, rl, &re->result->layers) {

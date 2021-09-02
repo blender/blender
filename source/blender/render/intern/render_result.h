@@ -55,6 +55,8 @@ struct RenderResult *render_result_new(struct Render *re,
                                        const char *layername,
                                        const char *viewname);
 
+void render_result_passes_allocated_ensure(struct RenderResult *rr);
+
 struct RenderResult *render_result_new_from_exr(
     void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 

@@ -18,6 +18,7 @@
 
 #include "COM_VariableSizeBokehBlurOperation.h"
 #include "BLI_math.h"
+#include "COM_ExecutionSystem.h"
 #include "COM_OpenCLDevice.h"
 
 #include "RE_pipeline.h"
@@ -27,11 +28,11 @@ namespace blender::compositor {
 VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Color, ResizeMode::None);  // do not resize the bokeh image.
-  this->addInputSocket(DataType::Value);                    // radius
+  this->addInputSocket(DataType::Color, ResizeMode::None); /* Do not resize the bokeh image. */
+  this->addInputSocket(DataType::Value);                   /* Radius. */
 #ifdef COM_DEFOCUS_SEARCH
-  this->addInputSocket(DataType::Color,
-                       ResizeMode::None);  // inverse search radius optimization structure.
+  /* Inverse search radius optimization structure. */
+  this->addInputSocket(DataType::Color, ResizeMode::None);
 #endif
   this->addOutputSocket(DataType::Color);
   flags.complex = true;
@@ -276,11 +277,171 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(
   return false;
 }
 
+void VariableSizeBokehBlurOperation::get_area_of_interest(const int input_idx,
+                                                          const rcti &output_area,
+                                                          rcti &r_input_area)
+{
+  switch (input_idx) {
+    case IMAGE_INPUT_INDEX:
+    case SIZE_INPUT_INDEX: {
+      const float max_dim = MAX2(getWidth(), getHeight());
+      const float scalar = m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
+      const int max_blur_scalar = m_maxBlur * scalar;
+      r_input_area.xmax = output_area.xmax + max_blur_scalar + 2;
+      r_input_area.xmin = output_area.xmin - max_blur_scalar - 2;
+      r_input_area.ymax = output_area.ymax + max_blur_scalar + 2;
+      r_input_area.ymin = output_area.ymin - max_blur_scalar - 2;
+      break;
+    }
+    case BOKEH_INPUT_INDEX: {
+      r_input_area.xmax = COM_BLUR_BOKEH_PIXELS;
+      r_input_area.xmin = 0;
+      r_input_area.ymax = COM_BLUR_BOKEH_PIXELS;
+      r_input_area.ymin = 0;
+      break;
+    }
 #ifdef COM_DEFOCUS_SEARCH
-// InverseSearchRadiusOperation
+    case DEFOCUS_INPUT_INDEX: {
+      r_input_area.xmax = (output_area.xmax / InverseSearchRadiusOperation::DIVIDER) + 1;
+      r_input_area.xmin = (output_area.xmin / InverseSearchRadiusOperation::DIVIDER) - 1;
+      r_input_area.ymax = (output_area.ymax / InverseSearchRadiusOperation::DIVIDER) + 1;
+      r_input_area.ymin = (output_area.ymin / InverseSearchRadiusOperation::DIVIDER) - 1;
+      break;
+    }
+#endif
+  }
+}
+
+struct PixelData {
+  float multiplier_accum[4];
+  float color_accum[4];
+  float threshold;
+  float scalar;
+  float size_center;
+  int max_blur_scalar;
+  int step;
+  MemoryBuffer *bokeh_input;
+  MemoryBuffer *size_input;
+  MemoryBuffer *image_input;
+  int image_width;
+  int image_height;
+};
+
+static void blur_pixel(int x, int y, PixelData &p)
+{
+  BLI_assert(p.bokeh_input->getWidth() == COM_BLUR_BOKEH_PIXELS);
+  BLI_assert(p.bokeh_input->getHeight() == COM_BLUR_BOKEH_PIXELS);
+
+#ifdef COM_DEFOCUS_SEARCH
+  float search[4];
+  inputs[DEFOCUS_INPUT_INDEX]->read_elem_checked(x / InverseSearchRadiusOperation::DIVIDER,
+                                                 y / InverseSearchRadiusOperation::DIVIDER,
+                                                 search);
+  const int minx = search[0];
+  const int miny = search[1];
+  const int maxx = search[2];
+  const int maxy = search[3];
+#else
+  const int minx = MAX2(x - p.max_blur_scalar, 0);
+  const int miny = MAX2(y - p.max_blur_scalar, 0);
+  const int maxx = MIN2(x + p.max_blur_scalar, p.image_width);
+  const int maxy = MIN2(y + p.max_blur_scalar, p.image_height);
+#endif
+
+  const int color_row_stride = p.image_input->row_stride * p.step;
+  const int color_elem_stride = p.image_input->elem_stride * p.step;
+  const int size_row_stride = p.size_input->row_stride * p.step;
+  const int size_elem_stride = p.size_input->elem_stride * p.step;
+  const float *row_color = p.image_input->get_elem(minx, miny);
+  const float *row_size = p.size_input->get_elem(minx, miny);
+  for (int ny = miny; ny < maxy;
+       ny += p.step, row_size += size_row_stride, row_color += color_row_stride) {
+    const float dy = ny - y;
+    const float *size_elem = row_size;
+    const float *color = row_color;
+    for (int nx = minx; nx < maxx;
+         nx += p.step, size_elem += size_elem_stride, color += color_elem_stride) {
+      if (nx == x && ny == y) {
+        continue;
+      }
+      const float size = MIN2(size_elem[0] * p.scalar, p.size_center);
+      if (size <= p.threshold) {
+        continue;
+      }
+      const float dx = nx - x;
+      if (size <= fabsf(dx) || size <= fabsf(dy)) {
+        continue;
+      }
+
+      /* XXX: There is no way to ensure bokeh input is an actual bokeh with #COM_BLUR_BOKEH_PIXELS
+       * size, anything may be connected. Use the real input size and remove asserts? */
+      const float u = (float)(COM_BLUR_BOKEH_PIXELS / 2) +
+                      (dx / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1);
+      const float v = (float)(COM_BLUR_BOKEH_PIXELS / 2) +
+                      (dy / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1);
+      float bokeh[4];
+      p.bokeh_input->read_elem_checked(u, v, bokeh);
+      madd_v4_v4v4(p.color_accum, bokeh, color);
+      add_v4_v4(p.multiplier_accum, bokeh);
+    }
+  }
+}
+
+void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                                  const rcti &area,
+                                                                  Span<MemoryBuffer *> inputs)
+{
+  PixelData p;
+  p.bokeh_input = inputs[BOKEH_INPUT_INDEX];
+  p.size_input = inputs[SIZE_INPUT_INDEX];
+  p.image_input = inputs[IMAGE_INPUT_INDEX];
+  p.step = QualityStepHelper::getStep();
+  p.threshold = m_threshold;
+  p.image_width = this->getWidth();
+  p.image_height = this->getHeight();
+
+  rcti scalar_area;
+  this->get_area_of_interest(SIZE_INPUT_INDEX, area, scalar_area);
+  BLI_rcti_isect(&scalar_area, &p.size_input->get_rect(), &scalar_area);
+  const float max_size = p.size_input->get_max_value(scalar_area);
+
+  const float max_dim = MAX2(this->getWidth(), this->getHeight());
+  p.scalar = m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
+  p.max_blur_scalar = static_cast<int>(max_size * p.scalar);
+  CLAMP(p.max_blur_scalar, 1, m_maxBlur);
+
+  for (BuffersIterator<float> it = output->iterate_with({p.image_input, p.size_input}, area);
+       !it.is_end();
+       ++it) {
+    const float *color = it.in(0);
+    const float size = *it.in(1);
+    copy_v4_v4(p.color_accum, color);
+    copy_v4_fl(p.multiplier_accum, 1.0f);
+    p.size_center = size * p.scalar;
+
+    if (p.size_center > p.threshold) {
+      blur_pixel(it.x, it.y, p);
+    }
+
+    it.out[0] = p.color_accum[0] / p.multiplier_accum[0];
+    it.out[1] = p.color_accum[1] / p.multiplier_accum[1];
+    it.out[2] = p.color_accum[2] / p.multiplier_accum[2];
+    it.out[3] = p.color_accum[3] / p.multiplier_accum[3];
+
+    /* Blend in out values over the threshold, otherwise we get sharp, ugly transitions. */
+    if ((p.size_center > p.threshold) && (p.size_center < p.threshold * 2.0f)) {
+      /* Factor from 0-1. */
+      const float fac = (p.size_center - p.threshold) / p.threshold;
+      interp_v4_v4v4(it.out, color, it.out, fac);
+    }
+  }
+}
+
+#ifdef COM_DEFOCUS_SEARCH
+/* #InverseSearchRadiusOperation. */
 InverseSearchRadiusOperation::InverseSearchRadiusOperation()
 {
-  this->addInputSocket(DataType::Value, ResizeMode::None);  // radius
+  this->addInputSocket(DataType::Value, ResizeMode::None); /* Radius. */
   this->addOutputSocket(DataType::Color);
   this->flags.complex = true;
   this->m_inputRadius = nullptr;
@@ -311,37 +472,39 @@ void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
       offset += 4;
     }
   }
-  //  for (x = rect->xmin; x < rect->xmax ; x++) {
-  //      for (y = rect->ymin; y < rect->ymax ; y++) {
-  //          int rx = x * DIVIDER;
-  //          int ry = y * DIVIDER;
-  //          float radius = 0.0f;
-  //          float maxx = x;
-  //          float maxy = y;
+#  if 0
+  for (x = rect->xmin; x < rect->xmax; x++) {
+    for (y = rect->ymin; y < rect->ymax; y++) {
+      int rx = x * DIVIDER;
+      int ry = y * DIVIDER;
+      float radius = 0.0f;
+      float maxx = x;
+      float maxy = y;
 
-  //          for (int x2 = 0 ; x2 < DIVIDER ; x2 ++) {
-  //              for (int y2 = 0 ; y2 < DIVIDER ; y2 ++) {
-  //                  this->m_inputRadius->read(temp, rx+x2, ry+y2, PixelSampler::Nearest);
-  //                  if (radius < temp[0]) {
-  //                      radius = temp[0];
-  //                      maxx = x2;
-  //                      maxy = y2;
-  //                  }
-  //              }
-  //          }
-  //          int impactRadius = ceil(radius / DIVIDER);
-  //          for (int x2 = x - impactRadius ; x2 < x + impactRadius ; x2 ++) {
-  //              for (int y2 = y - impactRadius ; y2 < y + impactRadius ; y2 ++) {
-  //                  data->read(temp, x2, y2);
-  //                  temp[0] = MIN2(temp[0], maxx);
-  //                  temp[1] = MIN2(temp[1], maxy);
-  //                  temp[2] = MAX2(temp[2], maxx);
-  //                  temp[3] = MAX2(temp[3], maxy);
-  //                  data->writePixel(x2, y2, temp);
-  //              }
-  //          }
-  //      }
-  //  }
+      for (int x2 = 0; x2 < DIVIDER; x2++) {
+        for (int y2 = 0; y2 < DIVIDER; y2++) {
+          this->m_inputRadius->read(temp, rx + x2, ry + y2, PixelSampler::Nearest);
+          if (radius < temp[0]) {
+            radius = temp[0];
+            maxx = x2;
+            maxy = y2;
+          }
+        }
+      }
+      int impactRadius = ceil(radius / DIVIDER);
+      for (int x2 = x - impactRadius; x2 < x + impactRadius; x2++) {
+        for (int y2 = y - impactRadius; y2 < y + impactRadius; y2++) {
+          data->read(temp, x2, y2);
+          temp[0] = MIN2(temp[0], maxx);
+          temp[1] = MIN2(temp[1], maxy);
+          temp[2] = MAX2(temp[2], maxx);
+          temp[3] = MAX2(temp[3], maxy);
+          data->writePixel(x2, y2, temp);
+        }
+      }
+    }
+  }
+#  endif
   return data;
 }
 

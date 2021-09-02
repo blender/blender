@@ -1124,7 +1124,7 @@ static void bm_log_entry_free_direct(BMLogEntry *entry)
       break;
     case LOG_ENTRY_FULL_MESH:
 
-      BKE_mesh_free(entry->full_copy_mesh);
+      BKE_mesh_free_data_for_undo(entry->full_copy_mesh);
       break;
     case LOG_ENTRY_PARTIAL:
       BLI_ghash_free(entry->deleted_verts, NULL, NULL);
@@ -1973,7 +1973,7 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
   BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
-  BKE_mesh_free(entry->full_copy_mesh);
+  BKE_mesh_free_data_for_undo(entry->full_copy_mesh);
 
   entry->full_copy_mesh = tmp.full_copy_mesh;
 }

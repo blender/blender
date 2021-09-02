@@ -256,9 +256,11 @@ int /*eContextResult*/ CTX_data_get(
     const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
+void CTX_data_pointer_set_ptr(bContextDataResult *result, const PointerRNA *ptr);
 void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
 
 void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
+void CTX_data_list_add_ptr(bContextDataResult *result, const PointerRNA *ptr);
 void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
 
 void CTX_data_dir_set(bContextDataResult *result, const char **dir);

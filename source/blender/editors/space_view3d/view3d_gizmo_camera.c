@@ -75,7 +75,7 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(
     if (ob->type == OB_CAMERA) {
       Camera *camera = ob->data;
       /* TODO: support overrides. */
-      if (camera->id.lib == NULL) {
+      if (!ID_IS_LINKED(camera)) {
         return true;
       }
     }
@@ -408,7 +408,7 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UN
   if (rv3d->persp == RV3D_CAMOB) {
     if (scene->r.mode & R_BORDER) {
       /* TODO: support overrides. */
-      if (scene->id.lib == NULL) {
+      if (!ID_IS_LINKED(scene)) {
         return true;
       }
     }

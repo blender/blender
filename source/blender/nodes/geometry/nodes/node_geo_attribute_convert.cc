@@ -19,17 +19,15 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_attribute_convert_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute")},
-    {SOCK_STRING, N_("Result")},
-    {-1, ""},
-};
+namespace blender::nodes {
 
-static bNodeSocketTemplate geo_node_attribute_convert_out[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
+static void geo_node_attribute_convert_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Attribute");
+  b.add_input<decl::String>("Result");
+  b.add_output<decl::Geometry>("Geometry");
+}
 
 static void geo_node_attribute_convert_layout(uiLayout *layout,
                                               bContext *UNUSED(C),
@@ -50,8 +48,6 @@ static void geo_node_attribute_convert_init(bNodeTree *UNUSED(tree), bNode *node
   data->domain = ATTR_DOMAIN_AUTO;
   node->storage = data;
 }
-
-namespace blender::nodes {
 
 static AttributeMetaData get_result_domain_and_type(const GeometryComponent &component,
                                                     const StringRef source_name,
@@ -187,11 +183,10 @@ void register_node_type_geo_attribute_convert()
 
   geo_node_type_base(
       &ntype, GEO_NODE_ATTRIBUTE_CONVERT, "Attribute Convert", NODE_CLASS_ATTRIBUTE, 0);
-  node_type_socket_templates(
-      &ntype, geo_node_attribute_convert_in, geo_node_attribute_convert_out);
+  ntype.declare = blender::nodes::geo_node_attribute_convert_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_convert_exec;
-  ntype.draw_buttons = geo_node_attribute_convert_layout;
-  node_type_init(&ntype, geo_node_attribute_convert_init);
+  ntype.draw_buttons = blender::nodes::geo_node_attribute_convert_layout;
+  node_type_init(&ntype, blender::nodes::geo_node_attribute_convert_init);
   node_type_storage(
       &ntype, "NodeAttributeConvert", node_free_standard_storage, node_copy_standard_storage);
 

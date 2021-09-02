@@ -19,19 +19,15 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_bounding_box_in[] = {
-    {SOCK_GEOMETRY, N_("Geometry")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_bounding_box_out[] = {
-    {SOCK_GEOMETRY, N_("Bounding Box")},
-    {SOCK_VECTOR, N_("Min")},
-    {SOCK_VECTOR, N_("Max")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_bounding_box_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Bounding Box");
+  b.add_output<decl::Vector>("Min");
+  b.add_output<decl::Vector>("Max");
+}
 
 using bke::GeometryInstanceGroup;
 
@@ -156,8 +152,8 @@ static void geo_node_bounding_box_exec(GeoNodeExecParams params)
   else {
     const float3 scale = max - min;
     const float3 center = min + scale / 2.0f;
-    Mesh *mesh = create_cube_mesh(1.0f);
-    transform_mesh(mesh, center, float3(0), scale);
+    Mesh *mesh = create_cuboid_mesh(scale, 2, 2, 2);
+    transform_mesh(mesh, center, float3(0), float3(1));
     params.set_output("Bounding Box", GeometrySet::create_with_mesh(mesh));
     params.set_output("Min", min);
     params.set_output("Max", max);
@@ -171,7 +167,7 @@ void register_node_type_geo_bounding_box()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_BOUNDING_BOX, "Bounding Box", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_bounding_box_in, geo_node_bounding_box_out);
+  ntype.declare = blender::nodes::geo_node_bounding_box_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_bounding_box_exec;
   nodeRegisterType(&ntype);
 }

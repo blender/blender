@@ -290,15 +290,10 @@ static void rna_UDIMTile_tile_number_set(PointerRNA *ptr, int value)
   ImageTile *tile = (ImageTile *)ptr->data;
   Image *image = (Image *)ptr->owner_id;
 
-  /* The index of the first tile can't be changed. */
-  if (tile->tile_number == 1001) {
-    return;
-  }
-
   /* Check that no other tile already has that number. */
   ImageTile *cur_tile = BKE_image_get_tile(image, value);
-  if (cur_tile == NULL || cur_tile == tile) {
-    tile->tile_number = value;
+  if (cur_tile == NULL) {
+    BKE_image_reassign_tile(image, tile, value);
   }
 }
 

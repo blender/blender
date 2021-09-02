@@ -105,7 +105,7 @@ static void seq_frame_snap_update_best(const int position,
 static int seq_frame_apply_snap(bContext *C, Scene *scene, const int timeline_frame)
 {
 
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene, false));
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
   SeqCollection *strips = SEQ_query_all_strips(seqbase);
 
   int best_frame = 0;

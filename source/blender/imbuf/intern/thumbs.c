@@ -435,8 +435,9 @@ static ImBuf *thumb_create_ex(const char *file_path,
         scaledy = (float)tsize;
         scaledx = ((float)img->x / (float)img->y) * tsize;
       }
-      ex = (short)scaledx;
-      ey = (short)scaledy;
+      /* Scaling down must never assign zero width/height, see: T89868. */
+      ex = MAX2(1, (short)scaledx);
+      ey = MAX2(1, (short)scaledy);
 
       /* save some time by only scaling byte buf */
       if (img->rect_float) {

@@ -128,4 +128,51 @@ bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input,
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
+void MovieDistortionOperation::get_area_of_interest(const int input_idx,
+                                                    const rcti &output_area,
+                                                    rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+  r_input_area.xmin = output_area.xmin - m_margin[0];
+  r_input_area.ymin = output_area.ymin - m_margin[1];
+  r_input_area.xmax = output_area.xmax + m_margin[0];
+  r_input_area.ymax = output_area.ymax + m_margin[1];
+}
+
+void MovieDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                            const rcti &area,
+                                                            Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *input_img = inputs[0];
+  if (this->m_distortion == nullptr) {
+    output->copy_from(input_img, area);
+    return;
+  }
+
+  /* `float overscan = 0.0f;` */
+  const float pixel_aspect = this->m_pixel_aspect;
+  const float w = (float)this->m_width /* `/ (1 + overscan)` */;
+  const float h = (float)this->m_height /* `/ (1 + overscan)` */;
+  const float aspx = w / (float)this->m_calibration_width;
+  const float aspy = h / (float)this->m_calibration_height;
+  float xy[2];
+  float distorted_xy[2];
+  for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
+    xy[0] = (it.x /* `- 0.5 * overscan * w` */) / aspx;
+    xy[1] = (it.y /* `- 0.5 * overscan * h` */) / aspy / pixel_aspect;
+
+    if (this->m_apply) {
+      BKE_tracking_distortion_undistort_v2(this->m_distortion, xy, distorted_xy);
+    }
+    else {
+      BKE_tracking_distortion_distort_v2(this->m_distortion, xy, distorted_xy);
+    }
+
+    const float u = distorted_xy[0] * aspx /* `+ 0.5 * overscan * w` */;
+    const float v = (distorted_xy[1] * aspy /* `+ 0.5 * overscan * h` */) * pixel_aspect;
+    input_img->read_elem_bilinear(u, v, it.out);
+  }
+}
+
 }  // namespace blender::compositor

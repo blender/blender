@@ -38,8 +38,19 @@ class FastGaussianBlurOperation : public BlurBaseOperation {
 
   static void IIR_gauss(MemoryBuffer *src, float sigma, unsigned int channel, unsigned int xy);
   void *initializeTileData(rcti *rect) override;
+  void init_data() override;
   void deinitExecution() override;
   void initExecution() override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_started(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+  void update_memory_buffer_partial(MemoryBuffer *UNUSED(output),
+                                    const rcti &UNUSED(area),
+                                    Span<MemoryBuffer *> UNUSED(inputs)) override
+  {
+  }
 };
 
 enum {
@@ -48,7 +59,7 @@ enum {
   FAST_GAUSS_OVERLAY_MAX = 1,
 };
 
-class FastGaussianBlurValueOperation : public NodeOperation {
+class FastGaussianBlurValueOperation : public MultiThreadedOperation {
  private:
   float m_sigma;
   MemoryBuffer *m_iirgaus;
@@ -80,6 +91,14 @@ class FastGaussianBlurValueOperation : public NodeOperation {
   {
     this->m_overlay = overlay;
   }
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_started(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

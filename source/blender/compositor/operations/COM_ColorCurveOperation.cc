@@ -128,7 +128,7 @@ void ColorCurveOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-// Constant level curve mapping
+/* Constant level curve mapping. */
 
 ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation()
 {

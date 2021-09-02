@@ -327,6 +327,8 @@ static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 void CLIP_OT_graph_select(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Select";
   ot->description = "Select graph curves";
@@ -351,11 +353,12 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
                        "Mouse location to select nearest entity",
                        -100.0f,
                        100.0f);
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  0,
-                  "Extend",
-                  "Extend selection rather than clearing the existing selection");
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         0,
+                         "Extend",
+                         "Extend selection rather than clearing the existing selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /********************** box select operator *********************/

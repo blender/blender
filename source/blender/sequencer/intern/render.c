@@ -840,7 +840,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
       for (i = 0; i < 3; i++) {
         /* Speed effect requires time remapping of `timeline_frame` for input(s). */
         if (input[0] && seq->type == SEQ_TYPE_SPEED) {
-          float target_frame = seq_speed_effect_target_frame_get(context, seq, timeline_frame, i);
+          float target_frame = seq_speed_effect_target_frame_get(scene, seq, timeline_frame, i);
           ibuf[i] = seq_render_strip(context, state, input[0], target_frame);
         }
         else { /* Other effects. */
@@ -1921,7 +1921,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, int chanshown)
 {
   Scene *scene = context->scene;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbasep;
 
   if (ed == NULL) {

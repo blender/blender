@@ -302,7 +302,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
   /* Get the name. */
   if (face->family_name) {
     BLI_snprintf(vfd->name, sizeof(vfd->name), "%s %s", face->family_name, face->style_name);
-    BLI_utf8_invalid_strip(vfd->name, strlen(vfd->name));
+    BLI_str_utf8_invalid_strip(vfd->name, strlen(vfd->name));
   }
 
   /* Select a character map. */

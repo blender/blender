@@ -824,7 +824,11 @@ class _defs_edit_mesh:
             idname="builtin.inset_faces",
             label="Inset Faces",
             icon="ops.mesh.inset",
-            widget="VIEW3D_GGT_tool_generic_handle_normal",
+            widget="VIEW3D_GGT_tool_generic_handle_free",
+            widget_properties=[
+                ("radius", 75.0),
+                ("backdrop_fill_alpha", 0.0),
+            ],
             keymap=(),
             draw_settings=draw_settings,
         )

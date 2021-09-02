@@ -20,6 +20,7 @@
 
 #include <string.h>
 
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -39,6 +40,8 @@
 #include "BKE_cachefile.h"
 #include "BKE_context.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
@@ -118,6 +121,44 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return (mcmd->cache_file == NULL) || (mcmd->object_path[0] == '\0');
 }
 
+static Mesh *generate_bounding_box_mesh(Object *object, Mesh *org_mesh)
+{
+  BoundBox *bb = BKE_object_boundbox_get(object);
+  Mesh *result = BKE_mesh_new_nomain_from_template(org_mesh, 8, 0, 0, 24, 6);
+
+  MVert *mvert = result->mvert;
+  for (int i = 0; i < 8; ++i) {
+    copy_v3_v3(mvert[i].co, bb->vec[i]);
+  }
+
+  /* See DNA_object_types.h for the diagram showing the order of the vertices for a BoundBox. */
+  static unsigned int loops_v[6][4] = {
+      {0, 4, 5, 1},
+      {4, 7, 6, 5},
+      {7, 3, 2, 6},
+      {3, 0, 1, 2},
+      {1, 5, 6, 2},
+      {3, 7, 4, 0},
+  };
+
+  MLoop *mloop = result->mloop;
+  for (int i = 0; i < 6; ++i) {
+    for (int j = 0; j < 4; ++j, ++mloop) {
+      mloop->v = loops_v[i][j];
+    }
+  }
+
+  MPoly *mpoly = result->mpoly;
+  for (int i = 0; i < 6; ++i) {
+    mpoly[i].loopstart = i * 4;
+    mpoly[i].totloop = 4;
+  }
+
+  BKE_mesh_calc_edges(result, false, false);
+
+  return result;
+}
+
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
@@ -141,6 +182,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           ctx->object, md, "Could not create reader for file %s", cache_file->filepath);
       return mesh;
     }
+  }
+
+  /* Do not process data if using a render procedural, return a box instead for displaying in the
+   * viewport. */
+  if (BKE_cache_file_uses_render_procedural(cache_file, scene, DEG_get_mode(ctx->depsgraph))) {
+    return generate_bounding_box_mesh(ctx->object, org_mesh);
   }
 
   /* If this invocation is for the ORCO mesh, and the mesh hasn't changed topology, we
@@ -223,18 +270,20 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   return result ? result : mesh;
 #else
-  UNUSED_VARS(ctx, md);
+  UNUSED_VARS(ctx, md, generate_bounding_box_mesh);
   return mesh;
 #endif
 }
 
-static bool dependsOnTime(ModifierData *md)
+static bool dependsOnTime(Scene *scene, ModifierData *md, const int dag_eval_mode)
 {
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
   MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
-  return (mcmd->cache_file != NULL);
+  /* Do not evaluate animations if using the render engine procedural. */
+  return (mcmd->cache_file != NULL) &&
+         !BKE_cache_file_uses_render_procedural(mcmd->cache_file, scene, dag_eval_mode);
 #else
-  UNUSED_VARS(md);
+  UNUSED_VARS(scene, md, dag_eval_mode);
   return false;
 #endif
 }

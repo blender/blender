@@ -183,12 +183,11 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
   }
 }
 
-static const blender::fn::MultiFunction &get_multi_function(
-    blender::nodes::NodeMFNetworkBuilder &builder)
+static const blender::fn::MultiFunction *get_multi_function(bNode &node)
 {
   using blender::float3;
 
-  NodeVectorMathOperation operation = NodeVectorMathOperation(builder.bnode().custom1);
+  NodeVectorMathOperation operation = NodeVectorMathOperation(node.custom1);
 
   const blender::fn::MultiFunction *multi_fn = nullptr;
 
@@ -199,7 +198,7 @@ static const blender::fn::MultiFunction &get_multi_function(
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
-    return *multi_fn;
+    return multi_fn;
   }
 
   blender::nodes::try_dispatch_float_math_fl3_fl3_fl3_to_fl3(
@@ -209,7 +208,7 @@ static const blender::fn::MultiFunction &get_multi_function(
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
-    return *multi_fn;
+    return multi_fn;
   }
 
   blender::nodes::try_dispatch_float_math_fl3_fl3_fl_to_fl3(
@@ -219,7 +218,7 @@ static const blender::fn::MultiFunction &get_multi_function(
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
-    return *multi_fn;
+    return multi_fn;
   }
 
   blender::nodes::try_dispatch_float_math_fl3_fl3_to_fl(
@@ -229,7 +228,7 @@ static const blender::fn::MultiFunction &get_multi_function(
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
-    return *multi_fn;
+    return multi_fn;
   }
 
   blender::nodes::try_dispatch_float_math_fl3_fl_to_fl3(
@@ -239,7 +238,7 @@ static const blender::fn::MultiFunction &get_multi_function(
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
-    return *multi_fn;
+    return multi_fn;
   }
 
   blender::nodes::try_dispatch_float_math_fl3_to_fl3(
@@ -248,7 +247,7 @@ static const blender::fn::MultiFunction &get_multi_function(
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
-    return *multi_fn;
+    return multi_fn;
   }
 
   blender::nodes::try_dispatch_float_math_fl3_to_fl(
@@ -257,15 +256,16 @@ static const blender::fn::MultiFunction &get_multi_function(
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
-    return *multi_fn;
+    return multi_fn;
   }
 
-  return builder.get_not_implemented_fn();
+  return nullptr;
 }
 
-static void sh_node_vector_math_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
+static void sh_node_vector_math_build_multi_function(
+    blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  const blender::fn::MultiFunction &fn = get_multi_function(builder);
+  const blender::fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 
@@ -278,7 +278,7 @@ void register_node_type_sh_vect_math(void)
   node_type_label(&ntype, node_vector_math_label);
   node_type_gpu(&ntype, gpu_shader_vector_math);
   node_type_update(&ntype, node_shader_update_vector_math);
-  ntype.expand_in_mf_network = sh_node_vector_math_expand_in_mf_network;
+  ntype.build_multi_function = sh_node_vector_math_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

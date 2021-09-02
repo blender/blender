@@ -467,40 +467,50 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     const int type = RNA_enum_get(op->ptr, "type");
 
-    BM_custom_loop_normals_to_vector_layer(em->bm);
-
     switch (type) {
       case MESH_DELETE_VERT: /* Erase Vertices */
-        if (!(em->bm->totvertsel &&
-              EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS))) {
+        if (em->bm->totvertsel == 0) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)) {
           continue;
         }
         break;
       case MESH_DELETE_EDGE: /* Erase Edges */
-        if (!(em->bm->totedgesel &&
-              EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES))) {
+        if (em->bm->totedgesel == 0) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES)) {
           continue;
         }
         break;
       case MESH_DELETE_FACE: /* Erase Faces */
-        if (!(em->bm->totfacesel &&
-              EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES))) {
+        if (em->bm->totfacesel == 0) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES)) {
           continue;
         }
         break;
-      case MESH_DELETE_EDGE_FACE:
-        /* Edges and Faces */
-        if (!((em->bm->totedgesel || em->bm->totfacesel) &&
-              EDBM_op_callf(
-                  em, op, "delete geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES))) {
+      case MESH_DELETE_EDGE_FACE: /* Edges and Faces */
+        if ((em->bm->totedgesel == 0) && (em->bm->totfacesel == 0)) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(
+                em, op, "delete geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES)) {
           continue;
         }
         break;
-      case MESH_DELETE_ONLY_FACE:
-        /* Only faces. */
-        if (!(em->bm->totfacesel &&
-              EDBM_op_callf(
-                  em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_ONLYFACES))) {
+      case MESH_DELETE_ONLY_FACE: /* Only faces. */
+        if (em->bm->totfacesel == 0) {
+          continue;
+        }
+        BM_custom_loop_normals_to_vector_layer(em->bm);
+        if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_ONLYFACES)) {
           continue;
         }
         break;
@@ -2183,6 +2193,61 @@ static bool flip_custom_normals(BMesh *bm, BMLoopNorEditDataArray *lnors_ed_arr)
 /* -------------------------------------------------------------------- */
 /** \name Flip Normals Operator
  * \{ */
+
+static void edbm_flip_normals_custom_loop_normals(Object *obedit, BMEditMesh *em)
+{
+  if (!CustomData_has_layer(&em->bm->ldata, CD_CUSTOMLOOPNORMAL)) {
+    return;
+  }
+
+  /* The mesh has custom normal data, flip them. */
+  BMesh *bm = em->bm;
+
+  BM_lnorspace_update(bm);
+  BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
+  BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
+
+  for (int i = 0; i < lnors_ed_arr->totloop; i++, lnor_ed++) {
+    negate_v3(lnor_ed->nloc);
+
+    BKE_lnor_space_custom_normal_to_data(
+        bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->nloc, lnor_ed->clnors_data);
+  }
+  BM_loop_normal_editdata_array_free(lnors_ed_arr);
+  EDBM_update(obedit->data,
+              &(const struct EDBMUpdate_Params){
+                  .calc_looptri = true,
+                  .calc_normals = false,
+                  .is_destructive = false,
+              });
+}
+
+static void edbm_flip_normals_face_winding(wmOperator *op, Object *obedit, BMEditMesh *em)
+{
+
+  bool has_flipped_faces = false;
+
+  /* See if we have any custom normals to flip. */
+  BMLoopNorEditDataArray *lnors_ed_arr = flip_custom_normals_init_data(em->bm);
+
+  if (EDBM_op_callf(em, op, "reverse_faces faces=%hf flip_multires=%b", BM_ELEM_SELECT, true)) {
+    has_flipped_faces = true;
+  }
+
+  if (flip_custom_normals(em->bm, lnors_ed_arr) || has_flipped_faces) {
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = true,
+                    .calc_normals = false,
+                    .is_destructive = false,
+                });
+  }
+
+  if (lnors_ed_arr != NULL) {
+    BM_loop_normal_editdata_array_free(lnors_ed_arr);
+  }
+}
+
 static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
 {
   const bool only_clnors = RNA_boolean_get(op->ptr, "only_clnors");
@@ -2197,56 +2262,16 @@ static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (only_clnors) {
-      if (CustomData_has_layer(&em->bm->ldata, CD_CUSTOMLOOPNORMAL)) {
-        /* The mesh has custom normal data, flip them. */
-        BMesh *bm = em->bm;
-
-        BM_lnorspace_update(bm);
-        BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm, false);
-        BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
-
-        for (int i = 0; i < lnors_ed_arr->totloop; i++, lnor_ed++) {
-          negate_v3(lnor_ed->nloc);
-
-          BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[lnor_ed->loop_index],
-                                               lnor_ed->nloc,
-                                               lnor_ed->clnors_data);
-        }
-        BM_loop_normal_editdata_array_free(lnors_ed_arr);
-        EDBM_update(obedit->data,
-                    &(const struct EDBMUpdate_Params){
-                        .calc_looptri = true,
-                        .calc_normals = false,
-                        .is_destructive = false,
-                    });
+      if ((em->bm->totvertsel == 0) && (em->bm->totedgesel == 0) && (em->bm->totfacesel == 0)) {
+        continue;
       }
-      continue;
+      edbm_flip_normals_custom_loop_normals(obedit, em);
     }
-
-    if (em->bm->totfacesel == 0) {
-      continue;
-    }
-
-    bool has_flipped_faces = false;
-
-    /* See if we have any custom normals to flip. */
-    BMLoopNorEditDataArray *lnors_ed_arr = flip_custom_normals_init_data(em->bm);
-
-    if (EDBM_op_callf(em, op, "reverse_faces faces=%hf flip_multires=%b", BM_ELEM_SELECT, true)) {
-      has_flipped_faces = true;
-    }
-
-    if (flip_custom_normals(em->bm, lnors_ed_arr) || has_flipped_faces) {
-      EDBM_update(obedit->data,
-                  &(const struct EDBMUpdate_Params){
-                      .calc_looptri = true,
-                      .calc_normals = false,
-                      .is_destructive = false,
-                  });
-    }
-
-    if (lnors_ed_arr != NULL) {
-      BM_loop_normal_editdata_array_free(lnors_ed_arr);
+    else {
+      if (em->bm->totfacesel == 0) {
+        continue;
+      }
+      edbm_flip_normals_face_winding(op, obedit, em);
     }
   }
 
@@ -5555,24 +5580,24 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       view_layer, CTX_wm_view3d(C), &objects_len);
 
-  bool is_face_pair;
+  const bool do_seam = RNA_boolean_get(op->ptr, "seam");
+  const bool do_sharp = RNA_boolean_get(op->ptr, "sharp");
+  const bool do_uvs = RNA_boolean_get(op->ptr, "uvs");
+  const bool do_vcols = RNA_boolean_get(op->ptr, "vcols");
+  const bool do_materials = RNA_boolean_get(op->ptr, "materials");
 
+  float angle_face_threshold, angle_shape_threshold;
+  bool is_face_pair;
   {
     int totelem_sel[3];
     EDBM_mesh_stats_multi(objects, objects_len, NULL, totelem_sel);
     is_face_pair = (totelem_sel[2] == 2);
   }
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
-
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    bool do_seam, do_sharp, do_uvs, do_vcols, do_materials;
-    float angle_face_threshold, angle_shape_threshold;
+  /* When joining exactly 2 faces, no limit.
+   * this is useful for one off joins while editing. */
+  {
     PropertyRNA *prop;
-
-    /* When joining exactly 2 faces, no limit.
-     * this is useful for one off joins while editing. */
     prop = RNA_struct_find_property(op->ptr, "face_threshold");
     if (is_face_pair && (RNA_property_is_set(op->ptr, prop) == false)) {
       angle_face_threshold = DEG2RADF(180.0f);
@@ -5588,12 +5613,15 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
     else {
       angle_shape_threshold = RNA_property_float_get(op->ptr, prop);
     }
+  }
 
-    do_seam = RNA_boolean_get(op->ptr, "seam");
-    do_sharp = RNA_boolean_get(op->ptr, "sharp");
-    do_uvs = RNA_boolean_get(op->ptr, "uvs");
-    do_vcols = RNA_boolean_get(op->ptr, "vcols");
-    do_materials = RNA_boolean_get(op->ptr, "materials");
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    if (em->bm->totfacesel == 0) {
+      continue;
+    }
 
     BM_custom_loop_normals_to_vector_layer(em->bm);
 
@@ -6428,7 +6456,7 @@ static int edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
 
     if (!EDBM_op_callf(em, op, "dissolve_degenerate edges=%he dist=%f", BM_ELEM_SELECT, thresh)) {
-      return OPERATOR_CANCELLED;
+      continue;
     }
 
     /* tricky to maintain correct selection here, so just flush up from verts */
@@ -8713,7 +8741,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
     RNA_enum_set(op->ptr, "mode", mode);
   }
 
-  /* Only handle mousemove event in case we are in mouse mode. */
+  /* Only handle mouse-move event in case we are in mouse mode. */
   if (event->type == MOUSEMOVE || force_mousemove) {
     if (mode == EDBM_CLNOR_POINTTO_MODE_MOUSE) {
       ARegion *region = CTX_wm_region(C);
@@ -9620,6 +9648,10 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
+    if (bm->totfacesel == 0) {
+      continue;
+    }
+
     BMFace *f;
     BMVert *v;
     BMEdge *e;

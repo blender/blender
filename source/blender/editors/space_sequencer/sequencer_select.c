@@ -202,7 +202,7 @@ void select_surround_from_last(Scene *scene)
 
 void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool deselect_all)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (deselect_all) {
     ED_sequencer_deselect_all(scene);
@@ -236,7 +236,7 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
 {
   /* sel: 0==unselected, 1==selected, -1==don't care. */
   Sequence *seq;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return NULL;
@@ -270,7 +270,7 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
 Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2])
 {
   Sequence *seq;
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   float x, y;
   float pixelx;
   float handsize;
@@ -396,7 +396,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
   int action = RNA_enum_get(op->ptr, "action");
 
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
 
   if (action == SEL_TOGGLE) {
@@ -463,7 +463,7 @@ void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
 static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -508,7 +508,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 {
   View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   const bool linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
@@ -799,7 +799,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 /* Run recursively to select linked. */
 static bool select_linked_internal(Scene *scene)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return false;
@@ -832,7 +832,7 @@ static bool select_linked_internal(Scene *scene)
 /* Select only one linked strip on each side. */
 static bool select_more_less_seq__internal(Scene *scene, bool select_more)
 {
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return false;
@@ -1070,7 +1070,7 @@ static const EnumPropertyItem prop_select_handles_side_types[] = {
 static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
   int sel_side = RNA_enum_get(op->ptr, "side");
 
@@ -1169,7 +1169,7 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const int side = RNA_enum_get(op->ptr, "side");
 
@@ -1244,7 +1244,7 @@ void SEQUENCER_OT_select_side_of_frame(wmOperatorType *ot)
 static int sequencer_select_side_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   const int sel_side = RNA_enum_get(op->ptr, "side");
   const int frame_init = sel_side == SEQ_SIDE_LEFT ? INT_MIN : INT_MAX;
@@ -1315,7 +1315,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = UI_view2d_fromcontext(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
@@ -1679,7 +1679,7 @@ static bool select_grouped_effect_link(Editing *ed,
 static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
+  Editing *ed = SEQ_editing_get(scene);
   Sequence *actseq = SEQ_select_active_get(scene);
 
   if (actseq == NULL) {

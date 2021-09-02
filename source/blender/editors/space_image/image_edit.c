@@ -57,7 +57,7 @@ Image *ED_space_image(SpaceImage *sima)
   return sima->image;
 }
 
-void ED_space_image_set(Main *bmain, SpaceImage *sima, Object *obedit, Image *ima, bool automatic)
+void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automatic)
 {
   /* Automatically pin image when manually assigned, otherwise it follows object. */
   if (!automatic && sima->image != ima && sima->mode == SI_MODE_UV) {
@@ -77,10 +77,6 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Object *obedit, Image *im
   }
 
   id_us_ensure_real((ID *)sima->image);
-
-  if (obedit) {
-    WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
-  }
 
   WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, NULL);
 }
@@ -139,8 +135,10 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile)
   ImBuf *ibuf;
 
   if (sima && sima->image) {
+    const Image *image = sima->image;
+
 #if 0
-    if (sima->image->type == IMA_TYPE_R_RESULT && BIF_show_render_spare()) {
+    if (image->type == IMA_TYPE_R_RESULT && BIF_show_render_spare()) {
       return BIF_render_spare_imbuf();
     }
     else
@@ -152,6 +150,12 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile)
     }
 
     if (ibuf) {
+      if (image->type == IMA_TYPE_R_RESULT && ibuf->x != 0 && ibuf->y != 0) {
+        /* Render result might be lazily allocated. Return ibuf without buffers to indicate that
+         * there is image buffer but it has no data yet. */
+        return ibuf;
+      }
+
       if (ibuf->rect || ibuf->rect_float) {
         return ibuf;
       }

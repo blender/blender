@@ -70,24 +70,10 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
 
   /* If this returns null, we won't be able to bind shortcuts to these RNA properties.
    * Support can be added at #wm_context_member_from_ptr. */
-  const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
-  if (member_id == NULL) {
+  char *final_data_path = WM_context_path_resolve_property_full(
+      C, &but->rnapoin, but->rnaprop, but->rnaindex);
+  if (final_data_path == NULL) {
     return NULL;
-  }
-
-  const char *data_path = RNA_path_from_ID_to_struct(&but->rnapoin);
-  const char *member_id_data_path = member_id;
-
-  if (data_path) {
-    member_id_data_path = BLI_sprintfN("%s.%s", member_id, data_path);
-    MEM_freeN((void *)data_path);
-  }
-
-  const char *prop_id = RNA_property_identifier(but->rnaprop);
-  const char *final_data_path = BLI_sprintfN("%s.%s", member_id_data_path, prop_id);
-
-  if (member_id != member_id_data_path) {
-    MEM_freeN((void *)member_id_data_path);
   }
 
   /* Create ID property of data path, to pass to the operator. */
@@ -329,10 +315,24 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 
 static bool ui_but_is_user_menu_compatible(bContext *C, uiBut *but)
 {
-  return (but->optype ||
-          (but->rnaprop && (RNA_property_type(but->rnaprop) == PROP_BOOLEAN) &&
-           (WM_context_member_from_ptr(C, &but->rnapoin) != NULL)) ||
-          UI_but_menutype_get(but));
+  bool result = false;
+  if (but->optype) {
+    result = true;
+  }
+  else if (but->rnaprop) {
+    if (RNA_property_type(but->rnaprop) == PROP_BOOLEAN) {
+      char *data_path = WM_context_path_resolve_full(C, &but->rnapoin);
+      if (data_path != NULL) {
+        MEM_freeN(data_path);
+        result = true;
+      }
+    }
+  }
+  else if (UI_but_menutype_get(but)) {
+    result = true;
+  }
+
+  return result;
 }
 
 static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *um)
@@ -343,21 +343,11 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
         &um->items, but->optype, prop, but->opcontext);
   }
   if (but->rnaprop) {
-    const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
-    const char *data_path = RNA_path_from_ID_to_struct(&but->rnapoin);
-    const char *member_id_data_path = member_id;
-    if (data_path) {
-      member_id_data_path = BLI_sprintfN("%s.%s", member_id, data_path);
-    }
+    char *member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
     const char *prop_id = RNA_property_identifier(but->rnaprop);
     bUserMenuItem *umi = (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
         &um->items, member_id_data_path, prop_id, but->rnaindex);
-    if (data_path) {
-      MEM_freeN((void *)data_path);
-    }
-    if (member_id != member_id_data_path) {
-      MEM_freeN((void *)member_id_data_path);
-    }
+    MEM_freeN(member_id_data_path);
     return umi;
   }
 
@@ -373,13 +363,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   BLI_assert(ui_but_is_user_menu_compatible(C, but));
 
   char drawstr[sizeof(but->drawstr)];
-  STRNCPY(drawstr, but->drawstr);
-  if (but->flag & UI_BUT_HAS_SEP_CHAR) {
-    char *sep = strrchr(drawstr, UI_SEP_CHAR);
-    if (sep) {
-      *sep = '\0';
-    }
-  }
+  ui_but_drawstr_without_sep_char(but, drawstr, sizeof(drawstr));
 
   MenuType *mt = NULL;
   if (but->optype) {
@@ -418,21 +402,11 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   }
   else if (but->rnaprop) {
     /* NOTE: 'member_id' may be a path. */
-    const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
-    const char *data_path = RNA_path_from_ID_to_struct(&but->rnapoin);
-    const char *member_id_data_path = member_id;
-    if (data_path) {
-      member_id_data_path = BLI_sprintfN("%s.%s", member_id, data_path);
-    }
+    char *member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
     const char *prop_id = RNA_property_identifier(but->rnaprop);
     /* NOTE: ignore 'drawstr', use property idname always. */
     ED_screen_user_menu_item_add_prop(&um->items, "", member_id_data_path, prop_id, but->rnaindex);
-    if (data_path) {
-      MEM_freeN((void *)data_path);
-    }
-    if (member_id != member_id_data_path) {
-      MEM_freeN((void *)member_id_data_path);
-    }
+    MEM_freeN(member_id_data_path);
   }
   else if ((mt = UI_but_menutype_get(but))) {
     ED_screen_user_menu_item_add_menu(&um->items, drawstr, mt);

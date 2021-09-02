@@ -481,7 +481,9 @@ static void eff_tri_ray_hit(void *UNUSED(userData),
   hit->index = 1;
 }
 
-// get visibility of a wind ray
+/**
+ * Get visibility of a wind ray.
+ */
 static float eff_calc_visibility(ListBase *colliders,
                                  EffectorCache *eff,
                                  EffectorData *efd,

@@ -16,6 +16,7 @@
  */
 
 #include "COM_PlaneCornerPinOperation.h"
+#include "COM_ConstantOperation.h"
 #include "COM_ReadBufferOperation.h"
 
 #include "MEM_guardedalloc.h"
@@ -27,6 +28,11 @@
 #include "BKE_node.h"
 
 namespace blender::compositor {
+
+constexpr int LOWER_LEFT_CORNER_INDEX = 0;
+constexpr int LOWER_RIGHT_CORNER_INDEX = 1;
+constexpr int UPPER_RIGHT_CORNER_INDEX = 2;
+constexpr int UPPER_LEFT_CORNER_INDEX = 3;
 
 static bool check_corners(float corners[4][2])
 {
@@ -58,6 +64,7 @@ static bool check_corners(float corners[4][2])
   return true;
 }
 
+/* TODO(manzanilla): to be removed with tiled implementation. */
 static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float corners[4][2])
 {
   for (int i = 0; i < 4; i++) {
@@ -87,6 +94,53 @@ static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float c
   }
 }
 
+static void set_default_corner(const int corner_idx, float r_corner[2])
+{
+  BLI_assert(corner_idx >= 0 && corner_idx < 4);
+  switch (corner_idx) {
+    case LOWER_LEFT_CORNER_INDEX:
+      r_corner[0] = 0.0f;
+      r_corner[1] = 0.0f;
+      break;
+    case LOWER_RIGHT_CORNER_INDEX:
+      r_corner[0] = 1.0f;
+      r_corner[1] = 0.0f;
+      break;
+    case UPPER_RIGHT_CORNER_INDEX:
+      r_corner[0] = 1.0f;
+      r_corner[1] = 1.0f;
+      break;
+    case UPPER_LEFT_CORNER_INDEX:
+      r_corner[0] = 0.0f;
+      r_corner[1] = 1.0f;
+      break;
+  }
+}
+
+static void read_input_corners(NodeOperation *op, const int first_input_idx, float r_corners[4][2])
+{
+  for (const int i : IndexRange(4)) {
+    NodeOperation *input = op->get_input_operation(i + first_input_idx);
+    if (input->get_flags().is_constant_operation) {
+      ConstantOperation *corner_input = static_cast<ConstantOperation *>(input);
+      copy_v2_v2(r_corners[i], corner_input->get_constant_elem());
+    }
+    else {
+      set_default_corner(i, r_corners[i]);
+    }
+  }
+
+  /* Convexity check: concave corners need to be prevented, otherwise
+   * #BKE_tracking_homography_between_two_quads will freeze. */
+  if (!check_corners(r_corners)) {
+    /* Revert to default corners. There could be a more elegant solution,
+     * this prevents freezing at least. */
+    for (const int i : IndexRange(4)) {
+      set_default_corner(i, r_corners[i]);
+    }
+  }
+}
+
 /* ******** PlaneCornerPinMaskOperation ******** */
 
 PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : m_corners_ready(false)
@@ -103,6 +157,17 @@ PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : m_corners_ready(fal
   flags.complex = true;
 }
 
+void PlaneCornerPinMaskOperation::init_data()
+{
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    float corners[4][2];
+    read_input_corners(this, 0, corners);
+    calculateCorners(corners, true, 0);
+  }
+}
+
+/* TODO(manzanilla): to be removed with tiled implementation. Same for #deinitExecution and do the
+ * same on #PlaneCornerPinWarpImageOperation. */
 void PlaneCornerPinMaskOperation::initExecution()
 {
   PlaneDistortMaskOperation::initExecution();
@@ -147,8 +212,20 @@ void *PlaneCornerPinMaskOperation::initializeTileData(rcti *rect)
 void PlaneCornerPinMaskOperation::determineResolution(unsigned int resolution[2],
                                                       unsigned int preferredResolution[2])
 {
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    /* Determine inputs resolution. */
+    PlaneDistortMaskOperation::determineResolution(resolution, preferredResolution);
+  }
   resolution[0] = preferredResolution[0];
   resolution[1] = preferredResolution[1];
+}
+
+void PlaneCornerPinMaskOperation::get_area_of_interest(const int UNUSED(input_idx),
+                                                       const rcti &UNUSED(output_area),
+                                                       rcti &r_input_area)
+{
+  /* All corner inputs are used as constants. */
+  r_input_area = COM_SINGLE_ELEM_AREA;
 }
 
 /* ******** PlaneCornerPinWarpImageOperation ******** */
@@ -159,6 +236,15 @@ PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : m_corners
   addInputSocket(DataType::Vector);
   addInputSocket(DataType::Vector);
   addInputSocket(DataType::Vector);
+}
+
+void PlaneCornerPinWarpImageOperation::init_data()
+{
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    float corners[4][2];
+    read_input_corners(this, 1, corners);
+    calculateCorners(corners, true, 0);
+  }
 }
 
 void PlaneCornerPinWarpImageOperation::initExecution()
@@ -225,6 +311,19 @@ bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(
   return PlaneDistortWarpImageOperation::determineDependingAreaOfInterest(
       input, readOperation, output);
 #endif
+}
+
+void PlaneCornerPinWarpImageOperation::get_area_of_interest(const int input_idx,
+                                                            const rcti &output_area,
+                                                            rcti &r_input_area)
+{
+  if (input_idx == 0) {
+    PlaneDistortWarpImageOperation::get_area_of_interest(input_idx, output_area, r_input_area);
+  }
+  else {
+    /* Corner inputs are used as constants. */
+    r_input_area = COM_SINGLE_ELEM_AREA;
+  }
 }
 
 }  // namespace blender::compositor

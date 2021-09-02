@@ -1662,6 +1662,26 @@ void animrecord_check_state(TransInfo *t, struct Object *ob)
   }
 }
 
+void transform_convert_flush_handle2D(TransData *td, TransData2D *td2d, const float y_fac)
+{
+  float delta_x = td->loc[0] - td->iloc[0];
+  float delta_y = (td->loc[1] - td->iloc[1]) * y_fac;
+
+  /* If the handles are to be moved too
+   * (as side-effect of keyframes moving, to keep the general effect)
+   * offset them by the same amount so that the general angles are maintained
+   * (i.e. won't change while handles are free-to-roam and keyframes are snap-locked).
+   */
+  if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
+    td2d->h1[0] = td2d->ih1[0] + delta_x;
+    td2d->h1[1] = td2d->ih1[1] + delta_y;
+  }
+  if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
+    td2d->h2[0] = td2d->ih2[0] + delta_x;
+    td2d->h2[1] = td2d->ih2[1] + delta_y;
+  }
+}
+
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {

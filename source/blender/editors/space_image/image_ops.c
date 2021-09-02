@@ -1289,8 +1289,10 @@ static Image *image_open_single(Main *bmain,
     }
 
     if ((range->length > 1) && (ima->source == IMA_SRC_FILE)) {
-      if (range->udim_tiles.first && range->offset == 1001) {
+      if (range->udim_tiles.first) {
         ima->source = IMA_SRC_TILED;
+        ImageTile *first_tile = ima->tiles.first;
+        first_tile->tile_number = range->offset;
         LISTBASE_FOREACH (LinkData *, node, &range->udim_tiles) {
           BKE_image_add_tile(ima, POINTER_AS_INT(node->data), NULL);
         }
@@ -1309,7 +1311,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
-  Object *obedit = CTX_data_edit_object(C);
   ImageUser *iuser = NULL;
   Image *ima = NULL;
   int frame_seq_len = 0;
@@ -1362,7 +1363,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
   else if (area && area->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
-    ED_space_image_set(bmain, sima, obedit, ima, false);
+    ED_space_image_set(bmain, sima, ima, false);
     iuser = &sima->iuser;
   }
   else {
@@ -1806,10 +1807,13 @@ static int image_save_options_init(Main *bmain,
       }
 
       /* append UDIM numbering if not present */
-      if (ima->source == IMA_SRC_TILED &&
-          (BLI_path_sequence_decode(ima->filepath, NULL, NULL, NULL) != 1001)) {
+      if (ima->source == IMA_SRC_TILED) {
+        char udim[6];
+        ImageTile *tile = ima->tiles.first;
+        BLI_snprintf(udim, sizeof(udim), ".%d", tile->tile_number);
+
         int len = strlen(opts->filepath);
-        STR_CONCAT(opts->filepath, len, ".1001");
+        STR_CONCAT(opts->filepath, len, udim);
       }
     }
 
@@ -2333,7 +2337,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
 
     if (image_should_be_saved(ima, &is_format_writable)) {
       if (BKE_image_has_packedfile(ima) || (ima->source == IMA_SRC_GENERATED)) {
-        if (ima->id.lib == NULL) {
+        if (!ID_IS_LINKED(ima)) {
           num_saveable_images++;
         }
         else {
@@ -2514,7 +2518,6 @@ static void image_new_free(wmOperator *op)
 static int image_new_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima;
-  Object *obedit;
   Image *ima;
   Main *bmain;
   PropertyRNA *prop;
@@ -2526,7 +2529,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
 
   /* retrieve state */
   sima = CTX_wm_space_image(C);
-  obedit = CTX_data_edit_object(C);
   bmain = CTX_data_main(C);
 
   prop = RNA_struct_find_property(op->ptr, "name");
@@ -2582,7 +2584,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
     RNA_property_update(C, &data->pprop.ptr, data->pprop.prop);
   }
   else if (sima) {
-    ED_space_image_set(bmain, sima, obedit, ima, false);
+    ED_space_image_set(bmain, sima, ima, false);
   }
 
   BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
@@ -3700,7 +3702,7 @@ static int image_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
 
   ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_R_RESULT, "Render Result");
   if (sima->image == NULL) {
-    ED_space_image_set(bmain, sima, NULL, ima, false);
+    ED_space_image_set(bmain, sima, ima, false);
   }
 
   RE_ReadRenderResult(scene, scene);
@@ -3868,9 +3870,9 @@ static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
 
   /* Acquire ibuf to get the default values.
    * If the specified tile has no ibuf, try acquiring the main tile instead
-   * (unless the specified tile already was the main tile). */
+   * (unless the specified tile already was the first tile). */
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
-  if (ibuf == NULL && (tile != NULL) && (tile->tile_number != 1001)) {
+  if (ibuf == NULL && (tile != NULL) && (tile != ima->tiles.first)) {
     ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
   }
 
@@ -3922,7 +3924,7 @@ static int tile_add_exec(bContext *C, wmOperator *op)
   Image *ima = CTX_data_edit_image(C);
 
   int start_tile = RNA_int_get(op->ptr, "number");
-  int end_tile = start_tile + RNA_int_get(op->ptr, "count");
+  int end_tile = start_tile + RNA_int_get(op->ptr, "count") - 1;
 
   if (start_tile < 1001 || end_tile > IMA_UDIM_MAX) {
     BKE_report(op->reports, RPT_ERROR, "Invalid UDIM index range was specified");
@@ -3930,27 +3932,31 @@ static int tile_add_exec(bContext *C, wmOperator *op)
   }
 
   bool fill_tile = RNA_boolean_get(op->ptr, "fill");
-  char *label = RNA_string_get_alloc(op->ptr, "label", NULL, 0);
+  char *label = RNA_string_get_alloc(op->ptr, "label", NULL, 0, NULL);
 
-  bool created_tile = false;
-  for (int tile_number = start_tile; tile_number < end_tile; tile_number++) {
+  /* BKE_image_add_tile assumes a pre-sorted list of tiles. */
+  BKE_image_sort_tiles(ima);
+
+  ImageTile *last_tile_created = NULL;
+  for (int tile_number = start_tile; tile_number <= end_tile; tile_number++) {
     ImageTile *tile = BKE_image_add_tile(ima, tile_number, label);
 
     if (tile != NULL) {
-      ima->active_tile_index = BLI_findindex(&ima->tiles, tile);
-
       if (fill_tile) {
         do_fill_tile(op->ptr, ima, tile);
       }
 
-      created_tile = true;
+      last_tile_created = tile;
     }
   }
   MEM_freeN(label);
 
-  if (!created_tile) {
+  if (!last_tile_created) {
+    BKE_report(op->reports, RPT_WARNING, "No UDIM tiles were created");
     return OPERATOR_CANCELLED;
   }
+
+  ima->active_tile_index = BLI_findindex(&ima->tiles, last_tile_created);
 
   WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
   return OPERATOR_FINISHED;
@@ -4040,7 +4046,7 @@ static bool tile_remove_poll(bContext *C)
 {
   Image *ima = CTX_data_edit_image(C);
 
-  return (ima != NULL && ima->source == IMA_SRC_TILED && ima->active_tile_index != 0);
+  return (ima != NULL && ima->source == IMA_SRC_TILED && !BLI_listbase_is_single(&ima->tiles));
 }
 
 static int tile_remove_exec(bContext *C, wmOperator *UNUSED(op))

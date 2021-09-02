@@ -24,8 +24,8 @@
 extern "C" {
 #endif
 
-struct AssetHandle;
 struct AssetFilterSettings;
+struct AssetHandle;
 
 bool ED_asset_filter_matches_asset(const struct AssetFilterSettings *filter,
                                    const struct AssetHandle *asset);

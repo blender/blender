@@ -662,7 +662,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   BMVert *v = BM_vert_create(pbvh->bm, co, NULL, BM_CREATE_NOP);
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
-  mv->flag = DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE;
+  mv->flag |= DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_VALENCE;
 
   if (v_example) {
     v->head.hflag = v_example->head.hflag;
@@ -681,7 +681,6 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
     copy_v3_v3(mv->origco, co);
     copy_v3_v3(mv->origno, no);
     mv->origmask = 0.0f;
-    mv->flag = 0;
 
     /* This value is logged below */
     copy_v3_v3(v->no, no);
@@ -837,7 +836,7 @@ BMVert *BKE_pbvh_vert_create_bmesh(
     BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
 
     MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_dyn_vert);
-    mv->flag = DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY;
+    mv->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_DISK_SORT | DYNVERT_NEED_BOUNDARY;
 
     copy_v3_v3(mv->origco, co);
 
@@ -2464,9 +2463,9 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
     }
 
     // check seam/sharp flags here
-    if (!(e->head.hflag & BM_ELEM_SMOOTH) || e->head.hflag & BM_ELEM_SEAM) {
-      continue;
-    }
+    // if (!(e->head.hflag & BM_ELEM_SMOOTH) || e->head.hflag & BM_ELEM_SEAM) {
+    //  continue;
+    // }
 
     float limit = lens[i];
 
@@ -2619,12 +2618,7 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
         continue;
       }
 
-      if ((mv1->flag & DYNVERT_ALL_BOUNDARY) != (mv2->flag & DYNVERT_ALL_BOUNDARY)) {
-        continue;
-      }
-
-      // check seam/sharp flags in edge itself, not just verts
-      if (!(e->head.hflag & BM_ELEM_SMOOTH) || e->head.hflag & BM_ELEM_SEAM) {
+      if (!(mv1->flag & DYNVERT_ALL_BOUNDARY) != !(mv2->flag & DYNVERT_ALL_BOUNDARY)) {
         continue;
       }
 
@@ -2672,8 +2666,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   pbvh_check_vert_boundary(pbvh, e->v1);
   pbvh_check_vert_boundary(pbvh, e->v2);
 
-  mv1->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY;
-  mv2->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY;
+  mv1->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
+  mv2->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
 
   bool boundary = (mv1->flag & DYNVERT_ALL_BOUNDARY) && (mv2->flag & DYNVERT_ALL_BOUNDARY);
 
@@ -2748,9 +2742,9 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     MDynTopoVert *mv2b = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v2);
     MDynTopoVert *mv_opp = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_opp);
 
-    mv1b->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY;
-    mv2b->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY;
-    mv_opp->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY;
+    mv1b->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
+    mv2b->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
+    mv_opp->flag |= DYNVERT_NEED_VALENCE | DYNVERT_NEED_BOUNDARY | DYNVERT_NEED_DISK_SORT;
 
     if (ni != node_index && i == 0) {
       pbvh_bmesh_vert_ownership_transfer(pbvh, &pbvh->nodes[ni], v_new);

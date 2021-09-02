@@ -146,51 +146,50 @@ static void curve_foreach_id(ID *id, LibraryForeachIDData *data)
 static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Curve *cu = (Curve *)id;
-  if (cu->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    cu->editnurb = NULL;
-    cu->editfont = NULL;
-    cu->batch_cache = NULL;
 
-    /* write LibData */
-    BLO_write_id_struct(writer, Curve, id_address, &cu->id);
-    BKE_id_blend_write(writer, &cu->id);
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  cu->editnurb = NULL;
+  cu->editfont = NULL;
+  cu->batch_cache = NULL;
 
-    /* direct data */
-    BLO_write_pointer_array(writer, cu->totcol, cu->mat);
-    if (cu->adt) {
-      BKE_animdata_blend_write(writer, cu->adt);
+  /* write LibData */
+  BLO_write_id_struct(writer, Curve, id_address, &cu->id);
+  BKE_id_blend_write(writer, &cu->id);
+
+  /* direct data */
+  BLO_write_pointer_array(writer, cu->totcol, cu->mat);
+  if (cu->adt) {
+    BKE_animdata_blend_write(writer, cu->adt);
+  }
+
+  if (cu->vfont) {
+    BLO_write_raw(writer, cu->len + 1, cu->str);
+    BLO_write_struct_array(writer, CharInfo, cu->len_char32 + 1, cu->strinfo);
+    BLO_write_struct_array(writer, TextBox, cu->totbox, cu->tb);
+  }
+  else {
+    /* is also the order of reading */
+    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+      BLO_write_struct(writer, Nurb, nu);
     }
-
-    if (cu->vfont) {
-      BLO_write_raw(writer, cu->len + 1, cu->str);
-      BLO_write_struct_array(writer, CharInfo, cu->len_char32 + 1, cu->strinfo);
-      BLO_write_struct_array(writer, TextBox, cu->totbox, cu->tb);
-    }
-    else {
-      /* is also the order of reading */
-      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-        BLO_write_struct(writer, Nurb, nu);
+    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+      if (nu->type == CU_BEZIER) {
+        BLO_write_struct_array(writer, BezTriple, nu->pntsu, nu->bezt);
       }
-      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-        if (nu->type == CU_BEZIER) {
-          BLO_write_struct_array(writer, BezTriple, nu->pntsu, nu->bezt);
+      else {
+        BLO_write_struct_array(writer, BPoint, nu->pntsu * nu->pntsv, nu->bp);
+        if (nu->knotsu) {
+          BLO_write_float_array(writer, KNOTSU(nu), nu->knotsu);
         }
-        else {
-          BLO_write_struct_array(writer, BPoint, nu->pntsu * nu->pntsv, nu->bp);
-          if (nu->knotsu) {
-            BLO_write_float_array(writer, KNOTSU(nu), nu->knotsu);
-          }
-          if (nu->knotsv) {
-            BLO_write_float_array(writer, KNOTSV(nu), nu->knotsv);
-          }
+        if (nu->knotsv) {
+          BLO_write_float_array(writer, KNOTSV(nu), nu->knotsv);
         }
       }
     }
+  }
 
-    if (cu->bevel_profile != NULL) {
-      BKE_curveprofile_blend_write(writer, cu->bevel_profile);
-    }
+  if (cu->bevel_profile != NULL) {
+    BKE_curveprofile_blend_write(writer, cu->bevel_profile);
   }
 }
 
@@ -2331,17 +2330,21 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   bevp1 = bevp2 + (bl->nr - 1);
   bevp0 = bevp1 - 1;
 
-  nr = bl->nr;
-  while (nr--) {
+  /* The ordinal of the point being adjusted (bevp2). First point is 1. */
 
-    if (nr + 3 > bl->nr) { /* first time and second time, otherwise first point adjusts last */
-      vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
-    }
-    else {
-      minimum_twist_between_two_points(bevp1, bevp0);
-    }
+  /* First point is the reference, don't adjust.
+   * Skip this point in the following loop. */
+  if (bl->nr > 0) {
+    vec_to_quat(bevp2->quat, bevp2->dir, 5, 1);
 
-    bevp0 = bevp1;
+    bevp0 = bevp1; /* bevp0 is unused */
+    bevp1 = bevp2;
+    bevp2++;
+  }
+  for (nr = 1; nr < bl->nr; nr++) {
+    minimum_twist_between_two_points(bevp2, bevp1);
+
+    bevp0 = bevp1; /* bevp0 is unused */
     bevp1 = bevp2;
     bevp2++;
   }

@@ -31,6 +31,7 @@ set(INC
 
 set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
+  ${ZSTD_INCLUDE_DIRS}
   ${FREETYPE_INCLUDE_DIRS}
   ${GMP_INCLUDE_DIRS}
 )
@@ -75,6 +76,10 @@ set(SRC
   intern/endian_switch.c
   intern/expr_pylike_eval.c
   intern/fileops.c
+  intern/filereader_file.c
+  intern/filereader_gzip.c
+  intern/filereader_memory.c
+  intern/filereader_zstd.c
   intern/fnmatch.c
   intern/freetypefont.c
   intern/gsqueue.c
@@ -195,6 +200,7 @@ set(SRC
   BLI_expr_pylike_eval.h
   BLI_fileops.h
   BLI_fileops_types.h
+  BLI_filereader.h
   BLI_float2.hh
   BLI_float3.hh
   BLI_float4x4.hh
@@ -323,6 +329,7 @@ set(LIB
 
   ${FREETYPE_LIBRARY}
   ${ZLIB_LIBRARIES}
+  ${ZSTD_LIBRARIES}
 )
 
 if(WITH_MEM_VALGRIND)

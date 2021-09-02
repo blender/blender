@@ -166,8 +166,14 @@ struct ID *BKE_libblock_find_name(struct Main *bmain,
  */
 typedef enum eLibIDDuplicateFlags {
   /** This call to a duplicate function is part of another call for some parent ID.
-   * Therefore, this sub-process should not clear `newid` pointers, nor handle remapping itself. */
+   * Therefore, this sub-process should not clear `newid` pointers, nor handle remapping itself.
+   * NOTE: In some cases (like Object one), the duplicate function may be called on the root ID
+   * with this flag set, as remapping and/or other similar tasks need to be handled by the caller.
+   */
   LIB_ID_DUPLICATE_IS_SUBPROCESS = 1 << 0,
+  /** This call is performed on a 'root' ID, and should therefore perform some decisions regarding
+   * sub-IDs (dependencies), check for linked vs. locale data, etc. */
+  LIB_ID_DUPLICATE_IS_ROOT_ID = 1 << 1,
 } eLibIDDuplicateFlags;
 
 /* lib_remap.c (keep here since they're general functions) */

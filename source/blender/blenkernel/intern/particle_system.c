@@ -1638,10 +1638,10 @@ static void sph_springs_modify(ParticleSystem *psys, float dtime)
     Lij = spring->rest_length;
     d = yield_ratio * timefix * Lij;
 
-    if (rij > Lij + d) {  // Stretch
+    if (rij > Lij + d) { /* Stretch */
       spring->rest_length += plasticity * (rij - Lij - d) * timefix;
     }
-    else if (rij < Lij - d) {  // Compress
+    else if (rij < Lij - d) { /* Compress */
       spring->rest_length -= plasticity * (Lij - d - rij) * timefix;
     }
 
@@ -2209,7 +2209,7 @@ static void sph_integrate(ParticleSimulationData *sim,
                           SPHData *sphdata)
 {
   ParticleSettings *part = sim->psys->part;
-  // float timestep = psys_get_timestep(sim); // UNUSED
+  // float timestep = psys_get_timestep(sim); /* UNUSED */
   float pa_mass = part->mass * ((part->flag & PART_SIZEMASS) ? pa->size : 1.0f);
   float dtime = dfra * psys_get_timestep(sim);
   // int steps = 1; // UNUSED
@@ -2218,7 +2218,7 @@ static void sph_integrate(ParticleSimulationData *sim,
   sphdata->pa = pa;
   sphdata->mass = pa_mass;
   sphdata->pass = 0;
-  // sphdata.element_size and sphdata.flow are set in the callback.
+  /* #sphdata.element_size and #sphdata.flow are set in the callback. */
 
   /* Restore previous state and treat gravity & effectors as external acceleration. */
   sub_v3_v3v3(effector_acceleration, pa->state.vel, pa->prev_state.vel);

@@ -33,6 +33,7 @@
 
 #include "BKE_material.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_unit.h"
 
 #include "DNA_gpencil_types.h"
@@ -44,6 +45,7 @@
 #include "ED_gizmo_utils.h"
 #include "ED_gpencil.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
 
@@ -68,6 +70,12 @@
 #include "GPU_state.h"
 
 #include "BLF_api.h"
+
+/**
+ * Supporting transform features could be removed if the actual transform system is used.
+ * Keep the option open since each transform feature is duplicating logic.
+ */
+#define USE_AXIS_CONSTRAINTS
 
 static const char *view3d_gzgt_ruler_id = "VIEW3D_GGT_ruler";
 
@@ -98,6 +106,24 @@ enum {
   RULER_STATE_DRAG,
 };
 
+#ifdef USE_AXIS_CONSTRAINTS
+/* Constrain axes */
+enum {
+  CONSTRAIN_AXIS_NONE = -1,
+  CONSTRAIN_AXIS_X = 0,
+  CONSTRAIN_AXIS_Y = 1,
+  CONSTRAIN_AXIS_Z = 2,
+};
+
+/* Constraining modes.
+   Off / Scene orientation / Global (or Local if Scene orientation is Global) */
+enum {
+  CONSTRAIN_MODE_OFF = 0,
+  CONSTRAIN_MODE_1 = 1,
+  CONSTRAIN_MODE_2 = 2,
+};
+#endif /* USE_AXIS_CONSTRAINTS */
+
 struct RulerItem;
 
 typedef struct RulerInfo {
@@ -105,6 +131,10 @@ typedef struct RulerInfo {
   int flag;
   int snap_flag;
   int state;
+
+#ifdef USE_AXIS_CONSTRAINTS
+  short constrain_axis, constrain_mode;
+#endif
 
   /* wm state */
   wmWindowManager *wm;
@@ -299,7 +329,9 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3], cons
   ED_view3d_win_to_3d_int(ruler_info->area->spacedata.first, ruler_info->region, r_co, xy, r_co);
 }
 
-/* use for mousemove events */
+/**
+ * Use for mouse-move events.
+ */
 static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
                                         RulerInfo *ruler_info,
                                         RulerItem *ruler_item,
@@ -392,6 +424,44 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
       if (ED_gizmotypes_snap_3d_is_enabled(snap_gizmo)) {
         ED_gizmotypes_snap_3d_data_get(snap_gizmo, co, NULL, NULL, NULL);
       }
+
+#ifdef USE_AXIS_CONSTRAINTS
+      if (!(ruler_item->flag & RULERITEM_USE_ANGLE) &&
+          ruler_info->constrain_mode != CONSTRAIN_MODE_OFF) {
+
+        Scene *scene = DEG_get_input_scene(depsgraph);
+        ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+        RegionView3D *rv3d = ruler_info->region->regiondata;
+        Object *ob = OBACT(view_layer);
+        Object *obedit = OBEDIT_FROM_OBACT(ob);
+
+        short orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
+
+        if (ruler_info->constrain_mode == CONSTRAIN_MODE_2) {
+          orient_index = (orient_index == V3D_ORIENT_GLOBAL) ? V3D_ORIENT_LOCAL :
+                                                               V3D_ORIENT_GLOBAL;
+        }
+
+        const int pivot_point = scene->toolsettings->transform_pivot_point;
+        float mat[3][3];
+
+        ED_transform_calc_orientation_from_type_ex(
+            scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat);
+
+        invert_m3(mat);
+        mul_m3_m3_pre(ruler_item->co, mat);
+
+        /* Loop through the axes and constrain the dragged point to the current constrained axis.
+         */
+        for (int i = 0; i <= 2; i++) {
+          if (ruler_info->constrain_axis != i) {
+            ruler_item->co[inter->co_index][i] = ruler_item->co[(inter->co_index == 0) ? 2 : 0][i];
+          }
+        }
+        invert_m3(mat);
+        mul_m3_m3_pre(ruler_item->co, mat);
+      }
+#endif
     }
     return true;
   }
@@ -938,6 +1008,35 @@ static int gizmo_ruler_modal(bContext *C,
 
   ruler_info->region = region;
 
+#ifdef USE_AXIS_CONSTRAINTS
+  if ((event->val == KM_PRESS) && ELEM(event->type, EVT_XKEY, EVT_YKEY, EVT_ZKEY)) {
+    /* Go to Mode 1 if a new axis is selected. */
+    if (event->type == EVT_XKEY && ruler_info->constrain_axis != CONSTRAIN_AXIS_X) {
+      ruler_info->constrain_axis = CONSTRAIN_AXIS_X;
+      ruler_info->constrain_mode = CONSTRAIN_MODE_1;
+    }
+    else if (event->type == EVT_YKEY && ruler_info->constrain_axis != CONSTRAIN_AXIS_Y) {
+      ruler_info->constrain_axis = CONSTRAIN_AXIS_Y;
+      ruler_info->constrain_mode = CONSTRAIN_MODE_1;
+    }
+    else if (event->type == EVT_ZKEY && ruler_info->constrain_axis != CONSTRAIN_AXIS_Z) {
+      ruler_info->constrain_axis = CONSTRAIN_AXIS_Z;
+      ruler_info->constrain_mode = CONSTRAIN_MODE_1;
+    }
+    else {
+      /* Cycle to the next mode if the same key is pressed again. */
+      if (ruler_info->constrain_mode != CONSTRAIN_MODE_2) {
+        ruler_info->constrain_mode++;
+      }
+      else {
+        ruler_info->constrain_mode = CONSTRAIN_MODE_OFF;
+        ruler_info->constrain_axis = CONSTRAIN_AXIS_NONE;
+      }
+    }
+    do_cursor_update = true;
+  }
+#endif
+
 #ifndef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   const bool do_snap = !(tweak_flag & WM_GIZMO_TWEAK_SNAP);
 #endif
@@ -983,6 +1082,11 @@ static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
   ARegion *region = ruler_info->region;
 
   const float mval_fl[2] = {UNPACK2(event->mval)};
+
+#ifdef USE_AXIS_CONSTRAINTS
+  ruler_info->constrain_axis = CONSTRAIN_AXIS_NONE;
+  ruler_info->constrain_mode = CONSTRAIN_MODE_OFF;
+#endif
 
   /* select and drag */
   if (gz->highlight_part == PART_LINE) {

@@ -267,7 +267,7 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
 
   if (space == NODE_NORMAL_MAP_TANGENT) {
     /* tangent space */
-    if (sd->object == OBJECT_NONE) {
+    if (sd->object == OBJECT_NONE || (sd->type & PRIMITIVE_ALL_TRIANGLE) == 0) {
       /* Fallback to unperturbed normal. */
       stack_store_float3(stack, normal_offset, sd->N);
       return;
@@ -276,10 +276,8 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
     /* first try to get tangent attribute */
     const AttributeDescriptor attr = find_attribute(kg, sd, node.z);
     const AttributeDescriptor attr_sign = find_attribute(kg, sd, node.w);
-    const AttributeDescriptor attr_normal = find_attribute(kg, sd, ATTR_STD_VERTEX_NORMAL);
 
-    if (attr.offset == ATTR_STD_NOT_FOUND || attr_sign.offset == ATTR_STD_NOT_FOUND ||
-        attr_normal.offset == ATTR_STD_NOT_FOUND) {
+    if (attr.offset == ATTR_STD_NOT_FOUND || attr_sign.offset == ATTR_STD_NOT_FOUND) {
       /* Fallback to unperturbed normal. */
       stack_store_float3(stack, normal_offset, sd->N);
       return;
@@ -291,7 +289,7 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
     float3 normal;
 
     if (sd->shader & SHADER_SMOOTH_NORMAL) {
-      normal = primitive_surface_attribute_float3(kg, sd, attr_normal, NULL, NULL);
+      normal = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
     }
     else {
       normal = sd->Ng;

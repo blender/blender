@@ -1328,6 +1328,13 @@ typedef struct NodeAttributeConvert {
   int8_t domain;
 } NodeAttributeConvert;
 
+typedef struct NodeGeometrySubdivisionSurface {
+  /* eSubsurfUVSmooth. */
+  uint8_t uv_smooth;
+  /* eSubsurfBoundarySmooth. */
+  uint8_t boundary_smooth;
+} NodeGeometrySubdivisionSurface;
+
 typedef struct NodeGeometryMeshCircle {
   /* GeometryNodeMeshCircleFillType. */
   uint8_t fill_type;
@@ -1429,6 +1436,10 @@ typedef struct NodeGeometryRaycast {
   uint8_t input_type_ray_length;
   char _pad[1];
 } NodeGeometryRaycast;
+
+typedef struct NodeGeometryCurveFill {
+  uint8_t mode;
+} NodeGeometryCurveFill;
 
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
@@ -1829,9 +1840,9 @@ typedef enum NodeShaderOutputTarget {
 /* Geometry Nodes */
 
 typedef enum GeometryNodeAttributeProximityTargetType {
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_POINTS = 0,
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_EDGES = 1,
-  GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES = 2,
+  GEO_NODE_PROXIMITY_TARGET_POINTS = 0,
+  GEO_NODE_PROXIMITY_TARGET_EDGES = 1,
+  GEO_NODE_PROXIMITY_TARGET_FACES = 2,
 } GeometryNodeAttributeProximityTargetType;
 
 typedef enum GeometryNodeBooleanOperation {
@@ -2000,6 +2011,11 @@ typedef enum GeometryNodeRaycastMapMode {
   GEO_NODE_RAYCAST_INTERPOLATED = 0,
   GEO_NODE_RAYCAST_NEAREST = 1,
 } GeometryNodeRaycastMapMode;
+
+typedef enum GeometryNodeCurveFillMode {
+  GEO_NODE_CURVE_FILL_MODE_TRIANGULATED = 0,
+  GEO_NODE_CURVE_FILL_MODE_NGONS = 1,
+} GeometryNodeCurveFillMode;
 
 #ifdef __cplusplus
 }

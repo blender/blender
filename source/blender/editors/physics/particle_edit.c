@@ -4667,7 +4667,7 @@ typedef struct BrushEdit {
   int lastmouse[2];
   float zfac;
 
-  /* optional cached view settings to avoid setting on every mousemove */
+  /** Optional cached view settings to avoid setting on every mouse-move. */
   PEData data;
 } BrushEdit;
 

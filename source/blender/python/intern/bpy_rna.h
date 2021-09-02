@@ -202,42 +202,6 @@ int pyrna_pydict_to_props(PointerRNA *ptr,
                           const char *error_prefix);
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
-uint *pyrna_set_to_enum_bitmap(const struct EnumPropertyItem *items,
-                               PyObject *value,
-                               int type_size,
-                               bool type_convert_sign,
-                               int bitmap_size,
-                               const char *error_prefix);
-PyObject *pyrna_enum_bitfield_to_py(const struct EnumPropertyItem *items, int value);
-int pyrna_set_to_enum_bitfield(const struct EnumPropertyItem *items,
-                               PyObject *value,
-                               int *r_value,
-                               const char *error_prefix);
-
-/**
- * Data for #pyrna_enum_value_parse_string & #pyrna_enum_bitfield_parse_set parsing utilities.
- * Use with #PyArg_ParseTuple's `O&` formatting.
- */
-struct BPy_EnumProperty_Parse {
-  const EnumPropertyItem *items;
-  /**
-   * Set when the value was successfully parsed.
-   * Useful if the input ever needs to be included in an error message.
-   * (if the value is not supported under certain conditions).
-   */
-  PyObject *value_orig;
-
-  int value;
-  bool is_set;
-};
-int pyrna_enum_value_parse_string(PyObject *o, void *p);
-int pyrna_enum_bitfield_parse_set(PyObject *o, void *p);
-
-int pyrna_enum_value_from_id(const EnumPropertyItem *item,
-                             const char *identifier,
-                             int *value,
-                             const char *error_prefix);
-
 int pyrna_deferred_register_class(struct StructRNA *srna, PyTypeObject *py_class);
 
 void pyrna_struct_type_extend_capi(struct StructRNA *srna,

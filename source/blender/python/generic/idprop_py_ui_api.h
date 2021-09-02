@@ -14,16 +14,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/** \file
+ * \ingroup pygen
+ */
+
 #pragma once
 
-#include "FN_multi_function_network.hh"
+struct ID;
+struct IDProperty;
 
-#include "BLI_resource_scope.hh"
+extern PyTypeObject BPy_IDPropertyUIManager_Type;
 
-namespace blender::fn::mf_network_optimization {
+typedef struct BPy_IDPropertyUIManager {
+  PyObject_VAR_HEAD
+  struct IDProperty *property;
+} BPy_IDPropertyUIManager;
 
-void dead_node_removal(MFNetwork &network);
-void constant_folding(MFNetwork &network, ResourceScope &scope);
-void common_subnetwork_elimination(MFNetwork &network);
-
-}  // namespace blender::fn::mf_network_optimization
+void IDPropertyUIData_Init_Types(void);

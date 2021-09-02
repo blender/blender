@@ -30,18 +30,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_curve_to_mesh_in[] = {
-    {SOCK_GEOMETRY, N_("Curve")},
-    {SOCK_GEOMETRY, N_("Profile Curve")},
-    {-1, ""},
-};
-
-static bNodeSocketTemplate geo_node_curve_to_mesh_out[] = {
-    {SOCK_GEOMETRY, N_("Mesh")},
-    {-1, ""},
-};
-
 namespace blender::nodes {
+
+static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Geometry>("Curve");
+  b.add_input<decl::Geometry>("Profile Curve");
+  b.add_output<decl::Geometry>("Mesh");
+}
 
 static void vert_extrude_to_mesh_data(const Spline &spline,
                                       const float3 profile_vert,
@@ -374,7 +370,7 @@ void register_node_type_geo_curve_to_mesh()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, "Curve to Mesh", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_curve_to_mesh_in, geo_node_curve_to_mesh_out);
+  ntype.declare = blender::nodes::geo_node_curve_to_mesh_declare;
   ntype.geometry_node_execute = blender::nodes::geo_node_curve_to_mesh_exec;
   nodeRegisterType(&ntype);
 }

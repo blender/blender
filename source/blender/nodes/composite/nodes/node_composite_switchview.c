@@ -146,7 +146,7 @@ void register_node_type_cmp_switch_view(void)
 {
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTOR, 0);
+  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER, 0);
   node_type_socket_templates(&ntype, NULL, cmp_node_switch_view_out);
 
   ntype.initfunc_api = init_switch_view;

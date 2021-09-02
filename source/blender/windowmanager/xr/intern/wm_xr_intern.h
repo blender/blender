@@ -174,6 +174,7 @@ typedef struct wmXrActionSet {
 
 wmXrRuntimeData *wm_xr_runtime_data_create(void);
 void wm_xr_runtime_data_free(wmXrRuntimeData **runtime);
+void wm_xr_session_data_free(wmXrSessionState *state);
 
 void wm_xr_session_draw_data_update(const wmXrSessionState *state,
                                     const XrSessionSettings *settings,
