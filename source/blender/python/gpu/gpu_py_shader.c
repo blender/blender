@@ -76,21 +76,6 @@ static const struct PyC_StringEnumItems pygpu_shader_config_items[] = {
     {0, NULL},
 };
 
-static const struct PyC_FlagSet pygpu_texture_samplerstate_items[] = {
-    {GPU_SAMPLER_DEFAULT, "DEFAULT"},
-    {GPU_SAMPLER_FILTER, "FILTER"},
-    {GPU_SAMPLER_MIPMAP, "MIPMAP"},
-    {GPU_SAMPLER_REPEAT_S, "REPEAT_S"},
-    {GPU_SAMPLER_REPEAT_T, "REPEAT_T"},
-    {GPU_SAMPLER_REPEAT_R, "REPEAT_R"},
-    {GPU_SAMPLER_CLAMP_BORDER, "CLAMP_BORDER"},
-    {GPU_SAMPLER_COMPARE, "COMPARE"},
-    {GPU_SAMPLER_ANISO, "ANISO"},
-    {GPU_SAMPLER_ICON, "ICON"},
-    {GPU_SAMPLER_REPEAT, "REPEAT"},
-    {0, NULL},
-};
-
 static int pygpu_shader_uniform_location_get(GPUShader *shader,
                                              const char *name,
                                              const char *error_prefix)
@@ -507,53 +492,25 @@ static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
 }
 
 PyDoc_STRVAR(pygpu_shader_uniform_sampler_doc,
-             ".. method:: uniform_sampler(name, texture, state={'DEFAULT'})\n"
+             ".. method:: uniform_sampler(name, texture)\n"
              "\n"
-             "   Specify the texture and state for an uniform sampler in the current GPUShader.\n"
+             "   Specify the value of a texture uniform variable for the current GPUShader.\n"
              "\n"
              "   :param name: name of the uniform variable whose texture is to be specified.\n"
              "   :type name: str\n"
              "   :param texture: Texture to attach.\n"
-             "   :type texture: :class:`gpu.types.GPUTexture`\n"
-             "   :param state: set of values in:\n"
-             "\n"
-             "      - ``DEFAULT``\n"
-             "      - ``FILTER``\n"
-             "      - ``MIPMAP``\n"
-             "      - ``REPEAT_S``\n"
-             "      - ``REPEAT_T``\n"
-             "      - ``REPEAT_R``\n"
-             "      - ``CLAMP_BORDER``\n"
-             "      - ``COMPARE``\n"
-             "      - ``ANISO``\n"
-             "      - ``ICON``\n"
-             "      - ``REPEAT``\n"
-             "   :type state: set\n");
-static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args, PyObject *kwds)
+             "   :type texture: :class:`gpu.types.GPUTexture`\n");
+static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args)
 {
   const char *name;
   BPyGPUTexture *py_texture;
-  PyObject *py_samplerstate = NULL;
-
-  static const char *_keywords[] = {"name", "texture", "state", NULL};
-  static _PyArg_Parser _parser = {"sO!|$O:uniform_sampler", _keywords, 0};
-  if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &name, &BPyGPUTexture_Type, &py_texture, &py_samplerstate)) {
+  if (!PyArg_ParseTuple(
+          args, "sO!:GPUShader.uniform_sampler", &name, &BPyGPUTexture_Type, &py_texture)) {
     return NULL;
   }
 
-  int sampler_state = GPU_SAMPLER_DEFAULT;
-  if (py_samplerstate) {
-    if (PyC_FlagSet_ToBitfield(pygpu_texture_samplerstate_items,
-                               py_samplerstate,
-                               &sampler_state,
-                               "shader.uniform_sampler") == -1) {
-      return NULL;
-    }
-  }
-
   int slot = GPU_shader_get_texture_binding(self->shader, name);
-  GPU_texture_bind_ex(py_texture->tex, (eGPUSamplerState)sampler_state, slot, false);
+  GPU_texture_bind(py_texture->tex, slot);
   GPU_shader_uniform_1i(self->shader, name, slot);
 
   Py_RETURN_NONE;
@@ -665,7 +622,7 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
      pygpu_shader_uniform_int_doc},
     {"uniform_sampler",
      (PyCFunction)pygpu_shader_uniform_sampler,
-     METH_VARARGS | METH_KEYWORDS,
+     METH_VARARGS,
      pygpu_shader_uniform_sampler_doc},
     {"uniform_block",
      (PyCFunction)pygpu_shader_uniform_block,
