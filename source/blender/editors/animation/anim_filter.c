@@ -1111,7 +1111,27 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 
       /* Can only add this F-Curve if it is selected. */
       if (ads->filterflag & ADS_FILTER_ONLYSEL) {
-        if ((seq == NULL) || (seq->flag & SELECT) == 0) {
+
+        /* NOTE(@campbellbarton): The `seq == NULL` check doesn't look right
+         * (compared to other checks in this function which skip data that can't be found).
+         *
+         * This is done since the search for sequence strips doesn't use a global lookup:
+         * - Nested meta-strips are excluded.
+         * - When inside a meta-strip - strips outside the meta-strip excluded.
+         *
+         * Instead, only the strips directly visible to the user are considered for selection.
+         * The NULL check here means everything else is considered unselected and is not shown.
+         *
+         * There is a subtle difference between nodes, pose-bones ... etc
+         * since data-paths that point to missing strips are not shown.
+         * If this is an important difference, the NULL case could perform a global lookup,
+         * only returning `true` if the sequence strip exists elsewhere
+         * (ignoring it's selection state). */
+        if (seq == NULL) {
+          return true;
+        }
+
+        if ((seq->flag & SELECT) == 0) {
           return true;
         }
       }
