@@ -61,10 +61,19 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
 
   if (pd->space_type == SPACE_IMAGE) {
     SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
-    shd->grid_flag = ED_space_image_has_buffer(sima) ? 0 : PLANE_IMAGE | SHOW_GRID;
+    if (sima->mode == SI_MODE_UV || !ED_space_image_has_buffer(sima)) {
+      shd->grid_flag = GRID_BACK | PLANE_IMAGE | SHOW_GRID;
+    }
+    else {
+      shd->grid_flag = 0;
+    }
+
     shd->grid_distance = 1.0f;
-    copy_v3_fl3(
-        shd->grid_size, (float)sima->tile_grid_shape[0], (float)sima->tile_grid_shape[1], 1.0f);
+    copy_v3_fl3(shd->grid_size, 1.0f, 1.0f, 1.0f);
+    if (sima->mode == SI_MODE_UV) {
+      shd->grid_size[0] = (float)sima->tile_grid_shape[0];
+      shd->grid_size[1] = (float)sima->tile_grid_shape[1];
+    }
     for (int step = 0; step < 8; step++) {
       shd->grid_steps[step] = powf(4, step) * (1.0f / 16.0f);
     }
@@ -209,11 +218,12 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
     float mat[4][4];
 
     /* add quad background */
-    sh = OVERLAY_shader_grid_image();
+    sh = OVERLAY_shader_grid_background();
     grp = DRW_shgroup_create(sh, psl->grid_ps);
     float color_back[4];
     interp_v4_v4v4(color_back, G_draw.block.colorBackground, G_draw.block.colorGrid, 0.5);
     DRW_shgroup_uniform_vec4_copy(grp, "color", color_back);
+    DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     unit_m4(mat);
     mat[0][0] = shd->grid_size[0];
     mat[1][1] = shd->grid_size[1];
