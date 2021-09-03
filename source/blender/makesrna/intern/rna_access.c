@@ -5362,6 +5362,18 @@ bool RNA_path_resolve_full(
 }
 
 /**
+ * A version of #RNA_path_resolve_full doesn't check the value of #PointerRNA.data.
+ *
+ * \note While it's correct to ignore the value of #PointerRNA.data
+ * most callers need to know if the resulting pointer was found and not null.
+ */
+bool RNA_path_resolve_full_maybe_null(
+    PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
+{
+  return rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, NULL, true);
+}
+
+/**
  * Resolve the given RNA Path to find both the pointer AND property
  * indicated by fully resolving the path.
  *

@@ -3663,7 +3663,7 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
     return NULL;
   }
 
-  if (RNA_path_resolve_full(&self->ptr, path, &r_ptr, &r_prop, &index)) {
+  if (RNA_path_resolve_full_maybe_null(&self->ptr, path, &r_ptr, &r_prop, &index)) {
     if (r_prop) {
       if (index != -1) {
         if (index >= RNA_property_array_length(&r_ptr, r_prop) || index < 0) {
