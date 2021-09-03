@@ -1505,6 +1505,11 @@ static PyGetSetDef Quaternion_getseters[] = {
      (setter)NULL,
      BaseMathObject_is_frozen_doc,
      NULL},
+    {"is_valid",
+     (getter)BaseMathObject_is_valid_get,
+     (setter)NULL,
+     BaseMathObject_is_valid_doc,
+     NULL},
     {"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

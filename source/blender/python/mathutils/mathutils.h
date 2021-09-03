@@ -28,6 +28,7 @@ struct DynStr;
 
 extern char BaseMathObject_is_wrapped_doc[];
 extern char BaseMathObject_is_frozen_doc[];
+extern char BaseMathObject_is_valid_doc[];
 extern char BaseMathObject_owner_doc[];
 
 #define BASE_MATH_NEW(struct_name, root_type, base_type) \
@@ -81,6 +82,7 @@ typedef struct {
 PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *);
 PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *);
 PyObject *BaseMathObject_is_frozen_get(BaseMathObject *self, void *);
+PyObject *BaseMathObject_is_valid_get(BaseMathObject *self, void *);
 
 extern char BaseMathObject_freeze_doc[];
 PyObject *BaseMathObject_freeze(BaseMathObject *self);
@@ -117,6 +119,7 @@ struct Mathutils_Callback {
 
 unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb);
 
+int _BaseMathObject_CheckCallback(BaseMathObject *self);
 int _BaseMathObject_ReadCallback(BaseMathObject *self);
 int _BaseMathObject_WriteCallback(BaseMathObject *self);
 int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index);
@@ -126,6 +129,8 @@ void _BaseMathObject_RaiseFrozenExc(const BaseMathObject *self);
 void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
 
 /* since this is called so often avoid where possible */
+#define BaseMath_CheckCallback(_self) \
+  (((_self)->cb_user ? _BaseMathObject_CheckCallback((BaseMathObject *)_self) : 0))
 #define BaseMath_ReadCallback(_self) \
   (((_self)->cb_user ? _BaseMathObject_ReadCallback((BaseMathObject *)_self) : 0))
 #define BaseMath_WriteCallback(_self) \
