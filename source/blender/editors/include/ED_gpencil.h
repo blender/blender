@@ -391,8 +391,15 @@ struct bGPDstroke *ED_gpencil_stroke_nearest_to_ends(struct bContext *C,
                                                      struct bGPDlayer *gpl,
                                                      struct bGPDframe *gpf,
                                                      struct bGPDstroke *gps,
+                                                     const float ctrl1[2],
+                                                     const float ctrl2[2],
                                                      const float radius,
                                                      int *r_index);
+void ED_gpencil_stroke_extremes_to2d(const struct GP_SpaceConversion *gsc,
+                                     const float diff_mat[4][4],
+                                     struct bGPDstroke *gps,
+                                     float r_ctrl1[2],
+                                     float r_ctrl2[2]);
 
 struct bGPDstroke *ED_gpencil_stroke_join_and_trim(struct bGPdata *gpd,
                                                    struct bGPDframe *gpf,

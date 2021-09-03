@@ -1209,7 +1209,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       float reduce = 0.0f;
       for (int r = 0; r < brush->gpencil_settings->draw_smoothlvl; r++) {
         for (i = 0; i < gps->totpoints - 1; i++) {
-          BKE_gpencil_stroke_smooth(gps, i, brush->gpencil_settings->draw_smoothfac - reduce);
+          BKE_gpencil_stroke_smooth_point(
+              gps, i, brush->gpencil_settings->draw_smoothfac - reduce);
           BKE_gpencil_stroke_smooth_strength(gps, i, brush->gpencil_settings->draw_smoothfac);
         }
         reduce += 0.25f; /* reduce the factor */
@@ -1221,7 +1222,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       float ifac = (float)brush->gpencil_settings->input_samples / 10.0f;
       float sfac = interpf(1.0f, 0.2f, ifac);
       for (i = 0; i < gps->totpoints - 1; i++) {
-        BKE_gpencil_stroke_smooth(gps, i, sfac);
+        BKE_gpencil_stroke_smooth_point(gps, i, sfac);
         BKE_gpencil_stroke_smooth_strength(gps, i, sfac);
       }
     }
@@ -1288,11 +1289,23 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   /* Join with existing strokes. */
   if (ts->gpencil_flags & GP_TOOL_FLAG_AUTOMERGE_STROKE) {
     if (gps->prev != NULL) {
+      BKE_gpencil_stroke_boundingbox_calc(gps);
+      float diff_mat[4][4], ctrl1[2], ctrl2[2];
+      BKE_gpencil_layer_transform_matrix_get(depsgraph, p->ob, gpl, diff_mat);
+      ED_gpencil_stroke_extremes_to2d(&p->gsc, diff_mat, gps, ctrl1, ctrl2);
+
       int pt_index = 0;
       bool doit = true;
       while (doit && gps) {
-        bGPDstroke *gps_target = ED_gpencil_stroke_nearest_to_ends(
-            p->C, &p->gsc, gpl, gpl->actframe, gps, GPENCIL_MINIMUM_JOIN_DIST, &pt_index);
+        bGPDstroke *gps_target = ED_gpencil_stroke_nearest_to_ends(p->C,
+                                                                   &p->gsc,
+                                                                   gpl,
+                                                                   gpl->actframe,
+                                                                   gps,
+                                                                   ctrl1,
+                                                                   ctrl2,
+                                                                   GPENCIL_MINIMUM_JOIN_DIST,
+                                                                   &pt_index);
         if (gps_target != NULL) {
           gps = ED_gpencil_stroke_join_and_trim(p->gpd, p->gpf, gps, gps_target, pt_index);
         }

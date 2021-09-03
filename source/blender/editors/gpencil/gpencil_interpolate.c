@@ -333,7 +333,7 @@ static void gpencil_interpolate_smooth_stroke(bGPDstroke *gps,
   float reduce = 0.0f;
   for (int r = 0; r < smooth_steps; r++) {
     for (int i = 0; i < gps->totpoints - 1; i++) {
-      BKE_gpencil_stroke_smooth(gps, i, smooth_factor - reduce);
+      BKE_gpencil_stroke_smooth_point(gps, i, smooth_factor - reduce);
       BKE_gpencil_stroke_smooth_strength(gps, i, smooth_factor);
     }
     reduce += 0.25f; /* reduce the factor */

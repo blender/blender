@@ -3618,7 +3618,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
     }
     elem = &strokes_list[i];
     /* Join new_stroke and stroke B. */
-    BKE_gpencil_stroke_join(gps_new, elem->gps, leave_gaps, true);
+    BKE_gpencil_stroke_join(gps_new, elem->gps, leave_gaps, true, false);
     elem->used = true;
   }
 
@@ -3967,7 +3967,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
 
           /* perform smoothing */
           if (smooth_position) {
-            BKE_gpencil_stroke_smooth(gps, i, factor);
+            BKE_gpencil_stroke_smooth_point(gps, i, factor);
           }
           if (smooth_strength) {
             BKE_gpencil_stroke_smooth_strength(gps, i, factor);

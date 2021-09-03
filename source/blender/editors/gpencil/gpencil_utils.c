@@ -3213,11 +3213,28 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
   return hit;
 }
 
+/* Get extremes of stroke in 2D using current view. */
+void ED_gpencil_stroke_extremes_to2d(const GP_SpaceConversion *gsc,
+                                     const float diff_mat[4][4],
+                                     bGPDstroke *gps,
+                                     float r_ctrl1[2],
+                                     float r_ctrl2[2])
+{
+  bGPDspoint pt_dummy_ps;
+
+  gpencil_point_to_parent_space(&gps->points[0], diff_mat, &pt_dummy_ps);
+  gpencil_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &r_ctrl1[0], &r_ctrl1[1]);
+  gpencil_point_to_parent_space(&gps->points[gps->totpoints - 1], diff_mat, &pt_dummy_ps);
+  gpencil_point_to_xy_fl(gsc, gps, &pt_dummy_ps, &r_ctrl2[0], &r_ctrl2[1]);
+}
+
 bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
                                               const GP_SpaceConversion *gsc,
                                               bGPDlayer *gpl,
                                               bGPDframe *gpf,
                                               bGPDstroke *gps,
+                                              const float ctrl1[2],
+                                              const float ctrl2[2],
                                               const float radius,
                                               int *r_index)
 {
@@ -3266,6 +3283,14 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
     pt = &gps_target->points[gps_target->totpoints - 1];
     gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
     gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_target_end[0], &pt2d_target_end[1]);
+
+    /* If the distance to the original stroke extremes is too big, the stroke must not be joined. */
+    if ((len_squared_v2v2(ctrl1, pt2d_target_start) > radius_sqr) &&
+        (len_squared_v2v2(ctrl1, pt2d_target_end) > radius_sqr) &&
+        (len_squared_v2v2(ctrl2, pt2d_target_start) > radius_sqr) &&
+        (len_squared_v2v2(ctrl2, pt2d_target_end) > radius_sqr)) {
+      continue;
+    }
 
     if ((len_squared_v2v2(pt2d_start, pt2d_target_start) > radius_sqr) &&
         (len_squared_v2v2(pt2d_start, pt2d_target_end) > radius_sqr) &&
@@ -3350,7 +3375,7 @@ bGPDstroke *ED_gpencil_stroke_join_and_trim(
 
   /* Join both strokes. */
   int totpoint = gps_final->totpoints;
-  BKE_gpencil_stroke_join(gps_final, gps, false, true);
+  BKE_gpencil_stroke_join(gps_final, gps, false, true, true);
 
   /* Select the join points and merge if the distance is very small. */
   pt = &gps_final->points[totpoint - 1];
