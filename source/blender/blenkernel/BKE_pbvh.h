@@ -29,6 +29,8 @@
 #include "BKE_ccg.h"
 #include <stdint.h>
 
+#define DEFRAGMENT_MEMORY
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,6 +76,10 @@ BLI_INLINE SculptFaceRef BKE_pbvh_make_fref(intptr_t i)
 
 #define SCULPT_REF_NONE ((intptr_t)-1)
 
+#ifdef DEFRAGMENT_MEMORY
+#  include "BLI_smallhash.h"
+#endif
+
 typedef struct PBVHTri {
   int v[3];       // references into PBVHTriBuf->verts
   intptr_t l[3];  // loops
@@ -89,6 +95,8 @@ typedef struct PBVHTriBuf {
   int *edges;
   int totvert, totedge, tottri;
   int verts_size, edges_size, tris_size;
+
+  SmallHash vertmap;  // maps vertex ptrs to indices within verts
 
   // private field
   intptr_t *loops;

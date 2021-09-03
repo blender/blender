@@ -1885,6 +1885,8 @@ static void pbvh_free_tribuf(PBVHTriBuf *tribuf)
   MEM_SAFE_FREE(tribuf->loops);
   MEM_SAFE_FREE(tribuf->edges);
 
+  BLI_smallhash_release(&tribuf->vertmap);
+
   tribuf->verts = NULL;
   tribuf->tris = NULL;
   tribuf->loops = NULL;
@@ -2041,7 +2043,7 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
   return true;
 }
 
-BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
+ATTR_NO_OPT BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
 {
   tribuf->tottri++;
 
@@ -2133,11 +2135,29 @@ void pbvh_bmesh_check_other_verts(PBVHNode *node)
   TGSET_ITER_END;
 }
 
+static void pbvh_init_tribuf(PBVHNode *node, PBVHTriBuf *tribuf)
+{
+  tribuf->tottri = 0;
+  tribuf->tris_size = 0;
+  tribuf->verts_size = 0;
+  tribuf->mat_nr = 0;
+  tribuf->tottri = 0;
+  tribuf->totvert = 0;
+  tribuf->totloop = 0;
+  tribuf->totedge = 0;
+
+  tribuf->edges = NULL;
+  tribuf->verts = NULL;
+  tribuf->tris = NULL;
+  tribuf->loops = NULL;
+
+  BLI_smallhash_init_ex(&tribuf->vertmap, node->bm_unique_verts->length);
+}
 /* In order to perform operations on the original node coordinates
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->bm;
 
@@ -2147,14 +2167,10 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
   node->flag |= PBVH_UpdateOtherVerts;
 
-  GHash *vmap = BLI_ghash_ptr_new("pbvh_bmesh.c vmap");
-  GHash *mat_vmaps[MAXMAT];
-
   int mat_map[MAXMAT];
 
   for (int i = 0; i < MAXMAT; i++) {
     mat_map[i] = -1;
-    mat_vmaps[i] = NULL;
   }
 
   if (node->tribuf || node->tri_buffers) {
@@ -2162,6 +2178,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   }
 
   node->tribuf = MEM_callocN(sizeof(*node->tribuf), "node->tribuf");
+  pbvh_init_tribuf(node, node->tribuf);
 
   BMLoop **loops = NULL;
   uint(*loops_idx)[3] = NULL;
@@ -2171,12 +2188,6 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
   PBVHTriBuf *tribufs = NULL;  // material-specific tribuffers
   BLI_array_declare(tribufs);
-
-  node->tribuf->mat_nr = 0;
-  node->tribuf->tottri = 0;
-  node->tribuf->totvert = 0;
-  node->tribuf->totloop = 0;
-  node->tribuf->totedge = 0;
 
   node->flag &= ~PBVH_UpdateTris;
 
@@ -2216,11 +2227,10 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     if (mat_map[mat_nr] == -1) {
       PBVHTriBuf _tribuf = {0};
 
-      _tribuf.mat_nr = mat_nr;
-
       mat_map[mat_nr] = BLI_array_len(tribufs);
-      mat_vmaps[mat_nr] = BLI_ghash_ptr_new("pbvh_bmesh.c vmap");
 
+      pbvh_init_tribuf(node, &_tribuf);
+      _tribuf.mat_nr = mat_nr;
       BLI_array_append(tribufs, _tribuf);
     }
 
@@ -2258,7 +2268,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
           mat_tri->eflag |= 1 << j;
         }
 
-        if (!BLI_ghash_ensure_p(vmap, l->v, &val)) {
+        if (!BLI_smallhash_ensure_p(&node->tribuf->vertmap, l->v, &val)) {
           SculptVertRef sv = {(intptr_t)l->v};
 
           minmax_v3v3_v3(min, max, l->v->co);
@@ -2271,7 +2281,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
         tri->l[j] = (intptr_t)l;
 
         val = NULL;
-        if (!BLI_ghash_ensure_p(mat_vmaps[mat_nr], l->v, &val)) {
+        if (!BLI_smallhash_ensure_p(&tribufs[mat_nr].vertmap, l->v, &val)) {
           SculptVertRef sv = {(intptr_t)l->v};
 
           minmax_v3v3_v3(min, max, l->v->co);
@@ -2356,13 +2366,13 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
       l->e->head.hflag |= edgeflag;
 
-      int v1 = (int)BLI_ghash_lookup(vmap, (void *)l->e->v1);
-      int v2 = (int)BLI_ghash_lookup(vmap, (void *)l->e->v2);
+      int v1 = (int)BLI_smallhash_lookup(&node->tribuf->vertmap, (void *)l->e->v1);
+      int v2 = (int)BLI_smallhash_lookup(&node->tribuf->vertmap, (void *)l->e->v2);
 
       pbvh_tribuf_add_edge(node->tribuf, v1, v2);
 
-      v1 = (int)BLI_ghash_lookup(mat_vmaps[mat_nr], (void *)l->e->v1);
-      v2 = (int)BLI_ghash_lookup(mat_vmaps[mat_nr], (void *)l->e->v2);
+      v1 = (int)BLI_smallhash_lookup(&tribufs[mat_nr].vertmap, (void *)l->e->v1);
+      v2 = (int)BLI_smallhash_lookup(&tribufs[mat_nr].vertmap, (void *)l->e->v2);
 
       pbvh_tribuf_add_edge(mat_tribuf, v1, v2);
     } while ((l = l->next) != f->l_first);
@@ -2384,13 +2394,6 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   else {
     zero_v3(node->tribuf->min);
     zero_v3(node->tribuf->max);
-  }
-
-  BLI_ghash_free(vmap, NULL, NULL);
-  for (int i = 0; i < MAXMAT; i++) {
-    if (mat_vmaps[i]) {
-      BLI_ghash_free(mat_vmaps[i], NULL, NULL);
-    }
   }
 
   return true;
@@ -4999,6 +5002,91 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   printf("== Test Finished ==\n");
 }
 
+#include "BLI_smallhash.h"
+
+ATTR_NO_OPT static void hash_test()
+{
+  const int count = 1024 * 1024 * 4;
+
+  int *data = MEM_callocN(sizeof(*data) * count, "test data");
+
+  const int test_steps = 5;
+  TableGSet *gs = BLI_table_gset_new("test");
+  GHash *gh = BLI_ghash_ptr_new("test");
+  SmallHash sh;
+
+  BLI_smallhash_init(&sh);
+  RNG *rng = BLI_rng_new(0);
+
+  for (int i = 0; i < count; i++) {
+    data[i] = i;
+  }
+
+  printf("== creation: table_gset ==\n");
+  double t = PIL_check_seconds_timer();
+
+  for (int i = 0; i < count; i++) {
+    int ri = BLI_rng_get_int(rng) % count;
+    int *ptr = data[ri];
+
+    BLI_table_gset_add(gs, ptr);
+  }
+  printf("  %.3f\n", PIL_check_seconds_timer() - t);
+
+  printf("== creation: ghash ==\n");
+  t = PIL_check_seconds_timer();
+
+  for (int i = 0; i < count; i++) {
+    int ri = BLI_rng_get_int(rng) % count;
+    int *ptr = data[ri];
+
+    BLI_ghash_insert(gh, ptr, POINTER_FROM_INT(i));
+  }
+  printf("  %.3f\n", PIL_check_seconds_timer() - t);
+
+  printf("== creation: small hash ==\n");
+  t = PIL_check_seconds_timer();
+
+  for (int i = 0; i < count; i++) {
+    int ri = BLI_rng_get_int(rng) % count;
+    int *ptr = data[ri];
+
+    BLI_smallhash_insert(&sh, ptr, POINTER_FROM_INT(i));
+  }
+  printf("  %.3f\n", PIL_check_seconds_timer() - t);
+
+  printf("== lookup: g hash ==\n");
+  t = PIL_check_seconds_timer();
+
+  for (int i = 0; i < count; i++) {
+    int ri = BLI_rng_get_int(rng) % count;
+    int *ptr = data[ri];
+
+    void *val = BLI_ghash_lookup(gh, ptr);
+    int ri2 = POINTER_AS_INT(ptr);
+  }
+  printf("  %.3f\n", PIL_check_seconds_timer() - t);
+
+  printf("== lookup: small hash ==\n");
+  t = PIL_check_seconds_timer();
+
+  for (int i = 0; i < count; i++) {
+    int ri = BLI_rng_get_int(rng) % count;
+    int *ptr = data[ri];
+
+    void *val = BLI_smallhash_lookup(&sh, ptr);
+    int ri2 = POINTER_AS_INT(ptr);
+  }
+  printf("  %.3f\n", PIL_check_seconds_timer() - t);
+
+  BLI_rng_free(rng);
+  BLI_ghash_free(gh, NULL, NULL);
+  BLI_smallhash_release(&sh);
+  BLI_table_gset_free(gs, NULL);
+
+  MEM_freeN(data);
+}
+
 void pbvh_bmesh_do_cache_test()
 {
   BMesh *bm;
@@ -5006,6 +5094,10 @@ void pbvh_bmesh_do_cache_test()
 
   CacheParams params;
 
-  pbvh_bmesh_cache_test_default_params(&params);
-  pbvh_bmesh_cache_test(&params, &bm, &pbvh);
+  for (int i = 0; i < 15; i++) {
+    printf("\n\n====== %d of %d =====\n", i + 1, 15);
+    hash_test();
+  }
+  // pbvh_bmesh_cache_test_default_params(&params);
+  // pbvh_bmesh_cache_test(&params, &bm, &pbvh);
 }

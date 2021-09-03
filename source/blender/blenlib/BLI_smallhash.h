@@ -44,6 +44,8 @@ typedef struct SmallHash {
 
   SmallHashEntry *buckets;
   SmallHashEntry buckets_stack[SMSTACKSIZE];
+
+  bool using_stack;
 } SmallHash;
 
 typedef struct {
@@ -57,21 +59,24 @@ void BLI_smallhash_release(SmallHash *sh) ATTR_NONNULL(1);
 void BLI_smallhash_insert(SmallHash *sh, uintptr_t key, void *item) ATTR_NONNULL(1);
 bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item) ATTR_NONNULL(1);
 bool BLI_smallhash_remove(SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
-void *BLI_smallhash_lookup(const SmallHash *sh, uintptr_t key)
+void *BLI_smallhash_lookup(SmallHash *sh, uintptr_t key) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+void **BLI_smallhash_lookup_p(SmallHash *sh, uintptr_t key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-void **BLI_smallhash_lookup_p(const SmallHash *sh, uintptr_t key)
-    ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-bool BLI_smallhash_haskey(const SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
-int BLI_smallhash_len(const SmallHash *sh) ATTR_NONNULL(1);
+bool BLI_smallhash_haskey(SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
+int BLI_smallhash_len(SmallHash *sh) ATTR_NONNULL(1);
 void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 void **BLI_smallhash_iternext_p(SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-void *BLI_smallhash_iternew(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+void *BLI_smallhash_iternew(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+void **BLI_smallhash_iternew_p(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /* void BLI_smallhash_print(SmallHash *sh); */ /* UNUSED */
+
+void BLI_smallhash_clear(SmallHash *sh, uintptr_t key);
+bool BLI_smallhash_ensure_p(SmallHash *sh, uintptr_t key, void ***item);
+bool BLI_smallhash_remove_p(SmallHash *sh, uintptr_t key, void **val);
 
 #ifdef DEBUG
 double BLI_smallhash_calc_quality(SmallHash *sh);

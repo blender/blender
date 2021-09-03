@@ -18,6 +18,7 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
+#include "BLI_smallhash.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "PIL_time.h"
@@ -1411,6 +1412,18 @@ static float dist_to_tri_sphere_simple(
 static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 {
   BMLoop *l = f->l_first;
+
+#if 0
+  float cent[3];
+
+  zero_v3(cent);
+  add_v3_v3(cent, l->v->co);
+  add_v3_v3(cent, l->next->v->co);
+  add_v3_v3(cent, l->prev->v->co);
+
+  mul_v3_fl(cent, 1.0f / 3.0f);
+  return len_squared_v3v3(cent, q->center) < q->radius_squared;
+#endif
 
   /* Check if triangle intersects the sphere */
   float dis = dist_to_tri_sphere_simple((float *)q->center,
@@ -3909,7 +3922,49 @@ typedef struct SwapData {
   PBVH *pbvh;
 } SwapData;
 
-static void on_vert_swap(BMVert *v1, BMVert *v2, void *userdata)
+ATTR_NO_OPT void pbvh_tribuf_swap_verts(
+    PBVH *pbvh, PBVHNode *node, PBVHTriBuf *tribuf, BMVert *v1, BMVert *v2)
+{
+
+  void *val;
+
+  bool ok = BLI_smallhash_remove_p(&tribuf->vertmap, (uintptr_t)v1, &val);
+
+  if (!ok) {
+    printf("eek, missing vertex!");
+    // return;
+  }
+
+  int idx = POINTER_AS_INT(val);
+
+  tribuf->verts[idx].i = (intptr_t)v2;
+
+  void **val2;
+  if (BLI_smallhash_ensure_p(&tribuf->vertmap, (intptr_t)v2, &val2)) {
+    // v2 was already in hash? add v1 back in then with v2's index
+
+    int idx2 = POINTER_AS_INT(*val2);
+    BLI_smallhash_insert(&tribuf->vertmap, (intptr_t)v1, POINTER_FROM_INT(idx2));
+  }
+
+  *val2 = POINTER_FROM_INT(idx);
+}
+
+ATTR_NO_OPT void pbvh_node_tribuf_swap_verts(PBVH *pbvh, PBVHNode *node, BMVert *v1, BMVert *v2)
+{
+  BLI_table_gset_remove(node->bm_unique_verts, v1, NULL);
+  BLI_table_gset_add(node->bm_unique_verts, v2);
+
+  if (node->tribuf) {
+    pbvh_tribuf_swap_verts(pbvh, node, node->tribuf, v1, v2);
+  }
+
+  for (int i = 0; i < node->tot_tri_buffers; i++) {
+    pbvh_tribuf_swap_verts(pbvh, node, node->tri_buffers + i, v1, v2);
+  }
+}
+
+ATTR_NO_OPT static void on_vert_swap(BMVert *v1, BMVert *v2, void *userdata)
 {
   SwapData *sdata = (SwapData *)userdata;
   PBVH *pbvh = sdata->pbvh;
@@ -3926,21 +3981,14 @@ static void on_vert_swap(BMVert *v1, BMVert *v2, void *userdata)
     printf("node error! %s\n", __func__);
   }
 
-  int updateflag = PBVH_UpdateOtherVerts | PBVH_UpdateNormals | PBVH_UpdateTris | PBVH_UpdateTris;
-  updateflag |= PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw |
-                PBVH_RebuildDrawBuffers | PBVH_UpdateVisibility;
-  updateflag |= PBVH_UpdateDrawBuffers;
+  int updateflag = PBVH_UpdateOtherVerts;
 
   if (node1) {
-    node1->flag |= updateflag;
-    BLI_table_gset_remove(node1->bm_unique_verts, v1, NULL);
-    BLI_table_gset_insert(node1->bm_unique_verts, v2);
+    pbvh_node_tribuf_swap_verts(pbvh, node1, v1, v2);
   }
 
-  if (node2) {
-    node2->flag |= updateflag;
-    BLI_table_gset_remove(node2->bm_unique_verts, v2, NULL);
-    BLI_table_gset_insert(node2->bm_unique_verts, v1);
+  if (node2 && node2 != node1) {
+    pbvh_node_tribuf_swap_verts(pbvh, node2, v2, v1);
   }
 
   if (!node1 || !node2) {
@@ -4183,6 +4231,7 @@ typedef struct EdgeQueueContext {
     brusharea = brusharea * brusharea * M_PI;
 
     int max_steps = (int)((float)DYNTOPO_MAX_ITER * ratio);
+    max_steps = MIN2(max_steps, DYNTOPO_MAX_ITER);
 
     printf("max_steps %d\n", max_steps);
 
@@ -4253,6 +4302,8 @@ typedef struct EdgeQueueContext {
     int max_steps = (int)((float)DYNTOPO_MAX_ITER * ratio);
     max_steps = (int)(brusharea * ratio * 2.0f);
 
+    max_steps = MIN2(max_steps, DYNTOPO_MAX_ITER);
+
     printf("brusharea: %.2f, ratio: %.2f\n", brusharea, ratio);
     printf("subdivide max_steps %d\n", max_steps);
 
@@ -4278,7 +4329,6 @@ typedef struct EdgeQueueContext {
 
   int dcount = 0;
 
-//#define DEFRAGMENT_MEMORY
 #ifdef DEFRAGMENT_MEMORY
   RNG *rng = BLI_rng_new(rseed++);
   SwapData swapdata = {.pbvh = pbvh};

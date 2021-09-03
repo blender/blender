@@ -340,3 +340,5 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 }
 
 void pbvh_bmesh_check_other_verts(PBVHNode *node);
+
+//#define DEFRAGMENT_MEMORY
