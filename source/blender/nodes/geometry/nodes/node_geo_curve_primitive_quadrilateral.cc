@@ -30,10 +30,10 @@ static void geo_node_curve_primitive_quadrilateral_declare(NodeDeclarationBuilde
   b.add_input<decl::Float>("Offset").default_value(1.0f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Bottom Height").default_value(3.0f).min(0.0f).subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Top Height").default_value(1.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Vector>("Point 1").default_value({-1.0f, 1.0f, 0.0f}).subtype(PROP_DISTANCE);
-  b.add_input<decl::Vector>("Point 2").default_value({1.0f, 1.0f, 0.0f}).subtype(PROP_DISTANCE);
-  b.add_input<decl::Vector>("Point 3").default_value({1.0f, -1.0f, 0.0f}).subtype(PROP_DISTANCE);
-  b.add_input<decl::Vector>("Point 4").default_value({-1.0f, -1.0f, 0.0f}).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Point 1").default_value({-1.0f, -1.0f, 0.0f}).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Point 2").default_value({1.0f, -1.0f, 0.0f}).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Point 3").default_value({1.0f, 1.0f, 0.0f}).subtype(PROP_DISTANCE);
+  b.add_input<decl::Vector>("Point 4").default_value({-1.0f, 1.0f, 0.0f}).subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>("Curve");
 }
 
@@ -106,10 +106,10 @@ static void create_rectangle_curve(MutableSpan<float3> positions,
                                    const float height,
                                    const float width)
 {
-  positions[0] = float3(width / 2.0f, -height / 2.0f, 0.0f);
-  positions[1] = float3(-width / 2.0f, -height / 2.0f, 0.0f);
-  positions[2] = float3(-width / 2.0f, height / 2.0f, 0.0f);
-  positions[3] = float3(width / 2.0f, height / 2.0f, 0.0f);
+  positions[0] = float3(width / 2.0f, height / 2.0f, 0.0f);
+  positions[1] = float3(-width / 2.0f, height / 2.0f, 0.0f);
+  positions[2] = float3(-width / 2.0f, -height / 2.0f, 0.0f);
+  positions[3] = float3(width / 2.0f, -height / 2.0f, 0.0f);
 }
 
 static void create_points_curve(MutableSpan<float3> positions,
@@ -129,10 +129,10 @@ static void create_parallelogram_curve(MutableSpan<float3> positions,
                                        const float width,
                                        const float offset)
 {
-  positions[0] = float3(width / 2.0f - offset / 2.0f, -height / 2.0f, 0.0f);
-  positions[1] = float3(-width / 2.0f - offset / 2.0f, -height / 2.0f, 0.0f);
-  positions[2] = float3(-width / 2.0f + offset / 2.0f, height / 2.0f, 0.0f);
-  positions[3] = float3(width / 2.0f + offset / 2.0f, height / 2.0f, 0.0f);
+  positions[0] = float3(width / 2.0f + offset / 2.0f, height / 2.0f, 0.0f);
+  positions[1] = float3(-width / 2.0f + offset / 2.0f, height / 2.0f, 0.0f);
+  positions[2] = float3(-width / 2.0f - offset / 2.0f, -height / 2.0f, 0.0f);
+  positions[3] = float3(width / 2.0f - offset / 2.0f, -height / 2.0f, 0.0f);
 }
 static void create_trapezoid_curve(MutableSpan<float3> positions,
                                    const float bottom,
@@ -140,10 +140,10 @@ static void create_trapezoid_curve(MutableSpan<float3> positions,
                                    const float offset,
                                    const float height)
 {
-  positions[0] = float3(bottom / 2.0f, -height / 2.0f, 0.0f);
-  positions[1] = float3(-bottom / 2.0f, -height / 2.0f, 0.0f);
-  positions[2] = float3(-top / 2.0f + offset, height / 2.0f, 0.0f);
-  positions[3] = float3(top / 2.0f + offset, height / 2.0f, 0.0f);
+  positions[0] = float3(top / 2.0f + offset, height / 2.0f, 0.0f);
+  positions[1] = float3(-top / 2.0f + offset, height / 2.0f, 0.0f);
+  positions[2] = float3(-bottom / 2.0f, -height / 2.0f, 0.0f);
+  positions[3] = float3(bottom / 2.0f, -height / 2.0f, 0.0f);
 }
 
 static void create_kite_curve(MutableSpan<float3> positions,
@@ -151,10 +151,10 @@ static void create_kite_curve(MutableSpan<float3> positions,
                               const float bottom_height,
                               const float top_height)
 {
-  positions[0] = float3(-width / 2.0f, 0, 0);
-  positions[1] = float3(0, top_height, 0);
-  positions[2] = float3(width / 2, 0, 0);
-  positions[3] = float3(0, -bottom_height, 0);
+  positions[0] = float3(0, -bottom_height, 0);
+  positions[1] = float3(width / 2, 0, 0);
+  positions[2] = float3(0, top_height, 0);
+  positions[3] = float3(-width / 2.0f, 0, 0);
 }
 
 static void geo_node_curve_primitive_quadrilateral_exec(GeoNodeExecParams params)
