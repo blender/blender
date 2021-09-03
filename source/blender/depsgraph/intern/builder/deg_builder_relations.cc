@@ -1006,11 +1006,13 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 
     /* Bone Parent */
     case PARBONE: {
-      ComponentKey parent_bone_key(parent_id, NodeType::BONE, object->parsubstr);
-      OperationKey parent_transform_key(
-          parent_id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
-      add_relation(parent_bone_key, object_transform_key, "Bone Parent");
-      add_relation(parent_transform_key, object_transform_key, "Armature Parent");
+      if (object->parsubstr[0] != '\0') {
+        ComponentKey parent_bone_key(parent_id, NodeType::BONE, object->parsubstr);
+        OperationKey parent_transform_key(
+            parent_id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+        add_relation(parent_bone_key, object_transform_key, "Bone Parent");
+        add_relation(parent_transform_key, object_transform_key, "Armature Parent");
+      }
       break;
     }
 
