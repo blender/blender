@@ -4859,78 +4859,33 @@ PointerRNA rna_array_lookup_int(
 
 /* RNA Path - Experiment */
 
-static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, const bool bracket)
+/**
+ * Extract the first token from `path`.
+ *
+ * \param path: Extract the token from path, step the pointer to the beginning of the next token
+ * \return The nil terminated token.
+ */
+static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen)
 {
-  const char *p;
   int len = 0;
 
-  if (bracket) {
-    /* get data between [], check escaping quotes and back-slashes with #BLI_str_unescape. */
-    if (**path == '[') {
-      (*path)++;
-    }
-    else {
-      return NULL;
-    }
-
-    p = *path;
-
-    /* 2 kinds of look-ups now, quoted or unquoted. */
-    if (*p != '"') {
-      while (*p && (*p != ']')) {
-        len++;
-        p++;
-      }
-    }
-    else {
-      const char *p_end = BLI_str_escape_find_quote(p + 1);
-      if (p_end == NULL) {
-        /* No Matching quote. */
-        return NULL;
-      }
-      /* Skip the last quoted char to get the `]`. */
-      p_end += 1;
-
-      len += (p_end - p);
-      p = p_end;
-    }
-
-    if (*p != ']') {
-      return NULL;
-    }
-  }
-  else {
-    /* Get data until `.` or `[`. */
-    p = *path;
-
-    while (*p && *p != '.' && *p != '[') {
-      len++;
-      p++;
-    }
+  /* Get data until `.` or `[`. */
+  const char *p = *path;
+  while (*p && !ELEM(*p, '.', '[')) {
+    len++;
+    p++;
   }
 
-  /* empty, return */
-  if (len == 0) {
+  /* Empty, return. */
+  if (UNLIKELY(len == 0)) {
     return NULL;
   }
 
   /* Try to use fixed buffer if possible. */
   char *buf = (len + 1 < fixedlen) ? fixedbuf : MEM_mallocN(sizeof(char) * (len + 1), __func__);
+  memcpy(buf, *path, sizeof(char) * len);
+  buf[len] = '\0';
 
-  /* copy string, taking into account escaped ] */
-  if (bracket) {
-    BLI_str_unescape(buf, *path, len);
-    p = (*path) + len;
-  }
-  else {
-    memcpy(buf, *path, sizeof(char) * len);
-    buf[len] = '\0';
-  }
-
-  /* set path to start of next token */
-  if (*p == ']') {
-    p++;
-  }
   if (*p == '.') {
     p++;
   }
@@ -4939,17 +4894,95 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, con
   return buf;
 }
 
-static bool rna_token_strip_quotes(char *token)
+/**
+ * Extract the first token in brackets from `path` (with quoted text support).
+ *
+ * - `[0]` -> `0`
+ * - `["Some\"Quote"]` -> `Some"Quote`
+ *
+ * \param path: Extract the token from path, step the pointer to the beginning of the next token
+ * (past quoted text and brackets).
+ * \return The nil terminated token.
+ */
+static char *rna_path_token_in_brackets(const char **path,
+                                        char *fixedbuf,
+                                        int fixedlen,
+                                        bool *r_quoted)
 {
-  if (token[0] == '"') {
-    int len = strlen(token);
-    if (len >= 2 && token[len - 1] == '"') {
-      /* strip away "" */
-      token[len - 1] = '\0';
-      return true;
+  int len = 0;
+  bool quoted = false;
+
+  BLI_assert(r_quoted != NULL);
+
+  /* Get data between `[]`, check escaping quotes and back-slashes with #BLI_str_unescape. */
+  if (UNLIKELY(**path != '[')) {
+    return NULL;
+  }
+
+  (*path)++;
+  const char *p = *path;
+
+  /* 2 kinds of look-ups now, quoted or unquoted. */
+  if (*p == '"') {
+    /* Find the matching quote. */
+    (*path)++;
+    p = *path;
+    const char *p_end = BLI_str_escape_find_quote(p);
+    if (p_end == NULL) {
+      /* No Matching quote. */
+      return NULL;
+    }
+    /* Exclude the last quote from the length. */
+    len += (p_end - p);
+
+    /* Skip the last quoted char to get the `]`. */
+    p_end += 1;
+    p = p_end;
+    quoted = true;
+  }
+  else {
+    /* Find the matching bracket. */
+    while (*p && (*p != ']')) {
+      len++;
+      p++;
     }
   }
-  return false;
+
+  if (UNLIKELY(*p != ']')) {
+    return NULL;
+  }
+
+  /* Empty, return. */
+  if (UNLIKELY(len == 0)) {
+    return NULL;
+  }
+
+  /* Try to use fixed buffer if possible. */
+  char *buf = (len + 1 < fixedlen) ? fixedbuf : MEM_mallocN(sizeof(char) * (len + 1), __func__);
+
+  /* Copy string, taking into account escaped ']' */
+  if (quoted) {
+    BLI_str_unescape(buf, *path, len);
+    /* +1 to step over the last quote. */
+    BLI_assert((*path)[len] == '"');
+    p = (*path) + len + 1;
+  }
+  else {
+    memcpy(buf, *path, sizeof(char) * len);
+    buf[len] = '\0';
+  }
+  /* Set path to start of next token. */
+  if (*p == ']') {
+    p++;
+  }
+  if (*p == '.') {
+    p++;
+  }
+  *path = p;
+
+  *r_quoted = quoted;
+
+  return buf;
 }
 
 static bool rna_path_parse_collection_key(const char **path,
@@ -4968,18 +5001,19 @@ static bool rna_path_parse_collection_key(const char **path,
   }
 
   if (**path == '[') {
+    bool quoted;
     char *token;
 
     /* resolve the lookup with [] brackets */
-    token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), true);
+    token = rna_path_token_in_brackets(path, fixedbuf, sizeof(fixedbuf), &quoted);
 
     if (!token) {
       return false;
     }
 
     /* check for "" to see if it is a string */
-    if (rna_token_strip_quotes(token)) {
-      if (RNA_property_collection_lookup_string(ptr, prop, token + 1, r_nextptr)) {
+    if (quoted) {
+      if (RNA_property_collection_lookup_string(ptr, prop, token, r_nextptr)) {
         /* pass */
       }
       else {
@@ -5041,15 +5075,16 @@ static bool rna_path_parse_array_index(const char **path,
 
     /* multi index resolve */
     if (**path == '[') {
-      token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), true);
+      bool quoted;
+      token = rna_path_token_in_brackets(path, fixedbuf, sizeof(fixedbuf), &quoted);
 
       if (token == NULL) {
         /* invalid syntax blah[] */
         return false;
       }
       /* check for "" to see if it is a string */
-      if (rna_token_strip_quotes(token)) {
-        temp_index = RNA_property_array_item_index(prop, *(token + 1));
+      if (quoted) {
+        temp_index = RNA_property_array_item_index(prop, *token);
       }
       else {
         /* otherwise do int lookup */
@@ -5066,7 +5101,7 @@ static bool rna_path_parse_array_index(const char **path,
     }
     else if (dim == 1) {
       /* location.x || scale.X, single dimension arrays only */
-      token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), false);
+      token = rna_path_token(path, fixedbuf, sizeof(fixedbuf));
       if (token == NULL) {
         /* invalid syntax blah. */
         return false;
@@ -5167,7 +5202,6 @@ static bool rna_path_parse(PointerRNA *ptr,
     }
 
     const bool use_id_prop = (*path == '[');
-    char *token;
     /* custom property lookup ?
      * C.object["someprop"]
      */
@@ -5177,8 +5211,10 @@ static bool rna_path_parse(PointerRNA *ptr,
     }
 
     /* look up property name in current struct */
-    token = rna_path_token(&path, fixedbuf, sizeof(fixedbuf), use_id_prop);
-
+    bool quoted = false;
+    char *token = use_id_prop ?
+                      rna_path_token_in_brackets(&path, fixedbuf, sizeof(fixedbuf), &quoted) :
+                      rna_path_token(&path, fixedbuf, sizeof(fixedbuf));
     if (!token) {
       return false;
     }
@@ -5186,8 +5222,8 @@ static bool rna_path_parse(PointerRNA *ptr,
     prop = NULL;
     if (use_id_prop) { /* look up property name in current struct */
       IDProperty *group = RNA_struct_idprops(&curptr, 0);
-      if (group && rna_token_strip_quotes(token)) {
-        prop = (PropertyRNA *)IDP_GetPropertyFromGroup(group, token + 1);
+      if (group && quoted) {
+        prop = (PropertyRNA *)IDP_GetPropertyFromGroup(group, token);
       }
     }
     else {
@@ -5492,7 +5528,7 @@ char *RNA_path_back(const char *path)
   while (*current) {
     char *token;
 
-    token = rna_path_token(&current, fixedbuf, sizeof(fixedbuf), false);
+    token = rna_path_token(&current, fixedbuf, sizeof(fixedbuf));
 
     if (!token) {
       return NULL;
@@ -5502,7 +5538,8 @@ char *RNA_path_back(const char *path)
     }
 
     /* in case of collection we also need to strip off [] */
-    token = rna_path_token(&current, fixedbuf, sizeof(fixedbuf), true);
+    bool quoted;
+    token = rna_path_token_in_brackets(&current, fixedbuf, sizeof(fixedbuf), &quoted);
     if (token && token != fixedbuf) {
       MEM_freeN(token);
     }
