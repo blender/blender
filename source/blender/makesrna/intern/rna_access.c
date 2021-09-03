@@ -4859,7 +4859,7 @@ PointerRNA rna_array_lookup_int(
 
 /* RNA Path - Experiment */
 
-static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int bracket)
+static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, const bool bracket)
 {
   const char *p;
   int len = 0;
@@ -4939,17 +4939,17 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
   return buf;
 }
 
-static int rna_token_strip_quotes(char *token)
+static bool rna_token_strip_quotes(char *token)
 {
   if (token[0] == '"') {
     int len = strlen(token);
     if (len >= 2 && token[len - 1] == '"') {
       /* strip away "" */
       token[len - 1] = '\0';
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 static bool rna_path_parse_collection_key(const char **path,
@@ -4971,7 +4971,7 @@ static bool rna_path_parse_collection_key(const char **path,
     char *token;
 
     /* resolve the lookup with [] brackets */
-    token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 1);
+    token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), true);
 
     if (!token) {
       return false;
@@ -5041,7 +5041,7 @@ static bool rna_path_parse_array_index(const char **path,
 
     /* multi index resolve */
     if (**path == '[') {
-      token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 1);
+      token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), true);
 
       if (token == NULL) {
         /* invalid syntax blah[] */
@@ -5066,7 +5066,7 @@ static bool rna_path_parse_array_index(const char **path,
     }
     else if (dim == 1) {
       /* location.x || scale.X, single dimension arrays only */
-      token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), 0);
+      token = rna_path_token(path, fixedbuf, sizeof(fixedbuf), false);
       if (token == NULL) {
         /* invalid syntax blah. */
         return false;
@@ -5166,7 +5166,7 @@ static bool rna_path_parse(PointerRNA *ptr,
       RNA_POINTER_INVALIDATE(&nextptr);
     }
 
-    int use_id_prop = (*path == '[') ? 1 : 0;
+    const bool use_id_prop = (*path == '[');
     char *token;
     /* custom property lookup ?
      * C.object["someprop"]
@@ -5492,7 +5492,7 @@ char *RNA_path_back(const char *path)
   while (*current) {
     char *token;
 
-    token = rna_path_token(&current, fixedbuf, sizeof(fixedbuf), 0);
+    token = rna_path_token(&current, fixedbuf, sizeof(fixedbuf), false);
 
     if (!token) {
       return NULL;
@@ -5502,7 +5502,7 @@ char *RNA_path_back(const char *path)
     }
 
     /* in case of collection we also need to strip off [] */
-    token = rna_path_token(&current, fixedbuf, sizeof(fixedbuf), 1);
+    token = rna_path_token(&current, fixedbuf, sizeof(fixedbuf), true);
     if (token && token != fixedbuf) {
       MEM_freeN(token);
     }
