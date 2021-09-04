@@ -2218,11 +2218,11 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
         if (ob->mode & OB_MODE_POSE) {
           if (fcu->rna_path) {
             /* Get bone-name, and check if this bone is selected. */
-            char *bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-            if (bone_name) {
-              bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-              MEM_freeN(bone_name);
-
+            bPoseChannel *pchan = NULL;
+            char bone_name[sizeof(pchan->name)];
+            if (BLI_str_quoted_substr(
+                    fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
+              pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
               /* Delete if bone is selected. */
               if ((pchan) && (pchan->bone)) {
                 if (pchan->bone->flag & BONE_SELECTED) {
@@ -2323,13 +2323,11 @@ static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
           bPoseChannel *pchan = NULL;
 
           /* Get bone-name, and check if this bone is selected. */
-          char *bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-          if (bone_name == NULL) {
+          char bone_name[sizeof(pchan->name)];
+          if (!BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
             continue;
           }
-
           pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-          MEM_freeN(bone_name);
 
           /* skip if bone is not selected */
           if ((pchan) && (pchan->bone)) {

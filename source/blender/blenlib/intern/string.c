@@ -360,6 +360,27 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
   return len;
 }
 
+BLI_INLINE bool str_unescape_pair(char c_next, char *r_out)
+{
+#define CASE_PAIR(value_src, value_dst) \
+  case value_src: { \
+    *r_out = value_dst; \
+    return true; \
+  }
+  switch (c_next) {
+    CASE_PAIR('"', '"');   /* Quote. */
+    CASE_PAIR('\\', '\\'); /* Backslash. */
+    CASE_PAIR('t', '\t');  /* Tab. */
+    CASE_PAIR('n', '\n');  /* Newline. */
+    CASE_PAIR('r', '\r');  /* Carriage return. */
+    CASE_PAIR('a', '\a');  /* Bell. */
+    CASE_PAIR('b', '\b');  /* Backspace. */
+    CASE_PAIR('f', '\f');  /* Form-feed. */
+  }
+#undef CASE_PAIR
+  return false;
+}
+
 /**
  * This roughly matches C and Python's string escaping with double quotes - `"`.
  *
@@ -368,31 +389,53 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
  *
  * \param dst: The destination string, at least the size of `strlen(src) + 1`.
  * \param src: The escaped source string.
- * \param dst_maxncpy: The maximum number of bytes allowable to copy.
+ * \param src_maxncpy: The maximum number of bytes allowable to copy from `src`.
+ * \param dst_maxncpy: The maximum number of bytes allowable to copy into `dst`.
+ * \param r_is_complete: Set to true when
+ */
+size_t BLI_str_unescape_ex(char *__restrict dst,
+                           const char *__restrict src,
+                           const size_t src_maxncpy,
+                           /* Additional arguments to #BLI_str_unescape */
+                           const size_t dst_maxncpy,
+                           bool *r_is_complete)
+{
+  size_t len = 0;
+  bool is_complete = true;
+  for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
+    if (UNLIKELY(len == dst_maxncpy)) {
+      is_complete = false;
+      break;
+    }
+    char c = *src;
+    if (UNLIKELY(c == '\\') && (str_unescape_pair(*(src + 1), &c))) {
+      src++;
+    }
+    dst[len++] = c;
+  }
+  dst[len] = 0;
+  *r_is_complete = is_complete;
+  return len;
+}
+
+/**
+ * See #BLI_str_unescape_ex doc-string.
  *
- * \note This is used for parsing animation paths in blend files.
+ * This function makes the assumption that `dst` always has
+ * at least `src_maxncpy` bytes available.
+ *
+ * Use #BLI_str_unescape_ex if `dst` has a smaller fixed size.
+ *
+ * \note This is used for parsing animation paths in blend files (runs often).
  */
 size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const size_t src_maxncpy)
 {
   size_t len = 0;
-  for (size_t i = 0; i < src_maxncpy && (*src != '\0'); i++, src++) {
+  for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
     char c = *src;
-    if (c == '\\') {
-      char c_next = *(src + 1);
-      if (((c_next == '"') && ((void)(c = '"'), true)) ||   /* Quote. */
-          ((c_next == '\\') && ((void)(c = '\\'), true)) || /* Backslash. */
-          ((c_next == 't') && ((void)(c = '\t'), true)) ||  /* Tab. */
-          ((c_next == 'n') && ((void)(c = '\n'), true)) ||  /* Newline. */
-          ((c_next == 'r') && ((void)(c = '\r'), true)) ||  /* Carriage return. */
-          ((c_next == 'a') && ((void)(c = '\a'), true)) ||  /* Bell. */
-          ((c_next == 'b') && ((void)(c = '\b'), true)) ||  /* Backspace. */
-          ((c_next == 'f') && ((void)(c = '\f'), true)))    /* Form-feed. */
-      {
-        i++;
-        src++;
-      }
+    if (UNLIKELY(c == '\\') && (str_unescape_pair(*(src + 1), &c))) {
+      src++;
     }
-
     dst[len++] = c;
   }
   dst[len] = 0;
@@ -489,6 +532,24 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
     result = MEM_reallocN(result, sizeof(char) * (unescaped_len + 1));
   }
   return result;
+}
+
+bool BLI_str_quoted_substr(const char *__restrict str,
+                           const char *__restrict prefix,
+                           char *result,
+                           size_t result_maxlen)
+{
+  int start_match_ofs, end_match_ofs;
+  if (!BLI_str_quoted_substr_range(str, prefix, &start_match_ofs, &end_match_ofs)) {
+    return false;
+  }
+  const size_t escaped_len = (size_t)(end_match_ofs - start_match_ofs);
+  bool is_complete;
+  BLI_str_unescape_ex(result, str + start_match_ofs, escaped_len, result_maxlen, &is_complete);
+  if (is_complete == false) {
+    *result = '\0';
+  }
+  return is_complete;
 }
 
 /**

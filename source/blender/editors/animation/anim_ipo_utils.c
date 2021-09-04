@@ -106,23 +106,14 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
        * - If a pointer just refers to the ID-block, then don't repeat this info
        *   since this just introduces clutter.
        */
-      if (strstr(fcu->rna_path, "bones") && strstr(fcu->rna_path, "constraints")) {
-        /* perform string 'chopping' to get "Bone Name : Constraint Name" */
-        char *pchanName = BLI_str_quoted_substrN(fcu->rna_path, "bones[");
-        char *constName = BLI_str_quoted_substrN(fcu->rna_path, "constraints[");
+
+      char pchanName[256], constName[256];
+      if (BLI_str_quoted_substr(fcu->rna_path, "bones[", pchanName, sizeof(pchanName)) &&
+          BLI_str_quoted_substr(fcu->rna_path, "constraints[", constName, sizeof(constName))) {
 
         /* assemble the string to display in the UI... */
-        structname = BLI_sprintfN(
-            "%s : %s", pchanName ? pchanName : "", constName ? constName : "");
+        structname = BLI_sprintfN("%s : %s", pchanName, constName);
         free_structname = 1;
-
-        /* free the temp names */
-        if (pchanName) {
-          MEM_freeN(pchanName);
-        }
-        if (constName) {
-          MEM_freeN(constName);
-        }
       }
       else if (ptr.data != ptr.owner_id) {
         PropertyRNA *nameprop = RNA_struct_name_property(ptr.type);
@@ -139,17 +130,14 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
          * displaying the struct name alone is no meaningful information (and also cannot be
          * filtered well), same for modifiers. So display strip name alongside as well. */
         if (GS(ptr.owner_id->name) == ID_SCE) {
-          if (BLI_str_startswith(fcu->rna_path, "sequence_editor.sequences_all[\"")) {
+          char stripname[256];
+          if (BLI_str_quoted_substr(
+                  fcu->rna_path, "sequence_editor.sequences_all[", stripname, sizeof(stripname))) {
             if (strstr(fcu->rna_path, ".transform.") || strstr(fcu->rna_path, ".crop.") ||
                 strstr(fcu->rna_path, ".modifiers[")) {
-              char *stripname = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-              const char *structname_all = BLI_sprintfN(
-                  "%s : %s", stripname ? stripname : "", structname);
+              const char *structname_all = BLI_sprintfN("%s : %s", stripname, structname);
               if (free_structname) {
                 MEM_freeN((void *)structname);
-              }
-              if (stripname) {
-                MEM_freeN(stripname);
               }
               structname = structname_all;
               free_structname = 1;

@@ -447,10 +447,9 @@ void BCAnimationSampler::initialize_curves(BCAnimationCurveMap &curves, Object *
     for (; fcu; fcu = fcu->next) {
       object_type = BC_ANIMATION_TYPE_OBJECT;
       if (ob->type == OB_ARMATURE) {
-        char *boneName = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
-        if (boneName) {
+        char boneName[MAXBONENAME];
+        if (BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", boneName, sizeof(boneName))) {
           object_type = BC_ANIMATION_TYPE_BONE;
-          MEM_freeN(boneName);
         }
       }
 
