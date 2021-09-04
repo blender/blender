@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 #include "COM_QualityStepHelper.h"
 
 namespace blender::compositor {
 
-class DirectionalBlurOperation : public NodeOperation, public QualityStepHelper {
+class DirectionalBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
   SocketReader *m_inputProgram;
   NodeDBlurData *m_data;
@@ -65,6 +65,11 @@ class DirectionalBlurOperation : public NodeOperation, public QualityStepHelper 
                      MemoryBuffer **inputMemoryBuffers,
                      std::list<cl_mem> *clMemToCleanUp,
                      std::list<cl_kernel> *clKernelsToCleanUp) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

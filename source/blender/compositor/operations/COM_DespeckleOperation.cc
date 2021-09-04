@@ -127,6 +127,11 @@ void DespeckleOperation::executePixel(float output[4], int x, int y, void * /*da
   else {
     copy_v4_v4(output, color_org);
   }
+
+#undef TOT_DIV_ONE
+#undef TOT_DIV_CNR
+#undef WTOT
+#undef COLOR_ADD
 }
 
 bool DespeckleOperation::determineDependingAreaOfInterest(rcti *input,
@@ -142,6 +147,108 @@ bool DespeckleOperation::determineDependingAreaOfInterest(rcti *input,
   newInput.ymin = input->ymin - addy;
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+
+void DespeckleOperation::get_area_of_interest(const int input_idx,
+                                              const rcti &output_area,
+                                              rcti &r_input_area)
+{
+  switch (input_idx) {
+    case IMAGE_INPUT_INDEX: {
+      const int add_x = 2;  //(this->m_filterWidth - 1) / 2 + 1;
+      const int add_y = 2;  //(this->m_filterHeight - 1) / 2 + 1;
+      r_input_area.xmin = output_area.xmin - add_x;
+      r_input_area.xmax = output_area.xmax + add_x;
+      r_input_area.ymin = output_area.ymin - add_y;
+      r_input_area.ymax = output_area.ymax + add_y;
+      break;
+    }
+    case FACTOR_INPUT_INDEX: {
+      r_input_area = output_area;
+      break;
+    }
+  }
+}
+
+void DespeckleOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                      const rcti &area,
+                                                      Span<MemoryBuffer *> inputs)
+{
+  const MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
+  const int last_x = getWidth() - 1;
+  const int last_y = getHeight() - 1;
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const int x1 = MAX2(it.x - 1, 0);
+    const int x2 = it.x;
+    const int x3 = MIN2(it.x + 1, last_x);
+    const int y1 = MAX2(it.y - 1, 0);
+    const int y2 = it.y;
+    const int y3 = MIN2(it.y + 1, last_y);
+
+    float w = 0.0f;
+    const float *color_org = it.in(IMAGE_INPUT_INDEX);
+    float color_mid[4];
+    float color_mid_ok[4];
+    const float *in1 = nullptr;
+
+#define TOT_DIV_ONE 1.0f
+#define TOT_DIV_CNR (float)M_SQRT1_2
+
+#define WTOT (TOT_DIV_ONE * 4 + TOT_DIV_CNR * 4)
+
+#define COLOR_ADD(fac) \
+  { \
+    madd_v4_v4fl(color_mid, in1, fac); \
+    if (color_diff(in1, color_org, m_threshold)) { \
+      w += fac; \
+      madd_v4_v4fl(color_mid_ok, in1, fac); \
+    } \
+  }
+
+    zero_v4(color_mid);
+    zero_v4(color_mid_ok);
+
+    in1 = image->get_elem(x1, y1);
+    COLOR_ADD(TOT_DIV_CNR)
+    in1 = image->get_elem(x2, y1);
+    COLOR_ADD(TOT_DIV_ONE)
+    in1 = image->get_elem(x3, y1);
+    COLOR_ADD(TOT_DIV_CNR)
+    in1 = image->get_elem(x1, y2);
+    COLOR_ADD(TOT_DIV_ONE)
+
+#if 0
+  const float* in2 = image->get_elem(x2, y2);
+  madd_v4_v4fl(color_mid, in2, this->m_filter[4]);
+#endif
+
+    in1 = image->get_elem(x3, y2);
+    COLOR_ADD(TOT_DIV_ONE)
+    in1 = image->get_elem(x1, y3);
+    COLOR_ADD(TOT_DIV_CNR)
+    in1 = image->get_elem(x2, y3);
+    COLOR_ADD(TOT_DIV_ONE)
+    in1 = image->get_elem(x3, y3);
+    COLOR_ADD(TOT_DIV_CNR)
+
+    mul_v4_fl(color_mid, 1.0f / (4.0f + (4.0f * (float)M_SQRT1_2)));
+    // mul_v4_fl(color_mid, 1.0f / w);
+
+    if ((w != 0.0f) && ((w / WTOT) > (m_threshold_neighbor)) &&
+        color_diff(color_mid, color_org, m_threshold)) {
+      const float factor = *it.in(FACTOR_INPUT_INDEX);
+      mul_v4_fl(color_mid_ok, 1.0f / w);
+      interp_v4_v4v4(it.out, color_org, color_mid_ok, factor);
+    }
+    else {
+      copy_v4_v4(it.out, color_org);
+    }
+
+#undef TOT_DIV_ONE
+#undef TOT_DIV_CNR
+#undef WTOT
+#undef COLOR_ADD
+  }
 }
 
 }  // namespace blender::compositor

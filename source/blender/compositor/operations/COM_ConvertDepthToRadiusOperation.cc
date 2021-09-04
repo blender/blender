@@ -116,4 +116,31 @@ void ConvertDepthToRadiusOperation::deinitExecution()
   this->m_inputOperation = nullptr;
 }
 
+void ConvertDepthToRadiusOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                                 const rcti &area,
+                                                                 Span<MemoryBuffer *> inputs)
+{
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const float z = *it.in(0);
+    if (z == 0.0f) {
+      *it.out = 0.0f;
+      continue;
+    }
+
+    const float inv_z = (1.0f / z);
+
+    /* Bug T6656 part 2b, do not re-scale. */
+#if 0
+    bcrad = 0.5f * fabs(aperture * (dof_sp * (cam_invfdist - iZ) - 1.0f));
+    /* Scale crad back to original maximum and blend:
+     * `crad->rect[px] = bcrad + wts->rect[px] * (scf * crad->rect[px] - bcrad);` */
+#endif
+    const float radius = 0.5f *
+                         fabsf(m_aperture * (m_dof_sp * (m_inverseFocalDistance - inv_z) - 1.0f));
+    /* Bug T6615, limit minimum radius to 1 pixel,
+     * not really a solution, but somewhat mitigates the problem. */
+    *it.out = CLAMPIS(radius, 0.0f, m_maxRadius);
+  }
+}
+
 }  // namespace blender::compositor
