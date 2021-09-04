@@ -647,6 +647,7 @@ if(WITH_GTESTS)
     tests/COM_BufferArea_test.cc
     tests/COM_BufferRange_test.cc
     tests/COM_BuffersIterator_test.cc
+    tests/COM_NodeOperation_test.cc
   )
   set(TEST_INC
   )
