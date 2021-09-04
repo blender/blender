@@ -1466,15 +1466,39 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
  * Close selected area, replace by expanding a neighbor
  * \{ */
 
-/* operator callback */
-static int area_close_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+/**
+ * \note This can be used interactively or from Python.
+ *
+ * \note Most of the window management operators don't support execution from Python.
+ * An exception is made for closing areas since it allows application templates
+ * to customize the layout.
+ */
+static int area_close_exec(bContext *C, wmOperator *op)
 {
+  bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
-  if ((area != NULL) && screen_area_close(C, CTX_wm_screen(C), area)) {
-    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
-    return OPERATOR_FINISHED;
+
+  /* This operator is scriptable, so the area passed could be invalid. */
+  if (BLI_findindex(&screen->areabase, area) == -1) {
+    BKE_report(op->reports, RPT_ERROR, "Area not found in the active screen");
+    return OPERATOR_CANCELLED;
   }
-  return OPERATOR_CANCELLED;
+
+  if (!screen_area_close(C, screen, area)) {
+    BKE_report(op->reports, RPT_ERROR, "Unable to close area");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Ensure the event loop doesn't attempt to continue handling events.
+   *
+   * This causes execution from the Python console fail to return to the prompt as it should.
+   * This glitch could be solved in the event loop handling as other operators may also
+   * destructively manipulate windowing data. */
+  CTX_wm_window_set(C, NULL);
+
+  WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
 }
 
 static bool area_close_poll(bContext *C)
@@ -1506,7 +1530,7 @@ static void SCREEN_OT_area_close(wmOperatorType *ot)
   ot->name = "Close Area";
   ot->description = "Close selected area";
   ot->idname = "SCREEN_OT_area_close";
-  ot->invoke = area_close_invoke;
+  ot->exec = area_close_exec;
   ot->poll = area_close_poll;
 }
 
