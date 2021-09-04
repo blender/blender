@@ -76,16 +76,12 @@ static void deformStroke(GpencilModifierData *md,
   SubdivGpencilModifierData *mmd = (SubdivGpencilModifierData *)md;
   bGPdata *gpd = ob->data;
 
-  /* It makes sense when adding points to a straight line */
-  /* e.g. for creating thickness variation in later modifiers. */
-  const int minimum_vert = (mmd->flag & GP_SUBDIV_SIMPLE) ? 2 : 3;
-
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
                                       mmd->material,
                                       mmd->pass_index,
                                       mmd->layer_pass,
-                                      minimum_vert,
+                                      2,
                                       gpl,
                                       gps,
                                       mmd->flag & GP_SUBDIV_INVERT_LAYER,
@@ -95,7 +91,10 @@ static void deformStroke(GpencilModifierData *md,
     return;
   }
 
-  BKE_gpencil_stroke_subdivide(gpd, gps, mmd->level, mmd->type);
+  /* For strokes with less than 3 points, only the Simple Subdivision makes sense. */
+  short type = gps->totpoints < 3 ? GP_SUBDIV_SIMPLE : mmd->type;
+
+  BKE_gpencil_stroke_subdivide(gpd, gps, mmd->level, type);
 
   /* If the stroke is cyclic, must generate the closing geometry. */
   if (gps->flag & GP_STROKE_CYCLIC) {
