@@ -41,6 +41,7 @@
 #include "COM_ColorExposureNode.h"
 #include "COM_ColorMatteNode.h"
 #include "COM_ColorNode.h"
+#include "COM_PosterizeNode.h"
 #include "COM_ColorRampNode.h"
 #include "COM_ColorSpillNode.h"
 #include "COM_ColorToBWNode.h"
@@ -423,6 +424,9 @@ Node *COM_convert_bnode(bNode *b_node)
       break;
     case CMP_NODE_ANTIALIASING:
       node = new AntiAliasingNode(b_node);
+      break;
+    case CMP_NODE_POSTERIZE:
+      node = new PosterizeNode(b_node);
       break;
   }
   return node;

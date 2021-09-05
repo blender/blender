@@ -1255,6 +1255,7 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 #define CMP_NODE_DENOISE 324
 #define CMP_NODE_EXPOSURE 325
 #define CMP_NODE_CRYPTOMATTE 326
+#define CMP_NODE_POSTERIZE 327
 
 /* channel toggles */
 #define CMP_CHAN_RGB 1

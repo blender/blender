@@ -104,6 +104,7 @@ set(SRC
   composite/nodes/node_composite_outputFile.c
   composite/nodes/node_composite_pixelate.c
   composite/nodes/node_composite_planetrackdeform.c
+  composite/nodes/node_composite_posterize.c
   composite/nodes/node_composite_premulkey.c
   composite/nodes/node_composite_rgb.c
   composite/nodes/node_composite_rotate.c

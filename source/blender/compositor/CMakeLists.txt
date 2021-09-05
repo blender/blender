@@ -317,6 +317,8 @@ set(SRC
   nodes/COM_FilterNode.h
   nodes/COM_InpaintNode.cc
   nodes/COM_InpaintNode.h
+  nodes/COM_PosterizeNode.cc
+  nodes/COM_PosterizeNode.h
 
   operations/COM_BlurBaseOperation.cc
   operations/COM_BlurBaseOperation.h
@@ -346,6 +348,8 @@ set(SRC
   operations/COM_MovieClipAttributeOperation.h
   operations/COM_MovieDistortionOperation.cc
   operations/COM_MovieDistortionOperation.h
+  operations/COM_PosterizeOperation.cc
+  operations/COM_PosterizeOperation.h
   operations/COM_SMAAOperation.cc
   operations/COM_SMAAOperation.h
   operations/COM_VariableSizeBokehBlurOperation.cc
