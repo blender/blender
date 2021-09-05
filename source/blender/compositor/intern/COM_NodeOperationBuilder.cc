@@ -477,15 +477,15 @@ static Vector<NodeOperationHash> generate_hashes(Span<NodeOperation *> operation
 /** Merge operations with same type, inputs and parameters that produce the same result. */
 void NodeOperationBuilder::merge_equal_operations()
 {
-  bool any_merged = true;
-  while (any_merged) {
+  bool check_for_next_merge = true;
+  while (check_for_next_merge) {
     /* Re-generate hashes with any change. */
     Vector<NodeOperationHash> hashes = generate_hashes(m_operations);
 
     /* Make hashes be consecutive when they are equal. */
     std::sort(hashes.begin(), hashes.end());
 
-    any_merged = false;
+    bool any_merged = false;
     const NodeOperationHash *prev_hash = nullptr;
     for (const NodeOperationHash &hash : hashes) {
       if (prev_hash && *prev_hash == hash) {
@@ -494,6 +494,8 @@ void NodeOperationBuilder::merge_equal_operations()
       }
       prev_hash = &hash;
     }
+
+    check_for_next_merge = any_merged;
   }
 }
 
