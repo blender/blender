@@ -1979,8 +1979,7 @@ int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
     visibility |= OB_VISIBLE_INSTANCES;
   }
 
-  if (ob->runtime.geometry_set_eval != NULL &&
-      BKE_geometry_set_has_instances(ob->runtime.geometry_set_eval)) {
+  if (BKE_object_has_geometry_set_instances(ob)) {
     visibility |= OB_VISIBLE_INSTANCES;
   }
 
@@ -5736,4 +5735,14 @@ void BKE_object_modifiers_lib_link_common(void *userData,
   if (*idpoin != NULL && (cb_flag & IDWALK_CB_USER) != 0) {
     id_us_plus_no_lib(*idpoin);
   }
+}
+
+void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)
+{
+  ob->type = BKE_object_obdata_to_type(new_data);
+  ob->data = new_data;
+  ob->runtime.geometry_set_eval = NULL;
+  ob->runtime.data_eval = NULL;
+  ob->runtime.bb->flag |= BOUNDBOX_DIRTY;
+  ob->id.py_instance = NULL;
 }

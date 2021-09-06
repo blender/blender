@@ -497,6 +497,11 @@ typedef struct DRWDebugSphere {
 
 /* ------------- DRAW MANAGER ------------ */
 
+typedef struct DupliKey {
+  struct Object *ob;
+  struct ID *ob_data;
+} DupliKey;
+
 #define DST_MAX_SLOTS 64  /* Cannot be changed without modifying RST.bound_tex_slots */
 #define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
 #define STENCIL_UNDEFINED 256
@@ -515,15 +520,19 @@ typedef struct DRWManager {
   /** Handle of next DRWPass to be allocated. */
   DRWResourceHandle pass_handle;
 
-  /** Dupli state. NULL if not dupli. */
+  /** Dupli object that corresponds to the current object. */
   struct DupliObject *dupli_source;
+  /** Object that created the dupli-list the current object is part of. */
   struct Object *dupli_parent;
+  /** Object referenced by the current dupli object. */
   struct Object *dupli_origin;
-  /** Ghash containing original objects. */
+  /** Object-data referenced by the current dupli object. */
+  struct ID *dupli_origin_data;
+  /** Ghash: #DupliKey -> void pointer for each enabled engine. */
   struct GHash *dupli_ghash;
   /** TODO(fclem): try to remove usage of this. */
   DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
-  /* Array of dupli_data (one for each enabled engine) to handle duplis. */
+  /* Dupli data for the current dupli for each enabled engine. */
   void **dupli_datas;
 
   /* Rendering state */

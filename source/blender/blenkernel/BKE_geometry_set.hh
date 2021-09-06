@@ -283,6 +283,7 @@ struct GeometrySet {
 
   void clear();
 
+  bool owns_direct_data() const;
   void ensure_owns_direct_data();
 
   /* Utility methods for creation. */
@@ -447,12 +448,14 @@ class InstanceReference {
     None,
     Object,
     Collection,
+    GeometrySet,
   };
 
  private:
   Type type_ = Type::None;
   /** Depending on the type this is either null, an Object or Collection pointer. */
   void *data_ = nullptr;
+  std::unique_ptr<GeometrySet> geometry_set_;
 
  public:
   InstanceReference() = default;
@@ -463,6 +466,19 @@ class InstanceReference {
 
   InstanceReference(Collection &collection) : type_(Type::Collection), data_(&collection)
   {
+  }
+
+  InstanceReference(GeometrySet geometry_set)
+      : type_(Type::GeometrySet),
+        geometry_set_(std::make_unique<GeometrySet>(std::move(geometry_set)))
+  {
+  }
+
+  InstanceReference(const InstanceReference &src) : type_(src.type_), data_(src.data_)
+  {
+    if (src.type_ == Type::GeometrySet) {
+      geometry_set_ = std::make_unique<GeometrySet>(*src.geometry_set_);
+    }
   }
 
   Type type() const
@@ -482,14 +498,37 @@ class InstanceReference {
     return *(Collection *)data_;
   }
 
+  const GeometrySet &geometry_set() const
+  {
+    BLI_assert(type_ == Type::GeometrySet);
+    return *geometry_set_;
+  }
+
+  bool owns_direct_data() const
+  {
+    if (type_ != Type::GeometrySet) {
+      /* The object and collection instances are not direct data. */
+      return true;
+    }
+    return geometry_set_->owns_direct_data();
+  }
+
+  void ensure_owns_direct_data()
+  {
+    if (type_ != Type::GeometrySet) {
+      return;
+    }
+    geometry_set_->ensure_owns_direct_data();
+  }
+
   uint64_t hash() const
   {
-    return blender::get_default_hash(data_);
+    return blender::get_default_hash_2(data_, geometry_set_.get());
   }
 
   friend bool operator==(const InstanceReference &a, const InstanceReference &b)
   {
-    return a.data_ == b.data_;
+    return a.data_ == b.data_ && a.geometry_set_.get() == b.geometry_set_.get();
   }
 };
 
@@ -529,7 +568,7 @@ class InstancesComponent : public GeometryComponent {
   void reserve(int min_capacity);
   void resize(int capacity);
 
-  int add_reference(InstanceReference reference);
+  int add_reference(const InstanceReference &reference);
   void add_instance(int instance_handle, const blender::float4x4 &transform, const int id = -1);
 
   blender::Span<InstanceReference> references() const;

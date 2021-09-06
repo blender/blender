@@ -35,6 +35,10 @@ struct CollectionCellValue {
   const Collection *collection;
 };
 
+struct GeometrySetCellValue {
+  const GeometrySet *geometry_set;
+};
+
 /**
  * This is a type that can hold the value of a cell in a spreadsheet. This type allows us to
  * decouple the drawing of individual cells from the code that generates the data to be displayed.
@@ -53,6 +57,7 @@ class CellValue {
   std::optional<ColorGeometry4f> value_color;
   std::optional<ObjectCellValue> value_object;
   std::optional<CollectionCellValue> value_collection;
+  std::optional<GeometrySetCellValue> value_geometry_set;
 };
 
 }  // namespace blender::ed::spreadsheet

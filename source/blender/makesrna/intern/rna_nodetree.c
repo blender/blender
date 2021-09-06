@@ -9295,6 +9295,11 @@ static void def_geo_point_instance(StructRNA *srna)
        ICON_NONE,
        "Collection",
        "Instance an entire collection on all points"},
+      {GEO_NODE_POINT_INSTANCE_TYPE_GEOMETRY,
+       "GEOMETRY",
+       ICON_NONE,
+       "Geometry",
+       "Copy geometry to all points"},
       {0, NULL, 0, NULL, NULL},
   };
 

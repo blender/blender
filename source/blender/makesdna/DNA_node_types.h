@@ -1889,6 +1889,7 @@ typedef enum GeometryNodeTriangulateQuads {
 typedef enum GeometryNodePointInstanceType {
   GEO_NODE_POINT_INSTANCE_TYPE_OBJECT = 0,
   GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION = 1,
+  GEO_NODE_POINT_INSTANCE_TYPE_GEOMETRY = 2,
 } GeometryNodePointInstanceType;
 
 typedef enum GeometryNodePointInstanceFlag {

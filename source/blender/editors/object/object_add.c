@@ -2246,13 +2246,6 @@ static bool dupliobject_instancer_cmp(const void *a_, const void *b_)
   return false;
 }
 
-static bool object_has_geometry_set_instances(const Object *object_eval)
-{
-  struct GeometrySet *geometry_set = object_eval->runtime.geometry_set_eval;
-
-  return (geometry_set != NULL) && BKE_geometry_set_has_instances(geometry_set);
-}
-
 static void make_object_duplilist_real(bContext *C,
                                        Depsgraph *depsgraph,
                                        Scene *scene,
@@ -2266,7 +2259,8 @@ static void make_object_duplilist_real(bContext *C,
 
   Object *object_eval = DEG_get_evaluated_object(depsgraph, base->object);
 
-  if (!(base->object->transflag & OB_DUPLI) && !object_has_geometry_set_instances(object_eval)) {
+  if (!(base->object->transflag & OB_DUPLI) &&
+      !BKE_object_has_geometry_set_instances(object_eval)) {
     return;
   }
 

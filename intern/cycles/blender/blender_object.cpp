@@ -154,7 +154,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   const bool is_instance = b_instance.is_instance();
   BL::Object b_ob = b_instance.object();
   BL::Object b_parent = is_instance ? b_instance.parent() : b_instance.object();
-  BL::Object b_ob_instance = is_instance ? b_instance.instance_object() : b_ob;
+  BObjectInfo b_ob_info{b_ob, is_instance ? b_instance.instance_object() : b_ob, b_ob.data()};
   const bool motion = motion_time != 0.0f;
   /*const*/ Transform tfm = get_transform(b_ob.matrix_world());
   int *persistent_id = NULL;
@@ -178,8 +178,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     {
       sync_light(b_parent,
                  persistent_id,
-                 b_ob,
-                 b_ob_instance,
+                 b_ob_info,
                  is_instance ? b_instance.random_id() : 0,
                  tfm,
                  use_portal);
@@ -231,7 +230,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   TaskPool *object_geom_task_pool = (is_instance) ? NULL : geom_task_pool;
 
   /* key to lookup object */
-  ObjectKey key(b_parent, persistent_id, b_ob_instance, use_particle_hair);
+  ObjectKey key(b_parent, persistent_id, b_ob_info.real_object, use_particle_hair);
   Object *object;
 
   /* motion vector case */
@@ -249,12 +248,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
       /* mesh deformation */
       if (object->get_geometry())
-        sync_geometry_motion(b_depsgraph,
-                             b_ob_instance,
-                             object,
-                             motion_time,
-                             use_particle_hair,
-                             object_geom_task_pool);
+        sync_geometry_motion(
+            b_depsgraph, b_ob_info, object, motion_time, use_particle_hair, object_geom_task_pool);
     }
 
     return object;
@@ -265,15 +260,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                         (tfm != object->get_tfm());
 
   /* mesh sync */
-  /* b_ob is owned by the iterator and will go out of scope at the end of the block.
-   * b_ob_instance is the original object and will remain valid for deferred geometry
-   * sync. */
-  Geometry *geometry = sync_geometry(b_depsgraph,
-                                     b_ob_instance,
-                                     b_ob_instance,
-                                     object_updated,
-                                     use_particle_hair,
-                                     object_geom_task_pool);
+  Geometry *geometry = sync_geometry(
+      b_depsgraph, b_ob_info, object_updated, use_particle_hair, object_geom_task_pool);
   object->set_geometry(geometry);
 
   /* special case not tracked by object update flags */

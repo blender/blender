@@ -181,9 +181,12 @@ class BlenderSmokeLoader : public ImageLoader {
   AttributeStandard attribute;
 };
 
-static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Volume *volume, float frame)
+static void sync_smoke_volume(Scene *scene, BObjectInfo &b_ob_info, Volume *volume, float frame)
 {
-  BL::FluidDomainSettings b_domain = object_fluid_gas_domain_find(b_ob);
+  if (!b_ob_info.is_real_object_data()) {
+    return;
+  }
+  BL::FluidDomainSettings b_domain = object_fluid_gas_domain_find(b_ob_info.real_object);
   if (!b_domain) {
     return;
   }
@@ -206,7 +209,7 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Volume *volume, fl
 
     Attribute *attr = volume->attributes.add(std);
 
-    ImageLoader *loader = new BlenderSmokeLoader(b_ob, std);
+    ImageLoader *loader = new BlenderSmokeLoader(b_ob_info.real_object, std);
     ImageParams params;
     params.frame = frame;
 
@@ -244,11 +247,11 @@ class BlenderVolumeLoader : public VDBImageLoader {
 };
 
 static void sync_volume_object(BL::BlendData &b_data,
-                               BL::Object &b_ob,
+                               BObjectInfo &b_ob_info,
                                Scene *scene,
                                Volume *volume)
 {
-  BL::Volume b_volume(b_ob.data());
+  BL::Volume b_volume(b_ob_info.object_data);
   b_volume.grids.load(b_data.ptr.data);
 
   BL::VolumeRender b_render(b_volume.render());
@@ -296,19 +299,19 @@ static void sync_volume_object(BL::BlendData &b_data,
   }
 }
 
-void BlenderSync::sync_volume(BL::Object &b_ob, Volume *volume)
+void BlenderSync::sync_volume(BObjectInfo &b_ob_info, Volume *volume)
 {
   volume->clear(true);
 
   if (view_layer.use_volumes) {
-    if (b_ob.type() == BL::Object::type_VOLUME) {
+    if (b_ob_info.object_data.is_a(&RNA_Volume)) {
       /* Volume object. Create only attributes, bounding mesh will then
        * be automatically generated later. */
-      sync_volume_object(b_data, b_ob, scene, volume);
+      sync_volume_object(b_data, b_ob_info, scene, volume);
     }
     else {
       /* Smoke domain. */
-      sync_smoke_volume(scene, b_ob, volume, b_scene.frame_current());
+      sync_smoke_volume(scene, b_ob_info, volume, b_scene.frame_current());
     }
   }
 

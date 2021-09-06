@@ -168,6 +168,11 @@ static void geometry_set_collect_recursive(const GeometrySet &geometry_set,
               collection, instance_transform, r_sets);
           break;
         }
+        case InstanceReference::Type::GeometrySet: {
+          const GeometrySet &geometry_set = reference.geometry_set();
+          geometry_set_collect_recursive(geometry_set, instance_transform, r_sets);
+          break;
+        }
         case InstanceReference::Type::None: {
           break;
         }
@@ -286,6 +291,13 @@ static bool instances_attribute_foreach_recursive(const GeometrySet &geometry_se
       case InstanceReference::Type::Collection: {
         const Collection &collection = reference.collection();
         if (!collection_instance_attribute_foreach(collection, callback, limit, count)) {
+          return false;
+        }
+        break;
+      }
+      case InstanceReference::Type::GeometrySet: {
+        const GeometrySet &geometry_set = reference.geometry_set();
+        if (!instances_attribute_foreach_recursive(geometry_set, callback, limit, count)) {
           return false;
         }
         break;

@@ -84,7 +84,19 @@ template<typename T> class UserCounter {
     return data_;
   }
 
+  const T *operator->() const
+  {
+    BLI_assert(data_ != nullptr);
+    return data_;
+  }
+
   T &operator*()
+  {
+    BLI_assert(data_ != nullptr);
+    return *data_;
+  }
+
+  const T &operator*() const
   {
     BLI_assert(data_ != nullptr);
     return *data_;

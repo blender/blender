@@ -332,6 +332,11 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
               r_cell_value.value_collection = CollectionCellValue{&collection};
               break;
             }
+            case InstanceReference::Type::GeometrySet: {
+              const GeometrySet &geometry_set = reference.geometry_set();
+              r_cell_value.value_geometry_set = GeometrySetCellValue{&geometry_set};
+              break;
+            }
             case InstanceReference::Type::None: {
               break;
             }
