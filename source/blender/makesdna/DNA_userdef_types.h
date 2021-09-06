@@ -927,7 +927,7 @@ typedef struct UserDef {
   char _pad10[2];
 
   char file_preview_type; /* eUserpref_File_Preview_Type */
-  char statusbar_flag; /* eUserpref_StatusBar_Flag */
+  char statusbar_flag;    /* eUserpref_StatusBar_Flag */
 
   struct WalkNavigation walk_navigation;
 

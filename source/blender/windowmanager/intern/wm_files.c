@@ -1675,7 +1675,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
     IMB_scaleImBuf(thumb_ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
     thumb = BKE_main_thumbnail_from_imbuf(NULL, thumb_ibuf);
     IMB_freeImBuf(thumb_ibuf);
-    /* Thumbnail saved to filesystem should be 256x256. */
+    /* Thumbnail saved to file-system should be 256x256. */
     IMB_scaleImBuf(ibuf, PREVIEW_RENDER_LARGE_HEIGHT, PREVIEW_RENDER_LARGE_HEIGHT);
   }
   else {
