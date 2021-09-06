@@ -924,8 +924,9 @@ typedef struct UserDef {
   short sequencer_proxy_setup; /* eUserpref_SeqProxySetup */
 
   float collection_instance_empty_size;
-  char _pad10[3];
+  char _pad10[2];
 
+  char file_preview_type; /* eUserpref_File_Preview_Type */
   char statusbar_flag; /* eUserpref_StatusBar_Flag */
 
   struct WalkNavigation walk_navigation;
@@ -996,7 +997,7 @@ typedef enum eUserPref_Flag {
   USER_NONUMPAD = (1 << 13),
   USER_ADD_CURSORALIGNED = (1 << 14),
   USER_FILECOMPRESS = (1 << 15),
-  USER_SAVE_PREVIEWS = (1 << 16),
+  USER_FLAG_UNUSED_5 = (1 << 16), /* dirty */
   USER_CUSTOM_RANGE = (1 << 17),
   USER_ADD_EDITMODE = (1 << 18),
   USER_ADD_VIEWALIGNED = (1 << 19),
@@ -1009,6 +1010,13 @@ typedef enum eUserPref_Flag {
   USER_TOOLTIPS_PYTHON = (1 << 26),
   USER_FLAG_UNUSED_27 = (1 << 27), /* dirty */
 } eUserPref_Flag;
+
+/** #UserDef.file_preview_type */
+typedef enum eUserpref_File_Preview_Type {
+  USER_FILE_PREVIEW_NONE = 0,
+  USER_FILE_PREVIEW_SCREENSHOT,
+  USER_FILE_PREVIEW_CAMERA,
+} eUserpref_File_Preview_Type;
 
 typedef enum eUserPref_PrefFlag {
   USER_PREF_FLAG_SAVE = (1 << 0),

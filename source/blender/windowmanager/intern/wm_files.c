@@ -1515,14 +1515,64 @@ static void wm_history_file_update(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Save Main Blend-File (internal)
+/** \name Save Main Blend-File (internal) by capturing main window.
+ * \{ */
+
+static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thumb_pt)
+{
+  if (*thumb_pt) {
+    /* We are given a valid thumbnail data, so just generate image from it. */
+    return BKE_main_thumbnail_to_imbuf(NULL, *thumb_pt);
+  }
+
+  /* Redraw to remove menus that might be open. */
+  WM_redraw_windows(C);
+  WM_cursor_wait(true);
+
+  /* The window to capture should be a main window (without parent). */
+  wmWindow *win = CTX_wm_window(C);
+  while (win && win->parent) {
+    win = win->parent;
+  }
+
+  int win_size[2];
+  uint *buffer = WM_window_pixels_read(CTX_wm_manager(C), win, win_size);
+  ImBuf *ibuf = IMB_allocFromBuffer(buffer, NULL, win_size[0], win_size[1], 24);
+
+  if (ibuf) {
+    int ex = (ibuf->x > ibuf->y) ? BLEN_THUMB_SIZE :
+                                   (int)((ibuf->x / (float)ibuf->y) * BLEN_THUMB_SIZE);
+    int ey = (ibuf->x > ibuf->y) ? (int)((ibuf->y / (float)ibuf->x) * BLEN_THUMB_SIZE) :
+                                   BLEN_THUMB_SIZE;
+    /* Filesystem thumbnail image can be 256x256. */
+    IMB_scaleImBuf(ibuf, ex * 2, ey * 2);
+
+    /* Thumbnail inside blend should be 128x128. */
+    ImBuf *thumb_ibuf = IMB_dupImBuf(ibuf);
+    IMB_scaleImBuf(thumb_ibuf, ex, ey);
+
+    BlendThumbnail *thumb = BKE_main_thumbnail_from_imbuf(NULL, thumb_ibuf);
+    IMB_freeImBuf(thumb_ibuf);
+    MEM_freeN(buffer);
+    *thumb_pt = thumb;
+  }
+  WM_cursor_wait(false);
+
+  /* Must be freed by caller. */
+  return ibuf;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Save Main Blend-File (internal) by rendering scene
  * \{ */
 
 /* screen can be NULL */
-static ImBuf *blend_file_thumb(const bContext *C,
-                               Scene *scene,
-                               bScreen *screen,
-                               BlendThumbnail **thumb_pt)
+static ImBuf *blend_file_thumb_from_camera(const bContext *C,
+                                           Scene *scene,
+                                           bScreen *screen,
+                                           BlendThumbnail **thumb_pt)
 {
   /* will be scaled down, but gives some nice oversampling */
   ImBuf *ibuf;
@@ -1704,8 +1754,13 @@ static bool wm_file_write(bContext *C,
   /* Main now can store a '.blend' thumbnail, useful for background mode
    * or thumbnail customization. */
   main_thumb = thumb = bmain->blen_thumb;
-  if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
-    ibuf_thumb = blend_file_thumb(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
+  if (BLI_thread_is_main()) {
+    if (U.file_preview_type == USER_FILE_PREVIEW_SCREENSHOT) {
+      ibuf_thumb = blend_file_thumb_from_screenshot(C, &thumb);
+    }
+    else if (U.file_preview_type == USER_FILE_PREVIEW_CAMERA) {
+      ibuf_thumb = blend_file_thumb_from_camera(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
+    }
   }
 
   /* operator now handles overwrite checks */

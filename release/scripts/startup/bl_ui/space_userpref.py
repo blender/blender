@@ -1414,7 +1414,7 @@ class USERPREF_PT_saveload_blend(SaveLoadPanel, CenterAlignMixIn, Panel):
 
         col = layout.column(heading="Save")
         col.prop(view, "use_save_prompt")
-        col.prop(paths, "use_save_preview_images")
+        col.prop(paths, "file_preview_type")
 
         col = layout.column(heading="Default To")
         col.prop(paths, "use_relative_paths")

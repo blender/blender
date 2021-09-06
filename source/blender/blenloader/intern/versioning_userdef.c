@@ -885,6 +885,14 @@ void blo_do_versions_userdef(UserDef *userdef)
     BKE_addon_ensure(&userdef->addons, "pose_library");
   }
 
+  if (!USER_VERSION_ATLEAST(300, 21)) {
+    /* Deprecated userdef->flag USER_SAVE_PREVIEWS */
+    userdef->file_preview_type = (userdef->flag & USER_FLAG_UNUSED_5) ? USER_FILE_PREVIEW_CAMERA :
+                                                                        USER_FILE_PREVIEW_NONE;
+    /* Clear for reuse. */
+    userdef->flag &= ~USER_FLAG_UNUSED_5;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
