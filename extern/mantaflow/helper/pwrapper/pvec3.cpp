@@ -25,7 +25,8 @@ namespace Manta {
 extern PyTypeObject PbVec3Type;
 
 struct PbVec3 {
-  PyObject_HEAD float data[3];
+  PyObject_HEAD
+  float data[3];
 };
 
 static void PbVec3Dealloc(PbVec3 *self)
@@ -293,7 +294,8 @@ inline PyObject *castPy(PyTypeObject *p)
 extern PyTypeObject PbVec4Type;
 
 struct PbVec4 {
-  PyObject_HEAD float data[4];
+  PyObject_HEAD
+  float data[4];
 };
 
 static PyMethodDef PbVec4Methods[] = {
