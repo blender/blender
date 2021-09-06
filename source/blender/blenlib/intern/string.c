@@ -509,8 +509,12 @@ bool BLI_str_quoted_substr_range(const char *__restrict str,
   return true;
 }
 
+/* NOTE(@campbellbarton): in principal it should be possible to access a quoted string
+ * with an arbitrary size, currently all callers for this functionality
+ * happened to use a fixed size buffer, so only #BLI_str_quoted_substr is needed. */
+#if 0
 /**
- * Makes a copy of the text within the "" that appear after some text `blahblah`.
+ * Makes a copy of the text within the "" that appear after the contents of \a prefix.
  * i.e. for string `pose["apples"]` with prefix `pose[`, it will return `apples`.
  *
  * \param str: is the entire string to chop.
@@ -533,7 +537,21 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
   }
   return result;
 }
+#endif
 
+/**
+ * Fills \a result with text within "" that appear after some the contents of \a prefix.
+ * i.e. for string `pose["apples"]` with prefix `pose[`, it will return `apples`.
+ *
+ * \param str: is the entire string to chop.
+ * \param prefix: is the part of the string to step over.
+ * \param result: The buffer to fill.
+ * \param result_maxlen: The maximum size of the buffer (including nil terminator).
+ * \return True if the prefix was found and the entire quoted string was copied into result.
+ *
+ * Assume that the strings returned must be freed afterwards,
+ * and that the inputs will contain data we want.
+ */
 bool BLI_str_quoted_substr(const char *__restrict str,
                            const char *__restrict prefix,
                            char *result,
