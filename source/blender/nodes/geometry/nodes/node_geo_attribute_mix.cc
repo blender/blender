@@ -31,7 +31,11 @@ static void geo_node_mix_attribute_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_input<decl::String>("Factor");
-  b.add_input<decl::Float>("Factor").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Factor", "Factor_001")
+      .default_value(0.5f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::String>("A");
   b.add_input<decl::Float>("A", "A_001");
   b.add_input<decl::Vector>("A", "A_002");
