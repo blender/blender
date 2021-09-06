@@ -5523,7 +5523,7 @@ char *RNA_path_append(
 
 /* Having both path append & back seems like it could be useful,
  * this function isn't used at the moment. */
-static char *UNUSED_FUNCTION(RNA_path_back)(const char *path)
+static UNUSED_FUNCTION_WITH_RETURN_TYPE(char *, RNA_path_back)(const char *path)
 {
   char fixedbuf[256];
   const char *previous, *current;
