@@ -70,7 +70,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      "Create duplication of strokes"},
     {eGpencilModifierType_Lineart,
      "GP_LINEART",
-     ICON_MOD_EDGESPLIT, /* TODO: Use a proper icon. */
+     ICON_MOD_LINEART,
      "Line Art",
      "Generate line art strokes from selected source"},
     {eGpencilModifierType_Mirror,
@@ -116,7 +116,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      "Deform strokes using lattice"},
     {eGpencilModifierType_Length,
      "GP_LENGTH",
-     ICON_MOD_EDGESPLIT,
+     ICON_MOD_LENGTH,
      "Length",
      "Extend or shrink strokes"},
     {eGpencilModifierType_Noise, "GP_NOISE", ICON_MOD_NOISE, "Noise", "Add noise to strokes"},
