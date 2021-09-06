@@ -199,6 +199,20 @@ template<typename Subtype> class IDSocketDeclaration : public SocketDeclaration 
   {
     return matches_id_socket(socket, data_, name_, identifier_);
   }
+
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override
+  {
+    if (StringRef(socket.idname) != data_.idname) {
+      return this->build(ntree, node, (eNodeSocketInOut)socket.in_out);
+    }
+    if (data_.hide_label) {
+      socket.flag |= SOCK_HIDE_LABEL;
+    }
+    else {
+      socket.flag &= ~SOCK_HIDE_LABEL;
+    }
+    return socket;
+  }
 };
 }  // namespace detail
 
