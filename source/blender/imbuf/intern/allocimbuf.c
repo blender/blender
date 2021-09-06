@@ -484,7 +484,7 @@ struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect,
   /* Avoid #MEM_dupallocN since the buffers might not be allocated using guarded-allocation. */
   if (rectf) {
     const size_t size = sizeof(float[4]) * w * h;
-    ibuf->rect_float = MEM_mallocN(sizeof(float[4]) * w * h, __func__);
+    ibuf->rect_float = MEM_mallocN(size, __func__);
     memcpy(ibuf->rect_float, rectf, size);
 
     ibuf->flags |= IB_rectfloat;
