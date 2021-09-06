@@ -347,7 +347,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
       tsize = PREVIEW_RENDER_DEFAULT_HEIGHT;
       break;
     case THB_LARGE:
-      tsize = PREVIEW_RENDER_DEFAULT_HEIGHT * 2;
+      tsize = PREVIEW_RENDER_LARGE_HEIGHT;
       break;
     case THB_FAIL:
       tsize = 1;

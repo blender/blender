@@ -1573,8 +1573,8 @@ static ImBuf *blend_file_thumb(const bContext *C,
                                                  NULL,
                                                  OB_SOLID,
                                                  scene->camera,
-                                                 BLEN_THUMB_SIZE * 2,
-                                                 BLEN_THUMB_SIZE * 2,
+                                                 PREVIEW_RENDER_LARGE_HEIGHT * 2,
+                                                 PREVIEW_RENDER_LARGE_HEIGHT * 2,
                                                  IB_rect,
                                                  V3D_OFSDRAW_NONE,
                                                  R_ALPHAPREMUL,
@@ -1588,8 +1588,8 @@ static ImBuf *blend_file_thumb(const bContext *C,
                                           OB_SOLID,
                                           v3d,
                                           region,
-                                          BLEN_THUMB_SIZE * 2,
-                                          BLEN_THUMB_SIZE * 2,
+                                          PREVIEW_RENDER_LARGE_HEIGHT * 2,
+                                          PREVIEW_RENDER_LARGE_HEIGHT * 2,
                                           IB_rect,
                                           R_ALPHAPREMUL,
                                           NULL,
@@ -1610,8 +1610,14 @@ static ImBuf *blend_file_thumb(const bContext *C,
 
   if (ibuf) {
     /* dirty oversampling */
-    IMB_scaleImBuf(ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
-    thumb = BKE_main_thumbnail_from_imbuf(NULL, ibuf);
+    ImBuf *thumb_ibuf;
+    thumb_ibuf = IMB_dupImBuf(ibuf);
+    /* BLEN_THUMB_SIZE is size of thumbnail inside blend file: 128x128. */
+    IMB_scaleImBuf(thumb_ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
+    thumb = BKE_main_thumbnail_from_imbuf(NULL, thumb_ibuf);
+    IMB_freeImBuf(thumb_ibuf);
+    /* Thumbnail saved to filesystem should be 256x256. */
+    IMB_scaleImBuf(ibuf, PREVIEW_RENDER_LARGE_HEIGHT, PREVIEW_RENDER_LARGE_HEIGHT);
   }
   else {
     /* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
