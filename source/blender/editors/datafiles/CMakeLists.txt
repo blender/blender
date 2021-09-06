@@ -390,6 +390,9 @@ set(ICON_NAMES
   small_caps
   modifier
   con_action
+  mod_length
+  mod_dash
+  mod_lineart
   holdout_off
   holdout_on
   indirect_only_off
