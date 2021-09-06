@@ -1134,13 +1134,21 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
         if ((ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
             (screen_geom_area_map_find_active_scredge(
                  AREAMAP_FROM_SCREEN(screen), &screen_rect, event->x, event->y) == NULL)) {
-          /* Are we still in same area? */
-          if (BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y) == sad->sa1) {
+
+          /* What area are we now in? */
+          ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->x, event->y);
+
+          if (area == sad->sa1) {
             /* Same area, so possible split. */
             WM_cursor_set(win,
                           SCREEN_DIR_IS_VERTICAL(sad->gesture_dir) ? WM_CURSOR_H_SPLIT :
                                                                      WM_CURSOR_V_SPLIT);
             is_gesture = (delta_max > split_threshold);
+          }
+          else if (!area || area->global) {
+            /* No area or Top bar or Status bar. */
+            WM_cursor_set(win, WM_CURSOR_STOP);
+            is_gesture = false;
           }
           else {
             /* Different area, so possible join. */
@@ -1161,7 +1169,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
         else {
-          WM_cursor_set(CTX_wm_window(C), WM_CURSOR_CROSS);
+          WM_cursor_set(win, WM_CURSOR_CROSS);
           is_gesture = false;
         }
       }
