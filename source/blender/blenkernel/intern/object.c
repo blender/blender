@@ -324,9 +324,17 @@ static void object_free_data(ID *id)
 
 static void object_make_local(Main *bmain, ID *id, const int flags)
 {
+  if (!ID_IS_LINKED(id)) {
+    return;
+  }
+
   Object *ob = (Object *)id;
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
   const bool clear_proxy = (flags & LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING) == 0;
+  const bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
+  const bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
+  BLI_assert(force_copy == false || force_copy != force_local);
+
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -336,14 +344,12 @@ static void object_make_local(Main *bmain, ID *id, const int flags)
    * we always want to localize, and we skip remapping (done later).
    */
 
-  if (!ID_IS_LINKED(ob)) {
-    return;
+  if (!force_local && !force_copy) {
+    BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
   }
 
-  BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
-
-  if (lib_local || is_local) {
-    if (!is_lib) {
+  if (lib_local || is_local || force_copy || force_local) {
+    if (!is_lib || force_local) {
       BKE_lib_id_clear_library_data(bmain, &ob->id);
       BKE_lib_id_expand_local(bmain, &ob->id);
       if (clear_proxy) {

@@ -237,6 +237,11 @@ enum {
   /** Making that ID local is part of making local a whole library. */
   LIB_ID_MAKELOCAL_FULL_LIBRARY = 1 << 0,
 
+  /** In case caller code already knows this ID should be made local without copying. */
+  LIB_ID_MAKELOCAL_FORCE_LOCAL = 1 << 1,
+  /** In case caller code already knows this ID should be made local using copying. */
+  LIB_ID_MAKELOCAL_FORCE_COPY = 1 << 2,
+
   /* Special type-specific options. */
   /** For Objects, do not clear the proxy pointers while making the data-block local. */
   LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING = 1 << 16,

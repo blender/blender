@@ -406,7 +406,15 @@ static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
  */
 void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
 {
+  if (!ID_IS_LINKED(id)) {
+    return;
+  }
+
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
+  const bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
+  const bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
+  BLI_assert(force_copy == false || force_copy != force_local);
+
   bool is_local = false, is_lib = false;
 
   /* - only lib users: do nothing (unless force_local is set)
@@ -416,14 +424,12 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
    * we always want to localize, and we skip remapping (done later).
    */
 
-  if (!ID_IS_LINKED(id)) {
-    return;
+  if (!force_copy && !force_local) {
+    BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
   }
 
-  BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
-
-  if (lib_local || is_local) {
-    if (!is_lib) {
+  if (lib_local || is_local || force_copy || force_local) {
+    if (!is_lib || force_local) {
       BKE_lib_id_clear_library_data(bmain, id);
       BKE_lib_id_expand_local(bmain, id);
     }
