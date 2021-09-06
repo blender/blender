@@ -48,6 +48,9 @@
 #include "text_format.h"
 #include "text_intern.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 /******************** text font drawing ******************/
 
 typedef struct TextDrawContext {
@@ -1732,6 +1735,23 @@ void text_update_character_width(SpaceText *st)
   st->runtime.cwidth_px = BLF_fixed_width(tdc.font_id);
   st->runtime.cwidth_px = MAX2(st->runtime.cwidth_px, (char)1);
   text_font_end(&tdc);
+}
+
+bool ED_text_activate_in_screen(bContext *C, Text *text)
+{
+  ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
+  if (area) {
+    SpaceText *st = area->spacedata.first;
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    st->text = text;
+    if (region) {
+      ED_text_scroll_to_cursor(st, region, true);
+    }
+    WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
+    return true;
+  }
+
+  return false;
 }
 
 /* Moves the view to the cursor location,

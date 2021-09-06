@@ -1381,16 +1381,7 @@ static int editsource_text_edit(bContext *C,
 
   /* naughty!, find text area to set, not good behavior
    * but since this is a developer tool lets allow it - campbell */
-  ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
-  if (area) {
-    SpaceText *st = area->spacedata.first;
-    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-    st->text = text;
-    if (region) {
-      ED_text_scroll_to_cursor(st, region, true);
-    }
-  }
-  else {
+  if (!ED_text_activate_in_screen(C, text)) {
     BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
   }
 
