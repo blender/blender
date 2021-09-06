@@ -2902,7 +2902,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Line Art Modifier", "Generate line art strokes from selected source");
   RNA_def_struct_sdna(srna, "LineartGpencilModifierData");
-  RNA_def_struct_ui_icon(srna, ICON_MOD_EDGESPLIT);
+  RNA_def_struct_ui_icon(srna, ICON_MOD_LINEART);
 
   RNA_define_lib_overridable(true);
 
@@ -3199,7 +3199,7 @@ static void rna_def_modifier_gpencillength(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "LengthGpencilModifier", "GpencilModifier");
   RNA_def_struct_ui_text(srna, "Length Modifier", "Stretch or shrink strokes");
   RNA_def_struct_sdna(srna, "LengthGpencilModifierData");
-  RNA_def_struct_ui_icon(srna, ICON_MOD_EDGESPLIT);
+  RNA_def_struct_ui_icon(srna, ICON_MOD_LENGTH);
 
   RNA_define_lib_overridable(true);
 
