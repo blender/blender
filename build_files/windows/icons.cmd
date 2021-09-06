@@ -1,4 +1,4 @@
-if EXIST %PYTHON% (
+if EXIST "%PYTHON%" (
     goto detect_python_done
 )
 
