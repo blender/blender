@@ -3284,7 +3284,8 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
     gpencil_point_to_parent_space(pt, diff_mat, &pt_parent);
     gpencil_point_to_xy_fl(gsc, gps, &pt_parent, &pt2d_target_end[0], &pt2d_target_end[1]);
 
-    /* If the distance to the original stroke extremes is too big, the stroke must not be joined. */
+    /* If the distance to the original stroke extremes is too big, the stroke must not be joined.
+     */
     if ((len_squared_v2v2(ctrl1, pt2d_target_start) > radius_sqr) &&
         (len_squared_v2v2(ctrl1, pt2d_target_end) > radius_sqr) &&
         (len_squared_v2v2(ctrl2, pt2d_target_start) > radius_sqr) &&
