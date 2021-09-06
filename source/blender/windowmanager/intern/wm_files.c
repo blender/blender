@@ -1515,7 +1515,9 @@ static void wm_history_file_update(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Save Main Blend-File (internal) by capturing main window.
+/** \name Save Main Blend-File (internal) Screen-Shot
+ *
+ * Screen-shot the active window.
  * \{ */
 
 static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thumb_pt)
@@ -1540,11 +1542,17 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thu
   ImBuf *ibuf = IMB_allocFromBuffer(buffer, NULL, win_size[0], win_size[1], 24);
 
   if (ibuf) {
-    int ex = (ibuf->x > ibuf->y) ? BLEN_THUMB_SIZE :
-                                   (int)((ibuf->x / (float)ibuf->y) * BLEN_THUMB_SIZE);
-    int ey = (ibuf->x > ibuf->y) ? (int)((ibuf->y / (float)ibuf->x) * BLEN_THUMB_SIZE) :
-                                   BLEN_THUMB_SIZE;
-    /* Filesystem thumbnail image can be 256x256. */
+    int ex, ey;
+    if (ibuf->x > ibuf->y) {
+      ex = BLEN_THUMB_SIZE;
+      ey = max_ii(1, (int)(((float)ibuf->y / (float)ibuf->x) * BLEN_THUMB_SIZE));
+    }
+    else {
+      ex = max_ii(1, (int)(((float)ibuf->x / (float)ibuf->y) * BLEN_THUMB_SIZE));
+      ey = BLEN_THUMB_SIZE;
+    }
+
+    /* File-system thumbnail image can be 256x256. */
     IMB_scaleImBuf(ibuf, ex * 2, ey * 2);
 
     /* Thumbnail inside blend should be 128x128. */
@@ -1565,7 +1573,9 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **thu
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Save Main Blend-File (internal) by rendering scene
+/** \name Save Main Blend-File (internal) Camera View
+ *
+ * Render the current scene with the active camera.
  * \{ */
 
 /* screen can be NULL */
