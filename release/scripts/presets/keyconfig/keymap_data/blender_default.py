@@ -6996,8 +6996,7 @@ def km_sequencer_editor_tool_select(params):
         "Sequencer Tool: Select",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'},
-             {"properties": [("deselect_all", not params.legacy)]}),
+            ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'}, None),
             *_template_items_change_frame(params),
         ]},
     )
