@@ -5749,6 +5749,8 @@ void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)
   ob->data = new_data;
   ob->runtime.geometry_set_eval = NULL;
   ob->runtime.data_eval = NULL;
-  ob->runtime.bb->flag |= BOUNDBOX_DIRTY;
+  if (ob->runtime.bb != NULL) {
+    ob->runtime.bb->flag |= BOUNDBOX_DIRTY;
+  }
   ob->id.py_instance = NULL;
 }
