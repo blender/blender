@@ -526,33 +526,6 @@ static void version_switch_node_input_prefix(Main *bmain)
   FOREACH_NODETREE_END;
 }
 
-static void version_node_socket_name(bNodeTree *ntree,
-                                     const int node_type,
-                                     const char *old_name,
-                                     const char *new_name)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == node_type) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (STREQ(socket->name, old_name)) {
-          strcpy(socket->name, new_name);
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          strcpy(socket->identifier, new_name);
-        }
-      }
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        if (STREQ(socket->name, old_name)) {
-          strcpy(socket->name, new_name);
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          strcpy(socket->identifier, new_name);
-        }
-      }
-    }
-  }
-}
-
 static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
 {
   char *old_path = *p_old_path;

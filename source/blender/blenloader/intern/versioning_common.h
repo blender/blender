@@ -23,6 +23,7 @@
 struct ARegion;
 struct ListBase;
 struct Main;
+struct bNodeTree;
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +38,11 @@ ID *do_versions_rename_id(Main *bmain,
                           const short id_type,
                           const char *name_src,
                           const char *name_dst);
+
+void version_node_socket_name(struct bNodeTree *ntree,
+                              const int node_type,
+                              const char *old_name,
+                              const char *new_name);
 
 #ifdef __cplusplus
 }

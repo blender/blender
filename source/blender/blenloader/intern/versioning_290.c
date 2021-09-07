@@ -829,33 +829,6 @@ static void do_versions_strip_cache_settings_recursive(const ListBase *seqbase)
   }
 }
 
-static void version_node_socket_name(bNodeTree *ntree,
-                                     const int node_type,
-                                     const char *old_name,
-                                     const char *new_name)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == node_type) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (STREQ(socket->name, old_name)) {
-          strcpy(socket->name, new_name);
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          strcpy(socket->identifier, new_name);
-        }
-      }
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        if (STREQ(socket->name, old_name)) {
-          strcpy(socket->name, new_name);
-        }
-        if (STREQ(socket->identifier, old_name)) {
-          strcpy(socket->identifier, new_name);
-        }
-      }
-    }
-  }
-}
-
 static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {

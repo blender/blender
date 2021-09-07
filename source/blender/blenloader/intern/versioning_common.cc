@@ -22,6 +22,7 @@
 
 #include <cstring>
 
+#include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
@@ -84,4 +85,31 @@ ID *do_versions_rename_id(Main *bmain,
     BLI_libblock_ensure_unique_name(bmain, id->name);
   }
   return id;
+}
+
+void version_node_socket_name(bNodeTree *ntree,
+                              const int node_type,
+                              const char *old_name,
+                              const char *new_name)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == node_type) {
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+        if (STREQ(socket->name, old_name)) {
+          BLI_strncpy(socket->name, new_name, sizeof(socket->name));
+        }
+        if (STREQ(socket->identifier, old_name)) {
+          BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
+        }
+      }
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+        if (STREQ(socket->name, old_name)) {
+          BLI_strncpy(socket->name, new_name, sizeof(socket->name));
+        }
+        if (STREQ(socket->identifier, old_name)) {
+          BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
+        }
+      }
+    }
+  }
 }
