@@ -38,7 +38,7 @@ static void geo_node_point_instance_declare(NodeDeclarationBuilder &b)
 
 static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "instance_type", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "instance_type", 0, "", ICON_NONE);
   if (RNA_enum_get(ptr, "instance_type") == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION) {
     uiItemR(layout, ptr, "use_whole_collection", 0, nullptr, ICON_NONE);
   }
