@@ -2606,8 +2606,7 @@ def km_sequencer(params):
              for i in range(10)
              )
         ),
-        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'},
-         {"properties": [("deselect_all", True)]}),
+        ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'}, None),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
          {"properties": [("extend", True)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
