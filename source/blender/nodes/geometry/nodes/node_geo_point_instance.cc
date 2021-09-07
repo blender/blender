@@ -121,6 +121,7 @@ static Vector<InstanceReference> get_instance_references__collection(GeoNodeExec
 static Vector<InstanceReference> get_instance_references__geometry(GeoNodeExecParams &params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Instance Geometry");
+  geometry_set.ensure_owns_direct_data();
   return {std::move(geometry_set)};
 }
 
