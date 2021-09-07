@@ -169,7 +169,7 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
     threading::parallel_for(input_splines.index_range(), 128, [&](IndexRange range) {
       for (const int i : range) {
         const float length = input_splines[i]->length();
-        const int count = std::max(int(length / *mode_param.length), 1);
+        const int count = std::max(int(length / *mode_param.length) + 1, 1);
         output_splines[i] = resample_spline(*input_splines[i], count);
       }
     });

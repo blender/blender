@@ -101,7 +101,7 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
       int offset = 0;
       for (const int i : IndexRange(size)) {
         offsets[i] = offset;
-        offset += splines[i]->length() / resolution;
+        offset += splines[i]->length() / resolution + 1;
       }
       offsets.last() = offset;
       return offsets;
