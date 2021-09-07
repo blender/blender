@@ -51,7 +51,10 @@
 
 /* helper struct for gp-frame transforms */
 typedef struct tGPFtransdata {
-  float val;  /* where transdata writes transform */
+  union {
+    float val;    /* where transdata writes transform */
+    float loc[3]; /* #td->val and #td->loc share the same pointer. */
+  };
   int *sdata; /* pointer to gpf->framenum */
 } tGPFtransdata;
 
@@ -245,8 +248,8 @@ static int GPLayerToTransData(TransData *td,
         tfd->val = (float)gpf->framenum;
         tfd->sdata = &gpf->framenum;
 
-        td->val = td->loc = &tfd->val; /* XXX: It's not a 3d array. */
-        td->ival = td->iloc[0] = (float)gpf->framenum;
+        td->val = td->loc = &tfd->val;
+        td->ival = td->iloc[0] = tfd->val;
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
@@ -279,15 +282,14 @@ static int MaskLayerToTransData(TransData *td,
        masklay_shape = masklay_shape->next) {
     if (is_prop_edit || (masklay_shape->flag & MASK_SHAPE_SELECT)) {
       if (FrameOnMouseSide(side, (float)masklay_shape->frame, cfra)) {
-        /* memory is calloc'ed, so that should zero everything nicely for us */
-        td->val = &tfd->val;
-        td->ival = (float)masklay_shape->frame;
+        tfd->val = (float)masklay_shape->frame;
+        tfd->sdata = &masklay_shape->frame;
+
+        td->val = td->loc = &tfd->val;
+        td->ival = td->iloc[0] = tfd->val;
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
-
-        tfd->val = (float)masklay_shape->frame;
-        tfd->sdata = &masklay_shape->frame;
 
         /* advance td now */
         td++;

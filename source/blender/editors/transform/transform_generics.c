@@ -791,7 +791,7 @@ static void restoreElement(TransData *td)
 {
   transdata_restore_basic((TransDataBasic *)td);
 
-  if (td->val) {
+  if (td->val && td->val != td->loc) {
     *td->val = td->ival;
   }
 
