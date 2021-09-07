@@ -552,37 +552,38 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
             const View3D *v3d = (View3D *)space_data;
             const View3DShading *shading = &v3d->shading;
 
-            TEST_PTR_DATA_TYPE("space_data", RNA_View3DOverlay, ptr, v3d);
-            TEST_PTR_DATA_TYPE("space_data", RNA_View3DShading, ptr, shading);
+            TEST_PTR_DATA_TYPE("space_data.overlay", RNA_View3DOverlay, ptr, v3d);
+            TEST_PTR_DATA_TYPE("space_data.shading", RNA_View3DShading, ptr, shading);
             break;
           }
           case SPACE_GRAPH: {
             const SpaceGraph *sipo = (SpaceGraph *)space_data;
             const bDopeSheet *ads = sipo->ads;
-            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
             break;
           }
           case SPACE_FILE: {
             const SpaceFile *sfile = (SpaceFile *)space_data;
             const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-            TEST_PTR_DATA_TYPE("space_data", RNA_FileSelectParams, ptr, params);
+            TEST_PTR_DATA_TYPE("space_data.params", RNA_FileSelectParams, ptr, params);
             break;
           }
           case SPACE_IMAGE: {
             const SpaceImage *sima = (SpaceImage *)space_data;
-            TEST_PTR_DATA_TYPE("space_data", RNA_SpaceUVEditor, ptr, sima);
+            TEST_PTR_DATA_TYPE("space_data.overlay", RNA_SpaceImageOverlay, ptr, sima);
+            TEST_PTR_DATA_TYPE("space_data.uv_editor", RNA_SpaceUVEditor, ptr, sima);
             break;
           }
           case SPACE_NLA: {
             const SpaceNla *snla = (SpaceNla *)space_data;
             const bDopeSheet *ads = snla->ads;
-            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
             break;
           }
           case SPACE_ACTION: {
             const SpaceAction *sact = (SpaceAction *)space_data;
             const bDopeSheet *ads = &sact->ads;
-            TEST_PTR_DATA_TYPE("space_data", RNA_DopeSheet, ptr, ads);
+            TEST_PTR_DATA_TYPE("space_data.dopesheet", RNA_DopeSheet, ptr, ads);
             break;
           }
         }
