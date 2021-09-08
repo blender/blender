@@ -485,7 +485,7 @@ static int pygpu_buffer__sq_ass_item(BPyGPUBuffer *self, int i, PyObject *v)
     case GPU_DATA_UINT:
     case GPU_DATA_UINT_24_8:
     case GPU_DATA_10_11_11_REV:
-      return PyArg_Parse(v, "b:Expected ints", &self->buf.as_uint[i]) ? 0 : -1;
+      return PyArg_Parse(v, "I:Expected unsigned ints", &self->buf.as_uint[i]) ? 0 : -1;
     default:
       return 0; /* should never happen */
   }
