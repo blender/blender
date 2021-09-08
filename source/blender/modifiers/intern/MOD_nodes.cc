@@ -329,8 +329,8 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       ui_data->max = ui_data->soft_max = (double)value->max;
       ui_data->default_array = (double *)MEM_mallocN(sizeof(double[3]), "mod_prop_default");
       ui_data->default_array_len = 3;
-      for (int i = 3; i < 3; i++) {
-        ui_data->default_array[i] = (double)value->value[i];
+      for (const int i : IndexRange(3)) {
+        ui_data->default_array[i] = double(value->value[i]);
       }
       return property;
     }
