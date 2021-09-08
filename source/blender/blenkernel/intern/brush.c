@@ -250,6 +250,11 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Brush *brush = (Brush *)id;
 
+  if (brush->dyntopo.radius_scale == 0.0f) {
+    brush->dyntopo.radius_scale = 1.0f;
+    brush->dyntopo.inherit |= DYNTOPO_INHERIT_RADIUS_SCALE;
+  }
+
   // detect old file data
   if (brush->autosmooth_radius_factor == 0.0f) {
     brush->autosmooth_radius_factor = 1.0f;
@@ -2679,6 +2684,10 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
     else {
       out->mode = DYNTOPO_DETAIL_RELATIVE;
     }
+  }
+
+  if (inherit & DYNTOPO_INHERIT_RADIUS_SCALE) {
+    out->radius_scale = sd->dyntopo_radius_scale;
   }
 
   if (inherit & DYNTOPO_INHERIT_DETAIL_SIZE) {

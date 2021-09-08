@@ -151,3 +151,5 @@ void BM_log_print_entry(BMLog *log, BMLogEntry *entry);
 void BM_log_redo_skip(BMesh *bm, BMLog *log);
 void BM_log_undo_skip(BMesh *bm, BMLog *log);
 BMVert *BM_log_edge_split_do(BMLog *log, BMEdge *e, BMVert *v, BMEdge **newe, float t);
+
+int BM_log_entry_size(BMLogEntry *entry);

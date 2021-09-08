@@ -1002,6 +1002,8 @@ typedef struct Sculpt {
   int dyntopo_spacing;
 
   struct Object *gravity_object;
+  float dyntopo_radius_scale;
+  int _pad[1];
 } Sculpt;
 
 typedef struct UvSculpt {

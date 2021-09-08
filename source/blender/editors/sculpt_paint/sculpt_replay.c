@@ -77,7 +77,7 @@ typedef struct SculptReplayLog {
 
 static SculptReplayLog *current_log = NULL;
 
-ATTR_NO_OPT void SCULPT_replay_log_free(SculptReplayLog *log)
+void SCULPT_replay_log_free(SculptReplayLog *log)
 {
   MEM_SAFE_FREE(log->samples);
   MEM_SAFE_FREE(log->textures);
@@ -398,7 +398,7 @@ typedef struct ReplaySerializer {
 
 static void replay_samples_ensure_size(SculptReplayLog *log);
 
-ATTR_NO_OPT void replay_write_path(ReplaySerializer *state, char *key)
+void replay_write_path(ReplaySerializer *state, char *key)
 {
   char buf[512];
 
@@ -416,7 +416,7 @@ ATTR_NO_OPT void replay_write_path(ReplaySerializer *state, char *key)
   BLI_dynstr_append(state->out, buf);
 }
 
-ATTR_NO_OPT void replay_push_stack(ReplaySerializer *state, char *key, char *op)
+void replay_push_stack(ReplaySerializer *state, char *key, char *op)
 {
   state->stack_head++;
 
@@ -434,7 +434,7 @@ ATTR_NO_OPT void replay_push_stack(ReplaySerializer *state, char *key, char *op)
   sprintf(state->stack[state->stack_head].op, "%s", op);
 }
 
-ATTR_NO_OPT void replay_pop_stack(ReplaySerializer *state)
+void replay_pop_stack(ReplaySerializer *state)
 {
   state->stack_head--;
 }
@@ -449,10 +449,7 @@ ATTR_NO_OPT void replay_pop_stack(ReplaySerializer *state)
 
 #include <stdarg.h>
 
-ATTR_NO_OPT static int parse_replay_member(const char *buf,
-                                           int len,
-                                           ReplaySerialStruct *st,
-                                           void *data)
+static int parse_replay_member(const char *buf, int len, ReplaySerialStruct *st, void *data)
 {
   char *ptr = (char *)data;
   int i = 0;
@@ -664,7 +661,7 @@ static void *hashco(float fx, float fy, float fz, float fdimen)
   return (void *)((intptr_t)(z * dimen * dimen * dimen + y * dimen * dimen + x * dimen));
 }
 
-ATTR_NO_OPT void SCULPT_replay_make_cube(struct bContext *C, int steps)
+void SCULPT_replay_make_cube(struct bContext *C, int steps)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -807,7 +804,7 @@ ATTR_NO_OPT void SCULPT_replay_make_cube(struct bContext *C, int steps)
   WM_event_add_notifier(C, ND_DATA | NC_OBJECT | ND_DRAW, ob);
 }
 
-ATTR_NO_OPT void SCULPT_replay(struct bContext *C)
+void SCULPT_replay(struct bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
@@ -938,7 +935,7 @@ ATTR_NO_OPT void SCULPT_replay(struct bContext *C)
   log->is_playing = false;
 }
 
-ATTR_NO_OPT void SCULPT_replay_parse(const char *buf)
+void SCULPT_replay_parse(const char *buf)
 {
   if (current_log) {
     SCULPT_replay_log_end();
@@ -1000,9 +997,7 @@ ATTR_NO_OPT void SCULPT_replay_parse(const char *buf)
   return;
 }
 
-ATTR_NO_OPT void replay_serialize_struct(ReplaySerializer *state,
-                                         ReplaySerialStruct *def,
-                                         void *struct_data)
+void replay_serialize_struct(ReplaySerializer *state, ReplaySerialStruct *def, void *struct_data)
 {
   DynStr *out = state->out;
 
@@ -1074,13 +1069,13 @@ ATTR_NO_OPT void replay_serialize_struct(ReplaySerializer *state,
   }
 }
 
-ATTR_NO_OPT void replay_state_init(ReplaySerializer *state)
+void replay_state_init(ReplaySerializer *state)
 {
   memset(state, 0, sizeof(*state));
   state->stack_head = -1;
 }
 
-ATTR_NO_OPT char *SCULPT_replay_serialize()
+char *SCULPT_replay_serialize()
 {
   if (!current_log) {
     return "";
@@ -1113,11 +1108,11 @@ ATTR_NO_OPT char *SCULPT_replay_serialize()
   return ret;
 }
 
-ATTR_NO_OPT static void SCULPT_replay_deserialize(SculptReplayLog *log)
+static void SCULPT_replay_deserialize(SculptReplayLog *log)
 {
 }
 
-ATTR_NO_OPT static void replay_samples_ensure_size(SculptReplayLog *log)
+static void replay_samples_ensure_size(SculptReplayLog *log)
 {
   if (log->totsample >= log->samples_size) {
     int size = (2 + log->samples_size);
@@ -1134,7 +1129,7 @@ ATTR_NO_OPT static void replay_samples_ensure_size(SculptReplayLog *log)
   }
 }
 
-ATTR_NO_OPT static bool replay_ensure_tex(SculptReplayLog *log, MTex *tex)
+static bool replay_ensure_tex(SculptReplayLog *log, MTex *tex)
 {
   if (!tex->tex) {
     return true;
@@ -1161,7 +1156,7 @@ ATTR_NO_OPT static bool replay_ensure_tex(SculptReplayLog *log, MTex *tex)
   return false;
 }
 
-ATTR_NO_OPT void SCULPT_replay_test()
+void SCULPT_replay_test()
 {
   SculptSession ss = {0};
   Sculpt sd = {0};

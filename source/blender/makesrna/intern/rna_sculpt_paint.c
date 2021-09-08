@@ -864,6 +864,13 @@ static void rna_def_sculpt(BlenderRNA *brna)
       prop, "DynTopo Spacing", "Spacing between DynTopo daubs as a percentage of brush diameter");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
+  prop = RNA_def_property(srna, "dyntopo_radius_scale", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "dyntopo_radius_scale");
+  RNA_def_property_range(prop, 0.0001f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, 15.0f, 0.001f, 4.0f);
+  RNA_def_property_ui_text(prop, "Radius Scale", "Scale dyntopo brush radius");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
   prop = RNA_def_property(srna, "constant_detail_resolution", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "constant_detail");
   RNA_def_property_range(prop, 0.0001, FLT_MAX);

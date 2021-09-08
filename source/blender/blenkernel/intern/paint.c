@@ -1946,6 +1946,10 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
     sd->detail_size = 8.0f;
   }
 
+  if (!sd->dyntopo_radius_scale) {
+    sd->dyntopo_radius_scale = 1.0f;
+  }
+
   if (!sd->detail_range || !sd->dyntopo_spacing) {
     sd->flags |= SCULPT_DYNTOPO_CLEANUP;  // should really do this in do_versions_290.c
   }

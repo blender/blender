@@ -869,7 +869,7 @@ void BM_reassign_ids(BMesh *bm)
  * low level function, only frees the edge,
  * doesn't change or adjust surrounding geometry
  */
-static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
+void bm_kill_only_edge(BMesh *bm, BMEdge *e)
 {
   bm->totedge--;
   bm->elem_index_dirty |= BM_EDGE;
@@ -894,7 +894,7 @@ static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
  * low level function, only frees the face,
  * doesn't change or adjust surrounding geometry
  */
-static void bm_kill_only_face(BMesh *bm, BMFace *f)
+void bm_kill_only_face(BMesh *bm, BMFace *f)
 {
   if (bm->act_face == f) {
     bm->act_face = NULL;
@@ -923,7 +923,7 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
  * low level function, only frees the loop,
  * doesn't change or adjust surrounding geometry
  */
-static void bm_kill_only_loop(BMesh *bm, BMLoop *l)
+void bm_kill_only_loop(BMesh *bm, BMLoop *l)
 {
   bm->totloop--;
   bm->elem_index_dirty |= BM_LOOP;

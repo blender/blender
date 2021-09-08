@@ -7274,7 +7274,7 @@ static void sculpt_topology_update(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
 
-  // build brush radius scale
+  /* build brush radius scale */
   float radius_scale = 1.0f;
 
   if (brush->autosmooth_factor > 0.0f) {
@@ -7283,6 +7283,11 @@ static void sculpt_topology_update(Sculpt *sd,
 
   if (brush->topology_rake_factor > 0.0f) {
     radius_scale = MAX2(radius_scale, brush->topology_rake_factor);
+  }
+
+  /* multiply with primary radius scale instead of max */
+  if (brush->cached_dyntopo.radius_scale > 0.0f) {
+    radius_scale *= brush->cached_dyntopo.radius_scale;
   }
 
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
@@ -9642,6 +9647,11 @@ void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerR
     if (paint_stroke_apply_subspacing(
             ss->cache->stroke, spacing, PAINT_MODE_SCULPT, &ss->cache->last_dyntopo_t)) {
       do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
+
+      if (brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK) {
+        /* run dyntopo again for snake hook */
+        do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
+      }
     }
   }
 

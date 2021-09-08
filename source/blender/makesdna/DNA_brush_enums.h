@@ -418,8 +418,8 @@ typedef enum eBrushFlags2 {
   /*preserve face set boundaries*/
   BRUSH_SMOOTH_PRESERVE_FACE_SETS = (1 << 14),
 
-   /*topology rake in dynamic mode*/
-  BRUSH_DYNAMIC_RAKE = (1<<15),
+  /*topology rake in dynamic mode*/
+  BRUSH_DYNAMIC_RAKE = (1 << 15),
 } eBrushFlags2;
 
 typedef enum {
@@ -642,12 +642,13 @@ enum {
   DYNTOPO_INHERIT_MODE = 1 << 13,
   DYNTOPO_INHERIT_CONSTANT_DETAIL = 1 << 14,
   DYNTOPO_INHERIT_SPACING = 1 << 15,
-  DYNTOPO_INHERIT_DETAIL_SIZE = 1 << 16
+  DYNTOPO_INHERIT_DETAIL_SIZE = 1 << 16,
+  DYNTOPO_INHERIT_RADIUS_SCALE = 1 << 17,
   // make sure to update DYNTOPO_INHERIT_BITMASK when adding flags here
 };
 
 // represents all possible inherit flags
-#define DYNTOPO_INHERIT_BITMASK ((1 << 17) - 1)
+#define DYNTOPO_INHERIT_BITMASK ((1 << 18) - 1)
 
 // dyntopo mode
 enum {

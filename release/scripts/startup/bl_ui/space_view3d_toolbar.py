@@ -820,6 +820,7 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         do_prop("detail_percent")
         do_prop("constant_detail")
         do_prop("mode")
+        do_prop("radius_scale")
 
 # TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
@@ -878,6 +879,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_flat_vcol_shading")
 
         col.prop(sculpt, "dyntopo_spacing")
+        col.prop(sculpt, "dyntopo_radius_scale");
 
 
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):

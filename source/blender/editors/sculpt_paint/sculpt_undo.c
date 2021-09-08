@@ -124,6 +124,7 @@ typedef struct SculptUndoStep {
   int id;
 } SculptUndoStep;
 
+static void update_unode_bmesh_memsize(SculptUndoNode *unode);
 static UndoSculpt *sculpt_undo_get_nodes(void);
 void sculpt_undo_print_nodes(void *active);
 static bool check_first_undo_entry_dyntopo(Object *ob);
@@ -614,6 +615,22 @@ static void bmesh_undo_on_face_change(BMFace *f, void *userdata, void *old_custo
   }
 }
 
+static void update_unode_bmesh_memsize(SculptUndoNode *unode)
+{
+  // update memory size
+  UndoSculpt *usculpt = sculpt_undo_get_nodes();
+
+  // subtract old size
+  if (usculpt->undo_size >= unode->undo_size) {
+    usculpt->undo_size -= unode->undo_size;
+  }
+
+  unode->undo_size = BM_log_entry_size(unode->bm_entry);
+
+  // add new size
+  usculpt->undo_size += unode->undo_size;
+}
+
 static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)
 {
   BmeshUndoData data = {ss->pbvh,
@@ -651,6 +668,8 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     BM_log_redo(ss->bm, ss->bm_log, &callbacks, dyntopop_node_idx_layer_id);
     unode->applied = true;
   }
+
+  update_unode_bmesh_memsize(unode);
 
   if (!data.do_full_recalc) {
     int totnode;
@@ -2030,6 +2049,10 @@ void SCULPT_undo_push_end_ex(const bool use_nested_undo)
 
   /* We don't need normals in the undo stack. */
   for (unode = usculpt->nodes.first; unode; unode = unode->next) {
+    if (unode->bm_entry) {
+      update_unode_bmesh_memsize(unode);
+    }
+
     if (unode->no) {
       usculpt->undo_size -= MEM_allocN_len(unode->no);
       MEM_freeN(unode->no);
