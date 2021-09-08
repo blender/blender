@@ -267,7 +267,7 @@ typedef enum eImageSource {
 } eImageSource;
 
 /* Image.type, how to handle or generate the image */
-enum {
+typedef enum eImageType {
   IMA_TYPE_IMAGE = 0,
   IMA_TYPE_MULTILAYER = 1,
   /* generated */
@@ -275,7 +275,7 @@ enum {
   /* viewers */
   IMA_TYPE_R_RESULT = 4,
   IMA_TYPE_COMPOSITE = 5,
-};
+} eImageType;
 
 /* Image.gen_type */
 enum {
