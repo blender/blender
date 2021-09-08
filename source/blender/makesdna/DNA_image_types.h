@@ -256,7 +256,7 @@ enum {
 };
 
 /* Image.source, where the image comes from */
-enum {
+typedef enum eImageSource {
   /* IMA_SRC_CHECK = 0, */ /* UNUSED */
   IMA_SRC_FILE = 1,
   IMA_SRC_SEQUENCE = 2,
@@ -264,7 +264,7 @@ enum {
   IMA_SRC_GENERATED = 4,
   IMA_SRC_VIEWER = 5,
   IMA_SRC_TILED = 6,
-};
+} eImageSource;
 
 /* Image.type, how to handle or generate the image */
 enum {
