@@ -468,7 +468,7 @@ static void idprop_ui_data_to_dict_int(IDProperty *property, PyObject *dict)
     Py_DECREF(list);
   }
   else {
-    PyDict_SetItemString(dict, "default", item = PyLong_FromLong(ui_data->step));
+    PyDict_SetItemString(dict, "default", item = PyLong_FromLong(ui_data->default_value));
     Py_DECREF(item);
   }
 }
@@ -499,7 +499,7 @@ static void idprop_ui_data_to_dict_float(IDProperty *property, PyObject *dict)
     Py_DECREF(list);
   }
   else {
-    PyDict_SetItemString(dict, "default", item = PyFloat_FromDouble(ui_data->step));
+    PyDict_SetItemString(dict, "default", item = PyFloat_FromDouble(ui_data->default_value));
     Py_DECREF(item);
   }
 }
