@@ -5312,7 +5312,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       unsigned int i;
 
       Mesh *me_eval = ob->runtime.mesh_deform_eval ? ob->runtime.mesh_deform_eval :
-                                                     ob->runtime.mesh_deform_eval;
+                                                     BKE_object_get_evaluated_mesh(ob);
       const int *index;
 
       if (me_eval && (index = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX))) {
