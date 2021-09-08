@@ -119,7 +119,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   DyntopoMaskCB mask_cb;
   void *mask_cb_data;
 
-  SCULPT_dyntopo_automasking_init(ss, NULL, sd, &mask_cb, &mask_cb_data);
+  SCULPT_dyntopo_automasking_init(ss, sd, NULL, ob, &mask_cb, &mask_cb_data);
 
   while (BKE_pbvh_bmesh_update_topology(ss->pbvh,
                                         PBVH_Collapse | PBVH_Subdivide,

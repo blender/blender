@@ -39,7 +39,7 @@ typedef struct {
 #define SMSTACKSIZE 131
 typedef struct SmallHash {
   unsigned int nbuckets;
-  unsigned int nentries;
+  unsigned int nentries, nfreecells;
   unsigned int cursize;
 
   SmallHashEntry *buckets;

@@ -3996,6 +3996,11 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_are
       w += BM_ELEM_CD_GET_FLOAT(e->l->radial_next->f, cd_face_area) * 0.5f;
     }
 
+    if (j >= valence) {
+      printf("%s: error, corrupt edge cycle\n", __func__);
+      break;
+    }
+
     r_areas[j++] = w;
 
     e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;

@@ -29,7 +29,7 @@
 #include "BKE_ccg.h"
 #include <stdint.h>
 
-#define DEFRAGMENT_MEMORY
+//#define DEFRAGMENT_MEMORY
 
 #ifdef __cplusplus
 extern "C" {

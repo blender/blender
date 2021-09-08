@@ -59,6 +59,8 @@ Topology rake:
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_ccg.h"
+#include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_pbvh.h"
 
 #include "GPU_buffers.h"
@@ -1402,26 +1404,24 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
 
   if (!e) {
     mv->flag |= DYNVERT_BOUNDARY;
+    mv->valence = 0;
     return;
   }
 
-  int fset1 = 0;
-  int fset2 = 0;
-  int fset3 = 0;
-  BMVert *vfset1 = NULL;
-  BMVert *vfset2 = NULL;
-  int fset2_count = 0;
-
-  int fset1_count = 0;
-
-  bool first = true;
-
   int val = 0;
 
-  FSetTemp *fsets = NULL;
-  BLI_array_staticdeclare(fsets, 32);
   int sharpcount = 0;
   int seamcount = 0;
+  int fsetcount = 0;
+#if 0
+  struct FaceSetRef {
+    int fset;
+    BMVert *v2;
+    BMEdge *e;
+  } *fsets = NULL;
+#endif
+  int *fsets = NULL;
+  BLI_array_staticdeclare(fsets, 16);
 
   do {
     BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
@@ -1452,73 +1452,38 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
         mv->flag |= DYNVERT_NEED_TRIANGULATE;
       }
 
-      if (!fset1) {
-        fset1 = fset;
-        vfset1 = v2;
-      }
-      else if (!fset2 && fset != fset1) {
-        fset2 = fset;
-      }
-      else if (!fset3 && fset != fset1 && fset != fset2) {
-        fset3 = fset;
+      bool ok = true;
+      for (int i = 0; i < BLI_array_len(fsets); i++) {
+        if (fsets[i] == fset) {
+          ok = false;
+        }
       }
 
-      if (!vfset2 && fset == fset2 && v2 != vfset1) {
-        vfset2 = v2;
+      if (ok) {
+        BLI_array_append(fsets, fset);
       }
-
-      if (fset == fset1) {
-        fset1_count++;
-      }
-
-      if (fset == fset2) {
-        fset2_count++;
-      }
-
-      first = false;
-
-      bool bound = (e->l == e->l->radial_next) ||
-                   (abs(BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset)) !=
-                    abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset)));
-
-      FSetTemp fs = {.fset = fset, .v = v2, .boundary = bound};
-      BLI_array_append(fsets, fs);
 
       // also check e->l->radial_next, in case we are not manifold
       // which can mess up the loop order
       if (e->l->radial_next != e->l) {
         // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
-        fset = BKE_pbvh_do_fset_symmetry(
+        int fset2 = BKE_pbvh_do_fset_symmetry(
             BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset), bound_symmetry, v2->co);
+
+        bool ok2 = true;
+        for (int i = 0; i < BLI_array_len(fsets); i++) {
+          if (fsets[i] == fset2) {
+            ok2 = false;
+          }
+        }
+
+        if (ok2) {
+          BLI_array_append(fsets, fset2);
+        }
 
         if (e->l->radial_next->f->len > 3) {
           mv->flag |= DYNVERT_NEED_TRIANGULATE;
         }
-
-        if (!fset1) {
-          fset1 = fset;
-        }
-        else if (!fset2 && fset != fset1) {
-          fset2 = fset;
-        }
-        else if (!fset3 && fset != fset1 && fset != fset2) {
-          fset3 = fset;
-        }
-
-        if (fset == fset1) {
-          fset1_count++;
-        }
-
-        if (fset == fset2) {
-          fset2_count++;
-        }
-
-        if (!vfset2 && fset == fset2 && v2 != vfset1) {
-          vfset2 = v2;
-        }
-
-        FSetTemp fs = {.fset = fset, .v = v2, .boundary = bound};
-        BLI_array_append(fsets, fs);
       }
     }
 
@@ -1527,58 +1492,14 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
     }
 
     val++;
-    e = e->v1 == v ? e->v1_disk_link.next : e->v2_disk_link.next;
-  } while (e != v->e);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
-#if 0
-  if (fset2 && !fset3) {
-    int n = MIN2(fset1_count, fset2_count);
-    float maxth = 0;
-    float maxth2 = 0;
-
-    // find widest angle
-    for (int i = 0; n < 7 && i < BLI_array_len(fsets); i++) {
-      if (!fsets[i].boundary) {
-        continue;
-      }
-
-      for (int j = 0; j < BLI_array_len(fsets); j++) {
-        if (!fsets[j].boundary) {
-          continue;
-        }
-
-        if (i != j && fsets[j].fset == fset1 && fsets[i].v != fsets[j].v) {
-          float th = sculpt_corner_angle(v->co, fsets[i].v->co, fsets[j].v->co);
-          if (th > maxth) {
-            maxth = th;
-          }
-        }
-        if (i != j && fsets[j].fset == fset2 && fsets[i].v != fsets[j].v) {
-          float th = sculpt_corner_angle(v->co, fsets[i].v->co, fsets[j].v->co);
-          if (th > maxth2) {
-            maxth2 = th;
-          }
-        }
-      }
-    }
-
-    bool ok = maxth > 0.25 && maxth < M_PI * 0.55;
-    ok = ok || (maxth2 > 0.25 && maxth2 < M_PI * 0.55);
-
-    // 45 degrees
-    if (ok) {
-      mv->flag |= DYNVERT_FSET_CORNER;
-    }
-  }
-  else
-#endif
-
-  if (fset2 && fset3) {
-    mv->flag |= DYNVERT_FSET_CORNER;
-  }
-
-  if (fset1 && fset2) {
+  if (BLI_array_len(fsets) > 1) {
     mv->flag |= DYNVERT_FSET_BOUNDARY;
+  }
+
+  if (BLI_array_len(fsets) > 2) {
+    mv->flag |= DYNVERT_FSET_CORNER;
   }
 
   if (sharpcount == 1) {
@@ -2043,7 +1964,7 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
   return true;
 }
 
-ATTR_NO_OPT BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
+BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
 {
   tribuf->tottri++;
 
@@ -2157,7 +2078,7 @@ static void pbvh_init_tribuf(PBVHNode *node, PBVHTriBuf *tribuf)
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->bm;
 
@@ -2281,7 +2202,7 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
         tri->l[j] = (intptr_t)l;
 
         val = NULL;
-        if (!BLI_smallhash_ensure_p(&tribufs[mat_nr].vertmap, l->v, &val)) {
+        if (!BLI_smallhash_ensure_p(&mat_tribuf->vertmap, l->v, &val)) {
           SculptVertRef sv = {(intptr_t)l->v};
 
           minmax_v3v3_v3(min, max, l->v->co);
@@ -2371,8 +2292,8 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
       pbvh_tribuf_add_edge(node->tribuf, v1, v2);
 
-      v1 = (int)BLI_smallhash_lookup(&tribufs[mat_nr].vertmap, (void *)l->e->v1);
-      v2 = (int)BLI_smallhash_lookup(&tribufs[mat_nr].vertmap, (void *)l->e->v2);
+      v1 = (int)BLI_smallhash_lookup(&mat_tribuf->vertmap, (void *)l->e->v1);
+      v2 = (int)BLI_smallhash_lookup(&mat_tribuf->vertmap, (void *)l->e->v2);
 
       pbvh_tribuf_add_edge(mat_tribuf, v1, v2);
     } while ((l = l->next) != f->l_first);
@@ -2503,10 +2424,20 @@ void BKE_pbvh_bmesh_update_valence(int cd_dyn_vert, SculptVertRef vertex)
   mv->valence = 0;
 
   e = v->e;
+
+  if (!e) {
+    return;
+  }
+
   do {
     mv->valence++;
 
     e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+
+    if (!e) {
+      printf("bmesh error!\n");
+      break;
+    }
   } while (e != v->e);
 }
 
@@ -3217,7 +3148,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh)
 
   BKE_pbvh_update_bounds(pbvh, (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
 
-  if (pbvh->balance_counter++ == 5) {
+  if (pbvh->balance_counter++ == 10) {
     pbvh_bmesh_balance_tree(pbvh);
     pbvh_bmesh_check_nodes(pbvh);
     pbvh->balance_counter = 0;
@@ -5004,7 +4935,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
 
 #include "BLI_smallhash.h"
 
-ATTR_NO_OPT static void hash_test()
+static void hash_test()
 {
   const int count = 1024 * 1024 * 4;
 

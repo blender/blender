@@ -296,9 +296,21 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     add_v3_v3(result, co);
   }
 
-  if (SCULPT_vertex_is_corner(ss, vertex, ctype)) {
-    interp_v3_v3v3(result, result, co, 1.0f - slide_fset);
+  SculptCornerType c = SCULPT_vertex_is_corner(ss, vertex, ctype);
+  float corner_smooth;
+
+  if (c == 0) {
+    return;
   }
+
+  if (c & SCULPT_CORNER_FACE_SET) {
+    corner_smooth = MAX2(slide_fset, bound_smooth);
+  }
+  else {
+    corner_smooth = bound_smooth;
+  }
+
+  interp_v3_v3v3(result, result, co, 1.0f - corner_smooth);
 }
 
 void SCULPT_neighbor_coords_average_interior_velocity(SculptSession *ss,
@@ -485,7 +497,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     SculptVertRef vertex = {.i = (intptr_t)v};
 
     int val = SCULPT_vertex_valence_get(ss, vertex);
-    areas = BLI_array_alloca(areas, val);
+    areas = BLI_array_alloca(areas, val * 2);
 
     BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, val);
   }
@@ -1061,9 +1073,9 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     else {
       float avg[3], val[3];
 
-      if (SCULPT_vertex_is_corner(ss, vd.vertex, ctype) & ~SCULPT_CORNER_FACE_SET) {
-        // continue;
-      }
+      // if (SCULPT_vertex_is_corner(ss, vd.vertex, ctype) & ~SCULPT_CORNER_FACE_SET) {
+      // continue;
+      //}
 
       SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, projection, bound_scl);
       sub_v3_v3v3(val, avg, vd.co);

@@ -141,6 +141,8 @@ struct PBVH {
 
   int idgen;
 
+  bool dyntopo_stop;
+
   PBVHNode *nodes;
   int node_mem_count, totnode;
 

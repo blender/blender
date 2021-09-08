@@ -84,12 +84,12 @@ typedef enum SculptUpdateType {
   SCULPT_UPDATE_COLOR = 1 << 3,
 } SculptUpdateType;
 
-void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags);
-void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags);
+void SCULPT_flush_update_step(struct bContext *C, SculptUpdateType update_flags);
+void SCULPT_flush_update_done(const struct bContext *C, Object *ob, SculptUpdateType update_flags);
 void SCULPT_flush_stroke_deform(struct Sculpt *sd, Object *ob, bool is_proxy_used);
 
 /* Should be used after modifying the mask or Face Sets IDs. */
-void SCULPT_tag_update_overlays(bContext *C);
+void SCULPT_tag_update_overlays(struct bContext *C);
 
 /* Stroke */
 
@@ -437,13 +437,11 @@ float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
  * brushes and filter. */
 struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
 
-struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob);
+struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, Object *ob);
 void SCULPT_automasking_cache_free(struct AutomaskingCache *automasking);
 
-bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
-                                        const Brush *br,
-                                        const eAutomasking_flag mode);
-bool SCULPT_is_automasking_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br);
+bool SCULPT_is_automasking_mode_enabled(Sculpt *sd, const Brush *br, const eAutomasking_flag mode);
+bool SCULPT_is_automasking_enabled(Sculpt *sd, const SculptSession *ss, const Brush *br);
 
 typedef enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
@@ -1623,8 +1621,9 @@ bool SCULPT_temp_customlayer_get(
     SculptSession *ss, AttributeDomain domain, int proptype, char *name, SculptCustomLayer *scl);
 
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
+                                     Sculpt *sd,
                                      const Brush *br,
-                                     const Sculpt *sd,
+                                     Object *ob,
                                      DyntopoMaskCB *r_mask_cb,
                                      void **r_mask_cb_data);
 void SCULPT_dyntopo_automasking_end(void *mask_data);
@@ -1672,3 +1671,24 @@ void SCULPT_edge_get_verts(const SculptSession *ss,
 SculptVertRef SCULPT_edge_other_vertex(const SculptSession *ss,
                                        const SculptEdgeRef edge,
                                        const SculptVertRef vertex);
+
+#define SCULPT_REPLAY
+#ifdef SCULPT_REPLAY
+struct SculptReplayLog;
+struct SculptBrushSample;
+
+#  ifdef WIN32
+#    define REPLAY_EXPORT __declspec(dllexport)
+#  else
+#    define REPLAY_EXPORT
+#  endif
+
+void SCULPT_replay_log_free(struct SculptReplayLog *log);
+struct SculptReplayLog *SCULPT_replay_log_create();
+void SCULPT_replay_log_end();
+void SCULPT_replay_log_start();
+char *SCULPT_replay_serialize();
+void SCULPT_replay_log_append(struct Sculpt *sd, struct SculptSession *ss, struct Object *ob);
+void SCULPT_replay_test(void);
+
+#endif

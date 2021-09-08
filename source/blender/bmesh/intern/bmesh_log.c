@@ -955,6 +955,11 @@ static void bm_log_vert_values_swap(
       continue;
     }
 
+    if (v->head.htype != BM_VERT) {
+      printf("not a vertex: %d\n", v->head.htype);
+      continue;
+    }
+
     swap_v3_v3(v->co, lv->co);
     swap_v3_v3(v->no, lv->no);
 
@@ -1942,6 +1947,11 @@ BMLogEntry *BM_log_all_ids(BMesh *bm, BMLog *log, BMLogEntry *entry)
     entry = bm_log_entry_add_ex(bm, log, true, LOG_ENTRY_MESH_IDS, entry);
   }
 
+  if (!entry) {
+    // log was dead
+    return NULL;
+  }
+
   log_idmap_save(bm, log, entry);
   return entry;
 }
@@ -2040,6 +2050,26 @@ void BM_log_redo_skip(BMesh *bm, BMLog *log)
   else {
     log->current_entry = log->entries.first;
   }
+}
+
+void BM_log_undo_single(BMesh *bm,
+                        BMLog *log,
+                        BMLogCallbacks *callbacks,
+                        const char *node_layer_id)
+{
+  BMLogEntry *entry = log->current_entry;
+  log->bm = bm;
+
+  if (!entry) {
+    return;
+  }
+
+  BMLogEntry *preventry = entry->prev;
+
+  bm_log_undo_intern(bm, log, entry, callbacks, node_layer_id);
+  entry = entry->combined_prev;
+
+  log->current_entry = entry ? entry : preventry;
 }
 
 void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *node_layer_id)
@@ -2152,6 +2182,7 @@ void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *n
 
   log->current_entry = nextentry;
 }
+
 /* Log a vertex before it is modified
  *
  * Before modifying vertex coordinates, masks, or hflags, call this

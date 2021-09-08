@@ -1735,7 +1735,7 @@ SculptCornerType SCULPT_vertex_is_corner(const SculptSession *ss,
                                          SculptCornerType cornertype)
 {
   bool check_facesets = cornertype & SCULPT_CORNER_FACE_SET;
-  bool ret = false;
+  SculptCornerType ret = 0;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -2221,7 +2221,7 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
               SCULPT_TOOL_POSE);
 }
 
-static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
+bool sculpt_tool_is_proxy_used(const char sculpt_tool)
 {
   return ELEM(sculpt_tool,
               SCULPT_TOOL_SMOOTH,
@@ -7190,6 +7190,8 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss)
 typedef struct DynTopoAutomaskState {
   AutomaskingCache *cache;
   SculptSession *ss;
+  AutomaskingCache _fixed;
+  bool free_automasking;
 } DynTopoAutomaskState;
 
 static float sculpt_topology_automasking_cb(SculptVertRef vertex, void *vdata)
@@ -7208,8 +7210,9 @@ static float sculpt_topology_automasking_mask_cb(SculptVertRef vertex, void *vda
 }
 
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
+                                     Sculpt *sd,
                                      const Brush *br,
-                                     const Sculpt *sd,
+                                     Object *ob,
                                      DyntopoMaskCB *r_mask_cb,
                                      void **r_mask_cb_data)
 {
@@ -7217,7 +7220,14 @@ bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
     if (CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
       DynTopoAutomaskState *state = MEM_callocN(sizeof(DynTopoAutomaskState),
                                                 "DynTopoAutomaskState");
-      state->cache = ss->cache->automasking;
+
+      if (!ss->cache) {
+        state->cache = SCULPT_automasking_cache_init(sd, br, ob);
+      }
+      else {
+        state->cache = ss->cache->automasking;
+      }
+
       state->ss = (SculptSession *)ss;
 
       *r_mask_cb_data = (void *)state;
@@ -7233,7 +7243,14 @@ bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
   }
 
   DynTopoAutomaskState *state = MEM_callocN(sizeof(DynTopoAutomaskState), "DynTopoAutomaskState");
-  state->cache = ss->cache->automasking;
+  if (!ss->cache) {
+    state->cache = SCULPT_automasking_cache_init(sd, br, ob);
+    state->free_automasking = true;
+  }
+  else {
+    state->cache = ss->cache->automasking;
+  }
+
   state->ss = (SculptSession *)ss;
 
   *r_mask_cb_data = (void *)state;
@@ -7316,7 +7333,7 @@ static void sculpt_topology_update(Sculpt *sd,
   void *mask_cb_data;
   DyntopoMaskCB mask_cb;
 
-  SCULPT_dyntopo_automasking_init(ss, brush, sd, &mask_cb, &mask_cb_data);
+  SCULPT_dyntopo_automasking_init(ss, sd, brush, ob, &mask_cb, &mask_cb_data);
 
   /* do nodes under the brush cursor */
   modified = BKE_pbvh_bmesh_update_topology_nodes(
@@ -7384,7 +7401,7 @@ static void do_brush_action_task_cb(void *__restrict userdata,
   }
 }
 
-static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups)
+void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups)
 {
   SculptSession *ss = ob->sculpt;
   int totnode;
@@ -7534,6 +7551,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   }
 
   bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
+
+  SCULPT_replay_log_append(sd, ss, ob);
 
   /* Apply one type of brush action. */
   switch (brush->sculpt_tool) {
@@ -7839,7 +7858,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
   BKE_pbvh_node_free_proxies(data->nodes[n]);
 }
 
-static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
+void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -8904,7 +8923,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 /* Returns true if any of the smoothing modes are active (currently
  * one of smooth brush, autosmooth, mask smooth, or shift-key
  * smooth). */
-static bool sculpt_needs_connectivity_info(const Sculpt *sd,
+static bool sculpt_needs_connectivity_info(Sculpt *sd,
                                            const Brush *brush,
                                            SculptSession *ss,
                                            int stroke_mode)
@@ -9401,7 +9420,8 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
       SCULPT_update_object_bounding_box(ob);
     }
 
-    if (SCULPT_get_redraw_rect(region, CTX_wm_region_view3d(C), ob, &r)) {
+    if (CTX_wm_region_view3d(C) &&
+        SCULPT_get_redraw_rect(region, CTX_wm_region_view3d(C), ob, &r)) {
       if (ss->cache) {
         ss->cache->current_r = r;
       }
@@ -9561,7 +9581,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
   return false;
 }
 
-static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -9575,6 +9595,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     ss->cache->last_dyntopo_t = 0.0f;
+
     memset((void *)ss->cache->last_smooth_t, 0, sizeof(ss->cache->last_smooth_t));
     memset((void *)ss->cache->last_rake_t, 0, sizeof(ss->cache->last_rake_t));
   }
@@ -9582,7 +9603,9 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   BKE_brush_get_dyntopo(brush, sd, &brush->cached_dyntopo);
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
-  sculpt_update_cache_variants(C, sd, ob, itemptr);
+  if (itemptr) {
+    sculpt_update_cache_variants(C, sd, ob, itemptr);
+  }
   sculpt_restore_mesh(sd, ob);
 
   int boundsym = BKE_get_fset_boundary_symflag(ob);

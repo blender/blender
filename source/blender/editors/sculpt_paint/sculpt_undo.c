@@ -2479,3 +2479,61 @@ void sculpt_undo_print_nodes(void *active)
 
 #endif
 }
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
+void BM_log_undo_single(BMesh *bm,
+                        BMLog *log,
+                        BMLogCallbacks *callbacks,
+                        const char *node_layer_id);
+
+void SCULPT_substep_undo(bContext *C, int dir)
+{
+  Scene *scene = CTX_data_scene(C);
+  Object *ob = CTX_data_active_object(C);
+
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+  if (!scene || !ob || !ob->sculpt) {
+    printf("not in sculpt mode\n");
+    return;
+  }
+
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss->bm) {
+    printf("not in dyntopo mode\n");
+    return;
+  }
+
+  BmeshUndoData data = {ss->pbvh,
+                        ss->bm,
+                        false,
+                        false,
+                        ss->cd_face_node_offset,
+                        ss->cd_vert_node_offset,
+                        ss->cd_dyn_vert,
+                        false,
+                        false};
+
+  BMLogCallbacks callbacks = {bmesh_undo_on_vert_add,
+                              bmesh_undo_on_vert_kill,
+                              bmesh_undo_on_vert_change,
+                              bmesh_undo_on_edge_add,
+                              bmesh_undo_on_edge_kill,
+                              bmesh_undo_on_edge_change,
+                              bmesh_undo_on_face_add,
+                              bmesh_undo_on_face_kill,
+                              bmesh_undo_on_face_change,
+                              bmesh_undo_full_mesh,
+                              NULL,
+                              (void *)&data};
+
+  BM_log_undo_single(ss->bm, ss->bm_log, &callbacks, dyntopop_node_idx_layer_id);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+}

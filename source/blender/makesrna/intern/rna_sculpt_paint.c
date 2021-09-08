@@ -542,6 +542,58 @@ static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
   return imapaint->missing_data == 0;
 }
 
+void SCULPT_replay_log_free(struct SculptReplayLog *log);
+struct SculptReplayLog *SCULPT_replay_log_create();
+void SCULPT_replay_log_end();
+void SCULPT_replay_log_start();
+char *SCULPT_replay_serialize();
+void SCULPT_replay_log_append(struct Sculpt *sd, struct SculptSession *ss, struct Object *ob);
+void SCULPT_replay_test(void);
+void SCULPT_replay_parse(const char *buf);
+void SCULPT_replay(bContext *ctx);
+
+static void rna_SCULPT_replay_test(Sculpt *sculpt)
+{
+  SCULPT_replay_test();
+}
+
+static void rna_SCULPT_replay_start(Sculpt *sculpt)
+{
+  SCULPT_replay_log_start();
+}
+
+static const char *rna_SCULPT_replay_serialize(Sculpt *sculpt)
+{
+  return SCULPT_replay_serialize();
+}
+
+static void rna_SCULPT_replay_parse(Sculpt *sculpt, const char *buf)
+{
+  SCULPT_replay_parse(buf);
+}
+
+static void rna_SCULPT_replay_free(Sculpt *sculpt)
+{
+  SCULPT_replay_log_end();
+}
+
+static void rna_SCULPT_replay_replay(bContext *ctx)
+{
+  SCULPT_replay(ctx);
+}
+
+void SCULPT_replay_make_cube(struct bContext *C, int steps);
+static void rna_SCULPT_replay_make_cube(bContext *ctx, int steps)
+{
+  SCULPT_replay_make_cube(ctx, steps);
+}
+
+void SCULPT_substep_undo(bContext *ctx, int dir);
+static void rna_SCULPT_substep_undo(bContext *ctx, int dir)
+{
+  SCULPT_substep_undo(ctx, dir);
+}
+
 static char *rna_GPencilSculptSettings_path(PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt");
@@ -914,6 +966,41 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Orientation", "Object whose Z axis defines orientation of gravity");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  /* functions */
+  FunctionRNA *func;
+
+  func = RNA_def_function(srna, "test_replay", "rna_SCULPT_replay_test");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+
+  func = RNA_def_function(srna, "replay_start", "rna_SCULPT_replay_start");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+
+  func = RNA_def_function(srna, "replay_free", "rna_SCULPT_replay_free");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+
+  func = RNA_def_function(srna, "replay_replay", "rna_SCULPT_replay_replay");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+
+  func = RNA_def_function(srna, "replay_make_cube", "rna_SCULPT_replay_make_cube");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_int(func, "steps", 15, 1, 500, "steps", "steps", 1, 250);
+
+  func = RNA_def_function(srna, "debug_substep_undo", "rna_SCULPT_substep_undo");
+  RNA_def_function_ui_description(func, "Test function");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_int(func, "dir", -1, -1, 1, "dir", "dir", -1, 1);
+
+  func = RNA_def_function(srna, "replay_serialize", "rna_SCULPT_replay_serialize");
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
+  RNA_def_function_return(func, RNA_def_string(func, "ret", NULL, 1024 * 32, "return", "return"));
+
+  func = RNA_def_function(srna, "replay_parse", "rna_SCULPT_replay_parse");
+  RNA_def_string(func, "buf", NULL, 1024 * 32, "buf", "buf");
+
+  RNA_def_function_ui_description(func, "Test sculpt replay serialization");
 }
 
 static void rna_def_uv_sculpt(BlenderRNA *brna)

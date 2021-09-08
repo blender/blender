@@ -386,6 +386,10 @@ void BM_mesh_clear(BMesh *bm)
   bm->idmap.flag = idmap_flags;
 
   if (bm->idmap.flag & BM_HAS_IDS) {
+    bm->idmap.map = NULL;
+    bm->idmap.ghash = NULL;
+    bm->idmap.map_size = 0;
+
 #ifndef WITH_BM_ID_FREELIST
     bm->idmap.idtree = range_tree_uint_alloc(0, (uint)-1);
 #else
@@ -1970,7 +1974,7 @@ bool BM_defragment_vertex(BMesh *bm,
 {
   BMEdge *e = v->e;
 
-#if 0
+#if 1
   int cd_vcol = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
   if (cd_vcol >= 0) {
@@ -1985,7 +1989,7 @@ bool BM_defragment_vertex(BMesh *bm,
   }
 #endif
 
-  return false;
+  // return false;
 
   // return false;
 
