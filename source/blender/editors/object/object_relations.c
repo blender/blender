@@ -2729,25 +2729,26 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C,
                                                PointerRNA *properties,
                                                const wmEvent *event)
 {
-  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+  int mat_slot = 0;
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
   if (ob == NULL) {
     return BLI_strdup("");
   }
+  mat_slot = max_ii(mat_slot, 1);
 
   char name[MAX_ID_NAME - 2];
   RNA_string_get(properties, "name", name);
 
-  int active_mat_slot = max_ii(ob->actcol, 1);
-  Material *prev_mat = BKE_object_material_get(ob, active_mat_slot);
+  Material *prev_mat = BKE_object_material_get(ob, mat_slot);
 
   char *result;
   if (prev_mat) {
     const char *tooltip = TIP_("Drop %s on %s (slot %d, replacing %s)");
-    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, active_mat_slot, prev_mat->id.name + 2);
+    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, mat_slot, prev_mat->id.name + 2);
   }
   else {
     const char *tooltip = TIP_("Drop %s on %s (slot %d)");
-    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, active_mat_slot);
+    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, mat_slot);
   }
   return result;
 }
@@ -2755,7 +2756,10 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C,
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+  int mat_slot = 0;
+  Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
+  mat_slot = max_ii(mat_slot, 1);
+
   Material *ma;
   char name[MAX_ID_NAME - 2];
 
@@ -2765,9 +2769,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  const short active_mat_slot = ob->actcol;
-
-  BKE_object_material_assign(CTX_data_main(C), ob, ma, active_mat_slot, BKE_MAT_ASSIGN_USERPREF);
+  BKE_object_material_assign(CTX_data_main(C), ob, ma, mat_slot, BKE_MAT_ASSIGN_USERPREF);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 

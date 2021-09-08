@@ -566,6 +566,13 @@ eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const struct Scene *sce
 void view3d_opengl_select_cache_begin(void);
 void view3d_opengl_select_cache_end(void);
 
+int view3d_opengl_select_ex(struct ViewContext *vc,
+                            unsigned int *buffer,
+                            unsigned int bufsize,
+                            const struct rcti *input,
+                            eV3DSelectMode select_mode,
+                            eV3DSelectObjectFilter select_filter,
+                            const bool do_material_slot_selection);
 int view3d_opengl_select(struct ViewContext *vc,
                          unsigned int *buffer,
                          unsigned int bufsize,
@@ -638,6 +645,9 @@ void ED_view3d_draw_setup_view(const struct wmWindowManager *wm,
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
 struct Object *ED_view3d_give_object_under_cursor(struct bContext *C, const int mval[2]);
+struct Object *ED_view3d_give_material_slot_under_cursor(struct bContext *C,
+                                                         const int mval[2],
+                                                         int *r_material_slot);
 bool ED_view3d_is_object_under_cursor(struct bContext *C, const int mval[2]);
 void ED_view3d_quadview_update(struct ScrArea *area, struct ARegion *region, bool do_clip);
 void ED_view3d_update_viewmat(struct Depsgraph *depsgraph,

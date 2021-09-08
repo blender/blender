@@ -5754,3 +5754,9 @@ void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)
   }
   ob->id.py_instance = NULL;
 }
+
+bool BKE_object_supports_material_slots(struct Object *ob)
+{
+  return ELEM(
+      ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_HAIR, OB_POINTCLOUD, OB_VOLUME);
+}

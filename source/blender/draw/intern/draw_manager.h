@@ -553,6 +553,7 @@ typedef struct DRWManager {
 
   struct {
     uint is_select : 1;
+    uint is_material_select : 1;
     uint is_depth : 1;
     uint is_image_render : 1;
     uint is_scene_render : 1;
