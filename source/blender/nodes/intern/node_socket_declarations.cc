@@ -274,7 +274,7 @@ bNodeSocket &build_id_socket(bNodeTree &ntree,
                              StringRefNull identifier)
 {
   bNodeSocket &socket = *nodeAddSocket(
-      &ntree, &node, in_out, data.idname, name.c_str(), identifier.c_str());
+      &ntree, &node, in_out, data.idname, identifier.c_str(), name.c_str());
   if (data.hide_label) {
     socket.flag |= SOCK_HIDE_LABEL;
   }
