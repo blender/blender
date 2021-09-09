@@ -88,6 +88,7 @@
 #include "FN_field.hh"
 #include "FN_multi_function.hh"
 
+using blender::ColorGeometry4f;
 using blender::destruct_ptr;
 using blender::float3;
 using blender::FunctionRef;
@@ -335,6 +336,22 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       }
       return property;
     }
+    case SOCK_RGBA: {
+      bNodeSocketValueRGBA *value = (bNodeSocketValueRGBA *)socket.default_value;
+      IDPropertyTemplate idprop = {0};
+      idprop.array.len = 4;
+      idprop.array.type = IDP_FLOAT;
+      IDProperty *property = IDP_New(IDP_ARRAY, &idprop, socket.identifier);
+      copy_v4_v4((float *)IDP_Array(property), value->value);
+      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property);
+      ui_data->base.rna_subtype = PROP_COLOR;
+      ui_data->default_array = (double *)MEM_mallocN(sizeof(double[4]), __func__);
+      ui_data->default_array_len = 4;
+      for (const int i : IndexRange(4)) {
+        ui_data->default_array[i] = double(value->value[i]);
+      }
+      return property;
+    }
     case SOCK_BOOLEAN: {
       bNodeSocketValueBoolean *value = (bNodeSocketValueBoolean *)socket.default_value;
       IDPropertyTemplate idprop = {0};
@@ -391,6 +408,8 @@ static bool id_property_type_matches_socket(const bNodeSocket &socket, const IDP
       return property.type == IDP_INT;
     case SOCK_VECTOR:
       return property.type == IDP_ARRAY && property.subtype == IDP_FLOAT && property.len == 3;
+    case SOCK_RGBA:
+      return property.type == IDP_ARRAY && property.subtype == IDP_FLOAT && property.len == 4;
     case SOCK_BOOLEAN:
       return property.type == IDP_INT;
     case SOCK_STRING:
@@ -430,6 +449,12 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
       float3 value;
       copy_v3_v3(value, (const float *)IDP_Array(&property));
       new (r_value) blender::fn::Field<float3>(blender::fn::make_constant_field(value));
+      break;
+    }
+    case SOCK_RGBA: {
+      blender::ColorGeometry4f value;
+      copy_v4_v4((float *)value, (const float *)IDP_Array(&property));
+      new (r_value) blender::fn::Field<ColorGeometry4f>(blender::fn::make_constant_field(value));
       break;
     }
     case SOCK_BOOLEAN: {
