@@ -331,8 +331,8 @@ static void object_make_local(Main *bmain, ID *id, const int flags)
   Object *ob = (Object *)id;
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
   const bool clear_proxy = (flags & LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING) == 0;
-  const bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
-  const bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
+  bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
+  bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
   BLI_assert(force_copy == false || force_copy != force_local);
 
   bool is_local = false, is_lib = false;
@@ -346,32 +346,38 @@ static void object_make_local(Main *bmain, ID *id, const int flags)
 
   if (!force_local && !force_copy) {
     BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
-  }
-
-  if (lib_local || is_local || force_copy || force_local) {
-    if (!is_lib || force_local) {
-      BKE_lib_id_clear_library_data(bmain, &ob->id);
-      BKE_lib_id_expand_local(bmain, &ob->id);
-      if (clear_proxy) {
-        if (ob->proxy_from != NULL) {
-          ob->proxy_from->proxy = NULL;
-          ob->proxy_from->proxy_group = NULL;
-        }
-        ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
+    if (lib_local || is_local) {
+      if (!is_lib) {
+        force_local = true;
+      }
+      else {
+        force_copy = true;
       }
     }
-    else {
-      Object *ob_new = (Object *)BKE_id_copy(bmain, &ob->id);
-      id_us_min(&ob_new->id);
+  }
 
-      ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
-
-      /* setting newid is mandatory for complex make_lib_local logic... */
-      ID_NEW_SET(ob, ob_new);
-
-      if (!lib_local) {
-        BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+  if (force_local) {
+    BKE_lib_id_clear_library_data(bmain, &ob->id);
+    BKE_lib_id_expand_local(bmain, &ob->id);
+    if (clear_proxy) {
+      if (ob->proxy_from != NULL) {
+        ob->proxy_from->proxy = NULL;
+        ob->proxy_from->proxy_group = NULL;
       }
+      ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
+    }
+  }
+  else if (force_copy) {
+    Object *ob_new = (Object *)BKE_id_copy(bmain, &ob->id);
+    id_us_min(&ob_new->id);
+
+    ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
+
+    /* setting newid is mandatory for complex make_lib_local logic... */
+    ID_NEW_SET(ob, ob_new);
+
+    if (!lib_local) {
+      BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
     }
   }
 }
