@@ -36,8 +36,11 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
+#include "BKE_deform.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
@@ -53,6 +56,7 @@
 #include "MOD_meshcache_util.h" /* utility functions */
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {
@@ -84,11 +88,16 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 static void meshcache_do(MeshCacheModifierData *mcmd,
                          Scene *scene,
                          Object *ob,
+                         Mesh *mesh,
                          float (*vertexCos_Real)[3],
                          int numVerts)
 {
   const bool use_factor = mcmd->factor < 1.0f;
-  float(*vertexCos_Store)[3] = (use_factor ||
+  int influence_group_index;
+  MDeformVert *dvert;
+  MOD_get_vgroup(ob, mesh, mcmd->defgrp_name, &dvert, &influence_group_index);
+
+  float(*vertexCos_Store)[3] = (use_factor || influence_group_index != -1 ||
                                 (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE)) ?
                                    MEM_malloc_arrayN(
                                        numVerts, sizeof(*vertexCos_Store), __func__) :
@@ -256,7 +265,29 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 
   if (vertexCos_Store) {
     if (ok) {
-      if (use_factor) {
+      if (influence_group_index != -1) {
+        const float global_factor = (mcmd->flag & MOD_MESHCACHE_INVERT_VERTEX_GROUP) ?
+                                        -mcmd->factor :
+                                        mcmd->factor;
+        const float global_offset = (mcmd->flag & MOD_MESHCACHE_INVERT_VERTEX_GROUP) ?
+                                        mcmd->factor :
+                                        0.0f;
+        if (mesh->dvert != NULL) {
+          for (int i = 0; i < numVerts; i++) {
+            /* For each vertex, compute its blending factor between the mesh cache (for `fac = 0`)
+             * and the former position of the vertex (for `fac = 1`). */
+            const MDeformVert *currentIndexDVert = dvert + i;
+            const float local_vertex_fac = global_offset +
+                                           BKE_defvert_find_weight(currentIndexDVert,
+                                                                   influence_group_index) *
+                                               global_factor;
+            interp_v3_v3v3(
+                vertexCos_Real[i], vertexCos_Real[i], vertexCos_Store[i], local_vertex_fac);
+          }
+        }
+      }
+      else if (use_factor) {
+        /* Influence_group_index is -1. */
         interp_vn_vn(*vertexCos_Real, *vertexCos_Store, mcmd->factor, numVerts * 3);
       }
       else {
@@ -270,34 +301,59 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 
 static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
-                        Mesh *UNUSED(mesh),
+                        Mesh *mesh,
                         float (*vertexCos)[3],
                         int numVerts)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
-  meshcache_do(mcmd, scene, ctx->object, vertexCos, numVerts);
+  Mesh *mesh_src = NULL;
+
+  if (ctx->object->type == OB_MESH && mcmd->defgrp_name[0] != '\0') {
+    /* `mesh_src` is only needed for vertex groups. */
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  }
+  meshcache_do(mcmd, scene, ctx->object, mesh_src, vertexCos, numVerts);
+
+  if (!ELEM(mesh_src, NULL, mesh)) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
 static void deformVertsEM(ModifierData *md,
                           const ModifierEvalContext *ctx,
-                          struct BMEditMesh *UNUSED(editData),
-                          Mesh *UNUSED(mesh),
+                          struct BMEditMesh *editData,
+                          Mesh *mesh,
                           float (*vertexCos)[3],
                           int numVerts)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
-  meshcache_do(mcmd, scene, ctx->object, vertexCos, numVerts);
+  Mesh *mesh_src = NULL;
+
+  if (ctx->object->type == OB_MESH && mcmd->defgrp_name[0] != '\0') {
+    /* `mesh_src` is only needed for vertex groups. */
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
+  }
+  if (mesh_src != NULL) {
+    BKE_mesh_wrapper_ensure_mdata(mesh_src);
+  }
+
+  meshcache_do(mcmd, scene, ctx->object, mesh_src, vertexCos, numVerts);
+
+  if (!ELEM(mesh_src, NULL, mesh)) {
+    BKE_id_free(NULL, mesh_src);
+  }
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  PointerRNA ob_ptr;
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -307,6 +363,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "factor", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
   uiItemR(layout, ptr, "deform_mode", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "interpolation", 0, NULL, ICON_NONE);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
   modifier_panel_end(layout, ptr);
 }

@@ -1942,6 +1942,7 @@ typedef struct MeshCacheModifierData {
 
   float factor;
   char deform_mode;
+  char defgrp_name[64];
   char _pad[7];
 
   /* play_mode == MOD_MESHCACHE_PLAY_CFEA */
@@ -1957,6 +1958,11 @@ typedef struct MeshCacheModifierData {
   /** FILE_MAX. */
   char filepath[1024];
 } MeshCacheModifierData;
+
+/* MeshCache modifier flags. */
+enum {
+  MOD_MESHCACHE_INVERT_VERTEX_GROUP = 1 << 0,
+};
 
 enum {
   MOD_MESHCACHE_TYPE_MDD = 1,
