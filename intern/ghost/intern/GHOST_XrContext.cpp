@@ -135,7 +135,8 @@ void GHOST_XrContext::storeInstanceProperties()
       {"Monado(XRT) by Collabora et al", OPENXR_RUNTIME_MONADO},
       {"Oculus", OPENXR_RUNTIME_OCULUS},
       {"SteamVR/OpenXR", OPENXR_RUNTIME_STEAMVR},
-      {"Windows Mixed Reality Runtime", OPENXR_RUNTIME_WMR}};
+      {"Windows Mixed Reality Runtime", OPENXR_RUNTIME_WMR},
+      {"Varjo OpenXR Runtime", OPENXR_RUNTIME_VARJO}};
   decltype(runtime_map)::const_iterator runtime_map_iter;
 
   m_oxr->instance_properties.type = XR_TYPE_INSTANCE_PROPERTIES;
@@ -415,6 +416,12 @@ void GHOST_XrContext::getExtensionsToEnable(
   try_ext.push_back(XR_HTC_VIVE_COSMOS_CONTROLLER_INTERACTION_EXTENSION_NAME);
   try_ext.push_back(XR_HUAWEI_CONTROLLER_INTERACTION_EXTENSION_NAME);
 
+  /* Varjo quad view extension. */
+  try_ext.push_back(XR_VARJO_QUAD_VIEWS_EXTENSION_NAME);
+
+  /* Varjo foveated extension. */
+  try_ext.push_back(XR_VARJO_FOVEATED_RENDERING_EXTENSION_NAME);
+
   r_ext_names.reserve(try_ext.size() + graphics_binding_types.size());
 
   /* Add graphics binding extensions (may be multiple ones, we'll settle for one to use later, once
@@ -611,6 +618,13 @@ bool GHOST_XrContext::isDebugMode() const
 bool GHOST_XrContext::isDebugTimeMode() const
 {
   return m_debug_time;
+}
+
+bool GHOST_XrContext::isExtensionEnabled(const char *ext) const
+{
+  bool contains = std::find(m_enabled_extensions.begin(), m_enabled_extensions.end(), ext) !=
+                  m_enabled_extensions.end();
+  return contains;
 }
 
 /** \} */ /* Ghost Internal Accessors and Mutators */
