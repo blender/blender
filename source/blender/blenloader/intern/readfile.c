@@ -4561,6 +4561,17 @@ static void add_loose_object_data_to_scene(Main *mainvar,
     active_collection = lc->collection;
   }
 
+  /* Do not re-instantiate obdata IDs that are already instantiated by an object. */
+  LISTBASE_FOREACH (Object *, ob, &mainvar->objects) {
+    if ((ob->id.tag & LIB_TAG_PRE_EXISTING) == 0 && ob->data != NULL) {
+      ID *obdata = ob->data;
+      BLI_assert(ID_REAL_USERS(obdata) > 0);
+      if ((obdata->tag & LIB_TAG_PRE_EXISTING) == 0) {
+        obdata->tag &= ~LIB_TAG_DOIT;
+      }
+    }
+  }
+
   /* Loop over all ID types, instancing object-data for ID types that have support for it. */
   ListBase *lbarray[INDEX_ID_MAX];
   int i = set_listbasepointers(mainvar, lbarray);
