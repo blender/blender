@@ -196,8 +196,6 @@ static void export_startjob(void *customdata,
   }
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, upAxis);
-  usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit,
-                         pxr::VtValue(scene->unit.scale_length));
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender ") +
                                               BKE_blender_version_string());
 
@@ -265,7 +263,8 @@ static void export_startjob(void *customdata,
     }
   }
 
-  // Set Scale
+  /* Set unit scale.
+   * TODO(makowalsk): Add an option to use scene->unit.scale_length as well? */
   double meters_per_unit = data->params.convert_to_cm ? pxr::UsdGeomLinearUnits::centimeters :
                                                         pxr::UsdGeomLinearUnits::meters;
   pxr::UsdGeomSetStageMetersPerUnit(usd_stage, meters_per_unit);
