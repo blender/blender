@@ -87,7 +87,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
   int bflag = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP;
   float bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
-  float slide_fset = ss->cache->brush->autosmooth_fset_slide;
+  float slide_fset = BKE_brush_fset_slide_get(ss->scene, ss->cache->brush);
 
   slide_fset = MAX2(slide_fset, bound_smooth);
 
@@ -1046,7 +1046,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
   bool modified = false;
   const float bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
-  const float slide_fset = ss->cache->brush->autosmooth_fset_slide;
+  const float slide_fset = BKE_brush_fset_slide_get(ss->scene, ss->cache->brush);
 
   SculptCustomLayer *bound_scl = data->scl2;
 

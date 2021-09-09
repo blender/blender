@@ -1169,6 +1169,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 22)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+
+      if (ts) {
+        ts->unified_paint_settings.flag |= UNIFIED_PAINT_FLAG_HARD_EDGE_MODE;
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *

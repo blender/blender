@@ -2755,3 +2755,36 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
     }
   }
 };
+
+bool BKE_brush_hard_edge_mode_get(const Scene *scene, const Brush *brush)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  bool ret = (ups->flag & UNIFIED_PAINT_FLAG_HARD_EDGE_MODE) ? ups->hard_edge_mode :
+                                                               brush->flag2 & BRUSH_HARD_EDGE_MODE;
+
+  return ret;
+}
+
+void BKE_brush_hard_edge_mode_set(Scene *scene, Brush *brush, bool val)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+  if (ups->flag & UNIFIED_PAINT_FLAG_HARD_EDGE_MODE) {
+    ups->hard_edge_mode = val;
+  }
+  else {
+    if (val) {
+      brush->flag2 |= BRUSH_HARD_EDGE_MODE;
+    }
+    else {
+      brush->flag2 &= ~BRUSH_HARD_EDGE_MODE;
+    }
+  }
+}
+
+float BKE_brush_fset_slide_get(const Scene *scene, const Brush *brush)
+{
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+  return BKE_brush_hard_edge_mode_get(scene, brush) ? 0.0f : brush->autosmooth_fset_slide;
+}

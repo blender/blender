@@ -420,6 +420,9 @@ typedef enum eBrushFlags2 {
 
   /*topology rake in dynamic mode*/
   BRUSH_DYNAMIC_RAKE = (1 << 15),
+
+  /* sets face set slide to 0.0 */
+  BRUSH_HARD_EDGE_MODE = (1 << 16),
 } eBrushFlags2;
 
 typedef enum {

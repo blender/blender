@@ -1244,7 +1244,8 @@ typedef struct UnifiedPaintSettings {
   float pixel_radius;
   float initial_pixel_radius;
 
-  char _pad[4];
+  char _pad[3];
+  char hard_edge_mode;
 
   /* drawing pressure */
   float size_pressure_value;
@@ -1268,7 +1269,7 @@ typedef enum {
 
   /* only used if unified size is enabled, mirrors the brush flag BRUSH_LOCK_SIZE */
   UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
-  UNIFIED_PAINT_FLAG_UNUSED_0 = (1 << 3),
+  UNIFIED_PAINT_FLAG_HARD_EDGE_MODE = (1 << 3),
 
   UNIFIED_PAINT_FLAG_UNUSED_1 = (1 << 4),
 } eUnifiedPaintSettingsFlags;
