@@ -68,6 +68,8 @@
  *   #BLO_update_defaults_startup_blend & #blo_do_versions_userdef.
  */
 
+#define DNA_DEPRECATED_ALLOW
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
