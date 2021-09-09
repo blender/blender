@@ -1413,6 +1413,8 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
   int sharpcount = 0;
   int seamcount = 0;
   int fsetcount = 0;
+  int quadcount = 0;
+
 #if 0
   struct FaceSetRef {
     int fset;
@@ -1445,6 +1447,16 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
     }
 
     if (e->l) {
+      if (e->l != e->l->radial_next) {
+        if (e->l->f->len > 3) {
+          quadcount++;
+        }
+
+        if (e->l->radial_next->f->len > 3) {
+          quadcount++;
+        }
+      }
+
       int fset = BKE_pbvh_do_fset_symmetry(
           BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset), bound_symmetry, v2->co);
 
@@ -1511,7 +1523,7 @@ void bke_pbvh_update_vert_boundary(int cd_dyn_vert,
   }
 
   mv->valence = val;
-  if (val < 4 && (mv->flag & DYNVERT_BOUNDARY)) {
+  if ((mv->flag & DYNVERT_BOUNDARY) && quadcount >= 3) {
     mv->flag |= DYNVERT_CORNER;
   }
 

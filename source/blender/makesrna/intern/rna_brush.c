@@ -375,6 +375,7 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_INHERIT_SPACING, "SPACING", ICON_NONE, "Spacing", ""},
     {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", ""},
     {DYNTOPO_INHERIT_DETAIL_SIZE, "DETAIL_SIZE", ICON_NONE, "Detail Size", ""},
+    {DYNTOPO_INHERIT_RADIUS_SCALE, "RADIUS_SCALE", ICON_NONE, "Radius Scale", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
