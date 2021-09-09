@@ -69,7 +69,7 @@ class FieldNode {
   {
   }
 
-  ~FieldNode() = default;
+  virtual ~FieldNode() = default;
 
   virtual const CPPType &output_cpp_type(int output_index) const = 0;
 
