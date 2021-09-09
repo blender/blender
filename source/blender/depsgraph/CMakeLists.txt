@@ -161,6 +161,13 @@ set(LIB
   bf_blenkernel
 )
 
+if(WITH_PYTHON)
+  add_definitions(-DWITH_PYTHON)
+  list(APPEND INC
+    ../python
+  )
+endif()
+
 blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
