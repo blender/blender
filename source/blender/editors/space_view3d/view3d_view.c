@@ -137,7 +137,6 @@ void ED_view3d_smooth_view_ex(
 {
   RegionView3D *rv3d = region->regiondata;
   struct SmoothView3DStore sms = {{0}};
-  bool ok = false;
 
   /* initialize sms */
   view3d_smooth_view_state_backup(&sms.dst, v3d, rv3d);
@@ -200,29 +199,30 @@ void ED_view3d_smooth_view_ex(
     sms.to_camera = true; /* restore view3d values in end */
   }
 
-  /* skip smooth viewing for external render engine draw */
-  if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->render_engine)) {
-    bool changed = false; /* zero means no difference */
+  bool changed = false; /* zero means no difference */
 
-    if (sview->camera_old != sview->camera) {
-      changed = true;
-    }
-    else if (sms.dst.dist != rv3d->dist) {
-      changed = true;
-    }
-    else if (sms.dst.lens != v3d->lens) {
-      changed = true;
-    }
-    else if (!equals_v3v3(sms.dst.ofs, rv3d->ofs)) {
-      changed = true;
-    }
-    else if (!equals_v4v4(sms.dst.quat, rv3d->viewquat)) {
-      changed = true;
-    }
+  if (sview->camera_old != sview->camera) {
+    changed = true;
+  }
+  else if (sms.dst.dist != rv3d->dist) {
+    changed = true;
+  }
+  else if (sms.dst.lens != v3d->lens) {
+    changed = true;
+  }
+  else if (!equals_v3v3(sms.dst.ofs, rv3d->ofs)) {
+    changed = true;
+  }
+  else if (!equals_v4v4(sms.dst.quat, rv3d->viewquat)) {
+    changed = true;
+  }
 
-    /* The new view is different from the old one
-     * so animate the view */
-    if (changed) {
+  /* The new view is different from the previous state. */
+  if (changed) {
+
+    /* Skip smooth viewing for external render engine draw. */
+    if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->render_engine)) {
+
       /* original values */
       if (sview->camera_old) {
         Object *ob_camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
@@ -279,27 +279,25 @@ void ED_view3d_smooth_view_ex(
       }
       /* #TIMER1 is hard-coded in key-map. */
       rv3d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
-
-      ok = true;
     }
-  }
+    else {
+      if (sms.to_camera == false) {
+        copy_v3_v3(rv3d->ofs, sms.dst.ofs);
+        copy_qt_qt(rv3d->viewquat, sms.dst.quat);
+        rv3d->dist = sms.dst.dist;
+        v3d->lens = sms.dst.lens;
 
-  /* if we get here nothing happens */
-  if (ok == false) {
-    if (sms.to_camera == false) {
-      copy_v3_v3(rv3d->ofs, sms.dst.ofs);
-      copy_qt_qt(rv3d->viewquat, sms.dst.quat);
-      rv3d->dist = sms.dst.dist;
-      v3d->lens = sms.dst.lens;
+        ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
+      }
 
-      ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
+      if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
+        view3d_boxview_copy(area, region);
+      }
+
+      ED_region_tag_redraw(region);
+
+      WM_event_add_mousemove(win);
     }
-
-    if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
-      view3d_boxview_copy(area, region);
-    }
-
-    ED_region_tag_redraw(region);
   }
 }
 
@@ -320,6 +318,7 @@ void ED_view3d_smooth_view(bContext *C,
 /* only meant for timer usage */
 static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, bool sync_boxview)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   RegionView3D *rv3d = region->regiondata;
   struct SmoothView3DStore *sms = rv3d->sms;
   float step, step_inv;
@@ -333,6 +332,7 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
 
   /* end timer */
   if (step >= 1.0f) {
+    wmWindow *win = CTX_wm_window(C);
 
     /* if we went to camera, store the original */
     if (sms->to_camera) {
@@ -355,9 +355,12 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
     MEM_freeN(rv3d->sms);
     rv3d->sms = NULL;
 
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), rv3d->smooth_timer);
+    WM_event_remove_timer(wm, win, rv3d->smooth_timer);
     rv3d->smooth_timer = NULL;
     rv3d->rflag &= ~RV3D_NAVIGATING;
+
+    /* Event handling won't know if a UI item has been moved under the pointer. */
+    WM_event_add_mousemove(win);
   }
   else {
     /* ease in/out */
@@ -380,12 +383,9 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
 
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
-    if (ED_screen_animation_playing(CTX_wm_manager(C))) {
+    if (ED_screen_animation_playing(wm)) {
       ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
     }
-
-    /* Event handling won't know if a UI item has been moved under the pointer. */
-    WM_event_add_mousemove(CTX_wm_window(C));
   }
 
   if (sync_boxview && (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW)) {
