@@ -818,16 +818,20 @@ class VArray_For_VertexWeights final : public VArray<float> {
 class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
  public:
   ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
-                                       const StringRef attribute_name) const final
+                                       const AttributeIDRef &attribute_id) const final
   {
     BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
+    if (!attribute_id.is_named()) {
+      return {};
+    }
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
     const Mesh *mesh = mesh_component.get_for_read();
     if (mesh == nullptr) {
       return {};
     }
+    const std::string name = attribute_id.name();
     const int vertex_group_index = BLI_findstringindex(
-        &mesh->vertex_group_names, attribute_name.data(), offsetof(bDeformGroup, name));
+        &mesh->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
     if (vertex_group_index < 0) {
       return {};
     }
@@ -843,17 +847,21 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
   }
 
   WriteAttributeLookup try_get_for_write(GeometryComponent &component,
-                                         const StringRef attribute_name) const final
+                                         const AttributeIDRef &attribute_id) const final
   {
     BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
+    if (!attribute_id.is_named()) {
+      return {};
+    }
     MeshComponent &mesh_component = static_cast<MeshComponent &>(component);
     Mesh *mesh = mesh_component.get_for_write();
     if (mesh == nullptr) {
       return {};
     }
 
+    const std::string name = attribute_id.name();
     const int vertex_group_index = BLI_findstringindex(
-        &mesh->vertex_group_names, attribute_name.data(), offsetof(bDeformGroup, name));
+        &mesh->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
     if (vertex_group_index < 0) {
       return {};
     }
@@ -872,17 +880,21 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
         ATTR_DOMAIN_POINT};
   }
 
-  bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final
+  bool try_delete(GeometryComponent &component, const AttributeIDRef &attribute_id) const final
   {
     BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
+    if (!attribute_id.is_named()) {
+      return false;
+    }
     MeshComponent &mesh_component = static_cast<MeshComponent &>(component);
     Mesh *mesh = mesh_component.get_for_write();
     if (mesh == nullptr) {
       return true;
     }
 
+    const std::string name = attribute_id.name();
     const int vertex_group_index = BLI_findstringindex(
-        &mesh->vertex_group_names, attribute_name.data(), offsetof(bDeformGroup, name));
+        &mesh->vertex_group_names, name.c_str(), offsetof(bDeformGroup, name));
     if (vertex_group_index < 0) {
       return false;
     }

@@ -277,17 +277,17 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
 BLI_NOINLINE static void interpolate_existing_attributes(
     Span<GeometryInstanceGroup> set_groups,
     Span<int> instance_start_offsets,
-    const Map<std::string, AttributeKind> &attributes,
+    const Map<AttributeIDRef, AttributeKind> &attributes,
     GeometryComponent &component,
     Span<Vector<float3>> bary_coords_array,
     Span<Vector<int>> looptri_indices_array)
 {
-  for (Map<std::string, AttributeKind>::Item entry : attributes.items()) {
-    StringRef attribute_name = entry.key;
+  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
     const CustomDataType output_data_type = entry.value.data_type;
     /* The output domain is always #ATTR_DOMAIN_POINT, since we are creating a point cloud. */
     OutputAttribute attribute_out = component.attribute_try_get_for_output_only(
-        attribute_name, ATTR_DOMAIN_POINT, output_data_type);
+        attribute_id, ATTR_DOMAIN_POINT, output_data_type);
     if (!attribute_out) {
       continue;
     }
@@ -301,7 +301,7 @@ BLI_NOINLINE static void interpolate_existing_attributes(
       const Mesh &mesh = *source_component.get_for_read();
 
       std::optional<AttributeMetaData> attribute_info = component.attribute_get_meta_data(
-          attribute_name);
+          attribute_id);
       if (!attribute_info) {
         i_instance += set_group.transforms.size();
         continue;
@@ -309,7 +309,7 @@ BLI_NOINLINE static void interpolate_existing_attributes(
 
       const AttributeDomain source_domain = attribute_info->domain;
       GVArrayPtr source_attribute = source_component.attribute_get_for_read(
-          attribute_name, source_domain, output_data_type, nullptr);
+          attribute_id, source_domain, output_data_type, nullptr);
       if (!source_attribute) {
         i_instance += set_group.transforms.size();
         continue;
@@ -406,7 +406,7 @@ BLI_NOINLINE static void compute_special_attributes(Span<GeometryInstanceGroup> 
 BLI_NOINLINE static void add_remaining_point_attributes(
     Span<GeometryInstanceGroup> set_groups,
     Span<int> instance_start_offsets,
-    const Map<std::string, AttributeKind> &attributes,
+    const Map<AttributeIDRef, AttributeKind> &attributes,
     GeometryComponent &component,
     Span<Vector<float3>> bary_coords_array,
     Span<Vector<int>> looptri_indices_array)
@@ -629,7 +629,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   PointCloudComponent &point_component =
       geometry_set_out.get_component_for_write<PointCloudComponent>();
 
-  Map<std::string, AttributeKind> attributes;
+  Map<AttributeIDRef, AttributeKind> attributes;
   bke::geometry_set_gather_instances_attribute_info(
       set_groups, {GEO_COMPONENT_TYPE_MESH}, {"position", "normal", "id"}, attributes);
   add_remaining_point_attributes(set_groups,

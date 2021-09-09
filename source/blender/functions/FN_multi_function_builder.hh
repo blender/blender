@@ -417,4 +417,13 @@ class CustomMF_DefaultOutput : public MultiFunction {
   void call(IndexMask mask, MFParams params, MFContext context) const override;
 };
 
+class CustomMF_GenericCopy : public MultiFunction {
+ private:
+  MFSignature signature_;
+
+ public:
+  CustomMF_GenericCopy(StringRef name, MFDataType data_type);
+  void call(IndexMask mask, MFParams params, MFContext context) const override;
+};
+
 }  // namespace blender::fn

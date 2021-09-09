@@ -53,8 +53,8 @@ void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
                                          Span<bool> masks,
                                          const bool invert)
 {
-  for (const std::string &name : in_component.attribute_names()) {
-    ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(name);
+  for (const AttributeIDRef &attribute_id : in_component.attribute_ids()) {
+    ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(attribute_id);
     const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray->type());
 
     /* Only copy point attributes. Theoretically this could interpolate attributes on other
@@ -65,7 +65,7 @@ void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
     }
 
     OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
-        name, ATTR_DOMAIN_POINT, data_type);
+        attribute_id, ATTR_DOMAIN_POINT, data_type);
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);

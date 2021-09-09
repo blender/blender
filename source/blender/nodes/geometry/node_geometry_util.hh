@@ -84,7 +84,7 @@ struct CurveToPointsResults {
   MutableSpan<float> radii;
   MutableSpan<float> tilts;
 
-  Map<std::string, GMutableSpan> point_attributes;
+  Map<AttributeIDRef, GMutableSpan> point_attributes;
 
   MutableSpan<float3> tangents;
   MutableSpan<float3> normals;

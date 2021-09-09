@@ -331,7 +331,7 @@ void geometry_set_instances_attribute_foreach(const GeometrySet &geometry_set,
 void geometry_set_gather_instances_attribute_info(Span<GeometryInstanceGroup> set_groups,
                                                   Span<GeometryComponentType> component_types,
                                                   const Set<std::string> &ignored_attributes,
-                                                  Map<std::string, AttributeKind> &r_attributes)
+                                                  Map<AttributeIDRef, AttributeKind> &r_attributes)
 {
   for (const GeometryInstanceGroup &set_group : set_groups) {
     const GeometrySet &set = set_group.geometry_set;
@@ -341,23 +341,24 @@ void geometry_set_gather_instances_attribute_info(Span<GeometryInstanceGroup> se
       }
       const GeometryComponent &component = *set.get_component_for_read(component_type);
 
-      component.attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
-        if (ignored_attributes.contains(name)) {
-          return true;
-        }
-        auto add_info = [&](AttributeKind *attribute_kind) {
-          attribute_kind->domain = meta_data.domain;
-          attribute_kind->data_type = meta_data.data_type;
-        };
-        auto modify_info = [&](AttributeKind *attribute_kind) {
-          attribute_kind->domain = meta_data.domain; /* TODO: Use highest priority domain. */
-          attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
-              {attribute_kind->data_type, meta_data.data_type});
-        };
+      component.attribute_foreach(
+          [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+            if (attribute_id.is_named() && ignored_attributes.contains(attribute_id.name())) {
+              return true;
+            }
+            auto add_info = [&](AttributeKind *attribute_kind) {
+              attribute_kind->domain = meta_data.domain;
+              attribute_kind->data_type = meta_data.data_type;
+            };
+            auto modify_info = [&](AttributeKind *attribute_kind) {
+              attribute_kind->domain = meta_data.domain; /* TODO: Use highest priority domain. */
+              attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
+                  {attribute_kind->data_type, meta_data.data_type});
+            };
 
-        r_attributes.add_or_modify(name, add_info, modify_info);
-        return true;
-      });
+            r_attributes.add_or_modify(attribute_id, add_info, modify_info);
+            return true;
+          });
     }
   }
 }
@@ -512,11 +513,11 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
 
 static void join_attributes(Span<GeometryInstanceGroup> set_groups,
                             Span<GeometryComponentType> component_types,
-                            const Map<std::string, AttributeKind> &attribute_info,
+                            const Map<AttributeIDRef, AttributeKind> &attribute_info,
                             GeometryComponent &result)
 {
-  for (Map<std::string, AttributeKind>::Item entry : attribute_info.items()) {
-    StringRef name = entry.key;
+  for (Map<AttributeIDRef, AttributeKind>::Item entry : attribute_info.items()) {
+    const AttributeIDRef attribute_id = entry.key;
     const AttributeDomain domain_output = entry.value.domain;
     const CustomDataType data_type_output = entry.value.data_type;
     const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(data_type_output);
@@ -524,7 +525,7 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
 
     result.attribute_try_create(
         entry.key, domain_output, data_type_output, AttributeInitDefault());
-    WriteAttributeLookup write_attribute = result.attribute_try_get_for_write(name);
+    WriteAttributeLookup write_attribute = result.attribute_try_get_for_write(attribute_id);
     if (!write_attribute || &write_attribute.varray->type() != cpp_type ||
         write_attribute.domain != domain_output) {
       continue;
@@ -543,7 +544,7 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
             continue; /* Domain size is 0, so no need to increment the offset. */
           }
           GVArrayPtr source_attribute = component.attribute_try_get_for_read(
-              name, domain_output, data_type_output);
+              attribute_id, domain_output, data_type_output);
 
           if (source_attribute) {
             fn::GVArray_GSpan src_span{*source_attribute};
@@ -653,7 +654,7 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
   }
 
   /* Don't copy attributes that are stored directly in the mesh data structs. */
-  Map<std::string, AttributeKind> attributes;
+  Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set_gather_instances_attribute_info(
       set_groups,
       component_types,
@@ -674,7 +675,7 @@ static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_grou
   PointCloudComponent &dst_component = result.get_component_for_write<PointCloudComponent>();
   dst_component.replace(new_pointcloud);
 
-  Map<std::string, AttributeKind> attributes;
+  Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set_gather_instances_attribute_info(
       set_groups, {GEO_COMPONENT_TYPE_POINT_CLOUD}, {"position"}, attributes);
   join_attributes(set_groups,
@@ -708,7 +709,7 @@ static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, G
   CurveComponent &dst_component = result.get_component_for_write<CurveComponent>();
   dst_component.replace(curve);
 
-  Map<std::string, AttributeKind> attributes;
+  Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set_gather_instances_attribute_info(
       set_groups,
       {GEO_COMPONENT_TYPE_CURVE},

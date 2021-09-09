@@ -45,15 +45,20 @@ namespace blender::ed::spreadsheet {
 void GeometryDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &)> fn) const
 {
-  component_->attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
-    if (meta_data.domain != domain_) {
-      return true;
-    }
-    SpreadsheetColumnID column_id;
-    column_id.name = (char *)name.c_str();
-    fn(column_id);
-    return true;
-  });
+  component_->attribute_foreach(
+      [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        if (meta_data.domain != domain_) {
+          return true;
+        }
+        if (attribute_id.is_anonymous()) {
+          return true;
+        }
+        SpreadsheetColumnID column_id;
+        std::string name = attribute_id.name();
+        column_id.name = (char *)name.c_str();
+        fn(column_id);
+        return true;
+      });
 }
 
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(

@@ -161,8 +161,10 @@ GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_ful
 {
   bke::geometry_set_instances_attribute_foreach(
       geometry_set,
-      [&](StringRefNull attribute_name, const AttributeMetaData &meta_data) {
-        this->attributes_.append({attribute_name, meta_data.domain, meta_data.data_type});
+      [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        if (attribute_id.is_named()) {
+          this->attributes_.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
+        }
         return true;
       },
       8);

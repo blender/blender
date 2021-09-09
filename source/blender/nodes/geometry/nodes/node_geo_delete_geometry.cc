@@ -93,17 +93,17 @@ static void copy_dynamic_attributes(const CustomDataAttributes &src,
                                     const IndexMask mask)
 {
   src.foreach_attribute(
-      [&](StringRefNull name, const AttributeMetaData &meta_data) {
-        std::optional<GSpan> src_attribute = src.get_for_read(name);
+      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+        std::optional<GSpan> src_attribute = src.get_for_read(attribute_id);
         BLI_assert(src_attribute);
 
-        if (!dst.create(name, meta_data.data_type)) {
+        if (!dst.create(attribute_id, meta_data.data_type)) {
           /* Since the source spline of the same type had the attribute, adding it should work.
            */
           BLI_assert_unreachable();
         }
 
-        std::optional<GMutableSpan> new_attribute = dst.get_for_write(name);
+        std::optional<GMutableSpan> new_attribute = dst.get_for_write(attribute_id);
         BLI_assert(new_attribute);
 
         attribute_math::convert_to_static_type(new_attribute->type(), [&](auto dummy) {

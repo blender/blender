@@ -85,6 +85,7 @@
 #include "NOD_geometry.h"
 #include "NOD_geometry_nodes_eval_log.hh"
 
+#include "FN_field.hh"
 #include "FN_multi_function.hh"
 
 using blender::destruct_ptr;
@@ -410,28 +411,36 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
 {
   switch (socket_value_type) {
     case SOCK_FLOAT: {
+      float value = 0.0f;
       if (property.type == IDP_FLOAT) {
-        *(float *)r_value = IDP_Float(&property);
+        value = IDP_Float(&property);
       }
       else if (property.type == IDP_DOUBLE) {
-        *(float *)r_value = (float)IDP_Double(&property);
+        value = (float)IDP_Double(&property);
       }
+      new (r_value) blender::fn::Field<float>(blender::fn::make_constant_field(value));
       break;
     }
     case SOCK_INT: {
-      *(int *)r_value = IDP_Int(&property);
+      int value = IDP_Int(&property);
+      new (r_value) blender::fn::Field<int>(blender::fn::make_constant_field(value));
       break;
     }
     case SOCK_VECTOR: {
-      copy_v3_v3((float *)r_value, (const float *)IDP_Array(&property));
+      float3 value;
+      copy_v3_v3(value, (const float *)IDP_Array(&property));
+      new (r_value) blender::fn::Field<float3>(blender::fn::make_constant_field(value));
       break;
     }
     case SOCK_BOOLEAN: {
-      *(bool *)r_value = IDP_Int(&property) != 0;
+      bool value = IDP_Int(&property) != 0;
+      new (r_value) blender::fn::Field<bool>(blender::fn::make_constant_field(value));
       break;
     }
     case SOCK_STRING: {
-      new (r_value) std::string(IDP_String(&property));
+      std::string value = IDP_String(&property);
+      new (r_value)
+          blender::fn::Field<std::string>(blender::fn::make_constant_field(std::move(value)));
       break;
     }
     case SOCK_OBJECT: {

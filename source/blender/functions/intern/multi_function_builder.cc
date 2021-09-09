@@ -123,4 +123,32 @@ void CustomMF_DefaultOutput::call(IndexMask mask, MFParams params, MFContext UNU
   }
 }
 
+CustomMF_GenericCopy::CustomMF_GenericCopy(StringRef name, MFDataType data_type)
+{
+  MFSignatureBuilder signature{name};
+  signature.input("Input", data_type);
+  signature.output("Output", data_type);
+  signature_ = signature.build();
+  this->set_signature(&signature_);
+}
+
+void CustomMF_GenericCopy::call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const
+{
+  const MFDataType data_type = this->param_type(0).data_type();
+  switch (data_type.category()) {
+    case MFDataType::Single: {
+      const GVArray &inputs = params.readonly_single_input(0, "Input");
+      GMutableSpan outputs = params.uninitialized_single_output(1, "Output");
+      inputs.materialize_to_uninitialized(mask, outputs.data());
+      break;
+    }
+    case MFDataType::Vector: {
+      const GVVectorArray &inputs = params.readonly_vector_input(0, "Input");
+      GVectorArray &outputs = params.vector_output(1, "Output");
+      outputs.extend(mask, inputs);
+      break;
+    }
+  }
+}
+
 }  // namespace blender::fn

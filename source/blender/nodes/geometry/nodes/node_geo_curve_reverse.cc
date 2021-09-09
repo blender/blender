@@ -83,9 +83,9 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
       reverse_data<float>(splines[i]->tilts());
 
       splines[i]->attributes.foreach_attribute(
-          [&](StringRefNull name, const AttributeMetaData &meta_data) {
+          [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
             std::optional<blender::fn::GMutableSpan> output_attribute =
-                splines[i]->attributes.get_for_write(name);
+                splines[i]->attributes.get_for_write(attribute_id);
             if (!output_attribute) {
               BLI_assert_unreachable();
               return false;

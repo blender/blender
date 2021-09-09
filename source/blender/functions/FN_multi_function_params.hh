@@ -195,7 +195,7 @@ class MFParams {
   template<typename T> const VArray<T> &readonly_single_input(int param_index, StringRef name = "")
   {
     const GVArray &array = this->readonly_single_input(param_index, name);
-    return builder_->scope_.construct<VArray_For_GVArray<T>>(__func__, array);
+    return builder_->scope_.construct<GVArray_Typed<T>>(__func__, array);
   }
   const GVArray &readonly_single_input(int param_index, StringRef name = "")
   {

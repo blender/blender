@@ -142,6 +142,7 @@ set(SRC
   function/node_function_util.cc
 
   geometry/nodes/node_geo_align_rotation_to_vector.cc
+  geometry/nodes/node_geo_attribute_capture.cc
   geometry/nodes/node_geo_attribute_clamp.cc
   geometry/nodes/node_geo_attribute_color_ramp.cc
   geometry/nodes/node_geo_attribute_combine_xyz.cc
@@ -187,6 +188,9 @@ set(SRC
   geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_material.cc
+  geometry/nodes/node_geo_input_normal.cc
+  geometry/nodes/node_geo_input_position.cc
+  geometry/nodes/node_geo_input_index.cc
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_assign.cc
@@ -212,6 +216,7 @@ set(SRC
   geometry/nodes/node_geo_raycast.cc
   geometry/nodes/node_geo_select_by_material.cc
   geometry/nodes/node_geo_separate_components.cc
+  geometry/nodes/node_geo_set_position.cc
   geometry/nodes/node_geo_subdivision_surface.cc
   geometry/nodes/node_geo_switch.cc
   geometry/nodes/node_geo_transform.cc
