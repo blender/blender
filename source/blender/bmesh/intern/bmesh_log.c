@@ -2776,17 +2776,17 @@ static int bmlog_entry_memsize(BMLogEntry *entry)
     ret += entry->pdata.pool ? (int)BLI_mempool_get_size(entry->pdata.pool) : 0;
 
     // estimate ghash memory usage
-    ret += BLI_ghash_len(entry->added_verts) * (int)sizeof(void *) * 4;
-    ret += BLI_ghash_len(entry->added_edges) * (int)sizeof(void *) * 4;
-    ret += BLI_ghash_len(entry->added_faces) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->added_verts) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->added_edges) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->added_faces) * (int)sizeof(void *) * 4;
 
-    ret += BLI_ghash_len(entry->modified_verts) * (int)sizeof(void *) * 4;
-    ret += BLI_ghash_len(entry->modified_edges) * (int)sizeof(void *) * 4;
-    ret += BLI_ghash_len(entry->modified_faces) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->modified_verts) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->modified_edges) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->modified_faces) * (int)sizeof(void *) * 4;
 
-    ret += BLI_ghash_len(entry->deleted_verts) * (int)sizeof(void *) * 4;
-    ret += BLI_ghash_len(entry->deleted_edges) * (int)sizeof(void *) * 4;
-    ret += BLI_ghash_len(entry->deleted_faces) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->deleted_verts) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->deleted_edges) * (int)sizeof(void *) * 4;
+    ret += (int)BLI_ghash_len(entry->deleted_faces) * (int)sizeof(void *) * 4;
   }
   else if (entry->type == LOG_ENTRY_FULL_MESH) {
     Mesh *me = entry->full_copy_mesh;
