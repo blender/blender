@@ -118,7 +118,7 @@ void ABCAbstractWriter::update_bounding_box(Object *object)
 
   if (!bb) {
     if (object->type != OB_CAMERA) {
-      CLOG_WARN(&LOG, "Bounding box is null!\n");
+      CLOG_WARN(&LOG, "Bounding box is null!");
     }
     bounding_box_.min.x = bounding_box_.min.y = bounding_box_.min.z = 0;
     bounding_box_.max.x = bounding_box_.max.y = bounding_box_.max.z = 0;
