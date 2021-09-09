@@ -20,6 +20,7 @@
  * Abstraction for XR (VR, AR, MR, ..) access via OpenXR.
  */
 
+#include <algorithm>
 #include <cassert>
 #include <sstream>
 #include <string>
