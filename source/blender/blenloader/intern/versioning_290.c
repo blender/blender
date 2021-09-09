@@ -1092,8 +1092,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (md->type == eModifierType_MeshSequenceCache) {
             MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
             mcmd->velocity_scale = 1.0f;
-            mcmd->vertex_velocities = NULL;
-            mcmd->num_vertices = 0;
           }
         }
       }

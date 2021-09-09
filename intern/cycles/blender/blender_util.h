@@ -573,22 +573,6 @@ static inline bool object_use_deform_motion(BL::Object &b_parent, BL::Object &b_
   return use_deform_motion;
 }
 
-static inline BL::FluidDomainSettings object_fluid_liquid_domain_find(BL::Object &b_ob)
-{
-  for (BL::Modifier &b_mod : b_ob.modifiers) {
-    if (b_mod.is_a(&RNA_FluidModifier)) {
-      BL::FluidModifier b_mmd(b_mod);
-
-      if (b_mmd.fluid_type() == BL::FluidModifier::fluid_type_DOMAIN &&
-          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_LIQUID) {
-        return b_mmd.domain_settings();
-      }
-    }
-  }
-
-  return BL::FluidDomainSettings(PointerRNA_NULL);
-}
-
 static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b_ob)
 {
   for (BL::Modifier &b_mod : b_ob.modifiers) {
@@ -606,7 +590,6 @@ static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b
 }
 
 static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
-                                                                   bool check_velocity,
                                                                    bool *has_subdivision_modifier)
 {
   for (int i = b_ob.modifiers.length() - 1; i >= 0; --i) {
@@ -614,13 +597,6 @@ static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b
 
     if (b_mod.type() == BL::Modifier::type_MESH_SEQUENCE_CACHE) {
       BL::MeshSequenceCacheModifier mesh_cache = BL::MeshSequenceCacheModifier(b_mod);
-
-      if (check_velocity) {
-        if (!MeshSequenceCacheModifier_has_velocity_get(&mesh_cache.ptr)) {
-          return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
-        }
-      }
-
       return mesh_cache;
     }
 
@@ -629,9 +605,7 @@ static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b
       continue;
     }
 
-    /* Only skip the subsurf modifier if we are not checking for the mesh sequence cache modifier
-     * for motion blur. */
-    if (b_mod.type() == BL::Modifier::type_SUBSURF && !check_velocity) {
+    if (b_mod.type() == BL::Modifier::type_SUBSURF) {
       if (has_subdivision_modifier) {
         *has_subdivision_modifier = true;
       }

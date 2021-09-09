@@ -1473,7 +1473,6 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
         fmd->domain->tex_velocity_y = NULL;
         fmd->domain->tex_velocity_z = NULL;
         fmd->domain->tex_wt = NULL;
-        fmd->domain->mesh_velocities = NULL;
         BLO_read_data_address(reader, &fmd->domain->coba);
 
         BLO_read_data_address(reader, &fmd->domain->effector_weights);

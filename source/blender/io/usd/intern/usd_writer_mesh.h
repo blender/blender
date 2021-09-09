@@ -49,7 +49,7 @@ class USDGenericMeshWriter : public USDAbstractWriter {
                         const MaterialFaceGroups &usd_face_groups);
   void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
-  void write_surface_velocity(Object *object, const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {
