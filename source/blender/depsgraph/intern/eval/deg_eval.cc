@@ -41,10 +41,6 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#ifdef WITH_PYTHON
-#  include "BPY_extern.h"
-#endif
-
 #include "atomic_ops.h"
 
 #include "intern/depsgraph.h"
@@ -379,11 +375,6 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 
   graph->debug.begin_graph_evaluation();
 
-#ifdef WITH_PYTHON
-  /* Release the GIL so that Python drivers can be evaluated. See T91046. */
-  BPy_BEGIN_ALLOW_THREADS;
-#endif
-
   graph->is_evaluating = true;
   depsgraph_ensure_view_layer(graph);
   /* Set up evaluation state. */
@@ -423,10 +414,6 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   /* Clear any uncleared tags - just in case. */
   deg_graph_clear_tags(graph);
   graph->is_evaluating = false;
-
-#ifdef WITH_PYTHON
-  BPy_END_ALLOW_THREADS;
-#endif
 
   graph->debug.end_graph_evaluation();
 }
