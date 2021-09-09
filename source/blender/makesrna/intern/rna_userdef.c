@@ -6073,26 +6073,25 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "File Paths", "Default paths for external files");
 
   prop = RNA_def_property(srna, "show_hidden_files_datablocks", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_DOT);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_HIDE_DOT);
   RNA_def_property_ui_text(prop,
-                           "Hide Dot Files/Data-Blocks",
-                           "Hide files and data-blocks if their name start with a dot (.*)");
+                           "Show Hidden Files/Data-Blocks",
+                           "Show files and data-blocks that are normally hidden");
 
   prop = RNA_def_property(srna, "use_filter_files", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_FILTERFILEEXTS);
-  RNA_def_property_ui_text(prop,
-                           "Filter File Extensions",
-                           "Display only files with extensions in the image select window");
-
-  prop = RNA_def_property(srna, "hide_recent_locations", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_RECENT);
   RNA_def_property_ui_text(
-      prop, "Hide Recent Locations", "Hide recent locations in the file selector");
+      prop, "Filter Files", "Enable filtering of files in the File Browser");
 
-  prop = RNA_def_property(srna, "hide_system_bookmarks", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_SYSTEM_BOOKMARKS);
+  prop = RNA_def_property(srna, "show_recent_locations", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_HIDE_RECENT);
   RNA_def_property_ui_text(
-      prop, "Hide System Bookmarks", "Hide system bookmarks in the file selector");
+      prop, "Show Recent Locations", "Show Recent locations list in the File Browser");
+
+  prop = RNA_def_property(srna, "show_system_bookmarks", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_HIDE_SYSTEM_BOOKMARKS);
+  RNA_def_property_ui_text(
+      prop, "Show System Locations", "Show System locations list in the File Browser");
 
   prop = RNA_def_property(srna, "use_relative_paths", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELPATHS);
