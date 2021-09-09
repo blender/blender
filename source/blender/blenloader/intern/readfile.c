@@ -4500,7 +4500,8 @@ static void add_loose_objects_to_scene(Main *mainvar,
    * or for a collection when *lib has been set. */
   LISTBASE_FOREACH (Object *, ob, &mainvar->objects) {
     bool do_it = (ob->id.tag & LIB_TAG_DOIT) != 0;
-    if (do_it || ((ob->id.tag & LIB_TAG_INDIRECT) && (ob->id.tag & LIB_TAG_PRE_EXISTING) == 0)) {
+    if (do_it ||
+        ((ob->id.tag & LIB_TAG_INDIRECT) != 0 && (ob->id.tag & LIB_TAG_PRE_EXISTING) == 0)) {
       if (do_append) {
         if (ob->id.us == 0) {
           do_it = true;
@@ -4648,7 +4649,7 @@ static void add_collections_to_scene(Main *mainvar,
         LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
           Object *ob = coll_ob->ob;
           if ((ob->id.tag & (LIB_TAG_PRE_EXISTING | LIB_TAG_DOIT | LIB_TAG_INDIRECT)) == 0 &&
-              (ob->id.lib == lib) && (object_in_any_scene(bmain, ob) == 0)) {
+              (ob->id.lib == lib) && (object_in_any_scene(bmain, ob) == false)) {
             do_add_collection = true;
             break;
           }
