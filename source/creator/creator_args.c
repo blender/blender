@@ -1920,7 +1920,7 @@ static int arg_handle_python_use_system_env_set(int UNUSED(argc),
 
 static const char arg_handle_addons_set_doc[] =
     "<addon(s)>\n"
-    "\tComma separated list of add-ons (no spaces).";
+    "\tComma separated list (no spaces) of add-ons to enable in addition to any default add-ons.";
 static int arg_handle_addons_set(int argc, const char **argv, void *data)
 {
   /* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
