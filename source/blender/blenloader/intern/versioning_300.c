@@ -1219,7 +1219,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 300, 21)) {
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 22)) {
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type == NTREE_GEOMETRY) {
         version_geometry_nodes_change_legacy_names(ntree);
