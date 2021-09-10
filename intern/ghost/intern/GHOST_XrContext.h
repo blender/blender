@@ -139,5 +139,6 @@ class GHOST_XrContext : public GHOST_IXrContext {
   std::vector<GHOST_TXrGraphicsBinding> determineGraphicsBindingTypesToEnable(
       const GHOST_XrContextCreateInfo *create_info);
   GHOST_TXrGraphicsBinding determineGraphicsBindingTypeToUse(
-      const std::vector<GHOST_TXrGraphicsBinding> &enabled_types);
+      const std::vector<GHOST_TXrGraphicsBinding> &enabled_types,
+      const GHOST_XrContextCreateInfo *create_info);
 };

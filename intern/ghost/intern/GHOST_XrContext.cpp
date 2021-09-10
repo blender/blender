@@ -99,7 +99,7 @@ void GHOST_XrContext::initialize(const GHOST_XrContextCreateInfo *create_info)
   storeInstanceProperties();
 
   /* Multiple bindings may be enabled. Now that we know the runtime in use, settle for one. */
-  m_gpu_binding_type = determineGraphicsBindingTypeToUse(graphics_binding_types);
+  m_gpu_binding_type = determineGraphicsBindingTypeToUse(graphics_binding_types, create_info);
 
   printInstanceInfo();
   if (isDebugMode()) {
@@ -473,14 +473,16 @@ std::vector<GHOST_TXrGraphicsBinding> GHOST_XrContext::determineGraphicsBindingT
 }
 
 GHOST_TXrGraphicsBinding GHOST_XrContext::determineGraphicsBindingTypeToUse(
-    const std::vector<GHOST_TXrGraphicsBinding> &enabled_types)
+    const std::vector<GHOST_TXrGraphicsBinding> &enabled_types,
+    const GHOST_XrContextCreateInfo *create_info)
 {
   /* Return the first working type. */
   for (GHOST_TXrGraphicsBinding type : enabled_types) {
 #ifdef WIN32
-    /* The SteamVR OpenGL backend fails currently. Disable it and allow falling back to the DirectX
-     * one. */
-    if ((m_runtime_id == OPENXR_RUNTIME_STEAMVR) && (type == GHOST_kXrGraphicsOpenGL)) {
+    /* The SteamVR OpenGL backend currently fails for NVIDIA gpus. Disable it and allow falling
+     * back to the DirectX one. */
+    if ((m_runtime_id == OPENXR_RUNTIME_STEAMVR) && (type == GHOST_kXrGraphicsOpenGL) &&
+        ((create_info->context_flag & GHOST_kXrContextGpuNVIDIA) != 0)) {
       continue;
     }
 #endif
